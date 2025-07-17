@@ -11,11 +11,11 @@ import copy
 def sparse_bsr_tensor_inputs():
     list_of_inputs = []
 
-    # Input 1
-    compressed_indices = torch.tensor(np.array([0, 1]))
+    # Input 1: Basic 2D example
+    compressed_indices = torch.tensor(np.array([0, 1], dtype=np.int32))
     plain_indices = torch.tensor(np.array([[0, 0], [1, 1]]))
-    values = torch.tensor(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32))
-    size = (2, 2, 2, 2)
+    values = torch.tensor(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
+    size = (2, 2)
     blocksize = (2, 2)
     dtype = torch.float32
     requires_grad = False
@@ -31,127 +31,91 @@ def sparse_bsr_tensor_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    compressed_indices = torch.tensor(np.array([0, 2]))
-    plain_indices = torch.tensor(np.array([[0, 0], [0, 1], [1, 0], [1, 1]]))
-    values = torch.tensor(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]],[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.int64))
-    size = (2, 2, 2, 2)
-    blocksize = (2, 2)
-    dtype = torch.int64
-    requires_grad = True
-    input_dict = {
-        "compressed_indices": compressed_indices,
-        "plain_indices": plain_indices,
-        "values": values,
-        "size": size,
-        "blocksize": blocksize,
-        "dtype": dtype,
-        "requires_grad": requires_grad
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
-    compressed_indices = torch.tensor(np.array([0, 1]))
-    plain_indices = torch.tensor(np.array([[0, 0, 0], [1, 1, 1]]))
-    values = torch.tensor(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float64))
-    size = (2, 2, 2, 2)
-    blocksize = (2, 2)
-    dtype = torch.float64
-    requires_grad = False
-    input_dict = {
-        "compressed_indices": compressed_indices,
-        "plain_indices": plain_indices,
-        "values": values,
-        "size": size,
-        "blocksize": blocksize,
-        "dtype": dtype,
-        "requires_grad": requires_grad
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    compressed_indices = torch.tensor(np.array([0, 1, 2]))
-    plain_indices = torch.tensor(np.array([[0, 0], [1, 1], [2, 2]]))
-    values = torch.tensor(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]]], dtype=np.float32))
-    size = (3, 2, 2, 2)
-    blocksize = (2, 2)
-    dtype = torch.float32
-    requires_grad = True
-    input_dict = {
-        "compressed_indices": compressed_indices,
-        "plain_indices": plain_indices,
-        "values": values,
-        "size": size,
-        "blocksize": blocksize,
-        "dtype": dtype,
-        "requires_grad": requires_grad
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    compressed_indices = torch.tensor(np.array([0, 2, 3]))
-    plain_indices = torch.tensor(np.array([[0, 0], [0, 1], [2, 0], [3, 1]]))
-    values = torch.tensor(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.int32))
-    size = (4, 2, 2, 2)
-    blocksize = (2, 2)
-    dtype = torch.int32
-    requires_grad = False
-    input_dict = {
-        "compressed_indices": compressed_indices,
-        "plain_indices": plain_indices,
-        "values": values,
-        "size": size,
-        "blocksize": blocksize,
-        "dtype": dtype,
-        "requires_grad": requires_grad
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    compressed_indices = torch.tensor(np.array([0, 1]))
-    plain_indices = torch.tensor(np.array([[0], [1]]))
-    values = torch.tensor(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32))
-    size = (2, 2, 2, 2)
-    blocksize = (2, 2)
-    dtype = torch.float32
-    requires_grad = True
-
-    input_dict = {
-        "compressed_indices": compressed_indices,
-        "plain_indices": plain_indices,
-        "values": values,
-        "size": size,
-        "blocksize": blocksize,
-        "dtype": dtype,
-        "requires_grad": requires_grad
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    compressed_indices = torch.tensor(np.array([0]))
-    plain_indices = torch.tensor(np.array([[0, 0]]))
-    values = torch.tensor(np.array([[[1, 2], [3, 4]]], dtype=np.float32))
-    size = (1, 2, 2, 2)
-    blocksize = (2, 2)
-    dtype = torch.float32
-    requires_grad = False
-
-    input_dict = {
-        "compressed_indices": compressed_indices,
-        "plain_indices": plain_indices,
-        "values": values,
-        "size": size,
-        "blocksize": blocksize,
-        "dtype": dtype,
-        "requires_grad": requires_grad
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    compressed_indices = torch.tensor(np.array([0, 1]))
+    # Input 2: requires_grad = True
+    compressed_indices = torch.tensor(np.array([0, 1], dtype=np.int32))
     plain_indices = torch.tensor(np.array([[0, 0], [1, 1]]))
-    values = torch.tensor(np.array([[[1]], [[5]]], dtype=np.float32))
-    size = (2, 1, 1, 1)
+    values = torch.tensor(np.array([[[1., 2.], [3., 4.]], [[5., 6.], [7., 8.]]]))
+    size = (2, 2)
+    blocksize = (2, 2)
+    dtype = torch.float32
+    requires_grad = True
+
+    input_dict = {
+        "compressed_indices": compressed_indices,
+        "plain_indices": plain_indices,
+        "values": values,
+        "size": size,
+        "blocksize": blocksize,
+        "dtype": dtype,
+        "requires_grad": requires_grad
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Different blocksize
+    compressed_indices = torch.tensor(np.array([0, 1], dtype=np.int32))
+    plain_indices = torch.tensor(np.array([[0, 0], [0, 1]]))
+    values = torch.tensor(np.array([[[1, 2, 3]], [[4, 5, 6]]]))
+    size = (1, 2)
+    blocksize = (1, 3)
+    dtype = torch.float32
+    requires_grad = False
+
+    input_dict = {
+        "compressed_indices": compressed_indices,
+        "plain_indices": plain_indices,
+        "values": values,
+        "size": size,
+        "blocksize": blocksize,
+        "dtype": dtype,
+        "requires_grad": requires_grad
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Larger size, more blocks
+    compressed_indices = torch.tensor(np.array([0, 1, 2], dtype=np.int32))
+    plain_indices = torch.tensor(np.array([[0, 0], [0, 1], [1, 0]]))
+    values = torch.tensor(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]]]))
+    size = (2, 2)
+    blocksize = (2, 2)
+    dtype = torch.float32
+    requires_grad = False
+
+    input_dict = {
+        "compressed_indices": compressed_indices,
+        "plain_indices": plain_indices,
+        "values": values,
+        "size": size,
+        "blocksize": blocksize,
+        "dtype": dtype,
+        "requires_grad": requires_grad
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5:  1D compressed_indices, and plain_indices
+    compressed_indices = torch.tensor(np.array([0, 1], dtype=np.int32))
+    plain_indices = torch.tensor(np.array([[0], [2]]))
+    values = torch.tensor(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
+    size = (3, 2)
+    blocksize = (1, 2)
+    dtype = torch.float32
+    requires_grad = False
+
+    input_dict = {
+        "compressed_indices": compressed_indices,
+        "plain_indices": plain_indices,
+        "values": values,
+        "size": size,
+        "blocksize": blocksize,
+        "dtype": dtype,
+        "requires_grad": requires_grad
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: different shape of values (3d), while blocksize = (1,1)
+    compressed_indices = torch.tensor(np.array([0, 1], dtype=np.int32))
+    plain_indices = torch.tensor(np.array([[0, 0], [1, 1]]))
+    values = torch.tensor(np.array([[[1]], [[2]]]))
+    size = (2, 2)
     blocksize = (1, 1)
     dtype = torch.float32
     requires_grad = False
@@ -166,13 +130,33 @@ def sparse_bsr_tensor_inputs():
         "requires_grad": requires_grad
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: Smaller values
+    compressed_indices = torch.tensor(np.array([0], dtype=np.int32))
+    plain_indices = torch.tensor(np.array([[0, 0]]))
+    values = torch.tensor(np.array([[[0.1, 0.2], [0.3, 0.4]]]))
+    size = (1, 1)
+    blocksize = (2, 2)
+    dtype = torch.float64
+    requires_grad = False
 
-    # Input 9
-    compressed_indices = torch.tensor(np.array([0, 1]))
-    plain_indices = torch.tensor(np.array([[0, 0], [1, 1]]))
-    values = torch.tensor(np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]], [[10, 11, 12], [13, 14, 15], [16, 17, 18]]], dtype=np.float32))
-    size = (2, 3, 3, 3)
-    blocksize = (3, 3)
+    input_dict = {
+        "compressed_indices": compressed_indices,
+        "plain_indices": plain_indices,
+        "values": values,
+        "size": size,
+        "blocksize": blocksize,
+        "dtype": dtype,
+        "requires_grad": requires_grad
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Larger plain_indices
+    compressed_indices = torch.tensor(np.array([0, 1], dtype=np.int32))
+    plain_indices = torch.tensor(np.array([[0, 1], [2, 3]]))
+    values = torch.tensor(np.array([[[1, 2]], [[5, 6]]]))
+    size = (3, 4)
+    blocksize = (1, 2)
     dtype = torch.float32
     requires_grad = False
 
@@ -187,14 +171,15 @@ def sparse_bsr_tensor_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10
-    compressed_indices = torch.tensor(np.array([0, 1]))
+    # Input 9: Different blocksize
+    compressed_indices = torch.tensor(np.array([0, 1], dtype=np.int32))
     plain_indices = torch.tensor(np.array([[0, 0], [1, 1]]))
-    values = torch.tensor(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float64))
-    size = (2, 2, 2, 2)
-    blocksize = (2, 2)
-    dtype = torch.float64
+    values = torch.tensor(np.array([[[1, 2, 3], [4,5,6]], [[7, 8, 9], [10, 11, 12]]]))
+    size = (2, 2)
+    blocksize = (2, 3)
+    dtype = torch.float32
     requires_grad = False
+
     input_dict = {
         "compressed_indices": compressed_indices,
         "plain_indices": plain_indices,
@@ -206,6 +191,27 @@ def sparse_bsr_tensor_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
+    #Input 10: Identity
+    compressed_indices = torch.tensor(np.array([0], dtype=np.int32))
+    plain_indices = torch.tensor(np.array([[0,0]]))
+    values = torch.tensor(np.array([[[1.0, 0.0], [0.0, 1.0]]]))
+    size = (2, 2)
+    blocksize = (2, 2)
+    dtype = torch.float32
+    requires_grad = False
+    
+    input_dict = {
+        "compressed_indices": compressed_indices,
+        "plain_indices": plain_indices,
+        "values": values,
+        "size": size,
+        "blocksize": blocksize,
+        "dtype": dtype,
+        "requires_grad": requires_grad
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+
     return list_of_inputs
 
 generated_inputs["torch.sparse_bsr_tensor_1"] = sparse_bsr_tensor_inputs()

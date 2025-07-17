@@ -12,68 +12,73 @@ def dirac_inputs():
     list_of_inputs = []
 
     # Input 1: 3D tensor, no offset
-    tensor = np.ones((3, 3, 3), dtype=np.float32) + 0.1
+    tensor = np.zeros((1, 3, 3), dtype=np.float32)
     offset = 0
     input_dict = {"tensor": tensor, "offset": offset}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 4D tensor, no offset
-    tensor = np.ones((3, 3, 3, 3), dtype=np.float32) + 0.1
+    # Input 2: 4D tensor, offset 0
+    tensor = np.zeros((1, 3, 3, 3), dtype=np.float32)
     offset = 0
     input_dict = {"tensor": tensor, "offset": offset}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 5D tensor, no offset
-    tensor = np.ones((3, 3, 3, 3, 3), dtype=np.float32) + 0.1
+    # Input 3: 5D tensor, offset 0
+    tensor = np.zeros((1, 3, 3, 3, 3), dtype=np.float32)
     offset = 0
     input_dict = {"tensor": tensor, "offset": offset}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: 3D tensor, offset 1
-    tensor = np.ones((4, 3, 3), dtype=np.float32) + 0.1
+    tensor = np.zeros((1, 4, 3), dtype=np.float32)
     offset = 1
     input_dict = {"tensor": tensor, "offset": offset}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: 4D tensor, offset 1
-    tensor = np.ones((4, 3, 3, 3), dtype=np.float32) + 0.1
-    offset = 1
-    input_dict = {"tensor": tensor, "offset": offset}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6: 5D tensor, offset 1
-    tensor = np.ones((3, 2, 2, 2, 2), dtype=np.float32) + 0.1
-    offset = 1
-    input_dict = {"tensor": tensor, "offset": offset}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7: 3D tensor, different shape, offset 0
-    tensor = np.ones((2, 4, 5), dtype=np.float32) + 0.1
-    offset = 0
-    input_dict = {"tensor": tensor, "offset": offset}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8: 4D tensor, different shape, offset 1
-    tensor = np.ones((2, 3, 4, 5), dtype=np.float32) + 0.1
+    tensor = np.zeros((1, 4, 3, 2), dtype=np.float32)
     offset = 1
     input_dict = {"tensor": tensor, "offset": offset}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: 5D tensor, different shape, offset 0
-    tensor = np.ones((2, 2, 3, 4, 5), dtype=np.float32) + 0.1
+    # Input 6: 3D tensor, offset 2
+    tensor = np.zeros((1, 5, 3), dtype=np.float32)
+    offset = 2
+    input_dict = {"tensor": tensor, "offset": offset}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: 3D tensor, offset = second dimension -1
+    tensor = np.zeros((1, 5, 4), dtype=np.float32)
+    offset = 4
+    input_dict = {"tensor": tensor, "offset": offset}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: 4D tensor, offset = second dimension -1
+    tensor = np.zeros((1, 5, 4, 3), dtype=np.float32)
+    offset = 4
+    input_dict = {"tensor": tensor, "offset": offset}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: 4D tensor with different sizes
+    tensor = np.zeros((1, 4, 5, 2), dtype=np.float32)
     offset = 0
     input_dict = {"tensor": tensor, "offset": offset}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: 3D tensor, smaller size, offset 0
-    tensor = np.ones((1, 1, 1), dtype=np.float32) + 0.1
-    offset = 0
+    # Input 10: 5D tensor with different sizes
+    tensor = np.zeros((1, 3, 4, 5, 2), dtype=np.float32)
+    offset = 1
     input_dict = {"tensor": tensor, "offset": offset}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Input 11: 3D tensor, different sizes
+    tensor = np.zeros((1, 4, 5), dtype=np.float32)
+    offset = 0
+    input_dict = {"tensor": tensor, "offset": offset}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["torch.nn.init.dirac_"] = dirac_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):

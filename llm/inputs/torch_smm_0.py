@@ -6,133 +6,104 @@ generated_inputs = dict()
 
 import torch
 import numpy as np
-import scipy.sparse as sp
+import copy
 
 def smm_inputs():
     list_of_inputs = []
 
     # Input 1
-    sparse_matrix = sp.csr_matrix([[1, 0, 2], [0, 3, 0], [4, 0, 5]])
-    coo = sparse_matrix.tocoo()
-    indices = np.vstack((coo.row, coo.col))
-    values = coo.data
-    sparse_tensor = torch.sparse_coo_tensor(torch.LongTensor(indices), torch.FloatTensor(values), sparse_matrix.shape)
-    dense_matrix = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
-    input_dict = {"input": sparse_tensor, "mat": dense_matrix}
-    list_of_inputs.append(input_dict)
+    indices = torch.tensor([[0, 1], [1, 0]], dtype=torch.int64).t()
+    values = torch.tensor([1, 2])
+    size = torch.Size([2, 2])
+    input_sparse = torch.sparse_coo_tensor(indices, values, size)
+    mat = torch.tensor([[1, 2], [3, 4]], dtype=torch.float32).numpy()
+    input_dict = {"input": input_sparse, "mat": mat}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    sparse_matrix = sp.csr_matrix([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
-    coo = sparse_matrix.tocoo()
-    indices = np.vstack((coo.row, coo.col))
-    values = coo.data
-    sparse_tensor = torch.sparse_coo_tensor(torch.LongTensor(indices), torch.FloatTensor(values), sparse_matrix.shape)
-    dense_matrix = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
-    input_dict = {"input": sparse_tensor, "mat": dense_matrix}
-    list_of_inputs.append(input_dict)
+    indices = torch.tensor([[0, 0], [1, 1]], dtype=torch.int64).t()
+    values = torch.tensor([5, 6])
+    size = torch.Size([2, 2])
+    input_sparse = torch.sparse_coo_tensor(indices, values, size)
+    mat = torch.tensor([[5, 6], [7, 8]], dtype=torch.float32).numpy()
+    input_dict = {"input": input_sparse, "mat": mat}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    sparse_matrix = sp.csr_matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-    coo = sparse_matrix.tocoo()
-    indices = np.vstack((coo.row, coo.col))
-    values = coo.data
-    sparse_tensor = torch.sparse_coo_tensor(torch.LongTensor(indices), torch.FloatTensor(values), sparse_matrix.shape)
-    dense_matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float32)
-    input_dict = {"input": sparse_tensor, "mat": dense_matrix}
-    list_of_inputs.append(input_dict)
+    indices = torch.tensor([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=torch.int64).t()
+    values = torch.tensor([1, 2, 3, 4])
+    size = torch.Size([2, 2])
+    input_sparse = torch.sparse_coo_tensor(indices, values, size)
+    mat = torch.tensor([[1, 2], [3, 4]], dtype=torch.float32).numpy()
+    input_dict = {"input": input_sparse, "mat": mat}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    sparse_matrix = sp.csr_matrix([[0, 1, 0], [1, 0, 1], [0, 1, 0]])
-    coo = sparse_matrix.tocoo()
-    indices = np.vstack((coo.row, coo.col))
-    values = coo.data
-    sparse_tensor = torch.sparse_coo_tensor(torch.LongTensor(indices), torch.FloatTensor(values), sparse_matrix.shape)
-    dense_matrix = np.array([[9, 8, 7], [6, 5, 4], [3, 2, 1]], dtype=np.float32)
-    input_dict = {"input": sparse_tensor, "mat": dense_matrix}
-    list_of_inputs.append(input_dict)
+    # Input 4: Larger matrices
+    indices = torch.tensor([[0, 0], [1, 2], [2, 1]], dtype=torch.int64).t()
+    values = torch.tensor([1, 2, 3])
+    size = torch.Size([3, 3])
+    input_sparse = torch.sparse_coo_tensor(indices, values, size)
+    mat = torch.tensor([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=torch.float32).numpy()
+    input_dict = {"input": input_sparse, "mat": mat}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    sparse_matrix = sp.csr_matrix([[1, 0, 0], [0, 0, 0], [0, 0, 5]])
-    coo = sparse_matrix.tocoo()
-    indices = np.vstack((coo.row, coo.col))
-    values = coo.data
-    sparse_tensor = torch.sparse_coo_tensor(torch.LongTensor(indices), torch.FloatTensor(values), sparse_matrix.shape)
-    dense_matrix = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
-    input_dict = {"input": sparse_tensor, "mat": dense_matrix}
-    list_of_inputs.append(input_dict)
+    # Input 5: Rectangular matrices
+    indices = torch.tensor([[0, 0], [1, 1]], dtype=torch.int64).t()
+    values = torch.tensor([1, 2])
+    size = torch.Size([2, 3])
+    input_sparse = torch.sparse_coo_tensor(indices, values, size)
+    mat = torch.tensor([[1, 2], [3, 4], [5, 6]], dtype=torch.float32).numpy()
+    input_dict = {"input": input_sparse, "mat": mat}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    sparse_matrix = sp.csr_matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-    coo = sparse_matrix.tocoo()
-    indices = np.vstack((coo.row, coo.col))
-    values = coo.data
-    sparse_tensor = torch.sparse_coo_tensor(torch.LongTensor(indices), torch.FloatTensor(values), sparse_matrix.shape)
-    dense_matrix = np.array([[9, 8, 7], [6, 5, 4], [3, 2, 1]], dtype=np.float32)
-    input_dict = {"input": sparse_tensor, "mat": dense_matrix}
-    list_of_inputs.append(input_dict)
-
-    # Input 7
-    sparse_matrix = sp.csr_matrix([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
-    coo = sparse_matrix.tocoo()
-    indices = np.vstack((coo.row, coo.col))
-    values = coo.data
-    sparse_tensor = torch.sparse_coo_tensor(torch.LongTensor(indices), torch.FloatTensor(values), sparse_matrix.shape)
-    dense_matrix = np.array([[1, 0], [0, 1], [1, 1]], dtype=np.float32)
-    input_dict = {"input": sparse_tensor, "mat": dense_matrix}
-    list_of_inputs.append(input_dict)
-
-    # Input 8
-    sparse_matrix = sp.csr_matrix([[2, 0, 0], [0, 4, 0], [0, 0, 6]])
-    coo = sparse_matrix.tocoo()
-    indices = np.vstack((coo.row, coo.col))
-    values = coo.data
-    sparse_tensor = torch.sparse_coo_tensor(torch.LongTensor(indices), torch.FloatTensor(values), sparse_matrix.shape)
-    dense_matrix = np.array([[1, 1], [2, 2], [3, 3]], dtype=np.float32)
-    input_dict = {"input": sparse_tensor, "mat": dense_matrix}
-    list_of_inputs.append(input_dict)
-
-    # Input 9
-    sparse_matrix = sp.csr_matrix([[1, 0, 1], [0, 1, 0], [1, 0, 1]])
-    coo = sparse_matrix.tocoo()
-    indices = np.vstack((coo.row, coo.col))
-    values = coo.data
-    sparse_tensor = torch.sparse_coo_tensor(torch.LongTensor(indices), torch.FloatTensor(values), sparse_matrix.shape)
-    dense_matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float32)
-    input_dict = {"input": sparse_tensor, "mat": dense_matrix}
-    list_of_inputs.append(input_dict)
-
-    # Input 10
-    sparse_matrix = sp.csr_matrix([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
-    coo = sparse_matrix.tocoo()
-    indices = np.vstack((coo.row, coo.col))
-    values = coo.data
-    sparse_tensor = torch.sparse_coo_tensor(torch.LongTensor(indices), torch.FloatTensor(values), sparse_matrix.shape)
-    dense_matrix = np.array([[0, 0], [0, 0], [0, 0]], dtype=np.float32)
-    input_dict = {"input": sparse_tensor, "mat": dense_matrix}
-    list_of_inputs.append(input_dict)
+    # Input 6: Different values
+    indices = torch.tensor([[0, 1], [1, 0]], dtype=torch.int64).t()
+    values = torch.tensor([-1, 2])
+    size = torch.Size([2, 2])
+    input_sparse = torch.sparse_coo_tensor(indices, values, size)
+    mat = torch.tensor([[1, -2], [-3, 4]], dtype=torch.float32).numpy()
+    input_dict = {"input": input_sparse, "mat": mat}
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 11: Larger sparse matrix
-    sparse_matrix = sp.random(100, 50, density=0.1, format="csr")
-    coo = sparse_matrix.tocoo()
-    indices = np.vstack((coo.row, coo.col))
-    values = coo.data
-    sparse_tensor = torch.sparse_coo_tensor(torch.LongTensor(indices), torch.FloatTensor(values), sparse_matrix.shape)
-    dense_matrix = np.random.rand(50, 20).astype(np.float32)
-    input_dict = {"input": sparse_tensor, "mat": dense_matrix}
-    list_of_inputs.append(input_dict)
+    # Input 7: All zeros
+    indices = torch.tensor([[], []], dtype=torch.int64)
+    values = torch.tensor([])
+    size = torch.Size([2, 2])
+    input_sparse = torch.sparse_coo_tensor(indices, values, size)
+    mat = torch.tensor([[1, 2], [3, 4]], dtype=torch.float32).numpy()
+    input_dict = {"input": input_sparse, "mat": mat}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Large sparse matrix
+    indices = torch.tensor([[0, 0], [9, 9]], dtype=torch.int64).t()
+    values = torch.tensor([1, 1])
+    size = torch.Size([10, 10])
+    input_sparse = torch.sparse_coo_tensor(indices, values, size)
+    mat = torch.randn(10, 5, dtype=torch.float32).numpy()
+    input_dict = {"input": input_sparse, "mat": mat}
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 12: Float64
-    sparse_matrix = sp.csr_matrix([[1, 0, 2], [0, 3, 0], [4, 0, 5]])
-    coo = sparse_matrix.tocoo()
-    indices = np.vstack((coo.row, coo.col))
-    values = coo.data
-    sparse_tensor = torch.sparse_coo_tensor(torch.LongTensor(indices), torch.DoubleTensor(values), sparse_matrix.shape)
-    dense_matrix = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float64)
-    input_dict = {"input": sparse_tensor, "mat": dense_matrix}
-    list_of_inputs.append(input_dict)
+    # Input 9: Another rectangular case
+    indices = torch.tensor([[0, 0], [1, 1], [2,2]], dtype=torch.int64).t()
+    values = torch.tensor([1, 2, 3])
+    size = torch.Size([3, 4])
+    input_sparse = torch.sparse_coo_tensor(indices, values, size)
+    mat = torch.randn(4, 2, dtype=torch.float32).numpy()
+    input_dict = {"input": input_sparse, "mat": mat}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Float type
+    indices = torch.tensor([[0, 1], [1, 0]], dtype=torch.int64).t()
+    values = torch.tensor([1.5, 2.5])
+    size = torch.Size([2, 2])
+    input_sparse = torch.sparse_coo_tensor(indices, values, size)
+    mat = torch.tensor([[1.1, 2.2], [3.3, 4.4]], dtype=torch.float32).numpy()
+    input_dict = {"input": input_sparse, "mat": mat}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["torch.smm"] = smm_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):

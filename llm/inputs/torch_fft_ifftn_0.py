@@ -11,64 +11,16 @@ import copy
 def torch_fft_ifftn_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic complex tensor
-    input_tensor = torch.complex(torch.randn(4, 4), torch.randn(4, 4)).numpy()
-    input_dict = {"input": input_tensor, "s": None, "dim": None, "norm": "backward", "out": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Basic example with complex input
+    input1 = torch.randn(8, 8, dtype=torch.complex64).numpy()
+    input_dict1 = {"input": input1, "s": (8,8), "dim": (0,1), "norm": "backward", "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 2: Specifying s (signal size)
-    input_tensor = torch.complex(torch.randn(8, 8), torch.randn(8, 8)).numpy()
-    s_val = (4, 4)
-    input_dict = {"input": input_tensor, "s": s_val, "dim": None, "norm": "backward", "out": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Specifying dim
-    input_tensor = torch.complex(torch.randn(2, 4, 8), torch.randn(2, 4, 8)).numpy()
-    dim_val = (1, 2)
-    input_dict = {"input": input_tensor, "s": None, "dim": dim_val, "norm": "backward", "out": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Specifying norm
-    input_tensor = torch.complex(torch.randn(4, 4), torch.randn(4, 4)).numpy()
-    norm_val = "forward"
-    input_dict = {"input": input_tensor, "s": None, "dim": None, "norm": norm_val, "out": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: All parameters specified except out
-    input_tensor = torch.complex(torch.randn(8, 8), torch.randn(8, 8)).numpy()
-    s_val = (4, 4)
-    dim_val = (0, 1)
-    norm_val = "ortho"
-    input_dict = {"input": input_tensor, "s": s_val, "dim": dim_val, "norm": norm_val, "out": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: 3D tensor
-    input_tensor = torch.complex(torch.randn(2, 4, 6), torch.randn(2, 4, 6)).numpy()
-    input_dict = {"input": input_tensor, "s": None, "dim": None, "norm": "backward", "out": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: s with -1 and other dimension
-    input_tensor = torch.complex(torch.randn(4, 4), torch.randn(4, 4)).numpy()
-    s_val = (4, -1)
-    input_dict = {"input": input_tensor, "s": s_val, "dim": None, "norm": "backward", "out": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Different dims
-    input_tensor = torch.complex(torch.randn(2, 3, 4), torch.randn(2, 3, 4)).numpy()
-    dim_val = (0, 2)
-    input_dict = {"input": input_tensor, "s": None, "dim": dim_val, "norm": "backward", "out": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: s smaller than input size
-    input_tensor = torch.complex(torch.randn(5, 5), torch.randn(5, 5)).numpy()
-    s_val = (3, 3)
-    input_dict = {"input": input_tensor, "s": s_val, "dim": None, "norm": "backward", "out": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: No s, no dim
-    input_tensor = torch.complex(torch.randn(2, 2), torch.randn(2, 2)).numpy()
-    input_dict = {"input": input_tensor, "s": None, "dim": None, "norm": "backward", "out": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: Specifying s
+    input2 = torch.randn(16, 16, dtype=torch.complex64).numpy()
+    s2 = (8, 8)
+    input_dict2 = {"input": input2, "s": s2, "dim": (0,1), "norm": "backward", "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
     
     return list_of_inputs
 

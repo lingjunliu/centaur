@@ -11,74 +11,81 @@ import copy
 def torch_normal_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case with a simple tensor for std and an out tensor of correct shape and type
-    mean = 0.5
-    std = torch.tensor([1.0, 2.0, 3.0]).numpy()
-    out = torch.zeros(3).numpy()
-    input_dict = {"mean": mean, "std": std, "out": out}
+    # Input 1
+    mean = 0.0
+    std = torch.tensor([1.0, 2.0, 3.0])
+    out = torch.zeros(3, dtype=torch.float32)
+    input_dict = {"mean": mean, "std": std.numpy(), "out": out.numpy()}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: std with negative values.
+    # Input 2
     mean = 1.0
-    std = torch.tensor([-1.0, -2.0, -3.0]).numpy()
-    out = torch.zeros(3).numpy()
-    input_dict = {"mean": mean, "std": std, "out": out}
+    std = torch.tensor([0.5, 1.5, 2.5, 3.5])
+    out = torch.zeros(4, dtype=torch.float32)
+    input_dict = {"mean": mean, "std": std.numpy(), "out": out.numpy()}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: std with a mix of positive and negative values.
-    mean = 0.0
-    std = torch.tensor([-1.0, 2.0, -3.0]).numpy()
-    out = torch.zeros(3).numpy()
-    input_dict = {"mean": mean, "std": std, "out": out}
+    # Input 3
+    mean = -1.0
+    std = torch.tensor([0.1, 0.2, 0.3, 0.4, 0.5])
+    out = torch.zeros(5, dtype=torch.float32)
+    input_dict = {"mean": mean, "std": std.numpy(), "out": out.numpy()}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: std with zero values.
-    mean = 2.0
-    std = torch.tensor([0.0, 0.0, 0.0]).numpy()
-    out = torch.zeros(3).numpy()
-    input_dict = {"mean": mean, "std": std, "out": out}
+    # Input 4
+    mean = 2.5
+    std = torch.tensor(np.array([[1.0, 2.0], [3.0, 4.0]]))
+    out = torch.zeros((2, 2), dtype=torch.float32)
+    input_dict = {"mean": mean, "std": std.numpy(), "out": out.numpy()}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: std as a 2D tensor.
-    mean = 0.5
-    std = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    out = torch.zeros((2,2)).numpy()
-    input_dict = {"mean": mean, "std": std, "out": out}
+    # Input 5
+    mean = -2.5
+    std = torch.tensor(np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]))
+    out = torch.zeros((2, 2, 2), dtype=torch.float32)
+    input_dict = {"mean": mean, "std": std.numpy(), "out": out.numpy()}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: std as a 3D tensor.
-    mean = 1.5
-    std = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).numpy()
-    out = torch.zeros((2, 2, 2)).numpy()
-    input_dict = {"mean": mean, "std": std, "out": out}
+    # Input 6
+    mean = 0.7
+    std = torch.tensor(np.arange(1.0, 7.0))
+    out = torch.zeros(6, dtype=torch.float32)
+    input_dict = {"mean": mean, "std": std.numpy(), "out": out.numpy()}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Different mean value.
-    mean = -0.5
-    std = torch.tensor([1.0, 2.0, 3.0]).numpy()
-    out = torch.zeros(3).numpy()
-    input_dict = {"mean": mean, "std": std, "out": out}
+    # Input 7
+    mean = -0.7
+    std = torch.tensor(np.arange(0.1, 1.1, 0.1))
+    out = torch.zeros(10, dtype=torch.float32)
+    input_dict = {"mean": mean, "std": std.numpy(), "out": out.numpy()}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Very large std values.
-    mean = 0.0
-    std = torch.tensor([1000.0, 2000.0, 3000.0]).numpy()
-    out = torch.zeros(3).numpy()
-    input_dict = {"mean": mean, "std": std, "out": out}
+    # Input 8
+    mean = 10.0
+    std = torch.tensor(np.array([1.0]))
+    out = torch.zeros(1, dtype=torch.float32)
+    input_dict = {"mean": mean, "std": std.numpy(), "out": out.numpy()}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Very small std values.
-    mean = 0.0
-    std = torch.tensor([0.001, 0.002, 0.003]).numpy()
-    out = torch.zeros(3).numpy()
-    input_dict = {"mean": mean, "std": std, "out": out}
+    # Input 9
+    mean = -10.0
+    std = torch.tensor(np.array([10.0]))
+    out = torch.zeros(1, dtype=torch.float32)
+    input_dict = {"mean": mean, "std": std.numpy(), "out": out.numpy()}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: std with mixed data types (but all converted to numpy).
-    mean = 0.5
-    std = torch.tensor([1, 2.0, 3]).float().numpy() # Ensure std is float type in numpy
-    out = torch.zeros(3).numpy()
-    input_dict = {"mean": mean, "std": std, "out": out}
+    # Input 10
+    mean = 5.0
+    std = torch.tensor(np.random.rand(2, 3))
+    out = torch.zeros((2,3), dtype=torch.float32)
+    input_dict = {"mean": mean, "std": std.numpy(), "out": out.numpy()}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11
+    mean = -5.0
+    std = torch.tensor(np.random.rand(1, 5))
+    out = torch.zeros((1,5), dtype=torch.float32)
+    input_dict = {"mean": mean, "std": std.numpy(), "out": out.numpy()}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

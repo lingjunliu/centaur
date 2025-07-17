@@ -15,131 +15,153 @@ def smooth_l1_loss_inputs():
     input_tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     target_tensor = np.array([1.5, 2.5, 3.5], dtype=np.float32)
     reduction_type = "mean"
+    delta_value = 1.0
 
     input_dict = {
         "input": input_tensor,
         "target": target_tensor,
-        "reduction": reduction_type
+        "reduction": reduction_type,
+        "delta": delta_value
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input_tensor = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
-    target_tensor = np.array([-1.5, -2.5, -3.5], dtype=np.float32)
+    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    target_tensor = np.array([[1.1, 2.2], [3.3, 4.4]], dtype=np.float32)
     reduction_type = "sum"
+    delta_value = 0.5
 
     input_dict = {
         "input": input_tensor,
         "target": target_tensor,
-        "reduction": reduction_type
+        "reduction": reduction_type,
+        "delta": delta_value
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    target_tensor = np.array([[1.2, 2.2], [3.2, 4.2]], dtype=np.float32)
+    input_tensor = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
+    target_tensor = np.array([0.5, 1.5, 2.5, 3.5, 4.5], dtype=np.float32)
     reduction_type = "none"
+    delta_value = 0.2
 
     input_dict = {
         "input": input_tensor,
         "target": target_tensor,
-        "reduction": reduction_type
+        "reduction": reduction_type,
+        "delta": delta_value
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    input_tensor = np.array([1.0], dtype=np.float32)
-    target_tensor = np.array([1.0], dtype=np.float32)
+    input_tensor = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
+    target_tensor = np.array([-1.5, -2.5, -3.5], dtype=np.float32)
     reduction_type = "mean"
+    delta_value = 1.5
 
     input_dict = {
         "input": input_tensor,
         "target": target_tensor,
-        "reduction": reduction_type
+        "reduction": reduction_type,
+        "delta": delta_value
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     # Input 5
-    input_tensor = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float64)
-    target_tensor = np.array([2.0, 3.0, 4.0, 5.0, 6.0], dtype=np.float64)
-    reduction_type = "mean"
+    input_tensor = np.array([[-1.0, 2.0], [-3.0, 4.0]], dtype=np.float32)
+    target_tensor = np.array([[-1.1, 2.2], [-3.3, 4.4]], dtype=np.float32)
+    reduction_type = "sum"
+    delta_value = 0.75
 
     input_dict = {
         "input": input_tensor,
         "target": target_tensor,
-        "reduction": reduction_type
+        "reduction": reduction_type,
+        "delta": delta_value
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    input_tensor = np.array([[-1.0, -2.0], [-3.0, -4.0]], dtype=np.float32)
-    target_tensor = np.array([[-0.5, -1.5], [-2.5, -3.5]], dtype=np.float32)
-    reduction_type = "sum"
+    input_tensor = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    target_tensor = np.array([1.1, 2.1, 3.1], dtype=np.float64)
+    reduction_type = "none"
+    delta_value = 0.1
 
     input_dict = {
         "input": input_tensor,
         "target": target_tensor,
-        "reduction": reduction_type
+        "reduction": reduction_type,
+        "delta": delta_value
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    input_tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    target_tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    input_tensor = np.array([1.0], dtype=np.float32)
+    target_tensor = np.array([1.0], dtype=np.float32)
     reduction_type = "mean"
+    delta_value = 0.0
 
     input_dict = {
         "input": input_tensor,
         "target": target_tensor,
-        "reduction": reduction_type
+        "reduction": reduction_type,
+        "delta": delta_value
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     # Input 8
-    input_tensor = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-    target_tensor = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-    reduction_type = "mean"
+    input_tensor = np.array([[-1.0, -2.0, -3.0], [-4.0, -5.0, -6.0]], dtype=np.float32)
+    target_tensor = np.array([[-1.1, -2.1, -3.1], [-4.1, -5.1, -6.1]], dtype=np.float32)
+    reduction_type = "sum"
+    delta_value = 2.0
 
     input_dict = {
         "input": input_tensor,
         "target": target_tensor,
-        "reduction": reduction_type
+        "reduction": reduction_type,
+        "delta": delta_value
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    input_tensor = np.array([5.0, 6.0, 7.0], dtype=np.float32)
-    target_tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    reduction_type = "mean"
+    input_tensor = np.array([0.0], dtype=np.float32)
+    target_tensor = np.array([0.0], dtype=np.float32)
+    reduction_type = "none"
+    delta_value = 1.0
 
     input_dict = {
         "input": input_tensor,
         "target": target_tensor,
-        "reduction": reduction_type
+        "reduction": reduction_type,
+        "delta": delta_value
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    input_tensor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    target_tensor = np.array([[[1.5, 2.5], [3.5, 4.5]], [[5.5, 6.5], [7.5, 8.5]]], dtype=np.float32)
+    input_tensor = np.array([1.0, -2.0, 3.0, -4.0], dtype=np.float32)
+    target_tensor = np.array([-1.0, 2.0, -3.0, 4.0], dtype=np.float32)
     reduction_type = "mean"
+    delta_value = 0.3
 
     input_dict = {
         "input": input_tensor,
         "target": target_tensor,
-        "reduction": reduction_type
+        "reduction": reduction_type,
+        "delta": delta_value
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 11
-    input_tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    target_tensor = np.array([1.5, 2.5, 3.5], dtype=np.float32)
-    reduction_type = "none"
+    input_tensor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    target_tensor = np.array([[[1.1, 2.2], [3.3, 4.4]], [[5.5, 6.6], [7.7, 8.8]]], dtype=np.float32)
+    reduction_type = "mean"
+    delta_value = 0.3
 
     input_dict = {
         "input": input_tensor,
         "target": target_tensor,
-        "reduction": reduction_type
+        "reduction": reduction_type,
+        "delta": delta_value
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

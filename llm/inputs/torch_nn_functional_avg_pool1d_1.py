@@ -12,104 +12,184 @@ def avg_pool1d_inputs():
     list_of_inputs = []
 
     # Input 1
-    input = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0]]], dtype=np.float32)
-    kernel_size = 2
-    stride = 1
-    padding = 0
-    ceil_mode = False
-    count_include_pad = True
-    input_dict = {"input": input, "kernel_size": kernel_size, "stride": stride, "padding": padding, "ceil_mode": ceil_mode, "count_include_pad": count_include_pad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input1 = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0]]], dtype=np.float32)
+    kernel_size1 = 2
+    stride1 = 1
+    padding1 = 0
+    ceil_mode1 = False
+    count_include_pad1 = True
+
+    input_dict1 = {
+        "input": input1,
+        "kernel_size": kernel_size1,
+        "stride": stride1,
+        "padding": padding1,
+        "ceil_mode": ceil_mode1,
+        "count_include_pad": count_include_pad1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
     # Input 2
-    input = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0]]], dtype=np.float32)
-    kernel_size = 3
-    stride = 2
-    padding = 1
-    ceil_mode = False
-    count_include_pad = False
-    input_dict = {"input": input, "kernel_size": kernel_size, "stride": stride, "padding": padding, "ceil_mode": ceil_mode, "count_include_pad": count_include_pad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input2 = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0]]], dtype=np.float32)
+    kernel_size2 = 3
+    stride2 = 2
+    padding2 = 1
+    ceil_mode2 = True
+    count_include_pad2 = False
+
+    input_dict2 = {
+        "input": input2,
+        "kernel_size": kernel_size2,
+        "stride": stride2,
+        "padding": padding2,
+        "ceil_mode": ceil_mode2,
+        "count_include_pad": count_include_pad2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
     # Input 3
-    input = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0]]], dtype=np.float32)
-    kernel_size = 3
-    stride = 2
-    padding = 1
-    ceil_mode = True
-    count_include_pad = False
-    input_dict = {"input": input, "kernel_size": kernel_size, "stride": stride, "padding": padding, "ceil_mode": ceil_mode, "count_include_pad": count_include_pad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input3 = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]]], dtype=np.float32)
+    kernel_size3 = 4
+    stride3 = 3
+    padding3 = 2
+    ceil_mode3 = False
+    count_include_pad3 = True
+
+    input_dict3 = {
+        "input": input3,
+        "kernel_size": kernel_size3,
+        "stride": stride3,
+        "padding": padding3,
+        "ceil_mode": ceil_mode3,
+        "count_include_pad": count_include_pad3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
     # Input 4
-    input = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0]]], dtype=np.float32)
-    kernel_size = 2
-    stride = 2
-    padding = 0
-    ceil_mode = False
-    count_include_pad = True
-    input_dict = {"input": input, "kernel_size": kernel_size, "stride": stride, "padding": padding, "ceil_mode": ceil_mode, "count_include_pad": count_include_pad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input4 = np.array([[[1.0, 2.0, 3.0]]], dtype=np.float32)
+    kernel_size4 = 1
+    stride4 = 1
+    padding4 = 0
+    ceil_mode4 = True
+    count_include_pad4 = False
+
+    input_dict4 = {
+        "input": input4,
+        "kernel_size": kernel_size4,
+        "stride": stride4,
+        "padding": padding4,
+        "ceil_mode": ceil_mode4,
+        "count_include_pad": count_include_pad4
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
     # Input 5
-    input = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]]], dtype=np.float32)
-    kernel_size = 4
-    stride = 3
-    padding = 1
-    ceil_mode = True
-    count_include_pad = True
-    input_dict = {"input": input, "kernel_size": kernel_size, "stride": stride, "padding": padding, "ceil_mode": ceil_mode, "count_include_pad": count_include_pad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input5 = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0]]], dtype=np.float32)
+    kernel_size5 = 5
+    stride5 = 1
+    padding5 = 2
+    ceil_mode5 = False
+    count_include_pad5 = True
+
+    input_dict5 = {
+        "input": input5,
+        "kernel_size": kernel_size5,
+        "stride": stride5,
+        "padding": padding5,
+        "ceil_mode": ceil_mode5,
+        "count_include_pad": count_include_pad5
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict5))
 
     # Input 6
-    input = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]]], dtype=np.float32)
-    kernel_size = 4
-    stride = 3
-    padding = 1
-    ceil_mode = True
-    count_include_pad = True
-    input_dict = {"input": input, "kernel_size": kernel_size, "stride": stride, "padding": padding, "ceil_mode": ceil_mode, "count_include_pad": count_include_pad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input6 = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0]]], dtype=np.float32)
+    kernel_size6 = 2
+    stride6 = 2
+    padding6 = 1
+    ceil_mode6 = True
+    count_include_pad6 = False
+
+    input_dict6 = {
+        "input": input6,
+        "kernel_size": kernel_size6,
+        "stride": stride6,
+        "padding": padding6,
+        "ceil_mode": ceil_mode6,
+        "count_include_pad": count_include_pad6
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict6))
 
     # Input 7
-    input = np.array([[[1.0, 2.0, 3.0]]], dtype=np.float32)
-    kernel_size = 1
-    stride = 1
-    padding = 0
-    ceil_mode = False
-    count_include_pad = False
-    input_dict = {"input": input, "kernel_size": kernel_size, "stride": stride, "padding": padding, "ceil_mode": ceil_mode, "count_include_pad": count_include_pad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input7 = np.array([[[1.0, 2.0]]], dtype=np.float32)
+    kernel_size7 = 2
+    stride7 = 1
+    padding7 = 0
+    ceil_mode7 = False
+    count_include_pad7 = True
+
+    input_dict7 = {
+        "input": input7,
+        "kernel_size": kernel_size7,
+        "stride": stride7,
+        "padding": padding7,
+        "ceil_mode": ceil_mode7,
+        "count_include_pad": count_include_pad7
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict7))
     
-    # Input 8: Different input values
-    input = np.array([[[5.0, 4.0, 3.0, 2.0, 1.0]]], dtype=np.float32)
-    kernel_size = 2
-    stride = 1
-    padding = 0
-    ceil_mode = False
-    count_include_pad = True
-    input_dict = {"input": input, "kernel_size": kernel_size, "stride": stride, "padding": padding, "ceil_mode": ceil_mode, "count_include_pad": count_include_pad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 8
+    input8 = np.array([[[1.0, 2.0, 3.0]]], dtype=np.float32)
+    kernel_size8 = 2
+    stride8 = 2
+    padding8 = 0
+    ceil_mode8 = False
+    count_include_pad8 = True
 
-    # Input 9: Larger padding
-    input = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0]]], dtype=np.float32)
-    kernel_size = 3
-    stride = 1
-    padding = 2
-    ceil_mode = False
-    count_include_pad = True
-    input_dict = {"input": input, "kernel_size": kernel_size, "stride": stride, "padding": padding, "ceil_mode": ceil_mode, "count_include_pad": count_include_pad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict8 = {
+        "input": input8,
+        "kernel_size": kernel_size8,
+        "stride": stride8,
+        "padding": padding8,
+        "ceil_mode": ceil_mode8,
+        "count_include_pad": count_include_pad8
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict8))
 
-    # Input 10: Non-unit stride and padding
-    input = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]]], dtype=np.float32)
-    kernel_size = 3
-    stride = 2
-    padding = 1
-    ceil_mode = False
-    count_include_pad = False
-    input_dict = {"input": input, "kernel_size": kernel_size, "stride": stride, "padding": padding, "ceil_mode": ceil_mode, "count_include_pad": count_include_pad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 9
+    input9 = np.array([[[1.0, 2.0, 3.0, 4.0]]], dtype=np.float32)
+    kernel_size9 = 3
+    stride9 = 1
+    padding9 = 1
+    ceil_mode9 = True
+    count_include_pad9 = True
+
+    input_dict9 = {
+        "input": input9,
+        "kernel_size": kernel_size9,
+        "stride": stride9,
+        "padding": padding9,
+        "ceil_mode": ceil_mode9,
+        "count_include_pad": count_include_pad9
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10
+    input10 = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0]]], dtype=np.float32)
+    kernel_size10 = 3
+    stride10 = 1
+    padding10 = 0
+    ceil_mode10 = False
+    count_include_pad10 = False
+
+    input_dict10 = {
+        "input": input10,
+        "kernel_size": kernel_size10,
+        "stride": stride10,
+        "padding": padding10,
+        "ceil_mode": ceil_mode10,
+        "count_include_pad": count_include_pad10
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict10))
 
     return list_of_inputs
 

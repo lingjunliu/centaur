@@ -11,34 +11,73 @@ import copy
 def lstmcell_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic valid input
+    # Input 1
     input_size = 10
     hidden_size = 20
     bias = True
-    input_val = np.random.randn(3, input_size).astype(np.float32)
-    h_0_val = np.random.randn(3, hidden_size).astype(np.float32)
-    c_0_val = np.random.randn(3, hidden_size).astype(np.float32)
-    input_dict = {"input_size": input_size, "hidden_size": hidden_size, "bias": bias, "input": input_val, "h_0": h_0_val, "c_0": c_0_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: No bias
-    input_size = 5
-    hidden_size = 10
-    bias = False
-    input_val = np.random.randn(2, input_size).astype(np.float32)
-    h_0_val = np.random.randn(2, hidden_size).astype(np.float32)
-    c_0_val = np.random.randn(2, hidden_size).astype(np.float32)
-    input_dict = {"input_size": input_size, "hidden_size": hidden_size, "bias": bias, "input": input_val, "h_0": h_0_val, "c_0": c_0_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Different batch size
-    input_size = 15
-    hidden_size = 25
-    bias = True
     input_val = np.random.randn(5, input_size).astype(np.float32)
-    h_0_val = np.random.randn(5, hidden_size).astype(np.float32)
-    c_0_val = np.random.randn(5, hidden_size).astype(np.float32)
-    input_dict = {"input_size": input_size, "hidden_size": hidden_size, "bias": bias, "input": input_val, "h_0": h_0_val, "c_0": c_0_val}
+    h_0 = np.random.randn(5, hidden_size).astype(np.float32)
+    c_0 = np.random.randn(5, hidden_size).astype(np.float32)
+
+    input_dict = {
+        "input_size": input_size,
+        "hidden_size": hidden_size,
+        "bias": bias,
+        "input": input_val,
+        "h_0": h_0,
+        "c_0": c_0
+    }
+    
+    input_list = [torch.tensor(input_val), (torch.tensor(h_0), torch.tensor(c_0))]
+    
+    input_dict["inner"] = {"args": input_list, "kwargs": {}}
+
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_size = 5
+    hidden_size = 12
+    bias = False
+    input_val = np.random.randn(3, input_size).astype(np.float32)
+    h_0 = np.random.randn(3, hidden_size).astype(np.float32)
+    c_0 = np.random.randn(3, hidden_size).astype(np.float32)
+
+    input_dict = {
+        "input_size": input_size,
+        "hidden_size": hidden_size,
+        "bias": bias,
+        "input": input_val,
+        "h_0": h_0,
+        "c_0": c_0
+    }
+    
+    input_list = [torch.tensor(input_val), (torch.tensor(h_0), torch.tensor(c_0))]
+    
+    input_dict["inner"] = {"args": input_list, "kwargs": {}}
+
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_size = 7
+    hidden_size = 15
+    bias = True
+    input_val = np.random.randn(1, input_size).astype(np.float32)
+    h_0 = np.random.randn(1, hidden_size).astype(np.float32)
+    c_0 = np.random.randn(1, hidden_size).astype(np.float32)
+
+    input_dict = {
+        "input_size": input_size,
+        "hidden_size": hidden_size,
+        "bias": bias,
+        "input": input_val,
+        "h_0": h_0,
+        "c_0": c_0
+    }
+    
+    input_list = [torch.tensor(input_val), (torch.tensor(h_0), torch.tensor(c_0))]
+    
+    input_dict["inner"] = {"args": input_list, "kwargs": {}}
+
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs

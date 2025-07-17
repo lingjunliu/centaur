@@ -21,46 +21,45 @@ def from_numpy_inputs():
     input_dict = {"ndarray": ndarray}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 3D array of booleans
-    ndarray = np.array([[[True, False], [False, True]], [[True, True], [False, False]]])
+    # Input 3: 3D array of complex numbers
+    ndarray = np.array([[[1+1j, 2+2j], [3+3j, 4+4j]], [[5+5j, 6+6j], [7+7j, 8+8j]]])
     input_dict = {"ndarray": ndarray}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 1D array of negative integers
-    ndarray = np.array([-1, -2, -3, -4, -5])
-    input_dict = {"ndarray": ndarray}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: 2D array of mixed positive and negative floats
-    ndarray = np.array([[-1.1, 2.2], [-3.3, 4.4]])
-    input_dict = {"ndarray": ndarray}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Empty array
+    # Input 4: Empty array
     ndarray = np.array([])
     input_dict = {"ndarray": ndarray}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Multi-dimensional array (4D) - removing to reduce possible errors.
-    # ndarray = np.random.rand(2, 3, 4, 5)
-    # input_dict = {"ndarray": ndarray}
-    # list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Array with a specific dtype (int64)
-    ndarray = np.array([10, 20, 30], dtype=np.int64)
+    # Input 5: Array with negative values
+    ndarray = np.array([-1, -2, -3])
     input_dict = {"ndarray": ndarray}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Array with a specific dtype (float32)
-    ndarray = np.array([0.1, 0.2, 0.3], dtype=np.float32)
+    # Input 6: Array with a specific dtype (int64)
+    ndarray = np.array([1, 2, 3], dtype=np.int64)
     input_dict = {"ndarray": ndarray}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Zero dimensional array
-    ndarray = np.array(10)
+    # Input 7: Array with a specific dtype (float32)
+    ndarray = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     input_dict = {"ndarray": ndarray}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 8: Multidimensional array
+    ndarray = np.random.rand(2, 3, 4)
+    input_dict = {"ndarray": ndarray}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Array with zeros
+    ndarray = np.zeros((2, 2))
+    input_dict = {"ndarray": ndarray}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Array with ones
+    ndarray = np.ones((3, 3))
+    input_dict = {"ndarray": ndarray}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

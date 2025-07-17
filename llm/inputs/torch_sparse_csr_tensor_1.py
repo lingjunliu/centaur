@@ -4,196 +4,116 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def sparse_csr_tensor_inputs():
     list_of_inputs = []
 
-    # Input 1
-    crow_indices = np.array([0, 2, 4])
-    col_indices = np.array([0, 2, 1, 2])
+    # Input 1: Basic valid input
+    crow_indices = np.array([0, 2, 4], dtype=np.int64)
+    col_indices = np.array([0, 2, 1, 2], dtype=np.int64)
     values = np.array([1, 2, 3, 4], dtype=np.float32)
     size = (2, 3)
-    dtype = np.float32
+    dtype = torch.float32
     requires_grad = False
-    input_dict = {
-        "crow_indices": crow_indices,
-        "col_indices": col_indices,
-        "values": values,
-        "size": size,
-        "dtype": dtype,
-        "requires_grad": requires_grad
-    }
+    input_dict = {'crow_indices': crow_indices, 'col_indices': col_indices, 'values': values, 'size': size, 'dtype': dtype, 'requires_grad': requires_grad}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    crow_indices = np.array([0, 1, 2, 2])
-    col_indices = np.array([2, 0])
-    values = np.array([5, 6], dtype=np.float32)
-    size = (4, 4)
-    dtype = np.float32
-    requires_grad = True
-    input_dict = {
-        "crow_indices": crow_indices,
-        "col_indices": col_indices,
-        "values": values,
-        "size": size,
-        "dtype": dtype,
-        "requires_grad": requires_grad
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
-    crow_indices = np.array([0, 0, 0])
-    col_indices = np.array([])
-    values = np.array([], dtype=np.float32)
-    size = (3, 5)
-    dtype = np.float32
+    # Input 2: Different dtype
+    crow_indices = np.array([0, 1, 3], dtype=np.int64)
+    col_indices = np.array([0, 1, 0, 1], dtype=np.int64)
+    values = np.array([1, 2, 3, 4], dtype=np.int64)
+    size = (3, 2)
+    dtype = torch.int64
     requires_grad = False
-    input_dict = {
-        "crow_indices": crow_indices,
-        "col_indices": col_indices,
-        "values": values,
-        "size": size,
-        "dtype": dtype,
-        "requires_grad": requires_grad
-    }
+    input_dict = {'crow_indices': crow_indices, 'col_indices': col_indices, 'values': values, 'size': size, 'dtype': dtype, 'requires_grad': requires_grad}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    crow_indices = np.array([0, 1, 3])
-    col_indices = np.array([0, 1, 2])
-    values = np.array([-1, -2, -3], dtype=np.float32)
-    size = (2, 3)
-    dtype = np.float32
+    # Input 3: requires_grad = True
+    crow_indices = np.array([0, 2, 3], dtype=np.int64)
+    col_indices = np.array([0, 1, 0], dtype=np.int64)
+    values = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    size = (3, 2)
+    dtype = torch.float32
     requires_grad = True
-    input_dict = {
-        "crow_indices": crow_indices,
-        "col_indices": col_indices,
-        "values": values,
-        "size": size,
-        "dtype": dtype,
-        "requires_grad": requires_grad
-    }
+    input_dict = {'crow_indices': crow_indices, 'col_indices': col_indices, 'values': values, 'size': size, 'dtype': dtype, 'requires_grad': requires_grad}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    crow_indices = np.array([0, 2, 3])
-    col_indices = np.array([1, 3, 0])
-    values = np.array([1.5, 2.5, 3.5], dtype=np.float32)
-    size = (3, 4)
-    dtype = np.float32
-    requires_grad = False
-    input_dict = {
-        "crow_indices": crow_indices,
-        "col_indices": col_indices,
-        "values": values,
-        "size": size,
-        "dtype": dtype,
-        "requires_grad": requires_grad
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    crow_indices = np.array([0, 1, 2, 3])
-    col_indices = np.array([0, 1, 2])
-    values = np.array([1, 2, 3], dtype=np.float32)
-    size = (4, 3)
-    dtype = np.float32
-    requires_grad = True
-    input_dict = {
-        "crow_indices": crow_indices,
-        "col_indices": col_indices,
-        "values": values,
-        "size": size,
-        "dtype": dtype,
-        "requires_grad": requires_grad
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: Empty values
-    crow_indices = np.array([0, 0, 0])
+    # Input 4: Empty sparse tensor
+    crow_indices = np.array([0, 0, 0], dtype=np.int64)
     col_indices = np.array([], dtype=np.int64)
     values = np.array([], dtype=np.float32)
-    size = (3, 3)
-    dtype = np.float32
+    size = (3, 2)
+    dtype = torch.float32
     requires_grad = False
-    input_dict = {
-        "crow_indices": crow_indices,
-        "col_indices": col_indices,
-        "values": values,
-        "size": size,
-        "dtype": dtype,
-        "requires_grad": requires_grad
-    }
+    input_dict = {'crow_indices': crow_indices, 'col_indices': col_indices, 'values': values, 'size': size, 'dtype': dtype, 'requires_grad': requires_grad}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    crow_indices = np.array([0, 1])
-    col_indices = np.array([0])
-    values = np.array([1], dtype=np.float32)
-    size = (2, 1)
-    dtype = np.float32
+    # Input 5: Another valid input with different crow_indices pattern
+    crow_indices = np.array([0, 0, 1, 2], dtype=np.int64)
+    col_indices = np.array([1, 0, 1], dtype=np.int64)
+    values = np.array([1, 2, 3], dtype=np.float32)
+    size = (4, 2)
+    dtype = torch.float32
     requires_grad = False
-    input_dict = {
-        "crow_indices": crow_indices,
-        "col_indices": col_indices,
-        "values": values,
-        "size": size,
-        "dtype": dtype,
-        "requires_grad": requires_grad
-    }
+    input_dict = {'crow_indices': crow_indices, 'col_indices': col_indices, 'values': values, 'size': size, 'dtype': dtype, 'requires_grad': requires_grad}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    crow_indices = np.array([0, 0])
-    col_indices = np.array([])
-    values = np.array([], dtype=np.float32)
-    size = (2, 2)
-    dtype = np.float32
-    requires_grad = True
-    input_dict = {
-        "crow_indices": crow_indices,
-        "col_indices": col_indices,
-        "values": values,
-        "size": size,
-        "dtype": dtype,
-        "requires_grad": requires_grad
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    crow_indices = np.array([0, 3, 5])
-    col_indices = np.array([0, 1, 2, 0, 1])
-    values = np.array([1, 2, 3, 4, 5], dtype=np.float32)
+    # Input 6: Int dtype
+    crow_indices = np.array([0, 2, 4], dtype=np.int64)
+    col_indices = np.array([0, 2, 1, 2], dtype=np.int64)
+    values = np.array([1, 2, 3, 4], dtype=np.int32)
     size = (2, 3)
-    dtype = np.float32
+    dtype = torch.int32
     requires_grad = False
-    input_dict = {
-        "crow_indices": crow_indices,
-        "col_indices": col_indices,
-        "values": values,
-        "size": size,
-        "dtype": dtype,
-        "requires_grad": requires_grad
-    }
+    input_dict = {'crow_indices': crow_indices, 'col_indices': col_indices, 'values': values, 'size': size, 'dtype': dtype, 'requires_grad': requires_grad}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    final_list = []
-    for input_dict in list_of_inputs:
-        final_dict = {}
-        final_dict['crow_indices'] = torch.tensor(input_dict['crow_indices'], dtype=torch.int64)
-        final_dict['col_indices'] = torch.tensor(input_dict['col_indices'], dtype=torch.int64)
-        final_dict['values'] = torch.tensor(input_dict['values'])
-        final_dict['size'] = input_dict['size']
-        final_dict['dtype'] = torch.float32
-        final_dict['requires_grad'] = input_dict['requires_grad']
+    # Input 7: Negative values
+    crow_indices = np.array([0, 2, 4], dtype=np.int64)
+    col_indices = np.array([0, 2, 1, 2], dtype=np.int64)
+    values = np.array([-1, 2, -3, 4], dtype=np.float32)
+    size = (2, 3)
+    dtype = torch.float32
+    requires_grad = False
+    input_dict = {'crow_indices': crow_indices, 'col_indices': col_indices, 'values': values, 'size': size, 'dtype': dtype, 'requires_grad': requires_grad}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-        final_list.append(final_dict)
+    # Input 8: float64
+    crow_indices = np.array([0, 2, 4], dtype=np.int64)
+    col_indices = np.array([0, 2, 1, 2], dtype=np.int64)
+    values = np.array([1, 2, 3, 4], dtype=np.float64)
+    size = (2, 3)
+    dtype = torch.float64
+    requires_grad = False
+    input_dict = {'crow_indices': crow_indices, 'col_indices': col_indices, 'values': values, 'size': size, 'dtype': dtype, 'requires_grad': requires_grad}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    return final_list
+    # Input 9: Single row example
+    crow_indices = np.array([0, 3], dtype=np.int64)
+    col_indices = np.array([0, 1, 2], dtype=np.int64)
+    values = np.array([1, 2, 3], dtype=np.float32)
+    size = (1, 3)
+    dtype = torch.float32
+    requires_grad = False
+    input_dict = {'crow_indices': crow_indices, 'col_indices': col_indices, 'values': values, 'size': size, 'dtype': dtype, 'requires_grad': requires_grad}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 10: All zeros
+    crow_indices = np.array([0, 0, 0], dtype=np.int64)
+    col_indices = np.array([], dtype=np.int64)
+    values = np.array([], dtype=np.float32)
+    size = (3, 4)
+    dtype = torch.float32
+    requires_grad = False
+    input_dict = {'crow_indices': crow_indices, 'col_indices': col_indices, 'values': values, 'size': size, 'dtype': dtype, 'requires_grad': requires_grad}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+generated_inputs = {}
 generated_inputs["torch.sparse_csr_tensor_1"] = sparse_csr_tensor_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):

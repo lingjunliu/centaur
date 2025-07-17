@@ -12,93 +12,75 @@ def randint_like_inputs():
     list_of_inputs = []
 
     # Input 1
-    input = np.array([1, 2, 3])
+    input_tensor = np.array([1, 2, 3])
     high = 5
     dtype = np.int64
-    layout = 'strided'
-    requires_grad = False
-    input_dict = {"input": input, "high": high, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
+
+    input_dict = {
+        "input": input_tensor,
+        "high": high,
+        "dtype": dtype
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input = np.ones((2, 3))
+    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]])
     high = 10
-    dtype = np.int64
-    layout = 'strided'
-    requires_grad = True
-    input_dict = {"input": input, "high": high, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
+    dtype = np.float64
+
+    input_dict = {
+        "input": input_tensor,
+        "high": high,
+        "dtype": dtype
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input = np.zeros((1, 4, 2))
+    input_tensor = np.array([1, 2, 3, 4, 5])
     high = 2
     dtype = np.int32
-    layout = 'strided'
-    requires_grad = False
-    input_dict = {"input": input, "high": high, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
 
+    input_dict = {
+        "input": input_tensor,
+        "high": high,
+        "dtype": dtype
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     # Input 4
-    input = np.random.rand(5, 5).astype(np.float32)
-    high = 100
-    dtype = np.int64
-    layout = 'strided'
-    requires_grad = True
-    input_dict = {"input": input, "high": high, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_tensor = np.array([[1, 2], [3, 4], [5, 6]])
+    high = 7
+    dtype = np.int8
 
+    input_dict = {
+        "input": input_tensor,
+        "high": high,
+        "dtype": dtype
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     # Input 5
-    input = np.array([[-1, -2], [-3, -4]])
-    high = 5
-    dtype = np.int64
-    layout = 'strided'
-    requires_grad = False
-    input_dict = {"input": input, "high": high, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
+    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    high = 9
+    dtype = np.uint8
+
+    input_dict = {
+        "input": input_tensor,
+        "high": high,
+        "dtype": dtype
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    input = np.array([1.5, 2.5, 3.5], dtype=np.float64)
-    high = 5
-    dtype = np.int64
-    layout = 'strided'
-    requires_grad = True
-    input_dict = {"input": input, "high": high, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_tensor = np.array([1.5, 2.5, 3.5])
+    high = 6
+    dtype = np.float32
 
-    # Input 7
-    input = np.random.randint(0, 10, size=(3, 2, 4)).astype(np.int32)
-    high = 20
-    dtype = np.int64
-    layout = 'strided'
-    requires_grad = False
-    input_dict = {"input": input, "high": high, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    input = np.array([1, 2, 3], dtype=np.int8)
-    high = 10
-    dtype = np.int64
-    layout = 'strided'
-    requires_grad = True
-    input_dict = {"input": input, "high": high, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    input = np.ones((2,2), dtype=np.float16)
-    high = 5
-    dtype = np.int64
-    layout = 'strided'
-    requires_grad = False
-    input_dict = {"input": input, "high": high, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    input = np.zeros((1,5), dtype=np.uint8)
-    high = 255
-    dtype = np.int64
-    layout = 'strided'
-    requires_grad = True
-    input_dict = {"input": input, "high": high, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
+    input_dict = {
+        "input": input_tensor,
+        "high": high,
+        "dtype": dtype
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

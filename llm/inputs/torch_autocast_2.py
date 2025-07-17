@@ -11,7 +11,7 @@ import copy
 def autocast_inputs():
     list_of_inputs = []
 
-    # Input 1
+    # Input 1: float16, enabled
     input_dict = {
         "device_type": "cuda",
         "dtype": np.float16,
@@ -19,15 +19,15 @@ def autocast_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
+    # Input 2: bfloat16, disabled
     input_dict = {
         "device_type": "cpu",
-        "dtype": np.float32,
+        "dtype": np.dtype('bfloat16'),
         "enabled": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
+    # Input 3: float32, enabled
     input_dict = {
         "device_type": "cuda",
         "dtype": np.float32,
@@ -35,7 +35,7 @@ def autocast_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
+    # Input 4: float64, disabled
     input_dict = {
         "device_type": "cpu",
         "dtype": np.float64,
@@ -43,23 +43,7 @@ def autocast_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    input_dict = {
-        "device_type": "cuda",
-        "dtype": np.float64,
-        "enabled": True
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    input_dict = {
-        "device_type": "cpu",
-        "dtype": np.float16,
-        "enabled": True
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
+    # Input 5: float16, disabled
     input_dict = {
         "device_type": "cuda",
         "dtype": np.float16,
@@ -67,23 +51,15 @@ def autocast_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
+    # Input 6: bfloat16, enabled
     input_dict = {
         "device_type": "cpu",
-        "dtype": np.float32,
+        "dtype": np.dtype('bfloat16'),
         "enabled": True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    input_dict = {
-        "device_type": "cpu",
-        "dtype": np.float32,
-        "enabled": True
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
+    # Input 7: float32, disabled
     input_dict = {
         "device_type": "cuda",
         "dtype": np.float32,
@@ -91,7 +67,7 @@ def autocast_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 11
+    # Input 8: float64, enabled
     input_dict = {
         "device_type": "cpu",
         "dtype": np.float64,
@@ -99,8 +75,25 @@ def autocast_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 9: cpu, float16, enabled
+    input_dict = {
+        "device_type": "cpu",
+        "dtype": np.float16,
+        "enabled": True
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: cuda, float64, disabled
+    input_dict = {
+        "device_type": "cuda",
+        "dtype": np.float64,
+        "enabled": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["torch.autocast_2"] = autocast_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):

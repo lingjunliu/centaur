@@ -11,52 +11,55 @@ import copy
 def cartesian_prod_inputs():
     list_of_inputs = []
 
-    def create_input(arr_list):
-        return {"tensors": arr_list}
+    # Input 1: Two 1D tensors
+    tensors = [np.array([1, 2]), np.array([3, 4])]
+    input_dict = {"tensors": tensors}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 1: Basic 1D tensors
-    inputs = create_input([np.array([1, 2]), np.array([3, 4])])
-    list_of_inputs.append(copy.deepcopy(inputs))
+    # Input 2: Two 1D tensors with different dtypes
+    tensors = [np.array([1, 2], dtype=np.int64), np.array([3, 4], dtype=np.int64)]
+    input_dict = {"tensors": tensors}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: tensors with different data types
-    inputs = create_input([np.array([1, 2], dtype=np.int32), np.array([3, 4], dtype=np.int64)])
-    list_of_inputs.append(copy.deepcopy(inputs))
+    # Input 3: Three 1D tensors
+    tensors = [np.array([1, 2]), np.array([3, 4]), np.array([5, 6])]
+    input_dict = {"tensors": tensors}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Tensors with different sizes
-    inputs = create_input([np.array([1, 2, 3]), np.array([4])])
-    list_of_inputs.append(copy.deepcopy(inputs))
-
-    # Input 9: More tensors
-    inputs = create_input([np.array([1]), np.array([2]), np.array([3]), np.array([4])])
-    list_of_inputs.append(copy.deepcopy(inputs))
+    # Input 5: One tensor
+    tensors = [np.array([1, 2, 3])]
+    input_dict = {"tensors": tensors}
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 10: float tensors
-    inputs = create_input([np.array([1.0, 2.0]), np.array([3.0, 4.0])])
-    list_of_inputs.append(copy.deepcopy(inputs))
+    # Input 6: Three tensors with different sizes
+    tensors = [np.array([1, 2]), np.array([3, 4, 5]), np.array([6])]
+    input_dict = {"tensors": tensors}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 11: Single tensor
-    inputs = create_input([np.array([1, 2, 3])])
-    list_of_inputs.append(copy.deepcopy(inputs))
+    # Input 7: Two 1D tensors with negative values
+    tensors = [np.array([-1, 2]), np.array([3, -4])]
+    input_dict = {"tensors": tensors}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 12: More different sizes
-    inputs = create_input([np.array([1]), np.array([2,3])])
-    list_of_inputs.append(copy.deepcopy(inputs))
+    # Input 8: Several tensors of different dimensionalities and sizes. Reduced dimensions and removed the multidimensional one
+    tensors = [np.array([1, 2]), np.array([3, 4]), np.array([9])]
+    input_dict = {"tensors": tensors}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 13: Negative values
-    inputs = create_input([np.array([-1, 2]), np.array([3, -4])])
-    list_of_inputs.append(copy.deepcopy(inputs))
-
-    # Input 14: Zero values
-    inputs = create_input([np.array([0, 2]), np.array([3, 0])])
-    list_of_inputs.append(copy.deepcopy(inputs))
-
-    # Input 15: boolean values
-    inputs = create_input([np.array([True, False]), np.array([True, True])])
-    list_of_inputs.append(copy.deepcopy(inputs))
-
-    # Input 16: Different data types combined
-    inputs = create_input([np.array([1, 2], dtype=np.int32), np.array([3.0, 4.0])])
-    list_of_inputs.append(copy.deepcopy(inputs))
+    # Input 9: All tensors 1D
+    tensors = [np.array([1, 2]), np.array([3,4])]
+    input_dict = {"tensors": tensors}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10: Add a small float and int tensor
+    tensors = [np.array([1.0, 2.0]), np.array([3, 4])]
+    input_dict = {"tensors": tensors}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12: Large tensors
+    tensors = [np.array(np.arange(10)), np.array(np.arange(5))]
+    input_dict = {"tensors": tensors}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

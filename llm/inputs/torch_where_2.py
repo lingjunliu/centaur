@@ -8,63 +8,63 @@ import torch
 import numpy as np
 import copy
 
-def where_inputs():
+def torch_where_inputs():
     list_of_inputs = []
 
     # Input 1: Simple 1D boolean tensor
-    condition = np.array([True, False, True, False], dtype=bool)
+    condition = np.array([True, False, True])
     input_dict = {"condition": condition}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: 2D boolean tensor
-    condition = np.array([[True, False], [False, True]], dtype=bool)
+    condition = np.array([[True, False], [False, True]])
     input_dict = {"condition": condition}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: 3D boolean tensor
-    condition = np.array([[[True, False], [False, True]], [[False, True], [True, False]]], dtype=bool)
+    condition = np.array([[[True, False], [False, True]], [[False, True], [True, False]]])
     input_dict = {"condition": condition}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Empty boolean tensor
-    condition = np.array([], dtype=bool)
+    condition = np.array([])
     input_dict = {"condition": condition}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Boolean tensor with all True values
-    condition = np.array([True, True, True], dtype=bool)
+    condition = np.array([True, True, True])
     input_dict = {"condition": condition}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Boolean tensor with all False values
-    condition = np.array([False, False, False], dtype=bool)
+    condition = np.array([False, False, False])
     input_dict = {"condition": condition}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Boolean tensor with mixed True/False in a larger array
-    condition = np.array([[True, False, True], [False, True, False], [True, True, False]], dtype=bool)
+    # Input 7: Boolean tensor with mixed True/False values
+    condition = np.array([True, False, True, False, True, False])
     input_dict = {"condition": condition}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: 1D boolean tensor with more elements
-    condition = np.array([True, False, True, False, True, True, False, False], dtype=bool)
+    
+    # Input 8: Large boolean tensor
+    condition = np.random.choice([True, False], size=(10, 10))
     input_dict = {"condition": condition}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Boolean tensor with a different shape (1, N)
-    condition = np.array([[True, False, True, True]], dtype=bool)
+    
+    # Input 9: Boolean tensor with a single element
+    condition = np.array([True])
     input_dict = {"condition": condition}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Boolean tensor with a different shape (N, 1)
-    condition = np.array([[True], [False], [True], [False]], dtype=bool)
+    
+    # Input 10: Boolean tensor with a single element (False)
+    condition = np.array([False])
     input_dict = {"condition": condition}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["torch.where_2"] = where_inputs()
+generated_inputs["torch.where_2"] = torch_where_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

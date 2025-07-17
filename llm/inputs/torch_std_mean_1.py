@@ -12,122 +12,135 @@ def std_mean_inputs():
     list_of_inputs = []
 
     # Input 1
-    input_tensor = np.array([1.0, 2.0, 3.0])
-    unbiased_bool = True
-    keepdim_bool = False
+    input = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    unbiased = True
+    keepdim = False
+    out = tuple()
 
     input_dict = {
-        "input": input_tensor,
-        "unbiased": unbiased_bool,
-        "keepdim": keepdim_bool
+        "input": torch.from_numpy(input).double(),
+        "unbiased": unbiased,
+        "keepdim": keepdim,
+        "out": out
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]])
-    unbiased_bool = False
-    keepdim_bool = True
+    input = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    unbiased = False
+    keepdim = True
+    out = tuple()
 
     input_dict = {
-        "input": input_tensor,
-        "unbiased": unbiased_bool,
-        "keepdim": keepdim_bool
+        "input": torch.from_numpy(input).double(),
+        "unbiased": unbiased,
+        "keepdim": keepdim,
+        "out": out
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input_tensor = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
-    unbiased_bool = True
-    keepdim_bool = True
+    input = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
+    unbiased = True
+    keepdim = True
+    out = tuple()
 
     input_dict = {
-        "input": input_tensor,
-        "unbiased": unbiased_bool,
-        "keepdim": keepdim_bool
+        "input": torch.from_numpy(input).double(),
+        "unbiased": unbiased,
+        "keepdim": keepdim,
+        "out": out
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    input_tensor = np.array([[-1.0, 2.0], [3.0, -4.0]])
-    unbiased_bool = False
-    keepdim_bool = False
-
+    input = np.array([[-1.0, -2.0], [-3.0, -4.0]], dtype=np.float32)
+    unbiased = False
+    keepdim = False
+    out = tuple()
     input_dict = {
-        "input": input_tensor,
-        "unbiased": unbiased_bool,
-        "keepdim": keepdim_bool
+        "input": torch.from_numpy(input).double(),
+        "unbiased": unbiased,
+        "keepdim": keepdim,
+        "out": out
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    input_tensor = np.array([1.0])
-    unbiased_bool = True
-    keepdim_bool = False
-
+    input = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    unbiased = True
+    keepdim = False
+    out = tuple()
     input_dict = {
-        "input": input_tensor,
-        "unbiased": unbiased_bool,
-        "keepdim": keepdim_bool
+        "input": torch.from_numpy(input).double(),
+        "unbiased": unbiased,
+        "keepdim": keepdim,
+        "out": out
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    input_tensor = np.array([1, 2, 3], dtype=np.int32)
-    unbiased_bool = False
-    keepdim_bool = True
-
+    input = np.array([1.0], dtype=np.float32)
+    unbiased = False
+    keepdim = True
+    out = tuple()
     input_dict = {
-        "input": input_tensor,
-        "unbiased": unbiased_bool,
-        "keepdim": keepdim_bool
+        "input": torch.from_numpy(input).double(),
+        "unbiased": unbiased,
+        "keepdim": keepdim,
+        "out": out
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    input_tensor = np.array([[-1, -2], [-3, -4]], dtype=np.int64)
-    unbiased_bool = True
-    keepdim_bool = False
-
+    input = np.array([1, 2, 3], dtype=np.int32)
+    unbiased = True
+    keepdim = False
+    out = tuple()
     input_dict = {
-        "input": input_tensor,
-        "unbiased": unbiased_bool,
-        "keepdim": keepdim_bool
+        "input": torch.from_numpy(input).double(),
+        "unbiased": unbiased,
+        "keepdim": keepdim,
+        "out": out
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    input_tensor = np.array([1.5, 2.5, 3.5], dtype=np.float64)
-    unbiased_bool = False
-    keepdim_bool = True
-
+    input = np.array([[1, 2], [3, 4]], dtype=np.int32)
+    unbiased = False
+    keepdim = True
+    out = tuple()
     input_dict = {
-        "input": input_tensor,
-        "unbiased": unbiased_bool,
-        "keepdim": keepdim_bool
+        "input": torch.from_numpy(input).double(),
+        "unbiased": unbiased,
+        "keepdim": keepdim,
+        "out": out
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 9
-    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
-    unbiased_bool = True
-    keepdim_bool = False
-
+    input = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    unbiased = True
+    keepdim = False
+    out = tuple()
     input_dict = {
-        "input": input_tensor,
-        "unbiased": unbiased_bool,
-        "keepdim": keepdim_bool
+        "input": torch.from_numpy(input).double(),
+        "unbiased": unbiased,
+        "keepdim": keepdim,
+        "out": out
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    input_tensor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
-    unbiased_bool = False
-    keepdim_bool = True
-
+    input = np.array([1.5, 2.5, 3.5], dtype=np.float32)
+    unbiased = False
+    keepdim = True
+    out = tuple()
     input_dict = {
-        "input": input_tensor,
-        "unbiased": unbiased_bool,
-        "keepdim": keepdim_bool
+        "input": torch.from_numpy(input).double(),
+        "unbiased": unbiased,
+        "keepdim": keepdim,
+        "out": out
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

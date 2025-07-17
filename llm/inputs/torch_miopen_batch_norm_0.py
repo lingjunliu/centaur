@@ -12,90 +12,68 @@ def miopen_batch_norm_inputs():
     list_of_inputs = []
 
     # Input 1
-    input_tensor = np.random.randn(2, 3, 4, 5).astype(np.float32)
-    weight = np.random.randn(3).astype(np.float32)
-    bias = np.random.randn(3).astype(np.float32)
-    running_mean = np.random.randn(3).astype(np.float32)
-    running_var = np.random.rand(3).astype(np.float32)
-    training = True
-    exponential_average_factor = 0.1
-    eps = 1e-5
+    input_tensor = np.random.rand(2, 3, 4, 5).astype(np.float32)
+    weight_tensor = np.random.rand(3).astype(np.float32)
+    bias_tensor = np.random.rand(3).astype(np.float32)
+    running_mean_tensor = np.random.rand(3).astype(np.float32)
+    running_var_tensor = np.random.rand(3).astype(np.float32)
+    training_flag = True
+    exponential_average_factor_val = 0.1
+    eps_val = 1e-5
 
     input_dict = {
         "input": input_tensor,
-        "weight": weight,
-        "bias": bias,
-        "running_mean": running_mean,
-        "running_var": running_var,
-        "training": training,
-        "exponential_average_factor": exponential_average_factor,
-        "eps": eps
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "running_mean": running_mean_tensor,
+        "running_var": running_var_tensor,
+        "training": training_flag,
+        "exponential_average_factor": exponential_average_factor_val,
+        "eps": eps_val
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input_tensor = np.random.randn(1, 5, 10, 10).astype(np.float32)
-    weight = np.random.randn(5).astype(np.float32)
-    bias = np.random.randn(5).astype(np.float32)
-    running_mean = np.zeros(5).astype(np.float32)
-    running_var = np.ones(5).astype(np.float32)
-    training = False
-    exponential_average_factor = 0.2
-    eps = 1e-4
+    input_tensor = np.random.rand(1, 5, 10, 10).astype(np.float32)
+    weight_tensor = np.random.rand(5).astype(np.float32)
+    bias_tensor = np.random.rand(5).astype(np.float32)
+    running_mean_tensor = np.random.rand(5).astype(np.float32)
+    running_var_tensor = np.random.rand(5).astype(np.float32)
+    training_flag = False
+    exponential_average_factor_val = 0.5
+    eps_val = 1e-8
 
     input_dict = {
         "input": input_tensor,
-        "weight": weight,
-        "bias": bias,
-        "running_mean": running_mean,
-        "running_var": running_var,
-        "training": training,
-        "exponential_average_factor": exponential_average_factor,
-        "eps": eps
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "running_mean": running_mean_tensor,
+        "running_var": running_var_tensor,
+        "training": training_flag,
+        "exponential_average_factor": exponential_average_factor_val,
+        "eps": eps_val
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input_tensor = np.random.randn(4, 7, 8, 8).astype(np.float32)
-    weight = np.random.randn(7).astype(np.float32)
-    bias = np.random.randn(7).astype(np.float32)
-    running_mean = np.random.randn(7).astype(np.float32)
-    running_var = np.abs(np.random.randn(7)).astype(np.float32)  # Ensure variance is positive
-    training = True
-    exponential_average_factor = 0.05
-    eps = 1e-8
+    input_tensor = np.random.rand(4, 8, 2, 2).astype(np.float32)
+    weight_tensor = np.random.rand(8).astype(np.float32)
+    bias_tensor = np.random.rand(8).astype(np.float32)
+    running_mean_tensor = np.random.rand(8).astype(np.float32)
+    running_var_tensor = np.random.rand(8).astype(np.float32)
+    training_flag = True
+    exponential_average_factor_val = 0.9
+    eps_val = 1e-3
 
     input_dict = {
         "input": input_tensor,
-        "weight": weight,
-        "bias": bias,
-        "running_mean": running_mean,
-        "running_var": running_var,
-        "training": training,
-        "exponential_average_factor": exponential_average_factor,
-        "eps": eps
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    input_tensor = np.random.randn(3, 4, 5, 6).astype(np.float32)
-    weight = np.random.randn(4).astype(np.float32)
-    bias = np.random.randn(4).astype(np.float32)
-    running_mean = np.random.randn(4).astype(np.float32)
-    running_var = np.random.rand(4).astype(np.float32)
-    training = False
-    exponential_average_factor = 0.3
-    eps = 1e-6
-
-    input_dict = {
-        "input": input_tensor,
-        "weight": weight,
-        "bias": bias,
-        "running_mean": running_mean,
-        "running_var": running_var,
-        "training": training,
-        "exponential_average_factor": exponential_average_factor,
-        "eps": eps
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "running_mean": running_mean_tensor,
+        "running_var": running_var_tensor,
+        "training": training_flag,
+        "exponential_average_factor": exponential_average_factor_val,
+        "eps": eps_val
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs

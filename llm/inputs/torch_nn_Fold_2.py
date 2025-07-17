@@ -17,9 +17,8 @@ def fold_inputs():
     dilation = (1, 1)
     padding = (0, 0)
     stride = (1, 1)
-    input = torch.randn(1, 3 * 2 * 2, 12).numpy()
-    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation,
-                  "padding": padding, "stride": stride, "input": input}
+    input_tensor = torch.randn(1, 3 * 2 * 2, 12).numpy()
+    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride, "input": input_tensor}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
@@ -28,11 +27,21 @@ def fold_inputs():
     dilation = (2, 2)
     padding = (1, 1)
     stride = (2, 2)
-    input = torch.randn(1, 1 * 3 * 3, 16).numpy()
-    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation,
-                  "padding": padding, "stride": stride, "input": input}
+    L = ((output_size[0] + 2 * padding[0] - dilation[0] * (kernel_size[0] - 1) - 1) // stride[0] + 1) * ((output_size[1] + 2 * padding[1] - dilation[1] * (kernel_size[1] - 1) - 1) // stride[1] + 1)
+    input_tensor = torch.randn(1, 1 * 3 * 3, int(L)).numpy()
+    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride, "input": input_tensor}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 3
+    output_size = (7, 8)
+    kernel_size = (2, 3)
+    dilation = (1, 1)
+    padding = (1, 0)
+    stride = (1, 2)
+    L = ((output_size[0] + 2 * padding[0] - dilation[0] * (kernel_size[0] - 1) - 1) // stride[0] + 1) * ((output_size[1] + 2 * padding[1] - dilation[1] * (kernel_size[1] - 1) - 1) // stride[1] + 1)
+    input_tensor = torch.randn(1, 5 * 2 * 3, int(L)).numpy()
+    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
     output_size = (5, 5)
@@ -40,88 +49,75 @@ def fold_inputs():
     dilation = (1, 1)
     padding = (0, 0)
     stride = (1, 1)
-    input = torch.randn(1, 3 * 1 * 1, 25).numpy()
-    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation,
-                  "padding": padding, "stride": stride, "input": input}
+    L = ((output_size[0] + 2 * padding[0] - dilation[0] * (kernel_size[0] - 1) - 1) // stride[0] + 1) * ((output_size[1] + 2 * padding[1] - dilation[1] * (kernel_size[1] - 1) - 1) // stride[1] + 1)
+    input_tensor = torch.randn(1, 2 * 1 * 1, int(L)).numpy()
+    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride, "input": input_tensor}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 5
+    output_size = (12, 15)
+    kernel_size = (4, 4)
+    dilation = (1, 1)
+    padding = (2, 2)
+    stride = (3, 3)
+    L = ((output_size[0] + 2 * padding[0] - dilation[0] * (kernel_size[0] - 1) - 1) // stride[0] + 1) * ((output_size[1] + 2 * padding[1] - dilation[1] * (kernel_size[1] - 1) - 1) // stride[1] + 1)
+    input_tensor = torch.randn(1, 4 * 4 * 4, int(L)).numpy()
+    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 6: Unbatched input
-    output_size = (4, 5)
+    # Input 6 - No batch dimension
+    output_size = (6, 7)
     kernel_size = (2, 2)
     dilation = (1, 1)
     padding = (0, 0)
     stride = (1, 1)
-    input = torch.randn(3 * 2 * 2, 12).numpy()
-    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation,
-                  "padding": padding, "stride": stride, "input": input}
+    L = ((output_size[0] + 2 * padding[0] - dilation[0] * (kernel_size[0] - 1) - 1) // stride[0] + 1) * ((output_size[1] + 2 * padding[1] - dilation[1] * (kernel_size[1] - 1) - 1) // stride[1] + 1)
+    input_tensor = torch.randn(3 * 2 * 2, int(L)).numpy()
+    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride, "input": input_tensor}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-
-    # Input 10: Padding > 0
-    output_size = (7, 7)
+    # Input 7 - Different padding and stride
+    output_size = (8, 9)
     kernel_size = (3, 3)
     dilation = (1, 1)
-    padding = (2, 2)
-    stride = (1, 1)
-    input = torch.randn(1, 3 * 3 * 3, 25).numpy()
-    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation,
-                  "padding": padding, "stride": stride, "input": input}
+    padding = (2, 1)
+    stride = (2, 1)
+    L = ((output_size[0] + 2 * padding[0] - dilation[0] * (kernel_size[0] - 1) - 1) // stride[0] + 1) * ((output_size[1] + 2 * padding[1] - dilation[1] * (kernel_size[1] - 1) - 1) // stride[1] + 1)
+    input_tensor = torch.randn(1, 1 * 3 * 3, int(L)).numpy()
+    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride, "input": input_tensor}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3 - Corrected dimensions
-    output_size = (7, 8)
-    kernel_size = (2, 3)
-    dilation = (1, 1)
-    padding = (1, 0)
-    stride = (1, 2)
-    input = torch.randn(1, 3 * 2 * 3, 24).numpy()  # Corrected input size
-    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation,
-                  "padding": padding, "stride": stride, "input": input}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 5 - Corrected dimensions
-    output_size = (6, 7)
-    kernel_size = (3, 2)
-    dilation = (2, 1)
-    padding = (0, 1)
-    stride = (1, 1)
-    input = torch.randn(1, 3 * 3 * 2, 16).numpy() #Corrected input size
-    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation,
-                  "padding": padding, "stride": stride, "input": input}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7 - Corrected dimensions
-    output_size = (8, 8)
+    # Input 8 - Larger kernel and output size
+    output_size = (20, 20)
     kernel_size = (5, 5)
     dilation = (1, 1)
     padding = (2, 2)
     stride = (1, 1)
-    input = torch.randn(1, 3 * 5 * 5, 36).numpy()
-    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation,
-                  "padding": padding, "stride": stride, "input": input}
+    L = ((output_size[0] + 2 * padding[0] - dilation[0] * (kernel_size[0] - 1) - 1) // stride[0] + 1) * ((output_size[1] + 2 * padding[1] - dilation[1] * (kernel_size[1] - 1) - 1) // stride[1] + 1)
+    input_tensor = torch.randn(1, 2 * 5 * 5, int(L)).numpy()
+    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride, "input": input_tensor}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8 - Corrected dimensions
-    output_size = (10, 10)
-    kernel_size = (3, 3)
-    dilation = (3, 3)
-    padding = (1, 1)
-    stride = (1, 1)
-    input = torch.randn(1, 1 * 3 * 3, 36).numpy()
-    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation,
-                  "padding": padding, "stride": stride, "input": input}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9 - Corrected
-    output_size = (12, 8)
-    kernel_size = (4, 4)
+    
+    # Input 9 - Small output size and kernel size
+    output_size = (2, 2)
+    kernel_size = (1, 1)
     dilation = (1, 1)
-    padding = (1, 1)
-    stride = (2, 2)
-    input = torch.randn(1, 3 * 4 * 4, 24).numpy()
-    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation,
-                  "padding": padding, "stride": stride, "input": input}
+    padding = (0, 0)
+    stride = (1, 1)
+    L = ((output_size[0] + 2 * padding[0] - dilation[0] * (kernel_size[0] - 1) - 1) // stride[0] + 1) * ((output_size[1] + 2 * padding[1] - dilation[1] * (kernel_size[1] - 1) - 1) // stride[1] + 1)
+    input_tensor = torch.randn(1, 1 * 1 * 1, int(L)).numpy()
+    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10 - dilation > 1
+    output_size = (8, 8)
+    kernel_size = (3, 3)
+    dilation = (2, 2)
+    padding = (0, 0)
+    stride = (1, 1)
+    L = ((output_size[0] + 2 * padding[0] - dilation[0] * (kernel_size[0] - 1) - 1) // stride[0] + 1) * ((output_size[1] + 2 * padding[1] - dilation[1] * (kernel_size[1] - 1) - 1) // stride[1] + 1)
+    input_tensor = torch.randn(1, 1 * 3 * 3, int(L)).numpy()
+    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride, "input": input_tensor}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

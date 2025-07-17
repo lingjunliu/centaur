@@ -14,192 +14,123 @@ def empty_strided_inputs():
     # Input 1
     size = (2, 3)
     stride = (3, 1)
-    dtype = torch.float32
-    layout = 'strided'
-    pin_memory = False
-    requires_grad = False
+    dtype = np.float32
 
     input_dict = {
         "size": size,
         "stride": stride,
-        "dtype": dtype,
-        "layout": layout,
-        "pin_memory": pin_memory,
-        "requires_grad": requires_grad,
-        "args": [size, stride]
+        "dtype": dtype
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    size = (5,)
-    stride = (1,)
-    dtype = torch.int64
-    layout = 'strided'
-    pin_memory = True
-    requires_grad = True
+    size = (4, 5, 2)
+    stride = (10, 2, 1)
+    dtype = np.int64
 
     input_dict = {
         "size": size,
         "stride": stride,
-        "dtype": dtype,
-        "layout": layout,
-        "pin_memory": pin_memory,
-        "requires_grad": requires_grad,
-        "args": [size, stride]
+        "dtype": dtype
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    size = (2, 2, 2)
-    stride = (4, 2, 1)
-    dtype = torch.float64
-    layout = 'strided'
-    pin_memory = False
-    requires_grad = False
+    size = (1, 7)
+    stride = (7, 1)
+    dtype = np.bool_
 
     input_dict = {
         "size": size,
         "stride": stride,
-        "dtype": dtype,
-        "layout": layout,
-        "pin_memory": pin_memory,
-        "requires_grad": requires_grad,
-        "args": [size, stride]
+        "dtype": dtype
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    size = (1, 4, 1)
-    stride = (4, 1, 4)
-    dtype = torch.uint8
-    layout = 'strided'
-    pin_memory = True
-    requires_grad = True
+    size = (2, 2, 2, 2)
+    stride = (8, 4, 2, 1)
+    dtype = np.float64
 
     input_dict = {
         "size": size,
         "stride": stride,
-        "dtype": dtype,
-        "layout": layout,
-        "pin_memory": pin_memory,
-        "requires_grad": requires_grad,
-        "args": [size, stride]
+        "dtype": dtype
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    size = (2, 3, 4, 5)
-    stride = (60, 20, 5, 1)
-    dtype = torch.bool
-    layout = 'strided'
-    pin_memory = False
-    requires_grad = False
+    size = (10,)
+    stride = (1,)
+    dtype = np.uint8
 
     input_dict = {
         "size": size,
         "stride": stride,
-        "dtype": dtype,
-        "layout": layout,
-        "pin_memory": pin_memory,
-        "requires_grad": requires_grad,
-        "args": [size, stride]
+        "dtype": dtype
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    size = (1,)
-    stride = (1,)
-    dtype = torch.complex64
-    layout = 'strided'
-    pin_memory = True
-    requires_grad = True
+    size = (3, 1, 5)
+    stride = (5, 5, 1)
+    dtype = np.int32
 
     input_dict = {
         "size": size,
         "stride": stride,
-        "dtype": dtype,
-        "layout": layout,
-        "pin_memory": pin_memory,
-        "requires_grad": requires_grad,
-        "args": [size, stride]
+        "dtype": dtype
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    size = (2, 1)
-    stride = (1, 2)
-    dtype = torch.int8
-    layout = 'strided'
-    pin_memory = False
-    requires_grad = False
+    size = (1,)
+    stride = (1,)
+    dtype = np.float16
 
     input_dict = {
         "size": size,
         "stride": stride,
-        "dtype": dtype,
-        "layout": layout,
-        "pin_memory": pin_memory,
-        "requires_grad": requires_grad,
-        "args": [size, stride]
+        "dtype": dtype
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 8
-    size = (3,3)
-    stride = (3,1)
-    dtype = torch.float16
-    layout = 'strided'
-    pin_memory = True
-    requires_grad = True
+    # Input 8
+    size = (2, 4)
+    stride = (4, 1)
+    dtype = np.complex64
 
     input_dict = {
         "size": size,
         "stride": stride,
-        "dtype": dtype,
-        "layout": layout,
-        "pin_memory": pin_memory,
-        "requires_grad": requires_grad,
-        "args": [size, stride]
+        "dtype": dtype
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 9
-    size = (4, )
-    stride = (1, )
-    dtype = torch.uint16
-    layout = 'strided'
-    pin_memory = False
-    requires_grad = False
+    # Input 9
+    size = (2, 2)
+    stride = (2, 1)
+    dtype = np.int8
 
     input_dict = {
         "size": size,
         "stride": stride,
-        "dtype": dtype,
-        "layout": layout,
-        "pin_memory": pin_memory,
-        "requires_grad": requires_grad,
-        "args": [size, stride]
+        "dtype": dtype
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    size = (1, 2, 3)
-    stride = (6, 3, 1)
-    dtype = torch.int32
-    layout = 'strided'
-    pin_memory = True
-    requires_grad = True
+    size = (5, 1)
+    stride = (1, 1)
+    dtype = np.uint16
 
     input_dict = {
         "size": size,
         "stride": stride,
-        "dtype": dtype,
-        "layout": layout,
-        "pin_memory": pin_memory,
-        "requires_grad": requires_grad,
-        "args": [size, stride]
+        "dtype": dtype
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
+
 
     return list_of_inputs
 

@@ -4,84 +4,96 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def threshold_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic 1D tensor
-    input = np.array([-1.0, 0.0, 1.0, 2.0], dtype=np.float32)
-    threshold = 0.5
-    value = 0.0
-    input_dict = {"input": input, "threshold": threshold, "value": value}
+    # Input 1: Basic 1D tensor, positive threshold and value
+    input_dict = {
+        "input": np.array([1.0, 2.0, 0.5, 3.0]),
+        "threshold": 1.5,
+        "value": 0.0
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 2D tensor
-    input = np.array([[-1.0, 0.0], [1.0, 2.0]], dtype=np.float32)
-    threshold = 1.0
-    value = -1.0
-    input_dict = {"input": input, "threshold": threshold, "value": value}
+    # Input 2: 2D tensor, negative threshold and value
+    input_dict = {
+        "input": np.array([[-1.0, -2.0], [0.5, 3.0]]),
+        "threshold": -1.5,
+        "value": -0.5
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: All negative values
-    input = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
-    threshold = -2.0
-    value = 0.0
-    input_dict = {"input": input, "threshold": threshold, "value": value}
+    # Input 3: 3D tensor, zero threshold and value
+    input_dict = {
+        "input": np.array([[[1.0, 2.0], [0.5, 3.0]], [[-1.0, -2.0], [-0.5, -3.0]]]),
+        "threshold": 0.0,
+        "value": 0.0
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Threshold at zero
-    input = np.array([-1.0, 0.0, 1.0], dtype=np.float32)
-    threshold = 0.0
-    value = 5.0
-    input_dict = {"input": input, "threshold": threshold, "value": value}
+    # Input 4: All elements below threshold
+    input_dict = {
+        "input": np.array([0.1, 0.2, 0.3]),
+        "threshold": 0.5,
+        "value": 1.0
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Threshold larger than max value
-    input = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    threshold = 4.0
-    value = 0.0
-    input_dict = {"input": input, "threshold": threshold, "value": value}
+    # Input 5: All elements above threshold
+    input_dict = {
+        "input": np.array([1.1, 1.2, 1.3]),
+        "threshold": 0.5,
+        "value": 0.0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: Threshold equals largest value
+    input_dict = {
+        "input": np.array([1.0, 2.0, 0.5, 3.0]),
+        "threshold": 3.0,
+        "value": 0.0
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Threshold smaller than min value
-    input = np.array([-3.0, -2.0, -1.0], dtype=np.float32)
-    threshold = -4.0
-    value = 1.0
-    input_dict = {"input": input, "threshold": threshold, "value": value}
+    # Input 7: Threshold equals smallest value
+    input_dict = {
+        "input": np.array([1.0, 2.0, 0.5, 3.0]),
+        "threshold": 0.5,
+        "value": 0.0
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: Zero value
-    input = np.array([1.0, 0.0, -1.0], dtype=np.float32)
-    threshold = 0.5
-    value = 0.0
-    input_dict = {"input": input, "threshold": threshold, "value": value}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: 3D tensor
-    input = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    threshold = 5.0
-    value = -1.0
-    input_dict = {"input": input, "threshold": threshold, "value": value}
+    
+    # Input 8: Value equals Threshold
+    input_dict = {
+        "input": np.array([1.0, 2.0, 0.5, 3.0]),
+        "threshold": 1.5,
+        "value": 1.5
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: Large threshold and value
-    input = np.array([100.0, 200.0, 300.0], dtype=np.float32)
-    threshold = 250.0
-    value = 1000.0
-    input_dict = {"input": input, "threshold": threshold, "value": value}
+    input_dict = {
+        "input": np.array([1.0, 2.0, 0.5, 3.0]),
+        "threshold": 100.0,
+        "value": 50.0
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Edge Case - Input values equal to threshold
-    input = np.array([1.0, 1.0, 2.0], dtype=np.float32)
-    threshold = 1.0
-    value = 0.0
-    input_dict = {"input": input, "threshold": threshold, "value": value}
+    # Input 10: Negative threshold and positive value
+    input_dict = {
+        "input": np.array([-1.0, -2.0, -0.5, -3.0]),
+        "threshold": -1.5,
+        "value": 1.0
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["torch.threshold"] = threshold_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):

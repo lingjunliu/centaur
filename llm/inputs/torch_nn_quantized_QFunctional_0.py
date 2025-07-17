@@ -7,77 +7,103 @@ generated_inputs = dict()
 import torch, copy
 import numpy as np
 
-class MockQuantizedTensor:
-    def __init__(self, data, q_scale=1.0, q_zero_point=0, quant_min=0, quant_max=255):
-        self.data = data
-        self.q_scale = q_scale
-        self.q_zero_point = q_zero_point
-        self.quant_min = quant_min
-        self.quant_max = quant_max
-
-    def numpy(self):
-        return self.data
-
-    def __repr__(self):
-        return f"MockQuantizedTensor(data={self.data}, q_scale={self.q_scale}, q_zero_point={self.q_zero_point})"
-
-def qfunctional_inputs():
+def QFunctional_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple 1D tensor
-    input1 = MockQuantizedTensor(np.array([1, 2, 3], dtype=np.int32))
-    input_dict = {"inner": {"args": [], "kwargs": {"x": input1.data}}}
+    # Input 1
+    input_dict = {
+        "inner": {
+            "args": [torch.randn(3, 4).numpy()],
+            "kwargs": {}
+        }
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 2D tensor
-    input2 = MockQuantizedTensor(np.array([[1, 2], [3, 4]], dtype=np.int32))
-    input_dict = {"inner": {"args": [], "kwargs": {"x": input2.data}}}
+    # Input 2
+    input_dict = {
+        "inner": {
+            "args": [torch.randn(2, 2, 2).numpy()],
+            "kwargs": {}
+        }
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 3D tensor
-    input3 = MockQuantizedTensor(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32))
-    input_dict = {"inner": {"args": [], "kwargs": {"x": input3.data}}}
+    # Input 3
+    input_dict = {
+        "inner": {
+            "args": [torch.randn(1, 5).numpy()],
+            "kwargs": {}
+        }
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4
+    input_dict = {
+        "inner": {
+            "args": [torch.randn(4).numpy()],
+            "kwargs": {}
+        }
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5
+    input_dict = {
+        "inner": {
+            "args": [torch.randn(1, 1, 1, 1).numpy()],
+            "kwargs": {}
+        }
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Tensor with negative values
-    input4 = MockQuantizedTensor(np.array([-1, 0, 1], dtype=np.int32))
-    input_dict = {"inner": {"args": [], "kwargs": {"x": input4.data}}}
+    # Input 6
+    input_dict = {
+        "inner": {
+            "args": [torch.zeros(2, 3).numpy()],
+            "kwargs": {}
+        }
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Tensor with different data type
-    input5 = MockQuantizedTensor(np.array([1, 2, 3], dtype=np.uint8))
-    input_dict = {"inner": {"args": [], "kwargs": {"x": input5.data}}}
+    # Input 7
+    input_dict = {
+        "inner": {
+            "args": [torch.ones(5).numpy()],
+            "kwargs": {}
+        }
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Larger tensor
-    input6 = MockQuantizedTensor(np.random.randint(0, 255, size=(10, 10), dtype=np.int32))
-    input_dict = {"inner": {"args": [], "kwargs": {"x": input6.data}}}
+    # Input 8
+    input_dict = {
+        "inner": {
+            "args": [torch.randint(-5, 5, (3, 3)).float().numpy()],
+            "kwargs": {}
+        }
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Tensor with a different scale
-    input7 = MockQuantizedTensor(np.array([1, 2, 3], dtype=np.int32), q_scale=0.5)
-    input_dict = {"inner": {"args": [], "kwargs": {"x": input7.data}}}
+    # Input 9
+    input_dict = {
+        "inner": {
+            "args": [torch.full((2, 4), 3.14).numpy()],
+            "kwargs": {}
+        }
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Tensor with a different zero point
-    input8 = MockQuantizedTensor(np.array([1, 2, 3], dtype=np.int32), q_zero_point=128)
-    input_dict = {"inner": {"args": [], "kwargs": {"x": input8.data}}}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Tensor with min/max bounds
-    input9 = MockQuantizedTensor(np.array([1, 2, 3], dtype=np.int32), quant_min=10, quant_max=200)
-    input_dict = {"inner": {"args": [], "kwargs": {"x": input9.data}}}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Another 2D Tensor
-    input10 = MockQuantizedTensor(np.array([[5, 6], [7, 8]], dtype=np.int32))
-    input_dict = {"inner": {"args": [], "kwargs": {"x": input10.data}}}
+    # Input 10
+    input_dict = {
+        "inner": {
+            "args": [torch.arange(10).reshape(2, 5).float().numpy()],
+            "kwargs": {}
+        }
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["torch.nn.quantized.QFunctional"] = qfunctional_inputs()
+generated_inputs["torch.nn.quantized.QFunctional"] = QFunctional_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

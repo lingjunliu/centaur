@@ -4,131 +4,19 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch
+import torch, copy
 import numpy as np
-import copy
 
 def normal_inputs():
     list_of_inputs = []
 
-    # Input 1
-    mean = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    std = np.float32(1.0)
-    out = np.zeros_like(mean, dtype=np.float32)
-
-    input_dict = {
-        "mean": mean,
-        "std": std,
-        "out": out
-    }
+    # Input 1: Basic case with positive mean
+    mean = torch.arange(1., 6.).float()
+    std = 2.0
+    out = torch.empty(5).float()
+    input_dict = {"mean": mean.numpy(), "std": std, "out": out.numpy()}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    mean = np.array([1.0, 2.0], dtype=np.float32)
-    std = np.float32(0.5)
-    out = np.zeros_like(mean, dtype=np.float32)
-    input_dict = {
-        "mean": mean,
-        "std": std,
-        "out": out
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
-    mean = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
-    std = np.float32(2.0)
-    out = np.zeros_like(mean, dtype=np.float32)
-
-    input_dict = {
-        "mean": mean,
-        "std": std,
-        "out": out
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    mean = np.array([0.0], dtype=np.float32)
-    std = np.float32(0.1)
-    out = np.zeros_like(mean, dtype=np.float32)
-    input_dict = {
-        "mean": mean,
-        "std": std,
-        "out": out
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    mean = np.array([1.5, 2.5, 3.5], dtype=np.float32)
-    std = np.float32(1.5)
-    out = np.zeros_like(mean, dtype=np.float32)
-
-    input_dict = {
-        "mean": mean,
-        "std": std,
-        "out": out
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6
-    mean = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    std = np.float32(0.75)
-    out = np.zeros_like(mean, dtype=np.float32)
-
-    input_dict = {
-        "mean": mean,
-        "std": std,
-        "out": out
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    mean = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
-    std = np.float32(0.25)
-    out = np.zeros_like(mean, dtype=np.float32)
-
-    input_dict = {
-        "mean": mean,
-        "std": std,
-        "out": out
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8
-    mean = np.array([-1.0, -0.5, 0.0, 0.5, 1.0], dtype=np.float32)
-    std = np.float32(0.8)
-    out = np.zeros_like(mean, dtype=np.float32)
-
-    input_dict = {
-        "mean": mean,
-        "std": std,
-        "out": out
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    mean = np.array([2.0, 4.0, 6.0, 8.0], dtype=np.float32)
-    std = np.float32(1.2)
-    out = np.zeros_like(mean, dtype=np.float32)
-
-    input_dict = {
-        "mean": mean,
-        "std": std,
-        "out": out
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    mean = np.array([[-1.0, 1.0], [-2.0, 2.0]], dtype=np.float32)
-    std = np.float32(0.9)
-    out = np.zeros_like(mean, dtype=np.float32)
-
-    input_dict = {
-        "mean": mean,
-        "std": std,
-        "out": out
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
     return list_of_inputs
 
 generated_inputs = {}

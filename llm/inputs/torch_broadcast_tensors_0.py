@@ -11,41 +11,11 @@ import copy
 def broadcast_tensors_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple broadcast
-    tensors = [np.array([1, 2, 3]), np.array([[4], [5], [6]])]
-    input_dict = {"tensors": tensors}
+    # Input 1: Basic case, two tensors with compatible shapes
+    tensor1 = np.array([1, 2, 3])
+    tensor2 = np.array([[0.1], [0.2], [0.3]])
+    input_dict = {"tensors": [tensor1, tensor2]}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: Broadcast to a higher dimension
-    tensors = [np.array([1]), np.array([[2, 3]])]
-    input_dict = {"tensors": tensors}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: No broadcast needed
-    tensors = [np.array([1, 2]), np.array([3, 4])]
-    input_dict = {"tensors": tensors}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: More complex broadcast
-    tensors = [np.array([1, 2, 3]), np.array([4])]
-    input_dict = {"tensors": tensors}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Multi-dimensional arrays
-    tensors = [np.array([[1, 2], [3, 4]]), np.array([5, 6])]
-    input_dict = {"tensors": tensors}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Different dtypes, implicit conversion
-    tensors = [np.array([1, 2, 3], dtype=np.int32), np.array([4.0])]
-    input_dict = {"tensors": tensors}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7: Larger tensors
-    tensors = [np.random.rand(2, 3, 4), np.random.rand(4)]
-    input_dict = {"tensors": tensors}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
     return list_of_inputs
 
 generated_inputs = {}

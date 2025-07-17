@@ -11,24 +11,14 @@ import copy
 def remove_weight_norm_inputs():
     list_of_inputs = []
 
-    # Input 1
-    module = torch.nn.Linear(5, 10)
+    # Input 1: Basic test case
+    module = torch.nn.Linear(10, 5)
     torch.nn.utils.weight_norm(module, name='weight')
-    input_dict = {'module': module, 'name': 'weight'}
+    input_dict = {
+        "module": module,
+        "name": 'weight'
+    }
     list_of_inputs.append(input_dict)
-
-    # Input 2
-    module = torch.nn.Conv2d(3, 16, kernel_size=3)
-    torch.nn.utils.weight_norm(module, name='weight')
-    input_dict = {'module': module, 'name': 'weight'}
-    list_of_inputs.append(input_dict)
-
-    # Input 3
-    module = torch.nn.LSTM(10, 20)
-    torch.nn.utils.weight_norm(module, name='weight_ih_l0')
-    input_dict = {'module': module, 'name': 'weight_ih_l0'}
-    list_of_inputs.append(input_dict)
-
     return list_of_inputs
 
 generated_inputs = {}

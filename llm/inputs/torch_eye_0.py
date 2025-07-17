@@ -6,138 +6,180 @@ generated_inputs = dict()
 
 import torch
 import numpy as np
-import copy
 
 def eye_inputs():
     list_of_inputs = []
 
-    # Input 1
+    # Input 1: Basic square matrix
     n = 3
     m = 3
-    out = torch.empty(3, 3)
+    out = torch.empty(n, m, dtype=torch.float32).numpy()
     dtype = torch.float32
-    layout = "strided"
+    layout = torch.strided
     requires_grad = False
-    input_dict = {"n": n, "m": m, "out": out, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict = {
+        "n": n,
+        "m": m,
+        "out": out,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+    }
+    list_of_inputs.append(input_dict)
 
-    # Input 2
+    # Input 2: Rectangular matrix (n > m)
     n = 5
-    m = None
-    out = torch.empty(5, 5)
-    dtype = torch.float64
-    layout = "strided"
-    requires_grad = True
-    input_dict = {"n": n, "m": m, "out": out, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
-    n = 2
-    m = 4
-    out = torch.empty(2, 4)
-    dtype = torch.int64
-    layout = "strided"
-    requires_grad = False
-    input_dict = {"n": n, "m": m, "out": out, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    n = 4
     m = 2
-    out = torch.empty(4, 2)
-    dtype = torch.int32
-    layout = "strided"
+    out = torch.empty(n, m, dtype=torch.float32).numpy()
+    dtype = torch.float32
+    layout = torch.strided
     requires_grad = True
-    input_dict = {"n": n, "m": m, "out": out, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict = {
+        "n": n,
+        "m": m,
+        "out": out,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+    }
+    list_of_inputs.append(input_dict)
 
-    # Input 5
+    # Input 3: Rectangular matrix (n < m)
+    n = 2
+    m = 5
+    out = torch.empty(n, m, dtype=torch.float64).numpy()
+    dtype = torch.float64
+    layout = torch.strided
+    requires_grad = False
+    input_dict = {
+        "n": n,
+        "m": m,
+        "out": out,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+    }
+    list_of_inputs.append(input_dict)
+
+    # Input 4: Default m (n=m) with float32 dtype
+    n = 4
+    m = 4 # Changed to explicit value, removing None
+    out = torch.empty(n, m, dtype=torch.float32).numpy()
+    dtype = torch.float32
+    layout = torch.strided
+    requires_grad = True
+    input_dict = {
+        "n": n,
+        "m": m,
+        "out": out,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+    }
+    list_of_inputs.append(input_dict)
+    
+    # Input 5: Small size matrix
     n = 1
     m = 1
-    out = torch.empty(1, 1)
+    out = torch.empty(n, m, dtype=torch.float16).numpy()
     dtype = torch.float16
-    layout = "strided"
+    layout = torch.strided
     requires_grad = False
-    input_dict = {"n": n, "m": m, "out": out, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    n = 6
-    m = None
-    out = torch.empty(6, 6)
-    dtype = torch.bfloat16
-    layout = "strided"
-    requires_grad = True
-    input_dict = {"n": n, "m": m, "out": out, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    n = 7
-    m = 8
-    out = torch.empty(7, 8)
-    dtype = torch.uint8
-    layout = "strided"
-    requires_grad = False
-    input_dict = {"n": n, "m": m, "out": out, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    n = 8
-    m = 7
-    out = torch.empty(8, 7)
-    dtype = torch.int8
-    layout = "strided"
-    requires_grad = True
-    input_dict = {"n": n, "m": m, "out": out, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    n = 9
-    m = None
-    out = torch.empty(9, 9)
-    dtype = torch.bool
-    layout = "strided"
-    requires_grad = False
-    input_dict = {"n": n, "m": m, "out": out, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    n = 10
-    m = 5
-    out = torch.empty(10, 5)
-    dtype = torch.float32
-    layout = "strided"
-    requires_grad = True
-    input_dict = {"n": n, "m": m, "out": out, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict = {
+        "n": n,
+        "m": m,
+        "out": out,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+    }
+    list_of_inputs.append(input_dict)
     
-    # Input 11: Only n, with out
-    n = 4
-    out = torch.empty(4, 4)
-    dtype = torch.float32
-    layout = "strided"
-    requires_grad = False
-    input_dict = {"n": n, "m": None, "out": out, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 12, no out
-    n = 2
+    # Input 6: Different dtype
+    n = 3
     m = 3
+    out = torch.empty(n, m, dtype=torch.float32).numpy()
     dtype = torch.float32
-    layout = "strided"
+    layout = torch.strided
     requires_grad = False
-    input_dict = {"n": n, "m": m, "out": None, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
+    input_dict = {
+        "n": n,
+        "m": m,
+        "out": out,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+    }
+    list_of_inputs.append(input_dict)
 
-    #Input 13, No m, no out
-    n = 4
+    # Input 7: Larger matrix
+    n = 10
+    m = 10
+    out = torch.empty(n, m, dtype=torch.float32).numpy()
     dtype = torch.float32
-    layout = "strided"
+    layout = torch.strided
+    requires_grad = True
+    input_dict = {
+        "n": n,
+        "m": m,
+        "out": out,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+    }
+    list_of_inputs.append(input_dict)
+
+    # Input 8: n=1, different m
+    n = 1
+    m = 5
+    out = torch.empty(n, m, dtype=torch.float32).numpy()
+    dtype = torch.float32
+    layout = torch.strided
     requires_grad = False
-    input_dict = {"n": n, "m": None, "out": None, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict = {
+        "n": n,
+        "m": m,
+        "out": out,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+    }
+    list_of_inputs.append(input_dict)
+
+    # Input 9: m=1, different n
+    n = 5
+    m = 1
+    out = torch.empty(n, m, dtype=torch.float64).numpy()
+    dtype = torch.float64
+    layout = torch.strided
+    requires_grad = True
+    input_dict = {
+        "n": n,
+        "m": m,
+        "out": out,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+    }
+    list_of_inputs.append(input_dict)
     
+    # Input 10: Different dtype and requires_grad
+    n = 4
+    m = 4
+    out = torch.empty(n, m, dtype=torch.complex64).numpy()
+    dtype = torch.complex64
+    layout = torch.strided
+    requires_grad = False
+    input_dict = {
+        "n": n,
+        "m": m,
+        "out": out,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+    }
+    list_of_inputs.append(input_dict)
+
     return list_of_inputs
 
 generated_inputs = {}

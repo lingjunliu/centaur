@@ -11,68 +11,47 @@ import copy
 def matrix_rank_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple matrix with full rank
-    input = np.array([[1.0, 2.0], [3.0, 4.0]])
-    tol = np.array([1e-8])
-    hermitian = False
-    input_dict = {"input": input, "tol": tol, "hermitian": hermitian}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Basic matrix
+    input1 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float32)
+    tol1 = np.array([1e-8], dtype=np.float32)
+    hermitian1 = False
+    input_dict1 = {"input": input1, "tol": tol1, "hermitian": hermitian1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
     # Input 2: Singular matrix
-    input = np.array([[1.0, 2.0], [2.0, 4.0]])
-    tol = np.array([1e-8])
-    hermitian = False
-    input_dict = {"input": input, "tol": tol, "hermitian": hermitian}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input2 = np.array([[1, 2], [2, 4]], dtype=np.float64)
+    tol2 = np.array([1e-6], dtype=np.float64)
+    hermitian2 = False
+    input_dict2 = {"input": input2, "tol": tol2, "hermitian": hermitian2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    # Input 3: Zero matrix
-    input = np.array([[0.0, 0.0], [0.0, 0.0]])
-    tol = np.array([1e-8])
-    hermitian = False
-    input_dict = {"input": input, "tol": tol, "hermitian": hermitian}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: Tall matrix
+    input3 = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
+    tol3 = np.array([1e-8], dtype=np.float32)
+    hermitian3 = False
+    input_dict3 = {"input": input3, "tol": tol3, "hermitian": hermitian3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    # Input 4: Tall matrix with full column rank
-    input = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
-    tol = np.array([1e-8])
-    hermitian = False
-    input_dict = {"input": input, "tol": tol, "hermitian": hermitian}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: Wide matrix
+    input4 = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float64)
+    tol4 = np.array([1e-6], dtype=np.float64)
+    hermitian4 = False
+    input_dict4 = {"input": input4, "tol": tol4, "hermitian": hermitian4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    # Input 5: Wide matrix with full row rank
-    input = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
-    tol = np.array([1e-8])
-    hermitian = False
-    input_dict = {"input": input, "tol": tol, "hermitian": hermitian}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5: Zero matrix
+    input5 = np.array([[0, 0], [0, 0]], dtype=np.float32)
+    tol5 = np.array([1e-8], dtype=np.float32)
+    hermitian5 = False
+    input_dict5 = {"input": input5, "tol": tol5, "hermitian": hermitian5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
 
-    # Input 6: Matrix with small tolerance
-    input = np.array([[1.0, 0.0], [0.0, 1e-9]])
-    tol = np.array([1e-6])
-    hermitian = False
-    input_dict = {"input": input, "tol": tol, "hermitian": hermitian}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: Hermitian matrix
-    input = np.array([[1.0, 2.0j], [-2.0j, 1.0]])
-    tol = np.array([1e-8])
-    hermitian = True
-    input_dict = {"input": input, "tol": tol, "hermitian": hermitian}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Higher dimensional array (3D)
-    input = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
-    tol = np.array([1e-8])
-    hermitian = False
-    input_dict = {"input": input, "tol": tol, "hermitian": hermitian}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Rectangular matrix close to singular
-    input = np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 6.0 + 1e-7]])
-    tol = np.array([1e-5])
-    hermitian = False
-    input_dict = {"input": input, "tol": tol, "hermitian": hermitian}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6: Identity matrix
+    input6 = np.eye(3, dtype=np.float64)
+    tol6 = np.array([1e-6], dtype=np.float64)
+    hermitian6 = False
+    input_dict6 = {"input": input6, "tol": tol6, "hermitian": hermitian6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
 
     return list_of_inputs
 

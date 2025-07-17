@@ -11,11 +11,17 @@ import copy
 def crow_indices_copy_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic valid input
-    indices = np.array([0, 2, 4, 1, 3, 5], dtype=np.int64)
-    row_offsets = np.array([0, 3, 6], dtype=np.int64)
+    # Input 1: Basic case
+    indices = np.array([0, 2, 1, 3], dtype=np.int64)
+    row_offsets = np.array([0, 2, 4], dtype=np.int64)
     input_dict = {"indices": indices, "row_offsets": row_offsets}
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Empty indices
+    indices = np.array([], dtype=np.int64)
+    row_offsets = np.array([0, 0, 0], dtype=np.int64)
+    input_dict = {"indices": indices, "row_offsets": row_offsets}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

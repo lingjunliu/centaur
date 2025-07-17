@@ -4,197 +4,251 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch
+import torch, copy
 import numpy as np
-import copy
 
 def hamming_window_inputs():
     list_of_inputs = []
 
     # Input 1
-    window_length = np.int64(5)
-    periodic = np.bool_(True)
-    alpha = np.float64(0.5)
-    beta = np.float64(0.5)
+    window_length = int(5)
+    periodic = bool(True)
+    alpha = float(0.5)
+    beta = float(0.4)
     dtype = torch.float32
-    requires_grad = np.bool_(False)
+    layout = torch.strided
+    requires_grad = bool(False)
+
     input_dict = {
-        "window_length": int(window_length),
-        "periodic": bool(periodic),
-        "alpha": float(alpha),
-        "beta": float(beta),
+        "window_length": window_length,
+        "periodic": periodic,
+        "alpha": alpha,
+        "beta": beta,
         "dtype": dtype,
-        "requires_grad": bool(requires_grad)
+        "layout": layout,
+        "requires_grad": requires_grad
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    window_length = np.int64(10)
-    periodic = np.bool_(False)
-    alpha = np.float64(0.54)
-    beta = np.float64(0.46)
+    window_length = int(10)
+    periodic = bool(False)
+    alpha = float(0.54)
+    beta = float(0.46)
     dtype = torch.float64
-    requires_grad = np.bool_(True)
+    layout = torch.strided
+    requires_grad = bool(True)
+
     input_dict = {
-        "window_length": int(window_length),
-        "periodic": bool(periodic),
-        "alpha": float(alpha),
-        "beta": float(beta),
+        "window_length": window_length,
+        "periodic": periodic,
+        "alpha": alpha,
+        "beta": beta,
         "dtype": dtype,
-        "requires_grad": bool(requires_grad)
+        "layout": layout,
+        "requires_grad": requires_grad
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    window_length = np.int64(1)
-    periodic = np.bool_(True)
-    alpha = np.float64(0.0)
-    beta = np.float64(1.0)
+    window_length = int(1)
+    periodic = bool(True)
+    alpha = float(0.0)
+    beta = float(1.0)
     dtype = torch.float32
-    requires_grad = np.bool_(False)
+    layout = torch.strided
+    requires_grad = bool(False)
+
     input_dict = {
-        "window_length": int(window_length),
-        "periodic": bool(periodic),
-        "alpha": float(alpha),
-        "beta": float(beta),
+        "window_length": window_length,
+        "periodic": periodic,
+        "alpha": alpha,
+        "beta": beta,
         "dtype": dtype,
-        "requires_grad": bool(requires_grad)
+        "layout": layout,
+        "requires_grad": requires_grad
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    window_length = np.int64(20)
-    periodic = np.bool_(False)
-    alpha = np.float64(1.0)
-    beta = np.float64(0.0)
+    window_length = int(20)
+    periodic = bool(False)
+    alpha = float(1.0)
+    beta = float(0.0)
     dtype = torch.float64
-    requires_grad = np.bool_(True)
+    layout = torch.strided
+    requires_grad = bool(True)
+
     input_dict = {
-        "window_length": int(window_length),
-        "periodic": bool(periodic),
-        "alpha": float(alpha),
-        "beta": float(beta),
+        "window_length": window_length,
+        "periodic": periodic,
+        "alpha": alpha,
+        "beta": beta,
         "dtype": dtype,
-        "requires_grad": bool(requires_grad)
+        "layout": layout,
+        "requires_grad": requires_grad
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    window_length = np.int64(7)
-    periodic = np.bool_(True)
-    alpha = np.float64(0.25)
-    beta = np.float64(0.75)
+    window_length = int(7)
+    periodic = bool(True)
+    alpha = float(0.25)
+    beta = float(0.75)
     dtype = torch.float32
-    requires_grad = np.bool_(False)
+    layout = torch.strided
+    requires_grad = bool(False)
+
     input_dict = {
-        "window_length": int(window_length),
-        "periodic": bool(periodic),
-        "alpha": float(alpha),
-        "beta": float(beta),
+        "window_length": window_length,
+        "periodic": periodic,
+        "alpha": alpha,
+        "beta": beta,
         "dtype": dtype,
-        "requires_grad": bool(requires_grad)
+        "layout": layout,
+        "requires_grad": requires_grad
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    window_length = np.int64(30)
-    periodic = np.bool_(False)
-    alpha = np.float64(0.75)
-    beta = np.float64(0.25)
+    window_length = int(15)
+    periodic = bool(False)
+    alpha = float(0.75)
+    beta = float(0.25)
     dtype = torch.float64
-    requires_grad = np.bool_(True)
+    layout = torch.strided
+    requires_grad = bool(True)
+
     input_dict = {
-        "window_length": int(window_length),
-        "periodic": bool(periodic),
-        "alpha": float(alpha),
-        "beta": float(beta),
+        "window_length": window_length,
+        "periodic": periodic,
+        "alpha": alpha,
+        "beta": beta,
         "dtype": dtype,
-        "requires_grad": bool(requires_grad)
+        "layout": layout,
+        "requires_grad": requires_grad
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    window_length = np.int64(2)
-    periodic = np.bool_(True)
-    alpha = np.float64(0.3)
-    beta = np.float64(0.7)
+    window_length = int(3)
+    periodic = bool(True)
+    alpha = float(0.33)
+    beta = float(0.67)
     dtype = torch.float32
-    requires_grad = np.bool_(False)
+    layout = torch.strided
+    requires_grad = bool(False)
+
     input_dict = {
-        "window_length": int(window_length),
-        "periodic": bool(periodic),
-        "alpha": float(alpha),
-        "beta": float(beta),
+        "window_length": window_length,
+        "periodic": periodic,
+        "alpha": alpha,
+        "beta": beta,
         "dtype": dtype,
-        "requires_grad": bool(requires_grad)
+        "layout": layout,
+        "requires_grad": requires_grad
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    window_length = np.int64(40)
-    periodic = np.bool_(False)
-    alpha = np.float64(0.7)
-    beta = np.float64(0.3)
+    window_length = int(30)
+    periodic = bool(False)
+    alpha = float(0.67)
+    beta = float(0.33)
     dtype = torch.float64
-    requires_grad = np.bool_(True)
+    layout = torch.strided
+    requires_grad = bool(True)
+
     input_dict = {
-        "window_length": int(window_length),
-        "periodic": bool(periodic),
-        "alpha": float(alpha),
-        "beta": float(beta),
+        "window_length": window_length,
+        "periodic": periodic,
+        "alpha": alpha,
+        "beta": beta,
         "dtype": dtype,
-        "requires_grad": bool(requires_grad)
+        "layout": layout,
+        "requires_grad": requires_grad
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    window_length = np.int64(3)
-    periodic = np.bool_(True)
-    alpha = np.float64(0.4)
-    beta = np.float64(0.6)
+    window_length = int(2)
+    periodic = bool(True)
+    alpha = float(0.6)
+    beta = float(0.4)
     dtype = torch.float32
-    requires_grad = np.bool_(False)
+    layout = torch.strided
+    requires_grad = bool(False)
+
     input_dict = {
-        "window_length": int(window_length),
-        "periodic": bool(periodic),
-        "alpha": float(alpha),
-        "beta": float(beta),
+        "window_length": window_length,
+        "periodic": periodic,
+        "alpha": alpha,
+        "beta": beta,
         "dtype": dtype,
-        "requires_grad": bool(requires_grad)
+        "layout": layout,
+        "requires_grad": requires_grad
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    window_length = np.int64(50)
-    periodic = np.bool_(False)
-    alpha = np.float64(0.6)
-    beta = np.float64(0.4)
+    window_length = int(12)
+    periodic = bool(False)
+    alpha = float(0.4)
+    beta = float(0.6)
     dtype = torch.float64
-    requires_grad = np.bool_(True)
+    layout = torch.strided
+    requires_grad = bool(True)
+
     input_dict = {
-        "window_length": int(window_length),
-        "periodic": bool(periodic),
-        "alpha": float(alpha),
-        "beta": float(beta),
+        "window_length": window_length,
+        "periodic": periodic,
+        "alpha": alpha,
+        "beta": beta,
         "dtype": dtype,
-        "requires_grad": bool(requires_grad)
+        "layout": layout,
+        "requires_grad": requires_grad
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 11
-    window_length = np.int64(5)
-    periodic = np.bool_(True)
-    alpha = np.float64(0.5)
-    beta = np.float64(0.5)
-    dtype = np.dtype('float32')
-    requires_grad = np.bool_(False)
+    # Input 11 - Without alpha and beta
+    window_length = int(12)
+    periodic = bool(False)
+    dtype = torch.float64
+    layout = torch.strided
+    requires_grad = bool(True)
+
     input_dict = {
-        "window_length": int(window_length),
-        "periodic": bool(periodic),
-        "alpha": float(alpha),
-        "beta": float(beta),
-        "dtype": torch.float32,
-        "requires_grad": bool(requires_grad)
+        "window_length": window_length,
+        "periodic": periodic,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12 - Without periodic, alpha and beta
+    window_length = int(12)
+    dtype = torch.float64
+    layout = torch.strided
+    requires_grad = bool(True)
+
+    input_dict = {
+        "window_length": window_length,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 13 - Without periodic, alpha and beta and layout
+    window_length = int(12)
+    dtype = torch.float64
+    requires_grad = bool(True)
+
+    input_dict = {
+        "window_length": window_length,
+        "dtype": dtype,
+        "requires_grad": requires_grad
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

@@ -8,82 +8,31 @@ import torch
 import numpy as np
 import copy
 
-def maxunpool1d_inputs():
+def max_unpool1d_inputs():
     list_of_inputs = []
 
-    # Input 1
-    kernel_size = (2,)
-    stride = (2,)
-    padding = 0
-    input_tensor = torch.tensor([[[1.0, 2.0, 3.0, 4.0]]])
-    indices_tensor = torch.tensor([[[0, 1, 0, 1]]])
-    output_size = (1, 1, 8)
+    # Input 1: Basic case
+    input_val = torch.tensor([[[1.0, 2.0, 3.0]]]).numpy()
+    indices_val = torch.tensor([[[1, 3, 5]]]).numpy()
+    kernel_size_val = (2,)
+    stride_val = (2,)
+    padding_val = 0
+    output_size_val = (1, 1, 7)
 
     input_dict = {
-        "kernel_size": kernel_size,
-        "stride": stride,
-        "padding": padding,
-        "input": input_tensor.numpy(),
-        "indices": indices_tensor.numpy(),
-        "output_size": output_size
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2
-    kernel_size = (3,)
-    stride = (2,)
-    padding = 1
-    input_tensor = torch.tensor([[[1.0, 2.0, 3.0]]])
-    indices_tensor = torch.tensor([[[0, 1, 2]]])
-    output_size = (1, 1, 7)
-    input_dict = {
-        "kernel_size": kernel_size,
-        "stride": stride,
-        "padding": padding,
-        "input": input_tensor.numpy(),
-        "indices": indices_tensor.numpy(),
-        "output_size": output_size
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 3
-    kernel_size = (2,)
-    stride = (2,)
-    padding = 0
-    input_tensor = torch.tensor([[[1.0, 2.0, 3.0, 4.0, 5.0]]])
-    indices_tensor = torch.tensor([[[0, 1, 0, 1, 0]]])
-    output_size = (1, 1, 10)
-    input_dict = {
-        "kernel_size": kernel_size,
-        "stride": stride,
-        "padding": padding,
-        "input": input_tensor.numpy(),
-        "indices": indices_tensor.numpy(),
-        "output_size": output_size
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Different channel size
-    kernel_size = (2,)
-    stride = (2,)
-    padding = 0
-    input_tensor = torch.tensor([[[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]])
-    indices_tensor = torch.tensor([[[0, 1, 0, 1], [0, 1, 0, 1]]])
-    output_size = (1, 2, 8)
-    input_dict = {
-        "kernel_size": kernel_size,
-        "stride": stride,
-        "padding": padding,
-        "input": input_tensor.numpy(),
-        "indices": indices_tensor.numpy(),
-        "output_size": output_size
+        "kernel_size": kernel_size_val,
+        "stride": stride_val,
+        "padding": padding_val,
+        "input": input_val,
+        "indices": indices_val,
+        "output_size": output_size_val
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["torch.nn.MaxUnpool1d_2"] = maxunpool1d_inputs()
+generated_inputs["torch.nn.MaxUnpool1d_2"] = max_unpool1d_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

@@ -4,174 +4,66 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch
+import torch, copy
 import numpy as np
-import copy
 
 def ihfft_inputs():
     list_of_inputs = []
 
-    def create_complex_from_real(arr):
-        return arr.astype(np.complex128)
-
-    # Input 1
-    input_tensor = create_complex_from_real(np.random.randn(4))
-    n_val = None
-    dim_val = -1
-    norm_val = "backward"
-    out_val = torch.tensor([]).numpy()
-
-    input_dict = {
-        "input": input_tensor,
-        "n": n_val,
-        "dim": dim_val,
-        "norm": norm_val,
-        "out": out_val
-    }
+    # Input 1: Basic case
+    input_tensor = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
+    input_dict = {"input": input_tensor, "n": None, "dim": -1, "norm": None, "out": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    input_tensor = create_complex_from_real(np.random.randn(3))
-    n_val = 5
-    dim_val = 0
-    norm_val = "forward"
-    out_val = torch.tensor([]).numpy()
-
-    input_dict = {
-        "input": input_tensor,
-        "n": n_val,
-        "dim": dim_val,
-        "norm": norm_val,
-        "out": out_val
-    }
+    # Input 2: Specifying n
+    input_tensor = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    input_dict = {"input": input_tensor, "n": 5, "dim": -1, "norm": None, "out": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    input_tensor = create_complex_from_real(np.random.randn(4))
-    n_val = 2
-    dim_val = 0
-    norm_val = "ortho"
-    out_val = torch.tensor([]).numpy()
-
-    input_dict = {
-        "input": input_tensor,
-        "n": n_val,
-        "dim": dim_val,
-        "norm": norm_val,
-        "out": out_val
-    }
+    # Input 3: Specifying dim
+    input_tensor = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    input_dict = {"input": input_tensor, "n": None, "dim": 0, "norm": None, "out": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    input_tensor = create_complex_from_real(np.random.randn(2, 3))
-    n_val = None
-    dim_val = 1
-    norm_val = "backward"
-    out_val = torch.tensor([]).numpy()
-
-    input_dict = {
-        "input": input_tensor,
-        "n": n_val,
-        "dim": dim_val,
-        "norm": norm_val,
-        "out": out_val
-    }
+    # Input 4: Specifying norm = "forward"
+    input_tensor = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    input_dict = {"input": input_tensor, "n": None, "dim": -1, "norm": "forward", "out": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    input_tensor = create_complex_from_real(np.random.randn(3, 4, 5))
-    n_val = 7
-    dim_val = 2
-    norm_val = "forward"
-    out_val = torch.tensor([]).numpy()
-
-    input_dict = {
-        "input": input_tensor,
-        "n": n_val,
-        "dim": dim_val,
-        "norm": norm_val,
-        "out": out_val
-    }
+    # Input 5: Specifying norm = "backward"
+    input_tensor = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    input_dict = {"input": input_tensor, "n": None, "dim": -1, "norm": "backward", "out": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    input_tensor = create_complex_from_real(np.random.randn(10))
-    n_val = 5
-    dim_val = 0
-    norm_val = "ortho"
-    out_val = torch.tensor([]).numpy()
-
-    input_dict = {
-        "input": input_tensor,
-        "n": n_val,
-        "dim": dim_val,
-        "norm": norm_val,
-        "out": out_val
-    }
+    # Input 6: Specifying norm = "ortho"
+    input_tensor = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    input_dict = {"input": input_tensor, "n": None, "dim": -1, "norm": "ortho", "out": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    input_tensor = create_complex_from_real(np.array([0.0]))
-    n_val = None
-    dim_val = 0
-    norm_val = "backward"
-    out_val = torch.tensor([]).numpy()
-
-    input_dict = {
-        "input": input_tensor,
-        "n": n_val,
-        "dim": dim_val,
-        "norm": norm_val,
-        "out": out_val
-    }
+    # Input 7: With out tensor
+    input_tensor = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0], dtype=torch.complex64).numpy()
+    input_dict = {"input": input_tensor, "n": None, "dim": -1, "norm": None, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8: Different dimension size
+    input_tensor = torch.randn(2, 3, 4).numpy()
+    input_dict = {"input": input_tensor, "n": None, "dim": 1, "norm": None, "out": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 8
-    input_tensor = create_complex_from_real(np.random.randn(2, 2, 2))
-    n_val = None
-    dim_val = 1
-    norm_val = "forward"
-    out_val = torch.tensor([]).numpy()
-
-    input_dict = {
-        "input": input_tensor,
-        "n": n_val,
-        "dim": dim_val,
-        "norm": norm_val,
-        "out": out_val
-    }
+    # Input 9: n smaller than input size
+    input_tensor = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0]).numpy()
+    input_dict = {"input": input_tensor, "n": 3, "dim": -1, "norm": None, "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10: different data type
+    input_tensor = torch.tensor([1, 2, 3], dtype=torch.float32).numpy()
+    input_dict = {"input": input_tensor, "n": None, "dim": -1, "norm": None, "out": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    input_tensor = create_complex_from_real(np.array([-1.0, -2.0, -3.0, -4.0]))
-    n_val = None
-    dim_val = -1
-    norm_val = "backward"
-    out_val = torch.tensor([]).numpy()
-
-    input_dict = {
-        "input": input_tensor,
-        "n": n_val,
-        "dim": dim_val,
-        "norm": norm_val,
-        "out": out_val
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    input_tensor = create_complex_from_real(np.random.randn(3))
-    n_val = 7
-    dim_val = 0
-    norm_val = "ortho"
-    out_val = torch.tensor([]).numpy()
-
-    input_dict = {
-        "input": input_tensor,
-        "n": n_val,
-        "dim": dim_val,
-        "norm": norm_val,
-        "out": out_val
-    }
+    # Input 11: negative values
+    input_tensor = torch.tensor([-1.0, 2.0, -3.0]).numpy()
+    input_dict = {"input": input_tensor, "n": None, "dim": -1, "norm": None, "out": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

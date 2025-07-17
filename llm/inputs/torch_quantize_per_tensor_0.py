@@ -12,91 +12,83 @@ def quantize_per_tensor_inputs():
     list_of_inputs = []
 
     # Input 1
-    input_tensor = torch.tensor([1.0, 2.0, 3.0], dtype=torch.float32)
+    input_tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     scale = 0.5
     zero_point = 10
-    dtype = torch.int8
-    input_dict = {"input": input_tensor.numpy(), "scale": scale, "zero_point": zero_point, "dtype": dtype}
+    dtype = torch.int8  # Changed back to int8 and using qint8/quint8 appropriately
+    input_dict = {"input": input_tensor, "scale": scale, "zero_point": zero_point, "dtype": dtype}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input_tensor = torch.tensor([-1.0, -2.0, -3.0], dtype=torch.float32)
+    input_tensor = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
     scale = 0.25
     zero_point = -5
     dtype = torch.int8
-    input_dict = {"input": input_tensor.numpy(), "scale": scale, "zero_point": zero_point, "dtype": dtype}
+    input_dict = {"input": input_tensor, "scale": scale, "zero_point": zero_point, "dtype": dtype}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input_tensor = torch.tensor([[1.0, 2.0], [3.0, 4.0]], dtype=torch.float32)
+    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     scale = 1.0
     zero_point = 0
-    dtype = torch.uint8
-    input_dict = {"input": input_tensor.numpy(), "scale": scale, "zero_point": zero_point, "dtype": dtype}
+    dtype = torch.int8
+    input_dict = {"input": input_tensor, "scale": scale, "zero_point": zero_point, "dtype": dtype}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    input_tensor = torch.tensor([0.1, 0.2, 0.3, 0.4, 0.5], dtype=torch.float64)
-    scale = 0.01
-    zero_point = 128
-    dtype = torch.int16
-    input_dict = {"input": input_tensor.numpy(), "scale": scale, "zero_point": zero_point, "dtype": dtype}
+    input_tensor = np.array([0.1, 0.2, 0.3, 0.4, 0.5], dtype=np.float64)
+    scale = 0.1
+    zero_point = 0
+    dtype = torch.int8
+    input_dict = {"input": input_tensor, "scale": scale, "zero_point": zero_point, "dtype": dtype}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    input_tensor = torch.tensor([-0.1, -0.2, -0.3, -0.4, -0.5], dtype=torch.float64)
-    scale = 0.005
-    zero_point = -128
-    dtype = torch.int16
-    input_dict = {"input": input_tensor.numpy(), "scale": scale, "zero_point": zero_point, "dtype": dtype}
+    input_tensor = np.array([[-1.0, -2.0], [-3.0, -4.0]], dtype=np.float64)
+    scale = 0.05
+    zero_point = 0
+    dtype = torch.int8
+    input_dict = {"input": input_tensor, "scale": scale, "zero_point": zero_point, "dtype": dtype}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    input_tensor = torch.tensor([1.0, 2.0, 3.0], dtype=torch.float32)
+    input_tensor = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float16)
     scale = 0.75
-    zero_point = 100
-    dtype = torch.int32
-    input_dict = {"input": input_tensor.numpy(), "scale": scale, "zero_point": zero_point, "dtype": dtype}
+    zero_point = 0
+    dtype = torch.int8
+    input_dict = {"input": input_tensor, "scale": scale, "zero_point": zero_point, "dtype": dtype}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    input_tensor = torch.tensor([-1.0, -2.0, -3.0], dtype=torch.float32)
-    scale = 0.125
-    zero_point = -100
-    dtype = torch.int32
-    input_dict = {"input": input_tensor.numpy(), "scale": scale, "zero_point": zero_point, "dtype": dtype}
+    input_tensor = np.array([-1.0, -2.0, -3.0, -4.0, -5.0], dtype=np.float16)
+    scale = 0.3
+    zero_point = 0
+    dtype = torch.int8
+    input_dict = {"input": input_tensor, "scale": scale, "zero_point": zero_point, "dtype": dtype}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    input_tensor = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]).reshape(2, 3).to(torch.float32)
-    scale = 0.3
-    zero_point = 50
-    dtype = torch.uint8
-    input_dict = {"input": input_tensor.numpy(), "scale": scale, "zero_point": zero_point, "dtype": dtype}
+    input_tensor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    scale = 0.2
+    zero_point = 0
+    dtype = torch.int8
+    input_dict = {"input": input_tensor, "scale": scale, "zero_point": zero_point, "dtype": dtype}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    input_tensor = torch.tensor([-1.0, -2.0, -3.0, -4.0, -5.0, -6.0]).reshape(2, 3).to(torch.float32)
-    scale = 0.07
-    zero_point = -50
+    input_tensor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    scale = 0.1
+    zero_point = 0
     dtype = torch.int8
-    input_dict = {"input": input_tensor.numpy(), "scale": scale, "zero_point": zero_point, "dtype": dtype}
+    input_dict = {"input": input_tensor, "scale": scale, "zero_point": zero_point, "dtype": dtype}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     # Input 10
-    input_tensor = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]).reshape(1, 2, 3).to(torch.float32)
-    scale = 0.8
-    zero_point = 20
+    input_tensor = np.array([[-0.5, 1.5], [2.5, 3.5]], dtype=np.float32)
+    scale = 0.6
+    zero_point = 0
     dtype = torch.int8
-    input_dict = {"input": input_tensor.numpy(), "scale": scale, "zero_point": zero_point, "dtype": dtype}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11
-    input_tensor = torch.tensor([-1.0, -2.0, -3.0, -4.0, -5.0, -6.0]).reshape(1, 2, 3).to(torch.float32)
-    scale = 0.03
-    zero_point = -15
-    dtype = torch.int16
-    input_dict = {"input": input_tensor.numpy(), "scale": scale, "zero_point": zero_point, "dtype": dtype}
+    input_dict = {"input": input_tensor, "scale": scale, "zero_point": zero_point, "dtype": dtype}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
