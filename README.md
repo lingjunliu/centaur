@@ -43,9 +43,11 @@ The code is organized as follow:
  ```
 
  Example:
+
  ```bash
  (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/infer_invariants_with_slurm.sh 300 1 torch
  ```
+
  This will generate (regenerate if already exists since `1` is passed as `regen`) the invariants for the variations of apis and it will use a time budget of `300` seconds to do so.
 
  - `duration`: Max time budget per variation to learn invariants
@@ -68,6 +70,7 @@ The code is organized as follow:
  ```bash
  (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/generate_models_with_slurm.sh <duration> <n_max> <lib> <seed> <regen>
  ```
+
  - `duration`: Time budget for generating model for each api variation in seconds.
  - `n_max`: Passing 0 (default) means no max on number of models. Anything `> 0` will limit the number of models to that number (if it can reach that number before the time budget `duration` runs out).
  - `lib`: `torch` for PyTorch, `tf` for Tenosrflow
@@ -75,6 +78,7 @@ The code is organized as follow:
  - `regen`: Pass 1 to regenerate models that already exist. Default: 0.
 
  Example:
+
  ```bash
  (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/generate_models_with_slurm.sh 3600 1000 torch 42 1
  ```
@@ -93,56 +97,83 @@ The code is organized as follow:
  <h3> Slurm (all apis) </h3>
 
  To run fuzzing campaings, use the `scripts/fuzz_with_slurm.sh`. **Be sure to install and configure slurm before running this.**. This runs the fuzzing campaign on apis from the file `torch_apis.txt` parallelly.
+
  ```bash
  (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/fuzz_with_slurm.sh <duration> <n_max> <lib> <seed>
  ```
+
  - `duration`: Duration to fuzz each api in seconds.
  - `n_max`: Passing 0 (default) means no max on number of inputs. Anything `> 0` will limit the number of inputs to that number (if it can reach that number before the time budget `duration` runs out).
  - `lib`: `torch` for PyTorch, `tf` for Tenosrflow
  - `seed`: Seed for the generator, default `200`.
 
  Example:
+
  ```bash
  (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/fuzz_with_slurm.sh 3600 0 torch 42
  ```
+
  This will run the `z3` based generator parallelly on all apis in `torch_apis.txt` with `seed=42`, each with a time budget of 1 hour with no limits on the number of inputs or models generated.
 
  <h3> Without slurm (one api) </h3>
 
  To fuzz for a single api *(under the venv)*:
+
  ```bash
  (venv) ~/dll-fuzzing-with-input-invariants$ python -m generator.harness_z3 <api> <duration> <n_max> <lib> <seed>
  ```
 
- <h2> 4. Compute Coverage (evaluation) </h2>
+ <h2> 4-1. Compute Coverage: PyTorch (evaluation) </h2>
  
  <h3> Slurm (all apis) </h3>
 
  To compute coverage for all apis, run the following. **Be sure to install and configure slurm before running this.**
+
  ```bash
- (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/coverage_with_slurm.sh <n_inputs> <lib>
+ (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/coverage_with_slurm.sh <n_inputs> torch
  ```
+ 
  - `n_inputs`: Number of inputs per api used for coverage calculation. Passing 0 will cause it to calculate for all inputs.
 
  <h3> Without slurm (one api) </h3>
 
  To compute coverage for a single api *(under the venv)*, there are two steps.
  1. Downloading instrumented library (the script above would download it, if that was never run, download it using these commands):
+
  ```bash
  (venv) ~/dll-fuzzing-with-input-invariants$ pip install gdown
- (venv) ~/dll-fuzzing-with-input-invariants$ gdown --fuzzy <link> -O instrumented_<lib>/
+ (venv) ~/dll-fuzzing-with-input-invariants$ gdown --fuzzy <link> -O instrumented_torch/
  ```
- - link for pytorch: https://drive.google.com/file/d/1GqydzvLO7XTlFXnSum_zhEulJpC2JRwU/view?usp=sharing
- - link for tf: pending
+
+ - link: https://drive.google.com/file/d/1GqydzvLO7XTlFXnSum_zhEulJpC2JRwU/view?usp=sharing
  2. Patching:
+
  ```bash
  (venv) ~/dll-fuzzing-with-input-invariants$ python -m eval.patching <api> <n_inputs> <lib>
  ```
+
  3. Coverage:
+
  ```bash
  (venv) ~/dll-fuzzing-with-input-invariants$ pip install instrumented_<lib>/<lib>*
  (venv) ~/dll-fuzzing-with-input-invariants$ python -m eval.coverage <api> <lib>
  ```
+ <h2> 4-2. Compute Coverage: Tensorflow (evaluation) </h2>
+
+ <h3> Docker (all apis) </h3>
+ To build and run the docker containing the instrumented Tensorflow:
+
+ ```bash
+ (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/build_docker_tf_cov.sh
+ ```
+
+ Once inside the docker:
+
+ ```bash
+ /workspace/repo$ bash scripts/coverage_parallel.sh <n_inputs> tf <n_proc>
+ ```
+
+ - `n_proc`: Number of parallel processes (default: 100)
 
  <h2> 5. Run Oracle (bug detection) </h2>
  
