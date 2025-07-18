@@ -159,6 +159,8 @@ def check_valid(api, list_of_inputs, lib="{lib}", suffix=0):
 if '{key}' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key '{key}'.")
 
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
 check_valid('{api}', generated_inputs['{key}'], lib="{lib}", suffix={suffix})
 """
     module_name = f'{api.replace(".", "_")}_{suffix}'

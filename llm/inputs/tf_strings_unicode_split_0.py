@@ -4,106 +4,134 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
 def tf_strings_unicode_split_inputs():
     list_of_inputs = []
 
-    # Input 1
-    input_tensor = np.array([s.encode('utf8') for s in (u'G\xf6\xf6dnight', u'\U0001f60a')], dtype=object)
-    input_encoding = 'UTF-8'
-    errors = 'replace'
-    replacement_char = 65533
-    name = None
-    input_dict = {"input": input_tensor, "input_encoding": input_encoding, "errors": errors, "replacement_char": replacement_char, "name": name}
+    # Input 1: Basic UTF-8 strings
+    input_dict = {
+        'input': np.array([b"hello", b"world", b"tensorflow"], dtype=object),
+        'input_encoding': 'UTF-8',
+        'errors': 'strict',
+        'replacement_char': 65533,
+        'name': 'basic_utf8'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    input_tensor = np.array([b'hello', b'world'], dtype=object)
-    input_encoding = 'UTF-8'
-    errors = 'strict'
-    replacement_char = 65533
-    name = 'test_split'
-    input_dict = {"input": input_tensor, "input_encoding": input_encoding, "errors": errors, "replacement_char": replacement_char, "name": name}
+    # Input 2: Multi-byte UTF-8 characters (German and Emoji)
+    input_dict = {
+        'input': np.array([s.encode('utf8') for s in ('G\xf6\xf6dnight', '\U0001f60a')], dtype=object),
+        'input_encoding': 'UTF-8',
+        'errors': 'strict',
+        'replacement_char': 65533,
+        'name': 'multibyte_utf8'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    input_tensor = np.array([b''], dtype=object)
-    input_encoding = 'UTF-8'
-    errors = 'ignore'
-    replacement_char = 0
-    name = None
-    input_dict = {"input": input_tensor, "input_encoding": input_encoding, "errors": errors, "replacement_char": replacement_char, "name": name}
+    # Input 3: Scalar input
+    input_dict = {
+        'input': np.array(b'scalar_string', dtype=object),
+        'input_encoding': 'UTF-8',
+        'errors': 'strict',
+        'replacement_char': 65533,
+        'name': 'scalar_input'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    input_tensor = np.array([s.encode('utf16') for s in (u'G\xf6\xf6dnight', u'\U0001f60a')], dtype=object)
-    input_encoding = 'UTF-16'
-    errors = 'replace'
-    replacement_char = 65533
-    name = None
-    input_dict = {"input": input_tensor, "input_encoding": input_encoding, "errors": errors, "replacement_char": replacement_char, "name": name}
+    # Input 4: 2D array of strings
+    input_dict = {
+        'input': np.array([[b"a", b"b"], [b"c", b"d"]], dtype=object),
+        'input_encoding': 'UTF-8',
+        'errors': 'strict',
+        'replacement_char': 65533,
+        'name': '2d_input'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    input_tensor = np.array([b'\xf0\x9f\x98'], dtype=object)
-    input_encoding = 'UTF-8'
-    errors = 'ignore'
-    replacement_char = 65533
-    name = None
-    input_dict = {"input": input_tensor, "input_encoding": input_encoding, "errors": errors, "replacement_char": replacement_char, "name": name}
+    # Input 5: Error handling 'replace' with an invalid UTF-8 sequence
+    input_dict = {
+        'input': np.array([b'valid', b'in\xffvalid'], dtype=object),
+        'input_encoding': 'UTF-8',
+        'errors': 'replace',
+        'replacement_char': 65533,
+        'name': 'error_replace_default'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 6
-    input_tensor = np.array([s.encode('latin-1') for s in (u'H\xe9llo', u'World')], dtype=object)
-    input_encoding = 'UTF-8'
-    errors = 'replace'
-    replacement_char = 65533
-    name = None
-    input_dict = {"input": input_tensor, "input_encoding": input_encoding, "errors": errors, "replacement_char": replacement_char, "name": name}
+    # Input 6: Error handling 'replace' with a custom replacement character
+    input_dict = {
+        'input': np.array([b'start\xfeend', b'another'], dtype=object),
+        'input_encoding': 'UTF-8',
+        'errors': 'replace',
+        'replacement_char': 35,
+        'name': 'error_replace_custom'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7 (multidimensional)
-    input_tensor = np.array([[b'hello', b'world'], [b'foo', b'bar']], dtype=object)
-    input_encoding = 'UTF-8'
-    errors = 'strict'
-    replacement_char = 65533
-    name = 'test_split'
-    input_dict = {"input": input_tensor, "input_encoding": input_encoding, "errors": errors, "replacement_char": replacement_char, "name": name}
+    # Input 7: Error handling 'ignore'
+    input_dict = {
+        'input': np.array([b'good\xed\xa0\x80morning', b'bad'], dtype=object),
+        'input_encoding': 'UTF-8',
+        'errors': 'ignore',
+        'replacement_char': 65533,
+        'name': 'error_ignore'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    input_tensor = np.array([s.encode('utf8') for s in (u'你好世界', u'こんにちは世界')], dtype=object)
-    input_encoding = 'UTF-8'
-    errors = 'replace'
-    replacement_char = 65533
-    name = None
-    input_dict = {"input": input_tensor, "input_encoding": input_encoding, "errors": errors, "replacement_char": replacement_char, "name": name}
+    # Input 8: UTF-16-BE encoding
+    input_dict = {
+        'input': np.array([s.encode('utf-16be') for s in ('hello', 'G\xf6\xf6dnight')], dtype=object),
+        'input_encoding': 'UTF-16-BE',
+        'errors': 'strict',
+        'replacement_char': 65533,
+        'name': 'utf16_be'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    input_tensor = np.array([b'\xf4\x80\x80\x80'], dtype=object) # Invalid UTF-8
-    input_encoding = 'UTF-8'
-    errors = 'replace'
-    replacement_char = 65533
-    name = None
-    input_dict = {"input": input_tensor, "input_encoding": input_encoding, "errors": errors, "replacement_char": replacement_char, "name": name}
+    # Input 9: Input with empty strings
+    input_dict = {
+        'input': np.array([b'first', b'', b'third'], dtype=object),
+        'input_encoding': 'UTF-8',
+        'errors': 'strict',
+        'replacement_char': 65533,
+        'name': 'empty_strings'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10
-    input_tensor = np.array([s.encode('utf32') for s in (u'A', u'B')], dtype=object)
-    input_encoding = 'UTF-32'
-    errors = 'replace'
-    replacement_char = 65533
-    name = None
-    input_dict = {"input": input_tensor, "input_encoding": input_encoding, "errors": errors, "replacement_char": replacement_char, "name": name}
+    # Input 10: UTF-32-BE encoding (fixed from UTF-32-LE)
+    input_dict = {
+        'input': np.array([s.encode('utf-32be') for s in ('hello', '\U0001f60a')], dtype=object),
+        'input_encoding': 'UTF-32-BE',
+        'errors': 'strict',
+        'replacement_char': 65533,
+        'name': 'utf32_be'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: 2D array with strings of different byte lengths
+    input_dict = {
+        'input': np.array([[b'short', b'a much longer string'], [b'another long one', b'tiny']], dtype=object),
+        'input_encoding': 'UTF-8',
+        'errors': 'strict',
+        'replacement_char': 65533,
+        'name': 'ragged_2d'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12: An empty input tensor
+    input_dict = {
+        'input': np.array([], dtype=object),
+        'input_encoding': 'UTF-8',
+        'errors': 'strict',
+        'replacement_char': 65533,
+        'name': 'empty_tensor'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.strings.unicode_split"] = tf_strings_unicode_split_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -111,6 +139,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.strings.unicode_split' not in generated_inputs:

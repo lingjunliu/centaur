@@ -4,15 +4,8 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
+import numpy as np
 import copy
-
-class PatchedTensorList(list):
-    def __init__(self, *args):
-        super().__init__(*args)
-        self.shape = (len(self),)
-        self.dtype = tf.int32
-        self.size = len(self)
 
 def tf_ragged_cross_hashed_inputs():
     """
@@ -20,135 +13,170 @@ def tf_ragged_cross_hashed_inputs():
     """
     list_of_inputs = []
 
-    # Input 1: Basic case, compatible row lengths [1, 2]
+    # Input 1: Basic case from the documentation
+    tensors1 = [
+        np.array([['a'], ['b', 'c']], dtype=object),
+        np.array([['d'], ['e']]),
+        np.array([['f'], ['g']])
+    ]
+    inputs1 = np.empty(len(tensors1), dtype=object)
+    inputs1[:] = tensors1
     input_dict_1 = {
-        'inputs': PatchedTensorList([
-            tf.ragged.constant([[1], [2, 3]], dtype=tf.int64),
-            tf.ragged.constant([[4], [5, 6]], dtype=tf.int64)
-        ]),
+        'inputs': inputs1,
         'num_buckets': 100,
         'hash_key': 1337,
-        'name': 'basic_int_cross_compatible'
+        'name': 'basic_case'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: No bucketing, compatible row lengths [2, 1]
+    # Input 2: num_buckets = 0 (no bucketing)
+    tensors2 = [
+        np.array([['x'], ['y', 'z']], dtype=object),
+        np.array([['1'], ['2', '3']], dtype=object)
+    ]
+    inputs2 = np.empty(len(tensors2), dtype=object)
+    inputs2[:] = tensors2
     input_dict_2 = {
-        'inputs': PatchedTensorList([
-            tf.ragged.constant([[10, 20], [30]], dtype=tf.int64),
-            tf.ragged.constant([[100, 200], [300]], dtype=tf.int64)
-        ]),
+        'inputs': inputs2,
         'num_buckets': 0,
-        'hash_key': 12345,
-        'name': 'no_bucketing_compatible'
+        'hash_key': 45678,
+        'name': 'no_bucketing'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: Mix of RaggedTensor and dense Tensor, compatible shapes
+    # Input 3: Mix of ragged and dense tensors
+    tensors3 = [
+        np.array([['a', 'b'], ['c']], dtype=object),
+        np.array([['d'], ['e']])
+    ]
+    inputs3 = np.empty(len(tensors3), dtype=object)
+    inputs3[:] = tensors3
     input_dict_3 = {
-        'inputs': PatchedTensorList([
-            tf.ragged.constant([[11, 22], [33, 44]], dtype=tf.int32),
-            tf.constant([[1, 2], [3, 4]], dtype=tf.int32)
-        ]),
+        'inputs': inputs3,
         'num_buckets': 50,
-        'hash_key': -1,
-        'name': 'mixed_ragged_dense_compatible'
+        'hash_key': 9876,
+        'name': 'mixed_tensor_types'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: Crossing three tensors, all compatible with row lengths [1, 2]
+    # Input 4: Integer inputs
+    tensors4 = [
+        np.array([[1], [2, 3]], dtype=object),
+        np.array([[10], [20]])
+    ]
+    inputs4 = np.empty(len(tensors4), dtype=object)
+    inputs4[:] = tensors4
     input_dict_4 = {
-        'inputs': PatchedTensorList([
-            tf.ragged.constant([[1], [2, 3]], dtype=tf.int64),
-            tf.ragged.constant([[4], [5, 6]], dtype=tf.int64),
-            tf.ragged.constant([[7], [8, 9]], dtype=tf.int64)
-        ]),
-        'num_buckets': 1000,
-        'hash_key': 0,
-        'name': 'three_tensors_compatible'
+        'inputs': inputs4,
+        'num_buckets': 20,
+        'hash_key': 112233,
+        'name': 'integer_inputs'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: Inputs with empty rows, compatible row lengths [0, 1, 0, 2]
+    # Input 5: More than two input tensors, all dense
+    tensors5 = [
+        np.array([['a'], ['b']]),
+        np.array([['c'], ['d']]),
+        np.array([['e'], ['f']]),
+        np.array([['g'], ['h']])
+    ]
+    inputs5 = np.empty(len(tensors5), dtype=object)
+    inputs5[:] = tensors5
     input_dict_5 = {
-        'inputs': PatchedTensorList([
-            tf.ragged.constant([[], [1], [], [2, 3]], dtype=tf.int64),
-            tf.ragged.constant([[], [10], [], [20, 30]], dtype=tf.int64)
-        ]),
-        'num_buckets': 10,
-        'hash_key': 999,
-        'name': 'empty_rows_compatible'
+        'inputs': inputs5,
+        'num_buckets': 1000,
+        'hash_key': 7890,
+        'name': 'multiple_inputs_dense'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: Single tensor in the input list
+    # Input 6: Empty rows in one of the ragged tensors
+    tensors6 = [
+        np.array([['a1', 'a2'], [], ['a3']], dtype=object),
+        np.array([['b1'], ['b2'], ['b3']])
+    ]
+    inputs6 = np.empty(len(tensors6), dtype=object)
+    inputs6[:] = tensors6
     input_dict_6 = {
-        'inputs': PatchedTensorList([
-            tf.ragged.constant([[101, 102], [103, 104, 105]], dtype=tf.int32)
-        ]),
-        'num_buckets': 200,
-        'hash_key': 2024,
-        'name': 'single_tensor_hash'
+        'inputs': inputs6,
+        'num_buckets': 10,
+        'hash_key': 111,
+        'name': 'empty_rows'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: All dense tensors
+    # Input 7: All inputs are dense Tensors (numpy arrays)
+    tensors7 = [
+        np.array([['a', 'b'], ['c', 'd']]),
+        np.array([['e', 'f'], ['g', 'h']])
+    ]
+    inputs7 = np.empty(len(tensors7), dtype=object)
+    inputs7[:] = tensors7
     input_dict_7 = {
-        'inputs': PatchedTensorList([
-            tf.constant([[1, 2], [3, 4]], dtype=tf.int32),
-            tf.constant([[10, 11], [12, 13]], dtype=tf.int32)
-        ]),
-        'num_buckets': 20,
-        'hash_key': -1000,
-        'name': 'all_dense_cross'
+        'inputs': inputs7,
+        'num_buckets': 5,
+        'hash_key': 222,
+        'name': 'all_dense_tensors'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8: Different integer dtypes, compatible row lengths [1, 2]
+    # Input 8: Single input tensor in the list
+    tensors8 = [
+        np.array([['single1', 'single2'], ['single3']], dtype=object)
+    ]
+    inputs8 = np.empty(len(tensors8), dtype=object)
+    inputs8[:] = tensors8
     input_dict_8 = {
-        'inputs': PatchedTensorList([
-            tf.ragged.constant([[100], [200, 300]], dtype=tf.int32),
-            tf.ragged.constant([[4], [5, 6]], dtype=tf.int64)
-        ]),
-        'num_buckets': 0,
-        'hash_key': 1,
-        'name': 'mixed_dtypes_compatible'
+        'inputs': inputs8,
+        'num_buckets': 100,
+        'hash_key': 333,
+        'name': 'single_input'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 9: Single row in tensors, compatible row length [3]
+    # Input 9: num_buckets = 1
+    tensors9 = [
+        np.array([['a', 'b', 'c'], ['d']], dtype=object),
+        np.array([['e'], ['f', 'g']], dtype=object)
+    ]
+    inputs9 = np.empty(len(tensors9), dtype=object)
+    inputs9[:] = tensors9
     input_dict_9 = {
-        'inputs': PatchedTensorList([
-            tf.ragged.constant([[1, 2, 3]], dtype=tf.int64),
-            tf.ragged.constant([[10, 20, 30]], dtype=tf.int64)
-        ]),
-        'num_buckets': 5,
-        'hash_key': 42,
-        'name': 'single_row_compatible'
+        'inputs': inputs9,
+        'num_buckets': 1,
+        'hash_key': 666,
+        'name': 'one_bucket'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10: Tensors with empty inner dimension
+    # Input 10: Large hash_key, dense tensors
+    tensors10 = [
+        np.array([['hello'], ['world']]),
+        np.array([['foo'], ['bar']])
+    ]
+    inputs10 = np.empty(len(tensors10), dtype=object)
+    inputs10[:] = tensors10
     input_dict_10 = {
-        'inputs': PatchedTensorList([
-            tf.ragged.constant([[], []], dtype=tf.int64),
-            tf.ragged.constant([[], []], dtype=tf.int64)
-        ]),
-        'num_buckets': 100,
-        'hash_key': 88,
-        'name': 'empty_inner_dim_cross'
+        'inputs': inputs10,
+        'num_buckets': 1000,
+        'hash_key': 9223372036854775807,
+        'name': 'large_hash_key'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_10))
 
-    # Input 11: Large number of buckets, compatible row lengths [4, 2]
+    # Input 11: One tensor has an empty row, resulting in an empty cross for that row
+    tensors11 = [
+        np.array([['a', 'b'], ['c']], dtype=object),
+        np.array([[], ['d']], dtype=object)
+    ]
+    inputs11 = np.empty(len(tensors11), dtype=object)
+    inputs11[:] = tensors11
     input_dict_11 = {
-        'inputs': PatchedTensorList([
-            tf.ragged.constant([[1, 2, 3, 4], [5, 6]], dtype=tf.int64),
-            tf.ragged.constant([[7, 8, 9, 10], [11, 12]], dtype=tf.int64)
-        ]),
-        'num_buckets': 1000000,
-        'hash_key': 777,
-        'name': 'large_num_buckets_compatible'
+        'inputs': inputs11,
+        'num_buckets': 15,
+        'hash_key': 444,
+        'name': 'one_input_empty_row'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_11))
 

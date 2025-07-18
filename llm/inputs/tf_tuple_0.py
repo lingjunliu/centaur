@@ -4,112 +4,120 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
 def tf_tuple_inputs():
+    """
+    Generates a list of valid inputs for the tf.tuple function.
+    The previous attempts failed with `ValueError: could not broadcast input array...`
+    when trying to create a NumPy object array as a workaround for a testing harness bug.
+    This error occurs because `np.array(list_of_arrays)` can sometimes try to create a
+    multi-dimensional array instead of an object array, even with `dtype=object`,
+    especially when the list elements have different shapes.
+
+    This version uses a more robust method to create object arrays: first creating an
+    empty object array of the correct size, then populating it element by element.
+    This guarantees that an object array is created without triggering NumPy's
+    broadcasting logic, which should fix the ValueError while still providing the
+    `.shape` attribute needed by the testing harness.
+    """
     list_of_inputs = []
 
-    # Input 1: Simple list of tensors, no control inputs, no name.
-    tensors = [tf.constant([1, 2, 3]), tf.constant([4, 5, 6])]
-    control_inputs = []
-    name = None
-    input_dict = {"tensors": tensors, "control_inputs": control_inputs, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    def to_object_array_safe(input_list):
+        """Safely creates a numpy array of objects to avoid broadcasting errors."""
+        if input_list is None:
+            return np.array([], dtype=object)
+        
+        # This is the key fix: create an empty array and fill it.
+        # This avoids numpy trying to broadcast the elements.
+        arr = np.empty(len(input_list), dtype=object)
+        for i, item in enumerate(input_list):
+            arr[i] = item
+        return arr
 
-    # Input 2: List with a single tensor, control input, name.
-    tensors = [tf.constant(10.0)]
-    op = tf.no_op()
-    control_inputs = [op]
-    name = "my_tuple"
-    input_dict = {"tensors": tensors, "control_inputs": control_inputs, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Basic case with a single tensor
+    input_dict_1 = {
+        'tensors': to_object_array_safe([np.array([1, 2, 3], dtype=np.int32)]),
+        'control_inputs': to_object_array_safe(None),
+        'name': 'basic_case'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 3: List with None and a tensor. Removing None, as it causes issues further down the line
-    tensors = [tf.constant([[1, 2], [3, 4]])]
-    control_inputs = []
-    name = None
-    input_dict = {"tensors": tensors, "control_inputs": control_inputs, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: Multiple tensors in the list
+    input_dict_2 = {
+        'tensors': to_object_array_safe([np.array([1.0, 2.0], dtype=np.float32), np.array([3.0, 4.0], dtype=np.float32)]),
+        'control_inputs': to_object_array_safe([]),
+        'name': 'multiple_tensors'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 4: List of tensors with different shapes, control input list, name.
-    tensors = [tf.constant(1), tf.constant([1, 2]), tf.constant([[1, 2], [3, 4]])]
-    op1 = tf.no_op()
-    op2 = tf.no_op()
-    control_inputs = [op1, op2]
-    name = "complex_tuple"
-    input_dict = {"tensors": tensors, "control_inputs": control_inputs, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: With a control input tensor
+    input_dict_3 = {
+        'tensors': to_object_array_safe([np.array([[1, 2], [3, 4]], dtype=np.int64)]),
+        'control_inputs': to_object_array_safe([np.array([10.0], dtype=np.float32)]),
+        'name': 'with_control_input'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 5: List of tensors with different dtypes.
-    tensors = [tf.constant(1, dtype=tf.int32), tf.constant(2.0, dtype=tf.float32), tf.constant(True, dtype=tf.bool)]
-    control_inputs = []
-    name = None
-    input_dict = {"tensors": tensors, "control_inputs": control_inputs, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: Tensors with mixed shapes (the one that caused the previous error)
+    input_dict_4 = {
+        'tensors': to_object_array_safe([np.array([1]), np.array([[2, 3]]), np.array([[[4, 5, 6]]], dtype=np.int16)]),
+        'control_inputs': to_object_array_safe([np.array(55, dtype=np.int32), np.array([66.6], dtype=np.float64)]),
+        'name': 'mixed_shapes'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 6: List of tensors with negative values
-    tensors = [tf.constant([-1, -2, -3]), tf.constant([-4.0, -5.0])]
-    control_inputs = []
-    name = None
-    input_dict = {"tensors": tensors, "control_inputs": control_inputs, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5: List of tensors containing a None value
+    input_dict_5 = {
+        'tensors': to_object_array_safe([np.array([1, 2]), None, np.array([3, 4])]),
+        'control_inputs': to_object_array_safe(None),
+        'name': 'with_none_in_tensors'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 7: Empty control inputs, different name
-    tensors = [tf.constant([1, 2, 3])]
-    control_inputs = []
-    name = "another_tuple"
-    input_dict = {"tensors": tensors, "control_inputs": control_inputs, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6: Tensors with negative values
+    input_dict_6 = {
+        'tensors': to_object_array_safe([np.array([-1, -2, -3], dtype=np.int32), np.array([[-1.5], [-2.5]], dtype=np.float32)]),
+        'control_inputs': to_object_array_safe([np.array([-99.0])]),
+        'name': 'negative_values'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 8: More complex tensors
-    tensors = [tf.constant([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]), tf.constant([[9, 10], [11, 12]])]
-    control_inputs = []
-    name = None
-    input_dict = {"tensors": tensors, "control_inputs": control_inputs, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 7: Scalar tensors (0-D)
+    input_dict_7 = {
+        'tensors': to_object_array_safe([np.array(100, dtype=np.int32), np.array(200.5, dtype=np.float32)]),
+        'control_inputs': to_object_array_safe([]),
+        'name': 'scalars'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 9: Control inputs as ops, not tensors - Changing this to comply with signature
-    tensors = [tf.constant([1, 2])]
-    op1 = tf.no_op()
-    op2 = tf.no_op()
-    control_inputs = [op1, op2]
-    name = None
-    input_dict = {"tensors": tensors, "control_inputs": control_inputs, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-     # Input 10: More complex tensors, different control_inputs and name
-    tensors = [tf.constant([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]), tf.constant([[9, 10], [11, 12]])]
-    op1 = tf.no_op()
-    control_inputs = [op1]
-    name = "tuple_complex_control"
-    input_dict = {"tensors": tensors, "control_inputs": control_inputs, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12: Control inputs that are tensors - Removing this as the signature asks for Operations
-    # tensors = [tf.constant([1, 2])]
-    # control_inputs = [tf.constant(1), tf.constant(2)]
-    # name = None
-    # input_dict = {"tensors": tensors, "control_inputs": control_inputs, "name": name}
-    # list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 8: List containing one empty tensor
+    input_dict_8 = {
+        'tensors': to_object_array_safe([np.array([], dtype=np.float32)]),
+        'control_inputs': to_object_array_safe(None),
+        'name': 'empty_tensor'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 13: Indexed Slices tensor
-    indices = tf.constant([0, 2, 4])
-    values = tf.constant([[1, 2], [3, 4], [5, 6]])
-    dense_shape = tf.constant([7, 2])
-    indexed_slices = tf.IndexedSlices(values, indices, dense_shape)
+    # Input 9: A longer list of tensors
+    input_dict_9 = {
+        'tensors': to_object_array_safe([np.array([i]) for i in range(10)]),
+        'control_inputs': to_object_array_safe([np.array([100]), np.array([200])]),
+        'name': 'long_list'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    tensors = [indexed_slices, tf.constant([1, 2, 3])]
-    control_inputs = []
-    name = None
-    input_dict = {"tensors": tensors, "control_inputs": control_inputs, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
+    # Input 10: Boolean tensor and boolean control input
+    input_dict_10 = {
+        'tensors': to_object_array_safe([np.array([True, False, True])]),
+        'control_inputs': to_object_array_safe([np.array(False)]),
+        'name': 'boolean_control'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.tuple"] = tf_tuple_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -117,6 +125,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.tuple' not in generated_inputs:

@@ -4,86 +4,61 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
 def tf_raw_ops_ReaderReadUpTo_inputs():
+    """
+    Generates a list of valid inputs for the tf.raw_ops.ReaderReadUpTo function.
+    NOTE: This operation is from TensorFlow V1 and is not compatible with eager
+    execution, which is the default in modern TensorFlow. It is expected to
+    raise a RuntimeError when called in an eager context. The generated inputs
+    are syntactically correct for the API's signature.
+    """
     list_of_inputs = []
 
-    # Input 1
-    reader_handle = np.array("reader_handle").astype(np.object_)
-    queue_handle = np.array("queue_handle").astype(np.object_)
-    num_records = np.array(5).astype(np.int64)
-    input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "num_records": num_records, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Resource handles are represented as scalar numpy arrays with dtype=object
+    # to hold a placeholder string. This format is a valid representation
+    # for a scalar string tensor.
+    handle_placeholder = np.array("placeholder_handle", dtype=object)
 
-    # Input 2
-    reader_handle = np.array("reader_handle2").astype(np.object_)
-    queue_handle = np.array("queue_handle2").astype(np.object_)
-    num_records = np.array(10).astype(np.int64)
-    input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "num_records": num_records, "name": "op_name"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    base_input = {
+        'reader_handle': handle_placeholder,
+        'queue_handle': handle_placeholder,
+    }
 
-    # Input 3
-    reader_handle = np.array("reader_handle3").astype(np.object_)
-    queue_handle = np.array("queue_handle3").astype(np.object_)
-    num_records = np.array(1).astype(np.int64)
-    input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "num_records": num_records, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 1: A typical batch size like 16
+    input_dict = copy.deepcopy(base_input)
+    input_dict['name'] = 'read_batch_of_16'
+    input_dict['num_records'] = np.array(16, dtype=np.int64)
+    list_of_inputs.append(input_dict)
 
-    # Input 4
-    reader_handle = np.array("reader_handle4").astype(np.object_)
-    queue_handle = np.array("queue_handle4").astype(np.object_)
-    num_records = np.array(0).astype(np.int64)
-    input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "num_records": num_records, "name": "op_name4"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 2: Read a single record
+    input_dict = copy.deepcopy(base_input)
+    input_dict['name'] = 'read_one_item'
+    input_dict['num_records'] = np.array(1, dtype=np.int64)
+    list_of_inputs.append(input_dict)
 
-    # Input 5
-    reader_handle = np.array("reader_handle5").astype(np.object_)
-    queue_handle = np.array("queue_handle5").astype(np.object_)
-    num_records = np.array(100).astype(np.int64)
-    input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "num_records": num_records, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 3: Read zero records, which is a valid edge case
+    input_dict = copy.deepcopy(base_input)
+    input_dict['name'] = 'read_zero_items'
+    input_dict['num_records'] = np.array(0, dtype=np.int64)
+    list_of_inputs.append(input_dict)
 
-    # Input 6
-    reader_handle = np.array("reader_handle6").astype(np.object_)
-    queue_handle = np.array("queue_handle6").astype(np.object_)
-    num_records = np.array(1024).astype(np.int64)
-    input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "num_records": num_records, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 4: No optional name provided (name=None)
+    input_dict = copy.deepcopy(base_input)
+    input_dict['name'] = None
+    input_dict['num_records'] = np.array(64, dtype=np.int64)
+    list_of_inputs.append(input_dict)
 
-    # Input 7
-    reader_handle = np.array("reader_handle7").astype(np.object_)
-    queue_handle = np.array("queue_handle7").astype(np.object_)
-    num_records = np.array(2**20).astype(np.int64)
-    input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "num_records": num_records, "name": "op_name7"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    reader_handle = np.array("reader_handle8").astype(np.object_)
-    queue_handle = np.array("queue_handle8").astype(np.object_)
-    num_records = np.array(2).astype(np.int64)
-    input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "num_records": num_records, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    reader_handle = np.array("reader_handle9").astype(np.object_)
-    queue_handle = np.array("queue_handle9").astype(np.object_)
-    num_records = np.array(64).astype(np.int64)
-    input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "num_records": num_records, "name": "op_name9"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    reader_handle = np.array("reader_handle10").astype(np.object_)
-    queue_handle = np.array("queue_handle10").astype(np.object_)
-    num_records = np.array(2048).astype(np.int64)
-    input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "num_records": num_records, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 5: A non-power-of-two number of records
+    input_dict = copy.deepcopy(base_input)
+    input_dict['name'] = 'read_99_items'
+    input_dict['num_records'] = np.array(99, dtype=np.int64)
+    list_of_inputs.append(input_dict)
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.raw_ops.ReaderReadUpTo"] = tf_raw_ops_ReaderReadUpTo_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -91,6 +66,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.ReaderReadUpTo' not in generated_inputs:

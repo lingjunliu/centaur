@@ -4,103 +4,135 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_ShardedFilename_inputs():
+def tf_raw_ops_shardedfilename_inputs():
+    """
+    Generates a list of valid inputs for tf.raw_ops.ShardedFilename.
+    """
     list_of_inputs = []
 
-    # Input 1
-    basename = np.array("file", dtype=np.dtype('string'))
-    shard = np.array(0, dtype=np.int32)
-    num_shards = np.array(1, dtype=np.int32)
-    name = "shard_file_1"
-    input_dict = {"basename": basename, "shard": shard, "num_shards": num_shards, "name": name}
+    # Input 1: Basic case
+    input_dict = {
+        'basename': np.array('/path/to/file', dtype=object),
+        'shard': np.array(0, dtype=np.int32),
+        'num_shards': np.array(10, dtype=np.int32),
+        'name': 'basic_sharding'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    basename = np.array("data", dtype=np.dtype('string'))
-    shard = np.array(5, dtype=np.int32)
-    num_shards = np.array(10, dtype=np.int32)
-    name = "shard_file_2"
-    input_dict = {"basename": basename, "shard": shard, "num_shards": num_shards, "name": name}
+    # Input 2: Different shard and num_shards
+    input_dict = {
+        'basename': np.array('data/train', dtype=object),
+        'shard': np.array(5, dtype=np.int32),
+        'num_shards': np.array(100, dtype=np.int32),
+        'name': 'train_data_sharding'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    basename = np.array("output", dtype=np.dtype('string'))
-    shard = np.array(99, dtype=np.int32)
-    num_shards = np.array(100, dtype=np.int32)
-    name = "shard_file_3"
-    input_dict = {"basename": basename, "shard": shard, "num_shards": num_shards, "name": name}
+    # Input 3: Max shard value (shard = num_shards - 1)
+    input_dict = {
+        'basename': np.array('output_file', dtype=object),
+        'shard': np.array(99, dtype=np.int32),
+        'num_shards': np.array(100, dtype=np.int32),
+        'name': 'max_shard'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    basename = np.array("my_model", dtype=np.dtype('string'))
-    shard = np.array(1234, dtype=np.int32)
-    num_shards = np.array(5678, dtype=np.int32)
-    name = "shard_file_4"
-    input_dict = {"basename": basename, "shard": shard, "num_shards": num_shards, "name": name}
+    # Input 4: Single shard
+    input_dict = {
+        'basename': np.array('single_shard_file.dat', dtype=object),
+        'shard': np.array(0, dtype=np.int32),
+        'num_shards': np.array(1, dtype=np.int32),
+        'name': 'single_shard'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    basename = np.array("training_data", dtype=np.dtype('string'))
-    shard = np.array(1, dtype=np.int32)
-    num_shards = np.array(1000, dtype=np.int32)
-    name = "shard_file_5"
-    input_dict = {"basename": basename, "shard": shard, "num_shards": num_shards, "name": name}
+    # Input 5: No name provided
+    input_dict = {
+        'basename': np.array('another-file', dtype=object),
+        'shard': np.array(123, dtype=np.int32),
+        'num_shards': np.array(1000, dtype=np.int32),
+        'name': None
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 6
-    basename = np.array("validation_data", dtype=np.dtype('string'))
-    shard = np.array(999, dtype=np.int32)
-    num_shards = np.array(1000, dtype=np.int32)
-    name = "shard_file_6"
-    input_dict = {"basename": basename, "shard": shard, "num_shards": num_shards, "name": name}
+    # Input 6: Basename with dots (like a file extension)
+    input_dict = {
+        'basename': np.array('model.ckpt', dtype=object),
+        'shard': np.array(4, dtype=np.int32),
+        'num_shards': np.array(5, dtype=np.int32),
+        'name': 'checkpoint_sharding'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    basename = np.array("test_data", dtype=np.dtype('string'))
-    shard = np.array(500, dtype=np.int32)
-    num_shards = np.array(500, dtype=np.int32)
-    name = "shard_file_7"
-    input_dict = {"basename": basename, "shard": shard, "num_shards": num_shards, "name": name}
+    # Input 7: Long basename
+    input_dict = {
+        'basename': np.array('a_very_long_and_descriptive_filename_for_a_specific_dataset_split', dtype=object),
+        'shard': np.array(0, dtype=np.int32),
+        'num_shards': np.array(2, dtype=np.int32),
+        'name': 'long_name_test'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    basename = np.array("very_long_file_name", dtype=np.dtype('string'))
-    shard = np.array(10000, dtype=np.int32)
-    num_shards = np.array(20000, dtype=np.int32)
-    name = "shard_file_8"
-    input_dict = {"basename": basename, "shard": shard, "num_shards": num_shards, "name": name}
+    # Input 8: Empty basename string
+    input_dict = {
+        'basename': np.array('', dtype=object),
+        'shard': np.array(10, dtype=np.int32),
+        'num_shards': np.array(20, dtype=np.int32),
+        'name': 'empty_basename'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    basename = np.array("", dtype=np.dtype('string'))
-    shard = np.array(0, dtype=np.int32)
-    num_shards = np.array(1, dtype=np.int32)
-    name = "shard_file_9"
-    input_dict = {"basename": basename, "shard": shard, "num_shards": num_shards, "name": name}
+    # Input 9: Large shard and num_shards values (equal to padding)
+    input_dict = {
+        'basename': np.array('large_shards_data', dtype=object),
+        'shard': np.array(9999, dtype=np.int32),
+        'num_shards': np.array(10000, dtype=np.int32),
+        'name': 'large_numbers_test'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10
-    basename = np.array("prefix", dtype=np.dtype('string'))
-    shard = np.array(1, dtype=np.int32)
-    num_shards = np.array(2, dtype=np.int32)
-    name = "shard_file_10"
-    input_dict = {"basename": basename, "shard": shard, "num_shards": num_shards, "name": name}
+    # Input 10: Basename with underscores
+    input_dict = {
+        'basename': np.array('file_with_underscore', dtype=object),
+        'shard': np.array(7, dtype=np.int32),
+        'num_shards': np.array(8, dtype=np.int32),
+        'name': 'underscore_test'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: Shard > num_shards (logically inconsistent but valid for the op)
+    input_dict = {
+        'basename': np.array('invalid_shard_test', dtype=object),
+        'shard': np.array(10, dtype=np.int32),
+        'num_shards': np.array(5, dtype=np.int32),
+        'name': 'shard_greater_than_total'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12: Numbers larger than 5-digit padding
+    input_dict = {
+        'basename': np.array('six_digit_shard', dtype=object),
+        'shard': np.array(123456, dtype=np.int32),
+        'num_shards': np.array(200000, dtype=np.int32),
+        'name': 'six_digit_test'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = {}
-generated_inputs["tf.raw_ops.ShardedFilename"] = tf_raw_ops_ShardedFilename_inputs()
+generated_inputs["tf.raw_ops.ShardedFilename"] = tf_raw_ops_shardedfilename_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.ShardedFilename' not in generated_inputs:

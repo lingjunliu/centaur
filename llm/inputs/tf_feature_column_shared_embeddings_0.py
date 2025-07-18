@@ -7,208 +7,207 @@ generated_inputs = dict()
 import tensorflow as tf
 import numpy as np
 import copy
-import os
+
+# This function is deprecated and requires TF1 compatibility mode.
+tf.compat.v1.disable_eager_execution()
 
 def tf_feature_column_shared_embeddings_inputs():
-    try:
-        tf.compat.v1.disable_eager_execution()
-    except (AttributeError, RuntimeError):
-        pass
-
-    # Setup a dummy checkpoint file required by some inputs
-    ckpt_dir = "tf_shared_embeddings_ckpt_dir"
-    os.makedirs(ckpt_dir, exist_ok=True)
-    ckpt_path = os.path.join(ckpt_dir, "model.ckpt")
-    # Create dummy files to make the path valid for tf.train.latest_checkpoint
-    with open(ckpt_path + ".index", "w") as f:
-        f.write("dummy")
-    with open(ckpt_path + ".data-00000-of-00001", "w") as f:
-        f.write("dummy")
-
+    """
+    Generates a list of valid inputs for tf.feature_column.shared_embeddings.
+    """
     list_of_inputs = []
 
-    # All inputs will now have concrete values for optional parameters
-    # to strictly adhere to the provided signature and avoid None where
-    # a specific type like 'string' or 'float' is expected.
+    def create_initializer(shape):
+        return np.random.uniform(low=-1.0, high=1.0, size=shape).astype(np.float32)
 
-    # Input 1
-    num_buckets_1, dim_1 = 10, 8
-    cat_cols_1 = [tf.feature_column.categorical_column_with_identity('col1', num_buckets=num_buckets_1)]
+    # All inputs will use the simplest categorical column, `categorical_column_with_identity`,
+    # to avoid complex object structures that might confuse the testing framework.
+
+    # Input 1: Basic case with 'mean' combiner
+    cat_cols_1 = [
+        tf.feature_column.categorical_column_with_identity(key='video_id_1', num_buckets=100),
+        tf.feature_column.categorical_column_with_identity(key='impression_id_1', num_buckets=100)
+    ]
     input_dict_1 = {
         'categorical_columns': cat_cols_1,
-        'dimension': dim_1,
+        'dimension': 8,
         'combiner': 'mean',
-        'initializer': np.random.randn(num_buckets_1, dim_1).astype(np.float32),
+        'initializer': create_initializer((100, 8)),
         'shared_embedding_collection_name': 'collection_1',
-        'ckpt_to_load_from': ckpt_path,
-        'tensor_name_in_ckpt': 'tensor_1',
+        'ckpt_to_load_from': '',
+        'tensor_name_in_ckpt': '',
         'max_norm': 1.0,
         'trainable': True,
         'use_safe_embedding_lookup': True
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2
-    num_buckets_2, dim_2 = 100, 16
+    # Input 2: 'sqrtn' combiner, not trainable
     cat_cols_2 = [
-        tf.feature_column.categorical_column_with_identity('feat_a', num_buckets=num_buckets_2),
-        tf.feature_column.categorical_column_with_identity('feat_b', num_buckets=num_buckets_2)
+        tf.feature_column.categorical_column_with_identity(key='feature_a_2', num_buckets=50),
+        tf.feature_column.categorical_column_with_identity(key='feature_b_2', num_buckets=50)
     ]
     input_dict_2 = {
         'categorical_columns': cat_cols_2,
-        'dimension': dim_2,
+        'dimension': 16,
         'combiner': 'sqrtn',
-        'initializer': np.zeros((num_buckets_2, dim_2), dtype=np.float32),
+        'initializer': create_initializer((50, 16)),
         'shared_embedding_collection_name': 'collection_2',
-        'ckpt_to_load_from': ckpt_path,
-        'tensor_name_in_ckpt': 'tensor_2',
-        'max_norm': 2.0,
+        'ckpt_to_load_from': '',
+        'tensor_name_in_ckpt': '',
+        'max_norm': 2.5,
         'trainable': False,
         'use_safe_embedding_lookup': True
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3
-    num_buckets_3, dim_3 = 50, 4
-    cat_cols_3 = [tf.feature_column.categorical_column_with_identity('user_id', num_buckets=num_buckets_3)]
+    # Input 3: 'sum' combiner, no safe lookup
+    cat_cols_3 = [
+        tf.feature_column.categorical_column_with_identity(key='product_id_3', num_buckets=200),
+        tf.feature_column.categorical_column_with_identity(key='category_id_3', num_buckets=200)
+    ]
     input_dict_3 = {
         'categorical_columns': cat_cols_3,
-        'dimension': dim_3,
+        'dimension': 32,
         'combiner': 'sum',
-        'initializer': np.ones((num_buckets_3, dim_3), dtype=np.float32),
-        'shared_embedding_collection_name': 'user_embeddings',
-        'ckpt_to_load_from': ckpt_path,
-        'tensor_name_in_ckpt': 'user_tensor',
+        'initializer': create_initializer((200, 32)),
+        'shared_embedding_collection_name': 'collection_3',
+        'ckpt_to_load_from': '',
+        'tensor_name_in_ckpt': '',
         'max_norm': 0.5,
         'trainable': True,
         'use_safe_embedding_lookup': False
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4
-    num_buckets_4, dim_4 = 200, 32
+    # Input 4: With checkpoint loading
     cat_cols_4 = [
-        tf.feature_column.categorical_column_with_identity('prod_view', num_buckets=num_buckets_4),
-        tf.feature_column.categorical_column_with_identity('prod_buy', num_buckets=num_buckets_4)
+        tf.feature_column.categorical_column_with_identity(key='user_id_4', num_buckets=1000),
+        tf.feature_column.categorical_column_with_identity(key='author_id_4', num_buckets=1000)
     ]
     input_dict_4 = {
         'categorical_columns': cat_cols_4,
-        'dimension': dim_4,
+        'dimension': 64,
         'combiner': 'mean',
-        'initializer': np.random.uniform(-1., 1., size=(num_buckets_4, dim_4)).astype(np.float32),
-        'shared_embedding_collection_name': 'prod_collection',
-        'ckpt_to_load_from': ckpt_path,
-        'tensor_name_in_ckpt': 'prod_tensor',
-        'max_norm': 5.0,
+        'initializer': create_initializer((1000, 64)),
+        'shared_embedding_collection_name': 'user_author_embeddings',
+        'ckpt_to_load_from': '/tmp/model.ckpt',
+        'tensor_name_in_ckpt': 'user_author_embeddings/embedding_weights',
+        'max_norm': 10.0,
         'trainable': True,
         'use_safe_embedding_lookup': True
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5
-    num_buckets_5, dim_5 = 5, 1
-    cat_cols_5 = [tf.feature_column.categorical_column_with_identity('minimal_col', num_buckets=num_buckets_5)]
+    # Input 5: More columns (3) and smaller dimension
+    cat_cols_5 = [
+        tf.feature_column.categorical_column_with_identity(key='tag_1_5', num_buckets=20),
+        tf.feature_column.categorical_column_with_identity(key='tag_2_5', num_buckets=20),
+        tf.feature_column.categorical_column_with_identity(key='tag_3_5', num_buckets=20)
+    ]
     input_dict_5 = {
         'categorical_columns': cat_cols_5,
-        'dimension': dim_5,
-        'combiner': 'mean',
-        'initializer': np.random.randn(num_buckets_5, dim_5).astype(np.float32),
-        'shared_embedding_collection_name': 'minimal_collection',
-        'ckpt_to_load_from': ckpt_path,
-        'tensor_name_in_ckpt': 'minimal_tensor',
-        'max_norm': 1.5,
+        'dimension': 2,
+        'combiner': 'sqrtn',
+        'initializer': create_initializer((20, 2)),
+        'shared_embedding_collection_name': 'tag_embeddings',
+        'ckpt_to_load_from': '',
+        'tensor_name_in_ckpt': '',
+        'max_norm': 1.0,
         'trainable': True,
-        'use_safe_embedding_lookup': True
+        'use_safe_embedding_lookup': False
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6
-    num_buckets_6, dim_6 = 1000, 128
+    # Input 6: Minimal dimension (1)
     cat_cols_6 = [
-        tf.feature_column.categorical_column_with_identity('id_a', num_buckets=num_buckets_6),
-        tf.feature_column.categorical_column_with_identity('id_b', num_buckets=num_buckets_6),
-        tf.feature_column.categorical_column_with_identity('id_c', num_buckets=num_buckets_6),
+        tf.feature_column.categorical_column_with_identity(key='min_dim_1_6', num_buckets=10),
+        tf.feature_column.categorical_column_with_identity(key='min_dim_2_6', num_buckets=10)
     ]
     input_dict_6 = {
         'categorical_columns': cat_cols_6,
-        'dimension': dim_6,
-        'combiner': 'sqrtn',
-        'initializer': np.random.randn(num_buckets_6, dim_6).astype(np.float32) * 0.1,
-        'shared_embedding_collection_name': 'large_id_space',
-        'ckpt_to_load_from': ckpt_path,
-        'tensor_name_in_ckpt': 'large_tensor',
-        'max_norm': 10.0,
+        'dimension': 1,
+        'combiner': 'mean',
+        'initializer': create_initializer((10, 1)),
+        'shared_embedding_collection_name': 'min_dim_collection',
+        'ckpt_to_load_from': '',
+        'tensor_name_in_ckpt': '',
+        'max_norm': 1.0,
         'trainable': True,
         'use_safe_embedding_lookup': True
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7
-    num_buckets_7, dim_7 = 42, 12
+    # Input 7: Zero initializer, large dimension
     cat_cols_7 = [
-        tf.feature_column.categorical_column_with_identity('full_col1', num_buckets=num_buckets_7),
-        tf.feature_column.categorical_column_with_identity('full_col2', num_buckets=num_buckets_7)
+        tf.feature_column.categorical_column_with_identity(key='large_dim_1_7', num_buckets=500),
+        tf.feature_column.categorical_column_with_identity(key='large_dim_2_7', num_buckets=500)
     ]
     input_dict_7 = {
         'categorical_columns': cat_cols_7,
-        'dimension': dim_7,
-        'combiner': 'sum',
-        'initializer': np.random.uniform(-0.5, 0.5, size=(num_buckets_7, dim_7)).astype(np.float32),
-        'shared_embedding_collection_name': 'full_spec_collection',
-        'ckpt_to_load_from': ckpt_path,
-        'tensor_name_in_ckpt': 'another_tensor_name',
-        'max_norm': 2.5,
-        'trainable': False,
-        'use_safe_embedding_lookup': False
+        'dimension': 256,
+        'combiner': 'sqrtn',
+        'initializer': np.zeros((500, 256), dtype=np.float32),
+        'shared_embedding_collection_name': 'large_dim_collection',
+        'ckpt_to_load_from': '',
+        'tensor_name_in_ckpt': '',
+        'max_norm': 100.0,
+        'trainable': True,
+        'use_safe_embedding_lookup': True
     }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8
-    num_buckets_8, dim_8 = 3, 3
-    cat_cols_8 = [tf.feature_column.categorical_column_with_identity('tiny_col', num_buckets=num_buckets_8)]
+    # Input 8: Large num_buckets
+    cat_cols_8 = [
+        tf.feature_column.categorical_column_with_identity(key='big_vocab_1', num_buckets=10000),
+        tf.feature_column.categorical_column_with_identity(key='big_vocab_2', num_buckets=10000)
+    ]
     input_dict_8 = {
         'categorical_columns': cat_cols_8,
-        'dimension': dim_8,
-        'combiner': 'sum',
-        'initializer': np.ones((num_buckets_8, dim_8), dtype=np.float32),
-        'shared_embedding_collection_name': 'tiny_collection',
-        'ckpt_to_load_from': ckpt_path,
-        'tensor_name_in_ckpt': 'tiny_tensor',
-        'max_norm': 1.0,
-        'trainable': False,
-        'use_safe_embedding_lookup': False
+        'dimension': 128,
+        'combiner': 'mean',
+        'initializer': create_initializer((10000, 128)),
+        'shared_embedding_collection_name': 'big_vocab_collection',
+        'ckpt_to_load_from': '',
+        'tensor_name_in_ckpt': '',
+        'max_norm': 10.0,
+        'trainable': True,
+        'use_safe_embedding_lookup': True
     }
     list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 9
-    num_buckets_9, dim_9 = 7, 7
-    cat_cols_9 = [tf.feature_column.categorical_column_with_identity('another_col', num_buckets=num_buckets_9)]
+    # Input 9: Only one column in the list
+    cat_cols_9 = [
+        tf.feature_column.categorical_column_with_identity(key='single_col_9', num_buckets=5)
+    ]
     input_dict_9 = {
         'categorical_columns': cat_cols_9,
-        'dimension': dim_9,
+        'dimension': 3,
         'combiner': 'mean',
-        'initializer': np.eye(num_buckets_9, M=dim_9, dtype=np.float32),
-        'shared_embedding_collection_name': 'another_collection',
-        'ckpt_to_load_from': ckpt_path,
-        'tensor_name_in_ckpt': 'another_tensor',
-        'max_norm': 100.0,
+        'initializer': create_initializer((5, 3)),
+        'shared_embedding_collection_name': 'single_collection',
+        'ckpt_to_load_from': '',
+        'tensor_name_in_ckpt': '',
+        'max_norm': 1.0,
         'trainable': True,
         'use_safe_embedding_lookup': True
     }
     list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10
-    num_buckets_10, dim_10 = 2, 64
-    cat_cols_10 = [tf.feature_column.categorical_column_with_identity('binary_col', num_buckets=num_buckets_10)]
+    # Input 10: Another simple case with different values
+    cat_cols_10 = [
+        tf.feature_column.categorical_column_with_identity(key='ad_id_10', num_buckets=5000),
+        tf.feature_column.categorical_column_with_identity(key='campaign_id_10', num_buckets=5000)
+    ]
     input_dict_10 = {
         'categorical_columns': cat_cols_10,
-        'dimension': dim_10,
-        'combiner': 'sqrtn',
-        'initializer': np.random.randn(num_buckets_10, dim_10).astype(np.float32),
-        'shared_embedding_collection_name': 'binary_collection',
-        'ckpt_to_load_from': ckpt_path,
-        'tensor_name_in_ckpt': 'binary_tensor',
-        'max_norm': 50.0,
+        'dimension': 50,
+        'combiner': 'sum',
+        'initializer': create_initializer((5000, 50)),
+        'shared_embedding_collection_name': 'ad_collection',
+        'ckpt_to_load_from': '',
+        'tensor_name_in_ckpt': '',
+        'max_norm': 5.0,
         'trainable': False,
         'use_safe_embedding_lookup': False
     }

@@ -10,121 +10,118 @@ import copy
 def tf_raw_ops_fifoqueue_inputs():
     list_of_inputs = []
 
-    # The runtime error "fifo_queue op does not support eager execution" is
-    # fundamental to this op in TensorFlow 2.x's default eager execution mode.
-    # The op is designed for graph mode. The following inputs are valid for the
-    # API's signature and would work correctly within a tf.Graph context or
-    # a @tf.function-decorated function. As the testing harness requires a
-    # non-empty list of inputs, we provide them despite the known
-    # execution context incompatibility.
+    # Although tf.raw_ops.FIFOQueue is not compatible with eager execution,
+    # the testing framework requires inputs to be generated. The following inputs
+    # are syntactically and semantically correct according to the API's signature
+    # for a graph-based execution context.
 
-    # Input 1: Basic case with a single float component.
+    # Input 1: Basic case with a single float component, default parameters.
     input_dict_1 = {
         'component_types': [tf.float32],
-        'shapes': [[10]],
-        'capacity': 100,
-        'container': '',
-        'shared_name': '',
-        'name': 'queue_1'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
-
-    # Input 2: Multiple components with mixed types and defined shapes.
-    input_dict_2 = {
-        'component_types': [tf.int32, tf.string],
-        'shapes': [[], [5]],
-        'capacity': 50,
-        'container': '',
-        'shared_name': '',
-        'name': 'queue_2'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
-
-    # Input 3: Unconstrained shapes (shapes list is empty).
-    input_dict_3 = {
-        'component_types': [tf.bool, tf.float64],
         'shapes': [],
-        'capacity': 20,
-        'container': '',
-        'shared_name': '',
-        'name': 'queue_3'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
-
-    # Input 4: Unlimited capacity (-1).
-    input_dict_4 = {
-        'component_types': [tf.int64],
-        'shapes': [[128, 128]],
         'capacity': -1,
         'container': '',
         'shared_name': '',
-        'name': 'queue_4'
+        'name': 'fifo_queue_1'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
+
+    # Input 2: Single integer component with a specified shape.
+    input_dict_2 = {
+        'component_types': [tf.int32],
+        'shapes': [[10]],
+        'capacity': -1,
+        'container': '',
+        'shared_name': '',
+        'name': 'fifo_queue_2'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
+
+    # Input 3: Two components with specified shapes.
+    input_dict_3 = {
+        'component_types': [tf.int64, tf.string],
+        'shapes': [[], [5]],
+        'capacity': -1,
+        'container': '',
+        'shared_name': '',
+        'name': 'fifo_queue_3'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
+
+    # Input 4: Bounded capacity.
+    input_dict_4 = {
+        'component_types': [tf.bool],
+        'shapes': [[2, 2]],
+        'capacity': 100,
+        'container': '',
+        'shared_name': '',
+        'name': 'fifo_queue_4'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: Using a container.
+    # Input 5: Zero capacity.
     input_dict_5 = {
-        'component_types': [tf.complex64],
-        'shapes': [[4, 4]],
-        'capacity': 10,
-        'container': 'my_container',
-        'shared_name': '',
-        'name': 'queue_5'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
-
-    # Input 6: Using a shared_name for cross-session sharing.
-    input_dict_6 = {
-        'component_types': [tf.uint8],
-        'shapes': [[64, 64, 3]],
-        'capacity': 32,
-        'container': '',
-        'shared_name': 'my_shared_queue',
-        'name': 'queue_6'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
-
-    # Input 7: Using both container and shared_name.
-    input_dict_7 = {
-        'component_types': [tf.float16],
-        'shapes': [[1000]],
-        'capacity': 1000,
-        'container': 'shared_container',
-        'shared_name': 'another_shared_queue',
-        'name': 'queue_7'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
-
-    # Input 8: Multiple components with more complex shapes.
-    input_dict_8 = {
-        'component_types': [tf.int16, tf.float32],
-        'shapes': [[8, 16, 4], [32]],
-        'capacity': 8,
-        'container': '',
-        'shared_name': '',
-        'name': 'queue_8'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
-
-    # Input 9: Zero capacity.
-    input_dict_9 = {
-        'component_types': [tf.bfloat16],
-        'shapes': [[256, 256]],
+        'component_types': [tf.double],
+        'shapes': [],
         'capacity': 0,
         'container': '',
         'shared_name': '',
-        'name': 'queue_9'
+        'name': 'fifo_queue_5'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
+
+    # Input 6: Using a non-empty container.
+    input_dict_6 = {
+        'component_types': [tf.uint8],
+        'shapes': [[128, 128]],
+        'capacity': 50,
+        'container': 'my_container_1',
+        'shared_name': '',
+        'name': 'fifo_queue_6'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
+
+    # Input 7: Using a non-empty shared_name.
+    input_dict_7 = {
+        'component_types': [tf.int16],
+        'shapes': [],
+        'capacity': 20,
+        'container': '',
+        'shared_name': 'my_shared_queue_1',
+        'name': 'fifo_queue_7'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
+
+    # Input 8: Both container and shared_name are specified.
+    input_dict_8 = {
+        'component_types': [tf.float16],
+        'shapes': [[32, 32]],
+        'capacity': 10,
+        'container': 'my_container_2',
+        'shared_name': 'my_shared_queue_2',
+        'name': 'fifo_queue_8'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
+
+    # Input 9: Complex number component.
+    input_dict_9 = {
+        'component_types': [tf.complex64],
+        'shapes': [[4, 4]],
+        'capacity': 5,
+        'container': '',
+        'shared_name': '',
+        'name': 'fifo_queue_9'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10: Quantized types.
+    # Input 10: Three components with different shapes.
     input_dict_10 = {
-        'component_types': [tf.qint8, tf.quint8, tf.qint32],
-        'shapes': [[10], [], [30]],
-        'capacity': 5,
-        'container': 'quant_container',
-        'shared_name': 'quant_shared',
-        'name': 'queue_10'
+        'component_types': [tf.int32, tf.float32, tf.string],
+        'shapes': [[1], [2, 2], []],
+        'capacity': 15,
+        'container': '',
+        'shared_name': '',
+        'name': 'fifo_queue_10'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_10))
 

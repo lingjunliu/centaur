@@ -4,126 +4,126 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_barrier_insert_many_inputs():
-    """
-    Generates a list of valid inputs for tf.raw_ops.BarrierInsertMany.
-    NOTE: This operation is designed for TensorFlow's graph mode and is not
-    compatible with eager execution. The 'handle' input requires a reference
-    to a Barrier resource, which cannot be created from NumPy alone. The
-    following inputs are structurally valid according to the API signature
-    but are expected to fail with a RuntimeError if run in an eager context.
-    `dtype=object` is used for string tensors to satisfy the testing framework's
-    type validation.
-    """
+def get_tf_raw_ops_barrier_insert_many_inputs():
+    # This operation, tf.raw_ops.BarrierInsertMany, is designed for TensorFlow's graph mode
+    # and is not compatible with eager execution. The Python wrapper for this op explicitly
+    # raises a RuntimeError if it's called in an eager context, which is the expected
+    # behavior when running in the test environment.
+    # The provided inputs are valid for a graph-based execution scenario where 'handle'
+    # would be a resource tensor produced by a tf.raw_ops.Barrier operation.
     list_of_inputs = []
 
-    # Input 1: Basic case with float32 values
+    # The 'handle' tensor is a placeholder. A numpy array with dtype=object is used
+    # to represent the string handle, which TensorFlow will convert to a tf.string tensor.
+    handle_tensor = np.array(b'barrier_handle_placeholder', dtype=object)
+
+    # Input 1: Basic case with 1D float32 values
     input_dict_1 = {
         'name': 'insert_floats',
-        'handle': np.array("barrier_handle_1", dtype=object),
-        'keys': np.array(["key_a", "key_b", "key_c"], dtype=object),
+        'handle': handle_tensor,
+        'keys': np.array([b'key1', b'key2', b'key3'], dtype=object),
         'values': np.array([1.1, 2.2, 3.3], dtype=np.float32),
         'component_index': 0
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: 2D tensor of int32 values and a different component_index
+    # Input 2: 2D int32 values
     input_dict_2 = {
-        'name': 'insert_int_matrix',
-        'handle': np.array("barrier_handle_2", dtype=object),
-        'keys': np.array(["matrix1", "matrix2"], dtype=object),
-        'values': np.array([[-1, -2], [1, 2]], dtype=np.int32),
+        'name': 'insert_2d_ints',
+        'handle': handle_tensor,
+        'keys': np.array([b'alpha', b'beta'], dtype=object),
+        'values': np.array([[1, 2], [3, 4]], dtype=np.int32),
         'component_index': 1
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: Single key with a 3D tensor value
+    # Input 3: Complex128 values
     input_dict_3 = {
-        'name': None,
-        'handle': np.array("barrier_handle_3", dtype=object),
-        'keys': np.array(["tensor_3d"], dtype=object),
-        'values': np.array([[[1.0, 2.0], [3.0, 4.0]]], dtype=np.float32),
-        'component_index': 0
+        'name': 'insert_complex128',
+        'handle': handle_tensor,
+        'keys': np.array([b'c128_1', b'c128_2'], dtype=object),
+        'values': np.array([1+2j, 3-4j], dtype=np.complex128),
+        'component_index': 3
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: Empty keys and values
+    # Input 4: Negative int16 values
     input_dict_4 = {
-        'name': 'insert_empty',
-        'handle': np.array("barrier_handle_4", dtype=object),
-        'keys': np.array([], dtype=object),
-        'values': np.zeros(shape=(0, 10), dtype=np.float32),
-        'component_index': 0
+        'name': 'insert_neg_int16',
+        'handle': handle_tensor,
+        'keys': np.array([b'neg_key_1', b'neg_key_2'], dtype=object),
+        'values': np.array([[-100, -200], [-300, -400]], dtype=np.int16),
+        'component_index': 5
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: int64 values
+    # Input 5: Boolean values
     input_dict_5 = {
-        'name': 'insert_int64',
-        'handle': np.array("barrier_handle_5", dtype=object),
-        'keys': np.array(["large_int"], dtype=object),
-        'values': np.array([123456789012345], dtype=np.int64),
-        'component_index': 3
+        'name': 'insert_bools',
+        'handle': handle_tensor,
+        'keys': np.array([b'true_key', b'false_key', b'true_key2'], dtype=object),
+        'values': np.array([[True], [False], [True]], dtype=np.bool_),
+        'component_index': 1
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: float64 values with negative numbers
+    # Input 6: Values are also strings
     input_dict_6 = {
-        'name': None,
-        'handle': np.array("barrier_handle_6", dtype=object),
-        'keys': np.array(["f64_1", "f64_2", "f64_3", "f64_4"], dtype=object),
-        'values': np.array([1.0, -2.5e-10, 3e20, -np.pi], dtype=np.float64),
-        'component_index': 2
+        'name': 'string_values',
+        'handle': handle_tensor,
+        'keys': np.array([b'str_key1', b'str_key2'], dtype=object),
+        'values': np.array([b'value1', b'value2'], dtype=object),
+        'component_index': 0
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: String values
+    # Input 7: Single key-value pair with a 3D value tensor
     input_dict_7 = {
-        'name': 'insert_strings',
-        'handle': np.array("barrier_handle_7", dtype=object),
-        'keys': np.array(["msg1", "msg2"], dtype=object),
-        'values': np.array(["hello barrier", "world"], dtype=object),
-        'component_index': 0
+        'name': 'insert_single_3d',
+        'handle': handle_tensor,
+        'keys': np.array([b'single_3d_key'], dtype=object),
+        'values': np.ones((1, 2, 2, 2), dtype=np.float32),
+        'component_index': 10
     }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8: Boolean values in a 2D tensor
+    # Input 8: High component_index
     input_dict_8 = {
-        'name': 'insert_booleans',
-        'handle': np.array("barrier_handle_8", dtype=object),
-        'keys': np.array(["flag_a", "flag_b", "flag_c"], dtype=object),
-        'values': np.array([[True], [False], [True]], dtype=bool),
-        'component_index': 1
+        'name': 'high_component_index',
+        'handle': handle_tensor,
+        'keys': np.array([b'high_idx'], dtype=object),
+        'values': np.array([123.456], dtype=np.float32),
+        'component_index': 1024
     }
     list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 9: Large number of keys
-    num_keys = 10
+    # Input 9: Unsigned int32 values
     input_dict_9 = {
-        'name': 'insert_many_keys',
-        'handle': np.array("barrier_handle_9", dtype=object),
-        'keys': np.array([f"item_{i}" for i in range(num_keys)], dtype=object),
-        'values': np.arange(num_keys * 2, dtype=np.int32).reshape(num_keys, 2),
-        'component_index': 0
+        'name': 'insert_uint32',
+        'handle': handle_tensor,
+        'keys': np.array([b'a', b'b', b'c', b'd'], dtype=object),
+        'values': np.arange(4, dtype=np.uint32).reshape(4, 1),
+        'component_index': 2
     }
     list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10: High component_index
+    # Input 10: Empty keys and values (valid case)
     input_dict_10 = {
-        'name': 'high_component_index',
-        'handle': np.array("barrier_handle_10", dtype=object),
-        'keys': np.array(["k1"], dtype=object),
-        'values': np.array([[255, 0]], dtype=np.uint8),
-        'component_index': 99
+        'name': 'insert_empty',
+        'handle': handle_tensor,
+        'keys': np.array([], dtype=object),
+        'values': np.array([], dtype=np.float32).reshape((0, 10)),
+        'component_index': 4
     }
     list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.BarrierInsertMany"] = tf_raw_ops_barrier_insert_many_inputs()
+generated_inputs["tf.raw_ops.BarrierInsertMany"] = get_tf_raw_ops_barrier_insert_many_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

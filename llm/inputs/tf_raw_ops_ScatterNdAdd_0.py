@@ -4,120 +4,129 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
 def tf_raw_ops_scatter_nd_add_inputs():
+    """
+    Generates a list of valid inputs for the tf.raw_ops.ScatterNdAdd function.
+    Note: This raw op is designed for TensorFlow's graph mode and is expected to raise a RuntimeError in eager execution.
+    The inputs provided are valid for a graph context where 'ref' would be a tf.Variable.
+    """
     list_of_inputs = []
 
-    # Input 1: Basic example, rank-1 ref
-    ref = np.array([1, 2, 3, 4, 5, 6, 7, 8], dtype=np.int32)
-    indices = np.array([[4], [3], [1], [7]], dtype=np.int32)
-    updates = np.array([9, 10, 11, 12], dtype=np.int32)
-    use_locking = False
-    bad_indices_policy = ""
-    name = "scatter_add_1"
-    input_dict = {"ref": tf.Variable(ref).value(), "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 1: Basic 1D addition (int32) from documentation
+    input_dict_1 = {
+        'ref': np.array([1, 2, 3, 4, 5, 6, 7, 8], dtype=np.int32),
+        'indices': np.array([[4], [3], [1], [7]], dtype=np.int32),
+        'updates': np.array([9, 10, 11, 12], dtype=np.int32),
+        'use_locking': False,
+        'bad_indices_policy': '',
+        'name': 'doc_example'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: Rank-2 ref, K=1
-    ref = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
-    indices = np.array([[0], [2]], dtype=np.int32)
-    updates = np.array([[10, 20], [50, 60]], dtype=np.float32)
-    use_locking = True
-    bad_indices_policy = "ignore"
-    name = "scatter_add_2"
-    input_dict = {"ref": tf.Variable(ref).value(), "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 2: 1D float64 addition with negative values and locking
+    input_dict_2 = {
+        'ref': np.array([1.0, 2.5, -3.0, 4.2], dtype=np.float64),
+        'indices': np.array([[0], [2]], dtype=np.int64),
+        'updates': np.array([-5.5, 1.0], dtype=np.float64),
+        'use_locking': True,
+        'bad_indices_policy': '',
+        'name': 'float64_locking'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: Rank-2 ref, K=2
-    ref = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int64)
-    indices = np.array([[0, 0], [1, 1], [2, 0]], dtype=np.int64)
-    updates = np.array([10, 40, 50], dtype=np.int64)
-    use_locking = False
-    bad_indices_policy = "warn"
-    name = "scatter_add_3"
-    input_dict = {"ref": tf.Variable(ref).value(), "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 3: 2D tensor, updating elements (K=P)
+    input_dict_3 = {
+        'ref': np.zeros((3, 4), dtype=np.float32),
+        'indices': np.array([[0, 1], [2, 3], [1, 1]], dtype=np.int32),
+        'updates': np.array([1.1, 2.2, 3.3], dtype=np.float32),
+        'use_locking': False,
+        'bad_indices_policy': '',
+        'name': '2d_element_update'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: Rank-3 ref, K=1
-    ref = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float64)
-    indices = np.array([[0], [1]], dtype=np.int32)
-    updates = np.array([[[10, 20], [30, 40]], [[50, 60], [70, 80]]], dtype=np.float64)
-    use_locking = True
-    bad_indices_policy = ""
-    name = "scatter_add_4"
-    input_dict = {"ref": tf.Variable(ref).value(), "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 4: 2D tensor, updating slices (rows, K<P)
+    input_dict_4 = {
+        'ref': np.ones((3, 4), dtype=np.int32),
+        'indices': np.array([[0], [2]], dtype=np.int32),
+        'updates': np.array([[5, 5, 5, 5], [10, 10, 10, 10]], dtype=np.int32),
+        'use_locking': False,
+        'bad_indices_policy': '',
+        'name': '2d_slice_update'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: Rank-3 ref, K=2
-    ref = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
-    indices = np.array([[0, 0], [1, 1]], dtype=np.int32)
-    updates = np.array([[10, 20], [70, 80]], dtype=np.int32)
-    use_locking = False
-    bad_indices_policy = ""
-    name = "scatter_add_5"
-    input_dict = {"ref": tf.Variable(ref).value(), "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 5: Duplicate indices to test accumulation
+    input_dict_5 = {
+        'ref': np.array([0, 0, 0, 0], dtype=np.int32),
+        'indices': np.array([[1], [3], [1]], dtype=np.int32),
+        'updates': np.array([10, 20, 30], dtype=np.int32),
+        'use_locking': False,
+        'bad_indices_policy': '',
+        'name': 'duplicate_indices'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: Rank-3 ref, K=3
-    ref = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
-    indices = np.array([[0, 0, 0], [1, 1, 1]], dtype=np.int64)
-    updates = np.array([10, 80], dtype=np.float32)
-    use_locking = True
-    bad_indices_policy = ""
-    name = "scatter_add_6"
-    input_dict = {"ref": tf.Variable(ref).value(), "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 6: 3D tensor, updating slices (vectors, K=2)
+    input_dict_6 = {
+        'ref': np.ones((2, 2, 4), dtype=np.int32),
+        'indices': np.array([[0, 1], [1, 0]], dtype=np.int64),
+        'updates': np.array([[2, 2, 2, 2], [3, 3, 3, 3]], dtype=np.int32),
+        'use_locking': True,
+        'bad_indices_policy': '',
+        'name': '3d_slice_update'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    
+    # Case 7: 3D tensor, updating elements (scalars, K=3)
+    input_dict_7 = {
+        'ref': np.full((2, 2, 2), 10, dtype=np.int32),
+        'indices': np.array([[0, 1, 0], [1, 0, 1]], dtype=np.int32),
+        'updates': np.array([-5, 5], dtype=np.int32),
+        'use_locking': False,
+        'bad_indices_policy': '',
+        'name': '3d_element_update'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 7: Rank-4 ref, K=2
-    ref = np.arange(1, 17, dtype=np.int32).reshape((2, 2, 2, 2))
-    indices = np.array([[0, 0], [1, 1]], dtype=np.int32)
-    updates = np.arange(10, 26, dtype=np.int32).reshape((2, 2, 2, 2))
-    use_locking = False
-    bad_indices_policy = ""
-    name = "scatter_add_7"
-    input_dict = {"ref": tf.Variable(ref).value(), "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Rank-2 ref, K=1, int64 indices
-    ref = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32)
-    indices = np.array([[0], [2]], dtype=np.int64)
-    updates = np.array([[10, 20], [50, 60]], dtype=np.int32)
-    use_locking = True
-    bad_indices_policy = ""
-    name = "scatter_add_8"
-    input_dict = {"ref": tf.Variable(ref).value(), "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Rank-1 ref, negative updates
-    ref = np.array([1, 2, 3, 4, 5, 6, 7, 8], dtype=np.int32)
-    indices = np.array([[4], [3], [1], [7]], dtype=np.int32)
-    updates = np.array([-9, -10, -11, -12], dtype=np.int32)
-    use_locking = False
-    bad_indices_policy = ""
-    name = "scatter_add_9"
-    input_dict = {"ref": tf.Variable(ref).value(), "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 10: Rank-2 ref, K=2, int64 ref and updates
-    ref = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int64)
-    indices = np.array([[0, 0], [1, 1], [2, 0]], dtype=np.int64)
-    updates = np.array([10, 40, 50], dtype=np.int64)
-    use_locking = False
-    bad_indices_policy = ""
-    name = "scatter_add_10"
-    input_dict = {"ref": tf.Variable(ref).value(), "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 8: Empty indices and updates
+    input_dict_8 = {
+        'ref': np.ones((2, 3), dtype=np.int32),
+        'indices': np.empty((0, 2), dtype=np.int32),
+        'updates': np.empty((0,), dtype=np.int32),
+        'use_locking': False,
+        'bad_indices_policy': '',
+        'name': 'empty_updates'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    
+    # Case 9: Bad indices with 'IGNORE' policy
+    input_dict_9 = {
+        'ref': np.array([1, 2, 3, 4], dtype=np.int32),
+        'indices': np.array([[0], [5], [2]], dtype=np.int32),
+        'updates': np.array([10, 20, 30], dtype=np.int32),
+        'use_locking': False,
+        'bad_indices_policy': 'IGNORE',
+        'name': 'bad_indices_ignore'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    
+    # Case 10: Higher rank indices tensor
+    input_dict_10 = {
+        'ref': np.zeros((5, 5), dtype=np.float32),
+        'indices': np.array([[[0], [2]], [[1], [3]]], dtype=np.int32),
+        'updates': np.ones((2, 2, 5), dtype=np.float32),
+        'use_locking': False,
+        'bad_indices_policy': '',
+        'name': 'high_rank_indices'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 
-generated_inputs = {}
-try:
-    tf.config.experimental_run_functions_eagerly(False)
-except:
-    pass
 generated_inputs["tf.raw_ops.ScatterNdAdd"] = tf_raw_ops_scatter_nd_add_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -125,6 +134,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.ScatterNdAdd' not in generated_inputs:

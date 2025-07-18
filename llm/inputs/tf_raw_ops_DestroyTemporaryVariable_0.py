@@ -4,103 +4,66 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
-# The `RuntimeError: destroy_temporary_variable op does not support eager execution`
-# is inherent to this operation. It is designed for TensorFlow's graph mode
-# and will consistently fail when called directly in the default eager execution
-# environment. The provided inputs are valid according to the function's
-# signature, but the execution context itself is incompatible with the op.
-# This submission provides a new set of diverse inputs that conform to the
-# API signature, even though the same runtime error is expected.
-
-def generate_destroy_temporary_variable_inputs():
+def tf_raw_ops_destroytemporaryvariable_inputs():
+    """
+    Generates a list of valid inputs for tf.raw_ops.DestroyTemporaryVariable.
+    NOTE: This operation is fundamentally incompatible with eager execution, which is
+    the default mode in TensorFlow 2.x. It is a legacy op designed for graph mode
+    and expects a 'ref' type tensor, which cannot be created from a NumPy array
+    in an eager context. Therefore, calling this function in an eager environment
+    will always raise a `RuntimeError`, as observed in the traceback. The provided
+    inputs are valid with respect to the API's signature (data types and parameter names)
+    but are guaranteed to fail at runtime in the testing environment.
+    """
     list_of_inputs = []
 
-    # Input 1: float32 tensor
+    # Input 1: Basic float32 vector.
     input_dict_1 = {
-        'ref': np.array([1.1, 2.2, -3.3], dtype=np.float32),
-        'var_name': 'f32_var',
-        'name': 'destroy_f32'
+        'ref': np.array([1.0, 2.5, -3.0], dtype=np.float32),
+        'var_name': 'temp_var_float',
+        'name': 'destroy_op_1'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: int32 2D tensor
+    # Input 2: 2D int32 matrix.
     input_dict_2 = {
-        'ref': np.array([[10, 20], [30, 40]], dtype=np.int32),
-        'var_name': 'i32_var_2d',
-        'name': 'destroy_i32_2d'
+        'ref': np.array([[-1, 0], [100, -200]], dtype=np.int32),
+        'var_name': 'my_temp_int_matrix',
+        'name': 'destroy_op_2'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: float64 scalar
+    # Input 3: Scalar (0-D) float64.
     input_dict_3 = {
-        'ref': np.array(123.456, dtype=np.float64),
-        'var_name': 'f64_scalar_var',
-        'name': 'destroy_f64_scalar'
+        'ref': np.array(3.14159, dtype=np.float64),
+        'var_name': 'scalar_var',
+        'name': 'destroy_op_3'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: boolean 3D tensor
+    # Input 4: Boolean tensor.
     input_dict_4 = {
-        'ref': np.array([[[True], [False]], [[False], [True]]], dtype=np.bool_),
-        'var_name': 'bool_3d_var',
-        'name': 'destroy_bool_3d'
+        'ref': np.array([[True, False], [False, True]], dtype=np.bool_),
+        'var_name': 'bool_temp_var',
+        'name': 'destroy_op_4'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: complex64 1D tensor
+    # Input 5: Complex number tensor (complex64).
     input_dict_5 = {
-        'ref': np.array([1+1j, -2-2j], dtype=np.complex64),
-        'var_name': 'c64_var',
-        'name': 'destroy_c64'
+        'ref': np.array([1+2j, 3-4j], dtype=np.complex64),
+        'var_name': 'complex_var_64',
+        'name': 'destroy_op_5'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: uint8 tensor
-    input_dict_6 = {
-        'ref': np.array([0, 1, 254, 255], dtype=np.uint8),
-        'var_name': 'ui8_var',
-        'name': 'destroy_ui8'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
-
-    # Input 7: int64 tensor
-    input_dict_7 = {
-        'ref': np.array([-1, 0, 1], dtype=np.int64),
-        'var_name': 'i64_var',
-        'name': 'destroy_i64'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
-
-    # Input 8: float16 tensor
-    input_dict_8 = {
-        'ref': np.array([0.5, 1.5, 2.5], dtype=np.float16),
-        'var_name': 'f16_var',
-        'name': 'destroy_f16'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
-
-    # Input 9: Empty tensor with shape (0, 4)
-    input_dict_9 = {
-        'ref': np.empty(shape=(0, 4), dtype=np.float32),
-        'var_name': 'empty_var_0_4',
-        'name': 'destroy_empty_0_4'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
-
-    # Input 10: Single element int16 tensor
-    input_dict_10 = {
-        'ref': np.array([32767], dtype=np.int16),
-        'var_name': 'i16_single_var',
-        'name': 'destroy_i16_single'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
-
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.DestroyTemporaryVariable"] = generate_destroy_temporary_variable_inputs()
+generated_inputs["tf.raw_ops.DestroyTemporaryVariable"] = tf_raw_ops_destroytemporaryvariable_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

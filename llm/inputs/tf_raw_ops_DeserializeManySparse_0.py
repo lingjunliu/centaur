@@ -8,158 +8,202 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_deserialize_many_sparse_inputs():
-    """
-    Generates a list of valid inputs for tf.raw_ops.DeserializeManySparse.
-    """
-    def _serialize_sparse(indices, values, shape, values_dtype_tf):
-        """
-        Helper to serialize a single sparse tensor.
-        """
-        rank = len(shape)
-        # Ensure indices has correct shape [num_elements, rank], even if empty
-        indices_np = np.array(indices, dtype=np.int64).reshape(-1, rank)
+def _serialize_sparse(indices, values, shape, dtype):
+    """Helper function to serialize a single SparseTensor."""
+    # Handle string arrays for tf.constant
+    if dtype == tf.string:
+        py_values = values
+    else:
+        # Ensure numpy array has the correct dtype for tf.constant
+        py_values = np.array(values, dtype=dtype.as_numpy_dtype)
 
-        indices_tensor = tf.constant(indices_np, dtype=tf.int64)
-        values_tensor = tf.constant(values, dtype=values_dtype_tf)
-        shape_tensor = tf.constant(shape, dtype=tf.int64)
+    return tf.raw_ops.SerializeSparse(
+        sparse_indices=tf.constant(indices, dtype=tf.int64),
+        sparse_values=tf.constant(py_values, dtype=dtype),
+        sparse_shape=tf.constant(shape, dtype=tf.int64)
+    )
 
-        serialized_tensor = tf.raw_ops.SerializeSparse(
-            sparse_indices=indices_tensor,
-            sparse_values=values_tensor,
-            sparse_shape=shape_tensor
-        )
-        return serialized_tensor.numpy()
-
+def tf_raw_ops_deserializemanysparse_inputs():
     list_of_inputs = []
 
-    # Input 1: From documentation example, int32 type
-    dtype_np, dtype_tf = np.int32, tf.int32
-    st1 = _serialize_sparse(indices=[[0], [10], [20]], values=[1, 2, 3], shape=[50], values_dtype_tf=dtype_tf)
-    st2 = _serialize_sparse(indices=[[2], [10]], values=[4, 5], shape=[30], values_dtype_tf=dtype_tf)
+    # --- Input 1: Basic case from documentation (int32) ---
+    indices1 = np.array([[0], [10], [20]], dtype=np.int64)
+    values1 = [1, 2, 3]
+    shape1 = [50]
+    indices2 = np.array([[2], [10]], dtype=np.int64)
+    values2 = [4, 5]
+    shape2 = [30]
+    s1 = _serialize_sparse(indices1, values1, shape1, tf.int32)
+    s2 = _serialize_sparse(indices2, values2, shape2, tf.int32)
     input_dict = {
-        'name': 'doc_example_int32',
-        'serialized_sparse': np.stack([st1, st2]),
-        'dtype': dtype_np
+        'serialized_sparse': tf.stack([s1, s2]).numpy(),
+        'dtype': np.int32,
+        'name': 'doc_example_int32'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 2D sparse tensors, float32 type
-    dtype_np, dtype_tf = np.float32, tf.float32
-    st1 = _serialize_sparse(indices=[[0, 0], [1, 1]], values=[1.1, 2.2], shape=[2, 2], values_dtype_tf=dtype_tf)
-    st2 = _serialize_sparse(indices=[[0, 1]], values=[3.3], shape=[1, 3], values_dtype_tf=dtype_tf)
-    st3 = _serialize_sparse(indices=[[2, 0]], values=[4.4], shape=[3, 1], values_dtype_tf=dtype_tf)
+    # --- Input 2: 2D tensors with float32 ---
+    indices1 = np.array([[0, 1], [1, 0]], dtype=np.int64)
+    values1 = [1.1, 2.2]
+    shape1 = [2, 2]
+    indices2 = np.array([[2, 3]], dtype=np.int64)
+    values2 = [3.3]
+    shape2 = [4, 5]
+    s1 = _serialize_sparse(indices1, values1, shape1, tf.float32)
+    s2 = _serialize_sparse(indices2, values2, shape2, tf.float32)
     input_dict = {
-        'name': '2d_float32_tensors',
-        'serialized_sparse': np.stack([st1, st2, st3]),
-        'dtype': dtype_np
+        'serialized_sparse': tf.stack([s1, s2]).numpy(),
+        'dtype': np.float32,
+        'name': '2d_float32'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Single 3D sparse tensor, complex64 type
-    dtype_np, dtype_tf = np.complex64, tf.complex64
-    st1 = _serialize_sparse(indices=[[0, 1, 0], [1, 0, 1]], values=[1+2j, 3-4j], shape=[2, 2, 2], values_dtype_tf=dtype_tf)
+    # --- Input 3: 3D tensors with int64 and mismatched shapes ---
+    indices1 = np.array([[0, 0, 1], [1, 1, 1]], dtype=np.int64)
+    values1 = [10, 20]
+    shape1 = [2, 2, 2]
+    indices2 = np.array([[0, 1, 0], [2, 0, 1]], dtype=np.int64)
+    values2 = [30, 40]
+    shape2 = [3, 2, 3]
+    s1 = _serialize_sparse(indices1, values1, shape1, tf.int64)
+    s2 = _serialize_sparse(indices2, values2, shape2, tf.int64)
     input_dict = {
-        'name': 'single_3d_complex64',
-        'serialized_sparse': np.expand_dims(st1, axis=0),
-        'dtype': dtype_np
+        'serialized_sparse': tf.stack([s1, s2]).numpy(),
+        'dtype': np.int64,
+        'name': '3d_int64_mismatched_shape'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Mix of populated and empty tensors, int64 type
-    dtype_np, dtype_tf = np.int64, tf.int64
-    st1 = _serialize_sparse(indices=[[5]], values=[100], shape=[10], values_dtype_tf=dtype_tf)
-    st2 = _serialize_sparse(indices=[], values=[], shape=[5], values_dtype_tf=dtype_tf)
-    st3 = _serialize_sparse(indices=[[0], [8]], values=[200, 300], shape=[9], values_dtype_tf=dtype_tf)
-    st4 = _serialize_sparse(indices=[], values=[], shape=[12], values_dtype_tf=dtype_tf)
+    # --- Input 4: One empty tensor, float64, negative values ---
+    indices1 = np.empty(shape=(0, 2), dtype=np.int64)
+    values1 = []
+    shape1 = [5, 5]
+    indices2 = np.array([[1, 1], [2, 2]], dtype=np.int64)
+    values2 = [-1.5, -2.5]
+    shape2 = [3, 3]
+    s1 = _serialize_sparse(indices1, values1, shape1, tf.float64)
+    s2 = _serialize_sparse(indices2, values2, shape2, tf.float64)
     input_dict = {
-        'name': 'mixed_empty_int64',
-        'serialized_sparse': np.stack([st1, st2, st3, st4]),
-        'dtype': dtype_np
+        'serialized_sparse': tf.stack([s1, s2]).numpy(),
+        'dtype': np.float64,
+        'name': 'one_empty_float64_neg'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Test max shape calculation, float64 type
-    dtype_np, dtype_tf = np.float64, tf.float64
-    st1 = _serialize_sparse(indices=[[0, 0, 0]], values=[3.14], shape=[1, 1, 1], values_dtype_tf=dtype_tf)
-    st2 = _serialize_sparse(indices=[[9, 9, 9]], values=[2.71], shape=[10, 10, 10], values_dtype_tf=dtype_tf)
+    # --- Input 5: All empty tensors ---
+    s1 = _serialize_sparse(np.empty((0,3), dtype=np.int64), [], [2,2,2], tf.int32)
+    s2 = _serialize_sparse(np.empty((0,3), dtype=np.int64), [], [3,1,4], tf.int32)
     input_dict = {
-        'name': '3d_float64_max_shape',
-        'serialized_sparse': np.stack([st1, st2]),
-        'dtype': dtype_np
+        'serialized_sparse': tf.stack([s1, s2]).numpy(),
+        'dtype': np.int32,
+        'name': 'all_empty'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Single empty sparse tensor, bool type
-    dtype_np, dtype_tf = np.bool_, tf.bool
-    st1 = _serialize_sparse(indices=[], values=[], shape=[5, 5], values_dtype_tf=dtype_tf)
+    # --- Input 6: Larger minibatch (N=4) ---
+    s1 = _serialize_sparse([[0]], [1], [10], tf.int32)
+    s2 = _serialize_sparse([[1]], [2], [5], tf.int32)
+    s3 = _serialize_sparse([[2]], [3], [12], tf.int32)
+    s4 = _serialize_sparse([[3]], [4], [8], tf.int32)
     input_dict = {
-        'name': 'single_empty_bool',
-        'serialized_sparse': np.expand_dims(st1, axis=0),
-        'dtype': dtype_np
+        'serialized_sparse': tf.stack([s1, s2, s3, s4]).numpy(),
+        'dtype': np.int32,
+        'name': 'large_minibatch_n4'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Tensors with negative integer values
-    dtype_np, dtype_tf = np.int32, tf.int32
-    st1 = _serialize_sparse(indices=[[0], [2]], values=[-10, -20], shape=[3], values_dtype_tf=dtype_tf)
-    st2 = _serialize_sparse(indices=[[1]], values=[-30], shape=[4], values_dtype_tf=dtype_tf)
+    # --- Input 7: Complex dtype (complex64) ---
+    indices1 = np.array([[0, 0], [1, 1]], dtype=np.int64)
+    values1 = [1+2j, 3+4j]
+    shape1 = [2, 2]
+    indices2 = np.array([[0, 1]], dtype=np.int64)
+    values2 = [5-6j]
+    shape2 = [1, 3]
+    s1 = _serialize_sparse(indices1, values1, shape1, tf.complex64)
+    s2 = _serialize_sparse(indices2, values2, shape2, tf.complex64)
     input_dict = {
-        'name': 'negative_int32_values',
-        'serialized_sparse': np.stack([st1, st2]),
-        'dtype': dtype_np
+        'serialized_sparse': tf.stack([s1, s2]).numpy(),
+        'dtype': np.complex64,
+        'name': 'complex64_values'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Larger minibatch (N=5), uint8 type
-    dtype_np, dtype_tf = np.uint8, tf.uint8
-    sts = []
-    for i in range(5):
-        sts.append(_serialize_sparse(indices=[[i, i]], values=[i], shape=[6, 6], values_dtype_tf=dtype_tf))
+    # --- Input 8: Minimal case (N=1) ---
+    indices1 = np.array([[10], [20]], dtype=np.int64)
+    values1 = [-100, -200]
+    shape1 = [100]
+    s1 = _serialize_sparse(indices1, values1, shape1, tf.int32)
     input_dict = {
-        'name': 'large_minibatch_uint8',
-        'serialized_sparse': np.stack(sts),
-        'dtype': dtype_np
+        'serialized_sparse': tf.reshape(s1, (1, 3)).numpy(),
+        'dtype': np.int32,
+        'name': 'minimal_minibatch_n1'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Shape expansion test, float16 type
-    dtype_np, dtype_tf = np.float16, tf.float16
-    st1 = _serialize_sparse(indices=[[0, 0]], values=[1.0], shape=[2, 2], values_dtype_tf=dtype_tf)
-    st2 = _serialize_sparse(indices=[[0, 0]], values=[2.0], shape=[1, 100], values_dtype_tf=dtype_tf)
+    # --- Input 9: Boolean dtype ---
+    indices1 = np.array([[0], [2]], dtype=np.int64)
+    values1 = [True, False]
+    shape1 = [5]
+    indices2 = np.array([[1]], dtype=np.int64)
+    values2 = [True]
+    shape2 = [3]
+    s1 = _serialize_sparse(indices1, values1, shape1, tf.bool)
+    s2 = _serialize_sparse(indices2, values2, shape2, tf.bool)
     input_dict = {
-        'name': 'shape_expansion_float16',
-        'serialized_sparse': np.stack([st1, st2]),
-        'dtype': dtype_np
+        'serialized_sparse': tf.stack([s1, s2]).numpy(),
+        'dtype': np.bool_,
+        'name': 'bool_values'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: String values
-    dtype_np, dtype_tf = np.object_, tf.string
-    st1 = _serialize_sparse(indices=[[0]], values=[b"hello"], shape=[5], values_dtype_tf=dtype_tf)
-    st2 = _serialize_sparse(indices=[[1], [3]], values=[b"world", b"!"], shape=[5], values_dtype_tf=dtype_tf)
+    # --- Input 10: String dtype ---
+    indices1 = np.array([[0], [1]], dtype=np.int64)
+    values1 = ["hello", "world"]
+    shape1 = [2]
+    indices2 = np.array([[0]], dtype=np.int64)
+    values2 = ["tensorflow"]
+    shape2 = [3]
+    s1 = _serialize_sparse(indices1, values1, shape1, tf.string)
+    s2 = _serialize_sparse(indices2, values2, shape2, tf.string)
     input_dict = {
-        'name': 'string_values',
-        'serialized_sparse': np.stack([st1, st2]),
-        'dtype': dtype_np
+        'serialized_sparse': tf.stack([s1, s2]).numpy(),
+        'dtype': np.string_,
+        'name': 'string_values'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 11: int16 tensors with mix of empty and non-empty
-    dtype_np, dtype_tf = np.int16, tf.int16
-    st1 = _serialize_sparse(indices=[[0, 1], [1, 0]], values=[10, 20], shape=[2, 2], values_dtype_tf=dtype_tf)
-    st2 = _serialize_sparse(indices=[[2, 2]], values=[30], shape=[3, 3], values_dtype_tf=dtype_tf)
-    st3 = _serialize_sparse(indices=[], values=[], shape=[1, 1], values_dtype_tf=dtype_tf)
+    # --- Input 11: uint8 dtype ---
+    indices1 = np.array([[1]], dtype=np.int64)
+    values1 = [255]
+    shape1 = [2]
+    indices2 = np.array([[0]], dtype=np.int64)
+    values2 = [128]
+    shape2 = [3]
+    s1 = _serialize_sparse(indices1, values1, shape1, tf.uint8)
+    s2 = _serialize_sparse(indices2, values2, shape2, tf.uint8)
     input_dict = {
-        'name': 'mixed_int16',
-        'serialized_sparse': np.stack([st1, st2, st3]),
-        'dtype': dtype_np
+        'serialized_sparse': tf.stack([s1, s2]).numpy(),
+        'dtype': np.uint8,
+        'name': 'uint8_values'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # --- Input 12: Complex128 dtype ---
+    indices1 = np.array([[0, 0, 0]], dtype=np.int64)
+    values1 = [1.123e10 + 2.456e-10j]
+    shape1 = [1, 1, 1]
+    s1 = _serialize_sparse(indices1, values1, shape1, tf.complex128)
+    s2 = _serialize_sparse(np.empty((0,3), dtype=np.int64), [], [2,2,2], tf.complex128)
+    input_dict = {
+        'serialized_sparse': tf.stack([s1, s2]).numpy(),
+        'dtype': np.complex128,
+        'name': 'complex128_values'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.DeserializeManySparse"] = tf_raw_ops_deserialize_many_sparse_inputs()
+generated_inputs["tf.raw_ops.DeserializeManySparse"] = tf_raw_ops_deserializemanysparse_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

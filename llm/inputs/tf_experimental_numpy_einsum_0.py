@@ -4,94 +4,79 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
 def tf_experimental_numpy_einsum_inputs():
     list_of_inputs = []
 
-    # Input 1: Transpose of a 2D matrix
+    # Input 1: Transpose a matrix
     input_dict = {
         'subscripts': 'ij->ji',
-        'operands': np.arange(6, dtype=np.float32).reshape(2, 3)
+        'operands': np.arange(6).reshape(2, 3).astype(np.float32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Sum over all axes to a scalar
+    # Input 2: Sum all elements of a tensor
     input_dict = {
-        'subscripts': 'ij->',
-        'operands': np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
+        'subscripts': '...->',
+        'operands': np.arange(24).reshape(2, 3, 4).astype(np.float64)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Sum over a single axis
-    input_dict = {
-        'subscripts': 'ijk->ik',
-        'operands': np.arange(-12, 12, dtype=np.float64).reshape(2, 3, 4)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Get diagonal of a square matrix
+    # Input 3: Get the diagonal of a matrix
     input_dict = {
         'subscripts': 'ii->i',
-        'operands': np.arange(25, dtype=np.int64).reshape(5, 5)
+        'operands': np.arange(9).reshape(3, 3).astype(np.int32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Trace of a square matrix (sum of diagonal)
+    # Input 4: Calculate the trace of a matrix
     input_dict = {
         'subscripts': 'ii->',
-        'operands': np.eye(4, dtype=np.int32)
+        'operands': np.array([[-1, 2, 3], [4, -5, 6], [7, 8, -9]], dtype=np.int32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Permute axes of a 3D tensor
+    # Input 5: Sum along a specific axis
+    input_dict = {
+        'subscripts': 'ijk->ik',
+        'operands': np.arange(60).reshape(3, 4, 5).astype(np.float32)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Permute tensor dimensions
     input_dict = {
         'subscripts': 'ijk->kji',
         'operands': np.random.rand(2, 3, 4).astype(np.float32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Sum over one axis using ellipsis
+    # Input 7: Identity operation
     input_dict = {
-        'subscripts': '...k->...',
-        'operands': np.ones((5, 2, 3), dtype=np.float16)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Sum all elements of a tensor using ellipsis
-    input_dict = {
-        'subscripts': '...->',
-        'operands': np.arange(24).reshape(2, 3, 4)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Identity operation on a 4D tensor
-    input_dict = {
-        'subscripts': 'abcd->abcd',
-        'operands': np.random.uniform(size=(1, 2, 2, 1)).astype(np.float32)
+        'subscripts': 'abc->abc',
+        'operands': np.random.rand(5, 1, 3).astype(np.float32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 10: Sum over two axes of a 4D tensor
+    # Input 8: Create a diagonal matrix from a vector
     input_dict = {
-        'subscripts': 'abcd->ad',
-        'operands': np.arange(24, dtype=np.int32).reshape(1, 2, 3, 4)
+        'subscripts': 'i->ii',
+        'operands': np.arange(5).astype(np.int64)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 11: Identity operation using ellipsis
+    # Input 9: Sum along the first axis
     input_dict = {
-        'subscripts': '...->...',
-        'operands': np.arange(1, dtype=np.int32).reshape(1, 1, 1, 1, 1)
+        'subscripts': 'i...->...',
+        'operands': np.arange(12).reshape(3, 2, 2).astype(np.float32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12: Permute last two axes using ellipsis
+
+    # Input 10: Sum along the last axis
     input_dict = {
-        'subscripts': '...ij->...ji',
-        'operands': np.arange(24).reshape(2, 3, 4)
+        'subscripts': '...i->...',
+        'operands': np.arange(12).reshape(2, 2, 3).astype(np.float32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

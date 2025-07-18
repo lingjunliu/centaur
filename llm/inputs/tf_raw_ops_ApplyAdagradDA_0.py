@@ -4,98 +4,101 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_apply_adagrad_da_inputs():
+def get_apply_adagrad_da_inputs():
     """
-    Generates a list of valid inputs for tf.raw_ops.ApplyAdagradDA.
-    The mutable inputs ('var', 'gradient_accumulator', 'gradient_squared_accumulator')
-    are correctly defined as tf.Variable objects to prevent the eager execution error.
-    Other tensor inputs are tf.constant. This is the only way to satisfy the API's
-    requirement for mutable reference inputs.
+    Generates a list of valid inputs for the tf.raw_ops.ApplyAdagradDA function.
+    The inputs are provided in numpy format to be compatible with the testing harness
+    which expects numpy-like objects (e.g., with a .size attribute).
     """
     list_of_inputs = []
 
-    # --- Case 1: Basic float32, 1D ---
-    input_dict_1 = {
-        'var': tf.Variable([1.0, 2.0, 3.0], dtype=tf.float32),
-        'gradient_accumulator': tf.Variable([0.1, 0.1, 0.1], dtype=tf.float32),
-        'gradient_squared_accumulator': tf.Variable([0.01, 0.01, 0.01], dtype=tf.float32),
-        'grad': tf.constant([0.5, -0.5, 0.2], dtype=tf.float32),
-        'lr': tf.constant(0.001, dtype=tf.float32),
-        'l1': tf.constant(1.0, dtype=tf.float32),
-        'l2': tf.constant(0.5, dtype=tf.float32),
-        'global_step': tf.constant(100, dtype=tf.int64),
-        'use_locking': False,
-        'name': 'test_float32'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    def create_input_dict(var_dtype, var_shape, use_locking, name):
+        # Helper to create numpy arrays, handles scalar case correctly.
+        def create_np_array(shape, scale=1.0, offset=0.0):
+             if not shape:
+                 return np.array(np.random.rand() * scale + offset)
+             return (np.random.rand(*shape) * scale + offset)
 
-    # --- Case 2: float64, 2D, use_locking=True ---
-    input_dict_2 = {
-        'var': tf.Variable([[1.0, 2.0], [3.0, 4.0]], dtype=tf.float64),
-        'gradient_accumulator': tf.Variable([[0.1, 0.2], [0.3, 0.4]], dtype=tf.float64),
-        'gradient_squared_accumulator': tf.Variable([[0.01, 0.02], [0.03, 0.04]], dtype=tf.float64),
-        'grad': tf.constant([[-0.1, 0.2], [0.3, -0.4]], dtype=tf.float64),
-        'lr': tf.constant(0.01, dtype=tf.float64),
-        'l1': tf.constant(0.0, dtype=tf.float64),
-        'l2': tf.constant(0.1, dtype=tf.float64),
-        'global_step': tf.constant(1, dtype=tf.int64),
-        'use_locking': True,
-        'name': 'test_float64_locking'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+        var = create_np_array(var_shape, 10, -5).astype(var_dtype)
+        gradient_accumulator = create_np_array(var_shape).astype(var_dtype)
+        gradient_squared_accumulator = np.abs(create_np_array(var_shape)).astype(var_dtype)
+        grad = create_np_array(var_shape, 2, -1).astype(var_dtype)
 
-    # --- Case 3: half (float16), 3D ---
-    input_dict_3 = {
-        'var': tf.Variable(np.random.randn(2, 2, 2).astype(np.float16)),
-        'gradient_accumulator': tf.Variable(np.zeros((2, 2, 2), dtype=np.float16)),
-        'gradient_squared_accumulator': tf.Variable(np.ones((2, 2, 2), dtype=np.float16)),
-        'grad': tf.constant(np.random.randn(2, 2, 2).astype(np.float16)),
-        'lr': tf.constant(0.005, dtype=tf.float16),
-        'l1': tf.constant(0.2, dtype=tf.float16),
-        'l2': tf.constant(0.3, dtype=tf.float16),
-        'global_step': tf.constant(5000, dtype=tf.int64),
-        'use_locking': False,
-        'name': 'test_float16_3d'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+        if np.iscomplexobj(var):
+            var += (create_np_array(var_shape, 10, -5) * 1j).astype(var_dtype)
+            gradient_accumulator += (create_np_array(var_shape) * 1j).astype(var_dtype)
+            gradient_squared_accumulator = gradient_squared_accumulator.astype(var_dtype)
+            grad += (create_np_array(var_shape, 2, -1) * 1j).astype(var_dtype)
 
-    # --- Case 4: Scalar variables (shape=()) ---
-    input_dict_4 = {
-        'var': tf.Variable(1.5, dtype=tf.float32),
-        'gradient_accumulator': tf.Variable(0.0, dtype=tf.float32),
-        'gradient_squared_accumulator': tf.Variable(1.0, dtype=tf.float32),
-        'grad': tf.constant(-0.5, dtype=tf.float32),
-        'lr': tf.constant(0.01, dtype=tf.float32),
-        'l1': tf.constant(0.1, dtype=tf.float32),
-        'l2': tf.constant(0.2, dtype=tf.float32),
-        'global_step': tf.constant(1000, dtype=tf.int64),
-        'use_locking': False,
-        'name': 'test_scalar'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+        lr = np.array(0.01, dtype=var_dtype)
+        l1 = np.array(0.1, dtype=var_dtype)
+        l2 = np.array(0.2, dtype=var_dtype)
+        if np.iscomplexobj(lr):
+            lr, l1, l2 = lr + 0j, l1 + 0j, l2 + 0j
 
-    # --- Case 5: Zero-valued inputs ---
-    input_dict_5 = {
-        'var': tf.Variable([0.0, 0.0], dtype=tf.float32),
-        'gradient_accumulator': tf.Variable([0.0, 0.0], dtype=tf.float32),
-        'gradient_squared_accumulator': tf.Variable([0.0, 0.0], dtype=tf.float32),
-        'grad': tf.constant([0.0, 0.0], dtype=tf.float32),
-        'lr': tf.constant(0.0, dtype=tf.float32),
-        'l1': tf.constant(0.0, dtype=tf.float32),
-        'l2': tf.constant(0.0, dtype=tf.float32),
-        'global_step': tf.constant(0, dtype=tf.int64),
-        'use_locking': False,
-        'name': 'test_zeros'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+        global_step = np.array(np.random.randint(1, 1000), dtype=np.int64)
 
-    return list_of_inputs
+        return {
+            'var': var,
+            'gradient_accumulator': gradient_accumulator,
+            'gradient_squared_accumulator': gradient_squared_accumulator,
+            'grad': grad,
+            'lr': lr,
+            'l1': l1,
+            'l2': l2,
+            'global_step': global_step,
+            'use_locking': use_locking,
+            'name': name
+        }
 
-generated_inputs["tf.raw_ops.ApplyAdagradDA"] = tf_raw_ops_apply_adagrad_da_inputs()
+    # Input 1: Basic float32, 1D
+    list_of_inputs.append(create_input_dict(np.float32, (10,), False, 'test1_float32_1d'))
+
+    # Input 2: float64, 2D with locking
+    list_of_inputs.append(create_input_dict(np.float64, (3, 3), True, 'test2_float64_2d'))
+
+    # Input 3: half (float16), 3D
+    list_of_inputs.append(create_input_dict(np.float16, (2, 3, 4), False, 'test3_float16_3d'))
+
+    # Input 4: Scalar variable
+    list_of_inputs.append(create_input_dict(np.float32, (), False, 'test4_scalar'))
+
+    # Input 5: Zero-valued gradients and accumulators
+    input_5 = create_input_dict(np.float32, (4,), False, 'test5_zeros')
+    input_5['gradient_accumulator'].fill(0)
+    input_5['gradient_squared_accumulator'].fill(0)
+    input_5['grad'].fill(0)
+    list_of_inputs.append(input_5)
+
+    # Input 6: Negative values in var and grad
+    input_6 = create_input_dict(np.float64, (2, 5), True, 'test6_negatives')
+    input_6['var'] = -np.abs(input_6['var'])
+    input_6['grad'] = -np.abs(input_6['grad'])
+    list_of_inputs.append(input_6)
+
+    # Input 7: High L1/L2 regularization
+    input_7 = create_input_dict(np.float32, (8,), False, 'test7_high_reg')
+    input_7['l1'] = np.array(100.0, dtype=np.float32)
+    input_7['l2'] = np.array(100.0, dtype=np.float32)
+    list_of_inputs.append(input_7)
+
+    # Input 8: Large global step
+    input_8 = create_input_dict(np.float64, (6,), True, 'test8_large_step')
+    input_8['global_step'] = np.array(999999999, dtype=np.int64)
+    list_of_inputs.append(input_8)
+
+    # Input 9: complex64 type
+    list_of_inputs.append(create_input_dict(np.complex64, (2, 2), False, 'test9_complex64'))
+
+    # Input 10: complex128 type
+    list_of_inputs.append(create_input_dict(np.complex128, (4,), True, 'test10_complex128'))
+
+    return [copy.deepcopy(i) for i in list_of_inputs]
+
+generated_inputs["tf.raw_ops.ApplyAdagradDA"] = get_apply_adagrad_da_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

@@ -10,125 +10,163 @@ import copy
 def tf_io_decode_csv_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case, all required fields
-    input_dict_1 = {
-        'records': np.array(['1,2.0,hello', '4,5.1,world'], dtype=object),
-        'record_defaults': [np.array([], dtype=np.int32), np.array([], dtype=np.float32), np.array([], dtype=np.string_)],
+    # Input 1: Basic usage with mixed numeric types
+    input_dict = {
+        'records': np.array(['1,2.0,100', '4,5.1,200'], dtype=object),
+        'record_defaults': np.array([
+            np.array(0, dtype=np.int32),
+            np.array(0.0, dtype=np.float32),
+            np.array(0, dtype=np.int64)
+        ], dtype=object),
         'field_delim': ',',
         'use_quote_delim': True,
         'na_value': '',
         'select_cols': None,
-        'name': 'basic'
+        'name': None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: With default values for missing fields
-    input_dict_2 = {
-        'records': np.array(['1,,hello', '4,5.1,'], dtype=object),
-        'record_defaults': [np.array(0, dtype=np.int32), np.array(0.0, dtype=np.float32), np.array('NA', dtype=np.string_)],
+    # Input 2: Different delimiter and all int64
+    input_dict = {
+        'records': np.array(['-10;20;30', '40;50;60'], dtype=object),
+        'record_defaults': np.array([
+            np.array(0, dtype=np.int64),
+            np.array(0, dtype=np.int64),
+            np.array(0, dtype=np.int64)
+        ], dtype=object),
+        'field_delim': ';',
+        'use_quote_delim': True,
+        'na_value': '',
+        'select_cols': None,
+        'name': 'test_delim'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Handling missing values with mixed numeric types
+    input_dict = {
+        'records': np.array(['1,,10', ',5.1,', '7,8.2,30'], dtype=object),
+        'record_defaults': np.array([
+            np.array(-1, dtype=np.int32),
+            np.array(-1.0, dtype=np.float64),
+            np.array(-1, dtype=np.int64)
+        ], dtype=object),
         'field_delim': ',',
         'use_quote_delim': True,
         'na_value': '',
         'select_cols': None,
-        'name': 'with_defaults'
+        'name': None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Different delimiter
-    input_dict_3 = {
-        'records': np.array(['1|2.0|hello', '4|5.1|world'], dtype=object),
-        'record_defaults': [np.array([], dtype=np.int32), np.array([], dtype=np.float32), np.array([], dtype=np.string_)],
-        'field_delim': '|',
+    # Input 4: Using `na_value`, all numeric
+    input_dict = {
+        'records': np.array(['1,NA,3', 'NA,5.1,4'], dtype=object),
+        'record_defaults': np.array([
+            np.array(0, dtype=np.int32),
+            np.array(0.0, dtype=np.float32),
+            np.array(0, dtype=np.int32)
+        ], dtype=object),
+        'field_delim': ',',
+        'use_quote_delim': True,
+        'na_value': 'NA',
+        'select_cols': None,
+        'name': None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Using `select_cols` with all numeric types
+    input_dict = {
+        'records': np.array(['1,2.0,3,4.0', '5,6.0,7,8.0'], dtype=object),
+        'record_defaults': np.array([
+            np.array(0, dtype=np.int32),
+            np.array(0, dtype=np.int64)
+        ], dtype=object),
+        'field_delim': ',',
         'use_quote_delim': True,
         'na_value': '',
-        'select_cols': None,
-        'name': 'different_delim'
+        'select_cols': np.array([0, 2], dtype=np.int32),
+        'name': 'select_cols_test'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Handling quoted fields containing delimiters
-    input_dict_4 = {
-        'records': np.array(['1,"a,b",3.0', '2,"c,d",4.0'], dtype=object),
-        'record_defaults': [np.array([], dtype=np.int32), np.array([], dtype=np.string_), np.array([], dtype=np.float32)],
+    # Input 6: All string types
+    input_dict = {
+        'records': np.array(['"a,b",c,d', 'e,"f,g",h'], dtype=object),
+        'record_defaults': np.array([
+            np.array('', dtype=object),
+            np.array('', dtype=object),
+            np.array('', dtype=object)
+        ], dtype=object),
         'field_delim': ',',
         'use_quote_delim': True,
         'na_value': '',
         'select_cols': None,
-        'name': 'quoted_fields'
+        'name': 'all_string'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Custom NA value
-    input_dict_5 = {
-        'records': np.array(['1,N/A,hello', '4,5.1,world'], dtype=object),
-        'record_defaults': [np.array(0, dtype=np.int32), np.array(0.0, dtype=np.float32), np.array('default', dtype=np.string_)],
-        'field_delim': ',',
-        'use_quote_delim': True,
-        'na_value': 'N/A',
-        'select_cols': None,
-        'name': 'custom_na'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
-
-    # Input 6: Empty records tensor
-    input_dict_6 = {
-        'records': np.array([], dtype=object),
-        'record_defaults': [np.array([], dtype=np.int64), np.array([], dtype=np.float64)],
-        'field_delim': ',',
-        'use_quote_delim': True,
-        'na_value': '',
-        'select_cols': None,
-        'name': 'empty_records'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
-    
-    # Input 7: use_quote_delim=False
-    input_dict_7 = {
-        'records': np.array(['1,"a,b",3.0'], dtype=object),
-        'record_defaults': [np.array(0, dtype=np.int32), np.array('', dtype=np.string_), np.array('', dtype=np.string_), np.array('', dtype=np.string_), np.array(0.0, dtype=np.float32)],
+    # Input 7: `use_quote_delim` is False with all strings
+    input_dict = {
+        'records': np.array(['a,"b",c'], dtype=object),
+        'record_defaults': np.array([
+            np.array('', dtype=object),
+            np.array('', dtype=object),
+            np.array('', dtype=object)
+        ], dtype=object),
         'field_delim': ',',
         'use_quote_delim': False,
         'na_value': '',
         'select_cols': None,
-        'name': 'no_quote_delim'
+        'name': None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Leading/trailing spaces in numeric fields
-    input_dict_8 = {
-        'records': np.array([' 1  ,  2.5  ', '-10 , -3.14'], dtype=object),
-        'record_defaults': [np.array([], dtype=np.int32), np.array([], dtype=np.float64)],
+    # Input 8: Required fields (empty default tensors), all numeric
+    input_dict = {
+        'records': np.array(['1.1,2,3.3', '4.4,5,6.6'], dtype=object),
+        'record_defaults': np.array([
+            np.array([], dtype=np.float32),
+            np.array([], dtype=np.int32),
+            np.array([], dtype=np.float64)
+        ], dtype=object),
         'field_delim': ',',
         'use_quote_delim': True,
         'na_value': '',
         'select_cols': None,
-        'name': 'with_spaces'
+        'name': None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Using select_cols
-    input_dict_9 = {
-        'records': np.array(['a,1,1.0,x', 'b,2,2.0,y'], dtype=object),
-        'record_defaults': [np.array('', dtype=np.string_), np.array(0.0, dtype=np.float32)],
-        'field_delim': ',',
-        'use_quote_delim': True,
-        'na_value': '',
-        'select_cols': [0, 2],
-        'name': 'select_cols'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
-    
-    # Input 10: Single column
-    input_dict_10 = {
-        'records': np.array(['-1.1', '2.2', '3.3'], dtype=object),
-        'record_defaults': [np.array(0.0, dtype=np.float32)],
+    # Input 9: Mix of required and default value fields, all numeric
+    input_dict = {
+        'records': np.array(['1,2.0,', '4,,6'], dtype=object),
+        'record_defaults': np.array([
+            np.array([], dtype=np.int32),
+            np.array(-1.0, dtype=np.float64),
+            np.array(99, dtype=np.int64)
+        ], dtype=object),
         'field_delim': ',',
         'use_quote_delim': True,
         'na_value': '',
         'select_cols': None,
-        'name': 'single_column'
+        'name': 'mixed_defaults_numeric'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: All float types with special values and a different delimiter
+    input_dict = {
+        'records': np.array(['1.2e3| -4.5e-2', 'INF| -INF', 'NaN| 0.0'], dtype=object),
+        'record_defaults': np.array([
+            np.array(0.0, dtype=np.float32),
+            np.array(0.0, dtype=np.float64)
+        ], dtype=object),
+        'field_delim': '|',
+        'use_quote_delim': True,
+        'na_value': 'NaN',
+        'select_cols': None,
+        'name': 'float_test'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

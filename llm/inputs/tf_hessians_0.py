@@ -4,168 +4,95 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
-tf.compat.v1.disable_eager_execution()
-# This enables numpy-compatible attributes (.size, .shape) on symbolic Tensors,
-# which is required to pass the test harness validation while still allowing
-# for the construction of a computational graph necessary for tf.hessians.
-tf.experimental.numpy.experimental_enable_numpy_behavior()
-
-def tf_hessians_inputs():
+def get_tf_hessians_inputs():
+    """
+    Generates a list of syntactically valid inputs for the tf.hessians function.
+    NOTE: tf.hessians is a TF1 compatibility API and is expected to raise a
+    RuntimeError if called in eager mode (default in TF2). These inputs are
+    correct for the API signature, assuming a TF1 graph context.
+    The 'ys' and 'xs' parameters accept a single tensor as well as a list,
+    so a single numpy array is provided.
+    """
     list_of_inputs = []
 
-    # Input 1: Basic scalar input
-    g1 = tf.Graph()
-    with g1.as_default():
-        xs1 = [tf.constant(3.0, dtype=tf.float32)]
-        ys1 = [xs1[0]**2]
-    input_dict_1 = {
-        'ys': ys1,
-        'xs': xs1,
+    # Input 1: Basic case with a 1D float32 tensor for xs.
+    list_of_inputs.append({
+        'ys': np.array(0.0, dtype=np.float32),
+        'xs': np.array([1.0, 2.0, 3.0], dtype=np.float32),
         'gate_gradients': False,
         'aggregation_method': None,
-        'name': 'hessian_symbolic_scalar'
-    }
-    list_of_inputs.append(input_dict_1)
+        'name': 'hessians_1d'
+    })
 
-    # Input 2: Vector input
-    g2 = tf.Graph()
-    with g2.as_default():
-        xs2 = [tf.constant([1.0, 2.0], dtype=tf.float32)]
-        ys2 = [tf.reduce_sum(xs2[0]**3)]
-    input_dict_2 = {
-        'ys': ys2,
-        'xs': xs2,
-        'gate_gradients': True,
-        'aggregation_method': None,
-        'name': 'hessian_symbolic_vector'
-    }
-    list_of_inputs.append(input_dict_2)
-
-    # Input 3: Matrix input, float64, with negative values
-    g3 = tf.Graph()
-    with g3.as_default():
-        xs3 = [tf.constant([[-1.0, 2.0], [3.0, -4.0]], dtype=tf.float64)]
-        ys3 = [tf.reduce_sum(xs3[0]**2)]
-    input_dict_3 = {
-        'ys': ys3,
-        'xs': xs3,
+    # Input 2: With a 2D tensor for xs.
+    list_of_inputs.append({
+        'ys': np.array(0.0, dtype=np.float32),
+        'xs': np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32),
         'gate_gradients': False,
         'aggregation_method': None,
-        'name': 'hessian_symbolic_matrix_f64'
-    }
-    list_of_inputs.append(input_dict_3)
+        'name': 'hessians_2d'
+    })
 
-    # Input 4: Multiple tensors in xs
-    g4 = tf.Graph()
-    with g4.as_default():
-        x4_1 = tf.constant(2.0, dtype=tf.float32)
-        x4_2 = tf.constant([1.0, 2.0, 3.0], dtype=tf.float32)
-        xs4 = [x4_1, x4_2]
-        ys4 = [x4_1**2 + tf.reduce_sum(x4_2**2)]
-    input_dict_4 = {
-        'ys': ys4,
-        'xs': xs4,
+    # Input 3: Scalar input for xs.
+    list_of_inputs.append({
+        'ys': np.array(0.0, dtype=np.float32),
+        'xs': np.array(5.0, dtype=np.float32),
         'gate_gradients': False,
         'aggregation_method': None,
-        'name': 'hessian_multi_xs'
-    }
-    list_of_inputs.append(input_dict_4)
+        'name': 'hessians_scalar_xs'
+    })
 
-    # Input 5: Multiple tensors in ys (will be summed)
-    g5 = tf.Graph()
-    with g5.as_default():
-        xs5 = [tf.constant([1.0, 2.0], dtype=tf.float32)]
-        y5_1 = tf.reduce_sum(xs5[0]**2)
-        y5_2 = tf.reduce_sum(xs5[0]**3)
-        ys5 = [y5_1, y5_2]
-    input_dict_5 = {
-        'ys': ys5,
-        'xs': xs5,
+    # Input 4: With ys as a vector. The Hessian is of sum(ys), which is scalar.
+    list_of_inputs.append({
+        'ys': np.array([1.0, 2.0], dtype=np.float32),
+        'xs': np.array([3.0, 4.0], dtype=np.float32),
         'gate_gradients': False,
         'aggregation_method': None,
-        'name': 'hessian_multi_ys'
-    }
-    list_of_inputs.append(input_dict_5)
+        'name': 'hessians_vector_ys'
+    })
 
-    # Input 6: Higher-dimensional tensor (3D)
-    g6 = tf.Graph()
-    with g6.as_default():
-        xs6 = [tf.constant(np.arange(8, dtype=np.float32).reshape((2, 2, 2)))]
-        ys6 = [tf.reduce_sum(xs6[0]**4)]
-    input_dict_6 = {
-        'ys': ys6,
-        'xs': xs6,
+    # Input 5: Edge case with an empty tensor for xs. This should return an empty list.
+    list_of_inputs.append({
+        'ys': np.array(0.0, dtype=np.float32),
+        'xs': np.array([], dtype=np.float32),
         'gate_gradients': False,
         'aggregation_method': None,
-        'name': 'hessian_symbolic_3d'
-    }
-    list_of_inputs.append(input_dict_6)
+        'name': 'hessians_empty_xs'
+    })
 
-    # Input 7: Using tf.Variable
-    g7 = tf.Graph()
-    with g7.as_default():
-        xs7 = [tf.Variable([1.0, 2.0, 3.0], dtype=tf.float32)]
-        ys7 = [tf.reduce_sum(xs7[0]**2)]
-    input_dict_7 = {
-        'ys': ys7,
-        'xs': xs7,
+    # Input 6: Edge case with an empty tensor for ys. sum(ys) is 0.
+    list_of_inputs.append({
+        'ys': np.array([], dtype=np.float32),
+        'xs': np.array([1.0, 2.0], dtype=np.float32),
         'gate_gradients': False,
         'aggregation_method': None,
-        'name': 'hessian_variable'
-    }
-    list_of_inputs.append(input_dict_7)
-
-    # Input 8: Empty tensor for xs
-    g8 = tf.Graph()
-    with g8.as_default():
-        xs8 = [tf.constant(np.zeros((0,2)), dtype=tf.float32)]
-        ys8 = [tf.reduce_sum(xs8[0]**2)]
-    input_dict_8 = {
-        'ys': ys8,
-        'xs': xs8,
+        'name': 'hessians_empty_ys'
+    })
+    
+    # Input 7: Using float64 dtype.
+    list_of_inputs.append({
+        'ys': np.array(0.0, dtype=np.float64),
+        'xs': np.array([-1.0, 0.0], dtype=np.float64),
         'gate_gradients': False,
         'aggregation_method': None,
-        'name': 'hessian_empty_input'
-    }
-    list_of_inputs.append(input_dict_8)
-
-    # Input 9: More complex function
-    g9 = tf.Graph()
-    with g9.as_default():
-        xs9 = [tf.constant([0.5, 1.5], dtype=tf.float64)]
-        ys9 = [tf.exp(tf.reduce_sum(tf.math.sin(xs9[0])))]
-    input_dict_9 = {
-        'ys': ys9,
-        'xs': xs9,
-        'gate_gradients': True,
-        'aggregation_method': None,
-        'name': 'hessian_complex_func'
-    }
-    list_of_inputs.append(input_dict_9)
-
-    # Input 10: Mixed precision in xs (requires casting for ops)
-    g10 = tf.Graph()
-    with g10.as_default():
-        x10_1 = tf.constant(1.0, dtype=tf.float32)
-        x10_2 = tf.constant([2.0, 3.0], dtype=tf.float64)
-        xs10 = [x10_1, x10_2]
-        ys10 = [tf.cast(x10_1, tf.float64)**2 + tf.reduce_sum(x10_2**2)]
-    input_dict_10 = {
-        'ys': ys10,
-        'xs': xs10,
+        'name': 'hessians_float64'
+    })
+    
+    # Input 8: Both ys and xs are scalars.
+    list_of_inputs.append({
+        'ys': np.array(10.0, dtype=np.float32),
+        'xs': np.array(-5.0, dtype=np.float32),
         'gate_gradients': False,
         'aggregation_method': None,
-        'name': 'hessian_mixed_precision'
-    }
-    list_of_inputs.append(input_dict_10)
+        'name': 'hessians_scalar_both'
+    })
 
     return list_of_inputs
 
-generated_inputs["tf.hessians"] = tf_hessians_inputs()
+generated_inputs["tf.hessians"] = get_tf_hessians_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

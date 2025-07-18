@@ -4,73 +4,64 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_QueueIsClosed_inputs():
+def generate_inputs_for_tf_raw_ops_QueueIsClosed():
     list_of_inputs = []
 
-    # Input 1
-    handle = tf.constant("test_queue")
-    input_dict = {"handle": handle, "name": "queue_closed_1"}
+    # This raw op is a legacy TF1 operation not compatible with eager execution.
+    # It expects a 'ref' handle, which cannot be created from numpy in eager mode.
+    # The following inputs are syntactically correct but will cause the
+    # documented runtime error in an eager context.
+
+    # Input 1: A scalar numpy array for the handle.
+    input_dict = {
+        'handle': np.array("queue_handle_1", dtype=np.object_),
+        'name': "QueueIsClosed_Test1"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    handle = tf.constant("another_queue")
-    input_dict = {"handle": handle, "name": None}
+    # Input 2: A 1-element, 1-D numpy array for the handle.
+    input_dict = {
+        'handle': np.array(["queue_handle_2"], dtype=np.object_),
+        'name': "QueueIsClosed_Test2"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    handle = tf.constant("queue_three")
-    input_dict = {"handle": handle, "name": "queue_closed_3"}
+    # Input 3: Using a different name for the handle and operation.
+    input_dict = {
+        'handle': np.array("my_fifo_queue", dtype=np.object_),
+        'name': "check_fifo_queue_closed"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Using a byte string for the handle content, wrapped in a scalar array.
+    input_dict = {
+        'handle': np.array(b"byte_string_handle", dtype=np.object_),
+        'name': "QueueIsClosed_Bytes_Test"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 4
-    handle = tf.constant("")
-    input_dict = {"handle": handle, "name": "empty_queue"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    handle = tf.constant("some_queue")
-    input_dict = {"handle": handle, "name": "named_queue"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    handle = tf.constant("yet_another_queue")
-    input_dict = {"handle": handle, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7
-    handle = tf.constant("queue_seven")
-    input_dict = {"handle": handle, "name": "queue_closed_7"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    handle = tf.constant("8th_queue")
-    input_dict = {"handle": handle, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    handle = tf.constant("ninth_queue")
-    input_dict = {"handle": handle, "name": "queue_closed_9"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    handle = tf.constant("tenth_queue")
-    input_dict = {"handle": handle, "name": None}
+    # Input 5: Optional name is None
+    input_dict = {
+        'handle': np.array("queue_handle_5", dtype=np.object_),
+        'name': None
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = {}
-generated_inputs["tf.raw_ops.QueueIsClosed"] = tf_raw_ops_QueueIsClosed_inputs()
+generated_inputs["tf.raw_ops.QueueIsClosed"] = generate_inputs_for_tf_raw_ops_QueueIsClosed()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.QueueIsClosed' not in generated_inputs:

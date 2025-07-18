@@ -4,296 +4,154 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
+import tensorflow as tf
 
 def tf_raw_ops_QuantizedConv2D_inputs():
     list_of_inputs = []
 
-    # Input 1
-    input1 = np.array([[[[1], [2]], [[3], [4]]]], dtype=np.int8)
-    filter1 = np.array([[[[1]], [[2]]]], dtype=np.int8)
-    min_input1 = np.array([0.0], dtype=np.float32)
-    max_input1 = np.array([5.0], dtype=np.float32)
-    min_filter1 = np.array([0.0], dtype=np.float32)
-    max_filter1 = np.array([3.0], dtype=np.float32)
-    strides1 = [1, 1, 1, 1]
-    padding1 = "VALID"
-    out_type1 = tf.qint32
-    dilations1 = [1, 1, 1, 1]
-    name1 = "conv1"
+    # Helper to create a single valid input dictionary
+    def _create_input_dict(input_shape, filter_shape, input_tf_dtype, filter_tf_dtype,
+                           strides, padding, out_tf_dtype, dilations, name=""):
+        
+        # Generate random float data to be quantized.
+        input_float = (np.random.rand(*input_shape) * 255.0 - 128.0).astype(np.float32)
+        filter_float = (np.random.rand(*filter_shape) * 10.0 - 5.0).astype(np.float32)
 
-    input_dict1 = {
-        "input": tf.constant(input1, dtype=tf.qint8),
-        "filter": tf.constant(filter1, dtype=tf.qint8),
-        "min_input": tf.constant(min_input1, dtype=tf.float32),
-        "max_input": tf.constant(max_input1, dtype=tf.float32),
-        "min_filter": tf.constant(min_filter1, dtype=tf.float32),
-        "max_filter": tf.constant(max_filter1, dtype=tf.float32),
-        "strides": strides1,
-        "padding": padding1,
-        "out_type": out_type1,
-        "dilations": dilations1,
-        "name": name1,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+        min_range_input = np.min(input_float)
+        max_range_input = np.max(input_float)
+        min_range_filter = np.min(filter_float)
+        max_range_filter = np.max(filter_float)
+        
+        # tf.quantization.quantize produces Tensors with the special qint/quint dtypes.
+        # These TensorFlow Tensor objects must be passed directly to the op to avoid
+        # the InvalidArgumentError, as converting them to numpy arrays strips the
+        # necessary quantized type information.
+        quantized_input, min_input_val, max_input_val = tf.quantization.quantize(
+            input_float, min_range_input, max_range_input, T=input_tf_dtype, narrow_range=input_tf_dtype.is_signed)
+        
+        quantized_filter, min_filter_val, max_filter_val = tf.quantization.quantize(
+            filter_float, min_range_filter, max_range_filter, T=filter_tf_dtype, narrow_range=filter_tf_dtype.is_signed)
 
-    # Input 2
-    input2 = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]], dtype=np.uint8)
-    filter2 = np.array([[[[1, 2]], [[3, 4]]]], dtype=np.uint8)
-    min_input2 = np.array([0.0], dtype=np.float32)
-    max_input2 = np.array([255.0], dtype=np.float32)
-    min_filter2 = np.array([0.0], dtype=np.float32)
-    max_filter2 = np.array([255.0], dtype=np.float32)
-    strides2 = [1, 1, 1, 1]
-    padding2 = "SAME"
-    out_type2 = tf.qint32
-    dilations2 = [1, 1, 1, 1]
-    name2 = "conv2"
+        # The min/max values are returned as rank-0 tensors (scalars).
+        # We convert them to numpy arrays to conform to the 'tensor' type in the signature.
+        return {
+            'input': quantized_input,
+            'filter': quantized_filter,
+            'min_input': np.array(min_input_val.numpy(), dtype=np.float32),
+            'max_input': np.array(max_input_val.numpy(), dtype=np.float32),
+            'min_filter': np.array(min_filter_val.numpy(), dtype=np.float32),
+            'max_filter': np.array(max_filter_val.numpy(), dtype=np.float32),
+            'strides': strides,
+            'padding': padding,
+            'out_type': out_tf_dtype,
+            'dilations': dilations,
+            'name': name
+        }
 
-    input_dict2 = {
-        "input": tf.constant(input2, dtype=tf.quint8),
-        "filter": tf.constant(filter2, dtype=tf.quint8),
-        "min_input": tf.constant(min_input2, dtype=tf.float32),
-        "max_input": tf.constant(max_input2, dtype=tf.float32),
-        "min_filter": tf.constant(min_filter2, dtype=tf.float32),
-        "max_filter": tf.constant(max_filter2, dtype=tf.float32),
-        "strides": strides2,
-        "padding": padding2,
-        "out_type": out_type2,
-        "dilations": dilations2,
-        "name": name2,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Input 1: Basic qint8, VALID padding
+    list_of_inputs.append(copy.deepcopy(
+        _create_input_dict(
+            input_shape=(1, 3, 3, 1), filter_shape=(2, 2, 1, 1),
+            input_tf_dtype=tf.qint8, filter_tf_dtype=tf.qint8,
+            strides=[1, 1, 1, 1], padding="VALID",
+            out_tf_dtype=tf.qint32, dilations=[1, 1, 1, 1], name="basic_qint8"
+        )
+    ))
 
-    # Input 3
-    input3 = np.array([[[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]], dtype=np.int8)
-    filter3 = np.array([[[[1, 2, 3]], [[4, 5, 6]]]], dtype=np.int8)
-    min_input3 = np.array([-128.0], dtype=np.float32)
-    max_input3 = np.array([127.0], dtype=np.float32)
-    min_filter3 = np.array([-128.0], dtype=np.float32)
-    max_filter3 = np.array([127.0], dtype=np.float32)
-    strides3 = [1, 1, 1, 1]
-    padding3 = "VALID"
-    out_type3 = tf.qint32
-    dilations3 = [1, 1, 1, 1]
-    name3 = "conv3"
+    # Input 2: quint8 with "SAME" padding
+    list_of_inputs.append(copy.deepcopy(
+        _create_input_dict(
+            input_shape=(1, 4, 4, 2), filter_shape=(3, 3, 2, 4),
+            input_tf_dtype=tf.quint8, filter_tf_dtype=tf.quint8,
+            strides=[1, 1, 1, 1], padding="SAME",
+            out_tf_dtype=tf.qint32, dilations=[1, 1, 1, 1], name="basic_quint8"
+        )
+    ))
 
-    input_dict3 = {
-        "input": tf.constant(input3, dtype=tf.qint8),
-        "filter": tf.constant(filter3, dtype=tf.qint8),
-        "min_input": tf.constant(min_input3, dtype=tf.float32),
-        "max_input": tf.constant(max_input3, dtype=tf.float32),
-        "min_filter": tf.constant(min_filter3, dtype=tf.float32),
-        "max_filter": tf.constant(max_filter3, dtype=tf.float32),
-        "strides": strides3,
-        "padding": padding3,
-        "out_type": out_type3,
-        "dilations": dilations3,
-        "name": name3,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    # Input 3: Strides > 1
+    list_of_inputs.append(copy.deepcopy(
+        _create_input_dict(
+            input_shape=(1, 5, 5, 3), filter_shape=(3, 3, 3, 6),
+            input_tf_dtype=tf.qint8, filter_tf_dtype=tf.qint8,
+            strides=[1, 2, 2, 1], padding="VALID",
+            out_tf_dtype=tf.qint32, dilations=[1, 1, 1, 1], name="strided"
+        )
+    ))
 
-    # Input 4
-    input4 = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]], dtype=np.uint8)
-    filter4 = np.array([[[[1, 2]], [[3, 4]]]], dtype=np.uint8)
-    min_input4 = np.array([0.0], dtype=np.float32)
-    max_input4 = np.array([255.0], dtype=np.float32)
-    min_filter4 = np.array([0.0], dtype=np.float32)
-    max_filter4 = np.array([255.0], dtype=np.float32)
-    strides4 = [1, 2, 2, 1]
-    padding4 = "SAME"
-    out_type4 = tf.qint32
-    dilations4 = [1, 1, 1, 1]
-    name4 = "conv4"
+    # Input 4: Dilations > 1
+    list_of_inputs.append(copy.deepcopy(
+        _create_input_dict(
+            input_shape=(1, 7, 7, 1), filter_shape=(2, 2, 1, 2),
+            input_tf_dtype=tf.quint8, filter_tf_dtype=tf.quint8,
+            strides=[1, 1, 1, 1], padding="VALID",
+            out_tf_dtype=tf.qint32, dilations=[1, 2, 2, 1], name="dilated"
+        )
+    ))
 
-    input_dict4 = {
-        "input": tf.constant(input4, dtype=tf.quint8),
-        "filter": tf.constant(filter4, dtype=tf.quint8),
-        "min_input": tf.constant(min_input4, dtype=tf.float32),
-        "max_input": tf.constant(max_input4, dtype=tf.float32),
-        "min_filter": tf.constant(min_filter4, dtype=tf.float32),
-        "max_filter": tf.constant(max_filter4, dtype=tf.float32),
-        "strides": strides4,
-        "padding": padding4,
-        "out_type": out_type4,
-        "dilations": dilations4,
-        "name": name4,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict4))
-
-    # Input 5
-    input5 = np.array([[[[1], [2]], [[3], [4]]]], dtype=np.int8)
-    filter5 = np.array([[[[1]], [[2]]]], dtype=np.int8)
-    min_input5 = np.array([-5.0], dtype=np.float32)
-    max_input5 = np.array([5.0], dtype=np.float32)
-    min_filter5 = np.array([-3.0], dtype=np.float32)
-    max_filter5 = np.array([3.0], dtype=np.float32)
-    strides5 = [1, 1, 1, 1]
-    padding5 = "VALID"
-    out_type5 = tf.qint32
-    dilations5 = [1, 2, 2, 1]
-    name5 = "conv5"
-
-    input_dict5 = {
-        "input": tf.constant(input5, dtype=tf.qint8),
-        "filter": tf.constant(filter5, dtype=tf.qint8),
-        "min_input": tf.constant(min_input5, dtype=tf.float32),
-        "max_input": tf.constant(max_input5, dtype=tf.float32),
-        "min_filter": tf.constant(min_filter5, dtype=tf.float32),
-        "max_filter": tf.constant(max_filter5, dtype=tf.float32),
-        "strides": strides5,
-        "padding": padding5,
-        "out_type": out_type5,
-        "dilations": dilations5,
-        "name": name5,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict5))
-
-    # Input 6
-    input6 = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]], dtype=np.uint8)
-    filter6 = np.array([[[[1, 2]], [[3, 4]]]], dtype=np.uint8)
-    min_input6 = np.array([0.0], dtype=np.float32)
-    max_input6 = np.array([255.0], dtype=np.float32)
-    min_filter6 = np.array([0.0], dtype=np.float32)
-    max_filter6 = np.array([255.0], dtype=np.float32)
-    strides6 = [1, 1, 1, 1]
-    padding6 = "SAME"
-    out_type6 = tf.qint8
-    dilations6 = [1, 1, 1, 1]
-    name6 = "conv6"
-
-    input_dict6 = {
-        "input": tf.constant(input6, dtype=tf.quint8),
-        "filter": tf.constant(filter6, dtype=tf.quint8),
-        "min_input": tf.constant(min_input6, dtype=tf.float32),
-        "max_input": tf.constant(max_input6, dtype=tf.float32),
-        "min_filter": tf.constant(min_filter6, dtype=tf.float32),
-        "max_filter": tf.constant(max_filter6, dtype=tf.float32),
-        "strides": strides6,
-        "padding": padding6,
-        "out_type": out_type6,
-        "dilations": dilations6,
-        "name": name6,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict6))
+    # Input 5: Different out_type (quint8)
+    list_of_inputs.append(copy.deepcopy(
+        _create_input_dict(
+            input_shape=(1, 2, 2, 4), filter_shape=(1, 1, 4, 2),
+            input_tf_dtype=tf.quint8, filter_tf_dtype=tf.quint8,
+            strides=[1, 1, 1, 1], padding="SAME",
+            out_tf_dtype=tf.quint8, dilations=[1, 1, 1, 1], name="out_type_quint8"
+        )
+    ))
     
-    # Input 7
-    input7 = np.array([[[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]], dtype=np.int16)
-    filter7 = np.array([[[[1, 2, 3]], [[4, 5, 6]]]], dtype=np.int16)
-    min_input7 = np.array([-32768.0], dtype=np.float32)
-    max_input7 = np.array([32767.0], dtype=np.float32)
-    min_filter7 = np.array([-32768.0], dtype=np.float32)
-    max_filter7 = np.array([32767.0], dtype=np.float32)
-    strides7 = [1, 1, 1, 1]
-    padding7 = "VALID"
-    out_type7 = tf.qint32
-    dilations7 = [1, 1, 1, 1]
-    name7 = "conv7"
+    # Input 6: qint16 type
+    list_of_inputs.append(copy.deepcopy(
+        _create_input_dict(
+            input_shape=(1, 6, 6, 2), filter_shape=(2, 2, 2, 4),
+            input_tf_dtype=tf.qint16, filter_tf_dtype=tf.qint16,
+            strides=[1, 2, 2, 1], padding="VALID",
+            out_tf_dtype=tf.qint32, dilations=[1, 1, 1, 1], name="qint16_type"
+        )
+    ))
 
-    input_dict7 = {
-        "input": tf.constant(input7, dtype=tf.qint16),
-        "filter": tf.constant(filter7, dtype=tf.qint16),
-        "min_input": tf.constant(min_input7, dtype=tf.float32),
-        "max_input": tf.constant(max_input7, dtype=tf.float32),
-        "min_filter": tf.constant(min_filter7, dtype=tf.float32),
-        "max_filter": tf.constant(max_filter7, dtype=tf.float32),
-        "strides": strides7,
-        "padding": padding7,
-        "out_type": out_type7,
-        "dilations": dilations7,
-        "name": name7,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict7))
+    # Input 7: quint16 type
+    list_of_inputs.append(copy.deepcopy(
+        _create_input_dict(
+            input_shape=(1, 5, 5, 3), filter_shape=(3, 3, 3, 5),
+            input_tf_dtype=tf.quint16, filter_tf_dtype=tf.quint16,
+            strides=[1, 1, 1, 1], padding="SAME",
+            out_tf_dtype=tf.qint32, dilations=[1, 1, 1, 1], name="quint16_type"
+        )
+    ))
+    
+    # Input 8: Mixed precision (qint32 input, qint8 filter)
+    list_of_inputs.append(copy.deepcopy(
+        _create_input_dict(
+            input_shape=(1, 3, 3, 1), filter_shape=(2, 2, 1, 2),
+            input_tf_dtype=tf.qint32, filter_tf_dtype=tf.qint8,
+            strides=[1, 1, 1, 1], padding="VALID",
+            out_tf_dtype=tf.qint32, dilations=[1, 1, 1, 1], name="mixed_precision"
+        )
+    ))
 
-    # Input 8
-    input8 = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]], dtype=np.uint16)
-    filter8 = np.array([[[[1, 2]], [[3, 4]]]], dtype=np.uint16)
-    min_input8 = np.array([0.0], dtype=np.float32)
-    max_input8 = np.array([65535.0], dtype=np.float32)
-    min_filter8 = np.array([0.0], dtype=np.float32)
-    max_filter8 = np.array([65535.0], dtype=np.float32)
-    strides8 = [1, 2, 2, 1]
-    padding8 = "SAME"
-    out_type8 = tf.qint32
-    dilations8 = [1, 1, 1, 1]
-    name8 = "conv8"
+    # Input 9: Combination of Strides and Dilations
+    list_of_inputs.append(copy.deepcopy(
+        _create_input_dict(
+            input_shape=(1, 10, 10, 1), filter_shape=(3, 3, 1, 2),
+            input_tf_dtype=tf.qint8, filter_tf_dtype=tf.qint8,
+            strides=[1, 2, 2, 1], padding="SAME",
+            out_tf_dtype=tf.qint32, dilations=[1, 2, 2, 1], name="strided_dilated"
+        )
+    ))
 
-    input_dict8 = {
-        "input": tf.constant(input8, dtype=tf.quint16),
-        "filter": tf.constant(filter8, dtype=tf.quint16),
-        "min_input": tf.constant(min_input8, dtype=tf.float32),
-        "max_input": tf.constant(max_input8, dtype=tf.float32),
-        "min_filter": tf.constant(min_filter8, dtype=tf.float32),
-        "max_filter": tf.constant(max_filter8, dtype=tf.float32),
-        "strides": strides8,
-        "padding": padding8,
-        "out_type": out_type8,
-        "dilations": dilations8,
-        "name": name8,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict8))
-
-    # Input 9
-    input9 = np.array([[[[1], [2]], [[3], [4]]]], dtype=np.int32)
-    filter9 = np.array([[[[1]], [[2]]]], dtype=np.int32)
-    min_input9 = np.array([-5.0], dtype=np.float32)
-    max_input9 = np.array([5.0], dtype=np.float32)
-    min_filter9 = np.array([-3.0], dtype=np.float32)
-    max_filter9 = np.array([3.0], dtype=np.float32)
-    strides9 = [1, 1, 1, 1]
-    padding9 = "VALID"
-    out_type9 = tf.qint32
-    dilations9 = [1, 2, 2, 1]
-    name9 = "conv9"
-
-    input_dict9 = {
-        "input": tf.constant(input9, dtype=tf.qint32),
-        "filter": tf.constant(filter9, dtype=tf.qint32),
-        "min_input": tf.constant(min_input9, dtype=tf.float32),
-        "max_input": tf.constant(max_input9, dtype=tf.float32),
-        "min_filter": tf.constant(min_filter9, dtype=tf.float32),
-        "max_filter": tf.constant(max_filter9, dtype=tf.float32),
-        "strides": strides9,
-        "padding": padding9,
-        "out_type": out_type9,
-        "dilations": dilations9,
-        "name": name9,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict9))
-
-    # Input 10
-    input10 = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]], dtype=np.int16)
-    filter10 = np.array([[[[1, 2]], [[3, 4]]]], dtype=np.int16)
-    min_input10 = np.array([0.0], dtype=np.float32)
-    max_input10 = np.array([255.0], dtype=np.float32)
-    min_filter10 = np.array([0.0], dtype=np.float32)
-    max_filter10 = np.array([255.0], dtype=np.float32)
-    strides10 = [1, 1, 1, 1]
-    padding10 = "SAME"
-    out_type10 = tf.qint16
-    dilations10 = [1, 1, 1, 1]
-    name10 = "conv10"
-
-    input_dict10 = {
-        "input": tf.constant(input10, dtype=tf.qint16),
-        "filter": tf.constant(filter10, dtype=tf.qint16),
-        "min_input": tf.constant(min_input10, dtype=tf.float32),
-        "max_input": tf.constant(max_input10, dtype=tf.float32),
-        "min_filter": tf.constant(min_filter10, dtype=tf.float32),
-        "max_filter": tf.constant(max_filter10, dtype=tf.float32),
-        "strides": strides10,
-        "padding": padding10,
-        "out_type": out_type10,
-        "dilations": dilations10,
-        "name": name10,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict10))
-
+    # Input 10: Non-square filters and images
+    list_of_inputs.append(copy.deepcopy(
+        _create_input_dict(
+            input_shape=(1, 5, 7, 2), filter_shape=(2, 3, 2, 4),
+            input_tf_dtype=tf.qint8, filter_tf_dtype=tf.qint8,
+            strides=[1, 1, 1, 1], padding="VALID",
+            out_tf_dtype=tf.qint32, dilations=[1, 1, 1, 1], name="non_square"
+        )
+    ))
+    
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.raw_ops.QuantizedConv2D"] = tf_raw_ops_QuantizedConv2D_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -301,6 +159,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.QuantizedConv2D' not in generated_inputs:

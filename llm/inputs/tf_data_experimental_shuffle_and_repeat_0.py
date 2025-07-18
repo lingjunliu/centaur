@@ -8,102 +8,128 @@ import numpy as np
 import copy
 import tensorflow as tf
 
-def get_tf_data_experimental_shuffle_and_repeat_inputs():
+def tf_data_experimental_shuffle_and_repeat_inputs():
     """
-    Generates a list of valid inputs for tf.data.experimental.shuffle_and_repeat.
-    This version omits optional arguments (count, seed) in some cases to allow
-    the testing framework to use the function's default values. It uses the
-    'inner_values' key for the dataset as suggested by the error message.
+    Generates a list of valid inputs for the tf.data.experimental.shuffle_and_repeat function.
+    This function returns a transformation function. The testing framework expects the data
+    (from which a dataset will be created) to be provided under the 'inner_values' key,
+    and the function's arguments to be nested under a 'kwargs' key.
     """
     list_of_inputs = []
 
-    # Input 1: Only the required argument 'buffer_size'.
-    # count and seed will be default (None).
-    input_dict = {
-        'inner_values': np.arange(100, dtype=np.int32),
-        'buffer_size': np.array(50, dtype=np.int64),
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: Provide 'count', let 'seed' be default.
-    input_dict = {
-        'inner_values': np.random.rand(80, 2).astype(np.float32),
-        'buffer_size': np.array(80, dtype=np.int64),
-        'count': np.array(3, dtype=np.int64),
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Provide all arguments, including 'seed'.
-    input_dict = {
+    # Input 1: Basic case with a specific seed
+    input_dict_1 = {
         'inner_values': np.arange(200, dtype=np.int64),
-        'buffer_size': np.array(100, dtype=np.int64),
-        'count': np.array(2, dtype=np.int64),
-        'seed': np.array(42, dtype=np.int64),
+        'kwargs': {
+            'buffer_size': np.array(100, dtype=np.int64),
+            'count': np.array(2, dtype=np.int64),
+            'seed': np.array(42, dtype=np.int64)
+        }
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict_1)
 
-    # Input 4: Indefinite repeat (count=-1).
-    input_dict = {
-        'inner_values': np.arange(150, dtype=np.int32),
-        'buffer_size': np.array(75, dtype=np.int64),
-        'count': np.array(-1, dtype=np.int64),
-        'seed': np.array(123, dtype=np.int64),
+    # Input 2: Minimal buffer_size (1)
+    input_dict_2 = {
+        'inner_values': np.arange(10, dtype=np.int32),
+        'kwargs': {
+            'buffer_size': np.array(1, dtype=np.int64),
+            'count': np.array(5, dtype=np.int64),
+            'seed': np.array(1, dtype=np.int64)
+        }
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 5: Minimal buffer size, no seed.
-    input_dict = {
-        'inner_values': np.arange(30, dtype=np.float64),
-        'buffer_size': np.array(1, dtype=np.int64),
-        'count': np.array(5, dtype=np.int64),
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict_2)
 
-    # Input 6: Repeat only once, perfect shuffle.
-    input_dict = {
-        'inner_values': np.arange(10, dtype=np.uint8),
-        'buffer_size': np.array(10, dtype=np.int64),
-        'count': np.array(1, dtype=np.int64),
-        'seed': np.array(99, dtype=np.int64),
+    # Input 3: Indefinite repeat (count=-1) with float data
+    input_dict_3 = {
+        'inner_values': np.arange(50, dtype=np.float32).reshape(10, 5),
+        'kwargs': {
+            'buffer_size': np.array(20, dtype=np.int64),
+            'count': np.array(-1, dtype=np.int64),
+            'seed': np.array(2023, dtype=np.int64)
+        }
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7: Only buffer_size, larger dataset.
-    input_dict = {
-        'inner_values': np.arange(1000, dtype=np.int32),
-        'buffer_size': np.array(500, dtype=np.int64),
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8: All args, zero seed.
-    input_dict = {
-        'inner_values': np.arange(50, dtype=np.int32),
-        'buffer_size': np.array(25, dtype=np.int64),
-        'count': np.array(4, dtype=np.int64),
-        'seed': np.array(0, dtype=np.int64),
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict_3)
 
-    # Input 9: Provide count, no seed, indefinite repeat.
-    input_dict = {
-        'inner_values': np.arange(60, dtype=np.int32),
-        'buffer_size': np.array(30, dtype=np.int64),
-        'count': np.array(-1, dtype=np.int64),
+    # Input 4: Large buffer_size (perfect shuffling) and count, seed is 0
+    input_dict_4 = {
+        'inner_values': np.random.rand(100, 2).astype(np.float64),
+        'kwargs': {
+            'buffer_size': np.array(100, dtype=np.int64),
+            'count': np.array(10, dtype=np.int64),
+            'seed': np.array(0, dtype=np.int64)
+        }
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10: All args, large seed.
-    input_dict = {
-        'inner_values': np.arange(500, dtype=np.int32),
-        'buffer_size': np.array(256, dtype=np.int64),
-        'count': np.array(2, dtype=np.int64),
-        'seed': np.array(1337, dtype=np.int64),
+    list_of_inputs.append(input_dict_4)
+
+    # Input 5: Negative seed
+    input_dict_5 = {
+        'inner_values': np.arange(100, dtype=np.uint8),
+        'kwargs': {
+            'buffer_size': np.array(50, dtype=np.int64),
+            'count': np.array(3, dtype=np.int64),
+            'seed': np.array(-10, dtype=np.int64)
+        }
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict_5)
+
+    # Input 6: Large seed value
+    input_dict_6 = {
+        'inner_values': np.arange(500, dtype=np.int16),
+        'kwargs': {
+            'buffer_size': np.array(256, dtype=np.int64),
+            'count': np.array(4, dtype=np.int64),
+            'seed': np.array(987654321, dtype=np.int64)
+        }
+    }
+    list_of_inputs.append(input_dict_6)
+
+    # Input 7: Count is 1 (repeat once)
+    input_dict_7 = {
+        'inner_values': np.linspace(0, 1, 200, dtype=np.float16),
+        'kwargs': {
+            'buffer_size': np.array(128, dtype=np.int64),
+            'count': np.array(1, dtype=np.int64),
+            'seed': np.array(55, dtype=np.int64)
+        }
+    }
+    list_of_inputs.append(input_dict_7)
+
+    # Input 8: Another indefinite repeat case with negative seed
+    input_dict_8 = {
+        'inner_values': np.arange(-500, 500, dtype=np.int64),
+        'kwargs': {
+            'buffer_size': np.array(500, dtype=np.int64),
+            'count': np.array(-1, dtype=np.int64),
+            'seed': np.array(-1, dtype=np.int64)
+        }
+    }
+    list_of_inputs.append(input_dict_8)
+
+    # Input 9: Small buffer_size and large count with boolean data
+    input_dict_9 = {
+        'inner_values': np.array([True, False] * 10),
+        'kwargs': {
+            'buffer_size': np.array(2, dtype=np.int64),
+            'count': np.array(100, dtype=np.int64),
+            'seed': np.array(123, dtype=np.int64)
+        }
+    }
+    list_of_inputs.append(input_dict_9)
+
+    # Input 10: Values from the documentation example (with a seed)
+    input_dict_10 = {
+        'inner_values': np.array([1, 2, 3], dtype=np.int32),
+        'kwargs': {
+            'buffer_size': np.array(2, dtype=np.int64),
+            'count': np.array(2, dtype=np.int64),
+            'seed': np.array(1337, dtype=np.int64)
+        }
+    }
+    list_of_inputs.append(input_dict_10)
 
     return list_of_inputs
 
-generated_inputs["tf.data.experimental.shuffle_and_repeat"] = get_tf_data_experimental_shuffle_and_repeat_inputs()
+generated_inputs["tf.data.experimental.shuffle_and_repeat"] = tf_data_experimental_shuffle_and_repeat_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

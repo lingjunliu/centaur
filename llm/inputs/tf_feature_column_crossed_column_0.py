@@ -5,96 +5,53 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import numpy as np
 import copy
 
 def tf_feature_column_crossed_column_inputs():
     list_of_inputs = []
 
-    # The API's internal check `if not keys:` causes a `ValueError` when `keys` is a
-    # NumPy array, as the truthiness of a multi-element array is ambiguous.
-    # To fix this, `keys` must be provided as a standard Python list, which is
-    # consistent with the API documentation and the specified signature {'keys': 'list'}.
+    # The test harness has shown issues with processing the `keys` argument,
+    # which can be a list of strings or a list of CategoricalColumn objects.
+    # Previous attempts with lists of strings led to a UFuncNoLoopError, and
+    # lists of mixed CategoricalColumn objects led to a TypeError.
+    # This attempt uses only one type of CategoricalColumn to ensure the
+    # objects in the list are homogeneous, which might avoid comparison errors
+    # in the test harness.
+    cat_cols = [tf.feature_column.categorical_column_with_identity(f'key_{i}', 10 * (i + 1)) for i in range(5)]
 
-    # Input 1: Simple case with two string keys
-    input_dict_1 = {
-        'keys': ['feature_a', 'feature_b'],
-        'hash_bucket_size': 1000,
-        'hash_key': 'KEY_1'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
-
-    # Input 2: More than two string keys
-    input_dict_2 = {
-        'keys': ['user_gender', 'user_country', 'ad_category'],
-        'hash_bucket_size': 50000,
-        'hash_key': 'CROSS_KEY_2'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
-
-    # Input 3: Minimal valid hash_bucket_size
-    input_dict_3 = {
-        'keys': ['brand', 'model'],
-        'hash_bucket_size': 2,
-        'hash_key': 'MIN_BUCKET'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
-
-    # Input 4: Long feature names
-    input_dict_4 = {
-        'keys': ['a_very_long_feature_name_that_is_still_valid', 'another_similarly_long_feature_name'],
-        'hash_bucket_size': 10000,
-        'hash_key': 'LONG_KEYS'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
-
-    # Input 5: Large number of keys
-    input_dict_5 = {
-        'keys': ['key1', 'key2', 'key3', 'key4', 'key5'],
-        'hash_bucket_size': 100000,
-        'hash_key': 'MULTI_KEY'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
-
-    # Input 6: Empty string for hash_key
-    input_dict_6 = {
-        'keys': ['city', 'state'],
-        'hash_bucket_size': 1000000,
-        'hash_key': ''
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
-
-    # Input 7: Single character keys
-    input_dict_7 = {
-        'keys': ['x', 'y', 'z'],
-        'hash_bucket_size': 100,
-        'hash_key': 'XYZ_CROSS'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
-
-    # Input 8: Numeric-like string keys
-    input_dict_8 = {
-        'keys': ['2023', '11', '15'],
-        'hash_bucket_size': 500,
-        'hash_key': 'DATE_CROSS'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
-
-    # Input 9: Mix of short and long keys
-    input_dict_9 = {
-        'keys': ['short_key', 'a_much_longer_key_for_testing_purposes'],
-        'hash_bucket_size': 25000,
-        'hash_key': 'MIXED_LENGTH_KEYS'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
-
-    # Input 10: Very long hash key
-    input_dict_10 = {
-        'keys': ['product_id', 'session_id'],
-        'hash_bucket_size': 75000,
-        'hash_key': 'a_very_long_and_specific_hash_key_used_for_fingerprinting_in_this_specific_crossing_scenario'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    # 1
+    input_dict = {'keys': [cat_cols[0], cat_cols[1]], 'hash_bucket_size': 100, 'hash_key': 'k01'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    # 2
+    input_dict = {'keys': [cat_cols[2], cat_cols[3]], 'hash_bucket_size': 200, 'hash_key': 'k23'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    # 3
+    input_dict = {'keys': [cat_cols[0], cat_cols[4]], 'hash_bucket_size': 300, 'hash_key': 'k04'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    # 4
+    input_dict = {'keys': [cat_cols[1], cat_cols[2], cat_cols[3]], 'hash_bucket_size': 1000, 'hash_key': 'k123'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    # 5
+    input_dict = {'keys': [cat_cols[0], cat_cols[1]], 'hash_bucket_size': 2, 'hash_key': 'minkey'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    # 6
+    input_dict = {'keys': [cat_cols[3], cat_cols[4]], 'hash_bucket_size': 999, 'hash_key': ''}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    # 7
+    input_dict = {'keys': [cat_cols[0], cat_cols[2]], 'hash_bucket_size': 50, 'hash_key': 'anotherkey'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    # 8
+    input_dict = {'keys': [cat_cols[1], cat_cols[4]], 'hash_bucket_size': 50000, 'hash_key': 'big_hash'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    # 9
+    input_dict = {'keys': [cat_cols[0], cat_cols[1], cat_cols[2], cat_cols[3], cat_cols[4]], 'hash_bucket_size': 100000, 'hash_key': 'all_keys'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    # 10
+    input_dict = {'keys': [cat_cols[4], cat_cols[0]], 'hash_bucket_size': 1234, 'hash_key': 'reversed_keys'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    # 11
+    input_dict = {'keys': [cat_cols[1], cat_cols[3]], 'hash_bucket_size': 789, 'hash_key': 'some_hash_key_123'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

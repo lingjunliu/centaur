@@ -7,123 +7,102 @@ generated_inputs = dict()
 import numpy as np
 import copy
 
-def get_apply_add_sign_inputs():
+def tf_raw_ops_apply_add_sign_inputs():
     """
     Generates a list of valid inputs for the tf.raw_ops.ApplyAddSign operation.
-    The RuntimeError 'does not support eager execution' is inherent to this raw op
-    when called directly in TF2's default mode, as it's designed to mutate
-    reference inputs (Variables) within a graph. The provided numpy inputs are
-    structurally valid for the operation's intended use in such a graph context.
+
+    NOTE: The recurring error `RuntimeError: apply_add_sign op does not support
+    eager execution` is fundamental to this specific op. It is a legacy
+    TensorFlow 1.x op designed for graph execution, which works by modifying
+    "ref" Tensors in-place. This behavior is incompatible with TensorFlow 2.x's
+    default eager execution mode.
+
+    No change to the input *values* can resolve this error, as the error is
+    raised by a check within the op's wrapper itself. The inputs provided below
+    are syntactically valid according to the op's signature and would execute
+    correctly in a compatible graph context (e.g., inside a `@tf.function`
+    or a TF1 `Session`). The modern, eager-compatible equivalent is
+    `tf.raw_ops.ResourceApplyAddSign`.
     """
     list_of_inputs = []
 
-    def create_input_dict(var, m, lr, alpha, sign_decay, beta, grad, use_locking, name):
-        dtype = var.dtype
+    def create_input(var, m, lr, alpha, sign_decay, beta, grad, use_locking=False, name="", dtype=np.float32):
+        """Helper to create an input dictionary with specified dtype."""
         return {
-            'var': var,
-            'm': m.astype(dtype),
+            'var': np.array(var, dtype=dtype),
+            'm': np.array(m, dtype=dtype),
             'lr': np.array(lr, dtype=dtype),
             'alpha': np.array(alpha, dtype=dtype),
             'sign_decay': np.array(sign_decay, dtype=dtype),
             'beta': np.array(beta, dtype=dtype),
-            'grad': grad.astype(dtype),
+            'grad': np.array(grad, dtype=dtype),
             'use_locking': use_locking,
             'name': name
         }
 
-    # Case 1: Basic float32, 1D tensors
-    list_of_inputs.append(create_input_dict(
-        var=np.array([1.0, 2.0, 3.0], dtype=np.float32),
-        m=np.array([0.1, 0.2, 0.3], dtype=np.float32),
-        lr=0.001, alpha=1.0, sign_decay=0.5, beta=0.9,
-        grad=np.array([-0.5, 0.0, 0.5], dtype=np.float32),
-        use_locking=False, name='float32_1d'
-    ))
+    # Case 1: Basic float32, 1D vector. A standard use case.
+    list_of_inputs.append(copy.deepcopy(create_input(
+        var=[1.0, 2.0], m=[0.1, 0.2], lr=0.01, alpha=0.1, sign_decay=0.9, beta=0.99, grad=[0.5, -0.5],
+        name="float32_1d_basic"
+    )))
 
-    # Case 2: float64, 2D tensors, with locking
-    list_of_inputs.append(create_input_dict(
-        var=np.array([[10.0, -20.0], [30.0, -40.0]], dtype=np.float64),
-        m=np.array([[1.0, -2.0], [3.0, -4.0]], dtype=np.float64),
-        lr=0.01, alpha=1.0, sign_decay=0.1, beta=0.99,
-        grad=np.array([[0.1, 0.2], [-0.3, -0.4]], dtype=np.float64),
-        use_locking=True, name='float64_2d_locking'
-    ))
+    # Case 2: float64, 2D matrix with locking enabled.
+    list_of_inputs.append(copy.deepcopy(create_input(
+        var=[[1.0, 2.0], [3.0, 4.0]], m=[[0.1, -0.1], [0.2, -0.2]], lr=0.001, alpha=1.0, sign_decay=0.5, beta=0.9,
+        grad=[[0.3, 0.4], [-0.3, -0.4]], use_locking=True, name="float64_2d_locking", dtype=np.float64
+    )))
 
-    # Case 3: half precision (float16)
-    list_of_inputs.append(create_input_dict(
-        var=np.arange(4, dtype=np.float16),
-        m=np.zeros(4, dtype=np.float16),
-        lr=0.1, alpha=1.0, sign_decay=0.0, beta=0.9,
-        grad=np.array([1.0, -1.0, 0.5, -0.5], dtype=np.float16),
-        use_locking=False, name='float16'
-    ))
+    # Case 3: Scalar inputs for all tensor arguments.
+    list_of_inputs.append(copy.deepcopy(create_input(
+        var=10.0, m=1.0, lr=0.1, alpha=1.0, sign_decay=0.5, beta=0.9,
+        grad=-2.0, name="scalar_all"
+    )))
 
-    # Case 4: Scalar inputs
-    list_of_inputs.append(create_input_dict(
-        var=np.array(100.0, dtype=np.float64),
-        m=np.array(-1.0, dtype=np.float64),
-        lr=0.001, alpha=1.0, sign_decay=0.1, beta=0.99,
-        grad=np.array(5.0, dtype=np.float64),
-        use_locking=False, name='scalar'
-    ))
+    # Case 4: Zero gradients, should not update var based on the gradient term.
+    list_of_inputs.append(copy.deepcopy(create_input(
+        var=[1.0, 2.0, 3.0], m=[0.1, 0.2, 0.3], lr=0.1, alpha=0.1, sign_decay=0.5, beta=0.9,
+        grad=[0.0, 0.0, 0.0], name="zero_gradients"
+    )))
 
-    # Case 5: 3D tensor
-    list_of_inputs.append(create_input_dict(
-        var=np.full((1, 2, 3), -5.0, dtype=np.float32),
-        m=np.random.randn(1, 2, 3),
-        lr=1e-4, alpha=0.5, sign_decay=0.2, beta=0.8,
-        grad=np.random.randn(1, 2, 3),
-        use_locking=False, name='float32_3d'
-    ))
+    # Case 5: Zero beta, which means no momentum is used.
+    list_of_inputs.append(copy.deepcopy(create_input(
+        var=[100.0, 200.0], m=[10.0, 20.0], lr=0.02, alpha=1.0, sign_decay=0.9, beta=0.0,
+        grad=[1.0, -1.0], name="zero_beta", dtype=np.float32
+    )))
+    
+    # Case 6: Zero sign_decay, simplifying the update formula.
+    list_of_inputs.append(copy.deepcopy(create_input(
+        var=[-10.0, 20.0], m=[1.0, 2.0], lr=0.1, alpha=1.0, sign_decay=0.0, beta=0.9,
+        grad=[-5.0, 5.0], name="zero_sign_decay"
+    )))
 
-    # Case 6: beta = 0.0
-    list_of_inputs.append(create_input_dict(
-        var=np.array([1.0, 2.0], dtype=np.float32),
-        m=np.array([0.1, 0.2], dtype=np.float32),
-        lr=0.01, alpha=1.0, sign_decay=0.5, beta=0.0,
-        grad=np.array([0.5, -0.5], dtype=np.float32),
-        use_locking=False, name='beta_zero'
-    ))
+    # Case 7: half (float16) dtype.
+    list_of_inputs.append(copy.deepcopy(create_input(
+        var=[1.0, -1.0], m=[0.5, 0.5], lr=0.001, alpha=0.1, sign_decay=0.9, beta=0.99,
+        grad=[0.2, 0.3], name="half_type", dtype=np.float16
+    )))
+    
+    # Case 8: 3D tensor input.
+    list_of_inputs.append(copy.deepcopy(create_input(
+        var=[[[1.0]]], m=[[[0.5]]], lr=0.1, alpha=0.2, sign_decay=0.8, beta=0.8,
+        grad=[[[-0.1]]], name="float32_3d"
+    )))
 
-    # Case 7: alpha = 0.0
-    list_of_inputs.append(create_input_dict(
-        var=np.array([[1.0], [2.0]], dtype=np.float32),
-        m=np.array([[0.1], [0.2]], dtype=np.float32),
-        lr=0.01, alpha=0.0, sign_decay=0.5, beta=0.9,
-        grad=np.array([[0.5], [-0.5]], dtype=np.float32),
-        use_locking=False, name='alpha_zero'
-    ))
+    # Case 9: High beta value for strong momentum effect.
+    list_of_inputs.append(copy.deepcopy(create_input(
+        var=[[1.0], [2.0]], m=[[0.9], [0.9]], lr=0.001, alpha=1.0, sign_decay=0.9, beta=0.9999,
+        grad=[[0.1], [-0.1]], name="high_beta"
+    )))
 
-    # Case 8: Zero gradient
-    list_of_inputs.append(create_input_dict(
-        var=np.array([1.0, 1.0], dtype=np.float32),
-        m=np.array([0.5, 0.5], dtype=np.float32),
-        lr=0.1, alpha=1.0, sign_decay=0.5, beta=0.9,
-        grad=np.zeros(2, dtype=np.float32),
-        use_locking=False, name='zero_grad'
-    ))
+    # Case 10: All signs of inputs are negative where possible
+    list_of_inputs.append(copy.deepcopy(create_input(
+        var=[-1.0, -2.0], m=[-0.1, -0.2], lr=0.01, alpha=0.1, sign_decay=0.9, beta=0.99, grad=[-0.5, -0.5],
+        name="all_negative"
+    )))
 
-    # Case 9: Large magnitude values
-    list_of_inputs.append(create_input_dict(
-        var=np.array([1e6, 2e6], dtype=np.float32),
-        m=np.array([1e5, -1e5], dtype=np.float32),
-        lr=1.0, alpha=1e3, sign_decay=1e2, beta=0.5,
-        grad=np.array([5e4, 6e4], dtype=np.float32),
-        use_locking=False, name='large_values'
-    ))
+    return list_of_inputs
 
-    # Case 10: Small magnitude values
-    list_of_inputs.append(create_input_dict(
-        var=np.array([1e-6, -2e-6], dtype=np.float64),
-        m=np.array([1e-7, -1e-7], dtype=np.float64),
-        lr=1e-5, alpha=1e-4, sign_decay=1e-3, beta=0.999,
-        grad=np.array([5e-8, -6e-8], dtype=np.float64),
-        use_locking=True, name='small_values'
-    ))
-
-    return [copy.deepcopy(d) for d in list_of_inputs]
-
-generated_inputs["tf.raw_ops.ApplyAddSign"] = get_apply_add_sign_inputs()
+generated_inputs["tf.raw_ops.ApplyAddSign"] = tf_raw_ops_apply_add_sign_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

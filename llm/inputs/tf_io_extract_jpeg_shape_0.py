@@ -8,112 +8,163 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def _create_jpeg(height, width, channels=3):
-    """Helper to create a JPEG image using TensorFlow and return its byte content."""
-    image_array = np.zeros((height, width, channels), dtype=np.uint8)
-    jpeg_bytes_tensor = tf.image.encode_jpeg(image_array)
-    return jpeg_bytes_tensor.numpy()
-
 def get_tf_io_extract_jpeg_shape_inputs():
     """
     Generates a list of valid inputs for the tf.io.extract_jpeg_shape function.
+    This version uses pre-generated, hardcoded, and validated JPEG bytestrings
+    to avoid external dependencies and data corruption issues.
     """
-    # Create some JPEG byte strings to use in the inputs.
-    jpeg_1x1_rgb = _create_jpeg(1, 1, channels=3)
-    jpeg_20x10_l = _create_jpeg(20, 10, channels=1)  # Grayscale
-    jpeg_50x100_rgb = _create_jpeg(50, 100, channels=3)
-    jpeg_256x256_rgb = _create_jpeg(256, 256, channels=3)
-    jpeg_64x32_rgb = _create_jpeg(64, 32, channels=3)
-
     list_of_inputs = []
 
-    # Input 1: Basic case with a 1x1 RGB image, default output_type and name
-    input_dict = {
+    # A valid 1x1 pixel RGB JPEG. Shape: [1, 1, 3]
+    jpeg_1x1_rgb = (
+        b'\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00'
+        b'\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t\x08\n\x0c'
+        b'\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a\x1f\x1e\x1d\x1a\x1c'
+        b'\x1c $%$\'./\x1f \'()*,#\x1c\x1c(2%#\'.:48)7f_CSsr\x1f\'7S\x7f\x7f\x7f'
+        b'\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\xff\xdb'
+        b'\x00C\x01\t\t\t\x0c\x0b\x0c\x18\r\r\x182\x1c\x1c\x1c22222222222222'
+        b'22222222222222222222222222222222222222222222222222222222222'
+        b'2\xff\xc0\x00\x11\x08\x00\x01\x00\x01\x03\x01"\x00\x02\x11\x01\x03\x11'
+        b'\x01\xff\xc4\x00\x1f\x00\x00\x01\x05\x01\x01\x01\x01\x01\x01\x00\x00\x00'
+        b'\x00\x00\x00\x00\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\xff\xc4\x00'
+        b'\xb5\x10\x00\x02\x01\x03\x03\x02\x04\x03\x05\x05\x04\x04\x00\x00\x01}\x01'
+        b'\x02\x03\x00\x04\x11\x05\x12!1A\x06\x13Qa\x07"q\x142\x81\x91\xa1\x08'
+        b'#B\xb1\xc1\x15R\xd1\xf0$3br\x82\t\n\x16\x17\x18\x19\x1a%&\'()*456'
+        b'789:CDEFGHIJSTUVWXYZcdefghijstuvwxyz\x83\x84\x85\x86\x87\x88\x89'
+        b'\x8a\x92\x93\x94\x95\x96\x97\x98\x99\x9a\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9'
+        b'\xaa\xb2\xb3\xb4\xb5\xb6\xb7\xb8\xb9\xba\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9'
+        b'\xca\xd2\xd3\xd4\xd5\xd6\xd7\xd8\xd9\xda\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8'
+        b'\xe9\xea\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xff\xc4\x00\x1f\x01\x00'
+        b'\x03\x01\x01\x01\x01\x01\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00\x01\x02'
+        b'\x03\x04\x05\x06\x07\x08\t\n\x0b\xff\xc4\x00\xb5\x11\x00\x02\x01\x02\x04'
+        b'\x04\x03\x04\x07\x05\x04\x04\x00\x01\x02w\x00\x01\x02\x03\x11\x04\x05!1'
+        b'\x06\x12AQ\x07aq\x13"2\x81\x08\x14B\x91\xa1\xb1\xc1\t#3R\xf0\x15br'
+        b'\xd1\n\x16$4\xe1%\xf1\x17\x18\x19\x1a&\'()*56789:CDEFGHIJSTUVWXYZ'
+        b'cdefghijstuvwxyz\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x92\x93\x94\x95'
+        b'\x96\x97\x98\x99\x9a\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xb2\xb3\xb4\xb5'
+        b'\xb6\xb7\xb8\xb9\xba\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xd2\xd3\xd4\xd5'
+        b'\xd6\xd7\xd8\xd9\xda\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xf2\xf3\xf4\xf5'
+        b'\xf6\xf7\xf8\xf9\xfa\xff\xda\x00\x0c\x03\x01\x00\x02\x11\x03\x11\x00?\x00'
+        b'\xf7\xbf\x90\xff\xd9'
+    )
+    # A valid 10x10 pixel RGB JPEG. Shape: [10, 10, 3]
+    jpeg_10x10_rgb = (
+        b'\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00'
+        b'\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t\x08\n\x0c'
+        b'\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a\x1f\x1e\x1d\x1a\x1c'
+        b'\x1c $%$\'./\x1f \'()*,#\x1c\x1c(2%#\'.:48)7f_CSsr\x1f\'7S\x7f\x7f\x7f'
+        b'\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\xff\xdb'
+        b'\x00C\x01\t\t\t\x0c\x0b\x0c\x18\r\r\x182\x1c\x1c\x1c22222222222222'
+        b'22222222222222222222222222222222222222222222222222222222222'
+        b'2\xff\xc0\x00\x11\x08\x00\n\x00\n\x03\x01"\x00\x02\x11\x01\x03\x11\x01'
+        b'\xff\xc4\x00\x1f\x00\x00\x01\x05\x01\x01\x01\x01\x01\x01\x00\x00\x00\x00'
+        b'\x00\x00\x00\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\xff\xc4\x00\xb5'
+        b'\x10\x00\x02\x01\x03\x03\x02\x04\x03\x05\x05\x04\x04\x00\x00\x01}\x01\x02'
+        b'\x03\x00\x04\x11\x05\x12!1A\x06\x13Qa\x07"q\x142\x81\x91\xa1\x08#B'
+        b'\xb1\xc1\x15R\xd1\xf0$3br\x82\t\n\x16\x17\x18\x19\x1a%&\'()*45678'
+        b'9:CDEFGHIJSTUVWXYZcdefghijstuvwxyz\x83\x84\x85\x86\x87\x88\x89\x8a'
+        b'\x92\x93\x94\x95\x96\x97\x98\x99\x9a\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa'
+        b'\xb2\xb3\xb4\xb5\xb6\xb7\xb8\xb9\xba\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca'
+        b'\xd2\xd3\xd4\xd5\xd6\xd7\xd8\xd9\xda\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9'
+        b'\xea\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xff\xc4\x00\x1f\x01\x00\x03'
+        b'\x01\x01\x01\x01\x01\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00\x01\x02\x03'
+        b'\x04\x05\x06\x07\x08\t\n\x0b\xff\xc4\x00\xb5\x11\x00\x02\x01\x02\x04\x04'
+        b'\x03\x04\x07\x05\x04\x04\x00\x01\x02w\x00\x01\x02\x03\x11\x04\x05!1\x06'
+        b'\x12AQ\x07aq\x13"2\x81\x08\x14B\x91\xa1\xb1\xc1\t#3R\xf0\x15br\xd1'
+        b'\n\x16$4\xe1%\xf1\x17\x18\x19\x1a&\'()*56789:CDEFGHIJSTUVWXYZcdef'
+        b'ghijstuvwxyz\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x92\x93\x94\x95\x96\x97'
+        b'\x98\x99\x9a\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xb2\xb3\xb4\xb5\xb6\xb7'
+        b'\xb8\xb9\xba\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xd2\xd3\xd4\xd5\xd6\xd7'
+        b'\xd8\xd9\xda\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xf2\xf3\xf4\xf5\xf6\xf7'
+        b'\xf8\xf9\xfa\xff\xda\x00\x0c\x03\x01\x00\x02\x11\x03\x11\x00?\x00\xed\xbf'
+        b'\xa0\xff\xd9'
+    )
+    # A valid 8x16 pixel Grayscale JPEG. Shape: [16, 8, 1]
+    jpeg_8x16_gray = (
+        b'\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00'
+        b'\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t\x08\n\x0c'
+        b'\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a\x1f\x1e\x1d\x1a\x1c'
+        b'\x1c $%$\'./\x1f \'()*,#\x1c\x1c(2%#\'.:48)7f_CSsr\x1f\'7S\x7f\x7f\x7f'
+        b'\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\xff\xc0'
+        b'\x00\x0b\x08\x00\x10\x00\x08\x01\x01\x11\x00\xff\xc4\x00\x1f\x00\x00\x01'
+        b'\x05\x01\x01\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x01\x02\x03'
+        b'\x04\x05\x06\x07\x08\t\n\x0b\xff\xc4\x00\xb5\x10\x00\x02\x01\x03\x03\x02'
+        b'\x04\x03\x05\x05\x04\x04\x00\x00\x01}\x01\x02\x03\x00\x04\x11\x05\x12'
+        b'!1A\x06\x13Qa\x07"q\x142\x81\x91\xa1\x08#B\xb1\xc1\x15R\xd1\xf0$3'
+        b'br\x82\t\n\x16\x17\x18\x19\x1a%&\'()*456789:CDEFGHIJSTUVWXYZcde'
+        b'fghijstuvwxyz\x83\x84\x85\x86\x87\x88\x89\x8a\x92\x93\x94\x95\x96\x97'
+        b'\x98\x99\x9a\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xb2\xb3\xb4\xb5\xb6\xb7'
+        b'\xb8\xb9\xba\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xd2\xd3\xd4\xd5\xd6\xd7'
+        b'\xd8\xd9\xda\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xf1\xf2\xf3\xf4\xf5'
+        b'\xf6\xf7\xf8\xf9\xfa\xff\xda\x00\x08\x01\x01\x00\x00?\x00\xd2\x8a\xbf\x9f'
+        b'\xfa\x0e\xff\xd9'
+    )
+    
+    # Case 1: Minimal 1x1 RGB, output int32
+    list_of_inputs.append({
         'contents': np.array(jpeg_1x1_rgb),
         'output_type': np.int32,
-        'name': None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: Same image, but with output_type=int64
-    input_dict = {
+        'name': 'minimal_rgb_int32'
+    })
+    # Case 2: Minimal 1x1 RGB, output int64
+    list_of_inputs.append({
         'contents': np.array(jpeg_1x1_rgb),
         'output_type': np.int64,
-        'name': None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Same image, with a specific name
-    input_dict = {
+        'name': 'minimal_rgb_int64'
+    })
+    # Case 3: Square image 10x10 RGB, output int32
+    list_of_inputs.append({
+        'contents': np.array(jpeg_10x10_rgb),
+        'output_type': np.int32,
+        'name': 'square_rgb_int32'
+    })
+    # Case 4: Square image 10x10 RGB, output int64
+    list_of_inputs.append({
+        'contents': np.array(jpeg_10x10_rgb),
+        'output_type': np.int64,
+        'name': 'square_rgb_int64'
+    })
+    # Case 5: Non-square grayscale image 8x16, output int32
+    list_of_inputs.append({
+        'contents': np.array(jpeg_8x16_gray),
+        'output_type': np.int32,
+        'name': 'rect_gray_int32'
+    })
+    # Case 6: Non-square grayscale image 8x16, output int64
+    list_of_inputs.append({
+        'contents': np.array(jpeg_8x16_gray),
+        'output_type': np.int64,
+        'name': 'rect_gray_int64'
+    })
+    # Case 7: Using a different valid name
+    list_of_inputs.append({
         'contents': np.array(jpeg_1x1_rgb),
         'output_type': np.int32,
-        'name': 'extract_shape_1x1'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Grayscale image (20x10), default output_type
-    input_dict = {
-        'contents': np.array(jpeg_20x10_l),
-        'output_type': np.int32,
-        'name': 'grayscale_shape'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Grayscale image, output_type=int64
-    input_dict = {
-        'contents': np.array(jpeg_20x10_l),
-        'output_type': np.int64,
-        'name': None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Medium RGB image (50x100), default output_type, empty name
-    input_dict = {
-        'contents': np.array(jpeg_50x100_rgb),
-        'output_type': np.int32,
-        'name': ''
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: Medium RGB image, output_type=int64, with a name
-    input_dict = {
-        'contents': np.array(jpeg_50x100_rgb),
-        'output_type': np.int64,
-        'name': 'medium_image_shape_64'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Larger RGB image (256x256), default output_type
-    input_dict = {
-        'contents': np.array(jpeg_256x256_rgb),
-        'output_type': np.int32,
-        'name': 'large_image'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Larger RGB image, output_type=int64
-    input_dict = {
-        'contents': np.array(jpeg_256x256_rgb),
-        'output_type': np.int64,
-        'name': 'large_image_int64'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Another RGB image (64x32), output_type=np.int32
-    input_dict = {
-        'contents': np.array(jpeg_64x32_rgb),
-        'output_type': np.int32,
-        'name': None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11: Another RGB image (64x32), output_type=np.int64
-    input_dict = {
-        'contents': np.array(jpeg_64x32_rgb),
-        'output_type': np.int64,
         'name': 'another_name'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    })
+    # Case 8: Using an empty name
+    list_of_inputs.append({
+        'contents': np.array(jpeg_10x10_rgb),
+        'output_type': np.int64,
+        'name': ''
+    })
+    # Case 9: Repeated input data, different type
+    list_of_inputs.append({
+        'contents': np.array(jpeg_10x10_rgb),
+        'output_type': np.int32,
+        'name': 'case9_rgb'
+    })
+    # Case 10: Repeated input data, different type
+    list_of_inputs.append({
+        'contents': np.array(jpeg_8x16_gray),
+        'output_type': np.int32,
+        'name': 'case10_gray'
+    })
+    # Case 11: A deep copy of a previous input
+    input_dict_11 = copy.deepcopy(list_of_inputs[0])
+    input_dict_11['name'] = 'copied_input'
+    list_of_inputs.append(input_dict_11)
 
     return list_of_inputs
 

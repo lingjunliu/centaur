@@ -11,79 +11,107 @@ import copy
 def tf_raw_ops_range_inputs():
     list_of_inputs = []
 
-    # Input 1: int32, positive values
-    start = np.array(3, dtype=np.int32)
-    limit = np.array(18, dtype=np.int32)
-    delta = np.array(3, dtype=np.int32)
-    input_dict = {"start": start, "limit": limit, "delta": delta, "name": "range_int32_pos"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Basic positive integer range (int32)
+    input_dict_1 = {
+        'name': 'basic_int32_range',
+        'start': np.array(0, dtype=np.int32),
+        'limit': np.array(10, dtype=np.int32),
+        'delta': np.array(1, dtype=np.int32)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: int64, negative values
-    start = np.array(-10, dtype=np.int64)
-    limit = np.array(5, dtype=np.int64)
-    delta = np.array(2, dtype=np.int64)
-    input_dict = {"start": start, "limit": limit, "delta": delta, "name": "range_int64_neg"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: Integer range with a step > 1 (from example, int32)
+    input_dict_2 = {
+        'name': 'int32_range_step_3',
+        'start': np.array(3, dtype=np.int32),
+        'limit': np.array(18, dtype=np.int32),
+        'delta': np.array(3, dtype=np.int32)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: float32, fractional values
-    start = np.array(1.5, dtype=np.float32)
-    limit = np.array(5.5, dtype=np.float32)
-    delta = np.array(0.5, dtype=np.float32)
-    input_dict = {"start": start, "limit": limit, "delta": delta, "name": "range_float32_frac"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: Basic float32 range
+    input_dict_3 = {
+        'name': 'float32_range',
+        'start': np.array(0.0, dtype=np.float32),
+        'limit': np.array(1.0, dtype=np.float32),
+        'delta': np.array(0.1, dtype=np.float32)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: float64, negative fractional values
-    start = np.array(-2.7, dtype=np.float64)
-    limit = np.array(1.3, dtype=np.float64)
-    delta = np.array(0.8, dtype=np.float64)
-    input_dict = {"start": start, "limit": limit, "delta": delta, "name": "range_float64_neg_frac"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: Decreasing integer range (negative delta, int32)
+    input_dict_4 = {
+        'name': 'decreasing_int32_range',
+        'start': np.array(10, dtype=np.int32),
+        'limit': np.array(0, dtype=np.int32),
+        'delta': np.array(-2, dtype=np.int32)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: int32, start > limit, positive delta
-    start = np.array(10, dtype=np.int32)
-    limit = np.array(1, dtype=np.int32)
-    delta = np.array(1, dtype=np.int32)
-    input_dict = {"start": start, "limit": limit, "delta": delta, "name": "range_int32_start_greater"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5: Empty range (start == limit, int32)
+    input_dict_5 = {
+        'name': 'empty_range_equal',
+        'start': np.array(5, dtype=np.int32),
+        'limit': np.array(5, dtype=np.int32),
+        'delta': np.array(1, dtype=np.int32)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: int32, start < limit, negative delta
-    start = np.array(1, dtype=np.int32)
-    limit = np.array(10, dtype=np.int32)
-    delta = np.array(-1, dtype=np.int32)
-    input_dict = {"start": start, "limit": limit, "delta": delta, "name": "range_int32_negative_delta"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6: Float64 range
+    input_dict_6 = {
+        'name': 'float64_range',
+        'start': np.array(0.5, dtype=np.float64),
+        'limit': np.array(5.0, dtype=np.float64),
+        'delta': np.array(0.5, dtype=np.float64)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: bfloat16, positive values
-    start = np.array(2.0, dtype=np.float16) # bfloat16 unavailable in numpy
-    limit = np.array(10.0, dtype=np.float16)
-    delta = np.array(1.5, dtype=np.float16)
-    input_dict = {"start": start, "limit": limit, "delta": delta, "name": "range_bfloat16_pos"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 7: Large integer range using int64
+    input_dict_7 = {
+        'name': 'large_int64_range',
+        'start': np.array(1000000000, dtype=np.int64),
+        'limit': np.array(1000000010, dtype=np.int64),
+        'delta': np.array(2, dtype=np.int64)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-     # Input 8: int32, positive values
-    start = np.array(0, dtype=np.int32)
-    limit = np.array(100, dtype=np.int32)
-    delta = np.array(25, dtype=np.int32)
-    input_dict = {"start": start, "limit": limit, "delta": delta, "name": "range_int32_positive"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 8: Decreasing float range (float32)
+    input_dict_8 = {
+        'name': 'decreasing_float32_range',
+        'start': np.array(5.0, dtype=np.float32),
+        'limit': np.array(-5.0, dtype=np.float32),
+        'delta': np.array(-1.5, dtype=np.float32)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    
+    # Input 9: float16 (half) range
+    input_dict_9 = {
+        'name': 'float16_range',
+        'start': np.array(0.0, dtype=np.float16),
+        'limit': np.array(10.0, dtype=np.float16),
+        'delta': np.array(1.5, dtype=np.float16)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 9: int64, positive values
-    start = np.array(0, dtype=np.int64)
-    limit = np.array(100, dtype=np.int64)
-    delta = np.array(25, dtype=np.int64)
-    input_dict = {"start": start, "limit": limit, "delta": delta, "name": "range_int64_positive"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 10: Negative int64 range
+    input_dict_10 = {
+        'name': 'negative_int64_range',
+        'start': np.array(-20, dtype=np.int64),
+        'limit': np.array(0, dtype=np.int64),
+        'delta': np.array(3, dtype=np.int64)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
-    # Input 10: float32, positive values
-    start = np.array(0.0, dtype=np.float32)
-    limit = np.array(100.0, dtype=np.float32)
-    delta = np.array(25.0, dtype=np.float32)
-    input_dict = {"start": start, "limit": limit, "delta": delta, "name": "range_float32_positive"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 11: Decreasing float64 range
+    input_dict_11 = {
+        'name': 'decreasing_float64_range',
+        'start': np.array(10.0, dtype=np.float64),
+        'limit': np.array(-10.0, dtype=np.float64),
+        'delta': np.array(-2.5, dtype=np.float64)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_11))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.raw_ops.Range"] = tf_raw_ops_range_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -91,6 +119,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.Range' not in generated_inputs:

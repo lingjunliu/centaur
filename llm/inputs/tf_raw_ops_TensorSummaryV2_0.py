@@ -4,100 +4,128 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
+from tensorflow.core.framework import summary_pb2
 
 def tf_raw_ops_TensorSummaryV2_inputs():
     list_of_inputs = []
 
-    # Input 1
-    tag = np.array(b"example_tag_1", dtype=np.string_)
-    tensor = np.array([1, 2, 3, 4, 5], dtype=np.float32)
-    serialized_summary_metadata = np.array(b"", dtype=np.string_)
-    input_dict = {"tag": tag, "tensor": tensor, "serialized_summary_metadata": serialized_summary_metadata}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Create a serialized empty SummaryMetadata proto.
+    # This avoids the problematic protobuf field manipulation that seems to fail in the execution environment.
+    empty_metadata = summary_pb2.SummaryMetadata()
+    serialized_empty_metadata = np.array(empty_metadata.SerializeToString())
 
-    # Input 2
-    tag = np.array(b"example_tag_2", dtype=np.string_)
-    tensor = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    serialized_summary_metadata = np.array(b"metadata", dtype=np.string_)
-    input_dict = {"tag": tag, "tensor": tensor, "serialized_summary_metadata": serialized_summary_metadata}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 1: Scalar float tensor
+    input_dict_1 = {
+        'name': 'ScalarFloatSummary',
+        'tag': np.array('scalar_float'),
+        'tensor': np.array(3.14, dtype=np.float32),
+        'serialized_summary_metadata': serialized_empty_metadata
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 3
-    tag = np.array(b"example_tag_3", dtype=np.string_)
-    tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64)
-    serialized_summary_metadata = np.array(b"more_metadata", dtype=np.string_)
-    input_dict = {"tag": tag, "tensor": tensor, "serialized_summary_metadata": serialized_summary_metadata}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 2: 1D integer tensor with negative values
+    input_dict_2 = {
+        'name': None,
+        'tag': np.array('vector_int_summary'),
+        'tensor': np.array([-1, 0, 1, -2, 2], dtype=np.int32),
+        'serialized_summary_metadata': serialized_empty_metadata
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 4
-    tag = np.array(b"example_tag_4", dtype=np.string_)
-    tensor = np.array([-1, -2, -3], dtype=np.float64)
-    serialized_summary_metadata = np.array(b"", dtype=np.string_)
-    input_dict = {"tag": tag, "tensor": tensor, "serialized_summary_metadata": serialized_summary_metadata}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 3: 2D float64 tensor
+    input_dict_3 = {
+        'name': 'MatrixFloat64Summary',
+        'tag': np.array('matrix_summary/float64'),
+        'tensor': np.array([[-10.5, 20.0], [0.0, -0.5]], dtype=np.float64),
+        'serialized_summary_metadata': serialized_empty_metadata
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 5
-    tag = np.array(b"example_tag_5", dtype=np.string_)
-    tensor = np.array(True, dtype=np.bool_)
-    serialized_summary_metadata = np.array(b"some_metadata", dtype=np.string_)
-    input_dict = {"tag": tag, "tensor": tensor, "serialized_summary_metadata": serialized_summary_metadata}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 4: 3D uint8 tensor
+    input_dict_4 = {
+        'name': 'ImageSummary',
+        'tag': np.array('image_summary/rgb'),
+        'tensor': np.arange(24, dtype=np.uint8).reshape((2, 4, 3)),
+        'serialized_summary_metadata': serialized_empty_metadata
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 6
-    tag = np.array(b"example_tag_6", dtype=np.string_)
-    tensor = np.array([], dtype=np.float32)
-    serialized_summary_metadata = np.array(b"", dtype=np.string_)
-    input_dict = {"tag": tag, "tensor": tensor, "serialized_summary_metadata": serialized_summary_metadata}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 5: 0-D (scalar) int64 tensor
+    input_dict_5 = {
+        'name': None,
+        'tag': np.array('scalar_int64'),
+        'tensor': np.array(123456789012345, dtype=np.int64),
+        'serialized_summary_metadata': serialized_empty_metadata
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 7
-    tag = np.array(b"example_tag_7", dtype=np.string_)
-    tensor = np.array([1.5, 2.5, 3.5], dtype=np.float32)
-    serialized_summary_metadata = np.array(b"metadata_7", dtype=np.string_)
-    input_dict = {"tag": tag, "tensor": tensor, "serialized_summary_metadata": serialized_summary_metadata}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 6: 1D complex64 tensor
+    input_dict_6 = {
+        'name': 'ComplexSummary',
+        'tag': np.array('complex_vector'),
+        'tensor': np.array([1+2j, 3-4j, -5+6j], dtype=np.complex64),
+        'serialized_summary_metadata': serialized_empty_metadata
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 8
-    tag = np.array(b"example_tag_8", dtype=np.string_)
-    tensor = np.array([["a", "b"], ["c", "d"]], dtype=np.string_)
-    serialized_summary_metadata = np.array(b"", dtype=np.string_)
-    input_dict = {"tag": tag, "tensor": tensor, "serialized_summary_metadata": serialized_summary_metadata}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 7: Empty 1D tensor
+    input_dict_7 = {
+        'name': None,
+        'tag': np.array('empty_tensor_summary'),
+        'tensor': np.array([], dtype=np.float32),
+        'serialized_summary_metadata': serialized_empty_metadata
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 9
-    tag = np.array(b"example_tag_9", dtype=np.string_)
-    tensor = np.array([1, 2, 3], dtype=np.uint8)
-    serialized_summary_metadata = np.array(b"metadata_9", dtype=np.string_)
-    input_dict = {"tag": tag, "tensor": tensor, "serialized_summary_metadata": serialized_summary_metadata}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 8: High-rank tensor (4D) with float16
+    input_dict_8 = {
+        'name': '4DTensorSummary',
+        'tag': np.array('4d_tensor'),
+        'tensor': np.random.rand(2, 2, 2, 2).astype(np.float16),
+        'serialized_summary_metadata': serialized_empty_metadata
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-     # Input 10
-    tag = np.array(b"example_tag_10", dtype=np.string_)
-    tensor = np.array(10, dtype=np.int32)
-    serialized_summary_metadata = np.array(b"metadata_10", dtype=np.string_)
-    input_dict = {"tag": tag, "tensor": tensor, "serialized_summary_metadata": serialized_summary_metadata}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 9: 2D boolean tensor
+    input_dict_9 = {
+        'name': 'BooleanMatrix',
+        'tag': np.array('bool_matrix'),
+        'tensor': np.array([[True, False], [False, True]], dtype=np.bool_),
+        'serialized_summary_metadata': serialized_empty_metadata
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 11
-    tag = np.array(b"example_tag_11", dtype=np.string_)
-    tensor = np.array([1,2,3,4,5,6,7,8,9,10], dtype=np.int32)
-    serialized_summary_metadata = np.array(b"metadata_11", dtype=np.string_)
-    input_dict = {"tag": tag, "tensor": tensor, "serialized_summary_metadata": serialized_summary_metadata}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 10: Tensor with special float values (NaN, Inf)
+    input_dict_10 = {
+        'name': None,
+        'tag': np.array('special_floats'),
+        'tensor': np.array([np.nan, np.inf, -np.inf, 1.0], dtype=np.float32),
+        'serialized_summary_metadata': serialized_empty_metadata
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
     
-    # Input 12
-    tag = np.array(b"example_tag_12", dtype=np.string_)
-    tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    serialized_summary_metadata = np.array(b"metadata_12", dtype=np.string_)
-    input_dict = {"tag": tag, "tensor": tensor, "serialized_summary_metadata": serialized_summary_metadata}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 11: String tensor (bytes) for the main tensor argument
+    input_dict_11 = {
+        'name': 'StringTensorSummary',
+        'tag': np.array('string_tensor'),
+        'tensor': np.array([b'hello', b'world']),
+        'serialized_summary_metadata': serialized_empty_metadata
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_11))
+
+    # Case 12: Large 1D tensor
+    input_dict_12 = {
+        'name': 'LargeVector',
+        'tag': np.array('large_vector'),
+        'tensor': np.arange(1000, dtype=np.int16),
+        'serialized_summary_metadata': serialized_empty_metadata
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_12))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.raw_ops.TensorSummaryV2"] = tf_raw_ops_TensorSummaryV2_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -105,6 +133,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.TensorSummaryV2' not in generated_inputs:

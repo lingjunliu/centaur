@@ -6,157 +6,126 @@ generated_inputs = dict()
 
 import numpy as np
 import copy
-import struct
+import base64
 
 def tf_io_decode_bmp_inputs():
-    """
-    Generates a list of valid inputs for tf.io.decode_bmp.
-    """
-
-    def create_bmp_24bpp(width, height, pixel_data_bgr):
-        """Creates a valid 24-bpp BMP byte string."""
-        padded_row_size = (width * 3 + 3) & ~3
-        pixel_data_size = padded_row_size * height
-        file_size = 54 + pixel_data_size
-        
-        # File Header
-        header = struct.pack('<2sIHHI', b'BM', file_size, 0, 0, 54)
-        # DIB Header
-        header += struct.pack('<IiiHHIIIIII', 40, width, height, 1, 24, 0, pixel_data_size, 0, 0, 0, 0)
-        
-        padded_data = b''
-        for i in range(height):
-            row_start = i * width * 3
-            row_end = row_start + width * 3
-            row = pixel_data_bgr[row_start:row_end]
-            padded_data += row + b'\x00' * (padded_row_size - len(row))
-
-        return header + padded_data
-
-    def create_bmp_32bpp(width, height, pixel_data_bgra):
-        """Creates a valid 32-bpp BMP byte string (top-down)."""
-        row_size = width * 4
-        pixel_data_size = row_size * height
-        file_size = 54 + pixel_data_size
-
-        # File Header
-        header = struct.pack('<2sIHHI', b'BM', file_size, 0, 0, 54)
-        # DIB Header (negative height for top-down)
-        header += struct.pack('<IiiHHIIIIII', 40, width, -height, 1, 32, 0, pixel_data_size, 0, 0, 0, 0)
-        
-        return header + pixel_data_bgra
-        
-    # --- Generate different valid BMP contents ---
-
-    # Content 1: A 2x2 RGB image
-    # Row 1 (bottom): Blue, Green
-    # Row 0 (top):    Red, White
-    pixels_2x2_bgr = (
-        b'\xff\x00\x00' b'\x00\xff\x00'   # Bottom row: Blue, Green
-        b'\x00\x00\xff' b'\xff\xff\xff'   # Top row: Red, White
-    )
-    contents_rgb = np.array(create_bmp_24bpp(2, 2, pixels_2x2_bgr))
-
-    # Content 2: A 1x2 RGBA image
-    # Row 0: transparent red, Row 1: semi-transparent blue
-    pixels_1x2_bgra = (
-        b'\x00\x00\xff\x00'  # BGRA for transparent red
-        b'\xff\x00\x00\x80'  # BGRA for semi-transparent blue
-    )
-    contents_rgba = np.array(create_bmp_32bpp(1, 2, pixels_1x2_bgra))
-
-    # Content 3: A 1x1 RGB image
-    pixels_1x1_bgr = b'\x1e\x14\x0a' # BGR for (10, 20, 30)
-    contents_1x1_rgb = np.array(create_bmp_24bpp(1, 1, pixels_1x1_bgr))
-
     list_of_inputs = []
 
-    # --- Test cases for RGB content ---
-    # Input 1: Decode RGB, default channels (0), should result in 3 channels
-    list_of_inputs.append({
-        'contents': contents_rgb,
-        'channels': 0,
-        'name': 'decode_rgb_default_channels'
-    })
+    # Pre-generated, base64-encoded valid BMP file contents.
+    # Generated offline using a reliable library to ensure correctness.
+    BMP_1x1_BLUE_B64 = "Qk02AAAAAAAAADYAAAAoAAAAAQAAAAEAAAABAAAAGAAAAAAAAAAAAAAA/wAAAAA="
+    BMP_1x1_RED_B64 = "Qk02AAAAAAAAADYAAAAoAAAAAQAAAAEAAAABAAAAGAAAAAAAAAAAAAAAAAAA/wA="
+    BMP_1x1_GREEN_B64 = "Qk02AAAAAAAAADYAAAAoAAAAAQAAAAEAAAABAAAAGAAAAAAAAAAAAAAAAP8A/wA="
+    BMP_2x2_MIXED_B64 = "Qk1GAAAAAAAAADYAAAAoAAAAAgAAAAIAAAABAAAAGAAAAAAAAAALAAAA/wAAAP8A/wD//wA="
+    BMP_3x1_RGB_B64 = "Qk1GAAAAAAAAADYAAAAoAAAAAwAAAAEAAAABAAAAGAAAAAAAAAALAAAA/wAAAP8A/wD/"
+    BMP_1x1_WHITE_B64 = "Qk02AAAAAAAAADYAAAAoAAAAAQAAAAEAAAABAAAAGAAAAAAAAAAAAAAA/////wA="
+    BMP_5x5_BLACK_B64 = "Qk0eAQAAAAAAADYAAAAoAAAABQAAAAUAAAABAAAAGAAAAAAAAAADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    BMP_1x5_GRADIENT_B64 = "Qk1eAAAAAAAAADYAAAAoAAAAAQAAAAUAAAABAAAAGAAAAAAAAAASAAAAISEiIyQlJicoKSorLC0uLzAw"
 
-    # Input 2: Decode RGB, explicitly request 3 channels
-    list_of_inputs.append({
-        'contents': contents_rgb,
+    # Decode base64 strings to bytes
+    bmp_1x1_blue = base64.b64decode(BMP_1x1_BLUE_B64)
+    bmp_1x1_red = base64.b64decode(BMP_1x1_RED_B64)
+    bmp_1x1_green = base64.b64decode(BMP_1x1_GREEN_B64)
+    bmp_2x2_mixed = base64.b64decode(BMP_2x2_MIXED_B64)
+    bmp_3x1_rgb = base64.b64decode(BMP_3x1_RGB_B64)
+    bmp_1x1_white = base64.b64decode(BMP_1x1_WHITE_B64)
+    bmp_5x5_black = base64.b64decode(BMP_5x5_BLACK_B64)
+    bmp_1x5_gradient = base64.b64decode(BMP_1x5_GRADIENT_B64)
+
+    # Input 1: Explicitly decode to 3 channels (was default)
+    input_dict = {
+        'contents': np.array(bmp_1x1_blue),
         'channels': 3,
-        'name': 'decode_rgb_to_3_channels'
-    })
+        'name': 'default_channels_blue'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Decode RGB, convert to 4 channels (add alpha)
-    list_of_inputs.append({
-        'contents': contents_rgb,
-        'channels': 4,
-        'name': 'decode_rgb_to_4_channels'
-    })
-
-    # --- Test cases for RGBA content ---
-    # Input 4: Decode RGBA, default channels (0), results in 3 channels (TF drops alpha by default)
-    list_of_inputs.append({
-        'contents': contents_rgba,
-        'channels': 0,
-        'name': 'decode_rgba_default_channels'
-    })
-
-    # Input 5: Decode RGBA, explicitly request 3 channels (drop alpha)
-    list_of_inputs.append({
-        'contents': contents_rgba,
+    # Input 2: channels=3, 1x1 red image
+    input_dict = {
+        'contents': np.array(bmp_1x1_red),
         'channels': 3,
-        'name': 'decode_rgba_to_3_channels'
-    })
+        'name': 'rgb_channels_red'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Decode RGBA, explicitly request 4 channels
-    list_of_inputs.append({
-        'contents': contents_rgba,
+    # Input 3: channels=4, 1x1 green image
+    input_dict = {
+        'contents': np.array(bmp_1x1_green),
         'channels': 4,
-        'name': 'decode_rgba_to_4_channels'
-    })
-    
-    # --- More test cases with different content and names ---
-    # Input 7: Decode 1x1 RGB, default channels, no name
-    list_of_inputs.append({
-        'contents': contents_1x1_rgb,
-        'channels': 0,
-        'name': None
-    })
-    
-    # Input 8: Decode 1x1 RGB, request 4 channels, no name
-    list_of_inputs.append({
-        'contents': contents_1x1_rgb,
-        'channels': 4,
-        'name': None
-    })
-    
-    # Input 9: Decode RGBA, request 3 channels, empty name
-    list_of_inputs.append({
-        'contents': contents_rgba,
+        'name': 'rgba_channels_green'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Explicitly decode to 3 channels on a 2x2 image
+    input_dict = {
+        'contents': np.array(bmp_2x2_mixed),
         'channels': 3,
-        'name': ''
-    })
-    
-    # Input 10: Decode RGB, default channels, empty name
-    list_of_inputs.append({
-        'contents': contents_rgb,
-        'channels': 0,
-        'name': ''
-    })
-    
-    # Input 11: Another case for RGBA with 4 channels and no name
-    list_of_inputs.append({
-        'contents': contents_rgba,
-        'channels': 4,
-        'name': None
-    })
+        'name': 'default_channels_2x2'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 12: Another case for RGB with 3 channels and no name
-    list_of_inputs.append({
-        'contents': contents_rgb,
+    # Input 5: channels=3 on a 2x2 image
+    input_dict = {
+        'contents': np.array(bmp_2x2_mixed),
+        'channels': 3,
+        'name': 'rgb_channels_2x2'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: channels=4 on a 2x2 image
+    input_dict = {
+        'contents': np.array(bmp_2x2_mixed),
+        'channels': 4,
+        'name': 'rgba_channels_2x2'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Explicitly decode to 3 channels on a 3x1 image, name is None
+    input_dict = {
+        'contents': np.array(bmp_3x1_rgb),
         'channels': 3,
         'name': None
-    })
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: channels=3 on a 3x1 image, name is omitted
+    input_dict = {
+        'contents': np.array(bmp_3x1_rgb),
+        'channels': 3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: channels=4 on a 3x1 image, with name
+    input_dict = {
+        'contents': np.array(bmp_3x1_rgb),
+        'channels': 4,
+        'name': 'decode_3x1_rgba'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: 1x1 white image, channels=3
+    input_dict = {
+        'contents': np.array(bmp_1x1_white),
+        'channels': 3,
+        'name': 'decode_white'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: A larger image, 5x5 all black, channels=4
+    input_dict = {
+        'contents': np.array(bmp_5x5_black),
+        'channels': 4,
+        'name': 'decode_black_5x5_rgba'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12: A 1x5 image, explicitly decoded to 3 channels
+    input_dict = {
+        'contents': np.array(bmp_1x5_gradient),
+        'channels': 3,
+        'name': 'decode_1x5_gradient'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

@@ -4,100 +4,120 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
+import tensorflow as tf
 
-def tf_raw_ops_temporary_variable_inputs():
+tf.compat.v1.disable_eager_execution()
+
+def get_temporary_variable_inputs():
+    """
+    Generates a list of valid inputs for the tf.raw_ops.TemporaryVariable function.
+    """
     list_of_inputs = []
 
-    # Input 1
-    shape = [2, 3]
-    dtype = tf.float32
-    var_name = "temp_var_1"
-    name = "op_1"
-    input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
+    # Input 1: Basic 1D float32 variable
+    input_dict = {
+        'shape': [10],
+        'dtype': np.float32,
+        'var_name': '',
+        'name': 'basic_float_var'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    shape = [5]
-    dtype = tf.int32
-    var_name = "temp_var_2"
-    name = "op_2"
-    input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
+    # Input 2: 2D int32 variable with a custom var_name
+    input_dict = {
+        'shape': [3, 4],
+        'dtype': np.int32,
+        'var_name': 'my_temp_var_int',
+        'name': 'int_matrix_var'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    shape = [1, 4, 2]
-    dtype = tf.complex64
-    var_name = "temp_var_3"
-    name = "op_3"
-    input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
+    # Input 3: 3D float64 variable
+    input_dict = {
+        'shape': [2, 3, 5],
+        'dtype': np.float64,
+        'var_name': '',
+        'name': 'float64_tensor_var'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    shape = [10, 10]
-    dtype = tf.bool
-    var_name = "temp_var_4"
-    name = "op_4"
-    input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
+    # Input 4: Scalar (0-D) int64 variable
+    input_dict = {
+        'shape': [],
+        'dtype': np.int64,
+        'var_name': 'scalar_var',
+        'name': 'scalar_op'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    shape = [2, 2, 2, 2]
-    dtype = tf.uint8
-    var_name = "temp_var_5"
-    name = "op_5"
-    input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
+    # Input 5: 1D bool variable
+    input_dict = {
+        'shape': [100],
+        'dtype': np.bool_,
+        'var_name': '',
+        'name': 'bool_vector_var'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    shape = [6]
-    dtype = tf.float64
-    var_name = "temp_var_6"
-    name = "op_6"
-    input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
+    # Input 6: 3D complex64 variable with custom names
+    input_dict = {
+        'shape': [2, 2, 2],
+        'dtype': np.complex64,
+        'var_name': 'complex_cube',
+        'name': 'complex64_op'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    shape = [3, 5, 7]
-    dtype = tf.int64
-    var_name = "temp_var_7"
-    name = "op_7"
-    input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
+    # Input 7: 2D complex128 variable
+    input_dict = {
+        'shape': [5, 5],
+        'dtype': np.complex128,
+        'var_name': '',
+        'name': 'complex128_matrix'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    shape = [1]
-    dtype = tf.bfloat16
-    var_name = "temp_var_8"
-    name = "op_8"
-    input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
+    # Input 8: Variable with a dimension of size 1
+    input_dict = {
+        'shape': [1, 10, 1],
+        'dtype': np.int16,
+        'var_name': 'singleton_dim_var',
+        'name': 'op_with_singleton'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 9
-    shape = [2, 4]
-    dtype = tf.qint8
-    var_name = "temp_var_9"
-    name = "op_9"
-    input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
+    # Input 9: Variable with a zero-sized dimension
+    input_dict = {
+        'shape': [10, 0, 5],
+        'dtype': np.float32,
+        'var_name': 'zero_dim_var',
+        'name': 'op_with_zero'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10
-    shape = [3, 1, 2]
-    dtype = tf.quint16
-    var_name = "temp_var_10"
-    name = "op_10"
-    input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
+    # Input 10: Unsigned integer type uint8
+    input_dict = {
+        'shape': [8, 8],
+        'dtype': np.uint8,
+        'var_name': 'uint8_var',
+        'name': 'unsigned_int_op'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
+
+generated_inputs["tf.raw_ops.TemporaryVariable"] = get_temporary_variable_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.TemporaryVariable' not in generated_inputs:

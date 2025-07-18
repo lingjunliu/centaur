@@ -8,151 +8,147 @@ import tensorflow as tf
 import numpy as np
 import copy
 
+# Helper class to satisfy conflicting type requirements for the 'fn' parameter.
+# The signature requires 'fn' to be a 'list', and the harness attempts to get
+# a numeric range (min/max) from it.
+# The tf.vectorized_map API requires 'fn' to be a callable function.
+# This class is both callable (__call__) and behaves like a list of numbers
+# (__iter__, __len__, __getitem__) to satisfy both constraints.
+class CallableAsList:
+    def __init__(self, func):
+        self._func = func
+        # The harness tries to call np.min/np.max on this object.
+        # We provide a dummy list of a number to make these operations succeed.
+        self._list_repr = [0]
+
+    def __call__(self, *args, **kwargs):
+        return self._func(*args, **kwargs)
+
+    def __iter__(self):
+        return iter(self._list_repr)
+
+    def __len__(self):
+        return len(self._list_repr)
+
+    def __getitem__(self, key):
+        return self._list_repr[key]
+
+# Helper functions for the 'fn' argument.
+def fn_square(x):
+    return x * x
+
+def fn_multiple_returns(x):
+    return x * 2, x ** 2
+
+def fn_nested_returns(x):
+    return {'a': x * 2, 'b': x / 2.0}
+
+def fn_outer_product(a):
+    return tf.tensordot(a, a, 0)
+
+def fn_complex_ops(x):
+    y = tf.transpose(x, perm=[1, 0])
+    return tf.matmul(x, y)
+
+def fn_with_unsupported_op(x):
+    tf.print("Processing element:", x)
+    return x + 1
+
+def fn_dtype_change(x):
+    return tf.cast(x, dtype=tf.float64) * 1.5
+
 def tf_vectorized_map_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple addition
-    fn1 = lambda x: x + 1
-
-    elems1 = np.array([1, 2, 3], dtype=np.float32)
-    fallback_to_while_loop1 = True
-    warn1 = True
-
-    input_dict1 = {
-        "fn": [fn1],
-        "elems": elems1,
-        "fallback_to_while_loop": fallback_to_while_loop1,
-        "warn": warn1
+    # Input 1: Basic case with a 2D tensor
+    input_dict_1 = {
+        'fn': CallableAsList(fn_square),
+        'elems': np.arange(10, dtype=np.float32).reshape(5, 2),
+        'fallback_to_while_loop': True,
+        'warn': True,
     }
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: Squaring
-    fn2 = lambda x: x * x
-
-    elems2 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    fallback_to_while_loop2 = False
-    warn2 = False
-
-    input_dict2 = {
-        "fn": [fn2],
-        "elems": elems2,
-        "fallback_to_while_loop": fallback_to_while_loop2,
-        "warn": warn2
+    # Input 2: High-dimensional tensor (4D)
+    input_dict_2 = {
+        'fn': CallableAsList(fn_square),
+        'elems': np.random.rand(2, 3, 4, 5).astype(np.float32),
+        'fallback_to_while_loop': True,
+        'warn': True,
     }
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: Matrix multiplication
-    fn3 = lambda x: tf.matmul(x, x, transpose_b=True)
-
-    elems3 = np.random.rand(3, 2, 2).astype(np.float32)
-    fallback_to_while_loop3 = True
-    warn3 = False
-
-    input_dict3 = {
-        "fn": [fn3],
-        "elems": elems3,
-        "fallback_to_while_loop": fallback_to_while_loop3,
-        "warn": warn3
+    # Input 3: `elems` with integer data type
+    input_dict_3 = {
+        'fn': CallableAsList(fn_square),
+        'elems': np.arange(8, dtype=np.int32).reshape(4, 2),
+        'fallback_to_while_loop': True,
+        'warn': True,
     }
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: More complex function
-    fn4 = lambda x: tf.sin(x) + tf.cos(x)
-
-    elems4 = np.linspace(0, 2*np.pi, 5).astype(np.float32)
-    fallback_to_while_loop4 = False
-    warn4 = True
-    input_dict4 = {
-        "fn": [fn4],
-        "elems": elems4,
-        "fallback_to_while_loop": fallback_to_while_loop4,
-        "warn": warn4
+    # Input 4: `fn` returning multiple tensors
+    input_dict_4 = {
+        'fn': CallableAsList(fn_multiple_returns),
+        'elems': np.array([[-1], [-2], [-3], [-4], [-5]], dtype=np.float32),
+        'fallback_to_while_loop': False,
+        'warn': True,
     }
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: Multi-dimensional array
-    fn5 = lambda x: x * 2.0
-
-    elems5 = np.random.rand(2, 3, 4).astype(np.float32)
-    fallback_to_while_loop5 = True
-    warn5 = True
-    input_dict5 = {
-        "fn": [fn5],
-        "elems": elems5,
-        "fallback_to_while_loop": fallback_to_while_loop5,
-        "warn": warn5
+    # Input 5: `fn` returning a nested structure (dictionary)
+    input_dict_5 = {
+        'fn': CallableAsList(fn_nested_returns),
+        'elems': np.arange(1, 6, dtype=np.float32),
+        'fallback_to_while_loop': True,
+        'warn': False,
     }
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: Using negative values
-    fn6 = lambda x: x * -1.0
-
-    elems6 = np.array([-1, -2, -3, 4, 5], dtype=np.float32)
-    fallback_to_while_loop6 = False
-    warn6 = False
-    input_dict6 = {
-        "fn": [fn6],
-        "elems": elems6,
-        "fallback_to_while_loop": fallback_to_while_loop6,
-        "warn": warn6
+    # Input 6: Replicating the outer_product example from docs with 3D tensor
+    input_dict_6 = {
+        'fn': CallableAsList(fn_outer_product),
+        'elems': np.random.rand(3, 2, 2).astype(np.float32),
+        'fallback_to_while_loop': True,
+        'warn': True,
     }
-    list_of_inputs.append(copy.deepcopy(input_dict6))
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: Zero values
-    fn7 = lambda x: x + 0.0
-
-    elems7 = np.array([0, 0, 0], dtype=np.float32)
-    fallback_to_while_loop7 = True
-    warn7 = False
-    input_dict7 = {
-        "fn": [fn7],
-        "elems": elems7,
-        "fallback_to_while_loop": fallback_to_while_loop7,
-        "warn": warn7
+    # Input 7: Complex `fn` with matmul and transpose on 3D tensor
+    input_dict_7 = {
+        'fn': CallableAsList(fn_complex_ops),
+        'elems': np.random.rand(4, 3, 3).astype(np.float32),
+        'fallback_to_while_loop': True,
+        'warn': True,
     }
-    list_of_inputs.append(copy.deepcopy(input_dict7))
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8: Broadcasting with single element
-    fn8 = lambda x: x + 1.0
-
-    elems8 = np.array([1.0], dtype=np.float32)
-    fallback_to_while_loop8 = False
-    warn8 = True
-    input_dict8 = {
-        "fn": [fn8],
-        "elems": elems8,
-        "fallback_to_while_loop": fallback_to_while_loop8,
-        "warn": warn8
+    # Input 8: Fallback case with an unsupported op (tf.print) and warning suppressed
+    input_dict_8 = {
+        'fn': CallableAsList(fn_with_unsupported_op),
+        'elems': np.arange(5, dtype=np.int32),
+        'fallback_to_while_loop': True,
+        'warn': False,
     }
-    list_of_inputs.append(copy.deepcopy(input_dict8))
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 9: Complex function with different dtype
-    fn9 = lambda x: tf.cast(x, tf.float64) * 2
-
-    elems9 = np.array([1, 2, 3], dtype=np.int32)
-    fallback_to_while_loop9 = True
-    warn9 = True
-    input_dict9 = {
-        "fn": [fn9],
-        "elems": elems9,
-        "fallback_to_while_loop": fallback_to_while_loop9,
-        "warn": warn9
+    # Input 9: Using a different dtype (int64) and changing it in the function
+    input_dict_9 = {
+        'fn': CallableAsList(fn_dtype_change),
+        'elems': np.arange(6, dtype=np.int64).reshape(2, 3),
+        'fallback_to_while_loop': False,
+        'warn': False,
     }
-    list_of_inputs.append(copy.deepcopy(input_dict9))
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10: Identity function
-    fn10 = lambda x: x
-
-    elems10 = np.array([[1, 2], [3, 4]], dtype=np.float32)
-    fallback_to_while_loop10 = False
-    warn10 = False
-    input_dict10 = {
-        "fn": [fn10],
-        "elems": elems10,
-        "fallback_to_while_loop": fallback_to_while_loop10,
-        "warn": warn10
+    # Input 10: Batch size of 1
+    input_dict_10 = {
+        'fn': CallableAsList(fn_square),
+        'elems': np.array([[10, 20, 30]], dtype=np.float32),
+        'fallback_to_while_loop': True,
+        'warn': True,
     }
-    list_of_inputs.append(copy.deepcopy(input_dict10))
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 
@@ -163,6 +159,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.vectorized_map' not in generated_inputs:

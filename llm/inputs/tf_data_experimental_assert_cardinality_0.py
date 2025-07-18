@@ -8,86 +8,86 @@ import tensorflow as tf
 import numpy as np
 import copy
 
+
 def tf_data_experimental_assert_cardinality_inputs():
     """
     Generates a list of valid inputs for tf.data.experimental.assert_cardinality.
-    This function returns a transformation function. To make it testable, the inputs
-    include a pickleable representation of a dataset (under the 'dataset' key)
-    which the test harness is expected to use to apply the transformation to.
+    This API returns a transformation function for `Dataset.apply`. The testing
+    framework requires the Dataset instance to be provided so it can apply the
+    resulting transformation. The `dataset` key is used for this purpose.
+    NOTE: tf.data.Dataset objects are not deep-copyable, so we append the dictionaries directly.
     """
     list_of_inputs = []
 
-    # Input 1: Correct cardinality for a simple dataset of integers.
+    # Input 1: Asserting cardinality of 0 for an empty dataset.
     input_dict_1 = {
-        'expected_cardinality': 10,
-        'dataset': np.arange(10, dtype=np.int64)
+        'dataset': tf.data.Dataset.from_tensor_slices(np.array([], dtype=np.int32)),
+        'expected_cardinality': 0
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    list_of_inputs.append(input_dict_1)
 
-    # Input 2: Correct cardinality for an empty dataset.
+    # Input 2: Asserting cardinality of 1 for a single-element dataset.
     input_dict_2 = {
-        'expected_cardinality': 0,
-        'dataset': np.array([], dtype=np.float32)
+        'dataset': tf.data.Dataset.from_tensor_slices(np.array([42], dtype=np.int32)),
+        'expected_cardinality': 1
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    list_of_inputs.append(input_dict_2)
 
-    # Input 3: Correct cardinality for a dataset with a single, multi-dimensional element.
+    # Input 3: Asserting a small positive cardinality.
     input_dict_3 = {
-        'expected_cardinality': 1,
-        'dataset': np.random.rand(1, 5, 5).astype(np.float64)
+        'dataset': tf.data.Dataset.range(10),
+        'expected_cardinality': 10
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    list_of_inputs.append(input_dict_3)
 
-    # Input 4: Using a numpy integer type for the cardinality argument.
+    # Input 4: Asserting a medium positive cardinality.
     input_dict_4 = {
-        'expected_cardinality': np.int32(25),
-        'dataset': np.arange(25)
+        'dataset': tf.data.Dataset.from_tensor_slices(np.arange(42, dtype=np.int64)),
+        'expected_cardinality': 42
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    list_of_inputs.append(input_dict_4)
 
-    # Input 5: Dataset constructed from a tuple of numpy arrays.
+    # Input 5: Asserting a larger positive cardinality.
     input_dict_5 = {
-        'expected_cardinality': 8,
-        'dataset': (np.arange(8), np.linspace(0, 1, 8, dtype=np.float32))
+        'dataset': tf.data.Dataset.range(1024),
+        'expected_cardinality': 1024
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    list_of_inputs.append(input_dict_5)
 
-    # Input 6: Dataset constructed from a dictionary of numpy arrays.
+    # Input 6: Special value for infinite cardinality (-1).
     input_dict_6 = {
-        'expected_cardinality': 4,
-        'dataset': {'features': np.random.rand(4, 16), 'labels': np.arange(4)}
+        'dataset': tf.data.Dataset.range(1).repeat(),
+        'expected_cardinality': -1
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    list_of_inputs.append(input_dict_6)
 
-    # Input 7: Dataset with string elements.
+    # Input 7: Special value for unknown cardinality (-2).
     input_dict_7 = {
-        'expected_cardinality': 3,
-        'dataset': np.array(['cat', 'dog', 'mouse'], dtype=object)
+        'dataset': tf.data.Dataset.range(20).filter(lambda x: x < 15),
+        'expected_cardinality': -2
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    list_of_inputs.append(input_dict_7)
 
-    # Input 8: Asserting infinite cardinality.
-    # The test harness must create a .repeat() dataset to make this pass.
+    # Input 8: Asserting a known cardinality on a dataset whose cardinality is statically unknown.
     input_dict_8 = {
-        'expected_cardinality': tf.data.experimental.INFINITE_CARDINALITY,
-        'dataset': np.arange(5)
+        'dataset': tf.data.Dataset.range(50).filter(lambda x: x % 2 == 0),
+        'expected_cardinality': 25
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    list_of_inputs.append(input_dict_8)
 
-    # Input 9: Asserting unknown cardinality.
-    # The test harness must create a .filter() dataset to make this pass.
+    # Input 9: Another small positive cardinality with a different data type.
     input_dict_9 = {
-        'expected_cardinality': tf.data.experimental.UNKNOWN_CARDINALITY,
-        'dataset': np.arange(10)
+        'dataset': tf.data.Dataset.from_tensor_slices(np.linspace(0, 1, 5, dtype=np.float32)),
+        'expected_cardinality': 5
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    list_of_inputs.append(input_dict_9)
 
-    # Input 10: A valid API call that should produce a runtime error because the cardinality is wrong.
+    # Input 10: Another medium positive cardinality.
     input_dict_10 = {
-        'expected_cardinality': 99,
-        'dataset': np.arange(100)
+        'dataset': tf.data.Dataset.range(256),
+        'expected_cardinality': 256
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    list_of_inputs.append(input_dict_10)
 
     return list_of_inputs
 

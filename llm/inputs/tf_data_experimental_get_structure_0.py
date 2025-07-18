@@ -10,112 +10,58 @@ import numpy as np
 def tf_data_experimental_get_structure_inputs():
     """
     Generates a list of valid inputs for the tf.data.experimental.get_structure function.
-    The provided signature {'dataset_or_iterator': 'tuple'} suggests that the validation
-    framework expects a tuple. However, the API itself requires a tf.data.Dataset or
-    tf.data.Iterator object. This implementation provides tuples of numpy arrays, adhering
-    strictly to the provided signature, assuming a hypothetical preprocessing step in the
-    execution framework converts this tuple into a Dataset object before calling the API.
-    Only numeric and boolean dtypes are used to avoid potential validation issues with non-numeric types.
+    The inputs are tuples of numpy arrays, adhering to the strict signature {'dataset_or_iterator': 'tuple'}.
+    The test harness is expected to convert these tuples into tf.data.Dataset objects.
     """
     list_of_inputs = []
 
-    # Input 1: Tuple of 1D numpy arrays (int and float).
-    input_dict_1 = {
-        'dataset_or_iterator': (
-            np.arange(5, dtype=np.int32),
-            np.linspace(0, 1, 5, dtype=np.float32)
-        )
-    }
-    list_of_inputs.append(input_dict_1)
+    # Input 1: Tuple of numpy arrays with basic types (int, float)
+    input_tuple_1 = (np.array([1, 2, 3], dtype=np.int32), np.array([-4.5, 5.5, 6.5], dtype=np.float32))
+    list_of_inputs.append({'dataset_or_iterator': input_tuple_1})
 
-    # Input 2: Tuple of 2D numpy arrays (float and negative int).
-    input_dict_2 = {
-        'dataset_or_iterator': (
-            np.random.rand(3, 2).astype(np.float32),
-            np.random.randint(-10, 0, size=(3, 2), dtype=np.int64)
-        )
-    }
-    list_of_inputs.append(input_dict_2)
+    # Input 2: Tuple of numpy arrays with other types (string, bool)
+    input_tuple_2 = (np.array(['apple', 'banana', 'cherry']), np.array([True, False, True]))
+    list_of_inputs.append({'dataset_or_iterator': input_tuple_2})
 
-    # Input 3: Tuple of 3D numpy arrays (bool and float).
-    input_dict_3 = {
-        'dataset_or_iterator': (
-            np.random.choice([True, False], size=(2, 2, 2)),
-            np.random.randn(2, 2, 2).astype(np.float16)
-        )
-    }
-    list_of_inputs.append(input_dict_3)
+    # Input 3: Tuple of 2D numpy arrays
+    input_tuple_3 = (np.arange(6, dtype=np.int64).reshape(2, 3), np.arange(6, 12, dtype=np.float64).reshape(2, 3))
+    list_of_inputs.append({'dataset_or_iterator': input_tuple_3})
 
-    # Input 4: Nested tuple of numpy arrays.
-    input_dict_4 = {
-        'dataset_or_iterator': (
-            np.arange(2, dtype=np.uint8),
-            (np.array([[1.1], [2.2]], dtype=np.float64), np.array([[10], [20]], dtype=np.int8))
-        )
-    }
-    list_of_inputs.append(input_dict_4)
+    # Input 4: Tuple of numpy arrays with mixed shapes (1D and 2D)
+    input_tuple_4 = (np.array([10, 20], dtype=np.int32), np.array([[1.1, 2.2], [3.3, 4.4]], dtype=np.float16))
+    list_of_inputs.append({'dataset_or_iterator': input_tuple_4})
 
-    # Input 5: Tuple with a single element (a 2D array).
-    input_dict_5 = {
-        'dataset_or_iterator': (
-            np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32),
-        )
-    }
-    list_of_inputs.append(input_dict_5)
+    # Input 5: Tuple of 3D numpy arrays
+    input_tuple_5 = (np.zeros((2, 2, 2), dtype=np.int8), np.ones((2, 2, 2), dtype=bool))
+    list_of_inputs.append({'dataset_or_iterator': input_tuple_5})
 
-    # Input 6: Tuple of arrays with different ranks but same first dimension size.
-    input_dict_6 = {
-        'dataset_or_iterator': (
-            np.arange(4, dtype=np.int16),
-            np.random.rand(4, 3).astype(np.float32),
-            np.random.choice([True, False], size=(4, 2, 2))
-        )
-    }
-    list_of_inputs.append(input_dict_6)
+    # Input 6: Longer tuple (3 elements) with various types and shapes
+    input_tuple_6 = (np.array([1, 2], dtype=np.int32), np.array([-1.0, -2.0], dtype=np.float32), np.array([[True, False], [False, True]]))
+    list_of_inputs.append({'dataset_or_iterator': input_tuple_6})
 
-    # Input 7: Tuple with zero-valued arrays.
-    input_dict_7 = {
-        'dataset_or_iterator': (
-            np.zeros((5,), dtype=np.int32),
-            np.zeros((5, 2), dtype=np.float64)
-        )
-    }
-    list_of_inputs.append(input_dict_7)
+    # Input 7: Tuple with an array having an empty dimension
+    input_tuple_7 = (np.empty((3, 0), dtype=np.int32), np.array([1, 2, 3], dtype=np.int32))
+    list_of_inputs.append({'dataset_or_iterator': input_tuple_7})
 
-    # Input 8: Tuple with empty numpy arrays (with defined dimensions).
-    input_dict_8 = {
-        'dataset_or_iterator': (
-            np.empty((0, 3), dtype=np.int32),
-            np.empty((0, 2, 2), dtype=np.float32)
-        )
-    }
-    list_of_inputs.append(input_dict_8)
+    # Input 8: A tuple containing a single numpy array
+    input_tuple_8 = (np.array([1, 0, -1], dtype=np.int16),)
+    list_of_inputs.append({'dataset_or_iterator': input_tuple_8})
+
+    # Input 9: Tuple of higher-rank random tensors (3D)
+    input_tuple_9 = (np.random.rand(2, 2, 3).astype(np.float32), np.random.rand(2, 2, 3).astype(np.float32))
+    list_of_inputs.append({'dataset_or_iterator': input_tuple_9})
+
+    # Input 10: Tuple of higher-rank tensors (4D) with unsigned integer types
+    input_tuple_10 = (np.zeros((2, 1, 3, 1), dtype=np.uint8), np.ones((2, 1, 3, 1), dtype=np.uint16))
+    list_of_inputs.append({'dataset_or_iterator': input_tuple_10})
     
-    # Input 9: Tuple with various unsigned integer types.
-    input_dict_9 = {
-        'dataset_or_iterator': (
-            np.arange(3, dtype=np.uint8),
-            np.arange(3, dtype=np.uint16) * 1000,
-            np.arange(3, dtype=np.uint32) * 100000,
-            np.arange(3, dtype=np.uint64) * 100000000
-        )
-    }
-    list_of_inputs.append(input_dict_9)
+    # Input 11: A tuple with different float types
+    input_tuple_11 = (np.array([1.0], dtype=np.float16), np.array([2.0], dtype=np.float64))
+    list_of_inputs.append({'dataset_or_iterator': input_tuple_11})
 
-    # Input 10: Deeper nested tuple of numpy arrays.
-    input_dict_10 = {
-        'dataset_or_iterator': (
-            np.arange(2, dtype=np.int32),
-            (
-                np.array([[1],[2]], dtype=np.int16),
-                (
-                    np.array([[[True]],[[False]]]),
-                    np.array([[1.0],[-1.0]], dtype=np.float16)
-                )
-            )
-        )
-    }
-    list_of_inputs.append(input_dict_10)
+    # Input 12: A tuple with complex numbers
+    input_tuple_12 = (np.array([1+2j, 3+4j], dtype=np.complex64),)
+    list_of_inputs.append({'dataset_or_iterator': input_tuple_12})
 
     return list_of_inputs
 

@@ -9,95 +9,90 @@ import copy
 
 def tf_raw_ops_barrier_close_inputs():
     """
-    Generates a list of valid inputs for the tf.raw_ops.BarrierClose operation.
-
-    NOTE: The `RuntimeError: barrier_close op does not support eager execution`
-    is an unfixable error in the context of the testing environment. This specific
-    TensorFlow operation is designed exclusively for Graph mode, where it operates
-    on resource handles created within that graph. The test harness attempts to
-    run it in Eager mode, where the operation is explicitly disabled, leading to
-    the runtime error. The provided inputs are syntactically valid according to
-    the API signature but cannot be executed eagerly.
+    Generates a list of valid inputs for the tf.raw_ops.BarrierClose function.
+    NOTE: This op is not supported in eager mode and will raise a RuntimeError
+    if executed outside of a TensorFlow graph. The inputs provided here are
+    syntactically valid for graph-based execution.
     """
     list_of_inputs = []
 
-    # Input 1
+    # Input 1: Basic case with cancel_pending_enqueues=False
     input_dict_1 = {
-        'handle': np.array('handle_v5_1', dtype=object),
+        'handle': np.array(b'barrier_handle_A', dtype=np.object_),
         'cancel_pending_enqueues': False,
-        'name': 'name_v5_1'
+        'name': 'close_A'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2
+    # Input 2: Basic case with cancel_pending_enqueues=True
     input_dict_2 = {
-        'handle': np.array('handle_v5_2', dtype=object),
+        'handle': np.array(b'barrier_handle_B', dtype=np.object_),
         'cancel_pending_enqueues': True,
-        'name': 'name_v5_2'
+        'name': 'close_B_cancel'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3
+    # Input 3: No optional name
     input_dict_3 = {
-        'handle': np.array('another_handle_for_barrier', dtype=object),
+        'handle': np.array(b'barrier_handle_C', dtype=np.object_),
         'cancel_pending_enqueues': False,
-        'name': 'SomeOtherName'
+        'name': None
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4
+    # Input 4: Handle with numbers
     input_dict_4 = {
-        'handle': np.array('handle_with_nums_123', dtype=object),
+        'handle': np.array(b'barrier_123', dtype=np.object_),
         'cancel_pending_enqueues': True,
-        'name': 'name_for_handle_123'
+        'name': 'close_123'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5
+    # Input 5: Empty string handle
     input_dict_5 = {
-        'handle': np.array('handle_for_no_name', dtype=object),
+        'handle': np.array(b'', dtype=np.object_),
         'cancel_pending_enqueues': False,
-        'name': ''
+        'name': 'close_empty'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6
+    # Input 6: Long handle string
     input_dict_6 = {
-        'handle': np.array('a/scoped/handle', dtype=object),
-        'cancel_pending_enqueues': True,
-        'name': 'a/scoped/name'
+        'handle': np.array(b'a_very_long_and_specific_barrier_handle_string_for_testing', dtype=np.object_),
+        'cancel_pending_enqueues': False,
+        'name': 'close_long_handle'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
-
-    # Input 7
+    
+    # Input 7: Handle as a 2-element array (resource handle convention)
     input_dict_7 = {
-        'handle': np.array('', dtype=object),
+        'handle': np.array([b'shared_container', b'resource_barrier_1'], dtype=np.object_),
         'cancel_pending_enqueues': False,
-        'name': 'name_for_empty_handle'
+        'name': 'close_resource_1'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
-
-    # Input 8
+    
+    # Input 8: Another 2-element handle with cancellation
     input_dict_8 = {
-        'handle': np.array(['h_as_array'], dtype=object),
+        'handle': np.array([b'default', b'resource_barrier_2'], dtype=np.object_),
         'cancel_pending_enqueues': True,
-        'name': 'n_for_array_h'
+        'name': 'cancel_resource_2'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 9
+    # Input 9: Handle as a 1-element array
     input_dict_9 = {
-        'handle': np.array(['another_array_handle'], dtype=object),
+        'handle': np.array([b'single_item_handle'], dtype=np.object_),
         'cancel_pending_enqueues': False,
-        'name': 'another_name_for_array_h'
+        'name': 'close_single_item'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_9))
-
-    # Input 10
+    
+    # Input 10: Long operation name
     input_dict_10 = {
-        'handle': np.array('last_one', dtype=object),
+        'handle': np.array(b'short_handle', dtype=np.object_),
         'cancel_pending_enqueues': True,
-        'name': 'last_name'
+        'name': 'ThisIsAVeryLongAndUnnecessarilyVerboseOperationNameJustForTestingPurposes'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_10))
 

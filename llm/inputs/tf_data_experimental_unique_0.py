@@ -10,94 +10,73 @@ import copy
 
 def tf_data_experimental_unique_inputs():
     """
-    Generates a list of valid inputs for the tf.data.experimental.unique API.
-    This API returns a transformation function. The test harness expects the data for the
-    initial dataset to be provided in a nested dictionary under the 'inner_values' key.
-    The 'inner_values' dictionary should contain arguments for tf.data.Dataset.from_tensor_slices,
-    primarily the 'tensors' key. The tf.data.experimental.unique function itself takes no
-    arguments, so the top-level dictionary outside of 'inner_values' is empty.
+    Generates a list of valid inputs for tf.data.experimental.unique.
+    This API returns a function to be used with `Dataset.apply`. The test harness
+    is expected to create a dataset from the numpy array provided under the 'dataset' key.
+    The signature for `tf.data.experimental.unique()` itself is `{}`, so no direct
+    arguments are passed to it.
     """
     list_of_inputs = []
 
-    # Input 1: Simple 1D array with integer duplicates
-    input_dict = {
-        'inner_values': {
-            'tensors': np.array([1, 37, 2, 37, 2, 1], dtype=np.int32)
-        }
+    # Case 1: Basic case with integers and duplicates
+    input_dict_1 = {
+        'dataset': np.array([1, 37, 2, 37, 2, 1], dtype=np.int32)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: 1D array with all unique elements
-    input_dict = {
-        'inner_values': {
-            'tensors': np.array([10, 20, 30, 40, 50], dtype=np.int64)
-        }
+    # Case 2: All elements are unique
+    input_dict_2 = {
+        'dataset': np.array([1, 2, 3, 4, 5], dtype=np.int64)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: 1D array with all elements being the same
-    input_dict = {
-        'inner_values': {
-            'tensors': np.array([5, 5, 5, 5, 5], dtype=np.int32)
-        }
+    # Case 3: All elements are the same
+    input_dict_3 = {
+        'dataset': np.array([5, 5, 5, 5, 5], dtype=np.int32)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: 1D array with negative numbers, zero, and duplicates
-    input_dict = {
-        'inner_values': {
-            'tensors': np.array([-1, 0, 1, -1, 0, -2], dtype=np.int32)
-        }
+    # Case 4: Empty input
+    input_dict_4 = {
+        'dataset': np.array([], dtype=np.float32)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: 1D array of floating-point numbers with duplicates
-    input_dict = {
-        'inner_values': {
-            'tensors': np.array([1.1, 2.2, 1.1, 3.3, 2.2], dtype=np.float32)
-        }
+    # Case 5: Negative numbers and zero
+    input_dict_5 = {
+        'dataset': np.array([-1, -2, -1, 0, 5, 0], dtype=np.int32)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: 1D array of strings with duplicates
-    input_dict = {
-        'inner_values': {
-            'tensors': np.array(['apple', 'banana', 'cherry', 'apple', 'banana'], dtype=object)
-        }
+    # Case 6: Floating point numbers
+    input_dict_6 = {
+        'dataset': np.array([1.1, 2.2, 1.1, 3.3, -4.4, 2.2], dtype=np.float64)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: 2D array with duplicate rows
-    input_dict = {
-        'inner_values': {
-            'tensors': np.array([[1, 2], [3, 4], [1, 2], [5, 6]], dtype=np.int32)
-        }
+    # Case 7: Strings
+    input_dict_7 = {
+        'dataset': np.array(["hello", "world", "hello", "tensorflow", "world"], dtype=np.object_)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8: 2D array with all unique rows
-    input_dict = {
-        'inner_values': {
-            'tensors': np.array([[10, 20], [30, 40], [50, 60]], dtype=np.int32)
-        }
+    # Case 8: 2D arrays as elements
+    input_dict_8 = {
+        'dataset': np.array([[1, 2], [3, 4], [1, 2]], dtype=np.int32)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 9: Empty array
-    input_dict = {
-        'inner_values': {
-            'tensors': np.array([], dtype=np.float64)
-        }
+    # Case 9: Boolean values
+    input_dict_9 = {
+        'dataset': np.array([True, False, True, True, False], dtype=np.bool_)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10: 1D array of booleans with duplicates
-    input_dict = {
-        'inner_values': {
-            'tensors': np.array([True, False, True, True, False])
-        }
+    # Case 10: Single element
+    input_dict_10 = {
+        'dataset': np.array([100], dtype=np.int32)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 

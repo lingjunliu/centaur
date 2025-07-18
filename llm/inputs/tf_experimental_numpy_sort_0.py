@@ -11,95 +11,113 @@ import copy
 def tf_experimental_numpy_sort_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic 1D integer array with default parameters.
+    # Input 1: Basic 1D integer array
     input_dict_1 = {
         'a': np.array([3, 1, 4, 1, 5, 9, 2, 6], dtype=np.int32),
         'axis': -1,
         'kind': 'quicksort',
-        'order': None
+        'order': []
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: 2D float array, sort along axis 0.
+    # Input 2: 2D float array, sort along columns (axis=0)
     input_dict_2 = {
-        'a': np.array([[3.0, 1.0], [2.0, 4.0]], dtype=np.float32),
+        'a': np.array([[3.3, 1.1], [2.2, 4.4]], dtype=np.float32),
         'axis': 0,
         'kind': 'quicksort',
-        'order': None
+        'order': []
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: 2D integer array with negative values, sort along axis 1.
+    # Input 3: 2D integer array, sort along rows (axis=1)
     input_dict_3 = {
-        'a': np.array([[-1, 5, -3], [0, -2, 4]], dtype=np.int32),
+        'a': np.array([[5, 2, 8], [1, 9, 4]], dtype=np.int32),
         'axis': 1,
         'kind': 'quicksort',
-        'order': None
+        'order': []
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: 3D float array with 'mergesort'.
+    # Input 4: 1D array with negative float values, use mergesort
     input_dict_4 = {
-        'a': np.random.rand(2, 3, 4).astype(np.float64),
+        'a': np.array([-1.5, 0.0, -5.5, 2.0, -2.5], dtype=np.float64),
         'axis': -1,
         'kind': 'mergesort',
-        'order': None
+        'order': []
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: 3D integer array, sort along a middle axis (axis=1).
+    # Input 5: 3D array, sort along the last axis
     input_dict_5 = {
-        'a': np.array([[[10, 2], [5, 8]], [[1, 9], [4, 3]]], dtype=np.int64),
-        'axis': 1,
+        'a': np.arange(24, dtype=np.float32).reshape((2, 3, 4)),
+        'axis': -1,
         'kind': 'quicksort',
-        'order': None
+        'order': []
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: 1D array with duplicate values.
+    # Input 6: 3D array, sort along a middle axis
     input_dict_6 = {
-        'a': np.array([5, 2, 2, 8, 5, 1, 1, 1, 9], dtype=np.int32),
-        'axis': -1,
-        'kind': 'mergesort',
-        'order': None
+        'a': np.random.randint(-100, 100, size=(2, 4, 3), dtype=np.int32),
+        'axis': 1,
+        'kind': 'quicksort',
+        'order': []
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: Array with a single element.
+    # Input 7: Array with complex numbers
     input_dict_7 = {
-        'a': np.array([100], dtype=np.int32),
+        'a': np.array([1+2j, 3-1j, 1-2j, 0+0j], dtype=np.complex64),
         'axis': 0,
         'kind': 'quicksort',
-        'order': None
+        'order': []
     }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8: Array where all elements are the same.
+    # Input 8: Empty array
     input_dict_8 = {
-        'a': np.array([7, 7, 7, 7, 7], dtype=np.int32),
+        'a': np.array([], dtype=np.float32),
         'axis': -1,
         'kind': 'quicksort',
-        'order': None
+        'order': []
     }
     list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 9: 2D array, sort along a negative axis (-2).
+    # Input 9: Single-element array
     input_dict_9 = {
-        'a': np.array([[9, 8, 7], [6, 5, 4], [3, 2, 1]], dtype=np.int32),
-        'axis': -2,
+        'a': np.array([42], dtype=np.int32),
+        'axis': 0,
         'kind': 'quicksort',
-        'order': None
+        'order': []
     }
     list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10: Complex numbers.
+    # Input 10: Array with duplicate values
     input_dict_10 = {
-        'a': np.array([1+2j, 3-1j, -1+1j, 2-3j], dtype=np.complex64),
+        'a': np.array([5, 2, 5, 1, 2, 5, 1], dtype=np.int32),
         'axis': -1,
-        'kind': 'quicksort',
-        'order': None
+        'kind': 'mergesort',
+        'order': []
     }
     list_of_inputs.append(copy.deepcopy(input_dict_10))
+
+    # Input 11: 2D array, already sorted along the given axis
+    input_dict_11 = {
+        'a': np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32),
+        'axis': 1,
+        'kind': 'quicksort',
+        'order': []
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_11))
+
+    # Input 12: 2D array, reverse sorted along the given axis
+    input_dict_12 = {
+        'a': np.array([[8, 5, 1], [9, 6, 2]], dtype=np.int32),
+        'axis': 1,
+        'kind': 'quicksort',
+        'order': []
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_12))
 
     return list_of_inputs
 

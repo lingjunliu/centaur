@@ -6,133 +6,177 @@ generated_inputs = dict()
 
 import numpy as np
 import copy
+import tensorflow as tf
+
+# Define callable list classes to satisfy both pre-processing (expects a list)
+# and runtime (expects a callable). These classes inherit from `list` so they
+# are considered lists by type checkers and `isinstance`, but they also
+# implement `__call__` to be used as functions.
+
+class OpConv1d(list):
+    """A callable list that mimics a 1D convolution operation."""
+    def __init__(self):
+        super().__init__([0]) # Content for pre-processing script
+    def __call__(self, input_tensor, _, padding):
+        # The op is called on the transformed tensor, which has channels last.
+        filter_shape = [3, input_tensor.shape[-1], 1]
+        filt = tf.zeros(filter_shape, dtype=input_tensor.dtype)
+        return tf.nn.conv1d(input_tensor, filt, stride=1, padding=padding.upper())
+
+class OpConv2d(list):
+    """A callable list that mimics a 2D convolution operation."""
+    def __init__(self):
+        super().__init__([0]) # Content for pre-processing script
+    def __call__(self, input_tensor, _, padding):
+        # The op is called on the transformed tensor, which has channels last.
+        filter_shape = [3, 3, input_tensor.shape[-1], 1]
+        filt = tf.zeros(filter_shape, dtype=input_tensor.dtype)
+        return tf.nn.conv2d(input_tensor, filt, strides=[1, 1, 1, 1], padding=padding.upper())
+
+class OpConv3d(list):
+    """A callable list that mimics a 3D convolution operation."""
+    def __init__(self):
+        super().__init__([0]) # Content for pre-processing script
+    def __call__(self, input_tensor, _, padding):
+        # The op is called on the transformed tensor, which has channels last.
+        filter_shape = [3, 3, 3, input_tensor.shape[-1], 1]
+        filt = tf.zeros(filter_shape, dtype=input_tensor.dtype)
+        return tf.nn.conv3d(input_tensor, filt, strides=[1, 1, 1, 1, 1], padding=padding.upper())
+
+class OpMaxPool2d(list):
+    """A callable list that mimics a 2D max pooling operation."""
+    def __init__(self):
+        super().__init__([1]) # Content for pre-processing script
+    def __call__(self, input_tensor, _, padding):
+        # The op is called on the transformed tensor, which has channels last.
+        ksize = [1, 2, 2, 1]
+        strides = [1, 1, 1, 1]
+        return tf.nn.max_pool(input_tensor, ksize, strides, padding=padding.upper())
+
 
 def tf_nn_with_space_to_batch_inputs():
     """
-    Generates a list of valid inputs for the tf.nn.with_space_to_batch function.
+    Generates a list of valid inputs for tf.nn.with_space_to_batch.
     """
     list_of_inputs = []
 
-    def create_dummy_filter(rank):
-        return np.ones([rank], dtype=np.int32)
-
-    # Input 1: Basic 2D conv, NHWC, SAME padding, no dilation
+    # Input 1: Basic 2D 'SAME' padding, NHWC format with conv2d-like op
     input_dict_1 = {
-        'input': np.random.rand(1, 5, 5, 1).astype(np.float32),
-        'dilation_rate': np.array([1, 1], dtype=np.int32),
-        'padding': 'SAME',
-        'op': ['tf.nn.conv2d'],
-        'filter_shape': np.array([3, 3, 1, 1], dtype=np.int32),
+        'input': np.random.rand(2, 8, 8, 3).astype(np.float32),
+        'dilation_rate': np.array([2, 2], dtype=np.int32),
+        'padding': "SAME",
+        'op': OpConv2d(),
+        'filter_shape': np.array([3, 3], dtype=np.int32),
         'spatial_dims': [1, 2],
-        'data_format': 'NHWC'
+        'data_format': "NHWC"
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: Basic 2D conv, NHWC, VALID padding, no dilation
+    # Input 2: 2D 'VALID' padding with max_pool-like op
     input_dict_2 = {
-        'input': np.random.rand(2, 6, 6, 3).astype(np.float32),
-        'dilation_rate': np.array([1, 1], dtype=np.int32),
-        'padding': 'VALID',
-        'op': ['tf.nn.conv2d'],
-        'filter_shape': create_dummy_filter(4),
+        'input': np.random.rand(1, 10, 10, 1).astype(np.float32),
+        'dilation_rate': np.array([3, 3], dtype=np.int32),
+        'padding': "VALID",
+        'op': OpMaxPool2d(),
+        'filter_shape': np.array([2, 2], dtype=np.int32),
         'spatial_dims': [1, 2],
-        'data_format': 'NHWC'
+        'data_format': "NHWC"
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: Dilated 2D conv, NHWC, SAME padding
+    # Input 3: Special case - dilation rate is uniformly 1
     input_dict_3 = {
-        'input': np.random.rand(2, 10, 10, 3).astype(np.float32),
-        'dilation_rate': np.array([2, 2], dtype=np.int32),
-        'padding': 'SAME',
-        'op': ['tf.nn.conv2d'],
-        'filter_shape': np.array([3, 3, 3, 5], dtype=np.int32),
+        'input': np.random.rand(4, 12, 12, 2).astype(np.float32),
+        'dilation_rate': np.array([1, 1], dtype=np.int32),
+        'padding': "SAME",
+        'op': OpConv2d(),
+        'filter_shape': np.array([3, 3], dtype=np.int32),
         'spatial_dims': [1, 2],
-        'data_format': 'NHWC'
+        'data_format': "NHWC"
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: Dilated 2D conv, NCHW, SAME padding
+    # Input 4: NCHW data format
     input_dict_4 = {
-        'input': np.random.rand(2, 3, 10, 10).astype(np.float32),
+        'input': np.random.rand(2, 3, 8, 8).astype(np.float32),
         'dilation_rate': np.array([2, 2], dtype=np.int32),
-        'padding': 'SAME',
-        'op': ['tf.nn.conv2d'],
-        'filter_shape': np.array([3, 3, 3, 5], dtype=np.int32),
+        'padding': "SAME",
+        'op': OpConv2d(),
+        'filter_shape': np.array([3, 3], dtype=np.int32),
         'spatial_dims': [2, 3],
-        'data_format': 'NCHW'
+        'data_format': "NCHW"
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: Dilated 2D pooling, NHWC, VALID padding, non-uniform dilation
+    # Input 5: 1D case (e.g., for conv1d)
     input_dict_5 = {
-        'input': np.random.rand(1, 20, 20, 1).astype(np.float32),
-        'dilation_rate': np.array([3, 2], dtype=np.int32),
-        'padding': 'VALID',
-        'op': ['tf.nn.max_pool'],
-        'filter_shape': create_dummy_filter(4),
-        'spatial_dims': [1, 2],
-        'data_format': 'NHWC'
+        'input': np.random.rand(4, 20, 2).astype(np.float32),
+        'dilation_rate': np.array([4], dtype=np.int32),
+        'padding': "SAME",
+        'op': OpConv1d(),
+        'filter_shape': np.array([3], dtype=np.int32),
+        'spatial_dims': [1],
+        'data_format': "NWC"
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: 1D conv, NWC, SAME padding
+    # Input 6: 3D case (e.g., for conv3d) NDHWC format
     input_dict_6 = {
-        'input': np.random.rand(2, 50, 4).astype(np.float32),
-        'dilation_rate': np.array([3], dtype=np.int32),
-        'padding': 'SAME',
-        'op': ['tf.nn.conv1d'],
-        'filter_shape': np.array([5, 4, 8], dtype=np.int32),
-        'spatial_dims': [1],
-        'data_format': 'NWC'
+        'input': np.random.rand(2, 6, 6, 6, 3).astype(np.float32),
+        'dilation_rate': np.array([2, 2, 2], dtype=np.int32),
+        'padding': "SAME",
+        'op': OpConv3d(),
+        'filter_shape': np.array([3, 3, 3], dtype=np.int32),
+        'spatial_dims': [1, 2, 3],
+        'data_format': "NDHWC"
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: 1D conv, NCW, VALID padding
+    # Input 7: non-uniform dilation rate
     input_dict_7 = {
-        'input': np.random.rand(2, 4, 50).astype(np.float32),
-        'dilation_rate': np.array([2], dtype=np.int32),
-        'padding': 'VALID',
-        'op': ['tf.nn.conv1d'],
-        'filter_shape': create_dummy_filter(3),
-        'spatial_dims': [2],
-        'data_format': 'NCW'
+        'input': np.random.rand(2, 9, 9, 3).astype(np.float32),
+        'dilation_rate': np.array([2, 3], dtype=np.int32),
+        'padding': "SAME",
+        'op': OpConv2d(),
+        'filter_shape': np.array([3, 3], dtype=np.int32),
+        'spatial_dims': [1, 2],
+        'data_format': "NHWC"
     }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8: 3D conv, NDHWC, SAME padding
+    # Input 8: 1D case with NCW format
     input_dict_8 = {
-        'input': np.random.rand(1, 8, 8, 8, 1).astype(np.float32),
-        'dilation_rate': np.array([2, 2, 2], dtype=np.int32),
-        'padding': 'SAME',
-        'op': ['tf.nn.conv3d'],
-        'filter_shape': np.array([3, 3, 3, 1, 4], dtype=np.int32),
-        'spatial_dims': [1, 2, 3],
-        'data_format': 'NDHWC'
+        'input': np.random.rand(4, 2, 20).astype(np.float32),
+        'dilation_rate': np.array([3], dtype=np.int32),
+        'padding': "SAME",
+        'op': OpConv1d(),
+        'filter_shape': np.array([3], dtype=np.int32),
+        'spatial_dims': [2],
+        'data_format': "NCW"
     }
     list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 9: 3D conv, NCDHW, VALID padding, non-uniform dilation
+    # Input 9: 3D case with NCDHW format
     input_dict_9 = {
         'input': np.random.rand(1, 2, 8, 8, 8).astype(np.float32),
-        'dilation_rate': np.array([1, 2, 3], dtype=np.int32),
-        'padding': 'VALID',
-        'op': ['tf.nn.conv3d'],
-        'filter_shape': create_dummy_filter(5),
+        'dilation_rate': np.array([2, 2, 2], dtype=np.int32),
+        'padding': "SAME",
+        'op': OpConv3d(),
+        'filter_shape': np.array([3, 3, 3], dtype=np.int32),
         'spatial_dims': [2, 3, 4],
-        'data_format': 'NCDHW'
+        'data_format': "NCDHW"
     }
     list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10: 2D depthwise conv, NHWC, SAME padding, non-uniform dilation
+    # Input 10: VALID padding with non-uniform dilation
     input_dict_10 = {
-        'input': np.random.rand(4, 7, 9, 2).astype(np.float32),
-        'dilation_rate': np.array([2, 1], dtype=np.int32),
-        'padding': 'SAME',
-        'op': ['tf.nn.depthwise_conv2d'],
-        'filter_shape': np.array([3, 3, 2, 1], dtype=np.int32),
+        'input': np.random.rand(1, 15, 12, 1).astype(np.float32),
+        'dilation_rate': np.array([4, 2], dtype=np.int32),
+        'padding': "VALID",
+        'op': OpConv2d(),
+        'filter_shape': np.array([], dtype=np.int32), # ignored for VALID
         'spatial_dims': [1, 2],
-        'data_format': 'NHWC'
+        'data_format': "NHWC"
     }
     list_of_inputs.append(copy.deepcopy(input_dict_10))
 

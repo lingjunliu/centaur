@@ -11,123 +11,139 @@ import copy
 def get_tf_edit_distance_inputs():
     """
     Generates a list of valid inputs for the tf.edit_distance function.
-    The 'hypothesis' and 'truth' sparse tensors are represented as tuples
-    of (indices, values, dense_shape) numpy arrays, from which the
-    test harness is expected to construct tf.SparseTensor objects.
+    tf.edit_distance requires tf.SparseTensor inputs.
     """
     list_of_inputs = []
 
-    def create_sparse_tuple(indices, values, shape, value_dtype=np.int64):
-        """
-        Creates a tuple of numpy arrays representing a sparse tensor.
-        (indices, values, dense_shape)
-        """
-        rank = len(shape)
-        if not indices:
-            indices_np = np.empty((0, rank), dtype=np.int64)
-        else:
-            indices_np = np.array(indices, dtype=np.int64)
-
-        values_np = np.array(values, dtype=value_dtype)
-        shape_np = np.array(shape, dtype=np.int64)
-
-        return (indices_np, values_np, shape_np)
-
-    # The API expects tf.SparseTensor. The test harness seems to fail when
-    # given SparseTensor objects directly. A common pattern is to represent
-    # them as a tuple of numpy arrays (indices, values, dense_shape)
-    # which the harness then uses to construct the actual SparseTensor.
-
-    # Input 1: Basic case, rank 2, identical sequences
-    input_dict_1 = {
-        'hypothesis': create_sparse_tuple([[0, 0], [0, 1], [0, 2]], [97, 98, 99], [1, 3]),
-        'truth': create_sparse_tuple([[0, 0], [0, 1], [0, 2]], [97, 98, 99], [1, 3]),
-        'normalize': False,
-        'name': 'identical_seqs'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
-
-    # Input 2: Basic case, rank 2, one substitution, normalize=False
-    input_dict_2 = {
-        'hypothesis': create_sparse_tuple([[0, 0], [0, 1], [0, 2]], [99, 97, 116], [1, 3]),
-        'truth': create_sparse_tuple([[0, 0], [0, 1], [0, 2]], [99, 117, 116], [1, 3]),
-        'normalize': False,
-        'name': 'one_substitution'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
-
-    # Input 3: One deletion, normalized=True
-    input_dict_3 = {
-        'hypothesis': create_sparse_tuple([[0, 0], [0, 1]], [97, 99], [1, 3]),
-        'truth': create_sparse_tuple([[0, 0], [0, 1], [0, 2]], [97, 98, 99], [1, 3]),
+    # Input 1: Basic case, Rank 2, normalize=True
+    hyp1 = tf.SparseTensor(
+        indices=np.array([[0, 0], [0, 1], [1, 0]], dtype=np.int64),
+        values=np.array([1, 2, 3], dtype=np.int64),
+        dense_shape=np.array([2, 2], dtype=np.int64)
+    )
+    truth1 = tf.SparseTensor(
+        indices=np.array([[0, 0], [0, 1], [0, 2], [1, 0]], dtype=np.int64),
+        values=np.array([1, 9, 2, 3], dtype=np.int64),
+        dense_shape=np.array([2, 3], dtype=np.int64)
+    )
+    list_of_inputs.append(copy.deepcopy({
+        'hypothesis': hyp1,
+        'truth': truth1,
         'normalize': True,
-        'name': 'one_deletion_normalized'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+        'name': 'basic_rank2_norm'
+    }))
 
-    # Input 4: One insertion, normalized=True
-    input_dict_4 = {
-        'hypothesis': create_sparse_tuple([[0, 0], [0, 1], [0, 2], [0, 3]], [97, 98, 120, 99], [1, 4]),
-        'truth': create_sparse_tuple([[0, 0], [0, 1], [0, 2]], [97, 98, 99], [1, 4]),
+    # Input 2: Same as Input 1, but without normalization
+    list_of_inputs.append(copy.deepcopy({
+        'hypothesis': hyp1,
+        'truth': truth1,
+        'normalize': False,
+        'name': 'basic_rank2_no_norm'
+    }))
+
+    # Input 3: Identical sequences
+    hyp3 = tf.SparseTensor(
+        indices=np.array([[0, 0], [0, 1], [0, 2], [1, 0], [1, 1]], dtype=np.int64),
+        values=np.array([10, 20, 30, 40, 50], dtype=np.int64),
+        dense_shape=np.array([2, 3], dtype=np.int64)
+    )
+    list_of_inputs.append(copy.deepcopy({
+        'hypothesis': hyp3,
+        'truth': hyp3,
         'normalize': True,
-        'name': 'one_insertion_normalized'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+        'name': 'identical_sequences'
+    }))
 
-    # Input 5: Empty hypothesis sequence
-    input_dict_5 = {
-        'hypothesis': create_sparse_tuple([], [], [1, 5]),
-        'truth': create_sparse_tuple([[0, 0], [0, 1], [0, 2], [0, 3]], [119, 111, 114, 100], [1, 5]),
-        'normalize': False,
-        'name': 'empty_hypothesis'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
-
-    # Input 6: Empty truth sequence, normalized
-    input_dict_6 = {
-        'hypothesis': create_sparse_tuple([[0, 0], [0, 1], [0, 2], [0, 3]], [119, 111, 114, 100], [1, 5]),
-        'truth': create_sparse_tuple([], [], [1, 5]),
+    # Input 4: Higher rank (Rank 3)
+    hyp4 = tf.SparseTensor(
+        indices=np.array([[0, 0, 0], [0, 1, 0], [0, 1, 1]], dtype=np.int64),
+        values=np.array([1, 2, 3], dtype=np.int64),
+        dense_shape=np.array([1, 2, 2], dtype=np.int64)
+    )
+    truth4 = tf.SparseTensor(
+        indices=np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0]], dtype=np.int64),
+        values=np.array([1, 9, 3], dtype=np.int64),
+        dense_shape=np.array([1, 2, 2], dtype=np.int64)
+    )
+    list_of_inputs.append(copy.deepcopy({
+        'hypothesis': hyp4,
+        'truth': truth4,
         'normalize': True,
-        'name': 'empty_truth_normalized'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+        'name': 'rank3_case'
+    }))
 
-    # Input 7: Batch of 2 sequences, rank 2
-    input_dict_7 = {
-        'hypothesis': create_sparse_tuple([[0, 0], [1, 0], [1, 1]], [97, 98, 99], [2, 3]),
-        'truth': create_sparse_tuple([[0, 0], [0, 1], [1, 0], [1, 1]], [97, 120, 98, 99], [2, 3]),
-        'normalize': False,
-        'name': 'batch_of_2'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
-
-    # Input 8: Rank 3 input, matching shapes
-    input_dict_8 = {
-        'hypothesis': create_sparse_tuple([[0, 0, 0], [0, 1, 0]], [104, 105], [1, 2, 2]),
-        'truth': create_sparse_tuple([[0, 0, 0], [0, 1, 1]], [104, 111], [1, 2, 2]),
-        'normalize': False,
-        'name': 'rank_3_input'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
-
-    # Input 9: Using float values
-    input_dict_9 = {
-        'hypothesis': create_sparse_tuple([[0, 0], [0, 1], [0, 2]], [1.0, 2.0, 3.0], [1, 4], value_dtype=np.float32),
-        'truth': create_sparse_tuple([[0, 0], [0, 1], [0, 2]], [1.0, 9.0, 3.0], [1, 4], value_dtype=np.float32),
-        'normalize': False,
-        'name': 'float_values'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
-
-    # Input 10: Completely different sequences, normalized
-    input_dict_10 = {
-        'hypothesis': create_sparse_tuple([[0, 0], [0, 1], [0, 2]], [97, 98, 99], [1, 3]),
-        'truth': create_sparse_tuple([[0, 0], [0, 1], [0, 2]], [120, 121, 122], [1, 3]),
+    # Input 5: One hypothesis sequence is empty
+    hyp5 = tf.SparseTensor(
+        indices=np.array([[0, 0]], dtype=np.int64),
+        values=np.array([1], dtype=np.int64),
+        dense_shape=np.array([2, 1], dtype=np.int64)
+    )
+    truth5 = tf.SparseTensor(
+        indices=np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.int64),
+        values=np.array([1, 2, 3, 4], dtype=np.int64),
+        dense_shape=np.array([2, 2], dtype=np.int64)
+    )
+    list_of_inputs.append(copy.deepcopy({
+        'hypothesis': hyp5,
+        'truth': truth5,
         'normalize': True,
-        'name': 'different_seqs_normalized'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+        'name': 'one_empty_hyp'
+    }))
 
+    # Input 6: int32 values
+    hyp6 = tf.SparseTensor(
+        indices=np.array([[0, 0]], dtype=np.int64),
+        values=np.array([100], dtype=np.int32),
+        dense_shape=np.array([1, 1], dtype=np.int64)
+    )
+    truth6 = tf.SparseTensor(
+        indices=np.array([[0, 0], [0, 1]], dtype=np.int64),
+        values=np.array([100, 200], dtype=np.int32),
+        dense_shape=np.array([1, 2], dtype=np.int64)
+    )
+    list_of_inputs.append(copy.deepcopy({
+        'hypothesis': hyp6,
+        'truth': truth6,
+        'normalize': False,
+        'name': 'int32_values'
+    }))
+    
+    # Input 7: Empty truth sequence
+    hyp7 = tf.SparseTensor(
+        indices=np.array([[0,0]], dtype=np.int64),
+        values=np.array([1], dtype=np.int64),
+        dense_shape=np.array([1,1], dtype=np.int64)
+    )
+    truth7 = tf.SparseTensor(
+        indices=np.empty((0,2), dtype=np.int64),
+        values=np.array([], dtype=np.int64),
+        dense_shape=np.array([1,1], dtype=np.int64)
+    )
+    list_of_inputs.append(copy.deepcopy({
+        'hypothesis': hyp7,
+        'truth': truth7,
+        'normalize': True,
+        'name': 'empty_truth'
+    }))
+
+    # Input 8: Both empty
+    hyp8 = tf.SparseTensor(
+        indices=np.empty((0,2), dtype=np.int64),
+        values=np.array([], dtype=np.int64),
+        dense_shape=np.array([1,1], dtype=np.int64)
+    )
+    truth8 = tf.SparseTensor(
+        indices=np.empty((0,2), dtype=np.int64),
+        values=np.array([], dtype=np.int64),
+        dense_shape=np.array([1,1], dtype=np.int64)
+    )
+    list_of_inputs.append(copy.deepcopy({
+        'hypothesis': hyp8,
+        'truth': truth8,
+        'normalize': True,
+        'name': 'both_empty'
+    }))
+    
     return list_of_inputs
 
 generated_inputs["tf.edit_distance"] = get_tf_edit_distance_inputs()

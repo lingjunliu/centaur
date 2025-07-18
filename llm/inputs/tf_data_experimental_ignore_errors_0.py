@@ -4,96 +4,144 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
-import copy
+import tensorflow as tf
 
-def tfd_experimental_ignore_errors_inputs():
-    """
-    Generates a list of valid inputs for tf.data.experimental.ignore_errors.
-    The API returns a function to be used with `dataset.apply()`.
-    The test harness requires a special 'inner_values' key to construct the
-    base dataset for this function-returning API.
-    The value for 'inner_values' is a tuple containing the numpy array(s),
-    which is a valid format for tf.data.Dataset.from_tensor_slices.
-    """
+def map_div_by_zero_float(x):
+    return 1.0 / x
+
+def map_div_by_zero_int(x):
+    return 1 // x
+
+def map_assert_positive(x):
+    tf.Assert(x > 0, [x])
+    return x
+
+def map_string_to_number(x):
+    return tf.strings.to_number(x)
+
+def map_string_to_int(x):
+    return tf.strings.to_number(x, out_type=tf.int32)
+
+def map_sqrt(x):
+    return tf.sqrt(x)
+
+def map_tuple_div(x, y):
+    return y // x
+
+def map_square(x):
+    return x * x
+
+def map_assert_less_than_10(x):
+    tf.Assert(x < 10, [x])
+    return x
+
+def tf_data_experimental_ignore_errors_inputs():
     list_of_inputs = []
 
-    # Input 1: log_warning=False, inner_values as tuple
-    input_dict = {
-        'log_warning': False,
-        'inner_values': (np.array([1., 2., 0., 4.], dtype=np.float32),)
+    # Case 1: Float division by zero, log warnings
+    input_dict_1 = {
+        'log_warning': True,
+        'inner_values': {
+            'tensors': np.array([1., 2., 0., 4.], dtype=np.float32),
+            'map_fn': map_div_by_zero_float
+        }
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict_1)
 
-    # Input 2: log_warning=True, inner_values as tuple
-    input_dict = {
-        'log_warning': True,
-        'inner_values': (np.array([5., 0., 6., 7.], dtype=np.float32),)
+    # Case 2: Integer division by zero, don't log warnings
+    input_dict_2 = {
+        'log_warning': False,
+        'inner_values': {
+            'tensors': np.array([5, 2, 0, 1], dtype=np.int32),
+            'map_fn': map_div_by_zero_int
+        }
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict_2)
 
-    # Input 3: 2D data
-    input_dict = {
-        'log_warning': False,
-        'inner_values': (np.array([[1, 2], [3, 0], [5, 6]], dtype=np.int32),)
+    # Case 3: tf.Assert failure, log warnings
+    input_dict_3 = {
+        'log_warning': True,
+        'inner_values': {
+            'tensors': np.array([1, 2, -1, 4], dtype=np.int64),
+            'map_fn': map_assert_positive
+        }
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict_3)
 
-    # Input 4: No errors
-    input_dict = {
-        'log_warning': True,
-        'inner_values': (np.array([1, 2, 3], dtype=np.int64),)
+    # Case 4: String to number conversion error, don't log warnings
+    input_dict_4 = {
+        'log_warning': False,
+        'inner_values': {
+            'tensors': np.array(["1.0", "hello", "3.0"]),
+            'map_fn': map_string_to_number
+        }
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict_4)
 
-    # Input 5: All errors
-    input_dict = {
-        'log_warning': False,
-        'inner_values': (np.array([0, 0, 0], dtype=np.float32),)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6: float64
-    input_dict = {
+    # Case 5: Square root of negative number, log warnings
+    input_dict_5 = {
         'log_warning': True,
-        'inner_values': (np.array([-1.0, 0.0, 1.0], dtype=np.float64),)
+        'inner_values': {
+            'tensors': np.array([4.0, 9.0, -1.0, 16.0], dtype=np.float32),
+            'map_fn': map_sqrt
+        }
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7: Empty input
-    input_dict = {
+    list_of_inputs.append(input_dict_5)
+
+    # Case 6: Tuple of tensors as input, one causes error. Don't log.
+    input_dict_6 = {
         'log_warning': False,
-        'inner_values': (np.array([], dtype=np.float32),)
+        'inner_values': {
+            'tensors': (np.array([1, 2, 0]), np.array([10, 20, 30])),
+            'map_fn': map_tuple_div
+        }
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8: Another 2D with all errors
-    input_dict = {
+    list_of_inputs.append(input_dict_6)
+
+    # Case 7: A dataset with no errors. log_warning=True.
+    input_dict_7 = {
         'log_warning': True,
-        'inner_values': (np.array([[0, 0], [0, 0]], dtype=np.int16),)
+        'inner_values': {
+            'tensors': np.array([1, 2, 3, 4], dtype=np.int32),
+            'map_fn': map_square
+        }
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict_7)
     
-    # Input 9: Unsigned int
-    input_dict = {
+    # Case 8: A different string error. log_warning=False.
+    input_dict_8 = {
         'log_warning': False,
-        'inner_values': (np.array([10, 20, 0, 30], dtype=np.uint8),)
+        'inner_values': {
+            'tensors': np.array(["1", "2", "inf", "4"]),
+            'map_fn': map_string_to_int
+        }
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10: 3D data
-    inner_values_3d = np.arange(8, dtype=np.float32).reshape((2, 2, 2))
-    inner_values_3d[1, 0, 1] = 0.
-    input_dict = {
+    list_of_inputs.append(input_dict_8)
+
+    # Case 9: float64 data type with error. log_warning=True.
+    input_dict_9 = {
         'log_warning': True,
-        'inner_values': (inner_values_3d,)
+        'inner_values': {
+            'tensors': np.array([10., -5., 0., 2.], dtype=np.float64),
+            'map_fn': map_div_by_zero_float
+        }
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict_9)
+
+    # Case 10: Another assert failure. log_warning=False
+    input_dict_10 = {
+        'log_warning': False,
+        'inner_values': {
+            'tensors': np.array([1, 5, 12, 8], dtype=np.int32),
+            'map_fn': map_assert_less_than_10
+        }
+    }
+    list_of_inputs.append(input_dict_10)
 
     return list_of_inputs
 
-generated_inputs["tf.data.experimental.ignore_errors"] = tfd_experimental_ignore_errors_inputs()
+generated_inputs["tf.data.experimental.ignore_errors"] = tf_data_experimental_ignore_errors_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

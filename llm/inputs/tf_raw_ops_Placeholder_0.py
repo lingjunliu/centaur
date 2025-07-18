@@ -4,108 +4,99 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
+import tensorflow as tf
 
 def tf_raw_ops_placeholder_inputs():
+    # As per the documentation, tf.raw_ops.Placeholder is a graph-mode op
+    # that is expected to fail with an error if executed directly in an eager
+    # context. The "You must feed a value..." error is correct behavior.
+    # The following inputs are valid for the *definition* of the placeholder.
     list_of_inputs = []
 
-    # Input 1
-    dtype = tf.float32
-    shape = None
-    name = "placeholder_1"
-    input_dict = {"dtype": dtype, "shape": shape, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: A 2D matrix of float32.
+    input_dict_1 = {
+        'dtype': np.float32,
+        'shape': [4, 4],
+        'name': 'placeholder_float32'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2
-    dtype = tf.int32
-    shape = [2, 3]
-    name = "placeholder_2"
-    input_dict = {"dtype": dtype, "shape": shape, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: A 1D vector of int32.
+    input_dict_2 = {
+        'dtype': np.int32,
+        'shape': [128],
+        'name': 'placeholder_int32'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3
-    dtype = tf.bool
-    shape = [1, 5, 7]
-    name = "placeholder_3"
-    input_dict = {"dtype": dtype, "shape": shape, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: A 3D tensor of booleans.
+    input_dict_3 = {
+        'dtype': np.bool_,
+        'shape': [2, 3, 2],
+        'name': 'placeholder_bool'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4
-    dtype = tf.string
-    shape = [4]
-    name = "placeholder_4"
-    input_dict = {"dtype": dtype, "shape": shape, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: A 2D matrix of float64 (double).
+    input_dict_4 = {
+        'dtype': np.float64,
+        'shape': [10, 20],
+        'name': 'placeholder_float64'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5
-    dtype = tf.complex64
-    shape = [2, 2, 2, 2]
-    name = "placeholder_5"
-    input_dict = {"dtype": dtype, "shape": shape, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5: A 1D vector of int64.
+    input_dict_5 = {
+        'dtype': np.int64,
+        'shape': [64],
+        'name': 'placeholder_int64'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6
-    dtype = tf.int64
-    shape = []  # Scalar shape
-    name = "placeholder_6"
-    input_dict = {"dtype": dtype, "shape": shape, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6: A 4D tensor representing a batch of images (uint8).
+    input_dict_6 = {
+        'dtype': np.uint8,
+        'shape': [16, 32, 32, 3],
+        'name': 'placeholder_uint8'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7
-    dtype = tf.uint8
-    shape = [100]
-    name = "placeholder_7"
-    input_dict = {"dtype": dtype, "shape": shape, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 7: A 2D matrix of int16.
+    input_dict_7 = {
+        'dtype': np.int16,
+        'shape': [5, 100],
+        'name': 'placeholder_int16'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8
-    dtype = tf.float64
-    shape = [1, 1, 1, 1, 1]
-    name = "placeholder_8"
-    input_dict = {"dtype": dtype, "shape": shape, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 8: A 2D matrix of complex64 numbers.
+    input_dict_8 = {
+        'dtype': np.complex64,
+        'shape': [8, 8],
+        'name': 'placeholder_complex64'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 9
-    dtype = tf.qint8
-    shape = [3, 5]
-    name = "placeholder_9"
-    input_dict = {"dtype": dtype, "shape": shape, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 9: A 3D tensor of complex128 numbers.
+    input_dict_9 = {
+        'dtype': np.complex128,
+        'shape': [4, 2, 4],
+        'name': 'placeholder_complex128'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10
-    dtype = tf.resource
-    shape = None
-    name = "placeholder_10"
-    input_dict = {"dtype": dtype, "shape": None, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11
-    dtype = tf.string
-    shape = None
-    name = "placeholder_11"
-    input_dict = {"dtype": dtype, "shape": None, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 12
-    dtype = tf.float16
-    shape = []
-    name = "placeholder_12"
-    input_dict = {"dtype": dtype, "shape": [], "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 13
-    dtype = tf.variant
-    shape = [4,5]
-    name = "placeholder_13"
-    input_dict = {"dtype": dtype, "shape": [4,5], "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
+    # Input 10: A 1D vector of uint32.
+    input_dict_10 = {
+        'dtype': np.uint32,
+        'shape': [256],
+        'name': 'placeholder_uint32'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.raw_ops.Placeholder"] = tf_raw_ops_placeholder_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -113,6 +104,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.Placeholder' not in generated_inputs:

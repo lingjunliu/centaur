@@ -10,65 +10,175 @@ import copy
 def get_apply_centered_rmsprop_inputs():
     """
     Generates a list of valid inputs for tf.raw_ops.ApplyCenteredRMSProp.
+    This operation is designed for TensorFlow's graph mode and will raise a
+    RuntimeError in eager execution, as it requires mutable reference inputs
+    which are not supported for raw ops in eager mode. The generated inputs
+    are valid for a graph execution context.
     """
     list_of_inputs = []
 
-    def _generate_input(dtype, shape, use_locking, name, grad_is_zero=False, custom_params=None):
-        params = {'lr': 0.001, 'rho': 0.9, 'momentum': 0.5, 'epsilon': 1e-7}
-        if custom_params:
-            params.update(custom_params)
+    # Input 1: Basic float32, 1D case
+    dtype = np.float32
+    list_of_inputs.append(copy.deepcopy({
+        'use_locking': False,
+        'name': 'graph_input_1',
+        'var': np.array([1.0, 2.0], dtype=dtype),
+        'mg': np.array([0.1, 0.1], dtype=dtype),
+        'ms': np.array([1.0, 1.0], dtype=dtype),
+        'mom': np.array([0.0, 0.0], dtype=dtype),
+        'lr': np.array(0.001, dtype=dtype),
+        'rho': np.array(0.9, dtype=dtype),
+        'momentum': np.array(0.0, dtype=dtype),
+        'epsilon': np.array(1e-7, dtype=dtype),
+        'grad': np.array([0.1, 0.2], dtype=dtype)
+    }))
 
-        var = (np.random.uniform(size=shape) * 20 - 10).astype(dtype)
-        mg = (np.random.uniform(size=shape) * 4 - 2).astype(dtype)
-        ms = np.square(mg) + (np.random.uniform(size=shape) * 5).astype(dtype)
-        mom = (np.random.uniform(size=shape) * 20 - 10).astype(dtype)
-        grad = np.zeros(shape, dtype=dtype) if grad_is_zero else (np.random.uniform(size=shape) * 4 - 2).astype(dtype)
-        
-        input_dict = {
-            'use_locking': use_locking,
-            'name': name,
-            'var': var,
-            'mg': mg,
-            'ms': ms,
-            'mom': mom,
-            'grad': grad,
-            'lr': np.array(params['lr'], dtype=dtype),
-            'rho': np.array(params['rho'], dtype=dtype),
-            'momentum': np.array(params['momentum'], dtype=dtype),
-            'epsilon': np.array(params['epsilon'], dtype=dtype)
-        }
-        return input_dict
-    
-    def _generate_complex_input(dtype, shape, use_locking, name):
-        var = (np.random.uniform(size=shape) + 1j * np.random.uniform(size=shape)).astype(dtype)
-        mg = (np.random.uniform(size=shape) + 1j * np.random.uniform(size=shape)).astype(dtype)
-        ms = (np.random.uniform(size=shape) + 1j * np.random.uniform(size=shape)).astype(dtype)
-        mom = (np.random.uniform(size=shape) + 1j * np.random.uniform(size=shape)).astype(dtype)
-        grad = (np.random.uniform(size=shape) + 1j * np.random.uniform(size=shape)).astype(dtype)
-        params = {'lr': 0.001, 'rho': 0.9, 'momentum': 0.5, 'epsilon': 1e-7}
+    # Input 2: float64, 2D case with locking
+    dtype = np.float64
+    list_of_inputs.append(copy.deepcopy({
+        'use_locking': True,
+        'name': 'graph_input_2',
+        'var': np.array([[1.0, 2.0], [3.0, 4.0]], dtype=dtype),
+        'mg': np.array([[0.1, 0.2], [0.3, 0.4]], dtype=dtype),
+        'ms': np.array([[1.0, 1.0], [1.0, 1.0]], dtype=dtype),
+        'mom': np.array([[0.5, 0.5], [0.5, 0.5]], dtype=dtype),
+        'lr': np.array(0.01, dtype=dtype),
+        'rho': np.array(0.95, dtype=dtype),
+        'momentum': np.array(0.5, dtype=dtype),
+        'epsilon': np.array(1e-8, dtype=dtype),
+        'grad': np.array([[0.1, -0.2], [0.3, -0.4]], dtype=dtype)
+    }))
 
-        input_dict = {
-            'use_locking': use_locking, 'name': name,
-            'var': var, 'mg': mg, 'ms': ms, 'mom': mom, 'grad': grad,
-            'lr': np.array(params['lr'], dtype=dtype),
-            'rho': np.array(params['rho'], dtype=dtype),
-            'momentum': np.array(params['momentum'], dtype=dtype),
-            'epsilon': np.array(params['epsilon'], dtype=dtype)
-        }
-        return input_dict
+    # Input 3: float32, zero gradient
+    dtype = np.float32
+    list_of_inputs.append(copy.deepcopy({
+        'use_locking': False,
+        'name': 'graph_input_3',
+        'var': np.array([10.0], dtype=dtype),
+        'mg': np.array([1.0], dtype=dtype),
+        'ms': np.array([10.0], dtype=dtype),
+        'mom': np.array([1.0], dtype=dtype),
+        'lr': np.array(0.1, dtype=dtype),
+        'rho': np.array(0.9, dtype=dtype),
+        'momentum': np.array(0.9, dtype=dtype),
+        'epsilon': np.array(1e-7, dtype=dtype),
+        'grad': np.zeros((1,), dtype=dtype)
+    }))
 
+    # Input 4: float64, high momentum
+    dtype = np.float64
+    list_of_inputs.append(copy.deepcopy({
+        'use_locking': False,
+        'name': 'graph_input_4',
+        'var': np.array([5.0, -5.0], dtype=dtype),
+        'mg': np.array([0.0, 0.0], dtype=dtype),
+        'ms': np.array([1.0, 1.0], dtype=dtype),
+        'mom': np.array([0.1, -0.1], dtype=dtype),
+        'lr': np.array(0.01, dtype=dtype),
+        'rho': np.array(0.8, dtype=dtype),
+        'momentum': np.array(0.99, dtype=dtype),
+        'epsilon': np.array(1e-7, dtype=dtype),
+        'grad': np.array([0.1, -0.1], dtype=dtype)
+    }))
 
-    list_of_inputs.append(copy.deepcopy(_generate_input(np.float32, (3, 3), False, "case1_float32_2d")))
-    list_of_inputs.append(copy.deepcopy(_generate_input(np.float64, (10,), True, "case2_float64_1d_locked")))
-    list_of_inputs.append(copy.deepcopy(_generate_input(np.float32, (4, 2), False, "case3_zero_grad", grad_is_zero=True)))
-    list_of_inputs.append(copy.deepcopy(_generate_input(np.float32, (), False, "case4_scalar_float32")))
-    list_of_inputs.append(copy.deepcopy(_generate_input(np.float32, (2, 2), False, "case5_large_epsilon", custom_params={'epsilon': 1.5})))
-    list_of_inputs.append(copy.deepcopy(_generate_input(np.float64, (5, 2), False, "case6_custom_hyperparams", custom_params={'lr': 0.1, 'momentum': 0.99, 'rho': 0.95})))
-    list_of_inputs.append(copy.deepcopy(_generate_input(np.float32, (3, 3), False, "case7_neg_momentum", custom_params={'momentum': -0.5})))
-    list_of_inputs.append(copy.deepcopy(_generate_input(np.float64, (2,2,2), False, "case8_float64_3d")))
-    list_of_inputs.append(copy.deepcopy(_generate_complex_input(np.complex64, (2, 4), False, "case9_complex64")))
-    list_of_inputs.append(copy.deepcopy(_generate_complex_input(np.complex128, (6,), True, "case10_complex128")))
-    
+    # Input 5: float32, 3D tensor
+    dtype = np.float32
+    shape = (2, 2, 1)
+    list_of_inputs.append(copy.deepcopy({
+        'use_locking': False,
+        'name': 'graph_input_5',
+        'var': np.ones(shape, dtype=dtype),
+        'mg': np.zeros(shape, dtype=dtype),
+        'ms': np.ones(shape, dtype=dtype),
+        'mom': np.zeros(shape, dtype=dtype),
+        'lr': np.array(0.001, dtype=dtype),
+        'rho': np.array(0.9, dtype=dtype),
+        'momentum': np.array(0.8, dtype=dtype),
+        'epsilon': np.array(1e-8, dtype=dtype),
+        'grad': np.random.randn(*shape).astype(dtype)
+    }))
+
+    # Input 6: float32, zero momentum
+    dtype = np.float32
+    list_of_inputs.append(copy.deepcopy({
+        'use_locking': False,
+        'name': 'graph_input_6',
+        'var': np.array([1.0, 2.0], dtype=dtype),
+        'mg': np.array([0.1, 0.1], dtype=dtype),
+        'ms': np.array([1.0, 1.0], dtype=dtype),
+        'mom': np.array([0.5, 0.5], dtype=dtype),
+        'lr': np.array(0.001, dtype=dtype),
+        'rho': np.array(0.9, dtype=dtype),
+        'momentum': np.array(0.0, dtype=dtype),
+        'epsilon': np.array(1e-7, dtype=dtype),
+        'grad': np.array([0.1, 0.2], dtype=dtype)
+    }))
+
+    # Input 7: float64, larger values
+    dtype = np.float64
+    list_of_inputs.append(copy.deepcopy({
+        'use_locking': True,
+        'name': 'graph_input_7',
+        'var': np.array([1e3, -2e3], dtype=dtype),
+        'mg': np.array([1e1, 2e1], dtype=dtype),
+        'ms': np.array([1e4, 2e4], dtype=dtype),
+        'mom': np.array([1e0, -1e0], dtype=dtype),
+        'lr': np.array(1.0, dtype=dtype),
+        'rho': np.array(0.99, dtype=dtype),
+        'momentum': np.array(0.9, dtype=dtype),
+        'epsilon': np.array(1e-2, dtype=dtype),
+        'grad': np.array([1e2, -2e2], dtype=dtype)
+    }))
+
+    # Input 8: float32, 4D tensor (like for CNNs)
+    dtype = np.float32
+    shape = (1, 2, 2, 3)
+    list_of_inputs.append(copy.deepcopy({
+        'use_locking': False,
+        'name': 'graph_input_8',
+        'var': np.random.randn(*shape).astype(dtype),
+        'mg': np.zeros(shape, dtype=dtype),
+        'ms': np.ones(shape, dtype=dtype),
+        'mom': np.zeros(shape, dtype=dtype),
+        'lr': np.array(0.01, dtype=dtype),
+        'rho': np.array(0.9, dtype=dtype),
+        'momentum': np.array(0.5, dtype=dtype),
+        'epsilon': np.array(1e-7, dtype=dtype),
+        'grad': np.random.randn(*shape).astype(dtype)
+    }))
+
+    # Input 9: float64, scalar case (1D with one element)
+    dtype = np.float64
+    list_of_inputs.append(copy.deepcopy({
+        'use_locking': False,
+        'name': 'graph_input_9',
+        'var': np.array([100.0], dtype=dtype),
+        'mg': np.array([1.0], dtype=dtype),
+        'ms': np.array([10.0], dtype=dtype),
+        'mom': np.array([0.0], dtype=dtype),
+        'lr': np.array(0.1, dtype=dtype),
+        'rho': np.array(0.9, dtype=dtype),
+        'momentum': np.array(0.9, dtype=dtype),
+        'epsilon': np.array(1e-8, dtype=dtype),
+        'grad': np.array([-5.0], dtype=dtype)
+    }))
+
+    # Input 10: No name provided
+    dtype = np.float32
+    list_of_inputs.append(copy.deepcopy({
+        'use_locking': False,
+        'name': None,
+        'var': np.array([1.0, 2.0, 3.0], dtype=dtype),
+        'mg': np.array([0.1, 0.2, 0.3], dtype=dtype),
+        'ms': np.array([1.0, 1.0, 1.0], dtype=dtype),
+        'mom': np.array([0.5, 0.5, 0.5], dtype=dtype),
+        'lr': np.array(0.01, dtype=dtype),
+        'rho': np.array(0.9, dtype=dtype),
+        'momentum': np.array(0.5, dtype=dtype),
+        'epsilon': np.array(1e-7, dtype=dtype),
+        'grad': np.array([0.2, -0.1, 0.3], dtype=dtype)
+    }))
+
     return list_of_inputs
 
 generated_inputs["tf.raw_ops.ApplyCenteredRMSProp"] = get_apply_centered_rmsprop_inputs()

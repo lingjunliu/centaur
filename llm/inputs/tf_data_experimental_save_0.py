@@ -6,126 +6,112 @@ generated_inputs = dict()
 
 import tensorflow as tf
 import numpy as np
-import os
-import tempfile
 import copy
+import os
 
 def tf_data_experimental_save_inputs():
     list_of_inputs = []
+    base_path = '/tmp/tf_data_experimental_save'
 
-    def get_temp_path(suffix):
-        path = os.path.join(tempfile.gettempdir(), f"tf_data_save_test_{suffix}")
-        return path
-
-    dummy_shard_func_tensor = np.array(0, dtype=np.int64)
-
-    # Input 1: Basic case, adhering to the flawed signature.
-    input_dict_1 = {
+    # Input 1: Basic case with 1D integer data
+    list_of_inputs.append(copy.deepcopy({
         'dataset': np.arange(10, dtype=np.int32),
-        'path': get_temp_path("1"),
+        'path': os.path.join(base_path, '1'),
         'compression': 'NONE',
-        'shard_func': dummy_shard_func_tensor,
-        'checkpoint_args': []
-    }
-    list_of_inputs.append(input_dict_1)
-
-    # Input 2: GZIP compression.
-    input_dict_2 = {
-        'dataset': np.random.rand(8, 2).astype(np.float32),
-        'path': get_temp_path("2"),
+        'shard_func': np.array(0, dtype=np.int64),
+        'checkpoint_args': [],
+    }))
+    
+    # Input 2: 2D float data with GZIP compression
+    list_of_inputs.append(copy.deepcopy({
+        'dataset': np.random.rand(5, 3).astype(np.float32),
+        'path': os.path.join(base_path, '2'),
         'compression': 'GZIP',
-        'shard_func': dummy_shard_func_tensor,
-        'checkpoint_args': []
-    }
-    list_of_inputs.append(input_dict_2)
-
-    # Input 3: Using a non-empty list for checkpoint_args.
-    checkpoint_args_list_3 = [
-        ('checkpoint_interval', 10),
-        ('directory', get_temp_path("ckpt_3")),
-    ]
-    input_dict_3 = {
-        'dataset': np.arange(50, dtype=np.int64),
-        'path': get_temp_path("3"),
+        'shard_func': np.array(0, dtype=np.int64),
+        'checkpoint_args': [],
+    }))
+    
+    # Input 3: Dataset of strings with a specific shard_func
+    list_of_inputs.append(copy.deepcopy({
+        'dataset': np.array(['alpha', 'beta', 'gamma']),
+        'path': os.path.join(base_path, '3'),
         'compression': 'NONE',
-        'shard_func': dummy_shard_func_tensor,
-        'checkpoint_args': checkpoint_args_list_3
-    }
-    list_of_inputs.append(input_dict_3)
-
-    # Input 4: 2D numpy array.
-    input_dict_4 = {
-        'dataset': np.arange(12, dtype=np.int32).reshape(4, 3),
-        'path': get_temp_path("4"),
+        'shard_func': np.array(1, dtype=np.int64),
+        'checkpoint_args': [],
+    }))
+    
+    # Input 4: Large dataset with checkpointing
+    list_of_inputs.append(copy.deepcopy({
+        'dataset': np.arange(100, dtype=np.int64),
+        'path': os.path.join(base_path, '4'),
         'compression': 'NONE',
-        'shard_func': dummy_shard_func_tensor,
-        'checkpoint_args': []
-    }
-    list_of_inputs.append(input_dict_4)
-
-    # Input 5: Empty dataset tensor.
-    input_dict_5 = {
+        'shard_func': np.array(0, dtype=np.int64),
+        'checkpoint_args': [
+            ('checkpoint_interval', 10),
+            ('step_counter', np.array(0, dtype=np.int64)),
+            ('directory', os.path.join(base_path, 'ckpt_4')),
+            ('max_to_keep', 5)
+        ],
+    }))
+    
+    # Input 5: All optional arguments used
+    list_of_inputs.append(copy.deepcopy({
+        'dataset': np.random.rand(10, 2).astype(np.float64),
+        'path': os.path.join(base_path, '5'),
+        'compression': 'GZIP',
+        'shard_func': np.array(2, dtype=np.int64),
+        'checkpoint_args': [
+            ('checkpoint_interval', 5),
+            ('step_counter', np.array(10, dtype=np.int64)),
+            ('directory', os.path.join(base_path, 'ckpt_5')),
+            ('max_to_keep', 2)
+        ],
+    }))
+    
+    # Input 6: 3D data with int8 type
+    list_of_inputs.append(copy.deepcopy({
+        'dataset': np.ones((2, 3, 4), dtype=np.int8),
+        'path': os.path.join(base_path, '6'),
+        'compression': 'NONE',
+        'shard_func': np.array(0, dtype=np.int64),
+        'checkpoint_args': [],
+    }))
+    
+    # Input 7: Complex number dataset
+    list_of_inputs.append(copy.deepcopy({
+        'dataset': np.array([1+2j, 3-4j, 5+6j], dtype=np.complex64),
+        'path': os.path.join(base_path, '7'),
+        'compression': 'NONE',
+        'shard_func': np.array(0, dtype=np.int64),
+        'checkpoint_args': [],
+    }))
+    
+    # Input 8: Empty dataset
+    list_of_inputs.append(copy.deepcopy({
         'dataset': np.array([], dtype=np.float32),
-        'path': get_temp_path("5"),
+        'path': os.path.join(base_path, '8'),
         'compression': 'NONE',
-        'shard_func': dummy_shard_func_tensor,
-        'checkpoint_args': []
-    }
-    list_of_inputs.append(input_dict_5)
-
-    # Input 6: Checkpointing and GZIP with a list.
-    checkpoint_args_list_6 = [
-        ('checkpoint_interval', 5),
-        ('directory', get_temp_path("ckpt_6")),
-    ]
-    input_dict_6 = {
-        'dataset': np.arange(20, dtype=np.int64),
-        'path': get_temp_path("6"),
-        'compression': 'GZIP',
-        'shard_func': dummy_shard_func_tensor,
-        'checkpoint_args': checkpoint_args_list_6
-    }
-    list_of_inputs.append(input_dict_6)
-
-    # Input 7: 3D numpy array.
-    input_dict_7 = {
-        'dataset': np.random.rand(5, 2, 3).astype(np.float32),
-        'path': get_temp_path("7"),
+        'shard_func': np.array(0, dtype=np.int64),
+        'checkpoint_args': [],
+    }))
+    
+    # Input 9: Boolean dataset
+    list_of_inputs.append(copy.deepcopy({
+        'dataset': np.array([True, False, True, True, False]),
+        'path': os.path.join(base_path, '9'),
         'compression': 'NONE',
-        'shard_func': dummy_shard_func_tensor,
-        'checkpoint_args': []
-    }
-    list_of_inputs.append(input_dict_7)
-
-    # Input 8: Negative values in dataset tensor.
-    input_dict_8 = {
-        'dataset': np.arange(-10, 10, dtype=np.int32),
-        'path': get_temp_path("8"),
+        'shard_func': np.array(0, dtype=np.int64),
+        'checkpoint_args': [],
+    }))
+    
+    # Input 10: Single element dataset with GZIP and sharding
+    list_of_inputs.append(copy.deepcopy({
+        'dataset': np.array([1337], dtype=np.uint32),
+        'path': os.path.join(base_path, '10'),
         'compression': 'GZIP',
-        'shard_func': dummy_shard_func_tensor,
-        'checkpoint_args': []
-    }
-    list_of_inputs.append(input_dict_8)
-
-    # Input 9: Unsigned integer type.
-    input_dict_9 = {
-        'dataset': np.arange(15, dtype=np.uint8),
-        'path': get_temp_path("9"),
-        'compression': 'NONE',
-        'shard_func': dummy_shard_func_tensor,
-        'checkpoint_args': []
-    }
-    list_of_inputs.append(input_dict_9)
-
-    # Input 10: Float16 type.
-    input_dict_10 = {
-        'dataset': np.random.rand(5).astype(np.float16),
-        'path': get_temp_path("10"),
-        'compression': 'GZIP',
-        'shard_func': dummy_shard_func_tensor,
-        'checkpoint_args': []
-    }
-    list_of_inputs.append(input_dict_10)
+        'shard_func': np.array(3, dtype=np.int64),
+        'checkpoint_args': [],
+    }))
 
     return list_of_inputs
 

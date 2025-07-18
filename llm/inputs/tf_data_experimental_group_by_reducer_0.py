@@ -7,95 +7,90 @@ generated_inputs = dict()
 import tensorflow as tf
 import numpy as np
 import copy
-import torch
 
 def tf_data_experimental_group_by_reducer_inputs():
     list_of_inputs = []
 
-    # The error indicates the test harness needs a tf.data.Dataset object to apply
-    # the returned function to. This version provides a pre-constructed dataset
-    # under the key 'dataset'.
+    # Input 1: Basic case with int32 data
+    input_dict = {
+        'elements': np.arange(10, dtype=np.int32),
+        'key_func': [np.int64(3)],
+        'reducer': [np.int32(0)]
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 1: Basic integer dataset
-    input_dict_1 = {
-        'dataset': tf.data.Dataset.from_tensor_slices(np.arange(10, dtype=np.int64)),
+    # Input 2: float32 data
+    input_dict = {
+        'data_stream': np.array([1.1, 2.2, 1.3, 3.1, 2.4, 3.9], dtype=np.float32),
         'key_func': [np.int64(2)],
-        'reducer': [np.int64(0), np.int64(1)],
+        'reducer': [np.float32(0.0)]
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Dataset of tuples (as 2D array)
-    input_dict_2 = {
-        'dataset': tf.data.Dataset.from_tensor_slices(np.array([[1, 10], [2, 20], [1, 30], [2, 40]], dtype=np.int32)),
-        'key_func': [np.int64(0)],
-        'reducer': [np.array([0], dtype=np.int32), np.int64(1)],
+    # Input 3: Dataset with negative int32 values
+    input_dict = {
+        'values': np.array([-1, -5, 2, -1, 5, 2, 8], dtype=np.int32),
+        'key_func': [np.int64(4)],
+        'reducer': [np.int32(0)]
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
-
-    # Input 3: Float dataset
-    input_dict_3 = {
-        'dataset': tf.data.Dataset.from_tensor_slices(np.random.rand(10, 2).astype(np.float32)),
-        'key_func': [np.int64(0)],
-        'reducer': [np.float32(0.0), np.float32(1.0)],
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Empty dataset
-    input_dict_4 = {
-        'dataset': tf.data.Dataset.from_tensor_slices(np.array([], dtype=np.int64)),
+    input_dict = {
+        'empty_tensor': np.array([], dtype=np.float64),
         'key_func': [np.int64(1)],
-        'reducer': [np.int64(0)],
+        'reducer': [np.float64(0.0)]
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Dataset with more dimensions
-    input_dict_5 = {
-        'dataset': tf.data.Dataset.from_tensor_slices(np.arange(24, dtype=np.float64).reshape((2, 3, 4))),
-        'key_func': [np.int64(0)],
-        'reducer': [np.float64(0.0)],
+    # Input 5: Dataset with a single element
+    input_dict = {
+        'single_element': np.array([100], dtype=np.int64),
+        'key_func': [np.int64(5)],
+        'reducer': [np.int64(0)]
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Single element dataset
-    input_dict_6 = {
-        'dataset': tf.data.Dataset.from_tensor_slices(np.array([-55], dtype=np.int64)),
-        'key_func': [np.int64(1)],
-        'reducer': [np.int64(0)],
+    # Input 6: Dataset where all elements might map to the same key
+    input_dict = {
+        'even_numbers': np.array([2, 4, 6, 8, 10], dtype=np.int16),
+        'key_func': [np.int64(2)],
+        'reducer': [np.int16(0)]
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Boolean data
-    input_dict_7 = {
-        'dataset': tf.data.Dataset.from_tensor_slices(np.array([True, False, True, False, True], dtype=np.bool_)),
-        'key_func': [np.int64(1)],
-        'reducer': [np.int64(0), np.int64(1)],
+    # Input 7: Dataset with unsigned integers
+    input_dict = {
+        'uint_data': np.arange(12, dtype=np.uint32),
+        'key_func': [np.int64(4)],
+        'reducer': [np.uint32(0)]
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Larger dataset with random data
+    input_dict = {
+        'random_ints': np.random.randint(-100, 100, size=50, dtype=np.int32),
+        'key_func': [np.int64(10)],
+        'reducer': [np.int32(0)]
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Dataset with float64 values
+    input_dict = {
+        'float64_data': np.linspace(-10.0, 10.0, 20, dtype=np.float64),
+        'key_func': [np.int64(2)],
+        'reducer': [np.float64(0.0)]
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Using a different modulus for the key function
+    input_dict = {
+        'another_tensor': np.arange(15, dtype=np.int8),
+        'key_func': [np.int64(5)],
+        'reducer': [np.int8(0)]
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 8: Empty lists for key_func and reducer
-    input_dict_8 = {
-        'dataset': tf.data.Dataset.from_tensor_slices(np.arange(5, dtype=np.int64)),
-        'key_func': [],
-        'reducer': [],
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
-
-    # Input 9: Nested lists for key_func and reducer
-    input_dict_9 = {
-        'dataset': tf.data.Dataset.from_tensor_slices(np.arange(5, dtype=np.int64)),
-        'key_func': [[np.int64(1)], [np.int64(2)]],
-        'reducer': [[np.int64(0)], [np.int64(1)]],
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
-    
-    # Input 10: Using large numbers
-    input_dict_10 = {
-        'dataset': tf.data.Dataset.from_tensor_slices(np.array([np.iinfo(np.int64).max, np.iinfo(np.int64).min, 0], dtype=np.int64)),
-        'key_func': [np.int64(3)],
-        'reducer': [np.int64(0)],
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
-
     return list_of_inputs
 
 generated_inputs["tf.data.experimental.group_by_reducer"] = tf_data_experimental_group_by_reducer_inputs()

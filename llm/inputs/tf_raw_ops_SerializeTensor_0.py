@@ -4,71 +4,87 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_SerializeTensor_inputs():
-    list_of_inputs = []
+def tf_raw_ops_serialize_tensor_inputs():
+  """
+  Generates a list of valid inputs for tf.raw_ops.SerializeTensor.
+  """
+  list_of_inputs = []
 
-    # Input 1: Basic integer tensor
-    tensor1 = np.array([1, 2, 3], dtype=np.int32)
-    tensor1 = tf.constant(tensor1)
-    input_dict1 = {"tensor": tensor1, "name": "serialize_int"}
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+  # Input 1: Simple 1D integer tensor
+  tensor = np.array([1, 2, 3, 4], dtype=np.int32)
+  input_dict = {'tensor': tensor, 'name': 'serialize_int_tensor'}
+  list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Float tensor
-    tensor2 = np.array([1.0, 2.5, 3.7], dtype=np.float32)
-    tensor2 = tf.constant(tensor2)
-    input_dict2 = {"tensor": tensor2, "name": "serialize_float"}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+  # Input 2: 2D float tensor with negative values
+  tensor = np.array([[-1.1, 2.2], [3.3, -4.4]], dtype=np.float32)
+  input_dict = {'tensor': tensor, 'name': 'serialize_float_tensor'}
+  list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: String tensor
-    tensor3 = np.array(["hello", "world"], dtype=np.string_)
-    tensor3 = tf.constant(tensor3)
-    input_dict3 = {"tensor": tensor3, "name": "serialize_string"}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+  # Input 3: 3D boolean tensor
+  tensor = np.array([[[True, False], [False, True]], [[False, False], [True, True]]], dtype=np.bool_)
+  input_dict = {'tensor': tensor, 'name': 'serialize_bool_tensor'}
+  list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Boolean tensor
-    tensor4 = np.array([True, False, True], dtype=np.bool_)
-    tensor4 = tf.constant(tensor4)
-    input_dict4 = {"tensor": tensor4, "name": "serialize_bool"}
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+  # Input 4: Scalar (0D) tensor
+  tensor = np.array(42, dtype=np.int64)
+  input_dict = {'tensor': tensor, 'name': 'serialize_scalar'}
+  list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 2D integer tensor
-    tensor5 = np.array([[1, 2], [3, 4]], dtype=np.int64)
-    tensor5 = tf.constant(tensor5)
-    input_dict5 = {"tensor": tensor5, "name": "serialize_2d_int"}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+  # Input 5: Empty tensor
+  tensor = np.array([], dtype=np.float32)
+  input_dict = {'tensor': tensor, 'name': 'serialize_empty_tensor'}
+  list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: 3D float tensor
-    tensor6 = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float64)
-    tensor6 = tf.constant(tensor6)
-    input_dict6 = {"tensor": tensor6, "name": "serialize_3d_float"}
-    list_of_inputs.append(copy.deepcopy(input_dict6))
+  # Input 6: 4D uint8 tensor
+  tensor = np.arange(2 * 3 * 4 * 5, dtype=np.uint8).reshape(2, 3, 4, 5)
+  input_dict = {'tensor': tensor, 'name': 'serialize_4d_uint8'}
+  list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Empty tensor
-    tensor7 = np.array([], dtype=np.int32)
-    tensor7 = tf.constant(tensor7)
-    input_dict7 = {"tensor": tensor7, "name": "serialize_empty"}
-    list_of_inputs.append(copy.deepcopy(input_dict7))
+  # Input 7: Complex number tensor
+  tensor = np.array([1+2j, 3+4j, 5-6j], dtype=np.complex64)
+  input_dict = {'tensor': tensor, 'name': 'serialize_complex_tensor'}
+  list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Tensor with negative values
-    tensor8 = np.array([-1, -2, 3], dtype=np.int32)
-    tensor8 = tf.constant(tensor8)
-    input_dict8 = {"tensor": tensor8, "name": "serialize_negative"}
-    list_of_inputs.append(copy.deepcopy(input_dict8))
-    
-    return list_of_inputs
+  # Input 8: String tensor (using object dtype for bytes)
+  tensor = np.array([b'hello', b'world', b'tensorflow'], dtype=np.object_)
+  input_dict = {'tensor': tensor, 'name': 'serialize_string_tensor'}
+  list_of_inputs.append(copy.deepcopy(input_dict))
 
-generated_inputs = {}
-generated_inputs["tf.raw_ops.SerializeTensor"] = tf_raw_ops_SerializeTensor_inputs()
+  # Input 9: Large tensor with double precision
+  tensor = np.zeros((10, 10, 10), dtype=np.float64)
+  input_dict = {'tensor': tensor, 'name': 'serialize_large_tensor'}
+  list_of_inputs.append(copy.deepcopy(input_dict))
+
+  # Input 10: 2D tensor with name=None
+  tensor = np.array([[10, 20], [30, 40]], dtype=np.int16)
+  input_dict = {'tensor': tensor, 'name': None}
+  list_of_inputs.append(copy.deepcopy(input_dict))
+
+  # Input 11: A tensor with mixed signs and zero
+  tensor = np.array([-10, 0, 10, -5.5, 5.5, 0.0], dtype=np.float32)
+  input_dict = {'tensor': tensor, 'name': 'serialize_mixed_sign'}
+  list_of_inputs.append(copy.deepcopy(input_dict))
+
+  # Input 12: Tensor with a zero-sized dimension
+  tensor = np.zeros((5, 0, 5), dtype=np.int32)
+  input_dict = {'tensor': tensor, 'name': 'serialize_zero_dim_tensor'}
+  list_of_inputs.append(copy.deepcopy(input_dict))
+
+  return list_of_inputs
+
+generated_inputs["tf.raw_ops.SerializeTensor"] = tf_raw_ops_serialize_tensor_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.SerializeTensor' not in generated_inputs:

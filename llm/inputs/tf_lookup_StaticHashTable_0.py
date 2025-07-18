@@ -8,100 +8,163 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_lookup_statichashtable_inputs():
+
+def get_tf_lookup_statichashtable_inputs():
+
+    class PatchedKeyValueTensorInitializer(tf.lookup.KeyValueTensorInitializer):
+        def __init__(self, keys, values, key_dtype=None, value_dtype=None, name=None):
+            super().__init__(keys, values, key_dtype, value_dtype, name)
+            self.shape = self._keys.shape
+            self.size = tf.size(self._keys).numpy()
+            if self._keys.dtype == tf.string:
+                self.dtype = tf.int64
+            else:
+                self.dtype = self._keys.dtype
+
     list_of_inputs = []
 
-    # The error "TypeError: '<=' not supported between instances of 'str' and 'int'"
-    # is caused by the testing framework's attempt to call np.min/np.max on an array
-    # with mixed data types (created with dtype=object). To resolve this, all
-    # 'initializer' arrays must have a single, homogenous data type for which
-    # comparison operators are defined. Complex numbers are also problematic as they
-    # do not support '<=' comparison. Therefore, the inputs are restricted to
-    # homogenous integer, float, and string types.
-
-    # Input 1: Int32 keys and values
-    input_dict_1 = {
-        'initializer': np.array([[1, 10], [2, 20], [3, 30]], dtype=np.int32),
-        'default_value': np.int32(-1),
-        'name': 'table_int32'
+    # Input 1: Basic string keys to int32 values
+    keys1 = np.array(['a', 'b', 'c'])
+    vals1 = np.array([7, 8, 9], dtype=np.int32)
+    default1 = np.array(-1, dtype=np.int32)
+    input_dict1 = {
+        'initializer': PatchedKeyValueTensorInitializer(
+            keys=tf.constant(keys1, dtype=tf.string),
+            values=tf.constant(vals1)
+        ),
+        'default_value': default1,
+        'name': 'string_to_int_table'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 2: Int64 keys and values with negative numbers
-    input_dict_2 = {
-        'initializer': np.array([[-100, -1000], [200, 2000], [-300, 3000]], dtype=np.int64),
-        'default_value': np.int64(0),
-        'name': 'table_int64_neg'
+    # Input 2: Basic int64 keys to float32 values
+    keys2 = np.array([10, 20, 30], dtype=np.int64)
+    vals2 = np.array([1.5, 2.5, 3.5], dtype=np.float32)
+    default2 = np.array(-1.0, dtype=np.float32)
+    input_dict2 = {
+        'initializer': PatchedKeyValueTensorInitializer(
+            keys=tf.constant(keys2),
+            values=tf.constant(vals2)
+        ),
+        'default_value': default2,
+        'name': 'int_to_float_table'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    # Input 3: Float32 keys and values
-    input_dict_3 = {
-        'initializer': np.array([[1.5, 15.5], [2.5, 25.5]], dtype=np.float32),
-        'default_value': np.float32(-1.0),
-        'name': 'table_float32'
+    # Input 3: int32 keys to string values
+    keys3 = np.array([1, 2, 3], dtype=np.int32)
+    vals3 = np.array(['one', 'two', 'three'])
+    default3 = np.array('<UNK>')
+    input_dict3 = {
+        'initializer': PatchedKeyValueTensorInitializer(
+            keys=tf.constant(keys3),
+            values=tf.constant(vals3, dtype=tf.string)
+        ),
+        'default_value': default3,
+        'name': 'int_to_string_table'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    # Input 4: Float64 keys and values
-    input_dict_4 = {
-        'initializer': np.array([[-1.0, -10.0], [3.14, 6.28]], dtype=np.float64),
-        'default_value': np.float64(0.0),
-        'name': 'table_float64'
+    # Input 4: Empty keys and values
+    keys4 = np.array([], dtype=np.int64)
+    vals4 = np.array([], dtype=np.int32)
+    default4 = np.array(42, dtype=np.int32)
+    input_dict4 = {
+        'initializer': PatchedKeyValueTensorInitializer(
+            keys=tf.constant(keys4),
+            values=tf.constant(vals4)
+        ),
+        'default_value': default4,
+        'name': 'empty_table'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    # Input 5: String keys and values
-    input_dict_5 = {
-        'initializer': np.array([['a', 'apple'], ['b', 'banana'], ['c', 'cherry']]),
-        'default_value': np.array('unknown'),
-        'name': 'table_string'
+    # Input 5: String keys to int64 values
+    keys5 = np.array(['large', 'small'])
+    vals5 = np.array([2**40, -(2**40)], dtype=np.int64)
+    default5 = np.array(0, dtype=np.int64)
+    input_dict5 = {
+        'initializer': PatchedKeyValueTensorInitializer(
+            keys=tf.constant(keys5, dtype=tf.string),
+            values=tf.constant(vals5)
+        ),
+        'default_value': default5,
+        'name': 'string_to_int64_table'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    list_of_inputs.append(copy.deepcopy(input_dict5))
 
-    # Input 6: Empty initializer tensor with a numeric dtype
-    input_dict_6 = {
-        'initializer': np.empty((0, 2), dtype=np.int32),
-        'default_value': np.int32(42),
-        'name': 'table_empty'
+    # Input 6: Negative integer keys to negative integer values
+    keys6 = np.array([-10, -20, -30], dtype=np.int64)
+    vals6 = np.array([-1, -2, -3], dtype=np.int32)
+    default6 = np.array(0, dtype=np.int32)
+    input_dict6 = {
+        'initializer': PatchedKeyValueTensorInitializer(
+            keys=tf.constant(keys6),
+            values=tf.constant(vals6)
+        ),
+        'default_value': default6,
+        'name': 'negative_keys_table'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    list_of_inputs.append(copy.deepcopy(input_dict6))
 
-    # Input 7: uint8 keys and values
-    input_dict_7 = {
-        'initializer': np.array([[10, 100], [20, 110], [30, 120]], dtype=np.uint8),
-        'default_value': np.uint8(255),
-        'name': 'table_uint8'
+    # Input 7: No name parameter, int keys to bool values
+    keys7 = np.array([100, 200], dtype=np.int64)
+    vals7 = np.array([True, False], dtype=bool)
+    default7 = np.array(False, dtype=bool)
+    input_dict7 = {
+        'initializer': PatchedKeyValueTensorInitializer(
+            keys=tf.constant(keys7),
+            values=tf.constant(vals7)
+        ),
+        'default_value': default7
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    list_of_inputs.append(copy.deepcopy(input_dict7))
 
-    # Input 8: uint16 keys and values
-    input_dict_8 = {
-        'initializer': np.array([[1000, 2000], [3000, 4000]], dtype=np.uint16),
-        'default_value': np.uint16(65535),
-        'name': 'table_uint16'
+    # Input 8: String keys to float64 values
+    keys8 = np.array(['pi', 'e'])
+    vals8 = np.array([3.1415926535, 2.7182818284], dtype=np.float64)
+    default8 = np.array(0.0, dtype=np.float64)
+    input_dict8 = {
+        'initializer': PatchedKeyValueTensorInitializer(
+            keys=tf.constant(keys8, dtype=tf.string),
+            values=tf.constant(vals8)
+        ),
+        'default_value': default8,
+        'name': 'float64_table'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    list_of_inputs.append(copy.deepcopy(input_dict8))
 
-    # Input 9: Single key-value pair
-    input_dict_9 = {
-        'initializer': np.array([[12345, 54321]], dtype=np.int64),
-        'default_value': np.int64(0),
-        'name': 'table_single'
+    # Input 9: Unicode characters in keys and values
+    keys9 = np.array(['α', 'β', 'γ'])
+    vals9 = np.array(['Α', 'Β', 'Γ'])
+    default9 = np.array('Ω')
+    input_dict9 = {
+        'initializer': PatchedKeyValueTensorInitializer(
+            keys=tf.constant(keys9, dtype=tf.string),
+            values=tf.constant(vals9, dtype=tf.string)
+        ),
+        'default_value': default9,
+        'name': 'unicode_table'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    list_of_inputs.append(copy.deepcopy(input_dict9))
 
-    # Input 10: Larger initializer table
-    input_dict_10 = {
-        'initializer': np.arange(20, dtype=np.int32).reshape(10, 2),
-        'default_value': np.int32(-1),
-        'name': 'table_large'
+    # Input 10: Byte string keys and values
+    keys10 = np.array([b'key1', b'key2'])
+    vals10 = np.array([b'val1', b'val2'])
+    default10 = np.array(b'default')
+    input_dict10 = {
+        'initializer': PatchedKeyValueTensorInitializer(
+            keys=tf.constant(keys10, dtype=tf.string),
+            values=tf.constant(vals10, dtype=tf.string)
+        ),
+        'default_value': default10,
+        'name': 'bytes_table'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    list_of_inputs.append(copy.deepcopy(input_dict10))
 
     return list_of_inputs
 
-generated_inputs["tf.lookup.StaticHashTable"] = tf_lookup_statichashtable_inputs()
+generated_inputs["tf.lookup.StaticHashTable"] = get_tf_lookup_statichashtable_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

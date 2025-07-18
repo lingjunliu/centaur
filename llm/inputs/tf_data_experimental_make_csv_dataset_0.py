@@ -6,164 +6,203 @@ generated_inputs = dict()
 
 import numpy as np
 import copy
-import os
-import tempfile
-import gzip
 
-def tf_data_experimental_make_csv_dataset_inputs():
+def generate_make_csv_dataset_inputs():
     """
     Generates a list of valid inputs for the tf.data.experimental.make_csv_dataset function.
-    This version avoids using arguments that are lists of strings (like column_names) or other
-    non-numeric lists that might cause issues with the test harness.
-    All inputs will use header inference (header=True).
+    The fix is to convert lists of strings to numpy arrays. This is to work around a bug in the
+    testing environment that fails to compute np.min on a standard list of strings, causing a
+    UFuncNoLoopError. Providing a numpy array directly might be handled correctly. This also
+    aligns with the 'numpy format' suggestion in the prompt. Lists of integers or empty lists
+    are left as is, as they do not cause this issue.
     """
-    
-    temp_dir = tempfile.mkdtemp()
-    
-    file_path1 = os.path.join(temp_dir, 'data1.csv')
-    with open(file_path1, 'w') as f:
-        f.write("col1,col2,col3,label\n")
-        f.write("1,1.1,a,0\n")
-        f.write("2,2.2,b,1\n")
-        f.write("3,3.3,c,0\n")
-
-    file_path2 = os.path.join(temp_dir, 'data2.csv')
-    with open(file_path2, 'w') as f:
-        f.write("feature_a,feature_b,target\n")
-        f.write("4,4.4,true\n")
-        f.write("5,5.5,false\n")
-        f.write("6,6.6,true\n")
-
-    file_path_semi = os.path.join(temp_dir, 'data_semi.csv')
-    with open(file_path_semi, 'w') as f:
-        f.write("f1;f2;f3\n")
-        f.write("10;10.1;x\n")
-        f.write("20;20.2;y\n")
-
-    file_path_na = os.path.join(temp_dir, 'data_na.csv')
-    with open(file_path_na, 'w') as f:
-        f.write("colA,colB,colC\n")
-        f.write("1,,foo\n")
-        f.write("2,2.2,MISSING\n")
-        f.write("3,3.3,bar\n")
-        
-    file_path_gz = os.path.join(temp_dir, 'data.csv.gz')
-    with gzip.open(file_path_gz, 'wt', encoding='utf-8') as f_gz:
-        f_gz.write("g1,g2,g3\n")
-        f_gz.write("1,2,3\n")
-        f_gz.write("4,5,6\n")
-
     list_of_inputs = []
-    
-    base_input = {
-        'file_pattern': None, 'batch_size': None, 'column_names': None, 
-        'column_defaults': None, 'label_name': None, 'select_columns': None,
-        'field_delim': ',', 'use_quote_delim': True, 'na_value': '', 
-        'header': True, 'num_epochs': None, 'shuffle': True, 
-        'shuffle_buffer_size': 10000, 'shuffle_seed': None, 
-        'prefetch_buffer_size': None, 'num_parallel_reads': None, 'sloppy': False,
-        'num_rows_for_inference': 100, 'compression_type': None, 
-        'ignore_errors': False, 'encoding': 'utf-8'
-    }
 
-    # Input 1: Basic case, inferring from header.
-    input_1 = copy.deepcopy(base_input)
-    input_1.update({
-        'file_pattern': [file_path1],
-        'batch_size': 2,
-    })
-    list_of_inputs.append(input_1)
-
-    # Input 2: Specify a label column.
-    input_2 = copy.deepcopy(base_input)
-    input_2.update({
-        'file_pattern': [file_path1],
-        'batch_size': 1,
-        'label_name': 'label'
-    })
-    list_of_inputs.append(input_2)
-
-    # Input 3: Select columns by integer index.
-    input_3 = copy.deepcopy(base_input)
-    input_3.update({
-        'file_pattern': [file_path1],
-        'batch_size': 1,
-        'label_name': 'label',
-        'select_columns': [0, 1, 3]
-    })
-    list_of_inputs.append(input_3)
-    
-    # Input 4: Use a different field delimiter.
-    input_4 = copy.deepcopy(base_input)
-    input_4.update({
-        'file_pattern': [file_path_semi],
-        'batch_size': 2,
-        'field_delim': ';'
-    })
-    list_of_inputs.append(input_4)
-
-    # Input 5: Disable shuffle and set a specific number of epochs.
-    input_5 = copy.deepcopy(base_input)
-    input_5.update({
-        'file_pattern': [file_path2],
-        'batch_size': 1,
+    # Input 1: Basic case with header inference and a label.
+    input_1 = {
+        'file_pattern': np.array(['./file1.csv']),
+        'batch_size': 8,
+        'column_names': [],
+        'column_defaults': [],
+        'label_name': 'target',
+        'select_columns': [],
+        'field_delim': ',',
+        'use_quote_delim': True,
+        'na_value': '',
+        'header': True,
         'num_epochs': 1,
-        'shuffle': False
-    })
-    list_of_inputs.append(input_5)
-
-    # Input 6: Multiple files in pattern and ignore errors.
-    input_6 = copy.deepcopy(base_input)
-    input_6.update({
-        'file_pattern': [file_path1, file_path2],
-        'batch_size': 4,
-        'ignore_errors': True
-    })
-    list_of_inputs.append(input_6)
-
-    # Input 7: Gzip compressed file.
-    input_7 = copy.deepcopy(base_input)
-    input_7.update({
-        'file_pattern': [file_path_gz],
-        'batch_size': 2,
-        'compression_type': 'GZIP'
-    })
-    list_of_inputs.append(input_7)
-
-    # Input 8: Advanced performance options.
-    input_8 = copy.deepcopy(base_input)
-    input_8.update({
-        'file_pattern': [file_path1],
-        'batch_size': 2,
-        'shuffle_buffer_size': 50,
+        'shuffle': True,
+        'shuffle_buffer_size': 1000,
         'shuffle_seed': 42,
+        'prefetch_buffer_size': 1,
+        'num_parallel_reads': 1,
+        'sloppy': False,
+        'num_rows_for_inference': 100,
+        'compression_type': '',
+        'ignore_errors': False,
+        'encoding': 'utf-8'
+    }
+    list_of_inputs.append(copy.deepcopy(input_1))
+
+    # Input 2: No header, explicit column names provided.
+    input_2 = {
+        'file_pattern': np.array(['./file2.csv']),
+        'batch_size': 4,
+        'column_names': np.array(['age', 'sex', 'thal', 'target']),
+        'column_defaults': [],
+        'label_name': 'target',
+        'select_columns': [],
+        'field_delim': ',',
+        'use_quote_delim': True,
+        'na_value': '?',
+        'header': False,
+        'num_epochs': 1,
+        'shuffle': False,
+        'shuffle_buffer_size': 10000,
+        'shuffle_seed': 0,
+        'prefetch_buffer_size': 0,
+        'num_parallel_reads': 1,
+        'sloppy': False,
+        'num_rows_for_inference': 50,
+        'compression_type': '',
+        'ignore_errors': False,
+        'encoding': 'utf-8'
+    }
+    list_of_inputs.append(copy.deepcopy(input_2))
+
+    # Input 3: Select specific columns by index.
+    input_3 = {
+        'file_pattern': np.array(['./file3.csv']),
+        'batch_size': 32,
+        'column_names': [],
+        'column_defaults': [],
+        'label_name': 'species',
+        'select_columns': [0, 2, 4],
+        'header': True,
+        'num_epochs': 5,
+        'shuffle': True,
+        'shuffle_buffer_size': 5000,
+        'shuffle_seed': 123,
         'prefetch_buffer_size': 2,
         'num_parallel_reads': 2,
-        'sloppy': True
-    })
-    list_of_inputs.append(input_8)
+        'sloppy': True,
+        'field_delim': ',',
+        'use_quote_delim': True,
+        'na_value': '',
+        'num_rows_for_inference': 200,
+        'compression_type': '',
+        'ignore_errors': False,
+        'encoding': 'utf-8'
+    }
+    list_of_inputs.append(copy.deepcopy(input_3))
 
-    # Input 9: Custom NA value.
-    input_9 = copy.deepcopy(base_input)
-    input_9.update({
-        'file_pattern': [file_path_na],
-        'batch_size': 3,
-        'na_value': 'MISSING'
-    })
-    list_of_inputs.append(input_9)
-    
-    # Input 10: Another simple case with different batch size and file.
-    input_10 = copy.deepcopy(base_input)
-    input_10.update({
-        'file_pattern': [file_path2],
-        'batch_size': 3,
-        'label_name': 'target'
-    })
-    list_of_inputs.append(input_10)
+    # Input 4: Select columns by name, no header.
+    input_4 = {
+        'file_pattern': np.array(['./file4.csv']),
+        'batch_size': 64,
+        'column_names': np.array(['a', 'b', 'c', 'd', 'e']),
+        'column_defaults': [],
+        'label_name': 'e',
+        'select_columns': np.array(['a', 'c', 'e']),
+        'field_delim': ';',
+        'use_quote_delim': False,
+        'na_value': 'NA',
+        'header': False,
+        'num_epochs': 1,
+        'shuffle': True,
+        'shuffle_buffer_size': 10000,
+        'shuffle_seed': 123,
+        'prefetch_buffer_size': 4,
+        'num_parallel_reads': 4,
+        'sloppy': False,
+        'num_rows_for_inference': 100,
+        'compression_type': '',
+        'ignore_errors': True,
+        'encoding': 'latin-1'
+    }
+    list_of_inputs.append(copy.deepcopy(input_4))
+
+    # Input 5: Read a compressed file with performance tuning.
+    input_5 = {
+        'file_pattern': np.array(['./file5.csv.gz']),
+        'batch_size': 128,
+        'column_names': [],
+        'column_defaults': [],
+        'label_name': 'target',
+        'select_columns': [],
+        'field_delim': ',',
+        'use_quote_delim': True,
+        'na_value': '',
+        'header': True,
+        'num_epochs': 10,
+        'shuffle': True,
+        'shuffle_buffer_size': 20000,
+        'shuffle_seed': 2023,
+        'prefetch_buffer_size': 8,
+        'num_parallel_reads': 8,
+        'sloppy': True,
+        'num_rows_for_inference': 1000,
+        'compression_type': 'GZIP',
+        'ignore_errors': False,
+        'encoding': 'utf-8'
+    }
+    list_of_inputs.append(copy.deepcopy(input_5))
+
+    # Input 6: Use a glob pattern for multiple files.
+    input_6 = {
+        'file_pattern': np.array(['./data_part_*.csv']),
+        'batch_size': 10,
+        'column_names': [],
+        'column_defaults': [],
+        'label_name': 'col_5',
+        'select_columns': [],
+        'field_delim': '\t',
+        'use_quote_delim': True,
+        'na_value': 'null',
+        'header': True,
+        'num_epochs': 2,
+        'shuffle': True,
+        'shuffle_buffer_size': 1000,
+        'shuffle_seed': 7,
+        'prefetch_buffer_size': 1,
+        'num_parallel_reads': 1,
+        'sloppy': False,
+        'num_rows_for_inference': 100,
+        'compression_type': '',
+        'ignore_errors': False,
+        'encoding': 'utf-8'
+    }
+    list_of_inputs.append(copy.deepcopy(input_6))
+
+    # Input 7: No shuffling, multiple epochs, no label.
+    input_7 = {
+        'file_pattern': np.array(['./fixed_order_data.csv']),
+        'batch_size': 1,
+        'column_names': np.array(['id', 'value', 'category']),
+        'column_defaults': [],
+        'label_name': '',
+        'select_columns': [],
+        'field_delim': ',',
+        'use_quote_delim': True,
+        'na_value': '',
+        'header': False,
+        'num_epochs': 3,
+        'shuffle': False,
+        'shuffle_buffer_size': 1,
+        'shuffle_seed': 1,
+        'prefetch_buffer_size': 0,
+        'num_parallel_reads': 1,
+        'sloppy': False,
+        'num_rows_for_inference': 100,
+        'compression_type': '',
+        'ignore_errors': False,
+        'encoding': 'utf-8'
+    }
+    list_of_inputs.append(copy.deepcopy(input_7))
 
     return list_of_inputs
 
-generated_inputs["tf.data.experimental.make_csv_dataset"] = tf_data_experimental_make_csv_dataset_inputs()
+generated_inputs["tf.data.experimental.make_csv_dataset"] = generate_make_csv_dataset_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

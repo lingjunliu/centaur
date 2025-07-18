@@ -4,122 +4,187 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow.compat.v1 as tf
 import numpy as np
 import copy
+from tensorflow.python.ops import gradients_util
 
-# The user is encountering two alternating errors:
-# 1. `AttributeError: 'list' object has no attribute 'shape'`
-# 2. `RuntimeError: tf.gradients is not supported when eager execution is enabled.`
-#
-# The `AttributeError` occurs when `ys`, `xs`, etc., are provided as lists of numpy arrays,
-# because the testing harness seems to expect a single object with a `.shape` attribute.
-# The `RuntimeError` is fundamental because `tf.gradients` requires a graph context
-# (i.e., to be run inside a `tf.function`), which the execution environment is not providing.
-#
-# To resolve the `AttributeError`, the following inputs provide single numpy arrays for
-# `ys`, `xs`, `grad_ys`, and `stop_gradients`. According to the documentation, these
-# parameters accept a single Tensor as well as a list of Tensors. This will satisfy
-# the testing harness's immediate validation check. The `RuntimeError` will likely persist
-# as it is an environmental issue beyond the scope of input generation.
+# The error "tf.gradients is not supported when eager execution is enabled"
+# indicates that the function must be run in a graph context.
+# The most direct way to achieve this is to disable eager execution
+# for the entire script. This reverts TensorFlow to the graph-based
+# behavior of TF1, where tf.gradients was originally designed to work.
+tf.disable_eager_execution()
 
 def tf_gradients_inputs():
+    """
+    Generates a list of valid inputs for the tf.gradients function.
+    """
     list_of_inputs = []
 
-    # Input 1: Basic unconnected case, requesting a zero gradient.
+    # With eager execution disabled, all tf.constant calls create symbolic
+    # tensors in the default graph. tf.gradients will then operate on this
+    # graph, resolving the RuntimeError. We also return to using lists for
+    # 'tensor_list' arguments, as required by the signature.
+
+    # Input 1: Basic scalar differentiation
+    a1 = tf.constant(3.0, dtype=tf.float32)
+    b1 = 2.0 * a1
     input_dict_1 = {
-        'ys': np.zeros((3, 3), dtype=np.float32),
-        'xs': np.ones((2, 2), dtype=np.float32),
+        'ys': [b1],
+        'xs': [a1],
         'grad_ys': None,
-        'name': 'unconnected_zero',
+        'name': 'gradients_1',
         'gate_gradients': False,
         'aggregation_method': None,
-        'stop_gradients': None,
-        'unconnected_gradients': 'zero'
+        'stop_gradients': [],
+        'unconnected_gradients': 'none'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: Unconnected case, requesting a None gradient (default).
+    # Input 2: Multiple xs
+    a2 = tf.constant(2.0, dtype=tf.float32)
+    b2 = tf.constant(5.0, dtype=tf.float32)
+    c2 = 3.0 * a2 + 4.0 * b2
     input_dict_2 = {
-        'ys': np.array(-5.0, dtype=np.float32),
-        'xs': np.array([10.0, 20.0], dtype=np.float32),
+        'ys': [c2],
+        'xs': [a2, b2],
         'grad_ys': None,
-        'name': 'unconnected_none',
+        'name': 'gradients_2',
         'gate_gradients': False,
         'aggregation_method': None,
-        'stop_gradients': None,
+        'stop_gradients': [],
         'unconnected_gradients': 'none'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: Using `grad_ys`. In a graph, this would scale the gradient.
-    # We set xs=ys to simulate a scenario that would be connected.
-    y3 = np.arange(6, dtype=np.float32).reshape(2, 3)
-    grad_y3 = np.full((2, 3), 0.5, dtype=np.float32)
+    # Input 3: Non-scalar Tensors
+    a3_np = np.array([[1., 2.], [3., 4.]], dtype=np.float32)
+    a3 = tf.constant(a3_np)
+    b3 = tf.reduce_sum(3.0 * a3 * a3)
     input_dict_3 = {
-        'ys': y3,
-        'xs': y3,
-        'grad_ys': grad_y3,
-        'name': 'with_grad_ys',
+        'ys': [b3],
+        'xs': [a3],
+        'grad_ys': None,
+        'name': 'gradients_3',
         'gate_gradients': False,
         'aggregation_method': None,
-        'stop_gradients': None,
+        'stop_gradients': [],
         'unconnected_gradients': 'none'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: Using `stop_gradients` with float64.
-    y4 = np.array(1.0, dtype=np.float64)
+    # Input 4: Using stop_gradients
+    a4 = tf.constant(2.0, dtype=tf.float32)
+    b4 = 3.0 * a4
+    c4 = a4 + b4
     input_dict_4 = {
-        'ys': y4,
-        'xs': y4,
+        'ys': [c4],
+        'xs': [a4, b4],
         'grad_ys': None,
-        'name': 'with_stop_gradients',
+        'name': 'gradients_4',
         'gate_gradients': False,
         'aggregation_method': None,
-        'stop_gradients': y4,
-        'unconnected_gradients': 'zero'
+        'stop_gradients': [b4],
+        'unconnected_gradients': 'none'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: Using `gate_gradients=True`.
-    y5 = np.array([[1.0]], dtype=np.float32)
+    # Input 5: unconnected_gradients='zero'
+    a5 = tf.constant([1., 2.], dtype=tf.float32)
+    b5 = tf.constant([3., 4.], dtype=tf.float32)
+    c5 = a5 * 2.0
     input_dict_5 = {
-        'ys': y5,
-        'xs': y5,
+        'ys': [c5],
+        'xs': [a5, b5],
         'grad_ys': None,
-        'name': 'with_gate_gradients',
-        'gate_gradients': True,
+        'name': 'gradients_5',
+        'gate_gradients': False,
         'aggregation_method': None,
-        'stop_gradients': None,
-        'unconnected_gradients': 'none'
+        'stop_gradients': [],
+        'unconnected_gradients': 'zero'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: Another unconnected case with different shapes.
+    # Input 6: Multiple ys
+    a6 = tf.constant(2.0, dtype=tf.float32)
+    b6 = a6 * a6
+    c6 = 3.0 * a6
     input_dict_6 = {
-        'ys': np.array([1.0, 2.0, 3.0], dtype=np.float32),
-        'xs': np.array(0.0, dtype=np.float32),
+        'ys': [b6, c6],
+        'xs': [a6],
         'grad_ys': None,
-        'name': 'vector_ys_scalar_xs',
-        'gate_gradients': False,
+        'name': 'gradients_6',
+        'gate_gradients': True,
         'aggregation_method': None,
-        'stop_gradients': None,
-        'unconnected_gradients': 'zero'
+        'stop_gradients': [],
+        'unconnected_gradients': 'none'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
-
-    # Input 7: High dimensional unconnected tensors.
+    
+    # Input 7: Different dtype (float64)
+    a7 = tf.constant(3.0, dtype=tf.float64)
+    b7 = a7 * a7 * a7
     input_dict_7 = {
-        'ys': np.random.rand(2, 3, 4).astype(np.float32),
-        'xs': np.random.rand(5, 6).astype(np.float32),
+        'ys': [b7],
+        'xs': [a7],
         'grad_ys': None,
-        'name': 'high_dim_unconnected',
+        'name': 'gradients_7',
         'gate_gradients': False,
         'aggregation_method': None,
-        'stop_gradients': None,
-        'unconnected_gradients': 'zero'
+        'stop_gradients': [],
+        'unconnected_gradients': 'none'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
+
+    # Input 8: Using grad_ys
+    a8 = tf.constant([2.0, 3.0], dtype=tf.float32)
+    b8 = a8 * a8
+    grad_ys8 = [tf.constant([10.0, 1.0], dtype=tf.float32)]
+    input_dict_8 = {
+        'ys': [b8],
+        'xs': [a8],
+        'grad_ys': grad_ys8,
+        'name': 'gradients_8',
+        'gate_gradients': False,
+        'aggregation_method': None,
+        'stop_gradients': [],
+        'unconnected_gradients': 'none'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    
+    # Input 9: Using aggregation_method
+    a9 = tf.constant(2.0, dtype=tf.float32)
+    b9 = a9 * 2.0
+    c9 = a9 * 3.0
+    d9 = b9 + c9
+    input_dict_9 = {
+        'ys': [d9],
+        'xs': [a9],
+        'grad_ys': None,
+        'name': 'gradients_9',
+        'gate_gradients': False,
+        'aggregation_method': 'ADD_N',
+        'stop_gradients': [],
+        'unconnected_gradients': 'none'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    
+    # Input 10: 3D Tensor
+    a10_np = np.arange(8, dtype=np.float32).reshape(2, 2, 2)
+    a10 = tf.constant(a10_np)
+    b10 = tf.reduce_sum(tf.sin(a10))
+    input_dict_10 = {
+        'ys': [b10],
+        'xs': [a10],
+        'grad_ys': None,
+        'name': 'gradients_10',
+        'gate_gradients': False,
+        'aggregation_method': None,
+        'stop_gradients': [],
+        'unconnected_gradients': 'none'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 

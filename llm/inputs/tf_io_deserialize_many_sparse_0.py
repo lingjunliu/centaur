@@ -8,131 +8,126 @@ import tensorflow as tf
 import numpy as np
 import copy
 
+
 def tf_io_deserialize_many_sparse_inputs():
     """
-    Generates a list of valid inputs for the tf.io.deserialize_many_sparse function.
-    To avoid potential bugs, all SparseTensors within a single batch are created with
-    the same dense_shape.
+    Generates a list of valid inputs for tf.io.deserialize_many_sparse.
     """
-    
-    # Helper function to create a batch of serialized sparse tensors
-    def create_serialized_batch(sparse_tensors):
-        serialized_list = [tf.io.serialize_sparse(st) for st in sparse_tensors]
-        return tf.stack(serialized_list).numpy()
-
     list_of_inputs = []
 
-    # --- Input 1: Rank 1, int32, same shape ---
-    st1 = tf.SparseTensor(indices=[[0], [10]], values=[1, 2], dense_shape=[50])
-    st2 = tf.SparseTensor(indices=[[2], [20]], values=[4, 5], dense_shape=[50])
-    serialized_sparse_1 = create_serialized_batch([st1, st2])
+    # Input 1: Basic case from doc, rank 2, int32
+    st1_1 = tf.SparseTensor(indices=[[0, 1], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+    st1_2 = tf.SparseTensor(indices=[[0, 0], [2, 1]], values=[3, 4], dense_shape=[4, 3])
+    ser1 = tf.stack([tf.io.serialize_sparse(st1_1), tf.io.serialize_sparse(st1_2)]).numpy()
     list_of_inputs.append({
-        'serialized_sparse': serialized_sparse_1,
-        'dtype': tf.int32,
-        'rank': 1,
-        'name': 'rank1_same_shape'
+        'serialized_sparse': ser1,
+        'dtype': np.int32,
+        'rank': 2,
+        'name': 'doc_example_rank2_int32'
+    })
+
+    # Input 2: Basic case, rank 2, float32
+    st2_1 = tf.SparseTensor(indices=[[1, 3]], values=[1.1], dense_shape=[10, 5])
+    st2_2 = tf.SparseTensor(indices=[[0, 4], [8, 1]], values=[3.3, 4.4], dense_shape=[12, 6])
+    ser2 = tf.stack([tf.io.serialize_sparse(st2_1), tf.io.serialize_sparse(st2_2)]).numpy()
+    list_of_inputs.append({
+        'serialized_sparse': ser2,
+        'dtype': np.float32,
+        'rank': 2,
+        'name': 'basic_rank2_float32'
+    })
+
+    # Input 3: Basic case, rank 3, int64
+    st3_1 = tf.SparseTensor(indices=[[0, 1, 0], [2, 3, 1]], values=np.array([10, 20], dtype=np.int64), dense_shape=[5, 5, 2])
+    st3_2 = tf.SparseTensor(indices=[[1, 1, 1], [3, 0, 0], [4, 4, 1]], values=np.array([30, 40, 50], dtype=np.int64), dense_shape=[6, 5, 2])
+    ser3 = tf.stack([tf.io.serialize_sparse(st3_1), tf.io.serialize_sparse(st3_2)]).numpy()
+    list_of_inputs.append({
+        'serialized_sparse': ser3,
+        'dtype': np.int64,
+        'rank': 3,
+        'name': 'basic_rank3_int64'
+    })
+
+    # Input 4: Basic case, rank 4, float64
+    st4_1 = tf.SparseTensor(indices=[[0, 0, 1, 0], [1, 1, 1, 1]], values=[100.1, 200.2], dense_shape=[2, 2, 2, 2])
+    st4_2 = tf.SparseTensor(indices=[[0, 1, 0, 1]], values=[300.3], dense_shape=[2, 3, 2, 2])
+    ser4 = tf.stack([tf.io.serialize_sparse(st4_1), tf.io.serialize_sparse(st4_2)]).numpy()
+    list_of_inputs.append({
+        'serialized_sparse': ser4,
+        'dtype': np.float64,
+        'rank': 4,
+        'name': 'basic_rank4_float64'
+    })
+
+    # Input 5: One empty tensor, rank 2
+    st5_1 = tf.SparseTensor(indices=[[0,0]], values=[1], dense_shape=[2,2])
+    st5_2 = tf.SparseTensor(indices=np.empty((0,2), dtype=np.int64), values=[], dense_shape=[3,3])
+    st5_3 = tf.SparseTensor(indices=[[1,1],[2,0]], values=[2,3], dense_shape=[3,2])
+    ser5 = tf.stack([tf.io.serialize_sparse(st5_1), tf.io.serialize_sparse(st5_2), tf.io.serialize_sparse(st5_3)]).numpy()
+    list_of_inputs.append({
+        'serialized_sparse': ser5,
+        'dtype': np.int32,
+        'rank': 2,
+        'name': 'one_empty_rank2'
+    })
+
+    # Input 6: All empty tensors, rank 3
+    st6_1 = tf.SparseTensor(indices=np.empty((0,3), dtype=np.int64), values=np.array([], dtype=np.float32), dense_shape=[10, 5, 2])
+    st6_2 = tf.SparseTensor(indices=np.empty((0,3), dtype=np.int64), values=np.array([], dtype=np.float32), dense_shape=[5, 10, 3])
+    ser6 = tf.stack([tf.io.serialize_sparse(st6_1), tf.io.serialize_sparse(st6_2)]).numpy()
+    list_of_inputs.append({
+        'serialized_sparse': ser6,
+        'dtype': np.float32,
+        'rank': 3,
+        'name': 'all_empty_rank3'
+    })
+
+    # Input 7: Single item in batch, rank 2
+    st7_1 = tf.SparseTensor(indices=[[0,1],[1,0]], values=[10,20], dense_shape=[2,2])
+    ser7 = tf.stack([tf.io.serialize_sparse(st7_1)]).numpy()
+    list_of_inputs.append({
+        'serialized_sparse': ser7,
+        'dtype': np.int32,
+        'rank': 2,
+        'name': 'single_item_rank2'
+    })
+
+    # Input 8: Larger batch, rank 2
+    st8_1 = tf.SparseTensor([[0,0]], [1], [2,2])
+    st8_2 = tf.SparseTensor([[1,1]], [2], [2,2])
+    st8_3 = tf.SparseTensor([[0,1]], [3], [2,2])
+    st8_4 = tf.SparseTensor([[1,0]], [4], [2,2])
+    ser8 = tf.stack([tf.io.serialize_sparse(st8_1), tf.io.serialize_sparse(st8_2), tf.io.serialize_sparse(st8_3), tf.io.serialize_sparse(st8_4)]).numpy()
+    list_of_inputs.append({
+        'serialized_sparse': ser8,
+        'dtype': np.int32,
+        'rank': 2,
+        'name': 'large_batch_rank2'
     })
     
-    # --- Input 2: Rank 2, float32, same shape ---
-    st1 = tf.SparseTensor(indices=[[0, 1], [1, 2]], values=[10.1, 20.2], dense_shape=[5, 5])
-    st2 = tf.SparseTensor(indices=[[1, 0], [2, 3]], values=[30.3, 40.4], dense_shape=[5, 5])
-    st3 = tf.SparseTensor(indices=[[4, 4]], values=[50.5], dense_shape=[5, 5])
-    serialized_sparse_2 = create_serialized_batch([st1, st2, st3])
+    # Input 9: Rank 1 sparse tensors
+    st9_1 = tf.SparseTensor(indices=[[0], [5]], values=[10.0, 20.0], dense_shape=[10])
+    st9_2 = tf.SparseTensor(indices=[[2]], values=[30.0], dense_shape=[8])
+    ser9 = tf.stack([tf.io.serialize_sparse(st9_1), tf.io.serialize_sparse(st9_2)]).numpy()
     list_of_inputs.append({
-        'serialized_sparse': serialized_sparse_2,
-        'dtype': tf.float32,
-        'rank': 2,
-        'name': 'rank2_same_shape_float32'
-    })
-
-    # --- Input 3: Rank 3, int64, same shape ---
-    st1 = tf.SparseTensor(indices=[[0, 1, 0]], values=np.array([100], dtype=np.int64), dense_shape=[2, 3, 4])
-    st2 = tf.SparseTensor(indices=[[1, 0, 1], [1, 1, 1]], values=np.array([200, 300], dtype=np.int64), dense_shape=[2, 3, 4])
-    serialized_sparse_3 = create_serialized_batch([st1, st2])
-    list_of_inputs.append({
-        'serialized_sparse': serialized_sparse_3,
-        'dtype': tf.int64,
-        'rank': 3,
-        'name': 'rank3_same_shape_int64'
-    })
-
-    # --- Input 4: Rank 2, string dtype, same shape ---
-    st1 = tf.SparseTensor(indices=[[0, 0], [2, 2]], values=['hello', 'world'], dense_shape=[3, 3])
-    st2 = tf.SparseTensor(indices=[[1, 1]], values=['tensorflow'], dense_shape=[3, 3])
-    serialized_sparse_4 = create_serialized_batch([st1, st2])
-    list_of_inputs.append({
-        'serialized_sparse': serialized_sparse_4,
-        'dtype': tf.string,
-        'rank': 2,
-        'name': 'rank2_same_shape_string'
-    })
-
-    # --- Input 5: Rank 2, complex64, same shape ---
-    st1 = tf.SparseTensor(indices=[[0, 1]], values=np.array([1+2j], dtype=np.complex64), dense_shape=[2, 2])
-    st2 = tf.SparseTensor(indices=[[1, 0]], values=np.array([3-4j], dtype=np.complex64), dense_shape=[2, 2])
-    serialized_sparse_5 = create_serialized_batch([st1, st2])
-    list_of_inputs.append({
-        'serialized_sparse': serialized_sparse_5,
-        'dtype': tf.complex64,
-        'rank': 2,
-        'name': 'rank2_same_shape_complex64'
-    })
-
-    # --- Input 6: Rank 4, single tensor in batch ---
-    st1 = tf.SparseTensor(indices=[[0, 1, 0, 1], [1, 0, 1, 0]], values=[100.1, 200.2], dense_shape=[2, 2, 2, 2])
-    serialized_sparse_6 = create_serialized_batch([st1])
-    list_of_inputs.append({
-        'serialized_sparse': serialized_sparse_6,
-        'dtype': tf.float64,
-        'rank': 4,
-        'name': 'rank4_single_batch'
-    })
-
-    # --- Input 7: Rank 2, with an empty sparse tensor, same shape ---
-    st1 = tf.SparseTensor(indices=[[0, 0]], values=[1], dense_shape=[2, 2])
-    st2 = tf.SparseTensor(indices=np.empty((0, 2), dtype=np.int64), values=[], dense_shape=[2, 2])
-    serialized_sparse_7 = create_serialized_batch([st1, st2])
-    list_of_inputs.append({
-        'serialized_sparse': serialized_sparse_7,
-        'dtype': tf.int32,
-        'rank': 2,
-        'name': 'rank2_same_shape_with_empty'
-    })
-
-    # --- Input 8: Rank 0 (scalars) ---
-    st1 = tf.SparseTensor(indices=np.empty((1, 0), dtype=np.int64), values=[1.0], dense_shape=np.array([], dtype=np.int64))
-    st2 = tf.SparseTensor(indices=np.empty((1, 0), dtype=np.int64), values=[2.0], dense_shape=np.array([], dtype=np.int64))
-    serialized_sparse_8 = create_serialized_batch([st1, st2])
-    list_of_inputs.append({
-        'serialized_sparse': serialized_sparse_8,
-        'dtype': tf.float32,
-        'rank': 0,
-        'name': 'rank0_scalars'
-    })
-
-    # --- Input 9: Rank 2, Boolean dtype, same shape ---
-    st1 = tf.SparseTensor(indices=[[0, 0]], values=[True], dense_shape=[2, 2])
-    st2 = tf.SparseTensor(indices=[[1, 1]], values=[False], dense_shape=[2, 2])
-    serialized_sparse_9 = create_serialized_batch([st1, st2])
-    list_of_inputs.append({
-        'serialized_sparse': serialized_sparse_9,
-        'dtype': tf.bool,
-        'rank': 2,
-        'name': 'rank2_same_shape_bool'
-    })
-
-    # --- Input 10: Rank 1, negative values, same shape ---
-    st1 = tf.SparseTensor(indices=[[1]], values=[-10], dense_shape=[5])
-    st2 = tf.SparseTensor(indices=[[2], [3]], values=[20, -30], dense_shape=[5])
-    serialized_sparse_10 = create_serialized_batch([st1, st2])
-    list_of_inputs.append({
-        'serialized_sparse': serialized_sparse_10,
-        'dtype': tf.int32,
+        'serialized_sparse': ser9,
+        'dtype': np.float32,
         'rank': 1,
-        'name': 'rank1_same_shape_negative'
+        'name': 'basic_rank1_float32'
+    })
+    
+    # Input 10: Rank 2, boolean type
+    st10_1 = tf.SparseTensor(indices=[[0,0], [1,1]], values=[True, False], dense_shape=[2,2])
+    st10_2 = tf.SparseTensor(indices=[[0,1]], values=[True], dense_shape=[2,2])
+    ser10 = tf.stack([tf.io.serialize_sparse(st10_1), tf.io.serialize_sparse(st10_2)]).numpy()
+    list_of_inputs.append({
+        'serialized_sparse': ser10,
+        'dtype': np.bool_,
+        'rank': 2,
+        'name': 'rank2_bool'
     })
 
-    return [copy.deepcopy(i) for i in list_of_inputs]
+    return list_of_inputs
 
 generated_inputs["tf.io.deserialize_many_sparse"] = tf_io_deserialize_many_sparse_inputs()
 

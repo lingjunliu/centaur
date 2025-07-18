@@ -8,155 +8,160 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def get_tf_linalg_linearoperatoradjoint_inputs():
+class CustomLinearOperator(tf.linalg.LinearOperatorFullMatrix):
     """
-    Generates a list of valid inputs for the tf.linalg.LinearOperatorAdjoint function.
+    A wrapper for LinearOperatorFullMatrix to make it compatible with a test
+    harness that requires a `.size` attribute for analysis, while the API
+    itself requires a LinearOperator instance.
+    """
+    @property
+    def size(self):
+        return tf.size(self.to_dense()).numpy()
+
+    def __deepcopy__(self, memo):
+        # Create a new instance of the class with a deep copy of the matrix
+        cls = self.__class__
+        result = cls(
+            matrix=copy.deepcopy(self.to_dense().numpy()),
+            is_non_singular=self.is_non_singular,
+            is_self_adjoint=self.is_self_adjoint,
+            is_positive_definite=self.is_positive_definite,
+            is_square=self.is_square,
+            name=self.name + "_copy"
+        )
+        memo[id(self)] = result
+        return result
+
+def tf_linalg_linearoperatoradjoint_inputs():
+    """
+    Generates a list of valid inputs for tf.linalg.LinearOperatorAdjoint.
     """
     list_of_inputs = []
 
-    # This wrapper class satisfies two conflicting requirements:
-    # 1. The TensorFlow API, which needs a `LinearOperator` instance.
-    # 2. The analysis tool, which (based on the error) expects an array-like object
-    #    with a `.size` attribute and compatibility with numpy functions like `np.min`/`np.max`.
-    # It inherits from `LinearOperatorFullMatrix` and adds the necessary array-like features.
-    class AnalysableLinearOperator(tf.linalg.LinearOperatorFullMatrix):
-        def __init__(self, matrix, *args, **kwargs):
-            # Store the numpy array for the analysis tool
-            self._matrix_numpy = np.array(matrix)
-            # Initialize the parent LinearOperator
-            super().__init__(matrix, *args, **kwargs)
-
-        @property
-        def size(self):
-            return self._matrix_numpy.size
-
-        # This protocol allows numpy functions (np.min, np.max) to work on this object
-        def __array__(self):
-            return self._matrix_numpy
-
-    # Input 1: Simple 2x2 real matrix
-    op1 = AnalysableLinearOperator(np.array([[1., 2.], [3., 4.]], dtype=np.float32))
-    input_dict_1 = {
-        'operator': op1,
-        'is_non_singular': True,
-        'is_self_adjoint': False,
-        'is_positive_definite': False,
-        'is_square': True,
-        'name': 'simple_real_2x2'
+    # Input 1: Basic 2x2 real matrix (float32), no hints
+    operator1 = CustomLinearOperator(np.array([[1., 2.], [3., 4.]], dtype=np.float32))
+    input_dict1 = {
+        'operator': operator1,
+        'is_non_singular': None,
+        'is_self_adjoint': None,
+        'is_positive_definite': None,
+        'is_square': None,
+        'name': 'real_2x2_no_hints'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 2: Simple 2x2 complex matrix
-    op2 = AnalysableLinearOperator(np.array([[1-1j, 3.], [0., 1+1j]], dtype=np.complex64))
-    input_dict_2 = {
-        'operator': op2,
-        'is_non_singular': True,
-        'is_self_adjoint': False,
-        'is_positive_definite': False,
-        'is_square': True,
-        'name': 'simple_complex_2x2'
+    # Input 2: Basic 2x2 complex matrix (complex64), from documentation
+    operator2 = CustomLinearOperator(np.array([[1 - 1j, 3.], [0., 1. + 1j]], dtype=np.complex64))
+    input_dict2 = {
+        'operator': operator2,
+        'is_non_singular': None,
+        'is_self_adjoint': None,
+        'is_positive_definite': None,
+        'is_square': None,
+        'name': 'complex_2x2_from_doc'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    # Input 3: Non-square real matrix (3x2)
-    op3 = AnalysableLinearOperator(np.array([[1., 2.], [3., 4.], [5., 6.]], dtype=np.float32))
-    input_dict_3 = {
-        'operator': op3,
-        'is_non_singular': False,
-        'is_self_adjoint': False,
-        'is_positive_definite': False,
+    # Input 3: Non-square 2x3 real matrix (float64)
+    operator3 = CustomLinearOperator(np.array([[1., 2., 3.], [4., 5., 6.]], dtype=np.float64))
+    input_dict3 = {
+        'operator': operator3,
+        'is_non_singular': None,
+        'is_self_adjoint': None,
+        'is_positive_definite': None,
         'is_square': False,
-        'name': 'non_square_real_3x2'
+        'name': 'real_2x3_nonsquare'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    # Input 4: Batched real self-adjoint operator
-    op4 = AnalysableLinearOperator(np.array([[[4., 1.], [1., 3.]], [[5., 2.], [2., 5.]]], dtype=np.float32))
-    input_dict_4 = {
-        'operator': op4,
-        'is_non_singular': True,
-        'is_self_adjoint': True,
-        'is_positive_definite': True,
-        'is_square': True,
-        'name': 'batched_real_self_adjoint'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
-
-    # Input 5: Singular real matrix
-    op5 = AnalysableLinearOperator(np.array([[1., 2.], [2., 4.]], dtype=np.float64))
-    input_dict_5 = {
-        'operator': op5,
-        'is_non_singular': False,
-        'is_self_adjoint': True,
-        'is_positive_definite': False,
-        'is_square': True,
-        'name': 'singular_real_matrix'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
-
-    # Input 6: Identity matrix (real, float64)
-    op6 = AnalysableLinearOperator(np.eye(3, dtype=np.float64))
-    input_dict_6 = {
-        'operator': op6,
-        'is_non_singular': True,
-        'is_self_adjoint': True,
-        'is_positive_definite': True,
-        'is_square': True,
-        'name': 'identity_operator_float64'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
-
-    # Input 7: Zero matrix (non-square)
-    op7 = AnalysableLinearOperator(np.zeros((4, 2), dtype=np.float32))
-    input_dict_7 = {
-        'operator': op7,
-        'is_non_singular': False,
-        'is_self_adjoint': False,
-        'is_positive_definite': False,
+    # Input 4: Non-square 3x2 complex matrix (complex128)
+    operator4 = CustomLinearOperator(np.array([[1.+2.j, 3.-1.j], [0., 5.j], [4., -1.+1.j]], dtype=np.complex128))
+    input_dict4 = {
+        'operator': operator4,
+        'is_non_singular': None,
+        'is_self_adjoint': None,
+        'is_positive_definite': None,
         'is_square': False,
-        'name': 'zero_operator_4x2'
+        'name': 'complex_3x2_nonsquare'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    # Input 8: Matrix with negative values
-    op8 = AnalysableLinearOperator(np.array([[-1., -2.], [3., -4.]], dtype=np.float32))
-    input_dict_8 = {
-        'operator': op8,
-        'is_non_singular': True,
-        'is_self_adjoint': False,
-        'is_positive_definite': False,
+    # Input 5: Self-adjoint (Hermitian) 3x3 matrix with hints
+    matrix5 = np.array([[2., 2.+1.j, 4.-5.j], [2.-1.j, 3., 8.+2.j], [4.+5.j, 8.-2.j, -1.]], dtype=np.complex64)
+    operator5 = CustomLinearOperator(matrix5)
+    input_dict5 = {
+        'operator': operator5,
+        'is_non_singular': None,
+        'is_self_adjoint': True,
+        'is_positive_definite': None,
         'is_square': True,
-        'name': 'negative_values_matrix'
+        'name': 'hermitian_3x3_hinted'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    list_of_inputs.append(copy.deepcopy(input_dict5))
 
-    # Input 9: Batched complex Hermitian (self-adjoint) operator
-    op9 = AnalysableLinearOperator(np.array([[[2., 1.j], [-1.j, 2.]], [[3., 2.+1.j], [2.-1.j, 3.]]], dtype=np.complex64))
-    input_dict_9 = {
-        'operator': op9,
+    # Input 6: Positive-definite 2x2 matrix with all hints True
+    operator6 = CustomLinearOperator(np.array([[2., -1.], [-1., 2.]], dtype=np.float32))
+    input_dict6 = {
+        'operator': operator6,
         'is_non_singular': True,
         'is_self_adjoint': True,
         'is_positive_definite': True,
         'is_square': True,
-        'name': 'batched_complex_hermitian'
+        'name': 'pos_def_2x2_all_hints'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    list_of_inputs.append(copy.deepcopy(input_dict6))
 
-    # Input 10: Batched random complex non-hermitian matrix
-    op10 = AnalysableLinearOperator((np.random.rand(2, 4, 4) + 1j * np.random.rand(2, 4, 4)).astype(np.complex128))
-    input_dict_10 = {
-        'operator': op10,
-        'is_non_singular': True,
-        'is_self_adjoint': False,
+    # Input 7: Singular 2x2 matrix with hints
+    operator7 = CustomLinearOperator(np.array([[1., 1.], [1., 1.]], dtype=np.float32))
+    input_dict7 = {
+        'operator': operator7,
+        'is_non_singular': False,
+        'is_self_adjoint': True,
         'is_positive_definite': False,
         'is_square': True,
-        'name': 'large_batched_complex'
+        'name': 'singular_2x2_hinted'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: Larger 4x4 real matrix (float64)
+    operator8 = CustomLinearOperator(np.arange(16, dtype=np.float64).reshape(4, 4))
+    input_dict8 = {
+        'operator': operator8,
+        'is_non_singular': False,
+        'is_self_adjoint': None,
+        'is_positive_definite': None,
+        'is_square': True,
+        'name': 'real_4x4_large_singular'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9: Batch of 3, 2x2 matrices
+    operator9 = CustomLinearOperator(np.array([[[1., 0.], [0., 1.]], [[2., 1.], [1., 2.]], [[3., 0.], [1., 3.]]], dtype=np.float32))
+    input_dict9 = {
+        'operator': operator9,
+        'is_non_singular': True,
+        'is_self_adjoint': None,
+        'is_positive_definite': None,
+        'is_square': True,
+        'name': 'batch_2x2_real'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10: Batch of 2, 2x3 non-square matrices
+    operator10 = CustomLinearOperator(np.arange(12, dtype=np.float32).reshape(2, 2, 3))
+    input_dict10 = {
+        'operator': operator10,
+        'is_non_singular': None,
+        'is_self_adjoint': None,
+        'is_positive_definite': None,
+        'is_square': False,
+        'name': 'batch_nonsquare_2x3'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict10))
 
     return list_of_inputs
 
-generated_inputs["tf.linalg.LinearOperatorAdjoint"] = get_tf_linalg_linearoperatoradjoint_inputs()
+generated_inputs["tf.linalg.LinearOperatorAdjoint"] = tf_linalg_linearoperatoradjoint_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

@@ -5,114 +5,64 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import numpy as np
-import tensorflow as tf
 import copy
+import base64
 
-def get_tf_raw_ops_DecodePng_inputs():
+def get_tf_raw_ops_decode_png_inputs():
+    # These are base64-encoded strings of valid, minimal 1x1 pixel image files.
+    # This avoids external dependencies like PIL and issues with malformed byte strings.
+    
+    # 1x1 RGBA PNG (Transparent)
+    rgba_png_b64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
+    # 1x1 RGB PNG (Red)
+    rgb_png_b64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR42mP4z8AAAAMBAQAY3ss+AAAAAElFTkSuQmCC'
+    # 1x1 Grayscale PNG (8-bit, Black)
+    gray_png_b64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEX///+goPD0AAAACklEQVQI12MAAgAABAABINs24gAAAABJRU5ErkJggg=='
+    # 1x1 Grayscale PNG (16-bit)
+    gray16_png_b64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAAAh32OTAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAYSURBVBhXY/z//z8DAwMDw3+E/z8MDAcAEw4FE41Y3r0AAAAASUVORK5CYII='
+    # 1x1 JPEG (Black)
+    jpeg_b64 = '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAIBAQIBAQICAgICAgICAwUDAwMDAwYEBAMFBwYHBwcGBwcICQsJCAgKCAcHCg0KCgsMDAwMBwkODw0MDgsMDAz/2wBDAQICAgMDAwYDAwYMCAcIDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAz/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD9/KKKK/9k='
+    # 1x1 GIF (Transparent)
+    gif_b64 = 'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+
+    # Decode from base64 to bytes
+    rgba_png_bytes = base64.b64decode(rgba_png_b64)
+    rgb_png_bytes = base64.b64decode(rgb_png_b64)
+    gray_png_bytes = base64.b64decode(gray_png_b64)
+    gray16_png_bytes = base64.b64decode(gray16_png_b64)
+    jpeg_bytes = base64.b64decode(jpeg_b64)
+    gif_bytes = base64.b64decode(gif_b64)
+    
     list_of_inputs = []
 
-    # A minimal 1x1 transparent PNG. Original is RGBA.
-    png_contents = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82'
-    
-    # A minimal 1x1 black JPEG.
-    jpeg_contents = b'\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00\xff\xdb\x00\x43\x00\x03\x02\x02\x02\x02\x02\x03\x02\x02\x02\x03\x03\x03\x03\x04\x06\x04\x04\x04\x04\x04\x08\x06\x06\x05\x06\x09\x08\n\n\t\x08\t\t\n\x0c\x0f\x0c\n\x0b\x0e\x0b\t\t\r\x11\r\x0e\x0f\x10\x10\x11\x10\n\x0c\x12\x13\x12\x10\x13\x0f\x10\x10\x10\xff\xc0\x00\x0b\x08\x00\x01\x00\x01\x01\x01\x11\x00\xff\xc4\x00\x14\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xda\x00\x08\x01\x01\x00\x00\x3f\x00\xd2\xff\xd9'
+    # Input 1: Decode an RGBA PNG using its native channels (4).
+    list_of_inputs.append({'contents': np.array(rgba_png_bytes), 'channels': 0, 'dtype': np.uint8, 'name': 'rgba_native_channels'})
+    # Input 2: Decode an RGBA PNG, but force it to RGB (stripping alpha).
+    list_of_inputs.append({'contents': np.array(rgba_png_bytes), 'channels': 3, 'dtype': np.uint8, 'name': 'rgba_to_rgb'})
+    # Input 3: Decode an RGB PNG, but force it to RGBA (adding alpha).
+    list_of_inputs.append({'contents': np.array(rgb_png_bytes), 'channels': 4, 'dtype': np.uint8, 'name': 'rgb_to_rgba'})
+    # Input 4: Decode a grayscale PNG and convert it to RGB.
+    list_of_inputs.append({'contents': np.array(gray_png_bytes), 'channels': 3, 'dtype': np.uint8, 'name': 'grayscale_to_rgb'})
+    # Input 5: Decode a 16-bit grayscale PNG using its native channels (1) and uint16 dtype.
+    list_of_inputs.append({'contents': np.array(gray16_png_bytes), 'channels': 0, 'dtype': np.uint16, 'name': 'grayscale16_native_channels'})
+    # Input 6: Decode a 16-bit grayscale PNG and convert it to RGB, maintaining uint16 dtype.
+    list_of_inputs.append({'contents': np.array(gray16_png_bytes), 'channels': 3, 'dtype': np.uint16, 'name': 'grayscale16_to_rgb'})
+    # Input 7: Decode a JPEG using its native channels (3). The op supports this.
+    list_of_inputs.append({'contents': np.array(jpeg_bytes), 'channels': 0, 'dtype': np.uint8, 'name': 'jpeg_native_channels'})
+    # Input 8: Decode a JPEG and convert it to grayscale.
+    list_of_inputs.append({'contents': np.array(jpeg_bytes), 'channels': 1, 'dtype': np.uint8, 'name': 'jpeg_to_grayscale'})
+    # Input 9: Decode a GIF and convert it to RGB. The op also supports this.
+    list_of_inputs.append({'contents': np.array(gif_bytes), 'channels': 3, 'dtype': np.uint8, 'name': 'gif_to_rgb'})
+    # Input 10: Decode a GIF and convert it to RGBA.
+    list_of_inputs.append({'contents': np.array(gif_bytes), 'channels': 4, 'dtype': np.uint8, 'name': 'gif_to_rgba'})
+    # Input 11: Decode an RGB PNG and convert it to grayscale.
+    list_of_inputs.append({'contents': np.array(rgb_png_bytes), 'channels': 1, 'dtype': np.uint8, 'name': 'rgb_to_grayscale'})
+    # Input 12: Decode a grayscale PNG and request it as grayscale (no-op conversion).
+    list_of_inputs.append({'contents': np.array(gray_png_bytes), 'channels': 1, 'dtype': np.uint8, 'name': 'grayscale_to_grayscale'})
 
-    # A minimal 1x1 transparent GIF.
-    gif_contents = b'GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'
-    
-    # Input 1: PNG, default channels (0), default dtype (uint8)
-    input_dict = {
-        'contents': np.array(png_contents),
-        'channels': 0,
-        'dtype': np.uint8,
-        'name': 'png_auto_channels_uint8'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    return [copy.deepcopy(d) for d in list_of_inputs]
 
-    # Input 2: PNG, Grayscale channels (1), dtype uint8
-    input_dict = {
-        'contents': np.array(png_contents),
-        'channels': 1,
-        'dtype': np.uint8,
-        'name': 'png_grayscale_uint8'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: PNG, RGB channels (3), dtype uint8
-    input_dict = {
-        'contents': np.array(png_contents),
-        'channels': 3,
-        'dtype': np.uint8,
-        'name': 'png_rgb_uint8'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 4: PNG, RGBA channels (4), dtype uint8
-    input_dict = {
-        'contents': np.array(png_contents),
-        'channels': 4,
-        'dtype': np.uint8,
-        'name': 'png_rgba_uint8'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: PNG, default channels (0), dtype uint16
-    input_dict = {
-        'contents': np.array(png_contents),
-        'channels': 0,
-        'dtype': np.uint16,
-        'name': 'png_auto_channels_uint16'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: PNG, RGB channels (3), dtype uint16
-    input_dict = {
-        'contents': np.array(png_contents),
-        'channels': 3,
-        'dtype': np.uint16,
-        'name': 'png_rgb_uint16'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7: JPEG, auto channels (0), dtype uint8
-    input_dict = {
-        'contents': np.array(jpeg_contents),
-        'channels': 0,
-        'dtype': np.uint8,
-        'name': 'jpeg_auto_channels_uint8'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: JPEG, force RGB (3), dtype uint8
-    input_dict = {
-        'contents': np.array(jpeg_contents),
-        'channels': 3,
-        'dtype': np.uint8,
-        'name': 'jpeg_rgb_uint8'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9: GIF, auto channels (0), dtype uint8
-    input_dict = {
-        'contents': np.array(gif_contents),
-        'channels': 0,
-        'dtype': np.uint8,
-        'name': 'gif_auto_channels_uint8'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10: GIF, force RGBA (4), dtype uint8
-    input_dict = {
-        'contents': np.array(gif_contents),
-        'channels': 4,
-        'dtype': np.uint8,
-        'name': 'gif_rgba_uint8'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    return list_of_inputs
-
-generated_inputs["tf.raw_ops.DecodePng"] = get_tf_raw_ops_DecodePng_inputs()
+generated_inputs["tf.raw_ops.DecodePng"] = get_tf_raw_ops_decode_png_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

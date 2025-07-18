@@ -6,73 +6,73 @@ generated_inputs = dict()
 
 import tensorflow as tf
 import numpy as np
-
-def create_and_patch_dataset(dataset_creator_lambda):
-    """
-    Creates a tf.data.Dataset and patches it with .shape, .dtype, and .size
-    attributes to satisfy a testing framework that incorrectly expects
-    Tensor-like attributes on a Dataset object.
-    """
-    dataset = dataset_creator_lambda()
-
-    # Patch shape and dtype based on the element specification
-    if isinstance(dataset.element_spec, tuple):
-        dataset.shape = tuple(spec.shape for spec in dataset.element_spec)
-        dataset.dtype = tuple(spec.dtype for spec in dataset.element_spec)
-    elif isinstance(dataset.element_spec, dict):
-        dataset.shape = {k: v.shape for k, v in dataset.element_spec.items()}
-        dataset.dtype = {k: v.dtype for k, v in dataset.element_spec.items()}
-    else:  # It's a single TensorSpec
-        dataset.shape = dataset.element_spec.shape
-        dataset.dtype = dataset.element_spec.dtype
-
-    # Patch size. The framework checks `if value.size > 0`.
-    # We set size to 0 for empty datasets and 1 otherwise.
-    card = tf.data.experimental.cardinality(dataset).numpy()
-    if card == 0:
-        dataset.size = 0
-    else:
-        # For known positive, infinite, or unknown cardinality, the dataset
-        # is not empty, so we assign a positive size.
-        dataset.size = 1
-
-    return dataset
+import copy
 
 def tf_data_experimental_cardinality_inputs():
     """
     Generates a list of valid inputs for tf.data.experimental.cardinality.
+    The input must be a tf.data.Dataset object for the API call to succeed.
     """
     list_of_inputs = []
 
-    # Input 1: Known cardinality from tf.data.Dataset.range
-    list_of_inputs.append({'dataset': create_and_patch_dataset(lambda: tf.data.Dataset.range(42))})
+    # Input 1: Finite, known cardinality from range
+    dataset1 = tf.data.Dataset.range(42)
+    input_dict1 = {'dataset': dataset1}
+    list_of_inputs.append(input_dict1)
 
-    # Input 2: Known cardinality from a NumPy array
-    list_of_inputs.append({'dataset': create_and_patch_dataset(lambda: tf.data.Dataset.from_tensor_slices(np.arange(100, dtype=np.int32)))})
+    # Input 2: Finite, known cardinality from a numpy array
+    dataset2 = tf.data.Dataset.from_tensor_slices(np.arange(100, dtype=np.int64))
+    input_dict2 = {'dataset': dataset2}
+    list_of_inputs.append(input_dict2)
 
-    # Input 3: Infinite cardinality from .repeat()
-    list_of_inputs.append({'dataset': create_and_patch_dataset(lambda: tf.data.Dataset.from_tensor_slices([1, 2, 3]).repeat())})
+    # Input 3: Finite, known cardinality of 1 from from_tensors
+    dataset3 = tf.data.Dataset.from_tensors(tf.constant([1, 2, 3, 4], dtype=tf.float32))
+    input_dict3 = {'dataset': dataset3}
+    list_of_inputs.append(input_dict3)
 
-    # Input 4: Unknown cardinality from .filter()
-    list_of_inputs.append({'dataset': create_and_patch_dataset(lambda: tf.data.Dataset.range(200).filter(lambda x: x > 100))})
+    # Input 4: Zero cardinality from an empty numpy array
+    dataset4 = tf.data.Dataset.from_tensor_slices(np.array([], dtype=np.int32))
+    input_dict4 = {'dataset': dataset4}
+    list_of_inputs.append(input_dict4)
 
-    # Input 5: Known cardinality (0) for an empty dataset
-    list_of_inputs.append({'dataset': create_and_patch_dataset(lambda: tf.data.Dataset.from_tensor_slices(np.array([], dtype=np.float64)))})
+    # Input 5: Infinite cardinality using repeat()
+    dataset5 = tf.data.Dataset.range(10).repeat()
+    input_dict5 = {'dataset': dataset5}
+    list_of_inputs.append(input_dict5)
 
-    # Input 6: Known cardinality after .take() on an infinite dataset
-    list_of_inputs.append({'dataset': create_and_patch_dataset(lambda: tf.data.Dataset.range(1).repeat().take(50))})
+    # Input 6: Unknown cardinality after using filter()
+    dataset6 = tf.data.Dataset.range(200).filter(lambda x: x % 2 == 0)
+    input_dict6 = {'dataset': dataset6}
+    list_of_inputs.append(input_dict6)
 
-    # Input 7: Known cardinality after .skip()
-    list_of_inputs.append({'dataset': create_and_patch_dataset(lambda: tf.data.Dataset.range(30).skip(10))})
+    # Input 7: Unknown cardinality from a Python generator
+    def simple_generator():
+        for i in range(25):
+            yield i
+    dataset7 = tf.data.Dataset.from_generator(simple_generator, output_signature=tf.TensorSpec(shape=(), dtype=tf.int32))
+    input_dict7 = {'dataset': dataset7}
+    list_of_inputs.append(input_dict7)
 
-    # Input 8: Known cardinality after .batch()
-    list_of_inputs.append({'dataset': create_and_patch_dataset(lambda: tf.data.Dataset.range(10).batch(4))})
+    # Input 8: Finite, known cardinality from zip()
+    ds8a = tf.data.Dataset.range(15)
+    ds8b = tf.data.Dataset.from_tensor_slices(np.random.rand(15, 3))
+    dataset8 = tf.data.Dataset.zip((ds8a, ds8b))
+    input_dict8 = {'dataset': dataset8}
+    list_of_inputs.append(input_dict8)
 
-    # Input 9: Known cardinality from zipping two datasets
-    list_of_inputs.append({'dataset': create_and_patch_dataset(lambda: tf.data.Dataset.zip((tf.data.Dataset.range(15), tf.data.Dataset.from_tensor_slices(np.zeros((20, 2), dtype=np.float32)))))})
+    # Input 9: Finite, known cardinality from concatenate()
+    ds9a = tf.data.Dataset.from_tensor_slices(np.ones(5))
+    ds9b = tf.data.Dataset.from_tensor_slices(np.zeros(10))
+    dataset9 = ds9a.concatenate(ds9b)
+    input_dict9 = {'dataset': dataset9}
+    list_of_inputs.append(input_dict9)
 
-    # Input 10: Known cardinality from concatenating two datasets
-    list_of_inputs.append({'dataset': create_and_patch_dataset(lambda: tf.data.Dataset.range(5).concatenate(tf.data.Dataset.range(8)))})
+    # Input 10: Infinite cardinality from concatenating with an infinite dataset
+    ds10a = tf.data.Dataset.range(50)
+    ds10b = tf.data.Dataset.range(1).repeat()
+    dataset10 = ds10a.concatenate(ds10b)
+    input_dict10 = {'dataset': dataset10}
+    list_of_inputs.append(input_dict10)
 
     return list_of_inputs
 

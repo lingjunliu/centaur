@@ -7,94 +7,94 @@ generated_inputs = dict()
 import tensorflow as tf
 import numpy as np
 import copy
-import torch
 
-def tf_raw_ops_BarrierReadySize_inputs():
-  """
-  Generates a list of valid inputs for the tf.raw_ops.BarrierReadySize operation.
-  NOTE: This operation is not supported in eager execution mode and is expected to raise a RuntimeError.
-  The provided inputs are syntactically valid according to the function signature but are designed for a graph context.
-  """
-  list_of_inputs = []
+def tf_raw_ops_barrier_ready_size_inputs():
+    """
+    Generates a list of valid inputs for the tf.raw_ops.BarrierReadySize operation.
+    NOTE: This operation is not supported in eager execution mode and is expected
+    to raise a RuntimeError. However, to satisfy the testing framework's requirement
+    for input generation, syntactically valid inputs are provided.
+    """
+    list_of_inputs = []
 
-  # Using tf.constant as the input format. While the prompt instructions mention
-  # numpy arrays, the provided example uses tf.constant, and this operation
-  # requires a handle that is a Tensor. This is an attempt to resolve the
-  # persistent eager execution error by changing the input format.
+    # The 'handle' parameter must be a tensor. To create a numpy representation
+    # of a scalar string tensor that is compatible with the testing framework,
+    # we use np.array with dtype=object. This ensures the object has a .shape
+    # and a generic .dtype ('O').
 
-  # Input 1: Basic case with a simple handle and name.
-  input_dict_1 = {
-      'handle': tf.constant('barrier_handle_1', dtype=tf.string),
-      'name': 'ready_size_op_1'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Input 1: Basic case
+    input_dict_1 = {
+        'handle': np.array(b"barrier_handle_1", dtype=object),
+        'name': 'test_name_1'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-  # Input 2: Case where the optional name is not provided (None).
-  input_dict_2 = {
-      'handle': tf.constant('barrier_handle_2', dtype=tf.string),
-      'name': None
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_2))
+    # Input 2: Different handle and name
+    input_dict_2 = {
+        'handle': np.array(b"another_barrier_handle", dtype=object),
+        'name': 'ReadySizeOp'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-  # Input 3: Using an empty string for the handle.
-  input_dict_3 = {
-      'handle': tf.constant('', dtype=tf.string),
-      'name': 'empty_handle_op'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_3))
+    # Input 3: Name with scope
+    input_dict_3 = {
+        'handle': np.array(b"scoped/barrier/handle", dtype=object),
+        'name': 'my_scope/ready_size'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-  # Input 4: Using an empty string for the name.
-  input_dict_4 = {
-      'handle': tf.constant('handle_with_empty_name', dtype=tf.string),
-      'name': ''
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_4))
+    # Input 4: Empty string for handle
+    input_dict_4 = {
+        'handle': np.array(b"", dtype=object),
+        'name': 'empty_handle_op'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-  # Input 5: A long string for the handle.
-  input_dict_5 = {
-      'handle': tf.constant('a_very_long_and_descriptive_barrier_handle_string_used_for_testing', dtype=tf.string),
-      'name': 'long_handle_op'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_5))
+    # Input 5: Empty string for name
+    input_dict_5 = {
+        'handle': np.array(b"handle_for_empty_name", dtype=object),
+        'name': ''
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-  # Input 6: A long string for the name.
-  input_dict_6 = {
-      'handle': tf.constant('short_handle', dtype=tf.string),
-      'name': 'a_very_long_and_descriptive_operation_name_with_underscores_and_numbers_12345'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_6))
+    # Input 6: Handle with numbers
+    input_dict_6 = {
+        'handle': np.array(b"barrier12345", dtype=object),
+        'name': 'numeric_name_123'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-  # Input 7: Handle string with special characters.
-  input_dict_7 = {
-      'handle': tf.constant('handle-with-special-chars_!@#$%^&*()', dtype=tf.string),
-      'name': 'special_handle_op'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_7))
+    # Input 7: Handle with special characters
+    input_dict_7 = {
+        'handle': np.array(b"barrier_!@#$_-", dtype=object),
+        'name': 'special_char_name'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-  # Input 8: Name with characters typical for TensorFlow scoping.
-  input_dict_8 = {
-      'handle': tf.constant('scoped/handle/name', dtype=tf.string),
-      'name': 'my_scope/BarrierOps/ReadySize'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_8))
+    # Input 8: Long handle string
+    input_dict_8 = {
+        'handle': np.array(b"a_very_long_and_specific_barrier_handle_for_testing", dtype=object),
+        'name': 'long_handle_op'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-  # Input 9: Handle string that looks like a number.
-  input_dict_9 = {
-      'handle': tf.constant('1234567890987654321', dtype=tf.string),
-      'name': 'numeric_handle_op'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_9))
+    # Input 9: Long name string
+    input_dict_9 = {
+        'handle': np.array(b"short_handle", dtype=object),
+        'name': 'a_very_long_and_specific_operation_name_that_is_still_valid'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-  # Input 10: Another combination of a simple handle and no name.
-  input_dict_10 = {
-      'handle': tf.constant('another_handle_id', dtype=tf.string),
-      'name': None
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_10))
+    # Input 10: Single character handle and name
+    input_dict_10 = {
+        'handle': np.array(b"b", dtype=object),
+        'name': 'r'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
-  return list_of_inputs
+    return list_of_inputs
 
-generated_inputs["tf.raw_ops.BarrierReadySize"] = tf_raw_ops_BarrierReadySize_inputs()
+generated_inputs["tf.raw_ops.BarrierReadySize"] = tf_raw_ops_barrier_ready_size_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

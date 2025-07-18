@@ -4,127 +4,139 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_StringSplitV2_inputs():
+def get_tf_raw_ops_stringsplitv2_inputs():
+    """
+    Generates a list of valid inputs for the tf.raw_ops.StringSplitV2 operation.
+    """
     list_of_inputs = []
 
-    # Input 1: Basic example with space as separator
-    input_val = np.array(["hello world", "a b c"], dtype=np.string_)
-    sep_val = np.array(" ", dtype=np.string_)
-    maxsplit_val = -1
-    name_val = None
-    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Helper function to create input dictionaries
+    def create_input_dict(input_tensor, sep_tensor, maxsplit=-1, name=""):
+        return {
+            'input': np.array(input_tensor, dtype=np.object_),
+            'sep': np.array(sep_tensor, dtype=np.object_),
+            'maxsplit': int(maxsplit),
+            'name': str(name)
+        }
 
-    # Input 2: Using a different separator
-    input_val = np.array(["1,2,3", "4,5,6"], dtype=np.string_)
-    sep_val = np.array(",", dtype=np.string_)
-    maxsplit_val = -1
-    name_val = None
-    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Basic case with space delimiter
+    list_of_inputs.append(copy.deepcopy(
+        create_input_dict(
+            input_tensor=['hello world', 'a b c'],
+            sep_tensor=' '
+        )
+    ))
 
-    # Input 3: Limiting the number of splits
-    input_val = np.array(["one two three four"], dtype=np.string_)
-    sep_val = np.array(" ", dtype=np.string_)
-    maxsplit_val = 2
-    name_val = None
-    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: Multi-character separator
+    list_of_inputs.append(copy.deepcopy(
+        create_input_dict(
+            input_tensor=['apple<>banana<>cherry', '1<>2<><>3'],
+            sep_tensor='<>'
+        )
+    ))
 
-    # Input 4: Empty strings
-    input_val = np.array([""], dtype=np.string_)
-    sep_val = np.array(" ", dtype=np.string_)
-    maxsplit_val = -1
-    name_val = None
-    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: Empty string separator (splits on consecutive whitespace)
+    list_of_inputs.append(copy.deepcopy(
+        create_input_dict(
+            input_tensor=['  leading and  trailing  ', 'one \t two\nthree'],
+            sep_tensor='',
+            name='empty_sep'
+        )
+    ))
 
-    # Input 5: Multiple separators in a row
-    input_val = np.array(["1<>2<><>3"], dtype=np.string_)
-    sep_val = np.array("<>", dtype=np.string_)
-    maxsplit_val = -1
-    name_val = None
-    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: maxsplit = 1
+    list_of_inputs.append(copy.deepcopy(
+        create_input_dict(
+            input_tensor=['a,b,c', 'd,e,f,g'],
+            sep_tensor=',',
+            maxsplit=1
+        )
+    ))
 
-    # Input 6: No separator provided (whitespace separation)
-    input_val = np.array([" hello  world  "], dtype=np.string_)
-    sep_val = np.array("", dtype=np.string_)
-    maxsplit_val = -1
-    name_val = None
-    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5: maxsplit = 0 (no splits)
+    list_of_inputs.append(copy.deepcopy(
+        create_input_dict(
+            input_tensor=['a,b,c', 'd,e,f'],
+            sep_tensor=',',
+            maxsplit=0
+        )
+    ))
 
-    # Input 7: Different separator characters
-    input_val = np.array(["a-b-c-d"], dtype=np.string_)
-    sep_val = np.array("-", dtype=np.string_)
-    maxsplit_val = -1
-    name_val = None
-    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6: maxsplit > 1
+    list_of_inputs.append(copy.deepcopy(
+        create_input_dict(
+            input_tensor=['a-b-c-d', 'e-f-g'],
+            sep_tensor='-',
+            maxsplit=2,
+            name='maxsplit_2'
+        )
+    ))
 
-    # Input 8:  maxsplit=0
-    input_val = np.array(["one two three"], dtype=np.string_)
-    sep_val = np.array(" ", dtype=np.string_)
-    maxsplit_val = 0
-    name_val = None
-    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 7: Consecutive delimiters, producing empty strings
+    list_of_inputs.append(copy.deepcopy(
+        create_input_dict(
+            input_tensor=['1..2...3', '4..5'],
+            sep_tensor='.'
+        )
+    ))
 
-    # Input 9: A more complex example
-    input_val = np.array(["this is,a test,string"], dtype=np.string_)
-    sep_val = np.array(",", dtype=np.string_)
-    maxsplit_val = 1
-    name_val = None
-    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 8: Input tensor with an empty string
+    list_of_inputs.append(copy.deepcopy(
+        create_input_dict(
+            input_tensor=['first item', '', 'third item'],
+            sep_tensor=' '
+        )
+    ))
 
-    # Input 10: Empty separator with leading/trailing whitespace
-    input_val = np.array(["  leading and trailing  "], dtype=np.string_)
-    sep_val = np.array("", dtype=np.string_)
-    maxsplit_val = -1
-    name_val = None
-    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11: Empty separator with no leading/trailing whitespace
-    input_val = np.array(["onetwothree"], dtype=np.string_)
-    sep_val = np.array("", dtype=np.string_)
-    maxsplit_val = -1
-    name_val = None
-    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12: Longer strings
-    input_val = np.array(["This is a very long string to test the split function."], dtype=np.string_)
-    sep_val = np.array(" ", dtype=np.string_)
-    maxsplit_val = -1
-    name_val = None
-    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 13: maxsplit > number of splits
-    input_val = np.array(["a b"], dtype=np.string_)
-    sep_val = np.array(" ", dtype=np.string_)
-    maxsplit_val = 5
-    name_val = None
-    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 9: Leading and trailing delimiters
+    list_of_inputs.append(copy.deepcopy(
+        create_input_dict(
+            input_tensor=['|a|b|', '|c|d'],
+            sep_tensor='|',
+            name='leading_trailing_delimiters'
+        )
+    ))
+
+    # Input 10: Separator not found in some strings
+    list_of_inputs.append(copy.deepcopy(
+        create_input_dict(
+            input_tensor=['no_delimiter_here', 'a;b;c'],
+            sep_tensor=';'
+        )
+    ))
+
+    # Input 11: Single element in the input tensor
+    list_of_inputs.append(copy.deepcopy(
+        create_input_dict(
+            input_tensor=['this is a single sentence to split'],
+            sep_tensor=' '
+        )
+    ))
+
+    # Input 12: Unicode characters in input and separator
+    list_of_inputs.append(copy.deepcopy(
+        create_input_dict(
+            input_tensor=['你好 世界', 'こんにちは 世界'],
+            sep_tensor=' ',
+            name='unicode_split'
+        )
+    ))
 
     return list_of_inputs
 
-generated_inputs = {}
-generated_inputs["tf.raw_ops.StringSplitV2"] = tf_raw_ops_StringSplitV2_inputs()
+generated_inputs["tf.raw_ops.StringSplitV2"] = get_tf_raw_ops_stringsplitv2_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.StringSplitV2' not in generated_inputs:

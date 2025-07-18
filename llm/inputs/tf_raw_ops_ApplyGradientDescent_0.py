@@ -6,88 +6,120 @@ generated_inputs = dict()
 
 import numpy as np
 import copy
-import tensorflow as tf
 
 def get_apply_gradient_descent_inputs():
-    """
-    Generates a list of valid inputs for tf.raw_ops.ApplyGradientDescent.
-    This version provides inputs as NumPy arrays to satisfy the testing harness's
-    analysis phase and focuses on standard floating-point types to mitigate
-    potential execution errors.
-    """
     list_of_inputs = []
 
     # Input 1: Basic float32, 1D
-    input_dict_1 = {
+    input_dict = {
         'var': np.array([1.0, 2.0, 3.0], dtype=np.float32),
         'alpha': np.array(0.1, dtype=np.float32),
-        'delta': np.array([0.5, 0.5, 0.5], dtype=np.float32),
+        'delta': np.array([0.5, 0.4, 0.3], dtype=np.float32),
         'use_locking': False,
-        'name': 'test_float32'
+        'name': 'case1'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float64, 2D, with locking
-    input_dict_2 = {
-        'var': np.array([[1.0, -2.0], [3.0, -4.0]], dtype=np.float64),
+    input_dict = {
+        'var': np.array([[10.0, 20.0], [30.0, 40.0]], dtype=np.float64),
         'alpha': np.array(0.01, dtype=np.float64),
-        'delta': np.array([[10.0, 20.0], [-10.0, -20.0]], dtype=np.float64),
+        'delta': np.array([[1.0, -2.0], [3.0, -4.0]], dtype=np.float64),
         'use_locking': True,
-        'name': 'test_float64'
+        'name': 'case2'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: half (float16)
-    input_dict_3 = {
-        'var': np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float16),
-        'alpha': np.array(0.5, dtype=np.float16),
-        'delta': np.full((2, 2), 0.1, dtype=np.float16),
-        'use_locking': False,
-        'name': 'test_float16'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
-
-    # Input 4: Scalar inputs
-    input_dict_4 = {
+    # Input 3: float32, scalar
+    input_dict = {
         'var': np.array(100.0, dtype=np.float32),
+        'alpha': np.array(0.5, dtype=np.float32),
+        'delta': np.array(10.0, dtype=np.float32),
+        'use_locking': False,
+        'name': 'case3'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: float64, 1D with negative values
+    input_dict = {
+        'var': np.array([-10.0, 20.0, -30.0], dtype=np.float64),
+        'alpha': np.array(1.5, dtype=np.float64),
+        'delta': np.array([-0.5, 0.4, 0.3], dtype=np.float64),
+        'use_locking': True,
+        'name': 'case4'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: float32, 3D
+    input_dict = {
+        'var': np.ones((2, 2, 2), dtype=np.float32),
+        'alpha': np.array(0.2, dtype=np.float32),
+        'delta': np.full((2, 2, 2), 0.5, dtype=np.float32),
+        'use_locking': False,
+        'name': 'case5'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: Zero delta
+    input_dict = {
+        'var': np.array([10.0, 20.0], dtype=np.float32),
         'alpha': np.array(0.1, dtype=np.float32),
-        'delta': np.array(50.0, dtype=np.float32),
+        'delta': np.zeros(2, dtype=np.float32),
         'use_locking': False,
-        'name': 'test_scalar_numpy'
+        'name': 'case6'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: bfloat16
-    bfloat16_dtype = tf.bfloat16.as_numpy_dtype
-    input_dict_5 = {
-        'var': np.array([[1.0, 2.0]], dtype=bfloat16_dtype),
-        'alpha': np.array(0.1, dtype=bfloat16_dtype),
-        'delta': np.array([[0.5, -0.5]], dtype=bfloat16_dtype),
-        'use_locking': False,
-        'name': 'test_bfloat16'
+    # Input 7: Zero alpha
+    input_dict = {
+        'var': np.array([[100.0]], dtype=np.float64),
+        'alpha': np.array(0.0, dtype=np.float64),
+        'delta': np.array([[50.0]], dtype=np.float64),
+        'use_locking': True,
+        'name': 'case7'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 6: Large dimension tensor
-    input_dict_6 = {
-        'var': np.ones((4, 4, 4), dtype=np.float32),
+    # Input 8: 2D float32 with locking
+    input_dict = {
+        'var': np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32),
+        'alpha': np.array(1e-3, dtype=np.float32),
+        'delta': np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32),
+        'use_locking': True,
+        'name': 'case8'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Large values
+    input_dict = {
+        'var': np.array([1e6, -1e6], dtype=np.float32),
         'alpha': np.array(0.001, dtype=np.float32),
-        'delta': np.random.rand(4, 4, 4).astype(np.float32),
+        'delta': np.array([1e5, 1e5], dtype=np.float32),
         'use_locking': False,
-        'name': 'large_tensor_float32'
+        'name': 'case9'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
-    
-    # Input 7: Negative alpha
-    input_dict_7 = {
-        'var': np.array([10.0, 20.0], dtype=np.float64),
-        'alpha': np.array(-0.1, dtype=np.float64),
-        'delta': np.array([1.0, 1.0], dtype=np.float64),
-        'use_locking': False,
-        'name': 'negative_alpha_float64'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 10: small values
+    input_dict = {
+        'var': np.array([1e-6, -1e-6], dtype=np.float64),
+        'alpha': np.array(0.001, dtype=np.float64),
+        'delta': np.array([1e-5, -1e-5], dtype=np.float64),
+        'use_locking': False,
+        'name': 'case10'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: half (float16)
+    input_dict = {
+        'var': np.array([1.0, 2.0], dtype=np.float16),
+        'alpha': np.array(0.5, dtype=np.float16),
+        'delta': np.array([0.1, 0.2], dtype=np.float16),
+        'use_locking': False,
+        'name': 'case11'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs["tf.raw_ops.ApplyGradientDescent"] = get_apply_gradient_descent_inputs()

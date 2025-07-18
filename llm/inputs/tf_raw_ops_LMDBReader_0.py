@@ -4,96 +4,23 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import copy
+import tensorflow as tf
 import numpy as np
+import copy
 
 def tf_raw_ops_lmdbreader_inputs():
-  """
-  Generates a list of valid inputs for tf.raw_ops.LMDBReader.
-  """
-  list_of_inputs = []
+    """
+    Generates a list of valid inputs for the tf.raw_ops.LMDBReader function.
 
-  # Input 1: Default parameters (empty strings for container and shared_name)
-  input_dict_1 = {
-      'container': '',
-      'shared_name': '',
-      'name': 'default_reader'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_1))
-
-  # Input 2: A different name for the operation
-  input_dict_2 = {
-      'container': '',
-      'shared_name': '',
-      'name': 'another_reader_op'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_2))
-
-  # Input 3: Non-empty container, default shared_name
-  input_dict_3 = {
-      'container': 'my_container',
-      'shared_name': '',
-      'name': 'reader_in_container'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_3))
-
-  # Input 4: Non-empty shared_name, default container
-  input_dict_4 = {
-      'container': '',
-      'shared_name': 'my_shared_reader',
-      'name': 'shared_reader'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_4))
-
-  # Input 5: Both container and shared_name are non-empty
-  input_dict_5 = {
-      'container': 'app_container',
-      'shared_name': 'global_reader',
-      'name': 'global_app_reader'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_5))
-
-  # Input 6: Using strings with numbers
-  input_dict_6 = {
-      'container': 'container123',
-      'shared_name': 'shared_reader_v2',
-      'name': 'reader_op_789'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_6))
-
-  # Input 7: Using strings with underscores and hyphens
-  input_dict_7 = {
-      'container': 'my-app-container',
-      'shared_name': 'shared_reader_for_images',
-      'name': 'lmdb_reader-alpha'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_7))
-
-  # Input 8: Using long strings
-  input_dict_8 = {
-      'container': 'a_very_long_and_specific_container_name_for_testing',
-      'shared_name': 'a_similarly_long_and_descriptive_shared_name',
-      'name': 'LongOperationNameForReader'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_8))
-
-  # Input 9: Using path-like strings
-  input_dict_9 = {
-      'container': '/my/app/container',
-      'shared_name': 'reader/for/text_data',
-      'name': 'TextReader'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_9))
-
-  # Input 10: All parameters set to the same string
-  input_dict_10 = {
-      'container': 'common_name',
-      'shared_name': 'common_name',
-      'name': 'common_name'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_10))
-
-  return list_of_inputs
+    NOTE: The execution of this op fails with a `tensorflow.python.framework.errors_impl.UnimplementedError` 
+    because LMDB support has been removed from recent versions of TensorFlow.
+    There are no inputs that will allow this function to execute successfully in the
+    target environment. Therefore, an empty list is returned to indicate that the
+    API is effectively deprecated and unusable.
+    """
+    list_of_inputs = []
+    
+    return list_of_inputs
 
 generated_inputs["tf.raw_ops.LMDBReader"] = tf_raw_ops_lmdbreader_inputs()
 

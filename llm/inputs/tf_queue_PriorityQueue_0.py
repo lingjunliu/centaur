@@ -6,134 +6,124 @@ generated_inputs = dict()
 
 import numpy as np
 import copy
-import tensorflow as tf
+
 
 def tf_queue_priorityqueue_inputs():
-    """
-    Generates a list of valid inputs for the tf.queue.PriorityQueue function.
-    """
     list_of_inputs = []
 
-    # Input 1: Basic case with two components
-    input_dict_1 = {
+    # Corresponds to tf.DType enums:
+    # float32: 1, float64: 2, int32: 3, uint8: 4, int16: 5, int8: 6,
+    # string: 7, complex64: 8, int64: 9, bool: 10, float16: 19
+
+    # Input 1: Basic case with two types and scalar shapes
+    input_dict = {
         'capacity': 10,
-        'types': ['int64', 'float32'],
-        'shapes': [[], [10]],
-        'names': ['priority', 'data'],
-        'shared_name': 'q1',
+        'types': [9, 1],
+        'shapes': [[], []],
+        'names': [],
+        'shared_name': '',
         'name': 'basic_queue'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Multiple data components with different types
-    input_dict_2 = {
+    # Input 2: Defined shapes for a scalar priority and a 1D vector
+    input_dict = {
         'capacity': 100,
-        'types': ['int64', 'float64', 'string'],
-        'shapes': [[], [3, 4], []],
-        'names': ['p', 'd', 's'],
-        'shared_name': 'q2',
+        'types': [9, 7],
+        'shapes': [(), (10,)],
+        'names': [],
+        'shared_name': '',
+        'name': 'vector_queue'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Multiple components with different shapes
+    input_dict = {
+        'capacity': 50,
+        'types': [9, 3, 10],
+        'shapes': [(), (3, 4), ()],
+        'names': [],
+        'shared_name': '',
         'name': 'multi_component_queue'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Optional shapes and names are not provided
-    input_dict_3 = {
+    # Input 4: Using component names
+    input_dict = {
         'capacity': 20,
-        'types': ['int64', 'complex64'],
-        'shapes': [[], [2, 2]],
-        'names': ['priority', 'complex_data'],
-        'shared_name': 'my_shared_queue',
-        'name': 'shared_queue_instance'
+        'types': [9, 2],
+        'shapes': [(), ()],
+        'names': ['priority', 'value'],
+        'shared_name': '',
+        'name': 'named_components_queue'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Shapes with empty dimensions (representing scalars)
-    input_dict_4 = {
-        'capacity': 15,
-        'types': ['int64', 'float32', 'int32'],
-        'shapes': [[], [], []],
-        'names': ['priority', 'value1', 'value2'],
-        'shared_name': 'q4',
-        'name': 'scalar_queue'
+    # Input 5: Using a shared name for inter-process sharing
+    input_dict = {
+        'capacity': 1000,
+        'types': [9, 4],
+        'shapes': [(), (64, 64)],
+        'names': [],
+        'shared_name': 'my_shared_image_queue',
+        'name': 'image_queue'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: High capacity queue
-    input_dict_5 = {
-        'capacity': 10000,
-        'types': ['int64', 'float16'],
-        'shapes': [[], [128, 128]],
-        'names': ['priority', 'image'],
-        'shared_name': 'q5',
-        'name': 'large_capacity_queue'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
-
-    # Input 6: All arguments provided
-    input_dict_6 = {
-        'capacity': 42,
-        'types': ['int64', 'float64'],
-        'shapes': [[], [3, 3, 3]],
-        'names': ['p_level', 'data_cube'],
-        'shared_name': 'another_shared_queue',
-        'name': 'fully_specified_queue'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
-
-    # Input 7: Single component (only priority)
-    input_dict_7 = {
-        'capacity': 8,
-        'types': ['int64'],
-        'shapes': [[]],
-        'names': ['priority_only'],
-        'shared_name': 'q7',
+    # Input 6: Single component queue (priority only)
+    input_dict = {
+        'capacity': 30,
+        'types': [9],
+        'shapes': [()],
+        'names': [],
+        'shared_name': '',
         'name': 'priority_only_queue'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
-    
-    # Input 8: Shapes with zero dimension
-    input_dict_8 = {
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Partially defined shape (e.g., for variable-sized batches)
+    input_dict = {
         'capacity': 5,
-        'types': ['int64', 'float32'],
-        'shapes': [[], [0, 10]],
-        'names': ['priority', 'empty_data'],
-        'shared_name': 'q8',
-        'name': 'zero_dim_queue'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
-
-    # Input 9: Using bfloat16
-    input_dict_9 = {
-        'capacity': 12,
-        'types': ['int64', 'bfloat16'],
-        'shapes': [[], [64, 64]],
-        'names': ['p', 'bf16_data'],
-        'shared_name': 'bfloat_q',
-        'name': 'bfloat_q_instance'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
-
-    # Input 10: Minimal capacity
-    input_dict_10 = {
-        'capacity': 1,
-        'types': ['int64', 'uint8'],
-        'shapes': [[], []],
-        'names': ['p', 'data'],
-        'shared_name': 'q10',
-        'name': 'minimal_capacity_queue'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
-    
-    # Input 11: Using an empty string for shared_name
-    input_dict_11 = {
-        'capacity': 10,
-        'types': ['int64', 'bool'],
-        'shapes': [[], []],
-        'names': ['priority', 'flag'],
+        'types': [9, 1],
+        'shapes': [(), (None, 224, 224, 3)],
+        'names': [],
         'shared_name': '',
-        'name': 'empty_shared_name_queue'
+        'name': 'variable_batch_queue'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_11))
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: All optional parameters are specified
+    input_dict = {
+        'capacity': 15,
+        'types': [9, 5, 8],
+        'shapes': [(), (5,), (2, 2)],
+        'names': ['prio', 'data', 'c_matrix'],
+        'shared_name': 'fully_specified_shared',
+        'name': 'fully_specified_queue'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Large capacity queue
+    input_dict = {
+        'capacity': 10000,
+        'types': [9, 6],
+        'shapes': [(), (1024,)],
+        'names': [],
+        'shared_name': '',
+        'name': 'large_capacity_queue'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Shapes list with None elements, indicating unconstrained shapes for components
+    input_dict = {
+        'capacity': 25,
+        'types': [9, 19, 7],
+        'shapes': [None, None, None],
+        'names': ['priority', 'embedding', 'metadata'],
+        'shared_name': '',
+        'name': 'unconstrained_shape_list_queue'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

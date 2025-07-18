@@ -5,98 +5,130 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import numpy as np
-import tensorflow as tf
 import copy
 
 def generate_tf_random_uniform_initializer_inputs():
-    """
-    Generates a list of valid inputs for the tf.random_uniform_initializer function.
-    This API returns a callable initializer. The test harness expects arguments
-    for the initializer's constructor at the top level, and arguments for the
-    subsequent call to be nested under the 'call_args' key. The dtype is
-    specified as a TensorFlow DType.
-    """
     list_of_inputs = []
 
-    # Input 1: Standard small range, float32
-    list_of_inputs.append(copy.deepcopy({
+    # Input 1: Basic case, 1D float32 tensor
+    input_dict_1 = {
         'minval': -0.05,
         'maxval': 0.05,
-        'seed': 1,
-        'call_args': {'shape': [3, 3], 'dtype': tf.float32}
-    }))
+        'seed': 0,
+        '__call__': {
+            'args': ([10],),
+            'kwargs': {'dtype': np.float32}
+        }
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: Range [0, 1], float64
-    list_of_inputs.append(copy.deepcopy({
+    # Input 2: Positive range with a seed, 2D shape, float64
+    input_dict_2 = {
+        'minval': 0.1,
+        'maxval': 0.2,
+        'seed': 1,
+        '__call__': {
+            'args': ([5, 5],),
+            'kwargs': {'dtype': np.float64}
+        }
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
+
+    # Input 3: Negative range with a seed, 3D shape
+    input_dict_3 = {
+        'minval': -10.0,
+        'maxval': -5.0,
+        'seed': 42,
+        '__call__': {
+            'args': ([2, 3, 4],),
+            'kwargs': {'dtype': np.float32}
+        }
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
+
+    # Input 4: Standard symmetric range with a seed, 1D shape of size 1
+    input_dict_4 = {
+        'minval': -1.0,
+        'maxval': 1.0,
+        'seed': 123,
+        '__call__': {
+            'args': ([1],),
+            'kwargs': {'dtype': np.float32}
+        }
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
+
+    # Input 5: Wide range, float64
+    input_dict_5 = {
+        'minval': -1000.0,
+        'maxval': 1000.0,
+        'seed': 999,
+        '__call__': {
+            'args': ([8, 2],),
+            'kwargs': {'dtype': np.float64}
+        }
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
+
+    # Input 6: Narrow range with a seed, large 1D shape
+    input_dict_6 = {
+        'minval': 0.499,
+        'maxval': 0.5,
+        'seed': 2023,
+        '__call__': {
+            'args': ([100],),
+            'kwargs': {'dtype': np.float32}
+        }
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
+
+    # Input 7: Zero as lower bound
+    input_dict_7 = {
         'minval': 0.0,
         'maxval': 1.0,
-        'seed': 42,
-        'call_args': {'shape': [10], 'dtype': tf.float64}
-    }))
-
-    # Input 3: Negative range, 3D shape, float32
-    list_of_inputs.append(copy.deepcopy({
-        'minval': -1.0,
-        'maxval': -0.1,
-        'seed': 123,
-        'call_args': {'shape': [2, 3, 4], 'dtype': tf.float32}
-    }))
-
-    # Input 4: Wider range, float16
-    list_of_inputs.append(copy.deepcopy({
-        'minval': -10.0,
-        'maxval': 10.0,
         'seed': 7,
-        'call_args': {'shape': [5, 5], 'dtype': tf.float16}
-    }))
+        '__call__': {
+            'args': ([4, 4],),
+            'kwargs': {'dtype': np.float32}
+        }
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 5: Very small positive range
-    list_of_inputs.append(copy.deepcopy({
-        'minval': 1e-6,
-        'maxval': 1e-5,
-        'seed': 100,
-        'call_args': {'shape': [1, 10], 'dtype': tf.float32}
-    }))
+    # Input 8: Zero as upper bound, float64, 3D shape
+    input_dict_8 = {
+        'minval': -1.0,
+        'maxval': 0.0,
+        'seed': 8,
+        '__call__': {
+            'args': ([3, 1, 5],),
+            'kwargs': {'dtype': np.float64}
+        }
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 6: Large positive range
-    list_of_inputs.append(copy.deepcopy({
-        'minval': 100.0,
-        'maxval': 200.0,
-        'seed': 200,
-        'call_args': {'shape': [8], 'dtype': tf.float64}
-    }))
+    # Input 9: Large magnitude values
+    input_dict_9 = {
+        'minval': 1000000.0,
+        'maxval': 2000000.0,
+        'seed': 99,
+        '__call__': {
+            'args': ([16],),
+            'kwargs': {'dtype': np.float32}
+        }
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 7: Scalar output
-    list_of_inputs.append(copy.deepcopy({
-        'minval': 0.9,
+    # Input 10: Scalar (0D) tensor
+    input_dict_10 = {
+        'minval': -1.0,
         'maxval': 1.0,
-        'seed': 300,
-        'call_args': {'shape': [], 'dtype': tf.float32}
-    }))
-
-    # Input 8: Large negative range, large seed
-    list_of_inputs.append(copy.deepcopy({
-        'minval': -1000.0,
-        'maxval': -500.0,
-        'seed': 9999,
-        'call_args': {'shape': [2, 2], 'dtype': tf.float16}
-    }))
-
-    # Input 9: Seed set to 0, 4D shape
-    list_of_inputs.append(copy.deepcopy({
-        'minval': -2.0,
-        'maxval': 2.0,
-        'seed': 0,
-        'call_args': {'shape': [1, 2, 3, 1], 'dtype': tf.float32}
-    }))
-
-    # Input 10: minval and maxval are very close
-    list_of_inputs.append(copy.deepcopy({
-        'minval': 0.49999,
-        'maxval': 0.5,
-        'seed': 500,
-        'call_args': {'shape': [4, 1], 'dtype': tf.float64}
-    }))
+        'seed': 101,
+        '__call__': {
+            'args': ([],),
+            'kwargs': {'dtype': np.float32}
+        }
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 

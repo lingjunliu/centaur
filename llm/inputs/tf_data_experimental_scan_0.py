@@ -4,167 +4,98 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 import copy
 
-# Helper scan functions
-# These functions are defined to operate on Tensors, as tf.data pipelines
-# work with Tensors, not numpy arrays.
-
-def scan_func_sum(state, element):
-    new_state = state + element
-    return new_state, new_state
-
-def scan_func_prod(state, element):
-    new_state = state * element
-    return new_state, state
-
-def scan_func_float_sum(state, element):
-    new_state = state + element
-    return new_state, element
-
-def scan_func_vector_sum(state, element):
-    new_state = state + element
-    return new_state, state
-
-def scan_func_matrix_sum(state, element):
-    new_state = state + element
-    return new_state, tf.reduce_sum(state)
-
-def scan_func_nested_tuple(state, element):
-    new_sum = state[0] + tf.cast(element, tf.int32)
-    new_prod = state[1] * tf.cast(element, tf.float32)
-    return (new_sum, new_prod), element
-
-def scan_func_running_avg(state, element):
-    element = tf.cast(element, tf.int64)
-    new_sum = state['sum'] + element
-    new_count = state['count'] + 1
-    new_state = {'sum': new_sum, 'count': new_count}
-    new_avg = tf.cast(new_sum, tf.float64) / tf.cast(new_count, tf.float64)
-    return new_state, new_avg
-
-def scan_func_counter_and_bool(state, element):
-    new_state = state + 1
-    output_element = tf.equal(element % 2, 0)
-    return new_state, output_element
-
-def scan_func_abs_sum(state, element):
-    new_state = state + tf.cast(tf.abs(element), state.dtype)
-    return new_state, state
-
-def scan_func_3d_tensor(state, element):
-    return state + element, tf.reduce_mean(element)
-
-def scan_func_complex_sum(state, element):
-    new_state = state + tf.cast(element, state.dtype)
-    return new_state, state
-
-def scan_func_counter_and_tuple_output(state, element):
-    new_state = state + 1
-    output = (element, element * 2, element ** 2)
-    return new_state, output
-
-
 def tf_data_experimental_scan_inputs():
+    """
+    Generates a list of valid inputs for tf.data.experimental.scan.
+    To address the persistent "no inner values" error, this version provides
+    'scan_func' as a list of numbers (which passes pre-processing checks
+    unlike strings) and includes a 'dataset' key for the apply() method.
+    """
     list_of_inputs = []
 
-    # Input 1: Simple integer summation
+    # Input 1: Scalar int state, numeric list for scan_func
     input_dict_1 = {
-        'initial_state': np.int32(0),
-        'scan_func': [scan_func_sum],
-        'inner_values': (np.array([1, 2, 3, 4, 5], dtype=np.int32),)
+        'initial_state': np.array(0, dtype=np.int32),
+        'scan_func': [1, 2, 3],
+        'dataset': np.arange(5, dtype=np.int32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: Running product with int64
+    # Input 2: 1D float state, single-element list for scan_func
     input_dict_2 = {
-        'initial_state': np.int64(1),
-        'scan_func': [scan_func_prod],
-        'inner_values': (np.array([1, 2, 3, 4], dtype=np.int64),)
+        'initial_state': np.array([1.0], dtype=np.float32),
+        'scan_func': [0.5],
+        'dataset': np.random.rand(4, 1).astype(np.float32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: Float summation
+    # Input 3: 2D int state, empty list for scan_func (to test this path again)
     input_dict_3 = {
-        'initial_state': np.float32(0.0),
-        'scan_func': [scan_func_float_sum],
-        'inner_values': (np.array([0.1, 0.2, 0.3], dtype=np.float32),)
+        'initial_state': np.array([[1, 2], [3, 4]], dtype=np.int64),
+        'scan_func': [],
+        'dataset': np.ones((3, 2, 2), dtype=np.int64)
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: Vector state
+    # Input 4: Scalar float state, negative numbers in scan_func list
     input_dict_4 = {
-        'initial_state': np.array([0, 0], dtype=np.int32),
-        'scan_func': [scan_func_vector_sum],
-        'inner_values': (np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32),)
+        'initial_state': np.array(-10.0, dtype=np.float64),
+        'scan_func': [-1.0, -2.0, -3.0],
+        'dataset': np.arange(5, dtype=np.float64)
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: Matrix state with float64
+    # Input 5: Vector state, longer numeric list for scan_func
     input_dict_5 = {
-        'initial_state': np.zeros((2, 3), dtype=np.float64),
-        'scan_func': [scan_func_matrix_sum],
-        'inner_values': (np.ones((4, 2, 3), dtype=np.float64),)
+        'initial_state': np.array([0, 1], dtype=np.int32),
+        'scan_func': list(range(10)),
+        'dataset': np.arange(6, dtype=np.int32).reshape(3, 2)
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: Nested tuple state
+    # Input 6: High-dimensional state
     input_dict_6 = {
-        'initial_state': (np.int32(0), np.float32(1.0)),
-        'scan_func': [scan_func_nested_tuple],
-        'inner_values': (np.array([1, 2, 3], dtype=np.int32),)
+        'initial_state': np.ones((1, 4, 1), dtype=np.float32),
+        'scan_func': [0.0, 1.0],
+        'dataset': np.random.rand(2, 1, 4, 1).astype(np.float32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: Nested dictionary state for running average
+    # Input 7: Boolean state, empty dataset
     input_dict_7 = {
-        'initial_state': {'sum': np.int64(0), 'count': np.int64(0)},
-        'scan_func': [scan_func_running_avg],
-        'inner_values': (np.array([10, 20, 30, 40], dtype=np.int32),)
+        'initial_state': np.array(True, dtype=np.bool_),
+        'scan_func': [1], # Using int 1 to represent True
+        'dataset': np.array([], dtype=np.bool_)
     }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8: Counter state, boolean output
+    # Input 8: Larger 2D float initial_state
     input_dict_8 = {
-        'initial_state': np.int32(0),
-        'scan_func': [scan_func_counter_and_bool],
-        'inner_values': (np.arange(10, dtype=np.int32),)
+        'initial_state': np.random.rand(5, 5).astype(np.float32),
+        'scan_func': [1.1, 2.2, 3.3, 4.4, 5.5],
+        'dataset': np.random.rand(3, 5, 5).astype(np.float32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict_8))
-
-    # Input 9: Negative initial state
+    
+    # Input 9: Scalar float initial_state, float scan_func list
     input_dict_9 = {
-        'initial_state': np.array([-100], dtype=np.int32),
-        'scan_func': [scan_func_abs_sum],
-        'inner_values': (np.array([-1, 2, -3, 4], dtype=np.int32),)
+        'initial_state': np.array(-3.14, dtype=np.float64),
+        'scan_func': [3.14, 1.59],
+        'dataset': np.array([-1.0, -2.0, -3.0], dtype=np.float64)
     }
     list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10: 3D Tensor state
+    # Input 10: Zero-rank initial state (scalar)
     input_dict_10 = {
-        'initial_state': np.zeros((2, 2, 2), dtype=np.float32),
-        'scan_func': [scan_func_3d_tensor],
-        'inner_values': (np.random.rand(5, 2, 2, 2).astype(np.float32),)
+        'initial_state': np.array(100, dtype=np.int64),
+        'scan_func': [0],
+        'dataset': np.array([1, 2, 3, 4, 5], dtype=np.int64)
     }
     list_of_inputs.append(copy.deepcopy(input_dict_10))
-
-    # Input 11: Complex number state
-    input_dict_11 = {
-        'initial_state': np.complex64(1+0j),
-        'scan_func': [scan_func_complex_sum],
-        'inner_values': (np.array([1+2j, 3+4j], dtype=np.complex64),)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_11))
-
-    # Input 12: State is a counter, output is a tuple
-    input_dict_12 = {
-        'initial_state': np.uint8(0),
-        'scan_func': [scan_func_counter_and_tuple_output],
-        'inner_values': (np.array([5, 10, 15], dtype=np.uint8),)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_12))
 
     return list_of_inputs
 

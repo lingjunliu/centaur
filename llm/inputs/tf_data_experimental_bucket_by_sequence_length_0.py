@@ -8,136 +8,134 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-# Use a named function to avoid potential lambda issues with deepcopy/serialization
-def _get_length_func(elem):
-  """Returns the length of a tensor element."""
-  return tf.shape(elem)[0]
-
-def bucket_by_sequence_length_inputs():
+def get_bucket_by_sequence_length_inputs():
     """
-    Generates a list of valid inputs for tf.data.experimental.bucket_by_sequence_length.
+    Generates a list of valid inputs for the tf.data.experimental.bucket_by_sequence_length function.
     """
     list_of_inputs = []
 
-    # The test harness expects the input data for the dataset under a special key.
-    # The error "input does not have inner values" suggests this key is missing.
-    # We will use the key 'dataset' to provide the data that the transformation function will be applied to.
+    # The API requires a callable for element_length_func. The 'list' type in the
+    # prompt's signature is likely an error and is being overridden.
+    element_length_func = lambda elem: tf.shape(elem)[0]
 
-    # Case 1: Basic case with default padding.
-    case1_data = [np.arange(i, dtype=np.int32) for i in [2, 3, 4, 1, 5, 6, 7, 8, 10, 11, 12, 15]]
-    input_1 = {
-        'dataset': case1_data,
-        'element_length_func': [_get_length_func],
-        'bucket_boundaries': [5, 10],
-        'bucket_batch_sizes': [4, 4, 4],
-        'padded_shapes': (None,),
-        'padding_values': np.array(0, dtype=np.int32),
-        'pad_to_bucket_boundary': False,
-        'no_padding': False,
-        'drop_remainder': False,
-    }
-    list_of_inputs.append(copy.deepcopy(input_1))
+    # The test harness requires a 'dataset' key to apply the transformation function to.
+    def create_dataset(gen_fn, spec):
+        return tf.data.Dataset.from_generator(gen_fn, output_signature=spec)
 
-    # Case 2: Custom negative integer padding value.
-    case2_data = [np.arange(i, dtype=np.int32) for i in range(1, 9)] + [np.arange(i, dtype=np.int32) for i in range(10, 18)] + [np.arange(i, dtype=np.int32) for i in range(20, 28)]
-    input_2 = {
-        'dataset': case2_data,
-        'element_length_func': [_get_length_func],
-        'bucket_boundaries': [10, 20],
-        'bucket_batch_sizes': [8, 8, 8],
-        'padded_shapes': (None,),
-        'padding_values': np.array(-1, dtype=np.int32),
-        'pad_to_bucket_boundary': False,
-        'no_padding': False,
-        'drop_remainder': False,
-    }
-    list_of_inputs.append(copy.deepcopy(input_2))
-
-    # Case 3: Pad to bucket boundary enabled.
-    case3_data = [np.arange(i, dtype=np.int32) for i in range(1, 8)] * 3
-    input_3 = {
-        'dataset': case3_data,
-        'element_length_func': [_get_length_func],
-        'bucket_boundaries': [8, 16],
-        'bucket_batch_sizes': [10, 10, 10],
-        'padded_shapes': (None,),
-        'padding_values': np.array(0, dtype=np.int32),
-        'pad_to_bucket_boundary': True,
-        'no_padding': False,
-        'drop_remainder': False,
-    }
-    list_of_inputs.append(copy.deepcopy(input_3))
-
-    # Case 4: Pad to bucket boundary with drop_remainder, from docs.
-    case4_data = [
-      np.array([0], dtype=np.int32), np.array([1, 2, 3, 4], dtype=np.int32), np.array([5, 6, 7], dtype=np.int32),
-      np.array([7, 8, 9, 10, 11], dtype=np.int32), np.array([13, 14, 15, 16, 19, 20], dtype=np.int32), np.array([21, 22], dtype=np.int32)
+    elements_1d = [
+      [0], [1, 2, 3, 4], [5, 6, 7],
+      [7, 8, 9, 10, 11], [13, 14, 15, 16, 19, 20], [21, 22]
     ]
-    input_4 = {
-        'dataset': case4_data,
-        'element_length_func': [_get_length_func],
+
+    # Input 1: Basic case
+    list_of_inputs.append({
+        'dataset': create_dataset(lambda: elements_1d, tf.TensorSpec(shape=(None,), dtype=tf.int32)),
+        'element_length_func': element_length_func,
+        'bucket_boundaries': [3, 5],
+        'bucket_batch_sizes': [2, 2, 2],
+        'padded_shapes': (tf.TensorShape([None]),),
+        'padding_values': np.array(0, dtype=np.int32),
+        'pad_to_bucket_boundary': False,
+        'no_padding': False,
+        'drop_remainder': False
+    })
+
+    # Input 2: Using pad_to_bucket_boundary and a custom integer padding_value.
+    list_of_inputs.append({
+        'dataset': create_dataset(lambda: elements_1d, tf.TensorSpec(shape=(None,), dtype=tf.int32)),
+        'element_length_func': element_length_func,
         'bucket_boundaries': [4, 7],
         'bucket_batch_sizes': [2, 2, 2],
-        'padded_shapes': (None,),
+        'padded_shapes': (tf.TensorShape([6]),),
         'padding_values': np.array(-1, dtype=np.int32),
         'pad_to_bucket_boundary': True,
         'no_padding': False,
-        'drop_remainder': True,
-    }
-    list_of_inputs.append(copy.deepcopy(input_4))
+        'drop_remainder': False
+    })
 
-    # Case 5: More buckets and varying batch sizes.
-    case5_data = ([np.arange(4, dtype=np.int64)] * 32 +
-               [np.arange(6, dtype=np.int64)] * 16 +
-               [np.arange(12, dtype=np.int64)] * 8 +
-               [np.arange(18, dtype=np.int64)] * 4 +
-               [np.arange(22, dtype=np.int64)] * 2)
-    input_5 = {
-        'dataset': case5_data,
-        'element_length_func': [_get_length_func],
-        'bucket_boundaries': [5, 10, 15, 20],
-        'bucket_batch_sizes': [32, 16, 8, 4, 2],
-        'padded_shapes': (None,),
-        'padding_values': np.array(0, dtype=np.int64),
-        'pad_to_bucket_boundary': False,
+    # Input 3: Using drop_remainder along with pad_to_bucket_boundary.
+    list_of_inputs.append({
+        'dataset': create_dataset(lambda: elements_1d, tf.TensorSpec(shape=(None,), dtype=tf.int32)),
+        'element_length_func': element_length_func,
+        'bucket_boundaries': [4, 8],
+        'bucket_batch_sizes': [2, 2, 2],
+        'padded_shapes': (tf.TensorShape([7]),),
+        'padding_values': np.array(-1, dtype=np.int32),
+        'pad_to_bucket_boundary': True,
         'no_padding': False,
-        'drop_remainder': False,
-    }
-    list_of_inputs.append(copy.deepcopy(input_5))
+        'drop_remainder': True
+    })
 
-    # Case 6: Explicitly set padded_shapes.
-    case6_data = [np.arange(i, dtype=np.int32) for i in range(10, 20)] + [np.arange(i, dtype=np.int32) for i in range(50, 55)]
-    input_6 = {
-        'dataset': case6_data,
-        'element_length_func': [_get_length_func],
-        'bucket_boundaries': [50],
-        'bucket_batch_sizes': [10, 5],
-        'padded_shapes': (60,),
-        'padding_values': np.array(99, dtype=np.int32),
-        'pad_to_bucket_boundary': False,
-        'no_padding': False,
-        'drop_remainder': True,
-    }
-    list_of_inputs.append(copy.deepcopy(input_6))
-
-    # Case 7: Single bucket boundary and float padding value.
-    case7_data = [np.arange(i, dtype=np.float32) for i in range(1, 9)] + [np.arange(i, dtype=np.float32) for i in range(32, 36)]
-    input_7 = {
-        'dataset': case7_data,
-        'element_length_func': [_get_length_func],
-        'bucket_boundaries': [32],
-        'bucket_batch_sizes': [8, 4],
-        'padded_shapes': (None,),
+    # Input 4: Single bucket with float data.
+    list_of_inputs.append({
+        'dataset': create_dataset(lambda: elements_1d, tf.TensorSpec(shape=(None,), dtype=tf.float32)),
+        'element_length_func': element_length_func,
+        'bucket_boundaries': [],
+        'bucket_batch_sizes': [10],
+        'padded_shapes': (tf.TensorShape([None]),),
         'padding_values': np.array(0.0, dtype=np.float32),
         'pad_to_bucket_boundary': False,
         'no_padding': False,
-        'drop_remainder': False,
-    }
-    list_of_inputs.append(copy.deepcopy(input_7))
+        'drop_remainder': False
+    })
+
+    # Input 5: Many buckets with varying batch sizes.
+    list_of_inputs.append({
+        'dataset': create_dataset(lambda: elements_1d, tf.TensorSpec(shape=(None,), dtype=tf.int64)),
+        'element_length_func': element_length_func,
+        'bucket_boundaries': [2, 3, 4, 5, 6],
+        'bucket_batch_sizes': [2, 2, 2, 2, 2, 2],
+        'padded_shapes': (tf.TensorShape([6]),),
+        'padding_values': np.array(0, dtype=np.int64),
+        'pad_to_bucket_boundary': False,
+        'no_padding': False,
+        'drop_remainder': True
+    })
+
+    # Input 6: no_padding=True with fixed-shape elements.
+    elements_fixed = [[1,2],[3,4],[5,6]]
+    list_of_inputs.append({
+        'dataset': create_dataset(lambda: elements_fixed, tf.TensorSpec(shape=(2,), dtype=tf.int32)),
+        'element_length_func': lambda elem: tf.shape(elem)[0],
+        'bucket_boundaries': [3],
+        'bucket_batch_sizes': [3, 3],
+        'padded_shapes': (tf.TensorShape([2]),),
+        'padding_values': np.array(0, dtype=np.int32),
+        'pad_to_bucket_boundary': False,
+        'no_padding': True,
+        'drop_remainder': False
+    })
+
+    # Input 7: Dataset with 2-D Tensors
+    elements_2d = [np.ones((2,5), dtype=np.float32), np.ones((4,5), dtype=np.float32), np.ones((1,5), dtype=np.float32)]
+    list_of_inputs.append({
+        'dataset': create_dataset(lambda: elements_2d, tf.TensorSpec(shape=(None, 5), dtype=tf.float32)),
+        'element_length_func': lambda elem: tf.shape(elem)[0],
+        'bucket_boundaries': [3],
+        'bucket_batch_sizes': [2, 2],
+        'padded_shapes': (tf.TensorShape([None, 5]),),
+        'padding_values': np.array(0.0, dtype=np.float32),
+        'pad_to_bucket_boundary': False,
+        'no_padding': False,
+        'drop_remainder': False
+    })
+
+    # Input 8: Another pad_to_bucket_boundary case with float64.
+    list_of_inputs.append({
+        'dataset': create_dataset(lambda: elements_1d, tf.TensorSpec(shape=(None,), dtype=tf.float64)),
+        'element_length_func': element_length_func,
+        'bucket_boundaries': [5, 10],
+        'bucket_batch_sizes': [4, 2, 1],
+        'padded_shapes': (tf.TensorShape([9]),),
+        'padding_values': np.array(-1.0, dtype=np.float64),
+        'pad_to_bucket_boundary': True,
+        'no_padding': False,
+        'drop_remainder': False
+    })
 
     return list_of_inputs
 
-generated_inputs["tf.data.experimental.bucket_by_sequence_length"] = bucket_by_sequence_length_inputs()
+generated_inputs["tf.data.experimental.bucket_by_sequence_length"] = get_bucket_by_sequence_length_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

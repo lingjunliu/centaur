@@ -8,102 +8,109 @@ import numpy as np
 import copy
 
 def tf_raw_ops_get_session_tensor_inputs():
+    """
+    Generates a list of valid inputs for the tf.raw_ops.GetSessionTensor function.
+    The 'handle' inputs are placeholders. This op will raise a FailedPreconditionError
+    if not used within a context where the handle has been previously created and stored.
+    The inputs provided are syntactically and type-correct according to the signature.
+    """
     list_of_inputs = []
 
-    # The tf.raw_ops.GetSessionTensor op requires a valid handle from a
-    # populated session state. Since we cannot provide this in a static
-    # input generation context, a FailedPreconditionError is expected at runtime.
-    # The following inputs are syntactically correct according to the API signature.
-    # The 'handle' is provided as np.array(b'some_string', dtype=object)
-    # to correctly represent a tf.string scalar.
-
     # Input 1
-    input_dict_1 = {
-        'handle': np.array(b'handle_f32', dtype=object),
+    input_dict = {
+        'handle': np.array('handle_float32', dtype=object),
         'dtype': np.float32,
-        'name': 'get_tensor_float32'
+        'name': "get_tensor_1"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input_dict_2 = {
-        'handle': np.array(b'handle_i32', dtype=object),
+    input_dict = {
+        'handle': np.array('handle_float64', dtype=object),
+        'dtype': np.float64,
+        'name': "get_tensor_2"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_dict = {
+        'handle': np.array('handle_int32', dtype=object),
         'dtype': np.int32,
         'name': None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
-
-    # Input 3
-    input_dict_3 = {
-        'handle': np.array(b'handle_c64', dtype=object),
-        'dtype': np.complex64,
-        'name': 'get_tensor_complex64'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    input_dict_4 = {
-        'handle': np.array(b'handle_bool', dtype=object),
-        'dtype': np.bool_,
-        'name': 'get_tensor_bool'
+    input_dict = {
+        'handle': np.array('handle_int64', dtype=object),
+        'dtype': np.int64,
+        'name': "get_tensor_4"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    input_dict_5 = {
-        'handle': np.array(b'handle_f64', dtype=object),
-        'dtype': np.float64,
-        'name': None
+    input_dict = {
+        'handle': np.array('handle_uint8', dtype=object),
+        'dtype': np.uint8,
+        'name': "get_tensor_5"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    input_dict_6 = {
-        'handle': np.array(b'handle_i64', dtype=object),
-        'dtype': np.int64,
-        'name': 'get_tensor_int64'
+    input_dict = {
+        'handle': np.array('handle_int16', dtype=object),
+        'dtype': np.int16,
+        'name': "get_tensor_6"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    input_dict_7 = {
-        'handle': np.array(b'handle_ui8', dtype=object),
-        'dtype': np.uint8,
-        'name': None
+    input_dict = {
+        'handle': np.array('handle_bool', dtype=object),
+        'dtype': np.bool_,
+        'name': "get_tensor_7"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    input_dict_8 = {
-        'handle': np.array(b'handle_str', dtype=object),
-        'dtype': np.string_,
-        'name': 'get_tensor_string'
+    input_dict = {
+        'handle': np.array('handle_complex64', dtype=object),
+        'dtype': np.complex64,
+        'name': "get_tensor_8"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
-    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     # Input 9
-    input_dict_9 = {
-        'handle': np.array(b'handle_i16', dtype=object),
-        'dtype': np.int16,
+    input_dict = {
+        'handle': np.array('handle_complex128', dtype=object),
+        'dtype': np.complex128,
         'name': None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    input_dict_10 = {
-        'handle': np.array(b'handle_f16', dtype=object),
-        'dtype': np.float16,
-        'name': 'get_tensor_float16'
+    input_dict = {
+        'handle': np.array('another_handle', dtype=object),
+        'dtype': np.float32,
+        'name': "get_tensor_10"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
-    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     # Input 11
-    input_dict_11 = {
-        'handle': np.array(b'handle_c128', dtype=object),
-        'dtype': np.complex128,
-        'name': 'get_tensor_complex128'
+    input_dict = {
+        'handle': np.array('string_tensor_handle', dtype=object),
+        'dtype': np.dtype('O'),
+        'name': "get_string_tensor"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_11))
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12
+    input_dict = {
+        'handle': np.array('handle_float16', dtype=object),
+        'dtype': np.float16,
+        'name': "get_tensor_12"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

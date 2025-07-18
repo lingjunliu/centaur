@@ -11,177 +11,116 @@ import copy
 def tf_strings_split_inputs():
     list_of_inputs = []
 
-    # Input 1
-    input_str = tf.constant("hello world")
-    sep_str = tf.constant(" ")
-    maxsplit_int = -1
-    name_str = None
-
+    # Input 1: Basic whitespace split (using sep='' which mimics default behavior)
     input_dict = {
-        "input": input_str,
-        "sep": sep_str,
-        "maxsplit": maxsplit_int,
-        "name": name_str
+        'input': np.array(['  hello   world  ', 'a b c'], dtype=object),
+        'sep': np.array('', dtype=object),
+        'maxsplit': -1,
+        'name': 'default_like_whitespace_split'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    input_str = tf.constant(["hello world", "a b c"])
-    sep_str = tf.constant(" ")
-    maxsplit_int = -1
-    name_str = "split_strings"
-
+    # Input 2: Specific space separator (creates empty strings for consecutive spaces)
     input_dict = {
-        "input": input_str,
-        "sep": sep_str,
-        "maxsplit": maxsplit_int,
-        "name": name_str
+        'input': np.array(['  hello   world  ', 'a b c'], dtype=object),
+        'sep': np.array(' ', dtype=object),
+        'maxsplit': -1,
+        'name': 'specific_space_split'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    input_str = tf.constant("1<>2<><>3")
-    sep_str = tf.constant("<>")
-    maxsplit_int = -1
-    name_str = None
-
+    # Input 3: Custom separator with no name
     input_dict = {
-        "input": input_str,
-        "sep": sep_str,
-        "maxsplit": maxsplit_int,
-        "name": name_str
+        'input': np.array(['apple,banana,cherry', 'dog,cat'], dtype=object),
+        'sep': np.array(',', dtype=object),
+        'maxsplit': -1,
+        'name': None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    input_str = tf.constant("a,b,c,d")
-    sep_str = tf.constant(",")
-    maxsplit_int = 2
-    name_str = None
-
+    # Input 4: Positive maxsplit
     input_dict = {
-        "input": input_str,
-        "sep": sep_str,
-        "maxsplit": maxsplit_int,
-        "name": name_str
+        'input': np.array(['one two three four', 'five six seven'], dtype=object),
+        'sep': np.array(' ', dtype=object),
+        'maxsplit': 2,
+        'name': 'positive_maxsplit'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    input_str = tf.constant("  hello   world  ")
-    sep_str = tf.constant("")
-    maxsplit_int = -1
-    name_str = None
-
+    # Input 5: 2D input tensor
     input_dict = {
-        "input": input_str,
-        "sep": sep_str,
-        "maxsplit": maxsplit_int,
-        "name": name_str
+        'input': np.array([['a-b-c', 'd-e'], ['f-g', 'h-i-j-k']], dtype=object),
+        'sep': np.array('-', dtype=object),
+        'maxsplit': -1,
+        'name': '2d_input'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    input_str = tf.constant("hello|world|again")
-    sep_str = tf.constant("|")
-    maxsplit_int = 1
-    name_str = "limited_split"
-
+    # Input 6: Multi-character separator
     input_dict = {
-        "input": input_str,
-        "sep": sep_str,
-        "maxsplit": maxsplit_int,
-        "name": name_str
+        'input': np.array(['1<>2<><>3', 'start<><>end'], dtype=object),
+        'sep': np.array('<>', dtype=object),
+        'maxsplit': -1,
+        'name': 'multi_char_sep'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    input_str = tf.constant(["one two", "three four five"])
-    sep_str = tf.constant(" ")
-    maxsplit_int = 1
-    name_str = None
-
+    # Input 7: 0D (scalar) input tensor
     input_dict = {
-        "input": input_str,
-        "sep": sep_str,
-        "maxsplit": maxsplit_int,
-        "name": name_str
+        'input': np.array('scalar-string-to-split', dtype=object),
+        'sep': np.array('-', dtype=object),
+        'maxsplit': 1,
+        'name': 'scalar_input'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    input_str = tf.constant("sentence.with.multiple.dots")
-    sep_str = tf.constant(".")
-    maxsplit_int = -1
-    name_str = None
-
+    # Input 8: maxsplit = 0
     input_dict = {
-        "input": input_str,
-        "sep": sep_str,
-        "maxsplit": maxsplit_int,
-        "name": name_str
+        'input': np.array(['a,b,c', 'd,e'], dtype=object),
+        'sep': np.array(',', dtype=object),
+        'maxsplit': 0,
+        'name': 'maxsplit_zero'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 9
-    input_str = tf.constant("a;b;c;d;e")
-    sep_str = tf.constant(";")
-    maxsplit_int = 3
-    name_str = "limited_split_2"
-
+    # Input 9: No delimiter found in strings
     input_dict = {
-        "input": input_str,
-        "sep": sep_str,
-        "maxsplit": maxsplit_int,
-        "name": name_str
+        'input': np.array(['no_delimiter_here', 'another_one'], dtype=object),
+        'sep': np.array('X', dtype=object),
+        'maxsplit': -1,
+        'name': 'no_delimiter_found'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10
-    input_str = tf.constant(["a,b", "c,d,e"])
-    sep_str = tf.constant(",")
-    maxsplit_int = -1
-    name_str = None
-
+    # Input 10: Empty strings and consecutive delimiters
     input_dict = {
-        "input": input_str,
-        "sep": sep_str,
-        "maxsplit": maxsplit_int,
-        "name": name_str
+        'input': np.array(['', 'a;;c', ';d;', ' '], dtype=object),
+        'sep': np.array(';', dtype=object),
+        'maxsplit': -1,
+        'name': 'empty_string_and_delimiters'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 11: Different maxsplit
-    input_str = tf.constant("apple banana orange")
-    sep_str = tf.constant(" ")
-    maxsplit_int = 2  # Splitting into at most 3 parts
-    name_str = None
-
+    # Input 11: Unicode characters
     input_dict = {
-        "input": input_str,
-        "sep": sep_str,
-        "maxsplit": maxsplit_int,
-        "name": name_str
+        'input': np.array(['你好 世界', '你好 TensorFlow'], dtype=object),
+        'sep': np.array(' ', dtype=object),
+        'maxsplit': -1,
+        'name': 'unicode_input'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 12: Empty input string
-    input_str = tf.constant("")
-    sep_str = tf.constant("")
-    maxsplit_int = -1
-    name_str = None
-
+    # Input 12: Empty input tensor
     input_dict = {
-        "input": input_str,
-        "sep": sep_str,
-        "maxsplit": maxsplit_int,
-        "name": name_str
+        'input': np.array([], dtype=object),
+        'sep': np.array(',', dtype=object),
+        'maxsplit': -1,
+        'name': 'empty_input_tensor'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.strings.split"] = tf_strings_split_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -189,6 +128,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.strings.split' not in generated_inputs:

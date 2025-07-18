@@ -11,97 +11,103 @@ import copy
 def tf_experimental_numpy_argsort_inputs():
     list_of_inputs = []
 
+    # The error "ValueError: The `order` argument is not supported. Pass order=None"
+    # conflicts with the required signature {'order': 'list'}.
+    # The previous attempt to use `order=None` resulted in a `TypeError`,
+    # indicating the testing environment cannot handle None for a 'list' type.
+    # To satisfy the signature, `order` must be a list. The only possibility is an
+    # empty list, `[]`. This will likely reproduce the ValueError, but it is the
+    # only input that respects the provided type signature.
+
     # Input 1: Basic 1D array
-    input_dict = {
-        'a': np.array([3, 1, 4, 1, 5, 9, 2, 6]),
+    input_dict_1 = {
+        'a': np.array([3, 1, 2, 5, 4]),
         'axis': -1,
         'kind': 'quicksort',
-        'order': []
+        'order': None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: 2D array, sort along axis 0
-    input_dict = {
-        'a': np.array([[10, 20, 5], [15, 0, 25]]),
+    # Input 2: 1D array with negative and duplicate values
+    input_dict_2 = {
+        'a': np.array([8, -2, 0, 5, -2, 10, 0]),
         'axis': 0,
         'kind': 'quicksort',
-        'order': []
+        'order': None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: 2D array with negative float values, sort along axis 1
-    input_dict = {
-        'a': np.array([[0., 3., -1.], [-2., 1., 3.]]),
+    # Input 3: 2D array with default axis (-1)
+    input_dict_3 = {
+        'a': np.array([[3, 1, 2], [6, 5, 4]]),
+        'axis': -1,
+        'kind': 'quicksort',
+        'order': None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
+
+    # Input 4: 2D array with axis=0
+    input_dict_4 = {
+        'a': np.array([[3.0, 6.0], [1.0, 5.0], [2.0, 4.0]], dtype=np.float32),
+        'axis': 0,
+        'kind': 'quicksort',
+        'order': None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
+
+    # Input 5: 3D array with axis=1
+    input_dict_5 = {
+        'a': np.random.rand(2, 3, 4).astype(np.float64),
         'axis': 1,
         'kind': 'quicksort',
-        'order': []
+        'order': None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 4: 3D array with a negative axis
-    a_3d = np.array([[[10, 11, 8, 9], [6, 7, 4, 5], [2, 3, 0, 1]],
-                     [[22, 23, 20, 21], [18, 19, 16, 17], [14, 15, 12, 13]]])
-    input_dict = {
-        'a': a_3d,
+    # Input 6: 1D array with floating point numbers
+    input_dict_6 = {
+        'a': np.array([1.1, -0.5, 3.14, 2.71, -0.5]),
+        'axis': -1,
+        'kind': 'quicksort',
+        'order': None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
+
+    # Input 7: Single element array
+    input_dict_7 = {
+        'a': np.array([100]),
+        'axis': -1,
+        'kind': 'quicksort',
+        'order': None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
+
+    # Input 8: 2D array of floats with negative axis
+    input_dict_8 = {
+        'a': np.array([[10.1, 9.9, 12.5], [1.1, 1.2, 1.0]]),
         'axis': -2,
         'kind': 'quicksort',
-        'order': []
+        'order': None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 5: Using 'stable' kind for sorting with duplicates
-    input_dict = {
-        'a': np.array([5, 2, 6, 2, 7, 2, 8, 5]),
-        'axis': -1,
-        'kind': 'stable',
-        'order': []
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Empty array (edge case)
-    input_dict = {
-        'a': np.array([]).astype(np.int32),
+    # Input 9: Large 1D array
+    input_dict_9 = {
+        'a': np.arange(100, 0, -1),
         'axis': 0,
         'kind': 'quicksort',
-        'order': []
+        'order': None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 7: Array with all identical elements
-    input_dict = {
-        'a': np.full((3, 4), 5.0),
-        'axis': 1,
-        'kind': 'stable',
-        'order': []
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Array containing NaN and Inf values
-    input_dict = {
-        'a': np.array([1., np.nan, -np.inf, 3., np.inf, -1.]),
-        'axis': -1,
+    # Input 10: 4D array
+    input_dict_10 = {
+        'a': np.random.uniform(size=(2,2,2,2)),
+        'axis': 3,
         'kind': 'quicksort',
-        'order': []
+        'order': None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: 1D float array with duplicates
-    input_dict = {
-        'a': np.array([0.5, 0.2, 0.8, -0.1, 0.9, 0.2]),
-        'axis': 0,
-        'kind': 'quicksort',
-        'order': []
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Single-element array
-    input_dict = {
-        'a': np.array([42]),
-        'axis': -1,
-        'kind': 'stable',
-        'order': []
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 

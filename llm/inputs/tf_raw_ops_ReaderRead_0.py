@@ -4,93 +4,48 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_ReaderRead_inputs():
+def tf_raw_ops_reader_read_inputs():
+    """
+    Generates a list of valid inputs for the tf.raw_ops.ReaderRead function.
+    """
     list_of_inputs = []
 
-    # Input 1
-    reader_handle = tf.constant("reader_handle", dtype=tf.string)
-    queue_handle = tf.constant("queue_handle", dtype=tf.string)
-    name = "test_read_1"
-    input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # The op this function calls is not compatible with eager execution.
+    # The generated inputs are valid for a graph context but will fail
+    # when run eagerly, as is done in the testing environment.
+    # This is an unavoidable consequence of the API's design.
 
-    # Input 2
-    reader_handle = tf.constant("another_reader", dtype=tf.string)
-    queue_handle = tf.constant("another_queue", dtype=tf.string)
-    name = None
-    input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    for i in range(10):
+        reader_handle_val = f"reader_handle_v{i}"
+        queue_handle_val = f"queue_handle_v{i}"
+        op_name = f"ReaderRead_{i}" if i % 3 != 0 else None
+        
+        # Use 'object' dtype for string tensors to avoid numpy deprecation issues
+        # and ensure they are treated as scalar string tensors by TensorFlow.
+        dtype = object
 
-    # Input 3
-    reader_handle = tf.constant("reader3", dtype=tf.string)
-    queue_handle = tf.constant("queue3", dtype=tf.string)
-    name = "read3"
-    input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    reader_handle = tf.constant("reader4", dtype=tf.string)
-    queue_handle = tf.constant("queue4", dtype=tf.string)
-    name = ""
-    input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    reader_handle = tf.constant("reader5", dtype=tf.string)
-    queue_handle = tf.constant("queue5", dtype=tf.string)
-    name = "test_read_5"
-    input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 6
-    reader_handle = tf.constant("reader6", dtype=tf.string)
-    queue_handle = tf.constant("queue6", dtype=tf.string)
-    name = "read6"
-    input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    reader_handle = tf.constant("reader7", dtype=tf.string)
-    queue_handle = tf.constant("queue7", dtype=tf.string)
-    name = None
-    input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    reader_handle = tf.constant("reader8", dtype=tf.string)
-    queue_handle = tf.constant("queue8", dtype=tf.string)
-    name = "test_reader_8"
-    input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9
-    reader_handle = tf.constant("reader9", dtype=tf.string)
-    queue_handle = tf.constant("queue9", dtype=tf.string)
-    name = "reader_read_9"
-    input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    reader_handle = tf.constant("reader10", dtype=tf.string)
-    queue_handle = tf.constant("queue10", dtype=tf.string)
-    name = "reader_read_test_10"
-    input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+        input_dict = {
+            'reader_handle': np.array(reader_handle_val, dtype=dtype),
+            'queue_handle': np.array(queue_handle_val, dtype=dtype),
+            'name': op_name
+        }
+        list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = {}
-generated_inputs["tf.raw_ops.ReaderRead"] = tf_raw_ops_ReaderRead_inputs()
+generated_inputs["tf.raw_ops.ReaderRead"] = tf_raw_ops_reader_read_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.ReaderRead' not in generated_inputs:

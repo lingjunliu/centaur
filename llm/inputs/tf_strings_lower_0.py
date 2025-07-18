@@ -4,93 +4,115 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_strings_lower_inputs():
+def get_tf_strings_lower_inputs():
+    """
+    Generates a list of valid inputs for the tf.strings.lower function.
+    """
     list_of_inputs = []
 
-    # Input 1
-    input_tensor = tf.constant("CamelCase string and ALL CAPS").numpy()
-    encoding = ""
-    name = None
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Basic scalar string
+    input_dict_1 = {
+        'input': np.array(b'HELLO WORLD', dtype=object),
+        'encoding': '',
+        'name': 'test1'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2
-    input_tensor = tf.constant("MixedCase123!@#").numpy()
-    encoding = "utf-8"
-    name = "lower_case_string"
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: 1D Tensor of strings with mixed casing
+    input_dict_2 = {
+        'input': np.array([b'CamelCase', b'ALLCAPS', b'lowercase', b'with 123 NUMBERS'], dtype=object),
+        'encoding': '',
+        'name': None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3
-    input_tensor = tf.constant(["String1", "String2", "String3"]).numpy()
-    encoding = ""
-    name = None
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: 2D Tensor of strings
+    input_dict_3 = {
+        'input': np.array([[b'FIRST ROW', b'FIRST-ROW-COL2'], [b'Second row', b'SECOND-ROW-COL2']], dtype=object),
+        'encoding': '',
+        'name': 'test3'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4
-    input_tensor = tf.constant([["String1", "String2"], ["String3", "String4"]]).numpy()
-    encoding = "utf-8"
-    name = "name2"
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: Scalar empty string
+    input_dict_4 = {
+        'input': np.array(b'', dtype=object),
+        'encoding': '',
+        'name': None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5
-    input_tensor = tf.constant("ALREADY LOWER").numpy()
-    encoding = ""
-    name = None
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5: Tensor containing an empty string
+    input_dict_5 = {
+        'input': np.array([b'A', b'', b'B', b''], dtype=object),
+        'encoding': '',
+        'name': 'test5'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6
-    input_tensor = tf.constant("Numbers12345").numpy()
-    encoding = "utf-8"
-    name = None
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6: UTF-8 encoding with non-ASCII characters
+    input_dict_6 = {
+        'input': np.array(['MÜNCHEN'.encode('utf-8'), 'STRASSE'.encode('utf-8'), 'ÇA VA?'.encode('utf-8')], dtype=object),
+        'encoding': 'utf-8',
+        'name': None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7
-    input_tensor = tf.constant("").numpy()
-    encoding = ""
-    name = None
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 7: Scalar UTF-8 string
+    input_dict_7 = {
+        'input': np.array('ΔΘΠ'.encode('utf-8'), dtype=object),
+        'encoding': 'utf-8',
+        'name': 'test7'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8
-    input_tensor = tf.constant("   Leading and Trailing Spaces   ").numpy()
-    encoding = "utf-8"
-    name = "space_test"
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 8: Empty tensor (shape (0,))
+    input_dict_8 = {
+        'input': np.array([], dtype=object),
+        'encoding': '',
+        'name': None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 9
-    input_tensor = tf.constant("!@#$%^&*()").numpy()
-    encoding = ""
-    name = None
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 9: 3D Tensor of strings
+    input_dict_9 = {
+        'input': np.array([[[b'A'], [b'B']], [[b'C'], [b'd']]], dtype=object),
+        'encoding': '',
+        'name': 'test9'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10
-    input_tensor = np.array([s.decode('utf-8') for s in [b"BYtestring1", b"BYtestring2"]], dtype=np.str_)
-    encoding = "utf-8"
-    name = None
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 10: Strings that are already lowercase
+    input_dict_10 = {
+        'input': np.array([b'already', b'all', b'lower'], dtype=object),
+        'encoding': '',
+        'name': None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
+    # Input 11: Strings with only symbols and numbers
+    input_dict_11 = {
+        'input': np.array([b'12345', b'!@#$%^&*()', b'1.2.3-RELEASE'], dtype=object),
+        'encoding': '',
+        'name': 'test11'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_11))
+    
     return list_of_inputs
 
-generated_inputs = {}
-generated_inputs["tf.strings.lower"] = tf_strings_lower_inputs()
+generated_inputs["tf.strings.lower"] = get_tf_strings_lower_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.strings.lower' not in generated_inputs:

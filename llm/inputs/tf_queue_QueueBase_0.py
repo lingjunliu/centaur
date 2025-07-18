@@ -8,147 +8,146 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def get_queue_ref(component_types, shapes, capacity=10, container='', shared_name=''):
-    """Helper to create a queue reference tensor."""
-    # In a graph context, shapes can be tf.TensorShape objects.
-    # For compatibility, we'll convert lists/tuples to tf.TensorShape.
-    shapes_as_tensorshape = [tf.TensorShape(s) for s in shapes]
-    # TensorFlow maps numpy dtypes to its own DType objects.
-    component_types_tf = [tf.as_dtype(d) for d in component_types]
-    return tf.raw_ops.FIFOQueueV2(
-        component_types=component_types_tf,
-        shapes=shapes_as_tensorshape,
-        capacity=capacity,
-        container=container,
-        shared_name=shared_name
-    )
-
-def tf_queue_QueueBase_inputs():
+def get_tf_queue_queuebase_inputs():
+    """
+    Generates a list of valid inputs for the tf.queue.QueueBase constructor.
+    """
     list_of_inputs = []
 
-    # Input 1: Basic case with int32 and float32.
-    dtypes1 = [np.int32, np.float32]
-    shapes1 = [(2, 3), ()]
-    names1 = ['int_matrix', 'float_scalar']
-    input_dict1 = {
+    # Helper function to create a queue_ref tensor.
+    # tf.raw_ops.*QueueV2 requires fully defined shapes.
+    def create_queue_ref(tf_dtypes, shapes, capacity=-1, container='', shared_name=''):
+        return tf.raw_ops.FIFOQueueV2(
+            component_types=tf_dtypes,
+            shapes=shapes,
+            capacity=capacity,
+            container=container,
+            shared_name=shared_name
+        )
+
+    # Input 1: Basic case with a single float32 tensor
+    dtypes1 = [np.float32]
+    shapes1 = [(10,)]
+    names1 = ['a']
+    queue_ref1 = create_queue_ref([tf.float32], shapes1)
+    list_of_inputs.append(copy.deepcopy({
         'dtypes': dtypes1,
         'shapes': shapes1,
         'names': names1,
-        'queue_ref': get_queue_ref(dtypes1, shapes1)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+        'queue_ref': queue_ref1
+    }))
 
-    # Input 2: String and boolean types with fully defined shapes.
-    dtypes2 = [np.string_, np.bool_]
-    shapes2 = [(4, 5), (10,)]
-    names2 = ['string_tensor', 'bool_vector']
-    input_dict2 = {
+    # Input 2: Two components, int32 matrix and bool scalar
+    dtypes2 = [np.int32, np.bool_]
+    shapes2 = [(3, 4), ()]
+    names2 = ['b', 'c']
+    queue_ref2 = create_queue_ref([tf.int32, tf.bool], shapes2)
+    list_of_inputs.append(copy.deepcopy({
         'dtypes': dtypes2,
         'shapes': shapes2,
         'names': names2,
-        'queue_ref': get_queue_ref(dtypes2, shapes2, capacity=20)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+        'queue_ref': queue_ref2
+    }))
 
-    # Input 3: Single component with a high-rank tensor.
+    # Input 3: Fully defined shape
     dtypes3 = [np.float64]
-    shapes3 = [(1, 2, 3, 4)]
-    names3 = ['high_rank_tensor']
-    input_dict3 = {
+    shapes3 = [(1, 128)]
+    names3 = ['d']
+    queue_ref3 = create_queue_ref([tf.float64], shapes3)
+    list_of_inputs.append(copy.deepcopy({
         'dtypes': dtypes3,
         'shapes': shapes3,
         'names': names3,
-        'queue_ref': get_queue_ref(dtypes3, shapes3)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+        'queue_ref': queue_ref3
+    }))
 
-    # Input 4: Multiple scalar components.
-    dtypes4 = [np.int8, np.uint16, np.complex64]
-    shapes4 = [(), (), ()]
-    names4 = ['int8_val', 'uint16_val', 'complex64_val']
-    input_dict4 = {
+    # Input 4: Complex number type
+    dtypes4 = [np.complex64]
+    shapes4 = [(2, 2)]
+    names4 = ['e']
+    queue_ref4 = create_queue_ref([tf.complex64], shapes4)
+    list_of_inputs.append(copy.deepcopy({
         'dtypes': dtypes4,
         'shapes': shapes4,
         'names': names4,
-        'queue_ref': get_queue_ref(dtypes4, shapes4)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict4))
-    
-    # Input 5: A single component with a defined vector shape.
-    dtypes5 = [np.int64]
-    shapes5 = [(10,)]
-    names5 = ['defined_shape_tensor']
-    input_dict5 = {
+        'queue_ref': queue_ref4
+    }))
+
+    # Input 5: Mixed precision types
+    dtypes5 = [np.float16, np.float32]
+    shapes5 = [(100,), (100,)]
+    names5 = ['f', 'g']
+    queue_ref5 = create_queue_ref([tf.float16, tf.float32], shapes5)
+    list_of_inputs.append(copy.deepcopy({
         'dtypes': dtypes5,
         'shapes': shapes5,
         'names': names5,
-        'queue_ref': get_queue_ref(dtypes5, shapes5)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+        'queue_ref': queue_ref5
+    }))
 
-    # Input 6: Complex numbers.
-    dtypes6 = [np.complex64, np.complex128]
-    shapes6 = [(4,), (2, 2)]
-    names6 = ['c64_vec', 'c128_mat']
-    input_dict6 = {
+    # Input 6: High-dimensional tensor
+    dtypes6 = [np.uint8]
+    shapes6 = [(32, 32, 3, 1)]
+    names6 = ['h']
+    queue_ref6 = create_queue_ref([tf.uint8], shapes6)
+    list_of_inputs.append(copy.deepcopy({
         'dtypes': dtypes6,
         'shapes': shapes6,
         'names': names6,
-        'queue_ref': get_queue_ref(dtypes6, shapes6, capacity=5)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict6))
-    
-    # Input 7: Empty names list.
-    dtypes7 = [np.float16, np.int32]
-    shapes7 = [(1,), (1,)]
-    names7 = []
-    input_dict7 = {
+        'queue_ref': queue_ref6
+    }))
+
+    # Input 7: Single scalar component
+    dtypes7 = [np.int64]
+    shapes7 = [()]
+    names7 = ['i']
+    queue_ref7 = create_queue_ref([tf.int64], shapes7)
+    list_of_inputs.append(copy.deepcopy({
         'dtypes': dtypes7,
         'shapes': shapes7,
         'names': names7,
-        'queue_ref': get_queue_ref(dtypes7, shapes7)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict7))
+        'queue_ref': queue_ref7
+    }))
 
-    # Input 8: Larger number of components.
-    dtypes8 = [np.int32, np.float32, np.string_, np.bool_, np.int64]
-    shapes8 = [(1,), (2, 2), (3,), (4, 4), (5,)]
-    names8 = ['c1', 'c2', 'c3', 'c4', 'c5']
-    input_dict8 = {
+    # Input 8: Three components including a string
+    dtypes8 = [np.int16, np.float32, np.string_]
+    shapes8 = [(64, 64), (10,), ()]
+    names8 = ['j', 'k', 'l']
+    queue_ref8 = create_queue_ref([tf.int16, tf.float32, tf.string], shapes8)
+    list_of_inputs.append(copy.deepcopy({
         'dtypes': dtypes8,
         'shapes': shapes8,
         'names': names8,
-        'queue_ref': get_queue_ref(dtypes8, shapes8)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict8))
+        'queue_ref': queue_ref8
+    }))
 
-    # Input 9: Using different integer types with defined shapes.
-    dtypes9 = [np.uint8, np.int16, np.uint32, np.int64]
-    shapes9 = [(), (10,), (3, 1), (5, 5)]
-    names9 = ['uint8_s', 'int16_v', 'uint32_m', 'int64_m']
-    input_dict9 = {
+    # Input 9: Fully defined shapes for image batch and labels
+    dtypes9 = [np.float32, np.int64]
+    shapes9 = [(4, 224, 224, 3), (4,)]
+    names9 = ['m', 'n']
+    queue_ref9 = create_queue_ref([tf.float32, tf.int64], shapes9)
+    list_of_inputs.append(copy.deepcopy({
         'dtypes': dtypes9,
         'shapes': shapes9,
         'names': names9,
-        'queue_ref': get_queue_ref(dtypes9, shapes9)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict9))
-    
-    # Input 10: Fully defined matrix shapes.
-    dtypes10 = [np.float32, np.float32]
-    shapes10 = [[2, 3], [3, 4]]
-    names10 = ['matrix_a', 'matrix_b']
-    input_dict10 = {
+        'queue_ref': queue_ref9
+    }))
+
+    # Input 10: Using complex128
+    dtypes10 = [np.complex128, np.int8]
+    shapes10 = [(4, 4), (4,)]
+    names10 = ['o', 'p']
+    queue_ref10 = create_queue_ref([tf.complex128, tf.int8], shapes10)
+    list_of_inputs.append(copy.deepcopy({
         'dtypes': dtypes10,
         'shapes': shapes10,
         'names': names10,
-        'queue_ref': get_queue_ref(dtypes10, shapes10)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict10))
+        'queue_ref': queue_ref10
+    }))
 
     return list_of_inputs
 
-generated_inputs["tf.queue.QueueBase"] = tf_queue_QueueBase_inputs()
+generated_inputs["tf.queue.QueueBase"] = get_tf_queue_queuebase_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

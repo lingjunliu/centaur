@@ -8,118 +8,117 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_string_upper_inputs():
+def tf_raw_ops_stringupper_inputs():
     list_of_inputs = []
 
-    # Helper function to create a tf.string tensor from a numpy array
-    def create_string_tensor(data):
-        if isinstance(data, str):
-            data = np.array(data, dtype=np.object_)
-        elif isinstance(data, list):
-            data = np.array(data, dtype=np.object_)
-        return tf.constant(data)
-
-    # Input 1: Basic string
-    input_tensor = create_string_tensor("hello world")
-    encoding = ""
-    name = ""
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
+    # Input 1: Scalar lowercase ASCII string
+    input_dict = {
+        'input': np.array(b"hello world", dtype=np.object_),
+        'encoding': '',
+        'name': 'scalar_ascii'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: String with special characters
-    input_tensor = create_string_tensor("123 abc!@#")
-    encoding = ""
-    name = ""
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
+    # Input 2: 1D tensor with mixed case ASCII strings
+    input_dict = {
+        'input': np.array([b"CamelCase", b"all lower", b"ALL UPPER", b"with123"], dtype=np.object_),
+        'encoding': '',
+        'name': '1d_mixed_ascii'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Empty string
-    input_tensor = create_string_tensor("")
-    encoding = ""
-    name = ""
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
+    # Input 3: 2D tensor with ASCII strings, numbers, and symbols
+    input_dict = {
+        'input': np.array([[b"aB cD", b"123-456"], [b"!@#$%", b"Should be upper"]], dtype=np.object_),
+        'encoding': '',
+        'name': '2d_symbols_ascii'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: UTF-8 encoding
-    input_tensor = create_string_tensor("héllo world")
-    encoding = "utf-8"
-    name = ""
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
+    # Input 4: Scalar UTF-8 string with characters that have uppercase equivalents
+    input_dict = {
+        'input': np.array('ça va bien'.encode('utf-8'), dtype=np.object_),
+        'encoding': 'utf-8',
+        'name': 'scalar_utf8'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: String with mixed case
-    input_tensor = create_string_tensor("HeLlO wOrLd")
-    encoding = ""
-    name = ""
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
+    # Input 5: 1D tensor with mixed UTF-8 strings
+    input_dict = {
+        'input': np.array(['Straße'.encode('utf-8'), '你好'.encode('utf-8'), 'mixedCaseÜ'.encode('utf-8')], dtype=np.object_),
+        'encoding': 'utf-8',
+        'name': '1d_utf8'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: String with numbers and uppercase
-    input_tensor = create_string_tensor("123ABC")
-    encoding = ""
-    name = ""
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
+    # Input 6: Tensor containing an empty string
+    input_dict = {
+        'input': np.array([b"not empty", b""], dtype=np.object_),
+        'encoding': '',
+        'name': 'empty_string_ascii'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: String with only uppercase letters
-    input_tensor = create_string_tensor("UPPERCASE")
-    encoding = ""
-    name = ""
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
+    # Input 7: Empty 1D tensor (shape=[0])
+    input_dict = {
+        'input': np.array([], dtype=np.object_),
+        'encoding': '',
+        'name': 'empty_tensor'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: String with spaces only
-    input_tensor = create_string_tensor("   ")
-    encoding = ""
-    name = ""
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
+    # Input 8: 3D tensor with ASCII strings
+    input_dict = {
+        'input': np.array([[[b"one", b"two"], [b"three", b"four"]], [[b"five", b"six"], [b"seven", b"eight"]]], dtype=np.object_),
+        'encoding': '',
+        'name': '3d_ascii'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: String with multiple lines
-    input_tensor = create_string_tensor("line1\nline2")
-    encoding = ""
-    name = ""
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
+    # Input 9: All uppercase ASCII input, should remain unchanged
+    input_dict = {
+        'input': np.array(b"ALREADY UPPERCASE", dtype=np.object_),
+        'encoding': '',
+        'name': 'already_upper'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: String with Unicode characters
-    input_tensor = create_string_tensor("你好世界")
-    encoding = "utf-8"
-    name = ""
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
+    # Input 10: 2D UTF-8 tensor with special casing (ß -> SS)
+    input_dict = {
+        'input': np.array([['guten tag'.encode('utf-8'), 'au revoir'.encode('utf-8')], ['спасибо'.encode('utf-8'), 'ß'.encode('utf-8')]], dtype=np.object_),
+        'encoding': 'utf-8',
+        'name': '2d_utf8_special_casing'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 11: Name is specified
-    input_tensor = create_string_tensor("hello world")
-    encoding = ""
-    name = "my_op"
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
+    # Input 11: Tensor with only non-alphabetic ASCII characters
+    input_dict = {
+        'input': np.array(b"12345 !@#$%^&*()", dtype=np.object_),
+        'encoding': '',
+        'name': 'non_alpha_ascii'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12: Empty 2D tensor (shape=[2,0])
+    input_dict = {
+        'input': np.empty(shape=(2,0), dtype=np.object_),
+        'encoding': 'utf-8',
+        'name': 'empty_2d_tensor'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 12: Tensor of shape (2, 2)
-    input_tensor = create_string_tensor([["hello", "world"], ["foo", "bar"]])
-    encoding = ""
-    name = ""
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 13: Tensor of shape (1,)
-    input_tensor = create_string_tensor(["hello"])
-    encoding = ""
-    name = ""
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
     return list_of_inputs
 
-generated_inputs = {}
-generated_inputs["tf.raw_ops.StringUpper"] = tf_raw_ops_string_upper_inputs()
+generated_inputs["tf.raw_ops.StringUpper"] = tf_raw_ops_stringupper_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.StringUpper' not in generated_inputs:

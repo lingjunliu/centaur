@@ -4,100 +4,117 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_requantization_range_inputs():
+def get_requantization_range_inputs():
+    """
+    Generates a list of valid inputs for tf.raw_ops.RequantizationRange.
+    """
     list_of_inputs = []
 
-    # Input 2: quint8
-    input2 = np.array([0, 5, 10, 15, 20], dtype=np.uint8)
-    input_min2 = np.array([0.0], dtype=np.float32)
-    input_max2 = np.array([20.0], dtype=np.float32)
-    input_dict2 = {"input":  tf.constant(input2, dtype=tf.quint8), "input_min": tf.constant(input_min2), "input_max": tf.constant(input_max2), "name": "quint8_example"}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Case 1: Corresponds to qint8
+    input_dict_1 = {
+        'name': 'test_qint8',
+        'input': np.array([-128, 0, 127], dtype=np.int8),
+        'input_min': np.array(-1.0, dtype=np.float32),
+        'input_max': np.array(1.0, dtype=np.float32)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 3: qint32
-    input3 = np.array([-1000, -500, 0, 500, 1000], dtype=np.int32)
-    input_min3 = np.array([-1000.0], dtype=np.float32)
-    input_max3 = np.array([1000.0], dtype=np.float32)
-    input_dict3 = {"input": tf.constant(input3, dtype=tf.qint32), "input_min": tf.constant(input_min3), "input_max": tf.constant(input_max3), "name": "qint32_example"}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    # Case 2: Corresponds to quint8
+    input_dict_2 = {
+        'name': 'test_quint8',
+        'input': np.array([[10, 50], [100, 200]], dtype=np.uint8),
+        'input_min': np.array(0.0, dtype=np.float32),
+        'input_max': np.array(25.5, dtype=np.float32)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 4: qint16
-    input4 = np.array([-100, -50, 0, 50, 100], dtype=np.int16)
-    input_min4 = np.array([-100.0], dtype=np.float32)
-    input_max4 = np.array([100.0], dtype=np.float32)
-    input_dict4 = {"input": tf.constant(input4, dtype=tf.qint16), "input_min": tf.constant(input_min4), "input_max": tf.constant(input_max4), "name": "qint16_example"}
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    # Case 3: Corresponds to qint32
+    input_dict_3 = {
+        'name': 'test_qint32',
+        'input': np.array([[[100000, -200000], [0, 50000]]], dtype=np.int32),
+        'input_min': np.array(-1000.0, dtype=np.float32),
+        'input_max': np.array(1000.0, dtype=np.float32)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 5: quint16
-    input5 = np.array([0, 50, 100, 150, 200], dtype=np.uint16)
-    input_min5 = np.array([0.0], dtype=np.float32)
-    input_max5 = np.array([200.0], dtype=np.float32)
-    input_dict5 = {"input": tf.constant(input5, dtype=tf.quint16), "input_min": tf.constant(input_min5), "input_max": tf.constant(input_max5), "name": "quint16_example"}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    # Case 4: Corresponds to qint16
+    input_dict_4 = {
+        'name': 'test_qint16',
+        'input': np.array([5000], dtype=np.int16),
+        'input_min': np.array(-32768.0, dtype=np.float32),
+        'input_max': np.array(32767.0, dtype=np.float32)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 7: Different min/max for quint8
-    input7 = np.array([50, 75, 100, 125, 150], dtype=np.uint8)
-    input_min7 = np.array([50.0], dtype=np.float32)
-    input_max7 = np.array([150.0], dtype=np.float32)
-    input_dict7 = {"input": tf.constant(input7, dtype=tf.quint8), "input_min": tf.constant(input_min7), "input_max": tf.constant(input_max7), "name": "quint8_diff_example"}
-    list_of_inputs.append(copy.deepcopy(input_dict7))
+    # Case 5: Corresponds to quint16
+    input_dict_5 = {
+        'name': 'test_quint16',
+        'input': np.array([[0, 10000], [30000, 65535]], dtype=np.uint16),
+        'input_min': np.array(0.0, dtype=np.float32),
+        'input_max': np.array(6553.5, dtype=np.float32)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 9: Negative range for qint32
-    input9 = np.array([-5000, -2500, 0, 1000, 2000], dtype=np.int32)
-    input_min9 = np.array([-5000.0], dtype=np.float32)
-    input_max9 = np.array([2000.0], dtype=np.float32)
-    input_dict9 = {"input": tf.constant(input9, dtype=tf.qint32), "input_min": tf.constant(input_min9), "input_max": tf.constant(input_max9), "name": "qint32_neg_example"}
-    list_of_inputs.append(copy.deepcopy(input_dict9))
+    # Case 6: Corresponds to qint8, single repeated value
+    input_dict_6 = {
+        'name': 'test_qint8_repeated',
+        'input': np.array([[50, 50], [50, 50]], dtype=np.int8),
+        'input_min': np.array(-10.0, dtype=np.float32),
+        'input_max': np.array(10.0, dtype=np.float32)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-   # Input 10: Small range for quint16
-    input10 = np.array([1, 2, 3, 4, 5], dtype=np.uint16)
-    input_min10 = np.array([1.0], dtype=np.float32)
-    input_max10 = np.array([5.0], dtype=np.float32)
-    input_dict10 = {"input": tf.constant(input10, dtype=tf.quint16), "input_min": tf.constant(input_min10), "input_max": tf.constant(input_max10), "name": "quint16_small_example"}
-    list_of_inputs.append(copy.deepcopy(input_dict10))
+    # Case 7: Corresponds to qint16, negative float range
+    input_dict_7 = {
+        'name': 'test_qint16_neg_range',
+        'input': np.array([[[-100, 0]], [[100, 200]]], dtype=np.int16),
+        'input_min': np.array(-50.0, dtype=np.float32),
+        'input_max': np.array(-1.0, dtype=np.float32)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 11: Reshape input tensors for variety
-    input11 = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
-    input_min11 = np.array([-10.0], dtype=np.float32)
-    input_max11 = np.array([10.0], dtype=np.float32)
-    input_dict11 = {"input": tf.constant(input11, dtype=tf.qint32), "input_min": tf.constant(input_min11), "input_max": tf.constant(input_max11), "name": "qint32_reshaped"}
-    list_of_inputs.append(copy.deepcopy(input_dict11))
+    # Case 8: Corresponds to quint8, zero float range
+    input_dict_8 = {
+        'name': 'test_quint8_zero_range',
+        'input': np.array([10, 20, 30, 40], dtype=np.uint8),
+        'input_min': np.array(0.0, dtype=np.float32),
+        'input_max': np.array(0.0, dtype=np.float32)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    
+    # Case 9: Corresponds to qint32, large range
+    input_dict_9 = {
+        'name': 'test_qint32_large_range',
+        'input': np.array([-1000000, 0, 1000000], dtype=np.int32),
+        'input_min': np.array(-2.1e9, dtype=np.float32),
+        'input_max': np.array(2.1e9, dtype=np.float32)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 12: scalar min/max
-    input12 = np.array([1, 2, 3], dtype=np.uint16)
-    input_min12 = np.array(1.0, dtype=np.float32)
-    input_max12 = np.array(5.0, dtype=np.float32)
-    input_dict12 = {"input": tf.constant(input12, dtype=tf.quint16), "input_min": tf.constant(input_min12), "input_max": tf.constant(input_max12), "name": "quint16_scalar_minmax"}
-    list_of_inputs.append(copy.deepcopy(input_dict12))
-
-    # Input 13: different shape for min/max. must be broadcastable
-    input13 = np.array([1, 2, 3, 4], dtype=np.int32)
-    input_min13 = np.array([1.0], dtype=np.float32)
-    input_max13 = np.array([5.0], dtype=np.float32)
-    input_dict13 = {"input": tf.constant(input13, dtype=tf.qint32), "input_min": tf.constant(input_min13), "input_max": tf.constant(input_max13), "name": "qint32_diff_minmax_shape"}
-    list_of_inputs.append(copy.deepcopy(input_dict13))
-
-    # Input 14: Empty tensor
-    input14 = np.array([], dtype=np.int32)
-    input_min14 = np.array([1.0], dtype=np.float32)
-    input_max14 = np.array([5.0], dtype=np.float32)
-    input_dict14 = {"input": tf.constant(input14, dtype=tf.qint32), "input_min": tf.constant(input_min14), "input_max": tf.constant(input_max14), "name": "qint32_empty"}
-    list_of_inputs.append(copy.deepcopy(input_dict14))
+    # Case 10: Corresponds to quint16, 4D tensor
+    input_dict_10 = {
+        'name': 'test_quint16_4d',
+        'input': np.arange(16, dtype=np.uint16).reshape((2, 2, 2, 2)),
+        'input_min': np.array(0.1, dtype=np.float32),
+        'input_max': np.array(0.9, dtype=np.float32)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 
-generated_inputs = {}
-generated_inputs["tf.raw_ops.RequantizationRange"] = tf_raw_ops_requantization_range_inputs()
+generated_inputs["tf.raw_ops.RequantizationRange"] = get_requantization_range_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.RequantizationRange' not in generated_inputs:

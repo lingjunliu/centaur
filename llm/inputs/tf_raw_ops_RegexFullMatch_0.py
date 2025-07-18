@@ -8,67 +8,120 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_regex_full_match_inputs():
+def get_tf_raw_ops_regex_full_match_inputs():
+    """
+    Generates a list of valid inputs for the tf.raw_ops.RegexFullMatch operation.
+    """
     list_of_inputs = []
 
-    # Input 1
-    input_tensor = np.array(["hello world", "regex match"], dtype=np.string_)
-    pattern_tensor = np.array("^hello.*$", dtype=np.string_)
-    input_dict = {"input": input_tensor, "pattern": pattern_tensor}
+    # Input 1: Basic 1D match
+    input_dict = {
+        'input': np.array([b"apple", b"banana", b"apricot"], dtype=object),
+        'pattern': np.array(b"ap.*", dtype=object),
+        'name': 'basic_1d_match'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    input_tensor = np.array(["12345", "67890"], dtype=np.string_)
-    pattern_tensor = np.array("^[0-9]+$", dtype=np.string_)
-    input_dict = {"input": input_tensor, "pattern": pattern_tensor}
+    # Input 2: 1D match at the end of the string
+    input_dict = {
+        'input': np.array([b"TF lib", b"lib TF"], dtype=object),
+        'pattern': np.array(b".*TF$", dtype=object),
+        'name': 'end_of_string_match'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    input_tensor = np.array(["abc", "def", "ghi"], dtype=np.string_)
-    pattern_tensor = np.array("^[a-z]{3}$", dtype=np.string_)
-    input_dict = {"input": input_tensor, "pattern": pattern_tensor}
+    # Input 3: 2D input tensor
+    input_dict = {
+        'input': np.array([[b"cat", b"dog"], [b"bat", b"rat"]], dtype=object),
+        'pattern': np.array(b".at", dtype=object),
+        'name': '2d_input_match'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    input_tensor = np.array(["", "not empty"], dtype=np.string_)
-    pattern_tensor = np.array("^$", dtype=np.string_)
-    input_dict = {"input": input_tensor, "pattern": pattern_tensor}
+    # Input 4: Matching digits
+    input_dict = {
+        'input': np.array([b"Product_123", b"Item-456", b"Service789", b"NoNumber"], dtype=object),
+        'pattern': np.array(b".*\\d{3}", dtype=object),
+        'name': 'digit_match'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    input_tensor = np.array(["a", "b", "c"], dtype=np.string_)
-    pattern_tensor = np.array("^[abc]$", dtype=np.string_)
-    input_dict = {"input": input_tensor, "pattern": pattern_tensor}
+    # Input 5: Matching only empty strings
+    input_dict = {
+        'input': np.array([b"a", b"", b"b", b""], dtype=object),
+        'pattern': np.array(b"^$", dtype=object),
+        'name': 'empty_string_match'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    input_tensor = np.array(["one", "two", "three"], dtype=np.string_)
-    pattern_tensor = np.array("^(one|two|three)$", dtype=np.string_)
-    input_dict = {"input": input_tensor, "pattern": pattern_tensor}
+    # Input 6: Pattern with character classes
+    input_dict = {
+        'input': np.array([b"Gray", b"grey", b"GReY"], dtype=object),
+        'pattern': np.array(b"Gr[ae]y", dtype=object),
+        'name': 'char_class_match'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    input_tensor = np.array(["file.txt", "image.png", "document.pdf"], dtype=np.string_)
-    pattern_tensor = np.array(".*\\.(txt|pdf)$", dtype=np.string_)
-    input_dict = {"input": input_tensor, "pattern": pattern_tensor}
+    # Input 7: No matches
+    input_dict = {
+        'input': np.array([b"abc", b"def", b"ghi"], dtype=object),
+        'pattern': np.array(b"xyz", dtype=object),
+        'name': 'no_match_case'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    input_tensor = np.array(["123-456-7890", "987-654-3210"], dtype=np.string_)
-    pattern_tensor = np.array("^[0-9]{3}-[0-9]{3}-[0-9]{4}$", dtype=np.string_)
-    input_dict = {"input": input_tensor, "pattern": pattern_tensor}
+    # Input 8: Universal match
+    input_dict = {
+        'input': np.array([b"any string", b"123!@#", b"", b"\n\t"], dtype=object),
+        'pattern': np.array(b".*", dtype=object),
+        'name': 'universal_match'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Matching special regex characters by escaping them
+    input_dict = {
+        'input': np.array([b"(abc)", b"[def]", b"{ghi}"], dtype=object),
+        'pattern': np.array(b"\\(abc\\)", dtype=object),
+        'name': 'special_char_escape'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: 3D input tensor
+    input_dict = {
+        'input': np.array([[[b"a"], [b"b"]], [[b"ab"], [b"ba"]]], dtype=object),
+        'pattern': np.array(b"a.*", dtype=object),
+        'name': '3d_input_match'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: Empty input tensor
+    input_dict = {
+        'input': np.array([], dtype=object),
+        'pattern': np.array(b".*", dtype=object),
+        'name': 'empty_input_tensor'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12: Scalar input tensor
+    input_dict = {
+        'input': np.array(b"just_one_string", dtype=object),
+        'pattern': np.array(b"just_one_string", dtype=object),
+        'name': 'scalar_input'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = {}
-generated_inputs["tf.raw_ops.RegexFullMatch"] = tf_raw_ops_regex_full_match_inputs()
+generated_inputs["tf.raw_ops.RegexFullMatch"] = get_tf_raw_ops_regex_full_match_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.RegexFullMatch' not in generated_inputs:

@@ -7,106 +7,98 @@ generated_inputs = dict()
 import numpy as np
 import copy
 
-def get_tf_raw_ops_countupto_inputs():
+def tf_raw_ops_count_up_to_inputs():
     """
-    Generates inputs for tf.raw_ops.CountUpTo.
-
-    The persistent "RuntimeError: count_up_to op does not support eager execution"
-    is a fundamental characteristic of this specific TensorFlow operation. It is
-    designed to work only within a TensorFlow graph context (e.g., inside a
-    tf.function or a TF1 Session). The error arises because the execution
-    framework is attempting to run this graph-only operation in eager mode.
-
-    The inputs provided below are correct according to the API signature and the
-    numpy format requirement. The issue is not with the inputs themselves but with
-    the execution environment. The calling code must be modified to create a graph
-    context for this operation to succeed.
+    Generates a list of valid inputs for the tf.raw_ops.CountUpTo operation.
+    This operation is not compatible with eager execution and requires a graph context.
+    The inputs are provided in numpy format as required by the specified signature,
+    even though this will lead to a runtime error in an eager execution environment.
     """
     list_of_inputs = []
 
-    # Input 1: Basic int32 case
+    # Input 1: Basic case with int32.
     input_dict_1 = {
         'ref': np.array(0, dtype=np.int32),
-        'limit': 5,
-        'name': 'count_up_to_5'
+        'limit': 10,
+        'name': 'case_1_int32'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: Basic int64 case
+    # Input 2: Basic case with int64.
     input_dict_2 = {
-        'ref': np.array(10, dtype=np.int64),
-        'limit': 15,
-        'name': 'count_up_to_15'
+        'ref': np.array(50, dtype=np.int64),
+        'limit': 60,
+        'name': 'case_2_int64'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: No optional name
+    # Input 3: Limit is close to ref.
     input_dict_3 = {
-        'ref': np.array(99, dtype=np.int32),
-        'limit': 101,
-        'name': None
+        'ref': np.array(9, dtype=np.int32),
+        'limit': 10,
+        'name': 'case_3_limit_close'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: ref is one less than limit
+    # Input 4: Negative ref, positive limit.
     input_dict_4 = {
-        'ref': np.array(49, dtype=np.int64),
-        'limit': 50,
-        'name': 'almost_at_limit'
+        'ref': np.array(-5, dtype=np.int32),
+        'limit': 5,
+        'name': 'case_4_negative_ref'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: Negative starting ref
+    # Input 5: Negative ref, zero limit.
     input_dict_5 = {
-        'ref': np.array(-5, dtype=np.int32),
-        'limit': 5,
-        'name': 'negative_to_positive'
+        'ref': np.array(-1, dtype=np.int64),
+        'limit': 0,
+        'name': 'case_5_zero_limit'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: Both ref and limit are negative
+    # Input 6: Both ref and limit are negative.
     input_dict_6 = {
-        'ref': np.array(-10, dtype=np.int64),
-        'limit': -5,
-        'name': 'all_negative'
+        'ref': np.array(-20, dtype=np.int32),
+        'limit': -10,
+        'name': 'case_6_both_negative'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: Minimal range
+    # Input 7: Large int64 numbers.
     input_dict_7 = {
-        'ref': np.array(0, dtype=np.int32),
-        'limit': 1,
-        'name': 'minimal_range'
+        'ref': np.array(10000000000, dtype=np.int64),
+        'limit': 10000000010,
+        'name': 'case_7_large_int64'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8: Minimal negative range
+    # Input 8: No name provided.
     input_dict_8 = {
-        'ref': np.array(-1, dtype=np.int64),
-        'limit': 0,
-        'name': 'minimal_negative_range'
+        'ref': np.array(1, dtype=np.int32),
+        'limit': 2,
+        'name': None
     }
     list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 9: Large range with int32
+    # Input 9: Wide range between ref and limit.
     input_dict_9 = {
-        'ref': np.array(0, dtype=np.int32),
-        'limit': 50000,
-        'name': 'large_range_int32'
+        'ref': np.array(-1000, dtype=np.int64),
+        'limit': 1000,
+        'name': 'case_9_wide_range'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10: Large range with int64
+    # Input 10: Large limit.
     input_dict_10 = {
-        'ref': np.array(1000, dtype=np.int64),
+        'ref': np.array(0, dtype=np.int32),
         'limit': 200000,
-        'name': 'large_range_int64'
+        'name': 'case_10_large_limit'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.CountUpTo"] = get_tf_raw_ops_countupto_inputs()
+generated_inputs["tf.raw_ops.CountUpTo"] = tf_raw_ops_count_up_to_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

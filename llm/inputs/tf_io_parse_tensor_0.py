@@ -8,107 +8,116 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-
 def tf_io_parse_tensor_inputs():
-    """
-    Generates a list of valid inputs for tf.io.parse_tensor.
-    """
     list_of_inputs = []
 
-    def serialize_to_numpy_object(tensor):
-        """Helper to serialize a tensor and wrap it in a 0-D numpy array of dtype=object."""
-        serialized_bytes = tf.io.serialize_tensor(tensor).numpy()
-        return np.array(serialized_bytes, dtype=object)
-
-    # Input 1: 1D int32 tensor
-    tensor1 = tf.constant([10, 20, 30], dtype=tf.int32)
-    input_dict1 = {
-        'serialized': serialize_to_numpy_object(tensor1),
-        'out_type': np.int32,
-        'name': 'parse_1d_int32'
+    # Input 1: Scalar float32
+    tensor_1 = tf.constant(3.14, dtype=tf.float32)
+    input_dict_1 = {
+        'serialized': np.array(tf.io.serialize_tensor(tensor_1).numpy(), dtype=object),
+        'out_type': tensor_1.dtype.as_numpy_dtype,
+        'name': 'scalar_float'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: 2D float32 tensor
-    tensor2 = tf.constant([[1.1, 2.2], [3.3, 4.4]], dtype=tf.float32)
-    input_dict2 = {
-        'serialized': serialize_to_numpy_object(tensor2),
-        'out_type': np.float32,
-        'name': 'parse_2d_float32'
+    # Input 2: 1D int32 vector with negative values
+    tensor_2 = tf.constant([1, -2, 3, 0], dtype=tf.int32)
+    input_dict_2 = {
+        'serialized': np.array(tf.io.serialize_tensor(tensor_2).numpy(), dtype=object),
+        'out_type': tensor_2.dtype.as_numpy_dtype,
+        'name': '1d_int32_vector'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: Scalar (0D) int64 tensor
-    tensor3 = tf.constant(9876543210, dtype=tf.int64)
-    input_dict3 = {
-        'serialized': serialize_to_numpy_object(tensor3),
-        'out_type': np.int64,
-        'name': 'parse_scalar_int64'
+    # Input 3: 2D float64 matrix
+    tensor_3 = tf.constant([[1.0, 2.0], [3.0, 4.0]], dtype=tf.float64)
+    input_dict_3 = {
+        'serialized': np.array(tf.io.serialize_tensor(tensor_3).numpy(), dtype=object),
+        'out_type': tensor_3.dtype.as_numpy_dtype,
+        'name': 'matrix_float64'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: 1D string tensor
-    tensor4 = tf.constant(["hello", "world"], dtype=tf.string)
-    input_dict4 = {
-        'serialized': serialize_to_numpy_object(tensor4),
-        'out_type': np.string_,
-        'name': 'parse_1d_string'
+    # Input 4: 3D int64 tensor
+    tensor_4 = tf.constant([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=tf.int64)
+    input_dict_4 = {
+        'serialized': np.array(tf.io.serialize_tensor(tensor_4).numpy(), dtype=object),
+        'out_type': tensor_4.dtype.as_numpy_dtype,
+        'name': '3d_tensor_int64'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: 1D bool tensor
-    tensor5 = tf.constant([True, False, True], dtype=tf.bool)
-    input_dict5 = {
-        'serialized': serialize_to_numpy_object(tensor5),
-        'out_type': np.bool_,
-        'name': 'parse_1d_bool'
+    # Input 5: Boolean vector
+    tensor_5 = tf.constant([True, False, True], dtype=tf.bool)
+    input_dict_5 = {
+        'serialized': np.array(tf.io.serialize_tensor(tensor_5).numpy(), dtype=object),
+        'out_type': tensor_5.dtype.as_numpy_dtype,
+        'name': 'bool_vector'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: 2D tensor with negative float values, no name
-    tensor6 = tf.constant([[-1.5, -2.5], [-3.5, -4.5]], dtype=tf.float64)
-    input_dict6 = {
-        'serialized': serialize_to_numpy_object(tensor6),
-        'out_type': np.float64,
-        'name': None
+    # Input 6: Complex64 vector
+    tensor_6 = tf.constant([1+2j, 3-4j], dtype=tf.complex64)
+    input_dict_6 = {
+        'serialized': np.array(tf.io.serialize_tensor(tensor_6).numpy(), dtype=object),
+        'out_type': tensor_6.dtype.as_numpy_dtype,
+        'name': 'complex64_vector'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict6))
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: Empty tensor (shape [0])
-    tensor7 = tf.constant([], dtype=tf.float32)
-    input_dict7 = {
-        'serialized': serialize_to_numpy_object(tensor7),
-        'out_type': np.float32,
-        'name': 'parse_empty_tensor'
+    # Input 7: Complex128 scalar
+    tensor_7 = tf.constant(1.5+2.5j, dtype=tf.complex128)
+    input_dict_7 = {
+        'serialized': np.array(tf.io.serialize_tensor(tensor_7).numpy(), dtype=object),
+        'out_type': tensor_7.dtype.as_numpy_dtype,
+        'name': 'complex128_scalar'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict7))
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8: Empty tensor with non-zero dimension (shape [5, 0])
-    tensor8 = tf.constant(np.empty((5, 0)), dtype=tf.int16)
-    input_dict8 = {
-        'serialized': serialize_to_numpy_object(tensor8),
-        'out_type': np.int16,
-        'name': 'parse_empty_2d_tensor'
+    # Input 8: Empty tensor
+    tensor_8 = tf.constant([], dtype=tf.float32)
+    input_dict_8 = {
+        'serialized': np.array(tf.io.serialize_tensor(tensor_8).numpy(), dtype=object),
+        'out_type': tensor_8.dtype.as_numpy_dtype,
+        'name': 'empty_tensor'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict8))
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 9: uint8 tensor
-    tensor9 = tf.constant([0, 100, 255], dtype=tf.uint8)
-    input_dict9 = {
-        'serialized': serialize_to_numpy_object(tensor9),
-        'out_type': np.uint8,
-        'name': 'parse_uint8'
+    # Input 9: String tensor
+    tensor_9 = tf.constant([b"hello", b"world", b""], dtype=tf.string)
+    input_dict_9 = {
+        'serialized': np.array(tf.io.serialize_tensor(tensor_9).numpy(), dtype=object),
+        'out_type': tensor_9.dtype.as_numpy_dtype,
+        'name': 'string_tensor'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict9))
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10: 3D tensor
-    tensor10 = tf.constant(np.arange(8).reshape((2, 2, 2)), dtype=tf.int32)
-    input_dict10 = {
-        'serialized': serialize_to_numpy_object(tensor10),
-        'out_type': np.int32,
-        'name': 'parse_3d_tensor'
+    # Input 10: Unsigned integer tensor (uint8)
+    tensor_10 = tf.constant([0, 128, 255], dtype=tf.uint8)
+    input_dict_10 = {
+        'serialized': np.array(tf.io.serialize_tensor(tensor_10).numpy(), dtype=object),
+        'out_type': tensor_10.dtype.as_numpy_dtype,
+        'name': 'uint8_tensor'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict10))
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
+
+    # Input 11: int16 tensor with non-standard shape
+    tensor_11 = tf.constant([[[1], [2]], [[3], [4]]], shape=(2, 2, 1), dtype=tf.int16)
+    input_dict_11 = {
+        'serialized': np.array(tf.io.serialize_tensor(tensor_11).numpy(), dtype=object),
+        'out_type': tensor_11.dtype.as_numpy_dtype,
+        'name': 'int16_tensor'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_11))
+
+    # Input 12: Scalar string
+    tensor_12 = tf.constant(b"a single string", dtype=tf.string)
+    input_dict_12 = {
+        'serialized': np.array(tf.io.serialize_tensor(tensor_12).numpy(), dtype=object),
+        'out_type': tensor_12.dtype.as_numpy_dtype,
+        'name': 'scalar_string'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_12))
 
     return list_of_inputs
 
