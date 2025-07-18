@@ -76,7 +76,7 @@ def main():
     override_valid = True # setting to True will override the saved valid inputs
     n_valid = 5 # number of inputs to save to infer invariants with
     seed = 42   # seed for reproduction
-    tmp_results = create_subdir(get_tmp_dir(), "rand_results")
+    tmp_results = create_subdir(get_tmp_dir(), f"rand_results_{lib}")
     csv_file = os.path.join(tmp_results, f"{api}_{duration}_{seed}.csv")
     logfile = os.path.join(tmp_results, f"{api}_excp.log")
     
