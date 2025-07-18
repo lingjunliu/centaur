@@ -26,7 +26,7 @@ if (length(args) > 3) {
 if (mode == "cov") {
   ylabel <- "# branches covered"
 } else if (mode == "val") {
-  ylabel <- "Validity"
+  ylabel <- "Validity Ratio (%)"
 } else {
   ylabel <- sprintf("Comparison - %s", mode)
 }
@@ -63,6 +63,10 @@ if (lib == "tf") {
   suffix <- paste0(suffix, "tf")
 }
 
+if (mode == "val") {
+  suffix <- paste0(suffix, "Val")
+}
+
 if (sota == "Pathfinder") {
   if (lib == "torch") {
     ylim <- c(2500, 11500)
@@ -73,6 +77,10 @@ if (sota == "Pathfinder") {
   ylim <- c(9000, 11500)
 } else {
   ylim <- c(2000, 9000)
+}
+
+if (mode == "val") {
+  ylim <- c(0, 100)
 }
 
 data <- read.csv(csv)
