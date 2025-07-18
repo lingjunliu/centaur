@@ -11,14 +11,12 @@ import os
 import traceback
 import sys
 
-def introduce_float_types(input_dict, signature, lib="torch"):
+def introduce_float_types(input_dict, signature, lib="torch", rng=np.random.default_rng(42)):
     """
-    Mutation to prevent learning rule_8 incorrectly
+    Mutation to prevent having no float types in the inputs
     """
-    seed = 42
     mutated_inputs = []
     float_types = [np.float16, np.float32, np.float64]
-    rng = np.random.default_rng(seed)
     index = rng.integers(0, len(float_types))
     for arg, domain in signature.items():
         if input_dict[arg] is None:
@@ -38,14 +36,37 @@ def introduce_float_types(input_dict, signature, lib="torch"):
     
     return mutated_inputs
 
-def introduce_floats(input_dict, signature, lib="torch"):
+def introduce_complex_types(input_dict, signature, lib="torch", rng=np.random.default_rng(42)):
+    """
+    Mutation to prevent having no complex types in the inputs
+    """
+    mutated_inputs = []
+    complex_types = [np.complex64, np.complex128]
+    index = rng.integers(0, len(complex_types))
+    for arg, domain in signature.items():
+        if input_dict[arg] is None:
+            continue
+        
+        if domain in ["tensor", "tensor_list"]:
+            new_input = copy.deepcopy(input_dict)
+            if isinstance(new_input[arg], np.ndarray):
+                new_input[arg] = new_input[arg].astype(complex_types[index%len(complex_types)])
+            elif isinstance(new_input[arg], list):
+                for i, _ in enumerate(new_input[arg]):
+                    new_input[arg][i] = new_input[arg][i].astype(complex_types[index%len(complex_types)])
+            else:
+                new_input[arg] = complex_types[index%len(complex_types)](new_input[arg])
+            index += 1
+            mutated_inputs.append(new_input)
+    
+    return mutated_inputs
+
+def introduce_floats(input_dict, signature, lib="torch", rng=np.random.default_rng(42)):
     """
     Mutation to introduce random float values for float-type fields,
     float-typed tensors, or float-valued tuples/lists.
     """
-    seed = 42
     mutated_inputs = []
-    rng = np.random.default_rng(seed)
     domain_limits = domain_limits_torch if lib == "torch" else domain_limits_tf
     float_min, float_max = domain_limits['float'][:2]
 
@@ -90,14 +111,12 @@ def introduce_floats(input_dict, signature, lib="torch"):
 
     return mutated_inputs
 
-def introduce_integer_types(input_dict, signature, lib="torch"):
+def introduce_integer_types(input_dict, signature, lib="torch", rng=np.random.default_rng(42)):
     """
-    Mutation to prevent learning rule_13 incorrectly
+    Mutation to prevent having no integer types in the inputs
     """
-    seed = 42
     mutated_inputs = []
     int_types = [np.int8, np.int16, np.int32, np.int64, np.uint8]
-    rng = np.random.default_rng(seed)
     index = rng.integers(0, len(int_types))
     for arg, domain in signature.items():
         if input_dict[arg] is None:
@@ -117,14 +136,12 @@ def introduce_integer_types(input_dict, signature, lib="torch"):
     
     return mutated_inputs
 
-def introduce_integers(input_dict, signature, lib="torch"):
+def introduce_integers(input_dict, signature, lib="torch", rng=np.random.default_rng(42)):
     """
     Mutation to introduce random integer values for int-type fields,
     int-typed tensors, or int-valued tuples/lists.
     """
-    seed = 42
     mutated_inputs = []
-    rng = np.random.default_rng(seed)
     domain_limits = domain_limits_torch if lib == "torch" else domain_limits_tf
     int_min, int_max = domain_limits['integer'][:2]
 
@@ -169,9 +186,9 @@ def introduce_integers(input_dict, signature, lib="torch"):
 
     return mutated_inputs
 
-def introduce_empty_tensors(input_dict, signature, lib="torch"):
+def introduce_empty_tensors(input_dict, signature, lib="torch", rng=np.random.default_rng(42)):
     """
-    Mutation to prevent learning rule_14 incorrectly
+    Mutation to prevent having no empty tensors in the inputs
     """
     mutated_inputs = []
     for arg, domain in signature.items():
@@ -182,9 +199,9 @@ def introduce_empty_tensors(input_dict, signature, lib="torch"):
     
     return mutated_inputs
 
-def introduce_zeros(input_dict, signature, lib="torch"):
+def introduce_zeros(input_dict, signature, lib="torch", rng=np.random.default_rng(42)):
     """
-    Mutation to prevent learning rule_21 incorrectly
+    Mutation to prevent having no zero values in the inputs
     """
     mutated_inputs = []
     for arg, domain in signature.items():
@@ -221,7 +238,7 @@ def introduce_zeros(input_dict, signature, lib="torch"):
 
     return mutated_inputs
 
-def introduce_opposite_bools(input_dict, signature, lib="torch"):
+def introduce_opposite_bools(input_dict, signature, lib="torch", rng=np.random.default_rng(42)):
     """
     Mutation to increase diversity
     """
@@ -234,9 +251,9 @@ def introduce_opposite_bools(input_dict, signature, lib="torch"):
             
     return mutated_inputs
 
-def introduce_negatives(input_dict, signature, lib="torch"):
+def introduce_negatives(input_dict, signature, lib="torch", rng=np.random.default_rng(42)):
     """
-    Mutation to prevent learning rule_17 and rule_18 incorrectly
+    Mutation to prevent having no negative values in the inputs
     """
     mutated_inputs = []
     none_replacements = {
@@ -275,21 +292,22 @@ def introduce_negatives(input_dict, signature, lib="torch"):
 
     return mutated_inputs
 
-def augment_inputs(list_of_inputs, signature, lib="torch"):
+def augment_inputs(list_of_inputs, signature, lib="torch", seed=42):
     """
     Mutate inputs to have diversity to ensure wrong invariants are not learned
     And return the original inputs + mutated inputs
     """
-    mutators = [introduce_empty_tensors, introduce_float_types, introduce_floats, introduce_integer_types, introduce_integers, introduce_negatives, introduce_opposite_bools, introduce_zeros]
+    mutators = [introduce_empty_tensors, introduce_float_types, introduce_complex_types, introduce_floats, introduce_integer_types, introduce_integers, introduce_negatives, introduce_opposite_bools, introduce_zeros]
     original_inputs = []
     mutated_inputs = []
+    rng = np.random.default_rng(seed)
     for i, input_dict in enumerate(list_of_inputs):
         if not match_signature_to_input(input_dict, signature, match_type=True):
             print(f"{bcolors.WARNING}Skipping input at index {i} as it does not match the signature:\n{signature}{bcolors.ENDC}")
             continue  # Skip inputs that do not match the signature
         original_inputs.append(input_dict)
         for mutator in mutators:
-            mutated_inputs += mutator(input_dict, signature, lib=lib)
+            mutated_inputs += mutator(input_dict, signature, lib=lib, rng=rng)
     
     return original_inputs + mutated_inputs
 

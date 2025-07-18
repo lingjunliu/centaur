@@ -82,8 +82,8 @@ def main():
     rng = np.random.default_rng(21)
 
     sample_apis_without_inputs = rng.choice(list(apis_without_llm_inputs), size=min(5, len(apis_without_llm_inputs)), replace=False)
-    sample_apis_without_invariants = rng.choice(list(apis_without_invariants.intersection(apis_with_llm_inputs)), size=min(5, len(apis_without_invariants)), replace=False)
-    sample_apis_without_models = rng.choice(list(apis_without_models.intersection(apis_with_invariants)), size=min(5, len(apis_without_models)), replace=False)
+    sample_apis_without_invariants = rng.choice(list(apis_without_invariants.intersection(apis_with_llm_inputs)), size=min(5, len(apis_without_invariants.intersection(apis_without_invariants.intersection(apis_with_llm_inputs)))), replace=False)
+    sample_apis_without_models = rng.choice(list(apis_without_models.intersection(apis_with_invariants)), size=min(5, len(apis_without_models.intersection(apis_with_invariants))), replace=False)
 
     print("\nSample APIs without LLM generated inputs:\n")
     print('\n'.join(sample_apis_without_inputs))
@@ -99,6 +99,7 @@ def main():
     stats_csv = os.path.join(tmp, f"stats_{lib}.csv")
     outdated_file = os.path.join(tmp, f"outdated_apis_{lib}.txt")
     models_without_invariants = os.path.join(tmp, f"models_without_invariants_{lib}.txt")
+    apis_without_invariants_file = os.path.join(tmp, f"apis_without_invariants_{lib}.txt")
     
     with open(rule_to_api_csv, "w") as f:
         for rule, apis in rule_to_api.items():
@@ -116,5 +117,8 @@ def main():
 
     with open(models_without_invariants, "w") as f:
         f.write('\n'.join(sorted(apis_without_invariants_but_with_models)))
+
+    with open(apis_without_invariants_file, "w") as f:
+        f.write('\n'.join(sorted(apis_without_invariants)))
 if __name__ == "__main__":
     main()

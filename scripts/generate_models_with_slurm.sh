@@ -16,8 +16,8 @@ fi
 export elements_file=${lib}_variations.txt
 export OMP_NUM_THREADS=1    # To prevent issues with coverage collection due to multithreading
 
-# Add 1 hour (3600 seconds) to account for rule refinement
-total_seconds=$((duration + 3600))
+# Add 10 minutes (600 seconds) to account for rule refinement
+total_seconds=$((duration + 600))
 
 # Convert to HH:MM:SS
 hours=$((total_seconds / 3600))

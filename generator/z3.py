@@ -193,7 +193,7 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
                     min_percent = 1.0 / len(block_all)    # At least one constraint should be blocked
                     blocking_proba = max(blocking_proba - min_percent, min_percent)
                     stale = 0                    
-                    # saturation += 10    # Making it more difficult to reach stale
+                    saturation += 1    # Making it more difficult to reach stale
                     if print_details:
                         print(f"\n--- Stale solver after {elapsed:.2f} s. Reducing blocking probability to {blocking_proba} ---\n")
                     continue
