@@ -3,7 +3,7 @@ from generator.rules_auto_z3 import check_rules_z3
 from utils.z3_utils import instantiate_args, create_z3_args, initial_constraints, collect_constraints
 from .inputs import get_inputs
 from utils.new_api_utils import get_n_variations, get_lib_version, get_signature, get_api_suffix
-from utils.misc import get_dir_in_root, get_tmp_dir, create_subdir, append_file_in_root, bcolors
+from utils.misc import get_dir_in_root, get_tmp_dir, create_subdir, append_file_in_root, bcolors, read_file_in_root
 from utils.defaults import MAX_N_DIM
 from generator.input_generators import abstract_print, get_abstract_input
 from generator.random_generation import random_fuzz
@@ -270,11 +270,16 @@ def main():
     
     api, suffix = get_api_suffix(variant)
     # Try random generation for 60 seconds
-    print(f"Running random generation for {api} with suffix {suffix} for 60 seconds to collect baseline validity ratio.")
-    valid, invalid, crash, abstract_inputs = random_fuzz(api, seed=42, duration=60, lib=lib)
-    if invalid + crash == 0:
-        print(f"API {api} does not throw exceptions with random inputs after running for 60 seconds. No invariants will be inferred.")
-        append_file_in_root(f"True_invariants_{lib}", f"{variant}\n")
+    list_of_true_inv_apis = read_file_in_root(f"True_invariants_{lib}")
+    if variant not in list_of_true_inv_apis:
+        print(f"Running random generation for {api} with suffix {suffix} for 60 seconds to collect baseline validity ratio.")
+        valid, invalid, crash, abstract_inputs = random_fuzz(api, seed=42, duration=60, lib=lib)
+        if invalid + crash == 0:
+            print(f"API {api} does not throw exceptions with random inputs after running for 60 seconds. No invariants will be inferred.")
+            append_file_in_root(f"True_invariants_{lib}", f"{variant}\n")
+            return
+    else:
+        print(f"True invariants for {variant} already exist. Skipping random generation AND invariant inference.")
         return
     
     list_of_rulesets = infer_invariants(api, print_details=True, regen=regen, time_budget=budget, z3=True, lib=lib, suffix=suffix)
