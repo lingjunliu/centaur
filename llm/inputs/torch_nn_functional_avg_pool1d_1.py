@@ -11,189 +11,118 @@ import copy
 def avg_pool1d_inputs():
     list_of_inputs = []
 
-    # Input 1
-    input1 = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0]]], dtype=np.float32)
-    kernel_size1 = 2
-    stride1 = 1
-    padding1 = 0
-    ceil_mode1 = False
-    count_include_pad1 = True
-
-    input_dict1 = {
-        "input": input1,
-        "kernel_size": kernel_size1,
-        "stride": stride1,
-        "padding": padding1,
-        "ceil_mode": ceil_mode1,
-        "count_include_pad": count_include_pad1
+    # Input 1: Basic case with 3D input
+    input_dict_1 = {
+        'input': torch.arange(0, 10, dtype=torch.float32).reshape(1, 1, 10).numpy(),
+        'kernel_size': 2,
+        'stride': 2,
+        'padding': 0,
+        'ceil_mode': False,
+        'count_include_pad': True,
     }
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2
-    input2 = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0]]], dtype=np.float32)
-    kernel_size2 = 3
-    stride2 = 2
-    padding2 = 1
-    ceil_mode2 = True
-    count_include_pad2 = False
-
-    input_dict2 = {
-        "input": input2,
-        "kernel_size": kernel_size2,
-        "stride": stride2,
-        "padding": padding2,
-        "ceil_mode": ceil_mode2,
-        "count_include_pad": count_include_pad2
+    # Input 2: With padding and count_include_pad=False
+    input_dict_2 = {
+        'input': torch.ones(1, 1, 5, dtype=torch.float32).numpy(),
+        'kernel_size': 3,
+        'stride': 1,
+        'padding': 1,
+        'ceil_mode': False,
+        'count_include_pad': False,
     }
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3
-    input3 = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]]], dtype=np.float32)
-    kernel_size3 = 4
-    stride3 = 3
-    padding3 = 2
-    ceil_mode3 = False
-    count_include_pad3 = True
-
-    input_dict3 = {
-        "input": input3,
-        "kernel_size": kernel_size3,
-        "stride": stride3,
-        "padding": padding3,
-        "ceil_mode": ceil_mode3,
-        "count_include_pad": count_include_pad3
+    # Input 3: With stride > kernel_size and multiple channels
+    input_dict_3 = {
+        'input': torch.randn(2, 3, 16).numpy(),
+        'kernel_size': 3,
+        'stride': 4,
+        'padding': 0,
+        'ceil_mode': False,
+        'count_include_pad': True,
     }
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4
-    input4 = np.array([[[1.0, 2.0, 3.0]]], dtype=np.float32)
-    kernel_size4 = 1
-    stride4 = 1
-    padding4 = 0
-    ceil_mode4 = True
-    count_include_pad4 = False
-
-    input_dict4 = {
-        "input": input4,
-        "kernel_size": kernel_size4,
-        "stride": stride4,
-        "padding": padding4,
-        "ceil_mode": ceil_mode4,
-        "count_include_pad": count_include_pad4
+    # Input 4: With ceil_mode=True
+    input_dict_4 = {
+        'input': torch.arange(0, 7, dtype=torch.float32).reshape(1, 1, 7).numpy(),
+        'kernel_size': 3,
+        'stride': 3,
+        'padding': 0,
+        'ceil_mode': True,
+        'count_include_pad': True,
     }
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5
-    input5 = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0]]], dtype=np.float32)
-    kernel_size5 = 5
-    stride5 = 1
-    padding5 = 2
-    ceil_mode5 = False
-    count_include_pad5 = True
-
-    input_dict5 = {
-        "input": input5,
-        "kernel_size": kernel_size5,
-        "stride": stride5,
-        "padding": padding5,
-        "ceil_mode": ceil_mode5,
-        "count_include_pad": count_include_pad5
+    # Input 5: Another standard case
+    input_dict_5 = {
+        'input': torch.ones(1, 2, 8, dtype=torch.float32).numpy(),
+        'kernel_size': 4,
+        'stride': 4,
+        'padding': 0,
+        'ceil_mode': False,
+        'count_include_pad': True,
     }
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6
-    input6 = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0]]], dtype=np.float32)
-    kernel_size6 = 2
-    stride6 = 2
-    padding6 = 1
-    ceil_mode6 = True
-    count_include_pad6 = False
-
-    input_dict6 = {
-        "input": input6,
-        "kernel_size": kernel_size6,
-        "stride": stride6,
-        "padding": padding6,
-        "ceil_mode": ceil_mode6,
-        "count_include_pad": count_include_pad6
+    # Input 6: With padding
+    input_dict_6 = {
+        'input': torch.tensor([[[10., 20., 30., 40.]]], dtype=torch.float32).numpy(),
+        'kernel_size': 2,
+        'stride': 2,
+        'padding': 1,
+        'ceil_mode': False,
+        'count_include_pad': True,
     }
-    list_of_inputs.append(copy.deepcopy(input_dict6))
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7
-    input7 = np.array([[[1.0, 2.0]]], dtype=np.float32)
-    kernel_size7 = 2
-    stride7 = 1
-    padding7 = 0
-    ceil_mode7 = False
-    count_include_pad7 = True
-
-    input_dict7 = {
-        "input": input7,
-        "kernel_size": kernel_size7,
-        "stride": stride7,
-        "padding": padding7,
-        "ceil_mode": ceil_mode7,
-        "count_include_pad": count_include_pad7
+    # Input 7: 2D input (batch, seq_len)
+    input_dict_7 = {
+        'input': torch.arange(0, 12, dtype=torch.float32).reshape(3, 4).numpy(),
+        'kernel_size': 2,
+        'stride': 1,
+        'padding': 0,
+        'ceil_mode': False,
+        'count_include_pad': True,
     }
-    list_of_inputs.append(copy.deepcopy(input_dict7))
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
     
-    # Input 8
-    input8 = np.array([[[1.0, 2.0, 3.0]]], dtype=np.float32)
-    kernel_size8 = 2
-    stride8 = 2
-    padding8 = 0
-    ceil_mode8 = False
-    count_include_pad8 = True
-
-    input_dict8 = {
-        "input": input8,
-        "kernel_size": kernel_size8,
-        "stride": stride8,
-        "padding": padding8,
-        "ceil_mode": ceil_mode8,
-        "count_include_pad": count_include_pad8
+    # Input 8: Complex case with all options set
+    input_dict_8 = {
+        'input': torch.randn(2, 3, 11).numpy(),
+        'kernel_size': 4,
+        'stride': 2,
+        'padding': 2,
+        'ceil_mode': True,
+        'count_include_pad': False,
     }
-    list_of_inputs.append(copy.deepcopy(input_dict8))
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 9
-    input9 = np.array([[[1.0, 2.0, 3.0, 4.0]]], dtype=np.float32)
-    kernel_size9 = 3
-    stride9 = 1
-    padding9 = 1
-    ceil_mode9 = True
-    count_include_pad9 = True
-
-    input_dict9 = {
-        "input": input9,
-        "kernel_size": kernel_size9,
-        "stride": stride9,
-        "padding": padding9,
-        "ceil_mode": ceil_mode9,
-        "count_include_pad": count_include_pad9
+    # Input 9: Large padding
+    input_dict_9 = {
+        'input': torch.ones(1, 1, 4).numpy(),
+        'kernel_size': 3,
+        'stride': 1,
+        'padding': 2,
+        'ceil_mode': True,
+        'count_include_pad': True,
     }
-    list_of_inputs.append(copy.deepcopy(input_dict9))
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10
-    input10 = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0]]], dtype=np.float32)
-    kernel_size10 = 3
-    stride10 = 1
-    padding10 = 0
-    ceil_mode10 = False
-    count_include_pad10 = False
-
-    input_dict10 = {
-        "input": input10,
-        "kernel_size": kernel_size10,
-        "stride": stride10,
-        "padding": padding10,
-        "ceil_mode": ceil_mode10,
-        "count_include_pad": count_include_pad10
+    # Input 10: Larger kernel and stride
+    input_dict_10 = {
+        'input': torch.randn(1, 1, 20).numpy(),
+        'kernel_size': 5,
+        'stride': 5,
+        'padding': 0,
+        'ceil_mode': False,
+        'count_include_pad': True,
     }
-    list_of_inputs.append(copy.deepcopy(input_dict10))
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["torch.nn.functional.avg_pool1d_1"] = avg_pool1d_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
@@ -201,6 +130,9 @@ def check_valid(api, list_of_inputs, lib="torch", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'torch.nn.functional.avg_pool1d_1' not in generated_inputs:

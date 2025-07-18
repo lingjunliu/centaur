@@ -4,104 +4,100 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch, copy
+import torch
+import copy
 import numpy as np
 
 def rsub_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case
-    input1 = torch.tensor([1.0, 2.0, 3.0])
-    other1 = torch.tensor([4.0, 5.0, 6.0])
-    alpha1 = 1.0
-    out1 = torch.tensor([0.0, 0.0, 0.0])
+    # The provided signature {'input': 'tensor', 'other': 'tensor', 'alpha': 'float', 'out': 'tensor'}
+    # conflicts with the actual torch.rsub API, which does not accept an 'out' keyword argument.
+    # To resolve the TypeError, inputs are generated according to the valid API, omitting the 'out' key.
+    # This may reveal a discrepancy in the testing harness if it strictly requires the 'out' key.
 
-    input_dict1 = {"input": input1.numpy(), "other": other1.numpy(), "alpha": alpha1, "out": out1.numpy()}
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Input 1: Basic case with 1D float tensors
+    input_dict_1 = {
+        'input': np.array([1.0, 2.0, 3.0], dtype=np.float32),
+        'other': np.array([10.0, 20.0, 30.0], dtype=np.float32),
+        'alpha': 2.0,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: Different alpha
-    input2 = torch.tensor([1.0, 2.0, 3.0])
-    other2 = torch.tensor([4.0, 5.0, 6.0])
-    alpha2 = 0.5
-    out2 = torch.tensor([0.0, 0.0, 0.0])
+    # Input 2: 2D int tensors, positive alpha, broadcasting 'other'
+    input_dict_2 = {
+        'input': np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32),
+        'other': np.array([10, 20, 30], dtype=np.int32),
+        'alpha': 2.0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    input_dict2 = {"input": input2.numpy(), "other": other2.numpy(), "alpha": alpha2, "out": out2.numpy()}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Input 3: Tensors with negative values and fractional alpha
+    input_dict_3 = {
+        'input': np.array([[-1.5, 2.0], [0.0, -3.5]], dtype=np.float32),
+        'other': np.array([[10.0, -5.0], [-2.5, 8.0]], dtype=np.float32),
+        'alpha': 0.5
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 3: Negative values
-    input3 = torch.tensor([-1.0, -2.0, -3.0])
-    other3 = torch.tensor([-4.0, -5.0, -6.0])
-    alpha3 = 1.0
-    out3 = torch.tensor([0.0, 0.0, 0.0])
+    # Input 4: Different dtypes (float64) and negative alpha
+    input_dict_4 = {
+        'input': np.array([1.0, 2.0, 3.0], dtype=np.float64),
+        'other': np.array([4.0, 5.0, 6.0], dtype=np.float64),
+        'alpha': -3.0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    input_dict3 = {"input": input3.numpy(), "other": other3.numpy(), "alpha": alpha3, "out": out3.numpy()}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    # Input 5: 3D tensors and a different alpha
+    input_dict_5 = {
+        'input': np.arange(8, dtype=np.float32).reshape(2, 2, 2),
+        'other': np.ones((2, 2, 2), dtype=np.float32) * 10,
+        'alpha': 1.5,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 4: 2D arrays
-    input4 = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
-    other4 = torch.tensor([[5.0, 6.0], [7.0, 8.0]])
-    alpha4 = 1.0
-    out4 = torch.tensor([[0.0, 0.0], [0.0, 0.0]])
+    # Input 6: Scalar 'other' tensor broadcasting to 'input' tensor
+    input_dict_6 = {
+        'input': np.array([[1, 2], [3, 4]], dtype=np.int64),
+        'other': np.array(100, dtype=np.int64),
+        'alpha': 10.0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    input_dict4 = {"input": input4.numpy(), "other": other4.numpy(), "alpha": alpha4, "out": out4.numpy()}
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    # Input 7: Scalar 'input' tensor broadcasting to 'other' tensor
+    input_dict_7 = {
+        'input': np.array(-5.0, dtype=np.float32),
+        'other': np.array([-10.0, 0.0, 10.0], dtype=np.float32),
+        'alpha': 2.0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 5: Different dtype
-    input5 = torch.tensor([1, 2, 3], dtype=torch.int32)
-    other5 = torch.tensor([4, 5, 6], dtype=torch.int32)
-    alpha5 = 1.0
-    out5 = torch.tensor([0, 0, 0], dtype=torch.int32)
+    # Input 8: Tensors containing zeros and default alpha
+    input_dict_8 = {
+        'input': np.zeros((2, 3), dtype=np.float32),
+        'other': np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32),
+        'alpha': 1.0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    input_dict5 = {"input": input5.numpy(), "other": other5.numpy(), "alpha": alpha5, "out": out5.numpy()}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    # Input 9: Broadcasting with a singleton dimension
+    input_dict_9 = {
+        'input': np.arange(12, dtype=np.float32).reshape(3, 4),
+        'other': np.array([[100], [200], [300]], dtype=np.float32),
+        'alpha': 1.0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 6: 3D array
-    input6 = torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
-    other6 = torch.tensor([[[9, 10], [11, 12]], [[13, 14], [15, 16]]])
-    alpha6 = 1.0
-    out6 = torch.tensor([[[0, 0], [0, 0]], [[0, 0], [0, 0]]])
-
-    input_dict6 = {"input": input6.numpy(), "other": other6.numpy(), "alpha": alpha6, "out": out6.numpy()}
-    list_of_inputs.append(copy.deepcopy(input_dict6))
-
-    # Input 7: alpha = 0
-    input7 = torch.tensor([1.0, 2.0, 3.0])
-    other7 = torch.tensor([4.0, 5.0, 6.0])
-    alpha7 = 0.0
-    out7 = torch.tensor([0.0, 0.0, 0.0])
-
-    input_dict7 = {"input": input7.numpy(), "other": other7.numpy(), "alpha": alpha7, "out": out7.numpy()}
-    list_of_inputs.append(copy.deepcopy(input_dict7))
-
-    # Input 8: larger alpha value
-    input8 = torch.tensor([1.0, 2.0, 3.0])
-    other8 = torch.tensor([4.0, 5.0, 6.0])
-    alpha8 = 2.0
-    out8 = torch.tensor([0.0, 0.0, 0.0])
-
-    input_dict8 = {"input": input8.numpy(), "other": other8.numpy(), "alpha": alpha8, "out": out8.numpy()}
-    list_of_inputs.append(copy.deepcopy(input_dict8))
-
-    # Input 9: different shape
-    input9 = torch.tensor([[1.0, 2.0, 3.0]])
-    other9 = torch.tensor([[4.0, 5.0, 6.0]])
-    alpha9 = 1.0
-    out9 = torch.tensor([[0.0, 0.0, 0.0]])
-    input_dict9 = {"input": input9.numpy(), "other": other9.numpy(), "alpha": alpha9, "out": out9.numpy()}
-    list_of_inputs.append(copy.deepcopy(input_dict9))
-
-    # Input 10: float64
-    input10 = torch.tensor([1.0, 2.0, 3.0], dtype=torch.float64)
-    other10 = torch.tensor([4.0, 5.0, 6.0], dtype=torch.float64)
-    alpha10 = 1.0
-    out10 = torch.tensor([0.0, 0.0, 0.0], dtype=torch.float64)
-
-    input_dict10 = {"input": input10.numpy(), "other": other10.numpy(), "alpha": alpha10, "out": out10.numpy()}
-    list_of_inputs.append(copy.deepcopy(input_dict10))
+    # Input 10: Empty tensors
+    input_dict_10 = {
+        'input': np.array([], dtype=np.float32),
+        'other': np.array([], dtype=np.float32),
+        'alpha': 2.0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["torch.rsub"] = rsub_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
@@ -109,6 +105,9 @@ def check_valid(api, list_of_inputs, lib="torch", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'torch.rsub' not in generated_inputs:

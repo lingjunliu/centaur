@@ -4,55 +4,60 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch, copy
-import numpy as np
+import torch
+import copy
+import numpy
 
 def sym_fresh_size_inputs():
     list_of_inputs = []
+    # The error "TypeError: sym_fresh_size() missing 1 required positional argument: 'expr'"
+    # has been persistent across multiple attempts with different types passed as a keyword argument.
+    # This suggests two possibilities:
+    # 1. The argument is positional-only. The error message "missing 1 required positional argument"
+    #    is a strong indicator for this.
+    # 2. The type of the argument is a special type (`SymInt`) which cannot be easily created,
+    #    and the dispatcher fails to find any matching overload, resulting in a generic error.
+    #
+    # This attempt will address the first possibility by passing the argument positionally.
+    # The testing framework seems to support this via an "args" key in the input dictionary.
+    # We will provide a variety of plausible scalar types positionally, adhering to the
+    # "numpy format" rule where possible.
 
-    # Input 1: Simple case, symbolic expression
-    input_dict = {"expr": torch.Size([torch.SymInt(1), torch.SymInt(2)])}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Inputs with numpy scalar integers (positional)
+    input_dict_1 = {"args": [numpy.int64(0)], "kwargs": {}}
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: Symbolic expression with 1 dimension
-    input_dict = {"expr": torch.Size([torch.SymInt(5)])}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict_2 = {"args": [numpy.int64(1)], "kwargs": {}}
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
+
+    input_dict_3 = {"args": [numpy.int32(10)], "kwargs": {}}
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
+
+    # Inputs with 0-dim numpy arrays (representing tensors) (positional)
+    input_dict_4 = {"args": [numpy.array(5, dtype=numpy.int64)], "kwargs": {}}
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
+
+    input_dict_5 = {"args": [numpy.array(100, dtype=numpy.int32)], "kwargs": {}}
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
     
-    # Input 3: Symbolic expression with multiple dimensions
-    input_dict = {"expr": torch.Size([torch.SymInt(3), torch.SymInt(4), torch.SymInt(5)])}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict_6 = {"args": [numpy.array(2, dtype=numpy.int64)], "kwargs": {}}
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 4: Symbolic expression with zero dimension
-    input_dict = {"expr": torch.Size([torch.SymInt(0)])}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 5: Symbolic expression with mixed SymInt
-    input_dict = {"expr": torch.Size([torch.SymInt(2), torch.SymInt(3)])}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Inputs with primitive Python integers (positional)
+    input_dict_7 = {"args": [8], "kwargs": {}}
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 6: Symbolic expression with a large size
-    input_dict = {"expr": torch.Size([torch.SymInt(1000)])}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict_8 = {"args": [16], "kwargs": {}}
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 7: Symbolic expression with different sizes
-    input_dict = {"expr": torch.Size([torch.SymInt(1), torch.SymInt(10), torch.SymInt(100)])}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8: Symbolic expression with dimension 1
-    input_dict = {"expr": torch.Size([torch.SymInt(1)])}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict_9 = {"args": [32], "kwargs": {}}
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 9: Symbolic expression with dimension 2
-    input_dict = {"expr": torch.Size([torch.SymInt(2)])}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10: Symbolic expression with dimension 3
-    input_dict = {"expr": torch.Size([torch.SymInt(3)])}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict_10 = {"args": [64], "kwargs": {}}
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["torch.sym_fresh_size"] = sym_fresh_size_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
@@ -60,6 +65,9 @@ def check_valid(api, list_of_inputs, lib="torch", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'torch.sym_fresh_size' not in generated_inputs:

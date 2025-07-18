@@ -8,69 +8,83 @@ import torch
 import numpy as np
 import copy
 
-def torch_where_inputs():
+def where_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple 1D boolean tensor
-    condition = np.array([True, False, True])
-    input_dict = {"condition": condition}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Helper function to create inputs with consistent dtypes
+    def create_input(shape, dtype, broadcast_input=None, broadcast_other=None):
+        condition = np.random.choice([True, False], size=shape)
+        
+        input_shape = broadcast_input if broadcast_input is not None else shape
+        other_shape = broadcast_other if broadcast_other is not None else shape
+        
+        # Create numpy arrays from random values, handling the scalar case
+        input_val = np.random.rand(*input_shape) * 100
+        other_val = np.random.rand(*other_shape) * 100
 
-    # Input 2: 2D boolean tensor
-    condition = np.array([[True, False], [False, True]])
-    input_dict = {"condition": condition}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+        input_tensor = np.array(input_val, dtype=dtype)
+        other_tensor = np.array(other_val, dtype=dtype)
 
-    # Input 3: 3D boolean tensor
-    condition = np.array([[[True, False], [False, True]], [[False, True], [True, False]]])
-    input_dict = {"condition": condition}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+        # Determine the output shape after broadcasting
+        out_shape = np.broadcast_shapes(condition.shape, input_tensor.shape, other_tensor.shape)
+        
+        # For mixed dtypes, torch promotes, but for the out parameter, the type must match
+        # the promoted type. For simplicity, we ensure all are the same.
+        result_dtype = np.result_type(input_tensor, other_tensor)
 
-    # Input 4: Empty boolean tensor
-    condition = np.array([])
-    input_dict = {"condition": condition}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+        return {
+            "condition": condition,
+            "input": input_tensor.astype(result_dtype),
+            "other": other_tensor.astype(result_dtype),
+            "out": np.empty(out_shape, dtype=result_dtype)
+        }
 
-    # Input 5: Boolean tensor with all True values
-    condition = np.array([True, True, True])
-    input_dict = {"condition": condition}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: float32, basic
+    list_of_inputs.append(copy.deepcopy(create_input((3, 4), np.float32)))
 
-    # Input 6: Boolean tensor with all False values
-    condition = np.array([False, False, False])
-    input_dict = {"condition": condition}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: float64, basic
+    list_of_inputs.append(copy.deepcopy(create_input((2, 5), np.float64)))
 
-    # Input 7: Boolean tensor with mixed True/False values
-    condition = np.array([True, False, True, False, True, False])
-    input_dict = {"condition": condition}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: int32, basic
+    list_of_inputs.append(copy.deepcopy(create_input((4, 4), np.int32)))
+
+    # Input 4: int16, basic
+    list_of_inputs.append(copy.deepcopy(create_input((5, 2), np.int16)))
+
+    # Input 5: Broadcasting with float32
+    list_of_inputs.append(copy.deepcopy(create_input((3, 4), np.float32, broadcast_input=(4,), broadcast_other=(3, 1))))
     
-    # Input 8: Large boolean tensor
-    condition = np.random.choice([True, False], size=(10, 10))
-    input_dict = {"condition": condition}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6: Broadcasting with float64, one input is a scalar
+    list_of_inputs.append(copy.deepcopy(create_input((2, 3, 4), np.float64, broadcast_input=(3, 4), broadcast_other=())))
     
-    # Input 9: Boolean tensor with a single element
-    condition = np.array([True])
-    input_dict = {"condition": condition}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 7: Broadcasting with float32, other input is a scalar
+    list_of_inputs.append(copy.deepcopy(create_input((4, 2), np.float32, broadcast_input=(), broadcast_other=(4, 2))))
     
-    # Input 10: Boolean tensor with a single element (False)
-    condition = np.array([False])
-    input_dict = {"condition": condition}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 8: Higher dimensions (4D) with float32
+    list_of_inputs.append(copy.deepcopy(create_input((2, 3, 2, 4), np.float32)))
+    
+    # Input 9: All True condition with int32
+    input_dict_true = create_input((3, 3), np.int32)
+    input_dict_true["condition"] = np.ones((3, 3), dtype=bool)
+    list_of_inputs.append(copy.deepcopy(input_dict_true))
+
+    # Input 10: All False condition with float64
+    input_dict_false = create_input((2, 6), np.float64)
+    input_dict_false["condition"] = np.zeros((2, 6), dtype=bool)
+    list_of_inputs.append(copy.deepcopy(input_dict_false))
 
     return list_of_inputs
 
-generated_inputs = {}
-generated_inputs["torch.where_2"] = torch_where_inputs()
+generated_inputs["torch.where_2"] = where_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'torch.where_2' not in generated_inputs:

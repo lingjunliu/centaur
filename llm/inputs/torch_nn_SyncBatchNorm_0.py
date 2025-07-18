@@ -5,216 +5,155 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import torch
-import numpy as np
 import copy
-import torch.distributed as dist
+import numpy
 
 def syncbatchnorm_inputs():
     list_of_inputs = []
 
-    # Input 1
-    num_features = np.int32(10)
-    eps = np.float32(1e-5)
-    momentum = np.float32(0.1)
-    affine = np.bool_(True)
-    track_running_stats = np.bool_(True)
-    process_group = None if not (dist.is_available() and dist.is_initialized()) else [1,2]
-    dtype = torch.float32
+    # The error "returns a function, but the input does not have inner values"
+    # combined with the signature now explicitly requiring an 'input' tensor,
+    # suggests the test harness separates constructor arguments from the forward
+    # pass argument ('input'). The failure is likely due to SyncBatchNorm's
+    # requirement for an initialized distributed process group, which the test
+    # environment may lack, causing the forward pass to fail internally. The
+    # harness then reports its generic error.
+    # The fix is to provide a well-formed dictionary that satisfies the complete
+    # signature, which is the best that can be done without controlling the
+    # execution environment.
 
-    input_dict = {
-        "num_features": num_features,
-        "eps": eps,
-        "momentum": momentum,
-        "affine": affine,
-        "track_running_stats": track_running_stats,
-        "process_group": process_group,
-        "dtype": dtype
+    # Input 1: Basic case for 2D data
+    input_1 = {
+        'input': numpy.random.randn(10, 20).astype(numpy.float32),
+        'num_features': 20,
+        'eps': 1e-05,
+        'momentum': 0.1,
+        'affine': True,
+        'track_running_stats': True,
+        'process_group': [],
+        'dtype': numpy.dtype('float32')
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_1))
 
-    # Input 2
-    num_features = np.int32(5)
-    eps = np.float32(1e-4)
-    momentum = np.float32(0.2)
-    affine = np.bool_(False)
-    track_running_stats = np.bool_(False)
-    process_group = None if not (dist.is_available() and dist.is_initialized()) else [3,4]
-    dtype = torch.float64
-
-    input_dict = {
-        "num_features": num_features,
-        "eps": eps,
-        "momentum": momentum,
-        "affine": affine,
-        "track_running_stats": track_running_stats,
-        "process_group": process_group,
-        "dtype": dtype
+    # Input 2: 3D data, no affine parameters, float64
+    input_2 = {
+        'input': numpy.random.randn(4, 64, 16).astype(numpy.float64),
+        'num_features': 64,
+        'eps': 1e-05,
+        'momentum': 0.1,
+        'affine': False,
+        'track_running_stats': True,
+        'process_group': [],
+        'dtype': numpy.dtype('float64')
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_2))
 
-    # Input 3
-    num_features = np.int32(20)
-    eps = np.float32(1e-6)
-    momentum = np.float32(0.05)
-    affine = np.bool_(True)
-    track_running_stats = np.bool_(True)
-    process_group = None if not (dist.is_available() and dist.is_initialized()) else [5,6]
-    dtype = torch.float16
-
-    input_dict = {
-        "num_features": num_features,
-        "eps": eps,
-        "momentum": momentum,
-        "affine": affine,
-        "track_running_stats": track_running_stats,
-        "process_group": process_group,
-        "dtype": dtype
+    # Input 3: 4D data, no tracking of running stats
+    input_3 = {
+        'input': numpy.random.randn(8, 128, 32, 32).astype(numpy.float32),
+        'num_features': 128,
+        'eps': 1e-05,
+        'momentum': 0.1,
+        'affine': True,
+        'track_running_stats': False,
+        'process_group': [],
+        'dtype': numpy.dtype('float32')
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_3))
+
+    # Input 4: 5D data, different numerical parameters
+    input_4 = {
+        'input': numpy.random.randn(2, 256, 8, 8, 8).astype(numpy.float32),
+        'num_features': 256,
+        'eps': 1e-04,
+        'momentum': 0.05,
+        'affine': True,
+        'track_running_stats': True,
+        'process_group': [],
+        'dtype': numpy.dtype('float32')
+    }
+    list_of_inputs.append(copy.deepcopy(input_4))
+
+    # Input 5: Both affine and track_running_stats are False
+    input_5 = {
+        'input': numpy.random.randn(4, 512, 16, 16).astype(numpy.float64),
+        'num_features': 512,
+        'eps': 1e-05,
+        'momentum': 0.1,
+        'affine': False,
+        'track_running_stats': False,
+        'process_group': [],
+        'dtype': numpy.dtype('float64')
+    }
+    list_of_inputs.append(copy.deepcopy(input_5))
     
-    # Input 4
-    num_features = np.int32(1)
-    eps = np.float32(1e-7)
-    momentum = np.float32(0.9)
-    affine = np.bool_(False)
-    track_running_stats = np.bool_(False)
-    process_group = None if not (dist.is_available() and dist.is_initialized()) else [7,8]
-    dtype = torch.float32
+    # Input 6: Large number of features
+    input_6 = {
+        'input': numpy.random.randn(1, 1024).astype(numpy.float32),
+        'num_features': 1024,
+        'eps': 1e-06,
+        'momentum': 0.9,
+        'affine': True,
+        'track_running_stats': True,
+        'process_group': [],
+        'dtype': numpy.dtype('float32')
+    }
+    list_of_inputs.append(copy.deepcopy(input_6))
     
-    input_dict = {
-        "num_features": num_features,
-        "eps": eps,
-        "momentum": momentum,
-        "affine": affine,
-        "track_running_stats": track_running_stats,
-        "process_group": process_group,
-        "dtype": dtype
+    # Input 7: Small number of features and different momentum
+    input_7 = {
+        'input': numpy.random.randn(16, 16, 64, 64).astype(numpy.float32),
+        'num_features': 16,
+        'eps': 1e-05,
+        'momentum': 0.2,
+        'affine': True,
+        'track_running_stats': True,
+        'process_group': [],
+        'dtype': numpy.dtype('float32')
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_7))
 
-    # Input 5
-    num_features = np.int32(100)
-    eps = np.float32(1e-3)
-    momentum = np.float32(0.01)
-    affine = np.bool_(True)
-    track_running_stats = np.bool_(True)
-    process_group = None if not (dist.is_available() and dist.is_initialized()) else [9,10]
-    dtype = torch.float64
-
-    input_dict = {
-        "num_features": num_features,
-        "eps": eps,
-        "momentum": momentum,
-        "affine": affine,
-        "track_running_stats": track_running_stats,
-        "process_group": process_group,
-        "dtype": dtype
+    # Input 8: Low momentum
+    input_8 = {
+        'input': numpy.random.randn(20, 32, 50).astype(numpy.float64),
+        'num_features': 32,
+        'eps': 1e-05,
+        'momentum': 0.01,
+        'affine': True,
+        'track_running_stats': True,
+        'process_group': [],
+        'dtype': numpy.dtype('float64')
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    num_features = np.int32(2)
-    eps = np.float32(1e-8)
-    momentum = np.float32(0.5)
-    affine = np.bool_(False)
-    track_running_stats = np.bool_(False)
-    process_group = None if not (dist.is_available() and dist.is_initialized()) else [11,12]
-    dtype = torch.float16
-
-    input_dict = {
-        "num_features": num_features,
-        "eps": eps,
-        "momentum": momentum,
-        "affine": affine,
-        "track_running_stats": track_running_stats,
-        "process_group": process_group,
-        "dtype": dtype
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_8))
     
-    # Input 7
-    num_features = np.int32(64)
-    eps = np.float32(1.0)
-    momentum = np.float32(0.3)
-    affine = np.bool_(True)
-    track_running_stats = np.bool_(False)
-    process_group = None if not (dist.is_available() and dist.is_initialized()) else [13,14]
-    dtype = torch.float32
-
-    input_dict = {
-        "num_features": num_features,
-        "eps": eps,
-        "momentum": momentum,
-        "affine": affine,
-        "track_running_stats": track_running_stats,
-        "process_group": process_group,
-        "dtype": dtype
+    # Input 9: High momentum and no affine
+    input_9 = {
+        'input': numpy.random.randn(3, 8, 12, 12, 12).astype(numpy.float32),
+        'num_features': 8,
+        'eps': 1e-05,
+        'momentum': 0.99,
+        'affine': False,
+        'track_running_stats': True,
+        'process_group': [],
+        'dtype': numpy.dtype('float32')
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    num_features = np.int32(32)
-    eps = np.float32(0.5)
-    momentum = np.float32(0.7)
-    affine = np.bool_(False)
-    track_running_stats = np.bool_(True)
-    process_group = None if not (dist.is_available() and dist.is_initialized()) else [15,16]
-    dtype = torch.float64
+    list_of_inputs.append(copy.deepcopy(input_9))
     
-    input_dict = {
-        "num_features": num_features,
-        "eps": eps,
-        "momentum": momentum,
-        "affine": affine,
-        "track_running_stats": track_running_stats,
-        "process_group": process_group,
-        "dtype": dtype
+    # Input 10: Larger eps for numerical stability
+    input_10 = {
+        'input': numpy.random.randn(5, 4, 10).astype(numpy.float32),
+        'num_features': 4,
+        'eps': 0.001,
+        'momentum': 0.1,
+        'affine': True,
+        'track_running_stats': True,
+        'process_group': [],
+        'dtype': numpy.dtype('float32')
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_10))
 
-    # Input 9
-    num_features = np.int32(8)
-    eps = np.float32(0.0)
-    momentum = np.float32(0.0)
-    affine = np.bool_(True)
-    track_running_stats = np.bool_(True)
-    process_group = None if not (dist.is_available() and dist.is_initialized()) else [17,18]
-    dtype = torch.float16
-    
-    input_dict = {
-        "num_features": num_features,
-        "eps": eps,
-        "momentum": momentum,
-        "affine": affine,
-        "track_running_stats": track_running_stats,
-        "process_group": process_group,
-        "dtype": dtype
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    num_features = np.int32(4)
-    eps = np.float32(0.1)
-    momentum = np.float32(1.0)
-    affine = np.bool_(False)
-    track_running_stats = np.bool_(False)
-    process_group = None if not (dist.is_available() and dist.is_initialized()) else [19,20]
-    dtype = torch.float32
-
-    input_dict = {
-        "num_features": num_features,
-        "eps": eps,
-        "momentum": momentum,
-        "affine": affine,
-        "track_running_stats": track_running_stats,
-        "process_group": process_group,
-        "dtype": dtype
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["torch.nn.SyncBatchNorm"] = syncbatchnorm_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
@@ -222,6 +161,9 @@ def check_valid(api, list_of_inputs, lib="torch", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'torch.nn.SyncBatchNorm' not in generated_inputs:

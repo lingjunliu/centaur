@@ -5,143 +5,146 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import torch
-import numpy as np
 import copy
+import numpy as np
 
 def pack_padded_sequence_inputs():
     list_of_inputs = []
 
-    # Input 1
-    input_tensor = np.array([[[1, 2], [3, 0], [0, 0]], [[4, 5], [0, 0], [0, 0]], [[6, 7], [8, 9], [10, 11]]], dtype=np.int32)
-    lengths = np.array([3, 1, 2], dtype=np.int64)
-    batch_first = False
-    enforce_sorted = False
-    input_dict = {"input": input_tensor, "lengths": lengths, "batch_first": batch_first, "enforce_sorted": enforce_sorted}
+    # Input 1: Basic case, batch_first=False, sorted lengths
+    input_tensor = np.random.randn(5, 3, 2).astype(np.float32)
+    lengths = np.array([5, 3, 1], dtype=np.int64)
+    input_dict = {
+        'input': input_tensor,
+        'lengths': lengths,
+        'batch_first': False,
+        'enforce_sorted': True
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    input_tensor = np.array([[[1, 2], [3, 4], [5, 6]], [[7, 8], [9, 10], [11, 12]]], dtype=np.float32)
-    lengths = np.array([3, 3], dtype=np.int64)
-    batch_first = False
-    enforce_sorted = True
-    input_dict = {"input": input_tensor, "lengths": lengths, "batch_first": batch_first, "enforce_sorted": enforce_sorted}
+    # Input 2: Basic case, batch_first=True, sorted lengths
+    input_tensor = np.random.randn(4, 6, 5).astype(np.float32)
+    lengths = np.array([6, 4, 4, 2], dtype=np.int64)
+    input_dict = {
+        'input': input_tensor,
+        'lengths': lengths,
+        'batch_first': True,
+        'enforce_sorted': True
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    input_tensor = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]], [[13, 14, 15], [16, 17, 18]]], dtype=np.float64)
-    lengths = np.array([2, 2, 2], dtype=np.int64)
-    batch_first = True
-    enforce_sorted = True
-    input_dict = {"input": input_tensor, "lengths": lengths, "batch_first": batch_first, "enforce_sorted": enforce_sorted}
+    # Input 3: Unsorted lengths, batch_first=False, enforce_sorted=False
+    input_tensor = np.random.randn(7, 4, 3).astype(np.float32)
+    lengths = np.array([3, 7, 2, 5], dtype=np.int64)
+    input_dict = {
+        'input': input_tensor,
+        'lengths': lengths,
+        'batch_first': False,
+        'enforce_sorted': False
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    input_tensor = np.array([[[1, 2], [3, 4], [5, 6]], [[7, 8], [9, 10], [11, 12]]], dtype=np.float32)
-    lengths = np.array([3, 3], dtype=np.int64)
-    batch_first = True
-    enforce_sorted = True
-    input_dict = {"input": input_tensor, "lengths": lengths, "batch_first": batch_first, "enforce_sorted": enforce_sorted}
+    # Input 4: Unsorted lengths, batch_first=True, enforce_sorted=False
+    input_tensor = np.random.randn(5, 8, 1).astype(np.float32)
+    lengths = np.array([4, 8, 1, 3, 5], dtype=np.int64)
+    input_dict = {
+        'input': input_tensor,
+        'lengths': lengths,
+        'batch_first': True,
+        'enforce_sorted': False
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    input_tensor = np.array([[[1, 2], [3, 0], [0, 0]], [[4, 5], [0, 0], [0, 0]], [[6, 7], [8, 9], [10, 11]]], dtype=np.int32)
-    lengths = np.array([3, 1, 2], dtype=np.int64)
-    batch_first = True
-    enforce_sorted = False
-    input_dict = {"input": input_tensor, "lengths": lengths, "batch_first": batch_first, "enforce_sorted": enforce_sorted}
+    # Input 5: All sequences have the same length, batch_first=True
+    input_tensor = np.random.randn(3, 4, 4).astype(np.float32)
+    lengths = np.array([4, 4, 4], dtype=np.int64)
+    input_dict = {
+        'input': input_tensor,
+        'lengths': lengths,
+        'batch_first': True,
+        'enforce_sorted': True # or False, doesn't matter
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 6: all sequences have length 1
-    input_tensor = np.array([[[1, 2]], [[3, 4]], [[5, 6]]], dtype=np.int32)
-    lengths = np.array([1, 1, 1], dtype=np.int64)
-    batch_first = False
-    enforce_sorted = True
-    input_dict = {"input": input_tensor, "lengths": lengths, "batch_first": batch_first, "enforce_sorted": enforce_sorted}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7: batch_first = True
-    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [0, 0]]], dtype=np.int32)
-    lengths = np.array([2, 2, 1], dtype=np.int64)
-    batch_first = True
-    enforce_sorted = True
-    input_dict = {"input": input_tensor, "lengths": lengths, "batch_first": batch_first, "enforce_sorted": enforce_sorted}
+    # Input 6: All sequences have the same length, batch_first=False
+    input_tensor = np.random.randn(5, 2, 10).astype(np.float32)
+    lengths = np.array([5, 5], dtype=np.int64)
+    input_dict = {
+        'input': input_tensor,
+        'lengths': lengths,
+        'batch_first': False,
+        'enforce_sorted': False # or True, doesn't matter
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: enforce_sorted = False, batch_first = False
-    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [0, 0]]], dtype=np.int32)
-    lengths = np.array([2, 2, 1], dtype=np.int64)
-    batch_first = False
-    enforce_sorted = False
-    input_dict = {"input": input_tensor, "lengths": lengths, "batch_first": batch_first, "enforce_sorted": enforce_sorted}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9: Different shape
-    input_tensor = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]], [[10, 11, 12], [13, 14, 15], [0, 0, 0]], [[16, 17, 18], [0,0,0],[0,0,0]]], dtype=np.float32)
-    lengths = np.array([3, 2, 1], dtype=np.int64)
-    batch_first = False
-    enforce_sorted = False
-    input_dict = {"input": input_tensor, "lengths": lengths, "batch_first": batch_first, "enforce_sorted": enforce_sorted}
+    # Input 7: Single item in batch, batch_first=True
+    input_tensor = np.random.randn(1, 5, 8).astype(np.float32)
+    lengths = np.array([5], dtype=np.int64)
+    input_dict = {
+        'input': input_tensor,
+        'lengths': lengths,
+        'batch_first': True,
+        'enforce_sorted': True
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Single batch
-    input_tensor = np.array([[[1, 2], [3, 4], [5, 6]]], dtype=np.int32)
+    # Input 8: Single item in batch, batch_first=False
+    input_tensor = np.random.randn(4, 1, 12).astype(np.float32)
     lengths = np.array([3], dtype=np.int64)
-    batch_first = False
-    enforce_sorted = True
-    input_dict = {"input": input_tensor, "lengths": lengths, "batch_first": batch_first, "enforce_sorted": enforce_sorted}
+    input_dict = {
+        'input': input_tensor,
+        'lengths': lengths,
+        'batch_first': False,
+        'enforce_sorted': True
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 11: More varied example with enforce_sorted=True
-    input_tensor = np.array([[[1, 2], [3, 4], [5, 6], [7, 8]], [[9, 10], [11, 12], [0, 0], [0, 0]], [[13, 14], [0, 0], [0, 0], [0, 0]]], dtype=np.int32)
-    lengths = np.array([4, 2, 1], dtype=np.int64)
-    batch_first = True
-    enforce_sorted = True
-    input_dict = {"input": input_tensor, "lengths": lengths, "batch_first": batch_first, "enforce_sorted": enforce_sorted}
+    # Input 9: Float64 input tensor, batch_first=True, unsorted lengths
+    input_tensor = np.random.randn(6, 10, 2).astype(np.float64)
+    lengths = np.array([9, 3, 10, 5, 2, 7], dtype=np.int64)
+    input_dict = {
+        'input': input_tensor,
+        'lengths': lengths,
+        'batch_first': True,
+        'enforce_sorted': False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Sequences of length 1, batch_first=False, unsorted
+    input_tensor = np.random.randn(4, 5, 1).astype(np.float32)
+    lengths = np.array([1, 1, 1, 1, 1], dtype=np.int64)
+    input_dict = {
+        'input': input_tensor,
+        'lengths': lengths,
+        'batch_first': False,
+        'enforce_sorted': False
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 12: enforce_sorted=True and batch_first=False
-    input_tensor = np.array([[[1, 2], [3, 4], [5, 6]], [[7, 8], [9, 10], [0, 0]], [[11, 12], [0, 0], [0, 0]]], dtype=np.int32)
-    lengths = np.array([3, 2, 1], dtype=np.int64)
-    batch_first = False
-    enforce_sorted = True
-    input_dict = {"input": input_tensor, "lengths": lengths, "batch_first": batch_first, "enforce_sorted": enforce_sorted}
+    # Input 11: 2D input (no feature dimension), batch_first=True
+    input_tensor = np.random.randn(3, 5).astype(np.float32)
+    lengths = np.array([5, 2, 1], dtype=np.int64)
+    input_dict = {
+        'input': input_tensor,
+        'lengths': lengths,
+        'batch_first': True,
+        'enforce_sorted': True
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 13: Corrected the mismatch in batch size
-    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10],[11,12]]], dtype=np.int32)
-    lengths = np.array([2, 2, 2], dtype=np.int64)
-    batch_first = False
-    enforce_sorted = True
-    input_dict = {"input": input_tensor, "lengths": lengths, "batch_first": batch_first, "enforce_sorted": enforce_sorted}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 14: Corrected the mismatch in batch size and batch_first
-    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
-    lengths = np.array([2, 2], dtype=np.int64)
-    batch_first = True
-    enforce_sorted = True
-    input_dict = {"input": input_tensor, "lengths": lengths, "batch_first": batch_first, "enforce_sorted": enforce_sorted}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 15: Valid input with batch_first=True and sorted lengths
-    input_tensor = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]], [[10, 11, 12], [13, 14, 15], [16, 17, 18]]], dtype=np.int32)
-    lengths = np.array([3, 3], dtype=np.int64)
-    batch_first = True
-    enforce_sorted = True
-    input_dict = {"input": input_tensor, "lengths": lengths, "batch_first": batch_first, "enforce_sorted": enforce_sorted}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 16:
-    input_tensor = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [0, 0, 0]]], dtype=np.int32)
-    lengths = np.array([2, 1], dtype=np.int64)
-    batch_first = False
-    enforce_sorted = True
-    input_dict = {"input": input_tensor, "lengths": lengths, "batch_first": batch_first, "enforce_sorted": enforce_sorted}
+
+    # Input 12: 2D input (no feature dimension), batch_first=False
+    input_tensor = np.random.randn(7, 4).astype(np.float32)
+    lengths = np.array([3, 7, 2, 5], dtype=np.int64)
+    input_dict = {
+        'input': input_tensor,
+        'lengths': lengths,
+        'batch_first': False,
+        'enforce_sorted': False
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["torch.nn.utils.rnn.pack_padded_sequence"] = pack_padded_sequence_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
@@ -149,6 +152,9 @@ def check_valid(api, list_of_inputs, lib="torch", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'torch.nn.utils.rnn.pack_padded_sequence' not in generated_inputs:

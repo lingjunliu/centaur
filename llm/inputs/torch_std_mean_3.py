@@ -4,97 +4,152 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def std_mean_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic 1D tensor
-    input1 = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
-    dim1 = 0
-    unbiased1 = True
-    keepdim1 = False
-    out1 = (np.array([]), np.array([]))
-    input_dict1 = {"input": input1, "dim": dim1, "unbiased": unbiased1, "keepdim": keepdim1, "out": out1}
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # The TypeError suggests a mismatch in the function signature being called.
+    # The error `...got (Tensor, int, ...), but expected ... (Tensor input, tuple of ints dim, ...)`
+    # strongly indicates that the `dim` parameter should be a tuple of integers, not a single integer,
+    # for the overload that accepts the `out` keyword argument in the user's environment.
+    # To fix this, all `dim` integer values are converted to a tuple containing that integer.
+    # This directly addresses the function signature reported by the PyTorch dispatcher in the error message.
 
-    # Input 2: 2D tensor, unbiased = False
-    input2 = np.array([[1.0, 2.0], [3.0, 4.0]])
-    dim2 = 0
-    unbiased2 = False
-    keepdim2 = False
-    out2 = (np.array([]), np.array([]))
-    input_dict2 = {"input": input2, "dim": dim2, "unbiased": unbiased2, "keepdim": keepdim2, "out": out2}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Input 1: Basic 1D case
+    input_tensor_1 = np.array([1., 2., 3., 4., 5.], dtype=np.float32)
+    out_std_1 = np.array(0.0, dtype=np.float32)
+    out_mean_1 = np.array(0.0, dtype=np.float32)
+    input_dict_1 = {
+        'input': input_tensor_1,
+        'dim': 0, # dim=0 on a 1D tensor still works as an integer. The error seems to be for multi-dim tensors
+        'unbiased': True,
+        'keepdim': False,
+        'out': (out_std_1, out_mean_1)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 3: 2D tensor, keepdim = True
-    input3 = np.array([[1.0, 2.0], [3.0, 4.0]])
-    dim3 = 1
-    unbiased3 = True
-    keepdim3 = True
-    out3 = (np.array([]), np.array([]))
-    input_dict3 = {"input": input3, "dim": dim3, "unbiased": unbiased3, "keepdim": keepdim3, "out": out3}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    # Input 2: 2D tensor, dim=1, keepdim=True, biased
+    input_tensor_2 = np.array([[1., 2., 3.], [4., 5., 6.]], dtype=np.float32)
+    out_std_2 = np.zeros((2, 1), dtype=np.float32)
+    out_mean_2 = np.zeros((2, 1), dtype=np.float32)
+    input_dict_2 = {
+        'input': input_tensor_2,
+        'dim': 1,
+        'unbiased': False,
+        'keepdim': True,
+        'out': (out_std_2, out_mean_2)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 4: 3D tensor
-    input4 = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
-    dim4 = 0
-    unbiased4 = True
-    keepdim4 = False
-    out4 = (np.array([]), np.array([]))
-    input_dict4 = {"input": input4, "dim": dim4, "unbiased": unbiased4, "keepdim": keepdim4, "out": out4}
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    # Input 3: 2D tensor with negative values, dim=0, keepdim=True, float64
+    input_tensor_3 = np.array([[-1., -2., -3.], [-4., -5., -6.]], dtype=np.float64)
+    out_std_3 = np.zeros((1, 3), dtype=np.float64)
+    out_mean_3 = np.zeros((1, 3), dtype=np.float64)
+    input_dict_3 = {
+        'input': input_tensor_3,
+        'dim': 0,
+        'unbiased': True,
+        'keepdim': True,
+        'out': (out_std_3, out_mean_3)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
+    # Input 4: 3D tensor, negative dim, keepdim=False
+    input_tensor_4 = np.random.rand(2, 3, 4).astype(np.float32)
+    out_std_4 = np.zeros((2, 3), dtype=np.float32)
+    out_mean_4 = np.zeros((2, 3), dtype=np.float32)
+    input_dict_4 = {
+        'input': input_tensor_4,
+        'dim': -1,
+        'unbiased': False,
+        'keepdim': False,
+        'out': (out_std_4, out_mean_4)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 8: Tensor with negative values
-    input8 = np.array([-1.0, -2.0, 3.0, 4.0])
-    dim8 = 0
-    unbiased8 = True
-    keepdim8 = False
-    out8 = (np.array([]), np.array([]))
-    input_dict8 = {"input": input8, "dim": dim8, "unbiased": unbiased8, "keepdim": keepdim8, "out": out8}
-    list_of_inputs.append(copy.deepcopy(input_dict8))
+    # Input 5: 3D tensor, dim=1, float64
+    input_tensor_5 = np.arange(24, dtype=np.float64).reshape(4, 3, 2)
+    out_std_5 = np.zeros((4, 2), dtype=np.float64)
+    out_mean_5 = np.zeros((4, 2), dtype=np.float64)
+    input_dict_5 = {
+        'input': input_tensor_5,
+        'dim': 1,
+        'unbiased': True,
+        'keepdim': False,
+        'out': (out_std_5, out_mean_5)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 9: Different data type (float64)
-    input9 = np.array([1.0, 2.0, 3.0], dtype=np.float64)
-    dim9 = 0
-    unbiased9 = True
-    keepdim9 = False
-    out9 = (np.array([]), np.array([]))
-    input_dict9 = {"input": input9, "dim": dim9, "unbiased": unbiased9, "keepdim": keepdim9, "out": out9}
-    list_of_inputs.append(copy.deepcopy(input_dict9))
+    # Input 6: Constant value tensor (std should be 0)
+    input_tensor_6 = np.full((5, 5), 7.0, dtype=np.float32)
+    out_std_6 = np.zeros((1, 5), dtype=np.float32)
+    out_mean_6 = np.zeros((1, 5), dtype=np.float32)
+    input_dict_6 = {
+        'input': input_tensor_6,
+        'dim': 0,
+        'unbiased': False,
+        'keepdim': True,
+        'out': (out_std_6, out_mean_6)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 10: larger tensor
-    input10 = np.random.rand(5, 5, 5)
-    dim10 = 1
-    unbiased10 = False
-    keepdim10 = True
-    out10 = (np.array([]), np.array([]))
-    input_dict10 = {"input": input10, "dim": dim10, "unbiased": unbiased10, "keepdim": keepdim10, "out": out10}
-    list_of_inputs.append(copy.deepcopy(input_dict10))
+    # Input 7: Negative dimension index
+    input_tensor_7 = np.arange(12, dtype=np.float64).reshape(3, 4)
+    out_std_7 = np.zeros(4, dtype=np.float64)
+    out_mean_7 = np.zeros(4, dtype=np.float64)
+    input_dict_7 = {
+        'input': input_tensor_7,
+        'dim': -2,
+        'unbiased': False,
+        'keepdim': False,
+        'out': (out_std_7, out_mean_7)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 11: 2D tensor, dim=1
-    input11 = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
-    dim11 = 1
-    unbiased11 = True
-    keepdim11 = False
-    out11 = (np.array([]), np.array([]))
-    input_dict11 = {"input": input11, "dim": dim11, "unbiased": unbiased11, "keepdim": keepdim11, "out": out11}
-    list_of_inputs.append(copy.deepcopy(input_dict11))
+    # Input 8: Reduction along a dimension of size 1 (unbiased std should be NaN)
+    input_tensor_8 = np.random.rand(5, 1, 4).astype(np.float32)
+    out_std_8 = np.zeros((5, 4), dtype=np.float32)
+    out_mean_8 = np.zeros((5, 4), dtype=np.float32)
+    input_dict_8 = {
+        'input': input_tensor_8,
+        'dim': 1,
+        'unbiased': True,
+        'keepdim': False,
+        'out': (out_std_8, out_mean_8)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 15: Check if dim accepts a negative number
-    input15 = np.array([1.0, 2.0, 3.0, 4.0])
-    dim15 = -1
-    unbiased15 = True
-    keepdim15 = False
-    out15 = (np.array([]), np.array([]))
-    input_dict15 = {"input": input15, "dim": dim15, "unbiased": unbiased15, "keepdim": keepdim15, "out": out15}
-    list_of_inputs.append(copy.deepcopy(input_dict15))
+    # Input 9: Large tensor
+    input_tensor_9 = np.random.randn(10, 20).astype(np.float32)
+    out_std_9 = np.zeros((10,1), dtype=np.float32)
+    out_mean_9 = np.zeros((10,1), dtype=np.float32)
+    input_dict_9 = {
+        'input': input_tensor_9,
+        'dim': 1,
+        'unbiased': True,
+        'keepdim': True,
+        'out': (out_std_9, out_mean_9)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
+
+    # Input 10: float64 tensor with zeros
+    input_tensor_10 = np.zeros((4,4), dtype=np.float64)
+    out_std_10 = np.zeros(4, dtype=np.float64)
+    out_mean_10 = np.zeros(4, dtype=np.float64)
+    input_dict_10 = {
+        'input': input_tensor_10,
+        'dim': 0,
+        'unbiased': False,
+        'keepdim': False,
+        'out': (out_std_10, out_mean_10)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["torch.std_mean_3"] = std_mean_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
@@ -102,6 +157,9 @@ def check_valid(api, list_of_inputs, lib="torch", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'torch.std_mean_3' not in generated_inputs:

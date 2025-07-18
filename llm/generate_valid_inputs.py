@@ -151,6 +151,9 @@ def check_valid(api, list_of_inputs, lib="{lib}", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if '{key}' not in generated_inputs:
@@ -179,12 +182,12 @@ Please fix the error and retry the input generation. Only provide the code, skip
     return prompt
 
 def generate_inputs(api, suffix=0, max_attempts=5, lib="torch"):
-    model = "gemini-2.0-flash"
+    model = "gemini-2.5-pro"
     gemini_key = os.getenv("gemini_key")
 
     print(f"{bcolors.OKBLUE}Running code generation for {api} with suffix {suffix} after 6 seconds...{bcolors.ENDC}")
     logger.info(f"[{api}] [Suffix: {suffix}].\n\n")
-    time.sleep(6)
+    # time.sleep(6)
     client = genai.Client(api_key=gemini_key)
     chat = client.chats.create(model=model)
     try:
@@ -199,7 +202,9 @@ def generate_inputs(api, suffix=0, max_attempts=5, lib="torch"):
         return generate_inputs(api, suffix=suffix, max_attempts=max_attempts, lib=lib)
     except Exception as e:
         print(f"{bcolors.FAIL}Error while sending message to Gemini API: {e}{bcolors.ENDC}")
-        return [api, get_torch_api(api)] + [1]*max_attempts
+        print(f"{bcolors.WARNING}Waiting 10 seconds before retrying...{bcolors.ENDC}")
+        time.sleep(10)
+        return generate_inputs(api, suffix=suffix, max_attempts=max_attempts, lib=lib)
     print("Got response from Gemini API.")
     code = extract_code_from_response(response.text)    
     output, error = save_and_run_code(api, code, suffix=suffix, lib=lib)
@@ -212,13 +217,18 @@ def generate_inputs(api, suffix=0, max_attempts=5, lib="torch"):
         print(f"{bcolors.OKBLUE}Attempt {attempt + 1}:{bcolors.ENDC}\n{error}")
         to_return[attempt] = 1
         print("Retrying code generation after 6 seconds...")
-        time.sleep(6)
+        # time.sleep(6)
         prompt = retry_prompt(error)
         logger.info(f"[Retry Prompt]\n\n{prompt}\n\n")
         try:
             response = chat.send_message(prompt)
         except genai.errors.ServerError as ge:
             print(f"{bcolors.WARNING}Server overloaded. Error: {str(ge)}{bcolors.ENDC}")
+            print(f"{bcolors.WARNING}Waiting 10 seconds before retrying...{bcolors.ENDC}")
+            time.sleep(10)
+            continue
+        except Exception as e:
+            print(f"{bcolors.FAIL}Error while sending message to Gemini API: {e}{bcolors.ENDC}")
             print(f"{bcolors.WARNING}Waiting 10 seconds before retrying...{bcolors.ENDC}")
             time.sleep(10)
             continue

@@ -11,81 +11,108 @@ import copy
 def pad_sequence_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic test with different lengths, not batch_first
-    sequences = [torch.tensor([1, 2, 3]).numpy(), torch.tensor([4, 5]).numpy(), torch.tensor([6, 7, 8, 9]).numpy()]
-    batch_first = False
-    padding_value = 0.0
-    enforce_sorted = True
-    input_dict = {"sequences": sequences, "batch_first": batch_first, "padding_value": padding_value, "enforce_sorted": enforce_sorted}
+    # Input 1: Basic case, 2D array, batch_first=True
+    sequences = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32)
+    input_dict = {
+        'sequences': sequences,
+        'batch_first': True,
+        'padding_value': 0.0,
+        'enforce_sorted': False
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: batch_first = True
-    sequences = [torch.tensor([1, 2, 3]).numpy(), torch.tensor([4, 5]).numpy()]
-    batch_first = True
-    padding_value = -1.0
-    enforce_sorted = False
-    input_dict = {"sequences": sequences, "batch_first": batch_first, "padding_value": padding_value, "enforce_sorted": enforce_sorted}
+    # Input 2: Basic case, 2D array, batch_first=False
+    sequences = np.array([[10, 20], [30, 40], [50, 60]], dtype=np.float32)
+    input_dict = {
+        'sequences': sequences,
+        'batch_first': False,
+        'padding_value': 0.0,
+        'enforce_sorted': True
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3:  enforce_sorted = False, unsorted sequences
-    sequences = [torch.tensor([4, 5]).numpy(), torch.tensor([1, 2, 3]).numpy(), torch.tensor([6, 7, 8, 9]).numpy()]
-    batch_first = False
-    padding_value = 100.0
-    enforce_sorted = False
-    input_dict = {"sequences": sequences, "batch_first": batch_first, "padding_value": padding_value, "enforce_sorted": enforce_sorted}
+    # Input 3: 3D array (list of 2D sequences), batch_first=True
+    sequences = np.random.rand(4, 5, 10).astype(np.float32)
+    input_dict = {
+        'sequences': sequences,
+        'batch_first': True,
+        'padding_value': 0.0,
+        'enforce_sorted': False
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: float tensors
-    sequences = [torch.tensor([1.1, 2.2, 3.3]).numpy(), torch.tensor([4.4, 5.5]).numpy()]
-    batch_first = False
-    padding_value = np.nan
-    enforce_sorted = True
-    input_dict = {"sequences": sequences, "batch_first": batch_first, "padding_value": padding_value, "enforce_sorted": enforce_sorted}
+    # Input 4: 3D array, batch_first=False
+    sequences = np.random.rand(3, 8, 2).astype(np.float32)
+    input_dict = {
+        'sequences': sequences,
+        'batch_first': False,
+        'padding_value': 0.5,
+        'enforce_sorted': True
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Sequences with negative numbers
-    sequences = [torch.tensor([-1, -2, 3]).numpy(), torch.tensor([4, -5]).numpy()]
-    batch_first = False
-    padding_value = 0.0
-    enforce_sorted = True
-    input_dict = {"sequences": sequences, "batch_first": batch_first, "padding_value": padding_value, "enforce_sorted": enforce_sorted}
+    # Input 5: Single sequence
+    sequences = np.array([[1, 2, 3, 4, 5]], dtype=np.float32)
+    input_dict = {
+        'sequences': sequences,
+        'batch_first': True,
+        'padding_value': 0.0,
+        'enforce_sorted': True
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Sequences of length 1
-    sequences = [torch.tensor([1]).numpy(), torch.tensor([2]).numpy(), torch.tensor([3]).numpy()]
-    batch_first = False
-    padding_value = 0.0
-    enforce_sorted = True
-    input_dict = {"sequences": sequences, "batch_first": batch_first, "padding_value": padding_value, "enforce_sorted": enforce_sorted}
+    # Input 6: Multiple sequences of length 1
+    sequences = np.array([[10], [20], [30]], dtype=np.float32)
+    input_dict = {
+        'sequences': sequences,
+        'batch_first': False,
+        'padding_value': 0.0,
+        'enforce_sorted': False
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Different padding value
-    sequences = [torch.tensor([1, 2, 3]).numpy(), torch.tensor([4, 5]).numpy()]
-    batch_first = True
-    padding_value = -999.0
-    enforce_sorted = True
-    input_dict = {"sequences": sequences, "batch_first": batch_first, "padding_value": padding_value, "enforce_sorted": enforce_sorted}
+    # Input 7: Negative values in sequences
+    sequences = np.array([[-1, -2, -3], [-4, -5, -6]], dtype=np.float32)
+    input_dict = {
+        'sequences': sequences,
+        'batch_first': True,
+        'padding_value': 0.0,
+        'enforce_sorted': False
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Single sequence
-    sequences = [torch.tensor([1, 2, 3]).numpy()]
-    batch_first = False
-    padding_value = 0.0
-    enforce_sorted = True
-    input_dict = {"sequences": sequences, "batch_first": batch_first, "padding_value": padding_value, "enforce_sorted": enforce_sorted}
+    # Input 8: Float64 values
+    sequences = np.array([[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]], dtype=np.float64)
+    input_dict = {
+        'sequences': sequences,
+        'batch_first': True,
+        'padding_value': -99.0,
+        'enforce_sorted': True
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Empty sequences array with a defined shape
+    sequences = np.empty((0, 5), dtype=np.float32)
+    input_dict = {
+        'sequences': sequences,
+        'batch_first': True,
+        'padding_value': 0.0,
+        'enforce_sorted': False
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 9: Empty sequence mixed with non-empty sequence
-    sequences = [torch.tensor([]).numpy(), torch.tensor([1, 2, 3]).numpy()]
-    batch_first = False
-    padding_value = 0.0
-    enforce_sorted = True
-    input_dict = {"sequences": sequences, "batch_first": batch_first, "padding_value": padding_value, "enforce_sorted": enforce_sorted}
+    # Input 10: Larger number of sequences
+    sequences = np.random.rand(10, 5).astype(np.float32)
+    input_dict = {
+        'sequences': sequences,
+        'batch_first': False,
+        'padding_value': 1.0,
+        'enforce_sorted': False
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["torch.nn.utils.rnn.pad_sequence"] = pad_sequence_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
@@ -93,6 +120,9 @@ def check_valid(api, list_of_inputs, lib="torch", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'torch.nn.utils.rnn.pad_sequence' not in generated_inputs:

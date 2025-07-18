@@ -4,55 +4,63 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def is_inference_inputs():
     list_of_inputs = []
 
-    # Input 1: float type
-    input_dict = {"input": np.array(1.0)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Simple 1D float tensor
+    tensor1 = torch.tensor([1.0, 2.0, 3.0], dtype=torch.float32).numpy()
+    list_of_inputs.append(copy.deepcopy({"input": tensor1}))
 
-    # Input 2: int type
-    input_dict = {"input": np.array(5)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: 2D integer tensor
+    tensor2 = torch.tensor([[1, 2, 3], [4, 5, 6]], dtype=torch.int32).numpy()
+    list_of_inputs.append(copy.deepcopy({"input": tensor2}))
+
+    # Input 3: 3D double tensor
+    tensor3 = torch.randn(2, 3, 4, dtype=torch.float64).numpy()
+    list_of_inputs.append(copy.deepcopy({"input": tensor3}))
+
+    # Input 4: Tensor with negative values
+    tensor4 = torch.tensor([-1.5, -0.5, 0.0, 1.5, 2.5]).numpy()
+    list_of_inputs.append(copy.deepcopy({"input": tensor4}))
+
+    # Input 5: Scalar tensor (0-dimensional)
+    tensor5 = torch.tensor(42).numpy()
+    list_of_inputs.append(copy.deepcopy({"input": tensor5}))
+
+    # Input 6: Single-element tensor
+    tensor6 = torch.tensor([100.0]).numpy()
+    list_of_inputs.append(copy.deepcopy({"input": tensor6}))
+
+    # Input 7: Boolean tensor
+    tensor7 = torch.tensor([[True, False], [False, True]]).numpy()
+    list_of_inputs.append(copy.deepcopy({"input": tensor7}))
+
+    # Input 8: Empty tensor (one dimension is 0)
+    tensor8 = torch.empty((2, 0, 3)).numpy()
+    list_of_inputs.append(copy.deepcopy({"input": tensor8}))
+
+    # Input 9: Complex tensor
+    tensor9 = torch.tensor([1+2j, 3-4j, -5j], dtype=torch.complex64).numpy()
+    list_of_inputs.append(copy.deepcopy({"input": tensor9}))
+
+    # Input 10: Tensor that was created with requires_grad=True, then detached
+    tensor10 = torch.zeros(5, requires_grad=True).detach().numpy()
+    list_of_inputs.append(copy.deepcopy({"input": tensor10}))
+
+    # Input 11: 4D tensor
+    tensor11 = torch.ones(2, 2, 2, 2, dtype=torch.int8).numpy()
+    list_of_inputs.append(copy.deepcopy({"input": tensor11}))
     
-    # Input 3: bool type
-    input_dict = {"input": np.array(True)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 12: Tensor with a large number of elements
+    tensor12 = torch.linspace(0, 100, steps=1000).numpy()
+    list_of_inputs.append(copy.deepcopy({"input": tensor12}))
 
-    # Input 4: 1D float array
-    input_dict = {"input": np.array([1.0, 2.0, 3.0])}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: 2D int array
-    input_dict = {"input": np.array([[1, 2], [3, 4]])}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6: 3D bool array
-    input_dict = {"input": np.array([[[True, False], [False, True]], [[True, True], [False, False]]])}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: empty array
-    input_dict = {"input": np.array([])}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: large array
-    input_dict = {"input": np.random.rand(100, 100)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: array with negative values
-    input_dict = {"input": np.array([-1, -2, -3])}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: array with zeros
-    input_dict = {"input": np.array([0, 0, 0])}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["torch.is_inference"] = is_inference_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
@@ -60,6 +68,9 @@ def check_valid(api, list_of_inputs, lib="torch", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'torch.is_inference' not in generated_inputs:

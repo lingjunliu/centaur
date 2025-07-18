@@ -4,170 +4,100 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch
+import torch, copy
 import numpy as np
-import copy
 
 def smooth_l1_loss_inputs():
     list_of_inputs = []
 
-    # Input 1
-    input_tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    target_tensor = np.array([1.5, 2.5, 3.5], dtype=np.float32)
-    reduction_type = "mean"
-    delta_value = 1.0
+    # The error "TypeError: smooth_l1_loss() got an unexpected keyword argument 'delta'"
+    # indicates the function in the execution environment does not accept 'delta'.
+    # This is true for PyTorch versions < 1.9 where the functional form only took
+    # input, target, and reduction. We will generate inputs for that signature
+    # to resolve the TypeError.
 
-    input_dict = {
-        "input": input_tensor,
-        "target": target_tensor,
-        "reduction": reduction_type,
-        "delta": delta_value
+    # Input 1: Basic 1D case with 'mean' reduction
+    input_dict_1 = {
+        'input': np.array([0.5, 1.5, -0.5], dtype=np.float32),
+        'target': np.array([0.2, 1.8, -0.7], dtype=np.float32),
+        'reduction': 'mean'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2
-    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    target_tensor = np.array([[1.1, 2.2], [3.3, 4.4]], dtype=np.float32)
-    reduction_type = "sum"
-    delta_value = 0.5
-
-    input_dict = {
-        "input": input_tensor,
-        "target": target_tensor,
-        "reduction": reduction_type,
-        "delta": delta_value
+    # Input 2: Basic 1D case with 'sum' reduction
+    input_dict_2 = {
+        'input': np.array([1.1, 2.2, 3.3], dtype=np.float32),
+        'target': np.array([1.0, 2.5, 3.0], dtype=np.float32),
+        'reduction': 'sum'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3
-    input_tensor = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
-    target_tensor = np.array([0.5, 1.5, 2.5, 3.5, 4.5], dtype=np.float32)
-    reduction_type = "none"
-    delta_value = 0.2
-
-    input_dict = {
-        "input": input_tensor,
-        "target": target_tensor,
-        "reduction": reduction_type,
-        "delta": delta_value
+    # Input 3: 2D case with 'none' reduction
+    input_dict_3 = {
+        'input': np.array([[1, 2], [3, 4]], dtype=np.float32),
+        'target': np.array([[1.5, 2.5], [2.5, 3.5]], dtype=np.float32),
+        'reduction': 'none'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4
-    input_tensor = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
-    target_tensor = np.array([-1.5, -2.5, -3.5], dtype=np.float32)
-    reduction_type = "mean"
-    delta_value = 1.5
-
-    input_dict = {
-        "input": input_tensor,
-        "target": target_tensor,
-        "reduction": reduction_type,
-        "delta": delta_value
+    # Input 4: 3D tensors
+    input_dict_4 = {
+        'input': np.random.rand(2, 3, 4).astype(np.float32),
+        'target': np.random.rand(2, 3, 4).astype(np.float32),
+        'reduction': 'mean'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5
-    input_tensor = np.array([[-1.0, 2.0], [-3.0, 4.0]], dtype=np.float32)
-    target_tensor = np.array([[-1.1, 2.2], [-3.3, 4.4]], dtype=np.float32)
-    reduction_type = "sum"
-    delta_value = 0.75
-
-    input_dict = {
-        "input": input_tensor,
-        "target": target_tensor,
-        "reduction": reduction_type,
-        "delta": delta_value
+    # Input 5: Input and target with negative values
+    input_dict_5 = {
+        'input': np.array([[-1.0, -2.0], [-3.0, -4.0]], dtype=np.float32),
+        'target': np.array([[-1.1, -2.2], [-3.3, -4.4]], dtype=np.float32),
+        'reduction': 'sum'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6
-    input_tensor = np.array([1.0, 2.0, 3.0], dtype=np.float64)
-    target_tensor = np.array([1.1, 2.1, 3.1], dtype=np.float64)
-    reduction_type = "none"
-    delta_value = 0.1
-
-    input_dict = {
-        "input": input_tensor,
-        "target": target_tensor,
-        "reduction": reduction_type,
-        "delta": delta_value
+    # Input 6: Using float64 dtype
+    input_dict_6 = {
+        'input': np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float64),
+        'target': np.array([[0.11, 0.22], [0.33, 0.44]], dtype=np.float64),
+        'reduction': 'mean'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    input_tensor = np.array([1.0], dtype=np.float32)
-    target_tensor = np.array([1.0], dtype=np.float32)
-    reduction_type = "mean"
-    delta_value = 0.0
-
-    input_dict = {
-        "input": input_tensor,
-        "target": target_tensor,
-        "reduction": reduction_type,
-        "delta": delta_value
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    input_tensor = np.array([[-1.0, -2.0, -3.0], [-4.0, -5.0, -6.0]], dtype=np.float32)
-    target_tensor = np.array([[-1.1, -2.1, -3.1], [-4.1, -5.1, -6.1]], dtype=np.float32)
-    reduction_type = "sum"
-    delta_value = 2.0
-
-    input_dict = {
-        "input": input_tensor,
-        "target": target_tensor,
-        "reduction": reduction_type,
-        "delta": delta_value
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    input_tensor = np.array([0.0], dtype=np.float32)
-    target_tensor = np.array([0.0], dtype=np.float32)
-    reduction_type = "none"
-    delta_value = 1.0
-
-    input_dict = {
-        "input": input_tensor,
-        "target": target_tensor,
-        "reduction": reduction_type,
-        "delta": delta_value
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    input_tensor = np.array([1.0, -2.0, 3.0, -4.0], dtype=np.float32)
-    target_tensor = np.array([-1.0, 2.0, -3.0, 4.0], dtype=np.float32)
-    reduction_type = "mean"
-    delta_value = 0.3
-
-    input_dict = {
-        "input": input_tensor,
-        "target": target_tensor,
-        "reduction": reduction_type,
-        "delta": delta_value
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
     
-    # Input 11
-    input_tensor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    target_tensor = np.array([[[1.1, 2.2], [3.3, 4.4]], [[5.5, 6.6], [7.7, 8.8]]], dtype=np.float32)
-    reduction_type = "mean"
-    delta_value = 0.3
-
-    input_dict = {
-        "input": input_tensor,
-        "target": target_tensor,
-        "reduction": reduction_type,
-        "delta": delta_value
+    # Input 7: Empty tensors
+    input_dict_7 = {
+        'input': np.array([], dtype=np.float32),
+        'target': np.array([], dtype=np.float32),
+        'reduction': 'sum'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
+
+    # Input 8: Large values in tensors
+    input_dict_8 = {
+        'input': np.array([1e5, 2e5, 3e5], dtype=np.float32),
+        'target': np.array([1e5 + 1, 2e5 - 1, 3e5], dtype=np.float32),
+        'reduction': 'mean'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
+
+    # Input 9: Mixed positive and negative values
+    input_dict_9 = {
+        'input': np.array([-0.5, 0.5, -1.5, 1.5], dtype=np.float32),
+        'target': np.array([-0.6, 0.4, -1.7, 1.3], dtype=np.float32),
+        'reduction': 'none'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    
+    # Input 10: Tensors with zeros
+    input_dict_10 = {
+        'input': np.zeros((2, 2), dtype=np.float32),
+        'target': np.ones((2, 2), dtype=np.float32),
+        'reduction': 'mean'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["torch.nn.functional.smooth_l1_loss"] = smooth_l1_loss_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
@@ -175,6 +105,9 @@ def check_valid(api, list_of_inputs, lib="torch", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'torch.nn.functional.smooth_l1_loss' not in generated_inputs:

@@ -11,121 +11,96 @@ import copy
 def repeat_interleave_inputs():
     list_of_inputs = []
 
-    # Input 1
-    input = np.array([1, 2, 3])
-    repeats = np.array(2)
-    dim = 0
-    input_dict = {"input": input, "repeats": repeats, "dim": dim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # The user is facing a TypeError because the `out` argument is not supported
+    # when the `repeats` argument is a tensor. The provided signature is
+    # {'input': 'tensor', 'repeats': 'tensor', 'dim': 'integer', 'out': 'tensor'}.
+    # The only way to resolve the TypeError while adhering to the signature's
+    # type for `repeats` is to omit the `out` argument. The previous `KeyError`
+    # might have been due to inconsistent dictionaries (some with `out`, some without).
+    # This solution consistently omits `out` to fix the TypeError.
 
-    # Input 2
-    input = np.array([[1, 2], [3, 4]])
-    repeats = np.array([1, 2])
-    dim = 0
-    input_dict = {"input": input, "repeats": repeats, "dim": dim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 1: 1D input, scalar repeats tensor
+    input_dict_1 = {
+        'input': torch.tensor([1, 2, 3]).numpy(),
+        'repeats': torch.tensor(2).numpy(),
+        'dim': 0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 3
-    input = np.array([[1, 2], [3, 4]])
-    repeats = np.array([1, 2])
-    dim = 1
-    input_dict = {"input": input, "repeats": repeats, "dim": dim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 2: 2D input, scalar repeats tensor, dim=0
+    input_dict_2 = {
+        'input': torch.tensor([[1, 2], [3, 4]], dtype=torch.float32).numpy(),
+        'repeats': torch.tensor(3).numpy(),
+        'dim': 0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
+
+    # Case 3: 2D input, scalar repeats tensor, dim=1
+    input_dict_3 = {
+        'input': torch.tensor([[1, 2], [3, 4]]).numpy(),
+        'repeats': torch.tensor(2).numpy(),
+        'dim': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
+
+    # Case 4: 1D input with 1D repeats tensor
+    input_dict_4 = {
+        'input': torch.tensor([10, 20, 30]).numpy(),
+        'repeats': torch.tensor([1, 2, 3]).numpy(),
+        'dim': 0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
     
-    # Input 4
-    input = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
-    repeats = np.array(2)
-    dim = 0
-    input_dict = {"input": input, "repeats": repeats, "dim": dim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 5: 2D input with 1D repeats tensor, dim=0
+    input_dict_5 = {
+        'input': torch.tensor([[10, 20], [30, 40]]).numpy(),
+        'repeats': torch.tensor([2, 1]).numpy(),
+        'dim': 0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 5
-    input = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
-    repeats = np.array(2)
-    dim = 1
-    input_dict = {"input": input, "repeats": repeats, "dim": dim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 6: 2D input with 1D repeats tensor, dim=1, float64 dtype
+    input_dict_6 = {
+        'input': torch.tensor([[1, 2, 3], [4, 5, 6]], dtype=torch.float64).numpy(),
+        'repeats': torch.tensor([1, 3, 2]).numpy(),
+        'dim': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 6
-    input = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
-    repeats = np.array(2)
-    dim = 2
-    input_dict = {"input": input, "repeats": repeats, "dim": dim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 7: 3D input, scalar repeats, negative dim
+    input_dict_7 = {
+        'input': torch.arange(8, dtype=torch.float32).reshape(2, 2, 2).numpy(),
+        'repeats': torch.tensor(2).numpy(),
+        'dim': -1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 7
-    input = np.array([1, 2, 3], dtype=np.int64)
-    repeats = np.array(2, dtype=np.int64)
-    dim = 0
-    input_dict = {"input": input, "repeats": repeats, "dim": dim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 8: Repeats tensor containing zero
+    input_dict_8 = {
+        'input': torch.tensor([10, 20, 30]).numpy(),
+        'repeats': torch.tensor([2, 0, 1]).numpy(),
+        'dim': 0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 8
-    input = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32)
-    repeats = np.array([1, 2], dtype=np.int32)
-    dim = 0
-    input_dict = {"input": input, "repeats": repeats, "dim": dim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 9: 0-dim (scalar) input tensor
+    input_dict_9 = {
+        'input': torch.tensor(42).numpy(),
+        'repeats': torch.tensor(5).numpy(),
+        'dim': 0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 9
-    input = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float64)
-    repeats = np.array([1, 2, 1], dtype=np.int64)
-   
-    input_dict = {"input": input, "repeats": repeats, "dim": 1}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    input = np.array([1, 2, 3, 4], dtype=np.int32)
-    repeats = np.array([0, 1, 2, 3], dtype=np.int32)
-    dim = 0
-    input_dict = {"input": input, "repeats": repeats, "dim": dim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11
-    input = np.arange(24).reshape((2, 3, 4))
-    repeats = np.array(2)
-    dim = 1
-    input_dict = {"input": input, "repeats": repeats, "dim": dim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12
-    input = np.array([1, 2, 3])
-    repeats = np.array(2)
-    dim = -1
-    input_dict = {"input": input, "repeats": repeats, "dim": dim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 13
-    input = np.array([1, 2, 3])
-    repeats = np.array(1)
-    dim = 0
-    input_dict = {"input": input, "repeats": repeats, "dim": dim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 14
-    input = np.array([[1, 2], [3, 4]])
-    repeats = np.array(2)
-    dim = 0
-    input_dict = {"input": input, "repeats": repeats, "dim": dim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 15
-    input = np.array([[1, 2], [3, 4]])
-    repeats = np.array(2)
-    dim = 1
-    input_dict = {"input": input, "repeats": repeats, "dim": dim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 16
-    input = np.array([1, 2, 3], dtype=np.float32)
-    repeats = np.array(3, dtype=np.int32)
-    dim = 0
-    input_dict = {"input": input, "repeats": repeats, "dim": dim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 10: 4D input with float16 dtype
+    input_dict_10 = {
+        'input': torch.ones(2, 1, 3, 1, dtype=torch.float16).numpy(),
+        'repeats': torch.tensor(4).numpy(),
+        'dim': 2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["torch.repeat_interleave_2"] = repeat_interleave_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
@@ -133,6 +108,9 @@ def check_valid(api, list_of_inputs, lib="torch", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'torch.repeat_interleave_2' not in generated_inputs:

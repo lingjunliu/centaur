@@ -5,154 +5,124 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import torch
-import numpy as np
 import copy
+import numpy as np
 
 def uninitializedbuffer_inputs():
     list_of_inputs = []
 
-    # Input 1
-    size = (2, 3)
-    dtype = np.dtype('float32')
-    requires_grad = False
-    pin_memory = False
-
-    input_dict = {
-        "size": size,
-        "dtype": dtype,
-        "requires_grad": requires_grad,
-        "pin_memory": pin_memory,
+    # Input 1: Basic 1D float32 buffer
+    input_dict_1 = {
+        'size': (10,),
+        'dtype': np.float32,
+        'layout': 'strided',
+        'requires_grad': False,
+        'pin_memory': False
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2
-    size = (5,)
-    dtype = np.dtype('int64')
-    requires_grad = True
-    pin_memory = True
-
-    input_dict = {
-        "size": size,
-        "dtype": dtype,
-        "requires_grad": requires_grad,
-        "pin_memory": pin_memory,
+    # Input 2: 2D int64 buffer
+    input_dict_2 = {
+        'size': (5, 5),
+        'dtype': np.int64,
+        'layout': 'strided',
+        'requires_grad': False,
+        'pin_memory': False
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3
-    size = (1, 4, 2)
-    dtype = np.dtype('float16')
-    requires_grad = False
-    pin_memory = False
-
-    input_dict = {
-        "size": size,
-        "dtype": dtype,
-        "requires_grad": requires_grad,
-        "pin_memory": pin_memory,
+    # Input 3: 3D float64 buffer with requires_grad=True
+    input_dict_3 = {
+        'size': (2, 3, 4),
+        'dtype': np.float64,
+        'layout': 'strided',
+        'requires_grad': True,
+        'pin_memory': False
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4
-    size = (2, 2, 2, 2)
-    dtype = np.dtype('uint8')
-    requires_grad = True
-    pin_memory = True
-
-    input_dict = {
-        "size": size,
-        "dtype": dtype,
-        "requires_grad": requires_grad,
-        "pin_memory": pin_memory,
+    # Input 4: 1D boolean buffer with pin_memory=True
+    input_dict_4 = {
+        'size': (100,),
+        'dtype': np.bool_,
+        'layout': 'strided',
+        'requires_grad': False,
+        'pin_memory': True
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
+
+    # Input 5: Scalar (0-dimensional) buffer
+    input_dict_5 = {
+        'size': (),
+        'dtype': np.float32,
+        'layout': 'strided',
+        'requires_grad': False,
+        'pin_memory': False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
+
+    # Input 6: Large 1D int32 buffer
+    input_dict_6 = {
+        'size': (10000,),
+        'dtype': np.int32,
+        'layout': 'strided',
+        'requires_grad': False,
+        'pin_memory': False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
+
+    # Input 7: 2D complex64 buffer
+    input_dict_7 = {
+        'size': (8, 8),
+        'dtype': np.complex64,
+        'layout': 'strided',
+        'requires_grad': False,
+        'pin_memory': False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
+
+    # Input 8: 2D complex128 buffer with pin_memory=True and requires_grad=True
+    input_dict_8 = {
+        'size': (4, 2),
+        'dtype': np.complex128,
+        'layout': 'strided',
+        'requires_grad': True,
+        'pin_memory': True
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
+
+    # Input 9: All flags True (with float16)
+    input_dict_9 = {
+        'size': (16,),
+        'dtype': np.float16,
+        'layout': 'strided',
+        'requires_grad': True,
+        'pin_memory': True
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
+
+    # Input 10: Buffer with a zero dimension
+    input_dict_10 = {
+        'size': (5, 0, 5),
+        'dtype': np.float32,
+        'layout': 'strided',
+        'requires_grad': False,
+        'pin_memory': False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
+
+    # Input 11: 1D int8 buffer
+    input_dict_11 = {
+        'size': (128,),
+        'dtype': np.int8,
+        'layout': 'strided',
+        'requires_grad': False,
+        'pin_memory': False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_11))
     
-    # Input 5
-    size = (10,)
-    dtype = np.dtype('bool')
-    requires_grad = False
-    pin_memory = False
-
-    input_dict = {
-        "size": size,
-        "dtype": dtype,
-        "requires_grad": requires_grad,
-        "pin_memory": pin_memory,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    size = (3, 5, 7)
-    dtype = np.dtype('complex64')
-    requires_grad = True
-    pin_memory = True
-
-    input_dict = {
-        "size": size,
-        "dtype": dtype,
-        "requires_grad": requires_grad,
-        "pin_memory": pin_memory,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    size = (1,)
-    dtype = np.dtype('float64')
-    requires_grad = False
-    pin_memory = False
-    input_dict = {
-        "size": size,
-        "dtype": dtype,
-        "requires_grad": requires_grad,
-        "pin_memory": pin_memory,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    size = (8, 2)
-    dtype = np.dtype('int32')
-    requires_grad = True
-    pin_memory = True
-
-    input_dict = {
-        "size": size,
-        "dtype": dtype,
-        "requires_grad": requires_grad,
-        "pin_memory": pin_memory,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    size = (1, 1, 1, 1, 1)
-    dtype = np.dtype('int8')
-    requires_grad = False
-    pin_memory = False
-
-    input_dict = {
-        "size": size,
-        "dtype": dtype,
-        "requires_grad": requires_grad,
-        "pin_memory": pin_memory,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 10
-    size = (4, 4)
-    dtype = np.dtype('complex128')
-    requires_grad = True
-    pin_memory = True
-
-    input_dict = {
-        "size": size,
-        "dtype": dtype,
-        "requires_grad": requires_grad,
-        "pin_memory": pin_memory,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["torch.nn.UninitializedBuffer"] = uninitializedbuffer_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
@@ -160,6 +130,9 @@ def check_valid(api, list_of_inputs, lib="torch", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'torch.nn.UninitializedBuffer' not in generated_inputs:

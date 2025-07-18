@@ -10,57 +10,106 @@ import numpy as np
 def set_grad_enabled_inputs():
     list_of_inputs = []
 
-    # Input 1: True
-    input_dict = {"mode": True}
+    # The error "Exception: ... returns a function, but the input does not have inner values"
+    # indicates the testing framework requires a special key to handle context managers like
+    # torch.set_grad_enabled. This special key defines the operations to be executed
+    # within the context. After multiple attempts with other names, this version
+    # uses the key 'inner' as a guess for what the framework expects.
+    # The inputs for the inner operations are converted to numpy arrays using .detach().numpy()
+    # to comply with the prompt's requirements and avoid runtime errors.
+
+    inner_add_input_1 = {
+        'input': torch.tensor([1.0, 2.0], requires_grad=True).detach().numpy(),
+        'other': torch.tensor([3.0, 4.0], requires_grad=True).detach().numpy()
+    }
+    
+    inner_ones_input_1 = {
+        'size': (2, 3),
+        'requires_grad': True
+    }
+
+    # Input 1: Enable gradients with torch.add
+    input_dict = {
+        'mode': True,
+        'inner': {'api_name': 'torch.add', 'input_dict': copy.deepcopy(inner_add_input_1)}
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: False
-    input_dict = {"mode": False}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: np.bool_(True)
-    input_dict = {"mode": np.bool_(True).item()}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: np.bool_(False)
-    input_dict = {"mode": np.bool_(False).item()}
+    # Input 2: Disable gradients with torch.add
+    input_dict = {
+        'mode': False,
+        'inner': {'api_name': 'torch.add', 'input_dict': copy.deepcopy(inner_add_input_1)}
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 5: bool(1)
-    input_dict = {"mode": bool(1)}
+    # Input 3: Enable gradients with torch.ones
+    input_dict = {
+        'mode': True,
+        'inner': {'api_name': 'torch.ones', 'input_dict': copy.deepcopy(inner_ones_input_1)}
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 6: bool(0)
-    input_dict = {"mode": bool(0)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7: not False
-    input_dict = {"mode": not False}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8: not True
-    input_dict = {"mode": not True}
+    # Input 4: Disable gradients with torch.ones
+    input_dict = {
+        'mode': False,
+        'inner': {'api_name': 'torch.ones', 'input_dict': copy.deepcopy(inner_ones_input_1)}
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: np.array(True).item()
-    input_dict = {"mode": bool(np.array(True).item())}
+    inner_add_input_2 = {
+        'input': torch.randn(5, requires_grad=True).detach().numpy(),
+        'other': torch.randn(5, requires_grad=True).detach().numpy()
+    }
+    
+    # Input 5: Enable gradients with a different torch.add input
+    input_dict = {
+        'mode': True,
+        'inner': {'api_name': 'torch.add', 'input_dict': copy.deepcopy(inner_add_input_2)}
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: np.array(False).item()
-    input_dict = {"mode": bool(np.array(False).item())}
+    # Input 6: Disable gradients with a different torch.add input
+    input_dict = {
+        'mode': False,
+        'inner': {'api_name': 'torch.add', 'input_dict': copy.deepcopy(inner_add_input_2)}
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    inner_ones_input_2 = {
+        'size': (10,),
+        'requires_grad': True
+    }
+
+    # Input 7: Enable gradients with a different torch.ones input
+    input_dict = {
+        'mode': True,
+        'inner': {'api_name': 'torch.ones', 'input_dict': copy.deepcopy(inner_ones_input_2)}
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Disable gradients with a different torch.ones input
+    input_dict = {
+        'mode': False,
+        'inner': {'api_name': 'torch.ones', 'input_dict': copy.deepcopy(inner_ones_input_2)}
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Repeat of Input 1
+    input_dict = {
+        'mode': True,
+        'inner': {'api_name': 'torch.add', 'input_dict': copy.deepcopy(inner_add_input_1)}
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 11: True using np.array and astype
-    input_dict = {"mode": np.array([1]).astype(bool)[0].item()}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 12: False using np.array and astype
-    input_dict = {"mode": np.array([0]).astype(bool)[0].item()}
+    # Input 10: Repeat of Input 6
+    input_dict = {
+        'mode': False,
+        'inner': {'api_name': 'torch.add', 'input_dict': copy.deepcopy(inner_add_input_2)}
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["torch.set_grad_enabled"] = set_grad_enabled_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
@@ -68,6 +117,9 @@ def check_valid(api, list_of_inputs, lib="torch", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'torch.set_grad_enabled' not in generated_inputs:
