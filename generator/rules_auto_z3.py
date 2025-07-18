@@ -17,6 +17,10 @@ def get_rules_map(api, use_reference=False, lib="torch"):
     RULES_DIR = os.path.join(os.path.dirname(__file__), "..", f"rules-{lib}", base_api) if not use_reference else os.path.join(os.path.dirname(__file__), "..", "references")
     rule_func_map = {}
 
+    if not os.path.exists(RULES_DIR):
+        print(f"Rules directory {RULES_DIR} does not exist.")
+        return rule_func_map
+
     for filename in os.listdir(RULES_DIR):
         match = re.match(r"rule_(\d+)\.py", filename)
         if not match:
