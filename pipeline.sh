@@ -9,17 +9,30 @@ if [ "$#" -eq 0 ]; then
   exit 1
 fi
 
-lib=$1      # Library (torch or tf)
-seed=200    # Seed for random number generation
+lib=$1        # Library (torch or tf)
+retry=${2:-0} # Retry flag (0 means no retry, 1 means retry cancelled jobs)
+seed=200      # Seed for random number generation
 
 # Set environment variables for Slurm
 export max_parallel=160          # Maximum number of parallel jobs (set this based on the number of slurm jobs you want to spawn to run at the same time)
 export max_memory_usage=90      # Maximum memory usage in percentage (set this based on the percentage of memory you do not want to exceed)
 
 # Step 1: Infer invariants: <duration> <regen> <library>
-bash scripts/infer_invariants_with_slurm.sh 1200 0 $lib
+bash scripts/infer_invariants_with_slurm.sh 1200 1 $lib
+if [ "$retry" -eq 1 ]; then
+  # Cancelled jobs due to memory issues are retried
+  python -m utils.parse_cancelled_jobs $lib
+  export elements_file=.tmp/cancelled_infs_${lib}.txt  # Set the elements file for the next steps
+  bash scripts/infer_invariants_with_slurm.sh 1200 1 $lib
+fi
 # Step 2: Generate models: <duration> <n_models> <library> <seed> <regen>
 bash scripts/generate_models_with_slurm.sh 3600 0 $lib $seed 1
+if [ "$retry" -eq 1 ]; then
+  # Cancelled jobs due to memory issues are retried
+  python -m utils.parse_cancelled_jobs $lib
+  export elements_file=.tmp/cancelled_modls_${lib}.txt  # Set the elements file for the next steps
+  bash scripts/generate_models_with_slurm.sh 3600 0 $lib $seed 1
+fi
 # Step 3: Fuzz with the generated models: <duration> <n_inputs> <library> <seed>
 bash scripts/fuzz_with_slurm.sh 180 0 $lib $seed
 if [ "$lib" = "torch" ]; then

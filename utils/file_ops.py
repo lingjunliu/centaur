@@ -1,12 +1,14 @@
 import sys
 
-def main():
-    action = sys.argv[1]    # u: union, i: intersection, d: difference
-    file1 = sys.argv[2]
-    file2 = sys.argv[3]
-    output_file = sys.argv[4]
-    split = sys.argv[5].lower().startswith('s')  if len(sys.argv) > 5 else False
-
+def file_set_ops(file1, file2, output_file, action='u', split=False):
+    """
+    Perform set operations on two files and write the result to an output file.
+    actions:
+    u: union
+    i: intersection
+    d: difference
+    split: if True, split lines by comma and take the first element
+    """
     with open(file1, 'r') as f1, open(file2, 'r') as f2:
         set1 = set([line.strip().split(',')[0] for line in f1.readlines()]) if split else set([line.strip() for line in f1.readlines()])
         set2 = set([line.strip().split(',')[0] for line in f2.readlines()]) if split else set([line.strip() for line in f2.readlines()])
@@ -25,6 +27,15 @@ def main():
             out_f.write(f"{item}\n")
 
     print(f"[Mode: {action}] Result written to {output_file} ({len(result)} lines)")
+
+def main():
+    action = sys.argv[1]    # u: union, i: intersection, d: difference
+    file1 = sys.argv[2]
+    file2 = sys.argv[3]
+    output_file = sys.argv[4]
+    split = sys.argv[5].lower().startswith('s')  if len(sys.argv) > 5 else False
+
+    file_set_ops(file1, file2, output_file, action=action, split=split)
 
 if __name__ == "__main__":
     main()

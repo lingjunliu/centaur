@@ -13,7 +13,9 @@ elif [ "$lib" = "tensorflow" ]; then
   lib=tf
 fi
 
-export elements_file=${lib}_variations.txt
+if [ -z "${elements_file}" ]; then
+  export elements_file=${lib}_variations.txt
+fi
 export OMP_NUM_THREADS=1    # To prevent issues with coverage collection due to multithreading
 export TF_ENABLE_ONEDNN_OPTS=0  # Disable oneDNN optimizations for TensorFlow
 

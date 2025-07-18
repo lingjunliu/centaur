@@ -224,6 +224,42 @@ def map_torch_to_driver():
 
     return torch_to_driver, driver_to_torch
 
+def parse_cancelled_jobs(lib="torch"):
+    cancelled_jobs_file = os.path.join(get_tmp_dir(), "cancelled_jobs.log")
+    inference_jobs = []
+    model_jobs = []
+    with open(cancelled_jobs_file, 'r') as file:
+        for line in file.readlines():
+            tokens = line.strip().split()
+            for token in tokens:
+                if token.startswith("inf-"):
+                    job_id = token.split('-')[1]
+                    inference_jobs.append(int(job_id))
+                elif token.startswith("modl-"):
+                    job_id = token.split('-')[1]
+                    model_jobs.append(int(job_id))
+
+    variations = read_file_in_root(f"{lib}_variations.txt")
+
+    cancelled_inference_variations = []
+    cancelled_model_variations = []
+    for i, variation in enumerate(variations):
+        if i+1 in inference_jobs:
+            cancelled_inference_variations.append(variation)
+        if i+1 in model_jobs:
+            cancelled_model_variations.append(variation)
+
+    inf_file = os.path.join(get_tmp_dir(), f"cancelled_infs_{lib}.txt")
+    modl_file = os.path.join(get_tmp_dir(), f"cancelled_modls_{lib}.txt")
+
+    with open(inf_file, 'w') as file:
+        file.write("\n".join(cancelled_inference_variations))
+    
+    with open(modl_file, 'w') as file:
+        file.write("\n".join(cancelled_model_variations))
+
+    return cancelled_inference_variations, cancelled_model_variations
+
 def merge_csvs(csv_1, csv_2, csv_3):
     with open(csv_1, "r") as f_1:
         lines_1 = f_1.readlines()
