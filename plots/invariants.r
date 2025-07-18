@@ -7,6 +7,7 @@ if (length(args) > 0) {
 }
 
 tname <- "SLATE"
+tname_alias <- "Centaur"
 
 mode <- "cov"   # "cov" or "val"
 if (length(args) > 1) {
@@ -101,7 +102,7 @@ if (create_pdf) {
 par(cex.axis = font_size)
 par(cex.lab = font_size)
 box_plot <- boxplot(sota_col, tname_col,
-                    names = c(sota, tname),
+                    names = c(sota, tname_alias),
                     col = c(sota_color, "darkgreen"),
                     ylab = ylabel,
                     notch = FALSE,
