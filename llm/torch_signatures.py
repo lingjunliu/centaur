@@ -2275,11 +2275,10 @@ signatures["torch.empty_like"] = {
 signatures["torch.empty_strided"] = {
     "args": {
         "size": "tuple",
-        "stride": "tuple",
-        "dtype": "dtype"
+        "stride": "tuple"
     },
     "kwargs": {
-        "layout": "string", #string representing layout. Could be enum
+        "dtype": "dtype",
         "pin_memory": "boolean",
         "requires_grad": "boolean"
     },

@@ -127,6 +127,8 @@ def reduce_ruleset(ruleset, signature, api, z3_args, max_trial=30, time_budget=3
             base_validity_ratio = valid / trial
         elif valid / trial < base_validity_ratio:
             rules_to_keep.add(rule)
+        elif print_details:
+            print(f"Removing rule {rule} did not reduce the validity ratio below the base ratio {base_validity_ratio:.4f}. Removing it.")
 
     print(f"\n-- Rules reduced from {n_rules_original} to {len(rules_to_keep)} --\n")
 
