@@ -12,6 +12,7 @@ elif [ "$lib" = "tensorflow" ]; then
 fi
 
 export elements_file=${lib}_variations.txt
+export TF_ENABLE_ONEDNN_OPTS=0  # Disable oneDNN optimizations for TensorFlow
 
 # Add 10 minutes (600 seconds)
 total_seconds=$((duration + 600))

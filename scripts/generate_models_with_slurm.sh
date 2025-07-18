@@ -15,6 +15,7 @@ fi
 
 export elements_file=${lib}_variations.txt
 export OMP_NUM_THREADS=1    # To prevent issues with coverage collection due to multithreading
+export TF_ENABLE_ONEDNN_OPTS=0  # Disable oneDNN optimizations for TensorFlow
 
 # Add 10 minutes (600 seconds) to account for rule refinement
 total_seconds=$((duration + 600))
