@@ -291,24 +291,33 @@ def introduce_negatives(input_dict, signature, lib="torch", rng=np.random.defaul
 
     return mutated_inputs
 
+def augment_one_input(input_dict, signature, lib="torch", rng=np.random.default_rng(42)):
+    """
+    Mutate inputs to have diversity to ensure wrong invariants are not learned
+    And return the original input + mutated inputs
+    """
+    mutators = [introduce_empty_tensors, introduce_float_types, introduce_complex_types, introduce_floats, introduce_integer_types, introduce_integers, introduce_negatives, introduce_opposite_bools, introduce_zeros]
+    mutated_inputs = []
+    if not match_signature_to_input(input_dict, signature, match_type=True):
+        print(f"{bcolors.WARNING}Skipping input at index {i} as it does not match the signature:\n{signature}{bcolors.ENDC}")
+        continue  # Skip inputs that do not match the signature
+    original_inputs.append(input_dict)
+    for mutator in mutators:
+        mutated_inputs += mutator(input_dict, signature, lib=lib, rng=rng)
+    
+    return [input_dict] + mutated_inputs
+
 def augment_inputs(list_of_inputs, signature, lib="torch", seed=42):
     """
     Mutate inputs to have diversity to ensure wrong invariants are not learned
     And return the original inputs + mutated inputs
-    """
-    mutators = [introduce_empty_tensors, introduce_float_types, introduce_complex_types, introduce_floats, introduce_integer_types, introduce_integers, introduce_negatives, introduce_opposite_bools, introduce_zeros]
-    original_inputs = []
-    mutated_inputs = []
+    """    
+    to_return = []
     rng = np.random.default_rng(seed)
     for i, input_dict in enumerate(list_of_inputs):
-        if not match_signature_to_input(input_dict, signature, match_type=True):
-            print(f"{bcolors.WARNING}Skipping input at index {i} as it does not match the signature:\n{signature}{bcolors.ENDC}")
-            continue  # Skip inputs that do not match the signature
-        original_inputs.append(input_dict)
-        for mutator in mutators:
-            mutated_inputs += mutator(input_dict, signature, lib=lib, rng=rng)
+        to_return += augment_one_input(input_dict, signature, lib=lib, rng=rng)
     
-    return original_inputs + mutated_inputs
+    return to_return
 
 def get_inputs(api, lib="torch", time_budget=30, min_val_inp=100, seed=42, suffix=0, print_details=False):
     """

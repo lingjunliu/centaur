@@ -1,7 +1,7 @@
 from generator.rules import check_rules
 from generator.rules_auto_z3 import check_rules_z3
 from utils.z3_utils import instantiate_args, create_z3_args, initial_constraints, collect_constraints
-from .inputs import get_inputs
+from .inputs import augment_one_input
 from utils.new_api_utils import get_n_variations, get_lib_version, get_signature, get_api_suffix
 from utils.misc import get_dir_in_root, get_tmp_dir, create_subdir, append_file_in_root, bcolors, read_file_in_root
 from utils.defaults import MAX_N_DIM
@@ -121,6 +121,8 @@ def reduce_ruleset(ruleset, signature, api, z3_args, max_trial=30, time_budget=3
             if status != "invalid":
                 valid += 1
             elif print_details and exception_message:
+                print(f"[Valid: {valid}, Invalid: {trial + 1 - valid}, Total: {trial + 1}]")
+                print(abstract_print(get_abstract_input(abstract_input, signature), signature))
                 print(f"Trial {trial} with rule {rule} failed with exception: {exception_message}")
 
             trial += 1
@@ -153,7 +155,17 @@ def get_invariants(api, suffix, lib="torch", use_reference=False):
 
     return ruleset
 
-def infer_invariants(api, print_details=False, regen=False, lib="torch", time_budget=60, min_val_inp=100, seed=42, z3=False, suffix=0, use_reference=False):
+def update_ruleset(api, input_dict, ruleset=None, lib="torch"):
+    status, exception_message = oracle_crash(api, input_dict, cpu=True, lib=lib)
+    if status == "nominal":
+        if not ruleset:
+            ruleset = check_rules_z3(api, input_dict, lib=lib)                        
+        else:
+            ruleset = ruleset.intersection(check_rules_z3(api, input_dict, lib=lib))
+    
+    return ruleset, status, exception_message
+
+def infer_invariants(api, print_details=False, regen=False, lib="torch", time_budget=60, min_val_inp=10, seed=42, z3=True, suffix=0, use_reference=False):
     '''
         Takes an API and
         
@@ -171,6 +183,9 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
         and the invariants already exist, they are read from the file and returned.
     '''
     list_of_rulesets = []
+    if not z3:
+        print(f"{bcolors.FAIL}Only Z3 is supported. Exiting.{bcolors.ENDC}")
+        return list_of_rulesets
 
     # Doing a 25/75 split of the time budget for generating inputs and refining rules
     time_budget_learner, time_budget_refinement = 0.25*time_budget, 0.75*time_budget
@@ -181,6 +196,7 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
     else:
         variants = [(get_lib_version(api, lib=lib), i) for i in range(1, n_variants + 1)]
 
+    rng = np.random.default_rng(seed)
     for api, suff in variants:
         variant = f"{api}_{suff}" if suff > 0 else api
         invariant_file = os.path.join(get_dir_in_root(f"invariants_{lib}"), variant) if not use_reference else os.path.join(get_dir_in_root(f"reference_invariants_{lib}"), variant)
@@ -192,50 +208,82 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
             continue
         else:   # Inference
             print(f"\nStarted invariant inference for {api} (suffix {suff})\n")
+            
+            ruleset = None
+            valid = 0
+            invalid = 0
+
             start_time = time.time()
             if os.path.isfile(invariant_file):
                 print(f"Removing existing invariants file for {variant} at {invariant_file}")
                 os.remove(invariant_file)
-            list_of_inputs = get_inputs(api, lib=lib, time_budget=time_budget_learner, min_val_inp=min_val_inp, seed=seed, suffix=suff, print_details=print_details)
-            ruleset = set()
-            initialized = False
-            print(f"Inferring invariants for {variant} with {len(list_of_inputs)} inputs\n")
-            try:
-                api_signature = get_signature(api, lib=lib, suffix=suff)
-            except Exception as e:
-                print(f"Error getting signature for {variant}.\n{e.__class__.__name__}: {e}")
-                continue
             
-            valid = 0
-            invalid = 0
-            invalid_inputs = []
+            #### LLM
+            if lib == "torch":
+                import llm.valid_inputs_torch as valid_inputs
+            elif lib == "tf":
+                import llm.valid_inputs_tf as valid_inputs
+            else:
+                raise ValueError(f"Invalid library: {lib}")
+            
+            api_signature = get_signature(api, lib=lib, suffix=suffix)
+            llm_inputs = []
+            raw_op_map = get_raw_op_mapping()
 
-            # Verifying stage: Keep rules that ALL valid inputs satisfy
-            for idx, input_dict in enumerate(list_of_inputs):
-                if print_details:
-                    print(f"\n[Input {idx}]")
-                    try:
-                        print(abstract_print(get_abstract_input(input_dict, api_signature), api_signature))
-                    except Exception as e:
-                        print(f"Error printing abstract input for {variant}.\n{e.__class__.__name__}: {e}")
-                        
-                status, exception_message = oracle_crash(api, input_dict, cpu=True, lib=lib)
-                if status == "invalid":
-                    invalid += 1
-                    if print_details:
-                        print(f"Input {idx} is invalid")
-                        print(f"Exception: {exception_message}")
-                        invalid_inputs.append(input_dict)
-                else:
-                    if print_details:
-                        print(f"Input {idx} is valid")
-                    # Check rules for the input dictionary
-                    if not initialized:
-                        ruleset = check_rules_z3(api, input_dict, lib=lib) if z3 else check_rules(input_dict)
-                        initialized = True
+            if variant in valid_inputs.generated_inputs:
+                print(f"\nAdding LLM generated inputs for {variant}\n")
+                llm_inputs = valid_inputs.generated_inputs[variation]
+            elif api in raw_op_map:
+                print(f"\nUsing inputs from a variation of {api} as {raw_op_map[api]}\n")
+                n_variations_new = get_n_variations(raw_op_map[api], lib=lib)
+                if n_variations_new == 1:
+                    if raw_op_map[api] in valid_inputs.generated_inputs:
+                        llm_inputs = valid_inputs.generated_inputs[raw_op_map[api]]
                     else:
-                        ruleset = ruleset.intersection(check_rules_z3(api, input_dict, lib=lib) if z3 else check_rules(input_dict))
-                    valid += 1
+                        print(f"{bcolors.WARNING}Warning: {raw_op_map[api]} not found in valid_inputs.generated_inputs{bcolors.ENDC}")
+                else:
+                    for i in range(1, n_variations_new + 1):
+                        variation_new = f"{raw_op_map[api]}_{i}"
+                        if variation_new in valid_inputs.generated_inputs:
+                            llm_inputs += valid_inputs.generated_inputs[variation_new]
+            else:
+                print(f"{bcolors.WARNING}Warning: {variation} not found in valid_inputs.generated_inputs{bcolors.ENDC}")
+
+            for llm_input in llm_inputs:
+                mutated_inputs = augment_one_input(llm_input, api_signature, lib=lib, rng=rng)
+                for mutated_input in mutated_inputs:
+                    ruleset, status, exception_message = update_ruleset(api, mutated_input, ruleset=ruleset, lib=lib)
+                    if status == "nominal":
+                        valid += 1
+                    else:
+                        invalid += 1
+                        if print_details:
+                            print(f"[Valid: {valid}, Invalid: {invalid}, Total: {valid + invalid}]")
+                            print(abstract_print(get_abstract_input(mutated_input, api_signature), api_signature))
+                            print(f"{bcolors.FAIL}Input threw exception: {exception_message}{bcolors.ENDC}")
+            ####
+
+            ### Generate and append new inputs (random)
+            print(f"\nGenerating inputs for {api} (suffix: {suffix}) with time budget {time_budget_learner} seconds and minimum valid inputs {min_val_inp}\n")
+            valid = 0
+            
+            start_time = time.time()
+            while (time.time() - start_time < time_budget_learner) and (valid < min_val_inp):                
+                input_dict, _ = get_random_input(api_signature, rng, lib=lib)                
+                
+                mutated_inputs = augment_one_input(input_dict, api_signature, lib=lib, rng=rng)
+                for mutated_input in mutated_inputs:
+                    ruleset, status, exception_message = update_ruleset(api, input_dict, ruleset=ruleset, lib=lib)
+                    if status == "nominal":
+                        valid += 1
+                    else:
+                        invalid += 1
+                        if print_details:
+                            print(f"[Valid: {valid}, Invalid: {invalid}, Total: {valid + invalid}]")
+                            print(abstract_print(get_abstract_input(mutated_input, api_signature), api_signature))
+                            print(f"{bcolors.FAIL}Input threw exception: {exception_message}{bcolors.ENDC}")
+            ####
+           
             print(f"Invariant inference took {time.time()-start_time:.2f} seconds\n")
             if print_details:
                 print_rules(variant, ruleset)
