@@ -232,15 +232,12 @@ def gen_cov(cmd_line, lib="torch", prefix="default", capture_output=True, gen_lc
                             "-format=html",
                             "-show-branches=count",
                             f"-output-dir={cov_dir}/{prefix}"
-                        ]
-            instrumentation_dir = get_dir_in_root('instrumented_pytorch')
-            if native_only:                                
-                filter_dir = f"{instrumentation_dir}/pytorch/aten/src/ATen/native/"                
+                        ]            
+            if native_only:
+                instrumentation_dir = get_dir_in_root('instrumented_torch')
+                filter_dir = f"{instrumentation_dir}/pytorch/aten/src/ATen/native/"
                 print(f"Filtering to only the native folder at {filter_dir}")
-            else:
-                filter_dir = f"{instrumentation_dir}/pytorch/"
-            
-            cmd_html.append(filter_dir)
+                cmd_html.append(filter_dir)
 
             return_obj = subprocess.run(cmd_html, capture_output=True)
         except subprocess.CalledProcessError as err:

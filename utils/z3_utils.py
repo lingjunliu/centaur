@@ -61,7 +61,7 @@ def create_z3_args(signature):
             raise ValueError(f"Unsupported type: {typ}")
     return z3_args
 
-def parition_solvers(solver, signature, z3_args, lib="torch", rng=np.random.default_rng(42)):
+def parition_solvers(solver, signature, z3_args, lib="torch", trial=5, rng=np.random.default_rng(42)):
     """
     This function partitions the solver into two solvers per boolean argument.
     One solver will assert the boolean argument to be True, and the other will assert it to be False.
@@ -77,23 +77,37 @@ def parition_solvers(solver, signature, z3_args, lib="torch", rng=np.random.defa
             solver_false = Solver()
             solver_false.add(*solver.assertions())
             solver_false.add(value == False)
-            solvers.append(solver_true)
-            solvers.append(solver_false)
+            
+            if solver_true.check() == sat:
+                solvers.append(solver_true)
+            
+            if solver_false.check() == sat:
+                solvers.append(solver_false)
     
     if len(solvers) == 0:
         solvers.append(solver)
     
-    for solver in solvers:
+    for i, solver in enumerate(solvers):
         for param_name, z3_var in z3_args.items():
             if signature[param_name] == "tensor" or signature[param_name] == "tensor_list":
                 range_ = z3_var['range']
                 # Choosing low and high values for the tensor range
                 augmented_buckets = add_negative_buckets(int_buckets)
-                buckets = rng.choice(augmented_buckets, size=4, replace=False)
-                buckets = sorted(buckets)
-                low, high = rng.integers(buckets[0], buckets[1]), rng.integers(buckets[2], buckets[3])
-                solver.add(Select(range_, 0) == low)
-                solver.add(Select(range_, 1) == high)
+                
+                if solver.check() != sat:
+                    continue
+                
+                for _ in range(trial):
+                    buckets = rng.choice(augmented_buckets, size=4, replace=False)
+                    buckets = sorted(buckets)
+                    low, high = rng.integers(buckets[0], buckets[1]), rng.integers(buckets[2], buckets[3])
+                    cur_solver = Solver()
+                    cur_solver.add(*solver.assertions())
+                    cur_solver.add(Select(range_, 0) == low)
+                    cur_solver.add(Select(range_, 1) == high)
+                    if cur_solver.check() == sat:
+                        solvers[i] = cur_solver
+                        break
     
     return solvers
 
@@ -116,8 +130,8 @@ def initial_constraints(solver, signature, z3_args, lib="torch"):
                 Select(range_, 1) >= -MAX_SZ_NUM, Select(range_, 1) <= MAX_SZ_NUM,
                 Select(range_, 0) <= Select(range_, 1)
             ])) 
-            size = reduce(lambda acc, i: acc * If(i < ndim, Select(shape, i), 1), range(MAX_N_DIM), 1)
-            solver.add(size * 0.001 * 0.001 < MAX_SZ_TENSOR)
+            # size = reduce(lambda acc, i: acc * If(i < ndim, Select(shape, i), 1), range(MAX_N_DIM), 1)
+            # solver.add(size * 0.001 * 0.001 < MAX_SZ_TENSOR)
 
         elif param_type == "list" or param_type == "tuple":
             length, values = z3_var['length'], z3_var['values']
@@ -132,9 +146,9 @@ def initial_constraints(solver, signature, z3_args, lib="torch"):
             value, dtype = z3_var['value'], z3_var['dtype']
             solver.add(And(value >= domain_limits[f'{param_type}_value_range'][0], value <= domain_limits[f'{param_type}_value_range'][1]))
             solver.add(And(dtype >= domain_limits[f'{param_type}_dtype'][0], dtype <= domain_limits[f'{param_type}_dtype'][1]))
-        elif param_type == "boolean":
-            value = z3_var['value']
-            solver.add(Or(value == domain_limits[f'{param_type}_value_range'][0], value == domain_limits[f'{param_type}_value_range'][1]))            # Two possible values, True or False
+        # elif param_type == "boolean":
+        #     value = z3_var['value']
+        #     solver.add(Or(value == domain_limits[f'{param_type}_value_range'][0], value == domain_limits[f'{param_type}_value_range'][1]))            # Two possible values, True or False
         elif param_type == "dtype":
             value = z3_var['value']
             solver.add(And(value >= 0, value <= len(list_of_available_dtypes) - 3)) 

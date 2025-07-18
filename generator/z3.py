@@ -100,7 +100,7 @@ def variable_bounds(assertions):
             maxv = float(val.as_fraction()) if sort_kind == Z3_REAL_SORT else val.as_long()
         else:
             continue
-        bounds[var] = set(clip_buckets(default_buckets, minv, maxv)) if minv != maxv else set([minv])
+        bounds[var] = set(sorted(clip_buckets(default_buckets, minv, maxv))) if minv != maxv else set([minv])
     return bounds
 
 # Add assertions for sampled values from partitions
@@ -125,11 +125,9 @@ def sample_partitions(var_values_map, p, rng=np.random.default_rng(42)):
                 continue 
             v = rng.integers(int(v1) + 1, int(v2))
         elif sort_kind == Z3_REAL_SORT:
-            if abs(v2 - v1) <= 1e-6:
+            if abs(v2 - v1) < 2e-6:
                 continue
             v = rng.uniform(v1 + 1e-6, v2 - 1e-6)
-        elif sort_kind == Z3_BOOL_SORT:
-            v = rng.choice([False, True])
         else:
             continue
 
@@ -139,6 +137,10 @@ def sample_partitions(var_values_map, p, rng=np.random.default_rng(42)):
     return sampled_partitions
 
 def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=42, print_details=False, saturation=10, lib="torch", corpus_dir=None, return_models=True, use_reference=False):
+    # Hyperparameter
+    blocking_proba = 0.3
+    partition_proba = 0.3
+
     elapsed = 0
     start = time.time()
 
@@ -150,7 +152,7 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
     block_all = set()
     perma_block = set()
     stale = 0
-    # valid_blocks = []   # list of blocks for valid models, saved for restarts
+
     rng = np.random.default_rng(seed)
 
     nominal = 0
@@ -158,6 +160,7 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
     crash = 0
     excp = 0
     unsat = 0
+    exceptions = set()
 
     tmp_results = create_subdir(get_tmp_dir(), "model_results")
     var_values_map = variable_bounds(solver_main.assertions())
@@ -167,39 +170,38 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
     start_time = time.time()
     while elapsed < model_gen_duration and (num_model < max_model or max_model == 0):
         # Strategy #3: Partitioning the solver for boolean variables and add different ranges
-        partitioned_solvers = parition_solvers(solver_main, definition["signature"], z3_args, lib=lib)
+        partitioned_solvers = parition_solvers(solver_main, definition["signature"], z3_args, lib=lib, rng=rng)
         for solver in partitioned_solvers:
             block_one = []
             one_solver = Solver()
             one_solver.add(*solver.assertions())
 
             # Strategy #1: Adding blocking constraints with probability p_1
-            sampled_blocks = rng.choice(list(block_all), int(len(block_all) * 0.3), replace=False)
+            sampled_blocks = rng.choice(list(block_all), int(len(block_all) * blocking_proba), replace=False)
             one_solver.add(*sampled_blocks)
             one_solver.add(*perma_block)
 
             # Strategy #2: Adding partitioning-based constraints with probability p_2
-            sampled_partitions = sample_partitions(var_values_map, 0.3)
+            sampled_partitions = sample_partitions(var_values_map, partition_proba, rng=rng)
             one_solver.add(*sampled_partitions)
             
             if one_solver.check() != sat:
-                unsat += 1
+                unsat += 1                
+                
                 if stale > saturation:
-                    # restart the solver
-                    solver_main = Solver()
-                    initial_constraints(solver_main, definition["signature"], z3_args, lib=lib)
-                    collect_constraints(solver_main, api, definition["ruleset"], z3_args, use_reference=use_reference, lib=lib)
-                    stale = 0
-                    seed += 1
-                    saturation += 10    # Making it more difficult to reach stale
-                    rng = np.random.default_rng(seed)
+                    # Reduce blocking to relax constraints
+                    min_percent = 1.0 / len(block_all)    # At least one constraint should be blocked
+                    blocking_proba = max(blocking_proba - min_percent, min_percent)
+                    stale = 0                    
+                    # saturation += 10    # Making it more difficult to reach stale
+                    if print_details:
+                        print(f"\n--- Stale solver after {elapsed:.2f} s. Reducing blocking probability to {blocking_proba} ---\n")
                     continue
 
                 stale += 1
                 elapsed = time.time() - start
                 continue
             
-            # potential_valid_blocks = []
             model = one_solver.model()
             solve_times.append(time.time() - start_time)
             start_time = time.time()
@@ -287,6 +289,7 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
                     print(f"\nPotential bug. Input:\n{abstract_print(abstract_input, definition['signature'])}")
             else:
                 invalid += 1
+                exceptions.add(exception_message)
                 if print_details:
                     print(abstract_print(abstract_input, definition["signature"]))
                     print(f"\nThe input faced status {status}. Faced exception:\n{exception_message}")
@@ -297,6 +300,11 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
 
             save_state_models(definition["api"], definition["suffix"], unsat, nominal, invalid, crash, excp, tmp_results)
 
+    exceptions_dir = create_subdir(get_tmp_dir(), f"exceptions_models_{lib}")
+    exceptions_file = os.path.join(exceptions_dir, f"{api}_{definition['suffix']}.txt")
+    with open(exceptions_file, "w") as f:
+        f.write('\n'.join(sorted(exceptions))) 
+    
     print(f"Generated {num_model} models for {api} with suffix {definition['suffix']} | Avg solve time: {np.mean(solve_times):.2f} | Avg check time: {np.mean(check_times):.2f} s ")
     return models
 
@@ -312,7 +320,7 @@ def load_existing_models(corpus_dir, z3_args):
     return models
 
 def run_model_gen(variant, duration, n_max, lib, seed, regen, use_reference=False):
-    print_details = False # Set to True if you want to print details of the process
+    print_details = True # Set to True if you want to print details of the process
     
     # alias
     if lib == "tensorflow":
@@ -326,8 +334,7 @@ def run_model_gen(variant, duration, n_max, lib, seed, regen, use_reference=Fals
     api = get_lib_version(api, lib=lib)
     definition = get_definition(api, z3=True, lib=lib, suffix=suffix, use_reference=use_reference)
     if len(definition["ruleset"]) == 0:
-        print(f"No invariants learned for {api}")
-        return
+        print(f"No invariants learned for {api}, running without constraints except for the default ones")
     else:
         print('-----' * 20)
         print(f"Using these rulesets for {api} with suffix {suffix}:")

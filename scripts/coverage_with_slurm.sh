@@ -62,16 +62,16 @@ if [ "$lib" = "torch" ]; then
     if [ ! -f ${PROJECT_DIR}/instrumented_torch/torch-${lib_v}* ]; then  # Download only if not already downloaded
         pip install gdown
         # Update link
-        # gdown --fuzzy https://drive.google.com/file/d/1GqydzvLO7XTlFXnSum_zhEulJpC2JRwU/view?usp=sharing -O $PROJECT_DIR/instrumented_pytorch/
+        # gdown --fuzzy https://drive.google.com/file/d/1GqydzvLO7XTlFXnSum_zhEulJpC2JRwU/view?usp=sharing -O $PROJECT_DIR/instrumented_torch/
     fi
-    pip install $PROJECT_DIR/instrumented_pytorch/torch-${lib_v}* --force-reinstall
+    pip install $PROJECT_DIR/instrumented_torch/torch-${lib_v}* --force-reinstall
     export OMP_NUM_THREADS=1    # To prevent issues with coverage collection due to multithreading
 else
     # Install instrumented tensorflow
     if [ ! -f ${PROJECT_DIR}/instrumented_tf/tensorflow-${lib_v}* ]; then  # Download only if not already downloaded
         pip install gdown
         # Update link
-        # gdown --fuzzy https://drive.google.com/file/d/1GqydzvLO7XTlFXnSum_zhEulJpC2JRwU/view?usp=sharing -O $PROJECT_DIR/instrumented_pytorch/
+        # gdown --fuzzy https://drive.google.com/file/d/1GqydzvLO7XTlFXnSum_zhEulJpC2JRwU/view?usp=sharing -O $PROJECT_DIR/instrumented_torch/
     fi
     pip install $PROJECT_DIR/instrumented_tf/tensorflow-${lib_v}* --force-reinstall
 fi

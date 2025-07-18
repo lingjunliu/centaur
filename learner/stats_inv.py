@@ -82,8 +82,8 @@ def main():
     rng = np.random.default_rng(21)
 
     sample_apis_without_inputs = rng.choice(list(apis_without_llm_inputs), size=min(5, len(apis_without_llm_inputs)), replace=False)
-    sample_apis_without_invariants = rng.choice(list(apis_without_invariants), size=min(5, len(apis_without_invariants)), replace=False)
-    sample_apis_without_models = rng.choice(list(apis_without_models), size=min(5, len(apis_without_models)), replace=False)
+    sample_apis_without_invariants = rng.choice(list(apis_without_invariants.intersection(apis_with_llm_inputs)), size=min(5, len(apis_without_invariants)), replace=False)
+    sample_apis_without_models = rng.choice(list(apis_without_models.intersection(apis_with_invariants)), size=min(5, len(apis_without_models)), replace=False)
 
     print("\nSample APIs without LLM generated inputs:\n")
     print('\n'.join(sample_apis_without_inputs))
