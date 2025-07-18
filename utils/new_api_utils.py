@@ -131,28 +131,28 @@ def match_signature_to_input(input_dict, signature, match_type=False):
             if arg == "out" and value is None:
                 continue  # out can be None, so we skip it
             if signature[arg] in ["tensor", "tensor_list"]:
-                if not isinstance(value, (torch.Tensor, np.ndarray, tf.constant)):
+                if value is not None and not isinstance(value, (torch.Tensor, np.ndarray, tf.constant)):
                     return False
             elif signature[arg] == "dtype":
-                if not isinstance(value, (np.dtype, torch.dtype, tf.dtypes.DType, type)):
+                if value is not None and not isinstance(value, (np.dtype, torch.dtype, tf.dtypes.DType, type)):
                     return False
             elif signature[arg] == "string":
-                if not isinstance(value, str):
+                if value is not None and not isinstance(value, str):
                     return False
             elif signature[arg] == "integer":
-                if not isinstance(value, (int, np.integer)):
+                if value is not None and not isinstance(value, (int, np.integer)):
                     return False
             elif signature[arg] == "float":
-                if not isinstance(value, (int, np.integer, float, np.floating)):
+                if value is not None and not isinstance(value, (int, np.integer, float, np.floating)):
                     return False
             elif signature[arg] == "boolean":
-                if not isinstance(value, (bool, np.bool_)):
+                if value is not None and not isinstance(value, (bool, np.bool_)):
                     return False
             elif signature[arg] == "tuple":
-                if not isinstance(value, (tuple, list)):
+                if value is not None and not isinstance(value, (tuple, list)):
                     return False
             elif signature[arg] == "list":
-                if not isinstance(value, (list, np.ndarray)):
+                if value is not None and not isinstance(value, (list, np.ndarray)):
                     return False
     
     return True
@@ -335,6 +335,7 @@ def run_api(api, input_dict, cpu=True, lib="torch"):
         torch.utils.deterministic.fill_uninitialized_memory = True
     elif lib == "tf":
         tf.config.experimental.enable_op_determinism()
+        tf.random.set_seed(42)
 
     if lib == "torch":
         result = func(*inp["args"], **inp["kwargs"])

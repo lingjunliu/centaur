@@ -3,7 +3,7 @@ from generator.rules_auto_z3 import check_rules_z3
 from utils.z3_utils import instantiate_args, create_z3_args, initial_constraints, collect_constraints
 from .inputs import get_inputs
 from utils.new_api_utils import get_n_variations, get_lib_version, get_signature, get_api_suffix
-from utils.misc import get_dir_in_root, get_tmp_dir, create_subdir, append_file_in_root
+from utils.misc import get_dir_in_root, get_tmp_dir, create_subdir, append_file_in_root, bcolors
 from utils.defaults import MAX_N_DIM
 from generator.input_generators import abstract_print, get_abstract_input
 from generator.random_generation import random_fuzz
@@ -126,10 +126,10 @@ def reduce_ruleset(ruleset, signature, api, z3_args, max_trial=30, time_budget=3
 
         if rule is None:
             base_validity_ratio = valid / trial
-        elif valid / trial < base_validity_ratio:
+        elif valid / trial < base_validity_ratio or base_validity_ratio == 0.0:
             rules_to_keep.add(rule)
         elif print_details:
-            print(f"Removing rule {rule} did not reduce the validity ratio below the base ratio {base_validity_ratio:.4f}. Removing it.")
+            print(f"{bcolors.WARNING}Removing rule {rule} did not reduce the validity ratio below the base ratio {base_validity_ratio:.4f}. Removing it.{bcolors.ENDC}")
 
     print(f"\n-- Rules reduced from {n_rules_original} to {len(rules_to_keep)} --\n")
 

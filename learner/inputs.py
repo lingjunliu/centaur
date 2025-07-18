@@ -17,22 +17,21 @@ def introduce_float_types(input_dict, signature, lib="torch", rng=np.random.defa
     """
     mutated_inputs = []
     float_types = [np.float16, np.float32, np.float64]
-    index = rng.integers(0, len(float_types))
-    for arg, domain in signature.items():
-        if input_dict[arg] is None:
-            continue
-        
-        if domain in ["tensor", "tensor_list"]:
-            new_input = copy.deepcopy(input_dict)
-            if isinstance(new_input[arg], np.ndarray):
-                new_input[arg] = new_input[arg].astype(float_types[index%len(float_types)])
-            elif isinstance(new_input[arg], list):
-                for i, _ in enumerate(new_input[arg]):
-                    new_input[arg][i] = new_input[arg][i].astype(float_types[index%len(float_types)])
-            else:
-                new_input[arg] = float_types[index%len(float_types)](new_input[arg])
-            index += 1
-            mutated_inputs.append(new_input)
+    for index in range(0, len(float_types)):
+        for arg, domain in signature.items():
+            if input_dict[arg] is None:
+                continue
+            
+            if domain in ["tensor", "tensor_list"]:
+                new_input = copy.deepcopy(input_dict)
+                if isinstance(new_input[arg], np.ndarray):
+                    new_input[arg] = new_input[arg].astype(float_types[index%len(float_types)])
+                elif isinstance(new_input[arg], list):
+                    for i, _ in enumerate(new_input[arg]):
+                        new_input[arg][i] = new_input[arg][i].astype(float_types[index%len(float_types)])
+                else:
+                    new_input[arg] = float_types[index%len(float_types)](new_input[arg])                
+                mutated_inputs.append(new_input)
     
     return mutated_inputs
 
@@ -42,22 +41,22 @@ def introduce_complex_types(input_dict, signature, lib="torch", rng=np.random.de
     """
     mutated_inputs = []
     complex_types = [np.complex64, np.complex128]
-    index = rng.integers(0, len(complex_types))
-    for arg, domain in signature.items():
-        if input_dict[arg] is None:
-            continue
-        
-        if domain in ["tensor", "tensor_list"]:
-            new_input = copy.deepcopy(input_dict)
-            if isinstance(new_input[arg], np.ndarray):
-                new_input[arg] = new_input[arg].astype(complex_types[index%len(complex_types)])
-            elif isinstance(new_input[arg], list):
-                for i, _ in enumerate(new_input[arg]):
-                    new_input[arg][i] = new_input[arg][i].astype(complex_types[index%len(complex_types)])
-            else:
-                new_input[arg] = complex_types[index%len(complex_types)](new_input[arg])
-            index += 1
-            mutated_inputs.append(new_input)
+    for index in range(0, len(complex_types)):
+        for arg, domain in signature.items():
+            if input_dict[arg] is None:
+                continue
+            
+            if domain in ["tensor", "tensor_list"]:
+                new_input = copy.deepcopy(input_dict)
+                if isinstance(new_input[arg], np.ndarray):
+                    new_input[arg] = new_input[arg].astype(complex_types[index%len(complex_types)])
+                elif isinstance(new_input[arg], list):
+                    for i, _ in enumerate(new_input[arg]):
+                        new_input[arg][i] = new_input[arg][i].astype(complex_types[index%len(complex_types)])
+                else:
+                    new_input[arg] = complex_types[index%len(complex_types)](new_input[arg])
+                index += 1
+                mutated_inputs.append(new_input)
     
     return mutated_inputs
 
@@ -117,22 +116,22 @@ def introduce_integer_types(input_dict, signature, lib="torch", rng=np.random.de
     """
     mutated_inputs = []
     int_types = [np.int8, np.int16, np.int32, np.int64, np.uint8]
-    index = rng.integers(0, len(int_types))
-    for arg, domain in signature.items():
-        if input_dict[arg] is None:
-            continue
-        
-        if domain in ["tensor", "tensor_list"]:
-            new_input = copy.deepcopy(input_dict)
-            if isinstance(new_input[arg], np.ndarray):
-                new_input[arg] = new_input[arg].astype(int_types[index%len(int_types)])
-            elif isinstance(new_input[arg], list):
-                for i, _ in enumerate(new_input[arg]):
-                    new_input[arg][i] = new_input[arg][i].astype(int_types[index%len(int_types)])
-            else:
-                new_input[arg] = int_types[index%len(int_types)](new_input[arg])
-            index += 1
-            mutated_inputs.append(new_input)
+    for index in range(0, len(int_types)):
+        for arg, domain in signature.items():
+            if input_dict[arg] is None:
+                continue
+            
+            if domain in ["tensor", "tensor_list"]:
+                new_input = copy.deepcopy(input_dict)
+                if isinstance(new_input[arg], np.ndarray):
+                    new_input[arg] = new_input[arg].astype(int_types[index%len(int_types)])
+                elif isinstance(new_input[arg], list):
+                    for i, _ in enumerate(new_input[arg]):
+                        new_input[arg][i] = new_input[arg][i].astype(int_types[index%len(int_types)])
+                else:
+                    new_input[arg] = int_types[index%len(int_types)](new_input[arg])
+                index += 1
+                mutated_inputs.append(new_input)
     
     return mutated_inputs
 

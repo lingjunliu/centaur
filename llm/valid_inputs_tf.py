@@ -25,7 +25,7 @@ def tf_critical_section_inputs():
 
     # Input 3
     input_dict = {
-        "name": None,
+        "name": "custom",
         "shared_name": "shared_cs_3",
         "critical_section_def": None,
         "import_scope": "scope_3"
@@ -43,7 +43,7 @@ def tf_critical_section_inputs():
 
     # Input 5
     input_dict = {
-        "name": None,
+        "name": "custom",
         "shared_name": None,
         "critical_section_def": None,
         "import_scope": "scope_5"
@@ -79,7 +79,7 @@ def tf_critical_section_inputs():
 
     # Input 9
     input_dict = {
-        "name": None,
+        "name": "custom",
         "shared_name": "yet_another_shared_name",
         "critical_section_def": None,
         "import_scope": "yet_another_import_scope"
@@ -21941,42 +21941,42 @@ def tf_io_decode_base64_inputs():
 
     # Input 1: Simple string
     input_str = tf.constant("SGVsbG8gV29ybGQ=")
-    input_dict = {"input": input_str, "name": None}
+    input_dict = {"input": input_str, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Empty string
     input_str = tf.constant("")
-    input_dict = {"input": input_str, "name": None}
+    input_dict = {"input": input_str, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: String with padding
     input_str = tf.constant("SGVsbG8gUGFkZGVkIQ==")
-    input_dict = {"input": input_str, "name": None}
+    input_dict = {"input": input_str, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: String with no padding but valid length
     input_str = tf.constant("SGVsbG8gTm9QYWRkaW5n") # Needs to be a multiple of 4
-    input_dict = {"input": tf.constant("SGVsbG8gTm9QYWRkaW5n"), "name": None}
+    input_dict = {"input": tf.constant("SGVsbG8gTm9QYWRkaW5n"), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Longer string
     input_str = tf.constant("VGhpcyBpcyBhIGxvbmcgYmFzZTY0IGVuY29kZWQgc3RyaW5nLiBJdCBjb250YWlucyBtb3JlIHRoYW4gdXN1YWwgbGV0dGVycy4=")
-    input_dict = {"input": input_str, "name": None}
+    input_dict = {"input": input_str, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: String with numbers and special characters
     input_str = tf.constant("MTIzNDU2Nzg5MCFAIyQlXiYqKCk=")
-    input_dict = {"input": input_str, "name": None}
+    input_dict = {"input": input_str, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: Multidimensional tensor of strings
     input_str = tf.constant([["SGVsbG8=", "V29ybGQ="], ["Rm9v", "QmFy"]])
-    input_dict = {"input": input_str, "name": None}
+    input_dict = {"input": input_str, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Another string
     input_str = tf.constant("dGVzdGluZyBzdHJpbmc=")
-    input_dict = {"input": input_str, "name": None}
+    input_dict = {"input": input_str, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: Web-safe with mixed casing and padding, correctly padded
@@ -21986,7 +21986,7 @@ def tf_io_decode_base64_inputs():
 
     # Input 10: Valid web-safe string
     input_str = tf.constant("YWJjZA")
-    input_dict = {"input": tf.constant("YWJjZA"), "name": None}
+    input_dict = {"input": tf.constant("YWJjZA"), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -22276,7 +22276,7 @@ def tf_io_encode_jpeg_inputs():
         "x_density": 300,
         "y_density": 300,
         "xmp_metadata": "",
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -22310,7 +22310,7 @@ def tf_io_encode_jpeg_inputs():
         "x_density": 150,
         "y_density": 150,
         "xmp_metadata": "",
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -22327,7 +22327,7 @@ def tf_io_encode_jpeg_inputs():
         "x_density": 300,
         "y_density": 300,
         "xmp_metadata": "",
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -22344,7 +22344,7 @@ def tf_io_encode_jpeg_inputs():
         "x_density": 300,
         "y_density": 300,
         "xmp_metadata": "",
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -22361,7 +22361,7 @@ def tf_io_encode_jpeg_inputs():
         "x_density": 300,
         "y_density": 300,
         "xmp_metadata": "",
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -22378,7 +22378,7 @@ def tf_io_encode_jpeg_inputs():
         "x_density": 100,
         "y_density": 100,
         "xmp_metadata": "",
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -22395,7 +22395,7 @@ def tf_io_encode_jpeg_inputs():
         "x_density": 300,
         "y_density": 300,
         "xmp_metadata": "another metadata string",
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -22412,7 +22412,7 @@ def tf_io_encode_jpeg_inputs():
         "x_density": 300,
         "y_density": 300,
         "xmp_metadata": "",
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -25405,7 +25405,7 @@ def tf_linalg_cholesky_inputs():
 
     # Input 1: Simple 2x2 matrix
     input_matrix = np.array([[4.0, 1.0], [1.0, 4.0]], dtype=np.float32)
-    input_dict = {"input": input_matrix, "name": None}
+    input_dict = {"input": input_matrix, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Batch of 2x2 matrices
@@ -25417,24 +25417,24 @@ def tf_linalg_cholesky_inputs():
 
     # Input 3: 3x3 matrix
     input_matrix = np.array([[2.0, -1.0, 0.0], [-1.0, 2.0, -1.0], [0.0, -1.0, 2.0]], dtype=np.float32)
-    input_dict = {"input": input_matrix, "name": None}
+    input_dict = {"input": input_matrix, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Larger matrix (4x4)
     input_matrix = np.array([[4.0, 1.0, 0.0, 0.0], [1.0, 4.0, 1.0, 0.0], [0.0, 1.0, 4.0, 1.0], [0.0, 0.0, 1.0, 4.0]], dtype=np.float64)
-    input_dict = {"input": input_matrix, "name": None}
+    input_dict = {"input": input_matrix, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Complex 2x2 matrix
     input_matrix = np.array([[4 + 0j, 1 + 0j], [1 + 0j, 4 + 0j]], dtype=np.complex64)
-    input_dict = {"input": input_matrix, "name": None}
+    input_dict = {"input": input_matrix, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Complex batch of 2x2
     input_matrix1 = np.array([[4 + 0j, 1 + 0j], [1 + 0j, 4 + 0j]], dtype=np.complex128)
     input_matrix2 = np.array([[9 + 0j, 3 + 0j], [3 + 0j, 9 + 0j]], dtype=np.complex128)
     input_tensor = np.array([input_matrix1, input_matrix2])
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: 3D tensor (batch size 3, 2x2 matrices) float32
@@ -25442,14 +25442,14 @@ def tf_linalg_cholesky_inputs():
     input_matrix2 = np.array([[9.0, 3.0], [3.0, 9.0]], dtype=np.float32)
     input_matrix3 = np.array([[16.0, 4.0], [4.0, 16.0]], dtype=np.float32)
     input_tensor = np.array([input_matrix1, input_matrix2, input_matrix3])
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Larger batch size with larger matrices (3x3)
     input_matrix1 = np.array([[2.0, -1.0, 0.0], [-1.0, 2.0, -1.0], [0.0, -1.0, 2.0]], dtype=np.float64)
     input_matrix2 = np.array([[5.0, -2.0, 0.0], [-2.0, 5.0, -2.0], [0.0, -2.0, 5.0]], dtype=np.float64)
     input_tensor = np.array([input_matrix1, input_matrix2])
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: Name provided
@@ -26301,7 +26301,7 @@ def tf_linalg_eigvalsh_inputs():
 
     # Input 1: Simple 2x2 matrix
     tensor = np.array([[1.0, 0.0], [0.0, 2.0]], dtype=np.float32)
-    input_dict = {"tensor": tensor, "name": None}
+    input_dict = {"tensor": tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: 3x3 matrix
@@ -26311,7 +26311,7 @@ def tf_linalg_eigvalsh_inputs():
 
     # Input 3: Batch of 2x2 matrices
     tensor = np.array([[[1.0, 0.0], [0.0, 2.0]], [[3.0, 0.0], [0.0, 4.0]]], dtype=np.float32)
-    input_dict = {"tensor": tensor, "name": None}
+    input_dict = {"tensor": tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Larger matrix with negative values
@@ -26321,12 +26321,12 @@ def tf_linalg_eigvalsh_inputs():
 
     # Input 5: Complex matrix (still self-adjoint if conjugate transpose equals itself)
     tensor = np.array([[1+0j, 2-1j], [2+1j, 3+0j]], dtype=np.complex64)
-    input_dict = {"tensor": tensor, "name": None}
+    input_dict = {"tensor": tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Batch of complex matrices
     tensor = np.array([[[1+0j, 2-1j], [2+1j, 3+0j]], [[4+0j, 1-2j], [1+2j, 5+0j]]], dtype=np.complex64)
-    input_dict = {"tensor": tensor, "name": None}
+    input_dict = {"tensor": tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: Single element matrix
@@ -26336,12 +26336,12 @@ def tf_linalg_eigvalsh_inputs():
 
     # Input 8: Batch of single element matrices
     tensor = np.array([[[5.0]], [[6.0]]], dtype=np.float32)
-    input_dict = {"tensor": tensor, "name": None}
+    input_dict = {"tensor": tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: Another 3x3 matrix
     tensor = np.array([[7.0, 2.0, 1.0], [2.0, 8.0, 3.0], [1.0, 3.0, 9.0]], dtype=np.float32)
-    input_dict = {"tensor": tensor, "name": None}
+    input_dict = {"tensor": tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: Batch of matrices with different sizes
@@ -26349,7 +26349,7 @@ def tf_linalg_eigvalsh_inputs():
 
     tensor = np.array([[[1.0, 2.0], [2.0, 3.0]], [[4.0, 0.0], [0.0, 4.0]]], dtype=np.float32)
 
-    input_dict = {"tensor": tensor, "name": None}
+    input_dict = {"tensor": tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 11: Add another valid input with different values to exceed the 10 input limit
@@ -26435,7 +26435,7 @@ def tf_linalg_inv_inputs():
 
     # Input 1: Simple float32 matrix
     input_matrix = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    input_dict = {"input": input_matrix, "adjoint": False, "name": None}
+    input_dict = {"input": input_matrix, "adjoint": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float64 matrix with adjoint
@@ -26445,12 +26445,12 @@ def tf_linalg_inv_inputs():
 
     # Input 3: half precision matrix
     input_matrix = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float16)
-    input_dict = {"input": input_matrix, "adjoint": False, "name": None}
+    input_dict = {"input": input_matrix, "adjoint": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Complex64 matrix
     input_matrix = np.array([[1.0 + 1j, 2.0], [3.0, 4.0 - 1j]], dtype=np.complex64)
-    input_dict = {"input": input_matrix, "adjoint": False, "name": None}
+    input_dict = {"input": input_matrix, "adjoint": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Complex128 matrix with adjoint
@@ -26460,27 +26460,27 @@ def tf_linalg_inv_inputs():
 
     # Input 6: Batch of matrices (float32)
     input_matrix = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    input_dict = {"input": input_matrix, "adjoint": False, "name": None}
+    input_dict = {"input": input_matrix, "adjoint": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: Larger matrix (float32)
     input_matrix = np.array([[1.0, 2.0, 3.0], [0.0, 5.0, 6.0], [7.0, 0.0, 9.0]], dtype=np.float32)
-    input_dict = {"input": input_matrix, "adjoint": False, "name": None}
+    input_dict = {"input": input_matrix, "adjoint": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Matrix with negative values (float32)
     input_matrix = np.array([[-1.0, 2.0], [3.0, -4.0]], dtype=np.float32)
-    input_dict = {"input": input_matrix, "adjoint": False, "name": None}
+    input_dict = {"input": input_matrix, "adjoint": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: Batch of complex matrices (complex64)
     input_matrix = np.array([[[1.0 + 1j, 2.0], [3.0, 4.0 - 1j]], [[5.0, 6.0 + 1j], [7.0 - 1j, 8.0]]], dtype=np.complex64)
-    input_dict = {"input": input_matrix, "adjoint": False, "name": None}
+    input_dict = {"input": input_matrix, "adjoint": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: 4D tensor of matrices (float32)
     input_matrix = np.random.rand(2, 3, 2, 2).astype(np.float32)
-    input_dict = {"input": input_matrix, "adjoint": False, "name": None}
+    input_dict = {"input": input_matrix, "adjoint": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
@@ -26561,7 +26561,7 @@ def tf_linalg_logm_inputs():
 
     # Input 1: Simple 2x2 complex matrix
     input_matrix = np.array([[1+1j, 2+0j], [0+1j, 3-1j]], dtype=np.complex64)
-    input_dict = {"input": tf.convert_to_tensor(input_matrix).numpy(), "name": None}
+    input_dict = {"input": tf.convert_to_tensor(input_matrix).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Batch of 2x2 complex matrices
@@ -26571,17 +26571,17 @@ def tf_linalg_logm_inputs():
 
     # Input 3: 3x3 complex matrix
     input_matrix = np.array([[1+0j, 2+1j, 3-1j], [4-1j, 5+0j, 6+1j], [7+1j, 8-1j, 9+0j]], dtype=np.complex128)
-    input_dict = {"input": tf.convert_to_tensor(input_matrix).numpy(), "name": None}
+    input_dict = {"input": tf.convert_to_tensor(input_matrix).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: 2x2 complex matrix with negative values
     input_matrix = np.array([[-1+1j, -2+0j], [0-1j, -3-1j]], dtype=np.complex64)
-    input_dict = {"input": tf.convert_to_tensor(input_matrix).numpy(), "name": None}
+    input_dict = {"input": tf.convert_to_tensor(input_matrix).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: 1x1 complex matrix
     input_matrix = np.array([[1+1j]], dtype=np.complex64)
-    input_dict = {"input": tf.convert_to_tensor(input_matrix).numpy(), "name": None}
+    input_dict = {"input": tf.convert_to_tensor(input_matrix).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -26880,19 +26880,19 @@ def tf_linalg_matmul_inputs():
     # Input 1
     a = np.array([[1, 2], [3, 4]], dtype=np.int32)
     b = np.array([[5, 6], [7, 8]], dtype=np.int32)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "adjoint_a": False, "adjoint_b": False, "a_is_sparse": False, "b_is_sparse": False, "output_type": None, "grad_a": False, "grad_b": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "adjoint_a": False, "adjoint_b": False, "a_is_sparse": False, "b_is_sparse": False, "output_type": None, "grad_a": False, "grad_b": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     a = np.array([[1, 2], [3, 4]], dtype=np.float32)
     b = np.array([[5, 6], [7, 8]], dtype=np.float32)
-    input_dict = {"a": a, "b": b, "transpose_a": True, "transpose_b": False, "adjoint_a": False, "adjoint_b": False, "a_is_sparse": False, "b_is_sparse": False, "output_type": None, "grad_a": False, "grad_b": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": True, "transpose_b": False, "adjoint_a": False, "adjoint_b": False, "a_is_sparse": False, "b_is_sparse": False, "output_type": None, "grad_a": False, "grad_b": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     a = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex64)
     b = np.array([[5+5j, 6+6j], [7+7j, 8+8j]], dtype=np.complex64)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": True, "adjoint_a": False, "adjoint_b": False, "a_is_sparse": False, "b_is_sparse": False, "output_type": None, "grad_a": False, "grad_b": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": True, "adjoint_a": False, "adjoint_b": False, "a_is_sparse": False, "b_is_sparse": False, "output_type": None, "grad_a": False, "grad_b": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
@@ -26904,37 +26904,37 @@ def tf_linalg_matmul_inputs():
     # Input 5
     a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
     b = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.int32)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "adjoint_a": False, "adjoint_b": False, "a_is_sparse": False, "b_is_sparse": False, "output_type": None, "grad_a": False, "grad_b": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "adjoint_a": False, "adjoint_b": False, "a_is_sparse": False, "b_is_sparse": False, "output_type": None, "grad_a": False, "grad_b": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
     a = np.array([[1, 0], [0, 4]], dtype=np.float32)
     b = np.array([[5, 0], [0, 8]], dtype=np.float32)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "adjoint_a": False, "adjoint_b": False, "a_is_sparse": True, "b_is_sparse": True, "output_type": None, "grad_a": False, "grad_b": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "adjoint_a": False, "adjoint_b": False, "a_is_sparse": True, "b_is_sparse": True, "output_type": None, "grad_a": False, "grad_b": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
     a = np.array([[1, 2, 3]], dtype=np.int32)
     b = np.array([[4], [5], [6]], dtype=np.int32)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "adjoint_a": False, "adjoint_b": False, "a_is_sparse": False, "b_is_sparse": False, "output_type": None, "grad_a": False, "grad_b": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "adjoint_a": False, "adjoint_b": False, "a_is_sparse": False, "b_is_sparse": False, "output_type": None, "grad_a": False, "grad_b": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
     a = np.array([[[1, 2]], [[3, 4]]], dtype=np.int32)
     b = np.array([[[5], [6]], [[7], [8]]], dtype=np.int32)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "adjoint_a": False, "adjoint_b": False, "a_is_sparse": False, "b_is_sparse": False, "output_type": None, "grad_a": False, "grad_b": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "adjoint_a": False, "adjoint_b": False, "a_is_sparse": False, "b_is_sparse": False, "output_type": None, "grad_a": False, "grad_b": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
     a = np.array([[1, 2], [3, 4]], dtype=np.float16)
     b = np.array([[5, 6], [7, 8]], dtype=np.float16)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "adjoint_a": False, "adjoint_b": False, "a_is_sparse": False, "b_is_sparse": False, "output_type": None, "grad_a": True, "grad_b": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "adjoint_a": False, "adjoint_b": False, "a_is_sparse": False, "b_is_sparse": False, "output_type": None, "grad_a": True, "grad_b": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
     a = np.array([[1, 2], [3, 4]], dtype=np.float64)
     b = np.array([[5, 6], [7, 8]], dtype=np.float64)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "adjoint_a": False, "adjoint_b": False, "a_is_sparse": False, "b_is_sparse": False, "output_type": None, "grad_a": False, "grad_b": True, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "adjoint_a": False, "adjoint_b": False, "a_is_sparse": False, "b_is_sparse": False, "output_type": None, "grad_a": False, "grad_b": True, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -27126,61 +27126,61 @@ def tf_linalg_matvec_inputs():
     # Input 1: Basic case
     a = np.array([[1, 2], [3, 4]], dtype=np.float32)
     b = np.array([5, 6], dtype=np.float32)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "adjoint_a": False, "a_is_sparse": False, "b_is_sparse": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "adjoint_a": False, "a_is_sparse": False, "b_is_sparse": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Transpose a
     a = np.array([[1, 2], [3, 4]], dtype=np.float32)
     b = np.array([5, 6], dtype=np.float32)
-    input_dict = {"a": a, "b": b, "transpose_a": True, "adjoint_a": False, "a_is_sparse": False, "b_is_sparse": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": True, "adjoint_a": False, "a_is_sparse": False, "b_is_sparse": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Adjoint a (complex)
     a = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex64)
     b = np.array([5+5j, 6+6j], dtype=np.complex64)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "adjoint_a": True, "a_is_sparse": False, "b_is_sparse": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "adjoint_a": True, "a_is_sparse": False, "b_is_sparse": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Sparse a (float32)
     a = np.array([[0, 2], [3, 0]], dtype=np.float32)
     b = np.array([5, 6], dtype=np.float32)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "adjoint_a": False, "a_is_sparse": True, "b_is_sparse": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "adjoint_a": False, "a_is_sparse": True, "b_is_sparse": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Larger matrix and vector
     a = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]], dtype=np.float64)
     b = np.array([13, 14, 15, 16], dtype=np.float64)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "adjoint_a": False, "a_is_sparse": False, "b_is_sparse": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "adjoint_a": False, "a_is_sparse": False, "b_is_sparse": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Negative values
     a = np.array([[-1, 2], [3, -4]], dtype=np.int32)
     b = np.array([-5, 6], dtype=np.int32)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "adjoint_a": False, "a_is_sparse": False, "b_is_sparse": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "adjoint_a": False, "a_is_sparse": False, "b_is_sparse": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
      # Input 7: 3D tensor a, 2D tensor b
     a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
     b = np.array([[9, 10], [11, 12]], dtype=np.float32)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "adjoint_a": False, "a_is_sparse": False, "b_is_sparse": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "adjoint_a": False, "a_is_sparse": False, "b_is_sparse": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: int32 type
     a = np.array([[1, 2], [3, 4]], dtype=np.int32)
     b = np.array([5, 6], dtype=np.int32)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "adjoint_a": False, "a_is_sparse": False, "b_is_sparse": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "adjoint_a": False, "a_is_sparse": False, "b_is_sparse": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: Complex128 type
     a = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex128)
     b = np.array([5+5j, 6+6j], dtype=np.complex128)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "adjoint_a": False, "a_is_sparse": False, "b_is_sparse": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "adjoint_a": False, "a_is_sparse": False, "b_is_sparse": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: a_is_sparse with float32 type
     a = np.array([[0, 2], [3, 0]], dtype=np.float32)
     b = np.array([5, 6], dtype=np.float32)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "adjoint_a": False, "a_is_sparse": True, "b_is_sparse": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "adjoint_a": False, "a_is_sparse": True, "b_is_sparse": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -27596,7 +27596,7 @@ def tf_linalg_sqrtm_inputs():
     # Input 1: Basic float32 matrix
     input_matrix = np.array([[1.0, 0.0], [0.0, 1.0]], dtype=np.float32)
     input_tensor = tf.convert_to_tensor(input_matrix, dtype=tf.float32)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Complex64 matrix
@@ -27608,7 +27608,7 @@ def tf_linalg_sqrtm_inputs():
     # Input 3: Larger float64 matrix
     input_matrix = np.array([[4.0, 1.0], [6.0, 5.0]], dtype=np.float64)
     input_tensor = tf.convert_to_tensor(input_matrix, dtype=tf.float64)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Complex128 matrix
@@ -27620,13 +27620,13 @@ def tf_linalg_sqrtm_inputs():
     # Input 5: Batch of matrices
     input_matrix = np.array([[[1.0, 0.0], [0.0, 1.0]], [[4.0, 0.0], [0.0, 9.0]]], dtype=np.float32)
     input_tensor = tf.convert_to_tensor(input_matrix, dtype=tf.float32)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: 3D tensor float32
     input_matrix = np.array([[[1.0, 0.0], [0.0, 1.0]], [[2.0, 0.0], [0.0, 2.0]]], dtype=np.float32)
     input_tensor = tf.convert_to_tensor(input_matrix, dtype=tf.float32)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: 2x2 float32 matrix
@@ -27638,19 +27638,19 @@ def tf_linalg_sqrtm_inputs():
     # Input 8: Multiple batches of matrices (float64)
     input_matrix = np.array([[[1.0, 0.0], [0.0, 1.0]], [[4.0, 1.0], [2.0, 5.0]]], dtype=np.float64)
     input_tensor = tf.convert_to_tensor(input_matrix, dtype=tf.float64)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9: Batch of complex64 matrices
     input_matrix = np.array([[[1.0 + 0j, 0.0 + 0j], [0.0 + 0j, 1.0 + 0j]], [[2.0 + 0j, 0.0 + 0j], [0.0 + 0j, 2.0 + 0j]]], dtype=np.complex64)
     input_tensor = tf.convert_to_tensor(input_matrix, dtype=tf.complex64)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: Simple float64
     input_matrix = np.array([[1.0, 0.0], [0.0, 1.0]], dtype=np.float64)
     input_tensor = tf.convert_to_tensor(input_matrix, dtype=tf.float64)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -27828,7 +27828,7 @@ def tf_linalg_tensor_diag_part_inputs():
 
     # Input 1: 2x2 matrix
     input_tensor = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: 4x4 matrix
@@ -27838,12 +27838,12 @@ def tf_linalg_tensor_diag_part_inputs():
 
     # Input 3: 2x2x2x2 tensor
     input_tensor = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]], [[[9, 10], [11, 12]], [[13, 14], [15, 16]]]], dtype=np.int64)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Negative values
     input_tensor = np.array([[-1, 2], [3, -4]], dtype=np.int32)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Larger matrix
@@ -27863,12 +27863,12 @@ def tf_linalg_tensor_diag_part_inputs():
 
     # Input 8: Float64
     input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9: 3x3 matrix
     input_tensor = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.int32)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10: 4x4x4x4 matrix
@@ -28792,7 +28792,7 @@ def tf_math_angle_inputs():
 
     # Input 1: Complex64 tensor
     input1 = tf.constant([1 + 1j, 2 + 2j, 3 + 3j], dtype=tf.complex64)
-    input_dict = {"input": input1, "name": None}
+    input_dict = {"input": input1, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Complex128 tensor
@@ -28802,7 +28802,7 @@ def tf_math_angle_inputs():
 
     # Input 3: Float32 tensor
     input3 = tf.constant([-1.0, 0.0, 1.0], dtype=tf.float32)
-    input_dict = {"input": input3, "name": None}
+    input_dict = {"input": input3, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Float64 tensor
@@ -28812,7 +28812,7 @@ def tf_math_angle_inputs():
 
     # Input 5: Multidimensional Complex64 tensor
     input5 = tf.constant([[1 + 1j, 2 + 2j], [3 + 3j, 4 + 4j]], dtype=tf.complex64)
-    input_dict = {"input": input5, "name": None}
+    input_dict = {"input": input5, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Multidimensional Float64 tensor
@@ -28822,7 +28822,7 @@ def tf_math_angle_inputs():
 
     # Input 7: Complex64 with zero real part
     input7 = tf.constant([1j, 2j, 3j], dtype=tf.complex64)
-    input_dict = {"input": input7, "name": None}
+    input_dict = {"input": input7, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Complex128 with zero imaginary part
@@ -28832,7 +28832,7 @@ def tf_math_angle_inputs():
 
     # Input 9: Float32 with negative values
     input9 = tf.constant([-5.0, -2.5, -1.0], dtype=tf.float32)
-    input_dict = {"input": input9, "name": None}
+    input_dict = {"input": input9, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10: Complex128 with mixed signs
@@ -29465,7 +29465,7 @@ def tf_math_betainc_inputs():
     a = tf.constant(np.array([0.5], dtype=np.float32))
     b = tf.constant(np.array([0.5], dtype=np.float32))
     x = tf.constant(np.array([0.5], dtype=np.float32))
-    input_dict = {"a": a, "b": b, "x": x, "name": None}
+    input_dict = {"a": a, "b": b, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
@@ -29479,7 +29479,7 @@ def tf_math_betainc_inputs():
     a = tf.constant(np.array([1.0, 2.0, 3.0], dtype=np.float32))
     b = tf.constant(np.array([4.0, 5.0, 6.0], dtype=np.float32))
     x = tf.constant(np.array([0.2, 0.5, 0.9], dtype=np.float32))
-    input_dict = {"a": a, "b": b, "x": x, "name": None}
+    input_dict = {"a": a, "b": b, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
@@ -29493,42 +29493,42 @@ def tf_math_betainc_inputs():
     a = tf.constant(np.array([0.1], dtype=np.float32))
     b = tf.constant(np.array([0.1], dtype=np.float32))
     x = tf.constant(np.array([0.99], dtype=np.float32))
-    input_dict = {"a": a, "b": b, "x": x, "name": None}
+    input_dict = {"a": a, "b": b, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
     a = tf.constant(np.array([5.0], dtype=np.float64))
     b = tf.constant(np.array([1.0], dtype=np.float64))
     x = tf.constant(np.array([0.01], dtype=np.float64))
-    input_dict = {"a": a, "b": b, "x": x, "name": None}
+    input_dict = {"a": a, "b": b, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
     a = tf.constant(np.array([10.0], dtype=np.float32))
     b = tf.constant(np.array([10.0], dtype=np.float32))
     x = tf.constant(np.array([0.5], dtype=np.float32))
-    input_dict = {"a": a, "b": b, "x": x, "name": None}
+    input_dict = {"a": a, "b": b, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
     a = tf.constant(np.array([0.001], dtype=np.float64))
     b = tf.constant(np.array([0.001], dtype=np.float64))
     x = tf.constant(np.array([0.5], dtype=np.float64))
-    input_dict = {"a": a, "b": b, "x": x, "name": None}
+    input_dict = {"a": a, "b": b, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
      # Input 9
     a = tf.constant(np.array([1.5, 2.5], dtype=np.float32))
     b = tf.constant(np.array([3.5, 4.5], dtype=np.float32))
     x = tf.constant(np.array([0.7, 0.3], dtype=np.float32))
-    input_dict = {"a": a, "b": b, "x": x, "name": None}
+    input_dict = {"a": a, "b": b, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
     a = tf.constant(np.array([2.5], dtype=np.float64))
     b = tf.constant(np.array([1.5], dtype=np.float64))
     x = tf.constant(np.array([0.9], dtype=np.float64))
-    input_dict = {"a": a, "b": b, "x": x, "name": None}
+    input_dict = {"a": a, "b": b, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
@@ -29924,12 +29924,12 @@ def tf_math_cos_inputs():
 
     # Input 1: float32, single element
     x = np.array(0.0, dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float32, vector
     x = np.array([0.0, np.pi/2, np.pi, 3*np.pi/2, 2*np.pi], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: float64, matrix
@@ -29939,12 +29939,12 @@ def tf_math_cos_inputs():
 
     # Input 4: float32, positive and negative values
     x = np.array([-2.0, -1.0, 0.0, 1.0, 2.0], dtype=np.float32)
-    input_dict = {"x": tf.constant(x, dtype=tf.float32).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x, dtype=tf.float32).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: complex64
     x = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex64)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: complex128, multi-dimensional
@@ -29954,7 +29954,7 @@ def tf_math_cos_inputs():
 
     # Input 7: float32, large values
     x = np.array([1000.0, -1000.0], dtype=np.float32)
-    input_dict = {"x": tf.constant(x, dtype=tf.float32).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x, dtype=tf.float32).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: float32, 3D tensor
@@ -29964,12 +29964,12 @@ def tf_math_cos_inputs():
 
     # Input 9: float64, array with nan and inf
     x = np.array([np.nan, np.inf, -np.inf, 1.0, -1.0], dtype=np.float64)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: float32, tensor with a large number
     x = np.array([1000000.0], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -31124,37 +31124,37 @@ def tf_math_greater_equal_inputs():
     # Input 1
     x = np.array([5, 4, 6, 7], dtype=np.int32)
     y = np.array([5, 2, 5, 10], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     x = np.array([5, 4, 6, 7], dtype=np.int32)
     y = np.array([5], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     y = np.array([1.5, 1.5, 1.5], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
     x = np.array([-1, -2, -3], dtype=np.int32)
     y = np.array([0, -1, -4], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
     x = np.array([[1, 2], [3, 4]], dtype=np.int32)
     y = np.array([[2, 1], [4, 3]], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
     x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
     y = np.array([[[2, 1], [4, 3]], [[6, 5], [8, 7]]], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
@@ -31166,19 +31166,19 @@ def tf_math_greater_equal_inputs():
     # Input 8
     x = np.array([5, 4, 6, 7], dtype=np.uint8)
     y = np.array([5, 2, 5, 10], dtype=np.uint8)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
      # Input 9
     x = np.array([5.0, 4.0, 6.0, 7.0], dtype=np.float64)
     y = np.array([5.0, 2.0, 5.0, 10.0], dtype=np.float64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
     x = np.array([1, 2, 3, 4, 5], dtype=np.int32)
     y = np.array(3, dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -31365,7 +31365,7 @@ def tf_math_imag_inputs():
 
     # Input 1: complex64, simple case
     x = np.array([-2.25 + 4.75j, 3.25 + 5.75j], dtype=np.complex64)
-    input_dict = {"input": x, "name": None}
+    input_dict = {"input": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: complex128, simple case
@@ -31375,7 +31375,7 @@ def tf_math_imag_inputs():
 
     # Input 3: float32, should return zeros
     x = np.array([-2.25, 3.25], dtype=np.float32)
-    input_dict = {"input": x, "name": None}
+    input_dict = {"input": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: float64, should return zeros
@@ -31385,7 +31385,7 @@ def tf_math_imag_inputs():
 
     # Input 5: complex64, multi-dimensional
     x = np.array([[1+2j, 3+4j], [5+6j, 7+8j]], dtype=np.complex64)
-    input_dict = {"input": x, "name": None}
+    input_dict = {"input": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: complex128, multi-dimensional with negative imaginary parts
@@ -31395,7 +31395,7 @@ def tf_math_imag_inputs():
 
     # Input 7: float32, multi-dimensional
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    input_dict = {"input": x, "name": None}
+    input_dict = {"input": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: float64, multi-dimensional
@@ -31405,7 +31405,7 @@ def tf_math_imag_inputs():
 
     # Input 9: complex64, zero values
     x = np.array([0+0j, 0+0j], dtype=np.complex64)
-    input_dict = {"input": x, "name": None}
+    input_dict = {"input": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -31586,7 +31586,7 @@ def tf_math_is_finite_inputs():
 
     # Input 1: Basic finite values
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: With negative values
@@ -31596,7 +31596,7 @@ def tf_math_is_finite_inputs():
 
     # Input 3: With zero
     x = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: With a mix of positive, negative and zero
@@ -31606,7 +31606,7 @@ def tf_math_is_finite_inputs():
 
     # Input 5: 2D array
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: 3D array
@@ -31616,7 +31616,7 @@ def tf_math_is_finite_inputs():
 
     # Input 7: bfloat16
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: half
@@ -31626,7 +31626,7 @@ def tf_math_is_finite_inputs():
 
     # Input 9: float64
     x = np.array([1.0, 2.0, 3.0], dtype=np.float64)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: Large values
@@ -32546,7 +32546,7 @@ def tf_math_maximum_inputs():
     # Input 1: Basic float32 tensors
     x = tf.constant(np.array([1.0, 2.0, 3.0]), dtype=tf.float32)
     y = tf.constant(np.array([2.0, 1.0, 4.0]), dtype=tf.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Negative values, int32
@@ -32558,7 +32558,7 @@ def tf_math_maximum_inputs():
     # Input 3: Different shapes (broadcast), float64
     x = tf.constant(np.array([1.0, 2.0, 3.0]), dtype=tf.float64)
     y = tf.constant(np.array([2.0]), dtype=tf.float64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: 2D tensors, int16
@@ -32570,7 +32570,7 @@ def tf_math_maximum_inputs():
     # Input 5: Zero values, float32
     x = tf.constant(np.array([0.0, 0.0, 0.0]), dtype=tf.float32)
     y = tf.constant(np.array([-1.0, 0.0, 1.0]), dtype=tf.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: int64
@@ -32582,7 +32582,7 @@ def tf_math_maximum_inputs():
     # Input 7: uint8
     x = tf.constant(np.array([1, 2, 3], dtype=np.uint8), dtype=tf.uint8)
     y = tf.constant(np.array([2, 1, 4], dtype=np.uint8), dtype=tf.uint8)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: float16
@@ -32915,7 +32915,7 @@ def tf_math_nextafter_inputs():
     # Input 1: Basic float32 tensors
     x1 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     x2 = np.array([4.0, 5.0, 6.0], dtype=np.float32)
-    input_dict = {"x1": x1, "x2": x2, "name": None}
+    input_dict = {"x1": x1, "x2": x2, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Basic float64 tensors
@@ -32927,49 +32927,49 @@ def tf_math_nextafter_inputs():
     # Input 3: Negative values
     x1 = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
     x2 = np.array([-4.0, -5.0, -6.0], dtype=np.float32)
-    input_dict = {"x1": x1, "x2": x2, "name": None}
+    input_dict = {"x1": x1, "x2": x2, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Different shapes
     x1 = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     x2 = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
-    input_dict = {"x1": x1, "x2": x2, "name": None}
+    input_dict = {"x1": x1, "x2": x2, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Zero values
     x1 = np.array([0.0, 0.0, 0.0], dtype=np.float32)
     x2 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"x1": x1, "x2": x2, "name": None}
+    input_dict = {"x1": x1, "x2": x2, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Large values
     x1 = np.array([1e5, 2e5, 3e5], dtype=np.float32)
     x2 = np.array([4e5, 5e5, 6e5], dtype=np.float32)
-    input_dict = {"x1": x1, "x2": x2, "name": None}
+    input_dict = {"x1": x1, "x2": x2, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: Small values
     x1 = np.array([1e-5, 2e-5, 3e-5], dtype=np.float32)
     x2 = np.array([4e-5, 5e-5, 6e-5], dtype=np.float32)
-    input_dict = {"x1": x1, "x2": x2, "name": None}
+    input_dict = {"x1": x1, "x2": x2, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Mixed positive and negative values
     x1 = np.array([-1.0, 2.0, -3.0], dtype=np.float32)
     x2 = np.array([4.0, -5.0, 6.0], dtype=np.float32)
-    input_dict = {"x1": x1, "x2": x2, "name": None}
+    input_dict = {"x1": x1, "x2": x2, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: Multi-dimensional float64
     x1 = np.random.rand(2, 3, 4).astype(np.float64)
     x2 = np.random.rand(2, 3, 4).astype(np.float64)
-    input_dict = {"x1": x1, "x2": x2, "name": None}
+    input_dict = {"x1": x1, "x2": x2, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: Same values
     x1 = np.array([1.0, 1.0, 1.0], dtype=np.float32)
     x2 = np.array([1.0, 1.0, 1.0], dtype=np.float32)
-    input_dict = {"x1": x1, "x2": x2, "name": None}
+    input_dict = {"x1": x1, "x2": x2, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -33232,7 +33232,7 @@ def tf_math_real_inputs():
 
     # Input 1: Simple complex tensor
     input_tensor = tf.constant([1 + 2j, 3 + 4j, 5 + 6j], dtype=tf.complex64).numpy()
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Real tensor
@@ -33242,7 +33242,7 @@ def tf_math_real_inputs():
 
     # Input 3: Complex tensor with negative values
     input_tensor = tf.constant([-1 - 2j, -3 + 4j, 5 - 6j], dtype=tf.complex128).numpy()
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Real tensor with negative values
@@ -33252,7 +33252,7 @@ def tf_math_real_inputs():
 
     # Input 5: 2D complex tensor
     input_tensor = tf.constant([[1 + 2j, 3 + 4j], [5 + 6j, 7 + 8j]], dtype=tf.complex64).numpy()
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: 2D real tensor
@@ -33262,7 +33262,7 @@ def tf_math_real_inputs():
 
     # Input 7: 3D complex tensor
     input_tensor = tf.constant([[[1 + 2j, 3 + 4j], [5 + 6j, 7 + 8j]], [[9 + 10j, 11 + 12j], [13 + 14j, 15 + 16j]]], dtype=tf.complex128).numpy()
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Empty tensor
@@ -33272,7 +33272,7 @@ def tf_math_real_inputs():
 
     # Input 9: Complex tensor with zero values
     input_tensor = tf.constant([0 + 0j, 0 + 0j, 0 + 0j], dtype=tf.complex64).numpy()
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: Real tensor with zero values
@@ -37041,70 +37041,70 @@ def tf_math_unsorted_segment_min_inputs():
     data = np.array([1, 2, 3, 4], dtype=np.int32)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
     num_segments = np.array(2, dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Different data type (float)
     data = np.array([1.5, 2.5, 3.5, 4.5], dtype=np.float32)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
     num_segments = np.array(2, dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Different segment IDs
     data = np.array([1, 2, 3, 4, 5], dtype=np.int32)
     segment_ids = np.array([0, 1, 0, 2, 1], dtype=np.int32)
     num_segments = np.array(3, dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Multi-dimensional data
     data = np.array([[1, 2], [3, 4], [5, 6], [7, 8]], dtype=np.int32)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
     num_segments = np.array(2, dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Different number of segments
     data = np.array([1, 2, 3, 4], dtype=np.int32)
     segment_ids = np.array([0, 0, 0, 0], dtype=np.int32)
     num_segments = np.array(1, dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Larger segment IDs
     data = np.array([1, 2, 3, 4, 5, 6], dtype=np.int32)
     segment_ids = np.array([0, 1, 2, 0, 1, 2], dtype=np.int32)
     num_segments = np.array(3, dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: 3D data
     data = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
     segment_ids = np.array([0, 1], dtype=np.int32)
     num_segments = np.array(2, dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: int64
     data = np.array([1, 2, 3, 4], dtype=np.int64)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
     num_segments = np.array(2, dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: uint8
     data = np.array([1, 2, 3, 4], dtype=np.uint8)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
     num_segments = np.array(2, dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10: Empty segment
     data = np.array([1, 2, 3, 4], dtype=np.int32)
     segment_ids = np.array([0, 0, 0, 0], dtype=np.int32)
     num_segments = np.array(2, dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -48536,7 +48536,7 @@ def tf_random_stateless_gamma_inputs():
         "alpha": alpha,
         "beta": beta,
         "dtype": dtype,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -48553,7 +48553,7 @@ def tf_random_stateless_gamma_inputs():
         "alpha": alpha,
         "beta": beta,
         "dtype": dtype,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -48570,7 +48570,7 @@ def tf_random_stateless_gamma_inputs():
         "alpha": alpha,
         "beta": beta,
         "dtype": dtype,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -48587,7 +48587,7 @@ def tf_random_stateless_gamma_inputs():
         "alpha": alpha,
         "beta": beta,
         "dtype": dtype,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -48605,7 +48605,7 @@ def tf_random_stateless_gamma_inputs():
         "alpha": alpha,
         "beta": beta,
         "dtype": dtype,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -48622,7 +48622,7 @@ def tf_random_stateless_gamma_inputs():
         "alpha": alpha,
         "beta": beta,
         "dtype": dtype,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -48639,7 +48639,7 @@ def tf_random_stateless_gamma_inputs():
         "alpha": alpha,
         "beta": beta,
         "dtype": dtype,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -48656,7 +48656,7 @@ def tf_random_stateless_gamma_inputs():
         "alpha": alpha,
         "beta": beta,
         "dtype": dtype,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -48673,7 +48673,7 @@ def tf_random_stateless_gamma_inputs():
         "alpha": alpha,
         "beta": beta,
         "dtype": dtype,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -48690,7 +48690,7 @@ def tf_random_stateless_gamma_inputs():
         "alpha": alpha,
         "beta": beta,
         "dtype": dtype,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -48707,7 +48707,7 @@ def tf_random_stateless_gamma_inputs():
         "alpha": alpha,
         "beta": beta,
         "dtype": dtype,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -49437,7 +49437,7 @@ def tf_rank_inputs():
 
     # Input 1: 0-D tensor
     input_tensor = 10
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: 1-D tensor
@@ -49447,7 +49447,7 @@ def tf_rank_inputs():
 
     # Input 3: 2-D tensor
     input_tensor = tf.constant([[1, 2, 3], [4, 5, 6]]).numpy()
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: 3-D tensor
@@ -49457,7 +49457,7 @@ def tf_rank_inputs():
 
     # Input 5: 4-D tensor
     input_tensor = tf.constant([[[[1], [2]], [[3], [4]]], [[[5], [6]], [[7], [8]]]]).numpy()
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Tensor with different data type (float32)
@@ -49467,12 +49467,12 @@ def tf_rank_inputs():
 
     # Input 7: Tensor with different data type (int64)
     input_tensor = tf.constant([[1, 2], [3, 4]], dtype=tf.int64).numpy()
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
      # Input 8: Tensor with different shape
     input_tensor = tf.constant([[[1, 2, 3, 4], [5, 6, 7, 8]], [[9, 10, 11, 12], [13, 14, 15, 16]]]).numpy()
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: Empty tensor
@@ -49482,7 +49482,7 @@ def tf_rank_inputs():
 
     # Input 10: 5-D tensor
     input_tensor = tf.constant([[[[[1], [2]], [[3], [4]]], [[[5], [6]], [[7], [8]]]],[[[[9], [10]], [[11], [12]]], [[[13], [14]], [[15], [16]]]]]).numpy()
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -50985,7 +50985,7 @@ def tf_signal_fft3d_inputs():
 
     # Input 1: Basic 3D complex64 tensor
     input_tensor = np.random.rand(2, 3, 4) + 1j * np.random.rand(2, 3, 4)
-    input_dict = {"input": input_tensor.astype(np.complex64), "name": None}
+    input_dict = {"input": input_tensor.astype(np.complex64), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: 4D complex128 tensor
@@ -50995,7 +50995,7 @@ def tf_signal_fft3d_inputs():
 
     # Input 3: 5D complex64 tensor
     input_tensor = np.random.rand(1, 1, 2, 3, 4) + 1j * np.random.rand(1, 1, 2, 3, 4)
-    input_dict = {"input": input_tensor.astype(np.complex64), "name": None}
+    input_dict = {"input": input_tensor.astype(np.complex64), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: 3D complex128 tensor with smaller dimensions
@@ -51005,7 +51005,7 @@ def tf_signal_fft3d_inputs():
 
     # Input 5: 3D complex64 tensor with some values being zero
     input_tensor = np.random.choice([0, 1], size=(2, 3, 4), p=[0.5, 0.5]) + 1j * np.random.choice([0, 1], size=(2, 3, 4), p=[0.5, 0.5])
-    input_dict = {"input": input_tensor.astype(np.complex64), "name": None}
+    input_dict = {"input": input_tensor.astype(np.complex64), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: 4D complex64 tensor with different shape
@@ -51015,12 +51015,12 @@ def tf_signal_fft3d_inputs():
     
     # Input 7: 3D complex128 tensor with larger dimensions
     input_tensor = np.random.rand(4, 5, 6) + 1j * np.random.rand(4, 5, 6)
-    input_dict = {"input": input_tensor.astype(np.complex128), "name": None}
+    input_dict = {"input": input_tensor.astype(np.complex128), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: 3D complex64 with specific values
     input_tensor = np.array([[[1+1j, 2+2j, 3+3j], [4+4j, 5+5j, 6+6j]], [[7+7j, 8+8j, 9+9j], [10+10j, 11+11j, 12+12j]]], dtype=np.complex64)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9: 4D complex128 tensor with specific values
@@ -51030,7 +51030,7 @@ def tf_signal_fft3d_inputs():
 
     # Input 10: 5D complex64 tensor
     input_tensor = np.random.rand(2, 1, 2, 3, 4) + 1j * np.random.rand(2, 1, 2, 3, 4)
-    input_dict = {"input": input_tensor.astype(np.complex64), "name": None}
+    input_dict = {"input": input_tensor.astype(np.complex64), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -51524,7 +51524,7 @@ def tf_signal_ifft2d_inputs():
 
     # Input 1: Basic complex64 input
     input_tensor = tf.complex(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32), np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32))
-    input_dict = {"input": input_tensor.numpy(), "name": None}
+    input_dict = {"input": input_tensor.numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Basic complex128 input
@@ -51534,7 +51534,7 @@ def tf_signal_ifft2d_inputs():
 
     # Input 3: 3D complex64 input
     input_tensor = tf.complex(np.random.rand(2, 3, 4).astype(np.float32), np.random.rand(2, 3, 4).astype(np.float32))
-    input_dict = {"input": input_tensor.numpy(), "name": None}
+    input_dict = {"input": input_tensor.numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: 3D complex128 input
@@ -51544,7 +51544,7 @@ def tf_signal_ifft2d_inputs():
 
     # Input 5: Complex64 input with negative values
     input_tensor = tf.complex(np.array([[-1.0, 2.0], [3.0, -4.0]], dtype=np.float32), np.array([[5.0, -6.0], [-7.0, 8.0]], dtype=np.float32))
-    input_dict = {"input": input_tensor.numpy(), "name": None}
+    input_dict = {"input": input_tensor.numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Complex128 input with negative values
@@ -51554,7 +51554,7 @@ def tf_signal_ifft2d_inputs():
 
      # Input 7: Complex64 with zeros
     input_tensor = tf.complex(np.array([[0.0, 2.0], [3.0, 0.0]], dtype=np.float32), np.array([[5.0, 0.0], [0.0, 8.0]], dtype=np.float32))
-    input_dict = {"input": input_tensor.numpy(), "name": None}
+    input_dict = {"input": input_tensor.numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Complex128 with zeros
@@ -51564,7 +51564,7 @@ def tf_signal_ifft2d_inputs():
 
     # Input 9: Larger complex64 input
     input_tensor = tf.complex(np.random.rand(5, 5).astype(np.float32), np.random.rand(5, 5).astype(np.float32))
-    input_dict = {"input": input_tensor.numpy(), "name": None}
+    input_dict = {"input": input_tensor.numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: Larger complex128 input
@@ -51586,7 +51586,7 @@ def tf_signal_ifft3d_inputs():
 
     # Input 1: Basic complex64
     input_tensor = tf.constant(np.random.rand(2, 4, 8, 16) + 1j * np.random.rand(2, 4, 8, 16), dtype=tf.complex64)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Basic complex128
@@ -51596,37 +51596,37 @@ def tf_signal_ifft3d_inputs():
 
     # Input 3: Different dimensions complex64
     input_tensor = tf.constant(np.random.rand(3, 5, 7, 9) + 1j * np.random.rand(3, 5, 7, 9), dtype=tf.complex64)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Different dimensions complex128
     input_tensor = tf.constant(np.random.rand(1, 2, 3, 4) + 1j * np.random.rand(1, 2, 3, 4), dtype=tf.complex128)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Larger tensor complex64
     input_tensor = tf.constant(np.random.rand(8, 8, 8, 8) + 1j * np.random.rand(8, 8, 8, 8), dtype=tf.complex64)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Tensor with some negative values complex128
     input_tensor = tf.constant(np.random.rand(2, 4, 8, 16) * 2 - 1 + 1j * (np.random.rand(2, 4, 8, 16) * 2 - 1), dtype=tf.complex128)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: Tensor with only real part complex64
     input_tensor = tf.constant(np.random.rand(2, 4, 8, 16), dtype=tf.complex64)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Tensor with only imaginary part complex128
     input_tensor = tf.constant(1j * np.random.rand(2, 4, 8, 16), dtype=tf.complex128)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: small size
     input_tensor = tf.constant(np.random.rand(1, 1, 1, 1) + 1j * np.random.rand(1, 1, 1, 1), dtype=tf.complex64)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: another different dimensions complex64
@@ -53609,7 +53609,7 @@ def tf_bitwise_bitwise_or_inputs():
     # Input 1: Basic case with int32
     x = np.array([1, 2, 3, 4, 5], dtype=np.int32)
     y = np.array([5, 4, 3, 2, 1], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Different values with uint8
@@ -53621,7 +53621,7 @@ def tf_bitwise_bitwise_or_inputs():
     # Input 3: Negative values with int16
     x = np.array([-1, -2, -3, -4, -5], dtype=np.int16)
     y = np.array([5, 4, 3, 2, 1], dtype=np.int16)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Multi-dimensional array with int64
@@ -53639,13 +53639,13 @@ def tf_bitwise_bitwise_or_inputs():
     # Input 8: Mix of positive and negative with int32
     x = np.array([-10, -5, 0, 5, 10], dtype=np.int32)
     y = np.array([10, 5, 0, -5, -10], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: all ones
     x = np.array([1, 1, 1, 1, 1], dtype=np.int32)
     y = np.array([1, 1, 1, 1, 1], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -57244,7 +57244,7 @@ def tf_image_rgb_to_hsv_inputs():
 
     # Input 1: Basic 3x3 image
     image1 = np.random.rand(3, 3, 3).astype(np.float32)
-    input_dict = {"images": image1, "name": None}
+    input_dict = {"images": image1, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Batch of 2 images
@@ -57254,12 +57254,12 @@ def tf_image_rgb_to_hsv_inputs():
 
     # Input 3: Single pixel image
     image3 = np.random.rand(1, 1, 3).astype(np.float32)
-    input_dict = {"images": image3, "name": None}
+    input_dict = {"images": image3, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Larger image 10x10
     image4 = np.random.rand(10, 10, 3).astype(np.float32)
-    input_dict = {"images": image4, "name": None}
+    input_dict = {"images": image4, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5: Different name
@@ -57269,27 +57269,27 @@ def tf_image_rgb_to_hsv_inputs():
     
     # Input 6: Using half type
     image6 = np.random.rand(3, 3, 3).astype(np.float16)
-    input_dict = {"images": image6, "name": None}
+    input_dict = {"images": image6, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7: Using bfloat16 type
     image7 = np.random.rand(3, 3, 3).astype(np.float16)
-    input_dict = {"images": image7, "name": None}
+    input_dict = {"images": image7, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Using float64 type
     image8 = np.random.rand(3, 3, 3).astype(np.float64)
-    input_dict = {"images": image8, "name": None}
+    input_dict = {"images": image8, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: 1D image
     image9 = np.random.rand(3).astype(np.float32)
-    input_dict = {"images": image9, "name": None}
+    input_dict = {"images": image9, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10: 4D image
     image10 = np.random.rand(2, 3, 4, 3).astype(np.float32)
-    input_dict = {"images": image10, "name": None}
+    input_dict = {"images": image10, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
@@ -58475,7 +58475,7 @@ def tf_linalg_lu_inputs():
 
     # Input 1: Simple float32 matrix
     input_matrix = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    input_dict = {"input": input_matrix, "output_idx_type": tf.int32, "name": None}
+    input_dict = {"input": input_matrix, "output_idx_type": tf.int32, "name": "custom"}
     list_of_inputs.append(input_dict)
 
     # Input 2: float64 matrix with negative values
@@ -58485,7 +58485,7 @@ def tf_linalg_lu_inputs():
 
     # Input 3: Complex64 matrix
     input_matrix = np.array([[1.0 + 1j, 2.0], [3.0, 4.0 - 1j]], dtype=np.complex64)
-    input_dict = {"input": input_matrix, "output_idx_type": tf.int64, "name": None}
+    input_dict = {"input": input_matrix, "output_idx_type": tf.int64, "name": "custom"}
     list_of_inputs.append(input_dict)
 
     # Input 4: Complex128 matrix
@@ -58495,7 +58495,7 @@ def tf_linalg_lu_inputs():
 
     # Input 5: 3D float32 tensor
     input_matrix = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    input_dict = {"input": input_matrix, "output_idx_type": tf.int64, "name": None}
+    input_dict = {"input": input_matrix, "output_idx_type": tf.int64, "name": "custom"}
     list_of_inputs.append(input_dict)
 
     # Input 6: Different matrix size (3x3) with float32
@@ -58505,22 +58505,22 @@ def tf_linalg_lu_inputs():
 
     # Input 7: Matrix with zero values (but still invertible) with float64
     input_matrix = np.array([[1.0, 0.0], [0.0, 4.0]], dtype=np.float64)
-    input_dict = {"input": input_matrix, "output_idx_type": tf.int64, "name": None}
+    input_dict = {"input": input_matrix, "output_idx_type": tf.int64, "name": "custom"}
     list_of_inputs.append(input_dict)
 
     # Input 8: larger float32 matrix with negative values and different output_idx_type
     input_matrix = np.array([[1.0, -2.0], [5.0, 6.0]], dtype=np.float32)
-    input_dict = {"input": input_matrix, "output_idx_type": tf.int32, "name": None}
+    input_dict = {"input": input_matrix, "output_idx_type": tf.int32, "name": "custom"}
     list_of_inputs.append(input_dict)
 
     # Input 9: another 3D example
     input_matrix = np.array([[[1.0, 2.0], [3.0, 4.0]], [[-1.0, -2.0], [-3.0, -4.0]]], dtype=np.float64)
-    input_dict = {"input": input_matrix, "output_idx_type": tf.int64, "name": None}
+    input_dict = {"input": input_matrix, "output_idx_type": tf.int64, "name": "custom"}
     list_of_inputs.append(input_dict)
 
     # Input 10: Example with more significant digits.
     input_matrix = np.array([[1.001, 2.002], [3.003, 4.004]], dtype=np.float32)
-    input_dict = {"input": input_matrix, "output_idx_type": tf.int32, "name": None}
+    input_dict = {"input": input_matrix, "output_idx_type": tf.int32, "name": "custom"}
     list_of_inputs.append(input_dict)
 
     return list_of_inputs
@@ -63004,7 +63004,7 @@ def tf_raw_ops_abort_inputs():
     input_dict = {
         "error_msg": "",
         "exit_without_error": False,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -63950,7 +63950,7 @@ def tf_io_read_file_inputs():
     filename = "test_file_1.txt"
     with open(filename, "w") as f:
         f.write("Hello, world!")
-    input_dict = {"filename": filename, "name": None}
+    input_dict = {"filename": filename, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     #os.remove(filename) # Removed os.remove because file should exist when tf reads it
 
@@ -63965,7 +63965,7 @@ def tf_io_read_file_inputs():
     filename = "test_file_3.txt"
     with open(filename, "w") as f:
         f.write("1234567890")
-    input_dict = {"filename": filename, "name": None}
+    input_dict = {"filename": filename, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     #os.remove(filename)
 
@@ -63981,7 +63981,7 @@ def tf_io_read_file_inputs():
     filename = "test_file_5.txt"
     with open(filename, "w") as f:
         f.write("Line 1\nLine 2\nLine 3")
-    input_dict = {"filename": filename, "name": None}
+    input_dict = {"filename": filename, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     #os.remove(filename)
     
@@ -63989,7 +63989,7 @@ def tf_io_read_file_inputs():
     filename = "test_file_6.txt"
     with open(filename, "w") as f:
         f.write("  Space   and\tTab  ")
-    input_dict = {"filename": filename, "name": None}
+    input_dict = {"filename": filename, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     #os.remove(filename)
 
@@ -64005,7 +64005,7 @@ def tf_io_read_file_inputs():
     filename = "short.txt"
     with open(filename, "w") as f:
         f.write("Short filename test")
-    input_dict = {"filename": filename, "name": None}
+    input_dict = {"filename": filename, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     #os.remove(filename)
 
@@ -64675,7 +64675,7 @@ def tf_raw_ops_Fact_inputs():
     list_of_inputs = []
 
     input_dict = {
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -65325,7 +65325,7 @@ def tf_raw_ops_ReaderNumWorkUnitsCompleted_inputs():
     # Input 1: Basic valid input
     try:
         reader_handle = tf.compat.v1.io.tf_record_iterator("dummy.tfrecord").reader_handle()
-        input_dict = {"reader_handle": reader_handle, "name": None}
+        input_dict = {"reader_handle": reader_handle, "name": "custom"}
         list_of_inputs.append(copy.deepcopy(input_dict))
     except:
         pass
@@ -65366,7 +65366,7 @@ def tf_raw_ops_ReaderNumWorkUnitsCompleted_inputs():
     # Input 6: Reader handle to a different file
     try:
         reader_handle = tf.compat.v1.io.tf_record_iterator("dummy.tfrecord").reader_handle()
-        input_dict = {"reader_handle": reader_handle, "name": None}
+        input_dict = {"reader_handle": reader_handle, "name": "custom"}
         list_of_inputs.append(copy.deepcopy(input_dict))
     except:
         pass
@@ -65497,7 +65497,7 @@ def tf_realdiv_inputs():
     # Input 1: Basic float32 division
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     y = np.array([0.5, 1.0, 1.5], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Division with negative values, float64
@@ -65509,13 +65509,13 @@ def tf_realdiv_inputs():
     # Input 3: Multi-dimensional array division, float32
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     y = np.array([[0.5, 1.0], [1.5, 2.0]], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Broadcasting division, float32
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     y = np.array([0.5, 1.0], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Integer division (will result in float), float32
@@ -65527,7 +65527,7 @@ def tf_realdiv_inputs():
     # Input 6: Large integer division, float64
     x = np.array([10000000000, 20000000000], dtype=np.float64)
     y = np.array([2, 5], dtype=np.float64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: Division with zeros (will result in inf), float32
@@ -65539,19 +65539,19 @@ def tf_realdiv_inputs():
     # Input 8: Division with uint8, float32
     x = np.array([1, 2, 3], dtype=np.float32)
     y = np.array([1, 2, 1], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: Division with float16
     x = np.array([1.0, 2.0], dtype=np.float16)
     y = np.array([0.5, 1.0], dtype=np.float16)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: Division with complex64
     x = np.array([1 + 1j, 2 + 2j], dtype=np.complex64)
     y = np.array([0.5 + 0.5j, 1 + 0j], dtype=np.complex64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
@@ -65627,7 +65627,7 @@ def tf_signal_fft_inputs():
 
     # Input 1: Basic complex64 array
     input1 = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex64)
-    input_dict1 = {"input": input1, "name": None}
+    input_dict1 = {"input": input1, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict1))
 
     # Input 2: Basic complex128 array
@@ -65637,7 +65637,7 @@ def tf_signal_fft_inputs():
 
     # Input 3: Multi-dimensional complex64 array
     input3 = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex64)
-    input_dict3 = {"input": input3, "name": None}
+    input_dict3 = {"input": input3, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict3))
 
     # Input 4: Multi-dimensional complex128 array
@@ -65647,7 +65647,7 @@ def tf_signal_fft_inputs():
 
     # Input 5: Complex64 array with negative values
     input5 = np.array([-1-1j, -2-2j, -3-3j], dtype=np.complex64)
-    input_dict5 = {"input": input5, "name": None}
+    input_dict5 = {"input": input5, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict5))
 
     # Input 6: Complex128 array with negative values
@@ -65657,7 +65657,7 @@ def tf_signal_fft_inputs():
 
     # Input 7: Complex64 array with zero values
     input7 = np.array([0+0j, 0+0j, 0+0j], dtype=np.complex64)
-    input_dict7 = {"input": input7, "name": None}
+    input_dict7 = {"input": input7, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict7))
 
     # Input 8: Complex128 array with zero values
@@ -65667,7 +65667,7 @@ def tf_signal_fft_inputs():
 
     # Input 9: Complex64 array with different real and imaginary parts
     input9 = np.array([1+2j, 3+4j, 5+6j], dtype=np.complex64)
-    input_dict9 = {"input": input9, "name": None}
+    input_dict9 = {"input": input9, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict9))
 
     # Input 10: Complex128 array with different real and imaginary parts
@@ -66005,47 +66005,47 @@ def tf_signal_ifft_inputs():
 
     # Input 1: Basic complex64 array
     input_tensor = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex64)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Basic complex128 array
     input_tensor = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex128)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: 2D complex64 array
     input_tensor = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex64)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: 2D complex128 array
     input_tensor = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex128)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: 3D complex64 array
     input_tensor = np.array([[[1+1j, 2+2j], [3+3j, 4+4j]], [[5+5j, 6+6j], [7+7j, 8+8j]]], dtype=np.complex64)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: 3D complex128 array
     input_tensor = np.array([[[1+1j, 2+2j], [3+3j, 4+4j]], [[5+5j, 6+6j], [7+7j, 8+8j]]], dtype=np.complex128)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: Negative values, complex64
     input_tensor = np.array([-1-1j, -2-2j, -3-3j], dtype=np.complex64)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Negative values, complex128
     input_tensor = np.array([-1-1j, -2-2j, -3-3j], dtype=np.complex128)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: Empty array, complex64
     input_tensor = np.array([], dtype=np.complex64)
-    input_dict = {"input": input_tensor, "name": None}
+    input_dict = {"input": input_tensor, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: name provided
@@ -67436,52 +67436,52 @@ def tf_strings_as_string_inputs():
 
     # Input 1: Basic integer array
     input_array = np.array([1, 2, 3, 4, 5], dtype=np.int32)
-    input_dict = {"input": input_array, "precision": -1, "scientific": False, "shortest": False, "width": -1, "fill": "", "name": None}
+    input_dict = {"input": input_array, "precision": -1, "scientific": False, "shortest": False, "width": -1, "fill": "", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Float array with precision
     input_array = np.array([3.14159, 2.71828, 1.61803], dtype=np.float32)
-    input_dict = {"input": input_array, "precision": 2, "scientific": False, "shortest": False, "width": -1, "fill": "", "name": None}
+    input_dict = {"input": input_array, "precision": 2, "scientific": False, "shortest": False, "width": -1, "fill": "", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Integer array with width and fill
     input_array = np.array([1, 10, 100], dtype=np.int32)
-    input_dict = {"input": input_array, "precision": -1, "scientific": False, "shortest": False, "width": 4, "fill": "0", "name": None}
+    input_dict = {"input": input_array, "precision": -1, "scientific": False, "shortest": False, "width": 4, "fill": "0", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Float array with scientific notation
     input_array = np.array([0.0001, 10000.0], dtype=np.float64)
-    input_dict = {"input": input_array, "precision": 3, "scientific": True, "shortest": False, "width": -1, "fill": "", "name": None}
+    input_dict = {"input": input_array, "precision": 3, "scientific": True, "shortest": False, "width": -1, "fill": "", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Boolean array
     input_array = np.array([True, False, True, True, False], dtype=np.bool_)
-    input_dict = {"input": input_array, "precision": -1, "scientific": False, "shortest": False, "width": -1, "fill": "", "name": None}
+    input_dict = {"input": input_array, "precision": -1, "scientific": False, "shortest": False, "width": -1, "fill": "", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: 2D float array
     input_array = np.array([[1.1, 2.2], [3.3, 4.4]], dtype=np.float32)
-    input_dict = {"input": input_array, "precision": 1, "scientific": False, "shortest": False, "width": -1, "fill": "", "name": None}
+    input_dict = {"input": input_array, "precision": 1, "scientific": False, "shortest": False, "width": -1, "fill": "", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: Integer with width and fill (space)
     input_array = np.array([7, 123, 4], dtype=np.int32)
-    input_dict = {"input": input_array, "precision": -1, "scientific": False, "shortest": False, "width": 5, "fill": "", "name": None}
+    input_dict = {"input": input_array, "precision": -1, "scientific": False, "shortest": False, "width": 5, "fill": "", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Shortest representation for floats
     input_array = np.array([0.001, 1000.0, 1.0], dtype=np.float32)
-    input_dict = {"input": input_array, "precision": 3, "scientific": False, "shortest": True, "width": -1, "fill": "", "name": None}
+    input_dict = {"input": input_array, "precision": 3, "scientific": False, "shortest": True, "width": -1, "fill": "", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: Complex numbers
     input_array = np.array([1+1j, 2-2j, 3+0j], dtype=np.complex64)
-    input_dict = {"input": input_array, "precision": 2, "scientific": False, "shortest": False, "width": -1, "fill": "", "name": None}
+    input_dict = {"input": input_array, "precision": 2, "scientific": False, "shortest": False, "width": -1, "fill": "", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: uint8 array
     input_array = np.array([255, 128, 0], dtype=np.uint8)
-    input_dict = {"input": input_array, "precision": -1, "scientific": False, "shortest": False, "width": -1, "fill": "", "name": None}
+    input_dict = {"input": input_array, "precision": -1, "scientific": False, "shortest": False, "width": -1, "fill": "", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
@@ -68726,7 +68726,7 @@ def tf_strings_unicode_script_inputs():
 
     # Input 1: Basic example
     input_tensor = np.array([1, 31, 38], dtype=np.int32)
-    input_dict = {"input": tf.constant(input_tensor), "name": None}
+    input_dict = {"input": tf.constant(input_tensor), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Empty tensor
@@ -68736,7 +68736,7 @@ def tf_strings_unicode_script_inputs():
 
     # Input 3: Tensor with invalid code points
     input_tensor = np.array([-1, 1114112, 0], dtype=np.int32)
-    input_dict = {"input": tf.constant(input_tensor), "name": None}
+    input_dict = {"input": tf.constant(input_tensor), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Multidimensional tensor
@@ -68746,7 +68746,7 @@ def tf_strings_unicode_script_inputs():
 
     # Input 5: Larger tensor
     input_tensor = np.arange(65, 75, dtype=np.int32)
-    input_dict = {"input": tf.constant(input_tensor), "name": None}
+    input_dict = {"input": tf.constant(input_tensor), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Tensor with a specific Unicode range
@@ -68756,7 +68756,7 @@ def tf_strings_unicode_script_inputs():
 
     # Input 7: Tensor with mixed code points
     input_tensor = np.array([65, 12354, 20013, 97], dtype=np.int32)
-    input_dict = {"input": tf.constant(input_tensor), "name": None}
+    input_dict = {"input": tf.constant(input_tensor), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: 3D Tensor
@@ -68766,7 +68766,7 @@ def tf_strings_unicode_script_inputs():
 
     # Input 9: Tensor with a single element
     input_tensor = np.array([65], dtype=np.int32)
-    input_dict = {"input": tf.constant(input_tensor), "name": None}
+    input_dict = {"input": tf.constant(input_tensor), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: Tensor with various ASCII characters
@@ -72636,7 +72636,7 @@ def tf_raw_ops_abs_inputs():
 
     # Input 1: Scalar float32
     x = np.float32(-5.0)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: 1D array of float32
@@ -72656,7 +72656,7 @@ def tf_raw_ops_abs_inputs():
 
     # Input 5: Scalar int8
     x = np.int8(-100)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: 1D array of int64
@@ -72671,7 +72671,7 @@ def tf_raw_ops_abs_inputs():
 
     # Input 8: Scalar int16
     x = np.int16(-32000)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: Empty array of float32
@@ -73726,7 +73726,7 @@ def tf_raw_ops_angle_inputs():
 
     # Input 1: complex64, default Tout
     input_tensor = np.array([1 + 1j, -2 - 2j, 3 - 3j, -4 + 4j], dtype=np.complex64)
-    input_dict = {"input": input_tensor, "Tout": tf.float32, "name": None}
+    input_dict = {"input": input_tensor, "Tout": tf.float32, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: complex128, Tout=float64
@@ -74328,73 +74328,73 @@ def tf_raw_ops_atan2_inputs():
     # Input 1: Basic float32
     y = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     x = np.array([1.0, 1.0, 1.0], dtype=np.float32)
-    input_dict = {"y": y, "x": x, "name": None}
+    input_dict = {"y": y, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Basic float64
     y = np.array([-1.0, -2.0, -3.0], dtype=np.float64)
     x = np.array([1.0, 1.0, 1.0], dtype=np.float64)
-    input_dict = {"y": y, "x": x, "name": None}
+    input_dict = {"y": y, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Different values, including zero
     y = np.array([0.0, 1.0, -1.0], dtype=np.float32)
     x = np.array([1.0, 0.0, -1.0], dtype=np.float32)
-    input_dict = {"y": y, "x": x, "name": None}
+    input_dict = {"y": y, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Multidimensional array
     y = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     x = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
-    input_dict = {"y": y, "x": x, "name": None}
+    input_dict = {"y": y, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Negative values in multidimensional array
     y = np.array([[-1.0, -2.0], [-3.0, -4.0]], dtype=np.float64)
     x = np.array([[5.0, -6.0], [-7.0, 8.0]], dtype=np.float64)
-    input_dict = {"y": y, "x": x, "name": None}
+    input_dict = {"y": y, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Mixed positive and negative
     y = np.array([-1.0, 2.0, -3.0, 4.0], dtype=np.float32)
     x = np.array([5.0, -6.0, 7.0, -8.0], dtype=np.float32)
-    input_dict = {"y": y, "x": x, "name": None}
+    input_dict = {"y": y, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: half
     y = np.array([1.0, 2.0, 3.0], dtype=np.float16)
     x = np.array([4.0, 5.0, 6.0], dtype=np.float16)
-    input_dict = {"y": y, "x": x, "name": None}
+    input_dict = {"y": y, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
      # Input 9: Different shapes but broadcastable
     y = np.array([1.0, 2.0], dtype=np.float32)
     x = np.array([[1.0], [1.0]], dtype=np.float32)
-    input_dict = {"y": y, "x": x, "name": None}
+    input_dict = {"y": y, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: Larger array sizes
     y = np.random.rand(100, 100).astype(np.float64)
     x = np.random.rand(100, 100).astype(np.float64)
-    input_dict = {"y": y, "x": x, "name": None}
+    input_dict = {"y": y, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 11: y and x being equal to zero
     y = np.array([0.0, 0.0], dtype=np.float32)
     x = np.array([0.0, 0.0], dtype=np.float32)
-    input_dict = {"y": y, "x": x, "name": None}
+    input_dict = {"y": y, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 12: 3D Tensor
     y = np.random.rand(2, 3, 4).astype(np.float32)
     x = np.random.rand(2, 3, 4).astype(np.float32)
-    input_dict = {"y": y, "x": x, "name": None}
+    input_dict = {"y": y, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 13: Scalar values
     y = np.array(1.0, dtype=np.float32)
     x = np.array(1.0, dtype=np.float32)
-    input_dict = {"y": y, "x": x, "name": None}
+    input_dict = {"y": y, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
 
@@ -74677,7 +74677,7 @@ def tf_raw_ops_avgpool3d_inputs():
         "strides": strides1,
         "padding": padding1,
         "data_format": data_format1,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -74694,7 +74694,7 @@ def tf_raw_ops_avgpool3d_inputs():
         "strides": strides2,
         "padding": padding2,
         "data_format": data_format2,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -74711,7 +74711,7 @@ def tf_raw_ops_avgpool3d_inputs():
         "strides": strides3,
         "padding": padding3,
         "data_format": data_format3,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -74728,7 +74728,7 @@ def tf_raw_ops_avgpool3d_inputs():
         "strides": strides4,
         "padding": padding4,
         "data_format": data_format4,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
@@ -74745,7 +74745,7 @@ def tf_raw_ops_avgpool3d_inputs():
         "strides": strides5,
         "padding": padding5,
         "data_format": data_format5,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
@@ -74762,7 +74762,7 @@ def tf_raw_ops_avgpool3d_inputs():
         "strides": strides6,
         "padding": padding6,
         "data_format": data_format6,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
@@ -74779,7 +74779,7 @@ def tf_raw_ops_avgpool3d_inputs():
         "strides": strides7,
         "padding": padding7,
         "data_format": data_format7,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -74796,7 +74796,7 @@ def tf_raw_ops_avgpool3d_inputs():
         "strides": strides8,
         "padding": padding8,
         "data_format": data_format8,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
@@ -74831,7 +74831,7 @@ def tf_raw_ops_avgpool3d_inputs():
         "strides": strides10,
         "padding": padding10,
         "data_format": data_format10,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -75071,61 +75071,61 @@ def tf_raw_ops_BatchMatMul_inputs():
     # Input 1: Basic example with float32
     x = np.array([[[1.0, 2.0], [3.0, 4.0]]], dtype=np.float32)
     y = np.array([[[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
+    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Different batch size and adjoint x
     x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
     y = np.array([[[5.0, 6.0], [7.0, 8.0]], [[9.0, 10.0], [11.0, 12.0]]], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "adj_x": True, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
+    input_dict = {"x": x, "y": y, "adj_x": True, "adj_y": False, "grad_x": False, "grad_y": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Adjoint y
     x = np.array([[[1.0, 2.0], [3.0, 4.0]]], dtype=np.float32)
     y = np.array([[[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": True, "grad_x": False, "grad_y": False, "name": None}
+    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": True, "grad_x": False, "grad_y": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Both adjoint
     x = np.array([[[1.0, 2.0], [3.0, 4.0]]], dtype=np.float32)
     y = np.array([[[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "adj_x": True, "adj_y": True, "grad_x": False, "grad_y": False, "name": None}
+    input_dict = {"x": x, "y": y, "adj_x": True, "adj_y": True, "grad_x": False, "grad_y": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Different matrix dimensions
     x = np.array([[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]], dtype=np.float32)
     y = np.array([[[7.0, 8.0], [9.0, 10.0], [11.0, 12.0]]], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
+    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Complex64 type
     x = np.array([[[1.0+1j, 2.0+2j], [3.0+3j, 4.0+4j]]], dtype=np.complex64)
     y = np.array([[[5.0+5j, 6.0+6j], [7.0+7j, 8.0+8j]]], dtype=np.complex64)
-    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
+    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: Int32 type
     x = np.array([[[1, 2], [3, 4]]], dtype=np.int32)
     y = np.array([[[5, 6], [7, 8]]], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
+    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
    # Input 8: Multiple batches with int64
     x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64)
     y = np.array([[[5, 6], [7, 8]], [[9, 10], [11, 12]]], dtype=np.int64)
-    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
+    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: half
     x = np.array([[[1.0, 2.0], [3.0, 4.0]]], dtype=np.float16)
     y = np.array([[[5.0, 6.0], [7.0, 8.0]]], dtype=np.float16)
-    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
+    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: Complex128 type
     x = np.array([[[1.0+1j, 2.0+2j], [3.0+3j, 4.0+4j]]], dtype=np.complex128)
     y = np.array([[[5.0+5j, 6.0+6j], [7.0+7j, 8.0+8j]]], dtype=np.complex128)
-    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
+    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -75493,70 +75493,70 @@ def tf_raw_ops_betainc_inputs():
     a = np.array([0.5], dtype=np.float32)
     b = np.array([0.5], dtype=np.float32)
     x = np.array([0.5], dtype=np.float32)
-    input_dict = {"name": None, "a": a, "b": b, "x": x}
+    input_dict = {"name": "custom", "a": a, "b": b, "x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Basic valid input with float64
     a = np.array([0.5], dtype=np.float64)
     b = np.array([0.5], dtype=np.float64)
     x = np.array([0.5], dtype=np.float64)
-    input_dict = {"name": None, "a": a, "b": b, "x": x}
+    input_dict = {"name": "custom", "a": a, "b": b, "x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Different values, float32
     a = np.array([2.0], dtype=np.float32)
     b = np.array([3.0], dtype=np.float32)
     x = np.array([0.8], dtype=np.float32)
-    input_dict = {"name": None, "a": a, "b": b, "x": x}
+    input_dict = {"name": "custom", "a": a, "b": b, "x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Different values, float64
     a = np.array([2.0], dtype=np.float64)
     b = np.array([3.0], dtype=np.float64)
     x = np.array([0.8], dtype=np.float64)
-    input_dict = {"name": None, "a": a, "b": b, "x": x}
+    input_dict = {"name": "custom", "a": a, "b": b, "x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Multi-dimensional array, float32
     a = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     b = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
     x = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
-    input_dict = {"name": None, "a": a, "b": b, "x": x}
+    input_dict = {"name": "custom", "a": a, "b": b, "x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Multi-dimensional array, float64
     a = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
     b = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float64)
     x = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float64)
-    input_dict = {"name": None, "a": a, "b": b, "x": x}
+    input_dict = {"name": "custom", "a": a, "b": b, "x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: x close to 0, float32
     a = np.array([1.0], dtype=np.float32)
     b = np.array([1.0], dtype=np.float32)
     x = np.array([0.0001], dtype=np.float32)
-    input_dict = {"name": None, "a": a, "b": b, "x": x}
+    input_dict = {"name": "custom", "a": a, "b": b, "x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: x close to 1, float64
     a = np.array([1.0], dtype=np.float64)
     b = np.array([1.0], dtype=np.float64)
     x = np.array([0.9999], dtype=np.float64)
-    input_dict = {"name": None, "a": a, "b": b, "x": x}
+    input_dict = {"name": "custom", "a": a, "b": b, "x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: Larger values for a and b, float32
     a = np.array([10.0], dtype=np.float32)
     b = np.array([15.0], dtype=np.float32)
     x = np.array([0.5], dtype=np.float32)
-    input_dict = {"name": None, "a": a, "b": b, "x": x}
+    input_dict = {"name": "custom", "a": a, "b": b, "x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: Larger values for a and b, float64
     a = np.array([10.0], dtype=np.float64)
     b = np.array([15.0], dtype=np.float64)
     x = np.array([0.5], dtype=np.float64)
-    input_dict = {"name": None, "a": a, "b": b, "x": x}
+    input_dict = {"name": "custom", "a": a, "b": b, "x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -76198,12 +76198,12 @@ def tf_raw_ops_ceil_inputs():
 
     # Input 1: half, positive
     x = np.array([1.5, 2.3, 3.7], dtype=np.float16)
-    input_dict = {"x": tf.constant(x).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: half, negative
     x = np.array([-1.5, -2.3, -3.7], dtype=np.float16)
-    input_dict = {"x": tf.constant(x).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: float32, mixed positive and negative
@@ -76213,37 +76213,37 @@ def tf_raw_ops_ceil_inputs():
 
     # Input 4: float64, large values
     x = np.array([1000.5, 2000.3, 3000.7], dtype=np.float64)
-    input_dict = {"x": tf.constant(x).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: float32, multi-dimensional array
     x = np.array([[1.5, 2.3], [3.7, 4.1]], dtype=np.float32)
-    input_dict = {"x": tf.constant(x).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: half, zero values
     x = np.array([0.0, -0.0, 1.0], dtype=np.float16)
-    input_dict = {"x": tf.constant(x).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: float64, small values
     x = np.array([0.1, -0.2, 0.3], dtype=np.float64)
-    input_dict = {"x": tf.constant(x).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8: float32, a larger array
     x = np.array([1.1, 2.2, 3.3, 4.4, 5.5, 6.6], dtype=np.float32).reshape((2,3))
-    input_dict = {"x": tf.constant(x).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: float32, with integer values
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"x": tf.constant(x).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: float64, a 3D array
     x = np.array([[[1.1, 2.2], [3.3, 4.4]], [[5.5, 6.6], [7.7, 8.8]]], dtype=np.float64)
-    input_dict = {"x": tf.constant(x).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -76333,70 +76333,70 @@ def tf_raw_ops_ClipByValue_inputs():
     t = np.array([-1.0, 0.0, 1.0, 2.0], dtype=np.float32)
     clip_value_min = np.array(0.0, dtype=np.float32)
     clip_value_max = np.array(1.0, dtype=np.float32)
-    input_dict = {"t": t, "clip_value_min": clip_value_min, "clip_value_max": clip_value_max, "name": None}
+    input_dict = {"t": t, "clip_value_min": clip_value_min, "clip_value_max": clip_value_max, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: int32, scalar min/max
     t = np.array([-1, 0, 1, 2], dtype=np.int32)
     clip_value_min = np.array(0, dtype=np.int32)
     clip_value_max = np.array(1, dtype=np.int32)
-    input_dict = {"t": t, "clip_value_min": clip_value_min, "clip_value_max": clip_value_max, "name": None}
+    input_dict = {"t": t, "clip_value_min": clip_value_min, "clip_value_max": clip_value_max, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: float64, array min/max
     t = np.array([-1.0, 0.0, 1.0, 2.0], dtype=np.float64).reshape((2,2))
     clip_value_min = np.array([[0.0, 0.0], [0.0, 0.0]], dtype=np.float64)
     clip_value_max = np.array([[1.0, 1.0], [1.0, 1.0]], dtype=np.float64)
-    input_dict = {"t": t, "clip_value_min": clip_value_min, "clip_value_max": clip_value_max, "name": None}
+    input_dict = {"t": t, "clip_value_min": clip_value_min, "clip_value_max": clip_value_max, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: int64, scalar min/max, negative min
     t = np.array([-2, -1, 0, 1, 2], dtype=np.int64)
     clip_value_min = np.array(-1, dtype=np.int64)
     clip_value_max = np.array(1, dtype=np.int64)
-    input_dict = {"t": t, "clip_value_min": clip_value_min, "clip_value_max": clip_value_max, "name": None}
+    input_dict = {"t": t, "clip_value_min": clip_value_min, "clip_value_max": clip_value_max, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: uint8, scalar min/max
     t = np.array([0, 100, 200, 255], dtype=np.uint8)
     clip_value_min = np.array(50, dtype=np.uint8)
     clip_value_max = np.array(150, dtype=np.uint8)
-    input_dict = {"t": t, "clip_value_min": clip_value_min, "clip_value_max": clip_value_max, "name": None}
+    input_dict = {"t": t, "clip_value_min": clip_value_min, "clip_value_max": clip_value_max, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: float16, scalar min/max
     t = np.array([-2.0, -1.0, 0.0, 1.0, 2.0], dtype=np.float16)
     clip_value_min = np.array(-1.0, dtype=np.float16)
     clip_value_max = np.array(1.0, dtype=np.float16)
-    input_dict = {"t": t, "clip_value_min": clip_value_min, "clip_value_max": clip_value_max, "name": None}
+    input_dict = {"t": t, "clip_value_min": clip_value_min, "clip_value_max": clip_value_max, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
    # Input 7: half, scalar min/max
     t = np.array([-1.0, 0.0, 1.0, 2.0], dtype=np.float16)
     clip_value_min = np.array(0.0, dtype=np.float16)
     clip_value_max = np.array(1.0, dtype=np.float16)
-    input_dict = {"t": t, "clip_value_min": clip_value_min, "clip_value_max": clip_value_max, "name": None}
+    input_dict = {"t": t, "clip_value_min": clip_value_min, "clip_value_max": clip_value_max, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: int16, scalar min/max
     t = np.array([-1, 0, 1, 2], dtype=np.int16)
     clip_value_min = np.array(0, dtype=np.int16)
     clip_value_max = np.array(1, dtype=np.int16)
-    input_dict = {"t": t, "clip_value_min": clip_value_min, "clip_value_max": clip_value_max, "name": None}
+    input_dict = {"t": t, "clip_value_min": clip_value_min, "clip_value_max": clip_value_max, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: 3D tensor
     t = np.arange(24, dtype=np.float32).reshape((2, 3, 4))
     clip_value_min = np.array(5.0, dtype=np.float32)
     clip_value_max = np.array(15.0, dtype=np.float32)
-    input_dict = {"t": t, "clip_value_min": clip_value_min, "clip_value_max": clip_value_max, "name": None}
+    input_dict = {"t": t, "clip_value_min": clip_value_min, "clip_value_max": clip_value_max, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: float32, array min/max
     t = np.array([-1.0, 0.0, 1.0, 2.0], dtype=np.float32).reshape((2,2))
     clip_value_min = np.array([[0.0, 0.0], [0.0, 0.0]], dtype=np.float32)
     clip_value_max = np.array([[1.0, 1.0], [1.0, 1.0]], dtype=np.float32)
-    input_dict = {"t": t, "clip_value_min": clip_value_min, "clip_value_max": clip_value_max, "name": None}
+    input_dict = {"t": t, "clip_value_min": clip_value_min, "clip_value_max": clip_value_max, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -78715,7 +78715,7 @@ def tf_raw_ops_cross_inputs():
     # Input 1: Basic 3-element vectors
     a = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     b = np.array([4.0, 5.0, 6.0], dtype=np.float32)
-    input_dict = {"a": a, "b": b, "name": None}
+    input_dict = {"a": a, "b": b, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Another set of 3-element vectors
@@ -78727,7 +78727,7 @@ def tf_raw_ops_cross_inputs():
     # Input 3: Batch of 3-element vectors (2D tensor)
     a = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float64)
     b = np.array([[7, 8, 9], [10, 11, 12]], dtype=np.float64)
-    input_dict = {"a": a, "b": b, "name": None}
+    input_dict = {"a": a, "b": b, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Batch of 3-element vectors with negative values
@@ -78739,7 +78739,7 @@ def tf_raw_ops_cross_inputs():
     # Input 5: 3D tensor with innermost dimension of 3
     a = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]], dtype=np.float32)
     b = np.array([[[13, 14, 15], [16, 17, 18]], [[19, 20, 21], [22, 23, 24]]], dtype=np.float32)
-    input_dict = {"a": a, "b": b, "name": None}
+    input_dict = {"a": a, "b": b, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: 3D tensor with different values
@@ -78751,7 +78751,7 @@ def tf_raw_ops_cross_inputs():
     # Input 7: 4D tensor
     a = np.random.rand(2, 2, 2, 3).astype(np.float64)
     b = np.random.rand(2, 2, 2, 3).astype(np.float64)
-    input_dict = {"a": a, "b": b, "name": None}
+    input_dict = {"a": a, "b": b, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: 4D tensor int type
@@ -78763,7 +78763,7 @@ def tf_raw_ops_cross_inputs():
     # Input 9: float16 type tensors
     a = np.array([1.0, 2.0, 3.0], dtype=np.float16)
     b = np.array([4.0, 5.0, 6.0], dtype=np.float16)
-    input_dict = {"a": a, "b": b, "name": None}
+    input_dict = {"a": a, "b": b, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: uint8 type tensors
@@ -79845,7 +79845,7 @@ def tf_raw_ops_DepthwiseConv2dNative_inputs():
         "explicit_paddings": [],
         "data_format": "NHWC",
         "dilations": [1, 1, 1, 1],
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -79862,7 +79862,7 @@ def tf_raw_ops_DepthwiseConv2dNative_inputs():
         "explicit_paddings": [],
         "data_format": "NHWC",
         "dilations": [1, 1, 1, 1],
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -79880,7 +79880,7 @@ def tf_raw_ops_DepthwiseConv2dNative_inputs():
         "explicit_paddings": explicit_paddings,
         "data_format": "NHWC",
         "dilations": [1, 1, 1, 1],
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -79897,7 +79897,7 @@ def tf_raw_ops_DepthwiseConv2dNative_inputs():
         "explicit_paddings": [],
         "data_format": "NCHW",
         "dilations": [1, 1, 1, 1],
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -79915,7 +79915,7 @@ def tf_raw_ops_DepthwiseConv2dNative_inputs():
         "explicit_paddings": [],
         "data_format": "NHWC",
         "dilations": dilations,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -79932,7 +79932,7 @@ def tf_raw_ops_DepthwiseConv2dNative_inputs():
         "explicit_paddings": [],
         "data_format": "NHWC",
         "dilations": [1, 1, 1, 1],
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -79949,7 +79949,7 @@ def tf_raw_ops_DepthwiseConv2dNative_inputs():
         "explicit_paddings": [],
         "data_format": "NHWC",
         "dilations": [1, 1, 1, 1],
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -79966,7 +79966,7 @@ def tf_raw_ops_DepthwiseConv2dNative_inputs():
         "explicit_paddings": [],
         "data_format": "NHWC",
         "dilations": [1, 1, 1, 1],
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -79983,7 +79983,7 @@ def tf_raw_ops_DepthwiseConv2dNative_inputs():
         "explicit_paddings": [],
         "data_format": "NHWC",
         "dilations": [1, 1, 1, 1],
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -80001,7 +80001,7 @@ def tf_raw_ops_DepthwiseConv2dNative_inputs():
         "explicit_paddings": explicit_paddings,
         "data_format": "NHWC",
         "dilations": [1, 1, 1, 1],
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -80071,7 +80071,7 @@ def tf_raw_ops_diag_part_inputs():
 
     # Input 1: Basic square matrix
     input1 = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    input_dict1 = {"input": input1, "name": None}
+    input_dict1 = {"input": input1, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict1))
 
     # Input 2: Larger square matrix
@@ -80081,7 +80081,7 @@ def tf_raw_ops_diag_part_inputs():
 
     # Input 3: Complex64 square matrix
     input3 = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex64)
-    input_dict3 = {"input": input3, "name": None}
+    input_dict3 = {"input": input3, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict3))
 
     # Input 4: Higher rank tensor (valid rank 4)
@@ -80091,12 +80091,12 @@ def tf_raw_ops_diag_part_inputs():
 
     # Input 5: half data type
     input5 = np.array([[1, 2], [3, 4]], dtype=np.float16)
-    input_dict5 = {"input": input5, "name": None}
+    input_dict5 = {"input": input5, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict5))
 
     # Input 6: float64 data type
     input6 = np.array([[1, 2], [3, 4]], dtype=np.float64)
-    input_dict6 = {"input": input6, "name": None}
+    input_dict6 = {"input": input6, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict6))
 
     # Input 7: int32 matrix
@@ -80106,7 +80106,7 @@ def tf_raw_ops_diag_part_inputs():
     
     # Input 8: Valid higher dimensional tensor
     input8 = np.random.rand(2,2,2,2).astype(np.int32)
-    input_dict8 = {"input": input8, "name": None}
+    input_dict8 = {"input": input8, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict8))
 
     # Input 9: Complex128 type
@@ -80134,7 +80134,7 @@ def tf_raw_ops_digamma_inputs():
 
     # Input 1: float32, 1D array
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float64, 2D array
@@ -80144,7 +80144,7 @@ def tf_raw_ops_digamma_inputs():
 
     # Input 3: bfloat16, scalar value
     x = tf.constant(1.0, dtype=tf.bfloat16).numpy()
-    input_dict = {"x": x.astype(np.float32), "name": None}
+    input_dict = {"x": x.astype(np.float32), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: half, 3D array
@@ -80154,7 +80154,7 @@ def tf_raw_ops_digamma_inputs():
 
     # Input 5: float32, scalar value
     x = np.array(0.1, dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: float64, 1D array with negative values. Should still work as it computes Digamma for absolute values.
@@ -80164,7 +80164,7 @@ def tf_raw_ops_digamma_inputs():
 
     # Input 7: bfloat16, 2D array
     x = tf.constant([[1.0, 2.0], [3.0, 4.0]], dtype=tf.bfloat16).numpy()
-    input_dict = {"x": x.astype(np.float32), "name": None}
+    input_dict = {"x": x.astype(np.float32), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: half, scalar
@@ -80174,12 +80174,12 @@ def tf_raw_ops_digamma_inputs():
 
     # Input 9: float32, multi-dimensional array
     x = np.random.rand(2, 3, 4).astype(np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: float64, small values
     x = np.array([0.001, 0.002, 0.003], dtype=np.float64)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
 
@@ -80207,7 +80207,7 @@ def tf_raw_ops_dilation2d_backprop_input_inputs():
         "strides": strides_list,
         "rates": rates_list,
         "padding": padding_string,
-        "name": None,
+        "name": "custom",
         "input": input_tensor,
         "filter": filter_tensor,
         "out_backprop": out_backprop_tensor
@@ -80226,7 +80226,7 @@ def tf_raw_ops_dilation2d_backprop_input_inputs():
         "strides": strides_list,
         "rates": rates_list,
         "padding": padding_string,
-        "name": None,
+        "name": "custom",
         "input": input_tensor,
         "filter": filter_tensor,
         "out_backprop": out_backprop_tensor
@@ -80245,7 +80245,7 @@ def tf_raw_ops_dilation2d_backprop_input_inputs():
         "strides": strides_list,
         "rates": rates_list,
         "padding": padding_string,
-        "name": None,
+        "name": "custom",
         "input": input_tensor,
         "filter": filter_tensor,
         "out_backprop": out_backprop_tensor
@@ -80264,7 +80264,7 @@ def tf_raw_ops_dilation2d_backprop_input_inputs():
         "strides": strides_list,
         "rates": rates_list,
         "padding": padding_string,
-        "name": None,
+        "name": "custom",
         "input": input_tensor,
         "filter": filter_tensor,
         "out_backprop": out_backprop_tensor
@@ -80283,7 +80283,7 @@ def tf_raw_ops_dilation2d_backprop_input_inputs():
         "strides": strides_list,
         "rates": rates_list,
         "padding": padding_string,
-        "name": None,
+        "name": "custom",
         "input": input_tensor,
         "filter": filter_tensor,
         "out_backprop": out_backprop_tensor
@@ -80302,7 +80302,7 @@ def tf_raw_ops_dilation2d_backprop_input_inputs():
         "strides": strides_list,
         "rates": rates_list,
         "padding": padding_string,
-        "name": None,
+        "name": "custom",
         "input": input_tensor,
         "filter": filter_tensor,
         "out_backprop": out_backprop_tensor
@@ -80321,7 +80321,7 @@ def tf_raw_ops_dilation2d_backprop_input_inputs():
         "strides": strides_list,
         "rates": rates_list,
         "padding": padding_string,
-        "name": None,
+        "name": "custom",
         "input": input_tensor,
         "filter": filter_tensor,
         "out_backprop": out_backprop_tensor
@@ -80340,7 +80340,7 @@ def tf_raw_ops_dilation2d_backprop_input_inputs():
         "strides": strides_list,
         "rates": rates_list,
         "padding": padding_string,
-        "name": None,
+        "name": "custom",
         "input": input_tensor,
         "filter": filter_tensor,
         "out_backprop": out_backprop_tensor
@@ -80359,7 +80359,7 @@ def tf_raw_ops_dilation2d_backprop_input_inputs():
         "strides": strides_list,
         "rates": rates_list,
         "padding": padding_string,
-        "name": None,
+        "name": "custom",
         "input": input_tensor,
         "filter": filter_tensor,
         "out_backprop": out_backprop_tensor
@@ -80378,7 +80378,7 @@ def tf_raw_ops_dilation2d_backprop_input_inputs():
         "strides": strides_list,
         "rates": rates_list,
         "padding": padding_string,
-        "name": None,
+        "name": "custom",
         "input": input_tensor,
         "filter": filter_tensor,
         "out_backprop": out_backprop_tensor
@@ -80472,61 +80472,61 @@ def tf_raw_ops_DivNoNan_inputs():
     # Input 1: Basic float division
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     y = np.array([1.0, 0.0, 3.0], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Division with complex numbers
     x = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex64)
     y = np.array([1+0j, 0+0j, 3+0j], dtype=np.complex64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Using float64
     x = np.array([1.0, 2.0, 3.0], dtype=np.float64)
     y = np.array([0.0, 1.0, 0.0], dtype=np.float64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Broadcasting
     x = np.array([1.0, 2.0], dtype=np.float32)
     y = np.array([0.0], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Multidimensional array
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     y = np.array([[0.0, 1.0], [1.0, 0.0]], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: half
     x = np.array([1.0, 2.0, 3.0], dtype=np.float16)
     y = np.array([1.0, 0.0, 3.0], dtype=np.float16)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: complex128
     x = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex128)
     y = np.array([1+0j, 0+0j, 3+0j], dtype=np.complex128)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Division with negative values
     x = np.array([-1.0, 2.0, -3.0], dtype=np.float32)
     y = np.array([1.0, -0.0, 3.0], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: Division with zero and one values
     x = np.array([0.0, 1.0, 0.0], dtype=np.float32)
     y = np.array([1.0, 0.0, 1.0], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: Different shaped arrays for broadcasting.
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     y = np.array([0.0, 1.0], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -80544,61 +80544,61 @@ def tf_raw_ops_draw_bounding_boxes_inputs():
     # Input 1: Basic valid input
     images = np.random.rand(1, 100, 200, 3).astype(np.float32)
     boxes = np.array([[[0.1, 0.2, 0.5, 0.9]]]).astype(np.float32)
-    input_dict = {"images": images, "boxes": boxes, "name": None}
+    input_dict = {"images": images, "boxes": boxes, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Multiple boxes, single image
     images = np.random.rand(1, 100, 200, 3).astype(np.float32)
     boxes = np.array([[[0.1, 0.2, 0.5, 0.9], [0.6, 0.1, 0.8, 0.3]]]).astype(np.float32)
-    input_dict = {"images": images, "boxes": boxes, "name": None}
+    input_dict = {"images": images, "boxes": boxes, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Multiple images, multiple boxes
     images = np.random.rand(2, 100, 200, 3).astype(np.float32)
     boxes = np.array([[[0.1, 0.2, 0.5, 0.9], [0.6, 0.1, 0.8, 0.3]], [[0.2, 0.3, 0.7, 0.8], [0.0, 0.5, 0.4, 0.6]]]).astype(np.float32)
-    input_dict = {"images": images, "boxes": boxes, "name": None}
+    input_dict = {"images": images, "boxes": boxes, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Different image size
     images = np.random.rand(1, 50, 80, 3).astype(np.float32)
     boxes = np.array([[[0.1, 0.2, 0.5, 0.9]]]).astype(np.float32)
-    input_dict = {"images": images, "boxes": boxes, "name": None}
+    input_dict = {"images": images, "boxes": boxes, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Box at the edge
     images = np.random.rand(1, 100, 200, 3).astype(np.float32)
     boxes = np.array([[[0.0, 0.0, 1.0, 1.0]]]).astype(np.float32)
-    input_dict = {"images": images, "boxes": boxes, "name": None}
+    input_dict = {"images": images, "boxes": boxes, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Empty boxes
     images = np.random.rand(1, 100, 200, 3).astype(np.float32)
     boxes = np.array([[]]).reshape(1,0,4).astype(np.float32)
-    input_dict = {"images": images, "boxes": boxes, "name": None}
+    input_dict = {"images": images, "boxes": boxes, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: Half type images
     images = np.random.rand(1, 100, 200, 3).astype(np.float16)
     boxes = np.array([[[0.1, 0.2, 0.5, 0.9]]]).astype(np.float32)
-    input_dict = {"images": images, "boxes": boxes, "name": None}
+    input_dict = {"images": images, "boxes": boxes, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Multiple half type images and boxes
     images = np.random.rand(2, 100, 200, 3).astype(np.float16)
     boxes = np.array([[[0.1, 0.2, 0.5, 0.9], [0.6, 0.1, 0.8, 0.3]], [[0.2, 0.3, 0.7, 0.8], [0.0, 0.5, 0.4, 0.6]]]).astype(np.float32)
-    input_dict = {"images": images, "boxes": boxes, "name": None}
+    input_dict = {"images": images, "boxes": boxes, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: Large image
     images = np.random.rand(1, 512, 512, 3).astype(np.float32)
     boxes = np.array([[[0.1, 0.2, 0.5, 0.9]]]).astype(np.float32)
-    input_dict = {"images": images, "boxes": boxes, "name": None}
+    input_dict = {"images": images, "boxes": boxes, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: Very small image
     images = np.random.rand(1, 10, 10, 3).astype(np.float32)
     boxes = np.array([[[0.1, 0.2, 0.5, 0.9]]]).astype(np.float32)
-    input_dict = {"images": images, "boxes": boxes, "name": None}
+    input_dict = {"images": images, "boxes": boxes, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -80622,7 +80622,7 @@ def tf_raw_ops_draw_bounding_boxes_v2_inputs():
         "images": images,
         "boxes": boxes,
         "colors": colors,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -80635,7 +80635,7 @@ def tf_raw_ops_draw_bounding_boxes_v2_inputs():
         "images": images,
         "boxes": boxes,
         "colors": colors,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -80648,7 +80648,7 @@ def tf_raw_ops_draw_bounding_boxes_v2_inputs():
         "images": images,
         "boxes": boxes,
         "colors": colors,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -80661,7 +80661,7 @@ def tf_raw_ops_draw_bounding_boxes_v2_inputs():
         "images": images,
         "boxes": boxes,
         "colors": colors,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -80674,7 +80674,7 @@ def tf_raw_ops_draw_bounding_boxes_v2_inputs():
         "images": images,
         "boxes": boxes,
         "colors": colors,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -80687,7 +80687,7 @@ def tf_raw_ops_draw_bounding_boxes_v2_inputs():
         "images": images,
         "boxes": boxes,
         "colors": colors,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -80700,7 +80700,7 @@ def tf_raw_ops_draw_bounding_boxes_v2_inputs():
         "images": images,
         "boxes": boxes,
         "colors": colors,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -80713,7 +80713,7 @@ def tf_raw_ops_draw_bounding_boxes_v2_inputs():
         "images": images,
         "boxes": boxes,
         "colors": colors,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -80726,7 +80726,7 @@ def tf_raw_ops_draw_bounding_boxes_v2_inputs():
         "images": images,
         "boxes": boxes,
         "colors": colors,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -80739,7 +80739,7 @@ def tf_raw_ops_draw_bounding_boxes_v2_inputs():
         "images": images,
         "boxes": boxes,
         "colors": colors,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -81857,52 +81857,52 @@ def tf_raw_ops_Erf_inputs():
 
     # Input 1: Basic float32 tensor
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Negative float32 tensor
     x = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Zero float32 tensor
     x = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Multi-dimensional float32 tensor
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: float64 tensor
     x = np.array([1.0, 2.0, 3.0], dtype=np.float64)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: bfloat16 tensor
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32).astype(np.float16)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: half tensor
     x = np.array([1.0, 2.0, 3.0], dtype=np.float16)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Large values
     x = np.array([10.0, 20.0, 30.0], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: Small values
     x = np.array([0.1, 0.2, 0.3], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: Tensor with mixed signs and values
     x = np.array([-1.0, 0.0, 1.0, -2.0, 2.0, -0.5, 0.5], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -81919,32 +81919,32 @@ def tf_raw_ops_Erfc_inputs():
 
     # Input 1: half scalar
     x = np.array(1.0, dtype=np.float16)
-    input_dict = {"x": tf.constant(x, dtype=tf.float16).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x, dtype=tf.float16).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float32 scalar
     x = np.array(2.0, dtype=np.float32)
-    input_dict = {"x": tf.constant(x, dtype=tf.float32).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x, dtype=tf.float32).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: float64 scalar
     x = np.array(3.0, dtype=np.float64)
-    input_dict = {"x": tf.constant(x, dtype=tf.float64).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x, dtype=tf.float64).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: half array
     x = np.array([-2.0, 0.5, 2.0], dtype=np.float16)
-    input_dict = {"x": tf.constant(x, dtype=tf.float16).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x, dtype=tf.float16).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: float32 array
     x = np.array([-3.0, 1.5, 3.0], dtype=np.float32)
-    input_dict = {"x": tf.constant(x, dtype=tf.float32).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x, dtype=tf.float32).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: float64 array
     x = np.array([-4.0, 2.5, 4.0], dtype=np.float64)
-    input_dict = {"x": tf.constant(x, dtype=tf.float64).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x, dtype=tf.float64).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: half matrix
@@ -81954,17 +81954,17 @@ def tf_raw_ops_Erfc_inputs():
     
     # Input 8: float32 matrix
     x = np.array([[-3.0, 1.5], [3.0, 4.0]], dtype=np.float32)
-    input_dict = {"x": tf.constant(x, dtype=tf.float32).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x, dtype=tf.float32).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: float64 matrix
     x = np.array([[-4.0, 2.5], [4.0, 5.0]], dtype=np.float64)
-    input_dict = {"x": tf.constant(x, dtype=tf.float64).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x, dtype=tf.float64).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: float32 tensor
     x = np.random.rand(2,3,4).astype(np.float32)
-    input_dict = {"x": tf.constant(x, dtype=tf.float32).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x, dtype=tf.float32).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -81981,7 +81981,7 @@ def tf_raw_ops_Erfinv_inputs():
 
     # Input 1: float32, simple
     x = np.array([0.5], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float64, negative values
@@ -81991,7 +81991,7 @@ def tf_raw_ops_Erfinv_inputs():
 
     # Input 3: float32, multiple dimensions
     x = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: float32, larger values (within range)
@@ -82001,7 +82001,7 @@ def tf_raw_ops_Erfinv_inputs():
 
     # Input 5: float32, more negative values
     x = np.array([-0.9, -0.8, -0.7], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: float64, zero value
@@ -82011,7 +82011,7 @@ def tf_raw_ops_Erfinv_inputs():
 
     # Input 7: float32, 3D tensor
     x = np.random.uniform(-0.9, 0.9, size=(2, 3, 4)).astype(np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: float64, a broader range of values
@@ -82021,7 +82021,7 @@ def tf_raw_ops_Erfinv_inputs():
 
     # Input 9: float32, large array
     x = np.random.uniform(-0.9, 0.9, size=(100,)).astype(np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: float64, a more complex tensor structure
@@ -82135,7 +82135,7 @@ def tf_raw_ops_exp_inputs():
 
     # Input 1: float32, 1D array
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float64, 2D array
@@ -82145,7 +82145,7 @@ def tf_raw_ops_exp_inputs():
 
     # Input 3: bfloat16, 1D array
     x = np.array([1.0, 2.0, 3.0], dtype=np.float16)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: half, 2D array
@@ -82155,7 +82155,7 @@ def tf_raw_ops_exp_inputs():
 
     # Input 5: complex64, 1D array
     x = np.array([1.0 + 1j, 2.0 + 2j, 3.0 + 3j], dtype=np.complex64)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: complex128, 2D array
@@ -82165,7 +82165,7 @@ def tf_raw_ops_exp_inputs():
 
     # Input 7: float32, scalar
     x = np.array(2.5, dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: float64, 3D array
@@ -82175,12 +82175,12 @@ def tf_raw_ops_exp_inputs():
 
     # Input 9: complex64, scalar
     x = np.array(1.0 + 1j, dtype=np.complex64)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: float32, negative values
     x = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -82269,52 +82269,52 @@ def tf_raw_ops_expm1_inputs():
 
     # Input 1: float32, scalar
     x = np.float32(2.0)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float32, 1D array
     x = np.array([2.0, 8.0], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: complex64, scalar
     x = np.complex64(1 + 1j)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: float64, 2D array
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: complex128, 1D array
     x = np.array([1 + 1j, 2 - 2j], dtype=np.complex128)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: bfloat16, scalar
     x = np.array(0.5, dtype=np.float16) #bfloat16 doesn't exist in numpy, use float16
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: float32, 3D array, negative values
     x = np.array([[[1.0, -2.0], [-3.0, 4.0]], [[-5.0, 6.0], [7.0, -8.0]]], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: complex64, 2D array
     x = np.array([[1 + 1j, 2 - 2j], [3 + 3j, 4 - 4j]], dtype=np.complex64)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: float64, scalar, negative
     x = np.float64(-1.5)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: half, scalar
     x = np.array(1.0, dtype=np.float16) #half doesn't exist in numpy, using float16
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -83778,61 +83778,61 @@ def tf_raw_ops_fill_inputs():
     # Input 1: Basic integer fill
     dims = np.array([2, 3], dtype=np.int32)
     value = np.array(5, dtype=np.int32)
-    input_dict = {"dims": dims, "value": value, "name": None}
+    input_dict = {"dims": dims, "value": value, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Different shape, integer value
     dims = np.array([1, 5, 2], dtype=np.int32)
     value = np.array(-2, dtype=np.int32)
-    input_dict = {"dims": dims, "value": value, "name": None}
+    input_dict = {"dims": dims, "value": value, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3:  Long type
     dims = np.array([4, 1], dtype=np.int64)
     value = np.array(100, dtype=np.int32)
-    input_dict = {"dims": dims, "value": value, "name": None}
+    input_dict = {"dims": dims, "value": value, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4:  float value
     dims = np.array([2, 2, 2], dtype=np.int32)
     value = np.array(3.14, dtype=np.float32)
-    input_dict = {"dims": dims, "value": value, "name": None}
+    input_dict = {"dims": dims, "value": value, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5:  bool value
     dims = np.array([3, 3], dtype=np.int32)
     value = np.array(True, dtype=np.bool_)
-    input_dict = {"dims": dims, "value": value, "name": None}
+    input_dict = {"dims": dims, "value": value, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6:  float16 value
     dims = np.array([4, 4], dtype=np.int32)
     value = np.array(1.5, dtype=np.float16)
-    input_dict = {"dims": dims, "value": value, "name": None}
+    input_dict = {"dims": dims, "value": value, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7:  int8 value
     dims = np.array([5, 1], dtype=np.int32)
     value = np.array(-10, dtype=np.int8)
-    input_dict = {"dims": dims, "value": value, "name": None}
+    input_dict = {"dims": dims, "value": value, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8:  uint8 value
     dims = np.array([1, 5], dtype=np.int32)
     value = np.array(200, dtype=np.uint8)
-    input_dict = {"dims": dims, "value": value, "name": None}
+    input_dict = {"dims": dims, "value": value, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: int64 dims, int64 value
     dims = np.array([2, 3], dtype=np.int64)
     value = np.array(1234567890, dtype=np.int64)
-    input_dict = {"dims": dims, "value": value, "name": None}
+    input_dict = {"dims": dims, "value": value, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: Empty dims, float32 value
     dims = np.array([], dtype=np.int32)
     value = np.array(2.5, dtype=np.float32)
-    input_dict = {"dims": dims, "value": value, "name": None}
+    input_dict = {"dims": dims, "value": value, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -84038,61 +84038,61 @@ def tf_raw_ops_FractionalAvgPool_inputs():
     # Input 1: Basic valid case
     value = np.random.rand(1, 10, 10, 1).astype(np.float32)
     pooling_ratio = [1.0, 1.4, 1.5, 1.0]
-    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": False, "overlapping": False, "deterministic": False, "seed": 0, "seed2": 0, "name": None}
+    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": False, "overlapping": False, "deterministic": False, "seed": 0, "seed2": 0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Different data type (float64)
     value = np.random.rand(1, 10, 10, 1).astype(np.float64)
     pooling_ratio = [1.0, 1.4, 1.5, 1.0]
-    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": False, "overlapping": False, "deterministic": False, "seed": 0, "seed2": 0, "name": None}
+    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": False, "overlapping": False, "deterministic": False, "seed": 0, "seed2": 0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Different data type (int32)
     value = np.random.randint(0, 100, size=(1, 10, 10, 1), dtype=np.int32)
     pooling_ratio = [1.0, 1.4, 1.5, 1.0]
-    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": False, "overlapping": False, "deterministic": False, "seed": 0, "seed2": 0, "name": None}
+    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": False, "overlapping": False, "deterministic": False, "seed": 0, "seed2": 0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Different data type (int64)
     value = np.random.randint(0, 100, size=(1, 10, 10, 1), dtype=np.int64)
     pooling_ratio = [1.0, 1.4, 1.5, 1.0]
-    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": False, "overlapping": False, "deterministic": False, "seed": 0, "seed2": 0, "name": None}
+    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": False, "overlapping": False, "deterministic": False, "seed": 0, "seed2": 0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Different pooling ratios
     value = np.random.rand(1, 10, 10, 1).astype(np.float32)
     pooling_ratio = [1.0, 1.1, 1.2, 1.0]
-    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": False, "overlapping": False, "deterministic": False, "seed": 0, "seed2": 0, "name": None}
+    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": False, "overlapping": False, "deterministic": False, "seed": 0, "seed2": 0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Pseudo random is True
     value = np.random.rand(1, 10, 10, 1).astype(np.float32)
     pooling_ratio = [1.0, 1.4, 1.5, 1.0]
-    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": True, "overlapping": False, "deterministic": False, "seed": 0, "seed2": 0, "name": None}
+    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": True, "overlapping": False, "deterministic": False, "seed": 0, "seed2": 0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: Overlapping is True
     value = np.random.rand(1, 10, 10, 1).astype(np.float32)
     pooling_ratio = [1.0, 1.4, 1.5, 1.0]
-    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": False, "overlapping": True, "deterministic": False, "seed": 0, "seed2": 0, "name": None}
+    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": False, "overlapping": True, "deterministic": False, "seed": 0, "seed2": 0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Deterministic is True, with seeds
     value = np.random.rand(1, 10, 10, 1).astype(np.float32)
     pooling_ratio = [1.0, 1.4, 1.5, 1.0]
-    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": False, "overlapping": False, "deterministic": True, "seed": 123, "seed2": 456, "name": None}
+    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": False, "overlapping": False, "deterministic": True, "seed": 123, "seed2": 456, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9:  Larger pooling ratio
     value = np.random.rand(1, 10, 10, 1).astype(np.float32)
     pooling_ratio = [1.0, 2.0, 2.0, 1.0]
-    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": False, "overlapping": False, "deterministic": False, "seed": 0, "seed2": 0, "name": None}
+    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": False, "overlapping": False, "deterministic": False, "seed": 0, "seed2": 0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: Deterministic True, seeds 0.
     value = np.random.rand(1, 10, 10, 1).astype(np.float32)
     pooling_ratio = [1.0, 1.4, 1.5, 1.0]
-    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": False, "overlapping": False, "deterministic": True, "seed": 0, "seed2": 0, "name": None}
+    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": False, "overlapping": False, "deterministic": True, "seed": 0, "seed2": 0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -86552,49 +86552,49 @@ def tf_raw_ops_greater_equal_inputs():
     # Input 1: Basic int32
     x = np.array([5, 4, 6, 7], dtype=np.int32)
     y = np.array([5, 2, 5, 10], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Broadcasting with int32
     x = np.array([5, 4, 6, 7], dtype=np.int32)
     y = np.array([5], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: float32
     x = np.array([5.0, 4.0, 6.0, 7.0], dtype=np.float32)
     y = np.array([5.0, 2.0, 5.0, 10.0], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Negative values with int64
     x = np.array([-5, -4, -6, -7], dtype=np.int64)
     y = np.array([-5, -2, -5, -10], dtype=np.int64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: 2D array with float64
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
     y = np.array([[2.0, 1.0], [4.0, 3.0]], dtype=np.float64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: 1D with uint8
     x = np.array([1, 2, 3, 4], dtype=np.uint8)
     y = np.array([2, 1, 4, 3], dtype=np.uint8)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: half
     x = np.array([1.0, 2.0, 3.0], dtype=np.float16)
     y = np.array([2.0, 1.0, 3.0], dtype=np.float16)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8: int16
     x = np.array([1, 2, 3, 4], dtype=np.int16)
     y = np.array([2, 1, 4, 3], dtype=np.int16)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -86833,55 +86833,55 @@ def tf_raw_ops_igamma_inputs():
     # Input 1: float32, simple values
     a = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     x = np.array([0.5, 1.5, 2.5], dtype=np.float32)
-    input_dict = {"a": a, "x": x, "name": None}
+    input_dict = {"a": a, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float64, different values, same shape
     a = np.array([0.1, 0.2, 0.3], dtype=np.float64)
     x = np.array([0.4, 0.5, 0.6], dtype=np.float64)
-    input_dict = {"a": a, "x": x, "name": None}
+    input_dict = {"a": a, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: float32, zeros
     a = np.array([0.0, 1.0, 2.0], dtype=np.float32)
     x = np.array([1.0, 0.0, 1.0], dtype=np.float32)
-    input_dict = {"a": a, "x": x, "name": None}
+    input_dict = {"a": a, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: float64, different shape
     a = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
     x = np.array([[0.5, 1.5], [2.5, 3.5]], dtype=np.float64)
-    input_dict = {"a": a, "x": x, "name": None}
+    input_dict = {"a": a, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: float32, larger values
     a = np.array([10.0, 20.0, 30.0], dtype=np.float32)
     x = np.array([5.0, 15.0, 25.0], dtype=np.float32)
-    input_dict = {"a": a, "x": x, "name": None}
+    input_dict = {"a": a, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: float64, small values
     a = np.array([0.01, 0.02, 0.03], dtype=np.float64)
     x = np.array([0.04, 0.05, 0.06], dtype=np.float64)
-    input_dict = {"a": a, "x": x, "name": None}
+    input_dict = {"a": a, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: float32, multi-dimensional arrays
     a = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
     x = np.array([[[0.5, 1.5], [2.5, 3.5]], [[4.5, 5.5], [6.5, 7.5]]], dtype=np.float32)
-    input_dict = {"a": a, "x": x, "name": None}
+    input_dict = {"a": a, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: float32, different values
     a = np.array([0.5, 1.5, 2.5], dtype=np.float32)
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"a": a, "x": x, "name": None}
+    input_dict = {"a": a, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9: float64, simple values, different values
     a = np.array([2.0, 3.0, 4.0], dtype=np.float64)
     x = np.array([1.5, 2.5, 3.5], dtype=np.float64)
-    input_dict = {"a": a, "x": x, "name": None}
+    input_dict = {"a": a, "x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -86898,7 +86898,7 @@ def tf_raw_ops_imag_inputs():
 
     # Input 1: complex64, default Tout
     input1 = np.array([1 + 2j, 3 + 4j, 5 + 6j], dtype=np.complex64)
-    input_dict = {"input": input1, "Tout": tf.float32, "name": None}
+    input_dict = {"input": input1, "Tout": tf.float32, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: complex128, Tout=tf.float64
@@ -86908,7 +86908,7 @@ def tf_raw_ops_imag_inputs():
 
     # Input 3: complex64, 2D array
     input3 = np.array([[1 + 2j, 3 + 4j], [5 + 6j, 7 + 8j]], dtype=np.complex64)
-    input_dict = {"input": input3, "Tout": tf.float32, "name": None}
+    input_dict = {"input": input3, "Tout": tf.float32, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: complex128, 2D array, Tout=tf.float64
@@ -86918,7 +86918,7 @@ def tf_raw_ops_imag_inputs():
 
     # Input 5: complex64, 3D array
     input5 = np.array([[[1 + 2j, 3 + 4j], [5 + 6j, 7 + 8j]], [[9 + 10j, 11 + 12j], [13 + 14j, 15 + 16j]]], dtype=np.complex64)
-    input_dict = {"input": input5, "Tout": tf.float32, "name": None}
+    input_dict = {"input": input5, "Tout": tf.float32, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: complex128, 3D array, Tout=tf.float64
@@ -86928,7 +86928,7 @@ def tf_raw_ops_imag_inputs():
 
     # Input 7: complex64, empty array
     input7 = np.array([], dtype=np.complex64)
-    input_dict = {"input": input7, "Tout": tf.float32, "name": None}
+    input_dict = {"input": input7, "Tout": tf.float32, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: complex128, empty array, Tout=tf.float64
@@ -86938,7 +86938,7 @@ def tf_raw_ops_imag_inputs():
     
     # Input 9: complex64 with zero imaginary part
     input9 = np.array([1 + 0j, 2 + 0j, 3 + 0j], dtype=np.complex64)
-    input_dict = {"input": input9, "Tout": tf.float32, "name": None}
+    input_dict = {"input": input9, "Tout": tf.float32, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: complex128 with large imaginary part
@@ -87126,70 +87126,70 @@ def tf_raw_ops_inplace_add_inputs():
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     i = np.array([0], dtype=np.int32)
     v = np.array([[5.0, 6.0]], dtype=np.float32)
-    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    input_dict = {"x": x, "i": i, "v": v, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Adding to multiple rows
     x = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float32)
     i = np.array([0, 2], dtype=np.int32)
     v = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
-    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    input_dict = {"x": x, "i": i, "v": v, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Different data type (int32)
     x = np.array([[1, 2], [3, 4]], dtype=np.int32)
     i = np.array([1], dtype=np.int32)
     v = np.array([[5, 6]], dtype=np.int32)
-    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    input_dict = {"x": x, "i": i, "v": v, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Adding a row of zeros
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     i = np.array([0], dtype=np.int32)
     v = np.array([[0.0, 0.0]], dtype=np.float32)
-    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    input_dict = {"x": x, "i": i, "v": v, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Larger matrix
     x = np.random.rand(5, 5).astype(np.float32)
     i = np.array([1, 3], dtype=np.int32)
     v = np.random.rand(2, 5).astype(np.float32)
-    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    input_dict = {"x": x, "i": i, "v": v, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Single element matrix
     x = np.array([[1.0]], dtype=np.float32)
     i = np.array([0], dtype=np.int32)
     v = np.array([[2.0]], dtype=np.float32)
-    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    input_dict = {"x": x, "i": i, "v": v, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: Different index
     x = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float32)
     i = np.array([1], dtype=np.int32)
     v = np.array([[7.0, 8.0]], dtype=np.float32)
-    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    input_dict = {"x": x, "i": i, "v": v, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Multiple additions
     x = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float32)
     i = np.array([0, 0], dtype=np.int32)
     v = np.array([[1.0, 1.0], [2.0, 2.0]], dtype=np.float32)
-    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    input_dict = {"x": x, "i": i, "v": v, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
    # Input 9: Different dtype (int64)
     x = np.array([[1, 2], [3, 4]], dtype=np.int64)
     i = np.array([1], dtype=np.int32)
     v = np.array([[5, 6]], dtype=np.int64)
-    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    input_dict = {"x": x, "i": i, "v": v, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: Adding to the last row
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     i = np.array([1], dtype=np.int32)
     v = np.array([[5.0, 6.0]], dtype=np.float32)
-    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    input_dict = {"x": x, "i": i, "v": v, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -87290,70 +87290,70 @@ def tf_raw_ops_inplace_update_inputs():
     x = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
     i = np.array([0], dtype=np.int32)
     v = np.array([[7, 8, 9]], dtype=np.int32)
-    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    input_dict = {"x": x, "i": i, "v": v, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     i = np.array([1], dtype=np.int32)
     v = np.array([[5.0, 6.0]], dtype=np.float32)
-    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    input_dict = {"x": x, "i": i, "v": v, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     x = np.array([[-1, -2], [-3, -4]], dtype=np.int32)
     i = np.array([0, 1], dtype=np.int32)
     v = np.array([[5, 6], [7, 8]], dtype=np.int32)
-    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    input_dict = {"x": x, "i": i, "v": v, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
     x = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.int32)
     i = np.array([0, 2], dtype=np.int32)
     v = np.array([[10, 11, 12], [13, 14, 15]], dtype=np.int32)
-    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    input_dict = {"x": x, "i": i, "v": v, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
     x = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32)
     i = np.array([1, 0, 2], dtype=np.int32)
     v = np.array([[7, 8], [9, 10], [11, 12]], dtype=np.int32)
-    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    input_dict = {"x": x, "i": i, "v": v, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
     x = np.array([[1.5, 2.5], [3.5, 4.5]], dtype=np.float64)
     i = np.array([0], dtype=np.int32)
     v = np.array([[5.5, 6.5]], dtype=np.float64)
-    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    input_dict = {"x": x, "i": i, "v": v, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
     x = np.array([[1, 2], [3, 4]], dtype=np.int64)
     i = np.array([1], dtype=np.int32)
     v = np.array([[5, 6]], dtype=np.int64)
-    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    input_dict = {"x": x, "i": i, "v": v, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
     x = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
     i = np.array([1, 0], dtype=np.int32)
     v = np.array([[7, 8, 9], [10, 11, 12]], dtype=np.int32)
-    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    input_dict = {"x": x, "i": i, "v": v, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
     x = np.array([[1, 2], [3, 4]], dtype=np.int32)
     i = np.array([0], dtype=np.int32)
     v = np.array([[7, 8]], dtype=np.int32)
-    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    input_dict = {"x": x, "i": i, "v": v, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
     x = np.array([[1, 2, 3, 4], [5, 6, 7, 8]], dtype=np.int32)
     i = np.array([0, 1], dtype=np.int32)
     v = np.array([[9, 10, 11, 12], [13, 14, 15, 16]], dtype=np.int32)
-    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    input_dict = {"x": x, "i": i, "v": v, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -87427,7 +87427,7 @@ def tf_raw_ops_invert_permutation_inputs():
 
     # Input 1: Basic example
     x = np.array([3, 4, 0, 2, 1], dtype=np.int32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Different permutation
@@ -87437,37 +87437,37 @@ def tf_raw_ops_invert_permutation_inputs():
 
     # Input 3: Larger permutation
     x = np.array([5, 0, 2, 1, 3, 4], dtype=np.int32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4:  int64 type
     x = np.array([3, 4, 0, 2, 1], dtype=np.int64)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Different order
     x = np.array([4, 2, 3, 0, 1], dtype=np.int32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: simple permutation
     x = np.array([1, 0], dtype=np.int32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: More complex permutation
     x = np.array([6, 1, 3, 4, 0, 2, 5], dtype=np.int32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Larger int64
     x = np.array([10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0], dtype=np.int64)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: Another example with int32
     x = np.array([7, 5, 3, 1, 6, 0, 2, 4], dtype=np.int32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
      # Input 10: Example with a different name
@@ -87613,37 +87613,37 @@ def tf_raw_ops_IsNan_inputs():
 
     # Input 1: Basic float32 NaN
     x = np.array([np.nan], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Basic float64 NaN
     x = np.array([np.nan], dtype=np.float64)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Basic half NaN
     x = np.array([np.nan], dtype=np.float16)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: float32 array with NaNs and numbers
     x = np.array([1.0, np.nan, 3.0, np.nan, 5.0], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: float64 2D array with NaNs
     x = np.array([[1.0, np.nan], [np.nan, 4.0]], dtype=np.float64)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: half array with positive and negative NaNs
     x = np.array([np.nan, -np.nan], dtype=np.float16)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: float32 array with inf, -inf, and NaN
     x = np.array([np.inf, -np.inf, np.nan], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: float64 2D array with a name
@@ -87653,7 +87653,7 @@ def tf_raw_ops_IsNan_inputs():
 
     # Input 9: half array with multiple nan values
     x = np.array([np.nan, 1.0, 2.0, np.nan, 4.0, np.nan], dtype=np.float16)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -88159,61 +88159,61 @@ def tf_raw_ops_lessequal_inputs():
     # Input 1: Basic integer comparison
     x = np.array([1, 2, 3], dtype=np.int32)
     y = np.array([2, 2, 2], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Basic float comparison
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     y = np.array([2.0, 1.5, 3.0], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Negative values
     x = np.array([-1, -2, -3], dtype=np.int32)
     y = np.array([-2, -2, -2], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Multi-dimensional array
     x = np.array([[1, 2], [3, 4]], dtype=np.int32)
     y = np.array([[2, 1], [4, 3]], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Different data types (float64)
     x = np.array([1.0, 2.0, 3.0], dtype=np.float64)
     y = np.array([2.0, 1.5, 3.5], dtype=np.float64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Different data types (int64)
     x = np.array([1, 2, 3], dtype=np.int64)
     y = np.array([2, 1, 4], dtype=np.int64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: Zero values
     x = np.array([0, 0, 0], dtype=np.int32)
     y = np.array([0, 1, -1], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Equal values
     x = np.array([5, 5, 5], dtype=np.int32)
     y = np.array([5, 5, 5], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: uint8
     x = np.array([1, 2, 3], dtype=np.uint8)
     y = np.array([2, 2, 2], dtype=np.uint8)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: half
     x = np.array([1, 2, 3], dtype=np.float16)
     y = np.array([2, 1, 4], dtype=np.float16)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -88230,7 +88230,7 @@ def tf_raw_ops_lgamma_inputs():
 
     # Input 1: Basic float32
     x = np.array([0.5, 1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Float64 with negative values
@@ -88240,12 +88240,12 @@ def tf_raw_ops_lgamma_inputs():
 
     # Input 3: Half type
     x = np.array([0.5, 1.0, 2.0, 3.0], dtype=np.float16)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: bfloat16 type (converted to float32)
     x = np.array([0.5, 1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: 2D float32
@@ -88292,7 +88292,7 @@ def tf_raw_ops_log_inputs():
 
     # Input 1: float32, 1D array
     x = np.array([1.0, 2.71828, 10.0, 0.5], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float64, 2D array
@@ -88302,12 +88302,12 @@ def tf_raw_ops_log_inputs():
 
     # Input 3: float16, scalar
     x = np.array(3.14159, dtype=np.float16)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: float16, 1D array
     x = np.array([0.1, 1.0, 10.0], dtype=np.float16)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: complex64, 1D array (real part is positive)
@@ -88317,17 +88317,17 @@ def tf_raw_ops_log_inputs():
 
     # Input 6: complex128, 2D array (real part is positive)
     x = np.array([[1+0j, 2+0j], [3+0j, 4+0j]], dtype=np.complex128)
-    input_dict = {"x":  x, "name": None}
+    input_dict = {"x":  x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: float32, empty array
     x = np.array([], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: float32, 3D array
     x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: float64, scalar
@@ -88337,7 +88337,7 @@ def tf_raw_ops_log_inputs():
 
     # Input 10: float16, 2D array
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float16)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -88354,7 +88354,7 @@ def tf_raw_ops_logsoftmax_inputs():
 
     # Input 1: float32, basic case
     logits = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
-    input_dict = {"logits": logits, "name": None}
+    input_dict = {"logits": logits, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float64, negative values
@@ -89335,61 +89335,61 @@ def tf_raw_ops_matmul_inputs():
     # Input 1: Basic float32 matrices
     a = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     b = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "grad_a": False, "grad_b": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "grad_a": False, "grad_b": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: transpose_a = True
     a = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     b = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
-    input_dict = {"a": a, "b": b, "transpose_a": True, "transpose_b": False, "grad_a": False, "grad_b": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": True, "transpose_b": False, "grad_a": False, "grad_b": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: transpose_b = True
     a = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     b = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": True, "grad_a": False, "grad_b": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": True, "grad_a": False, "grad_b": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Both transpose_a and transpose_b are True
     a = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     b = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
-    input_dict = {"a": a, "b": b, "transpose_a": True, "transpose_b": True, "grad_a": False, "grad_b": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": True, "transpose_b": True, "grad_a": False, "grad_b": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Different shapes, float64
     a = np.array([[1.0, 2.0, 3.0]], dtype=np.float64)
     b = np.array([[4.0], [5.0], [6.0]], dtype=np.float64)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "grad_a": False, "grad_b": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "grad_a": False, "grad_b": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: int32
     a = np.array([[1, 2], [3, 4]], dtype=np.int32)
     b = np.array([[5, 6], [7, 8]], dtype=np.int32)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "grad_a": False, "grad_b": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "grad_a": False, "grad_b": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: int64
     a = np.array([[1, 2], [3, 4]], dtype=np.int64)
     b = np.array([[5, 6], [7, 8]], dtype=np.int64)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "grad_a": False, "grad_b": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "grad_a": False, "grad_b": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: complex64
     a = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex64)
     b = np.array([[5+5j, 6+6j], [7+7j, 8+8j]], dtype=np.complex64)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "grad_a": False, "grad_b": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "grad_a": False, "grad_b": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: complex128
     a = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex128)
     b = np.array([[5+5j, 6+6j], [7+7j, 8+8j]], dtype=np.complex128)
-    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "grad_a": False, "grad_b": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "grad_a": False, "grad_b": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: bfloat16
     a = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32).astype(np.float16) #Convert float32 array to float16 numpy array
     b = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32).astype(np.float16) #Convert float32 array to float16 numpy array
-    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "grad_a": False, "grad_b": False, "name": None}
+    input_dict = {"a": a, "b": b, "transpose_a": False, "transpose_b": False, "grad_a": False, "grad_b": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -89480,70 +89480,70 @@ def tf_raw_ops_MatrixBandPart_inputs():
     input_tensor = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.int32)
     num_lower = np.array(1, dtype=np.int32)
     num_upper = np.array(1, dtype=np.int32)
-    input_dict = {"input": input_tensor, "num_lower": num_lower, "num_upper": num_upper, "name": None}
+    input_dict = {"input": input_tensor, "num_lower": num_lower, "num_upper": num_upper, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Negative num_lower
     input_tensor = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.int32)
     num_lower = np.array(-1, dtype=np.int32)
     num_upper = np.array(1, dtype=np.int32)
-    input_dict = {"input": input_tensor, "num_lower": num_lower, "num_upper": num_upper, "name": None}
+    input_dict = {"input": input_tensor, "num_lower": num_lower, "num_upper": num_upper, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Negative num_upper
     input_tensor = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.int32)
     num_lower = np.array(1, dtype=np.int32)
     num_upper = np.array(-1, dtype=np.int32)
-    input_dict = {"input": input_tensor, "num_lower": num_lower, "num_upper": num_upper, "name": None}
+    input_dict = {"input": input_tensor, "num_lower": num_lower, "num_upper": num_upper, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Both negative
     input_tensor = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.int32)
     num_lower = np.array(-1, dtype=np.int32)
     num_upper = np.array(-1, dtype=np.int32)
-    input_dict = {"input": input_tensor, "num_lower": num_lower, "num_upper": num_upper, "name": None}
+    input_dict = {"input": input_tensor, "num_lower": num_lower, "num_upper": num_upper, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Larger matrix
     input_tensor = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]], dtype=np.int32)
     num_lower = np.array(2, dtype=np.int32)
     num_upper = np.array(1, dtype=np.int32)
-    input_dict = {"input": input_tensor, "num_lower": num_lower, "num_upper": num_upper, "name": None}
+    input_dict = {"input": input_tensor, "num_lower": num_lower, "num_upper": num_upper, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Zero values
     input_tensor = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]], dtype=np.int32)
     num_lower = np.array(1, dtype=np.int32)
     num_upper = np.array(1, dtype=np.int32)
-    input_dict = {"input": input_tensor, "num_lower": num_lower, "num_upper": num_upper, "name": None}
+    input_dict = {"input": input_tensor, "num_lower": num_lower, "num_upper": num_upper, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: num_lower and num_upper as int64
     input_tensor = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.int32)
     num_lower = np.array(1, dtype=np.int64)
     num_upper = np.array(1, dtype=np.int64)
-    input_dict = {"input": input_tensor, "num_lower": num_lower, "num_upper": num_upper, "name": None}
+    input_dict = {"input": input_tensor, "num_lower": num_lower, "num_upper": num_upper, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: different data type for input
     input_tensor = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]], dtype=np.float32)
     num_lower = np.array(1, dtype=np.int32)
     num_upper = np.array(1, dtype=np.int32)
-    input_dict = {"input": input_tensor, "num_lower": num_lower, "num_upper": num_upper, "name": None}
+    input_dict = {"input": input_tensor, "num_lower": num_lower, "num_upper": num_upper, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: 1x1 matrix
     input_tensor = np.array([[5]], dtype=np.int32)
     num_lower = np.array(0, dtype=np.int32)
     num_upper = np.array(0, dtype=np.int32)
-    input_dict = {"input": input_tensor, "num_lower": num_lower, "num_upper": num_upper, "name": None}
+    input_dict = {"input": input_tensor, "num_lower": num_lower, "num_upper": num_upper, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: 2D tensor, one row matrix
     input_tensor = np.array([[1, 2, 3]], dtype=np.int32)
     num_lower = np.array(0, dtype=np.int32)
     num_upper = np.array(2, dtype=np.int32)
-    input_dict = {"input": input_tensor, "num_lower": num_lower, "num_upper": num_upper, "name": None}
+    input_dict = {"input": input_tensor, "num_lower": num_lower, "num_upper": num_upper, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -89560,7 +89560,7 @@ def tf_raw_ops_MatrixDiag_inputs():
 
     # Input 1: Basic case
     diagonal = np.array([1, 2, 3], dtype=np.int32)
-    input_dict = {"diagonal": diagonal.astype(np.int32), "name": None}
+    input_dict = {"diagonal": diagonal.astype(np.int32), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: 2D diagonal
@@ -89570,7 +89570,7 @@ def tf_raw_ops_MatrixDiag_inputs():
 
     # Input 3: 3D diagonal
     diagonal = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64)
-    input_dict = {"diagonal": diagonal.astype(np.int64), "name": None}
+    input_dict = {"diagonal": diagonal.astype(np.int64), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Different data type (float64)
@@ -89580,7 +89580,7 @@ def tf_raw_ops_MatrixDiag_inputs():
 
     # Input 5: Different data type (complex64)
     diagonal = np.array([1 + 1j, 2 + 2j, 3 + 3j], dtype=np.complex64)
-    input_dict = {"diagonal": diagonal.astype(np.complex64), "name": None}
+    input_dict = {"diagonal": diagonal.astype(np.complex64), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Single element diagonal
@@ -89590,22 +89590,22 @@ def tf_raw_ops_MatrixDiag_inputs():
 
     # Input 7: Different shape
     diagonal = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.int32)
-    input_dict = {"diagonal": diagonal.astype(np.int32), "name": None}
+    input_dict = {"diagonal": diagonal.astype(np.int32), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: 4D diagonal
     diagonal = np.random.rand(2, 3, 4, 5).astype(np.float32)
-    input_dict = {"diagonal": diagonal, "name": None}
+    input_dict = {"diagonal": diagonal, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: boolean diagonal
     diagonal = np.array([True, False, True], dtype=bool)
-    input_dict = {"diagonal": diagonal, "name": None}
+    input_dict = {"diagonal": diagonal, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10: large numbers in diagonal
     diagonal = np.array([1000000000, 2000000000, 3000000000], dtype=np.int64)
-    input_dict = {"diagonal": diagonal.astype(np.int64), "name": None}
+    input_dict = {"diagonal": diagonal.astype(np.int64), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
@@ -89622,7 +89622,7 @@ def tf_raw_ops_MatrixDiagPart_inputs():
 
     # Input 1: Basic 2x2 matrix
     input_matrix = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    input_dict = {"input": input_matrix, "name": None}
+    input_dict = {"input": input_matrix, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: 3x3 matrix
@@ -89632,42 +89632,42 @@ def tf_raw_ops_MatrixDiagPart_inputs():
 
     # Input 3: Rectangular matrix (2x3)
     input_matrix = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int64)
-    input_dict = {"input": input_matrix, "name": None}
+    input_dict = {"input": input_matrix, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Batched matrices (2x2x2)
     input_matrix = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
-    input_dict = {"input": input_matrix, "name": None}
+    input_dict = {"input": input_matrix, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Negative values in the matrix
     input_matrix = np.array([[-1, 2], [3, -4]], dtype=np.int32)
-    input_dict = {"input": input_matrix, "name": None}
+    input_dict = {"input": input_matrix, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Larger dimensions
     input_matrix = np.random.randint(0, 10, size=(5, 5), dtype=np.int32)
-    input_dict = {"input": input_matrix, "name": None}
+    input_dict = {"input": input_matrix, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: 4-D Tensor
     input_matrix = np.random.randint(0, 10, size=(2, 3, 3, 3), dtype=np.int32)
-    input_dict = {"input": input_matrix, "name": None}
+    input_dict = {"input": input_matrix, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Batched matrices with different dimensions (2x3x3)
     input_matrix = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]], [[10, 11, 12], [13, 14, 15], [16, 17, 18]]], dtype=np.int64)
-    input_dict = {"input": input_matrix, "name": None}
+    input_dict = {"input": input_matrix, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: Rectangular matrix (3x2)
     input_matrix = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float64)
-    input_dict = {"input": input_matrix, "name": None}
+    input_dict = {"input": input_matrix, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10: Batched matrices (3x2x2)
     input_matrix = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]]], dtype=np.float32)
-    input_dict = {"input": input_matrix, "name": None}
+    input_dict = {"input": input_matrix, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
 
@@ -89687,70 +89687,70 @@ def tf_raw_ops_matrix_diag_part_v2_inputs():
     input1 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]).astype(np.int32)
     k1 = np.array(0).astype(np.int32)
     padding_value1 = np.array(0).astype(np.int32)
-    input_dict1 = {"input": input1, "k": k1, "padding_value": padding_value1, "name": None}
+    input_dict1 = {"input": input1, "k": k1, "padding_value": padding_value1, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict1))
 
     # Input 2: k=1 (superdiagonal)
     input2 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]).astype(np.int32)
     k2 = np.array(1).astype(np.int32)
     padding_value2 = np.array(0).astype(np.int32)
-    input_dict2 = {"input": input2, "k": k2, "padding_value": padding_value2, "name": None}
+    input_dict2 = {"input": input2, "k": k2, "padding_value": padding_value2, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict2))
 
     # Input 3: k=-1 (subdiagonal)
     input3 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]).astype(np.int32)
     k3 = np.array(-1).astype(np.int32)
     padding_value3 = np.array(0).astype(np.int32)
-    input_dict3 = {"input": input3, "k": k3, "padding_value": padding_value3, "name": None}
+    input_dict3 = {"input": input3, "k": k3, "padding_value": padding_value3, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict3))
 
     # Input 4: k=(0,1) (band)
     input4 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]).astype(np.int32)
     k4 = np.array([0, 1]).astype(np.int32)
     padding_value4 = np.array(0).astype(np.int32)
-    input_dict4 = {"input": input4, "k": k4, "padding_value": padding_value4, "name": None}
+    input_dict4 = {"input": input4, "k": k4, "padding_value": padding_value4, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict4))
 
     # Input 5: k=(-1,0) (band)
     input5 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]).astype(np.int32)
     k5 = np.array([-1, 0]).astype(np.int32)
     padding_value5 = np.array(0).astype(np.int32)
-    input_dict5 = {"input": input5, "k": k5, "padding_value": padding_value5, "name": None}
+    input_dict5 = {"input": input5, "k": k5, "padding_value": padding_value5, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict5))
 
     # Input 6: Different padding value
     input6 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]).astype(np.int32)
     k6 = np.array(0).astype(np.int32)
     padding_value6 = np.array(-1).astype(np.int32)
-    input_dict6 = {"input": input6, "k": k6, "padding_value": padding_value6, "name": None}
+    input_dict6 = {"input": input6, "k": k6, "padding_value": padding_value6, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict6))
 
     # Input 7: Larger k values
     input7 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]).astype(np.int32)
     k7 = np.array(2).astype(np.int32)
     padding_value7 = np.array(0).astype(np.int32)
-    input_dict7 = {"input": input7, "k": k7, "padding_value": padding_value7, "name": None}
+    input_dict7 = {"input": input7, "k": k7, "padding_value": padding_value7, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict7))
 
     # Input 8: 3D tensor
     input8 = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]).astype(np.int32)
     k8 = np.array(0).astype(np.int32)
     padding_value8 = np.array(0).astype(np.int32)
-    input_dict8 = {"input": input8, "k": k8, "padding_value": padding_value8, "name": None}
+    input_dict8 = {"input": input8, "k": k8, "padding_value": padding_value8, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict8))
 
     # Input 9: Float input
     input9 = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]).astype(np.float32)
     k9 = np.array(0).astype(np.int32)
     padding_value9 = np.array(0.0).astype(np.float32)
-    input_dict9 = {"input": input9, "k": k9, "padding_value": padding_value9, "name": None}
+    input_dict9 = {"input": input9, "k": k9, "padding_value": padding_value9, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict9))
     
     # Input 10: Complex input
     input10 = np.array([[1+1j, 2+2j, 3+3j], [4+4j, 5+5j, 6+6j], [7+7j, 8+8j, 9+9j]]).astype(np.complex64)
     k10 = np.array(0).astype(np.int32)
     padding_value10 = np.array(0+0j).astype(np.complex64)
-    input_dict10 = {"input": input10, "k": k10, "padding_value": padding_value10, "name": None}
+    input_dict10 = {"input": input10, "k": k10, "padding_value": padding_value10, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict10))
 
     return list_of_inputs
@@ -90013,63 +90013,63 @@ def tf_raw_ops_matrix_set_diag_v3_inputs():
     input_matrix = np.array([[[7, 7, 7], [7, 7, 7], [7, 7, 7]]], dtype=np.int32)
     diagonal = np.array([[1, 2, 3]], dtype=np.int32)
     k = np.array(0, dtype=np.int32)
-    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": None}
+    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Superdiagonal
     input_matrix = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]], dtype=np.int32)
     diagonal = np.array([[10, 11]], dtype=np.int32)
     k = np.array(1, dtype=np.int32)
-    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": None}
+    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Subdiagonal
     input_matrix = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]], dtype=np.int32)
     diagonal = np.array([[10, 11]], dtype=np.int32)
     k = np.array(-1, dtype=np.int32)
-    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": None}
+    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Band of diagonals
     input_matrix = np.array([[[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]]], dtype=np.int32)
     diagonal = np.array([[[13, 14, 15], [16, 17, 18], [19, 20, 21], [22, 23, 24]]], dtype=np.int32)
     k = np.array([-1, 2], dtype=np.int32)
-    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": None}
+    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Different alignment
     input_matrix = np.array([[[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]]], dtype=np.int32)
     diagonal = np.array([[[13, 14, 15], [16, 17, 18], [19, 20, 21], [22, 23, 24]]], dtype=np.int32)
     k = np.array([-1, 2], dtype=np.int32)
-    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "LEFT_RIGHT", "name": None}
+    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "LEFT_RIGHT", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: k is scalar
     input_matrix = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]], dtype=np.int32)
     diagonal = np.array([[10, 11, 12]], dtype=np.int32)
     k = np.array(0, dtype=np.int32)
-    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": None}
+    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: Multiple batches
     input_matrix = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]], dtype=np.int32)
     diagonal = np.array([[13, 14], [15, 16]], dtype=np.int32)
     k = np.array(0, dtype=np.int32)
-    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": None}
+    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Different data type
     input_matrix = np.array([[[1.0, 2.0], [3.0, 4.0]]], dtype=np.float32)
     diagonal = np.array([[5.0, 6.0]], dtype=np.float32)
     k = np.array(0, dtype=np.int32)
-    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": None}
+    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: k[0] == k[1]
     input_matrix = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]], dtype=np.int32)
     diagonal = np.array([[10, 11, 12]], dtype=np.int32)
     k = np.array([0, 0], dtype=np.int32)
-    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": None}
+    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: More complex band
@@ -90077,7 +90077,7 @@ def tf_raw_ops_matrix_set_diag_v3_inputs():
     diagonal = np.array([[[21, 22, 23, 24], [25, 26, 27, 28], [29, 30, 31, 32], [33, 34, 35, 36], [37, 38, 39, 40]]], dtype=np.int32)
     k = np.array([-2, 2], dtype=np.int32)
 
-    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": None}
+    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -90095,55 +90095,55 @@ def tf_raw_ops_max_inputs():
     # Input 1: Simple 2D array, reduce along axis 0
     input1 = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32)
     axis1 = np.array([0], dtype=np.int32)
-    input_dict1 = {"input": input1, "axis": axis1, "keep_dims": False, "name": None}
+    input_dict1 = {"input": input1, "axis": axis1, "keep_dims": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict1))
 
     # Input 2: Simple 2D array, reduce along axis 1, keep_dims=True
     input2 = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32)
     axis2 = np.array([1], dtype=np.int32)
-    input_dict2 = {"input": input2, "axis": axis2, "keep_dims": True, "name": None}
+    input_dict2 = {"input": input2, "axis": axis2, "keep_dims": True, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict2))
 
     # Input 3: 3D array, reduce along multiple axes
     input3 = np.random.rand(2, 3, 4).astype(np.float64)
     axis3 = np.array([0, 2], dtype=np.int32)
-    input_dict3 = {"input": input3, "axis": axis3, "keep_dims": False, "name": None}
+    input_dict3 = {"input": input3, "axis": axis3, "keep_dims": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict3))
 
     # Input 4: 3D array, reduce along all axes, keep_dims=True
     input4 = np.random.rand(2, 3, 4).astype(np.float64)
     axis4 = np.array([0, 1, 2], dtype=np.int32)
-    input_dict4 = {"input": input4, "axis": axis4, "keep_dims": True, "name": None}
+    input_dict4 = {"input": input4, "axis": axis4, "keep_dims": True, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict4))
 
     # Input 5: 1D array, reduce along axis 0
     input5 = np.array([1, 2, 3, 4, 5], dtype=np.int32)
     axis5 = np.array([0], dtype=np.int32)
-    input_dict5 = {"input": input5, "axis": axis5, "keep_dims": False, "name": None}
+    input_dict5 = {"input": input5, "axis": axis5, "keep_dims": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict5))
 
     # Input 6: 4D array, different data type (int64)
     input6 = np.random.randint(0, 10, size=(2, 3, 4, 5)).astype(np.int64)
     axis6 = np.array([1, 3], dtype=np.int32)
-    input_dict6 = {"input": input6, "axis": axis6, "keep_dims": True, "name": None}
+    input_dict6 = {"input": input6, "axis": axis6, "keep_dims": True, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict6))
 
     # Input 7: Negative values in input tensor
     input7 = np.array([[-1, 2, -3], [4, -5, 6]], dtype=np.float32)
     axis7 = np.array([0], dtype=np.int32)
-    input_dict7 = {"input": input7, "axis": axis7, "keep_dims": False, "name": None}
+    input_dict7 = {"input": input7, "axis": axis7, "keep_dims": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict7))
 
     # Input 8: Single element tensor
     input8 = np.array([5], dtype=np.int32)
     axis8 = np.array([0], dtype=np.int32)
-    input_dict8 = {"input": input8, "axis": axis8, "keep_dims": False, "name": None}
+    input_dict8 = {"input": input8, "axis": axis8, "keep_dims": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict8))
 
     # Input 9: Rank 5 tensor
     input9 = np.random.rand(2, 3, 4, 5, 6).astype(np.float32)
     axis9 = np.array([0, 2, 4], dtype=np.int32)
-    input_dict9 = {"input": input9, "axis": axis9, "keep_dims": True, "name": None}
+    input_dict9 = {"input": input9, "axis": axis9, "keep_dims": True, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict9))
 
     return list_of_inputs
@@ -90631,61 +90631,61 @@ def tf_raw_ops_maximum_inputs():
     # Input 1: Basic float32 test
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     y = np.array([2.0, 1.0, 4.0], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Negative values and different shape (broadcasting)
     x = np.array([-1.0, 0.0, 1.0], dtype=np.float32)
     y = np.array([-2.0], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Integer type (int32)
     x = np.array([1, 2, 3], dtype=np.int32)
     y = np.array([2, 1, 4], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Integer type (int64)
     x = np.array([-1, -2, -3], dtype=np.int64)
     y = np.array([-2, -1, -4], dtype=np.int64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: float16
     x = np.array([1.0, 2.0, 3.0], dtype=np.float16)
     y = np.array([2.0, 1.0, 4.0], dtype=np.float16)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: float64
     x = np.array([1.0, 2.0, 3.0], dtype=np.float64)
     y = np.array([2.0, 1.0, 4.0], dtype=np.float64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: uint8
     x = np.array([1, 2, 3], dtype=np.uint8)
     y = np.array([2, 1, 4], dtype=np.uint8)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Multi-dimensional array
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     y = np.array([[2.0, 1.0], [4.0, 3.0]], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: Broadcasting with multi-dimensional array
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     y = np.array([2.0, 1.0], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10: int8
     x = np.array([1, 2, 3], dtype=np.int8)
     y = np.array([2, 1, 0], dtype=np.int8)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -90703,7 +90703,7 @@ def tf_raw_ops_mean_inputs():
     # Input 1: Simple float32 with axis=0
     input1 = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     axis1 = np.array(0, dtype=np.int32)
-    input_dict1 = {"input": input1, "axis": axis1, "keep_dims": False, "name": None}
+    input_dict1 = {"input": input1, "axis": axis1, "keep_dims": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict1))
 
     # Input 2: float64 with axis=1 and keep_dims=True
@@ -90715,49 +90715,49 @@ def tf_raw_ops_mean_inputs():
     # Input 3: int32 with axis=[0, 1]
     input3 = np.array([[1, 2], [3, 4]], dtype=np.int32)
     axis3 = np.array([0, 1], dtype=np.int32)
-    input_dict3 = {"input": input3, "axis": axis3, "keep_dims": False, "name": None}
+    input_dict3 = {"input": input3, "axis": axis3, "keep_dims": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict3))
 
     # Input 4: complex64 with negative axis
     input4 = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex64)
     axis4 = np.array(-1, dtype=np.int32)
-    input_dict4 = {"input": input4, "axis": axis4, "keep_dims": True, "name": None}
+    input_dict4 = {"input": input4, "axis": axis4, "keep_dims": True, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict4))
 
     # Input 5: int64, 3 dimensions
     input5 = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64)
     axis5 = np.array(0, dtype=np.int64)
-    input_dict5 = {"input": input5, "axis": axis5, "keep_dims": False, "name": None}
+    input_dict5 = {"input": input5, "axis": axis5, "keep_dims": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict5))
 
     # Input 6: uint8
     input6 = np.array([[1, 2], [3, 4]], dtype=np.uint8)
     axis6 = np.array(1, dtype=np.int32)
-    input_dict6 = {"input": input6, "axis": axis6, "keep_dims": False, "name": None}
+    input_dict6 = {"input": input6, "axis": axis6, "keep_dims": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict6))
 
     # Input 7: half
     input7 = np.array([[1, 2], [3, 4]], dtype=np.float16)
     axis7 = np.array(0, dtype=np.int32)
-    input_dict7 = {"input": input7, "axis": axis7, "keep_dims": True, "name": None}
+    input_dict7 = {"input": input7, "axis": axis7, "keep_dims": True, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict7))
 
     # Input 8: Two axis
     input8 = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
     axis8 = np.array([0, 2], dtype=np.int32)
-    input_dict8 = {"input": input8, "axis": axis8, "keep_dims": False, "name": None}
+    input_dict8 = {"input": input8, "axis": axis8, "keep_dims": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict8))
 
     # Input 9: complex128
     input9 = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex128)
     axis9 = np.array(0, dtype=np.int64)
-    input_dict9 = {"input": input9, "axis": axis9, "keep_dims": True, "name": None}
+    input_dict9 = {"input": input9, "axis": axis9, "keep_dims": True, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict9))
 
     # Input 10: int16
     input10 = np.array([[1, 2], [3, 4]], dtype=np.int16)
     axis10 = np.array(1, dtype=np.int32)
-    input_dict10 = {"input": input10, "axis": axis10, "keep_dims": False, "name": None}
+    input_dict10 = {"input": input10, "axis": axis10, "keep_dims": False, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict10))
 
     return list_of_inputs
@@ -90867,61 +90867,61 @@ def tf_raw_ops_minimum_inputs():
     # Input 1: Basic float32 tensors
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     y = np.array([2.0, 1.0, 4.0], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Integer tensors
     x = np.array([1, 2, 3], dtype=np.int32)
     y = np.array([2, 1, 4], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Broadcasting example
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     y = np.array([2.0], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Negative values
     x = np.array([-1.0, 2.0, -3.0], dtype=np.float32)
     y = np.array([2.0, -1.0, 4.0], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Multi-dimensional arrays
     x = np.array([[1, 2], [3, 4]], dtype=np.int32)
     y = np.array([[2, 1], [4, 3]], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Different dtypes (int64)
     x = np.array([1, 2, 3], dtype=np.int64)
     y = np.array([2, 1, 4], dtype=np.int64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: Different dtypes (float64)
     x = np.array([1.0, 2.0, 3.0], dtype=np.float64)
     y = np.array([2.0, 1.0, 4.0], dtype=np.float64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
      # Input 8: uint8
     x = np.array([1, 2, 3], dtype=np.uint8)
     y = np.array([2, 1, 4], dtype=np.uint8)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: float16
     x = np.array([1.0, 2.0, 3.0], dtype=np.float16)
     y = np.array([2.0, 1.0, 4.0], dtype=np.float16)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: Different shapes that can be broadcasted
     x = np.array([[1.0, 2.0, 3.0]], dtype=np.float32)
     y = np.array([2.0, 1.0, 4.0], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -91183,49 +91183,49 @@ def tf_raw_ops_next_after_inputs():
     # Input 1: Basic float32 tensors
     x1 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     x2 = np.array([1.1, 2.1, 3.1], dtype=np.float32)
-    input_dict = {"x1": x1, "x2": x2, "name": None}
+    input_dict = {"x1": x1, "x2": x2, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Basic float64 tensors
     x1 = np.array([1.0, 2.0, 3.0], dtype=np.float64)
     x2 = np.array([1.1, 2.1, 3.1], dtype=np.float64)
-    input_dict = {"x1": x1, "x2": x2, "name": None}
+    input_dict = {"x1": x1, "x2": x2, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Negative values
     x1 = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
     x2 = np.array([-1.1, -2.1, -3.1], dtype=np.float32)
-    input_dict = {"x1": x1, "x2": x2, "name": None}
+    input_dict = {"x1": x1, "x2": x2, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Zero values
     x1 = np.array([0.0, 0.0, 0.0], dtype=np.float32)
     x2 = np.array([0.1, 0.2, 0.3], dtype=np.float32)
-    input_dict = {"x1": x1, "x2": x2, "name": None}
+    input_dict = {"x1": x1, "x2": x2, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Multi-dimensional tensors
     x1 = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     x2 = np.array([[1.1, 2.1], [3.1, 4.1]], dtype=np.float32)
-    input_dict = {"x1": x1, "x2": x2, "name": None}
+    input_dict = {"x1": x1, "x2": x2, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Same values for x1 and x2
     x1 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     x2 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"x1": x1, "x2": x2, "name": None}
+    input_dict = {"x1": x1, "x2": x2, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: Different magnitudes
     x1 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     x2 = np.array([100.0, 200.0, 300.0], dtype=np.float32)
-    input_dict = {"x1": x1, "x2": x2, "name": None}
+    input_dict = {"x1": x1, "x2": x2, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Small differences
     x1 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     x2 = np.array([1.000001, 2.000001, 3.000001], dtype=np.float32)
-    input_dict = {"x1": x1, "x2": x2, "name": None}
+    input_dict = {"x1": x1, "x2": x2, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: Using name
@@ -91237,7 +91237,7 @@ def tf_raw_ops_next_after_inputs():
     # Input 10: Larger multi-dimensional tensors
     x1 = np.random.rand(3, 4, 5).astype(np.float64)
     x2 = np.random.rand(3, 4, 5).astype(np.float64)
-    input_dict = {"x1": x1, "x2": x2, "name": None}
+    input_dict = {"x1": x1, "x2": x2, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -92269,7 +92269,7 @@ def tf_raw_ops_non_max_suppression_with_overlaps_inputs():
     score_threshold = np.array(0.6, dtype=np.float32)
 
     input_dict = {
-        "name": None,
+        "name": "custom",
         "overlaps": overlaps,
         "scores": scores,
         "max_output_size": max_output_size,
@@ -92303,7 +92303,7 @@ def tf_raw_ops_non_max_suppression_with_overlaps_inputs():
     score_threshold = np.array(0.6, dtype=np.float32)
 
     input_dict = {
-        "name": None,
+        "name": "custom",
         "overlaps": overlaps,
         "scores": scores,
         "max_output_size": max_output_size,
@@ -92337,7 +92337,7 @@ def tf_raw_ops_non_max_suppression_with_overlaps_inputs():
     score_threshold = np.array(0.0, dtype=np.float32)
 
     input_dict = {
-        "name": None,
+        "name": "custom",
         "overlaps": overlaps,
         "scores": scores,
         "max_output_size": max_output_size,
@@ -92371,7 +92371,7 @@ def tf_raw_ops_non_max_suppression_with_overlaps_inputs():
     score_threshold = np.array(0.1, dtype=np.float32)
 
     input_dict = {
-        "name": None,
+        "name": "custom",
         "overlaps": overlaps,
         "scores": scores,
         "max_output_size": max_output_size,
@@ -92405,7 +92405,7 @@ def tf_raw_ops_non_max_suppression_with_overlaps_inputs():
     score_threshold = np.array(0.5, dtype=np.float32)
 
     input_dict = {
-        "name": None,
+        "name": "custom",
         "overlaps": overlaps,
         "scores": scores,
         "max_output_size": max_output_size,
@@ -93600,12 +93600,12 @@ def tf_raw_ops_prevent_gradient_inputs():
 
     # Input 1: Simple float tensor
     input_tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"input": input_tensor, "message": "", "name": None}
+    input_dict = {"input": input_tensor, "message": "", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Int tensor with a message
     input_tensor = np.array([4, 5, 6], dtype=np.int32)
-    input_dict = {"input": input_tensor, "message": "No gradient allowed here!", "name": None}
+    input_dict = {"input": input_tensor, "message": "No gradient allowed here!", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: 2D float tensor
@@ -93615,37 +93615,37 @@ def tf_raw_ops_prevent_gradient_inputs():
 
     # Input 4: Bool tensor
     input_tensor = np.array([True, False, True], dtype=np.bool_)
-    input_dict = {"input": input_tensor, "message": "Boolean tensor, no grad!", "name": None}
+    input_dict = {"input": input_tensor, "message": "Boolean tensor, no grad!", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Complex tensor
     input_tensor = np.array([1+1j, 2+2j], dtype=np.complex64)
-    input_dict = {"input": input_tensor, "message": "Complex numbers!", "name": None}
+    input_dict = {"input": input_tensor, "message": "Complex numbers!", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Tensor with negative values
     input_tensor = np.array([-1.0, -2.0, 0.0, 1.0, 2.0], dtype=np.float32)
-    input_dict = {"input": input_tensor, "message": "", "name": None}
+    input_dict = {"input": input_tensor, "message": "", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: 3D tensor
     input_tensor = np.random.rand(2, 3, 4).astype(np.float32)
-    input_dict = {"input": input_tensor, "message": "3D tensor, prevent gradient.", "name": None}
+    input_dict = {"input": input_tensor, "message": "3D tensor, prevent gradient.", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Empty tensor
     input_tensor = np.array([], dtype=np.float32)
-    input_dict = {"input": input_tensor, "message": "Empty tensor", "name": None}
+    input_dict = {"input": input_tensor, "message": "Empty tensor", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: Large tensor
     input_tensor = np.random.rand(100, 100).astype(np.float32)
-    input_dict = {"input": input_tensor, "message": "Large tensor, no gradient here.", "name": None}
+    input_dict = {"input": input_tensor, "message": "Large tensor, no gradient here.", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10: Uint8 tensor
     input_tensor = np.array([1, 2, 3], dtype=np.uint8)
-    input_dict = {"input": input_tensor, "message": "Uint8 tensor", "name": None}
+    input_dict = {"input": input_tensor, "message": "Uint8 tensor", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -94412,7 +94412,7 @@ def tf_raw_ops_quantizev2_inputs():
     min_range = np.array(-1.0, dtype=np.float32)
     max_range = np.array(1.0, dtype=np.float32)
     T = tf.qint8.as_numpy_dtype
-    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "MIN_COMBINED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": -1, "ensure_minimum_range": 0.01, "name": None}
+    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "MIN_COMBINED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": -1, "ensure_minimum_range": 0.01, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
@@ -94428,7 +94428,7 @@ def tf_raw_ops_quantizev2_inputs():
     min_range = np.array(0.0, dtype=np.float32)
     max_range = np.array(1.0, dtype=np.float32)
     T = tf.qint32.as_numpy_dtype
-    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "MIN_FIRST", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": -1, "ensure_minimum_range": 0.01, "name": None}
+    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "MIN_FIRST", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": -1, "ensure_minimum_range": 0.01, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
@@ -94436,7 +94436,7 @@ def tf_raw_ops_quantizev2_inputs():
     min_range = np.array(1.0, dtype=np.float32)
     max_range = np.array(5.0, dtype=np.float32)
     T = tf.qint16.as_numpy_dtype
-    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "SCALED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": -1, "ensure_minimum_range": 0.0, "name": None}
+    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "SCALED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": -1, "ensure_minimum_range": 0.0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
@@ -94444,7 +94444,7 @@ def tf_raw_ops_quantizev2_inputs():
     min_range = np.array(10.0, dtype=np.float32)
     max_range = np.array(50.0, dtype=np.float32)
     T = tf.quint16.as_numpy_dtype
-    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "SCALED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": True, "axis": -1, "ensure_minimum_range": 0.01, "name": None}
+    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "SCALED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": True, "axis": -1, "ensure_minimum_range": 0.01, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
@@ -94452,7 +94452,7 @@ def tf_raw_ops_quantizev2_inputs():
     min_range = np.array([-1.0, 0.0, 1.0], dtype=np.float32)
     max_range = np.array([1.0, 1.5, 2.0], dtype=np.float32)
     T = tf.qint8.as_numpy_dtype
-    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "MIN_COMBINED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": 0, "ensure_minimum_range": 0.0, "name": None}
+    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "MIN_COMBINED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": 0, "ensure_minimum_range": 0.0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
@@ -94460,7 +94460,7 @@ def tf_raw_ops_quantizev2_inputs():
     min_range = np.array([1.0, 3.0], dtype=np.float32)
     max_range = np.array([2.0, 4.0], dtype=np.float32)
     T = tf.quint8.as_numpy_dtype
-    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "MIN_COMBINED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": 1, "ensure_minimum_range": 0.01, "name": None}
+    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "MIN_COMBINED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": 1, "ensure_minimum_range": 0.01, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
    # Input 8
@@ -94468,7 +94468,7 @@ def tf_raw_ops_quantizev2_inputs():
     min_range = np.array(0.5, dtype=np.float32)
     max_range = np.array(3.5, dtype=np.float32)
     T = tf.qint16.as_numpy_dtype
-    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "SCALED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": -1, "ensure_minimum_range": 0.1, "name": None}
+    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "SCALED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": -1, "ensure_minimum_range": 0.1, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
    # Input 9
@@ -94476,7 +94476,7 @@ def tf_raw_ops_quantizev2_inputs():
     min_range = np.array(-1.0, dtype=np.float32)
     max_range = np.array(1.0, dtype=np.float32)
     T = tf.qint16.as_numpy_dtype
-    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "MIN_COMBINED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": -1, "ensure_minimum_range": 0.001, "name": None}
+    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "MIN_COMBINED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": -1, "ensure_minimum_range": 0.001, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
@@ -94484,7 +94484,7 @@ def tf_raw_ops_quantizev2_inputs():
     min_range = np.array(0.0, dtype=np.float32)
     max_range = np.array(0.5, dtype=np.float32)
     T = tf.quint16.as_numpy_dtype
-    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "MIN_FIRST", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": True, "axis": -1, "ensure_minimum_range": 0.0, "name": None}
+    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "MIN_FIRST", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": True, "axis": -1, "ensure_minimum_range": 0.0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 11
@@ -94492,7 +94492,7 @@ def tf_raw_ops_quantizev2_inputs():
     min_range = np.array(1.0, dtype=np.float32)
     max_range = np.array(5.0, dtype=np.float32)
     T = tf.qint8.as_numpy_dtype
-    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "SCALED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": True, "axis": -1, "ensure_minimum_range": 0.0, "name": None}
+    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "SCALED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": True, "axis": -1, "ensure_minimum_range": 0.0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 12
@@ -94500,7 +94500,7 @@ def tf_raw_ops_quantizev2_inputs():
     min_range = np.array(-1.0, dtype=np.float32)
     max_range = np.array(1.0, dtype=np.float32)
     T = tf.qint8.as_numpy_dtype
-    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "MIN_COMBINED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": -1, "ensure_minimum_range": 0.01, "name": None}
+    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "MIN_COMBINED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": -1, "ensure_minimum_range": 0.01, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 13
@@ -94508,7 +94508,7 @@ def tf_raw_ops_quantizev2_inputs():
     min_range = np.array(0.5, dtype=np.float32)
     max_range = np.array(3.5, dtype=np.float32)
     T = tf.qint16.as_numpy_dtype
-    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "SCALED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": -1, "ensure_minimum_range": 0.1, "name": None}
+    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "SCALED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": -1, "ensure_minimum_range": 0.1, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 14
@@ -94516,7 +94516,7 @@ def tf_raw_ops_quantizev2_inputs():
     min_range = np.array([-1.0, 0.0, 1.0], dtype=np.float32)
     max_range = np.array([1.0, 1.5, 2.0], dtype=np.float32)
     T = tf.qint8.as_numpy_dtype
-    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "MIN_COMBINED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": 0, "ensure_minimum_range": 0.0, "name": None}
+    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "MIN_COMBINED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": 0, "ensure_minimum_range": 0.0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 15
@@ -94524,7 +94524,7 @@ def tf_raw_ops_quantizev2_inputs():
     min_range = np.array([1.0, 3.0], dtype=np.float32)
     max_range = np.array([2.0, 4.0], dtype=np.float32)
     T = tf.quint8.as_numpy_dtype
-    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "MIN_COMBINED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": 1, "ensure_minimum_range": 0.01, "name": None}
+    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "MIN_COMBINED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": 1, "ensure_minimum_range": 0.01, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 16
@@ -94532,7 +94532,7 @@ def tf_raw_ops_quantizev2_inputs():
     min_range = np.array([1.0, 5.0], dtype=np.float32)
     max_range = np.array([4.0, 8.0], dtype=np.float32)
     T = tf.quint8.as_numpy_dtype
-    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "MIN_COMBINED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": 0, "ensure_minimum_range": 0.01, "name": None}
+    input_dict = {"input": input_tensor, "min_range": min_range, "max_range": max_range, "T": T, "mode": "MIN_COMBINED", "round_mode": "HALF_AWAY_FROM_ZERO", "narrow_range": False, "axis": 0, "ensure_minimum_range": 0.01, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -94549,12 +94549,12 @@ def tf_raw_ops_rgb_to_hsv_inputs():
 
     # Input 1: Basic 2D image
     images = np.array([[[0.0, 0.0, 1.0]]], dtype=np.float32)
-    input_dict = {"images": images, "name": None}
+    input_dict = {"images": images, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: 3D image
     images = np.array([[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]], [[0.0, 0.0, 1.0], [1.0, 1.0, 0.0]]], dtype=np.float32)
-    input_dict = {"images": images, "name": None}
+    input_dict = {"images": images, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: 4D image
@@ -94564,37 +94564,37 @@ def tf_raw_ops_rgb_to_hsv_inputs():
 
     # Input 4: half type
     images = np.array([[[0.5, 0.2, 0.8]]], dtype=np.float16)
-    input_dict = {"images": images, "name": None}
+    input_dict = {"images": images, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: float64 type
     images = np.array([[[0.7, 0.4, 0.6]]], dtype=np.float64)
-    input_dict = {"images": images, "name": None}
+    input_dict = {"images": images, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: grayscale image (all channels equal)
     images = np.array([[[0.5, 0.5, 0.5]]], dtype=np.float32)
-    input_dict = {"images": images, "name": None}
+    input_dict = {"images": images, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: black image
     images = np.array([[[0.0, 0.0, 0.0]]], dtype=np.float32)
-    input_dict = {"images": images, "name": None}
+    input_dict = {"images": images, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: white image
     images = np.array([[[1.0, 1.0, 1.0]]], dtype=np.float32)
-    input_dict = {"images": images, "name": None}
+    input_dict = {"images": images, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: 1D image (last dimension size 3)
     images = np.array([[0.2, 0.4, 0.6]], dtype=np.float32)
-    input_dict = {"images": images, "name": None}
+    input_dict = {"images": images, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: Another 3D image with different values
     images = np.array([[[0.8, 0.3, 0.1], [0.2, 0.7, 0.9]], [[0.5, 0.5, 0.5], [0.0, 0.0, 0.0]]], dtype=np.float32)
-    input_dict = {"images": images, "name": None}
+    input_dict = {"images": images, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -95422,7 +95422,7 @@ def tf_raw_ops_ReaderSerializeState_inputs():
     # Input 1
     try:
       reader = tf.compat.v1.TFRecordReader()
-      input_dict = {"reader_handle": reader.reader_handle, "name": None}
+      input_dict = {"reader_handle": reader.reader_handle, "name": "custom"}
       list_of_inputs.append(copy.deepcopy(input_dict))
     except:
       pass
@@ -95438,7 +95438,7 @@ def tf_raw_ops_ReaderSerializeState_inputs():
     # Input 3
     try:
         reader = tf.compat.v1.TFRecordReader()
-        input_dict = {"reader_handle": reader.reader_handle, "name": None}
+        input_dict = {"reader_handle": reader.reader_handle, "name": "custom"}
         list_of_inputs.append(copy.deepcopy(input_dict))
     except:
         pass
@@ -95551,61 +95551,61 @@ def tf_raw_ops_realdiv_inputs():
     # Input 1: float32, basic case
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     y = np.array([0.5, 2.0, 1.0], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float64, different values, broadcasting
     x = np.array([1.0, 2.0], dtype=np.float64)
     y = np.array(2.0, dtype=np.float64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: bfloat16, small values
     x = np.array([0.1, 0.2, 0.3], dtype=np.float32).astype(np.float16)
     y = np.array([0.1, 0.2, 0.1], dtype=np.float32).astype(np.float16)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: half, zero division
     x = np.array([1.0, 2.0], dtype=np.float32).astype(np.float16)
     y = np.array([1.0, 1.0], dtype=np.float32).astype(np.float16)  # Avoid zero division for now
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: float32, broadcasting, integer division
     x = np.array([4.0, 6.0, 8.0], dtype=np.float32)
     y = np.array(2.0, dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: int64, large numbers, convert to float
     x = np.array([2**31, 2**32], dtype=np.int64).astype(np.float64)
     y = np.array([2, 4], dtype=np.int64).astype(np.float64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: uint8, all values are ones, convert to float
     x = np.array([1, 1, 1], dtype=np.uint8).astype(np.float32)
     y = np.array([1, 1, 1], dtype=np.uint8).astype(np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: complex64
     x = np.array([1 + 1j, 2 + 2j], dtype=np.complex64)
     y = np.array([1 - 1j, 2 - 2j], dtype=np.complex64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: complex128, different values
     x = np.array([1 + 1j, 2 + 3j], dtype=np.complex128)
     y = np.array([2 - 1j, 1 - 2j], dtype=np.complex128)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: float32, multi-dimensional arrays
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     y = np.array([[0.5, 1.0], [1.5, 2.0]], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -95848,52 +95848,52 @@ def tf_raw_ops_relu6_inputs():
 
     # Input 1: float32, 1D array, positive values
     features = np.array([1.0, 2.0, 3.0, 4.0, 5.0]).astype(np.float32)
-    input_dict = {"features": features, "name": None}
+    input_dict = {"features": features, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float32, 1D array, negative and positive values
     features = np.array([-1.0, 2.0, -3.0, 4.0, -5.0]).astype(np.float32)
-    input_dict = {"features": features, "name": None}
+    input_dict = {"features": features, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: float32, 2D array
     features = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]).astype(np.float32)
-    input_dict = {"features": features, "name": None}
+    input_dict = {"features": features, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: float32, 2D array, with negative values
     features = np.array([[-1.0, 2.0], [-3.0, 4.0], [-5.0, -6.0]]).astype(np.float32)
-    input_dict = {"features": features, "name": None}
+    input_dict = {"features": features, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: float32, 3D array
     features = np.random.rand(2, 3, 4).astype(np.float32)
-    input_dict = {"features": features, "name": None}
+    input_dict = {"features": features, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: int32, 1D array
     features = np.array([1, 2, 3, 4, 5]).astype(np.int32)
-    input_dict = {"features": features, "name": None}
+    input_dict = {"features": features, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: int32, 1D array, negative values
     features = np.array([-1, -2, -3, -4, -5]).astype(np.int32)
-    input_dict = {"features": features, "name": None}
+    input_dict = {"features": features, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: int64, 2D array
     features = np.array([[1, 2], [3, 4], [5, 6]]).astype(np.int64)
-    input_dict = {"features": features, "name": None}
+    input_dict = {"features": features, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: float64, scalar
     features = np.array(3.14159).astype(np.float64)
-    input_dict = {"features": features, "name": None}
+    input_dict = {"features": features, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: float16, 1D array
     features = np.array([1.0, 2.0, 3.0, 4.0, 5.0]).astype(np.float16)
-    input_dict = {"features": features, "name": None}
+    input_dict = {"features": features, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -95995,7 +95995,7 @@ def tf_raw_ops_resize_bicubic_inputs():
         "size": size,
         "align_corners": align_corners,
         "half_pixel_centers": half_pixel_centers,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -96010,7 +96010,7 @@ def tf_raw_ops_resize_bicubic_inputs():
         "size": size,
         "align_corners": align_corners,
         "half_pixel_centers": half_pixel_centers,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -96025,7 +96025,7 @@ def tf_raw_ops_resize_bicubic_inputs():
         "size": size,
         "align_corners": align_corners,
         "half_pixel_centers": half_pixel_centers,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -96040,7 +96040,7 @@ def tf_raw_ops_resize_bicubic_inputs():
         "size": size,
         "align_corners": align_corners,
         "half_pixel_centers": half_pixel_centers,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -96055,7 +96055,7 @@ def tf_raw_ops_resize_bicubic_inputs():
         "size": size,
         "align_corners": align_corners,
         "half_pixel_centers": half_pixel_centers,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -96070,7 +96070,7 @@ def tf_raw_ops_resize_bicubic_inputs():
         "size": size,
         "align_corners": align_corners,
         "half_pixel_centers": half_pixel_centers,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -96085,7 +96085,7 @@ def tf_raw_ops_resize_bicubic_inputs():
         "size": size,
         "align_corners": align_corners,
         "half_pixel_centers": half_pixel_centers,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -96100,7 +96100,7 @@ def tf_raw_ops_resize_bicubic_inputs():
         "size": size,
         "align_corners": align_corners,
         "half_pixel_centers": half_pixel_centers,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -96115,7 +96115,7 @@ def tf_raw_ops_resize_bicubic_inputs():
         "size": size,
         "align_corners": align_corners,
         "half_pixel_centers": half_pixel_centers,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -96130,7 +96130,7 @@ def tf_raw_ops_resize_bicubic_inputs():
         "size": size,
         "align_corners": align_corners,
         "half_pixel_centers": half_pixel_centers,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -96494,52 +96494,52 @@ def tf_raw_ops_rint_inputs():
 
     # Input 1: float32 scalar
     x = np.float32(1.5)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float32 scalar, negative
     x = np.float32(-2.5)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: float32 array
     x = np.array([1.2, 2.7, -3.1, -4.9], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: float32 array, multi-dimensional
     x = np.array([[0.5, 1.5], [-1.5, -0.5]], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: float64 scalar
     x = np.float64(3.5)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: float64 array
     x = np.array([0.1, 1.9, -2.3, -3.7], dtype=np.float64)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: half scalar
     x = np.float16(2.5)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: half array
     x = np.array([0.6, 1.4, -2.6, -3.4], dtype=np.float16)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: bfloat16 scalar
     x = np.float32(4.5) # bfloat16 doesn't exist in numpy, using float32 and hope it will be casted to bfloat16 in tf
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: bfloat16 array
     x = np.array([0.7, 1.3, -2.7, -3.3], dtype=np.float32) # bfloat16 doesn't exist in numpy, using float32 and hope it will be casted to bfloat16 in tf
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
@@ -96556,42 +96556,42 @@ def tf_raw_ops_round_inputs():
 
     # Input 1: float32 scalar
     x = np.float32(2.3)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float32 array
     x = np.array([-2.5, -1.5, 0.5, 1.5, 2.5], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: float64 array
     x = np.array([-2.5, -1.5, 0.5, 1.5, 2.5], dtype=np.float64)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: float32 matrix
     x = np.array([[1.2, 2.7], [3.5, 4.1]], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: float64 matrix with negative values
     x = np.array([[-1.2, -2.7], [-3.5, -4.1]], dtype=np.float64)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: int32 array
     x = np.array([-2, -1, 0, 1, 2], dtype=np.int32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: int64 array
     x = np.array([-2, -1, 0, 1, 2], dtype=np.int64)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: float16 array
     x = np.array([-2.5, -1.5, 0.5, 1.5, 2.5], dtype=np.float16)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
@@ -97251,7 +97251,7 @@ def tf_raw_ops_scale_and_translate_inputs():
         "translation": translation,
         "kernel_type": "lanczos3",
         "antialias": True,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -97285,7 +97285,7 @@ def tf_raw_ops_scale_and_translate_inputs():
         "translation": translation,
         "kernel_type": "lanczos3",
         "antialias": True,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -97302,7 +97302,7 @@ def tf_raw_ops_scale_and_translate_inputs():
         "translation": translation,
         "kernel_type": "lanczos3",
         "antialias": False,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -97319,7 +97319,7 @@ def tf_raw_ops_scale_and_translate_inputs():
         "translation": translation,
         "kernel_type": "lanczos3",
         "antialias": True,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -97336,7 +97336,7 @@ def tf_raw_ops_scale_and_translate_inputs():
         "translation": translation,
         "kernel_type": "lanczos3",
         "antialias": True,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -97353,7 +97353,7 @@ def tf_raw_ops_scale_and_translate_inputs():
         "translation": translation,
         "kernel_type": "lanczos3",
         "antialias": True,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -97388,7 +97388,7 @@ def tf_raw_ops_scale_and_translate_inputs():
         "translation": translation,
         "kernel_type": "lanczos3",
         "antialias": True,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -97409,61 +97409,61 @@ def tf_raw_ops_segment_max_inputs():
     # Input 1: Basic example
     data = np.array([1, 2, 3, 4], dtype=np.int32)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Different data type (float32)
     data = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: More segments
     data = np.array([1, 2, 3, 4, 5, 6], dtype=np.int32)
     segment_ids = np.array([0, 0, 1, 1, 2, 2], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Multiple identical segment IDs
     data = np.array([1, 2, 3, 4, 5, 6], dtype=np.int32)
     segment_ids = np.array([0, 0, 0, 1, 1, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: Different data type (int64) and segment_ids (int64)
     data = np.array([1, 2, 3, 4], dtype=np.int64)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int64)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Empty segment
     data = np.array([1, 2, 3, 4], dtype=np.int32)
     segment_ids = np.array([0, 0, 2, 2], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: multi-dimensional data
     data = np.array([[1, 2], [3, 4], [5, 6], [7, 8]], dtype=np.int32)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: Different data type (float64) and larger values
     data = np.array([1e9, 2e9, 3e9, 4e9], dtype=np.float64)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 12: Empty input array
     data = np.array([], dtype=np.int32)
     segment_ids = np.array([], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 13: Gaps in segment IDs
     data = np.array([1, 2, 3, 4], dtype=np.int32)
     segment_ids = np.array([0, 0, 2, 2], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -97481,61 +97481,61 @@ def tf_raw_ops_segment_mean_inputs():
     # Input 1
     data = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     data = np.array([[1, 2, 3, 4], [4, 3, 2, 1], [5, 6, 7, 8]], dtype=np.float32)
     segment_ids = np.array([0, 0, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     data = np.array([1, 2, 3, 4, 5], dtype=np.int32)
     segment_ids = np.array([0, 1, 2, 2, 3], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
     data = np.array([-1.0, -2.0, -3.0, -4.0], dtype=np.float32)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
     data = np.array([1, 2, 3, 4, 5], dtype=np.int64)
     segment_ids = np.array([0, 1, 2, 2, 3], dtype=np.int64)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
     data = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float64)
     segment_ids = np.array([0, 1, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
     data = np.array([1, 2, 3, 4], dtype=np.uint8)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
     data = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32)
     segment_ids = np.array([0, 0, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
     data = np.array([1+1j, 2+2j, 3+3j, 4+4j], dtype=np.complex64)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
     data = np.array([1, 2, 3, 4, 5, 6], dtype=np.int32)
     segment_ids = np.array([0, 0, 0, 1, 1, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -97625,67 +97625,67 @@ def tf_raw_ops_segment_prod_inputs():
     # Input 1
     data = np.array([1, 2, 3, 4], dtype=np.int32)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     data = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     data = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32)
     segment_ids = np.array([0, 1, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
     data = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float32)
     segment_ids = np.array([0, 1, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
     data = np.array([1, 2, 3, 4, 5], dtype=np.int32)
     segment_ids = np.array([0, 0, 0, 1, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
     data = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
     segment_ids = np.array([0, 0, 0, 1, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
     data = np.array([1, 2, 3, 4], dtype=np.int64)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int64)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
     data = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float64)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int64)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
     data = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int64)
     segment_ids = np.array([0, 1, 1], dtype=np.int64)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
     data = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float64)
     segment_ids = np.array([0, 1, 1], dtype=np.int64)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 11, empty segment
     data = np.array([1, 2, 3], dtype=np.int32)
     segment_ids = np.array([0, 2, 2], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -98012,7 +98012,7 @@ def tf_raw_ops_sigmoid_inputs():
 
     # Input 1: float32, single element
     x = np.array(0.0, dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float32, 1D array
@@ -98027,7 +98027,7 @@ def tf_raw_ops_sigmoid_inputs():
 
     # Input 4: float64, single element
     x = np.array(0.0, dtype=np.float64)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: float64, 1D array
@@ -98074,52 +98074,52 @@ def tf_raw_ops_sign_inputs():
 
     # Input 1: float32, scalar
     x = np.float32(-5.0)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float32, 1D array
     x = np.array([0.0, 2.0, -3.0], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: float32, 2D array
     x = np.array([[1.0, -2.0], [3.0, -4.0]], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: int32, 1D array
     x = np.array([0, 2, -3], dtype=np.int32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: int64, scalar
     x = np.int64(10)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: complex64, 1D array
     x = np.array([1 + 1j, -1 - 1j, 0 + 0j], dtype=np.complex64)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: float64, 3D array
     x = np.random.randn(2, 3, 4).astype(np.float64)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: int16, 2D array with zeros
     x = np.zeros((5, 5), dtype=np.int16)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: half, 1D array
     x = np.array([-1.0, 0.0, 1.0], dtype=np.float16)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: complex128, 2D array
     x = np.array([[1 + 2j, -2 - 1j], [0j, 3 - 4j]], dtype=np.complex128)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
@@ -98136,52 +98136,52 @@ def tf_raw_ops_sin_inputs():
 
     # Input 1: float32, scalar
     x = np.array(0.0, dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float32, 1D array
     x = np.array([0.0, np.pi/2, np.pi, 3*np.pi/2, 2*np.pi], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: float64, 2D array
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: float32, 3D array
     x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: half, scalar
     x = np.array(1.0, dtype=np.float16)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: complex64, 1D array
     x = np.array([1.0 + 1j, 2.0 - 2j], dtype=np.complex64)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: complex128, 2D array
     x = np.array([[1.0 + 1j, 2.0 - 2j], [3.0 + 3j, 4.0 - 4j]], dtype=np.complex128)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: float32, negative values
     x = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: float32, large values
     x = np.array([1000.0, 2000.0, 3000.0], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10: half, 2D array with negative numbers and zero
     x = np.array([[-1.0, 0.0], [1.0, -2.0]], dtype=np.float16)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -98198,7 +98198,7 @@ def tf_raw_ops_sinh_inputs():
 
     # Input 1: float32 scalar
     x = np.float32(0.0)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float32 1D array
@@ -98213,7 +98213,7 @@ def tf_raw_ops_sinh_inputs():
 
     # Input 4: float64 scalar
     x = np.float64(2.5)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: float64 1D array with large values
@@ -98223,7 +98223,7 @@ def tf_raw_ops_sinh_inputs():
 
     # Input 6: complex64 scalar
     x = np.complex64(1.0 + 1.0j)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: complex64 1D array
@@ -98233,7 +98233,7 @@ def tf_raw_ops_sinh_inputs():
 
     # Input 8: complex128 scalar
     x = np.complex128(2.0 - 2.0j)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: bfloat16 scalar
@@ -100126,7 +100126,7 @@ def tf_raw_ops_SparseReduceSum_inputs():
         "input_shape": input_shape,
         "reduction_axes": reduction_axes,
         "keep_dims": keep_dims,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -100143,7 +100143,7 @@ def tf_raw_ops_SparseReduceSum_inputs():
         "input_shape": input_shape,
         "reduction_axes": reduction_axes,
         "keep_dims": keep_dims,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -100160,7 +100160,7 @@ def tf_raw_ops_SparseReduceSum_inputs():
         "input_shape": input_shape,
         "reduction_axes": reduction_axes,
         "keep_dims": keep_dims,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -100177,7 +100177,7 @@ def tf_raw_ops_SparseReduceSum_inputs():
         "input_shape": input_shape,
         "reduction_axes": reduction_axes,
         "keep_dims": keep_dims,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -100194,7 +100194,7 @@ def tf_raw_ops_SparseReduceSum_inputs():
         "input_shape": input_shape,
         "reduction_axes": reduction_axes,
         "keep_dims": keep_dims,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -100211,7 +100211,7 @@ def tf_raw_ops_SparseReduceSum_inputs():
         "input_shape": input_shape,
         "reduction_axes": reduction_axes,
         "keep_dims": keep_dims,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -100228,7 +100228,7 @@ def tf_raw_ops_SparseReduceSum_inputs():
         "input_shape": input_shape,
         "reduction_axes": reduction_axes,
         "keep_dims": keep_dims,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -100245,7 +100245,7 @@ def tf_raw_ops_SparseReduceSum_inputs():
         "input_shape": input_shape,
         "reduction_axes": reduction_axes,
         "keep_dims": keep_dims,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -100262,7 +100262,7 @@ def tf_raw_ops_SparseReduceSum_inputs():
         "input_shape": input_shape,
         "reduction_axes": reduction_axes,
         "keep_dims": keep_dims,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -100279,7 +100279,7 @@ def tf_raw_ops_SparseReduceSum_inputs():
         "input_shape": input_shape,
         "reduction_axes": reduction_axes,
         "keep_dims": keep_dims,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
@@ -100296,7 +100296,7 @@ def tf_raw_ops_SparseReduceSum_inputs():
         "input_shape": input_shape,
         "reduction_axes": reduction_axes,
         "keep_dims": keep_dims,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -100325,7 +100325,7 @@ def sparse_reduce_sum_sparse_inputs():
         "input_shape": input_shape,
         "reduction_axes": reduction_axes,
         "keep_dims": keep_dims,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -100342,7 +100342,7 @@ def sparse_reduce_sum_sparse_inputs():
         "input_shape": input_shape,
         "reduction_axes": reduction_axes,
         "keep_dims": keep_dims,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -100359,7 +100359,7 @@ def sparse_reduce_sum_sparse_inputs():
         "input_shape": input_shape,
         "reduction_axes": reduction_axes,
         "keep_dims": keep_dims,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -100376,7 +100376,7 @@ def sparse_reduce_sum_sparse_inputs():
         "input_shape": input_shape,
         "reduction_axes": reduction_axes,
         "keep_dims": keep_dims,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -100393,7 +100393,7 @@ def sparse_reduce_sum_sparse_inputs():
         "input_shape": input_shape,
         "reduction_axes": reduction_axes,
         "keep_dims": keep_dims,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -100409,7 +100409,7 @@ def sparse_reduce_sum_sparse_inputs():
         "input_shape": input_shape,
         "reduction_axes": reduction_axes,
         "keep_dims": keep_dims,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -100426,7 +100426,7 @@ def sparse_reduce_sum_sparse_inputs():
         "input_shape": input_shape,
         "reduction_axes": reduction_axes,
         "keep_dims": keep_dims,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -100443,7 +100443,7 @@ def sparse_reduce_sum_sparse_inputs():
         "input_shape": input_shape,
         "reduction_axes": reduction_axes,
         "keep_dims": keep_dims,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -100460,7 +100460,7 @@ def sparse_reduce_sum_sparse_inputs():
         "input_shape": input_shape,
         "reduction_axes": reduction_axes,
         "keep_dims": keep_dims,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -100747,7 +100747,7 @@ def tf_raw_ops_sparse_segment_mean_grad_inputs():
     indices = np.array([0, 1, 2, 3], dtype=np.int32)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
     output_dim0 = np.array(4, dtype=np.int32)
-    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": None}
+    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
@@ -100755,7 +100755,7 @@ def tf_raw_ops_sparse_segment_mean_grad_inputs():
     indices = np.array([0, 1, 4, 2, 5, 3], dtype=np.int32)
     segment_ids = np.array([0, 0, 1, 1, 2, 2], dtype=np.int32)
     output_dim0 = np.array(6, dtype=np.int32)
-    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": None}
+    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
@@ -100763,7 +100763,7 @@ def tf_raw_ops_sparse_segment_mean_grad_inputs():
     indices = np.array([0, 1, 2, 3], dtype=np.int32)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
     output_dim0 = np.array(4, dtype=np.int32)
-    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": None}
+    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
@@ -100771,7 +100771,7 @@ def tf_raw_ops_sparse_segment_mean_grad_inputs():
     indices = np.array([0, 2, 1], dtype=np.int64)
     segment_ids = np.array([0, 0, 1], dtype=np.int64)
     output_dim0 = np.array(3, dtype=np.int32)
-    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": None}
+    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
@@ -100779,7 +100779,7 @@ def tf_raw_ops_sparse_segment_mean_grad_inputs():
     indices = np.array([0, 1, 2, 3], dtype=np.int64)
     segment_ids = np.array([0, 0, 0, 0], dtype=np.int64)
     output_dim0 = np.array(4, dtype=np.int32)
-    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": None}
+    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
@@ -100787,7 +100787,7 @@ def tf_raw_ops_sparse_segment_mean_grad_inputs():
     indices = np.array([0, 1, 2, 3], dtype=np.int32)
     segment_ids = np.array([0, 1, 2, 3], dtype=np.int32)
     output_dim0 = np.array(4, dtype=np.int32)
-    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": None}
+    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
@@ -100795,7 +100795,7 @@ def tf_raw_ops_sparse_segment_mean_grad_inputs():
     indices = np.array([0, 1], dtype=np.int32)
     segment_ids = np.array([0, 0], dtype=np.int32)
     output_dim0 = np.array(2, dtype=np.int32)
-    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": None}
+    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
      # Input 8
@@ -100803,7 +100803,7 @@ def tf_raw_ops_sparse_segment_mean_grad_inputs():
     indices = np.array([0, 1, 3, 4, 2], dtype=np.int32)
     segment_ids = np.array([0, 0, 1, 1, 2], dtype=np.int32)
     output_dim0 = np.array(5, dtype=np.int32)
-    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": None}
+    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
@@ -100811,7 +100811,7 @@ def tf_raw_ops_sparse_segment_mean_grad_inputs():
     indices = np.array([0], dtype=np.int32)
     segment_ids = np.array([0], dtype=np.int32)
     output_dim0 = np.array(1, dtype=np.int32)
-    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": None}
+    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
@@ -100819,7 +100819,7 @@ def tf_raw_ops_sparse_segment_mean_grad_inputs():
     indices = np.array([0, 1], dtype=np.int32)
     segment_ids = np.array([0, 1], dtype=np.int32)
     output_dim0 = np.array(2, dtype=np.int32)
-    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": None}
+    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -102106,37 +102106,37 @@ def tf_raw_ops_sparse_softmax_cross_entropy_with_logits_inputs():
     # Input 1: float32, int32
     features = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
     labels = np.array([0, 2], dtype=np.int32)
-    input_dict = {"features": features, "labels": labels, "name": None}
+    input_dict = {"features": features, "labels": labels, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float64, int64
     features = np.array([[0.1, 0.2, 0.7], [0.8, 0.1, 0.1]], dtype=np.float64)
     labels = np.array([2, 0], dtype=np.int64)
-    input_dict = {"features": features, "labels": labels, "name": None}
+    input_dict = {"features": features, "labels": labels, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: bfloat16, int32
     features = np.array([[1.0, 0.0, -1.0], [-2.0, 1.0, 2.0]], dtype=np.float32).astype(np.float16)
     labels = np.array([1, 1], dtype=np.int32)
-    input_dict = {"features": features, "labels": labels, "name": None}
+    input_dict = {"features": features, "labels": labels, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: half, int64
     features = np.array([[0.5, 0.2, 0.3], [0.9, 0.05, 0.05]], dtype=np.float32).astype(np.float16)
     labels = np.array([0, 2], dtype=np.int64)
-    input_dict = {"features": features, "labels": labels, "name": None}
+    input_dict = {"features": features, "labels": labels, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: different batch size
     features = np.array([[1.0, 2.0, 3.0, 4.0]], dtype=np.float32)
     labels = np.array([3], dtype=np.int32)
-    input_dict = {"features": features, "labels": labels, "name": None}
+    input_dict = {"features": features, "labels": labels, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: different number of classes
     features = np.array([[1.0, 2.0], [4.0, 5.0], [7.0, 8.0]], dtype=np.float32)
     labels = np.array([0, 1, 0], dtype=np.int32)
-    input_dict = {"features": features, "labels": labels, "name": None}
+    input_dict = {"features": features, "labels": labels, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: with name
@@ -102148,19 +102148,19 @@ def tf_raw_ops_sparse_softmax_cross_entropy_with_logits_inputs():
     # Input 8: all same label
     features = np.array([[0.1, 0.9], [0.2, 0.8]], dtype=np.float32)
     labels = np.array([1, 1], dtype=np.int32)
-    input_dict = {"features": features, "labels": labels, "name": None}
+    input_dict = {"features": features, "labels": labels, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: Large values
     features = np.array([[100.0, 0.0], [0.0, 100.0]], dtype=np.float32)
     labels = np.array([0, 1], dtype=np.int32)
-    input_dict = {"features": features, "labels": labels, "name": None}
+    input_dict = {"features": features, "labels": labels, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: Zero values
     features = np.array([[0.0, 0.0], [0.0, 0.0]], dtype=np.float32)
     labels = np.array([0, 1], dtype=np.int32)
-    input_dict = {"features": features, "labels": labels, "name": None}
+    input_dict = {"features": features, "labels": labels, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -102190,7 +102190,7 @@ def tf_raw_ops_SparseSparseMaximum_inputs():
         "b_indices": b_indices,
         "b_values": b_values,
         "b_shape": b_shape,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -102209,7 +102209,7 @@ def tf_raw_ops_SparseSparseMaximum_inputs():
         "b_indices": b_indices,
         "b_values": b_values,
         "b_shape": b_shape,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -102228,7 +102228,7 @@ def tf_raw_ops_SparseSparseMaximum_inputs():
         "b_indices": b_indices,
         "b_values": b_values,
         "b_shape": b_shape,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -102247,7 +102247,7 @@ def tf_raw_ops_SparseSparseMaximum_inputs():
         "b_indices": b_indices,
         "b_values": b_values,
         "b_shape": b_shape,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -102266,7 +102266,7 @@ def tf_raw_ops_SparseSparseMaximum_inputs():
         "b_indices": b_indices,
         "b_values": b_values,
         "b_shape": b_shape,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -102285,7 +102285,7 @@ def tf_raw_ops_SparseSparseMaximum_inputs():
         "b_indices": b_indices,
         "b_values": b_values,
         "b_shape": b_shape,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -102304,7 +102304,7 @@ def tf_raw_ops_SparseSparseMaximum_inputs():
         "b_indices": b_indices,
         "b_values": b_values,
         "b_shape": b_shape,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -102323,7 +102323,7 @@ def tf_raw_ops_SparseSparseMaximum_inputs():
         "b_indices": b_indices,
         "b_values": b_values,
         "b_shape": b_shape,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -102342,7 +102342,7 @@ def tf_raw_ops_SparseSparseMaximum_inputs():
         "b_indices": b_indices,
         "b_values": b_values,
         "b_shape": b_shape,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -102361,7 +102361,7 @@ def tf_raw_ops_SparseSparseMaximum_inputs():
         "b_indices": b_indices,
         "b_values": b_values,
         "b_shape": b_shape,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -102552,7 +102552,7 @@ def tf_raw_ops_SparseSplit_inputs():
         "values": values,
         "shape": shape,
         "num_split": num_split,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -102568,7 +102568,7 @@ def tf_raw_ops_SparseSplit_inputs():
         "values": values,
         "shape": shape,
         "num_split": num_split,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -102584,7 +102584,7 @@ def tf_raw_ops_SparseSplit_inputs():
         "values": values,
         "shape": shape,
         "num_split": num_split,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -102600,7 +102600,7 @@ def tf_raw_ops_SparseSplit_inputs():
         "values": values,
         "shape": shape,
         "num_split": num_split,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -102616,7 +102616,7 @@ def tf_raw_ops_SparseSplit_inputs():
         "values": values,
         "shape": shape,
         "num_split": num_split,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -102632,7 +102632,7 @@ def tf_raw_ops_SparseSplit_inputs():
         "values": values,
         "shape": shape,
         "num_split": num_split,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -102648,7 +102648,7 @@ def tf_raw_ops_SparseSplit_inputs():
         "values": values,
         "shape": shape,
         "num_split": num_split,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -102664,7 +102664,7 @@ def tf_raw_ops_SparseSplit_inputs():
         "values": values,
         "shape": shape,
         "num_split": num_split,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -102680,7 +102680,7 @@ def tf_raw_ops_SparseSplit_inputs():
         "values": values,
         "shape": shape,
         "num_split": num_split,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -102696,7 +102696,7 @@ def tf_raw_ops_SparseSplit_inputs():
         "values": values,
         "shape": shape,
         "num_split": num_split,
-        "name": None
+        "name": "custom"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -102717,7 +102717,7 @@ def tf_raw_ops_SparseTensorDenseAdd_inputs():
     a_values = np.array([1.0, 2.0], dtype=np.float32)
     a_shape = np.array([2, 3], dtype=np.int32)
     b = np.array([[3.0, 4.0, 5.0], [6.0, 7.0, 8.0]], dtype=np.float32)
-    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "name": None}
+    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
@@ -102725,7 +102725,7 @@ def tf_raw_ops_SparseTensorDenseAdd_inputs():
     a_values = np.array([1, 2, 3], dtype=np.int32)
     a_shape = np.array([2, 2], dtype=np.int64)
     b = np.array([[4, 5], [6, 7]], dtype=np.int32)
-    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "name": None}
+    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
@@ -102733,7 +102733,7 @@ def tf_raw_ops_SparseTensorDenseAdd_inputs():
     a_values = np.array([1.0, 2.0, 3.0], dtype=np.float64)
     a_shape = np.array([2, 2, 2], dtype=np.int32)
     b = np.zeros((2, 2, 2), dtype=np.float64)
-    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "name": None}
+    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
@@ -102741,7 +102741,7 @@ def tf_raw_ops_SparseTensorDenseAdd_inputs():
     a_values = np.array([-1, -2], dtype=np.int32)
     a_shape = np.array([2, 2], dtype=np.int64)
     b = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "name": None}
+    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
@@ -102749,7 +102749,7 @@ def tf_raw_ops_SparseTensorDenseAdd_inputs():
     a_values = np.array([5.0], dtype=np.float32)
     a_shape = np.array([1, 1, 1], dtype=np.int32)
     b = np.array([[[1.0]]], dtype=np.float32)
-    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "name": None}
+    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
@@ -102757,7 +102757,7 @@ def tf_raw_ops_SparseTensorDenseAdd_inputs():
     a_values = np.array([1, 2, 3, 4], dtype=np.int64)
     a_shape = np.array([2, 2], dtype=np.int64)
     b = np.array([[5, 6], [7, 8]], dtype=np.int64)
-    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "name": None}
+    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
@@ -102765,7 +102765,7 @@ def tf_raw_ops_SparseTensorDenseAdd_inputs():
     a_values = np.array([10.0], dtype=np.float32)
     a_shape = np.array([1,1], dtype=np.int32)
     b = np.array([[20.0]], dtype=np.float32)
-    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "name": None}
+    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
@@ -102773,7 +102773,7 @@ def tf_raw_ops_SparseTensorDenseAdd_inputs():
     a_values = np.array([1], dtype=np.int32)
     a_shape = np.array([1, 1, 1, 1], dtype=np.int64)
     b = np.ones((1, 1, 1, 1), dtype=np.int32) * 2
-    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "name": None}
+    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
@@ -102781,7 +102781,7 @@ def tf_raw_ops_SparseTensorDenseAdd_inputs():
     a_values = np.array([1.5, 2.5], dtype=np.float64)
     a_shape = np.array([2, 2], dtype=np.int32)
     b = np.array([[0.5, 0.5], [0.5, 0.5]], dtype=np.float64)
-    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "name": None}
+    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
@@ -102789,7 +102789,7 @@ def tf_raw_ops_SparseTensorDenseAdd_inputs():
     a_values = np.array([1, 2], dtype=np.int32)
     a_shape = np.array([3, 3], dtype=np.int64)
     b = np.zeros((3, 3), dtype=np.int32)
-    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "name": None}
+    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -103148,7 +103148,7 @@ def tf_raw_ops_squared_difference_inputs():
     # Input 1: float32, basic case
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     y = np.array([4.0, 5.0, 6.0], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float64, different values
@@ -103160,13 +103160,13 @@ def tf_raw_ops_squared_difference_inputs():
     # Input 3: int32, positive and negative integers
     x = np.array([-1, 2, -3, 4], dtype=np.int32)
     y = np.array([5, -6, 7, -8], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: int64, larger numbers
     x = np.array([1000000000, 2000000000], dtype=np.int64)
     y = np.array([3000000000, 4000000000], dtype=np.int64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: complex64
@@ -103178,37 +103178,37 @@ def tf_raw_ops_squared_difference_inputs():
     # Input 6: complex128
     x = np.array([-1.5 + 0.5j, 2.5 - 1.5j], dtype=np.complex128)
     y = np.array([0.5 - 2.5j, -1.5 + 3.5j], dtype=np.complex128)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: half (float16), some values
     x = np.array([1.0, 2.0, 3.0], dtype=np.float16)
     y = np.array([4.0, 5.0, 6.0], dtype=np.float16)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: multi-dimensional float32
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     y = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: multi-dimensional int64
     x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64)
     y = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.int64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 11: float32, single element arrays
     x = np.array([1.0], dtype=np.float32)
     y = np.array([2.0], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 12: Complex64, array with a single element
     x = np.array([1 + 2j], dtype=np.complex64)
     y = np.array([3 + 4j], dtype=np.complex64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -104016,61 +104016,61 @@ def tf_raw_ops_string_to_hash_bucket_fast_inputs():
     # Input 1: Basic example
     input_tensor = np.array(["Hello", "TensorFlow", "2.x"], dtype=np.object_)
     num_buckets = 3
-    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": None}
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Different number of buckets
     input_tensor = np.array(["Hello", "TensorFlow", "2.x", "Another"], dtype=np.object_)
     num_buckets = 10
-    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": None}
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Single string
     input_tensor = np.array(["SingleString"], dtype=np.object_)
     num_buckets = 5
-    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": None}
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Empty string
     input_tensor = np.array([""], dtype=np.object_)
     num_buckets = 2
-    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": None}
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Array of empty strings
     input_tensor = np.array(["", "", ""], dtype=np.object_)
     num_buckets = 4
-    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": None}
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Long strings
     input_tensor = np.array(["This is a very long string to test the hashing function."], dtype=np.object_)
     num_buckets = 7
-    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": None}
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: Repeated strings
     input_tensor = np.array(["repeat", "repeat", "repeat"], dtype=np.object_)
     num_buckets = 5
-    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": None}
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: Numbers as strings
     input_tensor = np.array(["123", "456", "789"], dtype=np.object_)
     num_buckets = 6
-    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": None}
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: Special characters
     input_tensor = np.array(["!@#$", "%^&*"], dtype=np.object_)
     num_buckets = 4
-    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": None}
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: Another example
     input_tensor = np.array(["abc", "def", "ghi"], dtype=np.object_)
     num_buckets = 8
-    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": None}
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -104343,7 +104343,7 @@ def tf_raw_ops_tan_inputs():
 
     # Input 1: float32, 1D array
     x = np.array([-1.0, 0.0, 1.0, np.pi/4, np.pi/2], dtype=np.float32)
-    input_dict = {"x": tf.constant(x).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float64, 2D array
@@ -104353,7 +104353,7 @@ def tf_raw_ops_tan_inputs():
 
     # Input 3: half (float16), scalar
     x = np.array(2.0, dtype=np.float16)
-    input_dict = {"x": tf.constant(x).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: half (float16), 3D array
@@ -104363,7 +104363,7 @@ def tf_raw_ops_tan_inputs():
 
     # Input 5: complex64, 1D array
     x = np.array([1+1j, 2-2j, 3+0j, 0-4j], dtype=np.complex64)
-    input_dict = {"x": tf.constant(x).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: complex128, 2D array
@@ -104373,7 +104373,7 @@ def tf_raw_ops_tan_inputs():
 
     # Input 7: float32, large values
     x = np.array([1000.0, -1000.0, 1e6, -1e6], dtype=np.float32)
-    input_dict = {"x": tf.constant(x).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: float64, small values
@@ -104383,12 +104383,12 @@ def tf_raw_ops_tan_inputs():
 
     # Input 9: float32, 0-dimensional array
     x = np.array(3.14159, dtype=np.float32)
-    input_dict = {"x": tf.constant(x).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: complex64, single element array.
     x = np.array([2.0 + 3.0j], dtype=np.complex64)
-    input_dict = {"x": tf.constant(x).numpy(), "name": None}
+    input_dict = {"x": tf.constant(x).numpy(), "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -104469,43 +104469,43 @@ def tf_raw_ops_TruncateDiv_inputs():
     # Input 1: int32, basic division
     x = np.array([10, 20, 30], dtype=np.int32)
     y = np.array([2, 5, 10], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float32, division with truncation
     x = np.array([7.5, -7.5, 10.0], dtype=np.float32)
     y = np.array([2.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: int64, division with larger numbers
     x = np.array([10000000000, 20000000000, -30000000000], dtype=np.int64)
     y = np.array([2, 5, 10], dtype=np.int64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: uint8, division with unsigned integers
     x = np.array([255, 128, 64], dtype=np.uint8)
     y = np.array([5, 2, 1], dtype=np.uint8)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: 2D int32 array
     x = np.array([[10, 20], [30, 40]], dtype=np.int32)
     y = np.array([[2, 5], [10, 8]], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Broadcasting example (int32)
     x = np.array([[10, 20], [30, 40]], dtype=np.int32)
     y = np.array([2, 5], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: int8 with negative values
     x = np.array([-10, 20, -30], dtype=np.int8)
     y = np.array([2, -5, 10], dtype=np.int8)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -104523,61 +104523,61 @@ def tf_raw_ops_truncate_mod_inputs():
     # Input 1: Basic integer input
     x = np.array([10, 15, 20], dtype=np.int32)
     y = np.array([3, 4, 7], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Negative integer input
     x = np.array([-10, -15, -20], dtype=np.int32)
     y = np.array([3, -4, 7], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Float input
     x = np.array([10.5, 15.2, 20.7], dtype=np.float32)
     y = np.array([3.0, 4.0, 7.0], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Negative float input
     x = np.array([-10.5, -15.2, -20.7], dtype=np.float32)
     y = np.array([3.0, -4.0, 7.0], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Broadcasting input
     x = np.array([[10, 15], [20, 25]], dtype=np.int32)
     y = np.array([3, 4], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Broadcasting input (different shapes)
     x = np.array([10, 15, 20], dtype=np.int32)
     y = np.array(5, dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: int64 input
     x = np.array([10, 15, 20], dtype=np.int64)
     y = np.array([3, 4, 7], dtype=np.int64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: float64 input
     x = np.array([10.5, 15.2, 20.7], dtype=np.float64)
     y = np.array([3.0, 4.0, 7.0], dtype=np.float64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: multi-dimensional array
     x = np.array([[[10, 11], [12, 13]], [[14, 15], [16, 17]]], dtype=np.int32)
     y = np.array([3, 4], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: float32 with large values
     x = np.array([1e9, 2e9, 3e9], dtype=np.float32)
     y = np.array([10, 20, 30], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
 
@@ -104767,37 +104767,37 @@ def tf_raw_ops_UnicodeScript_inputs():
 
     # Input 1: Basic 1D array
     input1 = np.array([1, 31, 38], dtype=np.int32)
-    input_dict1 = {"input": input1, "name": None}
+    input_dict1 = {"input": input1, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict1))
 
     # Input 2: 2D array
     input2 = np.array([[65, 66], [67, 68]], dtype=np.int32)
-    input_dict2 = {"input": input2, "name": None}
+    input_dict2 = {"input": input2, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict2))
 
     # Input 3: 3D array
     input3 = np.array([[[70, 71], [72, 73]], [[74, 75], [76, 77]]], dtype=np.int32)
-    input_dict3 = {"input": input3, "name": None}
+    input_dict3 = {"input": input3, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict3))
 
     # Input 4: Array with some invalid code points (-1)
     input4 = np.array([65, -1, 67, -1], dtype=np.int32)
-    input_dict4 = {"input": input4, "name": None}
+    input_dict4 = {"input": input4, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict4))
 
     # Input 5: Array with zero
     input5 = np.array([0, 66, 0, 68], dtype=np.int32)
-    input_dict5 = {"input": input5, "name": None}
+    input_dict5 = {"input": input5, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict5))
 
     # Input 6: Larger Unicode values
     input6 = np.array([65535, 65536, 65537], dtype=np.int32)
-    input_dict6 = {"input": input6, "name": None}
+    input_dict6 = {"input": input6, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict6))
 
     # Input 7: Another 2D array
     input7 = np.array([[1040, 1041], [1042, 1043]], dtype=np.int32)
-    input_dict7 = {"input": input7, "name": None}
+    input_dict7 = {"input": input7, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict7))
 
     # Input 8: Array with a name
@@ -104807,12 +104807,12 @@ def tf_raw_ops_UnicodeScript_inputs():
 
     # Input 9: Empty array
     input9 = np.array([], dtype=np.int32)
-    input_dict9 = {"input": input9, "name": None}
+    input_dict9 = {"input": input9, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict9))
     
     # Input 10: Array with a mix of ASCII and larger unicode
     input10 = np.array([65, 128175, 66], dtype=np.int32)
-    input_dict10 = {"input": input10, "name": None}
+    input_dict10 = {"input": input10, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict10))
 
     return list_of_inputs
@@ -105443,61 +105443,61 @@ def tf_raw_ops_xdivy_inputs():
     # Input 1: float32, basic case
     x = np.array([2.0, 4.0, 0.0], dtype=np.float32)
     y = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float64, different values
     x = np.array([-2.0, 0.0, 5.0, -1.0], dtype=np.float64)
     y = np.array([ 1.0, -2.0, 0.0, 0.5], dtype=np.float64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: complex64
     x = np.array([1 + 1j, 0 + 0j, 2 - 2j], dtype=np.complex64)
     y = np.array([2 + 0j, 1 + 1j, 1 - 0j], dtype=np.complex64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: complex128, zeros in x and y
     x = np.array([0 + 0j, 1 - 1j, 0 + 0j], dtype=np.complex128)
     y = np.array([1 + 1j, 0 + 0j, 2 + 2j], dtype=np.complex128)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: float16, using np.float16
     x = np.array([2.0, 0.0, -4.0], dtype=np.float16)
     y = np.array([1.0, 2.0, -2.0], dtype=np.float16)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: float32, multi-dimensional
     x = np.array([[1.0, 2.0], [0.0, 4.0]], dtype=np.float32)
     y = np.array([[0.5, 1.0], [2.0, 0.0]], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: float64, multi-dimensional, negative and zero values
     x = np.array([[-1.0, 0.0], [2.0, -3.0]], dtype=np.float64)
     y = np.array([[0.5, -2.0], [0.0, 1.0]], dtype=np.float64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: complex64, multi-dimensional
     x = np.array([[1 + 1j, 2 - 1j], [0 + 0j, 3 + 0j]], dtype=np.complex64)
     y = np.array([[2 + 0j, 1 + 1j], [1 - 1j, 0 + 1j]], dtype=np.complex64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: complex128, more complex values
     x = np.array([[-1 + 2j, 3 - 4j], [5 + 0j, 0 - 2j]], dtype=np.complex128)
     y = np.array([[2 - 1j, 0 + 3j], [-2 + 2j, 1 - 0j]], dtype=np.complex128)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: float32, 3D tensor
     x = np.array([[[1.0, 2.0], [3.0, 0.0]], [[4.0, 5.0], [0.0, 6.0]]], dtype=np.float32)
     y = np.array([[[0.5, 1.0], [1.5, 2.0]], [[2.0, 2.5], [3.0, 0.0]]], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -105515,67 +105515,67 @@ def tf_raw_ops_xlog1py_inputs():
     # Input 1
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     y = np.array([0.5, 1.0, 1.5], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     x = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
     y = np.array([0.5, 1.0, 1.5], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     x = np.array([0.0, 0.0, 0.0], dtype=np.float32)
     y = np.array([0.5, 1.0, 1.5], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     y = np.array([[0.5, 1.0], [1.5, 2.0]], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
     x = np.array([1.0, 2.0, 3.0], dtype=np.float64)
     y = np.array([0.5, 1.0, 1.5], dtype=np.float64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
     x = np.array([-1.0, -2.0, -3.0], dtype=np.float64)
     y = np.array([0.5, 1.0, 1.5], dtype=np.float64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
     x = np.array([0.0, 0.0, 0.0], dtype=np.float64)
     y = np.array([0.5, 1.0, 1.5], dtype=np.float64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
     y = np.array([[0.5, 1.0], [1.5, 2.0]], dtype=np.float64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
     x = np.array([1.0j, 2.0j, 3.0j], dtype=np.complex64)
     y = np.array([0.5j, 1.0j, 1.5j], dtype=np.complex64)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
     x = np.array([1.0+1j, 2.0+2j, 3.0+3j], dtype=np.complex128)
     y = np.array([0.5+0.5j, 1.0+1j, 1.5+1.5j], dtype=np.complex128)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 11
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     y = np.array([[-0.9, -0.5], [0.0, 1.0]], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
+    input_dict = {"x": x, "y": y, "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
@@ -105865,52 +105865,52 @@ def tf_strings_length_inputs():
 
     # Input 1: Basic string tensor, BYTE unit
     input_tensor = np.array(["hello", "world", ""], dtype=np.object_)
-    input_dict = {"input": input_tensor, "unit": "BYTE", "name": None}
+    input_dict = {"input": input_tensor, "unit": "BYTE", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: String tensor with UTF-8 characters, UTF8_CHAR unit
     input_tensor = np.array(["你好", "世界", "你好世界"], dtype=np.object_)
-    input_dict = {"input": input_tensor, "unit": "UTF8_CHAR", "name": None}
+    input_dict = {"input": input_tensor, "unit": "UTF8_CHAR", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Empty string tensor, BYTE unit
     input_tensor = np.array(["", "", ""], dtype=np.object_)
-    input_dict = {"input": input_tensor, "unit": "BYTE", "name": None}
+    input_dict = {"input": input_tensor, "unit": "BYTE", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: String tensor with special characters, BYTE unit
     input_tensor = np.array(["!@#$", "%^&*", "()_+"], dtype=np.object_)
-    input_dict = {"input": input_tensor, "unit": "BYTE", "name": None}
+    input_dict = {"input": input_tensor, "unit": "BYTE", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: String tensor with mixed characters, UTF8_CHAR unit
     input_tensor = np.array(["hello你好", "world世界", "mixed你好世界"], dtype=np.object_)
-    input_dict = {"input": input_tensor, "unit": "UTF8_CHAR", "name": None}
+    input_dict = {"input": input_tensor, "unit": "UTF8_CHAR", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Multidimensional string tensor, BYTE unit
     input_tensor = np.array([["hello", "world"], ["你好", "世界"]], dtype=np.object_)
-    input_dict = {"input": input_tensor, "unit": "BYTE", "name": None}
+    input_dict = {"input": input_tensor, "unit": "BYTE", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: Multidimensional string tensor, UTF8_CHAR unit
     input_tensor = np.array([["hello", "world"], ["你好", "世界"]], dtype=np.object_)
-    input_dict = {"input": input_tensor, "unit": "UTF8_CHAR", "name": None}
+    input_dict = {"input": input_tensor, "unit": "UTF8_CHAR", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: String tensor with emojis, UTF8_CHAR unit
     input_tensor = np.array(["😀", "😂", "🤣"], dtype=np.object_)
-    input_dict = {"input": input_tensor, "unit": "UTF8_CHAR", "name": None}
+    input_dict = {"input": input_tensor, "unit": "UTF8_CHAR", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9: String tensor with numbers, BYTE unit
     input_tensor = np.array(["123", "456", "789"], dtype=np.object_)
-    input_dict = {"input": input_tensor, "unit": "BYTE", "name": None}
+    input_dict = {"input": input_tensor, "unit": "BYTE", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10: String tensor with escape sequences, BYTE unit
     input_tensor = np.array(["\\n", "\\t", "\\r"], dtype=np.object_)
-    input_dict = {"input": input_tensor, "unit": "BYTE", "name": None}
+    input_dict = {"input": input_tensor, "unit": "BYTE", "name": "custom"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
