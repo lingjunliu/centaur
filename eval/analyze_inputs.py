@@ -16,8 +16,9 @@ def main():
         return
     
     api = sys.argv[1]
-    ind = int(sys.argv[2]) if len(sys.argv) > 2 else None
-    lib = sys.argv[3] if len(sys.argv) > 3 else "torch"
+    lib = sys.argv[2] if len(sys.argv) > 2 else "torch"
+    ind = int(sys.argv[3]) if len(sys.argv) > 3 else None
+    
     low = int(sys.argv[4]) if len(sys.argv) > 4 else 0
     detailed = True if len(sys.argv) > 5 and sys.argv[5] == "detailed" else False # for detailed output with all indices with max_diff
     
