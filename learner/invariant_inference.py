@@ -46,7 +46,8 @@ def reduce_ruleset(ruleset, signature, api, z3_args, max_trial=30, time_budget=3
     rules_to_keep = set()
     n_rules_original = len(ruleset)
     base_validity_ratio = 0.0
-    base_validity_ratio = 0.0
+    min_validity_ratio = 0.0
+    rule_with_min_validity_ratio = None
 
     time_budget_per_rule = time_budget / (n_rules_original + 1) # Adding 1 for calculating the initial validity ratio
     for rule in [None] + list(ruleset):
@@ -124,14 +125,21 @@ def reduce_ruleset(ruleset, signature, api, z3_args, max_trial=30, time_budget=3
 
             trial += 1
 
+        cur_validity_ratio = valid / trial if trial > 0 else 0.0
         if rule is None:
-            base_validity_ratio = valid / trial
-        elif valid / trial < base_validity_ratio or base_validity_ratio == 0.0:
+            base_validity_ratio = cur_validity_ratio
+        elif cur_validity_ratio < base_validity_ratio or base_validity_ratio == 0.0:
             rules_to_keep.add(rule)
         elif print_details:
-            print(f"{bcolors.WARNING}Removing rule {rule} did not reduce the validity ratio below the base ratio {base_validity_ratio:.4f}. Removing it.{bcolors.ENDC}")
+            if min_validity_ratio == 0.0 or cur_validity_ratio < min_validity_ratio:
+                min_validity_ratio = cur_validity_ratio
+                rule_with_min_validity_ratio = rule
+            print(f"{bcolors.WARNING}Removing rule {rule} did not reduce the validity ratio ({cur_validity_ratio:.4f}) below the base ratio {base_validity_ratio:.4f}. Removing it. Saving minimum validity ratio as {min_validity_ratio:.4f}{bcolors.ENDC}")
 
     print(f"\n-- Rules reduced from {n_rules_original} to {len(rules_to_keep)} --\n")
+    if len(rules_to_keep) == 0:
+        print(f"{bcolors.WARNING}No rules passed the reduction stage. Keeping the rule removing which results in the minimum validity ratio.{bcolors.ENDC}")
+        rules_to_keep.add(rule_with_min_validity_ratio)
 
     return rules_to_keep
 
@@ -262,6 +270,7 @@ def main():
     
     api, suffix = get_api_suffix(variant)
     # Try random generation for 60 seconds
+    print(f"Running random generation for {api} with suffix {suffix} for 60 seconds to collect baseline validity ratio.")
     valid, invalid, crash, abstract_inputs = random_fuzz(api, seed=42, duration=60, lib=lib)
     if invalid + crash == 0:
         print(f"API {api} does not throw exceptions with random inputs after running for 60 seconds. No invariants will be inferred.")
