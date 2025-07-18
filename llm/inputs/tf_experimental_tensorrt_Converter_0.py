@@ -5,185 +5,71 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import copy
 import numpy as np
+import copy
 
 def tf_experimental_tensorrt_converter_inputs():
+    # This function generates inputs for tf.experimental.tensorrt.Converter.
+    # The API requires a TensorFlow build with TensorRT support. If the
+    # execution environment lacks this, a RuntimeError will be raised upon
+    # instantiating the Converter, regardless of the parameters provided.
+    # The following inputs are valid according to the API's signature but
+    # will still fail in an environment without TensorRT support.
     list_of_inputs = []
 
-    # Input 1
-    input_dict = {
-        "input_saved_model_dir": "path/to/model",
-        "input_saved_model_tags": ["serve"],
-        "input_saved_model_signature_key": "serving_default",
-        "use_dynamic_shape": True,
-        "dynamic_shape_profile_strategy": "Range",
-        "max_workspace_size_bytes": 2147483648,
-        "precision_mode": "FP16",
-        "minimum_segment_size": 5,
-        "maximum_cached_engines": 4,
-        "use_calibration": False,
-        "allow_build_at_runtime": True,
-        "conversion_params": None
+    # Input 1: Basic FP32 conversion.
+    input_dict_1 = {
+        'input_saved_model_dir': './saved_model_fp32',
+        'input_saved_model_tags': [],
+        'input_saved_model_signature_key': 'serving_default',
+        'use_dynamic_shape': np.bool_(False),
+        'dynamic_shape_profile_strategy': 'Range',
+        'max_workspace_size_bytes': np.int64(1 << 30), # 1GB
+        'precision_mode': 'FP32',
+        'minimum_segment_size': np.int32(3),
+        'maximum_cached_engines': np.int32(1),
+        'use_calibration': np.bool_(False),
+        'allow_build_at_runtime': np.bool_(True),
+        'conversion_params': 'params_fp32'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2
-    input_dict = {
-        "input_saved_model_dir": "another/path",
-        "input_saved_model_tags": ["gpu"],
-        "input_saved_model_signature_key": "predict",
-        "use_dynamic_shape": False,
-        "dynamic_shape_profile_strategy": "Optimal",
-        "max_workspace_size_bytes": 536870912,
-        "precision_mode": "FP32",
-        "minimum_segment_size": 10,
-        "maximum_cached_engines": 1,
-        "use_calibration": True,
-        "allow_build_at_runtime": False,
-        "conversion_params": None
+    # Input 2: FP16 conversion with different parameters.
+    input_dict_2 = {
+        'input_saved_model_dir': './saved_model_fp16',
+        'input_saved_model_tags': [],
+        'input_saved_model_signature_key': 'predict',
+        'use_dynamic_shape': np.bool_(False),
+        'dynamic_shape_profile_strategy': 'Optimal',
+        'max_workspace_size_bytes': np.int64(2 << 30), # 2GB
+        'precision_mode': 'FP16',
+        'minimum_segment_size': np.int32(5),
+        'maximum_cached_engines': np.int32(16),
+        'use_calibration': np.bool_(False),
+        'allow_build_at_runtime': np.bool_(True),
+        'conversion_params': 'params_fp16'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3
-    input_dict = {
-        "input_saved_model_dir": "/tmp/model",
-        "input_saved_model_tags": [],
-        "input_saved_model_signature_key": "",
-        "use_dynamic_shape": True,
-        "dynamic_shape_profile_strategy": "Range+Optimal",
-        "max_workspace_size_bytes": 1073741824,
-        "precision_mode": "INT8",
-        "minimum_segment_size": 3,
-        "maximum_cached_engines": 2,
-        "use_calibration": False,
-        "allow_build_at_runtime": True,
-        "conversion_params": None
+    # Input 3: INT8 conversion with calibration enabled.
+    input_dict_3 = {
+        'input_saved_model_dir': './saved_model_int8',
+        'input_saved_model_tags': [],
+        'input_saved_model_signature_key': 'serving_default',
+        'use_dynamic_shape': np.bool_(False),
+        'dynamic_shape_profile_strategy': 'Range',
+        'max_workspace_size_bytes': np.int64(1 << 30), # 1GB
+        'precision_mode': 'INT8',
+        'minimum_segment_size': np.int32(3),
+        'maximum_cached_engines': np.int32(1),
+        'use_calibration': np.bool_(True),
+        'allow_build_at_runtime': np.bool_(True),
+        'conversion_params': 'params_int8'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    input_dict = {
-        "input_saved_model_dir": "model_dir",
-        "input_saved_model_tags": ["latest"],
-        "input_saved_model_signature_key": "infer",
-        "use_dynamic_shape": False,
-        "dynamic_shape_profile_strategy": "Range",
-        "max_workspace_size_bytes": 805306368,
-        "precision_mode": "FP16",
-        "minimum_segment_size": 4,
-        "maximum_cached_engines": 8,
-        "use_calibration": True,
-        "allow_build_at_runtime": False,
-        "conversion_params": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    input_dict = {
-        "input_saved_model_dir": "saved_model",
-        "input_saved_model_tags": ["tag1", "tag2"],
-        "input_saved_model_signature_key": "serving",
-        "use_dynamic_shape": True,
-        "dynamic_shape_profile_strategy": "Optimal",
-        "max_workspace_size_bytes": 4294967296,
-        "precision_mode": "FP32",
-        "minimum_segment_size": 7,
-        "maximum_cached_engines": 16,
-        "use_calibration": True,
-        "allow_build_at_runtime": True,
-        "conversion_params": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 6
-    input_dict = {
-        "input_saved_model_dir": "path/to/a/different/model",
-        "input_saved_model_tags": ["new_tag"],
-        "input_saved_model_signature_key": "another_signature",
-        "use_dynamic_shape": False,
-        "dynamic_shape_profile_strategy": "Range+Optimal",
-        "max_workspace_size_bytes": 67108864,
-        "precision_mode": "INT8",
-        "minimum_segment_size": 1,
-        "maximum_cached_engines": 32,
-        "use_calibration": True,
-        "allow_build_at_runtime": False,
-        "conversion_params": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    input_dict = {
-        "input_saved_model_dir": "a_model_location",
-        "input_saved_model_tags": ["serving_tag"],
-        "input_saved_model_signature_key": "a_key",
-        "use_dynamic_shape": True,
-        "dynamic_shape_profile_strategy": "Range",
-        "max_workspace_size_bytes": 1610612736,
-        "precision_mode": "FP16",
-        "minimum_segment_size": 2,
-        "maximum_cached_engines": 64,
-        "use_calibration": True,
-        "allow_build_at_runtime": True,
-        "conversion_params": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    input_dict = {
-        "input_saved_model_dir": "some_other_dir",
-        "input_saved_model_tags": ["production"],
-        "input_saved_model_signature_key": "output",
-        "use_dynamic_shape": False,
-        "dynamic_shape_profile_strategy": "Optimal",
-        "max_workspace_size_bytes": 3221225472,
-        "precision_mode": "FP32",
-        "minimum_segment_size": 6,
-        "maximum_cached_engines": 128,
-        "use_calibration": True,
-        "allow_build_at_runtime": False,
-        "conversion_params": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    input_dict = {
-        "input_saved_model_dir": "another/model/path",
-        "input_saved_model_tags": ["testing"],
-        "input_saved_model_signature_key": "results",
-        "use_dynamic_shape": True,
-        "dynamic_shape_profile_strategy": "Range+Optimal",
-        "max_workspace_size_bytes": 134217728,
-        "precision_mode": "INT8",
-        "minimum_segment_size": 9,
-        "maximum_cached_engines": 256,
-        "use_calibration": True,
-        "allow_build_at_runtime": False,
-        "conversion_params": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    input_dict = {
-        "input_saved_model_dir": "final/model/location",
-        "input_saved_model_tags": ["deployment"],
-        "input_saved_model_signature_key": "predictions",
-        "use_dynamic_shape": False,
-        "dynamic_shape_profile_strategy": "Range",
-        "max_workspace_size_bytes": 268435456,
-        "precision_mode": "FP16",
-        "minimum_segment_size": 8,
-        "maximum_cached_engines": 512,
-        "use_calibration": True,
-        "allow_build_at_runtime": True,
-        "conversion_params": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.experimental.tensorrt.Converter"] = tf_experimental_tensorrt_converter_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -191,6 +77,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.experimental.tensorrt.Converter' not in generated_inputs:

@@ -9,267 +9,89 @@ import numpy as np
 import copy
 
 def tf_raw_ops_apply_adagrad_da_inputs():
+    """
+    Generates a list of valid inputs for tf.raw_ops.ApplyAdagradDA.
+    The mutable inputs ('var', 'gradient_accumulator', 'gradient_squared_accumulator')
+    are correctly defined as tf.Variable objects to prevent the eager execution error.
+    Other tensor inputs are tf.constant. This is the only way to satisfy the API's
+    requirement for mutable reference inputs.
+    """
     list_of_inputs = []
 
-    # Input 1
-    var = tf.Variable(np.array([1.0, 2.0, 3.0], dtype=np.float32))
-    gradient_accumulator = tf.Variable(np.array([0.1, 0.2, 0.3], dtype=np.float32))
-    gradient_squared_accumulator = tf.Variable(np.array([0.01, 0.02, 0.03], dtype=np.float32))
-    grad = np.array([0.5, 0.6, 0.7], dtype=np.float32)
-    lr = np.array(0.01, dtype=np.float32)
-    l1 = np.array(0.0, dtype=np.float32)
-    l2 = np.array(0.0, dtype=np.float32)
-    global_step = np.array(1, dtype=np.int64)
-    use_locking = False
-    name = "adagrad_da_1"
-
-    input_dict = {
-        "var": var.read_value(),
-        "gradient_accumulator": gradient_accumulator.read_value(),
-        "gradient_squared_accumulator": gradient_squared_accumulator.read_value(),
-        "grad": grad,
-        "lr": lr,
-        "l1": l1,
-        "l2": l2,
-        "global_step": global_step,
-        "use_locking": use_locking,
-        "name": name
+    # --- Case 1: Basic float32, 1D ---
+    input_dict_1 = {
+        'var': tf.Variable([1.0, 2.0, 3.0], dtype=tf.float32),
+        'gradient_accumulator': tf.Variable([0.1, 0.1, 0.1], dtype=tf.float32),
+        'gradient_squared_accumulator': tf.Variable([0.01, 0.01, 0.01], dtype=tf.float32),
+        'grad': tf.constant([0.5, -0.5, 0.2], dtype=tf.float32),
+        'lr': tf.constant(0.001, dtype=tf.float32),
+        'l1': tf.constant(1.0, dtype=tf.float32),
+        'l2': tf.constant(0.5, dtype=tf.float32),
+        'global_step': tf.constant(100, dtype=tf.int64),
+        'use_locking': False,
+        'name': 'test_float32'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2
-    var = tf.Variable(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64))
-    gradient_accumulator = tf.Variable(np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float64))
-    gradient_squared_accumulator = tf.Variable(np.array([[0.01, 0.02], [0.03, 0.04]], dtype=np.float64))
-    grad = np.array([[0.5, 0.6], [0.7, 0.8]], dtype=np.float64)
-    lr = np.array(0.005, dtype=np.float64)
-    l1 = np.array(0.1, dtype=np.float64)
-    l2 = np.array(0.01, dtype=np.float64)
-    global_step = np.array(2, dtype=np.int64)
-    use_locking = True
-    name = "adagrad_da_2"
-
-    input_dict = {
-        "var": var.read_value(),
-        "gradient_accumulator": gradient_accumulator.read_value(),
-        "gradient_squared_accumulator": gradient_squared_accumulator.read_value(),
-        "grad": grad,
-        "lr": lr,
-        "l1": l1,
-        "l2": l2,
-        "global_step": global_step,
-        "use_locking": use_locking,
-        "name": name
+    # --- Case 2: float64, 2D, use_locking=True ---
+    input_dict_2 = {
+        'var': tf.Variable([[1.0, 2.0], [3.0, 4.0]], dtype=tf.float64),
+        'gradient_accumulator': tf.Variable([[0.1, 0.2], [0.3, 0.4]], dtype=tf.float64),
+        'gradient_squared_accumulator': tf.Variable([[0.01, 0.02], [0.03, 0.04]], dtype=tf.float64),
+        'grad': tf.constant([[-0.1, 0.2], [0.3, -0.4]], dtype=tf.float64),
+        'lr': tf.constant(0.01, dtype=tf.float64),
+        'l1': tf.constant(0.0, dtype=tf.float64),
+        'l2': tf.constant(0.1, dtype=tf.float64),
+        'global_step': tf.constant(1, dtype=tf.int64),
+        'use_locking': True,
+        'name': 'test_float64_locking'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3
-    var = tf.Variable(np.array([1, 2, 3], dtype=np.int32))
-    gradient_accumulator = tf.Variable(np.array([4, 5, 6], dtype=np.int32))
-    gradient_squared_accumulator = tf.Variable(np.array([7, 8, 9], dtype=np.int32))
-    grad = np.array([10, 11, 12], dtype=np.int32)
-    lr = np.array(1, dtype=np.int32)
-    l1 = np.array(0, dtype=np.int32)
-    l2 = np.array(0, dtype=np.int32)
-    global_step = np.array(3, dtype=np.int64)
-    use_locking = False
-    name = "adagrad_da_3"
-
-    input_dict = {
-        "var": var.read_value(),
-        "gradient_accumulator": gradient_accumulator.read_value(),
-        "gradient_squared_accumulator": gradient_squared_accumulator.read_value(),
-        "grad": grad,
-        "lr": lr,
-        "l1": l1,
-        "l2": l2,
-        "global_step": global_step,
-        "use_locking": use_locking,
-        "name": name
+    # --- Case 3: half (float16), 3D ---
+    input_dict_3 = {
+        'var': tf.Variable(np.random.randn(2, 2, 2).astype(np.float16)),
+        'gradient_accumulator': tf.Variable(np.zeros((2, 2, 2), dtype=np.float16)),
+        'gradient_squared_accumulator': tf.Variable(np.ones((2, 2, 2), dtype=np.float16)),
+        'grad': tf.constant(np.random.randn(2, 2, 2).astype(np.float16)),
+        'lr': tf.constant(0.005, dtype=tf.float16),
+        'l1': tf.constant(0.2, dtype=tf.float16),
+        'l2': tf.constant(0.3, dtype=tf.float16),
+        'global_step': tf.constant(5000, dtype=tf.int64),
+        'use_locking': False,
+        'name': 'test_float16_3d'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4
-    var = tf.Variable(np.array([-1.0, -2.0], dtype=np.float32))
-    gradient_accumulator = tf.Variable(np.array([0.0, 0.0], dtype=np.float32))
-    gradient_squared_accumulator = tf.Variable(np.array([0.0, 0.0], dtype=np.float32))
-    grad = np.array([0.1, 0.2], dtype=np.float32)
-    lr = np.array(0.1, dtype=np.float32)
-    l1 = np.array(0.0, dtype=np.float32)
-    l2 = np.array(0.0, dtype=np.float32)
-    global_step = np.array(4, dtype=np.int64)
-    use_locking = True
-    name = "adagrad_da_4"
-
-    input_dict = {
-        "var": var.read_value(),
-        "gradient_accumulator": gradient_accumulator.read_value(),
-        "gradient_squared_accumulator": gradient_squared_accumulator.read_value(),
-        "grad": grad,
-        "lr": lr,
-        "l1": l1,
-        "l2": l2,
-        "global_step": global_step,
-        "use_locking": use_locking,
-        "name": name
+    # --- Case 4: Scalar variables (shape=()) ---
+    input_dict_4 = {
+        'var': tf.Variable(1.5, dtype=tf.float32),
+        'gradient_accumulator': tf.Variable(0.0, dtype=tf.float32),
+        'gradient_squared_accumulator': tf.Variable(1.0, dtype=tf.float32),
+        'grad': tf.constant(-0.5, dtype=tf.float32),
+        'lr': tf.constant(0.01, dtype=tf.float32),
+        'l1': tf.constant(0.1, dtype=tf.float32),
+        'l2': tf.constant(0.2, dtype=tf.float32),
+        'global_step': tf.constant(1000, dtype=tf.int64),
+        'use_locking': False,
+        'name': 'test_scalar'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5
-    var = tf.Variable(np.array([1.0], dtype=np.float32))
-    gradient_accumulator = tf.Variable(np.array([0.1], dtype=np.float32))
-    gradient_squared_accumulator = tf.Variable(np.array([0.01], dtype=np.float32))
-    grad = np.array([0.5], dtype=np.float32)
-    lr = np.array(0.01, dtype=np.float32)
-    l1 = np.array(0.0, dtype=np.float32)
-    l2 = np.array(0.0, dtype=np.float32)
-    global_step = np.array(5, dtype=np.int64)
-    use_locking = False
-    name = "adagrad_da_5"
-
-    input_dict = {
-        "var": var.read_value(),
-        "gradient_accumulator": gradient_accumulator.read_value(),
-        "gradient_squared_accumulator": gradient_squared_accumulator.read_value(),
-        "grad": grad,
-        "lr": lr,
-        "l1": l1,
-        "l2": l2,
-        "global_step": global_step,
-        "use_locking": use_locking,
-        "name": name
+    # --- Case 5: Zero-valued inputs ---
+    input_dict_5 = {
+        'var': tf.Variable([0.0, 0.0], dtype=tf.float32),
+        'gradient_accumulator': tf.Variable([0.0, 0.0], dtype=tf.float32),
+        'gradient_squared_accumulator': tf.Variable([0.0, 0.0], dtype=tf.float32),
+        'grad': tf.constant([0.0, 0.0], dtype=tf.float32),
+        'lr': tf.constant(0.0, dtype=tf.float32),
+        'l1': tf.constant(0.0, dtype=tf.float32),
+        'l2': tf.constant(0.0, dtype=tf.float32),
+        'global_step': tf.constant(0, dtype=tf.int64),
+        'use_locking': False,
+        'name': 'test_zeros'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    var = tf.Variable(np.array([1.0, 2.0, 3.0], dtype=np.float32))
-    gradient_accumulator = tf.Variable(np.array([0.1, 0.2, 0.3], dtype=np.float32))
-    gradient_squared_accumulator = tf.Variable(np.array([0.01, 0.02, 0.03], dtype=np.float32))
-    grad = np.array([0.5, 0.6, 0.7], dtype=np.float32)
-    lr = np.array(0.01, dtype=np.float32)
-    l1 = np.array(0.1, dtype=np.float32)
-    l2 = np.array(0.01, dtype=np.float32)
-    global_step = np.array(6, dtype=np.int64)
-    use_locking = True
-    name = "adagrad_da_6"
-
-    input_dict = {
-        "var": var.read_value(),
-        "gradient_accumulator": gradient_accumulator.read_value(),
-        "gradient_squared_accumulator": gradient_squared_accumulator.read_value(),
-        "grad": grad,
-        "lr": lr,
-        "l1": l1,
-        "l2": l2,
-        "global_step": global_step,
-        "use_locking": use_locking,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    var = tf.Variable(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32))
-    gradient_accumulator = tf.Variable(np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32))
-    gradient_squared_accumulator = tf.Variable(np.array([[0.01, 0.02], [0.03, 0.04]], dtype=np.float32))
-    grad = np.array([[0.5, 0.6], [0.7, 0.8]], dtype=np.float32)
-    lr = np.array(0.005, dtype=np.float32)
-    l1 = np.array(0.1, dtype=np.float32)
-    l2 = np.array(0.01, dtype=np.float32)
-    global_step = np.array(7, dtype=np.int64)
-    use_locking = False
-    name = "adagrad_da_7"
-
-    input_dict = {
-        "var": var.read_value(),
-        "gradient_accumulator": gradient_accumulator.read_value(),
-        "gradient_squared_accumulator": gradient_squared_accumulator.read_value(),
-        "grad": grad,
-        "lr": lr,
-        "l1": l1,
-        "l2": l2,
-        "global_step": global_step,
-        "use_locking": use_locking,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    var = tf.Variable(np.array([1, 2, 3], dtype=np.int32))
-    gradient_accumulator = tf.Variable(np.array([4, 5, 6], dtype=np.int32))
-    gradient_squared_accumulator = tf.Variable(np.array([7, 8, 9], dtype=np.int32))
-    grad = np.array([10, 11, 12], dtype=np.int32)
-    lr = np.array(1, dtype=np.int32)
-    l1 = np.array(0, dtype=np.int32)
-    l2 = np.array(0, dtype=np.int32)
-    global_step = np.array(8, dtype=np.int64)
-    use_locking = True
-    name = "adagrad_da_8"
-
-    input_dict = {
-        "var": var.read_value(),
-        "gradient_accumulator": gradient_accumulator.read_value(),
-        "gradient_squared_accumulator": gradient_squared_accumulator.read_value(),
-        "grad": grad,
-        "lr": lr,
-        "l1": l1,
-        "l2": l2,
-        "global_step": global_step,
-        "use_locking": use_locking,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    var = tf.Variable(np.array([-1.0, -2.0], dtype=np.float64))
-    gradient_accumulator = tf.Variable(np.array([0.0, 0.0], dtype=np.float64))
-    gradient_squared_accumulator = tf.Variable(np.array([0.0, 0.0], dtype=np.float64))
-    grad = np.array([0.1, 0.2], dtype=np.float64)
-    lr = np.array(0.1, dtype=np.float64)
-    l1 = np.array(0.0, dtype=np.float64)
-    l2 = np.array(0.0, dtype=np.float64)
-    global_step = np.array(9, dtype=np.int64)
-    use_locking = False
-    name = "adagrad_da_9"
-
-    input_dict = {
-        "var": var.read_value(),
-        "gradient_accumulator": gradient_accumulator.read_value(),
-        "gradient_squared_accumulator": gradient_squared_accumulator.read_value(),
-        "grad": grad,
-        "lr": lr,
-        "l1": l1,
-        "l2": l2,
-        "global_step": global_step,
-        "use_locking": use_locking,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    var = tf.Variable(np.array([1.0], dtype=np.float64))
-    gradient_accumulator = tf.Variable(np.array([0.1], dtype=np.float64))
-    gradient_squared_accumulator = tf.Variable(np.array([0.01], dtype=np.float64))
-    grad = np.array([0.5], dtype=np.float64)
-    lr = np.array(0.01, dtype=np.float64)
-    l1 = np.array(0.0, dtype=np.float64)
-    l2 = np.array(0.0, dtype=np.float64)
-    global_step = np.array(10, dtype=np.int64)
-    use_locking = True
-    name = "adagrad_da_10"
-
-    input_dict = {
-        "var": var.read_value(),
-        "gradient_accumulator": gradient_accumulator.read_value(),
-        "gradient_squared_accumulator": gradient_squared_accumulator.read_value(),
-        "grad": grad,
-        "lr": lr,
-        "l1": l1,
-        "l2": l2,
-        "global_step": global_step,
-        "use_locking": use_locking,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
     return list_of_inputs
 
@@ -280,6 +102,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.ApplyAdagradDA' not in generated_inputs:

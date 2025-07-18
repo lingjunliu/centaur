@@ -8,232 +8,149 @@ import tensorflow as tf
 import numpy as np
 import copy
 
+@tf.keras.utils.register_keras_serializable()
+class ShapefulSimpleRNNCell(tf.keras.layers.SimpleRNNCell):
+    def __init__(self, units, **kwargs):
+        super().__init__(units, **kwargs)
+        self.shape = (units, units)
+
+@tf.keras.utils.register_keras_serializable()
+class ShapefulLSTMCell(tf.keras.layers.LSTMCell):
+    def __init__(self, units, **kwargs):
+        super().__init__(units, **kwargs)
+        self.shape = (units, 4 * units)
+
+@tf.keras.utils.register_keras_serializable()
+class ShapefulGRUCell(tf.keras.layers.GRUCell):
+    def __init__(self, units, **kwargs):
+        super().__init__(units, **kwargs)
+        self.shape = (units, 3 * units)
+
 def tf_nn_rnncelldropoutwrapper_inputs():
     list_of_inputs = []
 
-    # Input 1
-    cell = tf.keras.layers.SimpleRNNCell(units=10)
-    input_keep_prob = np.float32(0.8)
-    output_keep_prob = np.float32(0.8)
-    state_keep_prob = np.float32(0.8)
-    variational_recurrent = np.bool_(False)
-    input_size = np.int32(20)
-    dtype = np.dtype(np.float32)
-    seed = 123
-
-    input_dict = {
-        "cell": cell,
-        "input_keep_prob": input_keep_prob,
-        "output_keep_prob": output_keep_prob,
-        "state_keep_prob": state_keep_prob,
-        "variational_recurrent": variational_recurrent,
-        "input_size": input_size,
-        "dtype": dtype,
-        "seed": seed
+    input_dict_1 = {
+        'cell': ShapefulSimpleRNNCell(10),
+        'input_keep_prob': 0.8,
+        'output_keep_prob': 0.8,
+        'state_keep_prob': 1.0,
+        'variational_recurrent': False,
+        'input_size': 20,
+        'dtype': 'float32',
+        'seed': 123
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2
-    cell = tf.keras.layers.LSTMCell(units=20)
-    input_keep_prob = np.float64(0.6)
-    output_keep_prob = np.float64(0.7)
-    state_keep_prob = np.float64(0.5)
-    variational_recurrent = np.bool_(True)
-    input_size = np.int32(30)
-    dtype = np.dtype(np.float64)
-    seed = 456
-
-    input_dict = {
-        "cell": cell,
-        "input_keep_prob": input_keep_prob,
-        "output_keep_prob": output_keep_prob,
-        "state_keep_prob": state_keep_prob,
-        "variational_recurrent": variational_recurrent,
-        "input_size": input_size,
-        "dtype": dtype,
-        "seed": seed
+    input_dict_2 = {
+        'cell': ShapefulLSTMCell(5),
+        'input_keep_prob': 0.5,
+        'output_keep_prob': 1.0,
+        'state_keep_prob': 0.7,
+        'variational_recurrent': False,
+        'input_size': 10,
+        'dtype': 'float32',
+        'seed': 456
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3
-    cell = tf.keras.layers.GRUCell(units=5)
-    input_keep_prob = np.float32(1.0)
-    output_keep_prob = np.float32(1.0)
-    state_keep_prob = np.float32(1.0)
-    variational_recurrent = np.bool_(False)
-    input_size = np.int32(10)
-    dtype = np.dtype(np.float32)
-    seed = 789
-
-    input_dict = {
-        "cell": cell,
-        "input_keep_prob": input_keep_prob,
-        "output_keep_prob": output_keep_prob,
-        "state_keep_prob": state_keep_prob,
-        "variational_recurrent": variational_recurrent,
-        "input_size": input_size,
-        "dtype": dtype,
-        "seed": seed
+    input_dict_3 = {
+        'cell': ShapefulGRUCell(32),
+        'input_keep_prob': 0.75,
+        'output_keep_prob': 0.75,
+        'state_keep_prob': 0.75,
+        'variational_recurrent': True,
+        'input_size': 64,
+        'dtype': 'float64',
+        'seed': 789
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4
-    cell = tf.keras.layers.SimpleRNNCell(units=15)
-    input_keep_prob = np.float64(0.9)
-    output_keep_prob = np.float64(0.9)
-    state_keep_prob = np.float64(0.9)
-    variational_recurrent = np.bool_(True)
-    input_size = np.int32(25)
-    dtype = np.dtype(np.float64)
-    seed = 101
-
-    input_dict = {
-        "cell": cell,
-        "input_keep_prob": input_keep_prob,
-        "output_keep_prob": output_keep_prob,
-        "state_keep_prob": state_keep_prob,
-        "variational_recurrent": variational_recurrent,
-        "input_size": input_size,
-        "dtype": dtype,
-        "seed": seed
+    input_dict_4 = {
+        'cell': ShapefulSimpleRNNCell(16),
+        'input_keep_prob': 1.0,
+        'output_keep_prob': 1.0,
+        'state_keep_prob': 1.0,
+        'variational_recurrent': False,
+        'input_size': 16,
+        'dtype': 'float64',
+        'seed': 101
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5
-    cell = tf.keras.layers.LSTMCell(units=8)
-    input_keep_prob = np.float32(0.7)
-    output_keep_prob = np.float32(0.6)
-    state_keep_prob = np.float32(0.8)
-    variational_recurrent = np.bool_(False)
-    input_size = np.int32(12)
-    dtype = np.dtype(np.float32)
-    seed = 112
-
-    input_dict = {
-        "cell": cell,
-        "input_keep_prob": input_keep_prob,
-        "output_keep_prob": output_keep_prob,
-        "state_keep_prob": state_keep_prob,
-        "variational_recurrent": variational_recurrent,
-        "input_size": input_size,
-        "dtype": dtype,
-        "seed": seed
+    input_dict_5 = {
+        'cell': ShapefulLSTMCell(8),
+        'input_keep_prob': 0.6,
+        'output_keep_prob': 0.7,
+        'state_keep_prob': 0.8,
+        'variational_recurrent': False,
+        'input_size': 12,
+        'dtype': 'float32',
+        'seed': 0
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-   # Input 6
-    cell = tf.keras.layers.GRUCell(units=12)
-    input_keep_prob = np.float64(0.5)
-    output_keep_prob = np.float64(0.4)
-    state_keep_prob = np.float64(0.6)
-    variational_recurrent = np.bool_(True)
-    input_size = np.int32(18)
-    dtype = np.dtype(np.float64)
-    seed = 134
-
-    input_dict = {
-        "cell": cell,
-        "input_keep_prob": input_keep_prob,
-        "output_keep_prob": output_keep_prob,
-        "state_keep_prob": state_keep_prob,
-        "variational_recurrent": variational_recurrent,
-        "input_size": input_size,
-        "dtype": dtype,
-        "seed": seed
+    input_dict_6 = {
+        'cell': ShapefulSimpleRNNCell(10),
+        'input_keep_prob': 0.9,
+        'output_keep_prob': 0.9,
+        'state_keep_prob': 0.9,
+        'variational_recurrent': False,
+        'input_size': 10,
+        'dtype': 'float32',
+        'seed': -1
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7
-    cell = tf.keras.layers.SimpleRNNCell(units=7)
-    input_keep_prob = np.float32(0.3)
-    output_keep_prob = np.float32(0.2)
-    state_keep_prob = np.float32(0.1)
-    variational_recurrent = np.bool_(False)
-    input_size = np.int32(9)
-    dtype = np.dtype(np.float32)
-    seed = 145
-
-    input_dict = {
-        "cell": cell,
-        "input_keep_prob": input_keep_prob,
-        "output_keep_prob": output_keep_prob,
-        "state_keep_prob": state_keep_prob,
-        "variational_recurrent": variational_recurrent,
-        "input_size": input_size,
-        "dtype": dtype,
-        "seed": seed
+    input_dict_7 = {
+        'cell': ShapefulGRUCell(128),
+        'input_keep_prob': 0.5,
+        'output_keep_prob': 0.5,
+        'state_keep_prob': 1.0,
+        'variational_recurrent': True,
+        'input_size': 256,
+        'dtype': 'float32',
+        'seed': 2023
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8
-    cell = tf.keras.layers.LSTMCell(units=18)
-    input_keep_prob = np.float64(0.2)
-    output_keep_prob = np.float64(0.3)
-    state_keep_prob = np.float64(0.4)
-    variational_recurrent = np.bool_(True)
-    input_size = np.int32(28)
-    dtype = np.dtype(np.float64)
-    seed = 156
-
-    input_dict = {
-        "cell": cell,
-        "input_keep_prob": input_keep_prob,
-        "output_keep_prob": output_keep_prob,
-        "state_keep_prob": state_keep_prob,
-        "variational_recurrent": variational_recurrent,
-        "input_size": input_size,
-        "dtype": dtype,
-        "seed": seed
+    input_dict_8 = {
+        'cell': ShapefulSimpleRNNCell(2),
+        'input_keep_prob': 0.95,
+        'output_keep_prob': 0.95,
+        'state_keep_prob': 0.95,
+        'variational_recurrent': False,
+        'input_size': 4,
+        'dtype': 'float32',
+        'seed': 999
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 9
-    cell = tf.keras.layers.GRUCell(units=3)
-    input_keep_prob = np.float32(0.0)
-    output_keep_prob = np.float32(0.0)
-    state_keep_prob = np.float32(0.0)
-    variational_recurrent = np.bool_(False)
-    input_size = np.int32(4)
-    dtype = np.dtype(np.float32)
-    seed = 167
-
-    input_dict = {
-        "cell": cell,
-        "input_keep_prob": input_keep_prob,
-        "output_keep_prob": output_keep_prob,
-        "state_keep_prob": state_keep_prob,
-        "variational_recurrent": variational_recurrent,
-        "input_size": input_size,
-        "dtype": dtype,
-        "seed": seed
+    input_dict_9 = {
+        'cell': ShapefulLSTMCell(40),
+        'input_keep_prob': 0.8,
+        'output_keep_prob': 1.0,
+        'state_keep_prob': 0.8,
+        'variational_recurrent': True,
+        'input_size': 40,
+        'dtype': 'float64',
+        'seed': 1337
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10
-    cell = tf.keras.layers.SimpleRNNCell(units=22)
-    input_keep_prob = np.float64(0.4)
-    output_keep_prob = np.float64(0.5)
-    state_keep_prob = np.float64(0.3)
-    variational_recurrent = np.bool_(True)
-    input_size = np.int32(32)
-    dtype = np.dtype(np.float64)
-    seed = 178
-
-    input_dict = {
-        "cell": cell,
-        "input_keep_prob": input_keep_prob,
-        "output_keep_prob": output_keep_prob,
-        "state_keep_prob": state_keep_prob,
-        "variational_recurrent": variational_recurrent,
-        "input_size": input_size,
-        "dtype": dtype,
-        "seed": seed
+    input_dict_10 = {
+        'cell': ShapefulSimpleRNNCell(64),
+        'input_keep_prob': 0.7,
+        'output_keep_prob': 0.6,
+        'state_keep_prob': 0.5,
+        'variational_recurrent': False,
+        'input_size': 128,
+        'dtype': 'float32',
+        'seed': -100
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
+
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.nn.RNNCellDropoutWrapper"] = tf_nn_rnncelldropoutwrapper_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -241,6 +158,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.nn.RNNCellDropoutWrapper' not in generated_inputs:

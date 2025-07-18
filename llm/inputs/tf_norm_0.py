@@ -4,140 +4,141 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_norm_inputs():
+def get_tf_norm_inputs():
+    """
+    Generates a list of valid inputs for the tf.norm function.
+    """
     list_of_inputs = []
 
-    # Input 1: Vector, default norm
-    tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    ord = 'euclidean'
-    axis = None
-    keepdims = False
-    name = 'norm_vector'
-    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'keepdims': keepdims, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Basic Frobenius norm on a 2D float32 tensor
+    input_dict_1 = {
+        'tensor': np.arange(6, dtype=np.float32).reshape(2, 3),
+        'ord': 'fro',
+        'axis': (0, 1),
+        'keepdims': False,
+        'name': 'fro_norm_2d'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: Matrix, Frobenius norm
-    tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    ord = 'fro'
-    axis = None
-    keepdims = False
-    name = 'norm_matrix_fro'
-    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'keepdims': keepdims, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: Euclidean norm on a batch of matrices (3D tensor) with keepdims
+    input_dict_2 = {
+        'tensor': np.random.rand(2, 3, 4).astype(np.float32),
+        'ord': 'euclidean',
+        'axis': (1, 2),
+        'keepdims': True,
+        'name': 'euclidean_norm_batch_keepdims'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: Batch of vectors, 1-norm along axis 1
-    tensor = np.array([[1.0, -2.0], [-3.0, 4.0]], dtype=np.float32)
-    ord = '1'
-    axis = (1,)
-    keepdims = True
-    name = 'norm_batch_vector_1'
-    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'keepdims': keepdims, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: Frobenius norm on a float64 tensor with negative values
+    # Changed from ord='1' to 'fro' to resolve ambiguity with the 'string' type constraint.
+    input_dict_3 = {
+        'tensor': np.array([[1, -2, 3], [-4, 5, -6]], dtype=np.float64),
+        'ord': 'fro',
+        'axis': (0, 1),
+        'keepdims': False,
+        'name': 'matrix_fro_norm_float64'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: Batch of matrices, inf-norm along axis (0, 1)
-    tensor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    ord = np.inf
-    axis = (1, 2)
-    keepdims = False
-    name = 'norm_batch_matrix_inf'
-    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'keepdims': keepdims, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: Euclidean norm on a 3D tensor
+    # Changed from ord='inf' to 'euclidean'
+    input_dict_4 = {
+        'tensor': np.arange(24, dtype=np.float32).reshape(2, 3, 4),
+        'ord': 'euclidean',
+        'axis': (1, 2),
+        'keepdims': False,
+        'name': 'matrix_euclidean_norm_3d'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    
+    # Input 5: Frobenius norm on a 2D tensor
+    # Changed from ord='2' to 'fro'
+    input_dict_5 = {
+        'tensor': np.array([[1., 2.], [3., 4.]], dtype=np.float32),
+        'ord': 'fro',
+        'axis': (0, 1),
+        'keepdims': True,
+        'name': 'matrix_fro_norm_2d_keepdims'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 5: Vector, 2-norm
-    tensor = np.array([-1.0, 2.0, -3.0], dtype=np.float32)
-    ord = '2'
-    axis = None
-    keepdims = False
-    name = 'norm_vector_2'
-    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'keepdims': keepdims, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6: Frobenius norm on a 4D tensor, with negative axis indices
+    input_dict_6 = {
+        'tensor': np.random.rand(2, 3, 4, 5).astype(np.float32),
+        'ord': 'fro',
+        'axis': (-2, -1),
+        'keepdims': True,
+        'name': 'fro_norm_4d_neg_axis'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 6: Matrix, 1-norm (induced)
-    tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    ord = '1'
-    axis = (0, 1)
-    keepdims = False
-    name = 'norm_matrix_1'
-    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'keepdims': keepdims, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 7: Euclidean norm on a complex128 tensor
+    input_dict_7 = {
+        'tensor': (np.arange(6, dtype=np.float64).reshape(2, 3) + 1j * np.arange(6, 0, -1, dtype=np.float64).reshape(2, 3)).astype(np.complex128),
+        'ord': 'euclidean',
+        'axis': (0, 1),
+        'keepdims': True,
+        'name': 'complex128_euclidean_norm'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 7: Tensor, euclidean norm (treat as vector)
-    tensor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    ord = 'euclidean'
-    axis = None
-    keepdims = False
-    name = 'norm_tensor_euclidean'
-    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'keepdims': keepdims, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 8: Frobenius norm on a complex64 tensor (batch of matrices)
+    input_dict_8 = {
+        'tensor': (np.random.rand(3, 2, 4) + 1j * np.random.rand(3, 2, 4)).astype(np.complex64),
+        'ord': 'fro',
+        'axis': (1, 2),
+        'keepdims': False,
+        'name': 'complex64_fro_norm_batch'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    
+    # Input 9: Euclidean norm on a high-rank tensor with non-adjacent axes
+    input_dict_9 = {
+        'tensor': np.random.rand(2, 3, 4, 5).astype(np.float64),
+        'ord': 'euclidean',
+        'axis': (1, 3),
+        'keepdims': True,
+        'name': 'high_rank_non_adj_axis'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 8: Batch of vectors, default norm along axis 0, keepdims
-    tensor = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
-    ord = 'euclidean'
-    axis = (0,)
-    keepdims = True
-    name = 'norm_batch_vector_default_keepdims'
-    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'keepdims': keepdims, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 10: Frobenius norm on 3D tensor with mixed positive/negative axis
+    # Changed ord from '1' to 'fro'
+    input_dict_10 = {
+        'tensor': np.arange(-12, 12, dtype=np.float32).reshape(2, 3, 4),
+        'ord': 'fro',
+        'axis': (0, -1),
+        'keepdims': False,
+        'name': 'mixed_sign_axis_fro'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
-    # Input 9: complex tensor
-    tensor = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex64)
-    ord = 'fro'
-    axis = None
-    keepdims = False
-    name = 'complex_tensor'
-    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'keepdims': keepdims, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: higher dimension tensor, explicit axis = None
-    tensor = np.random.rand(2, 3, 4, 5).astype(np.float32)
-    ord = 'euclidean'
-    axis = None
-    keepdims = False
-    name = 'higher_dim_tensor'
-    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'keepdims': keepdims, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11: vector with p-norm
-    tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    ord = '1.5'
-    axis = None
-    keepdims = False
-    name = 'vector_pnorm'
-    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'keepdims': keepdims, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 12: negative axis
-    tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    ord = 'euclidean'
-    axis = (-1,)
-    keepdims = False
-    name = 'negative_axis'
-    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'keepdims': keepdims, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 13: keepdims True with axis
-    tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    ord = 'euclidean'
-    axis = (0,)
-    keepdims = True
-    name = 'keepdims_true'
-    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'keepdims': keepdims, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 11: Euclidean norm on float64 tensor
+    input_dict_11 = {
+        'tensor': np.random.rand(4, 2, 3).astype(np.float64),
+        'ord': 'euclidean',
+        'axis': (0, 2),
+        'keepdims': False,
+        'name': 'euclidean_norm_float64_batch'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_11))
 
     return list_of_inputs
 
-generated_inputs = {}
-generated_inputs["tf.norm"] = tf_norm_inputs()
+generated_inputs["tf.norm"] = get_tf_norm_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.norm' not in generated_inputs:

@@ -4,167 +4,102 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
+import tensorflow as tf
 
-def tf_raw_ops_apply_gradient_descent_inputs():
+def get_apply_gradient_descent_inputs():
+    """
+    Generates a list of valid inputs for tf.raw_ops.ApplyGradientDescent.
+    This version provides inputs as NumPy arrays to satisfy the testing harness's
+    analysis phase and focuses on standard floating-point types to mitigate
+    potential execution errors.
+    """
     list_of_inputs = []
 
-    # Input 1: Basic case with float32
-    var = tf.Variable(np.array([1.0, 2.0, 3.0], dtype=np.float32))
-    alpha = np.array(0.1, dtype=np.float32)
-    delta = np.array([0.5, 0.5, 0.5], dtype=np.float32)
-    use_locking = False
-    name = "gradient_descent_1"
-
-    input_dict = {
-        "var": var,
-        "alpha": alpha,
-        "delta": delta,
-        "use_locking": use_locking,
-        "name": name
+    # Input 1: Basic float32, 1D
+    input_dict_1 = {
+        'var': np.array([1.0, 2.0, 3.0], dtype=np.float32),
+        'alpha': np.array(0.1, dtype=np.float32),
+        'delta': np.array([0.5, 0.5, 0.5], dtype=np.float32),
+        'use_locking': False,
+        'name': 'test_float32'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: Different alpha, float64
-    var = tf.Variable(np.array([4.0, 5.0, 6.0], dtype=np.float64))
-    alpha = np.array(0.01, dtype=np.float64)
-    delta = np.array([1.0, 1.0, 1.0], dtype=np.float64)
-    use_locking = True
-    name = "gradient_descent_2"
-
-    input_dict = {
-        "var": var,
-        "alpha": alpha,
-        "delta": delta,
-        "use_locking": use_locking,
-        "name": name
+    # Input 2: float64, 2D, with locking
+    input_dict_2 = {
+        'var': np.array([[1.0, -2.0], [3.0, -4.0]], dtype=np.float64),
+        'alpha': np.array(0.01, dtype=np.float64),
+        'delta': np.array([[10.0, 20.0], [-10.0, -20.0]], dtype=np.float64),
+        'use_locking': True,
+        'name': 'test_float64'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: int32
-    var = tf.Variable(np.array([10, 20, 30], dtype=np.int32))
-    alpha = np.array(2, dtype=np.int32)
-    delta = np.array([1, 2, 3], dtype=np.int32)
-    use_locking = False
-    name = "gradient_descent_3"
-
-    input_dict = {
-        "var": var,
-        "alpha": alpha,
-        "delta": delta,
-        "use_locking": use_locking,
-        "name": name
+    # Input 3: half (float16)
+    input_dict_3 = {
+        'var': np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float16),
+        'alpha': np.array(0.5, dtype=np.float16),
+        'delta': np.full((2, 2), 0.1, dtype=np.float16),
+        'use_locking': False,
+        'name': 'test_float16'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: Negative delta, float32
-    var = tf.Variable(np.array([1.0, 2.0, 3.0], dtype=np.float32))
-    alpha = np.array(0.5, dtype=np.float32)
-    delta = np.array([-0.5, -0.5, -0.5], dtype=np.float32)
-    use_locking = True
-    name = "gradient_descent_4"
-
-    input_dict = {
-        "var": var,
-        "alpha": alpha,
-        "delta": delta,
-        "use_locking": use_locking,
-        "name": name
+    # Input 4: Scalar inputs
+    input_dict_4 = {
+        'var': np.array(100.0, dtype=np.float32),
+        'alpha': np.array(0.1, dtype=np.float32),
+        'delta': np.array(50.0, dtype=np.float32),
+        'use_locking': False,
+        'name': 'test_scalar_numpy'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: Multi-dimensional, float32
-    var = tf.Variable(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32))
-    alpha = np.array(0.2, dtype=np.float32)
-    delta = np.array([[0.5, 0.5], [0.5, 0.5]], dtype=np.float32)
-    use_locking = False
-    name = "gradient_descent_5"
-
-    input_dict = {
-        "var": var,
-        "alpha": alpha,
-        "delta": delta,
-        "use_locking": use_locking,
-        "name": name
+    # Input 5: bfloat16
+    bfloat16_dtype = tf.bfloat16.as_numpy_dtype
+    input_dict_5 = {
+        'var': np.array([[1.0, 2.0]], dtype=bfloat16_dtype),
+        'alpha': np.array(0.1, dtype=bfloat16_dtype),
+        'delta': np.array([[0.5, -0.5]], dtype=bfloat16_dtype),
+        'use_locking': False,
+        'name': 'test_bfloat16'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Complex64
-    var = tf.Variable(np.array([1+1j, 2+2j, 3+3j], dtype=np.complex64))
-    alpha = np.array(0.1+0j, dtype=np.complex64)
-    delta = np.array([0.5+0.5j, 0.5+0.5j, 0.5+0.5j], dtype=np.complex64)
-    use_locking = True
-    name = "gradient_descent_6"
-
-    input_dict = {
-        "var": var,
-        "alpha": alpha,
-        "delta": delta,
-        "use_locking": use_locking,
-        "name": name
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    
+    # Input 6: Large dimension tensor
+    input_dict_6 = {
+        'var': np.ones((4, 4, 4), dtype=np.float32),
+        'alpha': np.array(0.001, dtype=np.float32),
+        'delta': np.random.rand(4, 4, 4).astype(np.float32),
+        'use_locking': False,
+        'name': 'large_tensor_float32'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: bfloat16
-    var = tf.Variable(np.array([1.0, 2.0, 3.0], dtype=np.float16))
-    alpha = np.array(0.1, dtype=np.float16)
-    delta = np.array([0.5, 0.5, 0.5], dtype=np.float16)
-    use_locking = True
-    name = "gradient_descent_8"
-
-    input_dict = {
-        "var": var,
-        "alpha": alpha,
-        "delta": delta,
-        "use_locking": use_locking,
-        "name": name
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    
+    # Input 7: Negative alpha
+    input_dict_7 = {
+        'var': np.array([10.0, 20.0], dtype=np.float64),
+        'alpha': np.array(-0.1, dtype=np.float64),
+        'delta': np.array([1.0, 1.0], dtype=np.float64),
+        'use_locking': False,
+        'name': 'negative_alpha_float64'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: uint8
-    var = tf.Variable(np.array([10, 20, 30], dtype=np.uint8))
-    alpha = np.array(1, dtype=np.uint8)
-    delta = np.array([1, 2, 3], dtype=np.uint8)
-    use_locking = False
-    name = "gradient_descent_9"
-
-    input_dict = {
-        "var": var,
-        "alpha": alpha,
-        "delta": delta,
-        "use_locking": use_locking,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: uint32
-    var = tf.Variable(np.array([10, 20, 30], dtype=np.uint32))
-    alpha = np.array(1, dtype=np.uint32)
-    delta = np.array([1, 2, 3], dtype=np.uint32)
-    use_locking = True
-    name = "gradient_descent_10"
-
-    input_dict = {
-        "var": var,
-        "alpha": alpha,
-        "delta": delta,
-        "use_locking": use_locking,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
     return list_of_inputs
 
-generated_inputs = {}
-generated_inputs["tf.raw_ops.ApplyGradientDescent"] = tf_raw_ops_apply_gradient_descent_inputs()
+generated_inputs["tf.raw_ops.ApplyGradientDescent"] = get_apply_gradient_descent_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.ApplyGradientDescent' not in generated_inputs:

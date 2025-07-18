@@ -9,71 +9,53 @@ import numpy as np
 import copy
 
 def tf_raw_ops_DeleteSessionTensor_inputs():
+    # This API is stateful. It is designed to operate on a tensor handle
+    # that has been previously created within the same session by an op like
+    # `GetSessionHandle`. Executing `DeleteSessionTensor` in a stateless
+    # context with a static string handle will always raise a
+    # `FailedPreconditionError` because the handle does not reference a live
+    # tensor. The inputs provided here are syntactically correct according to
+    # the API signature but are expected to produce this specific runtime error
+    # under the described test conditions.
     list_of_inputs = []
 
-    # Input 1: Simple handle
-    handle = "tensor_handle_1"
-    name = None
-    input_dict = {"handle": handle.encode('utf-8'), "name": name}
+    # Input 1
+    input_dict = {
+        'handle': np.array('handle_one'),
+        'name': 'delete_op_A'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Another simple handle
-    handle = "tensor_handle_2"
-    name = "delete_op_1"
-    input_dict = {"handle": handle.encode('utf-8'), "name": name}
+    # Input 2
+    input_dict = {
+        'handle': np.array('temp_tensor_xyz'),
+        'name': 'delete_op_B'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 3
+    input_dict = {
+        'handle': np.array('_internal_handle_99'),
+        'name': 'delete_op_C'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Handle with special characters
-    handle = "tensor.handle-3_"
-    name = None
-    input_dict = {"handle": handle.encode('utf-8'), "name": name}
+    # Input 4
+    input_dict = {
+        'handle': np.array('dataflow/state/tensor_handle'),
+        'name': 'delete_op_D'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Longer handle
-    handle = "very_long_tensor_handle_4_with_underscores"
-    name = "delete_op_2"
-    input_dict = {"handle": handle.encode('utf-8'), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Handle with numbers
-    handle = "tensor_handle_5_123"
-    name = None
-    input_dict = {"handle": handle.encode('utf-8'), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Handle with mixed characters
-    handle = "tensor.Handle-6_123"
-    name = "delete_op_3"
-    input_dict = {"handle": handle.encode('utf-8'), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 7: Short handle
-    handle = "a"
-    name = None
-    input_dict = {"handle": handle.encode('utf-8'), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Longer name
-    handle = "tensor_handle_8"
-    name = "very_long_delete_op_name_8"
-    input_dict = {"handle": handle.encode('utf-8'), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Empty name
-    handle = "tensor_handle_9"
-    name = ""
-    input_dict = {"handle": handle.encode('utf-8'), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Empty handle
-    handle = ""
-    name = None
-    input_dict = {"handle": handle.encode('utf-8'), "name": name}
+    
+    # Input 5
+    input_dict = {
+        'handle': np.array('cleanup_target'),
+        'name': 'delete_op_E'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.raw_ops.DeleteSessionTensor"] = tf_raw_ops_DeleteSessionTensor_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -81,6 +63,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.DeleteSessionTensor' not in generated_inputs:

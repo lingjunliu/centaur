@@ -4,73 +4,95 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_ndtri_inputs():
+def get_tf_raw_ops_ndtri_inputs():
     list_of_inputs = []
 
-    # Input 1: float32, 1D array
-    x = np.array([0.1, 0.5, 0.9], dtype=np.float32)
-    input_dict = {"x": tf.convert_to_tensor(x, dtype=tf.float32), "name": "ndtri_float32_1d"}
+    # Input 1: Basic float32 tensor
+    input_dict = {
+        'x': np.array([0.1, 0.5, 0.9], dtype=np.float32),
+        'name': 'test_1'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: float16, 2D array
-    x = np.array([[0.2, 0.6], [0.4, 0.8]], dtype=np.float16)
-    input_dict = {"x": tf.convert_to_tensor(x, dtype=tf.float16), "name": "ndtri_float16_2d"}
+    # Input 2: float64 tensor with 2 dimensions
+    input_dict = {
+        'x': np.array([[0.25, 0.75], [0.01, 0.99]], dtype=np.float64),
+        'name': 'test_2'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: float32, 3D array
-    x = np.array([[[0.3, 0.7], [0.5, 0.9]], [[0.1, 0.4], [0.6, 0.8]]], dtype=np.float32)
-    input_dict = {"x": tf.convert_to_tensor(x, dtype=tf.float32), "name": "ndtri_float32_3d"}
+    # Input 3: 0-D (scalar) float32 tensor
+    input_dict = {
+        'x': np.array(0.5, dtype=np.float32),
+        'name': 'scalar_input'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: float64, scalar
-    x = np.array(0.75, dtype=np.float64)
-    input_dict = {"x": tf.convert_to_tensor(x, dtype=tf.float64), "name": "ndtri_float64_scalar"}
+    # Input 4: 3-D float32 tensor with random values
+    # Using uniform distribution to ensure values are in (0, 1)
+    input_dict = {
+        'x': np.random.uniform(low=1e-6, high=1.0 - 1e-6, size=(2, 3, 2)).astype(np.float32),
+        'name': 'random_3d'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: float16, 2D array with values close to 0 and close to 1
-    x = np.array([[0.0001, 0.9999], [0.5, 0.1]], dtype=np.float16)
-    input_dict = {"x": tf.convert_to_tensor(x, dtype=tf.float16), "name": "ndtri_float16_2d_extreme"}
+    # Input 5: float64 tensor with values very close to 0 and 1
+    input_dict = {
+        'x': np.array([1e-9, 1.0 - 1e-9, 1e-15, 1.0 - 1e-15], dtype=np.float64),
+        'name': 'boundary_values'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: float16, empty array
-    x = np.array([], dtype=np.float16)
-    input_dict = {"x": tf.convert_to_tensor(x, dtype=tf.float16), "name": "ndtri_float16_empty"}
+    # Input 6: Empty tensor
+    input_dict = {
+        'x': np.array([], dtype=np.float32),
+        'name': 'empty_tensor'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: float32, large values
-    x = np.array([0.99999, 0.999999, 0.9999999], dtype=np.float32)
-    input_dict = {"x": tf.convert_to_tensor(x, dtype=tf.float32), "name": "ndtri_float32_large"}
+    # Input 7: Tensor with a single element
+    input_dict = {
+        'x': np.array([[[0.68]]], dtype=np.float64),
+        'name': 'single_element'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: float64, values around 0.5
-    x = np.array([0.49, 0.5, 0.51], dtype=np.float64)
-    input_dict = {"x": tf.convert_to_tensor(x, dtype=tf.float64), "name": "ndtri_float64_around_05"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: float32, 4D array
-    x = np.random.rand(2, 2, 2, 2).astype(np.float32)
-    input_dict = {"x": tf.convert_to_tensor(x, dtype=tf.float32), "name": "ndtri_float32_4d"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: float16, 1D array with different values
-    x = np.array([0.1, 0.2, 0.3, 0.4, 0.5], dtype=np.float16)
-    input_dict = {"x": tf.convert_to_tensor(x, dtype=tf.float16), "name": "ndtri_float16_1d_diff"}
+    # Input 8: Large 1D float32 tensor
+    input_dict = {
+        'x': np.linspace(0.01, 0.99, 50, dtype=np.float32),
+        'name': 'linspace_input'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Input 9: 0-D (scalar) float64 tensor
+    input_dict = {
+        'x': np.array(0.975, dtype=np.float64),
+        'name': 'scalar_float64'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10: Values corresponding to standard deviations
+    input_dict = {
+        'x': np.array([0.15865525, 0.84134475, 0.02275013, 0.97724987], dtype=np.float32),
+        'name': 'std_dev_probs'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
-generated_inputs = {}
-generated_inputs["tf.raw_ops.Ndtri"] = tf_raw_ops_ndtri_inputs()
+generated_inputs["tf.raw_ops.Ndtri"] = get_tf_raw_ops_ndtri_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.Ndtri' not in generated_inputs:

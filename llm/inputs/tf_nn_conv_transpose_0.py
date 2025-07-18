@@ -4,126 +4,138 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
 def tf_nn_conv_transpose_inputs():
+    """
+    This function generates a list of valid inputs for the tf.nn.conv_transpose API.
+    The filter shape is [filter_spatial_dims, out_channels, in_channels].
+    """
     list_of_inputs = []
 
-    # Input 1
-    input_tensor = np.random.rand(1, 5, 5, 3).astype(np.float32)
-    filters_tensor = np.random.rand(3, 3, 3, 3).astype(np.float32)
-    output_shape_tensor = np.array([1, 7, 7, 3], dtype=np.int32)
-    strides_list = [1, 1, 1, 1]
-    padding_string = 'SAME'
-    data_format_string = 'NHWC'
-    dilations_list = [1, 1, 1, 1]
-    name_string = 'transpose_conv1'
+    # Input 1: Basic 2D, NHWC, SAME padding, Stride 1
+    list_of_inputs.append(copy.deepcopy({
+        'input': np.random.rand(1, 8, 8, 3).astype(np.float32),
+        'filters': np.random.rand(3, 3, 5, 3).astype(np.float32),
+        'output_shape': np.array([1, 8, 8, 5], dtype=np.int32),
+        'strides': [1, 1, 1, 1],
+        'padding': 'SAME',
+        'data_format': 'NHWC',
+        'dilations': [1, 1, 1, 1],
+        'name': 'basic_2d_same'
+    }))
 
-    input_dict = {
-        "input": input_tensor,
-        "filters": filters_tensor,
-        "output_shape": output_shape_tensor,
-        "strides": strides_list,
-        "padding": padding_string,
-        "data_format": data_format_string,
-        "dilations": dilations_list,
-        "name": name_string
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: Basic 2D, NHWC, VALID padding, Stride 1
+    list_of_inputs.append(copy.deepcopy({
+        'input': np.random.rand(1, 8, 8, 3).astype(np.float32),
+        'filters': np.random.rand(3, 3, 5, 3).astype(np.float32),
+        'output_shape': np.array([1, 10, 10, 5], dtype=np.int32),
+        'strides': [1, 1, 1, 1],
+        'padding': 'VALID',
+        'data_format': 'NHWC',
+        'dilations': [1, 1, 1, 1],
+        'name': 'basic_2d_valid'
+    }))
 
-    # Input 2
-    input_tensor = np.random.rand(2, 10, 10, 1).astype(np.float32)
-    filters_tensor = np.random.rand(5, 5, 1, 1).astype(np.float32)
-    output_shape_tensor = np.array([2, 14, 14, 1], dtype=np.int32)
-    strides_list = [1, 2, 2, 1]
-    padding_string = 'VALID'
-    data_format_string = 'NHWC'
-    dilations_list = [1, 1, 1, 1]
-    name_string = 'transpose_conv2'
+    # Input 3: Strided 2D (Upsampling), NHWC, SAME padding
+    list_of_inputs.append(copy.deepcopy({
+        'input': np.random.rand(1, 8, 8, 3).astype(np.float32),
+        'filters': np.random.rand(3, 3, 5, 3).astype(np.float32),
+        'output_shape': np.array([1, 16, 16, 5], dtype=np.int32),
+        'strides': [1, 2, 2, 1],
+        'padding': 'SAME',
+        'data_format': 'NHWC',
+        'dilations': [1, 1, 1, 1],
+        'name': 'strided_2d_same'
+    }))
 
-    input_dict = {
-        "input": input_tensor,
-        "filters": filters_tensor,
-        "output_shape": output_shape_tensor,
-        "strides": strides_list,
-        "padding": padding_string,
-        "data_format": data_format_string,
-        "dilations": dilations_list,
-        "name": name_string
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: Strided 2D (Upsampling), NHWC, VALID padding
+    list_of_inputs.append(copy.deepcopy({
+        'input': np.random.rand(1, 8, 8, 3).astype(np.float32),
+        'filters': np.random.rand(3, 3, 5, 3).astype(np.float32),
+        'output_shape': np.array([1, 17, 17, 5], dtype=np.int32),
+        'strides': [1, 2, 2, 1],
+        'padding': 'VALID',
+        'data_format': 'NHWC',
+        'dilations': [1, 1, 1, 1],
+        'name': 'strided_2d_valid'
+    }))
 
-    # Input 3
-    input_tensor = np.random.rand(1, 8, 8, 64).astype(np.float32)
-    filters_tensor = np.random.rand(2, 2, 64, 64).astype(np.float32)
-    output_shape_tensor = np.array([1, 16, 16, 64], dtype=np.int32)
-    strides_list = [1, 2, 2, 1]
-    padding_string = 'SAME'
-    data_format_string = 'NHWC'
-    dilations_list = [1, 1, 1, 1]
-    name_string = 'transpose_conv3'
+    # Input 5: Dilated 2D, NHWC, SAME padding
+    list_of_inputs.append(copy.deepcopy({
+        'input': np.random.rand(1, 8, 8, 3).astype(np.float32),
+        'filters': np.random.rand(3, 3, 5, 3).astype(np.float32),
+        'output_shape': np.array([1, 8, 8, 5], dtype=np.int32),
+        'strides': [1, 1, 1, 1],
+        'padding': 'SAME',
+        'data_format': 'NHWC',
+        'dilations': [1, 2, 2, 1],
+        'name': 'dilated_2d_same'
+    }))
 
-    input_dict = {
-        "input": input_tensor,
-        "filters": filters_tensor,
-        "output_shape": output_shape_tensor,
-        "strides": strides_list,
-        "padding": padding_string,
-        "data_format": data_format_string,
-        "dilations": dilations_list,
-        "name": name_string
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6: Basic 2D, NCHW, SAME padding
+    list_of_inputs.append(copy.deepcopy({
+        'input': np.random.rand(1, 3, 8, 8).astype(np.float32),
+        'filters': np.random.rand(3, 3, 5, 3).astype(np.float32),
+        'output_shape': np.array([1, 5, 8, 8], dtype=np.int32),
+        'strides': [1, 1, 1, 1],
+        'padding': 'SAME',
+        'data_format': 'NCHW',
+        'dilations': [1, 1, 1, 1],
+        'name': 'basic_2d_nchw'
+    }))
 
-    # Input 4
-    input_tensor = np.random.rand(4, 4, 4, 16).astype(np.float32)
-    filters_tensor = np.random.rand(3, 3, 16, 16).astype(np.float32)
-    output_shape_tensor = np.array([4, 6, 6, 16], dtype=np.int32)
-    strides_list = [1, 1, 1, 1]
-    padding_string = 'VALID'
-    data_format_string = 'NHWC'
-    dilations_list = [1, 1, 1, 1] #Reverted dilation back to one
-    name_string = 'transpose_conv4'
+    # Input 7: Strided 2D, NCHW, SAME padding
+    list_of_inputs.append(copy.deepcopy({
+        'input': np.random.rand(1, 3, 8, 8).astype(np.float32),
+        'filters': np.random.rand(3, 3, 5, 3).astype(np.float32),
+        'output_shape': np.array([1, 5, 16, 16], dtype=np.int32),
+        'strides': [1, 1, 2, 2],
+        'padding': 'SAME',
+        'data_format': 'NCHW',
+        'dilations': [1, 1, 1, 1],
+        'name': 'strided_2d_nchw'
+    }))
 
-    input_dict = {
-        "input": input_tensor,
-        "filters": filters_tensor,
-        "output_shape": output_shape_tensor,
-        "strides": strides_list,
-        "padding": padding_string,
-        "data_format": data_format_string,
-        "dilations": dilations_list,
-        "name": name_string
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 8: Basic 1D, NWC, SAME padding, Stride 2
+    list_of_inputs.append(copy.deepcopy({
+        'input': np.random.rand(2, 16, 4).astype(np.float32),
+        'filters': np.random.rand(3, 8, 4).astype(np.float32),
+        'output_shape': np.array([2, 32, 8], dtype=np.int32),
+        'strides': [1, 2, 1],
+        'padding': 'SAME',
+        'data_format': 'NWC',
+        'dilations': [1, 1, 1],
+        'name': 'basic_1d_nwc'
+    }))
 
-    # Input 5
-    input_tensor = np.random.rand(1, 16, 16, 3).astype(np.float32)
-    filters_tensor = np.random.rand(4, 4, 3, 3).astype(np.float32)
-    output_shape_tensor = np.array([1, 32, 32, 3], dtype=np.int32)
-    strides_list = [1, 2, 2, 1]
-    padding_string = 'SAME'
-    data_format_string = 'NHWC'
-    dilations_list = [1, 1, 1, 1]
-    name_string = 'transpose_conv5'
+    # Input 9: Basic 3D, NDHWC, SAME padding, Stride 2
+    list_of_inputs.append(copy.deepcopy({
+        'input': np.random.rand(1, 4, 4, 4, 2).astype(np.float32),
+        'filters': np.random.rand(3, 3, 3, 3, 2).astype(np.float32),
+        'output_shape': np.array([1, 8, 8, 8, 3], dtype=np.int32),
+        'strides': [1, 2, 2, 2, 1],
+        'padding': 'SAME',
+        'data_format': 'NDHWC',
+        'dilations': [1, 1, 1, 1, 1],
+        'name': 'basic_3d_ndhwc'
+    }))
 
-    input_dict = {
-        "input": input_tensor,
-        "filters": filters_tensor,
-        "output_shape": output_shape_tensor,
-        "strides": strides_list,
-        "padding": padding_string,
-        "data_format": data_format_string,
-        "dilations": dilations_list,
-        "name": name_string
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 10: float16 dtype, 2D, NHWC, SAME padding, Stride 2
+    list_of_inputs.append(copy.deepcopy({
+        'input': np.random.rand(1, 8, 8, 3).astype(np.float16),
+        'filters': np.random.rand(3, 3, 5, 3).astype(np.float16),
+        'output_shape': np.array([1, 16, 16, 5], dtype=np.int32),
+        'strides': [1, 2, 2, 1],
+        'padding': 'SAME',
+        'data_format': 'NHWC',
+        'dilations': [1, 1, 1, 1],
+        'name': 'float16_2d_same'
+    }))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.nn.conv_transpose"] = tf_nn_conv_transpose_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -131,6 +143,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.nn.conv_transpose' not in generated_inputs:

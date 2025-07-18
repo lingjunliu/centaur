@@ -4,70 +4,134 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
 def tf_io_decode_csv_inputs():
     list_of_inputs = []
 
-    def create_input_dict(records, record_defaults, field_delim=",", use_quote_delim=True, na_value="", select_cols=None, name=None):
-        return {"records": records, "record_defaults": record_defaults, "field_delim": field_delim, "use_quote_delim": use_quote_delim, "na_value": na_value, "select_cols": select_cols, "name": name}
+    # Input 1: Basic case, all required fields
+    input_dict_1 = {
+        'records': np.array(['1,2.0,hello', '4,5.1,world'], dtype=object),
+        'record_defaults': [np.array([], dtype=np.int32), np.array([], dtype=np.float32), np.array([], dtype=np.string_)],
+        'field_delim': ',',
+        'use_quote_delim': True,
+        'na_value': '',
+        'select_cols': None,
+        'name': 'basic'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 1: Basic CSV parsing
-    records = tf.constant("1,2,3\n4,5,6")
-    record_defaults = [tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(records, record_defaults)))
+    # Input 2: With default values for missing fields
+    input_dict_2 = {
+        'records': np.array(['1,,hello', '4,5.1,'], dtype=object),
+        'record_defaults': [np.array(0, dtype=np.int32), np.array(0.0, dtype=np.float32), np.array('NA', dtype=np.string_)],
+        'field_delim': ',',
+        'use_quote_delim': True,
+        'na_value': '',
+        'select_cols': None,
+        'name': 'with_defaults'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 2: Different delimiter
-    records = tf.constant("1;2;3\n4;5;6")
-    record_defaults = [tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(records, record_defaults, field_delim=";")))
+    # Input 3: Different delimiter
+    input_dict_3 = {
+        'records': np.array(['1|2.0|hello', '4|5.1|world'], dtype=object),
+        'record_defaults': [np.array([], dtype=np.int32), np.array([], dtype=np.float32), np.array([], dtype=np.string_)],
+        'field_delim': '|',
+        'use_quote_delim': True,
+        'na_value': '',
+        'select_cols': None,
+        'name': 'different_delim'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 3: Float type
-    records = tf.constant("1.1,2.2,3.3\n4.4,5.5,6.6")
-    record_defaults = [tf.constant(0.0, dtype=tf.float32), tf.constant(0.0, dtype=tf.float32), tf.constant(0.0, dtype=tf.float32)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(records, record_defaults)))
+    # Input 4: Handling quoted fields containing delimiters
+    input_dict_4 = {
+        'records': np.array(['1,"a,b",3.0', '2,"c,d",4.0'], dtype=object),
+        'record_defaults': [np.array([], dtype=np.int32), np.array([], dtype=np.string_), np.array([], dtype=np.float32)],
+        'field_delim': ',',
+        'use_quote_delim': True,
+        'na_value': '',
+        'select_cols': None,
+        'name': 'quoted_fields'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 4: NA value
-    records = tf.constant("1,NA,2\n3,4,NA")
-    record_defaults = [tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(records, record_defaults, na_value="NA")))
+    # Input 5: Custom NA value
+    input_dict_5 = {
+        'records': np.array(['1,N/A,hello', '4,5.1,world'], dtype=object),
+        'record_defaults': [np.array(0, dtype=np.int32), np.array(0.0, dtype=np.float32), np.array('default', dtype=np.string_)],
+        'field_delim': ',',
+        'use_quote_delim': True,
+        'na_value': 'N/A',
+        'select_cols': None,
+        'name': 'custom_na'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 5: Select columns
-    records = tf.constant("1,2,3\n4,5,6")
-    record_defaults = [tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(records, record_defaults, select_cols=[0, 2])))
+    # Input 6: Empty records tensor
+    input_dict_6 = {
+        'records': np.array([], dtype=object),
+        'record_defaults': [np.array([], dtype=np.int64), np.array([], dtype=np.float64)],
+        'field_delim': ',',
+        'use_quote_delim': True,
+        'na_value': '',
+        'select_cols': None,
+        'name': 'empty_records'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    
+    # Input 7: use_quote_delim=False
+    input_dict_7 = {
+        'records': np.array(['1,"a,b",3.0'], dtype=object),
+        'record_defaults': [np.array(0, dtype=np.int32), np.array('', dtype=np.string_), np.array('', dtype=np.string_), np.array('', dtype=np.string_), np.array(0.0, dtype=np.float32)],
+        'field_delim': ',',
+        'use_quote_delim': False,
+        'na_value': '',
+        'select_cols': None,
+        'name': 'no_quote_delim'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 6: No quote delimiter
-    records = tf.constant('"1","2","3"\n"4","5","6"')
-    record_defaults = [tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(records, record_defaults, use_quote_delim=False)))
+    # Input 8: Leading/trailing spaces in numeric fields
+    input_dict_8 = {
+        'records': np.array([' 1  ,  2.5  ', '-10 , -3.14'], dtype=object),
+        'record_defaults': [np.array([], dtype=np.int32), np.array([], dtype=np.float64)],
+        'field_delim': ',',
+        'use_quote_delim': True,
+        'na_value': '',
+        'select_cols': None,
+        'name': 'with_spaces'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 7: Empty values with defaults
-    records = tf.constant(",,\n,1,")
-    record_defaults = [tf.constant(1, dtype=tf.int32), tf.constant(2, dtype=tf.int32), tf.constant(3, dtype=tf.int32)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(records, record_defaults)))
-
-    # Input 8: Int64 type
-    records = tf.constant("10000000000,20000000000,30000000000\n40000000000,50000000000,60000000000")
-    record_defaults = [tf.constant(0, dtype=tf.int64), tf.constant(0, dtype=tf.int64), tf.constant(0, dtype=tf.int64)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(records, record_defaults)))
-
-    # Input 9: Float64 type
-    records = tf.constant("1.1,2.2,3.3\n4.4,5.5,6.6")
-    record_defaults = [tf.constant(0.0, dtype=tf.float64), tf.constant(0.0, dtype=tf.float64), tf.constant(0.0, dtype=tf.float64)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(records, record_defaults)))
-
-    # Input 10: Empty records
-    records = tf.constant("")
-    record_defaults = [tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(records, record_defaults)))
-
+    # Input 9: Using select_cols
+    input_dict_9 = {
+        'records': np.array(['a,1,1.0,x', 'b,2,2.0,y'], dtype=object),
+        'record_defaults': [np.array('', dtype=np.string_), np.array(0.0, dtype=np.float32)],
+        'field_delim': ',',
+        'use_quote_delim': True,
+        'na_value': '',
+        'select_cols': [0, 2],
+        'name': 'select_cols'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    
+    # Input 10: Single column
+    input_dict_10 = {
+        'records': np.array(['-1.1', '2.2', '3.3'], dtype=object),
+        'record_defaults': [np.array(0.0, dtype=np.float32)],
+        'field_delim': ',',
+        'use_quote_delim': True,
+        'na_value': '',
+        'select_cols': None,
+        'name': 'single_column'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.io.decode_csv"] = tf_io_decode_csv_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -75,6 +139,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.io.decode_csv' not in generated_inputs:

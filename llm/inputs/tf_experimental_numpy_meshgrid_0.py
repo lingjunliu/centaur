@@ -4,79 +4,100 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_experimental_numpy_meshgrid_inputs():
+
+def tfenp_meshgrid_inputs():
+    """
+    Generates a list of valid inputs for tf.experimental.numpy.meshgrid.
+    """
     list_of_inputs = []
 
-    # Input 1: Two 1D tensors
-    xi = [tf.constant(np.array([1, 2, 3])), tf.constant(np.array([4, 5, 6]))]
-    input_dict = {"xi": xi}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Two simple 1D integer arrays of the same length
+    input_dict_1 = {
+        'xi': np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: Three 1D tensors
-    xi = [tf.constant(np.array([1, 2])), tf.constant(np.array([3, 4])), tf.constant(np.array([5, 6]))]
-    input_dict = {"xi": xi}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: Three 1D integer arrays of the same length
+    input_dict_2 = {
+        'xi': np.array([np.arange(4, dtype=np.int64), np.arange(10, 14, dtype=np.int64), np.arange(20, 24, dtype=np.int64)])
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: Two 1D tensors with different dtypes
-    xi = [tf.constant(np.array([1, 2, 3], dtype=np.int32)), tf.constant(np.array([4, 5, 6], dtype=np.float32))]
-    input_dict = {"xi": xi}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: Two 1D float arrays of the same length
+    input_dict_3 = {
+        'xi': np.array([[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]], dtype=np.float32)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: Two 1D tensors with negative values
-    xi = [tf.constant(np.array([-1, -2, -3])), tf.constant(np.array([-4, -5, -6]))]
-    input_dict = {"xi": xi}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: Arrays with negative values and zero, same length
+    input_dict_4 = {
+        'xi': np.array([[-1, -2, -3], [1, 0, -1]], dtype=np.int64)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
+    # Input 5: A single 1D input array
+    input_dict_5 = {
+        'xi': np.array([[10, 20, 30, 40]], dtype=np.int64)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 5: One 1D tensor
-    xi = [tf.constant(np.array([1, 2, 3]))]
-    input_dict = {"xi": xi}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6: Four 1D input arrays, length 1
+    input_dict_6 = {
+        'xi': np.array([[1], [2], [3], [4]], dtype=np.int64)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
+    # Input 7: Two 1D arrays of different float types (will be promoted)
+    input_dict_7 = {
+        'xi': np.array([[1, 2], [3.0, 4.0]], dtype=np.float64)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 6: Two 1D tensors with boolean dtype
-    xi = [tf.constant(np.array([True, False, True])), tf.constant(np.array([False, True, False]))]
-    input_dict = {"xi": xi}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 8: Two 1D arrays that are empty
+    input_dict_8 = {
+        'xi': np.empty(shape=(2, 0), dtype=np.int32)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 7: Three 1D tensors with zero values.
-    xi = [tf.constant(np.array([0, 1])), tf.constant(np.array([2, 0])), tf.constant(np.array([0, 3]))]
-    input_dict = {"xi": xi}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 9: A single empty array
+    input_dict_9 = {
+        'xi': np.empty(shape=(1, 0), dtype=np.float32)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 8: Tensors of different sizes
+    # Input 10: Two 1D arrays with single elements
+    input_dict_10 = {
+        'xi': np.array([[100.0], [-100.0]], dtype=np.float64)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
-    xi = [tf.constant(np.array([1])), tf.constant(np.array([2,3]))]
-    input_dict = {"xi": xi}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Tensors of different dtypes and sizes
-
-    xi = [tf.constant(np.array([1,2], dtype = np.int32)), tf.constant(np.array([2.0], dtype=np.float32))]
-    input_dict = {"xi": xi}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Three 2D tensors
-
-    xi = [tf.constant(np.array([[1,2],[3,4]])), tf.constant(np.array([[5,6],[7,8]])), tf.constant(np.array([[9,10],[11,12]]))]
-    input_dict = {"xi": xi}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
+    # Input 11: A larger number of arrays
+    input_dict_11 = {
+        'xi': np.array([[1,1], [2,2], [3,3], [4,4], [5,5]], dtype=np.int64)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_11))
+    
+    # Input 12: Long arrays
+    input_dict_12 = {
+        'xi': np.array([np.arange(10), np.arange(10, 20)], dtype=np.int64)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_12))
 
     return list_of_inputs
 
-generated_inputs = {}
-generated_inputs["tf.experimental.numpy.meshgrid"] = tf_experimental_numpy_meshgrid_inputs()
+generated_inputs["tf.experimental.numpy.meshgrid"] = tfenp_meshgrid_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.experimental.numpy.meshgrid' not in generated_inputs:

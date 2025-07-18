@@ -9,116 +9,103 @@ import numpy as np
 import copy
 
 def tf_clip_by_global_norm_inputs():
+    """
+    Generates a list of valid inputs for tf.clip_by_global_norm.
+    """
     list_of_inputs = []
 
-    # Input 1: Basic case with small tensors
-    t_list = [tf.constant(np.array([1.0, 2.0]), dtype=tf.float32), tf.constant(np.array([3.0, 4.0]), dtype=tf.float32)]
-    clip_norm = tf.constant(5.0, dtype=tf.float32)
-    use_norm = tf.constant(6.0, dtype=tf.float32)
-    name = "clip_1"
-    input_dict = {"t_list": t_list, "clip_norm": clip_norm, "use_norm": use_norm, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Basic case where clipping occurs
+    input_dict_1 = {
+        't_list': [np.array([3.0, 4.0], dtype=np.float32), np.array([5.0, 12.0], dtype=np.float32)],
+        'clip_norm': np.array(5.0, dtype=np.float32),
+        'use_norm': None,
+        'name': 'basic_clipping'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: t_list with None
-    t_list = [tf.constant(np.array([1.0, 2.0]), dtype=tf.float32), None, tf.constant(np.array([3.0, 4.0]), dtype=tf.float32)]
-    clip_norm = tf.constant(5.0, dtype=tf.float32)
-    use_norm = tf.constant(6.0, dtype=tf.float32)
-    name = "clip_2"
-    input_dict = {"t_list": t_list, "clip_norm": clip_norm, "use_norm": use_norm, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: No clipping occurs
+    input_dict_2 = {
+        't_list': [np.array([[1.0, 2.0], [3.0, 0.0]], dtype=np.float32)],
+        'clip_norm': np.array(10.0, dtype=np.float32),
+        'use_norm': None,
+        'name': 'no_clipping'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: Larger tensors
-    t_list = [tf.constant(np.random.rand(100).astype(np.float32)), tf.constant(np.random.rand(50).astype(np.float32))]
-    clip_norm = tf.constant(10.0, dtype=tf.float32)
-    use_norm = tf.constant(12.0, dtype=tf.float32)
-    name = "clip_3"
-    input_dict = {"t_list": t_list, "clip_norm": clip_norm, "use_norm": use_norm, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: Mixed shapes and negative values
+    input_dict_3 = {
+        't_list': [np.array([-1.0, 2.0], dtype=np.float32), np.array([[-2.0], [3.0], [-4.0]], dtype=np.float32)],
+        'clip_norm': np.array(5.0, dtype=np.float32),
+        'use_norm': None,
+        'name': 'mixed_shapes'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: Different clip_norm value
-    t_list = [tf.constant(np.array([1.0, 2.0]), dtype=tf.float32), tf.constant(np.array([3.0, 4.0]), dtype=tf.float32)]
-    clip_norm = tf.constant(2.0, dtype=tf.float32)
-    use_norm = tf.constant(6.0, dtype=tf.float32)
-    name = "clip_4"
-    input_dict = {"t_list": t_list, "clip_norm": clip_norm, "use_norm": use_norm, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: Using `use_norm` to specify the global norm
+    input_dict_4 = {
+        't_list': [np.array([6.0, 8.0], dtype=np.float64)],
+        'clip_norm': np.array(5.0, dtype=np.float64),
+        'use_norm': np.array(12.0, dtype=np.float64),
+        'name': 'with_use_norm'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: IndexedSlices
-    indices1 = tf.constant([0, 2], dtype=tf.int32)
-    values1 = tf.constant([1.0, 2.0], dtype=tf.float32)
-    dense_shape1 = tf.constant([5], dtype=tf.int32)
-    indexed_slice1 = tf.IndexedSlices(values=values1, indices=indices1, dense_shape=dense_shape1)
+    # Input 5: global_norm is exactly equal to clip_norm
+    input_dict_5 = {
+        't_list': [np.array([3.0, 4.0], dtype=np.float32)],
+        'clip_norm': np.array(5.0, dtype=np.float32),
+        'use_norm': None,
+        'name': 'norm_equals_clip'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    indices2 = tf.constant([1, 3], dtype=tf.int32)
-    values2 = tf.constant([3.0, 4.0], dtype=tf.float32)
-    dense_shape2 = tf.constant([5], dtype=tf.int32)
-    indexed_slice2 = tf.IndexedSlices(values=values2, indices=indices2, dense_shape=dense_shape2)
+    # Input 6: Tensors with all zeros
+    input_dict_6 = {
+        't_list': [np.zeros((2, 2), dtype=np.float32), np.zeros((3, 1), dtype=np.float32)],
+        'clip_norm': np.array(1.0, dtype=np.float32),
+        'use_norm': None,
+        'name': 'zero_tensors'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    t_list = [indexed_slice1, indexed_slice2]
-    clip_norm = tf.constant(5.0, dtype=tf.float32)
-    use_norm = tf.constant(6.0, dtype=tf.float32)
-    name = "clip_5"
-    input_dict = {"t_list": t_list, "clip_norm": clip_norm, "use_norm": use_norm, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 7: High-dimensional tensor
+    input_dict_7 = {
+        't_list': [np.ones((2, 2, 2), dtype=np.float32)],
+        'clip_norm': np.array(1.0, dtype=np.float32),
+        'use_norm': None,
+        'name': 'high_dim'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 6: Mixed Tensors and IndexedSlices
-    indices = tf.constant([0, 2], dtype=tf.int32)
-    values = tf.constant([1.0, 2.0], dtype=tf.float32)
-    dense_shape = tf.constant([5], dtype=tf.int32)
-    indexed_slice = tf.IndexedSlices(values=values, indices=indices, dense_shape=dense_shape)
-    t_list = [tf.constant(np.array([3.0, 4.0]), dtype=tf.float32), indexed_slice]
-    clip_norm = tf.constant(5.0, dtype=tf.float32)
-    use_norm = tf.constant(6.0, dtype=tf.float32)
-    name = "clip_6"
-    input_dict = {"t_list": t_list, "clip_norm": clip_norm, "use_norm": use_norm, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 8: Using integer types
+    input_dict_8 = {
+        't_list': [np.array([1, 2], dtype=np.int32), np.array([3, 4], dtype=np.int32)],
+        'clip_norm': np.array(2.0, dtype=np.float32),
+        'use_norm': None,
+        'name': 'integer_tensors'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 7: Empty t_list
-    t_list = []
-    clip_norm = tf.constant(5.0, dtype=tf.float32)
-    use_norm = tf.constant(6.0, dtype=tf.float32)
-    name = "clip_7"
-    input_dict = {"t_list": t_list, "clip_norm": clip_norm, "use_norm": use_norm, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 9: Using float64 for higher precision
+    input_dict_9 = {
+        't_list': [np.array([1e10, 2e10], dtype=np.float64), np.array([3e10, 4e10], dtype=np.float64)],
+        'clip_norm': np.array(1e10, dtype=np.float64),
+        'use_norm': None,
+        'name': 'float64_tensors'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-   # Input 8: High Dimensional tensors
-    t_list = [tf.constant(np.random.rand(2, 3, 4).astype(np.float32)), tf.constant(np.random.rand(5, 2).astype(np.float32))]
-    clip_norm = tf.constant(10.0, dtype=tf.float32)
-    use_norm = tf.constant(12.0, dtype=tf.float32)
-    name = "clip_8"
-    input_dict = {"t_list": t_list, "clip_norm": clip_norm, "use_norm": use_norm, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 10: Empty list of tensors
+    input_dict_10 = {
+        't_list': [],
+        'clip_norm': np.array(1.0, dtype=np.float32),
+        'use_norm': None,
+        'name': 'empty_list'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
-    # Input 9: clip_norm is a small value (e.g. close to 0)
-    t_list = [tf.constant(np.array([1.0, 2.0]), dtype=tf.float32), tf.constant(np.array([3.0, 4.0]), dtype=tf.float32)]
-    clip_norm = tf.constant(0.1, dtype=tf.float32)
-    use_norm = tf.constant(6.0, dtype=tf.float32)
-    name = "clip_9"
-    input_dict = {"t_list": t_list, "clip_norm": clip_norm, "use_norm": use_norm, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: t_list with different dtypes, but all float
-    t_list = [tf.constant(np.array([1.0, 2.0]), dtype=tf.float32), tf.constant(np.array([3.0, 4.0]), dtype=tf.float64)]
-    clip_norm = tf.constant(5.0, dtype=tf.float32)
-    use_norm = tf.constant(6.0, dtype=tf.float32)
-    name = "clip_10"
-    input_dict = {"t_list": t_list, "clip_norm": clip_norm, "use_norm": use_norm, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11: Indexed Slice without dense_shape
-    indices = tf.constant([0, 2], dtype=tf.int32)
-    values = tf.constant([1.0, 2.0], dtype=tf.float32)
-    indexed_slice = tf.IndexedSlices(values=values, indices=indices)
-    t_list = [indexed_slice]
-    clip_norm = tf.constant(5.0, dtype=tf.float32)
-    use_norm = tf.constant(6.0, dtype=tf.float32)
-    name = "clip_11"
-    input_dict = {"t_list": t_list, "clip_norm": clip_norm, "use_norm": use_norm, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.clip_by_global_norm"] = tf_clip_by_global_norm_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -126,6 +113,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.clip_by_global_norm' not in generated_inputs:

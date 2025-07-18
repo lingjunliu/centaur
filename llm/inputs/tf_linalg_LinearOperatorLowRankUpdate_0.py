@@ -8,332 +8,141 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_linalg_linear_operator_low_rank_update_inputs():
+def tf_linalg_linearoperatorlowrankupdate_inputs():
+    """
+    Generates a list of valid inputs for the tf.linalg.LinearOperatorLowRankUpdate function.
+    """
     list_of_inputs = []
 
-    def get_numpy_size(linear_operator):
-        if isinstance(linear_operator, tf.linalg.LinearOperatorFullMatrix):
-            return linear_operator.to_dense().numpy().size
-        elif isinstance(linear_operator, tf.linalg.LinearOperatorDiag):
-            return linear_operator.diag.numpy().size
-        elif isinstance(linear_operator, tf.linalg.LinearOperatorScaledIdentity):
-            num_rows = linear_operator.domain_dimension.numpy()
-            return num_rows * num_rows
-        elif isinstance(linear_operator, tf.linalg.LinearOperatorIdentity):
-            num_rows = linear_operator.domain_dimension.numpy()
-            return num_rows * num_rows
-        else:
-            return linear_operator.to_dense().numpy().size
-
-    def get_numpy_min(linear_operator):
-        if isinstance(linear_operator, tf.linalg.LinearOperatorFullMatrix):
-            return np.min(linear_operator.to_dense().numpy())
-        elif isinstance(linear_operator, tf.linalg.LinearOperatorDiag):
-            return np.min(linear_operator.diag.numpy())
-        elif isinstance(linear_operator, tf.linalg.LinearOperatorScaledIdentity):
-            multiplier = linear_operator.multiplier.numpy()
-            return multiplier
-        elif isinstance(linear_operator, tf.linalg.LinearOperatorIdentity):
-            return 1.0
-        else:
-            return np.min(linear_operator.to_dense().numpy())
-
-    def get_numpy_max(linear_operator):
-        if isinstance(linear_operator, tf.linalg.LinearOperatorFullMatrix):
-            return np.max(linear_operator.to_dense().numpy())
-        elif isinstance(linear_operator, tf.linalg.LinearOperatorDiag):
-            return np.max(linear_operator.diag.numpy())
-        elif isinstance(linear_operator, tf.linalg.LinearOperatorScaledIdentity):
-            multiplier = linear_operator.multiplier.numpy()
-            return multiplier
-        elif isinstance(linear_operator, tf.linalg.LinearOperatorIdentity):
-            return 1.0
-        else:
-            return np.max(linear_operator.to_dense().numpy())
-
-    # Input 1
-    diag = np.array([1., 2., 3.], dtype=np.float32)
-    base_operator = tf.linalg.LinearOperatorDiag(diag=diag)
-    u = np.array([[1., 2.], [-1., 3.], [0., 0.]], dtype=np.float32)
-    diag_update = np.array([11., 12.], dtype=np.float32)
-    v = np.array([[1., 2.], [-1., 3.], [10., 10.]], dtype=np.float32)
-    is_diag_update_positive = True
-    is_non_singular = True
-    is_self_adjoint = True
-    is_positive_definite = True
-    is_square = True
-    name = "low_rank_update_1"
-
-    input_dict = {
-        "base_operator": base_operator,
-        "u": u,
-        "diag_update": diag_update,
-        "v": v,
-        "is_diag_update_positive": is_diag_update_positive,
-        "is_non_singular": is_non_singular,
-        "is_self_adjoint": is_self_adjoint,
-        "is_positive_definite": is_positive_definite,
-        "is_square": is_square,
-        "name": name
+    # Case 1: Base operator is self-adjoint and positive-definite.
+    base_op_1 = np.array([[2., 0.], [0., 3.]], dtype=np.float32)
+    u_1 = np.array([[1.], [1.]], dtype=np.float32)
+    input_dict_1 = {
+        'base_operator': base_op_1,
+        'u': u_1,
+        'diag_update': np.array([1.], dtype=np.float32),
+        'v': u_1,
+        'is_diag_update_positive': True,
+        'is_non_singular': True,
+        'is_self_adjoint': True,
+        'is_positive_definite': True,
+        'is_square': True,
+        'name': 'simple_pd_sa'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2
-    matrix=np.array([[1., 2.], [3., 4.]], dtype=np.float32)
-    base_operator = tf.linalg.LinearOperatorFullMatrix(matrix=matrix)
-    u = np.array([[1.], [2.]], dtype=np.float32)
-    diag_update = np.array([5.], dtype=np.float32)
-    v = np.array([[3.], [4.]], dtype=np.float32)
-    is_diag_update_positive = False
-    is_non_singular = False
-    is_self_adjoint = False
-    is_positive_definite = False
-    is_square = True
-    name = "low_rank_update_2"
-
-    input_dict = {
-        "base_operator": base_operator,
-        "u": u,
-        "diag_update": diag_update,
-        "v": v,
-        "is_diag_update_positive": is_diag_update_positive,
-        "is_non_singular": is_non_singular,
-        "is_self_adjoint": is_self_adjoint,
-        "is_positive_definite": is_positive_definite,
-        "is_square": is_square,
-        "name": name
+    # Case 2: Base operator is self-adjoint but not positive-definite.
+    base_op_2 = np.array([[2., 1.], [1., -1.]], dtype=np.float32)
+    u_2 = np.array([[1., 0.], [0., 1.]], dtype=np.float32)
+    input_dict_2 = {
+        'base_operator': base_op_2,
+        'u': u_2,
+        'diag_update': np.array([1., 1.], dtype=np.float32),
+        'v': u_2,
+        'is_diag_update_positive': True,
+        'is_non_singular': True,
+        'is_self_adjoint': True,
+        'is_positive_definite': False,
+        'is_square': True,
+        'name': 'simple_sa_not_pd'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3
-    base_operator = tf.linalg.LinearOperatorScaledIdentity(num_rows=3, multiplier=np.array(2.0, dtype=np.float32))
-    u = np.array([[1., 0.], [0., 1.], [1., 1.]], dtype=np.float32)
-    diag_update = np.array([1., 1.], dtype=np.float32)
-    v = np.array([[0., 1.], [1., 0.], [1., -1.]], dtype=np.float32)
-    is_diag_update_positive = True
-    is_non_singular = None
-    is_self_adjoint = None
-    is_positive_definite = None
-    is_square = True
-    name = "low_rank_update_3"
-
-    input_dict = {
-        "base_operator": base_operator,
-        "u": u,
-        "diag_update": diag_update,
-        "v": v,
-        "is_diag_update_positive": is_diag_update_positive,
-        "is_non_singular": is_non_singular,
-        "is_self_adjoint": is_self_adjoint,
-        "is_positive_definite": is_positive_definite,
-        "is_square": is_square,
-        "name": name
+    # Case 3: Base operator is not self-adjoint.
+    base_op_3 = np.array([[1., 2.], [3., 4.]], dtype=np.float64)
+    input_dict_3 = {
+        'base_operator': base_op_3,
+        'u': np.array([[1.], [2.]], dtype=np.float64),
+        'diag_update': np.array([-5.], dtype=np.float64),
+        'v': np.array([[3.], [4.]], dtype=np.float64),
+        'is_diag_update_positive': False,
+        'is_non_singular': True,
+        'is_self_adjoint': False,
+        'is_positive_definite': False,
+        'is_square': True,
+        'name': 'simple_non_sa'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4
-    diag=np.array([1., 1.], dtype=np.float32)
-    base_operator = tf.linalg.LinearOperatorDiag(diag=diag)
-    u = np.array([[1.]], dtype=np.float32)
-    diag_update = np.array([1.], dtype=np.float32)
-    v = np.array([[1.]], dtype=np.float32)
-    is_diag_update_positive = True
-    is_non_singular = True
-    is_self_adjoint = True
-    is_positive_definite = True
-    is_square = True
-    name = "low_rank_update_4"
-
-    input_dict = {
-        "base_operator": base_operator,
-        "u": u,
-        "diag_update": diag_update,
-        "v": v,
-        "is_diag_update_positive": is_diag_update_positive,
-        "is_non_singular": is_non_singular,
-        "is_self_adjoint": is_self_adjoint,
-        "is_positive_definite": is_positive_definite,
-        "is_square": is_square,
-        "name": name
+    # Case 4: Batched operation.
+    base_op_4 = np.array([[[2., 0.], [0., 3.]], [[4., 0.], [0., 5.]]], dtype=np.float32)
+    u_4 = np.random.randn(2, 2, 1).astype(np.float32)
+    input_dict_4 = {
+        'base_operator': base_op_4,
+        'u': u_4,
+        'diag_update': np.array([[1.], [1.]], dtype=np.float32),
+        'v': u_4,
+        'is_diag_update_positive': True,
+        'is_non_singular': True,
+        'is_self_adjoint': True,
+        'is_positive_definite': True,
+        'is_square': True,
+        'name': 'batched_pd_sa'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: batched base_operator
-    diag=np.array([[1., 2.], [3., 4.]], dtype=np.float32)
-    base_operator = tf.linalg.LinearOperatorDiag(diag=diag)
-    u = np.array([[[1.]], [[2.]]], dtype=np.float32)
-    diag_update = np.array([[5.], [6.]], dtype=np.float32)
-    v = np.array([[[3.]], [[4.]]], dtype=np.float32)
-    is_diag_update_positive = False
-    is_non_singular = False
-    is_self_adjoint = False
-    is_positive_definite = False
-    is_square = True
-    name = "low_rank_update_5"
-
-    input_dict = {
-        "base_operator": base_operator,
-        "u": u,
-        "diag_update": diag_update,
-        "v": v,
-        "is_diag_update_positive": is_diag_update_positive,
-        "is_non_singular": is_non_singular,
-        "is_self_adjoint": is_self_adjoint,
-        "is_positive_definite": is_positive_definite,
-        "is_square": is_square,
-        "name": name
+    # Case 5: Non-square operator.
+    base_op_5 = np.random.randn(3, 4).astype(np.float32)
+    input_dict_5 = {
+        'base_operator': base_op_5,
+        'u': np.random.randn(3, 2).astype(np.float32),
+        'diag_update': np.array([1., 1.], dtype=np.float32),
+        'v': np.random.randn(4, 2).astype(np.float32),
+        'is_diag_update_positive': True,
+        'is_non_singular': False,
+        'is_self_adjoint': False,
+        'is_positive_definite': False,
+        'is_square': False,
+        'name': 'non_square'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    matrix=np.array([[1., 0.], [0., 1.]], dtype=np.float32)
-    base_operator = tf.linalg.LinearOperatorFullMatrix(matrix=matrix)
-    u = np.array([[1., 1.], [1., 1.]], dtype=np.float32)
-    diag_update = np.array([1., 1.], dtype=np.float32)
-    v = np.array([[1., 1.], [1., 1.]], dtype=np.float32)
-    is_diag_update_positive = True
-    is_non_singular = True
-    is_self_adjoint = True
-    is_positive_definite = True
-    is_square = True
-    name = "low_rank_update_6"
-
-    input_dict = {
-        "base_operator": base_operator,
-        "u": u,
-        "diag_update": diag_update,
-        "v": v,
-        "is_diag_update_positive": is_diag_update_positive,
-        "is_non_singular": is_non_singular,
-        "is_self_adjoint": is_self_adjoint,
-        "is_positive_definite": is_positive_definite,
-        "is_square": is_square,
-        "name": name
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    
+    # Case 6: Singular base operator.
+    base_op_6 = np.array([[1., 1.], [1., 1.]], dtype=np.float32)
+    input_dict_6 = {
+        'base_operator': base_op_6,
+        'u': np.array([[1.], [0.]], dtype=np.float32),
+        'diag_update': np.array([1.], dtype=np.float32),
+        'v': np.array([[0.], [1.]], dtype=np.float32),
+        'is_diag_update_positive': True,
+        'is_non_singular': True,
+        'is_self_adjoint': False,
+        'is_positive_definite': False,
+        'is_square': True,
+        'name': 'singular_base'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7
-    base_operator = tf.linalg.LinearOperatorIdentity(num_rows=3)
-    u = np.array([[1.], [2.], [3.]], dtype=np.float32)
-    diag_update = np.array([1.], dtype=np.float32)
-    v = np.array([[1.], [2.], [3.]], dtype=np.float32)
-    is_diag_update_positive = True
-    is_non_singular = True
-    is_self_adjoint = True
-    is_positive_definite = True
-    is_square = True
-    name = "low_rank_update_7"
-
-    input_dict = {
-        "base_operator": base_operator,
-        "u": u,
-        "diag_update": diag_update,
-        "v": v,
-        "is_diag_update_positive": is_diag_update_positive,
-        "is_non_singular": is_non_singular,
-        "is_self_adjoint": is_self_adjoint,
-        "is_positive_definite": is_positive_definite,
-        "is_square": is_square,
-        "name": name
+    # Case 7: Complex valued, non-hermitian
+    base_op_7 = (np.random.randn(2, 2) + 1j * np.random.randn(2,2)).astype(np.complex64)
+    u_7 = (np.random.randn(2, 1) + 1j * np.random.randn(2,1)).astype(np.complex64)
+    v_7 = (np.random.randn(2, 1) + 1j * np.random.randn(2,1)).astype(np.complex64)
+    input_dict_7 = {
+        'base_operator': base_op_7,
+        'u': u_7,
+        'diag_update': np.array([1.+1.j], dtype=np.complex64),
+        'v': v_7,
+        'is_diag_update_positive': False,
+        'is_non_singular': True,
+        'is_self_adjoint': False,
+        'is_positive_definite': False,
+        'is_square': True,
+        'name': 'complex_non_hermitian'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Larger rank
-    diag=np.array([1., 2., 3., 4.], dtype=np.float32)
-    base_operator = tf.linalg.LinearOperatorDiag(diag=diag)
-    u = np.array([[1., 2., 3.], [-1., 3., 1.], [0., 0., 2.], [1., 1., 1.]], dtype=np.float32)
-    diag_update = np.array([11., 12., 13.], dtype=np.float32)
-    v = np.array([[1., 2., 0.], [-1., 3., 1.], [10., 10., 1.], [1., 1., 1.]], dtype=np.float32)
-    is_diag_update_positive = True
-    is_non_singular = True
-    is_self_adjoint = True
-    is_positive_definite = True
-    is_square = True
-    name = "low_rank_update_8"
-
-    input_dict = {
-        "base_operator": base_operator,
-        "u": u,
-        "diag_update": diag_update,
-        "v": v,
-        "is_diag_update_positive": is_diag_update_positive,
-        "is_non_singular": is_non_singular,
-        "is_self_adjoint": is_self_adjoint,
-        "is_positive_definite": is_positive_definite,
-        "is_square": is_square,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 9: None flags
-    diag=np.array([1., 2., 3.], dtype=np.float32)
-    base_operator = tf.linalg.LinearOperatorDiag(diag=diag)
-    u = np.array([[1., 2.], [-1., 3.], [0., 0.]], dtype=np.float32)
-    diag_update = np.array([11., 12.], dtype=np.float32)
-    v = np.array([[1., 2.], [-1., 3.], [10., 10.]], dtype=np.float32)
-    is_diag_update_positive = None
-    is_non_singular = None
-    is_self_adjoint = None
-    is_positive_definite = None
-    is_square = None
-    name = "low_rank_update_9"
-
-    input_dict = {
-        "base_operator": base_operator,
-        "u": u,
-        "diag_update": diag_update,
-        "v": v,
-        "is_diag_update_positive": is_diag_update_positive,
-        "is_non_singular": is_non_singular,
-        "is_self_adjoint": is_self_adjoint,
-        "is_positive_definite": is_positive_definite,
-        "is_square": is_square,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10 : rank 1
-    matrix=np.array([[1., 2.], [3., 4.]], dtype=np.float32)
-    base_operator = tf.linalg.LinearOperatorFullMatrix(matrix=matrix)
-    u = np.array([[1.], [2.]], dtype=np.float32)
-    diag_update = np.array([1.], dtype=np.float32)
-    v = np.array([[3.], [4.]], dtype=np.float32)
-    is_diag_update_positive = False
-    is_non_singular = False
-    is_self_adjoint = False
-    is_positive_definite = False
-    is_square = True
-    name = "low_rank_update_10"
-
-    input_dict = {
-        "base_operator": base_operator,
-        "u": u,
-        "diag_update": diag_update,
-        "v": v,
-        "is_diag_update_positive": is_diag_update_positive,
-        "is_non_singular": is_non_singular,
-        "is_self_adjoint": is_self_adjoint,
-        "is_positive_definite": is_positive_definite,
-        "is_square": is_square,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    for input_dict in list_of_inputs:
-        input_dict["base_operator_size"] = get_numpy_size(input_dict["base_operator"])
-        input_dict["base_operator_min"] = get_numpy_min(input_dict["base_operator"])
-        input_dict["base_operator_max"] = get_numpy_max(input_dict["base_operator"])
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
     return list_of_inputs
 
-generated_inputs = {}
-generated_inputs["tf.linalg.LinearOperatorLowRankUpdate"] = tf_linalg_linear_operator_low_rank_update_inputs()
+generated_inputs["tf.linalg.LinearOperatorLowRankUpdate"] = tf_linalg_linearoperatorlowrankupdate_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.linalg.LinearOperatorLowRankUpdate' not in generated_inputs:

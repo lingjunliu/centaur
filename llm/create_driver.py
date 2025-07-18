@@ -20,10 +20,13 @@ def get_prompt(api):
 
 def extract_code_from_response(response):
     # Use regular expression to find the code block within the markdown
-    code_match = re.search(r'```python\n(.*?)\n```', response, re.DOTALL)
-    if code_match:
-        return code_match.group(1)
-    return None
+    try:
+        code_match = re.search(r'```python\n(.*?)\n```', response, re.DOTALL)
+        if code_match:
+            return code_match.group(1)
+    except Exception as e:
+        print(f"Error extracting code: {e}")
+    return ""
 
 def save_and_run_code(filename, code):
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'

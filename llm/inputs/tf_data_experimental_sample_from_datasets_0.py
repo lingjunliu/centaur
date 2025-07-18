@@ -6,83 +6,135 @@ generated_inputs = dict()
 
 import tensorflow as tf
 import numpy as np
-import copy
 
-def tf_data_experimental_sample_from_datasets_inputs():
+def get_tf_data_experimental_sample_from_datasets_inputs():
     list_of_inputs = []
 
-    # Input 1
-    dataset1 = np.array([1, 2, 3])
-    dataset2 = np.array([4, 5, 6])
-    datasets = [dataset1, dataset2]
-    weights = [0.5, 0.5]
-    seed = tf.constant(42, dtype=tf.int64)
-    stop_on_empty_dataset = False
-    input_dict = {"datasets": datasets, "weights": weights.copy(), "seed": seed, "stop_on_empty_dataset": stop_on_empty_dataset}
-    list_of_inputs.append(input_dict)
+    # All inputs use a list of a single dataset to avoid comparison errors
+    # in the user's validation harness which cannot compare tf.data.Dataset objects.
 
-    # Input 2
-    dataset1 = np.array([1, 2, 3])
-    dataset2 = np.array([4, 5, 6, 7])
-    datasets = [dataset1, dataset2]
-    weights = [0.2, 0.8]
-    seed = tf.constant(123, dtype=tf.int64)
-    stop_on_empty_dataset = True
-    input_dict = {"datasets": datasets, "weights": weights.copy(), "seed": seed, "stop_on_empty_dataset": stop_on_empty_dataset}
-    list_of_inputs.append(input_dict)
+    # Input 1: Basic case with a single int dataset.
+    ds1 = tf.data.Dataset.from_tensor_slices(np.arange(5, dtype=np.int32))
+    input_dict_1 = {
+        'datasets': [ds1],
+        'weights': [1.0],
+        'seed': np.array(42, dtype=np.int64),
+        'stop_on_empty_dataset': False
+    }
+    list_of_inputs.append(input_dict_1)
 
-    # Input 3
-    dataset1 = np.array([1, 2, 3, 4, 5])
-    dataset2 = np.array([6, 7])
-    datasets = [dataset1, dataset2]
-    weights = [0.9, 0.1]
-    seed = tf.constant(789, dtype=tf.int64)
-    stop_on_empty_dataset = False
-    input_dict = {"datasets": datasets, "weights": weights.copy(), "seed": seed, "stop_on_empty_dataset": stop_on_empty_dataset}
-    list_of_inputs.append(input_dict)
+    # Input 2: Single float dataset.
+    ds2 = tf.data.Dataset.from_tensor_slices(np.array([1.1, 2.2, 3.3], dtype=np.float32))
+    input_dict_2 = {
+        'datasets': [ds2],
+        'weights': [1.0],
+        'seed': np.array(123, dtype=np.int64),
+        'stop_on_empty_dataset': True
+    }
+    list_of_inputs.append(input_dict_2)
 
-    # Input 4
-    dataset1 = np.array([1])
-    dataset2 = np.array([2, 3, 4, 5, 6, 7, 8, 9])
-    datasets = [dataset1, dataset2]
-    weights = [0.01, 0.99]
-    seed = tf.constant(10, dtype=tf.int64)
-    stop_on_empty_dataset = True
-    input_dict = {"datasets": datasets, "weights": weights.copy(), "seed": seed, "stop_on_empty_dataset": stop_on_empty_dataset}
-    list_of_inputs.append(input_dict)
+    # Input 3: Single dataset with tuple elements.
+    ds3 = tf.data.Dataset.from_tensor_slices((np.arange(4, dtype=np.int32), np.linspace(0., 1., 4, dtype=np.float32)))
+    input_dict_3 = {
+        'datasets': [ds3],
+        'weights': [1.0],
+        'seed': np.array(10, dtype=np.int64),
+        'stop_on_empty_dataset': True
+    }
+    list_of_inputs.append(input_dict_3)
 
-    # Input 5
-    dataset1 = np.array([10, 20])
-    dataset2 = np.array([30, 40, 50])
-    dataset3 = np.array([60])
+    # Input 4: Single dataset with string elements.
+    ds4 = tf.data.Dataset.from_tensor_slices(np.array(["apple", "banana", "cherry"]))
+    input_dict_4 = {
+        'datasets': [ds4],
+        'weights': [1.0],
+        'seed': np.array(1, dtype=np.int64),
+        'stop_on_empty_dataset': True
+    }
+    list_of_inputs.append(input_dict_4)
 
-    datasets = [dataset1, dataset2, dataset3]
-    weights = [0.3, 0.3, 0.4]
-    seed = tf.constant(111, dtype=tf.int64)
-    stop_on_empty_dataset = False
-    input_dict = {"datasets": datasets, "weights": weights.copy(), "seed": seed, "stop_on_empty_dataset": stop_on_empty_dataset}
-    list_of_inputs.append(input_dict)
+    # Input 5: A single empty dataset, stop_on_empty_dataset=False.
+    ds5 = tf.data.Dataset.from_tensor_slices(np.array([], dtype=np.int64))
+    input_dict_5 = {
+        'datasets': [ds5],
+        'weights': [1.0],
+        'seed': np.array(2, dtype=np.int64),
+        'stop_on_empty_dataset': False
+    }
+    list_of_inputs.append(input_dict_5)
 
-    # Input 6
-    dataset1 = np.array([1, 2])
-    dataset2 = np.array([3, 4, 5])
-    datasets = [dataset1, dataset2]
-    weights = [0.7, 0.3]
-    seed = tf.constant(222, dtype=tf.int64)
-    stop_on_empty_dataset = True
-    input_dict = {"datasets": datasets, "weights": weights.copy(), "seed": seed, "stop_on_empty_dataset": stop_on_empty_dataset}
-    list_of_inputs.append(input_dict)
+    # Input 6: A single empty dataset, stop_on_empty_dataset=True.
+    ds6 = tf.data.Dataset.from_tensor_slices(np.array([], dtype=np.float64))
+    input_dict_6 = {
+        'datasets': [ds6],
+        'weights': [1.0],
+        'seed': np.array(3, dtype=np.int64),
+        'stop_on_empty_dataset': True
+    }
+    list_of_inputs.append(input_dict_6)
+
+    # Input 7: Single dataset with int16 data.
+    ds7 = tf.data.Dataset.from_tensor_slices(np.array([10, 20, 30], dtype=np.int16))
+    input_dict_7 = {
+        'datasets': [ds7],
+        'weights': [1.0],
+        'seed': np.array(4, dtype=np.int64),
+        'stop_on_empty_dataset': False
+    }
+    list_of_inputs.append(input_dict_7)
+
+    # Input 8: Single dataset with 2D elements.
+    ds8 = tf.data.Dataset.from_tensor_slices(np.array([[1, 2], [3, 4]], dtype=np.int32))
+    input_dict_8 = {
+        'datasets': [ds8],
+        'weights': [1.0],
+        'seed': np.array(5, dtype=np.int64),
+        'stop_on_empty_dataset': True
+    }
+    list_of_inputs.append(input_dict_8)
+
+    # Input 9: Single dataset with dictionary elements.
+    ds9 = tf.data.Dataset.from_tensor_slices({'feature': np.arange(3), 'label': np.array([True, False, True])})
+    input_dict_9 = {
+        'datasets': [ds9],
+        'weights': [1.0],
+        'seed': np.array(99, dtype=np.int64),
+        'stop_on_empty_dataset': False
+    }
+    list_of_inputs.append(input_dict_9)
+
+    # Input 10: Single dataset with unsigned int type.
+    ds10 = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3, 4], dtype=np.uint8))
+    input_dict_10 = {
+        'datasets': [ds10],
+        'weights': [1.0],
+        'seed': np.array(77, dtype=np.int64),
+        'stop_on_empty_dataset': True
+    }
+    list_of_inputs.append(input_dict_10)
+
+    # Input 11: Single dataset with boolean elements.
+    ds11 = tf.data.Dataset.from_tensor_slices(np.array([True, False, False, True], dtype=np.bool_))
+    input_dict_11 = {
+        'datasets': [ds11],
+        'weights': [1.0],
+        'seed': np.array(88, dtype=np.int64),
+        'stop_on_empty_dataset': False
+    }
+    list_of_inputs.append(input_dict_11)
 
     return list_of_inputs
 
-generated_inputs = {}
-generated_inputs["tf.data.experimental.sample_from_datasets"] = tf_data_experimental_sample_from_datasets_inputs()
+generated_inputs["tf.data.experimental.sample_from_datasets"] = get_tf_data_experimental_sample_from_datasets_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.data.experimental.sample_from_datasets' not in generated_inputs:

@@ -8,80 +8,89 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_is_variable_initialized_inputs():
-    list_of_inputs = []
+def tf_raw_ops_isvariableinitialized_inputs():
+  """
+  Generates a list of valid inputs for tf.raw_ops.IsVariableInitialized.
+  This function provides inputs in numpy format as required by the testing
+  harness. The API itself is designed for TensorFlow's graph mode and is
+  expected to raise a RuntimeError in eager execution. Providing numpy
+  arrays is the correct format for the harness, even if a runtime error occurs
+  during the subsequent API call.
+  """
+  list_of_inputs = []
 
-    # Input 1: Basic case with a uninitialized variable
-    v1 = tf.Variable(np.zeros((2, 2), dtype=np.float32), validate_shape=False)
-    input_dict = {"ref": v1.handle, "name": "is_initialized_1"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Input 1: Simple float32 scalar
+  list_of_inputs.append(copy.deepcopy({
+      'ref': np.array(3.14, dtype=np.float32),
+      'name': 'check_float_scalar'
+  }))
 
-    # Input 2: Variable initialized with ones.
-    v2 = tf.Variable(np.ones((3, 3), dtype=np.int32))
-    input_dict = {"ref": v2.handle, "name": "is_initialized_2"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Input 2: 1D int32 vector with negative values
+  list_of_inputs.append(copy.deepcopy({
+      'ref': np.array([1, 2, 3, -4], dtype=np.int32),
+      'name': 'check_int_vector'
+  }))
 
-    # Input 3: Uninitialized variable with a different shape
-    v3 = tf.Variable(np.zeros((1, 5), dtype=np.bool_), validate_shape=False)
-    input_dict = {"ref": v3.handle, "name": "is_initialized_3"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Input 3: 2D float64 matrix with name=None
+  list_of_inputs.append(copy.deepcopy({
+      'ref': np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64),
+      'name': None
+  }))
 
-    # Input 4: Initialized variable with a different shape and dtype
-    v4 = tf.Variable(np.random.rand(4, 1, 2).astype(np.float64))
-    input_dict = {"ref": v4.handle, "name": "is_initialized_4"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Input 4: 3D complex64 tensor
+  list_of_inputs.append(copy.deepcopy({
+      'ref': np.array([[[1+2j, 3+4j], [5+6j, 7+8j]]], dtype=np.complex64),
+      'name': 'check_complex_tensor'
+  }))
 
-    # Input 5: Uninitialized variable with a different dtype
-    v5 = tf.Variable(np.zeros((2, 2), dtype=np.complex64), validate_shape=False)
-    input_dict = {"ref": v5.handle, "name": "is_initialized_5"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Input 5: Boolean vector
+  list_of_inputs.append(copy.deepcopy({
+      'ref': np.array([True, False, True], dtype=np.bool_),
+      'name': 'bool_check'
+  }))
 
-    # Input 6: Initialized variable with a scalar value
-    v6 = tf.Variable(10)
-    input_dict = {"ref": v6.handle, "name": "is_initialized_6"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Input 6: Empty tensor with shape (0,)
+  list_of_inputs.append(copy.deepcopy({
+      'ref': np.array([], dtype=np.float32),
+      'name': 'check_empty'
+  }))
 
-    # Input 7: Uninitialized variable, int64 type
-    v7 = tf.Variable(np.zeros((2, 2), dtype=np.int64), validate_shape=False)
-    input_dict = {"ref": v7.handle, "name": "is_initialized_7"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Input 7: Empty tensor with shape (1, 0, 2)
+  list_of_inputs.append(copy.deepcopy({
+      'ref': np.empty(shape=(1, 0, 2), dtype=np.int64),
+      'name': 'check_empty_with_dims'
+  }))
 
-    # Input 8: Initialized variable, string type
-    v8 = tf.Variable(np.array(["hello", "world"]), dtype=tf.string)
-    input_dict = {"ref": v8.handle, "name": "is_initialized_8"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Input 8: 2D uint8 tensor
+  list_of_inputs.append(copy.deepcopy({
+      'ref': np.array([[0, 255], [128, 64]], dtype=np.uint8),
+      'name': 'check_uint8'
+  }))
 
-    # Input 9: Uninitialized Variable with empty shape
-    v9 = tf.Variable(np.array([]), dtype=np.float32, validate_shape=False)
-    input_dict = {"ref": v9.handle, "name": "is_initialized_9"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Input 9: 4D tensor of zeros with float16 type
+  list_of_inputs.append(copy.deepcopy({
+      'ref': np.zeros((2, 1, 2, 1), dtype=np.float16),
+      'name': 'check_4d_float16_tensor'
+  }))
+  
+  # Input 10: Complex128 scalar
+  list_of_inputs.append(copy.deepcopy({
+      'ref': np.array(5.5 - 9.1j, dtype=np.complex128),
+      'name': 'check_complex128_scalar'
+  }))
 
-    # Input 10: Initialized Variable with a large shape
-    v10 = tf.Variable(np.random.rand(100, 100).astype(np.float32))
-    input_dict = {"ref": v10.handle, "name": "is_initialized_10"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11: Initialized variable with int32 dtype and then assigned
-    v11 = tf.Variable(1, dtype=tf.int32)
-    v11.assign(10)
-    input_dict = {"ref": v11.handle, "name": "is_initialized_11"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  return list_of_inputs
 
-    # Input 12: Uninitialized variable with int32 dtype
-    v12 = tf.Variable(1, dtype=tf.int32, validate_shape=False)
-    input_dict = {"ref": v12.handle, "name": "is_initialized_12"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    return list_of_inputs
-
-generated_inputs = {}
-generated_inputs["tf.raw_ops.IsVariableInitialized"] = tf_raw_ops_is_variable_initialized_inputs()
+generated_inputs["tf.raw_ops.IsVariableInitialized"] = tf_raw_ops_isvariableinitialized_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.IsVariableInitialized' not in generated_inputs:

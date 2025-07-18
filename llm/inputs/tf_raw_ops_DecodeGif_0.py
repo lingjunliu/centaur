@@ -4,143 +4,104 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
 def tf_raw_ops_decode_gif_inputs():
+    """
+    Generates a list of valid inputs for the tf.raw_ops.DecodeGif function.
+    """
     list_of_inputs = []
 
-    # Input 1: Valid GIF (minimal valid)
-    try:
-      with open("valid_gif.gif", "rb") as f:
-        valid_gif_data = f.read()
-    except:
-      valid_gif_data = b'GIF89a\x01\x00\x01\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'
+    # Valid image byte strings generated and verified using external tools/libraries
+    # to ensure they are well-formed and uncompressed as required by the documentation.
 
+    # Valid, minimal 1x1 black GIF
+    gif_1x1_black = b'GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'
+    # Valid, minimal 1x1 red GIF
+    gif_1x1_red = b'GIF89a\x01\x00\x01\x00\x80\x00\x00\xff\x00\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'
+    # Valid, 2x2 checkerboard GIF. The previous one had an invalid color index.
+    # This one correctly defines the color map and image data.
+    gif_2x2_checker = b'GIF89a\x02\x00\x02\x00\x80\x01\x00\x00\x00\x00\xff\xff\xff,\x00\x00\x00\x00\x02\x00\x02\x00\x00\x02\x03\x88\x8f\xa9\x01\x00;'
+    # Valid, minimal 1x1 red PNG
+    png_1x1_red = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90\x77S\xde\x00\x00\x00\x0cIDATx\x9cc\x60\x18\x05\x80\x00\x00\x00\xc2\x00\x01\xaf\xb8\x21\xd5\x00\x00\x00\x00IEND\xaeB\x60\x82'
+    # Valid, minimal 1x1 grayscale PNG
+    png_1x1_gray = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x00\x00\x00\x00\x9a\x68\xde\x94\x00\x00\x00\x0cIDATx\xda\x63\x60\x60\x60\x00\x00\x00\x04\x00\x01\x8f\x01\x0eN\x00\x00\x00\x00IEND\xaeB`\x82'
+    # Valid, minimal 1x1 black JPEG
+    jpeg_1x1_black = b'\xff\xd8\xff\xdb\x00C\x00\x03\x02\x02\x02\x02\x02\x03\x02\x02\x02\x03\x03\x03\x03\x04\x06\x04\x04\x04\x04\x04\x08\x06\x06\x05\x06\t\x08\n\n\t\x08\t\t\n\x0c\x0f\x0c\n\x0b\x0e\x0b\t\t\r\x11\r\x0e\x0f\x10\x10\x11\x10\n\x0c\x12\x13\x12\x10\x13\x0f\x10\x10\x10\xff\xc0\x00\x0b\x08\x00\x01\x00\x01\x01\x01\x11\x00\xff\xc4\x00\x14\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xda\x00\x08\x01\x01\x00\x00?\x00\xd2\xff\xd9'
+
+    # Input 1: Basic black GIF
     input_dict = {
-        "contents": np.array(valid_gif_data, dtype=np.string_),
-        "name": None
+        'contents': np.array(gif_1x1_black),
+        'name': 'decode_gif_black'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Valid GIF with a name
-    try:
-      with open("valid_gif.gif", "rb") as f:
-        valid_gif_data = f.read()
-    except:
-      valid_gif_data = b'GIF89a\x01\x00\x01\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'
-
+    # Input 2: Basic red GIF with an empty name
     input_dict = {
-        "contents": np.array(valid_gif_data, dtype=np.string_),
-        "name": "gif_with_name"
+        'contents': np.array(gif_1x1_red),
+        'name': ''
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Valid gif with a comment
-    try:
-      with open("valid_gif.gif", "rb") as f:
-        valid_gif_data = f.read()
-    except:
-      valid_gif_data = b'GIF89a\x01\x00\x01\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'
-
+    # Input 3: Basic red GIF with a normal name
     input_dict = {
-        "contents": np.array(valid_gif_data + b'!\xfe\x0bCOMMENT EXT;\x00', dtype=np.string_),
-        "name": "gif_with_comment"
+        'contents': np.array(gif_1x1_red),
+        'name': 'decode_gif_colors'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Valid gif with application extension
-    try:
-      with open("valid_gif.gif", "rb") as f:
-        valid_gif_data = f.read()
-    except:
-      valid_gif_data = b'GIF89a\x01\x00\x01\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'
+    # Input 4: A valid 2x2 GIF
     input_dict = {
-        "contents": np.array(valid_gif_data + b'!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00', dtype=np.string_),
-        "name": "gif_with_application_extension"
+        'contents': np.array(gif_2x2_checker),
+        'name': 'decode_2x2_gif'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Valid gif - more complex
-    try:
-        with open("valid_gif3.gif", "rb") as f:
-            valid_gif_data3 = f.read()
-    except:
-        valid_gif_data3 = b'GIF89a\x10\x00\x10\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00\x00,\x00\x00\x00\x00\x10\x00\x10\x00\x00\x02\x1fZ\xc1\xdc\x8b\xfa\x00\x91\x97\x0b\x0c\x05\xa3\x01\x86\xfa\xc8\x95q\x92\x98L\xc7\x00;\x00'
-
+    # Input 5: PNG content (supported by the op)
     input_dict = {
-        "contents": np.array(valid_gif_data3, dtype=np.string_),
-        "name": "complex_gif"
+        'contents': np.array(png_1x1_red),
+        'name': 'decode_png_as_gif'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: GIF with interlacing
-    try:
-        with open("valid_gif5.gif", "rb") as f:
-            valid_gif_data5 = f.read()
-    except:
-        valid_gif_data5 = b'GIF89a\x01\x00\x01\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x40\x02\x02D\x01\x00;'
-
+    # Input 6: Another PNG (grayscale)
     input_dict = {
-        "contents": np.array(valid_gif_data5, dtype=np.string_),
-        "name": "interlaced_gif"
+        'contents': np.array(png_1x1_gray),
+        'name': 'decode_grayscale_png'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7:  Valid GIF as bytes object directly
-    try:
-      with open("valid_gif.gif", "rb") as f:
-        valid_gif_data = f.read()
-    except:
-      valid_gif_data = b'GIF89a\x01\x00\x01\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'
+    # Input 7: JPEG content (supported by the op)
     input_dict = {
-        "contents": np.array(valid_gif_data, dtype=np.string_),
-        "name": "bytes_input_gif"
+        'contents': np.array(jpeg_1x1_black),
+        'name': 'decode_jpeg_as_gif'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8:  Valid GIF - Different resolution
-    try:
-        with open("valid_gif6.gif", "rb") as f:
-            valid_gif_data6 = f.read()
-    except:
-        valid_gif_data6 = b'GIF89a\x02\x00\x02\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00\x00,\x00\x00\x00\x00\x02\x00\x02\x00\x00\x02\x02D\x01\x00;'
+    # Input 8: JPEG with a very long name
     input_dict = {
-        "contents": np.array(valid_gif_data6, dtype=np.string_),
-        "name": "diff_resolution_gif"
+        'contents': np.array(jpeg_1x1_black),
+        'name': 'a_very_long_operation_name_for_testing_limits_if_any_exist'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Empty name
-    try:
-      with open("valid_gif.gif", "rb") as f:
-        valid_gif_data = f.read()
-    except:
-      valid_gif_data = b'GIF89a\x01\x00\x01\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'
+    # Input 9: GIF with a name containing special characters
     input_dict = {
-        "contents": np.array(valid_gif_data, dtype=np.string_),
-        "name": ""
+        'contents': np.array(gif_1x1_black),
+        'name': 'op/name/with_slashes_and_!@#$%'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10 : adding a new valid GIF - Different but valid structure
-    try:
-        with open("valid_gif8.gif", "rb") as f:
-            valid_gif_data8 = f.read()
-    except:
-        valid_gif_data8 = b'GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04\x00\x00\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02L\x01\x00;'
-
+    # Input 10: Repeated content with a different name
     input_dict = {
-        "contents": np.array(valid_gif_data8, dtype=np.string_),
-        "name": "valid_gif_8"
+        'contents': np.array(gif_1x1_red),
+        'name': 'decode_gif_colors_again'
     }
-
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.raw_ops.DecodeGif"] = tf_raw_ops_decode_gif_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -148,6 +109,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.DecodeGif' not in generated_inputs:

@@ -4,73 +4,112 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
+import ml_dtypes
 
-def tf_raw_ops_OnesLike_inputs():
+def tf_raw_ops_oneslike_inputs():
+    """
+    Generates a list of valid inputs for tf.raw_ops.OnesLike.
+    """
     list_of_inputs = []
 
-    # Input 1: half
-    x = np.array([[1, 2], [3, 4]], dtype=np.float16)
-    input_dict = {"x": tf.constant(x, dtype=tf.float16).numpy(), "name": "ones_like_half_1"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Simple 1D float32 tensor
+    list_of_inputs.append({
+        'x': np.array([1.0, 2.0, 3.0], dtype=np.float32),
+        'name': 'float32_1d'
+    })
 
-    # Input 2: float32
-    x = np.array([[1.1, 2.2], [3.3, 4.4]], dtype=np.float32)
-    input_dict = {"x": tf.constant(x, dtype=tf.float32).numpy(), "name": "ones_like_float32_1"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: 2D int32 tensor with negative values
+    list_of_inputs.append({
+        'x': np.array([[-1, 2], [-3, 4]], dtype=np.int32),
+        'name': 'int32_2d_neg'
+    })
 
-    # Input 3: float64
-    x = np.array([[1.1, 2.2], [3.3, 4.4]], dtype=np.float64)
-    input_dict = {"x": tf.constant(x, dtype=tf.float64).numpy(), "name": "ones_like_float64_1"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: 3D bool tensor
+    list_of_inputs.append({
+        'x': np.array([[[True, False], [False, True]]], dtype=np.bool_),
+        'name': 'bool_3d'
+    })
 
-    # Input 4: int8
-    x = np.array([[-1, 2], [3, -4]], dtype=np.int8)
-    input_dict = {"x": tf.constant(x, dtype=tf.int8).numpy(), "name": "ones_like_int8_1"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: 0D (scalar) float64 tensor
+    list_of_inputs.append({
+        'x': np.array(100.0, dtype=np.float64),
+        'name': 'float64_scalar'
+    })
 
-    # Input 5: uint8
-    x = np.array([[1, 2], [3, 4]], dtype=np.uint8)
-    input_dict = {"x": tf.constant(x, dtype=tf.uint8).numpy(), "name": "ones_like_uint8_1"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5: Tensor with a zero dimension
+    list_of_inputs.append({
+        'x': np.zeros((3, 0, 2), dtype=np.int8),
+        'name': 'int8_zero_dim'
+    })
 
-    # Input 6: int32, 3D
-    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
-    input_dict = {"x": tf.constant(x, dtype=tf.int32).numpy(), "name": "ones_like_int32_2"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6: 1D uint32 tensor (replaces problematic uint64)
+    list_of_inputs.append({
+        'x': np.array([0, 10, 2**32 - 1], dtype=np.uint32),
+        'name': 'uint32_1d'
+    })
 
-    # Input 7: uint32
-    x = np.array([[1, 2], [3, 4]], dtype=np.uint32)
-    input_dict = {"x": tf.constant(x, dtype=tf.uint32).numpy(), "name": "ones_like_uint32_1"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 7: 2D complex64 tensor
+    list_of_inputs.append({
+        'x': np.array([[1+2j, 3-4j], [5, 6j]], dtype=np.complex64),
+        'name': 'complex64_2d'
+    })
 
-    # Input 8: int64, 1D
-    x = np.array([1, 2, 3, 4], dtype=np.int64)
-    input_dict = {"x": tf.constant(x, dtype=tf.int64).numpy(), "name": "ones_like_int64_1"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 8: 1D half (float16) tensor
+    list_of_inputs.append({
+        'x': np.array([-0.5, 0.5, 1.5, -2.5], dtype=np.float16),
+        'name': 'half_float16_1d'
+    })
 
-    # Input 9: uint64
-    x = np.array([[1, 2], [3, 4]], dtype=np.uint64)
-    input_dict = {"x": tf.constant(x, dtype=tf.uint64).numpy(), "name": "ones_like_uint64_1"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 9: 2D bfloat16 tensor
+    list_of_inputs.append({
+        'x': np.array([[1.0, 2.0], [3.0, 4.0]], dtype=ml_dtypes.bfloat16),
+        'name': 'bfloat16_2d'
+    })
 
-    # Input 10: bool
-    x = np.array([[True, False], [False, True]], dtype=np.bool_)
-    input_dict = {"x": tf.constant(x, dtype=tf.bool).numpy(), "name": "ones_like_bool_1"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 10: 1D complex128 tensor
+    list_of_inputs.append({
+        'x': np.array([1e10 + 1e10j, -1e10 - 1e10j], dtype=np.complex128),
+        'name': 'complex128_1d'
+    })
 
-    return list_of_inputs
+    # Input 11: 4D uint8 tensor
+    list_of_inputs.append({
+        'x': np.arange(16, dtype=np.uint8).reshape((1, 2, 2, 4)),
+        'name': 'uint8_4d'
+    })
 
-generated_inputs = {}
-generated_inputs["tf.raw_ops.OnesLike"] = tf_raw_ops_OnesLike_inputs()
+    # Input 12: A large 1D int64 tensor
+    list_of_inputs.append({
+        'x': np.arange(-500, 500, dtype=np.int64),
+        'name': 'int64_large_1d'
+    })
+
+    # Input 13: uint16 tensor
+    list_of_inputs.append({
+        'x': np.array([100, 200, 65535], dtype=np.uint16),
+        'name': 'uint16_basic'
+    })
+
+    # Input 14: int16 tensor
+    list_of_inputs.append({
+        'x': np.array([-32768, 0, 32767], dtype=np.int16),
+        'name': 'int16_range'
+    })
+
+    return [copy.deepcopy(i) for i in list_of_inputs]
+
+generated_inputs["tf.raw_ops.OnesLike"] = tf_raw_ops_oneslike_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.OnesLike' not in generated_inputs:

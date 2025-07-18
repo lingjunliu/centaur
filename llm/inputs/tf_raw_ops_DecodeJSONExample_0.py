@@ -4,93 +4,112 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_decode_json_example_inputs():
+def get_raw_ops_decodejsonexample_inputs():
+    """
+    Generates a list of valid inputs for the tf.raw_ops.DecodeJSONExample function.
+    """
     list_of_inputs = []
 
-    # Input 1
-    json_examples = tf.constant(['{"features": {"feature": {"f1": {"float_list": {"value": [1.0, 2.0]}}}}}'])
-    name = "decode_example_1"
+    # These JSON strings are created from tf.train.Example protos using
+    # `json_format.MessageToJson`. The format is very specific.
+    # Note: bytes are Base64 encoded.
+    # e.g., b'user1' -> 'dXNlcjE='
+    json_1 = '{"features":{"feature":{"id":{"bytesList":{"value":["dXNlcjE="]}},"age":{"int64List":{"value":["25"]}}}}}'
+    # e.g., float_list=[98.5, 99.0, 97.2]
+    json_2 = '{"features":{"feature":{"scores":{"floatList":{"value":[98.5,99.0,97.2]}}}}}'
+    # e.g., b'dummy_bytes' -> 'ZHVtbXlfYnl0ZXM='
+    json_3 = '{"features":{"feature":{"image_data":{"bytesList":{"value":["ZHVtbXlfYnl0ZXM="]}}}}}'
+    # An empty tf.train.Example()
+    json_empty = '{}'
+    # An example with a feature that has an empty list.
+    json_empty_list = '{"features":{"feature":{"tags":{"bytesList":{}}}}}'
 
 
-    list_of_inputs.append({"json_examples": json_examples, "name": name})
+    # Input 1: Single JSON example in a 1D tensor
+    input_dict = {
+        'json_examples': np.array([json_1], dtype=object),
+        'name': 'single_example_1d'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    json_examples = tf.constant(['{"features": {"feature": {"i1": {"int64_list": {"value": [1, 2, 3]}}}}}'])
-    name = "decode_example_2"
+    # Input 2: Multiple JSON examples in a 1D tensor
+    input_dict = {
+        'json_examples': np.array([json_1, json_2, json_3], dtype=object),
+        'name': None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 3: A scalar (0-D) tensor
+    input_dict = {
+        'json_examples': np.array(json_2, dtype=object),
+        'name': 'scalar_example'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    list_of_inputs.append({"json_examples": json_examples, "name": name})
+    # Input 4: A 2D tensor of JSON examples
+    input_dict = {
+        'json_examples': np.array([[json_1, json_2], [json_3, json_empty]], dtype=object),
+        'name': '2d_examples'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    json_examples = tf.constant(['{"features": {"feature": {"s1": {"bytes_list": {"value": ["test".encode()]}}}}}'])
-    name = "decode_example_3"
+    # Input 5: A single, completely empty example
+    input_dict = {
+        'json_examples': np.array([json_empty], dtype=object),
+        'name': 'empty_example'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 6: A tensor with a mix of regular and empty-feature examples
+    input_dict = {
+        'json_examples': np.array([json_1, json_empty, json_2, json_empty_list], dtype=object),
+        'name': None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    list_of_inputs.append({"json_examples": json_examples, "name": name})
+    # Input 7: An example with a feature that has an empty list of values
+    input_dict = {
+        'json_examples': np.array([json_empty_list], dtype=object),
+        'name': 'empty_list_feature'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    json_examples = tf.constant(['{"features": {"feature": {"f1": {"float_list": {"value": [1.0]}}, "i1": {"int64_list": {"value": [1]}}, "s1": {"bytes_list": {"value": ["test".encode()]}}}}}'])
-    name = "decode_example_4"
+    # Input 8: Empty input tensor (shape=(0,))
+    input_dict = {
+        'json_examples': np.array([], dtype=object),
+        'name': 'empty_input_tensor'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 9: High-dimensional tensor (3D)
+    input_dict = {
+        'json_examples': np.array([[[json_1], [json_2]], [[json_3], [json_empty]]], dtype=object),
+        'name': '3d_tensor'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    list_of_inputs.append({"json_examples": json_examples, "name": name})
-
-    # Input 5
-    json_examples = tf.constant(['{"features": {"feature": {}}}'])
-    name = "decode_example_5"
-
-
-    list_of_inputs.append({"json_examples": json_examples, "name": name})
-
-    # Input 6: Multiple JSON examples
-    json_examples = tf.constant(['{"features": {"feature": {"f1": {"float_list": {"value": [1.0]}}}}}', '{"features": {"feature": {"i1": {"int64_list": {"value": [1]}}}}}'])
-    name = "decode_example_6"
-
-
-    list_of_inputs.append({"json_examples": json_examples, "name": name})
-
-    # Input 7: Empty string
-    json_examples = tf.constant([''])
-    name = "decode_example_7"
-
-
-    list_of_inputs.append({"json_examples": json_examples, "name": name})
-
-    # Input 8: Example with multiple features
-    json_examples = tf.constant(['{"features": {"feature": {"f1": {"float_list": {"value": [1.0, 2.0, 3.0]}}, "i1": {"int64_list": {"value": [4, 5, 6]}}, "s1": {"bytes_list": {"value": ["a".encode(), "b".encode(), "c".encode()]}}}}}'])
-    name = "decode_example_8"
-
-
-    list_of_inputs.append({"json_examples": json_examples, "name": name})
-
-    # Input 9: With FeatureList
-    json_examples = tf.constant(['{"feature_lists": {"feature_list": {"f1": {"feature": [{"float_list": {"value": [1.0]}}]}}}}'])
-    name = "decode_example_9"
-
-
-    list_of_inputs.append({"json_examples": json_examples, "name": name})
-
-    # Input 10: More complex FeatureList
-    json_examples = tf.constant(['{"feature_lists": {"feature_list": {"f1": {"feature": [{"float_list": {"value": [1.0, 2.0]}}, {"float_list": {"value": [3.0, 4.0]}}]}}}}'])
-    name = "decode_example_10"
-
-
-    list_of_inputs.append({"json_examples": json_examples, "name": name})
+    # Input 10: An empty 2D tensor (shape=(2,0))
+    input_dict = {
+        'json_examples': np.empty(shape=(2,0), dtype=object),
+        'name': 'empty_2d_tensor'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = {}
-generated_inputs["tf.raw_ops.DecodeJSONExample"] = tf_raw_ops_decode_json_example_inputs()
+generated_inputs["tf.raw_ops.DecodeJSONExample"] = get_raw_ops_decodejsonexample_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.DecodeJSONExample' not in generated_inputs:

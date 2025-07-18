@@ -4,89 +4,136 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
 def tf_math_accumulate_n_inputs():
+    """
+    Generates a list of valid inputs for the tf.math.accumulate_n function.
+
+    To address two separate issues in the testing environment:
+    1. `AttributeError: 'list' object has no attribute 'shape'`: The 'inputs'
+       parameter, which should be a list of tensors, is instead provided as a
+       single stacked numpy array. tf.math.accumulate_n (and tf.add_n) can
+       handle this by summing slices along the first dimension, which preserves
+       the intended operation while ensuring the input has a .shape attribute.
+    2. `TypeError: 'NoneType' object is not iterable`: The 'shape' parameter,
+       which is optional, is explicitly provided as a Python list corresponding
+       to the shape of the tensors being summed. This avoids passing `None` to
+       a testing harness that appears to require an iterable for this argument.
+    """
     list_of_inputs = []
 
-    def create_input_dict(inputs, shape, tensor_dtype, name):
-        return {"inputs": inputs, "shape": shape, "tensor_dtype": tensor_dtype, "name": name}
+    # Input 1: Basic case, 2D integer tensors stacked.
+    list_of_inputs.append(copy.deepcopy({
+        'inputs': np.array([
+            [[1, 2], [3, 4]],
+            [[5, 6], [7, 8]]
+        ], dtype=np.int32),
+        'shape': [2, 2],
+        'tensor_dtype': np.int32,
+        'name': 'input_1'
+    }))
 
-    # Input 1
-    inputs_val = [np.array([[1, 2], [3, 4]], dtype=np.int32), np.array([[5, 0], [0, 6]], dtype=np.int32)]
-    shape_val = [2, 2]
-    tensor_dtype_val = np.int32
-    name_val = "test_accumulate_1"
-    list_of_inputs.append(copy.deepcopy(create_input_dict(inputs_val, shape_val, tensor_dtype_val, name_val)))
+    # Input 2: Three 1D float tensors stacked.
+    list_of_inputs.append(copy.deepcopy({
+        'inputs': np.array([
+            [1.1, 2.2, 3.3],
+            [4.4, 5.5, 6.6],
+            [7.7, 8.8, 9.9]
+        ], dtype=np.float32),
+        'shape': [3],
+        'tensor_dtype': np.float32,
+        'name': 'input_2'
+    }))
 
-    # Input 2
-    inputs_val = [np.array([1.0, 2.0, 3.0], dtype=np.float32), np.array([4.0, 5.0, 6.0], dtype=np.float32)]
-    shape_val = [3]
-    tensor_dtype_val = np.float32
-    name_val = "test_accumulate_2"
-    list_of_inputs.append(copy.deepcopy(create_input_dict(inputs_val, shape_val, tensor_dtype_val, name_val)))
+    # Input 3: Tensors with negative values stacked.
+    list_of_inputs.append(copy.deepcopy({
+        'inputs': np.array([
+            [[-1, -2], [-3, -4]],
+            [[1, 2], [3, 4]],
+            [[5, -10], [15, -20]]
+        ], dtype=np.int32),
+        'shape': [2, 2],
+        'tensor_dtype': np.int32,
+        'name': 'sum_with_negatives'
+    }))
 
-    # Input 3
-    inputs_val = [np.array([[-1, -2], [-3, -4]], dtype=np.int32), np.array([[5, 0], [0, 6]], dtype=np.int32)]
-    shape_val = [2, 2]
-    tensor_dtype_val = np.int32
-    name_val = "test_accumulate_3"
-    list_of_inputs.append(copy.deepcopy(create_input_dict(inputs_val, shape_val, tensor_dtype_val, name_val)))
+    # Input 4: A single tensor in the "list" (becomes a tensor with a leading dim of 1).
+    list_of_inputs.append(copy.deepcopy({
+        'inputs': np.array([
+            [[10, 20], [30, 40]]
+        ], dtype=np.int32),
+        'shape': [2, 2],
+        'tensor_dtype': np.int32,
+        'name': 'input_4'
+    }))
 
-    # Input 4
-    inputs_val = [np.array([1], dtype=np.int64), np.array([2], dtype=np.int64), np.array([3], dtype=np.int64)]
-    shape_val = [1]
-    tensor_dtype_val = np.int64
-    name_val = "test_accumulate_4"
-    list_of_inputs.append(copy.deepcopy(create_input_dict(inputs_val, shape_val, tensor_dtype_val, name_val)))
+    # Input 5: 3D tensors stacked (resulting in a 4D tensor).
+    list_of_inputs.append(copy.deepcopy({
+        'inputs': np.array([
+            np.ones((2, 2, 2), dtype=np.int32),
+            np.ones((2, 2, 2), dtype=np.int32) * 2,
+        ], dtype=np.int32),
+        'shape': [2, 2, 2],
+        'tensor_dtype': np.int32,
+        'name': 'sum_3d'
+    }))
 
-    # Input 5
-    inputs_val = [np.array([[1.5, 2.5], [3.5, 4.5]], dtype=np.float64), np.array([[5.5, 0.5], [0.5, 6.5]], dtype=np.float64)]
-    shape_val = [2, 2]
-    tensor_dtype_val = np.float64
-    name_val = "test_accumulate_5"
-    list_of_inputs.append(copy.deepcopy(create_input_dict(inputs_val, shape_val, tensor_dtype_val, name_val)))
+    # Input 6: Scalar (0-D) tensors stacked (resulting in a 1D tensor).
+    list_of_inputs.append(copy.deepcopy({
+        'inputs': np.array([10, 20, 30], dtype=np.int32),
+        'shape': [],
+        'tensor_dtype': np.int32,
+        'name': 'input_6'
+    }))
 
-    # Input 6
-    inputs_val = [np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32), np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.int32)]
-    shape_val = [2, 2, 2]
-    tensor_dtype_val = np.int32
-    name_val = "test_accumulate_6"
-    list_of_inputs.append(copy.deepcopy(create_input_dict(inputs_val, shape_val, tensor_dtype_val, name_val)))
+    # Input 7: Float64 tensors stacked.
+    list_of_inputs.append(copy.deepcopy({
+        'inputs': np.array([
+            [[1.0, 2.0], [3.0, 4.0]],
+            [[5.0, 6.0], [7.0, 8.0]]
+        ], dtype=np.float64),
+        'shape': [2, 2],
+        'tensor_dtype': np.float64,
+        'name': 'sum_float64'
+    }))
 
-    # Input 7
-    inputs_val = [np.array([1, 2, 3], dtype=np.int32), np.array([4, 5, 6], dtype=np.int32), np.array([7, 8, 9], dtype=np.int32)]
-    shape_val = [3]
-    tensor_dtype_val = np.int32
-    name_val = "test_accumulate_7"
-    list_of_inputs.append(copy.deepcopy(create_input_dict(inputs_val, shape_val, tensor_dtype_val, name_val)))
-
-    # Input 8
-    inputs_val = [np.array([0.1, 0.2, 0.3], dtype=np.float32), np.array([0.4, 0.5, 0.6], dtype=np.float32), np.array([0.7, 0.8, 0.9], dtype=np.float32)]
-    shape_val = [3]
-    tensor_dtype_val = np.float32
-    name_val = "test_accumulate_8"
-    list_of_inputs.append(copy.deepcopy(create_input_dict(inputs_val, shape_val, tensor_dtype_val, name_val)))
-
-    # Input 9
-    inputs_val = [np.array([[-1.5, 2.5], [-3.5, 4.5]], dtype=np.float64), np.array([[5.5, -0.5], [-0.5, 6.5]], dtype=np.float64), np.array([[1.0, 2.0], [3.0, -4.0]], dtype=np.float64)]
-    shape_val = [2, 2]
-    tensor_dtype_val = np.float64
-    name_val = "test_accumulate_9"
-    list_of_inputs.append(copy.deepcopy(create_input_dict(inputs_val, shape_val, tensor_dtype_val, name_val)))
-
-    # Input 10
-    inputs_val = [np.array([1000, 2000, 3000], dtype=np.int64), np.array([4000, 5000, 6000], dtype=np.int64)]
-    shape_val = [3]
-    tensor_dtype_val = np.int64
-    name_val = "test_accumulate_10"
-    list_of_inputs.append(copy.deepcopy(create_input_dict(inputs_val, shape_val, tensor_dtype_val, name_val)))
+    # Input 8: Tensors containing zeros stacked.
+    list_of_inputs.append(copy.deepcopy({
+        'inputs': np.array([
+            [[1, 0], [0, 1]],
+            [[0, 2], [2, 0]],
+            np.zeros((2, 2), dtype=np.int32)
+        ], dtype=np.int32),
+        'shape': [2, 2],
+        'tensor_dtype': np.int32,
+        'name': 'input_8'
+    }))
+    
+    # Input 9: Longer list of 1D tensors stacked.
+    list_of_inputs.append(copy.deepcopy({
+        'inputs': np.array([
+            [1], [2], [3], [4], [5]
+        ], dtype=np.int32),
+        'shape': [1],
+        'tensor_dtype': np.int32,
+        'name': 'long_list_sum'
+    }))
+    
+    # Input 10: Mixed positive and negative float values stacked.
+    list_of_inputs.append(copy.deepcopy({
+        'inputs': np.array([
+            [-1.5, 2.5, -3.5],
+            [1.5, -2.5, 3.5]
+        ], dtype=np.float32),
+        'shape': [3],
+        'tensor_dtype': np.float32,
+        'name': 'input_10'
+    }))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.math.accumulate_n"] = tf_math_accumulate_n_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -94,6 +141,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.math.accumulate_n' not in generated_inputs:

@@ -4,122 +4,151 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_feature_column_categorical_column_with_vocabulary_list_inputs():
+
+def categorical_column_with_vocabulary_list_inputs():
+    """
+    Generates a list of valid inputs for tf.feature_column.categorical_column_with_vocabulary_list.
+    This version corrects the dtype mismatch by using np.dtype() objects for the dtype parameter.
+    It continues to use only integer vocabularies to avoid issues with external tools applying numerical
+    operations on the list.
+    """
     list_of_inputs = []
 
-    # Input 1: string vocabulary, default default_value
-    input_dict = {
-        "key": "color",
-        "vocabulary_list": ["red", "green", "blue"],
-        "dtype": tf.string,
-        "default_value": -1,
-        "num_oov_buckets": 0
+    # Input 1: Basic int64 vocabulary with num_oov_buckets, using np.dtype
+    input_dict_1 = {
+        'key': 'item_ids',
+        'vocabulary_list': [10, 20, 30, 40],
+        'dtype': np.dtype('int64'),
+        'default_value': -1,
+        'num_oov_buckets': 2
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: int vocabulary, no default_value, num_oov_buckets
-    input_dict = {
-        "key": "number",
-        "vocabulary_list": [1, 2, 3, 4],
-        "dtype": tf.int64,
-        "default_value": -1,
-        "num_oov_buckets": 2
+    # Input 2: Basic int64 vocabulary with a non-default default_value, using np.dtype
+    input_dict_2 = {
+        'key': 'category_codes',
+        'vocabulary_list': [101, 102, 103],
+        'dtype': np.dtype('int64'),
+        'default_value': 0,
+        'num_oov_buckets': 0
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: string vocabulary, num_oov_buckets > 0
-    input_dict = {
-        "key": "city",
-        "vocabulary_list": ["london", "paris", "tokyo"],
-        "dtype": tf.string,
-        "default_value": -1,
-        "num_oov_buckets": 1
+    # Input 3: Vocabulary with dtype=None (to be inferred as int64)
+    input_dict_3 = {
+        'key': 'group_ids',
+        'vocabulary_list': [1, 2, 3, 5, 8],
+        'dtype': None,
+        'default_value': -1,
+        'num_oov_buckets': 1
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: int vocabulary, negative numbers, num_oov_buckets
-    input_dict = {
-        "key": "temperature",
-        "vocabulary_list": [-10, -5, 0, 5, 10],
-        "dtype": tf.int64,
-        "default_value": -1,
-        "num_oov_buckets": 1
+    # Input 4: Correctly specified int32 vocabulary, using np.dtype
+    input_dict_4 = {
+        'key': 'status_codes',
+        'vocabulary_list': [np.int32(200), np.int32(404), np.int32(500)],
+        'dtype': np.dtype('int32'),
+        'default_value': -1,
+        'num_oov_buckets': 1
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: string vocabulary, longer vocabulary,  num_oov_buckets
-    input_dict = {
-        "key": "animal",
-        "vocabulary_list": ["dog", "cat", "bird", "fish", "hamster", "gerbil"],
-        "dtype": tf.string,
-        "default_value": -1,
-        "num_oov_buckets": 1
+    # Input 5: Single-item int64 vocabulary list, using np.dtype
+    input_dict_5 = {
+        'key': 'singleton_feature',
+        'vocabulary_list': [999],
+        'dtype': np.dtype('int64'),
+        'default_value': -1,
+        'num_oov_buckets': 10
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-   # Input 6: int vocabulary, num_oov_buckets larger number
-    input_dict = {
-        "key": "id",
-        "vocabulary_list": [100, 200, 300],
-        "dtype": tf.int64,
-        "default_value": -1,
-        "num_oov_buckets": 10
+    # Input 6: default_value is a value outside the vocab index range
+    input_dict_6 = {
+        'key': 'class_indices',
+        'vocabulary_list': [0, 1, 2],
+        'dtype': None,
+        'default_value': 10,
+        'num_oov_buckets': 0
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: string vocabulary, no empty string
-    input_dict = {
-        "key": "text",
-        "vocabulary_list": ["hello", "world"],
-        "dtype": tf.string,
-        "default_value": -1,
-        "num_oov_buckets": 0
+    # Input 7: Large num_oov_buckets, using np.dtype
+    input_dict_7 = {
+        'key': 'hashed_feature',
+        'vocabulary_list': [1001, 1002],
+        'dtype': np.dtype('int64'),
+        'default_value': -1,
+        'num_oov_buckets': 1000
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8: int vocabulary, default_value 1000
-    input_dict = {
-        "key": "user_id",
-        "vocabulary_list": [1, 2, 3],
-        "dtype": tf.int64,
-        "default_value": 1000,
-        "num_oov_buckets": 0
+    # Input 8: Vocabulary with negative integers, using np.dtype
+    input_dict_8 = {
+        'key': 'offset_values',
+        'vocabulary_list': [-10, -5, 0, 5, 10],
+        'dtype': np.dtype('int64'),
+        'default_value': -1,
+        'num_oov_buckets': 3
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 9: string vocabulary, unicode chars,  num_oov_buckets
-    input_dict = {
-        "key": "unicode_test",
-        "vocabulary_list": ["你好", "こんにちは", "안녕하세요"],
-        "dtype": tf.string,
-        "default_value": -1,
-        "num_oov_buckets": 1
+    # Input 9: Longer vocabulary list with a default_value and inferred dtype
+    input_dict_9 = {
+        'key': 'sequential_ids',
+        'vocabulary_list': list(range(10)),
+        'dtype': None,
+        'default_value': 0,
+        'num_oov_buckets': 0
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10: int vocabulary, small numbers, num_oov_buckets
-    input_dict = {
-        "key": "small_number",
-        "vocabulary_list": [0, 1, 2],
-        "dtype": tf.int64,
-        "default_value": -1,
-        "num_oov_buckets": 3
+    # Input 10: Non-sequential int32 vocabulary, using np.dtype
+    input_dict_10 = {
+        'key': 'zip_codes',
+        'vocabulary_list': [np.int32(90210), np.int32(10001), np.int32(60606)],
+        'dtype': np.dtype('int32'),
+        'default_value': -1,
+        'num_oov_buckets': 4
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
+
+    # Input 11: A different negative default_value
+    input_dict_11 = {
+        'key': 'error_codes',
+        'vocabulary_list': [404, 500, 503],
+        'dtype': None,
+        'default_value': -2,
+        'num_oov_buckets': 0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_11))
+    
+    # Input 12: Larger list with explicit np.int32 and matching np.dtype
+    input_dict_12 = {
+        'key': 'sensor_readings',
+        'vocabulary_list': [np.int32(x) for x in range(20)],
+        'dtype': np.dtype('int32'),
+        'default_value': -1,
+        'num_oov_buckets': 5
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_12))
+    
     return list_of_inputs
 
-generated_inputs = {}
-generated_inputs["tf.feature_column.categorical_column_with_vocabulary_list"] = tf_feature_column_categorical_column_with_vocabulary_list_inputs()
+generated_inputs["tf.feature_column.categorical_column_with_vocabulary_list"] = categorical_column_with_vocabulary_list_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.feature_column.categorical_column_with_vocabulary_list' not in generated_inputs:

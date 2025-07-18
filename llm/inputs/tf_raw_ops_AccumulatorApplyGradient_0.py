@@ -4,86 +4,79 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
 def tf_raw_ops_accumulator_apply_gradient_inputs():
+    """
+    Generates a list of syntactically valid inputs for the tf.raw_ops.AccumulatorApplyGradient operation.
+
+    NOTE: This operation is stateful and designed for TensorFlow's graph mode. It modifies
+    a resource ('handle') that must be created by another operation (e.g., AccumulatorV2).
+    The testing environment appears to use Eager Execution, where operations run immediately.
+    Stateful resource operations like this one are incompatible with eager execution and will
+    consistently raise a `RuntimeError: ... op does not support eager execution. ...`.
+    The error is fundamental to the API's design and the execution context, not the inputs themselves.
+    The following inputs are provided to satisfy the generation requirement, but they are expected
+    to fail at runtime with the aforementioned error.
+    """
     list_of_inputs = []
 
-    # Input 1
-    handle = tf.Variable(b"test_accumulator_1", dtype=tf.string)
-    local_step = np.array(1, dtype=np.int64)
-    gradient = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"handle": handle, "local_step": local_step, "gradient": gradient, "name": "apply_grad_1"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    def create_input_dict(handle_id, local_step, gradient, name=None):
+        # The 'handle' is a reference to a resource. In numpy representation for eager
+        # execution, a string in an object array is a placeholder.
+        return {
+            'handle': np.array([handle_id], dtype=object),
+            'local_step': np.array(local_step, dtype=np.int64),
+            'gradient': gradient,
+            'name': name
+        }
 
-    # Input 2
-    handle = tf.Variable(b"test_accumulator_2", dtype=tf.string)
-    local_step = np.array(2, dtype=np.int64)
-    gradient = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    input_dict = {"handle": handle, "local_step": local_step, "gradient": gradient, "name": "apply_grad_2"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Basic float32 gradient
+    list_of_inputs.append(copy.deepcopy(
+        create_input_dict(
+            'handle_1', 10,
+            np.array([1.0, 2.5, -3.0], dtype=np.float32),
+            name="apply_grad_float32"
+        )
+    ))
 
-    # Input 3
-    handle = tf.Variable(b"test_accumulator_3", dtype=tf.string)
-    local_step = np.array(100, dtype=np.int64)
-    gradient = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], dtype=np.float64)
-    input_dict = {"handle": handle, "local_step": local_step, "gradient": gradient, "name": "apply_grad_3"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: int32 gradient, 2D
+    list_of_inputs.append(copy.deepcopy(
+        create_input_dict(
+            'handle_2', 100,
+            np.array([[-1, 2], [3, -4]], dtype=np.int32)
+        )
+    ))
 
-    # Input 4
-    handle = tf.Variable(b"test_accumulator_4", dtype=tf.string)
-    local_step = np.array(-5, dtype=np.int64)
-    gradient = np.array([1, 2, 3], dtype=np.int64)
-    input_dict = {"handle": handle, "local_step": local_step, "gradient": gradient, "name": "apply_grad_4"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: complex64 gradient
+    list_of_inputs.append(copy.deepcopy(
+        create_input_dict(
+            'handle_3', 50,
+            np.array([1+2j, 3-4j, -5+6j], dtype=np.complex64),
+            name="apply_grad_complex64"
+        )
+    ))
 
-    # Input 5
-    handle = tf.Variable(b"test_accumulator_5", dtype=tf.string)
-    local_step = np.array(0, dtype=np.int64)
-    gradient = np.array([1.0], dtype=np.float32)
-    input_dict = {"handle": handle, "local_step": local_step, "gradient": gradient, "name": "apply_grad_5"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: half (float16) gradient, scalar
+    list_of_inputs.append(copy.deepcopy(
+        create_input_dict(
+            'handle_4', 42,
+            np.array(3.5, dtype=np.float16),
+            name="apply_grad_half"
+        )
+    ))
 
-    # Input 6
-    handle = tf.Variable(b"test_accumulator_6", dtype=tf.string)
-    local_step = np.array(2**7, dtype=np.int64)
-    gradient = np.array([1, 2, 3, 4], dtype=np.uint8)
-    input_dict = {"handle": handle, "local_step": local_step, "gradient": gradient, "name": "apply_grad_6"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    handle = tf.Variable(b"test_accumulator_7", dtype=tf.string)
-    local_step = np.array(-1, dtype=np.int64)
-    gradient = np.array([1, 2, 3, 4], dtype=np.int16)
-    input_dict = {"handle": handle, "local_step": local_step, "gradient": gradient, "name": "apply_grad_7"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    handle = tf.Variable(b"test_accumulator_8", dtype=tf.string)
-    local_step = np.array(2, dtype=np.int64)
-    gradient = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex64)
-    input_dict = {"handle": handle, "local_step": local_step, "gradient": gradient, "name": "apply_grad_8"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    handle = tf.Variable(b"test_accumulator_9", dtype=tf.string)
-    local_step = np.array(10, dtype=np.int64)
-    gradient = np.array(5, dtype=np.int32)
-    input_dict = {"handle": handle, "local_step": local_step, "gradient": gradient, "name": "apply_grad_9"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 10
-    handle = tf.Variable(b"test_accumulator_10", dtype=tf.string)
-    local_step = np.array(10, dtype=np.int64)
-    gradient = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0], dtype=np.float32)
-    input_dict = {"handle": handle, "local_step": local_step, "gradient": gradient, "name": "apply_grad_10"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5: uint8 gradient, 3D
+    list_of_inputs.append(copy.deepcopy(
+        create_input_dict(
+            'handle_5', 20,
+            np.arange(8, dtype=np.uint8).reshape((2, 2, 2))
+        )
+    ))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.raw_ops.AccumulatorApplyGradient"] = tf_raw_ops_accumulator_apply_gradient_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -91,6 +84,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.AccumulatorApplyGradient' not in generated_inputs:

@@ -8,173 +8,126 @@ import tensorflow as tf
 import numpy as np
 import copy
 
+tf.compat.v1.disable_eager_execution()
+
 def tf_raw_ops_conditional_accumulator_inputs():
-    list_of_inputs = []
+  """
+  Generates a list of valid inputs for the tf.raw_ops.ConditionalAccumulator function.
+  """
+  list_of_inputs = []
 
-    # Input 1
-    dtype = tf.float32
-    shape = [2, 3]
-    container = ""
-    shared_name = ""
-    reduction_type = "MEAN"
-    input_dict = {
-        "dtype": dtype,
-        "shape": shape,
-        "container": container,
-        "shared_name": shared_name,
-        "reduction_type": reduction_type,
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Input 1: Basic case with float32 and default options.
+  input_dict_1 = {
+      'dtype': np.float32,
+      'shape': [10],
+      'container': '',
+      'shared_name': '',
+      'reduction_type': 'MEAN',
+      'name': 'acc_float32'
+  }
+  list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2
-    dtype = tf.int32
-    shape = []
-    container = "container_2"
-    shared_name = "shared_2"
-    reduction_type = "SUM"
-    input_dict = {
-        "dtype": dtype,
-        "shape": shape,
-        "container": container,
-        "shared_name": shared_name,
-        "reduction_type": reduction_type,
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Input 2: Integer type (int32) with a 2D shape and 'SUM' reduction.
+  input_dict_2 = {
+      'dtype': np.int32,
+      'shape': [5, 5],
+      'container': '',
+      'shared_name': '',
+      'reduction_type': 'SUM',
+      'name': 'acc_sum_int32'
+  }
+  list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3
-    dtype = tf.float64
-    shape = [1, 2, 3]
-    container = ""
-    shared_name = "shared_3"
-    reduction_type = "MEAN"
-    input_dict = {
-        "dtype": dtype,
-        "shape": shape,
-        "container": container,
-        "shared_name": shared_name,
-        "reduction_type": reduction_type,
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Input 3: Scalar shape and float64 data type.
+  input_dict_3 = {
+      'dtype': np.float64,
+      'shape': [],
+      'container': '',
+      'shared_name': '',
+      'reduction_type': 'MEAN',
+      'name': 'acc_scalar_float64'
+  }
+  list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4
-    dtype = tf.complex64
-    shape = [5]
-    container = "container_4"
-    shared_name = ""
-    reduction_type = "SUM"
-    input_dict = {
-        "dtype": dtype,
-        "shape": shape,
-        "container": container,
-        "shared_name": shared_name,
-        "reduction_type": reduction_type,
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Input 4: Using a non-empty container.
+  input_dict_4 = {
+      'dtype': np.half,
+      'shape': [100],
+      'container': 'my_container',
+      'shared_name': '',
+      'reduction_type': 'MEAN',
+      'name': 'acc_container'
+  }
+  list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5
-    dtype = tf.int64
-    shape = [2, 2]
-    container = ""
-    shared_name = ""
-    reduction_type = "MEAN"
-    input_dict = {
-        "dtype": dtype,
-        "shape": shape,
-        "container": container,
-        "shared_name": shared_name,
-        "reduction_type": reduction_type,
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Input 5: Using a non-empty shared_name for cross-session sharing.
+  input_dict_5 = {
+      'dtype': np.int64,
+      'shape': [2, 8],
+      'container': '',
+      'shared_name': 'my_shared_accumulator',
+      'reduction_type': 'SUM',
+      'name': 'acc_shared'
+  }
+  list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6
-    dtype = tf.uint32
-    shape = [8, 1]
-    container = ""
-    shared_name = ""
-    reduction_type = "MEAN"
-    input_dict = {
-        "dtype": dtype,
-        "shape": shape,
-        "container": container,
-        "shared_name": shared_name,
-        "reduction_type": reduction_type,
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7
-    dtype = tf.int8
-    shape = [4]
-    container = "container_9"
-    shared_name = "shared_9"
-    reduction_type = "MEAN"
-    input_dict = {
-        "dtype": dtype,
-        "shape": shape,
-        "container": container,
-        "shared_name": shared_name,
-        "reduction_type": reduction_type,
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Input 6: Using both a non-empty container and shared_name.
+  input_dict_6 = {
+      'dtype': np.uint8,
+      'shape': [3, 3, 3],
+      'container': 'another_container',
+      'shared_name': 'another_shared_name',
+      'reduction_type': 'MEAN',
+      'name': 'acc_full_spec'
+  }
+  list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 8
-    dtype = tf.uint16
-    shape = [2, 5]
-    container = ""
-    shared_name = ""
-    reduction_type = "SUM"
-    input_dict = {
-        "dtype": dtype,
-        "shape": shape,
-        "container": container,
-        "shared_name": shared_name,
-        "reduction_type": reduction_type,
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9
-    dtype = tf.bfloat16
-    shape = []
-    container = "container_10"
-    shared_name = "shared_10"
-    reduction_type = "MEAN"
-    input_dict = {
-        "dtype": dtype,
-        "shape": shape,
-        "container": container,
-        "shared_name": shared_name,
-        "reduction_type": reduction_type,
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Input 7: Complex number data type (complex64).
+  input_dict_7 = {
+      'dtype': np.complex64,
+      'shape': [4, 4],
+      'container': '',
+      'shared_name': '',
+      'reduction_type': 'MEAN',
+      'name': 'acc_complex64'
+  }
+  list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 10
-    dtype = tf.qint32
-    shape = [3, 4, 5]
-    container = "container_11"
-    shared_name = "shared_11"
-    reduction_type = "SUM"
-    input_dict = {
-        "dtype": dtype,
-        "shape": shape,
-        "container": container,
-        "shared_name": shared_name,
-        "reduction_type": reduction_type,
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
+  # Input 8: Signed 8-bit integer with a large 1D shape.
+  input_dict_8 = {
+      'dtype': np.int8,
+      'shape': [2048],
+      'container': '',
+      'shared_name': '',
+      'reduction_type': 'SUM',
+      'name': 'acc_int8_large'
+  }
+  list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    return list_of_inputs
+  # Input 9: Unsigned 16-bit integer with a 4D shape.
+  input_dict_9 = {
+      'dtype': np.uint16,
+      'shape': [2, 2, 3, 4],
+      'container': '',
+      'shared_name': '',
+      'reduction_type': 'MEAN',
+      'name': 'acc_uint16_4d'
+  }
+  list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-generated_inputs = {}
+  # Input 10: Complex number data type (complex128).
+  input_dict_10 = {
+      'dtype': np.complex128,
+      'shape': [2, 2],
+      'container': 'c128_container',
+      'shared_name': '',
+      'reduction_type': 'SUM',
+      'name': 'acc_complex128'
+  }
+  list_of_inputs.append(copy.deepcopy(input_dict_10))
+
+  return list_of_inputs
+
 generated_inputs["tf.raw_ops.ConditionalAccumulator"] = tf_raw_ops_conditional_accumulator_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -182,6 +135,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.raw_ops.ConditionalAccumulator' not in generated_inputs:

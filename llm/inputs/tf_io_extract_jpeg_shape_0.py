@@ -8,69 +8,125 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_io_extract_jpeg_shape_inputs():
+def _create_jpeg(height, width, channels=3):
+    """Helper to create a JPEG image using TensorFlow and return its byte content."""
+    image_array = np.zeros((height, width, channels), dtype=np.uint8)
+    jpeg_bytes_tensor = tf.image.encode_jpeg(image_array)
+    return jpeg_bytes_tensor.numpy()
+
+def get_tf_io_extract_jpeg_shape_inputs():
+    """
+    Generates a list of valid inputs for the tf.io.extract_jpeg_shape function.
+    """
+    # Create some JPEG byte strings to use in the inputs.
+    jpeg_1x1_rgb = _create_jpeg(1, 1, channels=3)
+    jpeg_20x10_l = _create_jpeg(20, 10, channels=1)  # Grayscale
+    jpeg_50x100_rgb = _create_jpeg(50, 100, channels=3)
+    jpeg_256x256_rgb = _create_jpeg(256, 256, channels=3)
+    jpeg_64x32_rgb = _create_jpeg(64, 32, channels=3)
+
     list_of_inputs = []
 
-    # Input 1: Basic valid JPEG data
-    jpeg_data_1 = tf.io.encode_jpeg(tf.zeros([100, 100, 3], dtype=tf.uint8)).numpy()
-    input_dict_1 = {"contents": jpeg_data_1, "output_type": tf.int32, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Input 1: Basic case with a 1x1 RGB image, default output_type and name
+    input_dict = {
+        'contents': np.array(jpeg_1x1_rgb),
+        'output_type': np.int32,
+        'name': None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Different output type (int64)
-    jpeg_data_2 = tf.io.encode_jpeg(tf.zeros([50, 50, 3], dtype=tf.uint8)).numpy()
-    input_dict_2 = {"contents": jpeg_data_2, "output_type": tf.int64, "name": "jpeg_shape_2"}
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    # Input 2: Same image, but with output_type=int64
+    input_dict = {
+        'contents': np.array(jpeg_1x1_rgb),
+        'output_type': np.int64,
+        'name': None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: JPEG data with a comment
-    jpeg_data_3 = tf.io.encode_jpeg(tf.zeros([200, 300, 3], dtype=tf.uint8), quality=50).numpy()
-    input_dict_3 = {"contents": jpeg_data_3, "output_type": tf.int32, "name": "jpeg_shape_3"}
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    # Input 3: Same image, with a specific name
+    input_dict = {
+        'contents': np.array(jpeg_1x1_rgb),
+        'output_type': np.int32,
+        'name': 'extract_shape_1x1'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Smaller image
-    jpeg_data_4 = tf.io.encode_jpeg(tf.zeros([10, 10, 3], dtype=tf.uint8)).numpy()
-    input_dict_4 = {"contents": jpeg_data_4, "output_type": tf.int64, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    # Input 4: Grayscale image (20x10), default output_type
+    input_dict = {
+        'contents': np.array(jpeg_20x10_l),
+        'output_type': np.int32,
+        'name': 'grayscale_shape'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Grayscale image
-    jpeg_data_5 = tf.io.encode_jpeg(tf.zeros([100, 100, 1], dtype=tf.uint8)).numpy()
-    input_dict_5 = {"contents": jpeg_data_5, "output_type": tf.int32, "name": "jpeg_shape_5"}
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    # Input 5: Grayscale image, output_type=int64
+    input_dict = {
+        'contents': np.array(jpeg_20x10_l),
+        'output_type': np.int64,
+        'name': None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Large image
-    jpeg_data_6 = tf.io.encode_jpeg(tf.zeros([1000, 1000, 3], dtype=tf.uint8)).numpy()
-    input_dict_6 = {"contents": jpeg_data_6, "output_type": tf.int64, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    # Input 6: Medium RGB image (50x100), default output_type, empty name
+    input_dict = {
+        'contents': np.array(jpeg_50x100_rgb),
+        'output_type': np.int32,
+        'name': ''
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Image with quality setting
-    jpeg_data_7 = tf.io.encode_jpeg(tf.zeros([64, 64, 3], dtype=tf.uint8), quality=95).numpy()
-    input_dict_7 = {"contents": jpeg_data_7, "output_type": tf.int32, "name": "jpeg_shape_7"}
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    # Input 7: Medium RGB image, output_type=int64, with a name
+    input_dict = {
+        'contents': np.array(jpeg_50x100_rgb),
+        'output_type': np.int64,
+        'name': 'medium_image_shape_64'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Another slightly different image size
-    jpeg_data_8 = tf.io.encode_jpeg(tf.zeros([128, 256, 3], dtype=tf.uint8)).numpy()
-    input_dict_8 = {"contents": jpeg_data_8, "output_type": tf.int64, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    # Input 8: Larger RGB image (256x256), default output_type
+    input_dict = {
+        'contents': np.array(jpeg_256x256_rgb),
+        'output_type': np.int32,
+        'name': 'large_image'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Different quality setting
-    jpeg_data_9 = tf.io.encode_jpeg(tf.zeros([32, 32, 3], dtype=tf.uint8), quality=10).numpy()
-    input_dict_9 = {"contents": jpeg_data_9, "output_type": tf.int32, "name": "jpeg_shape_9"}
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    # Input 9: Larger RGB image, output_type=int64
+    input_dict = {
+        'contents': np.array(jpeg_256x256_rgb),
+        'output_type': np.int64,
+        'name': 'large_image_int64'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Image with no name specified
-    jpeg_data_10 = tf.io.encode_jpeg(tf.zeros([256, 128, 3], dtype=tf.uint8)).numpy()
-    input_dict_10 = {"contents": jpeg_data_10, "output_type": tf.int64, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
-    
+    # Input 10: Another RGB image (64x32), output_type=np.int32
+    input_dict = {
+        'contents': np.array(jpeg_64x32_rgb),
+        'output_type': np.int32,
+        'name': None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: Another RGB image (64x32), output_type=np.int64
+    input_dict = {
+        'contents': np.array(jpeg_64x32_rgb),
+        'output_type': np.int64,
+        'name': 'another_name'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
-generated_inputs = {}
-generated_inputs["tf.io.extract_jpeg_shape"] = tf_io_extract_jpeg_shape_inputs()
+generated_inputs["tf.io.extract_jpeg_shape"] = get_tf_io_extract_jpeg_shape_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.io.extract_jpeg_shape' not in generated_inputs:

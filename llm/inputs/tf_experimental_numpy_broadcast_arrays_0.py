@@ -11,49 +11,80 @@ import copy
 def tf_experimental_numpy_broadcast_arrays_inputs():
     list_of_inputs = []
 
-    # Input 1: Two scalars
-    input_dict = {"args": [np.array(1), np.array(2)]}
+    # Case 1: 1D array, unpacked into scalar arguments
+    input_dict = {
+        'args': np.array([1, 2, 3])
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Scalar and 1D array
-    input_dict = {"args": [np.array(5), np.array([1, 2, 3])]}
+    # Case 2: 2D array, unpacked into 1D array arguments
+    input_dict = {
+        'args': np.array([[10, 20], [30, 40]])
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 1D and 2D array
-    input_dict = {"args": [np.array([1, 2, 3]), np.array([[1], [2], [3]])]}
+    # Case 3: 3D array, unpacked into 2D array arguments
+    input_dict = {
+        'args': np.arange(24, dtype=np.float32).reshape(4, 2, 3)
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Two 2D arrays with compatible shapes
-    input_dict = {"args": [np.array([[1, 2, 3]]), np.array([[4], [5]])]}
+    # Case 4: A single array argument
+    input_dict = {
+        'args': np.array([[1, 2, 3, 4]])
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Three arrays with compatible shapes
-    input_dict = {"args": [np.array([1, 2, 3]), np.array([[1], [2], [3]]), np.array(5)]}
+    # Case 5: Multiple scalar arguments with negative values
+    input_dict = {
+        'args': np.array([-1, -5, -10, -20])
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Array with different data type
-    input_dict = {"args": [np.array([1, 2, 3], dtype=np.int32), np.array([[1], [2], [3]], dtype=np.float64)]}
+    # Case 6: Floating point values
+    input_dict = {
+        'args': np.array([[1.1, 2.2], [-3.3, -4.4]])
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Arrays with negative values
-    input_dict = {"args": [np.array([-1, -2, -3]), np.array([[-1], [-2], [-3]])]}
+    # Case 7: Unpacking into arrays of shape (1,)
+    input_dict = {
+        'args': np.array([[10], [20], [30]])
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: 3D arrays
-    input_dict = {"args": [np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]), np.array([1, 2])]}
+    # Case 8: A single scalar argument
+    input_dict = {
+        'args': np.array([100])
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Case 9: Different integer dtype
+    input_dict = {
+        'args': np.array([[1, 2], [3, 4]], dtype=np.int16)
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Different dtypes with broadcasting
-    input_dict = {"args": [np.array([1, 2, 3], dtype=np.float32), np.array(1, dtype=np.int32)]}
+    # Case 10: Unpacking into empty arrays
+    input_dict = {
+        'args': np.empty((3, 0))
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Case 11: Zeros
+    input_dict = {
+        'args': np.zeros((5, 2))
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Broadcasting with shape (1, x) and (y, 1)
-    input_dict = {"args": [np.array([[1, 2, 3]]), np.array([[4], [5]])]}
+    # Case 12: Larger number of arrays to unpack
+    input_dict = {
+        'args': np.ones((10, 3))
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.experimental.numpy.broadcast_arrays"] = tf_experimental_numpy_broadcast_arrays_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -61,6 +92,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.experimental.numpy.broadcast_arrays' not in generated_inputs:

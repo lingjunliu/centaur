@@ -6,175 +6,129 @@ generated_inputs = dict()
 
 import tensorflow as tf
 import numpy as np
-import copy
 import os
+import tempfile
+import copy
 
 def tf_data_experimental_save_inputs():
     list_of_inputs = []
 
-    # Input 1
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3]))
-    path = os.path.join(os.getcwd(), "saved_data_1")
-    compression = "NONE"
-    shard_func = tf.function(lambda x: tf.constant(0, dtype=tf.int64))
-    checkpoint_args = []
+    def get_temp_path(suffix):
+        path = os.path.join(tempfile.gettempdir(), f"tf_data_save_test_{suffix}")
+        return path
 
-    input_dict = {
-        "dataset": dataset,
-        "path": path,
-        "compression": compression,
-        "shard_func": shard_func,
-        "checkpoint_args": checkpoint_args
+    dummy_shard_func_tensor = np.array(0, dtype=np.int64)
+
+    # Input 1: Basic case, adhering to the flawed signature.
+    input_dict_1 = {
+        'dataset': np.arange(10, dtype=np.int32),
+        'path': get_temp_path("1"),
+        'compression': 'NONE',
+        'shard_func': dummy_shard_func_tensor,
+        'checkpoint_args': []
     }
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(input_dict_1)
 
-    # Input 2
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([[1, 2], [3, 4]]))
-    path = os.path.join(os.getcwd(), "saved_data_2")
-    compression = "GZIP"
-    shard_func = tf.function(lambda x: tf.constant(0, dtype=tf.int64))
-    checkpoint_args = []
-
-    input_dict = {
-        "dataset": dataset,
-        "path": path,
-        "compression": compression,
-        "shard_func": shard_func,
-        "checkpoint_args": checkpoint_args
+    # Input 2: GZIP compression.
+    input_dict_2 = {
+        'dataset': np.random.rand(8, 2).astype(np.float32),
+        'path': get_temp_path("2"),
+        'compression': 'GZIP',
+        'shard_func': dummy_shard_func_tensor,
+        'checkpoint_args': []
     }
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(input_dict_2)
 
-    # Input 3
-    dataset = tf.data.Dataset.range(10)
-    path = os.path.join(os.getcwd(), "saved_data_3")
-    compression = "NONE"
-    shard_func = tf.function(lambda x: tf.constant(0, dtype=tf.int64))
-    checkpoint_args = []
-
-    input_dict = {
-        "dataset": dataset,
-        "path": path,
-        "compression": compression,
-        "shard_func": shard_func,
-        "checkpoint_args": checkpoint_args
+    # Input 3: Using a non-empty list for checkpoint_args.
+    checkpoint_args_list_3 = [
+        ('checkpoint_interval', 10),
+        ('directory', get_temp_path("ckpt_3")),
+    ]
+    input_dict_3 = {
+        'dataset': np.arange(50, dtype=np.int64),
+        'path': get_temp_path("3"),
+        'compression': 'NONE',
+        'shard_func': dummy_shard_func_tensor,
+        'checkpoint_args': checkpoint_args_list_3
     }
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(input_dict_3)
 
-    # Input 4
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([1.0, 2.0, 3.0]))
-    path = os.path.join(os.getcwd(), "saved_data_4")
-    compression = "GZIP"
-    shard_func = tf.function(lambda x: tf.constant(0, dtype=tf.int64))
-    checkpoint_args = []
-
-    input_dict = {
-        "dataset": dataset,
-        "path": path,
-        "compression": compression,
-        "shard_func": shard_func,
-        "checkpoint_args": checkpoint_args
+    # Input 4: 2D numpy array.
+    input_dict_4 = {
+        'dataset': np.arange(12, dtype=np.int32).reshape(4, 3),
+        'path': get_temp_path("4"),
+        'compression': 'NONE',
+        'shard_func': dummy_shard_func_tensor,
+        'checkpoint_args': []
     }
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(input_dict_4)
 
-    # Input 5
-    dataset = tf.data.Dataset.from_tensor_slices(np.array(["a", "b", "c"]))
-    path = os.path.join(os.getcwd(), "saved_data_5")
-    compression = "NONE"
-    shard_func = tf.function(lambda x: tf.constant(0, dtype=tf.int64))
-    checkpoint_args = []
-
-    input_dict = {
-        "dataset": dataset,
-        "path": path,
-        "compression": compression,
-        "shard_func": shard_func,
-        "checkpoint_args": checkpoint_args
+    # Input 5: Empty dataset tensor.
+    input_dict_5 = {
+        'dataset': np.array([], dtype=np.float32),
+        'path': get_temp_path("5"),
+        'compression': 'NONE',
+        'shard_func': dummy_shard_func_tensor,
+        'checkpoint_args': []
     }
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(input_dict_5)
 
-    # Input 6
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([True, False, True]))
-    path = os.path.join(os.getcwd(), "saved_data_6")
-    compression = "GZIP"
-    shard_func = tf.function(lambda x: tf.constant(0, dtype=tf.int64))
-    checkpoint_args = []
-
-    input_dict = {
-        "dataset": dataset,
-        "path": path,
-        "compression": compression,
-        "shard_func": shard_func,
-        "checkpoint_args": checkpoint_args
+    # Input 6: Checkpointing and GZIP with a list.
+    checkpoint_args_list_6 = [
+        ('checkpoint_interval', 5),
+        ('directory', get_temp_path("ckpt_6")),
+    ]
+    input_dict_6 = {
+        'dataset': np.arange(20, dtype=np.int64),
+        'path': get_temp_path("6"),
+        'compression': 'GZIP',
+        'shard_func': dummy_shard_func_tensor,
+        'checkpoint_args': checkpoint_args_list_6
     }
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(input_dict_6)
 
-    # Input 7
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3, 4, 5]))
-    path = os.path.join(os.getcwd(), "saved_data_7")
-    compression = "NONE"
-    shard_func = tf.function(lambda x: tf.constant(0, dtype=tf.int64))
-    checkpoint_args = []
-
-    input_dict = {
-        "dataset": dataset,
-        "path": path,
-        "compression": compression,
-        "shard_func": shard_func,
-        "checkpoint_args": checkpoint_args
+    # Input 7: 3D numpy array.
+    input_dict_7 = {
+        'dataset': np.random.rand(5, 2, 3).astype(np.float32),
+        'path': get_temp_path("7"),
+        'compression': 'NONE',
+        'shard_func': dummy_shard_func_tensor,
+        'checkpoint_args': []
     }
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(input_dict_7)
 
-    # Input 8
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([[1, 2, 3], [4, 5, 6]]))
-    path = os.path.join(os.getcwd(), "saved_data_8")
-    compression = "GZIP"
-    shard_func = tf.function(lambda x: tf.constant(0, dtype=tf.int64))
-    checkpoint_args = []
-
-    input_dict = {
-        "dataset": dataset,
-        "path": path,
-        "compression": compression,
-        "shard_func": shard_func,
-        "checkpoint_args": checkpoint_args
+    # Input 8: Negative values in dataset tensor.
+    input_dict_8 = {
+        'dataset': np.arange(-10, 10, dtype=np.int32),
+        'path': get_temp_path("8"),
+        'compression': 'GZIP',
+        'shard_func': dummy_shard_func_tensor,
+        'checkpoint_args': []
     }
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(input_dict_8)
 
-    # Input 9
-    dataset = tf.data.Dataset.range(100)
-    path = os.path.join(os.getcwd(), "saved_data_9")
-    compression = "NONE"
-    shard_func = tf.function(lambda x: tf.constant(0, dtype=tf.int64))
-    checkpoint_args = []
-
-    input_dict = {
-        "dataset": dataset,
-        "path": path,
-        "compression": compression,
-        "shard_func": shard_func,
-        "checkpoint_args": checkpoint_args
+    # Input 9: Unsigned integer type.
+    input_dict_9 = {
+        'dataset': np.arange(15, dtype=np.uint8),
+        'path': get_temp_path("9"),
+        'compression': 'NONE',
+        'shard_func': dummy_shard_func_tensor,
+        'checkpoint_args': []
     }
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(input_dict_9)
 
-    # Input 10
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([1.0, 2.0, 3.0, 4.0, 5.0]))
-    path = os.path.join(os.getcwd(), "saved_data_10")
-    compression = "GZIP"
-    shard_func = tf.function(lambda x: tf.constant(0, dtype=tf.int64))
-    checkpoint_args = []
-
-    input_dict = {
-        "dataset": dataset,
-        "path": path,
-        "compression": compression,
-        "shard_func": shard_func,
-        "checkpoint_args": checkpoint_args
+    # Input 10: Float16 type.
+    input_dict_10 = {
+        'dataset': np.random.rand(5).astype(np.float16),
+        'path': get_temp_path("10"),
+        'compression': 'GZIP',
+        'shard_func': dummy_shard_func_tensor,
+        'checkpoint_args': []
     }
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(input_dict_10)
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.data.experimental.save"] = tf_data_experimental_save_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
@@ -182,6 +136,9 @@ def check_valid(api, list_of_inputs, lib="tf", suffix=0):
         _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
     print("Valid")
 
 if 'tf.data.experimental.save' not in generated_inputs:
