@@ -5,7 +5,7 @@ from .input_generators import abstract_print
 from .definitions import get_definition
 from .serialize import load_model, save_model
 from utils.defaults import MAX_N_DIM, int_buckets, float_buckets
-from utils.misc import create_subdir, get_tmp_dir, get_dir_in_root, bcolors
+from utils.misc import create_subdir, get_tmp_dir, get_dir_in_root, bcolors, read_file_in_root
 from utils.new_api_utils import get_lib_version, get_api_suffix
 from utils.z3_utils import instantiate_args, create_z3_args, initial_constraints, collect_constraints, parition_solvers, add_negative_buckets, clip_buckets
 from eval.oracle import oracle_crash
@@ -334,7 +334,12 @@ def run_model_gen(variant, duration, n_max, lib, seed, regen, use_reference=Fals
     api = get_lib_version(api, lib=lib)
     definition = get_definition(api, z3=True, lib=lib, suffix=suffix, use_reference=use_reference)
     if len(definition["ruleset"]) == 0:
-        print(f"No invariants learned for {api}, running without constraints except for the default ones")
+        variants_with_True_invariants = read_file_in_root(f"True_invariants_{lib}")
+        if variant in variants_with_True_invariants:
+            print(f"No additional invariants required for {variant}, using the invariant TRUE.")
+        else:
+            print(f"No invariants learned for {api}, skipping model generation.")
+            return
     else:
         print('-----' * 20)
         print(f"Using these rulesets for {api} with suffix {suffix}:")
