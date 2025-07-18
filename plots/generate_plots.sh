@@ -54,3 +54,7 @@ Rscript invariants.r ACETest val data/val_vs_ACETest_tf.csv tf > data/ACETest_st
 Rscript invariants.r Pathfinder val data/val_vs_Pathfinder_tf.csv tf > data/Pathfinder_stats_tf_val.txt
 # Titanfuzz Tensorflow
 Rscript invariants.r Titanfuzz val data/val_vs_Titanfuzz_tf.csv tf > data/Titanfuzz_stats_tf_val.txt
+
+
+# Validity Ratio Table
+python validity_table.py
