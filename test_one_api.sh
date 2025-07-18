@@ -15,7 +15,7 @@ pip install -r requirements.txt
 # Run the steps
 
 # Step 1: Infer invariants: <variation> <duration> <regen> <library>
-python -m learner.invariant_inference $variation 100 1 || { echo "Inferring failed. "; exit 1; }
+python -m learner.invariant_inference $variation 100 1 $lib || { echo "Inferring failed. "; exit 1; }
 # Step 2: Generate models: <variation> <duration> <n_models> <library> <seed> <regen>
 python -m generator.z3 $variation 300 0 $lib $seed 1 || { echo "Model gen failed. "; exit 1; }
 # Step 3: Fuzz with the generated models: <api> <duration> <n_inputs> <library> <seed>
