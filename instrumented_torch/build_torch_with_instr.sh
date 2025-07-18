@@ -12,7 +12,9 @@ cd pytorch
 python setup.py clean
 
 # export CMAKE_POLICY_VERSION_MINIMUM=3.5
-export CMAKE_PREFIX_PATH=${CONDA_PREFIX:-"$(dirname $(which conda))/../"}
+# export CMAKE_PREFIX_PATH=${CONDA_PREFIX:-"$(dirname $(which conda))/../"}
+export CXX=clang++
+export CC=clang
 USE_CPP_CODE_COVERAGE=1 _GLIBCXX_USE_CXX11_ABI=1 \
 CMAKE_CXX_FLAGS="-fprofile-instr-generate -fcoverage-mapping" \
 CMAKE_C_FLAGS="-fprofile-instr-generate -fcoverage-mapping" \

@@ -32,7 +32,7 @@ fi
 # Install instrumented pytorch
 if [ ! -f $PROJECT_DIR/instrumented_pytorch/torch-2.2.0* ]; then  # Download only if not already downloaded
     pip install gdown
-    gdown --fuzzy https://drive.google.com/file/d/1GqydzvLO7XTlFXnSum_zhEulJpC2JRwU/view?usp=sharing -O $PROJECT_DIR/instrumented_pytorch/
+    gdown --fuzzy https://drive.google.com/file/d/1z6ijvUGN-EhsluMHksod7jH9B1CO--9_/view?usp=sharing -O $PROJECT_DIR/instrumented_pytorch/
 fi
 pip install $PROJECT_DIR/instrumented_pytorch/torch-2.2.0*
 export OMP_NUM_THREADS=1    # To prevent issues with coverage collection due to multithreading
