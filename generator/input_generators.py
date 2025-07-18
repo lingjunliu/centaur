@@ -57,7 +57,13 @@ def get_ll(domain, value):
         else:
             list_val = list(value.shape)
             dtype_val = [list_of_available_dtypes.index(value.dtype)]
-            range_val = [np.min(value), np.max(value)] if value.size > 0 else [0, 0]
+            if isinstance(value, np.ndarray):
+                range_val = [np.min(value), np.max(value)] if value.size > 0 else [0, 0]
+            else:
+                try:
+                    range_val = [np.min(value), np.max(value)] if value.size > 0 else [0, 0]
+                except Exception as e:
+                    range_val = [0, 0]  # if the tensor is empty, set range to 0, 0
     elif domain in ["tuple", "list"]:
         list_val = list(value)
         dtype_val = [list_of_available_dtypes.index(np.dtype(type(value[0])))] if len(value) > 0 else [list_of_available_dtypes.index(np.int64)]

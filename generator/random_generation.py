@@ -23,7 +23,6 @@ def random_fuzz(api, seed, duration, n_max=0, n_valid=0, lib="torch", logfile=No
     valid = 0
     invalid = 0
     crash = 0
-    abstract_inputs = []
     
     start_time = time.time()
     while time.time() - start_time < duration:
@@ -36,10 +35,6 @@ def random_fuzz(api, seed, duration, n_max=0, n_valid=0, lib="torch", logfile=No
             exception_message = ' '.join(exception_message.splitlines())
         if status == "nominal":
             valid += 1
-            # Save 
-            if valid <= n_valid:
-                # Save the abstract input along with the seed
-                abstract_inputs.append((abs_inp, seed, suffix))
         elif status == "invalid":
             invalid += 1
             # Traceback for debugging
@@ -63,7 +58,7 @@ def random_fuzz(api, seed, duration, n_max=0, n_valid=0, lib="torch", logfile=No
         
         seed += 1
     
-    return valid, invalid, crash, abstract_inputs
+    return valid, invalid, crash
 
 def main():
     api = sys.argv[1] if len(sys.argv) > 1 else "argmin" # default api
@@ -81,7 +76,7 @@ def main():
     logfile = os.path.join(tmp_results, f"{api}_excp.log")
     
     print(f"Started fuzzing {api} for {duration} seconds...")
-    valid, invalid, crash, abstract_inputs = random_fuzz(api, seed, duration, n_max=n_max, n_valid=n_valid, lib=lib, logfile=logfile)
+    valid, invalid, crash = random_fuzz(api, seed, duration, n_max=n_max, n_valid=n_valid, lib=lib, logfile=logfile)
     total = valid + invalid + crash
     valid_prcnt = round((valid+crash)*100/total,2) if total > 0 else 0
     result = f"{api},{valid},{invalid},{crash},{total},{valid_prcnt}\n"
@@ -89,13 +84,6 @@ def main():
     
     with open(csv_file, "w") as f:
         f.write(result)
-        
-    # Save valid inputs for invariant inference
-    pkl_file = os.path.join(get_dir_in_root(f"valid_inputs_{lib}"), f"{api}.pkl")
-    if override_valid:
-        save_to_pkl(pkl_file, abstract_inputs)
-    else:
-        save_to_new_pkl(pkl_file, abstract_inputs)
 
 if __name__ == "__main__":
     main()

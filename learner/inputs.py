@@ -298,10 +298,11 @@ def augment_one_input(input_dict, signature, lib="torch", rng=np.random.default_
     """
     mutators = [introduce_empty_tensors, introduce_float_types, introduce_complex_types, introduce_floats, introduce_integer_types, introduce_integers, introduce_negatives, introduce_opposite_bools, introduce_zeros]
     mutated_inputs = []
+    
     if not match_signature_to_input(input_dict, signature, match_type=True):
         print(f"{bcolors.WARNING}Skipping input at index {i} as it does not match the signature:\n{signature}{bcolors.ENDC}")
-        continue  # Skip inputs that do not match the signature
-    original_inputs.append(input_dict)
+        return []  # Skip inputs that do not match the signature
+    
     for mutator in mutators:
         mutated_inputs += mutator(input_dict, signature, lib=lib, rng=rng)
     
