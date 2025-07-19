@@ -26,6 +26,14 @@ Rscript invariants.r Pathfinder cov data/vs_Pathfinder_tf.csv tf > data/Pathfind
 # Titanfuzz Tensorflow
 Rscript invariants.r Titanfuzz cov data/vs_Titanfuzz_tf.csv tf > data/Titanfuzz_stats_tf.txt
 
+nAPIsTorch=$(cat data/slate_html_180s.csv | wc -l)
+nAPIsTF=$(cat data/slate_html_180s_tf.csv | wc -l)
+
+nAPIsSLTorch=$((nAPIsTorch - 1))
+nAPIsSLTF=$((nAPIsTF - 1))
+
+echo "% Pytorch" > data/Coverage_stats.txt && echo "\newcommand{\nAPIsSL}{${nAPIsSLTorch}}" >> data/Coverage_stats.txt  && cat data/Titanfuzz_stats.txt data/ACETest_stats.txt data/Pathfinder_stats.txt >> data/Coverage_stats.txt && echo "% Tensorflow" >> data/Coverage_stats.txt && echo "\newcommand{\nAPIsSLtf}{${nAPIsSLTF}}" >> data/Coverage_stats.txt && cat data/Titanfuzz_stats_tf.txt data/ACETest_stats_tf.txt data/Pathfinder_stats_tf.txt >> data/Coverage_stats.txt
+
 cd ..
 
 ## Validity
