@@ -8,7 +8,7 @@ The tool is structured in two parts:
 The code is organized as follow:
 
 ```markdown
-- 📁 bug_reports       # code snippets containing the bugs reported 
+- 📁 bug_reports       # code snippets containing the bugs reported, as well as lists of reported bugs
 - 📁 eval              # code related to evaluation (e.g. oracle, coverage)
 - 📁 generator         # invariant-based input (abstract and concrete) generator
 - 📁 invariants_{lib}  # mined invariants from APIs (libraries: torch and tf)
