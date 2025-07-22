@@ -26,7 +26,9 @@ elif [ "$lib" = "tf" ]; then
 fi
 
 if [ $debug -eq 1 ]; then
-    echo "Running in debugging mode"
+    echo "Running in debugging mode. Switching to LCOV mode."
+    method="lcov"  # Change method to lcov for debugging
+    native=False  # Disable native coverage for debugging
 fi
 
 PROJECT_DIR=`dirname "$(realpath "$0")"`/..
@@ -85,7 +87,7 @@ bash $slurm_sh "python -m eval.coverage" ${job_name} ${lib} ${method} ${native} 
 if [ $debug -eq 1 ]; then
     echo "Running debugging scripts"
     job_name=deb
-    bash $slurm_sh "python -m debugging.compare_coverage" ${job_name}
+    bash $slurm_sh "python -m debugging.compare_coverage" ${job_name} ${lib}
 fi
 
 # END DEBUG ############################
@@ -98,7 +100,7 @@ pip install ${lib_ins} --force-reinstall
 if [ $debug -eq 1 ]; then
     echo "Extracting abstracts from debugged data"
     job_name=abs
-    bash $slurm_sh "python -m debugging.get_abstracts" ${job_name}
+    bash $slurm_sh "python -m debugging.get_abstracts" ${job_name} ${lib}
     # Aggregating debug details
     stat_results=$PROJECT_DIR/.tmp/debug_coverage
     result=$PROJECT_DIR/.tmp/debug_stats.csv
