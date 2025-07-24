@@ -5,31 +5,10 @@ import tensorflow as tf
 
 from utils.misc import map_torch_to_driver, read_file_in_root, save_file_in_root
 
-def get_original_signatures():
-    """
-        Returns a dictionary containing signatures for each supported API.
-        The "inner" key is only present for apis that return callable functions.
-        Format: { "API": { 
-                            "args": {
-                                "arg": "domain",
-                                ...
-                            },
-                            "kwargs": {...},
-                            "inner": {
-                                "args" : {...},
-                                "kwargs": {...}
-                            }
-                         } 
-                  ...
-                }
-    """
-    cur_dir = os.path.dirname(os.path.abspath(__file__))
-    signature_file = os.path.join(cur_dir, "../signatures.json")
-    signatures = {}
-    with open(signature_file, "r") as f:
-        signatures = json.load(f)
-    
-    return signatures
+cur_dir = os.path.dirname(os.path.abspath(__file__))
+signature_file = os.path.join(cur_dir, "../signatures.json")
+with open(signature_file, "r") as f:
+    original_signatures = json.load(f)
 
 def get_lib_version(api, lib="torch"):
     if lib == "torch" and not api.startswith("torch"):
@@ -42,7 +21,7 @@ def get_n_variations(api, lib="torch"):
     Get number of variations of signatures for a specific api.
     """
     api = get_lib_version(api, lib=lib)
-    signatures = get_original_signatures()
+    signatures = original_signatures
     count = 0
     if api in signatures.keys():
         return count+1
@@ -74,7 +53,7 @@ def get_signature(api, lib="torch", suffix=0):
     if suffix > 0:
         api = f"{api}_{suffix}"
     
-    signatures = get_original_signatures()
+    signatures = original_signatures
     if api not in signatures:
         raise Exception(f"No signature found for {api}")
     
@@ -107,7 +86,7 @@ def match_signature(api, signature, lib="torch"):
     used to generate this.
     """
     api = get_lib_version(api, lib=lib)
-    signatures = get_original_signatures()
+    signatures = original_signatures
     
     if api in signatures:
         return signatures[api]
@@ -163,7 +142,7 @@ def get_signature_of_input(api, input_dict, lib="torch"):
     used to generate this.
     """
     api = get_lib_version(api, lib=lib)
-    signatures = get_original_signatures()
+    signatures = original_signatures
     
     if api in signatures:
         return signatures[api]
