@@ -239,8 +239,7 @@ def instantiate_args(model, signature, z3_args, seed=42, lib="torch", sample_ran
             value = model.eval(z3_var['value'], model_completion=True).as_long()
             concrete_args[param_name] = list_of_available_dtypes[value]
         elif param_type == "boolean":
-            value = is_true(model.eval(z3_var['value'], model_completion=True))
-            concrete_args[param_name] = is_true(value)
+            concrete_args[param_name] = is_true(model.eval(z3_var['value'], model_completion=True))
 
         if param_type != "tensor" and param_type != "tensor_list":
             abstract_args[param_name] = get_ll(param_type, concrete_args[param_name])
