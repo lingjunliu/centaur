@@ -24,6 +24,7 @@ if [ "$retry" -eq 1 ]; then
   python -m utils.parse_cancelled_jobs $lib
   export elements_file=.tmp/cancelled_infs_${lib}.txt  # Set the elements file for the next steps
   bash scripts/infer_invariants_with_slurm.sh 1200 1 $lib
+  export elements_file=${lib}_variations.txt  # Restore elements file for the next steps
 fi
 # Step 2: Generate models: <duration> <n_models> <library> <seed> <regen>
 bash scripts/generate_models_with_slurm.sh 3600 0 $lib $seed 1
@@ -32,6 +33,7 @@ if [ "$retry" -eq 1 ]; then
   python -m utils.parse_cancelled_jobs $lib
   export elements_file=.tmp/cancelled_modls_${lib}.txt  # Set the elements file for the next steps
   bash scripts/generate_models_with_slurm.sh 3600 0 $lib $seed 1
+  export elements_file=${lib}_apis.txt  # Restore elements file for the next steps
 fi
 # Step 3: Fuzz with the generated models: <duration> <n_inputs> <library> <seed>
 bash scripts/fuzz_with_slurm.sh 180 0 $lib $seed

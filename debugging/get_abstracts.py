@@ -96,9 +96,9 @@ def main():
     multiply = "branch"  # set this to "branch" to multiply by the new_branches, "count" to count the instances only
 
     api = sys.argv[1]
-    lib = "torch"
+    lib = sys.argv[2] if len(sys.argv) > 2 else "torch"
 
-    api = get_lib_version(api, lib="torch")  # Get the API version
+    api = get_lib_version(api, lib=lib)  # Get the API version
 
     output_dir = create_subdir(get_tmp_dir(), "debug_coverage")
     filename_new_br = os.path.join(output_dir, f"{api}.csv")

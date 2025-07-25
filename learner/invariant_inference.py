@@ -54,7 +54,6 @@ def reduce_ruleset(ruleset, signature, api, z3_args, max_trial=30, time_budget=3
     for rule in [None] + list(ruleset):
         trial = 0
         valid = 0
-        valid = 0
         block_all = set()
         perma_block = set()
 

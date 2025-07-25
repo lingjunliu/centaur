@@ -2,7 +2,7 @@ import os, sys
 from utils.process_lcov import analyze_lcov
 from utils.misc import get_tmp_dir, create_subdir, get_dir_in_root
 from utils.coverage_utils import gen_cov
-from utils.misc import map_torch_to_driver
+from utils.new_api_utils import get_lib_version
 
 def get_cov_dict_from_file(lcov_file):
     with open(lcov_file, "r") as f:
@@ -78,7 +78,7 @@ def check_coverage_addition(coverage_dict, driver_file, pkl_dir, filename_new_br
 
     return files_w_new_br
 
-def create_driver(torch_api):
+def create_driver(api):
     code = f"""
 import sys, os, pickle, torch
 
@@ -86,13 +86,13 @@ file = sys.argv[1]
 with open(file, 'rb') as f:
     input_dict = pickle.load(f)
     try:
-        output = {torch_api}(*input_dict['{torch_api}']['args'], **input_dict['{torch_api}']['kwargs'])
+        output = {api}(*input_dict['{api}']['args'], **input_dict['{api}']['kwargs'])
     except Exception as e:
         exception_msg = e.__class__.__name__ + ": " + str(e)
     
 """
     custom_drivers_dir = create_subdir(get_tmp_dir(), "custom_drivers")
-    driver_file = os.path.join(custom_drivers_dir, f"{torch_api}_driver.py")
+    driver_file = os.path.join(custom_drivers_dir, f"{api}_driver.py")
     with open(driver_file, "w") as f:
         f.write(code)
     
@@ -101,12 +101,13 @@ with open(file, 'rb') as f:
 
 def main():
     api = sys.argv[1]
+    lib = sys.argv[2] if len(sys.argv) > 2 else "torch"
     
-    _, driver_to_torch = map_torch_to_driver()
+    api = get_lib_version(api, lib=lib)
+    prefix = api.replace('.', '_')
     lcov_dir = os.path.join(get_tmp_dir(), "coverage_raw_files")
-    lcov_file = os.path.join(lcov_dir, f"{api}.lcov")
-    torch_api = driver_to_torch[api]
-
+    lcov_file = os.path.join(lcov_dir, f"{prefix}.lcov")
+    
     if not os.path.exists(lcov_file):
         print(f"{lcov_file} does not exist")
         return
@@ -116,13 +117,13 @@ def main():
 
     # Titanfuzz
     prefix = f"{api}_titan"
-    pkl_dir = os.path.join(get_dir_in_root("eval"), f"titanfuzz/modified_inputs/{torch_api}")
+    pkl_dir = os.path.join(get_dir_in_root("eval"), f"titanfuzz/modified_inputs/{api}")
     if not os.path.exists(pkl_dir):
-        print(f"No saved inputs found from titanfuzz execution of {torch_api}")
+        print(f"No saved inputs found from titanfuzz execution of {api}")
         return
 
     coverage_dict = get_cov_dict_from_file(lcov_file)
-    driver_file = create_driver(torch_api)
+    driver_file = create_driver(api)
     files_w_new_br = check_coverage_addition(coverage_dict, driver_file, pkl_dir, filename_new_br, prefix)
     print("Files that uncovered new branches:")
     print('\n'.join(files_w_new_br))
