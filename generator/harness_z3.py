@@ -53,7 +53,6 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
     
     print(f"Fuzzing {api} with a {duration} second budget using {lib} library.")
     print(f"Logging details to {logfile}")
-    execution_time = 0
     elapsed = 0
     last_saved = 0
     save_interval = 60 # seconds, 1 minute
@@ -139,7 +138,6 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
         total += 1
         log_func = logger.info
 
-        start_execution = time.time()
         status, exception_message = oracle_crash(api, concrete_input, cpu=True, lib=lib)
         if status == "nominal":
             nominal += 1
@@ -169,7 +167,6 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
                 print(f"\nThe input faced status {status}. Faced exception:\n{exception_message}")
         
         log_func(f"Status: {status}, Exception: {exception_message}") if exception_message else log_func(f"Status: {status}")
-        execution_time = execution_time + time.time() - start_execution
         print_str = f"Nominal: {nominal} | Invalid: {invalid} | Crash: {crash} | Exception: {excp} | Last saved: {round(elapsed-last_saved, 2)}s ago"
         
         if print_details:
@@ -191,7 +188,6 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
     logger.info(f"Fuzzing completed for {api}. Total inputs: {total}, Nominal: {nominal}, Invalid: {invalid}, Crash: {crash}, Exception: {excp}.")
     total_time = time.time() - start
     valid_prcnt = round((total-invalid)*100/total,2) if total > 0 else 0
-    print(f"\n[{api}]\n\tOptimzation took {round(total_time-execution_time, 4)}s\n\tExecuting {nominal+invalid} inputs on {api} took {round(execution_time, 4)}s\n\tTotal {round(total_time, 4)}s")
     print(f"Models (average): {n_models} | Nominal: {nominal} | Invalid: {invalid} | Crash: {crash} | Exception: {excp} | Total {total} | Validity Rate: {valid_prcnt}%")
     
     save_state(api, n_models, nominal, invalid, crash, excp, generated_inputs, tmp_results, input_dir, lib=lib)
