@@ -8,145 +8,139 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-# This is the key change. By enabling this, tf.Tensors will behave like
-# numpy arrays and have attributes like .size, which should resolve the
-# harness's AttributeError on EagerTensor objects.
-tf.experimental.numpy.experimental_enable_numpy_behavior()
-
 def tf_nn_embedding_lookup_sparse_inputs():
     """
-    Generates a list of valid inputs for tf.nn.embedding_lookup_sparse.
-    - Uses tf.experimental.numpy.experimental_enable_numpy_behavior() to make
-      tf.Tensor objects compatible with the testing harness.
-    - `params` is provided as a single tensor. While the API accepts a list of
-      tensors, the testing harness has been observed to fail on list inputs.
-      A single tensor is a valid input type for this parameter.
-    - `sp_ids` and `sp_weights` are provided as `tf.SparseTensor` as required
-      by the API, which resolves the TypeError during execution.
+    Generates a list of valid inputs for the tf.nn.embedding_lookup_sparse function.
     """
     list_of_inputs = []
 
-    # --- Common Input Components ---
-    params_single = tf.constant([[1, 2], [3, 4], [5, 6], [7, 8]], dtype=tf.float32)
-    sp_ids_1 = tf.SparseTensor(indices=[[0, 0], [0, 1], [1, 0], [2, 0]],
-                              values=tf.constant([0, 1, 3, 2], dtype=tf.int64),
-                              dense_shape=(3, 2))
-    sp_weights_1 = tf.SparseTensor(indices=[[0, 0], [0, 1], [1, 0], [2, 0]],
-                                   values=tf.constant([0.1, 1.0, 0.5, 2.0], dtype=tf.float32),
-                                   dense_shape=(3, 2))
+    # To address the "'list' object has no attribute 'shape'" error, 'params'
+    # is provided as a single numpy array instead of a list of arrays. This
+    # corresponds to the non-sharded use case of the API.
+    # To address the "'SparseTensor' object has no attribute 'size'" and the
+    # "inputs should be in numpy format" constraints, sp_ids and sp_weights
+    # are provided as RaggedTensors, which are a valid input type for the API
+    # and might be better handled by the testing harness than SparseTensors.
 
-    # --- Input Cases ---
+    # Input 1: Basic case with combiner='sum'
+    params_1 = np.array([[1, 2], [3, 4], [5, 6], [7, 8]], dtype=np.float32)
+    sp_ids_1 = tf.ragged.constant([[0, 1], [3], [2]], dtype=tf.int64)
     
-    # Input 1: Basic case with combiner='sum', no weights.
     input_dict_1 = {
-        'params': copy.deepcopy(params_single),
-        'sp_ids': copy.deepcopy(sp_ids_1),
+        'params': [params_1],
+        'sp_ids': sp_ids_1,
         'sp_weights': None,
         'combiner': 'sum',
         'max_norm': None,
         'name': 'test_1',
         'allow_fast_lookup': False
     }
-    list_of_inputs.append(input_dict_1)
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    
+    # Input 2: With sp_weights
+    params_2 = np.array([[1, 2], [3, 4], [5, 6], [7, 8]], dtype=np.float32)
+    sp_ids_2 = tf.ragged.constant([[0, 1], [3], [2]], dtype=tf.int64)
+    sp_weights_2 = tf.ragged.constant([[0.1, 1.0], [0.5], [2.0]], dtype=tf.float32)
 
-    # Input 2: Basic case with weights and combiner='sum'.
     input_dict_2 = {
-        'params': copy.deepcopy(params_single),
-        'sp_ids': copy.deepcopy(sp_ids_1),
-        'sp_weights': copy.deepcopy(sp_weights_1),
+        'params': [params_2],
+        'sp_ids': sp_ids_2,
+        'sp_weights': sp_weights_2,
         'combiner': 'sum',
         'max_norm': None,
         'name': 'test_2',
         'allow_fast_lookup': False
     }
-    list_of_inputs.append(input_dict_2)
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: Combiner='mean', no weights.
+    # Input 3: combiner='mean'
+    params_3 = np.random.rand(10, 5).astype(np.float32)
+    sp_ids_3 = tf.ragged.constant([[1, 2], [3], [4, 5, 6]], dtype=tf.int64)
+    sp_weights_3 = tf.ragged.constant([[0.2, 0.8], [1.0], [0.5, 0.3, 0.2]], dtype=tf.float32)
+    
     input_dict_3 = {
-        'params': copy.deepcopy(params_single),
-        'sp_ids': copy.deepcopy(sp_ids_1),
-        'sp_weights': None,
+        'params': [params_3],
+        'sp_ids': sp_ids_3,
+        'sp_weights': sp_weights_3,
         'combiner': 'mean',
         'max_norm': None,
         'name': 'test_3',
         'allow_fast_lookup': False
     }
-    list_of_inputs.append(input_dict_3)
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: Combiner='sqrtn', with weights.
-    input_dict_4 = {
-        'params': copy.deepcopy(params_single),
-        'sp_ids': copy.deepcopy(sp_ids_1),
-        'sp_weights': copy.deepcopy(sp_weights_1),
-        'combiner': 'sqrtn',
-        'max_norm': None,
-        'name': 'test_4',
-        'allow_fast_lookup': False
-    }
-    list_of_inputs.append(input_dict_4)
-    
-    # Input 5: With max_norm.
-    params_5 = tf.constant([[10., 20.], [30., 40.], [50., 60.]], dtype=tf.float32)
-    sp_ids_5 = tf.SparseTensor(indices=[[0, 0], [0, 1]], values=tf.constant([0, 1], dtype=tf.int64), dense_shape=(1, 2))
+    # Input 4: combiner='sqrtn'
+    input_dict_4 = copy.deepcopy(input_dict_3)
+    input_dict_4['params'] = [np.random.rand(10, 5).astype(np.float32)]
+    input_dict_4['combiner'] = 'sqrtn'
+    input_dict_4['name'] = 'test_4'
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
+
+    # Input 5: With max_norm
+    params_5 = np.array([[10, 20], [30, 40], [50, 60]], dtype=np.float32)
+    sp_ids_5 = tf.ragged.constant([[0, 1], [2]], dtype=tf.int64)
+
     input_dict_5 = {
-        'params': params_5,
+        'params': [params_5],
         'sp_ids': sp_ids_5,
         'sp_weights': None,
         'combiner': 'sum',
-        'max_norm': 15.0,
+        'max_norm': 35.0,
         'name': 'test_5',
         'allow_fast_lookup': False
     }
-    list_of_inputs.append(input_dict_5)
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: params with more than 2 dimensions.
-    params_6 = tf.constant([[[1, 2], [3, 4]],
-                             [[5, 6], [7, 8]],
-                             [[9, 10], [11, 12]],
-                             [[13, 14], [15, 16]]], dtype=tf.float32)
+    # Input 6: Higher-dimensional params
+    params_6 = np.random.rand(6, 2, 3).astype(np.float32)
+    sp_ids_6 = tf.ragged.constant([[0, 5], [2]], dtype=tf.int64)
+    
     input_dict_6 = {
-        'params': params_6,
-        'sp_ids': copy.deepcopy(sp_ids_1),
+        'params': [params_6],
+        'sp_ids': sp_ids_6,
         'sp_weights': None,
-        'combiner': 'sum',
+        'combiner': 'mean',
         'max_norm': None,
         'name': 'test_6',
         'allow_fast_lookup': False
     }
-    list_of_inputs.append(input_dict_6)
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
     
-    # Input 7: float64 dtype.
-    params_7 = tf.constant([[1.1, 2.2], [3.3, 4.4]], dtype=tf.float64)
-    sp_ids_7 = tf.SparseTensor(indices=[[0, 0]], values=tf.constant([1], dtype=tf.int64), dense_shape=(1, 1))
-    sp_weights_7 = tf.SparseTensor(indices=[[0, 0]], values=tf.constant([0.5], dtype=tf.float64), dense_shape=(1, 1))
+    # Input 7: allow_fast_lookup=True
+    params_7 = np.random.rand(8, 5).astype(np.float32)
+    sp_ids_7 = tf.ragged.constant([[1], [2, 3], [4]], dtype=tf.int64)
+
     input_dict_7 = {
-        'params': params_7,
+        'params': [params_7],
         'sp_ids': sp_ids_7,
-        'sp_weights': sp_weights_7,
-        'combiner': 'mean',
-        'max_norm': None,
-        'name': 'test_7',
-        'allow_fast_lookup': False
-    }
-    list_of_inputs.append(input_dict_7)
-    
-    # Input 8: allow_fast_lookup=True.
-    input_dict_8 = {
-        'params': copy.deepcopy(params_single),
-        'sp_ids': copy.deepcopy(sp_ids_1),
         'sp_weights': None,
         'combiner': 'sum',
         'max_norm': None,
-        'name': 'test_8',
+        'name': 'test_7',
         'allow_fast_lookup': True
     }
-    list_of_inputs.append(input_dict_8)
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
     
-    # Input 9: Different sp_ids shape.
-    params_9 = tf.constant([[1, 1], [2, 2], [3, 3], [4, 4], [5, 5]], dtype=tf.float32)
-    sp_ids_9 = tf.SparseTensor(indices=[[0, 0], [0, 2], [1, 1], [1, 3], [2, 0]],
-                                   values=tf.constant([0, 1, 2, 3, 4], dtype=tf.int64),
-                                   dense_shape=(3, 4))
+    # Input 8: float64 dtype
+    params_8 = np.random.rand(4, 2).astype(np.float64)
+    sp_ids_8 = tf.ragged.constant([[0, 1], [2]], dtype=tf.int64)
+    sp_weights_8 = tf.ragged.constant([[0.5, 0.5], [1.0]], dtype=tf.float64)
+
+    input_dict_8 = {
+        'params': [params_8],
+        'sp_ids': sp_ids_8,
+        'sp_weights': sp_weights_8,
+        'combiner': 'mean',
+        'max_norm': None,
+        'name': 'test_8',
+        'allow_fast_lookup': False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
+
+    # Input 9: Sharded params
+    params_9 = [np.random.rand(5, 4).astype(np.float32), np.random.rand(5, 4).astype(np.float32)]
+    sp_ids_9 = tf.ragged.constant([[0, 6], [8], [3]], dtype=tf.int64)
+    
     input_dict_9 = {
         'params': params_9,
         'sp_ids': sp_ids_9,
@@ -156,19 +150,7 @@ def tf_nn_embedding_lookup_sparse_inputs():
         'name': 'test_9',
         'allow_fast_lookup': False
     }
-    list_of_inputs.append(input_dict_9)
-
-    # Input 10: Combiner='sqrtn' without weights
-    input_dict_10 = {
-        'params': copy.deepcopy(params_single),
-        'sp_ids': copy.deepcopy(sp_ids_1),
-        'sp_weights': None,
-        'combiner': 'sqrtn',
-        'max_norm': None,
-        'name': 'test_10',
-        'allow_fast_lookup': False,
-    }
-    list_of_inputs.append(input_dict_10)
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
     return list_of_inputs
 

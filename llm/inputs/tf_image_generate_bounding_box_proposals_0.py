@@ -6,226 +6,102 @@ generated_inputs = dict()
 
 import numpy as np
 import copy
-import tensorflow as tf
 
-def get_generate_bounding_box_proposals_inputs():
+def generate_tf_image_generate_bounding_box_proposals_inputs():
+    """
+    Generates a list of valid inputs for tf.image.generate_bounding_box_proposals.
+    The previous attempts failed with `OutOfRangeError: Box dimensions need to be 4`.
+    This error, especially on GPU, can be caused by an empty list of proposals after
+    the filtering stages (clipping, min_size). This version creates robust inputs
+    that are guaranteed to produce valid proposals to avoid this potential issue.
+    """
     list_of_inputs = []
 
-    # The error "Box dimensions need to be 4" and an inspection of the op's
-    # shape function in TensorFlow's source code reveals that the `image_info`
-    # tensor must have a shape of `[num_images, 4]`, contrary to the
-    # documentation which states `[num_images, 5]`. The 4 values typically
-    # represent `[image_height, image_width, y_scale, x_scale]`.
-    #
-    # The previous error "'anchors' must be rank 3 but is rank 2" was also
-    # likely a side-effect of the incorrect `image_info` shape, as the op's
-    # shape function expects a rank-2 tensor for `anchors`. We revert `anchors`
-    # to be rank-2.
+    def _create_robust_input(
+        num_images, height, width, num_anchors,
+        nms_threshold=0.7, pre_nms_topn=2000, min_size=1.0, post_nms_topn=100,
+        name=None):
 
-    def _generate_anchors(num_anchors, max_coord=100.0, min_size=10.0, dtype=np.float32):
-        anchors = []
+        scores = np.random.uniform(0.6, 1.0, (num_images, height, width, num_anchors)).astype(np.float32)
+        bbox_deltas = (np.random.rand(num_images, height, width, 4 * num_anchors) * 0.1 - 0.05).astype(np.float32)
+
+        img_h, img_w = 600, 800
+        image_info = np.array([[img_h, img_w, 1.0, img_h, img_w]] * num_images, dtype=np.float32)
+
+        anchors_list = []
         for _ in range(num_anchors):
-            y1 = np.random.uniform(0, max_coord - min_size)
-            x1 = np.random.uniform(0, max_coord - min_size)
-            y2 = np.random.uniform(y1 + min_size, max_coord)
-            x2 = np.random.uniform(x1 + min_size, max_coord)
-            anchors.append([y1, x1, y2, x2])
-        # Revert anchors to rank 2 as per the op's shape function
-        return np.array(anchors, dtype=dtype)
+            y1 = np.random.uniform(50, 200)
+            x1 = np.random.uniform(50, 300)
+            y2 = y1 + np.random.uniform(50, 150)
+            x2 = x1 + np.random.uniform(50, 150)
+            anchors_list.append([y1, x1, y2, x2])
+        anchors_2d = np.array(anchors_list, dtype=np.float32)
+        anchors = np.expand_dims(anchors_2d, 0)
 
-    # Input 1: Basic case with fixes applied
-    num_images, height, width, num_anchors = 1, 10, 10, 9
-    scores = np.random.rand(num_images, height, width, num_anchors).astype(np.float32)
-    bbox_deltas = (np.random.rand(num_images, height, width, 4 * num_anchors) - 0.5).astype(np.float32)
-    image_info = np.array([[400.0, 600.0, 1.0, 1.0]] * num_images, dtype=np.float32)
-    anchors = _generate_anchors(num_anchors)
-    input_dict = {
-        'scores': scores,
-        'bbox_deltas': bbox_deltas,
-        'image_info': image_info,
-        'anchors': anchors,
-        'nms_threshold': 0.7,
-        'pre_nms_topn': 6000,
-        'min_size': 16.0,
-        'post_nms_topn': 300,
-        'name': 'basic_case_fixed'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+        total_proposals = height * width * num_anchors
+        if pre_nms_topn > total_proposals:
+            pre_nms_topn = total_proposals
+        
+        if post_nms_topn > pre_nms_topn:
+            post_nms_topn = pre_nms_topn
 
-    # Input 2: Multiple images and different parameters
-    num_images, height, width, num_anchors = 2, 8, 12, 5
-    scores = np.random.rand(num_images, height, width, num_anchors).astype(np.float32)
-    bbox_deltas = (np.random.rand(num_images, height, width, 4 * num_anchors) * 2 - 1).astype(np.float32)
-    image_info = np.array([[320.0, 480.0, 1.0, 1.0], [240.0, 320.0, 1.2, 1.2]], dtype=np.float32)
-    anchors = _generate_anchors(num_anchors)
-    input_dict = {
-        'scores': scores,
-        'bbox_deltas': bbox_deltas,
-        'image_info': image_info,
-        'anchors': anchors,
-        'nms_threshold': 0.5,
-        'pre_nms_topn': 1000,
-        'min_size': 10.0,
-        'post_nms_topn': 100,
-        'name': 'multi_image_case'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+        input_dict = {
+            'scores': scores,
+            'bbox_deltas': bbox_deltas,
+            'image_info': image_info,
+            'anchors': anchors,
+            'nms_threshold': nms_threshold,
+            'pre_nms_topn': pre_nms_topn,
+            'min_size': min_size,
+            'post_nms_topn': post_nms_topn,
+            'name': name
+        }
+        list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Minimal dimensions and zero deltas
-    num_images, height, width, num_anchors = 1, 1, 1, 1
-    scores = np.random.rand(num_images, height, width, num_anchors).astype(np.float32)
-    bbox_deltas = np.zeros((num_images, height, width, 4 * num_anchors), dtype=np.float32)
-    image_info = np.array([[100.0, 100.0, 1.0, 1.0]] * num_images, dtype=np.float32)
-    anchors = _generate_anchors(num_anchors, max_coord=50)
-    input_dict = {
-        'scores': scores,
-        'bbox_deltas': bbox_deltas,
-        'image_info': image_info,
-        'anchors': anchors,
-        'nms_threshold': 0.9,
-        'pre_nms_topn': 10,
-        'min_size': 1.0,
-        'post_nms_topn': 5,
-        'name': None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    _create_robust_input(
+        num_images=1, height=32, width=32, num_anchors=9, name="robust_case_1"
+    )
 
-    # Input 4: Large pre_nms_topn
-    num_images, height, width, num_anchors = 1, 5, 5, 4
-    scores = np.random.rand(num_images, height, width, num_anchors).astype(np.float32)
-    bbox_deltas = (np.random.rand(num_images, height, width, 4 * num_anchors) - 0.5).astype(np.float32)
-    image_info = np.array([[200.0, 200.0, 1.0, 1.0]] * num_images, dtype=np.float32)
-    anchors = _generate_anchors(num_anchors, max_coord=80)
-    input_dict = {
-        'scores': scores,
-        'bbox_deltas': bbox_deltas,
-        'image_info': image_info,
-        'anchors': anchors,
-        'nms_threshold': 0.7,
-        'pre_nms_topn': 500,
-        'min_size': 16.0,
-        'post_nms_topn': 200,
-        'name': 'large_topn'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    _create_robust_input(
+        num_images=2, height=16, width=16, num_anchors=5, name="robust_multi_image"
+    )
 
-    # Input 5: Small pre_nms_topn and post_nms_topn
-    num_images, height, width, num_anchors = 1, 20, 20, 10
-    scores = np.random.rand(num_images, height, width, num_anchors).astype(np.float32)
-    bbox_deltas = (np.random.rand(num_images, height, width, 4 * num_anchors) - 0.5).astype(np.float32)
-    image_info = np.array([[800.0, 800.0, 1.0, 1.0]] * num_images, dtype=np.float32)
-    anchors = _generate_anchors(num_anchors, max_coord=200)
-    input_dict = {
-        'scores': scores,
-        'bbox_deltas': bbox_deltas,
-        'image_info': image_info,
-        'anchors': anchors,
-        'nms_threshold': 0.6,
-        'pre_nms_topn': 100,
-        'min_size': 20.0,
-        'post_nms_topn': 50,
-        'name': 'small_topn'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    _create_robust_input(
+        num_images=1, height=20, width=20, num_anchors=4, nms_threshold=0.95, name="robust_high_nms"
+    )
 
-    # Input 6: Very low NMS threshold
-    num_images, height, width, num_anchors = 1, 15, 15, 8
-    scores = np.random.rand(num_images, height, width, num_anchors).astype(np.float32)
-    bbox_deltas = (np.random.rand(num_images, height, width, 4 * num_anchors) - 0.5).astype(np.float32)
-    image_info = np.array([[600.0, 600.0, 1.5, 1.5]] * num_images, dtype=np.float32)
-    anchors = _generate_anchors(num_anchors, max_coord=150)
-    input_dict = {
-        'scores': scores,
-        'bbox_deltas': bbox_deltas,
-        'image_info': image_info,
-        'anchors': anchors,
-        'nms_threshold': 0.1,
-        'pre_nms_topn': 2000,
-        'min_size': 16.0,
-        'post_nms_topn': 300,
-        'name': 'low_nms'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    _create_robust_input(
+        num_images=1, height=20, width=20, num_anchors=12, nms_threshold=0.2, pre_nms_topn=500, post_nms_topn=50, name="robust_low_nms"
+    )
 
-    # Input 7: Large min_size
-    num_images, height, width, num_anchors = 1, 10, 10, 9
-    scores = np.random.rand(num_images, height, width, num_anchors).astype(np.float32)
-    bbox_deltas = (np.random.rand(num_images, height, width, 4 * num_anchors) - 0.5).astype(np.float32)
-    image_info = np.array([[400.0, 600.0, 1.0, 1.0]] * num_images, dtype=np.float32)
-    anchors = _generate_anchors(num_anchors)
-    input_dict = {
-        'scores': scores,
-        'bbox_deltas': bbox_deltas,
-        'image_info': image_info,
-        'anchors': anchors,
-        'nms_threshold': 0.7,
-        'pre_nms_topn': 6000,
-        'min_size': 100.0,
-        'post_nms_topn': 300,
-        'name': 'large_min_size'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    _create_robust_input(
+        num_images=1, height=4, width=4, num_anchors=2, pre_nms_topn=30, post_nms_topn=50, name="robust_fewer_proposals"
+    )
 
-    # Input 8: float64 dtype
-    num_images, height, width, num_anchors = 1, 10, 10, 9
-    scores = np.random.rand(num_images, height, width, num_anchors).astype(np.float64)
-    bbox_deltas = (np.random.rand(num_images, height, width, 4 * num_anchors) - 0.5).astype(np.float64)
-    image_info = np.array([[400.0, 600.0, 1.0, 1.0]] * num_images, dtype=np.float64)
-    anchors = _generate_anchors(num_anchors, dtype=np.float64)
-    input_dict = {
-        'scores': scores,
-        'bbox_deltas': bbox_deltas,
-        'image_info': image_info,
-        'anchors': anchors,
-        'nms_threshold': 0.7,
-        'pre_nms_topn': 6000,
-        'min_size': 16.0,
-        'post_nms_topn': 300,
-        'name': 'float64_case'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    _create_robust_input(
+        num_images=1, height=15, width=15, num_anchors=3, min_size=40.0, name="robust_large_min_size"
+    )
 
-    # Input 9: Extreme scores (all ones)
-    num_images, height, width, num_anchors = 1, 6, 6, 3
-    scores = np.ones((num_images, height, width, num_anchors), dtype=np.float32)
-    bbox_deltas = (np.random.rand(num_images, height, width, 4 * num_anchors) - 0.5).astype(np.float32)
-    image_info = np.array([[180.0, 180.0, 1.0, 1.0]] * num_images, dtype=np.float32)
-    anchors = _generate_anchors(num_anchors, max_coord=50)
-    input_dict = {
-        'scores': scores,
-        'bbox_deltas': bbox_deltas,
-        'image_info': image_info,
-        'anchors': anchors,
-        'nms_threshold': 0.5,
-        'pre_nms_topn': 100,
-        'min_size': 10.0,
-        'post_nms_topn': 50,
-        'name': 'ones_scores'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    _create_robust_input(
+        num_images=1, height=10, width=10, num_anchors=3, name="robust_zero_deltas"
+    )
+    list_of_inputs[-1]['bbox_deltas'] = np.zeros_like(list_of_inputs[-1]['bbox_deltas'])
 
-    # Input 10: Negative scores and min_size=0
-    num_images, height, width, num_anchors = 1, 4, 4, 2
-    scores = (np.random.rand(num_images, height, width, num_anchors) - 0.5).astype(np.float32)
-    bbox_deltas = (np.random.rand(num_images, height, width, 4 * num_anchors) - 0.5).astype(np.float32)
-    image_info = np.array([[128.0, 128.0, 1.0, 1.0]] * num_images, dtype=np.float32)
-    anchors = _generate_anchors(num_anchors, max_coord=32)
-    input_dict = {
-        'scores': scores,
-        'bbox_deltas': bbox_deltas,
-        'image_info': image_info,
-        'anchors': anchors,
-        'nms_threshold': 0.8,
-        'pre_nms_topn': 32,
-        'min_size': 0.0,
-        'post_nms_topn': 10,
-        'name': 'negative_scores'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    _create_robust_input(
+        num_images=1, height=8, width=8, num_anchors=9, name="robust_small_feature_map"
+    )
+
+    _create_robust_input(
+        num_images=1, height=16, width=16, num_anchors=15, name="robust_more_anchors"
+    )
+
+    _create_robust_input(
+        num_images=2, height=20, width=20, num_anchors=6, pre_nms_topn=500, post_nms_topn=50, name="robust_low_topn"
+    )
 
     return list_of_inputs
 
-generated_inputs["tf.image.generate_bounding_box_proposals"] = get_generate_bounding_box_proposals_inputs()
+generated_inputs["tf.image.generate_bounding_box_proposals"] = generate_tf_image_generate_bounding_box_proposals_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

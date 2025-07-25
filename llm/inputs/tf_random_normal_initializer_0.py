@@ -9,54 +9,52 @@ import numpy as np
 import copy
 
 def tf_random_normal_initializer_inputs():
-    """
-    Generates a list of valid inputs for tf.random_normal_initializer.
-    The test harness requires 'shape' and 'dtype' to be provided in the input
-    dictionary to call the initializer object that the API returns. This is
-    done via a nested dictionary with the key 'initializer_args'.
-    """
     list_of_inputs = []
 
-    def create_input_dict(mean, stddev, seed, shape, dtype):
-        return {
-            'mean': mean,
-            'stddev': stddev,
-            'seed': seed,
-            'initializer_args': {
-                'shape': shape,
-                'dtype': dtype
-            }
+    def create_input(mean, stddev, seed, shape, dtype):
+        input_dict = {
+            'mean': float(mean),
+            'stddev': float(stddev),
+            'seed': int(seed)
         }
+        # The error indicates the test harness expects arguments for the callable
+        # returned by the initializer. We hypothesize the key for these
+        # arguments is 'call_args'.
+        input_dict['call_args'] = {
+            'shape': shape,
+            'dtype': dtype,
+        }
+        return input_dict
 
-    # Input 1: Standard case
-    list_of_inputs.append(copy.deepcopy(create_input_dict(0.0, 1.0, 42, [10], np.float32)))
+    # Input 1: Basic 1D case, float32
+    list_of_inputs.append(copy.deepcopy(create_input(0.0, 1.0, 1, [10], np.float32)))
 
-    # Input 2: Negative mean, 2D shape, float64
-    list_of_inputs.append(copy.deepcopy(create_input_dict(-5.5, 2.0, 123, (3, 3), np.float64)))
+    # Input 2: Negative mean, 2D shape, float32
+    list_of_inputs.append(copy.deepcopy(create_input(-5.0, 2.0, 42, [5, 5], np.float32)))
 
-    # Input 3: Zero stddev
-    list_of_inputs.append(copy.deepcopy(create_input_dict(10.0, 0.0, 1, [2, 3, 4], np.float32)))
+    # Input 3: Zero stddev, 3D shape (results in a tensor of constants), float32
+    list_of_inputs.append(copy.deepcopy(create_input(10.0, 0.0, 7, [2, 3, 4], np.float32)))
 
-    # Input 4: Small stddev
-    list_of_inputs.append(copy.deepcopy(create_input_dict(0.0, 0.001, 777, (5, 2), np.float32)))
+    # Input 4: Small stddev, float64 dtype
+    list_of_inputs.append(copy.deepcopy(create_input(0.0, 1e-5, 100, [100], np.float64)))
 
-    # Input 5: Scalar shape
-    list_of_inputs.append(copy.deepcopy(create_input_dict(1000.0, 500.0, 2024, [], np.float64)))
+    # Input 5: Large values, 1-element shape, float32
+    list_of_inputs.append(copy.deepcopy(create_input(1000.0, 500.0, 2023, [1], np.float32)))
 
-    # Input 6: Zero seed
-    list_of_inputs.append(copy.deepcopy(create_input_dict(0.0, 0.05, 0, [100], np.float32)))
+    # Input 6: Values from docs, 2D shape, float32
+    list_of_inputs.append(copy.deepcopy(create_input(0.0, 0.05, 0, [8, 2], np.float32)))
 
-    # Input 7: Large seed
-    list_of_inputs.append(copy.deepcopy(create_input_dict(1.5, 0.25, 999999, (4, 4), np.float32)))
+    # Input 7: Negative seed, float64 dtype
+    list_of_inputs.append(copy.deepcopy(create_input(-1.0, 1.5, -10, [4, 4], np.float64)))
 
-    # Input 8: Negative seed
-    list_of_inputs.append(copy.deepcopy(create_input_dict(-2.0, 1.0, -10, (1, 1, 1), np.float64)))
+    # Input 8: Fractional values, 3D shape, float32
+    list_of_inputs.append(copy.deepcopy(create_input(3.14, 2.718, 99, [1, 1, 10], np.float32)))
 
-    # Input 9: Fractional values
-    list_of_inputs.append(copy.deepcopy(create_input_dict(3.14, 2.71, 314159, [8], np.float32)))
+    # Input 9: Scalar output (empty shape), float32
+    list_of_inputs.append(copy.deepcopy(create_input(0.5, 0.5, 1337, [], np.float32)))
 
-    # Input 10: Large negative mean
-    list_of_inputs.append(copy.deepcopy(create_input_dict(-5000.0, 10.0, 1337, (2, 5), np.float32)))
+    # Input 10: Zero-sized dimension in shape, float32
+    list_of_inputs.append(copy.deepcopy(create_input(0.0, 1.0, 2, [5, 0], np.float32)))
 
     return list_of_inputs
 

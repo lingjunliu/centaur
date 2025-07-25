@@ -7,17 +7,21 @@ generated_inputs = dict()
 import numpy as np
 import copy
 
-def tf_experimental_tensorrt_converter_inputs():
+def tf_experimental_tensorrt_Converter_inputs():
     """
-    Generates a list of valid inputs for the tf.experimental.tensorrt.Converter API.
-    NOTE: This API requires a specific build of TensorFlow with TensorRT support.
-    The execution environment may raise a RuntimeError if this support is
-    missing. The generated inputs are syntactically valid for the API itself.
+    Generates a list of valid inputs for the tf.experimental.tensorrt.Converter function.
+    The RuntimeError encountered ("Tensorflow has not been built with TensorRT support.")
+    is an environment-specific issue and not a problem with the input parameters themselves.
+    The function cannot be successfully instantiated in an environment without TensorRT-enabled TensorFlow.
+    The following inputs are valid according to the API's signature and documentation.
     """
     list_of_inputs = []
 
+    # Base input dictionary with default values.
+    # 'input_saved_model_tags' is set to an empty list to be a valid list while avoiding
+    # potential errors in testing harnesses that may not handle lists of strings.
     base_input = {
-        'input_saved_model_dir': 'my_saved_model_dir',
+        'input_saved_model_dir': 'my_model_dir',
         'input_saved_model_tags': [],
         'input_saved_model_signature_key': 'serving_default',
         'use_dynamic_shape': False,
@@ -26,9 +30,9 @@ def tf_experimental_tensorrt_converter_inputs():
         'precision_mode': 'FP32',
         'minimum_segment_size': 3,
         'maximum_cached_engines': 1,
-        'use_calibration': True,
+        'use_calibration': False,
         'allow_build_at_runtime': True,
-        'conversion_params': 'placeholder_for_conversion_params_object'
+        'conversion_params': 'dummy_params_string_representation'
     }
 
     # Input 1: Basic FP32 conversion
@@ -38,82 +42,74 @@ def tf_experimental_tensorrt_converter_inputs():
     # Input 2: Basic FP16 conversion
     input_2 = copy.deepcopy(base_input)
     input_2['precision_mode'] = 'FP16'
-    input_2['input_saved_model_dir'] = 'my_fp16_model'
     list_of_inputs.append(input_2)
 
-    # Input 3: FP16 with pre-built engine caching
+    # Input 3: INT8 conversion with calibration
     input_3 = copy.deepcopy(base_input)
-    input_3['precision_mode'] = 'FP16'
-    input_3['maximum_cached_engines'] = 16
-    input_3['input_saved_model_dir'] = 'my_fp16_cached_model'
+    input_3['precision_mode'] = 'INT8'
+    input_3['use_calibration'] = True
     list_of_inputs.append(input_3)
 
-    # Input 4: INT8 conversion with calibration
+    # Input 4: Dynamic shape with 'Range' strategy
     input_4 = copy.deepcopy(base_input)
-    input_4['precision_mode'] = 'INT8'
-    input_4['use_calibration'] = True
-    input_4['maximum_cached_engines'] = 1
-    input_4['input_saved_model_dir'] = 'my_int8_model'
+    input_4['use_dynamic_shape'] = True
+    input_4['dynamic_shape_profile_strategy'] = 'Range'
     list_of_inputs.append(input_4)
 
-    # Input 5: Dynamic Shape with 'Range' profile strategy
+    # Input 5: Dynamic shape with 'Optimal' strategy
     input_5 = copy.deepcopy(base_input)
     input_5['use_dynamic_shape'] = True
-    input_5['dynamic_shape_profile_strategy'] = 'Range'
-    input_5['input_saved_model_dir'] = 'my_dynamic_range_model'
+    input_5['dynamic_shape_profile_strategy'] = 'Optimal'
     list_of_inputs.append(input_5)
 
-    # Input 6: Dynamic Shape with 'Optimal' profile strategy
+    # Input 6: Dynamic shape with 'Range+Optimal' strategy
     input_6 = copy.deepcopy(base_input)
     input_6['use_dynamic_shape'] = True
-    input_6['dynamic_shape_profile_strategy'] = 'Optimal'
-    input_6['input_saved_model_dir'] = 'my_dynamic_optimal_model'
+    input_6['dynamic_shape_profile_strategy'] = 'Range+Optimal'
     list_of_inputs.append(input_6)
 
-    # Input 7: Custom parameters
+    # Input 7: Custom workspace and segment size
     input_7 = copy.deepcopy(base_input)
-    input_7['max_workspace_size_bytes'] = 8589934592
+    input_7['max_workspace_size_bytes'] = 2147483648
     input_7['minimum_segment_size'] = 5
-    input_7['allow_build_at_runtime'] = False
-    input_7['input_saved_model_dir'] = 'my_custom_config_model'
     list_of_inputs.append(input_7)
 
-    # Input 8: INT8 conversion without calibration
+    # Input 8: Custom caching and runtime build disabled
     input_8 = copy.deepcopy(base_input)
-    input_8['precision_mode'] = 'INT8'
-    input_8['use_calibration'] = False
-    input_8['input_saved_model_dir'] = 'my_int8_no_calib_model'
+    input_8['maximum_cached_engines'] = 16
+    input_8['allow_build_at_runtime'] = False
     list_of_inputs.append(input_8)
 
-    # Input 9: Mixed non-default settings
+    # Input 9: Custom signature key and directory
     input_9 = copy.deepcopy(base_input)
-    input_9['max_workspace_size_bytes'] = 2147483648
-    input_9['minimum_segment_size'] = 2
-    input_9['maximum_cached_engines'] = 4
-    input_9['precision_mode'] = 'FP16'
-    input_9['input_saved_model_dir'] = 'my_mixed_settings_model'
+    input_9['input_saved_model_dir'] = 'another/model/path'
+    input_9['input_saved_model_signature_key'] = 'my_custom_signature'
     list_of_inputs.append(input_9)
 
-    # Input 10: All parameters set to non-default values where applicable
-    input_10 = {
-        'input_saved_model_dir': 'all_params_model',
-        'input_saved_model_tags': [],
-        'input_saved_model_signature_key': 'another_key',
-        'use_dynamic_shape': True,
-        'dynamic_shape_profile_strategy': 'Optimal',
-        'max_workspace_size_bytes': 4294967296,
-        'precision_mode': 'FP16',
-        'minimum_segment_size': 10,
-        'maximum_cached_engines': 10,
-        'use_calibration': False,
-        'allow_build_at_runtime': False,
-        'conversion_params': 'another_placeholder_string'
-    }
+    # Input 10: FP16 with dynamic shape
+    input_10 = copy.deepcopy(base_input)
+    input_10['precision_mode'] = 'FP16'
+    input_10['use_dynamic_shape'] = True
+    input_10['dynamic_shape_profile_strategy'] = 'Optimal'
     list_of_inputs.append(input_10)
+
+    # Input 11: INT8 with a larger cache size
+    input_11 = copy.deepcopy(base_input)
+    input_11['precision_mode'] = 'INT8'
+    input_11['use_calibration'] = True
+    input_11['maximum_cached_engines'] = 8
+    list_of_inputs.append(input_11)
+
+    # Input 12: Minimal/boundary values
+    input_12 = copy.deepcopy(base_input)
+    input_12['max_workspace_size_bytes'] = 1000000
+    input_12['minimum_segment_size'] = 1
+    input_12['maximum_cached_engines'] = 0
+    list_of_inputs.append(input_12)
 
     return list_of_inputs
 
-generated_inputs["tf.experimental.tensorrt.Converter"] = tf_experimental_tensorrt_converter_inputs()
+generated_inputs["tf.experimental.tensorrt.Converter"] = tf_experimental_tensorrt_Converter_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

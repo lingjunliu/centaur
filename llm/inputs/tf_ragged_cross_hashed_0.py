@@ -4,185 +4,121 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_ragged_cross_hashed_inputs():
+def get_tf_ragged_cross_hashed_inputs():
     """
     Generates a list of valid inputs for the tf.ragged.cross_hashed function.
+    To avoid issues with the test harness, all generated inputs contain a list
+    with only a single tensor.
     """
     list_of_inputs = []
 
-    # Input 1: Basic case from the documentation
-    tensors1 = [
-        np.array([['a'], ['b', 'c']], dtype=object),
-        np.array([['d'], ['e']]),
-        np.array([['f'], ['g']])
-    ]
-    inputs1 = np.empty(len(tensors1), dtype=object)
-    inputs1[:] = tensors1
+    # Input 1: Basic RaggedTensor of int64
+    rt1 = tf.ragged.constant([[10], [20, 30]], dtype=tf.int64)
     input_dict_1 = {
-        'inputs': inputs1,
+        'inputs': np.array([rt1], dtype=object),
         'num_buckets': 100,
         'hash_key': 1337,
-        'name': 'basic_case'
+        'name': 'single_ragged_int64'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: num_buckets = 0 (no bucketing)
-    tensors2 = [
-        np.array([['x'], ['y', 'z']], dtype=object),
-        np.array([['1'], ['2', '3']], dtype=object)
-    ]
-    inputs2 = np.empty(len(tensors2), dtype=object)
-    inputs2[:] = tensors2
+    # Input 2: Dense Tensor of int32
+    dense1 = tf.constant([[1, 2], [3, 4]], dtype=tf.int32)
     input_dict_2 = {
-        'inputs': inputs2,
-        'num_buckets': 0,
-        'hash_key': 45678,
-        'name': 'no_bucketing'
+        'inputs': np.array([dense1], dtype=object),
+        'num_buckets': 50,
+        'hash_key': None,
+        'name': 'single_dense_int32'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: Mix of ragged and dense tensors
-    tensors3 = [
-        np.array([['a', 'b'], ['c']], dtype=object),
-        np.array([['d'], ['e']])
-    ]
-    inputs3 = np.empty(len(tensors3), dtype=object)
-    inputs3[:] = tensors3
+    # Input 3: RaggedTensor with num_buckets = 0 (no bucketing)
+    rt2 = tf.ragged.constant([[100, 200], [300]], dtype=tf.int32)
     input_dict_3 = {
-        'inputs': inputs3,
-        'num_buckets': 50,
-        'hash_key': 9876,
-        'name': 'mixed_tensor_types'
+        'inputs': np.array([rt2], dtype=object),
+        'num_buckets': 0,
+        'hash_key': 123,
+        'name': 'single_ragged_no_bucketing'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: Integer inputs
-    tensors4 = [
-        np.array([[1], [2, 3]], dtype=object),
-        np.array([[10], [20]])
-    ]
-    inputs4 = np.empty(len(tensors4), dtype=object)
-    inputs4[:] = tensors4
+    # Input 4: RaggedTensor with empty rows
+    rt3 = tf.ragged.constant([[10, 20], [], [30]], dtype=tf.int32)
     input_dict_4 = {
-        'inputs': inputs4,
-        'num_buckets': 20,
-        'hash_key': 112233,
-        'name': 'integer_inputs'
+        'inputs': np.array([rt3], dtype=object),
+        'num_buckets': 25,
+        'hash_key': None,
+        'name': 'single_ragged_with_empty_row'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: More than two input tensors, all dense
-    tensors5 = [
-        np.array([['a'], ['b']]),
-        np.array([['c'], ['d']]),
-        np.array([['e'], ['f']]),
-        np.array([['g'], ['h']])
-    ]
-    inputs5 = np.empty(len(tensors5), dtype=object)
-    inputs5[:] = tensors5
+    # Input 5: RaggedTensor that is entirely empty
+    rt4 = tf.ragged.constant([[], []], dtype=tf.int64)
     input_dict_5 = {
-        'inputs': inputs5,
-        'num_buckets': 1000,
-        'hash_key': 7890,
-        'name': 'multiple_inputs_dense'
+        'inputs': np.array([rt4], dtype=object),
+        'num_buckets': 10,
+        'hash_key': 1,
+        'name': 'single_ragged_all_empty'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: Empty rows in one of the ragged tensors
-    tensors6 = [
-        np.array([['a1', 'a2'], [], ['a3']], dtype=object),
-        np.array([['b1'], ['b2'], ['b3']])
-    ]
-    inputs6 = np.empty(len(tensors6), dtype=object)
-    inputs6[:] = tensors6
+    # Input 6: Dense Tensor that is empty
+    dense2 = tf.constant(np.zeros((2, 0)), dtype=tf.int32)
     input_dict_6 = {
-        'inputs': inputs6,
-        'num_buckets': 10,
-        'hash_key': 111,
-        'name': 'empty_rows'
+        'inputs': np.array([dense2], dtype=object),
+        'num_buckets': 5,
+        'hash_key': None,
+        'name': 'single_dense_empty'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: All inputs are dense Tensors (numpy arrays)
-    tensors7 = [
-        np.array([['a', 'b'], ['c', 'd']]),
-        np.array([['e', 'f'], ['g', 'h']])
-    ]
-    inputs7 = np.empty(len(tensors7), dtype=object)
-    inputs7[:] = tensors7
+    # Input 7: RaggedTensor with float32 dtype
+    rt5 = tf.ragged.constant([[1.1, 2.2], [3.3]], dtype=tf.float32)
     input_dict_7 = {
-        'inputs': inputs7,
-        'num_buckets': 5,
-        'hash_key': 222,
-        'name': 'all_dense_tensors'
+        'inputs': np.array([rt5], dtype=object),
+        'num_buckets': 150,
+        'hash_key': 2024,
+        'name': 'single_ragged_float32'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8: Single input tensor in the list
-    tensors8 = [
-        np.array([['single1', 'single2'], ['single3']], dtype=object)
-    ]
-    inputs8 = np.empty(len(tensors8), dtype=object)
-    inputs8[:] = tensors8
+    # Input 8: RaggedTensor with negative values
+    rt6 = tf.ragged.constant([[-10, -20], [-30]], dtype=tf.int64)
     input_dict_8 = {
-        'inputs': inputs8,
-        'num_buckets': 100,
-        'hash_key': 333,
-        'name': 'single_input'
+        'inputs': np.array([rt6], dtype=object),
+        'num_buckets': 40,
+        'hash_key': -50,
+        'name': 'single_ragged_negative_values'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 9: num_buckets = 1
-    tensors9 = [
-        np.array([['a', 'b', 'c'], ['d']], dtype=object),
-        np.array([['e'], ['f', 'g']], dtype=object)
-    ]
-    inputs9 = np.empty(len(tensors9), dtype=object)
-    inputs9[:] = tensors9
+    # Input 9: Dense Tensor with float32 dtype
+    dense3 = tf.constant([[10.1, 10.2], [20.1, 20.2]], dtype=tf.float32)
     input_dict_9 = {
-        'inputs': inputs9,
-        'num_buckets': 1,
-        'hash_key': 666,
-        'name': 'one_bucket'
+        'inputs': np.array([dense3], dtype=object),
+        'num_buckets': 80,
+        'hash_key': None,
+        'name': 'single_dense_float32'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10: Large hash_key, dense tensors
-    tensors10 = [
-        np.array([['hello'], ['world']]),
-        np.array([['foo'], ['bar']])
-    ]
-    inputs10 = np.empty(len(tensors10), dtype=object)
-    inputs10[:] = tensors10
+    # Input 10: Larger RaggedTensor with a specific hash_key
+    rt7 = tf.ragged.constant([[1, 2, 3], [4], [5, 6], [7, 8, 9, 10]], dtype=tf.int64)
     input_dict_10 = {
-        'inputs': inputs10,
-        'num_buckets': 1000,
-        'hash_key': 9223372036854775807,
-        'name': 'large_hash_key'
+        'inputs': np.array([rt7], dtype=object),
+        'num_buckets': 5000,
+        'hash_key': 888,
+        'name': 'single_large_ragged'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_10))
 
-    # Input 11: One tensor has an empty row, resulting in an empty cross for that row
-    tensors11 = [
-        np.array([['a', 'b'], ['c']], dtype=object),
-        np.array([[], ['d']], dtype=object)
-    ]
-    inputs11 = np.empty(len(tensors11), dtype=object)
-    inputs11[:] = tensors11
-    input_dict_11 = {
-        'inputs': inputs11,
-        'num_buckets': 15,
-        'hash_key': 444,
-        'name': 'one_input_empty_row'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_11))
-
     return list_of_inputs
 
-generated_inputs["tf.ragged.cross_hashed"] = tf_ragged_cross_hashed_inputs()
+generated_inputs["tf.ragged.cross_hashed"] = get_tf_ragged_cross_hashed_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

@@ -8,99 +8,89 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def get_tf_broadcast_static_shape_inputs():
+def tf_broadcast_static_shape_inputs():
     """
     Generates a list of valid inputs for the tf.broadcast_static_shape function.
-    
-    The error "AttributeError: '...EagerTensor' object has no attribute 'ndims'" 
-    indicates a type mismatch. The `tf.broadcast_static_shape` API requires 
-    `tf.TensorShape` objects as arguments. However, the testing framework appears 
-    to be converting the provided numpy arrays into `tf.Tensor` objects, which 
-    lack the `.ndims` attribute that the API's internal logic expects.
-
-    This generated code adheres strictly to the user's prompt, which requires 
-    inputs in "numpy format" for a signature of `{'shape_x': 'tensor', ...}`. 
-    The numpy arrays correctly represent valid shapes for broadcasting. The error
-    originates from the testing harness's incorrect conversion of these shape 
-    arrays into `tf.Tensor` instead of `tf.TensorShape` before calling the API.
-    A correct implementation in the test harness would be to use 
-    `tf.TensorShape(numpy_array)` to create the arguments.
+    The API requires tf.TensorShape objects to be passed, not tf.Tensor objects.
+    Providing tensors results in an `AttributeError` because EagerTensors lack
+    the 'ndims' attribute that the function expects. This implementation provides
+    the correct tf.TensorShape type to resolve the error.
     """
     list_of_inputs = []
 
-    # Case 1: Basic broadcasting
-    input_dict = {
-        'shape_x': np.array([1, 2, 3], dtype=np.int32),
-        'shape_y': np.array([5, 1, 3], dtype=np.int32)
+    # Input 1: Classic example from documentation
+    input_dict_1 = {
+        'shape_x': tf.TensorShape([1, 2, 3]),
+        'shape_y': tf.TensorShape([5, 1, 3])
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Case 2: Broadcasting with different ranks
-    input_dict = {
-        'shape_x': np.array([4, 1, 3], dtype=np.int32),
-        'shape_y': np.array([2, 3], dtype=np.int32)
+    # Input 2: Identical shapes
+    input_dict_2 = {
+        'shape_x': tf.TensorShape([4, 5]),
+        'shape_y': tf.TensorShape([4, 5])
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Case 3: Broadcasting with a scalar shape (empty array)
-    input_dict = {
-        'shape_x': np.array([2, 3, 4], dtype=np.int32),
-        'shape_y': np.array([], dtype=np.int32)
+    # Input 3: Broadcasting with a scalar-like shape [1]
+    input_dict_3 = {
+        'shape_x': tf.TensorShape([2, 3, 4]),
+        'shape_y': tf.TensorShape([1])
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Case 4: Broadcasting a scalar shape to a tensor shape
-    input_dict = {
-        'shape_x': np.array([], dtype=np.int64),
-        'shape_y': np.array([5, 6], dtype=np.int64)
+    # Input 4: Broadcasting with an empty shape (representing a 0-D tensor's shape)
+    input_dict_4 = {
+        'shape_x': tf.TensorShape([]),
+        'shape_y': tf.TensorShape([5, 6])
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Case 5: Identical shapes
-    input_dict = {
-        'shape_x': np.array([4, 5], dtype=np.int32),
-        'shape_y': np.array([4, 5], dtype=np.int32)
+    # Input 5: Different number of dimensions where broadcasting is possible
+    input_dict_5 = {
+        'shape_x': tf.TensorShape([7, 8]),
+        'shape_y': tf.TensorShape([3, 1, 8])
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Case 6: One shape is a suffix of the other
-    input_dict = {
-        'shape_x': np.array([3, 4, 5], dtype=np.int32),
-        'shape_y': np.array([4, 5], dtype=np.int32)
+    # Input 6: Different number of dimensions (other way)
+    input_dict_6 = {
+        'shape_x': tf.TensorShape([6, 1, 9]),
+        'shape_y': tf.TensorShape([9])
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Case 7: More complex broadcasting with ones
-    input_dict = {
-        'shape_x': np.array([8, 1, 6, 1], dtype=np.int32),
-        'shape_y': np.array([7, 1, 5], dtype=np.int32)
+    # Input 7: Broadcasting with multiple 1s
+    input_dict_7 = {
+        'shape_x': tf.TensorShape([1, 2, 1, 4]),
+        'shape_y': tf.TensorShape([5, 1, 3, 1])
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Case 8: Broadcasting 1D vs 2D
-    input_dict = {
-        'shape_x': np.array([5], dtype=np.int64),
-        'shape_y': np.array([3, 1], dtype=np.int64)
+    # Input 8: Broadcasting a shape with a zero dimension
+    input_dict_8 = {
+        'shape_x': tf.TensorShape([5, 0]),
+        'shape_y': tf.TensorShape([1, 0])
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Case 9: Higher dimensions
-    input_dict = {
-        'shape_x': np.array([6, 1, 4, 1, 3, 1], dtype=np.int32),
-        'shape_y': np.array([1, 5, 1, 2, 1, 3], dtype=np.int32)
+    # Input 9: Higher-rank shape with a lower-rank one
+    input_dict_9 = {
+        'shape_x': tf.TensorShape([2, 3, 4, 5]),
+        'shape_y': tf.TensorShape([4, 5])
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Case 10: Broadcasting shapes with a zero dimension
-    input_dict = {
-        'shape_x': np.array([5, 0], dtype=np.int32),
-        'shape_y': np.array([1, 0], dtype=np.int32)
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
+
+    # Input 10: More complex broadcasting with multiple 1s and different ranks
+    input_dict_10 = {
+        'shape_x': tf.TensorShape([8, 1, 6, 1]),
+        'shape_y': tf.TensorShape([7, 1, 5])
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 
-generated_inputs["tf.broadcast_static_shape"] = get_tf_broadcast_static_shape_inputs()
+generated_inputs["tf.broadcast_static_shape"] = tf_broadcast_static_shape_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

@@ -9,87 +9,39 @@ import copy
 
 def tf_raw_ops_reader_reset_inputs():
     """
-    This function generates a list of inputs for tf.raw_ops.ReaderReset.
-    The repeated "RuntimeError: reader_reset op does not support eager execution"
-    is a fundamental limitation. This op is designed for TensorFlow's graph execution
-    mode and requires a stateful 'Ref' tensor for 'reader_handle', which cannot be
-    instantiated from a standard numpy array in an eager context. The generated
-    inputs below are a best-effort attempt to provide syntactically correct data
-    that conforms to the API's signature, even though they will fail in the eager
-    testing environment. All string tensors are created with dtype=object to avoid
-    secondary dtype validation errors.
+    Generates a list of syntactically valid inputs for tf.raw_ops.ReaderReset.
+
+    The recurring error `RuntimeError: reader_reset op does not support eager
+    execution` is fundamental to this operation. It is a legacy op designed
+    for TensorFlow's graph mode and is incompatible with the default eager
+    execution environment. The error is not caused by the input values but by
+    the op's design and the context in which it is called. A `reader_handle`
+    is expected to be a reference to a stateful resource object within a
+    TensorFlow graph, which cannot be created from a simple NumPy array in an
+    eager context.
+
+    The inputs provided below adhere strictly to the API's type signature
+    but will inevitably trigger this runtime error in the testing environment.
+    The inputs are simplified to the most basic valid form: a scalar string
+    tensor for the handle and a string for the name.
     """
     list_of_inputs = []
 
-    # Input 1: Simplest case
-    input_dict_1 = {
-        'reader_handle': np.array('handle_alpha', dtype=object),
-        'name': 'reset_alpha'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Helper function to create a scalar (0-D) numpy array for the tensor handle.
+    def create_scalar_string_tensor(s):
+        return np.array(s, dtype=object)
 
-    # Input 2: Numeric handle string
-    input_dict_2 = {
-        'reader_handle': np.array('1234567890', dtype=object),
-        'name': 'reset_numeric'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
-
-    # Input 3: Scoped name
-    input_dict_3 = {
-        'reader_handle': np.array('handle_beta', dtype=object),
-        'name': 'scope/reset_beta'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
-
-    # Input 4: Scoped handle string
-    input_dict_4 = {
-        'reader_handle': np.array('readers/textline/handle_gamma', dtype=object),
-        'name': 'reset_gamma'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
-
-    # Input 5: Empty string for handle
-    input_dict_5 = {
-        'reader_handle': np.array('', dtype=object),
-        'name': 'reset_empty_handle'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
-
-    # Input 6: Empty string for name
-    input_dict_6 = {
-        'reader_handle': np.array('handle_delta', dtype=object),
-        'name': ''
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
-
-    # Input 7: Long handle string
-    input_dict_7 = {
-        'reader_handle': np.array('a_very_long_string_used_as_a_reader_handle_for_this_test_case', dtype=object),
-        'name': 'reset_long'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
-
-    # Input 8: 1-D array for handle
-    input_dict_8 = {
-        'reader_handle': np.array(['handle_in_array'], dtype=object),
-        'name': 'reset_from_array'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
-    
-    # Input 9: Handle with hyphens
-    input_dict_9 = {
-        'reader_handle': np.array('handle-with-hyphens', dtype=object),
-        'name': 'reset_hyphenated'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
-    
-    # Input 10: Handle with underscores
-    input_dict_10 = {
-        'reader_handle': np.array('handle_with_underscores', dtype=object),
-        'name': 'reset_underscored'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    # Generate 10 simple, syntactically correct inputs.
+    for i in range(10):
+        input_dict = {
+            # 'reader_handle' must be a tensor of type mutable_string.
+            # In numpy, this is represented as a numpy array of strings (dtype=object).
+            # The handle itself is just a placeholder name for the resource.
+            'reader_handle': create_scalar_string_tensor(f"mock_reader_handle_{i}"),
+            # 'name' is an optional name for the operation.
+            'name': f'ResetOperationName_{i}'
+        }
+        list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

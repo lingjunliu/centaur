@@ -8,137 +8,105 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def get_tf_sparse_reorder_inputs():
+def tf_sparse_reorder_inputs():
     """
     Generates a list of valid inputs for the tf.sparse.reorder function.
-    The input 'sp_input' must be a tf.SparseTensor.
     """
     list_of_inputs = []
 
-    # Input 1: Basic 2D case from the documentation
-    indices = np.array([[0, 3], [0, 1], [3, 1], [2, 0]], dtype=np.int64)
-    values = np.array([10, 20, 40, 30], dtype=np.int32)
-    dense_shape = np.array([4, 5], dtype=np.int64)
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
-    input_dict = {
-        'sp_input': sp_input,
-        'name': 'reorder_2d_basic'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Basic case from the documentation (using integers)
+    sp_input_1 = tf.SparseTensor(
+        indices=np.array([[0, 3], [0, 1], [3, 1], [2, 0]], dtype=np.int64),
+        values=np.array([2, 1, 4, 3], dtype=np.int32),
+        dense_shape=np.array([4, 5], dtype=np.int64)
+    )
+    input_dict_1 = {'sp_input': sp_input_1, 'name': 'doc_example_int'}
+    list_of_inputs.append(input_dict_1)
 
-    # Input 2: 3D tensor with out-of-order indices
-    indices = np.array([[2, 1, 0], [0, 0, 1], [0, 1, 0]], dtype=np.int64)
-    values = np.array([3.0, 1.0, 2.0], dtype=np.float32)
-    dense_shape = np.array([3, 2, 2], dtype=np.int64)
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
-    input_dict = {
-        'sp_input': sp_input,
-        'name': 'reorder_3d_float'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: Already ordered input (int32 values)
+    sp_input_2 = tf.SparseTensor(
+        indices=np.array([[0, 1], [0, 3], [2, 0], [3, 1]], dtype=np.int64),
+        values=np.array([10, 20, 30, 40], dtype=np.int32),
+        dense_shape=np.array([4, 5], dtype=np.int64)
+    )
+    input_dict_2 = {'sp_input': sp_input_2, 'name': 'already_ordered'}
+    list_of_inputs.append(input_dict_2)
 
-    # Input 3: Already ordered tensor (should be a no-op)
-    indices = np.array([[0, 1], [0, 3], [2, 0], [3, 1]], dtype=np.int64)
-    values = np.array([1, 2, 3, 4], dtype=np.int32)
-    dense_shape = np.array([4, 5], dtype=np.int64)
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
-    input_dict = {
-        'sp_input': sp_input,
-        'name': 'already_ordered'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: 3D sparse tensor (float32 values)
+    sp_input_3 = tf.SparseTensor(
+        indices=np.array([[1, 0, 1], [0, 1, 0], [1, 1, 1], [0, 0, 1]], dtype=np.int64),
+        values=np.array([3.3, 2.2, 4.4, 1.1], dtype=np.float32),
+        dense_shape=np.array([2, 2, 2], dtype=np.int64)
+    )
+    input_dict_3 = {'sp_input': sp_input_3, 'name': '3d_float_tensor'}
+    list_of_inputs.append(input_dict_3)
 
-    # Input 4: Empty sparse tensor
-    indices = np.empty((0, 2), dtype=np.int64)
-    values = np.array([], dtype=np.int32)
-    dense_shape = np.array([10, 10], dtype=np.int64)
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
-    input_dict = {
-        'sp_input': sp_input,
-        'name': 'empty_tensor'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: Empty sparse tensor (no non-zero elements)
+    sp_input_4 = tf.SparseTensor(
+        indices=np.empty((0, 3), dtype=np.int64),
+        values=np.array([], dtype=np.float32),
+        dense_shape=np.array([5, 5, 5], dtype=np.int64)
+    )
+    input_dict_4 = {'sp_input': sp_input_4, 'name': 'empty_tensor'}
+    list_of_inputs.append(input_dict_4)
 
-    # Input 5: 1D sparse tensor (vector)
-    indices = np.array([[8], [2], [5], [0]], dtype=np.int64)
-    values = np.array([4, 2, 3, 1], dtype=np.int64)
-    dense_shape = np.array([10], dtype=np.int64)
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
-    input_dict = {
-        'sp_input': sp_input,
-        'name': 'reorder_1d_vector'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5: 1D sparse tensor (vector) with negative values
+    sp_input_5 = tf.SparseTensor(
+        indices=np.array([[8], [2], [5], [0]], dtype=np.int64),
+        values=np.array([-10, -2, -5, -1], dtype=np.int64),
+        dense_shape=np.array([10], dtype=np.int64)
+    )
+    input_dict_5 = {'sp_input': sp_input_5, 'name': None}
+    list_of_inputs.append(input_dict_5)
 
-    # Input 6: Sparse tensor with negative values
-    indices = np.array([[3, 0], [1, 1], [0, 2]], dtype=np.int64)
-    values = np.array([-30, -20, -10], dtype=np.int32)
-    dense_shape = np.array([4, 4], dtype=np.int64)
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
-    input_dict = {
-        'sp_input': sp_input,
-        'name': 'negative_values'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6: 4D sparse tensor with integer values
+    sp_input_6 = tf.SparseTensor(
+        indices=np.array([[0, 0, 0, 1], [0, 0, 0, 0]], dtype=np.int64),
+        values=np.array([1, 0], dtype=np.int32),
+        dense_shape=np.array([1, 1, 1, 2], dtype=np.int64)
+    )
+    input_dict_6 = {'sp_input': sp_input_6, 'name': '4d_int_tensor'}
+    list_of_inputs.append(input_dict_6)
 
     # Input 7: Sparse tensor with duplicate indices
-    indices = np.array([[1, 1], [0, 0], [1, 1]], dtype=np.int64)
-    values = np.array([2, 1, 3], dtype=np.int32)
-    dense_shape = np.array([2, 2], dtype=np.int64)
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
-    input_dict = {
-        'sp_input': sp_input,
-        'name': 'duplicate_indices'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    sp_input_7 = tf.SparseTensor(
+        indices=np.array([[1, 1], [0, 0], [1, 1]], dtype=np.int64),
+        values=np.array([10, 20, 30], dtype=np.int32),
+        dense_shape=np.array([2, 2], dtype=np.int64)
+    )
+    input_dict_7 = {'sp_input': sp_input_7, 'name': 'duplicate_indices'}
+    list_of_inputs.append(input_dict_7)
 
-    # Input 8: Higher rank tensor (4D)
-    indices = np.array([[0, 0, 1, 0], [0, 0, 0, 1], [0, 0, 0, 0]], dtype=np.int64)
-    values = np.array([2.5, 1.5, 0.5], dtype=np.float64)
-    dense_shape = np.array([1, 1, 2, 2], dtype=np.int64)
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
-    input_dict = {
-        'sp_input': sp_input,
-        'name': 'reorder_4d_tensor'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 8: Single element sparse tensor with float64 values
+    sp_input_8 = tf.SparseTensor(
+        indices=np.array([[3, 4]], dtype=np.int64),
+        values=np.array([100.5], dtype=np.float64),
+        dense_shape=np.array([5, 5], dtype=np.int64)
+    )
+    input_dict_8 = {'sp_input': sp_input_8, 'name': 'single_element'}
+    list_of_inputs.append(input_dict_8)
+    
+    # Input 9: All elements in the same row, unordered
+    sp_input_9 = tf.SparseTensor(
+        indices=np.array([[1, 4], [1, 0], [1, 9], [1, 2]], dtype=np.int64),
+        values=np.array([4, 0, 9, 2], dtype=np.int32),
+        dense_shape=np.array([2, 10], dtype=np.int64)
+    )
+    input_dict_9 = {'sp_input': sp_input_9, 'name': 'single_row_unordered'}
+    list_of_inputs.append(input_dict_9)
 
-    # Input 9: A tensor with a large shape but few elements
-    indices = np.array([[999, 999], [0, 0], [500, 2]], dtype=np.int64)
-    values = np.array([3, 1, 2], dtype=np.int32)
-    dense_shape = np.array([1000, 1000], dtype=np.int64)
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
-    input_dict = {
-        'sp_input': sp_input,
-        'name': 'large_sparse_shape'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Complex values
-    indices = np.array([[1, 0], [0, 1]], dtype=np.int64)
-    values = np.array([2+3j, 1+2j], dtype=np.complex64)
-    dense_shape = np.array([2, 2], dtype=np.int64)
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
-    input_dict = {
-        'sp_input': sp_input,
-        'name': 'complex_values'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11: All indices in the same first dimension with boolean values
-    indices = np.array([[1, 4], [1, 0], [1, 2]], dtype=np.int64)
-    values = np.array([True, False, True], dtype=bool)
-    dense_shape = np.array([2, 5], dtype=np.int64)
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
-    input_dict = {
-        'sp_input': sp_input,
-        'name': 'same_first_dim_bool'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 10: Reverse-ordered sparse tensor
+    sp_input_10 = tf.SparseTensor(
+        indices=np.array([[3, 3], [2, 2], [1, 1], [0, 0]], dtype=np.int64),
+        values=np.array([4.0, 3.0, 2.0, 1.0], dtype=np.float32),
+        dense_shape=np.array([4, 4], dtype=np.int64)
+    )
+    input_dict_10 = {'sp_input': sp_input_10, 'name': 'reverse_ordered'}
+    list_of_inputs.append(input_dict_10)
 
     return list_of_inputs
 
-generated_inputs["tf.sparse.reorder"] = get_tf_sparse_reorder_inputs()
+generated_inputs["tf.sparse.reorder"] = tf_sparse_reorder_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

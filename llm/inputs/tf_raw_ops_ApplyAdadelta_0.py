@@ -7,104 +7,80 @@ generated_inputs = dict()
 import numpy as np
 import copy
 
-def tf_raw_ops_apply_adadelta_inputs():
+def get_tf_raw_ops_apply_adadelta_inputs():
     """
-    Generates a list of valid inputs for the tf.raw_ops.ApplyAdadelta function.
-    
-    NOTE: tf.raw_ops.ApplyAdadelta modifies its variable inputs in-place and is
-    intended for use in a TensorFlow graph. Calling it directly in eager
-    execution mode will result in a RuntimeError. The inputs provided here are
-    valid numpy arrays as per the request, but the error stems from the
-    execution context, not the inputs themselves.
+    Generates a list of valid inputs for tf.raw_ops.ApplyAdadelta.
+    The recurring "eager execution" error suggests the issue is fundamental to
+    how the test harness calls this type of 'ref' op. This attempt provides
+    inputs of various dtypes listed in the documentation, including integer types,
+    which are unusual for optimizers but technically valid according to the
+    API signature. This is to test if different type dispatch paths in TensorFlow
+    might avoid the error.
     """
     list_of_inputs = []
 
-    # Helper to create an input dictionary
-    def create_input(var, lr, rho, epsilon, use_locking, name):
-        dtype = var.dtype
+    def create_input(shape, dtype, use_locking, name):
+        var = (np.random.rand(*shape) * 10).astype(dtype)
+        accum = (np.random.rand(*shape) * 1).astype(dtype)
+        accum_update = (np.random.rand(*shape) * 1).astype(dtype)
+        grad = (np.random.rand(*shape) * 2 - 1).astype(dtype)
+
+        if np.issubdtype(dtype, np.integer):
+            lr = np.array(1, dtype=dtype)
+            rho = np.array(1, dtype=dtype)
+            epsilon = np.array(0, dtype=dtype)
+        else:
+            lr = np.array(0.001, dtype=dtype)
+            rho = np.array(0.95, dtype=dtype)
+            epsilon = np.array(1e-7, dtype=dtype)
+
         return {
-            'var': var.copy(),
-            'accum': np.full_like(var, 0.1, dtype=dtype),
-            'accum_update': np.full_like(var, 0.1, dtype=dtype),
-            'lr': np.array(lr, dtype=dtype),
-            'rho': np.array(rho, dtype=dtype),
-            'epsilon': np.array(epsilon, dtype=dtype),
-            'grad': (np.random.rand(*var.shape) * 2 - 1).astype(dtype),
+            'var': var,
+            'accum': accum,
+            'accum_update': accum_update,
+            'lr': lr,
+            'rho': rho,
+            'epsilon': epsilon,
+            'grad': grad,
             'use_locking': use_locking,
             'name': name
         }
 
-    # Case 1: Basic float32, 1D
-    list_of_inputs.append(create_input(
-        var=np.array([1.0, 2.0, 3.0], dtype=np.float32),
-        lr=0.001, rho=0.95, epsilon=1e-8, use_locking=False, name="case1_f32_1d"
-    ))
+    # Input 1: Standard float32, 1D
+    list_of_inputs.append(copy.deepcopy(create_input((4,), np.float32, False, "apply_adadelta_f32")))
 
-    # Case 2: float64, 2D
-    list_of_inputs.append(create_input(
-        var=np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64),
-        lr=0.01, rho=0.9, epsilon=1e-7, use_locking=True, name="case2_f64_2d"
-    ))
+    # Input 2: Standard float64, 2D, with locking
+    list_of_inputs.append(copy.deepcopy(create_input((2, 2), np.float64, True, "apply_adadelta_f64")))
     
-    # Case 3: float16 (half), 3D
-    list_of_inputs.append(create_input(
-        var=np.random.randn(2, 2, 2).astype(np.float16),
-        lr=0.001, rho=0.95, epsilon=1e-4, use_locking=False, name="case3_f16_3d"
-    ))
+    # Input 3: int32, as per documentation
+    list_of_inputs.append(copy.deepcopy(create_input((3,), np.int32, False, "apply_adadelta_i32")))
 
-    # Case 4: float32, scalar (0D)
-    list_of_inputs.append(create_input(
-        var=np.array(100.0, dtype=np.float32),
-        lr=1.0, rho=0.99, epsilon=1e-6, use_locking=True, name="case4_f32_scalar"
-    ))
+    # Input 4: int64, as per documentation
+    list_of_inputs.append(copy.deepcopy(create_input((2, 3), np.int64, True, "apply_adadelta_i64")))
 
-    # Case 5: float64, large values
-    list_of_inputs.append(create_input(
-        var=np.array([1e6, -2e6], dtype=np.float64),
-        lr=0.001, rho=0.95, epsilon=1.0, use_locking=False, name="case5_f64_large"
-    ))
+    # Input 5: uint8, as per documentation
+    list_of_inputs.append(copy.deepcopy(create_input((5,), np.uint8, False, "apply_adadelta_ui8")))
 
-    # Case 6: float32, all zeros for var, accum, and grad
-    var6 = np.zeros((2, 2), dtype=np.float32)
-    list_of_inputs.append({
-        'var': var6,
-        'accum': np.zeros_like(var6),
-        'accum_update': np.zeros_like(var6),
-        'lr': np.array(1.0, dtype=np.float32),
-        'rho': np.array(0.9, dtype=np.float32),
-        'epsilon': np.array(1e-7, dtype=np.float32),
-        'grad': np.zeros_like(var6),
-        'use_locking': False,
-        'name': "case6_f32_zeros"
-    })
+    # Input 6: int16, as per documentation
+    list_of_inputs.append(copy.deepcopy(create_input((10,), np.int16, True, "apply_adadelta_i16")))
 
-    # Case 7: float32, empty tensor
-    list_of_inputs.append(create_input(
-        var=np.empty((2, 0), dtype=np.float32),
-        lr=0.1, rho=0.9, epsilon=1e-7, use_locking=False, name="case7_f32_empty"
-    ))
-
-    # Case 8: float32, negative var and grad values
-    list_of_inputs.append(create_input(
-        var=np.array([-1.5, 0.5, -2.5, 3.5], dtype=np.float32),
-        lr=1.0, rho=0.99, epsilon=1e-6, use_locking=True, name="case8_f32_negative"
-    ))
+    # Input 7: Scalar float32 (0-D tensor)
+    list_of_inputs.append(copy.deepcopy(create_input((), np.float32, False, "apply_adadelta_scalar_f32")))
     
-    # Case 9: float64, high rank (4D)
-    list_of_inputs.append(create_input(
-        var=np.ones((1, 2, 1, 2), dtype=np.float64),
-        lr=0.1, rho=0.9, epsilon=1e-7, use_locking=False, name="case9_f64_4d"
-    ))
+    # Input 8: Scalar int32 (0-D tensor)
+    list_of_inputs.append(copy.deepcopy(create_input((), np.int32, True, "apply_adadelta_scalar_i32")))
 
-    # Case 10: float32, another 1D case with different hyperparameters
-    list_of_inputs.append(create_input(
-        var=np.array([10.0, -10.0], dtype=np.float32),
-        lr=1.0, rho=0.5, epsilon=1e-1, use_locking=True, name="case10_f32_hparams"
-    ))
+    # Input 9: half (float16)
+    f16_input = create_input((6,), np.float16, True, "apply_adadelta_f16")
+    f16_input['epsilon'] = np.array(1e-4, dtype=np.float16)
+    list_of_inputs.append(copy.deepcopy(f16_input))
     
+    # Input 10: 1-element vector, float32
+    list_of_inputs.append(copy.deepcopy(create_input((1,), np.float32, False, "apply_adadelta_1_elem")))
+
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.ApplyAdadelta"] = tf_raw_ops_apply_adadelta_inputs()
+generated_inputs["tf.raw_ops.ApplyAdadelta"] = get_tf_raw_ops_apply_adadelta_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

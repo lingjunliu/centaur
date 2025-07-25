@@ -5,167 +5,112 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import numpy as np
+import tensorflow as tf
 import copy
 
-def get_sparse_apply_proximal_adagrad_inputs():
+def tf_raw_ops_SparseApplyProximalAdagrad_inputs():
     """
     Generates a list of valid inputs for tf.raw_ops.SparseApplyProximalAdagrad.
-    
-    CRITICAL NOTE: The error 'RuntimeError: sparse_apply_proximal_adagrad op does not support
-    eager execution' is an INHERENT and UNAVOIDABLE characteristic of this operation when
-    called directly in TensorFlow's default eager mode. This op requires mutable reference
-    inputs ('var', 'accum'), a feature of TensorFlow's graph execution mode.
-    
-    It is *impossible* to "fix" this error by changing the NumPy inputs. The error arises from
-    the execution context (eager vs. graph), not from the inputs themselves. The following inputs
-    are syntactically and semantically correct for this operation's definition and would work
-    correctly in a TensorFlow graph.
+
+    CRITICAL NOTE: This TensorFlow op is stateful and designed to modify its
+    'var' and 'accum' inputs. It is NOT compatible with TensorFlow's default
+    eager execution mode. The 'RuntimeError' is an expected and documented
+    behavior when calling this op eagerly. The inputs provided here are valid
+    for the op's signature and would execute correctly in a graph context
+    (e.g., inside a @tf.function or a TF1 session). The error stems from the
+    execution environment, not the inputs themselves.
     """
     list_of_inputs = []
 
-    # Input 1: Minimal float32 case
-    input_dict = {
-        'var': np.array([[1.0], [2.0]], dtype=np.float32),
-        'accum': np.array([[0.1], [0.1]], dtype=np.float32),
-        'lr': np.array(0.1, dtype=np.float32),
-        'l1': np.array(0.1, dtype=np.float32),
-        'l2': np.array(0.1, dtype=np.float32),
-        'grad': np.array([[0.5]], dtype=np.float32),
-        'indices': np.array([0], dtype=np.int32),
-        'use_locking': False,
-        'name': 'minimal_float32'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    def _create_input_dict(var, accum, lr, l1, l2, grad, indices, use_locking, name):
+        """Helper to construct the input dictionary."""
+        dtype = var.dtype
+        return {
+            'var': var,
+            'accum': accum,
+            'lr': np.array(lr, dtype=dtype),
+            'l1': np.array(l1, dtype=dtype),
+            'l2': np.array(l2, dtype=dtype),
+            'grad': grad,
+            'indices': indices,
+            'use_locking': use_locking,
+            'name': name
+        }
 
-    # Input 2: Minimal float64 case with int64 indices
-    input_dict = {
-        'var': np.array([[10.0], [20.0]], dtype=np.float64),
-        'accum': np.array([[1.0], [1.0]], dtype=np.float64),
-        'lr': np.array(0.01, dtype=np.float64),
-        'l1': np.array(0.0, dtype=np.float64),
-        'l2': np.array(0.5, dtype=np.float64),
-        'grad': np.array([[-2.0]], dtype=np.float64),
-        'indices': np.array([1], dtype=np.int64),
-        'use_locking': False,
-        'name': 'minimal_float64_int64_indices'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 1: Basic float32, 2D tensor
+    var1 = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float32)
+    accum1 = np.array([[0.1, 0.2], [0.3, 0.4], [0.5, 0.6]], dtype=np.float32)
+    indices1 = np.array([0, 2], dtype=np.int32)
+    grad1 = np.array([[0.1, -0.1], [0.2, -0.2]], dtype=np.float32)
+    list_of_inputs.append(copy.deepcopy(_create_input_dict(var1, accum1, 0.01, 0.1, 0.001, grad1, indices1, False, "float32_basic")))
 
-    # Input 3: Half precision (float16)
-    input_dict = {
-        'var': np.array([[1.0], [2.0]], dtype=np.float16),
-        'accum': np.array([[0.1], [0.1]], dtype=np.float16),
-        'lr': np.array(0.1, dtype=np.float16),
-        'l1': np.array(0.1, dtype=np.float16),
-        'l2': np.array(0.1, dtype=np.float16),
-        'grad': np.array([[0.5]], dtype=np.float16),
-        'indices': np.array([0], dtype=np.int32),
-        'use_locking': False,
-        'name': 'half_precision_float16'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 2: Basic float64, 2D tensor with locking
+    var2 = np.array([[10.0], [20.0], [30.0]], dtype=np.float64)
+    accum2 = np.array([[1.0], [1.0], [1.0]], dtype=np.float64)
+    indices2 = np.array([1], dtype=np.int64)
+    grad2 = np.array([[-5.0]], dtype=np.float64)
+    list_of_inputs.append(copy.deepcopy(_create_input_dict(var2, accum2, 0.1, 0.0, 0.5, grad2, indices2, True, "float64_locking")))
 
-    # Input 4: use_locking=True
-    input_dict = {
-        'var': np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32),
-        'accum': np.array([[0.5, 0.5], [0.5, 0.5]], dtype=np.float32),
-        'lr': np.array(0.1, dtype=np.float32),
-        'l1': np.array(0.2, dtype=np.float32),
-        'l2': np.array(0.3, dtype=np.float32),
-        'grad': np.array([[0.1, -0.1]], dtype=np.float32),
-        'indices': np.array([0], dtype=np.int32),
-        'use_locking': True,
-        'name': 'use_locking_true'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 3: 1D tensors
+    var3 = np.arange(5, dtype=np.float32)
+    accum3 = np.full(5, 0.1, dtype=np.float32)
+    indices3 = np.array([1, 3, 4], dtype=np.int32)
+    grad3 = np.array([0.5, -0.3, 0.1], dtype=np.float32)
+    list_of_inputs.append(copy.deepcopy(_create_input_dict(var3, accum3, 0.5, 0.05, 0.02, grad3, indices3, False, "1d_tensors")))
 
-    # Input 5: Zero learning rate
-    input_dict = {
-        'var': np.array([[1.0], [2.0]], dtype=np.float32),
-        'accum': np.array([[0.1], [0.1]], dtype=np.float32),
-        'lr': np.array(0.0, dtype=np.float32),
-        'l1': np.array(1.0, dtype=np.float32),
-        'l2': np.array(1.0, dtype=np.float32),
-        'grad': np.array([[100.0]], dtype=np.float32),
-        'indices': np.array([0], dtype=np.int32),
-        'use_locking': False,
-        'name': 'zero_lr'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 4: 3D tensors
+    var4 = np.random.rand(4, 3, 2).astype(np.float32)
+    accum4 = np.full((4, 3, 2), 0.1, dtype=np.float32)
+    indices4 = np.array([0, 3], dtype=np.int32)
+    grad4 = np.random.rand(2, 3, 2).astype(np.float32)
+    list_of_inputs.append(copy.deepcopy(_create_input_dict(var4, accum4, 0.001, 0.2, 0.1, grad4, indices4, True, "3d_tensors")))
 
-    # Input 6: Zero regularization
-    input_dict = {
-        'var': np.array([[1.0], [2.0]], dtype=np.float32),
-        'accum': np.array([[0.1], [0.1]], dtype=np.float32),
-        'lr': np.array(0.1, dtype=np.float32),
-        'l1': np.array(0.0, dtype=np.float32),
-        'l2': np.array(0.0, dtype=np.float32),
-        'grad': np.array([[0.5]], dtype=np.float32),
-        'indices': np.array([1], dtype=np.int32),
-        'use_locking': False,
-        'name': 'zero_regularization'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 5: Zero regularization
+    var5 = np.array([[1.0, 2.0]], dtype=np.float32)
+    accum5 = np.array([[0.1, 0.1]], dtype=np.float32)
+    indices5 = np.array([0], dtype=np.int32)
+    grad5 = np.array([[0.5, -0.5]], dtype=np.float32)
+    list_of_inputs.append(copy.deepcopy(_create_input_dict(var5, accum5, 0.01, 0.0, 0.0, grad5, indices5, False, "zero_regularization")))
 
-    # Input 7: Empty update
-    input_dict = {
-        'var': np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32),
-        'accum': np.array([[1.0, 1.0], [1.0, 1.0]], dtype=np.float32),
-        'lr': np.array(0.1, dtype=np.float32),
-        'l1': np.array(0.1, dtype=np.float32),
-        'l2': np.array(0.1, dtype=np.float32),
-        'indices': np.array([], dtype=np.int32),
-        'grad': np.empty(shape=(0, 2), dtype=np.float32),
-        'use_locking': False,
-        'name': 'empty_indices_grad'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 6: All indices are updated
+    var6 = np.array([[1.0], [2.0]], dtype=np.float32)
+    accum6 = np.full((2, 1), 0.5, dtype=np.float32)
+    indices6 = np.array([0, 1], dtype=np.int32)
+    grad6 = np.array([[0.1], [-0.2]], dtype=np.float32)
+    list_of_inputs.append(copy.deepcopy(_create_input_dict(var6, accum6, 0.2, 0.1, 0.0, grad6, indices6, True, "update_all")))
 
-    # Input 8: Large values
-    input_dict = {
-        'var': np.array([[1e6, -1e6]], dtype=np.float32),
-        'accum': np.array([[1e3, 1e3]], dtype=np.float32),
-        'lr': np.array(0.1, dtype=np.float32),
-        'l1': np.array(0.1, dtype=np.float32),
-        'l2': np.array(0.1, dtype=np.float32),
-        'grad': np.array([[1e4, 1e4]], dtype=np.float32),
-        'indices': np.array([0], dtype=np.int32),
-        'use_locking': False,
-        'name': 'large_values'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 7: High learning rate
+    var7 = np.array([[100.0, -100.0]], dtype=np.float32)
+    accum7 = np.array([[1.0, 1.0]], dtype=np.float32)
+    indices7 = np.array([0], dtype=np.int32)
+    grad7 = np.array([[0.01, 0.01]], dtype=np.float32)
+    list_of_inputs.append(copy.deepcopy(_create_input_dict(var7, accum7, 50.0, 0.0, 0.0, grad7, indices7, False, "high_lr")))
 
-    # Input 9: Small positive accumulator
-    input_dict = {
-        'var': np.array([[1.0], [2.0]], dtype=np.float32),
-        'accum': np.array([[1e-9], [1e-9]], dtype=np.float32),
-        'lr': np.array(0.1, dtype=np.float32),
-        'l1': np.array(0.1, dtype=np.float32),
-        'l2': np.array(0.1, dtype=np.float32),
-        'grad': np.array([[0.5]], dtype=np.float32),
-        'indices': np.array([0], dtype=np.int32),
-        'use_locking': False,
-        'name': 'small_accum'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 8: High regularization
+    var8 = np.array([[1.0, 1.0]], dtype=np.float64)
+    accum8 = np.array([[1.0, 1.0]], dtype=np.float64)
+    indices8 = np.array([0], dtype=np.int64)
+    grad8 = np.array([[0.5, -0.5]], dtype=np.float64)
+    list_of_inputs.append(copy.deepcopy(_create_input_dict(var8, accum8, 0.1, 10.0, 10.0, grad8, indices8, True, "high_regularization")))
 
-    # Input 10: 3D var/accum/grad
-    input_dict = {
-        'var': np.ones((4, 2, 3), dtype=np.float32),
-        'accum': np.full((4, 2, 3), 0.1, dtype=np.float32),
-        'lr': np.array(0.01, dtype=np.float32),
-        'l1': np.array(0.1, dtype=np.float32),
-        'l2': np.array(0.01, dtype=np.float32),
-        'grad': np.random.rand(2, 2, 3).astype(np.float32),
-        'indices': np.array([0, 3], dtype=np.int32),
-        'use_locking': False,
-        'name': '3d_tensors'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 9: Negative initial values
+    var9 = np.array([[-1.0, -2.0], [-3.0, -4.0]], dtype=np.float32)
+    accum9 = np.array([[0.2, 0.3], [0.4, 0.5]], dtype=np.float32)
+    indices9 = np.array([1], dtype=np.int32)
+    grad9 = np.array([[0.3, -0.4]], dtype=np.float32)
+    list_of_inputs.append(copy.deepcopy(_create_input_dict(var9, accum9, 0.05, 0.1, 0.2, grad9, indices9, False, "negative_initial_var")))
+
+    # Case 10: bfloat16 type
+    bfloat16 = tf.bfloat16.as_numpy_dtype
+    var10 = np.array([[1.0, 2.0]], dtype=bfloat16)
+    accum10 = np.array([[0.1, 0.1]], dtype=bfloat16)
+    indices10 = np.array([0], dtype=np.int32)
+    grad10 = np.array([[0.5, 0.2]], dtype=bfloat16)
+    list_of_inputs.append(copy.deepcopy(_create_input_dict(var10, accum10, 0.01, 0.1, 0.01, grad10, indices10, False, "bfloat16_type")))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.SparseApplyProximalAdagrad"] = get_sparse_apply_proximal_adagrad_inputs()
+generated_inputs["tf.raw_ops.SparseApplyProximalAdagrad"] = tf_raw_ops_SparseApplyProximalAdagrad_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

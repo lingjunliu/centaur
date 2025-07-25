@@ -4,139 +4,119 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_quantizedmaxpool_inputs():
+def tf_raw_ops_quantized_max_pool_inputs():
     """
-    This function generates a list of valid inputs for the tf.raw_ops.QuantizedMaxPool op.
-    Inputs are in numpy format to pass the test harness validation. The test harness is expected
-    to correctly convert the numpy array to a quantized tensor using the provided min/max ranges.
+    This function generates a list of valid inputs for the
+    tf.raw_ops.QuantizedMaxPool operation.
+    Inputs are provided as NumPy arrays with standard integer dtypes to be
+    compatible with the testing framework, which does not recognize
+    quantized tf.DType objects like tf.qint8.
     """
     list_of_inputs = []
 
-    # Input 1: quint8 with VALID padding.
+    # Input 1: Corresponds to quint8, VALID padding
     input_dict_1 = {
-        'input': np.array([[[[0],[1]],[[2],[3]]]], dtype=np.uint8),
+        'input': np.array([[[[10], [20]], [[30], [40]]]], dtype=np.uint8),
         'min_input': np.array(0.0, dtype=np.float32),
-        'max_input': np.array(10.0, dtype=np.float32),
+        'max_input': np.array(255.0, dtype=np.float32),
         'ksize': [1, 2, 2, 1],
         'strides': [1, 2, 2, 1],
         'padding': 'VALID',
-        'name': 'quint8_valid_padding'
+        'name': 'test_quint8_valid'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: qint8 with SAME padding.
+    # Input 2: Corresponds to qint8, SAME padding
     input_dict_2 = {
-        'input': np.arange(-8, 8, dtype=np.int8).reshape(1, 4, 4, 1),
-        'min_input': np.array(-10.0, dtype=np.float32),
-        'max_input': np.array(10.0, dtype=np.float32),
+        'input': np.array([[[[-10], [20]], [[-30], [40]]]], dtype=np.int8),
+        'min_input': np.array(-128.0, dtype=np.float32),
+        'max_input': np.array(127.0, dtype=np.float32),
         'ksize': [1, 2, 2, 1],
         'strides': [1, 1, 1, 1],
         'padding': 'SAME',
-        'name': 'qint8_same_padding'
+        'name': 'test_qint8_same'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: qint16 with larger batch size and depth.
+    # Input 3: Corresponds to qint16, batch > 1
     input_dict_3 = {
-        'input': np.arange(-75, 75, dtype=np.int16).reshape(2, 5, 5, 3),
-        'min_input': np.array(-100.0, dtype=np.float32),
-        'max_input': np.array(100.0, dtype=np.float32),
+        'input': np.arange(32, dtype=np.int16).reshape(2, 4, 4, 1),
+        'min_input': np.array(-1000.0, dtype=np.float32),
+        'max_input': np.array(1000.0, dtype=np.float32),
         'ksize': [1, 3, 3, 1],
         'strides': [1, 2, 2, 1],
         'padding': 'VALID',
-        'name': 'qint16_larger_batch'
+        'name': 'test_qint16_batch'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: quint16 with different ksize/strides.
+    # Input 4: Corresponds to quint16, non-square kernel
     input_dict_4 = {
-        'input': np.arange(64, dtype=np.uint16).reshape(1, 8, 8, 1),
+        'input': np.arange(120, dtype=np.uint16).reshape(1, 6, 10, 2),
         'min_input': np.array(0.0, dtype=np.float32),
-        'max_input': np.array(100.0, dtype=np.float32),
-        'ksize': [1, 3, 3, 1],
-        'strides': [1, 3, 3, 1],
-        'padding': 'SAME'
+        'max_input': np.array(5000.0, dtype=np.float32),
+        'ksize': [1, 2, 4, 1],
+        'strides': [1, 1, 2, 1],
+        'padding': 'SAME',
+        'name': 'test_quint16_nonsquare'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: qint32 with non-square ksize.
+    # Input 5: Corresponds to qint32, large strides
     input_dict_5 = {
-        'input': np.arange(-12, 12, dtype=np.int32).reshape(1, 6, 4, 1),
-        'min_input': np.array(-20.0, dtype=np.float32),
-        'max_input': np.array(20.0, dtype=np.float32),
-        'ksize': [1, 2, 3, 1],
-        'strides': [1, 1, 1, 1],
-        'padding': 'VALID',
-        'name': 'qint32_nonsquare_ksize'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
-
-    # Input 6: quint8 with stride > ksize.
-    input_dict_6 = {
-        'input': (np.arange(49, dtype=np.uint8)).reshape(1, 7, 7, 1),
-        'min_input': np.array(0.0, dtype=np.float32),
-        'max_input': np.array(50.0, dtype=np.float32),
+        'input': (np.arange(49, dtype=np.int32) - 24).reshape(1, 7, 7, 1),
+        'min_input': np.array(-200000.0, dtype=np.float32),
+        'max_input': np.array(200000.0, dtype=np.float32),
         'ksize': [1, 2, 2, 1],
         'strides': [1, 3, 3, 1],
         'padding': 'VALID',
-        'name': 'quint8_stride_gt_ksize'
+        'name': 'test_qint32_strides'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
+
+    # Input 6: Strides > ksize
+    input_dict_6 = {
+        'input': np.arange(100, dtype=np.uint8).reshape(1, 10, 10, 1),
+        'min_input': np.array(0.0, dtype=np.float32),
+        'max_input': np.array(100.0, dtype=np.float32),
+        'ksize': [1, 2, 2, 1],
+        'strides': [1, 3, 3, 1],
+        'padding': 'SAME',
+        'name': 'test_stride_gt_ksize'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: qint8 with all-zeros input.
+    # Input 7: 1x1 ksize (identity pooling)
     input_dict_7 = {
-        'input': np.zeros((1, 4, 4, 3), dtype=np.int8),
-        'min_input': np.array(-1.0, dtype=np.float32),
-        'max_input': np.array(1.0, dtype=np.float32),
-        'ksize': [1, 2, 2, 1],
-        'strides': [1, 2, 2, 1],
-        'padding': 'SAME',
-        'name': 'qint8_all_zeros_input'
+        'input': (np.arange(36, dtype=np.int8) - 18).reshape(1, 3, 3, 4),
+        'min_input': np.array(-50.0, dtype=np.float32),
+        'max_input': np.array(50.0, dtype=np.float32),
+        'ksize': [1, 1, 1, 1],
+        'strides': [1, 1, 1, 1],
+        'padding': 'VALID',
+        'name': 'test_1x1_ksize'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8: Global max pooling simulation (ksize = input size).
+    # Input 8: ksize = input size (global pooling)
     input_dict_8 = {
-        'input': np.arange(25, dtype=np.uint8).reshape(1, 5, 5, 1),
-        'min_input': np.array(0.0, dtype=np.float32),
-        'max_input': np.array(30.0, dtype=np.float32),
+        'input': np.arange(25, dtype=np.int32).reshape(1, 5, 5, 1),
+        'min_input': np.array(-1e6, dtype=np.float32),
+        'max_input': np.array(1e6, dtype=np.float32),
         'ksize': [1, 5, 5, 1],
         'strides': [1, 1, 1, 1],
         'padding': 'VALID',
-        'name': 'quint8_global_max_pool'
+        'name': 'test_global_pool_qint32'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_8))
-    
-    # Input 9: quint16 with non-unit depth stride
-    input_dict_9 = {
-        'input': np.arange(3 * 6 * 6 * 4, dtype=np.uint16).reshape(3, 6, 6, 4),
-        'min_input': np.array(0.0, dtype=np.float32),
-        'max_input': np.array(1000.0, dtype=np.float32),
-        'ksize': [1, 2, 2, 1],
-        'strides': [1, 2, 2, 2],
-        'padding': 'VALID',
-        'name': 'quint16_non_unit_depth_stride'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
-
-    # Input 10: qint32 with large values and SAME padding
-    input_dict_10 = {
-        'input': np.array(np.linspace(-1e5, 1e5, 25), dtype=np.int32).reshape(1, 5, 5, 1),
-        'min_input': np.array(-1.1e5, dtype=np.float32),
-        'max_input': np.array(1.1e5, dtype=np.float32),
-        'ksize': [1, 3, 3, 1],
-        'strides': [1, 1, 1, 1],
-        'padding': 'SAME',
-        'name': 'qint32_large_values_same'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.QuantizedMaxPool"] = tf_raw_ops_quantizedmaxpool_inputs()
+generated_inputs["tf.raw_ops.QuantizedMaxPool"] = tf_raw_ops_quantized_max_pool_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

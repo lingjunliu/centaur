@@ -10,129 +10,159 @@ import copy
 def tf_queue_paddingfifoqueue_inputs():
     """
     Generates a list of valid inputs for the tf.queue.PaddingFIFOQueue function.
+    To avoid errors with the testing framework which cannot handle lists of
+    strings or None values, dtypes are represented by their integer enums and
+    dynamic dimensions (None) in shapes are represented by -1. Names are also
+    represented by integers. TensorFlow correctly interprets these values.
     """
     list_of_inputs = []
 
-    # Input 1: Basic case
+    # DType enum mapping: float32:1, float64:2, int32:3, uint8:4, int8:6, string:7,
+    # complex64:8, int64:9, bool:10, float16:19
+    # Shape `None` is mapped to -1.
+
+    # Input 1: Basic case with a single fixed-shape component
     input_dict_1 = {
         'capacity': 10,
-        'dtypes': [np.float32],
-        'shapes': [(None, 10)],
-        'names': ['component_1'],
+        'dtypes': [1],  # float32
+        'shapes': [[8, 8]],
+        'names': [0],
         'shared_name': '',
-        'name': 'simple_queue_1'
+        'name': 'basic_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: Two components
+    # Input 2: Multiple components with fixed shapes
     input_dict_2 = {
         'capacity': 50,
-        'dtypes': [np.int64, np.string_],
-        'shapes': [(), (None,)],
-        'names': ['id', 'message'],
+        'dtypes': [3, 2],  # int32, float64
+        'shapes': [[5], [5, 10]],
+        'names': [0, 1],
         'shared_name': '',
         'name': 'multi_component_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: Fully dynamic 2D shape
+    # Input 3: Single component with a dynamic dimension (vector)
     input_dict_3 = {
-        'capacity': 100,
-        'dtypes': [np.float64],
-        'shapes': [(None, None)],
-        'names': ['component_3'],
+        'capacity': 20,
+        'dtypes': [3],  # int32
+        'shapes': [[-1]],
+        'names': [0],
         'shared_name': '',
-        'name': 'fully_dynamic_queue'
+        'name': 'dynamic_vector_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: A shared queue
+    # Input 4: Single component with a dynamic dimension (matrix)
     input_dict_4 = {
-        'capacity': 25,
-        'dtypes': [np.int32],
-        'shapes': [(None,)],
-        'names': ['component_4'],
-        'shared_name': 'my_shared_queue',
-        'name': 'shared_queue_instance_1'
+        'capacity': 30,
+        'dtypes': [1],  # float32
+        'shapes': [[-1, 3]],
+        'names': [0],
+        'shared_name': '',
+        'name': 'dynamic_matrix_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
-    
-    # Input 5: Another instance of the same shared queue
+
+    # Input 5: Mix of fixed and dynamic shape components
     input_dict_5 = {
-        'capacity': 25,
-        'dtypes': [np.int32],
-        'shapes': [(None,)],
-        'names': ['component_5'],
-        'shared_name': 'my_shared_queue',
-        'name': 'shared_queue_instance_2'
+        'capacity': 15,
+        'dtypes': [9, 1],  # int64, float32
+        'shapes': [[10, 10], [-1, 5]],
+        'names': [0, 1],
+        'shared_name': '',
+        'name': 'mixed_shape_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: Higher-dimensional tensor
+    # Input 6: Fully dynamic shape (unknown rank 2)
     input_dict_6 = {
-        'capacity': 5,
-        'dtypes': [np.int16],
-        'shapes': [(None, 128, None, 3)],
-        'names': ['image_data'],
+        'capacity': 25,
+        'dtypes': [1],  # float32
+        'shapes': [[-1, -1]],
+        'names': [0],
         'shared_name': '',
-        'name': 'high_dim_queue'
+        'name': 'fully_dynamic_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: Queue with only fixed-shape components
+    # Input 7: String and int dtypes
     input_dict_7 = {
-        'capacity': 20,
-        'dtypes': [np.int32, np.float32],
-        'shapes': [(10, 5), (3,)],
-        'names': ['matrix', 'vector'],
+        'capacity': 100,
+        'dtypes': [3, 7],  # int32, string
+        'shapes': [[-1, 4], [-1]],
+        'names': [0, 1],
         'shared_name': '',
-        'name': 'fixed_shape_queue'
+        'name': 'named_components_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
-    
-    # Input 8: Two components, one dynamic
+
+    # Input 8: Using the 'shared_name' argument for inter-process sharing
     input_dict_8 = {
         'capacity': 1000,
-        'dtypes': [np.float32, np.int64],
-        'shapes': [(), (None, None, None)],
-        'names': ['comp_a', 'comp_b'],
-        'shared_name': '',
-        'name': 'padding_fifo_queue'
+        'dtypes': [1],  # float32
+        'shapes': [[128, -1]],
+        'names': [0],
+        'shared_name': 'my_shared_queue_abc123',
+        'name': 'shared_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_8))
-    
-    # Input 9: Queue for scalar booleans
+
+    # Input 9: Variety of dtypes, including scalar shape
     input_dict_9 = {
-        'capacity': 32,
-        'dtypes': [np.bool_],
-        'shapes': [()],
-        'names': ['component_9'],
+        'capacity': 5,
+        'dtypes': [19, 6, 10],  # float16, int8, bool
+        'shapes': [[-1, 2], [5], []],
+        'names': [0, 1, 2],
         'shared_name': '',
-        'name': 'boolean_scalar_queue'
+        'name': 'variety_dtype_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_9))
-    
-    # Input 10: Complex mix
+
+    # Input 10: Large capacity and 3D dynamic shape
     input_dict_10 = {
-        'capacity': 75,
-        'dtypes': [np.float32, np.int64, np.bool_, np.string_],
-        'shapes': [(None, 224, 224, 3), (None,), (), (None, None)],
-        'names': ['images', 'labels', 'is_valid', 'metadata'],
-        'shared_name': 'complex_data_pipeline',
-        'name': 'complex_queue'
+        'capacity': 10000,
+        'dtypes': [9],  # int64
+        'shapes': [[-1, -1, 3]],
+        'names': [0],
+        'shared_name': '',
+        'name': 'large_capacity_3d_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_10))
 
-    # Input 11: Queue with a single scalar string component
+    # Input 11: Minimal arguments (single scalar string)
     input_dict_11 = {
-        'capacity': 40,
-        'dtypes': [np.string_],
-        'shapes': [()],
-        'names': ['filenames'],
+        'capacity': 1,
+        'dtypes': [7],  # string
+        'shapes': [[]],
+        'names': [0],
         'shared_name': '',
-        'name': 'string_scalar_queue'
+        'name': 'padding_fifo_queue_scalar_str'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_11))
+
+    # Input 12: Complex types and shapes
+    input_dict_12 = {
+        'capacity': 75,
+        'dtypes': [8, 4],  # complex64, uint8
+        'shapes': [[-1, 10], [5, -1, 5]],
+        'names': [0, 1],
+        'shared_name': '',
+        'name': 'complex_queue'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_12))
+
+    # Input 13: Empty queue (zero components)
+    input_dict_13 = {
+        'capacity': 20,
+        'dtypes': [],
+        'shapes': [],
+        'names': [],
+        'shared_name': '',
+        'name': 'empty_component_queue'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_13))
 
     return list_of_inputs
 

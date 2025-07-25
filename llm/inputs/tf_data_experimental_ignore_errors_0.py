@@ -4,141 +4,73 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import numpy as np
 import tensorflow as tf
+import numpy as np
+import copy
 
-def map_div_by_zero_float(x):
-    return 1.0 / x
+def _creator_div_by_zero():
+    data = np.array([1., 2., 0., 4.], dtype=np.float32)
+    dataset = tf.data.Dataset.from_tensor_slices(data)
+    dataset = dataset.map(lambda x: tf.debugging.check_numerics(1. / x, "error"))
+    return dataset
 
-def map_div_by_zero_int(x):
-    return 1 // x
+def _creator_parsing_error():
+    data = np.array(["1.0", "two", "3.0", "four"])
+    dataset = tf.data.Dataset.from_tensor_slices(data)
+    dataset = dataset.map(tf.strings.to_number)
+    return dataset
 
-def map_assert_positive(x):
-    tf.Assert(x > 0, [x])
-    return x
+def _creator_shape_error():
+    def shape_error_generator():
+        yield np.array([1, 2], dtype=np.int32)
+        yield np.array([3, 4, 5], dtype=np.int32)
+        yield np.array([6, 7], dtype=np.int32)
+    dataset = tf.data.Dataset.from_generator(
+        shape_error_generator,
+        output_signature=tf.TensorSpec(shape=(None,), dtype=tf.int32)
+    )
+    dataset = dataset.map(lambda x: tf.reshape(x, (2,)))
+    return dataset
 
-def map_string_to_number(x):
-    return tf.strings.to_number(x)
+def _creator_tf_assert_error():
+    def error_fn(x):
+        tf.Assert(tf.less(x, 15), [f"Element {x} is not less than 15"])
+        return x
+    data = np.array([5, 10, 15, 20], dtype=np.int32)
+    dataset = tf.data.Dataset.from_tensor_slices(data)
+    dataset = dataset.map(error_fn)
+    return dataset
 
-def map_string_to_int(x):
-    return tf.strings.to_number(x, out_type=tf.int32)
-
-def map_sqrt(x):
-    return tf.sqrt(x)
-
-def map_tuple_div(x, y):
-    return y // x
-
-def map_square(x):
-    return x * x
-
-def map_assert_less_than_10(x):
-    tf.Assert(x < 10, [x])
-    return x
+def _creator_dtype_error():
+    def mixed_type_generator():
+        yield 1
+        yield "not_an_int"
+        yield 3
+    dataset = tf.data.Dataset.from_generator(
+        mixed_type_generator,
+        output_signature=tf.TensorSpec(shape=(), dtype=tf.int32)
+    )
+    return dataset
 
 def tf_data_experimental_ignore_errors_inputs():
     list_of_inputs = []
-
-    # Case 1: Float division by zero, log warnings
-    input_dict_1 = {
-        'log_warning': True,
-        'inner_values': {
-            'tensors': np.array([1., 2., 0., 4.], dtype=np.float32),
-            'map_fn': map_div_by_zero_float
-        }
-    }
-    list_of_inputs.append(input_dict_1)
-
-    # Case 2: Integer division by zero, don't log warnings
-    input_dict_2 = {
-        'log_warning': False,
-        'inner_values': {
-            'tensors': np.array([5, 2, 0, 1], dtype=np.int32),
-            'map_fn': map_div_by_zero_int
-        }
-    }
-    list_of_inputs.append(input_dict_2)
-
-    # Case 3: tf.Assert failure, log warnings
-    input_dict_3 = {
-        'log_warning': True,
-        'inner_values': {
-            'tensors': np.array([1, 2, -1, 4], dtype=np.int64),
-            'map_fn': map_assert_positive
-        }
-    }
-    list_of_inputs.append(input_dict_3)
-
-    # Case 4: String to number conversion error, don't log warnings
-    input_dict_4 = {
-        'log_warning': False,
-        'inner_values': {
-            'tensors': np.array(["1.0", "hello", "3.0"]),
-            'map_fn': map_string_to_number
-        }
-    }
-    list_of_inputs.append(input_dict_4)
-
-    # Case 5: Square root of negative number, log warnings
-    input_dict_5 = {
-        'log_warning': True,
-        'inner_values': {
-            'tensors': np.array([4.0, 9.0, -1.0, 16.0], dtype=np.float32),
-            'map_fn': map_sqrt
-        }
-    }
-    list_of_inputs.append(input_dict_5)
-
-    # Case 6: Tuple of tensors as input, one causes error. Don't log.
-    input_dict_6 = {
-        'log_warning': False,
-        'inner_values': {
-            'tensors': (np.array([1, 2, 0]), np.array([10, 20, 30])),
-            'map_fn': map_tuple_div
-        }
-    }
-    list_of_inputs.append(input_dict_6)
-
-    # Case 7: A dataset with no errors. log_warning=True.
-    input_dict_7 = {
-        'log_warning': True,
-        'inner_values': {
-            'tensors': np.array([1, 2, 3, 4], dtype=np.int32),
-            'map_fn': map_square
-        }
-    }
-    list_of_inputs.append(input_dict_7)
-    
-    # Case 8: A different string error. log_warning=False.
-    input_dict_8 = {
-        'log_warning': False,
-        'inner_values': {
-            'tensors': np.array(["1", "2", "inf", "4"]),
-            'map_fn': map_string_to_int
-        }
-    }
-    list_of_inputs.append(input_dict_8)
-
-    # Case 9: float64 data type with error. log_warning=True.
-    input_dict_9 = {
-        'log_warning': True,
-        'inner_values': {
-            'tensors': np.array([10., -5., 0., 2.], dtype=np.float64),
-            'map_fn': map_div_by_zero_float
-        }
-    }
-    list_of_inputs.append(input_dict_9)
-
-    # Case 10: Another assert failure. log_warning=False
-    input_dict_10 = {
-        'log_warning': False,
-        'inner_values': {
-            'tensors': np.array([1, 5, 12, 8], dtype=np.int32),
-            'map_fn': map_assert_less_than_10
-        }
-    }
-    list_of_inputs.append(input_dict_10)
-
+    dataset_creators = [
+        _creator_div_by_zero,
+        _creator_parsing_error,
+        _creator_shape_error,
+        _creator_tf_assert_error,
+        _creator_dtype_error,
+    ]
+    log_warnings = [False, True]
+    for creator_func in dataset_creators:
+        for log_warning_val in log_warnings:
+            input_dict = {
+                'log_warning': log_warning_val,
+                'inner_values': {
+                    'dataset': creator_func
+                }
+            }
+            list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
 
 generated_inputs["tf.data.experimental.ignore_errors"] = tf_data_experimental_ignore_errors_inputs()

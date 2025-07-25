@@ -9,104 +9,125 @@ import numpy as np
 import copy
 from tensorflow.core.framework import summary_pb2
 
-def tf_raw_ops_merge_summary_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.MergeSummary operation.
-    """
-    list_of_inputs = []
+def _create_serialized_summary(tags_and_values):
+  """Helper to create a serialized Summary proto from (tag, value) pairs."""
+  summary = summary_pb2.Summary()
+  for tag, value in tags_and_values:
+    summary.value.add(tag=tag, simple_value=float(value))
+  return summary.SerializeToString()
 
-    def create_summary(tag, simple_value):
-        """Helper function to create a serialized Summary proto."""
-        summary = summary_pb2.Summary()
-        summary.value.add(tag=tag, simple_value=simple_value)
-        return summary.SerializeToString()
+def generate_tf_raw_ops_mergesummary_inputs():
+  """
+  Generates a list of valid inputs for tf.raw_ops.MergeSummary.
+  Based on the error analysis, the 'tensor_list' type for the 'inputs'
+  parameter is expected by the testing framework to be a single 1D numpy array,
+  where each element is a string representing a serialized summary.
+  The dtype is set to 'object' to handle variable-length strings correctly.
+  """
+  list_of_inputs = []
 
-    # The 'inputs' argument for tf.raw_ops.MergeSummary expects a list of tensors.
-    # To pass the abstraction check which requires a `.shape` attribute, we wrap the
-    # list of numpy arrays in a single numpy array with dtype=object. The execution
-    # framework is expected to handle this by iterating through the object array
-    # and converting each element to a tensor.
+  # Case 1: A single summary.
+  s1 = _create_serialized_summary([("tag1", 1.0)])
+  list_of_inputs.append({
+      "inputs": np.array([s1], dtype=object),
+      "name": "single_summary"
+  })
 
-    # Input 1: A list containing a single 0-D tensor.
-    input_dict = {
-        'inputs': np.array([np.array(create_summary('tag1/scalar', 10.5))], dtype=object),
-        'name': 'merge_single_scalar'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Case 2: Two distinct summaries.
+  s2 = _create_serialized_summary([("tag2", 2.0)])
+  s3 = _create_serialized_summary([("tag3", 3.0)])
+  list_of_inputs.append({
+      "inputs": np.array([s2, s3], dtype=object),
+      "name": "two_summaries"
+  })
 
-    # Input 2: A list containing a single 1-D tensor.
-    input_dict = {
-        'inputs': np.array([np.array([create_summary('tag2/val1', 1.1), create_summary('tag2/val2', 2.2)])], dtype=object),
-        'name': None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Case 3: A summary proto that contains multiple values.
+  s4_multi = _create_serialized_summary([("tag4.1", 4.1), ("tag4.2", 4.2)])
+  s5 = _create_serialized_summary([("tag5", 5.0)])
+  list_of_inputs.append({
+      "inputs": np.array([s4_multi, s5], dtype=object),
+      "name": "multi_value_in_proto"
+  })
 
-    # Input 3: A list containing multiple 0-D tensors.
-    input_dict = {
-        'inputs': np.array([np.array(create_summary('tag3/metric_a', 100)), np.array(create_summary('tag3/metric_b', 200))], dtype=object),
-        'name': 'merge_two_scalars'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Case 4: A larger number of summaries (10).
+  s_list_10 = [
+      _create_serialized_summary([(f"tag_10_{i}", i * 1.1)]) for i in range(10)
+  ]
+  list_of_inputs.append({
+      "inputs": np.array(s_list_10, dtype=object),
+      "name": "ten_summaries"
+  })
 
-    # Input 4: A list with multiple tensors of mixed shapes.
-    input_dict = {
-        'inputs': np.array([np.array([create_summary('tag4/a', 4.0)]), np.array([create_summary('tag4/b', 4.1), create_summary('tag4/c', 4.2)])], dtype=object),
-        'name': 'merge_mixed_list'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Case 5: Summaries with negative and zero values.
+  s_neg = _create_serialized_summary([("neg_tag", -99.9)])
+  s_zero = _create_serialized_summary([("zero_tag", 0.0)])
+  s_pos = _create_serialized_summary([("pos_tag", 99.9)])
+  list_of_inputs.append({
+      "inputs": np.array([s_neg, s_zero, s_pos], dtype=object),
+      "name": "varied_sign_values"
+  })
 
-    # Input 5: A list containing a single 2-D tensor.
-    input_dict = {
-        'inputs': np.array([np.array([[create_summary('tag5/r0c0', 5.0), create_summary('tag5/r0c1', 5.1)], [create_summary('tag5/r1c0', 5.2), create_summary('tag5/r1c1', 5.3)]])], dtype=object),
-        'name': 'merge_2d_tensor'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Case 6: One of the summaries is an empty proto.
+  s_empty = summary_pb2.Summary().SerializeToString()
+  s7 = _create_serialized_summary([("tag7", 7.0)])
+  list_of_inputs.append({
+      "inputs": np.array([s_empty, s7], dtype=object),
+      "name": "with_empty_summary_proto"
+  })
 
-    # Input 6: A long list of single-summary tensors.
-    input_dict = {
-        'inputs': np.array([np.array(create_summary(f'long_list/item_{i}', float(i))) for i in range(10)], dtype=object),
-        'name': 'long_list_merge'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Case 7: No optional name provided (name=None).
+  s8 = _create_serialized_summary([("tag8", 8.0)])
+  list_of_inputs.append({
+      "inputs": np.array([s8], dtype=object),
+      "name": None
+  })
 
-    # Input 7: Using negative values in summaries.
-    input_dict = {
-        'inputs': np.array([np.array(create_summary('neg/val1', -1.0)), np.array(create_summary('neg/val2', -99.9))], dtype=object),
-        'name': 'merge_negative_values'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Case 8: Long tag name to ensure variable string sizes are handled.
+  long_tag = "a_very_long_tag_name_to_test_string_serialization_and_parsing_correctly"
+  s9 = _create_serialized_summary([(long_tag, 9.0)])
+  list_of_inputs.append({
+      "inputs": np.array([s9], dtype=object),
+      "name": "long_tag_name"
+  })
 
-    # Input 8: A list containing a tensor with an empty summary proto string.
-    empty_summary = summary_pb2.Summary().SerializeToString()
-    input_dict = {
-        'inputs': np.array([np.array([create_summary('misc/val1', 123.45), empty_summary, create_summary('misc/val2', 543.21)])], dtype=object),
-        'name': 'merge_with_empty'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Case 9: Input tensor with shape (1,).
+  s10 = _create_serialized_summary([("tag10", 10.0)])
+  list_of_inputs.append({
+      "inputs": np.array([s10], dtype=object).reshape(1,),
+      "name": "explicit_1d_shape"
+  })
 
-    # Input 9: A list containing a single 3-D tensor.
-    summaries_3d = np.array([
-        [[create_summary('3d/000', 0), create_summary('3d/001', 1)],
-         [create_summary('3d/010', 2), create_summary('3d/011', 3)]],
-        [[create_summary('3d/100', 4), create_summary('3d/101', 5)],
-         [create_summary('3d/110', 6), create_summary('3d/111', 7)]]
-    ])
-    input_dict = {
-        'inputs': np.array([summaries_3d], dtype=object),
-        'name': 'merge_3d'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Case 10: Input tensor with shape (5,).
+  s_list_5 = [
+      _create_serialized_summary([(f"tag_5_{i}", float(i))]) for i in range(5)
+  ]
+  list_of_inputs.append({
+      "inputs": np.array(s_list_5, dtype=object),
+      "name": "five_summaries"
+  })
 
-    # Input 10: Minimum number of inputs (1).
-    input_dict = {
-        'inputs': np.array([np.array(create_summary('min_input', 0.0))], dtype=object),
-        'name': 'min_input_count'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Case 11: A single tensor of summaries, but reshaped from 2D. The final tensor is 1D.
+  # This tests that the origin of the data doesn't matter, only its final shape.
+  s_2d_list = [
+      _create_serialized_summary([(f"2d_source_tag_{r}_{c}", r*2+c)]) for r in range(2) for c in range(2)
+  ]
+  list_of_inputs.append({
+      "inputs": np.array(s_2d_list, dtype=object).flatten(),
+      "name": "flattened_2d_summaries"
+  })
+  
+  # Case 12: A large number of summaries (50).
+  s_list_50 = [
+      _create_serialized_summary([(f"tag_50_{i}", i * 0.1)]) for i in range(50)
+  ]
+  list_of_inputs.append({
+      "inputs": np.array(s_list_50, dtype=object),
+      "name": "fifty_summaries"
+  })
 
-    return list_of_inputs
+  return [copy.deepcopy(d) for d in list_of_inputs]
 
-generated_inputs["tf.raw_ops.MergeSummary"] = tf_raw_ops_merge_summary_inputs()
+generated_inputs["tf.raw_ops.MergeSummary"] = generate_tf_raw_ops_mergesummary_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

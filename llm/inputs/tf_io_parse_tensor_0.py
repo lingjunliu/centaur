@@ -8,120 +8,123 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_io_parse_tensor_inputs():
+def get_tf_io_parse_tensor_inputs():
+    """
+    Generates a list of valid inputs for the tf.io.parse_tensor function.
+    """
     list_of_inputs = []
 
-    # Input 1: Scalar float32
-    tensor_1 = tf.constant(3.14, dtype=tf.float32)
+    # Case 1: 1D int32 tensor
+    tensor_to_serialize_1 = tf.constant([1, 2, 3, 4, 5], dtype=tf.int32)
     input_dict_1 = {
-        'serialized': np.array(tf.io.serialize_tensor(tensor_1).numpy(), dtype=object),
-        'out_type': tensor_1.dtype.as_numpy_dtype,
-        'name': 'scalar_float'
+        'serialized': np.array(tf.io.serialize_tensor(tensor_to_serialize_1).numpy(), dtype=object),
+        'out_type': tensor_to_serialize_1.dtype.as_numpy_dtype,
+        'name': 'parse_int32_vector'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: 1D int32 vector with negative values
-    tensor_2 = tf.constant([1, -2, 3, 0], dtype=tf.int32)
+    # Case 2: 2D float32 tensor with negative values
+    tensor_to_serialize_2 = tf.constant([[-1.1, 2.2], [-3.3, 4.4]], dtype=tf.float32)
     input_dict_2 = {
-        'serialized': np.array(tf.io.serialize_tensor(tensor_2).numpy(), dtype=object),
-        'out_type': tensor_2.dtype.as_numpy_dtype,
-        'name': '1d_int32_vector'
+        'serialized': np.array(tf.io.serialize_tensor(tensor_to_serialize_2).numpy(), dtype=object),
+        'out_type': tensor_to_serialize_2.dtype.as_numpy_dtype,
+        'name': None
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: 2D float64 matrix
-    tensor_3 = tf.constant([[1.0, 2.0], [3.0, 4.0]], dtype=tf.float64)
+    # Case 3: Scalar bool tensor
+    tensor_to_serialize_3 = tf.constant(True, dtype=tf.bool)
     input_dict_3 = {
-        'serialized': np.array(tf.io.serialize_tensor(tensor_3).numpy(), dtype=object),
-        'out_type': tensor_3.dtype.as_numpy_dtype,
-        'name': 'matrix_float64'
+        'serialized': np.array(tf.io.serialize_tensor(tensor_to_serialize_3).numpy(), dtype=object),
+        'out_type': tensor_to_serialize_3.dtype.as_numpy_dtype,
+        'name': 'parse_bool_scalar'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: 3D int64 tensor
-    tensor_4 = tf.constant([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=tf.int64)
+    # Case 4: 3D uint8 tensor
+    tensor_to_serialize_4 = tf.constant(np.arange(24, dtype=np.uint8).reshape(2, 3, 4), dtype=tf.uint8)
     input_dict_4 = {
-        'serialized': np.array(tf.io.serialize_tensor(tensor_4).numpy(), dtype=object),
-        'out_type': tensor_4.dtype.as_numpy_dtype,
-        'name': '3d_tensor_int64'
+        'serialized': np.array(tf.io.serialize_tensor(tensor_to_serialize_4).numpy(), dtype=object),
+        'out_type': tensor_to_serialize_4.dtype.as_numpy_dtype,
+        'name': None
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: Boolean vector
-    tensor_5 = tf.constant([True, False, True], dtype=tf.bool)
+    # Case 5: 1D string tensor
+    tensor_to_serialize_5 = tf.constant(["hello", "world", "tensorflow"], dtype=tf.string)
     input_dict_5 = {
-        'serialized': np.array(tf.io.serialize_tensor(tensor_5).numpy(), dtype=object),
-        'out_type': tensor_5.dtype.as_numpy_dtype,
-        'name': 'bool_vector'
+        'serialized': np.array(tf.io.serialize_tensor(tensor_to_serialize_5).numpy(), dtype=object),
+        'out_type': tensor_to_serialize_5.dtype.as_numpy_dtype,
+        'name': 'parse_string_vector'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: Complex64 vector
-    tensor_6 = tf.constant([1+2j, 3-4j], dtype=tf.complex64)
+    # Case 6: 2D complex64 tensor
+    tensor_to_serialize_6 = tf.constant([[1+2j, 3-4j], [-5+6j, 7+8j]], dtype=tf.complex64)
     input_dict_6 = {
-        'serialized': np.array(tf.io.serialize_tensor(tensor_6).numpy(), dtype=object),
-        'out_type': tensor_6.dtype.as_numpy_dtype,
-        'name': 'complex64_vector'
+        'serialized': np.array(tf.io.serialize_tensor(tensor_to_serialize_6).numpy(), dtype=object),
+        'out_type': tensor_to_serialize_6.dtype.as_numpy_dtype,
+        'name': 'parse_complex64'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: Complex128 scalar
-    tensor_7 = tf.constant(1.5+2.5j, dtype=tf.complex128)
+    # Case 7: Empty float64 tensor
+    tensor_to_serialize_7 = tf.constant([], dtype=tf.float64)
     input_dict_7 = {
-        'serialized': np.array(tf.io.serialize_tensor(tensor_7).numpy(), dtype=object),
-        'out_type': tensor_7.dtype.as_numpy_dtype,
-        'name': 'complex128_scalar'
+        'serialized': np.array(tf.io.serialize_tensor(tensor_to_serialize_7).numpy(), dtype=object),
+        'out_type': tensor_to_serialize_7.dtype.as_numpy_dtype,
+        'name': 'parse_empty_float64'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8: Empty tensor
-    tensor_8 = tf.constant([], dtype=tf.float32)
+    # Case 8: 4D int16 tensor
+    tensor_to_serialize_8 = tf.constant(np.ones((1, 2, 2, 3), dtype=np.int16) * -10, dtype=tf.int16)
     input_dict_8 = {
-        'serialized': np.array(tf.io.serialize_tensor(tensor_8).numpy(), dtype=object),
-        'out_type': tensor_8.dtype.as_numpy_dtype,
-        'name': 'empty_tensor'
+        'serialized': np.array(tf.io.serialize_tensor(tensor_to_serialize_8).numpy(), dtype=object),
+        'out_type': tensor_to_serialize_8.dtype.as_numpy_dtype,
+        'name': None
     }
     list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 9: String tensor
-    tensor_9 = tf.constant([b"hello", b"world", b""], dtype=tf.string)
+    # Case 9: 1D int64 tensor with large numbers
+    tensor_to_serialize_9 = tf.constant([10000000000, -20000000000], dtype=tf.int64)
     input_dict_9 = {
-        'serialized': np.array(tf.io.serialize_tensor(tensor_9).numpy(), dtype=object),
-        'out_type': tensor_9.dtype.as_numpy_dtype,
-        'name': 'string_tensor'
+        'serialized': np.array(tf.io.serialize_tensor(tensor_to_serialize_9).numpy(), dtype=object),
+        'out_type': tensor_to_serialize_9.dtype.as_numpy_dtype,
+        'name': 'parse_int64_large'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_9))
-
-    # Input 10: Unsigned integer tensor (uint8)
-    tensor_10 = tf.constant([0, 128, 255], dtype=tf.uint8)
+    
+    # Case 10: 2D float16 tensor
+    tensor_to_serialize_10 = tf.constant([[0.5, -0.25], [1.0, -1.5]], dtype=tf.float16)
     input_dict_10 = {
-        'serialized': np.array(tf.io.serialize_tensor(tensor_10).numpy(), dtype=object),
-        'out_type': tensor_10.dtype.as_numpy_dtype,
-        'name': 'uint8_tensor'
+        'serialized': np.array(tf.io.serialize_tensor(tensor_to_serialize_10).numpy(), dtype=object),
+        'out_type': tensor_to_serialize_10.dtype.as_numpy_dtype,
+        'name': 'parse_float16_2d'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_10))
 
-    # Input 11: int16 tensor with non-standard shape
-    tensor_11 = tf.constant([[[1], [2]], [[3], [4]]], shape=(2, 2, 1), dtype=tf.int16)
+    # Case 11: Scalar complex128 tensor
+    tensor_to_serialize_11 = tf.constant(1.23456789 + 9.87654321j, dtype=tf.complex128)
     input_dict_11 = {
-        'serialized': np.array(tf.io.serialize_tensor(tensor_11).numpy(), dtype=object),
-        'out_type': tensor_11.dtype.as_numpy_dtype,
-        'name': 'int16_tensor'
+        'serialized': np.array(tf.io.serialize_tensor(tensor_to_serialize_11).numpy(), dtype=object),
+        'out_type': tensor_to_serialize_11.dtype.as_numpy_dtype,
+        'name': 'parse_complex128_scalar'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_11))
 
-    # Input 12: Scalar string
-    tensor_12 = tf.constant(b"a single string", dtype=tf.string)
+    # Case 12: Zero-sized tensor (shape (2,0))
+    tensor_to_serialize_12 = tf.zeros((2, 0), dtype=tf.uint32)
     input_dict_12 = {
-        'serialized': np.array(tf.io.serialize_tensor(tensor_12).numpy(), dtype=object),
-        'out_type': tensor_12.dtype.as_numpy_dtype,
-        'name': 'scalar_string'
+        'serialized': np.array(tf.io.serialize_tensor(tensor_to_serialize_12).numpy(), dtype=object),
+        'out_type': tensor_to_serialize_12.dtype.as_numpy_dtype,
+        'name': 'parse_zero_sized'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_12))
 
     return list_of_inputs
 
-generated_inputs["tf.io.parse_tensor"] = tf_io_parse_tensor_inputs()
+generated_inputs["tf.io.parse_tensor"] = get_tf_io_parse_tensor_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

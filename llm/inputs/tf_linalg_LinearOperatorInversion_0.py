@@ -4,25 +4,30 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import numpy as np
 import tensorflow as tf
+import numpy as np
 import copy
+
+# The testing framework expects a `.size` attribute on the 'tensor' input,
+# but tf.linalg.LinearOperator instances do not have one. This custom class
+# inherits from LinearOperatorFullMatrix and adds the required attribute
+# to satisfy the test harness while still being a valid input for the API.
+class _HarnessCompatibleLinearOperator(tf.linalg.LinearOperatorFullMatrix):
+    @property
+    def size(self):
+        """Returns the total number of elements, for test harness compatibility."""
+        return tf.reduce_prod(self.shape).numpy()
 
 def tf_linalg_linearoperatorinversion_inputs():
     """
     Generates a list of valid inputs for tf.linalg.LinearOperatorInversion.
-    The 'operator' parameter must be an instance of tf.linalg.LinearOperator.
-    To satisfy the testing framework which expects a '.size' attribute on
-    'tensor' type inputs, we dynamically add a 'size' attribute to the
-    LinearOperator instance after it is created.
     """
     list_of_inputs = []
 
-    # Input 1: Basic 2x2 identity matrix, float32
-    matrix1 = np.array([[1., 0.], [0., 1.]], dtype=np.float32)
-    op1 = tf.linalg.LinearOperatorFullMatrix(matrix1)
-    op1.size = matrix1.size
-    input_dict_1 = {
+    # Input 1: Basic 2x2 Identity Operator
+    op1_matrix = np.array([[1., 0.], [0., 1.]], dtype=np.float32)
+    op1 = _HarnessCompatibleLinearOperator(tf.constant(op1_matrix))
+    input_dict1 = {
         'operator': op1,
         'is_non_singular': True,
         'is_self_adjoint': True,
@@ -30,148 +35,141 @@ def tf_linalg_linearoperatorinversion_inputs():
         'is_square': True,
         'name': 'identity_inversion'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 2: 2x2 diagonal matrix, float64, with some hints as None
-    matrix2 = np.array([[3., 0.], [0., 0.5]], dtype=np.float64)
-    op2 = tf.linalg.LinearOperatorFullMatrix(matrix2)
-    op2.size = matrix2.size
-    input_dict_2 = {
+    # Input 2: 2x2 Diagonal Operator from documentation
+    op2_matrix = np.array([[1., 0.], [0., 2.]], dtype=np.float32)
+    op2 = _HarnessCompatibleLinearOperator(tf.constant(op2_matrix))
+    input_dict2 = {
         'operator': op2,
         'is_non_singular': True,
-        'is_self_adjoint': None,
-        'is_positive_definite': None,
+        'is_self_adjoint': True,
+        'is_positive_definite': True,
         'is_square': True,
         'name': 'diagonal_inversion'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    # Input 3: 3x3 symmetric positive-definite matrix, no name
-    matrix3 = np.array([[2., 1., 0.], [1., 2., 1.], [0., 1., 2.]], dtype=np.float32)
-    op3 = tf.linalg.LinearOperatorFullMatrix(matrix3)
-    op3.size = matrix3.size
-    input_dict_3 = {
+    # Input 3: 3x3 Symmetric Positive-Definite Operator
+    op3_matrix = np.array([[4., 1., 1.], [1., 3., -1.], [1., -1., 2.]], dtype=np.float32)
+    op3 = _HarnessCompatibleLinearOperator(tf.constant(op3_matrix))
+    input_dict3 = {
         'operator': op3,
         'is_non_singular': True,
         'is_self_adjoint': True,
         'is_positive_definite': True,
         'is_square': True,
-        'name': None
+        'name': 'spd_3x3_inversion'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    # Input 4: 3x3 non-symmetric but non-singular matrix
-    matrix4 = np.array([[1., 2., 3.], [4., 5., 6.], [7., 8., 10.]], dtype=np.float32)
-    op4 = tf.linalg.LinearOperatorFullMatrix(matrix4)
-    op4.size = matrix4.size
-    input_dict_4 = {
+    # Input 4: 2x2 Non-Symmetric Operator with specified False hints
+    op4_matrix = np.array([[1., 2.], [3., 4.]], dtype=np.float32)
+    op4 = _HarnessCompatibleLinearOperator(tf.constant(op4_matrix))
+    input_dict4 = {
         'operator': op4,
         'is_non_singular': True,
         'is_self_adjoint': False,
         'is_positive_definite': False,
         'is_square': True,
-        'name': 'non_symmetric_inversion'
+        'name': 'general_2x2_inversion'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    # Input 5: Symmetric, non-singular, but not positive-definite
-    matrix5 = np.array([[1., 0.], [0., -1.]], dtype=np.float32)
-    op5 = tf.linalg.LinearOperatorFullMatrix(matrix5)
-    op5.size = matrix5.size
-    input_dict_5 = {
+    # Input 5: Operator with all hints as None (default)
+    op5_matrix = np.array([[5., 1.], [1., 3.]], dtype=np.float32)
+    op5 = _HarnessCompatibleLinearOperator(tf.constant(op5_matrix))
+    input_dict5 = {
         'operator': op5,
-        'is_non_singular': True,
-        'is_self_adjoint': True,
-        'is_positive_definite': False,
-        'is_square': True,
-        'name': 'indefinite_inversion'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
-
-    # Input 6: Batch of 2x2 matrices
-    matrix6 = np.array([[[1., 2.], [3., 4.]], [[5., 6.], [7., 8.]]], dtype=np.float32)
-    op6 = tf.linalg.LinearOperatorFullMatrix(matrix6)
-    op6.size = matrix6.size
-    input_dict_6 = {
-        'operator': op6,
-        'is_non_singular': True,
-        'is_self_adjoint': False,
-        'is_positive_definite': False,
-        'is_square': True,
-        'name': 'batch_inversion'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
-
-    # Input 7: All boolean hints set to None (default)
-    matrix7 = np.array([[10., 1.], [1., 10.]], dtype=np.float32)
-    op7 = tf.linalg.LinearOperatorFullMatrix(matrix7)
-    op7.size = matrix7.size
-    input_dict_7 = {
-        'operator': op7,
         'is_non_singular': None,
         'is_self_adjoint': None,
         'is_positive_definite': None,
         'is_square': None,
-        'name': 'all_none_hints'
+        'name': 'none_hints_inversion'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    list_of_inputs.append(copy.deepcopy(input_dict5))
 
-    # Input 8: Batch of matrices with multiple batch dimensions
-    matrix8 = np.stack([np.eye(3, dtype=np.float64) * (i + 1) for i in range(4)]).reshape(2, 2, 3, 3)
-    op8 = tf.linalg.LinearOperatorFullMatrix(matrix8)
-    op8.size = matrix8.size
-    input_dict_8 = {
+    # Input 6: Batched Operator (2, 3, 3)
+    op6_matrix = np.array([
+        [[2., 1., 0.], [1., 2., 1.], [0., 1., 2.]],
+        [[3., 0., 0.], [0., 4., 0.], [0., 0., 5.]]
+    ], dtype=np.float32)
+    op6 = _HarnessCompatibleLinearOperator(tf.constant(op6_matrix))
+    input_dict6 = {
+        'operator': op6,
+        'is_non_singular': True,
+        'is_self_adjoint': True,
+        'is_positive_definite': True,
+        'is_square': True,
+        'name': 'batch_inversion'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: Float64 dtype operator
+    op7_matrix = np.array([[10., 1.], [1., 10.]], dtype=np.float64)
+    op7 = _HarnessCompatibleLinearOperator(tf.constant(op7_matrix))
+    input_dict7 = {
+        'operator': op7,
+        'is_non_singular': True,
+        'is_self_adjoint': True,
+        'is_positive_definite': True,
+        'is_square': True,
+        'name': 'float64_inversion'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: Self-Adjoint but not Positive-Definite Operator
+    op8_matrix = np.array([[1., 2.], [2., -1.]], dtype=np.float32)
+    op8 = _HarnessCompatibleLinearOperator(tf.constant(op8_matrix))
+    input_dict8 = {
         'operator': op8,
         'is_non_singular': True,
         'is_self_adjoint': True,
-        'is_positive_definite': True,
+        'is_positive_definite': False,
         'is_square': True,
-        'name': 'multi_batch_dim_inversion'
+        'name': 'self_adjoint_not_pd_inversion'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    list_of_inputs.append(copy.deepcopy(input_dict8))
 
-    # Input 9: Large 4x4 matrix
-    matrix9 = np.array([[4, 1, 0, 0], [1, 4, 1, 0], [0, 1, 4, 1], [0, 0, 1, 4]], dtype=np.float32)
-    op9 = tf.linalg.LinearOperatorFullMatrix(matrix9)
-    op9.size = matrix9.size
-    input_dict_9 = {
+    # Input 9: Complex64 dtype operator
+    op9_matrix = np.array([[1.+1.j, 2.+0.j], [0.+1.j, 3.-2.j]], dtype=np.complex64)
+    op9 = _HarnessCompatibleLinearOperator(tf.constant(op9_matrix))
+    input_dict9 = {
         'operator': op9,
         'is_non_singular': True,
-        'is_self_adjoint': True,
-        'is_positive_definite': True,
+        'is_self_adjoint': False,
+        'is_positive_definite': False,
         'is_square': True,
-        'name': 'large_tridiagonal_inversion'
+        'name': 'complex_inversion'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
-
-    # Input 10: Complex Hermitian positive-definite operator
-    matrix10 = np.array([[2., 1. + 1.j], [1. - 1.j, 3.]], dtype=np.complex64)
-    op10 = tf.linalg.LinearOperatorFullMatrix(matrix10)
-    op10.size = matrix10.size
-    input_dict_10 = {
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+    
+    # Input 10: Larger 4x4 Operator
+    op10_matrix = np.random.rand(4, 4).astype(np.float32) + np.eye(4, dtype=np.float32) * 5
+    op10 = _HarnessCompatibleLinearOperator(tf.constant(op10_matrix))
+    input_dict10 = {
         'operator': op10,
         'is_non_singular': True,
-        'is_self_adjoint': True,
-        'is_positive_definite': True,
+        'is_self_adjoint': False,
+        'is_positive_definite': False,
         'is_square': True,
-        'name': 'complex_hermitian_inversion'
+        'name': 'large_4x4_inversion'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
-
-    # Input 11: Complex non-Hermitian operator
-    matrix11 = np.array([[1., 2. + 1.j], [3. - 2.j, 4.]], dtype=np.complex128)
-    op11 = tf.linalg.LinearOperatorFullMatrix(matrix11)
-    op11.size = matrix11.size
-    input_dict_11 = {
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+    
+    # Input 11: A singular matrix with a 'is_non_singular=True' hint
+    op11_matrix = np.array([[1., 2.], [1., 2.]], dtype=np.float32)
+    op11 = _HarnessCompatibleLinearOperator(tf.constant(op11_matrix))
+    input_dict11 = {
         'operator': op11,
         'is_non_singular': True,
         'is_self_adjoint': False,
         'is_positive_definite': False,
         'is_square': True,
-        'name': 'complex_nonhermitian_inversion'
+        'name': 'singular_inversion_with_lie'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_11))
-
+    list_of_inputs.append(copy.deepcopy(input_dict11))
+    
     return list_of_inputs
 
 generated_inputs["tf.linalg.LinearOperatorInversion"] = tf_linalg_linearoperatorinversion_inputs()

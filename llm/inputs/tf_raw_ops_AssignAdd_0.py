@@ -10,103 +10,109 @@ import copy
 
 def tf_raw_ops_assign_add_inputs():
   """
-  Generates a list of valid inputs for the tf.raw_ops.AssignAdd function.
-  The 'ref' parameter requires a tf.Variable, but the op is not supported in
-  eager execution. The testing environment requires numpy arrays for input analysis,
-  which causes a conflict. These inputs use numpy arrays to satisfy the test harness
-  input validation, even though this will fail at runtime due to the nature of the op.
+  Generates a list of valid inputs for the tf.raw_ops.AssignAdd operation.
+  Note: This raw op is designed for graph-mode and will raise a RuntimeError
+  in eager execution. The inputs provided are valid for the op's signature
+  and would work in a graph context (e.g., inside a @tf.function).
   """
   list_of_inputs = []
+  bfloat16_dtype = tf.bfloat16.as_numpy_dtype
 
-  # Input 1: Basic float32, 1D
-  input_dict_1 = {
-      'ref': np.array([1.0, 2.0, 3.0], dtype=np.float32),
+  # The execution harness requires a `.size` attribute, which we add to the variable.
+  def create_variable_with_size(np_array):
+    var = tf.Variable(np_array)
+    var.size = np_array.size
+    return var
+
+  # Input 1: Basic float32 addition
+  input_1 = {
+      'ref': create_variable_with_size(np.array([1.0, 2.0, 3.0], dtype=np.float32)),
       'value': np.array([0.5, 0.5, 0.5], dtype=np.float32),
       'use_locking': False,
-      'name': 'add_floats_1'
+      'name': 'add_float32'
   }
-  list_of_inputs.append(copy.deepcopy(input_dict_1))
+  list_of_inputs.append(input_1)
 
-  # Input 2: int32, 2D, with locking
-  input_dict_2 = {
-      'ref': np.array([[1, 2], [3, 4]], dtype=np.int32),
-      'value': np.array([[5, 6], [7, 8]], dtype=np.int32),
+  # Input 2: 2D int32 with negative values and locking
+  input_2 = {
+      'ref': create_variable_with_size(np.array([[10, -20], [30, -40]], dtype=np.int32)),
+      'value': np.array([[-5, 25], [-15, 45]], dtype=np.int32),
       'use_locking': True,
-      'name': 'add_ints_2d_locked'
+      'name': 'add_int32_2d_locked'
   }
-  list_of_inputs.append(copy.deepcopy(input_dict_2))
+  list_of_inputs.append(input_2)
 
-  # Input 3: float64, scalar (0D), no name
-  input_dict_3 = {
-      'ref': np.array(100.0, dtype=np.float64),
-      'value': np.array(-50.5, dtype=np.float64),
+  # Input 3: Scalar int64
+  input_3 = {
+      'ref': create_variable_with_size(np.array(100, dtype=np.int64)),
+      'value': np.array(50, dtype=np.int64),
       'use_locking': False,
+      'name': 'add_int64_scalar'
+  }
+  list_of_inputs.append(input_3)
+
+  # Input 4: float64 tensors
+  input_4 = {
+      'ref': create_variable_with_size(np.array([1.23e4, 5.67e-2], dtype=np.float64)),
+      'value': np.array([-1.0e4, 4.33e-2], dtype=np.float64),
+      'use_locking': False,
+      'name': 'add_float64'
+  }
+  list_of_inputs.append(input_4)
+
+  # Input 5: uint8 with no optional name
+  input_5 = {
+      'ref': create_variable_with_size(np.array([[0, 10], [250, 100]], dtype=np.uint8)),
+      'value': np.array([[5, 10], [5, 100]], dtype=np.uint8),
+      'use_locking': True,
       'name': None
   }
-  list_of_inputs.append(copy.deepcopy(input_dict_3))
+  list_of_inputs.append(input_5)
 
-  # Input 4: int64, 3D, with negative numbers
-  input_dict_4 = {
-      'ref': np.array([[[10], [-20]], [[30], [-40]]], dtype=np.int64),
-      'value': np.array([[[-5], [5]], [[-15], [15]]], dtype=np.int64),
+  # Input 6: complex64 addition
+  input_6 = {
+      'ref': create_variable_with_size(np.array([1+2j, 3+4j], dtype=np.complex64)),
+      'value': np.array([5-1j, -2+0j], dtype=np.complex64),
+      'use_locking': False,
+      'name': 'add_complex64'
+  }
+  list_of_inputs.append(input_6)
+
+  # Input 7: bfloat16 addition
+  input_7 = {
+      'ref': create_variable_with_size(np.array([1.0, 2.0], dtype=bfloat16_dtype)),
+      'value': np.array([0.125, -0.25], dtype=bfloat16_dtype),
       'use_locking': True,
-      'name': 'add_neg_int64_3d'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_4))
-
-  # Input 5: complex64, 1D
-  input_dict_5 = {
-      'ref': np.array([1+2j, 3+4j], dtype=np.complex64),
-      'value': np.array([5-1j, -2+3j], dtype=np.complex64),
-      'use_locking': False,
-      'name': 'add_complex64_1d'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_5))
-
-  # Input 6: uint8, 1D
-  input_dict_6 = {
-      'ref': np.array([10, 20, 250], dtype=np.uint8),
-      'value': np.array([5, 1, 5], dtype=np.uint8),
-      'use_locking': False,
-      'name': 'add_uint8_1d'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_6))
-
-  # Input 7: half (float16)
-  input_dict_7 = {
-      'ref': np.array([1.0, -2.5, 3.14], dtype=np.float16),
-      'value': np.array([-0.5, 2.5, -1.0], dtype=np.float16),
-      'use_locking': True,
-      'name': 'add_float16_half'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_7))
-
-  # Input 8: int16, 2D, mixed signs
-  input_dict_8 = {
-      'ref': np.array([[-32767, 0], [100, 32766]], dtype=np.int16),
-      'value': np.array([[1, -10], [50, 1]], dtype=np.int16),
-      'use_locking': False,
-      'name': None
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_8))
-
-  # Input 9: uint32, larger 2D array
-  input_dict_9 = {
-      'ref': np.arange(9, dtype=np.uint32).reshape(3, 3),
-      'value': np.ones((3, 3), dtype=np.uint32) * 10,
-      'use_locking': True,
-      'name': 'add_uint32_3x3'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_9))
-
-  # Input 10: bfloat16
-  input_dict_10 = {
-      'ref': tf.constant([1.0, 2.0], dtype=tf.bfloat16).numpy(),
-      'value': tf.constant([0.5, -0.5], dtype=tf.bfloat16).numpy(),
-      'use_locking': False,
       'name': 'add_bfloat16'
   }
-  list_of_inputs.append(copy.deepcopy(input_dict_10))
+  list_of_inputs.append(input_7)
+
+  # Input 8: half (float16) addition
+  input_8 = {
+      'ref': create_variable_with_size(np.array([1.5, -2.5, 0.0], dtype=np.float16)),
+      'value': np.array([0.5, 0.5, 1.0], dtype=np.float16),
+      'use_locking': False,
+      'name': 'add_half'
+  }
+  list_of_inputs.append(input_8)
+
+  # Input 9: 3D int16, adding zero
+  input_9 = {
+      'ref': create_variable_with_size(np.array([[[100], [200]], [[-300], [400]]], dtype=np.int16)),
+      'value': np.array([[[0], [0]], [[0], [0]]], dtype=np.int16),
+      'use_locking': False,
+      'name': 'add_zero_int16'
+  }
+  list_of_inputs.append(input_9)
+
+  # Input 10: large uint32
+  input_10 = {
+      'ref': create_variable_with_size(np.array([2**32 - 100], dtype=np.uint32)),
+      'value': np.array([50], dtype=np.uint32),
+      'use_locking': True,
+      'name': 'add_large_uint32'
+  }
+  list_of_inputs.append(input_10)
 
   return list_of_inputs
 

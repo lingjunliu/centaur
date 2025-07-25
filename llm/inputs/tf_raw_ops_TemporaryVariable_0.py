@@ -6,105 +6,106 @@ generated_inputs = dict()
 
 import numpy as np
 import copy
-import tensorflow as tf
-
-tf.compat.v1.disable_eager_execution()
 
 def get_temporary_variable_inputs():
     """
     Generates a list of valid inputs for the tf.raw_ops.TemporaryVariable function.
+    This operation is designed for graph-mode execution and will fail in an eager
+    context, which is the default in modern TensorFlow. The inputs provided here are
+    syntactically correct for the operation's signature. The RuntimeError is
+    expected when this op is called eagerly.
     """
     list_of_inputs = []
 
-    # Input 1: Basic 1D float32 variable
-    input_dict = {
-        'shape': [10],
+    # Input 1: Basic 1D float32
+    input_dict_1 = {
+        'shape': [16],
         'dtype': np.float32,
-        'var_name': '',
-        'name': 'basic_float_var'
+        'var_name': 'temp_float_vec',
+        'name': 'OpFloatVec'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: 2D int32 variable with a custom var_name
-    input_dict = {
-        'shape': [3, 4],
+    # Input 2: 2D int32
+    input_dict_2 = {
+        'shape': [5, 5],
         'dtype': np.int32,
-        'var_name': 'my_temp_var_int',
-        'name': 'int_matrix_var'
+        'var_name': 'temp_int_matrix',
+        'name': 'OpIntMatrix'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: 3D float64 variable
-    input_dict = {
-        'shape': [2, 3, 5],
+    # Input 3: 3D float64
+    input_dict_3 = {
+        'shape': [2, 4, 3],
         'dtype': np.float64,
         'var_name': '',
-        'name': 'float64_tensor_var'
+        'name': 'OpFloat64'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: Scalar (0-D) int64 variable
-    input_dict = {
-        'shape': [],
-        'dtype': np.int64,
-        'var_name': 'scalar_var',
-        'name': 'scalar_op'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: 1D bool variable
-    input_dict = {
-        'shape': [100],
-        'dtype': np.bool_,
-        'var_name': '',
-        'name': 'bool_vector_var'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: 3D complex64 variable with custom names
-    input_dict = {
-        'shape': [2, 2, 2],
-        'dtype': np.complex64,
-        'var_name': 'complex_cube',
-        'name': 'complex64_op'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: 2D complex128 variable
-    input_dict = {
-        'shape': [5, 5],
-        'dtype': np.complex128,
-        'var_name': '',
-        'name': 'complex128_matrix'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Variable with a dimension of size 1
-    input_dict = {
-        'shape': [1, 10, 1],
+    # Input 4: 4D int16
+    input_dict_4 = {
+        'shape': [1, 2, 3, 4],
         'dtype': np.int16,
-        'var_name': 'singleton_dim_var',
-        'name': 'op_with_singleton'
+        'var_name': 'temp_int16_tensor',
+        'name': ''
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 9: Variable with a zero-sized dimension
-    input_dict = {
-        'shape': [10, 0, 5],
-        'dtype': np.float32,
-        'var_name': 'zero_dim_var',
-        'name': 'op_with_zero'
+    # Input 5: Scalar (0D) bool
+    input_dict_5 = {
+        'shape': [],
+        'dtype': np.bool_,
+        'var_name': 'temp_bool_scalar',
+        'name': 'OpBoolScalar'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 10: Unsigned integer type uint8
-    input_dict = {
+    # Input 6: 2D int64
+    input_dict_6 = {
         'shape': [8, 8],
-        'dtype': np.uint8,
-        'var_name': 'uint8_var',
-        'name': 'unsigned_int_op'
+        'dtype': np.int64,
+        'var_name': 'temp_int64_matrix',
+        'name': 'OpInt64'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
+
+    # Input 7: 1D uint8 vector
+    input_dict_7 = {
+        'shape': [256],
+        'dtype': np.uint8,
+        'var_name': '',
+        'name': 'OpUint8'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
+
+    # Input 8: 2D float16 (half precision)
+    input_dict_8 = {
+        'shape': [10, 20],
+        'dtype': np.float16,
+        'var_name': 'temp_float16_matrix',
+        'name': 'OpFloat16'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
+
+    # Input 9: 1D uint16 vector
+    input_dict_9 = {
+        'shape': [32],
+        'dtype': np.uint16,
+        'var_name': 'temp_uint16_vec',
+        'name': 'OpUint16'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
+
+    # Input 10: Large-ish 2D tensor of int8
+    input_dict_10 = {
+        'shape': [64, 64],
+        'dtype': np.int8,
+        'var_name': 'temp_int8_large',
+        'name': 'OpInt8'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 

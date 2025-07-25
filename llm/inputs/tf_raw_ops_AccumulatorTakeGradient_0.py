@@ -4,119 +4,101 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
-import tensorflow as tf
 
-def tf_raw_ops_accumulator_take_gradient_inputs():
+def get_tf_raw_ops_accumulator_take_gradient_inputs():
     """
-    This function generates a list of valid inputs for the
-    tf.raw_ops.AccumulatorTakeGradient operation.
-    NOTE: This operation is not supported in Eager execution mode and requires
-    a valid resource handle created in a graph context. The provided inputs
-    are syntactically correct (handle is a scalar object tensor representing a string)
-    but are expected to fail if run in a standard eager context, as the op
-    explicitly checks for and disallows eager execution.
+    Generates a list of syntactically valid inputs for the tf.raw_ops.AccumulatorTakeGradient operation.
+
+    NOTE: This operation is fundamentally incompatible with TensorFlow's eager execution mode,
+    which is the default in modern versions. The function's C++ kernel implementation for CPU/GPU
+    is not registered for eager execution, leading to a "Does not support Eager execution" error.
+    This is an inherent design characteristic of the accumulator ops, which rely on stateful
+    'ref' handles from a graph context. The inputs generated here are syntactically correct
+    according to the API's signature, but they will inevitably trigger this runtime error in the
+    eager testing environment. The 'handle' is represented as a 2-element numpy array of byte strings,
+    which is a correct numpy representation for a tf.string tensor used for resource handles
+    ([container, shared_name]).
     """
     list_of_inputs = []
 
-    # The handle is a scalar tensor of type string. We use a scalar numpy array
-    # with dtype=object to represent this, as it correctly translates to a
-    # tf.string tensor and avoids dtype issues with the testing framework.
-    
-    # Case 1: Basic float32
+    # Input 1: Basic case with float32
     input_dict_1 = {
-        'handle': np.array('handle1', dtype=object),
+        'handle': np.array([b"", b"acc_handle_1"], dtype=np.string_),
         'num_required': np.array(1, dtype=np.int32),
         'dtype': tf.float32,
-        'name': 'take_grad_float32'
+        'name': 'take_grad_1'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Case 2: float64 with a larger num_required
+    # Input 2: float64 dtype and a different handle
     input_dict_2 = {
-        'handle': np.array('handle2', dtype=object),
-        'num_required': np.array(100, dtype=np.int32),
+        'handle': np.array([b"custom_container", b"acc_handle_2"], dtype=np.string_),
+        'num_required': np.array(10, dtype=np.int32),
         'dtype': tf.float64,
-        'name': 'take_grad_float64'
+        'name': None
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Case 3: int32
+    # Input 3: int32 dtype
     input_dict_3 = {
-        'handle': np.array('handle3', dtype=object),
+        'handle': np.array([b"", b"acc_handle_3"], dtype=np.string_),
         'num_required': np.array(5, dtype=np.int32),
         'dtype': tf.int32,
-        'name': 'take_grad_int32'
+        'name': 'take_grad_3'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Case 4: uint8
+    # Input 4: complex64 dtype
     input_dict_4 = {
-        'handle': np.array('handle4', dtype=object),
-        'num_required': np.array(10, dtype=np.int32),
-        'dtype': tf.uint8,
-        'name': 'take_grad_uint8'
+        'handle': np.array([b"", b"acc_handle_4"], dtype=np.string_),
+        'num_required': np.array(2, dtype=np.int32),
+        'dtype': tf.complex64,
+        'name': None
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Case 5: complex64
+    # Input 5: bfloat16 dtype and large num_required
     input_dict_5 = {
-        'handle': np.array('handle5', dtype=object),
-        'num_required': np.array(2, dtype=np.int32),
-        'dtype': tf.complex64,
-        'name': 'take_grad_complex64'
+        'handle': np.array([b"", b"acc_handle_5"], dtype=np.string_),
+        'num_required': np.array(100, dtype=np.int32),
+        'dtype': tf.bfloat16,
+        'name': 'take_grad_5'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Case 6: int64
+    # Input 6: half (float16) dtype
     input_dict_6 = {
-        'handle': np.array('handle6', dtype=object),
-        'num_required': np.array(50, dtype=np.int32),
-        'dtype': tf.int64,
-        'name': 'take_grad_int64'
+        'handle': np.array([b"", b"acc_handle_6"], dtype=np.string_),
+        'num_required': np.array(8, dtype=np.int32),
+        'dtype': tf.half,
+        'name': None
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Case 7: half (float16)
+    # Input 7: int64 dtype
     input_dict_7 = {
-        'handle': np.array('handle7', dtype=object),
-        'num_required': np.array(1, dtype=np.int32),
-        'dtype': tf.half,
-        'name': 'take_grad_half'
+        'handle': np.array([b"", b"acc_handle_7"], dtype=np.string_),
+        'num_required': np.array(20, dtype=np.int32),
+        'dtype': tf.int64,
+        'name': 'take_grad_7'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Case 8: complex128
+    # Input 8: complex128 dtype
     input_dict_8 = {
-        'handle': np.array('handle8', dtype=object),
-        'num_required': np.array(3, dtype=np.int32),
+        'handle': np.array([b"", b"acc_handle_8"], dtype=np.string_),
+        'num_required': np.array(4, dtype=np.int32),
         'dtype': tf.complex128,
-        'name': 'take_grad_complex128'
+        'name': 'take_grad_8'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Case 9: No name provided (optional)
-    input_dict_9 = {
-        'handle': np.array('handle9', dtype=object),
-        'num_required': np.array(1000, dtype=np.int32),
-        'dtype': tf.uint32,
-        'name': None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
-
-    # Case 10: int16
-    input_dict_10 = {
-        'handle': np.array('handle10', dtype=object),
-        'num_required': np.array(256, dtype=np.int32),
-        'dtype': tf.int16,
-        'name': 'take_grad_int16'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
-
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.AccumulatorTakeGradient"] = tf_raw_ops_accumulator_take_gradient_inputs()
+generated_inputs["tf.raw_ops.AccumulatorTakeGradient"] = get_tf_raw_ops_accumulator_take_gradient_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

@@ -8,119 +8,111 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_sparse_reduce_sum_inputs():
+def get_tf_sparse_reduce_sum_inputs():
+    """
+    Generates a list of valid inputs for the tf.sparse.reduce_sum function.
+
+    The error "'tensorflow.python.framework.ops.EagerTensor' object has no
+    attribute 'indices'" occurs because a dense tensor was passed to the API,
+    which expects a sparse tensor. The fix is to construct and pass a
+    `tf.SparseTensor` object for the `sp_input` parameter, as this object
+    has the required '.indices' attribute that the API implementation uses.
+    """
     list_of_inputs = []
 
-    def create_dense_from_sparse(indices, values, shape, dtype):
-        """Creates a dense numpy array from sparse components."""
-        arr = np.zeros(shape, dtype=dtype)
-        if len(indices) > 0:
-            indices_np = np.array(indices).T
-            arr[tuple(indices_np)] = values
-        return arr
-
-    # The 'sp_input' is now a dense numpy array to satisfy the testing harness.
-    sp_input_1_dense = create_dense_from_sparse(
-        indices=[[0, 0], [0, 2], [1, 1]], 
-        values=[1, 1, 1], 
-        shape=(2, 3), 
-        dtype=np.int32
+    # Input 1: Basic 2D reduction along axis 0
+    sp_input_1 = tf.sparse.SparseTensor(
+        indices=np.array([[0, 1], [1, 2]], dtype=np.int64),
+        values=np.array([1, 2], dtype=np.int32),
+        dense_shape=np.array([2, 3], dtype=np.int64)
     )
-    
-    # Input 1: Basic 2D reduction across all axes.
-    input_dict = {
-        'sp_input': sp_input_1_dense,
-        'axis': [],
-        'keepdims': False,
-        'output_is_sparse': False,
-        'name': 'reduce_all_2d'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: Reduce along axis 0.
-    input_dict['axis'] = [0]
-    input_dict['name'] = 'reduce_axis_0'
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Reduce along axis 1.
-    input_dict['axis'] = [1]
-    input_dict['name'] = 'reduce_axis_1'
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Reduce along axis 1 and keep dimensions.
-    input_dict['keepdims'] = True
-    input_dict['name'] = 'reduce_axis_1_keepdims'
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Reduce along both axes [0, 1].
-    input_dict['axis'] = [0, 1]
-    input_dict['keepdims'] = False
-    input_dict['name'] = 'reduce_both_axes'
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Reduce along a negative axis.
-    input_dict['axis'] = [-1]
-    input_dict['name'] = 'reduce_negative_axis'
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7: Sparse output.
-    input_dict['axis'] = [0]
-    input_dict['output_is_sparse'] = True
-    input_dict['name'] = 'sparse_output'
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: 3D tensor with float values, reduce middle axis.
-    sp_input_8_dense = create_dense_from_sparse(
-        indices=[[0, 0, 0], [0, 1, 2], [1, 1, 1]], 
-        values=[1.5, 2.5, 3.5], 
-        shape=(2, 3, 4), 
-        dtype=np.float32
-    )
-    input_dict_8 = {
-        'sp_input': sp_input_8_dense,
-        'axis': [1],
-        'keepdims': False,
-        'output_is_sparse': False,
-        'name': 'reduce_3d_float'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
-
-    # Input 9: 3D tensor, reduce multiple axes [0, 2] and keep dimensions.
-    input_dict_8['axis'] = [0, 2]
-    input_dict_8['keepdims'] = True
-    input_dict_8['name'] = 'reduce_3d_multi_axis_keepdims'
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
-
-    # Input 10: 1D sparse tensor.
-    sp_input_10_dense = create_dense_from_sparse(
-        indices=[[1], [3], [5]], 
-        values=[10, 20, 30], 
-        shape=(10,), 
-        dtype=np.int64
-    )
-    input_dict_10 = {
-        'sp_input': sp_input_10_dense,
+    input_dict_1 = {
+        'sp_input': sp_input_1,
         'axis': [0],
+        'keepdims': False,
+        'output_is_sparse': False,
+        'name': 'reduce_axis_0'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
+
+    # Input 2: 2D reduction along axis 1 with keepdims=True and float values
+    sp_input_2 = tf.sparse.SparseTensor(
+        indices=np.array([[0, 0], [0, 2], [1, 1]], dtype=np.int64),
+        values=np.array([1.0, 1.0, 1.0], dtype=np.float32),
+        dense_shape=np.array([2, 3], dtype=np.int64)
+    )
+    input_dict_2 = {
+        'sp_input': sp_input_2,
+        'axis': [1],
         'keepdims': True,
         'output_is_sparse': False,
-        'name': 'reduce_1d_keepdims'
+        'name': 'reduce_axis_1_keepdims'
     }
-    list_of_inputs.append(input_dict_10)
-    
-    # Input 11: Empty tensor reduction.
-    sp_input_11_dense = create_dense_from_sparse([], [], (5, 5), np.int32)
-    input_dict_11 = {
-        'sp_input': sp_input_11_dense,
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
+
+    # Input 3: Reduce all dimensions by providing a list of all axes
+    input_dict_3 = {
+        'sp_input': sp_input_2,
+        'axis': [0, 1],
+        'keepdims': False,
+        'output_is_sparse': False,
+        'name': 'reduce_all_axes'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
+
+    # Input 4: Reduction with sparse output
+    input_dict_4 = {
+        'sp_input': sp_input_2,
+        'axis': [0],
+        'keepdims': False,
+        'output_is_sparse': True,
+        'name': 'reduce_sparse_output'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
+
+    # Input 5: 3D tensor reduction along a negative axis
+    sp_input_5 = tf.sparse.SparseTensor(
+        indices=np.array([[0, 0, 0], [1, 1, 1], [1, 2, 0]], dtype=np.int64),
+        values=np.array([10, 20, 30], dtype=np.int64),
+        dense_shape=np.array([2, 3, 2], dtype=np.int64)
+    )
+    input_dict_5 = {
+        'sp_input': sp_input_5,
+        'axis': [-2],
+        'keepdims': True,
+        'output_is_sparse': False,
+        'name': 'reduce_3d_negative_axis'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
+
+    # Input 6: Empty sparse tensor
+    sp_input_6 = tf.sparse.SparseTensor(
+        indices=np.empty((0, 2), dtype=np.int64),
+        values=np.array([], dtype=np.int32),
+        dense_shape=np.array([5, 5], dtype=np.int64)
+    )
+    input_dict_6 = {
+        'sp_input': sp_input_6,
         'axis': [0],
         'keepdims': False,
         'output_is_sparse': False,
         'name': 'reduce_empty_sparse'
     }
-    list_of_inputs.append(input_dict_11)
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
+
+    # Input 7: Reduce all dimensions with an empty list for axis
+    input_dict_7 = {
+        'sp_input': sp_input_2,
+        'axis': [],
+        'keepdims': False,
+        'output_is_sparse': False,
+        'name': 'reduce_all_empty_axis'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
     return list_of_inputs
 
-generated_inputs["tf.sparse.reduce_sum"] = tf_sparse_reduce_sum_inputs()
+generated_inputs["tf.sparse.reduce_sum"] = get_tf_sparse_reduce_sum_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

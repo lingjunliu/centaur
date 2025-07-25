@@ -4,143 +4,105 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
-def get_sparse_apply_adagrad_inputs():
+def tf_raw_ops_sparse_apply_adagrad_inputs():
     """
     Generates a list of valid inputs for tf.raw_ops.SparseApplyAdagrad.
-    NOTE: This raw operation is designed for TensorFlow's graph mode and modifies
-    its tensor inputs in-place. It will consistently raise a RuntimeError when
-    called directly in eager execution, as eager tensors are immutable.
-    The inputs provided here are valid for a graph-based execution context.
+    The recurring error `RuntimeError: sparse_apply_adagrad op does not support eager execution`
+    is fundamental to the operation itself. This op is a legacy component from TensorFlow 1.x
+    designed to mutate stateful `tf.Variable` objects within a computational graph. It was not
+    designed for and does not have a kernel for TensorFlow 2.x's default eager execution mode.
+    The error is raised by TensorFlow's generated code wrapper before the operation's
+    core logic is even reached. Therefore, no variation of input values or types can "fix"
+    this error within an eager execution context. The inputs provided below are syntactically
+    and semantically correct according to the API's signature but will fail in any standard
+    eager execution environment.
     """
     list_of_inputs = []
 
     # Input 1: Basic float32 case
-    list_of_inputs.append({
+    input_dict_1 = {
+        'var': np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float32),
+        'accum': np.array([[0.1, 0.1], [0.1, 0.1], [0.1, 0.1]], dtype=np.float32),
+        'lr': np.array(0.01, dtype=np.float32),
+        'grad': np.array([[0.1, 0.2]], dtype=np.float32),
+        'indices': np.array([0], dtype=np.int32),
+        'use_locking': False,
+        'update_slots': True,
+        'name': 'basic_float32'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
+
+    # Input 2: float64 and int64 indices
+    input_dict_2 = {
+        'var': np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64),
+        'accum': np.array([[0.5, 0.5], [0.5, 0.5]], dtype=np.float64),
+        'lr': np.array(0.001, dtype=np.float64),
+        'grad': np.array([[1.0, -1.0]], dtype=np.float64),
+        'indices': np.array([1], dtype=np.int64),
+        'use_locking': False,
+        'update_slots': True,
+        'name': 'float64_case'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
+
+    # Input 3: use_locking=True
+    input_dict_3 = {
+        'var': np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32),
+        'accum': np.array([[0.1, 0.1], [0.1, 0.1]], dtype=np.float32),
+        'lr': np.array(0.01, dtype=np.float32),
+        'grad': np.array([[0.1, 0.2]], dtype=np.float32),
+        'indices': np.array([0], dtype=np.int32),
+        'use_locking': True,
+        'update_slots': True,
+        'name': 'use_locking'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
+
+    # Input 4: update_slots=False
+    input_dict_4 = {
         'var': np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32),
         'accum': np.array([[0.1, 0.1], [0.1, 0.1]], dtype=np.float32),
         'lr': np.array(0.01, dtype=np.float32),
         'grad': np.array([[0.1, 0.2]], dtype=np.float32),
         'indices': np.array([0], dtype=np.int32),
         'use_locking': False,
-        'update_slots': True,
-        'name': 'case_1_f32'
-    })
+        'update_slots': False,
+        'name': 'no_update_slots'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 2: Basic float64 case with locking
-    list_of_inputs.append({
-        'var': np.array([[10.0], [20.0]], dtype=np.float64),
-        'accum': np.array([[0.5], [0.5]], dtype=np.float64),
-        'lr': np.array(0.1, dtype=np.float64),
-        'grad': np.array([[-2.0]], dtype=np.float64),
-        'indices': np.array([1], dtype=np.int64),
-        'use_locking': True,
-        'update_slots': True,
-        'name': 'case_2_f64_lock'
-    })
-
-    # Input 3: 1D float32 var, multiple indices
-    list_of_inputs.append({
-        'var': np.array([-1.0, -2.0, -3.0], dtype=np.float32),
-        'accum': np.array([0.1, 0.2, 0.3], dtype=np.float32),
-        'lr': np.array(0.001, dtype=np.float32),
-        'indices': np.array([0, 2], dtype=np.int32),
+    # Input 5: 1D variable
+    input_dict_5 = {
+        'var': np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32),
+        'accum': np.array([0.1, 0.1, 0.1, 0.1], dtype=np.float32),
+        'lr': np.array(0.1, dtype=np.float32),
         'grad': np.array([0.5, -0.5], dtype=np.float32),
+        'indices': np.array([1, 3], dtype=np.int32),
         'use_locking': False,
         'update_slots': True,
-        'name': 'case_3_f32_1d'
-    })
-
-    # Input 4: update_slots=False
-    list_of_inputs.append({
-        'var': np.array([[-10.0, 20.0], [-30.0, 40.0]], dtype=np.float32),
-        'accum': np.array([[1.0, 1.0], [1.0, 1.0]], dtype=np.float32),
-        'lr': np.array(0.2, dtype=np.float32),
-        'indices': np.array([1], dtype=np.int64),
-        'grad': np.array([[-5.0, -2.0]], dtype=np.float32),
-        'use_locking': False,
-        'update_slots': False,
-        'name': 'case_4_no_slots'
-    })
+        'name': '1d_variable'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
     
-    # Input 5: Both flags changed (locking=True, update_slots=False)
-    list_of_inputs.append({
-        'var': np.ones((4, 2), dtype=np.float64),
-        'accum': np.full((4, 2), 0.2, dtype=np.float64),
-        'lr': np.array(0.3, dtype=np.float64),
-        'indices': np.array([0, 3], dtype=np.int64),
-        'grad': np.array([[-0.1, -0.2], [0.3, 0.4]], dtype=np.float64),
-        'use_locking': True,
-        'update_slots': False,
-        'name': 'case_5_both_flags'
-    })
-
-    # Input 6: Update all rows
-    list_of_inputs.append({
-        'var': np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32),
-        'accum': np.array([[0.5, 0.5], [0.5, 0.5]], dtype=np.float32),
-        'lr': np.array(0.1, dtype=np.float32),
-        'indices': np.array([0, 1], dtype=np.int32),
-        'grad': np.array([[-2.0, 1.0], [3.0, -4.0]], dtype=np.float32),
-        'use_locking': False,
-        'update_slots': True,
-        'name': 'case_6_full_update'
-    })
-
-    # Input 7: Zero learning rate
-    list_of_inputs.append({
-        'var': np.array([[1.0, 2.0]], dtype=np.float32),
-        'accum': np.array([[0.1, 0.1]], dtype=np.float32),
-        'lr': np.array(0.0, dtype=np.float32),
-        'grad': np.array([[0.5, 0.5]], dtype=np.float32),
-        'indices': np.array([0], dtype=np.int32),
-        'use_locking': False,
-        'update_slots': True,
-        'name': 'case_7_zero_lr'
-    })
-
-    # Input 8: Zero gradient
-    list_of_inputs.append({
-        'var': np.array([[1.0, 2.0]], dtype=np.float32),
-        'accum': np.array([[0.1, 0.1]], dtype=np.float32),
-        'lr': np.array(0.1, dtype=np.float32),
-        'grad': np.array([[0.0, 0.0]], dtype=np.float32),
-        'indices': np.array([0], dtype=np.int32),
-        'use_locking': False,
-        'update_slots': True,
-        'name': 'case_8_zero_grad'
-    })
-
-    # Input 9: half/float16 type
-    list_of_inputs.append({
-        'var': np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float16),
-        'accum': np.array([[0.1, 0.1], [0.1, 0.1]], dtype=np.float16),
+    # Input 6: half (float16) type
+    input_dict_6 = {
+        'var': np.arange(6, dtype=np.float16).reshape(3, 2),
+        'accum': np.full((3, 2), 0.1, dtype=np.float16),
         'lr': np.array(0.01, dtype=np.float16),
-        'grad': np.array([[0.1, 0.2]], dtype=np.float16),
-        'indices': np.array([1], dtype=np.int32),
-        'use_locking': False,
-        'update_slots': True,
-        'name': 'case_9_float16'
-    })
-
-    # Input 10: large initial accumulator
-    list_of_inputs.append({
-        'var': np.array([[1.0, 2.0]], dtype=np.float32),
-        'accum': np.array([[100.0, 100.0]], dtype=np.float32),
-        'lr': np.array(0.1, dtype=np.float32),
-        'grad': np.array([[1.0, -1.0]], dtype=np.float32),
+        'grad': np.random.rand(1, 2).astype(np.float16),
         'indices': np.array([0], dtype=np.int32),
         'use_locking': False,
         'update_slots': True,
-        'name': 'case_10_large_accum'
-    })
+        'name': 'float16_type'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    return [copy.deepcopy(d) for d in list_of_inputs]
+    return list_of_inputs
 
-generated_inputs["tf.raw_ops.SparseApplyAdagrad"] = get_sparse_apply_adagrad_inputs()
+generated_inputs["tf.raw_ops.SparseApplyAdagrad"] = tf_raw_ops_sparse_apply_adagrad_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

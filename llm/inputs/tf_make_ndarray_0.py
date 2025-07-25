@@ -11,71 +11,48 @@ import copy
 def tf_make_ndarray_inputs():
     """
     Generates a list of valid inputs for the tf.make_ndarray function.
-    The inputs are provided in numpy format as requested by the user's framework,
-    which expects objects with a .shape attribute.
+    The user's test harness expects a numpy-like object with a .shape attribute,
+    so we provide numpy arrays directly. The harness is expected to handle the
+    conversion to a TensorProto before calling the API.
     """
     list_of_inputs = []
 
-    # Input 1: Simple 2D int32 tensor
-    tensor_1 = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
-    input_dict_1 = {'tensor': tensor_1}
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Input 1: Basic 2D int32 array
+    list_of_inputs.append(copy.deepcopy({'tensor': np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)}))
+    
+    # Input 2: 1D float32 array with negative values
+    list_of_inputs.append(copy.deepcopy({'tensor': np.array([-1.1, 0.0, 2.2, -3.3], dtype=np.float32)}))
 
-    # Input 2: 1D float32 tensor with negative values
-    tensor_2 = np.array([-1.1, 0.0, 2.2, -3.3], dtype=np.float32)
-    input_dict_2 = {'tensor': tensor_2}
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    # Input 3: 3D float64 array
+    list_of_inputs.append(copy.deepcopy({'tensor': np.array([[[1.0], [2.0]], [[3.0], [4.0]]], dtype=np.float64)}))
 
-    # Input 3: 3D float64 tensor
-    tensor_3 = np.random.rand(2, 3, 4).astype(np.float64)
-    input_dict_3 = {'tensor': tensor_3}
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    # Input 4: 0D (scalar) int64 array
+    list_of_inputs.append(copy.deepcopy({'tensor': np.array(987654321098765432, dtype=np.int64)}))
 
-    # Input 4: 0D tensor (scalar) of type int64
-    tensor_4 = np.array(42, dtype=np.int64)
-    input_dict_4 = {'tensor': tensor_4}
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    # Input 5: Empty 1D array
+    list_of_inputs.append(copy.deepcopy({'tensor': np.array([], dtype=np.float32)}))
 
-    # Input 5: Boolean tensor
-    tensor_5 = np.array([[True, False], [False, True]], dtype=np.bool_)
-    input_dict_5 = {'tensor': tensor_5}
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    # Input 6: Array with a zero dimension
+    list_of_inputs.append(copy.deepcopy({'tensor': np.zeros(shape=(2, 0, 3), dtype=np.int32)}))
 
-    # Input 6: Empty tensor (shape [0])
-    tensor_6 = np.array([], dtype=np.float32)
-    input_dict_6 = {'tensor': tensor_6}
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    # Input 7: Boolean array
+    list_of_inputs.append(copy.deepcopy({'tensor': np.array([[True, False], [False, True]], dtype=np.bool_)}))
 
-    # Input 7: Empty tensor with non-zero dimensions (shape [2, 0, 3])
-    tensor_7 = np.empty(shape=(2, 0, 3), dtype=np.int16)
-    input_dict_7 = {'tensor': tensor_7}
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    # Input 8: Complex64 array
+    list_of_inputs.append(copy.deepcopy({'tensor': np.array([1 + 2j, 3 - 4j, -5 - 6j], dtype=np.complex64)}))
 
-    # Input 8: Complex64 tensor
-    tensor_8 = np.array([1+2j, 3+4j, 5+6j], dtype=np.complex64)
-    input_dict_8 = {'tensor': tensor_8}
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    # Input 9: Complex128 array
+    list_of_inputs.append(copy.deepcopy({'tensor': np.array([[5.5 + 6.6j]], dtype=np.complex128)}))
+    
+    # Input 10: Unsigned integer array
+    list_of_inputs.append(copy.deepcopy({'tensor': np.array([0, 255, 128], dtype=np.uint8)}))
+    
+    # Input 11: 4D array of float16
+    list_of_inputs.append(copy.deepcopy({'tensor': np.ones((1, 2, 2, 1), dtype=np.float16)}))
 
-    # Input 9: Unsigned integer tensor (uint8)
-    tensor_9 = np.array([[0, 255], [128, 1]], dtype=np.uint8)
-    input_dict_9 = {'tensor': tensor_9}
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
-
-    # Input 10: String tensor (byte strings) - numpy handles this with dtype=object
-    tensor_10 = np.array([b"hello", b"world"], dtype=object)
-    input_dict_10 = {'tensor': tensor_10}
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
-
-    # Input 11: Float tensor with special values (inf, -inf, nan)
-    tensor_11 = np.array([np.inf, -np.inf, np.nan], dtype=np.float32)
-    input_dict_11 = {'tensor': tensor_11}
-    list_of_inputs.append(copy.deepcopy(input_dict_11))
-
-    # Input 12: Complex128 tensor
-    tensor_12 = np.array([[1.1 + 2.2j], [3.3 - 4.4j]], dtype=np.complex128)
-    input_dict_12 = {'tensor': tensor_12}
-    list_of_inputs.append(copy.deepcopy(input_dict_12))
-
+    # Input 12: String array
+    list_of_inputs.append(copy.deepcopy({'tensor': np.array([["hello", "world"], ["tensorflow", "rules"]], dtype=object)}))
+    
     return list_of_inputs
 
 generated_inputs["tf.make_ndarray"] = tf_make_ndarray_inputs()

@@ -6,106 +6,86 @@ generated_inputs = dict()
 
 import numpy as np
 import copy
+import tensorflow as tf
 
-def get_requantization_range_inputs():
+def tf_raw_ops_requantization_range_inputs():
     """
-    Generates a list of valid inputs for tf.raw_ops.RequantizationRange.
+    This function generates a list of valid inputs for the
+    tf.raw_ops.RequantizationRange operation.
+    The error `InvalidArgumentError: Value for attr 'Tinput' of int8 is not in the list of allowed values: qint8...`
+    confirms that the 'input' tensor must have a quantized dtype. The only way to
+    create such a tensor is by using a TensorFlow quantization function.
+    This code uses tf.quantization.quantize to produce tensors with the correct
+    dtypes, which is the required fix for the reported error.
     """
     list_of_inputs = []
 
-    # Case 1: Corresponds to qint8
-    input_dict_1 = {
-        'name': 'test_qint8',
-        'input': np.array([-128, 0, 127], dtype=np.int8),
-        'input_min': np.array(-1.0, dtype=np.float32),
-        'input_max': np.array(1.0, dtype=np.float32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    def create_input_dict(name, float_values, min_range, max_range, q_type, **kwargs):
+        """Helper to create quantized tensors and format the input dict."""
+        float_tensor = tf.constant(float_values, dtype=tf.float32)
+        quantized_input, _, _ = tf.quantization.quantize(
+            float_tensor, min_range, max_range, T=q_type, **kwargs
+        )
+        return {
+            'name': name,
+            'input': quantized_input,
+            'input_min': tf.constant(min_range, dtype=tf.float32),
+            'input_max': tf.constant(max_range, dtype=tf.float32)
+        }
 
-    # Case 2: Corresponds to quint8
-    input_dict_2 = {
-        'name': 'test_quint8',
-        'input': np.array([[10, 50], [100, 200]], dtype=np.uint8),
-        'input_min': np.array(0.0, dtype=np.float32),
-        'input_max': np.array(25.5, dtype=np.float32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    # Input 1: Correctly typed qint8 input to fix the InvalidArgumentError
+    list_of_inputs.append(create_input_dict(
+        'qint8_full_range_1d', [-1.0, 0.0, 1.0], -1.0, 1.0, tf.qint8
+    ))
 
-    # Case 3: Corresponds to qint32
-    input_dict_3 = {
-        'name': 'test_qint32',
-        'input': np.array([[[100000, -200000], [0, 50000]]], dtype=np.int32),
-        'input_min': np.array(-1000.0, dtype=np.float32),
-        'input_max': np.array(1000.0, dtype=np.float32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    # Input 2: Correctly typed quint8 input
+    list_of_inputs.append(create_input_dict(
+        'quint8_partial_range_1d', [50.0, 100.0, 150.0], 0.0, 255.0, tf.quint8
+    ))
 
-    # Case 4: Corresponds to qint16
-    input_dict_4 = {
-        'name': 'test_qint16',
-        'input': np.array([5000], dtype=np.int16),
-        'input_min': np.array(-32768.0, dtype=np.float32),
-        'input_max': np.array(32767.0, dtype=np.float32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    # Input 3: Correctly typed 2D qint8 input
+    list_of_inputs.append(create_input_dict(
+        'qint8_2d_neg_range', [[-10.0, -7.5], [-5.0, -6.0]], -10.0, -5.0, tf.qint8
+    ))
 
-    # Case 5: Corresponds to quint16
-    input_dict_5 = {
-        'name': 'test_quint16',
-        'input': np.array([[0, 10000], [30000, 65535]], dtype=np.uint16),
-        'input_min': np.array(0.0, dtype=np.float32),
-        'input_max': np.array(6553.5, dtype=np.float32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    # Input 4: Correctly typed qint32 input
+    list_of_inputs.append(create_input_dict(
+        'qint32_large_values', [-1000.0, 0.0, 1000.0], -1000.0, 1000.0, tf.qint32
+    ))
 
-    # Case 6: Corresponds to qint8, single repeated value
-    input_dict_6 = {
-        'name': 'test_qint8_repeated',
-        'input': np.array([[50, 50], [50, 50]], dtype=np.int8),
-        'input_min': np.array(-10.0, dtype=np.float32),
-        'input_max': np.array(10.0, dtype=np.float32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    # Input 5: Correctly typed quint16 input
+    list_of_inputs.append(create_input_dict(
+        'quint16_1d', [0.0, 10.0, 300.0, 655.35], 0.0, 655.35, tf.quint16
+    ))
 
-    # Case 7: Corresponds to qint16, negative float range
-    input_dict_7 = {
-        'name': 'test_qint16_neg_range',
-        'input': np.array([[[-100, 0]], [[100, 200]]], dtype=np.int16),
-        'input_min': np.array(-50.0, dtype=np.float32),
-        'input_max': np.array(-1.0, dtype=np.float32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    # Input 6: Correctly typed qint16 input
+    list_of_inputs.append(create_input_dict(
+        'qint16_3d', [[[-5.0, 0.0]], [[1.0, 5.0]]], -5.0, 5.0, tf.qint16
+    ))
 
-    # Case 8: Corresponds to quint8, zero float range
-    input_dict_8 = {
-        'name': 'test_quint8_zero_range',
-        'input': np.array([10, 20, 30, 40], dtype=np.uint8),
-        'input_min': np.array(0.0, dtype=np.float32),
-        'input_max': np.array(0.0, dtype=np.float32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    # Input 7: qint8 with narrow_range=True
+    list_of_inputs.append(create_input_dict(
+        'qint8_narrow_range', [-1.0, 0.0, 1.0], -1.0, 1.0, tf.qint8, narrow_range=True
+    ))
+
+    # Input 8: quint8 with a single unique value
+    list_of_inputs.append(create_input_dict(
+        'quint8_single_value', [[0.5, 0.5], [0.5, 0.5]], 0.0, 1.0, tf.quint8
+    ))
+
+    # Input 9: qint8 with asymmetric float range
+    list_of_inputs.append(create_input_dict(
+        'qint8_asymmetric_range', [-5.0, 0.0, 1.0], -10.0, 2.0, tf.qint8
+    ))
     
-    # Case 9: Corresponds to qint32, large range
-    input_dict_9 = {
-        'name': 'test_qint32_large_range',
-        'input': np.array([-1000000, 0, 1000000], dtype=np.int32),
-        'input_min': np.array(-2.1e9, dtype=np.float32),
-        'input_max': np.array(2.1e9, dtype=np.float32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
-
-    # Case 10: Corresponds to quint16, 4D tensor
-    input_dict_10 = {
-        'name': 'test_quint16_4d',
-        'input': np.arange(16, dtype=np.uint16).reshape((2, 2, 2, 2)),
-        'input_min': np.array(0.1, dtype=np.float32),
-        'input_max': np.array(0.9, dtype=np.float32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
-
+    # Input 10: quint8 where actual range is a subset of the quantization range
+    list_of_inputs.append(create_input_dict(
+        'quint8_actual_range_is_subset', [10.0, 20.0, 30.0, 40.0], 0.0, 255.0, tf.quint8
+    ))
+    
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.RequantizationRange"] = get_requantization_range_inputs()
+generated_inputs["tf.raw_ops.RequantizationRange"] = tf_raw_ops_requantization_range_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

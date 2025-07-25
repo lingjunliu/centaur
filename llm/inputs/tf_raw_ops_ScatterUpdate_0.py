@@ -6,103 +6,160 @@ generated_inputs = dict()
 
 import numpy as np
 import copy
+import tensorflow as tf
 
-def get_raw_ops_scatter_update_inputs():
+class EagerVariableWrapper:
     """
-    Generates a list of syntactically and semantically valid inputs for the
-    tf.raw_ops.ScatterUpdate operation based on its documentation.
+    A wrapper for tf.Variable to make it compatible with a test harness
+    that expects numpy-like attributes (.size) and deepcopy support.
+    
+    tf.raw_ops.ScatterUpdate requires a Variable-like object (a 'ref' type).
+    In Eager execution mode, this op is explicitly disabled and raises an
+    error. This wrapper correctly provides the required Variable type,
+    which will lead to the expected RuntimeError.
+    """
+    def __init__(self, initial_value, name=None):
+        # The actual tf.Variable that the op will receive.
+        self.variable = tf.Variable(initial_value, name=name)
+        # A numpy view for harness-required attributes like .size and .shape.
+        self._numpy_view = np.array(initial_value)
+        self.size = self._numpy_view.size
+        self.shape = self._numpy_view.shape
+        self.dtype = self._numpy_view.dtype
 
-    **CRITICAL NOTE:** The `tf.raw_ops.ScatterUpdate` operation is designed for
-    TensorFlow's graph execution mode and operates on mutable variable references.
-    It is **fundamentally incompatible with eager execution**, which is the
-    default in modern TensorFlow. Any attempt to call this raw op directly in an
-    eager context will result in a `RuntimeError`, regardless of the validity of
-    the inputs. The error "scatter_update op does not support eager execution"
-    is a direct consequence of this incompatibility and is not caused by the
-    input values provided below.
+    def __deepcopy__(self, memo):
+        # Create a new instance with a copy of the data.
+        if id(self) in memo:
+            return memo[id(self)]
+        new_copy = EagerVariableWrapper(self._numpy_view.copy())
+        memo[id(self)] = new_copy
+        return new_copy
 
-    These inputs are correct for a graph-based environment (e.g., inside a
-    `tf.function` that properly handles a `tf.Variable`).
+def _variable_wrapper_to_tensor(value, dtype=None, name=None, as_ref=False):
+    """
+    Tensor conversion function to tell TensorFlow how to handle the wrapper.
+    It returns the underlying tf.Variable when the wrapper is passed to a TF op.
+    """
+    return value.variable
+
+# Register the conversion function with a high priority so TF knows what to do
+# with EagerVariableWrapper instances.
+tf.register_tensor_conversion_function(
+    EagerVariableWrapper, _variable_wrapper_to_tensor, priority=100
+)
+
+def get_tf_raw_ops_scatter_update_inputs():
+    """
+    Generates a list of structurally valid inputs for tf.raw_ops.ScatterUpdate.
+    NOTE: This raw op is not compatible with Eager execution and is expected to
+    raise a RuntimeError when called. The inputs provided here are correct for
+    the operation's signature.
     """
     list_of_inputs = []
 
-    # Case 1: Simple 1D update on a float32 vector.
-    # updates.shape = indices.shape + ref.shape[1:] -> (2,) = (2,) + ()
-    input_dict_1 = {
-        'ref': np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32),
-        'indices': np.array([1, 4], dtype=np.int32),
-        'updates': np.array([10.0, 20.0], dtype=np.float32),
+    # Input 1: Basic 1D update with float32
+    input_dict = {
+        'ref': EagerVariableWrapper(np.zeros(8, dtype=np.float32)),
+        'indices': np.array([4, 3, 1, 7], dtype=np.int32),
+        'updates': np.array([9.0, 10.0, 11.0, 12.0], dtype=np.float32),
         'use_locking': True,
-        'name': 'graph_mode_valid_1'
+        'name': 'basic_float_update'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 2: Update slices in a 2D int32 matrix.
-    # updates.shape = indices.shape + ref.shape[1:] -> (2, 3) = (2,) + (3,)
-    input_dict_2 = {
-        'ref': np.zeros((4, 3), dtype=np.int32),
-        'indices': np.array([0, 3], dtype=np.int64),
-        'updates': np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32),
+    # Input 2: Updating slices in a 2D tensor
+    input_dict = {
+        'ref': EagerVariableWrapper(np.zeros((5, 3), dtype=np.float32)),
+        'indices': np.array([0, 4, 2], dtype=np.int32),
+        'updates': np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float32),
         'use_locking': False,
-        'name': 'graph_mode_valid_2'
+        'name': 'slice_update'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 3: Scalar update (updates.shape = []) broadcasted to slices of a 2D matrix.
-    input_dict_3 = {
-        'ref': np.ones((5, 2), dtype=np.float32),
-        'indices': np.array([0, 2, 4], dtype=np.int32),
-        'updates': np.array(-1.0, dtype=np.float32), # Shape is ()
+    # Input 3: Duplicate indices with int32 and int64 types
+    input_dict = {
+        'ref': EagerVariableWrapper(np.array([1, 2, 3, 4, 5], dtype=np.int32)),
+        'indices': np.array([1, 0, 1, 3], dtype=np.int64),
+        'updates': np.array([10, 20, 30, 40], dtype=np.int32),
         'use_locking': True,
-        'name': 'graph_mode_valid_3'
+        'name': 'duplicate_indices'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 4: Update on a 3D tensor with a single index.
-    # updates.shape = indices.shape + ref.shape[1:] -> (1, 2, 2) = (1,) + (2, 2)
-    input_dict_4 = {
-        'ref': np.zeros((3, 2, 2), dtype=np.float64),
-        'indices': np.array([1], dtype=np.int32),
-        'updates': np.ones((1, 2, 2), dtype=np.float64) * 5.0,
+    # Input 4: High-rank indices (2D indices)
+    input_dict = {
+        'ref': EagerVariableWrapper(np.zeros((8, 2), dtype=np.float64)),
+        'indices': np.array([[1, 5], [7, 2]], dtype=np.int32),
+        'updates': np.arange(8, dtype=np.float64).reshape(2, 2, 2),
         'use_locking': True,
-        'name': 'graph_mode_valid_4'
+        'name': 'high_rank_indices'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
-
-    # Case 5: 2D indices updating a 1D tensor.
-    # updates.shape = indices.shape + ref.shape[1:] -> (2, 2) = (2, 2) + ()
-    input_dict_5 = {
-        'ref': np.zeros(10, dtype=np.float32),
-        'indices': np.array([[1, 8], [3, 6]], dtype=np.int32),
-        'updates': np.array([[10.0, 20.0], [30.0, 40.0]], dtype=np.float32),
-        'use_locking': False,
-        'name': 'graph_mode_valid_5'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
-
-    # Case 6: Empty indices and updates. This is a valid edge case.
-    input_dict_6 = {
-        'ref': np.array([1, 2, 3], dtype=np.int32),
-        'indices': np.array([], dtype=np.int32),
-        'updates': np.array([], dtype=np.int32),
-        'use_locking': True,
-        'name': 'graph_mode_valid_6'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Case 7: Duplicate indices. The behavior is undefined but the call is valid.
-    input_dict_7 = {
-        'ref': np.zeros(5, dtype=np.int32),
-        'indices': np.array([1, 1, 3, 3, 1], dtype=np.int32),
-        'updates': np.array([10, 20, 30, 40, 50], dtype=np.int32),
-        'use_locking': True,
-        'name': 'graph_mode_valid_7'
+    # Input 5: Scalar index and scalar update
+    input_dict = {
+        'ref': EagerVariableWrapper(np.zeros(5, dtype=np.float32)),
+        'indices': np.array(3, dtype=np.int32),
+        'updates': np.array(99.0, dtype=np.float32),
+        'use_locking': False,
+        'name': 'scalar_index_scalar_update'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 6: Scalar index with slice update
+    input_dict = {
+        'ref': EagerVariableWrapper(np.zeros((5, 4), dtype=np.int32)),
+        'indices': np.array(2, dtype=np.int64),
+        'updates': np.array([1, 2, 3, 4], dtype=np.int32),
+        'use_locking': True,
+        'name': 'scalar_index_slice_update'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Empty indices and updates
+    input_dict = {
+        'ref': EagerVariableWrapper(np.array([1.0, 2.0, 3.0], dtype=np.float32)),
+        'indices': np.array([], dtype=np.int32),
+        'updates': np.array([], dtype=np.float32),
+        'use_locking': True,
+        'name': 'empty_update'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Higher dimensional ref (3D)
+    input_dict = {
+        'ref': EagerVariableWrapper(np.ones((4, 3, 2), dtype=np.float32)),
+        'indices': np.array([0, 3], dtype=np.int32),
+        'updates': np.zeros((2, 3, 2), dtype=np.float32),
+        'use_locking': False,
+        'name': '3d_ref_update'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: All indices used in a different order
+    input_dict = {
+        'ref': EagerVariableWrapper(np.zeros(4, dtype=np.int64)),
+        'indices': np.array([3, 1, 0, 2], dtype=np.int32),
+        'updates': np.array([10, 20, 30, 40], dtype=np.int64),
+        'use_locking': True,
+        'name': 'full_update_shuffled'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Scalar update broadcast to slices
+    input_dict = {
+        'ref': EagerVariableWrapper(np.zeros((5, 3), dtype=np.float32)),
+        'indices': np.array([1, 4], dtype=np.int32),
+        'updates': np.array(7.7, dtype=np.float32),
+        'use_locking': True,
+        'name': 'scalar_broadcast_update'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.ScatterUpdate"] = get_raw_ops_scatter_update_inputs()
+generated_inputs["tf.raw_ops.ScatterUpdate"] = get_tf_raw_ops_scatter_update_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

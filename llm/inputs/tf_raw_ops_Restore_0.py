@@ -4,119 +4,92 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
-import tensorflow as tf
 import os
-import tempfile
+import shutil
 
-def tf_raw_ops_restore_inputs():
+def get_tf_raw_ops_restore_inputs():
     """
-    Generates a list of valid inputs for the tf.raw_ops.Restore function.
-    This function creates V1-style checkpoint files that the op can read,
-    and ensures the op is called in an eager context, returning an EagerTensor.
+    Generates valid inputs for tf.raw_ops.Restore.
+    This involves creating physical checkpoint files on disk for the op to read.
     """
-    list_of_inputs = []
-    # Create a single temporary directory for all checkpoint files
-    temp_dir = tempfile.mkdtemp()
 
-    def create_checkpoint(file_path_prefix, tensor_name, tensor_value, sharded=False):
-        """Helper to create a V1-style checkpoint file within an isolated graph."""
+    # Helper to create a V1 checkpoint, which is what tf.raw_ops.Restore expects.
+    def _create_v1_checkpoint(path_prefix, tensor_name, tensor_value):
+        # Use a new graph and session for each save to ensure statelessness.
         graph = tf.Graph()
         with graph.as_default():
-            var = tf.compat.v1.Variable(tensor_value, name=tensor_name)
-            saver = tf.compat.v1.train.Saver(sharded=sharded)
+            # The name of the tf.Variable becomes the tensor_name in the checkpoint.
+            var = tf.Variable(initial_value=tensor_value, name=tensor_name)
+            # Saver needs to know which variable to save under which name.
+            saver = tf.compat.v1.train.Saver({tensor_name: var})
             with tf.compat.v1.Session() as sess:
+                # Initialize the variable before saving.
                 sess.run(tf.compat.v1.global_variables_initializer())
-                saved_path = saver.save(sess, file_path_prefix, write_meta_graph=False)
+                # The save op returns the full path to the checkpoint prefix.
+                saved_path = saver.save(sess, path_prefix, write_meta_graph=False)
         return saved_path
 
-    def create_input_dict(file_pattern_str, tensor_name_str, dt_np, preferred_shard_int, name_str):
-        """Helper to create the input dictionary with scalar tensors."""
-        return {
-            'file_pattern': np.array(file_pattern_str, dtype=object),
-            'tensor_name': np.array(tensor_name_str, dtype=object),
-            'dt': dt_np,
-            'preferred_shard': preferred_shard_int,
-            'name': name_str
-        }
-
-    # Input 1: Basic case with float32
-    tensor_name_1 = "weights_float32"
-    tensor_value_1 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    path_1 = create_checkpoint(os.path.join(temp_dir, "model1"), tensor_name_1, tensor_value_1)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(path_1, tensor_name_1, np.float32, -1, "RestoreFloat32")))
-
-    # Input 2: Integer type
-    tensor_name_2 = "biases_int32"
-    tensor_value_2 = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    path_2 = create_checkpoint(os.path.join(temp_dir, "model2"), tensor_name_2, tensor_value_2)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(path_2, tensor_name_2, np.int32, 0, "RestoreInt32")))
-
-    # Input 3: Double (float64) type
-    tensor_name_3 = "high_precision_weights"
-    tensor_value_3 = np.random.rand(5).astype(np.float64)
-    path_3 = create_checkpoint(os.path.join(temp_dir, "model3"), tensor_name_3, tensor_value_3)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(path_3, tensor_name_3, np.float64, -1, "RestoreFloat64")))
-
-    # Input 4: Half (float16) type
-    tensor_name_4 = "half_precision_biases"
-    tensor_value_4 = np.array([0.1, 0.2], dtype=np.float16)
-    path_4 = create_checkpoint(os.path.join(temp_dir, "model4"), tensor_name_4, tensor_value_4)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(path_4, tensor_name_4, np.float16, 0, "RestoreFloat16")))
-
-    # Input 5: Complex number type (complex64)
-    tensor_name_5 = "fft_weights_complex64"
-    tensor_value_5 = np.array([1+2j, 3+4j], dtype=np.complex64)
-    path_5 = create_checkpoint(os.path.join(temp_dir, "model5"), tensor_name_5, tensor_value_5)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(path_5, tensor_name_5, np.complex64, -1, "RestoreComplex64")))
+    # Use a local directory in the current working directory for the checkpoints.
+    # This avoids potential issues with temporary directories being cleaned up
+    # by the OS or test harness between input generation and execution.
+    ckpt_dir = "tf_restore_op_checkpoints"
     
-    # Input 6: Boolean type
-    tensor_name_6 = "flags_bool"
-    tensor_value_6 = np.array([True, False, True], dtype=np.bool_)
-    path_6 = create_checkpoint(os.path.join(temp_dir, "model6"), tensor_name_6, tensor_value_6)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(path_6, tensor_name_6, np.bool_, 0, "RestoreBool")))
-
-    # Input 7: 64-bit integer type
-    tensor_name_7 = "global_step_int64"
-    tensor_value_7 = np.array(100000, dtype=np.int64)
-    path_7 = create_checkpoint(os.path.join(temp_dir, "model7"), tensor_name_7, tensor_value_7)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(path_7, tensor_name_7, np.int64, -1, "RestoreInt64")))
+    # Always start with a clean directory.
+    if os.path.exists(ckpt_dir):
+        shutil.rmtree(ckpt_dir)
+    os.makedirs(ckpt_dir)
     
-    # Input 8: Sharded checkpoint with wildcard
-    shard_tensor_name = "sharded_variable"
-    shard_tensor_value = np.random.rand(100, 100).astype(np.float32)
-    path_prefix_8 = os.path.join(temp_dir, "sharded_model")
-    create_checkpoint(path_prefix_8, shard_tensor_name, shard_tensor_value, sharded=True)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(path_prefix_8 + "*", shard_tensor_name, np.float32, 0, "RestoreSharded")))
+    # Use absolute paths to be robust against CWD changes.
+    abs_ckpt_dir = os.path.abspath(ckpt_dir)
 
-    # Input 9: 8-bit integer for quantized models
-    tensor_name_9 = "quantized_int8"
-    tensor_value_9 = np.array([-128, 0, 127], dtype=np.int8)
-    path_9 = create_checkpoint(os.path.join(temp_dir, "model9"), tensor_name_9, tensor_value_9)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(path_9, tensor_name_9, np.int8, 0, "RestoreInt8")))
+    test_cases = [
+        # (name_suffix, numpy_value, preferred_shard)
+        ("f32", np.array([1.0, 2.0], dtype=np.float32), -1),
+        ("i32", np.array([[1, 2], [3, 4]], dtype=np.int32), 0),
+        ("f64", np.array([3.14], dtype=np.float64), -1),
+        ("b", np.array(True, dtype=np.bool_), 1),
+        ("c64", np.array([1+2j], dtype=np.complex64), -1),
+        ("i64", np.array([2**40], dtype=np.int64), -1),
+        ("u8", np.array([0, 255], dtype=np.uint8), -1),
+        ("f16", np.array([0.5, -0.5], dtype=np.float16), -1),
+        ("s", np.array([b"abc", b"def"]), -1),
+        ("i16", np.array([-100, 100], dtype=np.int16), -1),
+    ]
 
-    # Input 10: Unsigned 16-bit integer
-    tensor_name_10 = "counters_uint16"
-    tensor_value_10 = np.array([65535, 100, 0], dtype=np.uint16)
-    path_10 = create_checkpoint(os.path.join(temp_dir, "model10"), tensor_name_10, tensor_value_10)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(path_10, tensor_name_10, np.uint16, -1, "RestoreUint16")))
+    list_of_inputs = []
+    for i, (name_suffix, value, shard) in enumerate(test_cases):
+        tensor_name = f"var_{name_suffix}"
+        path_prefix = os.path.join(abs_ckpt_dir, f"model_{i}.ckpt")
+        
+        try:
+            # Create the actual checkpoint files on disk.
+            saved_path = _create_v1_checkpoint(path_prefix, tensor_name, value)
 
-    # Input 11: High-precision complex number (complex128)
-    tensor_name_11 = "fft_weights_complex128"
-    tensor_value_11 = np.array([1.5+2.5j, 3.5-4.5j], dtype=np.complex128)
-    path_11 = create_checkpoint(os.path.join(temp_dir, "model11"), tensor_name_11, tensor_value_11)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(path_11, tensor_name_11, np.complex128, -1, "RestoreComplex128")))
-    
-    # Input 12: A scalar tensor
-    tensor_name_12 = "scalar_float"
-    tensor_value_12 = np.float32(3.14)
-    path_12 = create_checkpoint(os.path.join(temp_dir, "model12"), tensor_name_12, tensor_value_12)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(path_12, tensor_name_12, np.float32, -1, "RestoreScalar")))
-    
+            # TF's 'string' type corresponds to multiple numpy types.
+            dt_val = value.dtype
+            if dt_val.type in (np.bytes_, np.object_, np.string_):
+                dt_val = np.string_
+
+            # Construct the input dictionary for the op.
+            input_dict = {
+                'file_pattern': np.array([saved_path], dtype=object),
+                'tensor_name': np.array([tensor_name], dtype=object),
+                'dt': dt_val,
+                'preferred_shard': shard,
+                'name': f'restore_{tensor_name}'
+            }
+            list_of_inputs.append(copy.deepcopy(input_dict))
+
+        except Exception:
+            # If a specific checkpoint fails to be created, skip it.
+            continue
+            
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.Restore"] = tf_raw_ops_restore_inputs()
+generated_inputs["tf.raw_ops.Restore"] = get_tf_raw_ops_restore_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

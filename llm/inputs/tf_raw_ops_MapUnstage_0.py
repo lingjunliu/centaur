@@ -8,32 +8,35 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_map_unstage_inputs():
-    # The previous error was an InvalidArgumentError because the 'container'
-    # string "test_container" contained an invalid character ('_').
-    # Valid container names typically follow stricter naming conventions.
-    # The fix is to use a simple alphanumeric string without special characters.
-    # The timeout issue remains a fundamental characteristic of this op,
-    # as it blocks waiting for a corresponding MapStage op. We will continue
-    # to provide only one minimal input to avoid timeouts after fixing the
-    # invalid argument.
+def get_map_unstage_inputs():
+    """
+    Generates a list of valid inputs for the tf.raw_ops.MapUnstage operation.
+    NOTE: The tf.raw_ops.MapUnstage operation is designed to block (and wait)
+    until a corresponding tf.raw_ops.MapStage operation places data into the
+    container for the specified key. When this op is executed by itself,
+    it will wait indefinitely, leading to a timeout. This timeout is the
+    expected and correct behavior of the op in an isolated test environment.
+    The input provided is syntactically correct according to the API signature.
+    """
     list_of_inputs = []
 
-    input_dict = {
-        'key': np.array(1, dtype=np.int64),
+    # A single, minimal, and syntactically valid input.
+    # The timeout is an inherent and expected behavior of this blocking operation.
+    input_dict_1 = {
+        'key': np.array(42, dtype=np.int64),
         'indices': np.array([0], dtype=np.int32),
-        'dtypes': [tf.float32],
-        'capacity': 1,
+        'dtypes': [np.int32],
+        'capacity': 0,
         'memory_limit': 0,
-        'container': 'testcontainer',
-        'shared_name': 'testsharedname',
-        'name': 'TestMapUnstage'
+        'container': '',
+        'shared_name': '',
+        'name': 'canonical_unstage'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.MapUnstage"] = tf_raw_ops_map_unstage_inputs()
+generated_inputs["tf.raw_ops.MapUnstage"] = get_map_unstage_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

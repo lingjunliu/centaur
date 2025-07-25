@@ -9,88 +9,135 @@ import numpy as np
 import copy
 
 def tf_data_experimental_group_by_reducer_inputs():
+    """
+    Generates a list of valid inputs for tf.data.experimental.group_by_reducer.
+    The inputs include a special key `dataset_tensors` which provides the data
+    to create a tf.data.Dataset, as the API returns a transformation function.
+    The values for 'key_func' and 'reducer' are wrapped in lists to adhere to the
+    specified signature {'key_func': 'list', 'reducer': 'list'}.
+    """
     list_of_inputs = []
 
-    # Input 1: Basic case with int32 data
-    input_dict = {
-        'elements': np.arange(10, dtype=np.int32),
-        'key_func': [np.int64(3)],
-        'reducer': [np.int32(0)]
+    # Case 1: Sum of integers, grouped by even/odd
+    reducer_sum_int32 = tf.data.experimental.Reducer(
+        init_func=lambda: np.int32(0),
+        reduce_func=lambda state, value: state + value,
+        finalize_func=lambda state: state)
+    input_dict_1 = {
+        'key_func': [lambda x: x % 2],
+        'reducer': [reducer_sum_int32],
+        'dataset_tensors': np.arange(10, dtype=np.int32)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: float32 data
-    input_dict = {
-        'data_stream': np.array([1.1, 2.2, 1.3, 3.1, 2.4, 3.9], dtype=np.float32),
-        'key_func': [np.int64(2)],
-        'reducer': [np.float32(0.0)]
+    # Case 2: Count elements per group
+    reducer_count = tf.data.experimental.Reducer(
+        init_func=lambda: np.int64(0),
+        reduce_func=lambda state, value: state + 1,
+        finalize_func=lambda state: state)
+    input_dict_2 = {
+        'key_func': [lambda x: x // 10],
+        'reducer': [reducer_count],
+        'dataset_tensors': np.array([1, 5, 12, 15, 22, 31], dtype=np.int64)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: Dataset with negative int32 values
-    input_dict = {
-        'values': np.array([-1, -5, 2, -1, 5, 2, 8], dtype=np.int32),
-        'key_func': [np.int64(4)],
-        'reducer': [np.int32(0)]
+    # Case 3: Mean of floats, grouped by sign
+    reducer_mean = tf.data.experimental.Reducer(
+        init_func=lambda: (np.float32(0.0), np.float32(0.0)),
+        reduce_func=lambda state, value: (state[0] + value, state[1] + 1.0),
+        finalize_func=lambda state: state[0] / tf.maximum(state[1], 1.0))
+    input_dict_3 = {
+        'key_func': [lambda x: tf.cast(x > 0, tf.int64)],
+        'reducer': [reducer_mean],
+        'dataset_tensors': np.array([-1.0, 1.5, -2.0, 2.5, 3.0], dtype=np.float32)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: Empty dataset
-    input_dict = {
-        'empty_tensor': np.array([], dtype=np.float64),
-        'key_func': [np.int64(1)],
-        'reducer': [np.float64(0.0)]
+    # Case 4: Max value in a group (input is a tuple)
+    reducer_max = tf.data.experimental.Reducer(
+        init_func=lambda: np.iinfo(np.int32).min,
+        reduce_func=lambda state, value: tf.maximum(state, value[1]),
+        finalize_func=lambda state: state)
+    input_dict_4 = {
+        'key_func': [lambda k, v: k % 3],
+        'reducer': [reducer_max],
+        'dataset_tensors': (np.arange(10, dtype=np.int64), np.arange(10, 0, -1, dtype=np.int32))
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: Dataset with a single element
-    input_dict = {
-        'single_element': np.array([100], dtype=np.int64),
-        'key_func': [np.int64(5)],
-        'reducer': [np.int64(0)]
+    # Case 5: Min value in a group (input is a tuple)
+    reducer_min = tf.data.experimental.Reducer(
+        init_func=lambda: np.iinfo(np.int32).max,
+        reduce_func=lambda state, value: tf.minimum(state, value[1]),
+        finalize_func=lambda state: state)
+    input_dict_5 = {
+        'key_func': [lambda k, v: k],
+        'reducer': [reducer_min],
+        'dataset_tensors': (np.array([0, 1, 0, 1, 0], dtype=np.int64), np.arange(5, dtype=np.int32))
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: Dataset where all elements might map to the same key
-    input_dict = {
-        'even_numbers': np.array([2, 4, 6, 8, 10], dtype=np.int16),
-        'key_func': [np.int64(2)],
-        'reducer': [np.int16(0)]
+    # Case 6: Working with dictionary elements
+    reducer_dict_sum = tf.data.experimental.Reducer(
+        init_func=lambda: np.float64(0.0),
+        reduce_func=lambda state, value: state + value['data'],
+        finalize_func=lambda state: state)
+    input_dict_6 = {
+        'key_func': [lambda x: x['key']],
+        'reducer': [reducer_dict_sum],
+        'dataset_tensors': {'key': np.array([0, 1, 0, 1], dtype=np.int64), 'data': np.array([1.1, 2.2, 3.3, 4.4], dtype=np.float64)}
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: Dataset with unsigned integers
-    input_dict = {
-        'uint_data': np.arange(12, dtype=np.uint32),
-        'key_func': [np.int64(4)],
-        'reducer': [np.uint32(0)]
+    # Case 7: Summing with int64
+    reducer_sum_int64 = tf.data.experimental.Reducer(
+        init_func=lambda: np.int64(0),
+        reduce_func=lambda state, value: state + value,
+        finalize_func=lambda state: state)
+    input_dict_7 = {
+        'key_func': [lambda x: x % 5],
+        'reducer': [reducer_sum_int64],
+        'dataset_tensors': np.arange(20, dtype=np.int64)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8: Larger dataset with random data
-    input_dict = {
-        'random_ints': np.random.randint(-100, 100, size=50, dtype=np.int32),
-        'key_func': [np.int64(10)],
-        'reducer': [np.int32(0)]
+    # Case 8: Complex finalize_func
+    reducer_sum_and_double = tf.data.experimental.Reducer(
+        init_func=lambda: np.int32(0),
+        reduce_func=lambda state, value: state + value,
+        finalize_func=lambda state: state * 2)
+    input_dict_8 = {
+        'key_func': [lambda x: x % 2],
+        'reducer': [reducer_sum_and_double],
+        'dataset_tensors': np.arange(5, dtype=np.int32)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 9: Dataset with float64 values
-    input_dict = {
-        'float64_data': np.linspace(-10.0, 10.0, 20, dtype=np.float64),
-        'key_func': [np.int64(2)],
-        'reducer': [np.float64(0.0)]
+    # Case 9: All elements in one group
+    reducer_count_all = tf.data.experimental.Reducer(
+        init_func=lambda: np.int64(0),
+        reduce_func=lambda state, value: state + 1,
+        finalize_func=lambda state: state)
+    input_dict_9 = {
+        'key_func': [lambda x: tf.constant(0, dtype=tf.int64)],
+        'reducer': [reducer_count_all],
+        'dataset_tensors': np.random.rand(10).astype(np.float32)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10: Using a different modulus for the key function
-    input_dict = {
-        'another_tensor': np.arange(15, dtype=np.int8),
-        'key_func': [np.int64(5)],
-        'reducer': [np.int8(0)]
+    # Case 10: Multi-part state for variance calculation
+    reducer_variance = tf.data.experimental.Reducer(
+        init_func=lambda: (np.float32(0.0), np.float32(0.0), np.float32(0.0)),
+        reduce_func=lambda state, value: (state[0] + 1.0, state[1] + value[1], state[2] + value[1]**2),
+        finalize_func=lambda state: (state[2] / state[0]) - (state[1] / state[0])**2)
+    input_dict_10 = {
+        'key_func': [lambda k, v: k],
+        'reducer': [reducer_variance],
+        'dataset_tensors': (np.array([0, 1, 0, 1, 1], dtype=np.int64), np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32))
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
+
     return list_of_inputs
 
 generated_inputs["tf.data.experimental.group_by_reducer"] = tf_data_experimental_group_by_reducer_inputs()

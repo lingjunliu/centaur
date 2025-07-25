@@ -8,65 +8,146 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_decode_image_inputs():
+def get_tf_raw_ops_decodeimage_inputs():
+    """
+    Generates a list of valid inputs for the tf.raw_ops.DecodeImage function.
+    """
     list_of_inputs = []
 
-    # Minimal valid image data for different formats
-    png_data = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDATx\x9c\x63\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82'
-    jpeg_data = b'\xff\xd8\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t\x08\n\x0c\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a\x1f\x1e\x1d\x1a\x1c\x1c \x24\x2e\x27 \x22\x2c\x23\x1c\x1c\x28\x37\x29\x2c\x30\x31\x34\x34\x34\x1f\x27\x39\x3d\x38\x32\x3c\x2e\x33\x34\x32\xff\xc0\x00\x11\x08\x00\x01\x00\x01\x01\x01"\x00\xff\xc4\x00\x14\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xda\x00\x08\x01\x01\x00\x00?\x00\x81\xff\xd9'
-    gif_data = b'GIF89a\x01\x00\x01\x00\xf0\x00\x00\xff\xff\xff\x00\x00\x00!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'
-    bmp_data = b'BM\x1e\x00\x00\x00\x00\x00\x00\x00\x1a\x00\x00\x00\x0c\x00\x00\x00\x01\x00\x01\x00\x01\x00\x18\x00\xff\xff\xff\x00'
-
-    # The error "ValueError: tf.string is not in list" indicates that the validation framework
-    # does not recognize the `tf.string` dtype, which is required by the API for the `contents` argument.
-    # This submission uses `tf.constant(..., dtype=tf.string)`, which is the correct way
-    # to create the input tensor as per TensorFlow's documentation. The issue appears
-    # to be with the validation environment, not the input generation itself.
-    # This new set of inputs has been reduced to one of each main image type to simplify debugging.
-
-    # Input 1: PNG, default settings
+    # --- Input 1: Basic JPEG, auto-detect channels, uint8 output ---
+    jpeg_uint8_3ch = tf.image.encode_jpeg(
+        np.random.randint(0, 256, (10, 8, 3), dtype=np.uint8)
+    ).numpy()
     input_dict_1 = {
-        'contents': tf.constant(png_data, dtype=tf.string),
+        'contents': np.array(jpeg_uint8_3ch, dtype=object),
         'channels': 0,
         'dtype': tf.uint8,
         'expand_animations': True,
-        'name': 'png_input'
+        'name': 'jpeg_auto_channels_uint8'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: JPEG, with specific channels and dtype
+    # --- Input 2: Basic PNG, 3 channels specified, uint8 output ---
+    png_uint8_3ch = tf.image.encode_png(
+        np.random.randint(0, 256, (12, 12, 3), dtype=np.uint8)
+    ).numpy()
     input_dict_2 = {
-        'contents': tf.constant(jpeg_data, dtype=tf.string),
+        'contents': np.array(png_uint8_3ch, dtype=object),
         'channels': 3,
-        'dtype': tf.uint16,
+        'dtype': tf.uint8,
         'expand_animations': True,
-        'name': 'jpeg_input'
+        'name': 'png_3_channels_uint8'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: GIF, with animations disabled
+    # --- Input 3: Decode JPEG to grayscale, float32 output ---
     input_dict_3 = {
-        'contents': tf.constant(gif_data, dtype=tf.string),
-        'channels': 3,
+        'contents': np.array(jpeg_uint8_3ch, dtype=object),
+        'channels': 1,
         'dtype': tf.float32,
-        'expand_animations': False,
-        'name': 'gif_input'
+        'expand_animations': True,
+        'name': 'jpeg_to_grayscale_float32'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: BMP, grayscale
+    # --- Input 4: Decode uint16 PNG to uint16 output ---
+    png_uint16_3ch = tf.image.encode_png(
+        np.random.randint(0, 65536, (8, 8, 3), dtype=np.uint16)
+    ).numpy()
     input_dict_4 = {
-        'contents': tf.constant(bmp_data, dtype=tf.string),
-        'channels': 1,
-        'dtype': tf.uint8,
+        'contents': np.array(png_uint16_3ch, dtype=object),
+        'channels': 0,
+        'dtype': tf.uint16,
         'expand_animations': True,
-        'name': 'bmp_input'
+        'name': 'png_uint16_to_uint16'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
+    # --- Input 5: Disable animation expansion ---
+    input_dict_5 = {
+        'contents': np.array(jpeg_uint8_3ch, dtype=object),
+        'channels': 3,
+        'dtype': tf.uint8,
+        'expand_animations': False,
+        'name': 'no_animation_expansion'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
+
+    # --- Input 6: Grayscale PNG to RGB ---
+    png_uint8_1ch = tf.image.encode_png(
+        np.random.randint(0, 256, (16, 16, 1), dtype=np.uint8)
+    ).numpy()
+    input_dict_6 = {
+        'contents': np.array(png_uint8_1ch, dtype=object),
+        'channels': 3,
+        'dtype': tf.uint8,
+        'expand_animations': True,
+        'name': 'gray_png_to_rgb'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
+
+    # --- Input 7: Grayscale JPEG (auto-detect channels) ---
+    jpeg_uint8_1ch = tf.image.encode_jpeg(
+        np.random.randint(0, 256, (20, 10, 1), dtype=np.uint8)
+    ).numpy()
+    input_dict_7 = {
+        'contents': np.array(jpeg_uint8_1ch, dtype=object),
+        'channels': 0,
+        'dtype': tf.uint8,
+        'expand_animations': True,
+        'name': 'jpeg_grayscale_auto'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
+
+    # --- Input 8: Different image size, float32 output, no animation ---
+    jpeg_large = tf.image.encode_jpeg(
+        np.random.randint(0, 256, (64, 32, 3), dtype=np.uint8)
+    ).numpy()
+    input_dict_8 = {
+        'contents': np.array(jpeg_large, dtype=object),
+        'channels': 3,
+        'dtype': tf.float32,
+        'expand_animations': False,
+        'name': 'large_image_float_no_anim'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
+
+    # --- Input 9: PNG with alpha channel, auto-detect channels ---
+    png_uint8_4ch = tf.image.encode_png(
+        np.random.randint(0, 256, (5, 5, 4), dtype=np.uint8)
+    ).numpy()
+    input_dict_9 = {
+        'contents': np.array(png_uint8_4ch, dtype=object),
+        'channels': 0,
+        'dtype': tf.uint8,
+        'expand_animations': True,
+        'name': 'png_with_alpha_auto'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
+
+    # --- Input 10: PNG with alpha channel, force 3 channels (strip alpha) ---
+    input_dict_10 = {
+        'contents': np.array(png_uint8_4ch, dtype=object),
+        'channels': 3,
+        'dtype': tf.uint8,
+        'expand_animations': True,
+        'name': 'png_with_alpha_to_rgb'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
+
+    # --- Input 11: PNG with alpha, force 1 channel (grayscale), uint16 output ---
+    input_dict_11 = {
+        'contents': np.array(png_uint8_4ch, dtype=object),
+        'channels': 1,
+        'dtype': tf.uint16,
+        'expand_animations': False,
+        'name': 'png_alpha_to_gray_uint16'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_11))
+
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.DecodeImage"] = tf_raw_ops_decode_image_inputs()
+generated_inputs["tf.raw_ops.DecodeImage"] = get_tf_raw_ops_decodeimage_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

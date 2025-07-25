@@ -9,78 +9,73 @@ import numpy as np
 import copy
 
 def tf_raw_ops_parsetensor_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.ParseTensor function.
-    """
     list_of_inputs = []
 
-    def create_input_dict(tensor_to_serialize, name):
-        """Helper to create a single input dictionary."""
-        serialized_tensor_proto = tf.io.serialize_tensor(tensor_to_serialize)
-        serialized_bytes = serialized_tensor_proto.numpy()
-        # The 'serialized' argument is a scalar string tensor. Its numpy
-        # representation is a 0-D array. Using dtype=object ensures a
-        # consistent dtype that avoids issues with testing harnesses not
-        # recognizing dynamic 'S<n>' dtypes.
-        serialized_numpy = np.array(serialized_bytes, dtype=object)
-
+    # Helper to create inputs
+    def create_input(tf_tensor, name):
+        proto = tf.make_tensor_proto(tf_tensor)
+        serialized_proto = proto.SerializeToString()
         return {
-            'serialized': serialized_numpy,
-            'out_type': tensor_to_serialize.dtype.as_numpy_dtype,
+            'serialized': np.array(serialized_proto, dtype=object),
+            'out_type': tf_tensor.dtype.as_numpy_dtype,
             'name': name
         }
 
     # Input 1: 1D float32 tensor
-    tensor_1 = tf.constant([1.0, 2.5, -3.0], dtype=tf.float32)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(tensor_1, "float32_1d")))
+    tf_tensor_1 = tf.constant([1.1, -2.2, 3.3, 0.0], dtype=tf.float32)
+    list_of_inputs.append(copy.deepcopy(create_input(tf_tensor_1, 'parse_float32_vector')))
 
-    # Input 2: 2D int32 tensor with negative values
-    tensor_2 = tf.constant([[-1, 2, -3], [4, -5, 6]], dtype=tf.int32)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(tensor_2, "int32_2d")))
+    # Input 2: 2D int64 tensor with no name
+    tf_tensor_2 = tf.constant([[1, 2, 3], [4, 5, 6]], dtype=tf.int64)
+    list_of_inputs.append(copy.deepcopy(create_input(tf_tensor_2, None)))
 
-    # Input 3: Scalar bool tensor (True)
-    tensor_3 = tf.constant(True, dtype=tf.bool)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(tensor_3, "bool_scalar_true")))
+    # Input 3: Scalar (0D) boolean tensor
+    tf_tensor_3 = tf.constant(True, dtype=tf.bool)
+    list_of_inputs.append(copy.deepcopy(create_input(tf_tensor_3, 'parse_bool_scalar')))
 
-    # Input 4: 3D uint8 tensor
-    tensor_4 = tf.constant([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=tf.uint8)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(tensor_4, "uint8_3d")))
+    # Input 4: 3D float64 tensor
+    tf_tensor_4 = tf.constant([[[1.0], [0.0]], [[-3.5], [4.1]]], dtype=tf.float64)
+    list_of_inputs.append(copy.deepcopy(create_input(tf_tensor_4, 'parse_float64_3d')))
 
-    # Input 5: 1D string tensor
-    tensor_5 = tf.constant(["hello", "world", "tensorflow"], dtype=tf.string)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(tensor_5, "string_1d")))
+    # Input 5: Empty 1D int32 tensor
+    tf_tensor_5 = tf.constant([], dtype=tf.int32)
+    list_of_inputs.append(copy.deepcopy(create_input(tf_tensor_5, 'parse_empty_tensor')))
 
-    # Input 6: 2D float64 tensor
-    tensor_6 = tf.constant([[1.123456789, 2.987654321]], dtype=tf.float64)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(tensor_6, "float64_2d")))
+    # Input 6: 1D complex64 tensor
+    tf_tensor_6 = tf.constant([1+2j, -3-4j, 5j], dtype=tf.complex64)
+    list_of_inputs.append(copy.deepcopy(create_input(tf_tensor_6, 'parse_complex64_vector')))
 
-    # Input 7: 1D complex64 tensor
-    tensor_7 = tf.constant([1+2j, 3-4j, 5+0j], dtype=tf.complex64)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(tensor_7, "complex64_1d")))
+    # Input 7: 2D complex128 tensor
+    tf_tensor_7 = tf.constant([[1.123+2.456j], [-3.789-4.012j]], dtype=tf.complex128)
+    list_of_inputs.append(copy.deepcopy(create_input(tf_tensor_7, 'parse_complex128_matrix')))
 
-    # Input 8: Empty tensor with shape (0,)
-    tensor_8 = tf.constant([], dtype=tf.float32)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(tensor_8, "empty_1d_tensor")))
+    # Input 8: Scalar uint8 tensor
+    tf_tensor_8 = tf.constant(255, dtype=tf.uint8)
+    list_of_inputs.append(copy.deepcopy(create_input(tf_tensor_8, 'parse_uint8_scalar')))
 
-    # Input 9: Scalar int64 tensor
-    tensor_9 = tf.constant(9223372036854775807, dtype=tf.int64)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(tensor_9, "int64_scalar")))
+    # Input 9: 2D int16 tensor with boundary values
+    tf_tensor_9 = tf.constant([[-32768, 32767], [0, -1]], dtype=tf.int16)
+    list_of_inputs.append(copy.deepcopy(create_input(tf_tensor_9, 'parse_int16_matrix')))
 
-    # Input 10: 1D complex128 tensor
-    tensor_10 = tf.constant([1.1e100 + 2.2e100j, -3.3e100 - 4.4e100j], dtype=tf.complex128)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(tensor_10, "complex128_1d")))
+    # Input 10: 4D tensor of zeros
+    tf_tensor_10 = tf.constant(np.zeros((1, 2, 1, 2)), dtype=tf.float32)
+    list_of_inputs.append(copy.deepcopy(create_input(tf_tensor_10, 'parse_4d_zeros_tensor')))
 
-    # Input 11: Empty tensor with a non-zero dimension, shape (3, 0)
-    tensor_11 = tf.zeros(shape=(3, 0), dtype=tf.int16)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(tensor_11, "empty_2d_tensor")))
-
-    # Input 12: 4D tensor of ones
-    tensor_12 = tf.ones(shape=(1, 2, 1, 3), dtype=tf.float16)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(tensor_12, "float16_4d")))
-
-    # Input 13: Scalar bool tensor (False)
-    tensor_13 = tf.constant(False, dtype=tf.bool)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(tensor_13, "bool_scalar_false")))
+    # Input 11: Empty tensor with a specific shape (1, 0, 2)
+    tf_tensor_11 = tf.zeros(shape=(1, 0, 2), dtype=tf.int32)
+    list_of_inputs.append(copy.deepcopy(create_input(tf_tensor_11, 'parse_empty_tensor_with_shape')))
+    
+    # Input 12: Scalar int8 tensor
+    tf_tensor_12 = tf.constant(-128, dtype=tf.int8)
+    list_of_inputs.append(copy.deepcopy(create_input(tf_tensor_12, 'parse_int8_scalar')))
+    
+    # Input 13: Scalar uint16 tensor
+    tf_tensor_13 = tf.constant(65535, dtype=tf.uint16)
+    list_of_inputs.append(copy.deepcopy(create_input(tf_tensor_13, 'parse_uint16_scalar')))
+    
+    # Input 14: Large 1D uint32 tensor
+    tf_tensor_14 = tf.constant(np.arange(100, dtype=np.uint32), dtype=tf.uint32)
+    list_of_inputs.append(copy.deepcopy(create_input(tf_tensor_14, 'parse_large_uint32_vector')))
 
     return list_of_inputs
 

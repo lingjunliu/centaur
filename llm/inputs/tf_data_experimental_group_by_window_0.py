@@ -10,103 +10,91 @@ import copy
 
 def tf_data_experimental_group_by_window_inputs():
     """
-    Generates a list of valid inputs for tf.data.experimental.group_by_window.
-    The callable functions are represented as a list of bytes containing the
-    source code. This is an attempt to work around a testing environment issue
-    where np.min on a list of unicode strings fails. Bytes might have a
-    supported comparison ufunc. The testing framework is expected to decode
-    these bytes before evaluation.
+    Generates a list of valid inputs for the tf.data.experimental.group_by_window function.
     """
     list_of_inputs = []
 
-    # Case 1: Basic grouping with window_size
+    # The API is a transformation function, which the test harness is expected to apply
+    # to an input dataset. We provide the elements for this dataset under the key 'x'.
+    # The value for 'x' is a tuple of numpy arrays, which tf.data.Dataset.from_tensor_slices
+    # can use to create the dataset.
+
+    # Due to the strict signature and the mutual exclusivity of `window_size` and
+    # `window_size_func`, we can only reliably generate inputs for the `window_size`
+    # case. For this, `window_size_func` can be set to `[]`, an empty list, which
+    # satisfies its type requirement. Generating inputs for `window_size_func`
+    # would require providing a tensor for `window_size` that is treated as `None`
+    # by the API, which is not possible.
+
+    # Input 1: Basic case with a single numpy array as the dataset element.
     input_dict_1 = {
-        'key_func': [b'lambda x: x % 2'],
-        'reduce_func': [b'lambda k, d: d.batch(2)'],
-        'window_size': tf.constant(2, dtype=tf.int64)
+        'x': (np.arange(20, dtype=np.int32),),
+        'key_func': [lambda x: tf.cast(x % 2, tf.int64)],
+        'reduce_func': [lambda key, ds: ds.batch(4)],
+        'window_size': np.int64(4),
+        'window_size_func': []
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Case 2: Different key func and window_size
+    # Input 2: Different keying logic and data types.
     input_dict_2 = {
-        'key_func': [b'lambda x: x % 3'],
-        'reduce_func': [b'lambda k, d: d.batch(5)'],
-        'window_size': tf.constant(5, dtype=tf.int64)
+        'x': (np.arange(30, dtype=np.int64),),
+        'key_func': [lambda x: tf.cast(x // 10, tf.int64)],
+        'reduce_func': [lambda key, ds: ds.batch(5)],
+        'window_size': np.int64(5),
+        'window_size_func': []
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Case 3: Keying on a tuple element
+    # Input 3: Structured dataset elements (a tuple of two arrays).
     input_dict_3 = {
-        'key_func': [b'lambda x, y: x'],
-        'reduce_func': [b'lambda k, d: d.batch(4)'],
-        'window_size': tf.constant(4, dtype=tf.int64)
+        'x': (np.arange(10, dtype=np.int64), np.arange(10, 20, dtype=np.int32)),
+        'key_func': [lambda id, value: id % 3],
+        'reduce_func': [lambda key, ds: ds.map(lambda id, val: val).batch(3)],
+        'window_size': np.int64(3),
+        'window_size_func': []
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Case 4: All elements to the same key
+    # Input 4: Reduce function that utilizes the key.
     input_dict_4 = {
-        'key_func': [b'lambda x: tf.constant(0, dtype=tf.int64)'],
-        'reduce_func': [b'lambda k, d: d.batch(10)'],
-        'window_size': tf.constant(10, dtype=tf.int64)
+        'x': (np.arange(12, dtype=np.int32),),
+        'key_func': [lambda x: tf.cast(x % 3, tf.int64)],
+        'reduce_func': [lambda key, ds: ds.map(lambda x: x + tf.cast(key, x.dtype)).batch(2)],
+        'window_size': np.int64(2),
+        'window_size_func': []
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Case 5: Trivial window size 1
+    # Input 5: Minimal window size of 1.
     input_dict_5 = {
-        'key_func': [b'lambda x: x'],
-        'reduce_func': [b'lambda k, d: d.batch(1)'],
-        'window_size': tf.constant(1, dtype=tf.int64)
+        'x': (np.arange(8, dtype=np.float32),),
+        'key_func': [lambda x: tf.cast(tf.floor(x / 2.0), tf.int64)],
+        'reduce_func': [lambda key, ds: ds.batch(1)],
+        'window_size': np.int64(1),
+        'window_size_func': []
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Case 6: Basic grouping with window_size_func
+    # Input 6: Using a different reduce function logic (summing elements).
     input_dict_6 = {
-        'key_func': [b'lambda x: x % 3'],
-        'reduce_func': [b'lambda k, d: d.batch(tf.cast(k, tf.int64) + 1)'],
-        'window_size_func': [b'lambda k: k + 1']
+        'x': (np.arange(15, dtype=np.int64),),
+        'key_func': [lambda x: x % 5],
+        'reduce_func': [lambda key, ds: ds.reduce(np.int64(0), lambda a, b: a + b)],
+        'window_size': np.int64(3),
+        'window_size_func': []
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
-
-    # Case 7: Using window_size_func that returns a constant
+    
+    # Input 7: Dataset with tensor elements
     input_dict_7 = {
-        'key_func': [b'lambda x: x % 4'],
-        'reduce_func': [b'lambda k, d: d.batch(3)'],
-        'window_size_func': [b'lambda k: tf.constant(3, dtype=tf.int64)']
+        'x': (np.arange(24, dtype=np.int32).reshape(12, 2),),
+        'key_func': [lambda t: tf.cast(tf.reduce_sum(t) % 4, tf.int64)],
+        'reduce_func': [lambda key, ds: ds.batch(3)],
+        'window_size': np.int64(3),
+        'window_size_func': []
     }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
-
-    # Case 8: window_size_func dependent on the key
-    input_dict_8 = {
-        'key_func': [b'lambda x: x'],
-        'reduce_func': [b'lambda k, d: d.batch(tf.cast(k, tf.int64) * 2 + 1)'],
-        'window_size_func': [b'lambda k: k * 2 + 1']
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
-
-    # Case 9: Grouping on a component of a tuple with window_size_func
-    input_dict_9 = {
-        'key_func': [b'lambda x, y: y'],
-        'reduce_func': [b'lambda k, d: d.batch(10)'],
-        'window_size_func': [b'lambda k: tf.constant(10, dtype=tf.int64)']
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
-
-    # Case 10: key_func maps all elements to the same key with window_size_func
-    input_dict_10 = {
-        'key_func': [b'lambda x: 0'],
-        'reduce_func': [b'lambda k, d: d.batch(8)'],
-        'window_size_func': [b'lambda k: 8']
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
-
-    # Case 11: numpy int64 for window_size
-    input_dict_11 = {
-        'key_func': [b'lambda x: x % 2'],
-        'reduce_func': [b'lambda k,d: d.batch(9)'],
-        'window_size': tf.constant(np.int64(9))
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_11))
-
 
     return list_of_inputs
 

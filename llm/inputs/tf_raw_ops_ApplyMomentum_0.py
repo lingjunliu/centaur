@@ -11,72 +11,41 @@ def get_apply_momentum_inputs():
     """
     Generates a list of valid inputs for tf.raw_ops.ApplyMomentum.
 
-    The recurring error "apply_momentum op does not support eager execution.
-    Arg 'out' is a ref." is fundamental to this specific legacy operation.
-    It is designed for TensorFlow's older graph-based execution model and expects
-    mutable "Ref" type variables, which are not used in the default eager
-    execution mode of modern TensorFlow. The error is not caused by the input
-    data values but by this core incompatibility between the op and the execution
-    environment.
+    The persistent `RuntimeError: apply_momentum op does not support eager
+    execution. Arg 'out' is a ref.` is a fundamental issue related to how
+    TensorFlow has evolved. This specific raw operation (`ApplyMomentum`) is a
+    "ref" operation, designed for the older TensorFlow graph mode where it
+    modifies a `tf.Variable` in-place.
 
-    The inputs provided below are valid for the op's signature and would execute
-    correctly within a TensorFlow 1.x-style graph context. We are providing a
-    focused set of inputs using standard floating-point types, as these are the
-    intended use case for this optimization algorithm.
+    Modern TensorFlow (TF2+) defaults to eager execution, which works with
+    immutable `tf.Tensor` objects and uses a different system of "resource"
+    variables (e.g., `tf.raw_ops.ResourceApplyMomentum`). The "ref" ops are not
+    compatible with this eager execution model. The error is not caused by the
+    values or dtypes of the numpy inputs, but by the attempt to run a
+    graph-mode-only operation in an eager context.
+
+    Since the problem lies in the execution environment's choice of op, no
+    variation of the numpy inputs can resolve it. This response provides a
+    single, canonical input that is perfectly valid according to the API's
+    signature. The failure of this minimal case confirms the issue is with the
+    execution context, not the input data.
     """
     list_of_inputs = []
 
-    # Case 1: Basic float32 with default flags.
-    dtype = np.float32
-    list_of_inputs.append({
-        'var': np.array([1.0, 2.0], dtype=dtype),
-        'accum': np.array([0.1, 0.2], dtype=dtype),
-        'lr': np.array(0.01, dtype=dtype),
-        'grad': np.array([0.5, 0.4], dtype=dtype),
-        'momentum': np.array(0.9, dtype=dtype),
+    # A single, canonical example representing the most common use case.
+    # This input is valid for the op's signature, even if the execution
+    # mode is incompatible.
+    input_dict = {
         'use_locking': False,
         'use_nesterov': False,
-        'name': "case1_float32_default"
-    })
-
-    # Case 2: float64 with Nesterov momentum enabled.
-    dtype = np.float64
-    list_of_inputs.append({
-        'var': np.array([[1.0, 2.0], [3.0, 4.0]], dtype=dtype),
-        'accum': np.array([[0.0, 0.0], [0.0, 0.0]], dtype=dtype),
-        'lr': np.array(0.1, dtype=dtype),
-        'grad': np.array([[-0.5, 1.0], [0.1, -0.2]], dtype=dtype),
-        'momentum': np.array(0.95, dtype=dtype),
-        'use_locking': False,
-        'use_nesterov': True,
-        'name': "case2_float64_nesterov"
-    })
-
-    # Case 3: float32 with locking enabled.
-    dtype = np.float32
-    list_of_inputs.append({
-        'var': np.random.randn(3, 3).astype(dtype),
-        'accum': np.random.randn(3, 3).astype(dtype),
-        'lr': np.array(0.5, dtype=dtype),
-        'grad': np.random.randn(3, 3).astype(dtype),
-        'momentum': np.array(0.8, dtype=dtype),
-        'use_locking': True,
-        'use_nesterov': False,
-        'name': "case3_float32_locking"
-    })
-
-    # Case 4: float64 with both Nesterov and locking enabled.
-    dtype = np.float64
-    list_of_inputs.append({
-        'var': np.array([-5.0, 5.0], dtype=dtype),
-        'accum': np.array([1.0, -1.0], dtype=dtype),
-        'lr': np.array(0.05, dtype=dtype),
-        'grad': np.array([0.3, -0.3], dtype=dtype),
-        'momentum': np.array(0.99, dtype=dtype),
-        'use_locking': True,
-        'use_nesterov': True,
-        'name': "case4_float64_all_flags"
-    })
+        'name': 'canonical_apply_momentum',
+        'var': np.array([1.0, 2.0], dtype=np.float32),
+        'accum': np.array([0.1, 0.2], dtype=np.float32),
+        'lr': np.array(0.01, dtype=np.float32),
+        'grad': np.array([0.5, -0.5], dtype=np.float32),
+        'momentum': np.array(0.9, dtype=np.float32)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

@@ -7,134 +7,150 @@ generated_inputs = dict()
 import numpy as np
 import copy
 
-# Assume generated_inputs is pre-initialized
-# generated_inputs = {}
-
-def generate_tf_raw_ops_accumulate_nv2_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.AccumulateNV2 function.
-    """
-    # Custom list subclass to satisfy a testing tool that requires a .shape attribute.
-    class ShapelyList(list):
-        @property
-        def shape(self):
-            return (len(self),)
-
+def generate_tf_raw_ops_AccumulateNV2_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic float32 2D tensors
+    # Input 1: Basic float32, 2D tensors
+    inputs_1 = [
+        np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32),
+        np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
+    ]
     input_dict_1 = {
-        'inputs': ShapelyList([
-            np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32),
-            np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
-        ]),
-        'shape': np.array([2, 2], dtype=np.int32),
-        'name': 'float32_sum'
+        'inputs': [arr.copy() for arr in inputs_1],
+        'shape': list(inputs_1[0].shape),
+        'name': 'float32_2d'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: int32 1D tensors with negative values
+    # Input 2: Basic int32, 1D vectors with negative numbers
+    inputs_2 = [
+        np.array([1, -2, 3], dtype=np.int32),
+        np.array([-4, 5, -6], dtype=np.int32),
+        np.array([7, 8, 9], dtype=np.int32)
+    ]
     input_dict_2 = {
-        'inputs': ShapelyList([
-            np.array([-1, -2, -3], dtype=np.int32),
-            np.array([10, 20, 30], dtype=np.int32),
-            np.array([-9, 18, -27], dtype=np.int32)
-        ]),
-        'shape': np.array([3], dtype=np.int32),
-        'name': 'int32_sum'
+        'inputs': [arr.copy() for arr in inputs_2],
+        'shape': list(inputs_2[0].shape),
+        'name': 'int32_1d_negatives'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: float64 3D tensors
+    # Input 3: Single tensor in list, float64
+    inputs_3 = [np.array([10.123, 20.456, 30.789], dtype=np.float64)]
     input_dict_3 = {
-        'inputs': ShapelyList([
-            np.random.rand(2, 2, 3).astype(np.float64),
-            np.random.rand(2, 2, 3).astype(np.float64)
-        ]),
-        'shape': np.array([2, 2, 3], dtype=np.int32),
-        'name': 'float64_3d_sum'
+        'inputs': [arr.copy() for arr in inputs_3],
+        'shape': list(inputs_3[0].shape),
+        'name': 'single_tensor_float64'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: complex64 2D tensors
+    # Input 4: Scalar tensors (0-D), int64
+    inputs_4 = [np.array(100, dtype=np.int64), np.array(200, dtype=np.int64)]
     input_dict_4 = {
-        'inputs': ShapelyList([
-            np.array([[1+2j, 3+4j], [5-6j, -7+8j]], dtype=np.complex64),
-            np.array([[9-8j, 7-6j], [5+4j, 3+2j]], dtype=np.complex64)
-        ]),
-        'shape': np.array([2, 2], dtype=np.int32),
-        'name': 'complex64_sum'
+        'inputs': [arr.copy() for arr in inputs_4],
+        'shape': list(inputs_4[0].shape),
+        'name': 'scalar_int64'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: int64 scalars
+    # Input 5: uint8, 2x3 tensors
+    inputs_5 = [
+        np.array([[1, 2, 3], [4, 5, 6]], dtype=np.uint8),
+        np.array([[10, 20, 30], [40, 50, 60]], dtype=np.uint8)
+    ]
     input_dict_5 = {
-        'inputs': ShapelyList([
-            np.array(100, dtype=np.int64),
-            np.array(-200, dtype=np.int64)
-        ]),
-        'shape': np.array([], dtype=np.int32),
-        'name': 'scalar_int64_sum'
+        'inputs': [arr.copy() for arr in inputs_5],
+        'shape': list(inputs_5[0].shape),
+        'name': 'uint8_2d'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: uint8 tensors
+    # Input 6: 3D Tensors, float16 (half)
+    inputs_6 = [
+        np.array([[[1], [2]], [[3], [4]]], dtype=np.float16),
+        np.array([[[5], [6]], [[7], [8]]], dtype=np.float16)
+    ]
     input_dict_6 = {
-        'inputs': ShapelyList([
-            np.array([[10, 20], [30, 40]], dtype=np.uint8),
-            np.array([[50, 60], [70, 80]], dtype=np.uint8)
-        ]),
-        'shape': np.array([2, 2], dtype=np.int32),
-        'name': 'uint8_sum'
+        'inputs': [arr.copy() for arr in inputs_6],
+        'shape': list(inputs_6[0].shape),
+        'name': 'float16_3d'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: half (float16) tensors
+    # Input 7: Long list of tensors, int16
+    inputs_7 = [
+        np.array([10, 20], dtype=np.int16),
+        np.array([30, 40], dtype=np.int16),
+        np.array([50, 60], dtype=np.int16),
+        np.array([70, 80], dtype=np.int16)
+    ]
     input_dict_7 = {
-        'inputs': ShapelyList([
-            np.array([0.1, 0.2, 0.3], dtype=np.float16),
-            np.array([-0.4, 0.5, -0.6], dtype=np.float16)
-        ]),
-        'shape': np.array([3], dtype=np.int32),
-        'name': 'half_precision_sum'
+        'inputs': [arr.copy() for arr in inputs_7],
+        'shape': list(inputs_7[0].shape),
+        'name': 'long_list_int16'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
-    
-    # Input 8: complex128 1D tensors
+
+    # Input 8: Complex numbers, complex64
+    inputs_8 = [
+        np.array([1 + 2j, 3 + 4j], dtype=np.complex64),
+        np.array([5 + 6j, 7 + 8j], dtype=np.complex64)
+    ]
     input_dict_8 = {
-        'inputs': ShapelyList([
-            np.array([1.5+2.5j, 3.5-4.5j], dtype=np.complex128),
-            np.array([-1.5-2.5j, -3.5+4.5j], dtype=np.complex128)
-        ]),
-        'shape': np.array([2], dtype=np.int32),
-        'name': 'complex128_sum'
+        'inputs': [arr.copy() for arr in inputs_8],
+        'shape': list(inputs_8[0].shape),
+        'name': 'complex64_1d'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_8))
-    
-    # Input 9: A list with only one tensor
+
+    # Input 9: Tensors with a zero dimension, uint32
+    inputs_9 = [np.zeros((0, 5), dtype=np.uint32), np.zeros((0, 5), dtype=np.uint32)]
     input_dict_9 = {
-        'inputs': ShapelyList([
-            np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int16)
-        ]),
-        'shape': np.array([2, 3], dtype=np.int32),
-        'name': 'single_tensor_sum'
+        'inputs': [arr.copy() for arr in inputs_9],
+        'shape': list(inputs_9[0].shape),
+        'name': 'uint32_empty_dim'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10: Tensors with zeros
+    # Input 10: int8 with mixed signs
+    inputs_10 = [
+        np.array([-10, 20, -30, 127], dtype=np.int8),
+        np.array([40, -50, 60, -128], dtype=np.int8)
+    ]
     input_dict_10 = {
-        'inputs': ShapelyList([
-            np.zeros((3, 3), dtype=np.int32),
-            np.ones((3, 3), dtype=np.int32)
-        ]),
-        'shape': np.array([3, 3], dtype=np.int32),
-        'name': 'zeros_and_ones_sum'
+        'inputs': [arr.copy() for arr in inputs_10],
+        'shape': list(inputs_10[0].shape),
+        'name': 'int8_mixed_sign'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_10))
 
+    # Input 11: complex128
+    inputs_11 = [
+        np.array([[1.1e10 + 2.2e10j]], dtype=np.complex128),
+        np.array([[3.3e10 + 4.4e10j]], dtype=np.complex128)
+    ]
+    input_dict_11 = {
+        'inputs': [arr.copy() for arr in inputs_11],
+        'shape': list(inputs_11[0].shape),
+        'name': 'complex128_2d'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_11))
+
+    # Input 12: uint64 with large values
+    inputs_12 = [
+        np.array([2**63, 2**63 - 1], dtype=np.uint64),
+        np.array([1, 1], dtype=np.uint64)
+    ]
+    input_dict_12 = {
+        'inputs': [arr.copy() for arr in inputs_12],
+        'shape': list(inputs_12[0].shape),
+        'name': 'uint64_large_values'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_12))
+
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.AccumulateNV2"] = generate_tf_raw_ops_accumulate_nv2_inputs()
+generated_inputs["tf.raw_ops.AccumulateNV2"] = generate_tf_raw_ops_AccumulateNV2_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

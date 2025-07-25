@@ -4,134 +4,116 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 import copy
+
+# Define map functions at the top level to be pickle-able.
+def _simple_map_func_single_arg(x):
+    return x * 2
+
+def _structured_map_func_single_arg(x):
+    return (x, x + 1)
+
+def _map_func_two_args(x, y):
+    return x + y
 
 def tf_data_experimental_map_and_batch_inputs():
     """
     Generates a list of valid inputs for the tf.data.experimental.map_and_batch function.
-    Since the API returns a transformation function, the test harness is expected to
-    create a tf.data.Dataset and apply the function to it. We hypothesize that the
-    harness creates the dataset using `tf.data.Dataset.from_tensor_slices` and that
-    the input tensors for this creation should be provided under the key 'tensors'.
+    The test harness requires the dataset source data to be provided under the key 'dataset'
+    as a tuple of numpy arrays. 'map_func' must be a list containing the
+    callable to satisfy the harness's pre-processing step.
     """
     list_of_inputs = []
 
-    map_fn_simple = lambda x: x * 2
-    map_fn_structured = lambda x: (x, x + 1)
-    map_fn_tuple = lambda x, y: x + y
-    map_fn_identity = lambda x: x
-
-    # Input 1: Basic case with a single tensor input.
+    # Input 1: Basic case. Using 'dataset' as the key for the data source.
     input_dict_1 = {
-        'tensors': np.arange(100, dtype=np.int64),
-        'map_func': [map_fn_simple],
-        'batch_size': np.array(32, dtype=np.int64),
+        'dataset': (np.arange(20, dtype=np.int64),),
+        'map_func': [_simple_map_func_single_arg],
+        'batch_size': np.array(8, dtype=np.int64),
         'num_parallel_batches': None,
-        'drop_remainder': np.array(False),
+        'drop_remainder': np.array(False, dtype=np.bool_),
         'num_parallel_calls': None,
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: drop_remainder=True
+    # Input 2: drop_remainder is True.
     input_dict_2 = {
-        'tensors': np.arange(99, dtype=np.int64),
-        'map_func': [map_fn_simple],
-        'batch_size': np.array(10, dtype=np.int64),
+        'dataset': (np.arange(21, dtype=np.int32),),
+        'map_func': [_simple_map_func_single_arg],
+        'batch_size': np.array(4, dtype=np.int64),
         'num_parallel_batches': None,
-        'drop_remainder': np.array(True),
+        'drop_remainder': np.array(True, dtype=np.bool_),
         'num_parallel_calls': None,
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: With num_parallel_batches
+    # Input 3: Using num_parallel_batches.
     input_dict_3 = {
-        'tensors': np.arange(100, dtype=np.int64),
-        'map_func': [map_fn_simple],
-        'batch_size': np.array(8, dtype=np.int64),
+        'dataset': (np.arange(100, dtype=np.float32),),
+        'map_func': [_simple_map_func_single_arg],
+        'batch_size': np.array(16, dtype=np.int64),
         'num_parallel_batches': np.array(2, dtype=np.int64),
-        'drop_remainder': np.array(False),
+        'drop_remainder': np.array(False, dtype=np.bool_),
         'num_parallel_calls': None,
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: With num_parallel_calls
+    # Input 4: Using num_parallel_calls.
     input_dict_4 = {
-        'tensors': np.arange(100, dtype=np.int64),
-        'map_func': [map_fn_simple],
-        'batch_size': np.array(16, dtype=np.int64),
+        'dataset': (np.arange(55, dtype=np.int64),),
+        'map_func': [_simple_map_func_single_arg],
+        'batch_size': np.array(10, dtype=np.int64),
         'num_parallel_batches': None,
-        'drop_remainder': np.array(False),
+        'drop_remainder': np.array(False, dtype=np.bool_),
         'num_parallel_calls': np.array(4, dtype=np.int32),
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: With AUTOTUNE and a structured map function
+    # Input 5: Using AUTOTUNE for num_parallel_calls.
     input_dict_5 = {
-        'tensors': np.arange(200, dtype=np.int64),
-        'map_func': [map_fn_structured],
-        'batch_size': np.array(64, dtype=np.int64),
+        'dataset': (np.random.rand(100).astype(np.float32),),
+        'map_func': [_simple_map_func_single_arg],
+        'batch_size': np.array(32, dtype=np.int64),
         'num_parallel_batches': None,
-        'drop_remainder': np.array(False),
+        'drop_remainder': np.array(False, dtype=np.bool_),
         'num_parallel_calls': np.array(tf.data.AUTOTUNE, dtype=np.int32),
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: Larger batch size and num_parallel_batches
+    # Input 6: Dataset with two tensors and a map function that accepts two args.
     input_dict_6 = {
-        'tensors': np.arange(500, dtype=np.int64),
-        'map_func': [map_fn_structured],
-        'batch_size': np.array(128, dtype=np.int64),
-        'num_parallel_batches': np.array(4, dtype=np.int64),
-        'drop_remainder': np.array(True),
+        'dataset': (np.arange(50, dtype=np.int32), np.arange(50, 100, dtype=np.int32)),
+        'map_func': [_map_func_two_args],
+        'batch_size': np.array(10, dtype=np.int64),
+        'num_parallel_batches': None,
+        'drop_remainder': np.array(True, dtype=np.bool_),
         'num_parallel_calls': None,
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: Smallest batch size
+    # Input 7: A map_func that returns a nested structure (tuple).
     input_dict_7 = {
-        'tensors': np.arange(10, dtype=np.int64),
-        'map_func': [map_fn_simple],
-        'batch_size': np.array(1, dtype=np.int64),
+        'dataset': (np.arange(50, dtype=np.float64),),
+        'map_func': [_structured_map_func_single_arg],
+        'batch_size': np.array(20, dtype=np.int64),
         'num_parallel_batches': None,
-        'drop_remainder': np.array(False),
-        'num_parallel_calls': None,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
-
-    # Input 8: Dataset with tuple structure
-    input_dict_8 = {
-        'tensors': (np.arange(50, dtype=np.int32), np.arange(50, 100, dtype=np.int32)),
-        'map_func': [map_fn_tuple],
-        'batch_size': np.array(5, dtype=np.int64),
-        'num_parallel_batches': None,
-        'drop_remainder': np.array(False),
+        'drop_remainder': np.array(False, dtype=np.bool_),
         'num_parallel_calls': np.array(tf.data.AUTOTUNE, dtype=np.int32),
     }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    
+    # Input 8: batch_size of 1.
+    input_dict_8 = {
+        'dataset': (np.arange(10, dtype=np.int64),),
+        'map_func': [_simple_map_func_single_arg],
+        'batch_size': np.array(1, dtype=np.int64),
+        'num_parallel_batches': np.array(4, dtype=np.int64),
+        'drop_remainder': np.array(False, dtype=np.bool_),
+        'num_parallel_calls': None,
+    }
     list_of_inputs.append(copy.deepcopy(input_dict_8))
-
-    # Input 9: Empty dataset
-    input_dict_9 = {
-        'tensors': np.array([], dtype=np.float32),
-        'map_func': [map_fn_identity],
-        'batch_size': np.array(10, dtype=np.int64),
-        'num_parallel_batches': None,
-        'drop_remainder': np.array(False),
-        'num_parallel_calls': None,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
-
-    # Input 10: Batch size larger than dataset, no drop remainder
-    input_dict_10 = {
-        'tensors': np.arange(20, dtype=np.float32),
-        'map_func': [map_fn_simple],
-        'batch_size': np.array(30, dtype=np.int64),
-        'num_parallel_batches': None,
-        'drop_remainder': np.array(False),
-        'num_parallel_calls': None,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 

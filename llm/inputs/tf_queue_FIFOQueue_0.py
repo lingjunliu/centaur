@@ -8,128 +8,122 @@ import numpy as np
 import copy
 
 
-def tf_queue_fifoqueue_inputs():
+def tf_queue_FIFOQueue_inputs():
     list_of_inputs = []
 
-    # Strategy: All inputs will define a queue with a single component.
-    # This is a workaround for a bug in the test harness which fails when
-    # comparing multiple elements in the dtypes, shapes, or names lists.
-    # Using single-element lists avoids these comparisons.
-
-    # Input 1: Basic case, float32 tensor
-    list_of_inputs.append({
+    # Input 1: Minimal valid case with a single component and a 1-element shape.
+    input_dict_1 = {
         'capacity': 10,
         'dtypes': [np.float32],
-        'shapes': [[10, 20]],
-        'names': ['input_tensor'],
-        'shared_name': 'queue1',
-        'name': 'basic_queue'
-    })
-
-    # Input 2: Scalar int64
-    list_of_inputs.append({
-        'capacity': 5,
-        'dtypes': [np.int64],
-        'shapes': [[]],
-        'names': ['scalar_id'],
+        'shapes': [(1,)],
+        'names': ['value'],
         'shared_name': '',
-        'name': 'scalar_queue'
-    })
+        'name': 'queue_1'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 3: String component
-    list_of_inputs.append({
+    # Input 2: Multiple components with different dtypes and non-scalar shapes.
+    input_dict_2 = {
         'capacity': 100,
-        'dtypes': [np.string_],
-        'shapes': [[]],
-        'names': ['message'],
-        'shared_name': 'string_q',
-        'name': 'string_queue_op'
-    })
-
-    # Input 4: Partially known shape
-    list_of_inputs.append({
-        'capacity': 20,
-        'dtypes': [np.float16],
-        'shapes': [[None, 10]],
-        'names': ['partial_shape_tensor'],
-        'shared_name': 'q4',
-        'name': 'partial_shape_queue'
-    })
-
-    # Input 5: Complex number component
-    list_of_inputs.append({
-        'capacity': 15,
-        'dtypes': [np.complex64],
-        'shapes': [[5, 5]],
-        'names': ['complex_matrix'],
+        'dtypes': [np.int32, np.float64],
+        'shapes': [(3,), (2, 2)],
+        'names': ['ids', 'data_matrix'],
         'shared_name': '',
-        'name': 'complex_queue'
-    })
+        'name': 'queue_2'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 6: Large capacity
-    list_of_inputs.append({
-        'capacity': 10000,
-        'dtypes': [np.int8],
-        'shapes': [[1024]],
-        'names': ['large_buffer'],
-        'shared_name': 'large_q',
-        'name': 'large_capacity_queue'
-    })
+    # Input 3: Using a shared_name for inter-process communication.
+    input_dict_3 = {
+        'capacity': 50,
+        'dtypes': [np.int64],
+        'shapes': [(10,)],
+        'names': ['shared_vector'],
+        'shared_name': 'my_shared_queue_A',
+        'name': 'queue_3'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 7: Minimum capacity
-    list_of_inputs.append({
+    # Input 4: Queue for boolean and uint8 types, common for images/masks.
+    input_dict_4 = {
+        'capacity': 20,
+        'dtypes': [np.bool_, np.uint8],
+        'shapes': [(256, 256), (256, 256, 3)],
+        'names': ['mask', 'image'],
+        'shared_name': '',
+        'name': 'queue_4'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
+
+    # Input 5: High-dimensional tensor shape.
+    input_dict_5 = {
+        'capacity': 5,
+        'dtypes': [np.float16],
+        'shapes': [(4, 8, 8, 16)],
+        'names': ['feature_tensor'],
+        'shared_name': '',
+        'name': 'queue_5'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
+
+    # Input 6: A queue for string data with a non-scalar shape.
+    input_dict_6 = {
+        'capacity': 15,
+        'dtypes': [np.string_],
+        'shapes': [(1,)],
+        'names': ['message'],
+        'shared_name': '',
+        'name': 'queue_6'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
+
+    # Input 7: A queue for complex numbers.
+    input_dict_7 = {
+        'capacity': 30,
+        'dtypes': [np.complex64],
+        'shapes': [(128, 128)],
+        'names': ['fft_output'],
+        'shared_name': '',
+        'name': 'queue_7'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
+
+    # Input 8: Three components with varying non-scalar shapes.
+    input_dict_8 = {
+        'capacity': 40,
+        'dtypes': [np.int32, np.float32, np.float32],
+        'shapes': [(1,), (128,), (64, 64)],
+        'names': ['id', 'embedding', 'context'],
+        'shared_name': 'multi_component_queue_B',
+        'name': 'queue_8'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
+
+    # Input 9: Minimum capacity of 1.
+    input_dict_9 = {
         'capacity': 1,
-        'dtypes': [np.bool_],
-        'shapes': [[1]],
-        'names': ['flag'],
-        'shared_name': 'q7',
-        'name': 'min_capacity_queue'
-    })
+        'dtypes': [np.int8],
+        'shapes': [(1,)],
+        'names': ['single_byte'],
+        'shared_name': '',
+        'name': 'queue_9'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 8: High-dimensional shape
-    list_of_inputs.append({
-        'capacity': 3,
-        'dtypes': [np.uint32],
-        'shapes': [[4, 8, 16, 32]],
-        'names': ['high_dim_tensor'],
-        'shared_name': 'q8',
-        'name': 'high_dim_queue'
-    })
+    # Input 10: Large capacity for buffering.
+    input_dict_10 = {
+        'capacity': 5000,
+        'dtypes': [np.uint64],
+        'shapes': [(1024,)],
+        'names': ['large_data_vector'],
+        'shared_name': '',
+        'name': 'queue_10'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
-    # Input 9: Rank-1 tensor with unknown size
-    list_of_inputs.append({
-        'capacity': 8,
-        'dtypes': [np.float64],
-        'shapes': [[None]],
-        'names': ['variable_length_vector'],
-        'shared_name': 'q9',
-        'name': 'var_len_queue'
-    })
+    return list_of_inputs
 
-    # Input 10: Using uint16
-    list_of_inputs.append({
-        'capacity': 128,
-        'dtypes': [np.uint16],
-        'shapes': [[256, 256]],
-        'names': ['image_patch'],
-        'shared_name': 'q10',
-        'name': 'image_queue'
-    })
-
-    # Input 11: All arguments provided, with a long name
-    list_of_inputs.append({
-        'capacity': 25,
-        'dtypes': [np.int32],
-        'shapes': [[3]],
-        'names': ['some_descriptive_name_for_the_component'],
-        'shared_name': 'a_very_long_and_descriptive_shared_name',
-        'name': 'a_very_long_op_name'
-    })
-
-    final_list = [copy.deepcopy(d) for d in list_of_inputs]
-    return final_list
-
-generated_inputs["tf.queue.FIFOQueue"] = tf_queue_fifoqueue_inputs()
+generated_inputs["tf.queue.FIFOQueue"] = tf_queue_FIFOQueue_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

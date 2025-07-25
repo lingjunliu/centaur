@@ -10,160 +10,186 @@ import os
 import tempfile
 import copy
 
+# Dummy reader functions and shard function to be passed as callables. These need to be defined at the top level.
+AUTOTUNE = tf.data.AUTOTUNE
+
+def custom_reader_func(datasets):
+    datasets = datasets.shuffle(buffer_size=4)
+    return datasets.interleave(lambda x: x, num_parallel_calls=AUTOTUNE)
+
+def another_reader_func(datasets):
+    return datasets.interleave(lambda x: x, cycle_length=2, num_parallel_calls=AUTOTUNE)
+
+def shard_func_for_tensors(tensor):
+    if tensor.dtype.is_complex:
+        tensor = tf.math.real(tensor)
+    if tensor.dtype.is_floating or tensor.dtype.is_integer:
+        return tf.cast(tf.reduce_sum(tf.cast(tensor, tf.float32)), tf.int64) % 2
+    else:
+        # Handle other types like string by hashing
+        flat_tensor = tf.nest.flatten(tf.strings.as_string(tensor))
+        joined_string = tf.strings.reduce_join(flat_tensor)
+        return tf.strings.to_hash_bucket(joined_string, 2)
+
+
 def tf_data_experimental_load_inputs():
-    temp_dir = tempfile.mkdtemp()
     list_of_inputs = []
-
-    # Custom reader func for shuffling
-    custom_reader_func_source = [
-        "def custom_reader_func(datasets):",
-        "  datasets = datasets.shuffle(2)",
-        "  return datasets.interleave(lambda x: x, num_parallel_calls=tf.data.AUTOTUNE)"
-    ]
     
-    # A no-op/default reader func to satisfy the runner's expectation of a non-empty list
-    # This mimics the default behavior when reader_func is None.
-    default_reader_func_source = [
-        "def default_reader_func(datasets):",
-        "  return datasets.interleave(lambda x: x)"
-    ]
+    try:
+        tempdir = tempfile.mkdtemp(prefix="tf_load_test_")
+    except (IOError, OSError):
+        tempdir = os.path.join(tempfile.gettempdir(), "tf_load_test")
+        os.makedirs(tempdir, exist_ok=True)
 
-    # Case 1: Basic load, minimal arguments
-    path1 = os.path.join(temp_dir, "data_1")
-    dataset1 = tf.data.Dataset.range(5)
-    tf.data.experimental.save(dataset1, path1)
+
+    def get_path(name):
+        return os.path.join(tempdir, name)
+
+    # Case 1: Basic case with scalar int64
+    path1 = get_path("dataset1")
+    tf.data.experimental.save(tf.data.Dataset.range(5), path1)
     input_dict_1 = {
         'path': path1,
-        'element_spec': [],
-        'compression': '',
-        'reader_func': default_reader_func_source
+        'element_spec': [{'shape': [], 'dtype': np.int64}],
+        'compression': 'NONE',
+        'reader_func': [],
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Case 2: Load with GZIP compression
-    path2 = os.path.join(temp_dir, "data_2")
-    dataset2 = tf.data.Dataset.from_tensor_slices(np.arange(10, dtype=np.int32))
-    tf.data.experimental.save(dataset2, path2, compression='GZIP')
+    # Case 2: GZIP compression with float32
+    path2 = get_path("dataset2")
+    tf.data.experimental.save(tf.data.Dataset.from_tensor_slices(np.arange(10, dtype=np.float32)), path2, compression='GZIP')
     input_dict_2 = {
         'path': path2,
-        'element_spec': [],
+        'element_spec': [{'shape': [], 'dtype': np.float32}],
         'compression': 'GZIP',
-        'reader_func': default_reader_func_source
+        'reader_func': [],
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Case 3: Load with an explicit, simple element_spec
-    path3 = os.path.join(temp_dir, "data_3")
-    dataset3 = tf.data.Dataset.range(3, output_type=tf.float32)
-    tf.data.experimental.save(dataset3, path3)
+    # Case 3: Vector elements
+    path3 = get_path("dataset3")
+    tf.data.experimental.save(tf.data.Dataset.from_tensor_slices(np.random.rand(5, 8).astype(np.float64)), path3)
     input_dict_3 = {
         'path': path3,
-        'element_spec': [{'shape': [], 'dtype': 'float32'}],
-        'compression': '',
-        'reader_func': default_reader_func_source
+        'element_spec': [{'shape': [8], 'dtype': np.float64}],
+        'compression': 'NONE',
+        'reader_func': [],
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Case 4: Load a dataset with a tuple structure
-    path4 = os.path.join(temp_dir, "data_4")
-    dataset4 = tf.data.Dataset.from_tensors((np.array([10, 20], dtype=np.int16), np.array(3.14, dtype=np.float64)))
-    tf.data.experimental.save(dataset4, path4)
+    # Case 4: Matrix elements
+    path4 = get_path("dataset4")
+    tf.data.experimental.save(tf.data.Dataset.from_tensor_slices(np.random.rand(3, 4, 5).astype(np.float32)), path4, compression='GZIP')
     input_dict_4 = {
         'path': path4,
-        'element_spec': [
-            {'shape': [2], 'dtype': 'int16'},
-            {'shape': [], 'dtype': 'float64'}
-        ],
-        'compression': '',
-        'reader_func': default_reader_func_source
+        'element_spec': [{'shape': [4, 5], 'dtype': np.float32}],
+        'compression': 'GZIP',
+        'reader_func': [],
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Case 5: Load a dataset with string and boolean types
-    path5 = os.path.join(temp_dir, "data_5")
-    dataset5 = tf.data.Dataset.from_tensor_slices(([b"hello", b"world"], [True, False]))
-    tf.data.experimental.save(dataset5, path5)
+    # Case 5: Spec with an unknown dimension
+    path5 = get_path("dataset5")
+    tf.data.experimental.save(tf.data.Dataset.from_tensor_slices(np.random.rand(7, 10).astype(np.float32)), path5)
     input_dict_5 = {
         'path': path5,
-        'element_spec': [
-            {'shape': [], 'dtype': 'string'},
-            {'shape': [], 'dtype': 'bool'}
-        ],
-        'compression': '',
-        'reader_func': default_reader_func_source
+        'element_spec': [{'shape': [None], 'dtype': np.float32}],
+        'compression': 'NONE',
+        'reader_func': [],
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Case 6: Load a dataset with multi-dimensional tensors and GZIP
-    path6 = os.path.join(temp_dir, "data_6")
-    dataset6 = tf.data.Dataset.from_tensors(np.zeros((2, 3, 4), dtype=np.uint8))
-    tf.data.experimental.save(dataset6, path6, compression='GZIP')
+    # Case 6: Tuple elements
+    path6 = get_path("dataset6")
+    dataset6 = tf.data.Dataset.zip((tf.data.Dataset.range(5, dtype=tf.int32), tf.data.Dataset.from_tensor_slices(np.random.rand(5, 3))))
+    tf.data.experimental.save(dataset6, path6)
     input_dict_6 = {
         'path': path6,
-        'element_spec': [{'shape': [2, 3, 4], 'dtype': 'uint8'}],
-        'compression': 'GZIP',
-        'reader_func': default_reader_func_source
+        'element_spec': [
+            {'shape': [], 'dtype': np.int32},
+            {'shape': [3], 'dtype': np.float64}
+        ],
+        'compression': 'NONE',
+        'reader_func': [],
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
-
-    # Case 7: Load using a custom reader_func on a sharded dataset
-    path7 = os.path.join(temp_dir, "data_7")
-    dataset7 = tf.data.Dataset.range(20)
-    tf.data.experimental.save(dataset7, path7, shard_func=lambda x: tf.cast(x % 2, tf.int64))
+    
+    # Case 7: With a reader_func and sharding
+    path7 = get_path("dataset7")
+    tf.data.experimental.save(tf.data.Dataset.range(20), path7, shard_func=lambda i: i % 4)
     input_dict_7 = {
         'path': path7,
-        'element_spec': [],
-        'compression': '',
-        'reader_func': custom_reader_func_source
+        'element_spec': [{'shape': [], 'dtype': np.int64}],
+        'compression': 'NONE',
+        'reader_func': [custom_reader_func],
     }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Case 8: Load with all arguments specified
-    path8 = os.path.join(temp_dir, "data_8")
-    randint_dtype = 'int64'
-    dataset8 = tf.data.Dataset.from_tensor_slices(
-        (np.random.rand(10, 2).astype(np.float32), np.random.randint(0, 5, size=(10,)).astype(randint_dtype))
-    )
-    tf.data.experimental.save(dataset8, path8, compression='GZIP', shard_func=lambda x, y: tf.cast(y % 2, tf.int64))
+    # Case 8: Another reader_func with GZIP and multiple unknown dims
+    path8 = get_path("dataset8")
+    dataset8 = tf.data.Dataset.from_tensor_slices(np.random.rand(15, 2, 2).astype(np.float32))
+    tf.data.experimental.save(dataset8, path8, compression='GZIP', shard_func=shard_func_for_tensors)
     input_dict_8 = {
         'path': path8,
-        'element_spec': [
-            {'shape': [2], 'dtype': 'float32'},
-            {'shape': [], 'dtype': randint_dtype}
-        ],
+        'element_spec': [{'shape': [None, None], 'dtype': np.float32}],
         'compression': 'GZIP',
-        'reader_func': custom_reader_func_source
+        'reader_func': [another_reader_func],
     }
     list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Case 9: Load a dataset with complex numbers
-    path9 = os.path.join(temp_dir, "data_9")
-    dataset9 = tf.data.Dataset.from_tensors(np.array([1 + 2j, 3 - 4j], dtype=np.complex128))
-    tf.data.experimental.save(dataset9, path9)
+    # Case 9: String tensors
+    path9 = get_path("dataset9")
+    tf.data.experimental.save(tf.data.Dataset.from_tensor_slices(["alpha", "beta", "gamma"]), path9)
     input_dict_9 = {
         'path': path9,
-        'element_spec': [{'shape': [2], 'dtype': 'complex128'}],
-        'compression': '',
-        'reader_func': default_reader_func_source
+        'element_spec': [{'shape': [], 'dtype': 'string'}],
+        'compression': 'NONE',
+        'reader_func': [],
     }
     list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Case 10: Load a dataset with a nested tuple structure
-    path10 = os.path.join(temp_dir, "data_10")
-    dataset10 = tf.data.Dataset.from_tensors(
-        ((np.int8(-5), np.float16(3.5)), np.array(b'nested_element'))
-    )
-    tf.data.experimental.save(dataset10, path10)
+    # Case 10: Nested tuple elements
+    path10 = get_path("dataset10")
+    d1 = tf.data.Dataset.range(5)
+    d2 = tf.data.Dataset.from_tensor_slices(np.random.rand(5, 2).astype(np.float32))
+    d3 = tf.data.Dataset.from_tensor_slices(np.array(['a', 'b', 'c', 'd', 'e']))
+    tf.data.experimental.save(tf.data.Dataset.zip((d1, (d2, d3))), path10)
     input_dict_10 = {
         'path': path10,
         'element_spec': [
-            [{'shape': [], 'dtype': 'int8'}, {'shape': [], 'dtype': 'float16'}],
-            {'shape': [], 'dtype': 'string'}
+            {'shape': [], 'dtype': np.int64},
+            [
+                {'shape': [2], 'dtype': np.float32},
+                {'shape': [], 'dtype': 'string'}
+            ]
         ],
-        'compression': '',
-        'reader_func': default_reader_func_source
+        'compression': 'NONE',
+        'reader_func': [],
     }
     list_of_inputs.append(copy.deepcopy(input_dict_10))
+
+    # Case 11: Boolean tensors
+    path11 = get_path("dataset11")
+    tf.data.experimental.save(tf.data.Dataset.from_tensor_slices([True, False, True]), path11)
+    input_dict_11 = {
+        'path': path11,
+        'element_spec': [{'shape': [], 'dtype': np.bool_}],
+        'compression': 'NONE',
+        'reader_func': [],
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_11))
+    
+    # Case 12: Complex numbers
+    path12 = get_path("dataset12")
+    tf.data.experimental.save(tf.data.Dataset.from_tensor_slices(np.array([1+2j, 3+4j], dtype=np.complex64)), path12)
+    input_dict_12 = {
+        'path': path12,
+        'element_spec': [{'shape': [], 'dtype': np.complex64}],
+        'compression': 'NONE',
+        'reader_func': [],
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_12))
 
     return list_of_inputs
 

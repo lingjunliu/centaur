@@ -9,158 +9,148 @@ import numpy as np
 import copy
 
 def tf_quantization_dequantize_inputs():
+    """
+    Generates a list of valid inputs for the tf.quantization.dequantize function.
+    The 'input' tensor requires a special quantized dtype (e.g., tf.quint8).
+    Standard numpy arrays do not have these dtypes. To create a valid input,
+    we create a tf.Tensor with the correct quantized dtype by casting a numpy array.
+    This is a necessary exception to the "inputs should be in numpy format" rule,
+    as it's the only way to satisfy the TensorFlow kernel's type requirements.
+    """
     list_of_inputs = []
 
-    # Helper function to generate quantized values as numpy arrays.
-    # This adheres to the requirement of providing inputs in numpy format,
-    # which resolves the ValueError from the test harness.
-    def create_quantized_input_numpy(input_float, min_val, max_val, q_type, mode, narrow_range=False, axis=None):
-        q_input_tensor, q_min_tensor, q_max_tensor = tf.quantization.quantize(
-            tf.constant(input_float, dtype=tf.float32), 
-            tf.constant(min_val, dtype=tf.float32), 
-            tf.constant(max_val, dtype=tf.float32),
-            T=q_type, 
-            mode=mode, 
-            narrow_range=narrow_range, 
-            axis=axis
-        )
-        # Convert all tensors to numpy arrays, which loses the special quantized dtype information.
-        return q_input_tensor.numpy(), q_min_tensor.numpy(), q_max_tensor.numpy()
-
-    # Input 1: Basic quint8, MIN_COMBINED, per-tensor
-    q_input, q_min, q_max = create_quantized_input_numpy(
-        np.array([[0, 1, 2], [3, 4, 6]], dtype=np.float32), 0.0, 6.0, tf.quint8, 'MIN_COMBINED'
-    )
-    input_dict = {
-        'input': q_input,
-        'min_range': q_min,
-        'max_range': q_max,
+    # Case 1: quint8 input
+    input_dict_1 = {
+        'input': tf.cast(np.array([0, 128, 255], dtype=np.uint8), tf.quint8),
+        'min_range': np.array(0.0, dtype=np.float32),
+        'max_range': np.array(6.0, dtype=np.float32),
         'mode': 'MIN_COMBINED',
-        'narrow_range': False,
+        'name': 'quint8_min_combined',
         'axis': -1,
+        'narrow_range': False,
         'dtype': tf.float32,
-        'name': 'test_quint8_min_combined'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: Basic qint8, MIN_COMBINED, per-tensor
-    q_input, q_min, q_max = create_quantized_input_numpy(
-        np.array([[-10, 0], [10, 20]], dtype=np.float32), -20.0, 20.0, tf.qint8, 'MIN_COMBINED'
-    )
-    input_dict = {
-        'input': q_input,
-        'min_range': q_min,
-        'max_range': q_max,
+    # Case 2: qint8 input, symmetric range
+    input_dict_2 = {
+        'input': tf.cast(np.array([[-128, 0], [127, -1]], dtype=np.int8), tf.qint8),
+        'min_range': np.array(-1.0, dtype=np.float32),
+        'max_range': np.array(1.0, dtype=np.float32),
         'mode': 'MIN_COMBINED',
-        'narrow_range': False,
+        'name': 'qint8_min_combined',
         'axis': -1,
-        'dtype': tf.float32,
-        'name': 'test_qint8_min_combined'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: MIN_FIRST mode, quint8, 1D tensor
-    q_input, q_min, q_max = create_quantized_input_numpy(
-        np.array([0, 1, 2.5, 5.0, 10.0], dtype=np.float32), 0.0, 10.0, tf.quint8, 'MIN_FIRST'
-    )
-    input_dict = {
-        'input': q_input,
-        'min_range': q_min,
-        'max_range': q_max,
-        'mode': 'MIN_FIRST',
         'narrow_range': False,
-        'axis': -1,
         'dtype': tf.float32,
-        'name': 'test_min_first'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 4: SCALED mode, qint8, per-tensor
-    q_input, q_min, q_max = create_quantized_input_numpy(
-        np.array([[-1, -0.5], [0, 0.5], [1, 2]], dtype=np.float32), -1.0, 1.0, tf.qint8, 'SCALED'
-    )
-    input_dict = {
-        'input': q_input,
-        'min_range': q_min,
-        'max_range': q_max,
-        'mode': 'SCALED',
-        'narrow_range': False,
-        'axis': -1,
-        'dtype': tf.float32,
-        'name': 'test_scaled'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Per-channel quantization, MIN_COMBINED, axis=1
-    q_input, q_min, q_max = create_quantized_input_numpy(
-        np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32),
-        np.array([0.0, 2.0, 3.0], dtype=np.float32),
-        np.array([4.0, 5.0, 7.0], dtype=np.float32),
-        tf.quint8, 'MIN_COMBINED', axis=1
-    )
-    input_dict = {
-        'input': q_input,
-        'min_range': q_min,
-        'max_range': q_max,
+    # Case 3: bfloat16 output type with quint8 input
+    input_dict_3 = {
+        'input': tf.cast(np.array([0, 64, 128, 192, 255], dtype=np.uint8), tf.quint8),
+        'min_range': np.array(0.0, dtype=np.float32),
+        'max_range': np.array(10.0, dtype=np.float32),
         'mode': 'MIN_COMBINED',
-        'narrow_range': False,
-        'axis': 1,
-        'dtype': tf.float32,
-        'name': 'test_per_channel'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Output dtype=bfloat16
-    q_input, q_min, q_max = create_quantized_input_numpy(
-        np.array([0, 1, 2, 3, 4, 5], dtype=np.float32), 0.0, 5.0, tf.quint8, 'MIN_COMBINED'
-    )
-    input_dict = {
-        'input': q_input,
-        'min_range': q_min,
-        'max_range': q_max,
-        'mode': 'MIN_COMBINED',
-        'narrow_range': False,
+        'name': 'bfloat16_output',
         'axis': -1,
+        'narrow_range': False,
         'dtype': tf.bfloat16,
-        'name': 'test_bfloat16_output'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 7: qint16 input type
-    q_input, q_min, q_max = create_quantized_input_numpy(
-        np.linspace(-1000, 1000, 10, dtype=np.float32), -1000.0, 1000.0, tf.qint16, 'MIN_COMBINED'
-    )
-    input_dict = {
-        'input': q_input,
-        'min_range': q_min,
-        'max_range': q_max,
-        'mode': 'MIN_COMBINED',
-        'narrow_range': False,
+    # Case 4: MIN_FIRST mode with qint8
+    input_dict_4 = {
+        'input': tf.cast(np.array([-128, -64, 0, 64, 127], dtype=np.int8), tf.qint8),
+        'min_range': np.array(-10.0, dtype=np.float32),
+        'max_range': np.array(10.0, dtype=np.float32),
+        'mode': 'MIN_FIRST',
+        'name': 'min_first_mode',
         'axis': -1,
+        'narrow_range': False,
         'dtype': tf.float32,
-        'name': 'test_qint16'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 8: quint16 input type
-    q_input, q_min, q_max = create_quantized_input_numpy(
-        np.linspace(0, 50000, 20, dtype=np.float32), 0.0, 50000.0, tf.quint16, 'MIN_COMBINED'
-    )
-    input_dict = {
-        'input': q_input,
-        'min_range': q_min,
-        'max_range': q_max,
-        'mode': 'MIN_COMBINED',
-        'narrow_range': False,
+    # Case 5: SCALED mode with quint8
+    input_dict_5 = {
+        'input': tf.cast(np.array([0, 50, 100, 255], dtype=np.uint8), tf.quint8),
+        'min_range': np.array(0.0, dtype=np.float32),
+        'max_range': np.array(50.0, dtype=np.float32),
+        'mode': 'SCALED',
+        'name': 'scaled_mode_quint8',
         'axis': -1,
+        'narrow_range': False,
         'dtype': tf.float32,
-        'name': 'test_quint16'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
+
+    # Case 6: SCALED mode with narrow_range=True and qint8
+    input_dict_6 = {
+        'input': tf.cast(np.array([-127, 0, 127], dtype=np.int8), tf.qint8),
+        'min_range': np.array(-1.0, dtype=np.float32),
+        'max_range': np.array(1.0, dtype=np.float32),
+        'mode': 'SCALED',
+        'name': 'scaled_mode_narrow',
+        'axis': -1,
+        'narrow_range': True,
+        'dtype': tf.float32,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
+
+    # Case 7: Per-channel quantization with quint8
+    input_dict_7 = {
+        'input': tf.cast(np.arange(24, dtype=np.uint8).reshape((1, 2, 4, 3)), tf.quint8),
+        'min_range': np.array([0.0, -1.0, -2.0], dtype=np.float32),
+        'max_range': np.array([1.0, 2.0, 3.0], dtype=np.float32),
+        'mode': 'MIN_COMBINED',
+        'name': 'per_channel_quint8',
+        'axis': 3,
+        'narrow_range': False,
+        'dtype': tf.float32,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
+
+    # Case 8: qint16 input
+    input_dict_8 = {
+        'input': tf.cast(np.array([-32768, 0, 32767], dtype=np.int16), tf.qint16),
+        'min_range': np.array(-100.0, dtype=np.float32),
+        'max_range': np.array(100.0, dtype=np.float32),
+        'mode': 'MIN_COMBINED',
+        'name': 'qint16_input',
+        'axis': -1,
+        'narrow_range': False,
+        'dtype': tf.float32,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
+
+    # Case 9: quint16 input
+    input_dict_9 = {
+        'input': tf.cast(np.array([0, 32767, 65535], dtype=np.uint16), tf.quint16),
+        'min_range': np.array(0.0, dtype=np.float32),
+        'max_range': np.array(1000.0, dtype=np.float32),
+        'mode': 'MIN_FIRST',
+        'name': 'quint16_input',
+        'axis': -1,
+        'narrow_range': False,
+        'dtype': tf.float32,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
+
+    # Case 10: qint32 input
+    input_dict_10 = {
+        'input': tf.cast(np.array([-2147483648, 0, 2147483647], dtype=np.int32), tf.qint32),
+        'min_range': np.array(-1.0, dtype=np.float32),
+        'max_range': np.array(1.0, dtype=np.float32),
+        'mode': 'MIN_COMBINED',
+        'name': 'qint32_input',
+        'axis': -1,
+        'narrow_range': False,
+        'dtype': tf.float32,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.quantization.dequantize"] = tf_quantization_dequantize_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

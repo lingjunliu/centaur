@@ -6,88 +6,86 @@ generated_inputs = dict()
 
 import numpy as np
 import copy
-import tensorflow as tf
 
 def tf_data_experimental_enumerate_dataset_inputs():
     """
     Generates a list of valid inputs for the tf.data.experimental.enumerate_dataset function.
-    This function returns a transformation, which needs to be applied to a dataset.
-    The test harness likely expects a 'self' key containing the numpy representation of the dataset
-    to which the transformation will be applied. This version uses simple numeric dtypes to
-    avoid potential conversion issues in the test harness.
+    This API returns a transformation function. The test harness needs to know which dataset
+    to apply this transformation on. This is speculatively provided via a special key
+    '_apply_on_dataset', containing the data in numpy format.
     """
     list_of_inputs = []
 
-    # Input 1: Basic case with 1D integer data, start=0
-    input_dict_1 = {
-        'self': np.array([10, 20, 30], dtype=np.int32),
-        'start': np.array(0, dtype=np.int64)
+    # Input 1: Basic case with a simple integer array and default start
+    input_dict = {
+        '_apply_on_dataset': np.array([1, 2, 3], dtype=np.int32),
+        'start': np.int64(0)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Start from a positive number, with 2D float data
-    input_dict_2 = {
-        'self': np.array([[1.1, 2.2], [3.3, 4.4]], dtype=np.float32),
-        'start': np.array(5, dtype=np.int64)
+    # Input 2: Positive start value with a float array
+    input_dict = {
+        '_apply_on_dataset': np.array([10.0, 20.0, 30.0], dtype=np.float32),
+        'start': np.int64(5)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Start from 1, with 3D integer data
-    input_dict_3 = {
-        'self': np.arange(8, dtype=np.int16).reshape(2, 2, 2),
-        'start': np.array(1, dtype=np.int64)
+    # Input 3: Negative start value with a 2D array
+    input_dict = {
+        '_apply_on_dataset': np.array([[1, 2], [3, 4]], dtype=np.int64),
+        'start': np.int64(-10)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Large start value, with an empty dataset
-    input_dict_4 = {
-        'self': np.array([], dtype=np.float64),
-        'start': np.array(1000000, dtype=np.int64)
+    # Input 4: Empty dataset
+    input_dict = {
+        '_apply_on_dataset': np.array([], dtype=np.float64),
+        'start': np.int64(42)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Negative start value, with 1D float data
-    input_dict_5 = {
-        'self': np.array([1.0, -2.5, 3.0], dtype=np.float32),
-        'start': np.array(-1, dtype=np.int64)
+    # Input 5: Dataset with a single element
+    input_dict = {
+        '_apply_on_dataset': np.array([100], dtype=np.int64),
+        'start': np.int64(-1)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Larger negative start value, with a single element dataset
-    input_dict_6 = {
-        'self': np.array([100], dtype=np.int64),
-        'start': np.array(-50, dtype=np.int64)
+    # Input 6: Start value as a 0-D numpy array
+    input_dict = {
+        '_apply_on_dataset': np.arange(6, dtype=np.uint8).reshape(3, 2),
+        'start': np.array(10, dtype=np.int64)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Min int64 start value
-    input_dict_7 = {
-        'self': np.array([1, 2], dtype=np.int32),
-        'start': np.array(np.iinfo(np.int64).min, dtype=np.int64)
+    # Input 7: Large positive start value
+    input_dict = {
+        '_apply_on_dataset': np.array([True, False]),
+        'start': np.int64(1000000)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
-
-    # Input 8: Max int64 start value (offset to avoid overflow during enumeration)
-    input_dict_8 = {
-        'self': np.array([1, 2, 3], dtype=np.int32),
-        'start': np.array(np.iinfo(np.int64).max - 5, dtype=np.int64)
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8: Large negative start value
+    input_dict = {
+        '_apply_on_dataset': np.array([-1.0, -2.0, -3.0], dtype=np.float64),
+        'start': np.int64(-1000000)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Zero start value, different integer type
-    input_dict_9 = {
-        'self': np.array([5, 4, 3, 2, 1], dtype=np.uint8),
-        'start': np.array(0, dtype=np.int64)
+    # Input 9: 3D data array
+    input_dict = {
+        '_apply_on_dataset': np.zeros((2, 2, 2), dtype=np.int16),
+        'start': np.int64(1)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Another positive start value
-    input_dict_10 = {
-        'self': np.array([[1], [2], [3]], dtype=np.int32),
-        'start': np.array(42, dtype=np.int64)
+    # Input 10: Unsigned integer data
+    input_dict = {
+        '_apply_on_dataset': np.array([10, 20, 30], dtype=np.uint32),
+        'start': np.int64(99)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
-
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs["tf.data.experimental.enumerate_dataset"] = tf_data_experimental_enumerate_dataset_inputs()

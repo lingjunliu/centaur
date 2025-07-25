@@ -7,119 +7,118 @@ generated_inputs = dict()
 import numpy as np
 import copy
 
-def get_tf_raw_ops_scatter_min_inputs():
+def tf_raw_ops_scatter_min_inputs():
     """
-    Generates a list of valid inputs for the tf.raw_ops.ScatterMin function.
-    The 'ref' input is provided as a numpy array as per the signature requirement.
-    The execution environment is expected to convert this to a tf.Variable and
-    run the operation in a graph context, as tf.raw_ops.ScatterMin is not
-    supported in eager execution.
+    Generates a list of valid inputs for the tf.raw_ops.ScatterMin operation.
+    Note: This op is designed for TensorFlow's graph mode and expects a 'ref'
+    tensor, which is not directly supported in eager execution. The execution of
+    these inputs in an eager context is expected to raise a RuntimeError.
     """
     list_of_inputs = []
 
-    # Input 1: Basic case with float32
+    # Input 1: Basic 1D float32
     input_dict_1 = {
-        'use_locking': False,
-        'name': 'basic_float32',
         'ref': np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32),
-        'indices': np.array([1, 4], dtype=np.int32),
-        'updates': np.array([0.5, 4.5], dtype=np.float32)
+        'indices': np.array([4, 3, 1, 0], dtype=np.int32),
+        'updates': np.array([0.5, 3.5, 1.5, -1.0], dtype=np.float32),
+        'use_locking': False,
+        'name': 'basic_1d_float32'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: Basic case with int32 and use_locking=True
+    # Input 2: 2D ref, 1D indices, int32
     input_dict_2 = {
-        'use_locking': True,
-        'name': 'basic_int32',
-        'ref': np.array([10, 20, 30, 40], dtype=np.int32),
+        'ref': np.array([[10, 20], [30, 40], [50, 60]], dtype=np.int32),
         'indices': np.array([0, 2], dtype=np.int32),
-        'updates': np.array([5, 35], dtype=np.int32)
+        'updates': np.array([[5, 25], [45, 65]], dtype=np.int32),
+        'use_locking': False,
+        'name': '2d_ref_1d_indices_int32'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: float64 and duplicate indices
+    # Input 3: Duplicate indices, int64
     input_dict_3 = {
-        'use_locking': False,
-        'name': 'duplicate_float64',
-        'ref': np.array([100.0, 200.0, 300.0], dtype=np.float64),
-        'indices': np.array([0, 2, 0], dtype=np.int64),
-        'updates': np.array([90.0, 250.0, 80.0], dtype=np.float64)
+        'ref': np.array([100, 200, 300], dtype=np.int64),
+        'indices': np.array([1, 0, 1, 2, 0], dtype=np.int64),
+        'updates': np.array([150, 50, 180, 250, 90], dtype=np.int64),
+        'use_locking': True,
+        'name': 'duplicate_indices_int64'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: int64 and negative numbers
+    # Input 4: Negative values, float64
     input_dict_4 = {
+        'ref': np.array([-1.5, -2.5, -3.5], dtype=np.float64),
+        'indices': np.array([2, 0], dtype=np.int32),
+        'updates': np.array([-3.0, -2.0], dtype=np.float64),
         'use_locking': False,
-        'name': 'negative_int64',
-        'ref': np.array([0, -10, 5, -15], dtype=np.int64),
-        'indices': np.array([1, 3], dtype=np.int64),
-        'updates': np.array([-5, -20], dtype=np.int64)
+        'name': 'negative_values_float64'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: 2D ref tensor
+    # Input 5: Higher rank indices
     input_dict_5 = {
+        'ref': np.array([[1, 2], [3, 4], [5, 6], [7, 8]], dtype=np.float32),
+        'indices': np.array([[1, 3], [0, 2]], dtype=np.int32),
+        'updates': np.array([[[3.1, 3.9], [7.1, 7.9]], [[1.1, 1.9], [5.1, 5.9]]], dtype=np.float32),
         'use_locking': False,
-        'name': '2d_ref',
-        'ref': np.array([[10, 20], [30, 40], [50, 60]], dtype=np.float32),
-        'indices': np.array([0, 2], dtype=np.int32),
-        'updates': np.array([[5, 25], [55, 5]], dtype=np.float32)
+        'name': 'higher_rank_indices'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: 2D ref with duplicate indices
+    # Input 6: Scalar updates
     input_dict_6 = {
-        'use_locking': True,
-        'name': '2d_ref_duplicates',
-        'ref': np.array([[10, 20], [30, 40], [50, 60]], dtype=np.int32),
-        'indices': np.array([1, 0, 1], dtype=np.int32),
-        'updates': np.array([[35, 35], [5, 5], [25, 25]], dtype=np.int32)
+        'ref': np.array([[10, 20], [30, 40]], dtype=np.int32),
+        'indices': np.array([0, 1, 0], dtype=np.int32),
+        'updates': np.array(15, dtype=np.int32),
+        'use_locking': False,
+        'name': 'scalar_updates'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
-    
-    # Input 7: 3D ref tensor
+
+    # Input 7: Empty indices and updates
     input_dict_7 = {
+        'ref': np.array([1., 2., 3.], dtype=np.float32),
+        'indices': np.array([], dtype=np.int32),
+        'updates': np.array([], dtype=np.float32),
         'use_locking': False,
-        'name': '3d_ref',
-        'ref': np.full((4, 2, 2), 100, dtype=np.int32),
-        'indices': np.array([1, 3], dtype=np.int32),
-        'updates': np.full((2, 2, 2), 50, dtype=np.int32)
+        'name': 'empty_indices_updates'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8: 2D indices
+    # Input 8: 3D ref
     input_dict_8 = {
-        'use_locking': False,
-        'name': '2d_indices',
-        'ref': np.arange(10, dtype=np.float32),
-        'indices': np.array([[1, 8], [4, 7]], dtype=np.int32),
-        'updates': np.array([[1.1, 8.8], [4.4, 7.7]], dtype=np.float32)
+        'ref': np.ones((3, 2, 2), dtype=np.float32) * 10,
+        'indices': np.array([0, 2], dtype=np.int64),
+        'updates': np.ones((2, 2, 2), dtype=np.float32) * 5,
+        'use_locking': True,
+        'name': '3d_ref'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 9: Scalar update
+    # Input 9: Single element ref
     input_dict_9 = {
-        'use_locking': False,
-        'name': 'scalar_update',
-        'ref': np.array([100.0, 200.0, 300.0], dtype=np.float32),
-        'indices': np.array([0, 2], dtype=np.int32),
-        'updates': np.array(50.0, dtype=np.float32)
+        'ref': np.array([[100.0]], dtype=np.float64),
+        'indices': np.array([0, 0, 0], dtype=np.int64),
+        'updates': np.array([[99.0], [101.0], [98.0]], dtype=np.float64),
+        'use_locking': True,
+        'name': 'single_element_ref'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10: No change case
+    # Input 10: All zero updates
     input_dict_10 = {
-        'use_locking': False,
-        'name': 'no_change',
-        'ref': np.array([1, 2, 3, 4, 5], dtype=np.int32),
-        'indices': np.array([0, 2, 4], dtype=np.int32),
-        'updates': np.array([10, 30, 50], dtype=np.int32)
+        'ref': np.array([10, -10, 20, -20], dtype=np.int32),
+        'indices': np.array([0, 1, 2, 3], dtype=np.int32),
+        'updates': np.array([0, 0, 0, 0], dtype=np.int32),
+        'use_locking': True,
+        'name': 'all_zero_updates'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.ScatterMin"] = get_tf_raw_ops_scatter_min_inputs()
+generated_inputs["tf.raw_ops.ScatterMin"] = tf_raw_ops_scatter_min_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

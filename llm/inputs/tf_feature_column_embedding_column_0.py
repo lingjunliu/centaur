@@ -8,133 +8,205 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_feature_column_embedding_column_inputs():
-    # This helper class is a workaround for the conflicting requirements between the API
-    # (which needs an object with .name and .num_buckets) and the testing framework
-    # (which requires a 'list' of numbers according to its signature and internal logic).
-    class CustomCategoricalList(list):
-        def __init__(self, vocabulary_size, name):
-            # Initialize with a list of integers to be compatible with np.min/max.
-            super().__init__(range(vocabulary_size))
-            # Add attributes required by the tf.feature_column.embedding_column implementation.
-            self.name = name
-            self.num_buckets = vocabulary_size
+# This API is part of the deprecated tf.feature_column module and is designed
+# for TensorFlow's graph mode. To create the required CategoricalColumn objects
+# without a RuntimeError, eager execution must be disabled.
+tf.compat.v1.disable_eager_execution()
 
-    def create_initializer_tensor(shape):
-        # The signature requires a 'tensor', which the framework interprets as a numpy array.
-        return np.random.rand(*shape).astype(np.float32)
-
+def get_tf_feature_column_embedding_column_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case
+    # NOTE: To fix the `AttributeError: 'list' object has no attribute 'name'`,
+    # the `categorical_column` parameter must be a `CategoricalColumn` object,
+    # as required by the TensorFlow API, not a Python list. The following inputs
+    # are generated according to this API requirement.
+
+    def create_initializer_array(shape):
+        return np.random.rand(*shape).astype(np.float32)
+
+    # Input 1: Basic case with vocabulary list
+    cat_col_1 = tf.feature_column.categorical_column_with_vocabulary_list(
+        key='feature1', vocabulary_list=['a', 'b', 'c'])
     input_dict_1 = {
-        'categorical_column': CustomCategoricalList(vocabulary_size=4, name='col_1'),
+        'categorical_column': cat_col_1,
         'dimension': 8,
         'combiner': 'mean',
-        'initializer': None, 'ckpt_to_load_from': None, 'tensor_name_in_ckpt': None,
-        'max_norm': None, 'trainable': True, 'use_safe_embedding_lookup': True
+        'initializer': None,
+        'ckpt_to_load_from': None,
+        'tensor_name_in_ckpt': None,
+        'max_norm': None,
+        'trainable': True,
+        'use_safe_embedding_lookup': True,
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: 'sqrtn' combiner
+    # Input 2: Using 'sum' combiner
+    cat_col_2 = tf.feature_column.categorical_column_with_vocabulary_list(
+        key='feature2', vocabulary_list=['cat', 'dog', 'mouse', 'bird'])
     input_dict_2 = {
-        'categorical_column': CustomCategoricalList(vocabulary_size=30, name='col_2'),
+        'categorical_column': cat_col_2,
         'dimension': 16,
-        'combiner': 'sqrtn',
-        'initializer': None, 'ckpt_to_load_from': None, 'tensor_name_in_ckpt': None,
-        'max_norm': None, 'trainable': True, 'use_safe_embedding_lookup': True
+        'combiner': 'sum',
+        'initializer': None,
+        'ckpt_to_load_from': None,
+        'tensor_name_in_ckpt': None,
+        'max_norm': None,
+        'trainable': True,
+        'use_safe_embedding_lookup': True,
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: 'sum' combiner
+    # Input 3: Using 'sqrtn' combiner
+    cat_col_3 = tf.feature_column.categorical_column_with_vocabulary_list(
+        key='feature3', vocabulary_list=['x', 'y'])
     input_dict_3 = {
-        'categorical_column': CustomCategoricalList(vocabulary_size=105, name='col_3'),
+        'categorical_column': cat_col_3,
         'dimension': 4,
-        'combiner': 'sum',
-        'initializer': None, 'ckpt_to_load_from': None, 'tensor_name_in_ckpt': None,
-        'max_norm': None, 'trainable': True, 'use_safe_embedding_lookup': True
+        'combiner': 'sqrtn',
+        'initializer': None,
+        'ckpt_to_load_from': None,
+        'tensor_name_in_ckpt': None,
+        'max_norm': None,
+        'trainable': True,
+        'use_safe_embedding_lookup': True,
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: Non-trainable embedding
+    # Input 4: Using hash bucket
+    cat_col_4 = tf.feature_column.categorical_column_with_hash_bucket(
+        key='feature4', hash_bucket_size=10)
     input_dict_4 = {
-        'categorical_column': CustomCategoricalList(vocabulary_size=5, name='col_4'),
-        'dimension': 10,
+        'categorical_column': cat_col_4,
+        'dimension': 32,
         'combiner': 'mean',
-        'initializer': None, 'ckpt_to_load_from': None, 'tensor_name_in_ckpt': None,
-        'max_norm': None, 'trainable': False, 'use_safe_embedding_lookup': True
+        'initializer': None,
+        'ckpt_to_load_from': None,
+        'tensor_name_in_ckpt': None,
+        'max_norm': None,
+        'trainable': True,
+        'use_safe_embedding_lookup': True,
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
     # Input 5: With max_norm
+    cat_col_5 = tf.feature_column.categorical_column_with_hash_bucket(
+        key='feature5', hash_bucket_size=100)
     input_dict_5 = {
-        'categorical_column': CustomCategoricalList(vocabulary_size=3, name='col_5'),
-        'dimension': 32,
-        'combiner': 'mean',
-        'initializer': None, 'ckpt_to_load_from': None, 'tensor_name_in_ckpt': None,
-        'max_norm': 1.5, 'trainable': True, 'use_safe_embedding_lookup': True
+        'categorical_column': cat_col_5,
+        'dimension': 64,
+        'combiner': 'sqrtn',
+        'initializer': None,
+        'ckpt_to_load_from': None,
+        'tensor_name_in_ckpt': None,
+        'max_norm': 1.5,
+        'trainable': True,
+        'use_safe_embedding_lookup': True,
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: With a custom initializer
-    vocab_size_6, dim_6 = 6, 12
+    # Input 6: Not trainable
+    cat_col_6 = tf.feature_column.categorical_column_with_vocabulary_list(
+        key='feature6', vocabulary_list=['on', 'off'])
     input_dict_6 = {
-        'categorical_column': CustomCategoricalList(vocabulary_size=vocab_size_6, name='col_6'),
-        'dimension': dim_6,
+        'categorical_column': cat_col_6,
+        'dimension': 2,
         'combiner': 'mean',
-        'initializer': create_initializer_tensor((vocab_size_6, dim_6)),
-        'ckpt_to_load_from': None, 'tensor_name_in_ckpt': None,
-        'max_norm': None, 'trainable': True, 'use_safe_embedding_lookup': True
+        'initializer': None,
+        'ckpt_to_load_from': None,
+        'tensor_name_in_ckpt': None,
+        'max_norm': None,
+        'trainable': False,
+        'use_safe_embedding_lookup': True,
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: Loading from checkpoint
+    # Input 7: use_safe_embedding_lookup set to False
+    cat_col_7 = tf.feature_column.categorical_column_with_hash_bucket(
+        key='feature7', hash_bucket_size=50)
     input_dict_7 = {
-        'categorical_column': CustomCategoricalList(vocabulary_size=2, name='col_7'),
-        'dimension': 20,
-        'combiner': 'mean',
+        'categorical_column': cat_col_7,
+        'dimension': 10,
+        'combiner': 'sum',
         'initializer': None,
-        'ckpt_to_load_from': '/path/to/my/ckpt',
-        'tensor_name_in_ckpt': 'embedding_tensor_name',
-        'max_norm': None, 'trainable': True, 'use_safe_embedding_lookup': True
+        'ckpt_to_load_from': None,
+        'tensor_name_in_ckpt': None,
+        'max_norm': None,
+        'trainable': True,
+        'use_safe_embedding_lookup': False,
     }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8: use_safe_embedding_lookup disabled
+    # Input 8: With a custom initializer for vocabulary list
+    vocab_list_8 = ['apple', 'banana', 'cherry', 'date']
+    dimension_8 = 5
+    cat_col_8 = tf.feature_column.categorical_column_with_vocabulary_list(
+        key='feature8', vocabulary_list=vocab_list_8)
     input_dict_8 = {
-        'categorical_column': CustomCategoricalList(vocabulary_size=5, name='col_8'),
-        'dimension': 5,
-        'combiner': 'sqrtn',
-        'initializer': None, 'ckpt_to_load_from': None, 'tensor_name_in_ckpt': None,
-        'max_norm': None, 'trainable': True, 'use_safe_embedding_lookup': False
+        'categorical_column': cat_col_8,
+        'dimension': dimension_8,
+        'combiner': 'mean',
+        'initializer': create_initializer_array((len(vocab_list_8), dimension_8)),
+        'ckpt_to_load_from': None,
+        'tensor_name_in_ckpt': None,
+        'max_norm': None,
+        'trainable': True,
+        'use_safe_embedding_lookup': True,
     }
     list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 9: Non-trainable with max_norm
+    # Input 9: Loading from checkpoint
+    cat_col_9 = tf.feature_column.categorical_column_with_vocabulary_list(
+        key='feature9', vocabulary_list=['red', 'green', 'blue'])
     input_dict_9 = {
-        'categorical_column': CustomCategoricalList(vocabulary_size=8, name='col_9'),
-        'dimension': 64,
-        'combiner': 'sqrtn',
-        'initializer': None, 'ckpt_to_load_from': None, 'tensor_name_in_ckpt': None,
-        'max_norm': 2.0, 'trainable': False, 'use_safe_embedding_lookup': True
+        'categorical_column': cat_col_9,
+        'dimension': 3,
+        'combiner': 'mean',
+        'initializer': None,
+        'ckpt_to_load_from': '/tmp/my_model.ckpt',
+        'tensor_name_in_ckpt': 'feature9_embedding/embedding_weights',
+        'max_norm': None,
+        'trainable': True,
+        'use_safe_embedding_lookup': True,
     }
     list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10: With initializer and 'sum' combiner
-    vocab_size_10, dim_10 = 4, 10
+    # Input 10: Complex combination with hash bucket and initializer
+    hash_bucket_size_10 = 1000
+    dimension_10 = 128
+    cat_col_10 = tf.feature_column.categorical_column_with_hash_bucket(
+        key='feature10', hash_bucket_size=hash_bucket_size_10)
     input_dict_10 = {
-        'categorical_column': CustomCategoricalList(vocabulary_size=vocab_size_10, name='col_10'),
-        'dimension': dim_10,
-        'combiner': 'sum',
-        'initializer': create_initializer_tensor((vocab_size_10, dim_10)),
-        'ckpt_to_load_from': None, 'tensor_name_in_ckpt': None,
-        'max_norm': None, 'trainable': True, 'use_safe_embedding_lookup': False
+        'categorical_column': cat_col_10,
+        'dimension': dimension_10,
+        'combiner': 'sqrtn',
+        'initializer': create_initializer_array((hash_bucket_size_10, dimension_10)),
+        'ckpt_to_load_from': None,
+        'tensor_name_in_ckpt': None,
+        'max_norm': 2.0,
+        'trainable': False,
+        'use_safe_embedding_lookup': False,
     }
     list_of_inputs.append(copy.deepcopy(input_dict_10))
 
+    # Input 11: Minimal valid dimension
+    cat_col_11 = tf.feature_column.categorical_column_with_vocabulary_list(
+        key='feature11', vocabulary_list=['true', 'false', 'unknown'])
+    input_dict_11 = {
+        'categorical_column': cat_col_11,
+        'dimension': 1,
+        'combiner': 'mean',
+        'initializer': None,
+        'ckpt_to_load_from': None,
+        'tensor_name_in_ckpt': None,
+        'max_norm': 0.5,
+        'trainable': True,
+        'use_safe_embedding_lookup': True,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_11))
+
     return list_of_inputs
 
-generated_inputs["tf.feature_column.embedding_column"] = tf_feature_column_embedding_column_inputs()
+generated_inputs["tf.feature_column.embedding_column"] = get_tf_feature_column_embedding_column_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

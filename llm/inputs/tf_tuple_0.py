@@ -4,117 +4,160 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
-import copy
+
+# The API tf.tuple is designed for TFv1 graph mode.
+# We disable eager execution to properly construct graph-based inputs,
+# which aligns with the API's documentation and intended use case.
+tf.compat.v1.disable_eager_execution()
 
 def tf_tuple_inputs():
-    """
-    Generates a list of valid inputs for the tf.tuple function.
-    The previous attempts failed with `ValueError: could not broadcast input array...`
-    when trying to create a NumPy object array as a workaround for a testing harness bug.
-    This error occurs because `np.array(list_of_arrays)` can sometimes try to create a
-    multi-dimensional array instead of an object array, even with `dtype=object`,
-    especially when the list elements have different shapes.
-
-    This version uses a more robust method to create object arrays: first creating an
-    empty object array of the correct size, then populating it element by element.
-    This guarantees that an object array is created without triggering NumPy's
-    broadcasting logic, which should fix the ValueError while still providing the
-    `.shape` attribute needed by the testing harness.
-    """
     list_of_inputs = []
+    
+    # Since this function returns symbolic tensors that are evaluated later,
+    # all tensors must be created in the same graph. We reset the default graph
+    # to ensure a clean state for the test run and use name_scopes to avoid
+    # collisions. This setup ensures that the returned tensors remain valid
+    # outside the scope of this function.
+    tf.compat.v1.reset_default_graph()
 
-    def to_object_array_safe(input_list):
-        """Safely creates a numpy array of objects to avoid broadcasting errors."""
-        if input_list is None:
-            return np.array([], dtype=object)
-        
-        # This is the key fix: create an empty array and fill it.
-        # This avoids numpy trying to broadcast the elements.
-        arr = np.empty(len(input_list), dtype=object)
-        for i, item in enumerate(input_list):
+    def create_tensor_object_array(tensor_list):
+        arr = np.empty(len(tensor_list), dtype=object)
+        for i, item in enumerate(tensor_list):
             arr[i] = item
         return arr
 
-    # Input 1: Basic case with a single tensor
+    # --- Input 1 ---
+    with tf.compat.v1.name_scope("input_1"):
+        v_1 = tf.compat.v1.Variable(0.0)
+        update_op_1 = v_1.assign_add(1.0)
+    tensors_1 = create_tensor_object_array([tf.constant(np.array([1.0, 2.0]), dtype=tf.float32)])
+    control_inputs_1 = [update_op_1]
     input_dict_1 = {
-        'tensors': to_object_array_safe([np.array([1, 2, 3], dtype=np.int32)]),
-        'control_inputs': to_object_array_safe(None),
-        'name': 'basic_case'
+        'tensors': tensors_1,
+        'control_inputs': control_inputs_1,
+        'name': 'case_1'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    list_of_inputs.append(input_dict_1)
 
-    # Input 2: Multiple tensors in the list
+    # --- Input 2 ---
+    with tf.compat.v1.name_scope("input_2"):
+        v_2_1 = tf.compat.v1.Variable(10, dtype=tf.int32)
+        v_2_2 = tf.compat.v1.Variable(-10.0, dtype=tf.float32)
+        update_op_2_1 = v_2_1.assign_sub(1)
+        update_op_2_2 = v_2_2.assign(5.0)
+    tensors_2 = create_tensor_object_array([
+        tf.constant(np.array([[1, 2], [3, 4]]), dtype=tf.int32),
+        tf.constant(np.array([-5.0]), dtype=tf.float32)
+    ])
+    control_inputs_2 = [update_op_2_1, update_op_2_2]
     input_dict_2 = {
-        'tensors': to_object_array_safe([np.array([1.0, 2.0], dtype=np.float32), np.array([3.0, 4.0], dtype=np.float32)]),
-        'control_inputs': to_object_array_safe([]),
-        'name': 'multiple_tensors'
+        'tensors': tensors_2,
+        'control_inputs': control_inputs_2,
+        'name': 'case_2'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    list_of_inputs.append(input_dict_2)
 
-    # Input 3: With a control input tensor
+    # --- Input 3 ---
+    tensors_3 = create_tensor_object_array([tf.constant(np.array([True, False]), dtype=tf.bool)])
     input_dict_3 = {
-        'tensors': to_object_array_safe([np.array([[1, 2], [3, 4]], dtype=np.int64)]),
-        'control_inputs': to_object_array_safe([np.array([10.0], dtype=np.float32)]),
-        'name': 'with_control_input'
+        'tensors': tensors_3,
+        'control_inputs': None,
+        'name': 'case_3_no_controls'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    list_of_inputs.append(input_dict_3)
 
-    # Input 4: Tensors with mixed shapes (the one that caused the previous error)
+    # --- Input 4 ---
+    tensors_4 = create_tensor_object_array([tf.constant(np.array([b'a', b'b']), dtype=tf.string)])
     input_dict_4 = {
-        'tensors': to_object_array_safe([np.array([1]), np.array([[2, 3]]), np.array([[[4, 5, 6]]], dtype=np.int16)]),
-        'control_inputs': to_object_array_safe([np.array(55, dtype=np.int32), np.array([66.6], dtype=np.float64)]),
-        'name': 'mixed_shapes'
+        'tensors': tensors_4,
+        'control_inputs': [],
+        'name': 'case_4_empty_controls'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
-
-    # Input 5: List of tensors containing a None value
+    list_of_inputs.append(input_dict_4)
+    
+    # --- Input 5 ---
+    with tf.compat.v1.name_scope("input_5"):
+        control_tensor_5 = tf.constant(5.0) * 2.0
+    tensors_5 = create_tensor_object_array([
+        tf.constant(np.array(100), dtype=tf.int64),
+        tf.constant(np.array([1.0, -1.0]), dtype=tf.float64)
+    ])
+    control_inputs_5 = [control_tensor_5]
     input_dict_5 = {
-        'tensors': to_object_array_safe([np.array([1, 2]), None, np.array([3, 4])]),
-        'control_inputs': to_object_array_safe(None),
-        'name': 'with_none_in_tensors'
+        'tensors': tensors_5,
+        'control_inputs': control_inputs_5,
+        'name': 'case_5_tensor_control'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    list_of_inputs.append(input_dict_5)
 
-    # Input 6: Tensors with negative values
+    # --- Input 6 ---
+    with tf.compat.v1.name_scope("input_6"):
+        v_6 = tf.compat.v1.Variable(0)
+        update_op_6 = v_6.assign_add(1)
+    tensors_6 = create_tensor_object_array([
+        tf.constant(np.array([1.0]), dtype=tf.float32),
+        None,
+        tf.constant(np.array([3.0]), dtype=tf.float32)
+    ])
+    control_inputs_6 = [update_op_6]
     input_dict_6 = {
-        'tensors': to_object_array_safe([np.array([-1, -2, -3], dtype=np.int32), np.array([[-1.5], [-2.5]], dtype=np.float32)]),
-        'control_inputs': to_object_array_safe([np.array([-99.0])]),
-        'name': 'negative_values'
+        'tensors': tensors_6,
+        'control_inputs': control_inputs_6,
+        'name': 'case_6_with_none'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    list_of_inputs.append(input_dict_6)
 
-    # Input 7: Scalar tensors (0-D)
+    # --- Input 7 ---
+    with tf.compat.v1.name_scope("input_7"):
+        v_7 = tf.compat.v1.Variable(0, dtype=tf.uint8)
+        update_op_7 = v_7.assign(255)
+    tensors_7 = create_tensor_object_array([tf.constant(np.array([0, 0]), dtype=tf.uint8)])
+    control_inputs_7 = [update_op_7]
     input_dict_7 = {
-        'tensors': to_object_array_safe([np.array(100, dtype=np.int32), np.array(200.5, dtype=np.float32)]),
-        'control_inputs': to_object_array_safe([]),
-        'name': 'scalars'
+        'tensors': tensors_7,
+        'control_inputs': control_inputs_7,
+        'name': None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    list_of_inputs.append(input_dict_7)
 
-    # Input 8: List containing one empty tensor
+    # --- Input 8 ---
+    with tf.compat.v1.name_scope("input_8"):
+        control_placeholder_8 = tf.compat.v1.placeholder(tf.float32, shape=())
+    tensors_8 = create_tensor_object_array([tf.constant(np.array([9.9]), dtype=tf.float32)])
+    control_inputs_8 = [control_placeholder_8]
     input_dict_8 = {
-        'tensors': to_object_array_safe([np.array([], dtype=np.float32)]),
-        'control_inputs': to_object_array_safe(None),
-        'name': 'empty_tensor'
+        'tensors': tensors_8,
+        'control_inputs': control_inputs_8,
+        'name': 'case_8_placeholder_control'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    list_of_inputs.append(input_dict_8)
 
-    # Input 9: A longer list of tensors
+    # --- Input 9 ---
+    with tf.compat.v1.name_scope("input_9"):
+        v_9 = tf.compat.v1.Variable(1+1j, dtype=tf.complex64)
+        update_op_9 = v_9.assign(2+2j)
+    tensors_9 = create_tensor_object_array([tf.constant(np.array([1+2j, 3+4j]), dtype=tf.complex128)])
+    control_inputs_9 = [update_op_9]
     input_dict_9 = {
-        'tensors': to_object_array_safe([np.array([i]) for i in range(10)]),
-        'control_inputs': to_object_array_safe([np.array([100]), np.array([200])]),
-        'name': 'long_list'
+        'tensors': tensors_9,
+        'control_inputs': control_inputs_9,
+        'name': 'case_9_complex'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    list_of_inputs.append(input_dict_9)
 
-    # Input 10: Boolean tensor and boolean control input
+    # --- Input 10 ---
+    with tf.compat.v1.name_scope("input_10"):
+        print_op_10 = tf.print("control op for case 10")
+    tensors_10 = create_tensor_object_array([tf.constant(np.zeros((1,1,1,1)), dtype=tf.float32)])
+    control_inputs_10 = [print_op_10]
     input_dict_10 = {
-        'tensors': to_object_array_safe([np.array([True, False, True])]),
-        'control_inputs': to_object_array_safe([np.array(False)]),
-        'name': 'boolean_control'
+        'tensors': tensors_10,
+        'control_inputs': control_inputs_10,
+        'name': 'case_10_print_op_control'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    list_of_inputs.append(input_dict_10)
 
     return list_of_inputs
 

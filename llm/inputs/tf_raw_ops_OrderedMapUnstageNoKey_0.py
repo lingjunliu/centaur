@@ -5,44 +5,77 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import numpy as np
-import tensorflow as tf
 import copy
+import tensorflow as tf
 
-def tf_raw_ops_ordered_map_unstage_no_key_inputs():
-    # The `OrderedMapUnstageNoKey` op is designed to block if the underlying map is empty.
-    # In an isolated testing environment that executes only this op, a timeout is an
-    # expected behavior and does not indicate an invalid input. To satisfy the prompt while
-    # acknowledging this, we provide a minimal set of syntactically valid inputs,
-    # each with a unique resource name (`shared_name`) to prevent test interference.
+def tf_raw_ops_orderedmapunstagenokey_inputs():
     list_of_inputs = []
 
-    # Input 1: A minimal, valid input.
+    # Input 1: Basic case with a single float type.
+    # The op is inherently blocking and will time out in isolated execution.
+    # These inputs are syntactically valid for graph construction.
     input_dict_1 = {
         'indices': np.array([0], dtype=np.int32),
         'dtypes': [tf.float32],
-        'capacity': 1,
+        'capacity': 2,
         'memory_limit': 0,
         'container': '',
-        'shared_name': 'unstage_test_map_1',
-        'name': 'unstage_op_1'
+        'shared_name': 'map_name_1',
+        'name': 'test_unstage_1'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: A valid input with multiple dtypes.
+    # Input 2: Multiple dtypes.
     input_dict_2 = {
         'indices': np.array([0, 1], dtype=np.int32),
         'dtypes': [tf.int64, tf.string],
         'capacity': 5,
-        'memory_limit': 1024,
+        'memory_limit': 0,
         'container': '',
-        'shared_name': 'unstage_test_map_2',
-        'name': 'unstage_op_2'
+        'shared_name': 'map_name_2',
+        'name': 'test_unstage_2'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
+    # Input 3: Using a private container name.
+    input_dict_3 = {
+        'indices': np.array([0], dtype=np.int32),
+        'dtypes': [tf.bool],
+        'capacity': 1,
+        'memory_limit': 0,
+        'container': 'private_map_3',
+        'shared_name': '',
+        'name': 'test_unstage_3'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
+
+    # Input 4: Unbounded capacity and memory.
+    input_dict_4 = {
+        'indices': np.array([0], dtype=np.int32),
+        'dtypes': [tf.complex64],
+        'capacity': 0,
+        'memory_limit': 0,
+        'container': '',
+        'shared_name': 'map_name_4',
+        'name': 'test_unstage_4'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
+
+    # Input 5: Non-zero memory limit.
+    input_dict_5 = {
+        'indices': np.array([0, 1], dtype=np.int32),
+        'dtypes': [tf.int16, tf.uint8],
+        'capacity': 10,
+        'memory_limit': 4096,
+        'container': 'private_map_5',
+        'shared_name': '',
+        'name': 'test_unstage_5'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
+
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.OrderedMapUnstageNoKey"] = tf_raw_ops_ordered_map_unstage_no_key_inputs()
+generated_inputs["tf.raw_ops.OrderedMapUnstageNoKey"] = tf_raw_ops_orderedmapunstagenokey_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

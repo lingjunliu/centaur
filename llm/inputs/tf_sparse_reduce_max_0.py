@@ -11,128 +11,178 @@ import copy
 def tf_sparse_reduce_max_inputs():
     list_of_inputs = []
 
-    # The runtime error "AttributeError: 'EagerTensor' object has no attribute 'indices'"
-    # is caused by passing a dense tensor to an operation that requires a sparse tensor.
-    # The previous attempt to fix a validation error (by using dense numpy arrays)
-    # led to this runtime error.
-    # The correct fix is to provide the input type that the API is designed for,
-    # which is `tf.sparse.SparseTensor`. This will resolve the runtime error.
-    # Any potential validation error from the testing framework is due to the framework
-    # not correctly handling the required input type for this specific sparse API.
+    class PatchedSparseTensor(tf.SparseTensor):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.size = np.prod(self.dense_shape)
 
-    # --- Input Set 1: 2D integer tensor ---
-    indices_1 = np.array([[0, 0], [0, 2], [1, 1]], dtype=np.int64)
-    values_1 = np.array([1, 2, 3], dtype=np.int32)
-    dense_shape_1 = np.array([2, 3], dtype=np.int64)
-    sp_input_1 = tf.sparse.SparseTensor(indices_1, values_1, dense_shape_1)
-
-    # Input 1: Basic 2D reduction along axis=0
+    # Input 1: Basic 2D reduction along axis 0
     input_dict = {
-        'sp_input': sp_input_1,
+        'sp_input': PatchedSparseTensor(
+            indices=np.array([[0, 0], [0, 2], [1, 1]], dtype=np.int64),
+            values=np.array([1, 2, 3], dtype=np.int32),
+            dense_shape=np.array([2, 3], dtype=np.int64)
+        ),
         'axis': [0],
         'keepdims': False,
         'output_is_sparse': False,
-        'name': 'sparse_reduce_max_2d_ax0'
+        'name': 'reduce_max_ax0'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Basic 2D reduction along axis=1
-    input_dict_2 = copy.deepcopy(input_dict)
-    input_dict_2['axis'] = [1]
-    input_dict_2['name'] = 'sparse_reduce_max_2d_ax1'
-    list_of_inputs.append(input_dict_2)
-
-    # Input 3: 2D reduction with keepdims=True
-    input_dict_3 = copy.deepcopy(input_dict)
-    input_dict_3['axis'] = [1]
-    input_dict_3['keepdims'] = True
-    input_dict_3['name'] = 'sparse_reduce_max_2d_ax1_keepdims'
-    list_of_inputs.append(input_dict_3)
-
-    # Input 4: 2D reduction along both axes
-    input_dict_4 = copy.deepcopy(input_dict)
-    input_dict_4['axis'] = [0, 1]
-    input_dict_4['keepdims'] = False
-    input_dict_4['name'] = 'sparse_reduce_max_2d_all_axes'
-    list_of_inputs.append(input_dict_4)
-
-    # Input 5: 2D reduction with sparse output
-    input_dict_5 = copy.deepcopy(input_dict)
-    input_dict_5['axis'] = [0]
-    input_dict_5['output_is_sparse'] = True
-    input_dict_5['name'] = 'sparse_reduce_max_2d_sparse_output'
-    list_of_inputs.append(input_dict_5)
-
-    # --- Input Set 2: 3D integer tensor ---
-    indices_2 = np.array([[0, 0, 0], [0, 1, 1], [1, 1, 0], [1, 2, 2]], dtype=np.int64)
-    values_2 = np.array([5, 8, 2, 9], dtype=np.int32)
-    dense_shape_2 = np.array([2, 3, 4], dtype=np.int64)
-    sp_input_2 = tf.sparse.SparseTensor(indices_2, values_2, dense_shape_2)
-
-    # Input 6: 3D tensor reduction
-    input_dict_6 = {
-        'sp_input': sp_input_2,
+    # Input 2: Basic 2D reduction along axis 1
+    input_dict = {
+        'sp_input': PatchedSparseTensor(
+            indices=np.array([[0, 0], [0, 2], [1, 1]], dtype=np.int64),
+            values=np.array([1, 2, 3], dtype=np.int32),
+            dense_shape=np.array([2, 3], dtype=np.int64)
+        ),
         'axis': [1],
         'keepdims': False,
         'output_is_sparse': False,
-        'name': 'sparse_reduce_max_3d_ax1'
+        'name': 'reduce_max_ax1'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: 3D tensor reduction on multiple axes with keepdims
-    input_dict_7 = copy.deepcopy(input_dict_6)
-    input_dict_7['axis'] = [0, 2]
-    input_dict_7['keepdims'] = True
-    input_dict_7['name'] = 'sparse_reduce_max_3d_ax02_keepdims'
-    list_of_inputs.append(input_dict_7)
-
-    # --- Input Set 3: Negative values and negative axis ---
-    indices_3 = np.array([[0, 0], [1, 0], [1, 1]], dtype=np.int64)
-    values_3 = np.array([-7, -4, -3], dtype=np.int32)
-    dense_shape_3 = np.array([3, 2], dtype=np.int64)
-    sp_input_3 = tf.sparse.SparseTensor(indices_3, values_3, dense_shape_3)
-
-    # Input 8: Negative values and negative axis
-    input_dict_8 = {
-        'sp_input': sp_input_3,
-        'axis': [-1],
+    # Input 3: Reduce all axes
+    input_dict = {
+        'sp_input': PatchedSparseTensor(
+            indices=np.array([[0, 0], [0, 2], [1, 1]], dtype=np.int64),
+            values=np.array([1, 2, 3], dtype=np.int32),
+            dense_shape=np.array([2, 3], dtype=np.int64)
+        ),
+        'axis': [0, 1],
         'keepdims': False,
         'output_is_sparse': False,
-        'name': 'sparse_reduce_max_negative_vals_axis'
+        'name': 'reduce_max_all_axes'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # --- Input Set 4: Empty slice reduction ---
-    indices_4 = np.array([[0, 0], [1, 0], [1, 1]], dtype=np.int64)
-    values_4 = np.array([-7, 4, 3], dtype=np.int32)
-    dense_shape_4 = np.array([3, 2], dtype=np.int64)
-    sp_input_4 = tf.sparse.SparseTensor(indices_4, values_4, dense_shape_4)
+    # Input 4: keepdims=True
+    input_dict = {
+        'sp_input': PatchedSparseTensor(
+            indices=np.array([[0, 0], [0, 2], [1, 1]], dtype=np.int64),
+            values=np.array([1, 2, 3], dtype=np.int32),
+            dense_shape=np.array([2, 3], dtype=np.int64)
+        ),
+        'axis': [1],
+        'keepdims': True,
+        'output_is_sparse': False,
+        'name': 'reduce_max_keepdims'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Reduction on axis with an empty slice (produces 0)
-    input_dict_9 = {
-        'sp_input': sp_input_4,
+    # Input 5: Negative values
+    input_dict = {
+        'sp_input': PatchedSparseTensor(
+            indices=np.array([[0, 0], [1, 0], [1, 1]], dtype=np.int64),
+            values=np.array([-7, -4, -3], dtype=np.int32),
+            dense_shape=np.array([3, 2], dtype=np.int64)
+        ),
         'axis': [1],
         'keepdims': False,
         'output_is_sparse': False,
-        'name': 'sparse_reduce_max_empty_slice'
+        'name': 'reduce_max_negative_vals'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # --- Input Set 5: Float32 values ---
-    indices_5 = np.array([[0, 0], [0, 2], [1, 1]], dtype=np.int64)
-    values_5 = np.array([1.5, -2.5, 3.0], dtype=np.float32)
-    dense_shape_5 = np.array([2, 3], dtype=np.int64)
-    sp_input_5 = tf.sparse.SparseTensor(indices_5, values_5, dense_shape_5)
+    # Input 6: output_is_sparse=True
+    input_dict = {
+        'sp_input': PatchedSparseTensor(
+            indices=np.array([[0, 0], [0, 2], [1, 1]], dtype=np.int64),
+            values=np.array([1, 2, 3], dtype=np.int32),
+            dense_shape=np.array([2, 3], dtype=np.int64)
+        ),
+        'axis': [0],
+        'keepdims': False,
+        'output_is_sparse': True,
+        'name': 'reduce_max_sparse_output'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Float32 values
-    input_dict_10 = {
-        'sp_input': sp_input_5,
+    # Input 7: 3D tensor, reduce along axis 1
+    input_dict = {
+        'sp_input': PatchedSparseTensor(
+            indices=np.array([[0, 0, 1], [0, 2, 0], [1, 1, 1], [1, 2, 0]], dtype=np.int64),
+            values=np.array([5, 8, 2, 9], dtype=np.int32),
+            dense_shape=np.array([2, 3, 2], dtype=np.int64)
+        ),
+        'axis': [1],
+        'keepdims': False,
+        'output_is_sparse': False,
+        'name': 'reduce_max_3d'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: 3D tensor, reduce multiple axes
+    input_dict = {
+        'sp_input': PatchedSparseTensor(
+            indices=np.array([[0, 0, 1], [0, 2, 0], [1, 1, 1], [1, 2, 0]], dtype=np.int64),
+            values=np.array([5, 8, 2, 9], dtype=np.int32),
+            dense_shape=np.array([2, 3, 2], dtype=np.int64)
+        ),
+        'axis': [0, 2],
+        'keepdims': False,
+        'output_is_sparse': False,
+        'name': 'reduce_max_3d_multi_axis'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Floating point values
+    input_dict = {
+        'sp_input': PatchedSparseTensor(
+            indices=np.array([[0, 1], [1, 0], [1, 2]], dtype=np.int64),
+            values=np.array([1.1, -2.2, 3.3], dtype=np.float32),
+            dense_shape=np.array([2, 4], dtype=np.int64)
+        ),
         'axis': [0],
         'keepdims': False,
         'output_is_sparse': False,
-        'name': 'sparse_reduce_max_float32'
+        'name': 'reduce_max_float'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Empty sparse tensor (should reduce to 0)
+    input_dict = {
+        'sp_input': PatchedSparseTensor(
+            indices=np.empty((0, 2), dtype=np.int64),
+            values=np.array([], dtype=np.int32),
+            dense_shape=np.array([3, 4], dtype=np.int64)
+        ),
+        'axis': [1],
+        'keepdims': False,
+        'output_is_sparse': False,
+        'name': 'reduce_max_empty'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: Negative axis
+    input_dict = {
+        'sp_input': PatchedSparseTensor(
+            indices=np.array([[0, 0], [0, 2], [1, 1]], dtype=np.int64),
+            values=np.array([1, 2, 3], dtype=np.int32),
+            dense_shape=np.array([2, 3], dtype=np.int64)
+        ),
+        'axis': [-1],
+        'keepdims': False,
+        'output_is_sparse': False,
+        'name': 'reduce_max_negative_axis'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12: Zero reduction case from docs
+    input_dict = {
+        'sp_input': PatchedSparseTensor(
+            indices=np.array([[0, 0,], [1, 0], [1, 1]], dtype=np.int64),
+            values=np.array([-7, 4, 3], dtype=np.int32),
+            dense_shape=np.array([3, 2], dtype=np.int64)
+        ),
+        'axis': [1],
+        'keepdims': False,
+        'output_is_sparse': False,
+        'name': 'reduce_max_zero_reduction'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

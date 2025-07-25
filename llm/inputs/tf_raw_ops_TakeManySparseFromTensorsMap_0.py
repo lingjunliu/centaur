@@ -7,125 +7,123 @@ generated_inputs = dict()
 import numpy as np
 import copy
 
-
-def tf_raw_ops_takemanysparsefromtensorsmap_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.TakeManySparseFromTensorsMap function.
-    This operation is stateful and requires that sparse tensor handles have been previously
-    added to a map. In a stateless testing environment, this will cause a runtime
-    'Unable to find SparseTensor' error, as the map is empty. The inputs provided here
-    are syntactically correct according to the API's constraints (e.g., correct tensor
-    shapes and types), even though they will fail semantically at runtime in an
-    isolated execution context.
-    """
+def get_tf_raw_ops_takemanysparsefromtensorsmap_inputs():
     list_of_inputs = []
 
-    # Each input uses a unique shared_name to prevent potential conflicts in the
-    # testing environment. The sparse_handles must be a 1-D vector with N > 0.
+    # The error "Unable to find SparseTensor" is a stateful, runtime error.
+    # This operation requires a `SparseTensorsMap` to be populated by a preceding
+    # operation like `AddSparseToTensorsMap`. In an isolated test environment,
+    # the map is empty, so any attempt to look up a handle (which is required,
+    # as N must be >= 1) will fail.
+    # The previous errors have confirmed that `sparse_handles` must be a 1-D
+    # tensor (vector) of shape `[N]`, where N >= 1.
+    # The following inputs are syntactically valid according to the API's
+    # signature and constraints, even though they are expected to fail with
+    # the "Unable to find" error in an isolated test harness.
 
-    # Input 1: Basic case, N=3, float32.
-    input_dict_1 = {
-        'sparse_handles': np.array([0, 1, 2], dtype=np.int64),
+    # Input 1: Basic case with N=2 and dtype=float32
+    input_dict = {
+        'sparse_handles': np.array([101, 202], dtype=np.int64),
         'dtype': np.float32,
-        'container': 'container_A',
-        'shared_name': 'shared_name_A',
-        'name': 'test_1'
+        'container': 'c1',
+        'shared_name': 'map_A',
+        'name': 'take_1'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: N=5, int32.
-    input_dict_2 = {
-        'sparse_handles': np.array([10, 20, 30, 40, 50], dtype=np.int64),
+    # Input 2: Different dtype (int32) and N=3
+    input_dict = {
+        'sparse_handles': np.array([10, 20, 30], dtype=np.int64),
         'dtype': np.int32,
-        'container': 'container_B',
-        'shared_name': 'shared_name_B',
-        'name': 'test_2'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
-
-    # Input 3: N=1, float64.
-    input_dict_3 = {
-        'sparse_handles': np.array([100], dtype=np.int64),
-        'dtype': np.float64,
-        'container': 'container_C',
-        'shared_name': 'shared_name_C',
-        'name': 'test_3'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
-
-    # Input 4: N=1, int64, empty container.
-    input_dict_4 = {
-        'sparse_handles': np.array([1], dtype=np.int64),
-        'dtype': np.int64,
-        'container': '',
-        'shared_name': 'shared_name_D',
-        'name': 'test_4_empty_container'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
-
-    # Input 5: N=2, complex64.
-    input_dict_5 = {
-        'sparse_handles': np.array([5, 15], dtype=np.int64),
-        'dtype': np.complex64,
-        'container': 'container_E',
-        'shared_name': 'shared_name_E',
-        'name': 'test_5_complex'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
-
-    # Input 6: N=4, int8, name=None.
-    input_dict_6 = {
-        'sparse_handles': np.array([1, 3, 5, 7], dtype=np.int64),
-        'dtype': np.int8,
-        'container': '',
-        'shared_name': 'shared_name_F',
+        'container': 'c2',
+        'shared_name': 'map_B',
         'name': None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: N=3, uint8.
-    input_dict_7 = {
-        'sparse_handles': np.array([2, 4, 6], dtype=np.int64),
-        'dtype': np.uint8,
-        'container': 'container_G',
-        'shared_name': 'shared_name_G',
-        'name': 'test_7_uint'
+    # Input 3: Larger N (N=5), float64, and a container name
+    input_dict = {
+        'sparse_handles': np.array([1, 2, 3, 4, 5], dtype=np.int64),
+        'dtype': np.float64,
+        'container': 'my_container',
+        'shared_name': 'shared_map_1',
+        'name': 'take_large_n'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Larger handle integer values.
-    input_dict_8 = {
-        'sparse_handles': np.array([2**32, 2**33, 2**34 - 1], dtype=np.int64),
-        'dtype': np.float16,
-        'container': 'container_H',
-        'shared_name': 'shared_name_H',
-        'name': 'test_8_large_handles'
+    # Input 4: Single handle (N=1)
+    input_dict = {
+        'sparse_handles': np.array([999], dtype=np.int64),
+        'dtype': np.float32,
+        'container': 'c4',
+        'shared_name': 'single_handle_map',
+        'name': 'take_one'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: N=3, bool.
-    input_dict_9 = {
-        'sparse_handles': np.array([99, 199, 299], dtype=np.int64),
-        'dtype': np.bool_,
-        'container': 'container_I',
-        'shared_name': 'shared_name_I',
-        'name': 'test_9_bool'
+    # Input 5: Complex dtype (complex64)
+    input_dict = {
+        'sparse_handles': np.array([77, 88], dtype=np.int64),
+        'dtype': np.complex64,
+        'container': 'complex_container',
+        'shared_name': 'complex_map',
+        'name': 'take_complex'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: N=2, complex128.
-    input_dict_10 = {
-        'sparse_handles': np.array([42, 84], dtype=np.int64),
+    # Input 6: Complex dtype (complex128)
+    input_dict = {
+        'sparse_handles': np.array([111, 222, 333], dtype=np.int64),
         'dtype': np.complex128,
-        'container': '',
-        'shared_name': 'shared_name_J',
-        'name': 'test_10_complex128'
+        'container': 'c6',
+        'shared_name': 'complex_map_128',
+        'name': None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Large integer values for handles
+    input_dict = {
+        'sparse_handles': np.array([2**32, 2**33], dtype=np.int64),
+        'dtype': np.float32,
+        'container': 'c7',
+        'shared_name': 'large_handle_map',
+        'name': 'take_large_handles'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Small integer dtype (int8)
+    input_dict = {
+        'sparse_handles': np.array([5, 15, 25], dtype=np.int64),
+        'dtype': np.int8,
+        'container': 'c8',
+        'shared_name': 'int8_map',
+        'name': 'take_int8'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Unsigned integer dtype (uint8)
+    input_dict = {
+        'sparse_handles': np.array([1, 2], dtype=np.int64),
+        'dtype': np.uint8,
+        'container': 'another_container',
+        'shared_name': 'another_shared_map',
+        'name': 'take_uint8'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Boolean dtype
+    input_dict = {
+        'sparse_handles': np.array([1000, 2000], dtype=np.int64),
+        'dtype': np.bool_,
+        'container': 'c10',
+        'shared_name': 'bool_map',
+        'name': 'take_bools'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.TakeManySparseFromTensorsMap"] = tf_raw_ops_takemanysparsefromtensorsmap_inputs()
+generated_inputs["tf.raw_ops.TakeManySparseFromTensorsMap"] = get_tf_raw_ops_takemanysparsefromtensorsmap_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

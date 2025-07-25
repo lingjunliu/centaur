@@ -5,8 +5,6 @@ import torch
 
 from generator.rules import dist_1_rev, dist_7_rev, dist_8_rev, dist_5_rev, dist_11_rev, rule_to_distance
 
-## Abid, please add assertions with corresponding expectations here --Marcelo
-
 @pytest.mark.unit
 def test_dist_1():
     ## I don't understand why this is true.

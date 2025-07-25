@@ -4,96 +4,98 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import numpy as np
 import tensorflow as tf
+import numpy as np
 import copy
 
 def tf_data_experimental_scan_inputs():
     """
-    Generates a list of valid inputs for tf.data.experimental.scan.
-    To address the persistent "no inner values" error, this version provides
-    'scan_func' as a list of numbers (which passes pre-processing checks
-    unlike strings) and includes a 'dataset' key for the apply() method.
+    Generates a list of valid inputs for the tf.data.experimental.scan function.
+    This API returns a function, which is then applied to a dataset.
+    The 'data' key in the input dictionary represents the numpy data that will
+    be converted to a tf.data.Dataset for the application.
+    The 'scan_func' is provided as a list of numbers to satisfy the type
+    signature constraint.
     """
     list_of_inputs = []
 
-    # Input 1: Scalar int state, numeric list for scan_func
+    # Input 1: Simple 0-D integer state, 1D integer dataset
     input_dict_1 = {
         'initial_state': np.array(0, dtype=np.int32),
-        'scan_func': [1, 2, 3],
-        'dataset': np.arange(5, dtype=np.int32)
+        'scan_func': [1],
+        'data': np.array([1, 2, 3, 4, 5], dtype=np.int32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: 1D float state, single-element list for scan_func
+    # Input 2: 1-D float32 state, 2D float32 dataset
     input_dict_2 = {
-        'initial_state': np.array([1.0], dtype=np.float32),
-        'scan_func': [0.5],
-        'dataset': np.random.rand(4, 1).astype(np.float32)
+        'initial_state': np.array([0.0, 0.0], dtype=np.float32),
+        'scan_func': [1, 2],
+        'data': np.array([[1.0, -1.0], [2.0, -2.0], [3.5, -3.5]], dtype=np.float32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: 2D int state, empty list for scan_func (to test this path again)
+    # Input 3: Scalar int32 state, 3D int32 dataset
     input_dict_3 = {
-        'initial_state': np.array([[1, 2], [3, 4]], dtype=np.int64),
+        'initial_state': np.array(-10, dtype=np.int32),
         'scan_func': [],
-        'dataset': np.ones((3, 2, 2), dtype=np.int64)
+        'data': np.arange(24, dtype=np.int32).reshape(4, 3, 2)
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: Scalar float state, negative numbers in scan_func list
+    # Input 4: Scalar float64 state, 1D float64 dataset
     input_dict_4 = {
-        'initial_state': np.array(-10.0, dtype=np.float64),
-        'scan_func': [-1.0, -2.0, -3.0],
-        'dataset': np.arange(5, dtype=np.float64)
+        'initial_state': np.array(0.0, dtype=np.float64),
+        'scan_func': [1, 2, 3],
+        'data': np.random.rand(10).astype(np.float64)
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: Vector state, longer numeric list for scan_func
+    # Input 5: 1-D int64 state, 2D int64 dataset
     input_dict_5 = {
-        'initial_state': np.array([0, 1], dtype=np.int32),
-        'scan_func': list(range(10)),
-        'dataset': np.arange(6, dtype=np.int32).reshape(3, 2)
+        'initial_state': np.array([0, 0], dtype=np.int64),
+        'scan_func': [100],
+        'data': np.array([[10000000000, 2], [3, 40000000000]], dtype=np.int64)
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: High-dimensional state
+    # Input 6: 0-D float state (negative), 1D float dataset
     input_dict_6 = {
-        'initial_state': np.ones((1, 4, 1), dtype=np.float32),
-        'scan_func': [0.0, 1.0],
-        'dataset': np.random.rand(2, 1, 4, 1).astype(np.float32)
+        'initial_state': np.array(-3.14, dtype=np.float32),
+        'scan_func': [0],
+        'data': np.array([-1.0, 0.0, 1.0, 2.5], dtype=np.float32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: Boolean state, empty dataset
+    # Input 7: State with complex numbers (complex64), 2D complex dataset
     input_dict_7 = {
-        'initial_state': np.array(True, dtype=np.bool_),
-        'scan_func': [1], # Using int 1 to represent True
-        'dataset': np.array([], dtype=np.bool_)
+        'initial_state': np.array(0+0j, dtype=np.complex64),
+        'scan_func': [1, 2, 3],
+        'data': (np.random.rand(4, 3) + 1j * np.random.rand(4, 3)).astype(np.complex64)
     }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8: Larger 2D float initial_state
+    # Input 8: State with boolean values, 2D boolean dataset
     input_dict_8 = {
-        'initial_state': np.random.rand(5, 5).astype(np.float32),
-        'scan_func': [1.1, 2.2, 3.3, 4.4, 5.5],
-        'dataset': np.random.rand(3, 5, 5).astype(np.float32)
+        'initial_state': np.array(False, dtype=np.bool_),
+        'scan_func': [0, 1],
+        'data': np.array([[True, True], [False, True], [False, False]], dtype=np.bool_)
     }
     list_of_inputs.append(copy.deepcopy(input_dict_8))
-    
-    # Input 9: Scalar float initial_state, float scan_func list
+
+    # Input 9: Non-scalar state, matching dataset elements
     input_dict_9 = {
-        'initial_state': np.array(-3.14, dtype=np.float64),
-        'scan_func': [3.14, 1.59],
-        'dataset': np.array([-1.0, -2.0, -3.0], dtype=np.float64)
+        'initial_state': np.array([0, 0, 0], dtype=np.int16),
+        'scan_func': [42],
+        'data': np.arange(15, dtype=np.int16).reshape(5, 3)
     }
     list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10: Zero-rank initial state (scalar)
+    # Input 10: State with complex128 dtype, matching dataset
     input_dict_10 = {
-        'initial_state': np.array(100, dtype=np.int64),
-        'scan_func': [0],
-        'dataset': np.array([1, 2, 3, 4, 5], dtype=np.int64)
+        'initial_state': np.array([0j, 0j], dtype=np.complex128),
+        'scan_func': [-1],
+        'data': (np.random.rand(5, 2) + 1j*np.random.rand(5,2)).astype(np.complex128)
     }
     list_of_inputs.append(copy.deepcopy(input_dict_10))
 

@@ -6,171 +6,180 @@ generated_inputs = dict()
 
 import numpy as np
 import copy
+import tensorflow as tf
+
+
+def decorated_func_add(x):
+    return x + x
+
+def decorated_func_square(a):
+    return tf.square(a)
+
+def decorated_func_add_two_args(x, y):
+    return x + y
+
 
 def tf_nondifferentiable_batch_function_inputs():
-    """
-    Generates a list of valid inputs for the tf.nondifferentiable_batch_function API.
-    """
     list_of_inputs = []
 
-    # Input 1: Basic case with tf.identity
+    # Input 1: Basic case with large batch splitting disabled
     input_dict_1 = {
         'num_batch_threads': 1,
-        'max_batch_size': 8,
-        'batch_timeout_micros': 1000,
+        'max_batch_size': 32,
+        'batch_timeout_micros': 10000,
         'allowed_batch_sizes': [],
         'max_enqueued_batches': 10,
         'autograph': True,
-        'enable_large_batch_splitting': True,
-        'func': 'tf.identity',
-        'inner_input_args': {
-            'input': np.array([[1, 2], [3, 4]], dtype=np.float32)
+        'enable_large_batch_splitting': False,
+        'fn': decorated_func_add,
+        'kwargs': {
+            'x': np.random.rand(16, 8).astype(np.float32)
         }
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: With allowed_batch_sizes and tf.square
+    # Input 2: Large batch splitting enabled, input size > max_batch_size
     input_dict_2 = {
-        'num_batch_threads': 2,
-        'max_batch_size': 32,
-        'batch_timeout_micros': 2000,
-        'allowed_batch_sizes': [8, 16, 32],
+        'num_batch_threads': 4,
+        'max_batch_size': 64,
+        'batch_timeout_micros': 20000,
+        'allowed_batch_sizes': [],
         'max_enqueued_batches': 20,
-        'autograph': True,
+        'autograph': False,
         'enable_large_batch_splitting': True,
-        'func': 'tf.square',
-        'inner_input_args': {
-            'x': np.random.rand(16, 5).astype(np.float32)
+        'fn': decorated_func_square,
+        'kwargs': {
+            'a': np.random.rand(100, 5).astype(np.float32)
         }
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: Larger values, 3D tensor input and tf.add
+    # Input 3: With allowed_batch_sizes, splitting disabled
     input_dict_3 = {
-        'num_batch_threads': 8,
-        'max_batch_size': 128,
+        'num_batch_threads': 2,
+        'max_batch_size': 16,
         'batch_timeout_micros': 5000,
-        'allowed_batch_sizes': [32, 64, 128],
-        'max_enqueued_batches': 100,
+        'allowed_batch_sizes': [8, 16],
+        'max_enqueued_batches': 10,
         'autograph': True,
-        'enable_large_batch_splitting': True,
-        'func': 'tf.add',
-        'inner_input_args': {
-            'x': np.random.rand(64, 10, 10).astype(np.float32),
-            'y': np.random.rand(64, 10, 10).astype(np.float32)
+        'enable_large_batch_splitting': False,
+        'fn': decorated_func_add,
+        'kwargs': {
+            'x': np.random.rand(12, 3).astype(np.float32)
         }
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: Minimum valid values and integer tensor
+    # Input 4: Inner function with multiple arguments, splitting enabled
     input_dict_4 = {
-        'num_batch_threads': 1,
-        'max_batch_size': 2,
-        'batch_timeout_micros': 0,
-        'allowed_batch_sizes': [1, 2],
-        'max_enqueued_batches': 1,
+        'num_batch_threads': 2,
+        'max_batch_size': 16,
+        'batch_timeout_micros': 1000,
+        'allowed_batch_sizes': [],
+        'max_enqueued_batches': 5,
         'autograph': True,
         'enable_large_batch_splitting': True,
-        'func': 'tf.identity',
-        'inner_input_args': {
-            'input': np.array([[10], [20]], dtype=np.int32)
+        'fn': decorated_func_add_two_args,
+        'kwargs': {
+            'x': np.ones((20, 1)).astype(np.float32),
+            'y': np.ones((20, 1)).astype(np.float32) * 2
         }
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: Autograph disabled and float64 tensor
+    # Input 5: High number of threads, splitting disabled
     input_dict_5 = {
-        'num_batch_threads': 4,
-        'max_batch_size': 64,
-        'batch_timeout_micros': 10000,
+        'num_batch_threads': 16,
+        'max_batch_size': 256,
+        'batch_timeout_micros': 50000,
         'allowed_batch_sizes': [],
-        'max_enqueued_batches': 10,
-        'autograph': False,
-        'enable_large_batch_splitting': True,
-        'func': 'tf.identity',
-        'inner_input_args': {
-            'input': np.random.rand(32, 1).astype(np.float64)
+        'max_enqueued_batches': 100,
+        'autograph': True,
+        'enable_large_batch_splitting': False,
+        'fn': decorated_func_square,
+        'kwargs': {
+            'a': np.random.rand(200, 10).astype(np.float32)
         }
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: Large batch splitting disabled
+    # Input 6: Minimal allowed_batch_sizes list, splitting enabled
     input_dict_6 = {
-        'num_batch_threads': 4,
-        'max_batch_size': 64,
-        'batch_timeout_micros': 10000,
-        'allowed_batch_sizes': [16, 32, 64],
+        'num_batch_threads': 2,
+        'max_batch_size': 32,
+        'batch_timeout_micros': 8000,
+        'allowed_batch_sizes': [32],
         'max_enqueued_batches': 10,
         'autograph': True,
-        'enable_large_batch_splitting': False,
-        'func': 'tf.identity',
-        'inner_input_args': {
-            'input': np.random.rand(32, 100).astype(np.float32)
+        'enable_large_batch_splitting': True,
+        'fn': decorated_func_add,
+        'kwargs': {
+            'x': np.random.rand(64, 2).astype(np.float32)
         }
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: Both boolean flags disabled and multiple inner arguments with tf.subtract
+    # Input 7: Zero timeout, splitting disabled
     input_dict_7 = {
-        'num_batch_threads': 2,
-        'max_batch_size': 16,
-        'batch_timeout_micros': 500,
+        'num_batch_threads': 1,
+        'max_batch_size': 64,
+        'batch_timeout_micros': 0,
         'allowed_batch_sizes': [],
-        'max_enqueued_batches': 5,
-        'autograph': False,
+        'max_enqueued_batches': 10,
+        'autograph': True,
         'enable_large_batch_splitting': False,
-        'func': 'tf.subtract',
-        'inner_input_args': {
-            'x': np.ones((8, 4), dtype=np.float32),
-            'y': np.zeros((8, 4), dtype=np.float32)
+        'fn': decorated_func_square,
+        'kwargs': {
+            'a': np.random.rand(1, 16).astype(np.float32)
         }
     }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8: 4D tensor and complex allowed_batch_sizes
+    # Input 8: Larger values for integer parameters, splitting enabled
     input_dict_8 = {
-        'num_batch_threads': 16,
-        'max_batch_size': 256,
-        'batch_timeout_micros': 20000,
-        'allowed_batch_sizes': [8, 16, 32, 64, 128, 256],
+        'num_batch_threads': 32,
+        'max_batch_size': 512,
+        'batch_timeout_micros': 100000,
+        'allowed_batch_sizes': [64, 128, 256, 512],
         'max_enqueued_batches': 50,
-        'autograph': True,
+        'autograph': False,
         'enable_large_batch_splitting': True,
-        'func': 'tf.identity',
-        'inner_input_args': {
-            'input': np.zeros((128, 2, 2, 3), dtype=np.float32)
+        'fn': decorated_func_add_two_args,
+        'kwargs': {
+            'x': np.random.rand(1024, 20).astype(np.float32),
+            'y': np.random.rand(1024, 20).astype(np.float32)
         }
     }
     list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 9: High max_enqueued_batches and int64 tensor with tf.negative
+    # Input 9: Non-power-of-two batch sizes, splitting disabled
     input_dict_9 = {
-        'num_batch_threads': 4,
-        'max_batch_size': 32,
-        'batch_timeout_micros': 3000,
-        'allowed_batch_sizes': [8, 16, 32],
-        'max_enqueued_batches': 1000,
-        'autograph': True,
-        'enable_large_batch_splitting': True,
-        'func': 'tf.negative',
-        'inner_input_args': {
-            'x': np.random.randint(0, 100, size=(10, 20)).astype(np.int64)
+        'num_batch_threads': 3,
+        'max_batch_size': 90,
+        'batch_timeout_micros': 12345,
+        'allowed_batch_sizes': [30, 60, 90],
+        'max_enqueued_batches': 12,
+        'autograph': False,
+        'enable_large_batch_splitting': False,
+        'fn': decorated_func_add,
+        'kwargs': {
+            'x': np.random.rand(85, 1).astype(np.float32)
         }
     }
     list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10: Long timeout and boolean tensor with tf.logical_not
+    # Input 10: Splitting enabled but input size is smaller
     input_dict_10 = {
         'num_batch_threads': 1,
-        'max_batch_size': 10,
-        'batch_timeout_micros': 1000000,
-        'allowed_batch_sizes': [5, 10],
+        'max_batch_size': 128,
+        'batch_timeout_micros': 15000,
+        'allowed_batch_sizes': [],
         'max_enqueued_batches': 10,
-        'autograph': False,
-        'enable_large_batch_splitting': False,
-        'func': 'tf.logical_not',
-        'inner_input_args': {
-            'x': np.array([True, False, True, False, True]).reshape(5, 1).astype(bool)
+        'autograph': True,
+        'enable_large_batch_splitting': True,
+        'fn': decorated_func_square,
+        'kwargs': {
+            'a': np.random.rand(40, 4).astype(np.float32)
         }
     }
     list_of_inputs.append(copy.deepcopy(input_dict_10))

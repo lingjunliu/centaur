@@ -13,133 +13,133 @@ def tf_queue_RandomShuffleQueue_inputs():
     """
     list_of_inputs = []
 
-    # Input 1: Basic case with a single float type and 2D shape
+    # Input 1: Basic case with a single float tensor type.
     input_dict_1 = {
         'capacity': 100,
         'min_after_dequeue': 10,
         'dtypes': [np.float32],
-        'shapes': [[3, 2]],
-        'names': None,
-        'seed': 42,
-        'shared_name': None,
+        'shapes': [[10, 2]],
+        'names': [1],
+        'seed': 1,
+        'shared_name': 'q1',
         'name': 'basic_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: Multiple dtypes and fully specified shapes
+    # Input 2: Multiple data types. names is a list of integers.
     input_dict_2 = {
-        'capacity': 200,
-        'min_after_dequeue': 50,
-        'dtypes': [np.int32, np.string_],
-        'shapes': [[4], []],
-        'names': None,
-        'seed': 123,
-        'shared_name': 'shared_queue_2',
-        'name': 'multi_type_queue'
+        'capacity': 50,
+        'min_after_dequeue': 20,
+        'dtypes': [np.int64, np.string_],
+        'shapes': [[5], []],
+        'names': [10, 20],
+        'seed': 2,
+        'shared_name': 'q2',
+        'name': 'multi_dtype_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: Unknown shapes for multiple dtypes
+    # Input 3: Scalar string.
     input_dict_3 = {
-        'capacity': 50,
-        'min_after_dequeue': 0,
-        'dtypes': [np.bool_, np.complex64],
-        'shapes': [None, None],
-        'names': None,
-        'seed': None,
-        'shared_name': None,
-        'name': 'unknown_shape_queue'
+        'capacity': 25,
+        'min_after_dequeue': 5,
+        'dtypes': [np.string_],
+        'shapes': [[]],
+        'names': [3],
+        'seed': 3,
+        'shared_name': 'q3',
+        'name': 'string_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: Partially unknown shapes
+    # Input 4: Double-precision float.
     input_dict_4 = {
-        'capacity': 150,
-        'min_after_dequeue': 75,
-        'dtypes': [np.float64, np.int8],
-        'shapes': [[None, 5], [2]],
-        'names': None,
-        'seed': 2024,
-        'shared_name': None,
-        'name': 'partial_shape_queue'
+        'capacity': 20,
+        'min_after_dequeue': 5,
+        'dtypes': [np.float64],
+        'shapes': [[1, 3, 4]],
+        'names': [4],
+        'seed': 4,
+        'shared_name': 'q4',
+        'name': 'double_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: Minimal configuration with scalar shape
+    # Input 5: Scalar int32.
     input_dict_5 = {
-        'capacity': 10,
-        'min_after_dequeue': 1,
-        'dtypes': [np.int8],
+        'capacity': 30,
+        'min_after_dequeue': 15,
+        'dtypes': [np.int32],
         'shapes': [[]],
-        'names': None,
-        'seed': None,
-        'shared_name': None,
-        'name': 'minimal_queue'
+        'names': [5],
+        'seed': 5,
+        'shared_name': 'q5',
+        'name': 'scalar_int_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: Large capacity and mixed shapes
+    # Input 6: Image-like uint8 tensor. min_after_dequeue is 0.
     input_dict_6 = {
-        'capacity': 10000,
-        'min_after_dequeue': 9000,
-        'dtypes': [np.uint16, np.float16],
-        'shapes': [[], [10, 10]],
-        'names': None,
-        'seed': -1,
-        'shared_name': 'large_shared_queue',
-        'name': 'large_cap_queue'
+        'capacity': 100,
+        'min_after_dequeue': 0,
+        'dtypes': [np.uint8],
+        'shapes': [[28, 28, 3]],
+        'names': [6],
+        'seed': 42,
+        'shared_name': 'q6',
+        'name': 'seeded_image_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: min_after_dequeue is zero
+    # Input 7: Large capacity int16 vector.
     input_dict_7 = {
-        'capacity': 30,
-        'min_after_dequeue': 0,
-        'dtypes': [np.int64],
-        'shapes': [[1]],
-        'names': None,
-        'seed': 777,
-        'shared_name': None,
-        'name': 'zero_min_queue'
+        'capacity': 2000,
+        'min_after_dequeue': 1000,
+        'dtypes': [np.int16],
+        'shapes': [[128]],
+        'names': [7],
+        'seed': 7,
+        'shared_name': 'global_feature_queue',
+        'name': 'large_cap_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8: High-dimensional tensor shape
+    # Input 8: Multiple components with bool and complex types.
     input_dict_8 = {
         'capacity': 500,
         'min_after_dequeue': 100,
-        'dtypes': [np.float32],
-        'shapes': [[2, 3, 4, 5, 6]],
-        'names': None,
-        'seed': 2023,
-        'shared_name': None,
-        'name': 'high_dim_queue'
+        'dtypes': [np.bool_, np.complex64],
+        'shapes': [[], [2, 2]],
+        'names': [81, 82],
+        'seed': -99,
+        'shared_name': 'multi_comp_shared_queue',
+        'name': 'boolean_complex_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 9: All optional arguments provided
+    # Input 9: Complex number matrix.
     input_dict_9 = {
-        'capacity': 128,
-        'min_after_dequeue': 64,
-        'dtypes': [np.string_],
-        'shapes': [[4, 4]],
-        'names': None,
-        'seed': 98765,
-        'shared_name': 'fully_specified_queue',
-        'name': 'all_args_queue'
+        'capacity': 2,
+        'min_after_dequeue': 1,
+        'dtypes': [np.complex128],
+        'shapes': [[2, 2]],
+        'names': [9],
+        'seed': 9,
+        'shared_name': 'q9',
+        'name': 'minimal_complex_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10: Negative seed value and another data type
+    # Input 10: High-rank float16 tensor.
     input_dict_10 = {
-        'capacity': 256,
-        'min_after_dequeue': 128,
-        'dtypes': [np.int64],
-        'shapes': [[8, 8, 8]],
-        'names': None,
-        'seed': -10,
-        'shared_name': None,
-        'name': 'neg_seed_queue'
+        'capacity': 10000,
+        'min_after_dequeue': 5000,
+        'dtypes': [np.float16],
+        'shapes': [[2, 3, 4, 5, 6]],
+        'names': [10],
+        'seed': 2023,
+        'shared_name': 'q10',
+        'name': 'high_rank_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_10))
 

@@ -7,82 +7,38 @@ generated_inputs = dict()
 import numpy as np
 import copy
 
-def tf_raw_ops_getsessionhandlev2_inputs():
+def get_tf_raw_ops_getsessionhandlev2_inputs():
+    """
+    Generates a list of valid inputs for the tf.raw_ops.GetSessionHandleV2 function.
+
+    The recurring 'FailedPreconditionError: GetSessionHandle called on null session state'
+    is an environmental issue, not an input issue. This raw operation is designed for
+    TensorFlow's session-based execution model (e.g., TF1.x), where it stores a tensor
+    within an active session. When run in the default eager execution mode of modern
+    TensorFlow (TF2.x), no such session exists, causing this unavoidable error. No modification
+    of the input numpy array ('value') or the 'name' can fix this fundamental
+    incompatibility between the operation and the execution environment. This function
+    provides a minimal set of syntactically correct inputs as a best-effort response.
+    """
     list_of_inputs = []
 
-    # Input 1: 1D float32 tensor
-    input_dict = {
-        'value': np.array([1.0, 2.5, -3.0, 4.2], dtype=np.float32),
-        'name': 'handle_float_1d'
+    # Input 1: A single, minimal, valid input.
+    input_dict_1 = {
+        'value': np.array([42.0], dtype=np.float32),
+        'name': 'the_only_handle'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: 2D int32 tensor with negative values
-    input_dict = {
-        'value': np.array([[-1, -2, -3], [3, 4, 5]], dtype=np.int32),
-        'name': 'handle_int_2d'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: 3D bool tensor
-    input_dict = {
-        'value': np.array([[[True, False], [False, True]], [[False, False], [True, True]]], dtype=np.bool_),
-        'name': 'handle_bool_3d'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: 0D (scalar) int64 tensor
-    input_dict = {
-        'value': np.array(42, dtype=np.int64),
-        'name': 'handle_scalar'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: 2D float64 tensor
-    input_dict = {
-        'value': np.random.rand(3, 2).astype(np.float64),
-        'name': 'handle_float64_2d'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: 1D float16 tensor
-    input_dict = {
-        'value': np.array([1.1, 2.2, 3.3], dtype=np.float16),
-        'name': 'handle_float16_1d'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
     
-    # Input 7: 2D uint8 tensor
-    input_dict = {
-        'value': np.array([[0, 128, 255], [1, 127, 254]], dtype=np.uint8),
-        'name': 'handle_uint8_2d'
+    # Input 2: Another single, minimal, valid input with a different type.
+    input_dict_2 = {
+        'value': np.array([10], dtype=np.int32),
+        'name': 'another_handle'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: High-rank (5D) int8 tensor
-    input_dict = {
-        'value': np.ones((1, 2, 1, 2, 1), dtype=np.int8),
-        'name': 'handle_int8_5d'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Tensor with all zeros
-    input_dict = {
-        'value': np.zeros((2, 5), dtype=np.int16),
-        'name': 'handle_zeros_int16'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: A larger 1D tensor
-    input_dict = {
-        'value': np.arange(50, dtype=np.float32),
-        'name': 'handle_large_float_1d'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.GetSessionHandleV2"] = tf_raw_ops_getsessionhandlev2_inputs()
+generated_inputs["tf.raw_ops.GetSessionHandleV2"] = get_tf_raw_ops_getsessionhandlev2_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

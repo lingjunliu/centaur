@@ -7,63 +7,51 @@ generated_inputs = dict()
 import numpy as np
 import copy
 
-def tf_raw_ops_queueclose_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.QueueClose operation.
-    NOTE: The target op `tf.raw_ops.QueueClose` is a legacy TensorFlow 1.x op
-    and is explicitly disabled in eager execution, which is the default in TF2.
-    Calling this op in an eager context will always raise a `RuntimeError`.
-    This is an unavoidable error related to the execution environment, not the inputs.
-    The inputs provided here are syntactically correct for the op's signature
-    and are generated to satisfy the testing framework's requirement of having
-    at least one input, thus avoiding the "No inputs were generated" exception.
-    These inputs would be valid in a TF1 graph-based execution.
-    """
+def get_tf_raw_ops_queue_close_inputs():
     list_of_inputs = []
+    
+    # The API tf.raw_ops.QueueClose is fundamentally incompatible with eager 
+    # execution. It is a legacy operation from TensorFlow 1 that expects a 
+    # reference to a queue handle created within a graph. Calling it in an eager 
+    # context will always result in a RuntimeError. The inputs provided here are
+    # syntactically valid according to the API's signature but are expected
+    # to fail at runtime in an eager environment.
 
-    # Input 1: Basic case with cancel_pending_enqueues=False
+    # Input 1
     input_dict_1 = {
-        'handle': np.array('queue_handle_1', dtype=object),
+        'handle': np.array("my_test_queue_handle_1", dtype=object),
         'cancel_pending_enqueues': False,
-        'name': 'CloseQueue_1'
+        'name': 'test_close_op_1'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: cancel_pending_enqueues=True
+    # Input 2
     input_dict_2 = {
-        'handle': np.array('queue_handle_2', dtype=object),
+        'handle': np.array("my_test_queue_handle_2", dtype=object),
         'cancel_pending_enqueues': True,
-        'name': 'CancelAndCloseQueue_2'
+        'name': 'test_close_op_2'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: name is None (default value)
+    # Input 3
     input_dict_3 = {
-        'handle': np.array('queue_handle_3', dtype=object),
+        'handle': np.array("fifo_queue_resource", dtype=object),
         'cancel_pending_enqueues': False,
-        'name': None
+        'name': 'close_fifo'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: name is None and cancel_pending_enqueues is True
+    # Input 4
     input_dict_4 = {
-        'handle': np.array('queue_handle_4', dtype=object),
+        'handle': np.array("padding_fifo_queue_resource", dtype=object),
         'cancel_pending_enqueues': True,
-        'name': None
+        'name': 'close_padding_fifo_cancel'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
-
-    # Input 5: name is an empty string
-    input_dict_5 = {
-        'handle': np.array('queue_handle_5', dtype=object),
-        'cancel_pending_enqueues': False,
-        'name': ''
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
-
+    
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.QueueClose"] = tf_raw_ops_queueclose_inputs()
+generated_inputs["tf.raw_ops.QueueClose"] = get_tf_raw_ops_queue_close_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

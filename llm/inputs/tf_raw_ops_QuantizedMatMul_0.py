@@ -9,112 +9,113 @@ import tensorflow as tf
 import copy
 
 def tf_raw_ops_QuantizedMatMul_inputs():
-    """
-    This function generates a list of valid inputs for the
-    tf.raw_ops.QuantizedMatMul operation.
-    """
     list_of_inputs = []
 
-    # The error `ValueError: tf.qint8 is not in list` indicates the testing
-    # framework cannot process TensorFlow's quantized dtypes (e.g., tf.qint8)
-    # when analyzing the input dictionary. To resolve this specific error, this
-    # function will provide standard numpy arrays with regular integer dtypes
-    # (e.g., np.int8) for the 'a' and 'b' tensors, which the testing framework
-    # should be able to process.
-    def create_input_dict(a, b, min_a, max_a, min_b, max_b, Toutput, transpose_a, transpose_b, Tactivation, name):
-        return {
-            'a': a,
-            'b': b,
-            'min_a': np.array(min_a, dtype=np.float32),
-            'max_a': np.array(max_a, dtype=np.float32),
-            'min_b': np.array(min_b, dtype=np.float32),
-            'max_b': np.array(max_b, dtype=np.float32),
-            'Toutput': Toutput,
-            'transpose_a': transpose_a,
-            'transpose_b': transpose_b,
-            'Tactivation': Tactivation,
-            'name': name
-        }
+    # This API requires 'a' and 'b' to be Tensors with specific quantized dtypes
+    # (e.g., tf.qint8), which are created using tf.quantization.quantize.
+    # Standard numpy arrays with integer dtypes (e.g., np.int8) are not valid
+    # and will cause a TensorFlow InvalidArgumentError.
+    def _get_quantized_tensors(shape, q_dtype_tf):
+        """Generates a valid quantized tf.Tensor and its numpy min/max range."""
+        float_data = np.random.uniform(low=-10.0, high=10.0, size=shape).astype(np.float32)
+        min_val = np.min(float_data)
+        max_val = np.max(float_data)
+        if min_val >= max_val:
+            max_val = min_val + 1.0
+        q_tensor, q_min, q_max = tf.quantization.quantize(
+            tf.constant(float_data), min_val, max_val, T=q_dtype_tf)
+        # The signature requires min/max to be 'tensor', so we use 0-d numpy arrays.
+        return q_tensor, np.array(q_min.numpy(), dtype=np.float32), np.array(q_max.numpy(), dtype=np.float32)
 
-    # Input 1: Basic int8 multiplication attempt
-    a1 = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int8)
-    b1 = np.array([[7, 8], [9, 10], [11, 12]], dtype=np.int8)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        a=a1, b=b1, min_a=-10.0, max_a=10.0, min_b=-20.0, max_b=20.0,
-        Toutput=tf.qint32, transpose_a=False, transpose_b=False,
-        Tactivation=tf.quint8, name="basic_int8")))
+    # Input 1: Basic case with qint8
+    a_q, min_a, max_a = _get_quantized_tensors((2, 3), tf.qint8)
+    b_q, min_b, max_b = _get_quantized_tensors((3, 4), tf.qint8)
+    input_dict = {
+        'a': a_q, 'b': b_q, 'min_a': min_a, 'max_a': max_a, 'min_b': min_b, 'max_b': max_b,
+        'Toutput': tf.qint32, 'transpose_a': False, 'transpose_b': False, 'Tactivation': tf.quint8, 'name': 'valid_1_qint8'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Basic uint8 multiplication attempt
-    a2 = np.array([[10, 20], [30, 40], [50, 60]], dtype=np.uint8)
-    b2 = np.array([[1, 2, 3, 4], [5, 6, 7, 8]], dtype=np.uint8)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        a=a2, b=b2, min_a=0.0, max_a=100.0, min_b=0.0, max_b=10.0,
-        Toutput=tf.qint32, transpose_a=False, transpose_b=False,
-        Tactivation=tf.quint8, name="basic_uint8")))
-
-    # Input 3: transpose_a = True
-    a3 = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int8)
-    b3 = np.array([[10, 11], [12, 13]], dtype=np.int8)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        a=a3, b=b3, min_a=-10.0, max_a=10.0, min_b=-15.0, max_b=15.0,
-        Toutput=tf.qint32, transpose_a=True, transpose_b=False,
-        Tactivation=tf.quint8, name="transpose_a_true")))
-
-    # Input 4: transpose_b = True
-    a4 = np.array([[1, 2, 3]], dtype=np.uint8)
-    b4 = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.uint8)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        a=a4, b=b4, min_a=0.0, max_a=5.0, min_b=0.0, max_b=10.0,
-        Toutput=tf.qint32, transpose_a=False, transpose_b=True,
-        Tactivation=tf.quint8, name="transpose_b_true")))
-
-    # Input 5: transpose_a = True and transpose_b = True
-    a5 = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int8)
-    b5 = np.array([[1,2,3],[4,5,6]], dtype=np.int8)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        a=a5, b=b5, min_a=-5.0, max_a=5.0, min_b=-6.0, max_b=6.0,
-        Toutput=tf.qint32, transpose_a=True, transpose_b=True,
-        Tactivation=tf.quint8, name="transpose_both_true")))
-
-    # Input 6: Different dtypes (int16, uint16) and different Toutput/Tactivation
-    a6 = np.array([[100, -200], [300, 400]], dtype=np.int16)
-    b6 = np.array([[50, 60], [70, 80]], dtype=np.uint16)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        a=a6, b=b6, min_a=-500.0, max_a=500.0, min_b=0.0, max_b=100.0,
-        Toutput=tf.qint16, transpose_a=False, transpose_b=False,
-        Tactivation=tf.qint16, name="mixed_16bit_types")))
-
-    # Input 7: int32 input types
-    a7 = np.array([[-100000, 200000], [300000, -400000]], dtype=np.int32)
-    b7 = np.array([[10, 20], [-30, 40]], dtype=np.int32)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        a=a7, b=b7, min_a=-500000.0, max_a=500000.0, min_b=-50.0, max_b=50.0,
-        Toutput=tf.qint32, transpose_a=False, transpose_b=False,
-        Tactivation=tf.qint32, name="int32_inputs")))
-
-    # Input 8: Larger matrices
-    a8 = np.arange(20, dtype=np.uint8).reshape(4, 5)
-    b8 = np.arange(30, dtype=np.uint8).reshape(5, 6)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        a=a8, b=b8, min_a=0.0, max_a=20.0, min_b=0.0, max_b=30.0,
-        Toutput=tf.qint32, transpose_a=False, transpose_b=False,
-        Tactivation=tf.quint8, name="larger_matrices_uint8")))
+    # Input 2: transpose_a=True with quint8
+    a_q, min_a, max_a = _get_quantized_tensors((3, 2), tf.quint8)
+    b_q, min_b, max_b = _get_quantized_tensors((3, 4), tf.quint8)
+    input_dict = {
+        'a': a_q, 'b': b_q, 'min_a': min_a, 'max_a': max_a, 'min_b': min_b, 'max_b': max_b,
+        'Toutput': tf.qint32, 'transpose_a': True, 'transpose_b': False, 'Tactivation': tf.quint8, 'name': 'valid_2_transpose_a'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 9: Negative float ranges with int8
-    a9 = np.array([[-120, -100], [-80, -60]], dtype=np.int8)
-    b9 = np.array([[-1, -2], [-3, -4]], dtype=np.int8)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        a=a9, b=b9, min_a=-10.0, max_a=-5.0, min_b=-0.5, max_b=-0.1,
-        Toutput=tf.qint32, transpose_a=False, transpose_b=False,
-        Tactivation=tf.quint8, name="negative_ranges_int8")))
+    # Input 3: transpose_b=True with qint16
+    a_q, min_a, max_a = _get_quantized_tensors((2, 3), tf.qint16)
+    b_q, min_b, max_b = _get_quantized_tensors((4, 3), tf.qint16)
+    input_dict = {
+        'a': a_q, 'b': b_q, 'min_a': min_a, 'max_a': max_a, 'min_b': min_b, 'max_b': max_b,
+        'Toutput': tf.qint32, 'transpose_a': False, 'transpose_b': True, 'Tactivation': tf.qint16, 'name': 'valid_3_transpose_b'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Vector-matrix multiplication
-    a10 = np.array([[10, 20, 30]], dtype=np.int8)
-    b10 = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int8)
-    list_of_inputs.append(copy.deepcopy(create_input_dict(
-        a=a10, b=b10, min_a=-50.0, max_a=50.0, min_b=-10.0, max_b=10.0,
-        Toutput=tf.qint32, transpose_a=False, transpose_b=False,
-        Tactivation=tf.quint8, name="vector_matrix_int8")))
+    # Input 4: Both transposes with quint16
+    a_q, min_a, max_a = _get_quantized_tensors((3, 2), tf.quint16)
+    b_q, min_b, max_b = _get_quantized_tensors((4, 3), tf.quint16)
+    input_dict = {
+        'a': a_q, 'b': b_q, 'min_a': min_a, 'max_a': max_a, 'min_b': min_b, 'max_b': max_b,
+        'Toutput': tf.qint32, 'transpose_a': True, 'transpose_b': True, 'Tactivation': tf.quint16, 'name': 'valid_4_transpose_both'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Different Toutput (qint8)
+    a_q, min_a, max_a = _get_quantized_tensors((5, 5), tf.qint8)
+    b_q, min_b, max_b = _get_quantized_tensors((5, 5), tf.qint8)
+    input_dict = {
+        'a': a_q, 'b': b_q, 'min_a': min_a, 'max_a': max_a, 'min_b': min_b, 'max_b': max_b,
+        'Toutput': tf.qint8, 'transpose_a': False, 'transpose_b': False, 'Tactivation': tf.qint8, 'name': 'valid_5_toutput_qint8'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: qint32 inputs
+    a_q, min_a, max_a = _get_quantized_tensors((3, 3), tf.qint32)
+    b_q, min_b, max_b = _get_quantized_tensors((3, 3), tf.qint32)
+    input_dict = {
+        'a': a_q, 'b': b_q, 'min_a': min_a, 'max_a': max_a, 'min_b': min_b, 'max_b': max_b,
+        'Toutput': tf.qint32, 'transpose_a': False, 'transpose_b': False, 'Tactivation': tf.qint32, 'name': 'valid_6_qint32'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Large matrices
+    a_q, min_a, max_a = _get_quantized_tensors((10, 20), tf.qint8)
+    b_q, min_b, max_b = _get_quantized_tensors((20, 5), tf.qint8)
+    input_dict = {
+        'a': a_q, 'b': b_q, 'min_a': min_a, 'max_a': max_a, 'min_b': min_b, 'max_b': max_b,
+        'Toutput': tf.qint32, 'transpose_a': False, 'transpose_b': False, 'Tactivation': tf.quint8, 'name': 'valid_7_large'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Vector-like matrices
+    a_q, min_a, max_a = _get_quantized_tensors((1, 8), tf.quint8)
+    b_q, min_b, max_b = _get_quantized_tensors((8, 1), tf.quint8)
+    input_dict = {
+        'a': a_q, 'b': b_q, 'min_a': min_a, 'max_a': max_a, 'min_b': min_b, 'max_b': max_b,
+        'Toutput': tf.qint32, 'transpose_a': False, 'transpose_b': False, 'Tactivation': tf.quint8, 'name': 'valid_8_vector'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Toutput=quint16
+    a_q, min_a, max_a = _get_quantized_tensors((6, 2), tf.quint8)
+    b_q, min_b, max_b = _get_quantized_tensors((2, 7), tf.quint8)
+    input_dict = {
+        'a': a_q, 'b': b_q, 'min_a': min_a, 'max_a': max_a, 'min_b': min_b, 'max_b': max_b,
+        'Toutput': tf.quint16, 'transpose_a': False, 'transpose_b': False, 'Tactivation': tf.quint16, 'name': 'valid_9_toutput_quint16'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Mismatched input types (qint8 and quint8)
+    a_q, min_a, max_a = _get_quantized_tensors((4, 6), tf.qint8)
+    b_q, min_b, max_b = _get_quantized_tensors((6, 2), tf.quint8)
+    input_dict = {
+        'a': a_q, 'b': b_q, 'min_a': min_a, 'max_a': max_a, 'min_b': min_b, 'max_b': max_b,
+        'Toutput': tf.qint32, 'transpose_a': False, 'transpose_b': False, 'Tactivation': tf.quint8, 'name': 'valid_10_mismatched_types'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

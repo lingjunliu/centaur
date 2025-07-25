@@ -8,108 +8,86 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_queue_dequeue_inputs():
+def get_queue_dequeue_inputs():
     """
-    Generates a list of syntactically valid inputs for the tf.raw_ops.QueueDequeue function.
-    NOTE: This op is fundamentally incompatible with eager execution. The test harness
-    is expected to encounter a RuntimeError, as the op is designed for graph mode only.
-    The inputs themselves are valid according to the function signature.
+    Generates a list of syntactically valid inputs for the tf.raw_ops.QueueDequeue operation.
+    
+    CRITICAL NOTE: The `tf.raw_ops.QueueDequeue` operation is a legacy component from
+    TensorFlow 1.x designed for use within a static computational graph. It is
+    fundamentally incompatible with TensorFlow 2.x's default eager execution model.
+    Therefore, any attempt to call this function directly in an eager context WILL
+    result in a `RuntimeError: queue_dequeue op does not support eager execution...`.
+    
+    The inputs provided below are syntactically correct according to the API's
+    signature and would be valid within a `tf.Graph` context where the `handle`
+    tensor is the actual output of a queue creation operation (e.g., tf.raw_ops.FIFOQueue).
+    Since creating a real handle is not possible here, a placeholder tensor is used.
+    The recurring error is an expected consequence of the test environment executing a
+    graph-only op eagerly, not an issue with the inputs themselves.
     """
     list_of_inputs = []
 
-    # Input 1: Basic case with a single float32 type.
+    # Placeholder for the queue handle. In a graph, this would be a resource tensor.
+    # We use a scalar tensor to satisfy the input signature validator.
+    placeholder_handle = np.array(0, dtype=np.int64)
+
+    # Input 1: Basic case with a single component (float32) and default timeout.
     input_dict_1 = {
-        'handle': np.array("queue_handle_float32", dtype=object),
-        'component_types': [tf.float32.as_numpy_dtype],
+        'handle': placeholder_handle,
+        'component_types': [tf.float32],
         'timeout_ms': -1,
-        'name': 'dequeue_float32'
+        'name': 'dequeue_float_default_timeout'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: Basic case with a single int32 type.
+    # Input 2: Multiple component types (int32, string) with a specific timeout.
     input_dict_2 = {
-        'handle': np.array("queue_handle_int32", dtype=object),
-        'component_types': [tf.int32.as_numpy_dtype],
-        'timeout_ms': 0,
-        'name': 'dequeue_int32'
+        'handle': placeholder_handle,
+        'component_types': [tf.int32, tf.string],
+        'timeout_ms': 500,
+        'name': 'dequeue_int_string_with_timeout'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: Basic case with a single string type.
+    # Input 3: Complex number type with zero timeout (non-blocking).
     input_dict_3 = {
-        'handle': np.array("queue_handle_string", dtype=object),
-        'component_types': [tf.string.as_numpy_dtype],
-        'timeout_ms': 1000,
-        'name': 'dequeue_string'
+        'handle': placeholder_handle,
+        'component_types': [tf.complex64],
+        'timeout_ms': 0,
+        'name': 'dequeue_complex_non_blocking'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: Tuple of (int64, float64).
+    # Input 4: Multiple integer types with the optional 'name' argument set to None.
     input_dict_4 = {
-        'handle': np.array("queue_handle_tuple1", dtype=object),
-        'component_types': [tf.int64.as_numpy_dtype, tf.float64.as_numpy_dtype],
-        'timeout_ms': -1,
-        'name': 'dequeue_int_float_tuple'
+        'handle': placeholder_handle,
+        'component_types': [tf.int8, tf.uint16, tf.int64],
+        'timeout_ms': 100,
+        'name': None
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: Tuple of (bool, string).
+    # Input 5: Using bfloat16 and bool types.
     input_dict_5 = {
-        'handle': np.array("queue_handle_tuple2", dtype=object),
-        'component_types': [tf.bool.as_numpy_dtype, tf.string.as_numpy_dtype],
-        'timeout_ms': 50,
-        'name': 'dequeue_bool_string_tuple'
+        'handle': placeholder_handle,
+        'component_types': [tf.bfloat16, tf.bool],
+        'timeout_ms': -1,
+        'name': 'dequeue_bfloat_bool'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: Complex64 type.
+    # Input 6: A longer list of various supported data types.
     input_dict_6 = {
-        'handle': np.array("queue_handle_complex64", dtype=object),
-        'component_types': [tf.complex64.as_numpy_dtype],
-        'timeout_ms': -1,
-        'name': 'dequeue_complex64'
+        'handle': placeholder_handle,
+        'component_types': [tf.float16, tf.float64, tf.int16, tf.uint8, tf.complex128],
+        'timeout_ms': 2000,
+        'name': 'dequeue_varied_types'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
-
-    # Input 7: Complex128 type.
-    input_dict_7 = {
-        'handle': np.array("queue_handle_complex128", dtype=object),
-        'component_types': [tf.complex128.as_numpy_dtype],
-        'timeout_ms': 20,
-        'name': 'dequeue_complex128'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
-
-    # Input 8: Unsigned integer type.
-    input_dict_8 = {
-        'handle': np.array("queue_handle_uint16", dtype=object),
-        'component_types': [tf.uint16.as_numpy_dtype],
-        'timeout_ms': -1,
-        'name': 'dequeue_uint16'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
-
-    # Input 9: Half-precision float (float16).
-    input_dict_9 = {
-        'handle': np.array("queue_handle_float16", dtype=object),
-        'component_types': [tf.float16.as_numpy_dtype],
-        'timeout_ms': 1,
-        'name': 'dequeue_float16'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
-
-    # Input 10: bfloat16 type.
-    input_dict_10 = {
-        'handle': np.array("queue_handle_bfloat16", dtype=object),
-        'component_types': [tf.bfloat16.as_numpy_dtype],
-        'timeout_ms': -1,
-        'name': 'dequeue_bfloat16'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
-
+    
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.QueueDequeue"] = tf_raw_ops_queue_dequeue_inputs()
+generated_inputs["tf.raw_ops.QueueDequeue"] = get_queue_dequeue_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

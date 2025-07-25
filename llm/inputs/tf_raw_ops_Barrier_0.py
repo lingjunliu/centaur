@@ -4,134 +4,131 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
 def tf_raw_ops_barrier_inputs():
-  """
-  Generates a list of valid inputs for the tf.raw_ops.Barrier function.
+    """
+    Generates a list of valid inputs for tf.raw_ops.Barrier.
+    Note: This operation is designed for TensorFlow's graph execution mode and
+    is expected to raise a RuntimeError when executed eagerly, which is the
+    default in TensorFlow 2.x. The inputs provided are syntactically correct
+    according to the API's signature.
+    """
+    list_of_inputs = []
 
-  IMPORTANT NOTE: The error 'RuntimeError: barrier op does not support eager
-  execution' is an expected behavior for this specific operation. This op is
-  part of TensorFlow's legacy graph-based infrastructure and is incompatible
-  with the default eager execution mode of modern TensorFlow. The error is
-  caused by the execution environment and *cannot* be fixed by modifying the
-  inputs provided below. The inputs are syntactically valid according to the
-  API's signature for a graph-based execution context.
-  """
-  list_of_inputs = []
+    # Input 1: Basic case with a single float component, default everything else.
+    input_dict_1 = {
+        'component_types': [np.float32],
+        'shapes': [],
+        'capacity': -1,
+        'container': '',
+        'shared_name': '',
+        'name': 'barrier_np_1'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-  # Input 1: Basic case, single component, defaults for optional args
-  input_dict_1 = {
-      'component_types': [np.float32],
-      'shapes': [[1, 16]],
-      'capacity': -1,
-      'container': '',
-      'shared_name': '',
-      'name': 'barrier_basic'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Input 2: Multiple component types.
+    input_dict_2 = {
+        'component_types': [np.int64, np.string_, np.bool_],
+        'shapes': [],
+        'capacity': -1,
+        'container': '',
+        'shared_name': '',
+        'name': 'barrier_np_2'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-  # Input 2: Two components with different integer types and a set capacity
-  input_dict_2 = {
-      'component_types': [np.int32, np.int64],
-      'shapes': [[1, 8], [1, 4]],
-      'capacity': 100,
-      'container': '',
-      'shared_name': '',
-      'name': 'barrier_multi_int'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_2))
+    # Input 3: With specified shapes (as list of lists of ints).
+    input_dict_3 = {
+        'component_types': [np.int32, np.float32],
+        'shapes': [[1, 8], [1, 4, 4]],
+        'capacity': -1,
+        'container': '',
+        'shared_name': '',
+        'name': 'barrier_np_3'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-  # Input 3: Using a non-empty container name
-  input_dict_3 = {
-      'component_types': [np.bool_],
-      'shapes': [[1, 1]],
-      'capacity': 50,
-      'container': 'my_test_container_1',
-      'shared_name': '',
-      'name': 'barrier_in_container'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_3))
+    # Input 4: With a specific positive capacity.
+    input_dict_4 = {
+        'component_types': [np.complex64],
+        'shapes': [[1, 10]],
+        'capacity': 256,
+        'container': '',
+        'shared_name': '',
+        'name': 'barrier_np_4'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-  # Input 4: Using a shared_name for potential cross-session use
-  input_dict_4 = {
-      'component_types': [np.float64],
-      'shapes': [[1, 2, 3]],
-      'capacity': -1,
-      'container': '',
-      'shared_name': 'my_shared_barrier_name',
-      'name': 'barrier_shared'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_4))
+    # Input 5: With a non-empty container.
+    input_dict_5 = {
+        'component_types': [np.uint8],
+        'shapes': [],
+        'capacity': -1,
+        'container': 'my_container_np',
+        'shared_name': '',
+        'name': 'barrier_np_5'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-  # Input 5: Using both container and shared_name
-  input_dict_5 = {
-      'component_types': [np.int16],
-      'shapes': [[1, 64]],
-      'capacity': 25,
-      'container': 'container_for_shared',
-      'shared_name': 'barrier_inside_container',
-      'name': 'barrier_full_spec'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_5))
+    # Input 6: With a non-empty shared_name.
+    input_dict_6 = {
+        'component_types': [np.uint16, np.int16],
+        'shapes': [[1, 5], [1, 5]],
+        'capacity': 128,
+        'container': '',
+        'shared_name': 'shared_barrier_np',
+        'name': 'barrier_np_6'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-  # Input 6: Using the default empty list for the 'shapes' attribute
-  input_dict_6 = {
-      'component_types': [np.float32, np.int32],
-      'shapes': [],
-      'capacity': 10,
-      'container': '',
-      'shared_name': 'barrier_no_shapes_attr',
-      'name': 'barrier_default_shapes'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_6))
+    # Input 7: All optional arguments specified.
+    input_dict_7 = {
+        'component_types': [np.float64, np.int32],
+        'shapes': [[1, 2, 3], [1, 6]],
+        'capacity': 20,
+        'container': 'another_container_np',
+        'shared_name': 'another_shared_barrier_np',
+        'name': 'barrier_np_7'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-  # Input 7: Zero capacity
-  input_dict_7 = {
-      'component_types': [np.uint8],
-      'shapes': [[1, 10]],
-      'capacity': 0,
-      'container': '',
-      'shared_name': '',
-      'name': 'barrier_zero_capacity'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_7))
+    # Input 8: Mix of various types and shapes.
+    input_dict_8 = {
+        'component_types': [np.float16, np.complex128, np.int8],
+        'shapes': [[1, 50], [1, 3, 3], [1]],
+        'capacity': -1,
+        'container': '',
+        'shared_name': '',
+        'name': 'barrier_np_8'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-  # Input 8: Multiple components with various types
-  input_dict_8 = {
-      'component_types': [np.float16, np.uint16, np.bool_],
-      'shapes': [[1, 4], [1, 4], [1, 1]],
-      'capacity': 200,
-      'container': '',
-      'shared_name': '',
-      'name': 'barrier_mixed_types'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_8))
+    # Input 9: High-dimensional shape and a small capacity.
+    input_dict_9 = {
+        'component_types': [np.int32],
+        'shapes': [[1, 2, 2, 2, 2, 2]],
+        'capacity': 2,
+        'container': '',
+        'shared_name': 'high_dim_barrier_np',
+        'name': 'barrier_np_9'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-  # Input 9: A single component with a higher-rank shape
-  input_dict_9 = {
-      'component_types': [np.int32],
-      'shapes': [[1, 2, 3, 4]],
-      'capacity': 5,
-      'container': '',
-      'shared_name': '',
-      'name': 'barrier_high_rank'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_9))
+    # Input 10: Longer list of components.
+    input_dict_10 = {
+        'component_types': [np.float32, np.int32, np.string_, np.bool_, np.complex64],
+        'shapes': [[1, 1], [1, 1], [1], [1, 1], [1, 1]],
+        'capacity': 50,
+        'container': 'long_list_container_np',
+        'shared_name': 'long_list_shared_np',
+        'name': 'barrier_np_10'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
-  # Input 10: Using complex number data types
-  input_dict_10 = {
-      'component_types': [np.complex64, np.complex128],
-      'shapes': [[1, 3], [1, 3]],
-      'capacity': 15,
-      'container': 'complex_container',
-      'shared_name': 'complex_barrier_shared',
-      'name': 'barrier_complex'
-  }
-  list_of_inputs.append(copy.deepcopy(input_dict_10))
-
-  return list_of_inputs
+    return list_of_inputs
 
 generated_inputs["tf.raw_ops.Barrier"] = tf_raw_ops_barrier_inputs()
 

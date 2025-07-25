@@ -4,60 +4,28 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 
 def tf_raw_ops_reader_restore_state_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.ReaderRestoreState operation.
-    
-    NOTE: This operation is fundamentally incompatible with TensorFlow's eager execution
-    mode. It requires a 'ref' tensor for the `reader_handle` argument, which is a
-    construct that only exists in TensorFlow's graph mode. Calling this function in an
-    eager context will always raise a `RuntimeError`. The inputs provided here are
-    syntactically correct but are intended to trigger this expected error, as the
-    testing harness requires at least one input to be generated.
-    """
     list_of_inputs = []
 
-    # Input 1: A minimal, standard case. This is guaranteed to raise a RuntimeError
-    # in eager execution, which is the documented and expected behavior for this API.
-    input_dict = {
-        'reader_handle': np.array(b'a_reader_handle', dtype=object),
-        'state': np.array(b'a_serialized_state', dtype=object),
-        'name': 'restore_op_1'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # The API `tf.raw_ops.ReaderRestoreState` is fundamentally incompatible
+    # with TensorFlow's eager execution mode. The operation requires a `ref`
+    # tensor for its `reader_handle`, a concept from TF1's graph mode which
+    # is not supported in the eager context. Any call to this function in
+    # eager mode will intentionally raise a `RuntimeError`.
+    #
+    # The following single input is syntactically correct according to the
+    # API signature. It is provided as the simplest possible valid case,
+    # acknowledging that the runtime error is unavoidable.
 
-    # Input 2: Case without the optional 'name' parameter. Will also raise RuntimeError.
+    # Input 1: A minimal, syntactically valid input
     input_dict = {
-        'reader_handle': np.array(b'another_handle', dtype=object),
-        'state': np.array(b'another_state_string', dtype=object),
-        'name': None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Case with empty strings. Will also raise RuntimeError.
-    input_dict = {
-        'reader_handle': np.array(b'', dtype=object),
-        'state': np.array(b'', dtype=object),
-        'name': 'restore_with_empty_strings'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 4: Case with binary-like data in the state. Will also raise RuntimeError.
-    input_dict = {
-        'reader_handle': np.array(b'binary_handle', dtype=object),
-        'state': np.array(b'\xde\xad\xbe\xef\x01\x02\x03', dtype=object),
-        'name': 'restore_binary_state'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 5: A final test case. Will also raise RuntimeError.
-    input_dict = {
-        'reader_handle': np.array(b'final_handle_test', dtype=object),
-        'state': np.array(b'final_state_test_string', dtype=object),
-        'name': 'final_restore_test'
+        'reader_handle': np.array('a_reader_handle', dtype=object),
+        'state': np.array('a_serialized_state', dtype=object),
+        'name': 'MinimalRestoreOp'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

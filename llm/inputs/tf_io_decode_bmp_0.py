@@ -4,128 +4,76 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
-import base64
 
 def tf_io_decode_bmp_inputs():
+    """
+    Generates a list of valid inputs for the tf.io.decode_bmp function.
+    """
+    # Using pre-generated, known-good BMP byte strings to ensure validity.
+    # These are 24-bit, bottom-up, BI_RGB bitmaps with a 54-byte header.
+    # The structure and sizes have been meticulously verified to match the BMP specification
+    # and what the TensorFlow kernel expects, to avoid the size mismatch error.
+
+    # 1x1 Red BMP (58 bytes total)
+    # file_size=58, offset=54, width=1, height=1, bpp=24, image_size=4, row_stride=4
+    bmp_1x1_red_bytes = (
+        b'BM\x3a\x00\x00\x00\x00\x00\x00\x00\x36\x00\x00\x00'
+        b'\x28\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00'
+        b'\x01\x00\x18\x00\x00\x00\x00\x00\x04\x00\x00\x00'
+        b'\x13\x0b\x00\x00\x13\x0b\x00\x00\x00\x00\x00\x00'
+        b'\x00\x00\x00\x00'
+        b'\x00\x00\xff\x00'
+    )
+
+    # 2x2 Green BMP (70 bytes total)
+    # file_size=70, offset=54, width=2, height=2, bpp=24, image_size=16, row_stride=8
+    bmp_2x2_green_bytes = (
+        b'BM\x46\x00\x00\x00\x00\x00\x00\x00\x36\x00\x00\x00'
+        b'\x28\x00\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00'
+        b'\x01\x00\x18\x00\x00\x00\x00\x00\x10\x00\x00\x00'
+        b'\x13\x0b\x00\x00\x13\x0b\x00\x00\x00\x00\x00\x00'
+        b'\x00\x00\x00\x00'
+        b'\x00\xff\x00\x00\xff\x00\x00\x00'
+        b'\x00\xff\x00\x00\xff\x00\x00\x00'
+    )
+    
     list_of_inputs = []
 
-    # Pre-generated, base64-encoded valid BMP file contents.
-    # Generated offline using a reliable library to ensure correctness.
-    BMP_1x1_BLUE_B64 = "Qk02AAAAAAAAADYAAAAoAAAAAQAAAAEAAAABAAAAGAAAAAAAAAAAAAAA/wAAAAA="
-    BMP_1x1_RED_B64 = "Qk02AAAAAAAAADYAAAAoAAAAAQAAAAEAAAABAAAAGAAAAAAAAAAAAAAAAAAA/wA="
-    BMP_1x1_GREEN_B64 = "Qk02AAAAAAAAADYAAAAoAAAAAQAAAAEAAAABAAAAGAAAAAAAAAAAAAAAAP8A/wA="
-    BMP_2x2_MIXED_B64 = "Qk1GAAAAAAAAADYAAAAoAAAAAgAAAAIAAAABAAAAGAAAAAAAAAALAAAA/wAAAP8A/wD//wA="
-    BMP_3x1_RGB_B64 = "Qk1GAAAAAAAAADYAAAAoAAAAAwAAAAEAAAABAAAAGAAAAAAAAAALAAAA/wAAAP8A/wD/"
-    BMP_1x1_WHITE_B64 = "Qk02AAAAAAAAADYAAAAoAAAAAQAAAAEAAAABAAAAGAAAAAAAAAAAAAAA/////wA="
-    BMP_5x5_BLACK_B64 = "Qk0eAQAAAAAAADYAAAAoAAAABQAAAAUAAAABAAAAGAAAAAAAAAADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
-    BMP_1x5_GRADIENT_B64 = "Qk1eAAAAAAAAADYAAAAoAAAAAQAAAAUAAAABAAAAGAAAAAAAAAASAAAAISEiIyQlJicoKSorLC0uLzAw"
+    contents_red = np.array(bmp_1x1_red_bytes)
+    contents_green = np.array(bmp_2x2_green_bytes)
 
-    # Decode base64 strings to bytes
-    bmp_1x1_blue = base64.b64decode(BMP_1x1_BLUE_B64)
-    bmp_1x1_red = base64.b64decode(BMP_1x1_RED_B64)
-    bmp_1x1_green = base64.b64decode(BMP_1x1_GREEN_B64)
-    bmp_2x2_mixed = base64.b64decode(BMP_2x2_MIXED_B64)
-    bmp_3x1_rgb = base64.b64decode(BMP_3x1_RGB_B64)
-    bmp_1x1_white = base64.b64decode(BMP_1x1_WHITE_B64)
-    bmp_5x5_black = base64.b64decode(BMP_5x5_BLACK_B64)
-    bmp_1x5_gradient = base64.b64decode(BMP_1x5_GRADIENT_B64)
+    # Input 1: Default channels (0), use channels from BMP (3).
+    list_of_inputs.append({'contents': contents_red, 'channels': 0, 'name': 'test1'})
 
-    # Input 1: Explicitly decode to 3 channels (was default)
-    input_dict = {
-        'contents': np.array(bmp_1x1_blue),
-        'channels': 3,
-        'name': 'default_channels_blue'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: Force 3 channels (RGB).
+    list_of_inputs.append({'contents': contents_red, 'channels': 3, 'name': 'test2'})
 
-    # Input 2: channels=3, 1x1 red image
-    input_dict = {
-        'contents': np.array(bmp_1x1_red),
-        'channels': 3,
-        'name': 'rgb_channels_red'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: Force 4 channels (RGBA), alpha channel will be added.
+    list_of_inputs.append({'contents': contents_red, 'channels': 4, 'name': 'test3'})
 
-    # Input 3: channels=4, 1x1 green image
-    input_dict = {
-        'contents': np.array(bmp_1x1_green),
-        'channels': 4,
-        'name': 'rgba_channels_green'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: Different image (green 2x2), no name, default channels.
+    list_of_inputs.append(copy.deepcopy({'contents': contents_green, 'channels': 0}))
 
-    # Input 4: Explicitly decode to 3 channels on a 2x2 image
-    input_dict = {
-        'contents': np.array(bmp_2x2_mixed),
-        'channels': 3,
-        'name': 'default_channels_2x2'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5: Green image, force 3 channels.
+    list_of_inputs.append({'contents': contents_green, 'channels': 3, 'name': 'test4'})
 
-    # Input 5: channels=3 on a 2x2 image
-    input_dict = {
-        'contents': np.array(bmp_2x2_mixed),
-        'channels': 3,
-        'name': 'rgb_channels_2x2'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6: Green image, force 4 channels, no name.
+    list_of_inputs.append(copy.deepcopy({'contents': contents_green, 'channels': 4}))
 
-    # Input 6: channels=4 on a 2x2 image
-    input_dict = {
-        'contents': np.array(bmp_2x2_mixed),
-        'channels': 4,
-        'name': 'rgba_channels_2x2'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 7: Red image with different name.
+    list_of_inputs.append({'contents': contents_red, 'channels': 0, 'name': 'test5'})
 
-    # Input 7: Explicitly decode to 3 channels on a 3x1 image, name is None
-    input_dict = {
-        'contents': np.array(bmp_3x1_rgb),
-        'channels': 3,
-        'name': None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: channels=3 on a 3x1 image, name is omitted
-    input_dict = {
-        'contents': np.array(bmp_3x1_rgb),
-        'channels': 3
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: channels=4 on a 3x1 image, with name
-    input_dict = {
-        'contents': np.array(bmp_3x1_rgb),
-        'channels': 4,
-        'name': 'decode_3x1_rgba'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: 1x1 white image, channels=3
-    input_dict = {
-        'contents': np.array(bmp_1x1_white),
-        'channels': 3,
-        'name': 'decode_white'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11: A larger image, 5x5 all black, channels=4
-    input_dict = {
-        'contents': np.array(bmp_5x5_black),
-        'channels': 4,
-        'name': 'decode_black_5x5_rgba'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 12: A 1x5 image, explicitly decoded to 3 channels
-    input_dict = {
-        'contents': np.array(bmp_1x5_gradient),
-        'channels': 3,
-        'name': 'decode_1x5_gradient'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 8: Green image with another name.
+    list_of_inputs.append({'contents': contents_green, 'channels': 0, 'name': 'test6'})
+    
+    # Input 9: Red image, 3 channels, no name.
+    list_of_inputs.append(copy.deepcopy({'contents': contents_red, 'channels': 3}))
+    
+    # Input 10: Green image, 4 channels, different name.
+    list_of_inputs.append({'contents': contents_green, 'channels': 4, 'name': 'test7'})
 
     return list_of_inputs
 

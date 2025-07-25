@@ -4,65 +4,149 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
+import tensorflow as tf
 
 def tf_raw_ops_requantize_inputs():
+    """
+    Generates a list of valid inputs for tf.raw_ops.Requantize.
+    NOTE: This operation requires the input tensor to have a quantized dtype (e.g., tf.qint16),
+    which cannot be represented by a standard NumPy array. Therefore, to create valid inputs,
+    we must generate `tf.Tensor` objects with the correct quantized dtypes, which deviates
+    from the "numpy format" constraint. This is the only way to resolve the InvalidArgumentError.
+    """
     list_of_inputs = []
 
-    # NOTE: The following inputs will fail due to a fundamental type mismatch.
-    # The 'Requantize' op requires a quantized input tensor (e.g., tf.qint8),
-    # but the testing framework creates a standard tensor (e.g., tf.int8) from
-    # the provided numpy array. This is an unsolvable constraint.
+    # Input 1: qint16 -> qint8
+    quant_input, quant_min, quant_max = tf.quantization.quantize(
+        tf.constant([[-1.0, 0.0], [0.5, 1.0]], dtype=tf.float32), -1.0, 1.0, T=tf.qint16)
+    list_of_inputs.append({
+        'name': 'qint16_to_qint8',
+        'input': quant_input,
+        'input_min': quant_min,
+        'input_max': quant_max,
+        'requested_output_min': np.array(-1.0, dtype=np.float32),
+        'requested_output_max': np.array(1.0, dtype=np.float32),
+        'out_type': tf.qint8,
+    })
 
-    # Case 1: Attempting qint8 -> qint8 (will become int8 -> qint8 and fail)
-    input_dict_1 = {
-        'input': np.array([-128, 0, 127], dtype=np.int8),
-        'input_min': np.array(-1.0, dtype=np.float32),
-        'input_max': np.array(1.0, dtype=np.float32),
+    # Input 2: quint16 -> quint8
+    quant_input, quant_min, quant_max = tf.quantization.quantize(
+        tf.constant([[0., 100.], [128., 255.]], dtype=tf.float32), 0.0, 255.0, T=tf.quint16)
+    list_of_inputs.append({
+        'name': 'quint16_to_quint8',
+        'input': quant_input,
+        'input_min': quant_min,
+        'input_max': quant_max,
+        'requested_output_min': np.array(0.0, dtype=np.float32),
+        'requested_output_max': np.array(255.0, dtype=np.float32),
+        'out_type': tf.quint8,
+    })
+
+    # Input 3: qint32 -> qint8
+    quant_input, quant_min, quant_max = tf.quantization.quantize(
+        tf.constant([0, 0.5, 1.0, -1.0], dtype=tf.float32), -1.0, 1.0, T=tf.qint32)
+    list_of_inputs.append({
+        'name': 'qint32_to_qint8',
+        'input': quant_input,
+        'input_min': quant_min,
+        'input_max': quant_max,
+        'requested_output_min': np.array(-1.0, dtype=np.float32),
+        'requested_output_max': np.array(1.0, dtype=np.float32),
+        'out_type': tf.qint8,
+    })
+
+    # Input 4: qint32 -> qint16
+    quant_input, quant_min, quant_max = tf.quantization.quantize(
+        tf.constant([-1000., 0., 1000.], dtype=tf.float32), -1000.0, 1000.0, T=tf.qint32)
+    list_of_inputs.append({
+        'name': 'qint32_to_qint16_wide_range',
+        'input': quant_input,
+        'input_min': quant_min,
+        'input_max': quant_max,
+        'requested_output_min': np.array(-1000.0, dtype=np.float32),
+        'requested_output_max': np.array(1000.0, dtype=np.float32),
+        'out_type': tf.qint16,
+    })
+
+    # Input 5: qint16 to qint8 with clipping
+    quant_input, quant_min, quant_max = tf.quantization.quantize(
+        tf.constant([-1.0, -0.5, 0.0, 0.6, 1.0], dtype=tf.float32), -1.0, 1.0, T=tf.qint16)
+    list_of_inputs.append({
+        'name': 'qint16_to_qint8_clipping',
+        'input': quant_input,
+        'input_min': quant_min,
+        'input_max': quant_max,
+        'requested_output_min': np.array(0.0, dtype=np.float32),
+        'requested_output_max': np.array(0.5, dtype=np.float32),
+        'out_type': tf.qint8,
+    })
+    
+    # Input 6: qint32 to quint16 with asymmetric range
+    quant_input, quant_min, quant_max = tf.quantization.quantize(
+        tf.constant([-3., 0., 1.], dtype=tf.float32), -3.0, 1.0, T=tf.qint32)
+    list_of_inputs.append({
+        'name': 'qint32_to_quint16_asymmetric',
+        'input': quant_input,
+        'input_min': quant_min,
+        'input_max': quant_max,
+        'requested_output_min': np.array(0.0, dtype=np.float32),
+        'requested_output_max': np.array(4.0, dtype=np.float32),
+        'out_type': tf.quint16,
+    })
+
+    # Input 7: quint16 to qint8
+    quant_input, quant_min, quant_max = tf.quantization.quantize(
+        tf.constant([[0., 1.], [2., 4.]], dtype=tf.float32), 0.0, 4.0, T=tf.quint16)
+    list_of_inputs.append({
+        'name': 'quint16_to_qint8',
+        'input': quant_input,
+        'input_min': quant_min,
+        'input_max': quant_max,
         'requested_output_min': np.array(-2.0, dtype=np.float32),
         'requested_output_max': np.array(2.0, dtype=np.float32),
         'out_type': tf.qint8,
-        'name': 'failing_qint8_to_qint8'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    })
 
-    # Case 2: Attempting quint8 -> quint8 (will become uint8 -> quint8 and fail)
-    input_dict_2 = {
-        'input': np.array([0, 100, 255], dtype=np.uint8),
-        'input_min': np.array(0.0, dtype=np.float32),
-        'input_max': np.array(255.0, dtype=np.float32),
-        'requested_output_min': np.array(0.0, dtype=np.float32),
-        'requested_output_max': np.array(127.0, dtype=np.float32),
-        'out_type': tf.quint8,
-        'name': 'failing_quint8_to_quint8'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    # Input 8: Empty input tensor
+    quant_input, quant_min, quant_max = tf.quantization.quantize(
+        tf.constant([], dtype=tf.float32), -1.0, 1.0, T=tf.qint16)
+    list_of_inputs.append({
+        'name': 'empty_input_qint16_to_qint8',
+        'input': quant_input,
+        'input_min': quant_min,
+        'input_max': quant_max,
+        'requested_output_min': np.array(-1.0, dtype=np.float32),
+        'requested_output_max': np.array(1.0, dtype=np.float32),
+        'out_type': tf.qint8,
+    })
 
-    # Case 3: Attempting quint8 -> qint8 (will become uint8 -> qint8 and fail)
-    input_dict_3 = {
-        'input': np.array([[0, 50], [150, 250]], dtype=np.uint8),
-        'input_min': np.array(0.0, dtype=np.float32),
-        'input_max': np.array(10.0, dtype=np.float32),
+    # Input 9: Zero-scaling (input_max == input_min)
+    quant_input, quant_min, quant_max = tf.quantization.quantize(
+        tf.constant([[5.0, 5.0], [5.0, 5.0]], dtype=tf.float32), 5.0, 5.0, T=tf.qint16)
+    list_of_inputs.append({
+        'name': 'zero_scaling_qint16_to_qint8',
+        'input': quant_input,
+        'input_min': quant_min,
+        'input_max': quant_max,
+        'requested_output_min': np.array(-1.0, dtype=np.float32),
+        'requested_output_max': np.array(1.0, dtype=np.float32),
+        'out_type': tf.qint8,
+    })
+
+    # Input 10: 3D tensor input
+    quant_input, quant_min, quant_max = tf.quantization.quantize(
+        tf.reshape(tf.range(-8., 8., 1.), (2, 2, 4)), -10.0, 10.0, T=tf.qint32)
+    list_of_inputs.append({
+        'name': 'qint32_to_qint8_3d',
+        'input': quant_input,
+        'input_min': quant_min,
+        'input_max': quant_max,
         'requested_output_min': np.array(-5.0, dtype=np.float32),
         'requested_output_max': np.array(5.0, dtype=np.float32),
         'out_type': tf.qint8,
-        'name': 'failing_quint8_to_qint8'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
-
-    # Case 4: qint16 -> qint8 (Provided again to show the error is persistent)
-    input_dict_4 = {
-        'input': np.array([-32768, 0, 32767], dtype=np.int16),
-        'input_min': np.array(-1.0, dtype=np.float32),
-        'input_max': np.array(1.0, dtype=np.float32),
-        'requested_output_min': np.array(-128.0, dtype=np.float32),
-        'requested_output_max': np.array(127.0, dtype=np.float32),
-        'out_type': tf.qint8,
-        'name': 'persistent_error_qint16_to_qint8'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    })
 
     return list_of_inputs
 

@@ -6,42 +6,33 @@ generated_inputs = dict()
 
 import numpy as np
 import copy
+import tensorflow as tf
 
-def get_sparse_apply_momentum_inputs():
+def tf_raw_ops_sparse_apply_momentum_inputs():
     """
-    Generates a list of valid inputs for tf.raw_ops.SparseApplyMomentum.
-    The persistent "does not support eager execution" error indicates that the
-    op requires mutable tf.Variable inputs, which cannot be created from numpy
-    arrays in the test harness's eager context.
+    Generates a list of valid inputs for the tf.raw_ops.SparseApplyMomentum function.
 
-    This attempt provides a single, special-case input representing a "no-op"
-    update, with empty 'grad' and 'indices' tensors. This is the most likely
-    scenario to bypass the part of the kernel that requires a mutable reference,
-    as no elements are actually being updated. If this case fails, it is
-    conclusive that no numpy-based input can satisfy the op's requirements
-    in this execution environment.
+    **NOTE ON EXECUTION_MODE:** The target operation `tf.raw_ops.SparseApplyMomentum`
+    is a legacy TensorFlow 1.x graph-mode operation. It is explicitly disabled
+    in TensorFlow's eager execution mode, which is the default in modern
+    TensorFlow. Any attempt to call this function directly while in eager mode
+    will deterministically raise a `RuntimeError`.
+
+    The modern, eager-compatible equivalent is `tf.raw_ops.ResourceSparseApplyMomentum`.
+
+    Because the testing harness calls the specified function in eager mode, it is
+    impossible to generate an input that will pass execution for the requested
+    `tf.raw_ops.SparseApplyMomentum` op. The error is fundamental to the
+    operation's design and its incompatibility with the execution context, not
+    the input values themselves.
+
+    Therefore, an empty list of inputs is being returned to signify that no valid
+    execution path exists under the given constraints.
     """
     list_of_inputs = []
-
-    # A single "no-op" input case with empty indices and gradients.
-    # This might avoid the code path that requires mutable 'ref' tensors,
-    # which is the source of the persistent error.
-    input_dict = {
-        'var': np.ones((5, 10), dtype=np.float32),
-        'accum': np.zeros((5, 10), dtype=np.float32),
-        'lr': np.array(0.1, dtype=np.float32),
-        'grad': np.empty((0, 10), dtype=np.float32),
-        'indices': np.array([], dtype=np.int32),
-        'momentum': np.array(0.9, dtype=np.float32),
-        'use_locking': False,
-        'use_nesterov': False,
-        'name': "no_op_update"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.SparseApplyMomentum"] = get_sparse_apply_momentum_inputs()
+generated_inputs["tf.raw_ops.SparseApplyMomentum"] = tf_raw_ops_sparse_apply_momentum_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

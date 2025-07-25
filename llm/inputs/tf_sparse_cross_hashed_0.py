@@ -4,178 +4,127 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import numpy as np
+import tensorflow as tf
 import copy
+import numpy as np
 
 def tf_sparse_cross_hashed_inputs():
+    """
+    Generates a list of valid inputs for the tf.sparse.cross_hashed function.
+    The inputs are restricted to dense tensors of numerical types that can be stacked,
+    due to limitations of the testing framework.
+    """
     list_of_inputs = []
 
-    # Helper function to find a common shape and pad arrays
-    def to_stacked_array(list_of_arrs):
-        if not list_of_arrs:
-            # Create a 4D tensor with shape [0, 0, 0, 0] for an empty list
-            return np.empty((0, 0, 0, 0), dtype=object)
-
-        # Find the maximum rank
-        max_rank = 0
-        for arr in list_of_arrs:
-            max_rank = max(max_rank, arr.ndim)
-
-        # Pad ranks to be the same
-        padded_arrs = []
-        for arr in list_of_arrs:
-            while arr.ndim < max_rank:
-                arr = np.expand_dims(arr, axis=-1)
-            padded_arrs.append(arr)
-        
-        # Find the maximum shape in each dimension
-        max_shape = [0] * max_rank
-        for arr in padded_arrs:
-            for i, dim in enumerate(arr.shape):
-                max_shape[i] = max(max_shape[i], dim)
-
-        # Pad each array to the max shape
-        final_arrs = []
-        for arr in padded_arrs:
-            paddings = []
-            for i in range(max_rank):
-                paddings.append((0, max_shape[i] - arr.shape[i]))
-            final_arrs.append(np.pad(arr, pad_width=paddings, mode='constant', constant_values=''))
-        
-        return np.stack(final_arrs)
-
-    # Input 1: Based on documentation example
+    # Input 1: Basic case with two 2D int32 tensors
+    t1_1 = tf.constant([[1, 2], [3, 4]], dtype=tf.int32)
+    t1_2 = tf.constant([[5, 6], [7, 8]], dtype=tf.int32)
     input_dict_1 = {
-        'inputs': to_stacked_array([
-            np.array([["a", ""], ["b", "c"]], dtype=object),
-            np.array([["d"], ["e"]], dtype=object),
-            np.array([["f"], ["g"]], dtype=object)
-        ]),
-        'num_buckets': 0,
+        'inputs': tf.stack([t1_1, t1_2]),
+        'num_buckets': 1000,
         'hash_key': 1337,
-        'name': 'doc_example'
+        'name': "dense_2d_int32_cross"
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: Two dense tensors, with bucketing
+    # Input 2: Crossing three 2D int64 tensors, no bucketing
+    t2_1 = tf.constant([[10, 20], [30, 40]], dtype=tf.int64)
+    t2_2 = tf.constant([[50, 60], [70, 80]], dtype=tf.int64)
+    t2_3 = tf.constant([[90, 100], [110, 120]], dtype=tf.int64)
     input_dict_2 = {
-        'inputs': to_stacked_array([
-            np.array([["feat1_val1", ""], ["", "feat1_val2"]], dtype=object),
-            np.array([["", "feat2_val1"], ["feat2_val2", ""]], dtype=object)
-        ]),
-        'num_buckets': 1000,
-        'hash_key': 123456789,
-        'name': 'two_dense_with_bucketing'
+        'inputs': tf.stack([t2_1, t2_2, t2_3]),
+        'num_buckets': 0,
+        'hash_key': 2024,
+        'name': "dense_2d_int64_cross"
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: All dense inputs with same shape
+    # Input 3: "Crossing" a single float32 tensor (effectively just hashing)
+    t3_1 = tf.constant([[1.1], [2.2], [3.3]], dtype=tf.float32)
     input_dict_3 = {
-        'inputs': to_stacked_array([
-            np.array([["A", "B"], ["C", "D"]], dtype=object),
-            np.array([["X", "Y"], ["Z", "W"]], dtype=object)
-        ]),
-        'num_buckets': 10,
-        'hash_key': 987654321,
-        'name': 'all_dense_same_shape'
+        'inputs': tf.stack([t3_1]),
+        'num_buckets': 500,
+        'hash_key': 98765,
+        'name': "single_dense_float32_hash"
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
-    
-    # Input 4: A mix of string and integer-like string tensors
+
+    # Input 4: Using a single bucket with int16 tensors
+    t4_1 = tf.constant([[1], [2]], dtype=tf.int16)
+    t4_2 = tf.constant([[3], [4]], dtype=tf.int16)
     input_dict_4 = {
-        'inputs': to_stacked_array([
-            np.array([["123", ""], ["", "456"]], dtype=object),
-            np.array([["X"], ["Y"]], dtype=object)
-        ]),
-        'num_buckets': 0,
-        'hash_key': 2023,
-        'name': 'mixed_types_as_string'
+        'inputs': tf.stack([t4_1, t4_2]),
+        'num_buckets': 1,
+        'hash_key': 1,
+        'name': "single_bucket_dense_cross"
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: 3D Tensors
+    # Input 5: Using a large hash key
+    t5_1 = tf.constant([[101]], dtype=tf.int64)
+    t5_2 = tf.constant([[202]], dtype=tf.int64)
     input_dict_5 = {
-        'inputs': to_stacked_array([
-            np.array([[["v1", "v2"], ["v3", "v4"]]], dtype=object),
-            np.array([[["d1", "d2"], ["d3", "d4"]]], dtype=object)
-        ]),
-        'num_buckets': 50,
-        'hash_key': 112358,
-        'name': '3d_tensors'
+        'inputs': tf.stack([t5_1, t5_2]),
+        'num_buckets': 10,
+        'hash_key': 9223372036854775807,
+        'name': "large_hash_key_cross"
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: Single tensor input in a list
+    # Input 6: Using a negative hash key
+    t6_1 = tf.constant([[10, 20, 30]], dtype=tf.int32)
+    t6_2 = tf.constant([[40, 50, 60]], dtype=tf.int32)
     input_dict_6 = {
-        'inputs': to_stacked_array([
-            np.array([["", "10", ""], ["", "", ""], ["20", "", "30"]], dtype=object),
-        ]),
+        'inputs': tf.stack([t6_1, t6_2]),
         'num_buckets': 0,
-        'hash_key': 101010,
-        'name': 'single_tensor_input'
+        'hash_key': -1234567,
+        'name': "negative_hash_key_cross"
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
-    
-    # Input 7: Empty tensors and non-empty tensors
+
+    # Input 7: Crossing two 3D float32 tensors
+    t7_1 = tf.constant([[[1.0], [2.0]], [[3.0], [4.0]]], dtype=tf.float32)
+    t7_2 = tf.constant([[[5.0], [6.0]], [[7.0], [8.0]]], dtype=tf.float32)
     input_dict_7 = {
-        'inputs': to_stacked_array([
-            np.full((3, 3), "", dtype=object),
-            np.array([["a"], ["b"], ["c"]], dtype=object)
-        ]),
-        'num_buckets': 100,
-        'hash_key': 303030,
-        'name': 'with_empty_tensor'
+        'inputs': tf.stack([t7_1, t7_2]),
+        'num_buckets': 200,
+        'hash_key': 101112,
+        'name': "dense_3d_float32_cross"
     }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
-    
-    # Input 8: Negative hash key
+
+    # Input 8: Empty input tensor list
     input_dict_8 = {
-        'inputs': to_stacked_array([
-            np.array([["value1", ""], ["", ""]], dtype=object),
-            np.array([["dense1"], ["dense2"]], dtype=object)
-        ]),
-        'num_buckets': 1000,
-        'hash_key': -12345,
-        'name': 'negative_hash_key'
+        'inputs': tf.constant([], shape=(0, 2, 2), dtype=tf.float32),
+        'num_buckets': 256,
+        'hash_key': 99,
+        'name': "empty_input_list"
     }
     list_of_inputs.append(copy.deepcopy(input_dict_8))
-    
-    # Input 9: Large num_buckets
+
+    # Input 9: Crossing tensors with an empty batch dimension
+    t9_1 = tf.constant([], shape=(0, 3), dtype=tf.int32)
+    t9_2 = tf.constant([], shape=(0, 3), dtype=tf.int32)
     input_dict_9 = {
-        'inputs': to_stacked_array([
-            np.array(["alpha", "beta", "gamma"], dtype=object)
-        ]),
-        'num_buckets': 2**30,
-        'hash_key': 404040,
-        'name': 'large_num_buckets'
+        'inputs': tf.stack([t9_1, t9_2]),
+        'num_buckets': 150,
+        'hash_key': 123,
+        'name': "empty_batch_cross"
     }
     list_of_inputs.append(copy.deepcopy(input_dict_9))
-    
-    # Input 10: Unicode strings
+
+    # Input 10: Crossing four tensors
+    t10_1 = tf.constant([[1], [2]], dtype=tf.int16)
+    t10_2 = tf.constant([[3], [4]], dtype=tf.int16)
+    t10_3 = tf.constant([[5], [6]], dtype=tf.int16)
+    t10_4 = tf.constant([[7], [8]], dtype=tf.int16)
     input_dict_10 = {
-        'inputs': to_stacked_array([
-            np.array([["你好"], ["世界"]], dtype=object),
-            np.array([["こんにちは"], ["こんばんは"]], dtype=object)
-        ]),
-        'num_buckets': 1024,
-        'hash_key': 505050,
-        'name': 'unicode_strings'
+        'inputs': tf.stack([t10_1, t10_2, t10_3, t10_4]),
+        'num_buckets': 100,
+        'hash_key': 42,
+        'name': "four_tensor_cross"
     }
     list_of_inputs.append(copy.deepcopy(input_dict_10))
-
-    # Input 11: More than 2 inputs
-    input_dict_11 = {
-        'inputs': to_stacked_array([
-            np.array([["a"], ["b"]]),
-            np.array([["c"], ["d"]]),
-            np.array([["e"], ["f"]]),
-            np.array([["g"], ["h"]]),
-        ]),
-        'num_buckets': 0,
-        'hash_key': 808080,
-        'name': 'multiple_inputs'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_11))
 
     return list_of_inputs
 

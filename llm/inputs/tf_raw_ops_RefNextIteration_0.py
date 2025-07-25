@@ -4,85 +4,98 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_refnextiteration_inputs():
+def get_refnextiteration_inputs():
   """
-  Generates a list of syntactically valid inputs for tf.raw_ops.RefNextIteration.
-  
-  Note: The tf.raw_ops.RefNextIteration operation is designed exclusively
-  for TensorFlow's graph mode and is not supported in eager execution. Calling
-  this function in an eager context will always result in a RuntimeError.
-  The inputs are provided to satisfy the generation requirement, even though
-  they will fail in the provided testing environment.
+  Generates a list of valid inputs for tf.raw_ops.RefNextIteration.
   """
   list_of_inputs = []
 
-  # Input 1: Basic 1D float32 tensor
-  list_of_inputs.append({
-      'data': np.array([1.1, 2.2, 3.3], dtype=np.float32),
-      'name': 'iter_float_1d'
-  })
+  # Input 1: 1D float32 tensor
+  list_of_inputs.append(
+      {
+          'data': np.array([1.0, 2.0, 3.0], dtype=np.float32),
+          'name': 'float32_1d_v1'
+      }
+  )
 
-  # Input 2: Basic 2D int32 tensor
-  list_of_inputs.append({
-      'data': np.array([[10, 20], [30, 40]], dtype=np.int32),
-      'name': 'iter_int_2d'
-  })
+  # Input 2: 2D int32 tensor
+  list_of_inputs.append(
+      {
+          'data': np.array([[1, 2], [3, 4]], dtype=np.int32),
+          'name': 'int32_2d_v1'
+      }
+  )
 
-  # Input 3: Scalar float32
-  list_of_inputs.append({
-      'data': np.array(99.9, dtype=np.float32),
-      'name': 'iter_scalar_float'
-  })
+  # Input 3: 3D uint8 tensor
+  list_of_inputs.append(
+      {
+          'data': np.array([[[0, 1], [2, 3]], [[4, 5], [6, 7]]], dtype=np.uint8),
+          'name': 'uint8_3d_v1'
+      }
+  )
 
-  # Input 4: Scalar int32
-  list_of_inputs.append({
-      'data': np.array(-5, dtype=np.int32),
-      'name': 'iter_scalar_int'
-  })
+  # Input 4: Scalar int64 tensor
+  list_of_inputs.append(
+      {
+          'data': np.array(-500, dtype=np.int64),
+          'name': 'int64_scalar_v1'
+      }
+  )
 
-  # Input 5: 3D float32 tensor
-  list_of_inputs.append({
-      'data': np.ones((2, 2, 2), dtype=np.float32),
-      'name': 'iter_float_3d'
-  })
+  # Input 5: 1D bool tensor
+  list_of_inputs.append(
+      {
+          'data': np.array([True, False, False, True], dtype=np.bool_),
+          'name': 'bool_1d_v1'
+      }
+  )
 
-  # Input 6: 1D int64 tensor
-  list_of_inputs.append({
-      'data': np.array([10000000000, -20000000000], dtype=np.int64),
-      'name': 'iter_int64_1d'
-  })
+  # Input 6: 2D float64 tensor
+  list_of_inputs.append(
+      {
+          'data': np.random.rand(3, 4).astype(np.float64),
+          'name': 'float64_2d_v1'
+      }
+  )
 
-  # Input 7: 2D float64 tensor
-  list_of_inputs.append({
-      'data': np.random.randn(3, 2).astype(np.float64),
-      'name': 'iter_float64_2d'
-  })
+  # Input 7: 4D int16 tensor
+  list_of_inputs.append(
+      {
+          'data': np.ones((1, 2, 3, 1), dtype=np.int16),
+          'name': 'int16_4d_v1'
+      }
+  )
 
-  # Input 8: Empty tensor with a specific shape
-  list_of_inputs.append({
-      'data': np.empty((2, 0, 3), dtype=np.float32),
-      'name': 'iter_empty'
-  })
+  # Input 8: 2D complex64 tensor
+  list_of_inputs.append(
+      {
+          'data': np.array([[1+1j, 2-2j], [3+3j, 4-4j]], dtype=np.complex64),
+          'name': 'complex64_2d_v1'
+      }
+  )
 
-  # Input 9: A tensor containing only zero
-  list_of_inputs.append({
-      'data': np.array([0.0], dtype=np.float32),
-      'name': 'iter_single_zero'
-  })
+  # Input 9: 1D tensor with negative float values
+  list_of_inputs.append(
+      {
+          'data': np.array([-10.5, -20.0, -5.25], dtype=np.float32),
+          'name': 'negative_float_1d_v1'
+      }
+  )
 
-  # Input 10: A larger tensor
-  list_of_inputs.append({
-      'data': np.linspace(0, 1, 10, dtype=np.float32).reshape(5, 2),
-      'name': 'iter_linspace'
-  })
-  
-  return [copy.deepcopy(d) for d in list_of_inputs]
+  # Input 10: 2D tensor of all zeros
+  list_of_inputs.append(
+      {
+          'data': np.zeros((5, 5), dtype=np.int32),
+          'name': 'zeros_2d_v1'
+      }
+  )
 
-generated_inputs["tf.raw_ops.RefNextIteration"] = tf_raw_ops_refnextiteration_inputs()
+  return [copy.deepcopy(i) for i in list_of_inputs]
+
+generated_inputs["tf.raw_ops.RefNextIteration"] = get_refnextiteration_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

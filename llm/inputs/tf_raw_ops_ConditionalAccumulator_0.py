@@ -4,132 +4,151 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
 import copy
 
-def get_tf_raw_ops_conditionalaccumulator_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.ConditionalAccumulator function.
-    NOTE: This op is not compatible with eager execution and is designed for TensorFlow's
-    graph mode. Calling it in an eager context will raise a RuntimeError. The inputs
-    provided are valid with respect to the function's signature for a graph context.
-    """
+def tf_raw_ops_conditionalaccumulator_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic float32, MEAN reduction
-    input_dict_1 = {
-        'dtype': tf.float32,
-        'shape': [10],
+    # The 'ConditionalAccumulator' op is not compatible with eager execution.
+    # The following inputs are generated based on the API's signature. They are
+    # syntactically valid but are expected to fail at runtime in an eager context.
+
+    # Input 1
+    input_dict = {
+        'dtype': np.dtype('float32'),
+        'shape': [1],
         'container': '',
         'shared_name': '',
         'reduction_type': 'MEAN',
-        'name': 'acc_float32'
+        'name': 'accumulator_v1'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: int32, SUM reduction, 2D shape
-    input_dict_2 = {
-        'dtype': tf.int32,
-        'shape': [5, 5],
-        'container': '',
-        'shared_name': '',
-        'reduction_type': 'SUM',
-        'name': 'acc_int32_sum'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
-
-    # Input 3: float64, MEAN reduction, scalar shape
-    input_dict_3 = {
-        'dtype': tf.float64,
-        'shape': [],
-        'container': '',
-        'shared_name': '',
-        'reduction_type': 'MEAN',
-        'name': 'acc_scalar'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
-
-    # Input 4: int64, SUM, with container and shared_name
-    input_dict_4 = {
-        'dtype': tf.int64,
-        'shape': [100],
-        'container': 'my_container',
-        'shared_name': 'my_shared_name',
-        'reduction_type': 'SUM',
-        'name': 'acc_shared'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
-
-    # Input 5: uint8, MEAN, 3D shape
-    input_dict_5 = {
-        'dtype': tf.uint8,
-        'shape': [2, 3, 4],
-        'container': '',
-        'shared_name': '',
-        'reduction_type': 'MEAN',
-        'name': 'acc_uint8'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
-    
-    # Input 6: half dtype
-    input_dict_6 = {
-        'dtype': tf.half,
-        'shape': [16],
-        'container': '',
-        'shared_name': '',
-        'reduction_type': 'MEAN',
-        'name': 'acc_half'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
-    
-    # Input 7: bfloat16 dtype
-    input_dict_7 = {
-        'dtype': tf.bfloat16,
+    # Input 2
+    input_dict = {
+        'dtype': np.dtype('int32'),
         'shape': [32, 32],
         'container': '',
-        'shared_name': 'bfloat_shared',
+        'shared_name': '',
         'reduction_type': 'SUM',
-        'name': 'acc_bfloat16'
+        'name': 'accumulator_v2'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: int8 dtype
-    input_dict_8 = {
-        'dtype': tf.int8,
-        'shape': [256],
-        'container': 'int8_container',
+    # Input 3
+    input_dict = {
+        'dtype': np.dtype('float64'),
+        'shape': [],
+        'container': 'container_a',
         'shared_name': '',
         'reduction_type': 'MEAN',
-        'name': 'acc_int8'
+        'name': 'accumulator_v3'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: uint16 dtype
-    input_dict_9 = {
-        'dtype': tf.uint16,
-        'shape': [4, 8, 16],
+    # Input 4
+    input_dict = {
+        'dtype': np.dtype('half'),
+        'shape': [2, 8],
         'container': '',
-        'shared_name': 'uint16_shared',
+        'shared_name': 'shared_name_b',
         'reduction_type': 'SUM',
-        'name': 'acc_uint16'
+        'name': 'accumulator_v4'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: complex64 dtype
-    input_dict_10 = {
-        'dtype': tf.complex64,
-        'shape': [4, 4],
-        'container': 'complex_container',
-        'shared_name': 'complex_shared',
+    # Input 5
+    input_dict = {
+        'dtype': np.dtype('int64'),
+        'shape': [10, 20, 30],
+        'container': 'container_c',
+        'shared_name': 'shared_name_c',
         'reduction_type': 'MEAN',
-        'name': 'acc_complex64'
+        'name': 'accumulator_v5'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_dict = {
+        'dtype': np.dtype('complex64'),
+        'shape': [5],
+        'container': '',
+        'shared_name': '',
+        'reduction_type': 'MEAN',
+        'name': 'accumulator_v6'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_dict = {
+        'dtype': np.dtype('uint8'),
+        'shape': [256],
+        'container': '',
+        'shared_name': '',
+        'reduction_type': 'SUM',
+        'name': 'accumulator_v7'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_dict = {
+        'dtype': np.dtype('int8'),
+        'shape': [4, 4],
+        'container': '',
+        'shared_name': 'shared_name_d',
+        'reduction_type': 'MEAN',
+        'name': 'accumulator_v8'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_dict = {
+        'dtype': np.dtype('complex128'),
+        'shape': [2, 2, 2],
+        'container': 'container_e',
+        'shared_name': '',
+        'reduction_type': 'SUM',
+        'name': 'accumulator_v9'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_dict = {
+        'dtype': np.dtype('uint16'),
+        'shape': [100],
+        'container': 'container_f',
+        'shared_name': 'shared_name_f',
+        'reduction_type': 'MEAN',
+        'name': 'accumulator_v10'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    input_dict = {
+        'dtype': np.dtype('uint32'),
+        'shape': [64],
+        'container': '',
+        'shared_name': '',
+        'reduction_type': 'SUM',
+        'name': 'accumulator_v11'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12
+    input_dict = {
+        'dtype': np.dtype('uint64'),
+        'shape': [8, 8, 8],
+        'container': '',
+        'shared_name': 'shared_name_g',
+        'reduction_type': 'MEAN',
+        'name': 'accumulator_v12'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.ConditionalAccumulator"] = get_tf_raw_ops_conditionalaccumulator_inputs()
+generated_inputs["tf.raw_ops.ConditionalAccumulator"] = tf_raw_ops_conditionalaccumulator_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

@@ -9,53 +9,103 @@ import copy
 
 def tf_raw_ops_ReaderReadUpTo_inputs():
     """
-    Generates a list of valid inputs for the tf.raw_ops.ReaderReadUpTo function.
-    NOTE: This operation is from TensorFlow V1 and is not compatible with eager
-    execution, which is the default in modern TensorFlow. It is expected to
-    raise a RuntimeError when called in an eager context. The generated inputs
-    are syntactically correct for the API's signature.
+    Generates a list of valid inputs for the tf.raw_ops.ReaderReadUpTo operation.
+    NOTE: This operation is designed for TensorFlow's graph mode and will raise
+    a RuntimeError in eager execution. The inputs provided are syntactically
+    valid according to the API signature, but are expected to fail at runtime
+    in an eager context. This is the correct behavior for this specific op.
     """
     list_of_inputs = []
 
-    # Resource handles are represented as scalar numpy arrays with dtype=object
-    # to hold a placeholder string. This format is a valid representation
-    # for a scalar string tensor.
-    handle_placeholder = np.array("placeholder_handle", dtype=object)
-
-    base_input = {
-        'reader_handle': handle_placeholder,
-        'queue_handle': handle_placeholder,
+    # Input 1: Basic case
+    input_dict_1 = {
+        'reader_handle': np.array(b'reader_handle_1', dtype=object),
+        'queue_handle': np.array(b'queue_handle_1', dtype=object),
+        'num_records': np.array(10, dtype=np.int64),
+        'name': 'read_10'
     }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Case 1: A typical batch size like 16
-    input_dict = copy.deepcopy(base_input)
-    input_dict['name'] = 'read_batch_of_16'
-    input_dict['num_records'] = np.array(16, dtype=np.int64)
-    list_of_inputs.append(input_dict)
+    # Input 2: Read a single record
+    input_dict_2 = {
+        'reader_handle': np.array(b'reader_handle_2', dtype=object),
+        'queue_handle': np.array(b'queue_handle_2', dtype=object),
+        'num_records': np.array(1, dtype=np.int64),
+        'name': 'read_one'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Case 2: Read a single record
-    input_dict = copy.deepcopy(base_input)
-    input_dict['name'] = 'read_one_item'
-    input_dict['num_records'] = np.array(1, dtype=np.int64)
-    list_of_inputs.append(input_dict)
+    # Input 3: Read a large number of records
+    input_dict_3 = {
+        'reader_handle': np.array(b'reader_handle_3', dtype=object),
+        'queue_handle': np.array(b'queue_handle_3', dtype=object),
+        'num_records': np.array(1000, dtype=np.int64),
+        'name': 'read_1000'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Case 3: Read zero records, which is a valid edge case
-    input_dict = copy.deepcopy(base_input)
-    input_dict['name'] = 'read_zero_items'
-    input_dict['num_records'] = np.array(0, dtype=np.int64)
-    list_of_inputs.append(input_dict)
+    # Input 4: No name provided
+    input_dict_4 = {
+        'reader_handle': np.array(b'reader_handle_4', dtype=object),
+        'queue_handle': np.array(b'queue_handle_4', dtype=object),
+        'num_records': np.array(5, dtype=np.int64),
+        'name': None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Case 4: No optional name provided (name=None)
-    input_dict = copy.deepcopy(base_input)
-    input_dict['name'] = None
-    input_dict['num_records'] = np.array(64, dtype=np.int64)
-    list_of_inputs.append(input_dict)
+    # Input 5: Read zero records
+    input_dict_5 = {
+        'reader_handle': np.array(b'reader_handle_5', dtype=object),
+        'queue_handle': np.array(b'queue_handle_5', dtype=object),
+        'num_records': np.array(0, dtype=np.int64),
+        'name': 'read_zero'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Case 5: A non-power-of-two number of records
-    input_dict = copy.deepcopy(base_input)
-    input_dict['name'] = 'read_99_items'
-    input_dict['num_records'] = np.array(99, dtype=np.int64)
-    list_of_inputs.append(input_dict)
+    # Input 6: Common batch size
+    input_dict_6 = {
+        'reader_handle': np.array(b'TFRecordReader', dtype=object),
+        'queue_handle': np.array(b'FIFOQueue', dtype=object),
+        'num_records': np.array(32, dtype=np.int64),
+        'name': 'batch_read_32'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
+
+    # Input 7: Empty handle strings
+    input_dict_7 = {
+        'reader_handle': np.array(b'', dtype=object),
+        'queue_handle': np.array(b'', dtype=object),
+        'num_records': np.array(8, dtype=np.int64),
+        'name': 'read_with_empty_handles'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    
+    # Input 8: Another common batch size
+    input_dict_8 = {
+        'reader_handle': np.array(b'another_reader', dtype=object),
+        'queue_handle': np.array(b'another_queue', dtype=object),
+        'num_records': np.array(64, dtype=np.int64),
+        'name': 'read_batch_64'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    
+    # Input 9: Using numbers in handle strings
+    input_dict_9 = {
+        'reader_handle': np.array(b'reader_999', dtype=object),
+        'queue_handle': np.array(b'queue_123', dtype=object),
+        'num_records': np.array(25, dtype=np.int64),
+        'name': 'read_25'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
+
+    # Input 10: Max int64 value for num_records
+    input_dict_10 = {
+        'reader_handle': np.array(b'max_reader', dtype=object),
+        'queue_handle': np.array(b'max_queue', dtype=object),
+        'num_records': np.array(np.iinfo(np.int64).max, dtype=np.int64),
+        'name': 'read_max_records'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 

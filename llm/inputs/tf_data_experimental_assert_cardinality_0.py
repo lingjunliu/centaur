@@ -8,86 +8,68 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-
 def tf_data_experimental_assert_cardinality_inputs():
-    """
-    Generates a list of valid inputs for tf.data.experimental.assert_cardinality.
-    This API returns a transformation function for `Dataset.apply`. The testing
-    framework requires the Dataset instance to be provided so it can apply the
-    resulting transformation. The `dataset` key is used for this purpose.
-    NOTE: tf.data.Dataset objects are not deep-copyable, so we append the dictionaries directly.
-    """
     list_of_inputs = []
 
-    # Input 1: Asserting cardinality of 0 for an empty dataset.
-    input_dict_1 = {
-        'dataset': tf.data.Dataset.from_tensor_slices(np.array([], dtype=np.int32)),
-        'expected_cardinality': 0
-    }
-    list_of_inputs.append(input_dict_1)
+    # Input 1: Expected cardinality is 0
+    list_of_inputs.append({
+        'args': {'expected_cardinality': 0},
+        'inner_values': np.array([], dtype=np.float32)
+    })
 
-    # Input 2: Asserting cardinality of 1 for a single-element dataset.
-    input_dict_2 = {
-        'dataset': tf.data.Dataset.from_tensor_slices(np.array([42], dtype=np.int32)),
-        'expected_cardinality': 1
-    }
-    list_of_inputs.append(input_dict_2)
+    # Input 2: Expected cardinality is 1
+    list_of_inputs.append({
+        'args': {'expected_cardinality': 1},
+        'inner_values': np.array([42], dtype=np.int32)
+    })
 
-    # Input 3: Asserting a small positive cardinality.
-    input_dict_3 = {
-        'dataset': tf.data.Dataset.range(10),
-        'expected_cardinality': 10
-    }
-    list_of_inputs.append(input_dict_3)
+    # Input 3: Small positive cardinality
+    list_of_inputs.append({
+        'args': {'expected_cardinality': 10},
+        'inner_values': np.arange(10, dtype=np.int64)
+    })
 
-    # Input 4: Asserting a medium positive cardinality.
-    input_dict_4 = {
-        'dataset': tf.data.Dataset.from_tensor_slices(np.arange(42, dtype=np.int64)),
-        'expected_cardinality': 42
-    }
-    list_of_inputs.append(input_dict_4)
+    # Input 4: Cardinality with 2D numpy array elements
+    list_of_inputs.append({
+        'args': {'expected_cardinality': 5},
+        'inner_values': np.random.rand(5, 3, 2).astype(np.float32)
+    })
 
-    # Input 5: Asserting a larger positive cardinality.
-    input_dict_5 = {
-        'dataset': tf.data.Dataset.range(1024),
-        'expected_cardinality': 1024
-    }
-    list_of_inputs.append(input_dict_5)
+    # Input 5: Medium cardinality
+    list_of_inputs.append({
+        'args': {'expected_cardinality': 128},
+        'inner_values': np.zeros((128, 1), dtype=np.uint8)
+    })
 
-    # Input 6: Special value for infinite cardinality (-1).
-    input_dict_6 = {
-        'dataset': tf.data.Dataset.range(1).repeat(),
-        'expected_cardinality': -1
-    }
-    list_of_inputs.append(input_dict_6)
+    # Input 6: Cardinality with boolean elements
+    list_of_inputs.append({
+        'args': {'expected_cardinality': 4},
+        'inner_values': np.array([True, False, False, True])
+    })
 
-    # Input 7: Special value for unknown cardinality (-2).
-    input_dict_7 = {
-        'dataset': tf.data.Dataset.range(20).filter(lambda x: x < 15),
-        'expected_cardinality': -2
-    }
-    list_of_inputs.append(input_dict_7)
+    # Input 7: Cardinality with string elements
+    list_of_inputs.append({
+        'args': {'expected_cardinality': 3},
+        'inner_values': np.array(['one', 'two', 'three'], dtype=object)
+    })
 
-    # Input 8: Asserting a known cardinality on a dataset whose cardinality is statically unknown.
-    input_dict_8 = {
-        'dataset': tf.data.Dataset.range(50).filter(lambda x: x % 2 == 0),
-        'expected_cardinality': 25
-    }
-    list_of_inputs.append(input_dict_8)
+    # Input 8: Cardinality with complex numbers
+    list_of_inputs.append({
+        'args': {'expected_cardinality': 2},
+        'inner_values': np.array([1+1j, -2-2j], dtype=np.complex128)
+    })
 
-    # Input 9: Another small positive cardinality with a different data type.
-    input_dict_9 = {
-        'dataset': tf.data.Dataset.from_tensor_slices(np.linspace(0, 1, 5, dtype=np.float32)),
-        'expected_cardinality': 5
-    }
-    list_of_inputs.append(input_dict_9)
+    # Input 9: Large cardinality
+    list_of_inputs.append({
+        'args': {'expected_cardinality': 500},
+        'inner_values': np.linspace(0, 100, 500, dtype=np.float16)
+    })
 
-    # Input 10: Another medium positive cardinality.
-    input_dict_10 = {
-        'dataset': tf.data.Dataset.range(256),
-        'expected_cardinality': 256
-    }
-    list_of_inputs.append(input_dict_10)
+    # Input 10: Another simple case
+    list_of_inputs.append({
+        'args': {'expected_cardinality': 25},
+        'inner_values': np.arange(25)
+    })
 
     return list_of_inputs
 

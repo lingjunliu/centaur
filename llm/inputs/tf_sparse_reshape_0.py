@@ -8,147 +8,155 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-# Custom class to satisfy the testing framework's requirement for a .size attribute
-# while still being a valid SparseTensor for the TensorFlow API.
-class CustomSparseTensor(tf.SparseTensor):
+def get_tf_sparse_reshape_inputs():
     """
-    A subclass of tf.SparseTensor that includes a `.size` attribute
-    to be compatible with a testing framework that requires it.
-    The .size is defined as the number of non-zero elements.
-    """
-    def __init__(self, indices, values, dense_shape):
-        # Convert inputs to Tensors before passing to the parent constructor
-        indices_tensor = tf.convert_to_tensor(indices, dtype=tf.int64)
-        values_tensor = tf.convert_to_tensor(values)
-        dense_shape_tensor = tf.convert_to_tensor(dense_shape, dtype=tf.int64)
-
-        super().__init__(indices_tensor, values_tensor, dense_shape_tensor)
-        # The .size is the number of specified values (non-zero elements)
-        self.size = tf.size(self.values).numpy()
-
-def tf_sparse_reshape_inputs():
-    """
-    Generates a list of valid inputs for tf.sparse.reshape.
+    Generates a list of valid inputs for the tf.sparse.reshape function.
     """
     list_of_inputs = []
 
     # Input 1: Basic 2D to 2D reshape
-    sp_input_1 = CustomSparseTensor(
-        indices=[[0, 1], [1, 4]],
-        values=np.array([10, 20], dtype=np.int32),
-        dense_shape=[2, 6]
+    sp_input_1 = tf.SparseTensor(
+        indices=np.array([[0, 1], [1, 2], [2, 0]], dtype=np.int64),
+        values=np.array([10, 20, 30], dtype=np.int32),
+        dense_shape=np.array([3, 4], dtype=np.int64)
     )
-    list_of_inputs.append(copy.deepcopy({
+    shape_1 = np.array([2, 6], dtype=np.int64)
+    input_dict_1 = {
         'sp_input': sp_input_1,
-        'shape': np.array([3, 4], dtype=np.int64),
-        'name': 'basic_reshape'
-    }))
+        'shape': shape_1,
+        'name': 'basic_2d_reshape'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: Flattening a 3D tensor to 1D
-    sp_input_2 = CustomSparseTensor(
-        indices=[[0, 1, 1], [1, 0, 2]],
+    # Input 2: Flatten a 3D tensor to 1D
+    sp_input_2 = tf.SparseTensor(
+        indices=np.array([[0, 1, 1], [1, 0, 2]], dtype=np.int64),
         values=np.array([1.1, 2.2], dtype=np.float32),
-        dense_shape=[2, 2, 3]
+        dense_shape=np.array([2, 2, 3], dtype=np.int64)
     )
-    list_of_inputs.append(copy.deepcopy({
+    shape_2 = np.array([12], dtype=np.int64)
+    input_dict_2 = {
         'sp_input': sp_input_2,
-        'shape': np.array([12], dtype=np.int64),
+        'shape': shape_2,
         'name': 'flatten_3d'
-    }))
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: Using -1 to infer a dimension
-    sp_input_3 = CustomSparseTensor(
-        indices=[[0, 0], [1, 1], [2, 2], [3, 3]],
-        values=np.array([1, 2, 3, 4], dtype=np.int32),
-        dense_shape=[4, 6]
+    # Input 3: Reshape with an inferred dimension (-1)
+    sp_input_3 = tf.SparseTensor(
+        indices=np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0], [1, 0, 0], [1, 2, 3]], dtype=np.int64),
+        values=np.array([1, 2, 3, 4, 5], dtype=np.int64),
+        dense_shape=np.array([2, 3, 6], dtype=np.int64)
     )
-    list_of_inputs.append(copy.deepcopy({
+    shape_3 = np.array([9, -1], dtype=np.int64)
+    input_dict_3 = {
         'sp_input': sp_input_3,
-        'shape': np.array([8, -1], dtype=np.int64)
-    }))
+        'shape': shape_3,
+        'name': 'inferred_dim'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: Reshaping from 3D to 2D
-    sp_input_4 = CustomSparseTensor(
-        indices=[[0, 1, 2], [1, 2, 0]],
-        values=np.array([100, 200], dtype=np.int64),
-        dense_shape=[2, 3, 4]
+    # Input 4: Unflatten a 1D tensor to 3D with string values
+    sp_input_4 = tf.SparseTensor(
+        indices=np.array([[1], [8], [15]], dtype=np.int64),
+        values=np.array([b'x', b'y', b'z'], dtype=object), # Use bytes for string tensors
+        dense_shape=np.array([18], dtype=np.int64)
     )
-    list_of_inputs.append(copy.deepcopy({
+    shape_4 = np.array([2, 3, 3], dtype=np.int64)
+    input_dict_4 = {
         'sp_input': sp_input_4,
-        'shape': np.array([6, 4], dtype=np.int64)
-    }))
+        'shape': shape_4,
+        'name': 'unflatten_1d_string'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: Reshaping an empty SparseTensor
-    sp_input_5 = CustomSparseTensor(
+    # Input 5: Reshaping an empty sparse tensor
+    sp_input_5 = tf.SparseTensor(
         indices=np.empty((0, 2), dtype=np.int64),
-        values=np.array([], dtype=np.float32),
-        dense_shape=[5, 10]
+        values=np.array([], dtype=np.float64),
+        dense_shape=np.array([5, 10], dtype=np.int64)
     )
-    list_of_inputs.append(copy.deepcopy({
+    shape_5 = np.array([2, 25], dtype=np.int64)
+    input_dict_5 = {
         'sp_input': sp_input_5,
-        'shape': np.array([2, 25], dtype=np.int64),
-        'name': 'reshape_empty'
-    }))
+        'shape': shape_5,
+        'name': 'empty_reshape'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: Reshaping a full SparseTensor
-    sp_input_6 = CustomSparseTensor(
-        indices=[[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2]],
-        values=np.array([1, 2, 3, 4, 5, 6], dtype=np.int32),
-        dense_shape=[2, 3]
+    # Input 6: Reshaping a "full" sparse tensor
+    sp_input_6 = tf.SparseTensor(
+        indices=np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.int64),
+        values=np.array([1, 2, 3, 4], dtype=np.int32),
+        dense_shape=np.array([2, 2], dtype=np.int64)
     )
-    list_of_inputs.append(copy.deepcopy({
+    shape_6 = np.array([4, 1], dtype=np.int64)
+    input_dict_6 = {
         'sp_input': sp_input_6,
-        'shape': np.array([3, 2], dtype=np.int64)
-    }))
+        'shape': shape_6,
+        'name': 'full_reshape'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: Using float64 values
-    sp_input_7 = CustomSparseTensor(
-        indices=[[1, 1], [3, 3]],
-        values=np.array([3.14, 2.71], dtype=np.float64),
-        dense_shape=[4, 4]
+    # Input 7: Reshape a higher-rank tensor (4D to 2D) with boolean values
+    sp_input_7 = tf.SparseTensor(
+        indices=np.array([[0, 0, 0, 0], [1, 1, 1, 1]], dtype=np.int64),
+        values=np.array([True, False], dtype=bool),
+        dense_shape=np.array([2, 2, 2, 2], dtype=np.int64)
     )
-    list_of_inputs.append(copy.deepcopy({
+    shape_7 = np.array([4, 4], dtype=np.int64)
+    input_dict_7 = {
         'sp_input': sp_input_7,
-        'shape': np.array([2, 8], dtype=np.int64)
-    }))
+        'shape': shape_7,
+        'name': '4d_to_2d_bool'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8: Reshaping to a single column vector
-    sp_input_8 = CustomSparseTensor(
-        indices=[[0, 7], [1, 0], [2, 3]],
-        values=np.array([1.0, 2.0, 3.0], dtype=np.float32),
-        dense_shape=[3, 8]
+    # Input 8: Single element sparse tensor
+    sp_input_8 = tf.SparseTensor(
+        indices=np.array([[2, 3]], dtype=np.int64),
+        values=np.array([99], dtype=np.int32),
+        dense_shape=np.array([5, 5], dtype=np.int64)
     )
-    list_of_inputs.append(copy.deepcopy({
+    shape_8 = np.array([25], dtype=np.int64)
+    input_dict_8 = {
         'sp_input': sp_input_8,
-        'shape': np.array([-1, 1], dtype=np.int64)
-    }))
-
-    # Input 9: Identity reshape with negative values
-    sp_input_9 = CustomSparseTensor(
-        indices=[[0, 1], [1, 3], [2, 0]],
-        values=np.array([-1, -2, -3], dtype=np.int32),
-        dense_shape=[3, 5]
+        'shape': shape_8,
+        'name': 'single_element_reshape'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    
+    # Input 9: Complex numbers as values
+    sp_input_9 = tf.SparseTensor(
+        indices=np.array([[0, 0], [1, 1], [2, 2], [3, 3]], dtype=np.int64),
+        values=np.array([1+2j, 3+4j, 5+6j, 7+8j], dtype=np.complex64),
+        dense_shape=np.array([4, 4], dtype=np.int64)
     )
-    list_of_inputs.append(copy.deepcopy({
+    shape_9 = np.array([2, -1], dtype=np.int64)
+    input_dict_9 = {
         'sp_input': sp_input_9,
-        'shape': np.array([3, 5], dtype=np.int64),
-        'name': 'identity_reshape'
-    }))
-
-    # Input 10: Boolean values
-    sp_input_10 = CustomSparseTensor(
-        indices=[[0]],
-        values=np.array([True], dtype=np.bool_),
-        dense_shape=[1]
+        'shape': shape_9,
+        'name': 'complex_reshape'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    
+    # Input 10: Reshaping from 1xN to Nx1
+    sp_input_10 = tf.SparseTensor(
+        indices=np.array([[0, 3], [0, 7]], dtype=np.int64),
+        values=np.array([10, 20], dtype=np.int32),
+        dense_shape=np.array([1, 10], dtype=np.int64)
     )
-    list_of_inputs.append(copy.deepcopy({
+    shape_10 = np.array([10, 1], dtype=np.int64)
+    input_dict_10 = {
         'sp_input': sp_input_10,
-        'shape': np.array([1, 1], dtype=np.int64)
-    }))
+        'shape': shape_10,
+        'name': 'row_to_col_vector'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 
-generated_inputs["tf.sparse.reshape"] = tf_sparse_reshape_inputs()
+generated_inputs["tf.sparse.reshape"] = get_tf_sparse_reshape_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

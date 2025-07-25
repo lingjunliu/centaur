@@ -5,120 +5,110 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import numpy as np
-import tensorflow as tf
 import copy
 
-def tf_raw_ops_SparseApplyFtrl_inputs():
-    # This op modifies its inputs ('var', 'accum', 'linear') and is stateful.
-    # In eager execution, this typically requires tf.Variable inputs.
-    # However, the testing harness seems to fail on tf.Variable objects with
-    # "AttributeError: 'ResourceVariable' object has no attribute 'size'".
-    # To resolve this specific error, we provide numpy arrays, which the harness
-    # can process. This may lead to a different error during the actual API call
-    # ("RuntimeError: ... op does not support eager execution"), indicating a
-    # fundamental incompatibility between the stateful op and the test setup.
-    # We are addressing the error presented in the traceback.
-
+def tf_raw_ops_sparse_apply_ftrl_inputs():
+    """
+    This function generates a list of valid inputs for the
+    tf.raw_ops.SparseApplyFtrl operation.
+    The recurring "RuntimeError: sparse_apply_ftrl op does not support eager
+    execution" is fundamental. The op requires mutable tf.Variable inputs
+    (refs), which are part of TensorFlow's graph mode, while the execution
+    environment uses immutable tf.Tensor objects from eager mode. This issue
+    cannot be resolved by changing numpy input values. The following inputs
+    are provided as a best-effort attempt to supply dimensionally and
+    numerically correct data according to the API's contract.
+    """
     list_of_inputs = []
 
-    # Input 1: Basic float32, 2D
-    var_dtype_1 = np.float32
-    var_1 = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=var_dtype_1)
+    # Input 1: Basic 1D float32 case
     input_dict_1 = {
-        'var': var_1,
-        'accum': np.array([[0.1, 0.1], [0.1, 0.1], [0.1, 0.1]], dtype=var_dtype_1),
-        'linear': np.zeros_like(var_1),
-        'grad': np.array([[0.5, 0.2], [-0.1, 0.3]], dtype=var_dtype_1),
-        'indices': np.array([0, 2], dtype=np.int32),
-        'lr': np.array(0.01, dtype=var_dtype_1),
-        'l1': np.array(0.1, dtype=var_dtype_1),
-        'l2': np.array(0.001, dtype=var_dtype_1),
-        'lr_power': np.array(-0.5, dtype=var_dtype_1),
+        'var': np.array([1.0, 2.0, 3.0], dtype=np.float32),
+        'accum': np.array([0.1, 0.1, 0.1], dtype=np.float32),
+        'linear': np.array([0.0, 0.0, 0.0], dtype=np.float32),
+        'grad': np.array([0.5], dtype=np.float32),
+        'indices': np.array([1], dtype=np.int32),
+        'lr': np.array(0.01, dtype=np.float32),
+        'l1': np.array(0.1, dtype=np.float32),
+        'l2': np.array(0.01, dtype=np.float32),
+        'lr_power': np.array(-0.5, dtype=np.float32),
         'use_locking': False,
         'multiply_linear_by_lr': False,
-        'name': "test_basic_float32"
+        'name': 'basic_1d'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: float64, 1D, with locking
-    var_dtype_2 = np.float64
-    var_2 = np.array([-1.0, -2.0, -3.0], dtype=var_dtype_2)
+    # Input 2: 2D float32 case with multiple indices and locking
     input_dict_2 = {
-        'var': var_2,
-        'accum': np.array([0.2, 0.2, 0.2], dtype=var_dtype_2),
-        'linear': np.array([0.1, -0.1, 0.2], dtype=var_dtype_2),
-        'indices': np.array([1], dtype=np.int64),
-        'grad': np.array([-0.5], dtype=var_dtype_2),
-        'lr': np.array(0.1, dtype=var_dtype_2),
-        'l1': np.array(1.0, dtype=var_dtype_2),
-        'l2': np.array(0.5, dtype=var_dtype_2),
-        'lr_power': np.array(-1.0, dtype=var_dtype_2),
+        'var': np.ones((5, 3), dtype=np.float32),
+        'accum': np.full((5, 3), 0.1, dtype=np.float32),
+        'linear': np.zeros((5, 3), dtype=np.float32),
+        'grad': np.random.randn(2, 3).astype(np.float32),
+        'indices': np.array([0, 4], dtype=np.int32),
+        'lr': np.array(0.1, dtype=np.float32),
+        'l1': np.array(0.0, dtype=np.float32),
+        'l2': np.array(0.0, dtype=np.float32),
+        'lr_power': np.array(-0.5, dtype=np.float32),
         'use_locking': True,
-        'multiply_linear_by_lr': True,
-        'name': "test_float64_1d_locking"
+        'multiply_linear_by_lr': False,
+        'name': 'basic_2d'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: float16 (half)
-    var_dtype_3 = np.float16
-    var_3 = np.array([[1.0, 2.0]], dtype=var_dtype_3)
+    # Input 3: 1D float64 case with multiply_linear_by_lr
     input_dict_3 = {
-        'var': var_3,
-        'accum': np.full((1, 2), 0.1, dtype=var_dtype_3),
-        'linear': np.zeros((1, 2), dtype=var_dtype_3),
-        'indices': np.array([0], dtype=np.int32),
-        'grad': np.array([[0.5, -0.5]], dtype=var_dtype_3),
-        'lr': np.array(0.01, dtype=var_dtype_3),
-        'l1': np.array(0.2, dtype=var_dtype_3),
-        'l2': np.array(0.3, dtype=var_dtype_3),
-        'lr_power': np.array(-0.6, dtype=var_dtype_3),
+        'var': np.arange(5, dtype=np.float64),
+        'accum': np.full((5,), 0.2, dtype=np.float64),
+        'linear': np.zeros((5,), dtype=np.float64),
+        'grad': np.array([-0.1, 0.2], dtype=np.float64),
+        'indices': np.array([2, 3], dtype=np.int64),
+        'lr': np.array(0.05, dtype=np.float64),
+        'l1': np.array(0.0, dtype=np.float64),
+        'l2': np.array(1.0, dtype=np.float64),
+        'lr_power': np.array(-0.5, dtype=np.float64),
         'use_locking': False,
-        'multiply_linear_by_lr': False,
-        'name': "test_float16"
+        'multiply_linear_by_lr': True,
+        'name': 'basic_float64'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
-    
-    # Input 4: Empty indices (should result in no update)
-    var_dtype_4 = np.float32
-    var_4 = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=var_dtype_4)
+
+    # Input 4: Empty update (edge case with zero indices)
     input_dict_4 = {
-        'var': var_4,
-        'accum': np.full_like(var_4, 0.1),
-        'linear': np.zeros_like(var_4),
+        'var': np.ones((4, 2), dtype=np.float32),
+        'accum': np.ones((4, 2), dtype=np.float32),
+        'linear': np.zeros((4, 2), dtype=np.float32),
+        'grad': np.empty((0, 2), dtype=np.float32),
         'indices': np.array([], dtype=np.int32),
-        'grad': np.empty(shape=(0, 2), dtype=var_dtype_4),
-        'lr': np.array(0.01, dtype=var_dtype_4),
-        'l1': np.array(0.1, dtype=var_dtype_4),
-        'l2': np.array(0.001, dtype=var_dtype_4),
-        'lr_power': np.array(-0.5, dtype=var_dtype_4),
+        'lr': np.array(0.1, dtype=np.float32),
+        'l1': np.array(0.1, dtype=np.float32),
+        'l2': np.array(0.1, dtype=np.float32),
+        'lr_power': np.array(-0.5, dtype=np.float32),
         'use_locking': False,
         'multiply_linear_by_lr': False,
-        'name': "test_empty_indices"
+        'name': 'empty_update'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: Zero regularization
-    var_dtype_5 = np.float32
-    var_5 = np.array([[10.0]], dtype=var_dtype_5)
+    # Input 5: half precision (float16)
     input_dict_5 = {
-        'var': var_5,
-        'accum': np.array([[1.0]], dtype=var_dtype_5),
-        'linear': np.array([[0.5]], dtype=var_dtype_5),
-        'grad': np.array([[-2.0]], dtype=var_dtype_5),
-        'indices': np.array([0], dtype=np.int32),
-        'lr': np.array(0.1, dtype=var_dtype_5),
-        'l1': np.array(0.0, dtype=var_dtype_5),
-        'l2': np.array(0.0, dtype=var_dtype_5),
-        'lr_power': np.array(-0.5, dtype=var_dtype_5),
+        'var': np.array([1.0, 2.0, 3.0], dtype=np.half),
+        'accum': np.array([0.1, 0.1, 0.1], dtype=np.half),
+        'linear': np.array([0.5, 0.5, 0.5], dtype=np.half),
+        'grad': np.array([0.2], dtype=np.half),
+        'indices': np.array([1], dtype=np.int32),
+        'lr': np.array(0.01, dtype=np.half),
+        'l1': np.array(0.1, dtype=np.half),
+        'l2': np.array(0.0, dtype=np.half),
+        'lr_power': np.array(-0.5, dtype=np.half),
         'use_locking': False,
         'multiply_linear_by_lr': False,
-        'name': "test_zero_regularization"
+        'name': 'basic_half'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.SparseApplyFtrl"] = tf_raw_ops_SparseApplyFtrl_inputs()
+generated_inputs["tf.raw_ops.SparseApplyFtrl"] = tf_raw_ops_sparse_apply_ftrl_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

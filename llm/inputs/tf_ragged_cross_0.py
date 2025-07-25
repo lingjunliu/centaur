@@ -5,23 +5,7 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import numpy as np
 import copy
-
-# This custom class is a workaround for a testing framework that
-# incorrectly expects tensor-like attributes on a list of tensors.
-class PatchedTensorList(list):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # HACK: Use a common numeric dtype that the testing framework is likely to recognize
-        # to bypass its flawed validation for 'tensor_list' types.
-        # The actual dtypes of the tensors inside the list will be used by TensorFlow.
-        self.dtype = np.float32
-
-    @property
-    def shape(self):
-        # Report the number of tensors in the list as the shape.
-        return (len(self),)
 
 def tf_ragged_cross_inputs():
     """
@@ -29,108 +13,116 @@ def tf_ragged_cross_inputs():
     """
     list_of_inputs = []
 
-    # Input 1: Basic case with Python lists
-    input_dict = {
-        'inputs': PatchedTensorList([
-            [['a'], ['b', 'c']],
-            [['d'], ['e']],
-            [['f'], ['g']]
-        ]),
-        'name': 'basic_cross'
+    # Input 1: Basic example, converted to float32
+    input_dict_1 = {
+        'inputs': tf.ragged.stack([
+            tf.ragged.constant([[1.0], [2.0, 3.0]], dtype=tf.float32),
+            tf.ragged.constant([[4.0], [5.0]], dtype=tf.float32),
+            tf.ragged.constant([[6.0], [7.0]], dtype=tf.float32)
+        ])
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: Mix of Python lists and NumPy arrays
-    input_dict = {
-        'inputs': PatchedTensorList([
-            [['a', 'b'], ['c']],
-            np.array([['x'], ['y']], dtype=object)
-        ]),
-        'name': 'mixed_ragged_dense'
+    # Input 2: Mix of RaggedTensor and dense Tensor, all float32
+    input_dict_2 = {
+        'inputs': tf.ragged.stack([
+            tf.constant([[11.0], [21.0]], dtype=tf.float32),
+            tf.ragged.constant([[31.0, 41.0], [51.0]], dtype=tf.float32)
+        ])
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: All inputs are dense NumPy arrays
-    input_dict = {
-        'inputs': PatchedTensorList([
-            np.array([['a1', 'a2'], ['b1', 'b2']], dtype=object),
-            np.array([['c1'], ['d1']], dtype=object)
-        ]),
-        'name': 'all_dense'
+    # Input 3: All dense Tensors, all int32
+    input_dict_3 = {
+        'inputs': tf.stack([
+            tf.constant([[111], [221]], dtype=tf.int32),
+            tf.constant([[112], [222]], dtype=tf.int32)
+        ])
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: Inputs with integer values
-    input_dict = {
-        'inputs': PatchedTensorList([
-            [[10, 20], [30]],
-            [[100], [200, 300]]
-        ]),
-        'name': 'numeric_types_int'
+    # Input 4: A ragged tensor with an empty row, all float32
+    input_dict_4 = {
+        'inputs': tf.ragged.stack([
+            tf.ragged.constant([[1.0, 2.0], []], dtype=tf.float32),
+            tf.ragged.constant([[3.0], [4.0]], dtype=tf.float32)
+        ])
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: Inputs with float values
-    input_dict = {
-        'inputs': PatchedTensorList([
-            np.array([[1.1, 2.2], [3.3, 4.4]], dtype=np.float32),
-            [[5.5], [6.6, 7.7]]
-        ]),
-        'name': 'numeric_types_float'
+    # Input 5: All inputs have a corresponding empty row, all int32
+    input_dict_5 = {
+        'inputs': tf.ragged.stack([
+            tf.ragged.constant([[101], []], dtype=tf.int32),
+            tf.ragged.constant([[102], []], dtype=tf.int32)
+        ])
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: An input row is an empty list
-    input_dict = {
-        'inputs': PatchedTensorList([
-            [['x', 'y'], []],
-            [['z'], ['w']]
-        ]),
-        'name': 'empty_inner_list'
+    # Input 6: Numeric inputs with consistent dtype
+    input_dict_6 = {
+        'inputs': tf.ragged.stack([
+            tf.ragged.constant([[1.0], [2.0, 3.0]], dtype=tf.float32),
+            tf.constant([[10.5], [20.5]], dtype=tf.float32)
+        ])
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: Four input tensors
-    input_dict = {
-        'inputs': PatchedTensorList([
-            [['a'], ['b']],
-            np.array([['c'], ['d']], dtype=object),
-            [['e'], ['f']],
-            [['g', 'h'], ['i']]
-        ]),
-        'name': 'four_tensors'
+    # Input 7: Only one input tensor in the list
+    input_dict_7 = {
+        'inputs': tf.ragged.stack([
+            tf.ragged.constant([[1.0, 2.0], [3.0]], dtype=tf.float32)
+        ])
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 8: Inputs with zero rows
-    input_dict = {
-        'inputs': PatchedTensorList([
-            np.empty(shape=(0,1), dtype=object),
-            np.empty(shape=(0,2), dtype=object),
-        ]),
-        'name': 'zero_rows'
+    # Input 8: More than 3 input tensors
+    input_dict_8 = {
+        'inputs': tf.stack([
+            tf.constant([[1], [2]], dtype=tf.int32),
+            tf.constant([[3], [4]], dtype=tf.int32),
+            tf.constant([[5], [6]], dtype=tf.int32),
+            tf.constant([[7], [8]], dtype=tf.int32)
+        ])
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 9: Highly skewed number of items per row
-    input_dict = {
-        'inputs': PatchedTensorList([
-            [['a', 'b', 'c', 'd', 'e'], ['f']],
-            [['g'], ['h', 'i', 'j']]
-        ]),
-        'name': 'skewed_rows'
+    # Input 9: Tensors with different ragged structures
+    input_dict_9 = {
+        'inputs': tf.ragged.stack([
+            tf.ragged.constant([[1.0, 2.0], [3.0]], dtype=tf.float32),
+            tf.ragged.constant([[101.0], [102.0, 103.0]], dtype=tf.float32)
+        ])
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10: No name parameter provided
-    input_dict = {
-        'inputs': PatchedTensorList([
-            [['m'], ['n']],
-            [['o'], ['p']]
+    # Input 10: Using the 'name' parameter with numeric types
+    input_dict_10 = {
+        'inputs': tf.stack([
+            tf.constant([[10], [20]], dtype=tf.int32),
+            tf.constant([[30], [40]], dtype=tf.int32)
         ]),
-        'name': None
+        'name': 'my_named_cross_op'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
+
+    # Input 11: One input tensor is entirely empty
+    input_dict_11 = {
+        'inputs': tf.ragged.stack([
+            tf.ragged.constant([[], []], dtype=tf.float32),
+            tf.ragged.constant([[1.0], [2.0]], dtype=tf.float32)
+        ])
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_11))
+    
+    # Input 12: Negative values
+    input_dict_12 = {
+        'inputs': tf.stack([
+            tf.constant([[-1], [-2]], dtype=tf.int32),
+            tf.constant([[-3], [-4]], dtype=tf.int32)
+        ])
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_12))
 
     return list_of_inputs
 

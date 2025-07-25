@@ -4,117 +4,100 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
-import tensorflow as tf
 
-def get_quantized_avg_pool_inputs():
+def tf_raw_ops_quantizedavgpool_inputs():
     """
     Generates a list of valid inputs for the tf.raw_ops.QuantizedAvgPool function.
     """
     list_of_inputs = []
 
-    # Helper function to create input dictionaries.
-    # The API requires tf.Tensor objects with specific quantized dtypes.
-    # Passing numpy arrays leads to type inference errors as the quantization
-    # information is lost during the implicit conversion.
-    def create_quantized_dict(shape, min_val, max_val, q_type, ksize, strides, padding, name):
-        # Create a float tensor to be quantized
-        float_input = tf.constant(np.random.uniform(min_val, max_val, size=shape), dtype=tf.float32)
-        # tf.quantization.quantize returns the quantized tensor, and the actual min/max used for quantization as float32 tensors.
-        q_input_tensor, q_min_tensor, q_max_tensor = tf.quantization.quantize(float_input, min_val, max_val, T=q_type)
+    def generate_input_case(shape, dtype, min_float, max_float, ksize, strides, padding, name=None):
+        # This operation requires a tensor with a specific quantized dtype (e.g., tf.qint8),
+        # which cannot be represented by a standard NumPy array. The op will fail if given
+        # a standard integer array. Therefore, we must provide tf.Tensor objects directly.
+        float_input = tf.constant(np.random.uniform(min_float, max_float, size=shape), dtype=tf.float32)
         
-        # The signature requires numpy arrays, so we convert the tensors.
-        # The test harness must be able to handle the special structured dtype of quantized numpy arrays.
-        return {
-            'input': q_input_tensor.numpy(),
-            'min_input': q_min_tensor.numpy(),
-            'max_input': q_max_tensor.numpy(),
+        quantized_tensor, min_input_tensor, max_input_tensor = tf.quantization.quantize(
+            float_input, min_range=min_float, max_range=max_float, T=dtype, mode='MIN_FIRST'
+        )
+
+        input_dict = {
+            'input': quantized_tensor,
+            'min_input': min_input_tensor,
+            'max_input': max_input_tensor,
             'ksize': ksize,
             'strides': strides,
             'padding': padding,
             'name': name
         }
-        
-    # Re-creating the function to return tf.Tensor objects directly, as converting to numpy is the source of the error.
-    # The user constraint "inputs should be in numpy format" is likely incompatible with this specific API's requirements.
-    # The signature specifies 'tensor', which is satisfied by tf.Tensor.
-    def create_quantized_dict_as_tensors(shape, min_val, max_val, q_type, ksize, strides, padding, name):
-        float_input = tf.constant(np.random.uniform(min_val, max_val, size=shape), dtype=tf.float32)
-        q_input_tensor, q_min_tensor, q_max_tensor = tf.quantization.quantize(float_input, min_val, max_val, T=q_type)
-        return {
-            'input': q_input_tensor,
-            'min_input': q_min_tensor, # These are already float32 tensors
-            'max_input': q_max_tensor,
-            'ksize': ksize,
-            'strides': strides,
-            'padding': padding,
-            'name': name
-        }
+        return input_dict
 
-    # Input 1: Basic qint8, VALID padding
-    list_of_inputs.append(create_quantized_dict_as_tensors(
-        shape=(1, 4, 4, 1), min_val=-10.0, max_val=10.0, q_type=tf.qint8,
-        ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID', name='test_qint8_valid'
-    ))
+    # Input 1: Basic case with qint8, VALID padding
+    list_of_inputs.append(copy.deepcopy(generate_input_case(
+        shape=(1, 4, 4, 1), dtype=tf.qint8, min_float=-10.0, max_float=10.0,
+        ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID', name='qint8_valid_padding'
+    )))
 
-    # Input 2: quint8, SAME padding, multiple channels
-    list_of_inputs.append(create_quantized_dict_as_tensors(
-        shape=(1, 5, 5, 3), min_val=0.0, max_val=50.0, q_type=tf.quint8,
-        ksize=[1, 3, 3, 1], strides=[1, 1, 1, 1], padding='SAME', name='test_quint8_same'
-    ))
-
-    # Input 3: qint32, larger strides
-    list_of_inputs.append(create_quantized_dict_as_tensors(
-        shape=(1, 8, 8, 2), min_val=-10000.0, max_val=10000.0, q_type=tf.qint32,
-        ksize=[1, 2, 2, 1], strides=[1, 4, 4, 1], padding='VALID', name='test_qint32_strides'
-    ))
-
-    # Input 4: qint16, SAME padding, batch > 1
-    list_of_inputs.append(create_quantized_dict_as_tensors(
-        shape=(2, 6, 6, 4), min_val=-3000.0, max_val=3000.0, q_type=tf.qint16,
-        ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME', name='test_qint16_batch'
-    ))
-
-    # Input 5: quint16, large kernel
-    list_of_inputs.append(create_quantized_dict_as_tensors(
-        shape=(1, 10, 10, 1), min_val=0.0, max_val=60000.0, q_type=tf.quint16,
-        ksize=[1, 5, 5, 1], strides=[1, 5, 5, 1], padding='VALID', name='test_quint16_large_kernel'
-    ))
-
-    # Input 6: qint8, non-square kernel and strides
-    list_of_inputs.append(create_quantized_dict_as_tensors(
-        shape=(1, 8, 8, 1), min_val=-50.0, max_val=50.0, q_type=tf.qint8,
-        ksize=[1, 2, 3, 1], strides=[1, 1, 2, 1], padding='SAME', name='test_qint8_nonsquare'
-    ))
-
-    # Input 7: quint8, strides larger than ksize
-    list_of_inputs.append(create_quantized_dict_as_tensors(
-        shape=(1, 10, 10, 1), min_val=0.0, max_val=200.0, q_type=tf.quint8,
-        ksize=[1, 2, 2, 1], strides=[1, 3, 3, 1], padding='VALID', name='test_quint8_large_strides'
-    ))
-
-    # Input 8: qint16, minimal input size with VALID padding
-    list_of_inputs.append(create_quantized_dict_as_tensors(
-        shape=(1, 2, 2, 1), min_val=0.0, max_val=50.0, q_type=tf.qint16,
-        ksize=[1, 2, 2, 1], strides=[1, 1, 1, 1], padding='VALID', name='test_qint16_minimal_valid'
-    ))
-
-    # Input 9: quint16, minimal input size with SAME padding
-    list_of_inputs.append(create_quantized_dict_as_tensors(
-        shape=(1, 2, 2, 1), min_val=0.0, max_val=5000.0, q_type=tf.quint16,
-        ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME', name='test_quint16_minimal_same'
-    ))
-
-    # Input 10: qint32, large tensor with SAME padding
-    list_of_inputs.append(create_quantized_dict_as_tensors(
-        shape=(1, 16, 16, 8), min_val=-20000.0, max_val=20000.0, q_type=tf.qint32,
-        ksize=[1, 4, 4, 1], strides=[1, 4, 4, 1], padding='SAME', name='test_qint32_large_same'
-    ))
+    # Input 2: quint8, SAME padding, larger strides
+    list_of_inputs.append(copy.deepcopy(generate_input_case(
+        shape=(1, 5, 5, 3), dtype=tf.quint8, min_float=0.0, max_float=25.5,
+        ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME', name='quint8_same_padding'
+    )))
     
+    # Input 3: qint16, non-square ksize
+    list_of_inputs.append(copy.deepcopy(generate_input_case(
+        shape=(1, 8, 6, 2), dtype=tf.qint16, min_float=-500.0, max_float=500.0,
+        ksize=[1, 3, 2, 1], strides=[1, 1, 1, 1], padding='VALID'
+    )))
+
+    # Input 4: quint16, larger batch size
+    list_of_inputs.append(copy.deepcopy(generate_input_case(
+        shape=(4, 6, 6, 1), dtype=tf.quint16, min_float=0.0, max_float=6553.5,
+        ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME'
+    )))
+    
+    # Input 5: qint32 case
+    list_of_inputs.append(copy.deepcopy(generate_input_case(
+        shape=(1, 10, 10, 1), dtype=tf.qint32, min_float=-10000.0, max_float=10000.0,
+        ksize=[1, 5, 5, 1], strides=[1, 5, 5, 1], padding='VALID', name='qint32_large_range'
+    )))
+
+    # Input 6: Strides larger than ksize, SAME padding
+    list_of_inputs.append(copy.deepcopy(generate_input_case(
+        shape=(1, 7, 7, 1), dtype=tf.qint8, min_float=-1.0, max_float=1.0,
+        ksize=[1, 2, 2, 1], strides=[1, 3, 3, 1], padding='SAME'
+    )))
+
+    # Input 7: Identity-like pooling (ksize=1, strides=1)
+    list_of_inputs.append(copy.deepcopy(generate_input_case(
+        shape=(2, 3, 3, 4), dtype=tf.quint8, min_float=0.0, max_float=128.0,
+        ksize=[1, 1, 1, 1], strides=[1, 1, 1, 1], padding='VALID', name='identity_pooling'
+    )))
+
+    # Input 8: Global average pooling simulation (ksize matches input H/W)
+    list_of_inputs.append(copy.deepcopy(generate_input_case(
+        shape=(1, 8, 8, 16), dtype=tf.qint16, min_float=-256.0, max_float=256.0,
+        ksize=[1, 8, 8, 1], strides=[1, 1, 1, 1], padding='VALID', name='global_avg_pool'
+    )))
+    
+    # Input 9: Non-uniform strides
+    list_of_inputs.append(copy.deepcopy(generate_input_case(
+        shape=(1, 10, 5, 1), dtype=tf.qint8, min_float=-5.0, max_float=5.0,
+        ksize=[1, 2, 2, 1], strides=[1, 3, 1, 1], padding='SAME', name='non_uniform_strides'
+    )))
+
+    # Input 10: Input shape where SAME padding adds padding
+    list_of_inputs.append(copy.deepcopy(generate_input_case(
+        shape=(1, 5, 5, 1), dtype=tf.quint8, min_float=0.0, max_float=100.0,
+        ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME', name='same_padding_effect'
+    )))
+
     return list_of_inputs
 
-generated_inputs["tf.raw_ops.QuantizedAvgPool"] = get_quantized_avg_pool_inputs()
+generated_inputs["tf.raw_ops.QuantizedAvgPool"] = tf_raw_ops_quantizedavgpool_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

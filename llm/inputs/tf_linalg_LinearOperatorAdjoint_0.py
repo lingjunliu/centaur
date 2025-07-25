@@ -8,156 +8,170 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-class CustomLinearOperator(tf.linalg.LinearOperatorFullMatrix):
-    """
-    A wrapper for LinearOperatorFullMatrix to make it compatible with a test
-    harness that requires a `.size` attribute for analysis, while the API
-    itself requires a LinearOperator instance.
-    """
+# Helper class to satisfy the testing framework's pre-check on the 'operator'
+# argument, which expects a `.size` attribute, while also satisfying the API's
+# requirement for a tf.linalg.LinearOperator instance.
+class _SizedLinearOperatorFullMatrix(tf.linalg.LinearOperatorFullMatrix):
+    """A LinearOperatorFullMatrix that has a .size property."""
+    def __init__(self, matrix, **kwargs):
+        self._matrix_tensor = tf.convert_to_tensor(matrix)
+        super().__init__(self._matrix_tensor, **kwargs)
+
     @property
     def size(self):
-        return tf.size(self.to_dense()).numpy()
-
-    def __deepcopy__(self, memo):
-        # Create a new instance of the class with a deep copy of the matrix
-        cls = self.__class__
-        result = cls(
-            matrix=copy.deepcopy(self.to_dense().numpy()),
-            is_non_singular=self.is_non_singular,
-            is_self_adjoint=self.is_self_adjoint,
-            is_positive_definite=self.is_positive_definite,
-            is_square=self.is_square,
-            name=self.name + "_copy"
-        )
-        memo[id(self)] = result
-        return result
+        """The .size attribute required by the testing framework."""
+        if hasattr(self._matrix_tensor, 'numpy'):
+            return self._matrix_tensor.numpy().size
+        return tf.size(self._matrix_tensor)
 
 def tf_linalg_linearoperatoradjoint_inputs():
     """
-    Generates a list of valid inputs for tf.linalg.LinearOperatorAdjoint.
+    Generates a list of valid inputs for the tf.linalg.LinearOperatorAdjoint function.
     """
     list_of_inputs = []
 
-    # Input 1: Basic 2x2 real matrix (float32), no hints
-    operator1 = CustomLinearOperator(np.array([[1., 2.], [3., 4.]], dtype=np.float32))
-    input_dict1 = {
-        'operator': operator1,
-        'is_non_singular': None,
-        'is_self_adjoint': None,
-        'is_positive_definite': None,
-        'is_square': None,
-        'name': 'real_2x2_no_hints'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict1))
-
-    # Input 2: Basic 2x2 complex matrix (complex64), from documentation
-    operator2 = CustomLinearOperator(np.array([[1 - 1j, 3.], [0., 1. + 1j]], dtype=np.complex64))
-    input_dict2 = {
-        'operator': operator2,
-        'is_non_singular': None,
-        'is_self_adjoint': None,
-        'is_positive_definite': None,
-        'is_square': None,
-        'name': 'complex_2x2_from_doc'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict2))
-
-    # Input 3: Non-square 2x3 real matrix (float64)
-    operator3 = CustomLinearOperator(np.array([[1., 2., 3.], [4., 5., 6.]], dtype=np.float64))
-    input_dict3 = {
-        'operator': operator3,
-        'is_non_singular': None,
-        'is_self_adjoint': None,
-        'is_positive_definite': None,
-        'is_square': False,
-        'name': 'real_2x3_nonsquare'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict3))
-
-    # Input 4: Non-square 3x2 complex matrix (complex128)
-    operator4 = CustomLinearOperator(np.array([[1.+2.j, 3.-1.j], [0., 5.j], [4., -1.+1.j]], dtype=np.complex128))
-    input_dict4 = {
-        'operator': operator4,
-        'is_non_singular': None,
-        'is_self_adjoint': None,
-        'is_positive_definite': None,
-        'is_square': False,
-        'name': 'complex_3x2_nonsquare'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict4))
-
-    # Input 5: Self-adjoint (Hermitian) 3x3 matrix with hints
-    matrix5 = np.array([[2., 2.+1.j, 4.-5.j], [2.-1.j, 3., 8.+2.j], [4.+5.j, 8.-2.j, -1.]], dtype=np.complex64)
-    operator5 = CustomLinearOperator(matrix5)
-    input_dict5 = {
-        'operator': operator5,
-        'is_non_singular': None,
-        'is_self_adjoint': True,
-        'is_positive_definite': None,
-        'is_square': True,
-        'name': 'hermitian_3x3_hinted'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict5))
-
-    # Input 6: Positive-definite 2x2 matrix with all hints True
-    operator6 = CustomLinearOperator(np.array([[2., -1.], [-1., 2.]], dtype=np.float32))
-    input_dict6 = {
-        'operator': operator6,
+    # Input 1: Basic 2x2 real, non-singular operator
+    operator_1 = _SizedLinearOperatorFullMatrix(
+        np.array([[1., 2.], [3., 4.]], dtype=np.float32)
+    )
+    input_dict_1 = {
+        'operator': operator_1,
         'is_non_singular': True,
-        'is_self_adjoint': True,
-        'is_positive_definite': True,
+        'is_self_adjoint': False,
+        'is_positive_definite': False,
         'is_square': True,
-        'name': 'pos_def_2x2_all_hints'
+        'name': 'real_2x2_nonsingular'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict6))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 7: Singular 2x2 matrix with hints
-    operator7 = CustomLinearOperator(np.array([[1., 1.], [1., 1.]], dtype=np.float32))
-    input_dict7 = {
-        'operator': operator7,
+    # Input 2: Basic 2x2 complex, non-singular operator (from docs)
+    operator_2 = _SizedLinearOperatorFullMatrix(
+        np.array([[1. - 1.j, 3.], [0., 1. + 1.j]], dtype=np.complex64)
+    )
+    input_dict_2 = {
+        'operator': operator_2,
+        'is_non_singular': True,
+        'is_self_adjoint': False,
+        'is_positive_definite': False,
+        'is_square': True,
+        'name': 'complex_2x2_from_docs'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
+
+    # Input 3: 2x2 singular real operator
+    operator_3 = _SizedLinearOperatorFullMatrix(
+        np.array([[1., 2.], [2., 4.]], dtype=np.float64),
+        is_self_adjoint=True
+    )
+    input_dict_3 = {
+        'operator': operator_3,
         'is_non_singular': False,
         'is_self_adjoint': True,
         'is_positive_definite': False,
         'is_square': True,
-        'name': 'singular_2x2_hinted'
+        'name': 'real_2x2_singular'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict7))
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 8: Larger 4x4 real matrix (float64)
-    operator8 = CustomLinearOperator(np.arange(16, dtype=np.float64).reshape(4, 4))
-    input_dict8 = {
-        'operator': operator8,
-        'is_non_singular': False,
-        'is_self_adjoint': None,
-        'is_positive_definite': None,
-        'is_square': True,
-        'name': 'real_4x4_large_singular'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict8))
-
-    # Input 9: Batch of 3, 2x2 matrices
-    operator9 = CustomLinearOperator(np.array([[[1., 0.], [0., 1.]], [[2., 1.], [1., 2.]], [[3., 0.], [1., 3.]]], dtype=np.float32))
-    input_dict9 = {
-        'operator': operator9,
+    # Input 4: 2x2 complex self-adjoint and positive-definite operator
+    operator_4 = _SizedLinearOperatorFullMatrix(
+        np.array([[2., 1. + 1.j], [1. - 1.j, 3.]], dtype=np.complex128),
+        is_self_adjoint=True, is_positive_definite=True
+    )
+    input_dict_4 = {
+        'operator': operator_4,
         'is_non_singular': True,
-        'is_self_adjoint': None,
-        'is_positive_definite': None,
+        'is_self_adjoint': True,
+        'is_positive_definite': True,
         'is_square': True,
-        'name': 'batch_2x2_real'
+        'name': 'complex_2x2_self_adjoint_pd'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict9))
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 10: Batch of 2, 2x3 non-square matrices
-    operator10 = CustomLinearOperator(np.arange(12, dtype=np.float32).reshape(2, 2, 3))
-    input_dict10 = {
-        'operator': operator10,
+    # Input 5: Non-square (2x3) operator with float32
+    operator_5 = _SizedLinearOperatorFullMatrix(
+        np.array([[1., 2., 3.], [4., 5., 6.]], dtype=np.float32)
+    )
+    input_dict_5 = {
+        'operator': operator_5,
+        'is_non_singular': None,
+        'is_self_adjoint': False,
+        'is_positive_definite': False,
+        'is_square': False,
+        'name': 'nonsquare_2x3_operator'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
+
+    # Input 6: Non-square (3x2) operator with float64
+    operator_6 = _SizedLinearOperatorFullMatrix(
+        np.array([[1., 2.], [3., 4.], [5., 6.]], dtype=np.float64)
+    )
+    input_dict_6 = {
+        'operator': operator_6,
+        'is_non_singular': None,
+        'is_self_adjoint': False,
+        'is_positive_definite': False,
+        'is_square': False,
+        'name': 'nonsquare_3x2_operator'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    
+    # Input 7: 3x3 positive-definite operator
+    operator_7 = _SizedLinearOperatorFullMatrix(
+        np.array([[4., 1., 1.], [1., 3., -1.], [1., -1., 2.]], dtype=np.float32),
+        is_self_adjoint=True, is_positive_definite=True
+    )
+    input_dict_7 = {
+        'operator': operator_7,
+        'is_non_singular': True,
+        'is_self_adjoint': True,
+        'is_positive_definite': True,
+        'is_square': True,
+        'name': 'real_3x3_pd'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
+
+    # Input 8: Batch operator (2, 2, 3)
+    operator_8 = _SizedLinearOperatorFullMatrix(
+        np.random.rand(2, 2, 3).astype(np.float32)
+    )
+    input_dict_8 = {
+        'operator': operator_8,
         'is_non_singular': None,
         'is_self_adjoint': None,
         'is_positive_definite': None,
         'is_square': False,
-        'name': 'batch_nonsquare_2x3'
+        'name': 'batch_operator_nonsquare'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict10))
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
+
+    # Input 9: Operator with all boolean hints as None (default behavior)
+    operator_9 = _SizedLinearOperatorFullMatrix(
+        np.array([[1., 0.], [0., -1.]], dtype=np.float64)
+    )
+    input_dict_9 = {
+        'operator': operator_9,
+        'is_non_singular': None,
+        'is_self_adjoint': None,
+        'is_positive_definite': None,
+        'is_square': None,
+        'name': 'all_hints_none'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
+
+    # Input 10: 1x1 operator
+    operator_10 = _SizedLinearOperatorFullMatrix(
+        np.array([[-10.]], dtype=np.float32)
+    )
+    input_dict_10 = {
+        'operator': operator_10,
+        'is_non_singular': True,
+        'is_self_adjoint': True,
+        'is_positive_definite': False,
+        'is_square': True,
+        'name': 'scalar_operator'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 

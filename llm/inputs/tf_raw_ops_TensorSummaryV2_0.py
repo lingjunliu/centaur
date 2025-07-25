@@ -4,125 +4,123 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
 from tensorflow.core.framework import summary_pb2
 
 def tf_raw_ops_TensorSummaryV2_inputs():
+    """
+    Generates a list of valid inputs for the tf.raw_ops.TensorSummaryV2 function.
+    """
     list_of_inputs = []
 
-    # Create a serialized empty SummaryMetadata proto.
-    # This avoids the problematic protobuf field manipulation that seems to fail in the execution environment.
-    empty_metadata = summary_pb2.SummaryMetadata()
-    serialized_empty_metadata = np.array(empty_metadata.SerializeToString())
+    # Helper function to create a serialized empty SummaryMetadata proto.
+    # The dtype is set to object to avoid issues with fixed-length string dtypes ('S...').
+    def create_empty_metadata():
+        metadata = summary_pb2.SummaryMetadata()
+        # The dtype=object ensures compatibility with type checkers that may not
+        # recognize specific fixed-length string dtypes ('S...').
+        return np.array(metadata.SerializeToString(), dtype=object)
 
-    # Case 1: Scalar float tensor
-    input_dict_1 = {
-        'name': 'ScalarFloatSummary',
-        'tag': np.array('scalar_float'),
-        'tensor': np.array(3.14, dtype=np.float32),
-        'serialized_summary_metadata': serialized_empty_metadata
+    # Input 1: Basic scalar int tensor
+    input_dict = {
+        'tag': np.array(b'scalar_int_summary', dtype=object),
+        'tensor': np.array(42, dtype=np.int32),
+        'serialized_summary_metadata': create_empty_metadata(),
+        'name': 'ScalarIntTest'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 2: 1D integer tensor with negative values
-    input_dict_2 = {
-        'name': None,
-        'tag': np.array('vector_int_summary'),
-        'tensor': np.array([-1, 0, 1, -2, 2], dtype=np.int32),
-        'serialized_summary_metadata': serialized_empty_metadata
+    # Input 2: 1D float tensor with negative values
+    input_dict = {
+        'tag': np.array(b'1d_float_summary', dtype=object),
+        'tensor': np.array([-1.1, 0.0, 2.2, -3.3], dtype=np.float32),
+        'serialized_summary_metadata': create_empty_metadata(),
+        'name': '1DFloatTest'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 3: 2D float64 tensor
-    input_dict_3 = {
-        'name': 'MatrixFloat64Summary',
-        'tag': np.array('matrix_summary/float64'),
-        'tensor': np.array([[-10.5, 20.0], [0.0, -0.5]], dtype=np.float64),
-        'serialized_summary_metadata': serialized_empty_metadata
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
-
-    # Case 4: 3D uint8 tensor
-    input_dict_4 = {
-        'name': 'ImageSummary',
-        'tag': np.array('image_summary/rgb'),
-        'tensor': np.arange(24, dtype=np.uint8).reshape((2, 4, 3)),
-        'serialized_summary_metadata': serialized_empty_metadata
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
-
-    # Case 5: 0-D (scalar) int64 tensor
-    input_dict_5 = {
-        'name': None,
-        'tag': np.array('scalar_int64'),
-        'tensor': np.array(123456789012345, dtype=np.int64),
-        'serialized_summary_metadata': serialized_empty_metadata
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
-
-    # Case 6: 1D complex64 tensor
-    input_dict_6 = {
-        'name': 'ComplexSummary',
-        'tag': np.array('complex_vector'),
-        'tensor': np.array([1+2j, 3-4j, -5+6j], dtype=np.complex64),
-        'serialized_summary_metadata': serialized_empty_metadata
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
-
-    # Case 7: Empty 1D tensor
-    input_dict_7 = {
-        'name': None,
-        'tag': np.array('empty_tensor_summary'),
-        'tensor': np.array([], dtype=np.float32),
-        'serialized_summary_metadata': serialized_empty_metadata
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
-
-    # Case 8: High-rank tensor (4D) with float16
-    input_dict_8 = {
-        'name': '4DTensorSummary',
-        'tag': np.array('4d_tensor'),
-        'tensor': np.random.rand(2, 2, 2, 2).astype(np.float16),
-        'serialized_summary_metadata': serialized_empty_metadata
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
-
-    # Case 9: 2D boolean tensor
-    input_dict_9 = {
-        'name': 'BooleanMatrix',
-        'tag': np.array('bool_matrix'),
+    # Input 3: 2D boolean tensor
+    input_dict = {
+        'tag': np.array(b'2d_bool_summary', dtype=object),
         'tensor': np.array([[True, False], [False, True]], dtype=np.bool_),
-        'serialized_summary_metadata': serialized_empty_metadata
+        'serialized_summary_metadata': create_empty_metadata(),
+        'name': '2DBoolTest'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 10: Tensor with special float values (NaN, Inf)
-    input_dict_10 = {
-        'name': None,
-        'tag': np.array('special_floats'),
-        'tensor': np.array([np.nan, np.inf, -np.inf, 1.0], dtype=np.float32),
-        'serialized_summary_metadata': serialized_empty_metadata
+    # Input 4: 3D int64 tensor
+    input_dict = {
+        'tag': np.array(b'3d_int64_summary', dtype=object),
+        'tensor': np.arange(24, dtype=np.int64).reshape((2, 3, 4)),
+        'serialized_summary_metadata': create_empty_metadata(),
+        'name': '3DInt64Test'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
-    
-    # Case 11: String tensor (bytes) for the main tensor argument
-    input_dict_11 = {
-        'name': 'StringTensorSummary',
-        'tag': np.array('string_tensor'),
-        'tensor': np.array([b'hello', b'world']),
-        'serialized_summary_metadata': serialized_empty_metadata
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_11))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 12: Large 1D tensor
-    input_dict_12 = {
-        'name': 'LargeVector',
-        'tag': np.array('large_vector'),
-        'tensor': np.arange(1000, dtype=np.int16),
-        'serialized_summary_metadata': serialized_empty_metadata
+    # Input 5: Empty tensor
+    input_dict = {
+        'tag': np.array(b'empty_tensor_summary', dtype=object),
+        'tensor': np.array([], dtype=np.float32),
+        'serialized_summary_metadata': create_empty_metadata(),
+        'name': 'EmptyTensorTest'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_12))
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: float16 tensor with name=None
+    input_dict = {
+        'tag': np.array(b'float16_summary', dtype=object),
+        'tensor': np.array([1.0, 2.5, 3.0], dtype=np.float16),
+        'serialized_summary_metadata': create_empty_metadata(),
+        'name': None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Large 2D tensor (uint8, like an image)
+    input_dict = {
+        'tag': np.array(b'image_summary', dtype=object),
+        'tensor': np.arange(100, dtype=np.uint8).reshape((10, 10)),
+        'serialized_summary_metadata': create_empty_metadata(),
+        'name': 'ImageSummaryTest'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Complex number tensor
+    input_dict = {
+        'tag': np.array(b'complex_summary', dtype=object),
+        'tensor': np.array([1+2j, 3-4j, 5+0j], dtype=np.complex64),
+        'serialized_summary_metadata': create_empty_metadata(),
+        'name': 'ComplexTest'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Scalar string tensor (for the 'tensor' argument)
+    input_dict = {
+        'tag': np.array(b'text_summary', dtype=object),
+        'tensor': np.array(b'This is a test string.', dtype=object),
+        'serialized_summary_metadata': create_empty_metadata(),
+        'name': 'TextSummaryTest'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Tensor with all zeros
+    input_dict = {
+        'tag': np.array(b'zeros_summary', dtype=object),
+        'tensor': np.zeros((3, 3), dtype=np.int8),
+        'serialized_summary_metadata': create_empty_metadata(),
+        'name': 'ZerosTest'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: 4D tensor with double precision floats
+    input_dict = {
+        'tag': np.array(b'4d_double_summary', dtype=object),
+        'tensor': np.random.rand(1, 2, 2, 1).astype(np.float64),
+        'serialized_summary_metadata': create_empty_metadata(),
+        'name': '4dDoubleTest'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

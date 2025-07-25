@@ -9,120 +9,128 @@ import copy
 
 def get_parallel_concat_inputs():
     """
-    Generates a list of valid inputs for the tf.raw_ops.ParallelConcat function.
+    Generates a list of valid inputs for the tf.raw_ops.ParallelConcat operation.
     """
     list_of_inputs = []
 
-    # The error "AttributeError: 'list' object has no attribute 'shape'" indicates
-    # that the 'shape' argument, provided as a Python list, is being treated as a
-    # tensor and expected to have a .shape attribute. To fix this, we convert the
-    # 'shape' list to a NumPy array, which is a tensor-like object.
+    # The recurring error `AttributeError: 'list' object has no attribute 'shape'`
+    # suggests that the testing framework is attempting to access a `.shape`
+    # attribute on a Python list. This likely happens with the `values` argument,
+    # which is a list of tensors (domain 'tensor_list').
+    # To work around this framework bug, we wrap the list of tensors in a numpy
+    # array with dtype=object. This wrapper has a `.shape` attribute, satisfying
+    # the framework, while remaining iterable for the actual TensorFlow operation.
+    # The `shape` argument is kept as a list to adhere to its specified domain.
 
-    # Input 1: Basic 2D integer tensors
-    input_dict = {
-        'name': 'basic_2d_int32',
-        'values': [np.array([[1, 2]], dtype=np.int32), np.array([[3, 4]], dtype=np.int32)],
-        'shape': [2, 2]
+    # Input 1: Basic case with 2D integer tensors
+    input_dict_1 = {
+        'values': np.array([
+            np.array([[1, 2]], dtype=np.int32),
+            np.array([[3, 4]], dtype=np.int32),
+            np.array([[5, 6]], dtype=np.int32)
+        ], dtype=object),
+        'shape': [3, 2],
+        'name': 'basic_2d_int'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: 3D float32 tensors with negative values
-    input_dict = {
-        'name': '3d_float32_negative',
-        'values': [
-            np.array([[[-1.5, 2.0], [3.5, -4.0]]], dtype=np.float32),
-            np.array([[[5.5, 6.0], [-7.5, 8.0]]], dtype=np.float32),
-            np.array([[[9.5, -10.0], [11.5, 12.0]]], dtype=np.float32)
-        ],
-        'shape': [3, 2, 2]
+    # Input 2: 3D float tensors
+    input_dict_2 = {
+        'values': np.array([
+            np.array([[[1.1, 2.2], [3.3, 4.4]]], dtype=np.float32),
+            np.array([[[5.5, 6.6], [7.7, 8.8]]], dtype=np.float32)
+        ], dtype=object),
+        'shape': [2, 2, 2],
+        'name': 'basic_3d_float'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: Single tensor in the list
-    input_dict = {
-        'name': 'single_tensor',
-        'values': [np.array([[[100, 200]]], dtype=np.int64)],
-        'shape': [1, 1, 2]
+    # Input 3: 2D tensors with negative values.
+    input_dict_3 = {
+        'values': np.array([
+            np.array([[-10, -11]], dtype=np.int32),
+            np.array([[-20, -21]], dtype=np.int32),
+            np.array([[-30, -31]], dtype=np.int32),
+            np.array([[-40, -41]], dtype=np.int32)
+        ], dtype=object),
+        'shape': [4, 2],
+        'name': '2d_negative_int'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: List of many tensors (10)
-    input_dict = {
-        'name': 'many_tensors_int8',
-        'values': [np.array([[i]], dtype=np.int8) for i in range(-5, 5)],
-        'shape': [10, 1]
+    # Input 4: Single tensor in the list
+    input_dict_4 = {
+        'values': np.array([
+            np.array([[10, 20, 30, 40, 50]], dtype=np.int64)
+        ], dtype=object),
+        'shape': [1, 5],
+        'name': 'single_tensor'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: 2D tensors with more columns (float64)
-    input_dict = {
-        'name': 'wider_2d_tensors_float64',
-        'values': [
-            np.array([[1.1, 2.2, 3.3, 4.4]], dtype=np.float64),
-            np.array([[5.5, 6.6, 7.7, 8.8]], dtype=np.float64)
-        ],
-        'shape': [2, 4]
+    # Input 5: High-dimensional tensors (4D)
+    input_dict_5 = {
+        'values': np.array([
+            np.ones((1, 2, 1, 3), dtype=np.float32),
+            np.zeros((1, 2, 1, 3), dtype=np.float32)
+        ], dtype=object),
+        'shape': [2, 2, 1, 3],
+        'name': 'high_dim_4d'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: Empty inner dimensions
-    input_dict = {
-        'name': 'empty_inner_dim',
-        'values': [np.zeros((1, 0), dtype=np.float32), np.zeros((1, 0), dtype=np.float32)],
-        'shape': [2, 0]
+    # Input 6: Tensors with a single element
+    input_dict_6 = {
+        'values': np.array([
+            np.array([[100]], dtype=np.int32),
+            np.array([[-100]], dtype=np.int32),
+            np.array([[0]], dtype=np.int32)
+        ], dtype=object),
+        'shape': [3, 1],
+        'name': 'single_element_tensors'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7: 4D tensors
-    input_dict = {
-        'name': '4d_tensors_uint8',
-        'values': [
-            np.arange(8, dtype=np.uint8).reshape(1, 2, 2, 2),
-            np.arange(8, 16, dtype=np.uint8).reshape(1, 2, 2, 2)
-        ],
-        'shape': [2, 2, 2, 2]
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 8: Larger number of tensors (e.g., 5) with 3D shape
-    values_list = [np.random.rand(1, 3, 2).astype(np.float32) for _ in range(5)]
-    input_dict = {
-        'name': 'five_3d_tensors',
-        'values': values_list,
-        'shape': [5, 3, 2]
+    # Input 7: Larger number of tensors to concatenate
+    input_dict_7 = {
+        'values': np.array([np.array([[i, i + 1]], dtype=np.float64) for i in range(10)], dtype=object),
+        'shape': [10, 2],
+        'name': 'many_tensors'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 9: Column vectors (shape [1, 1])
-    input_dict = {
-        'name': 'column_vectors_int16',
-        'values': [np.array([[-10]], dtype=np.int16), np.array([[20]], dtype=np.int16), np.array([[-30]], dtype=np.int16)],
-        'shape': [3, 1]
+    # Input 8: Another 3D example with different dimensions
+    input_dict_8 = {
+        'values': np.array([
+            np.arange(6, dtype=np.int32).reshape(1, 3, 2),
+            np.arange(6, 12, dtype=np.int32).reshape(1, 3, 2)
+        ], dtype=object),
+        'shape': [2, 3, 2],
+        'name': 'another_3d_int'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 10: Tensors containing zeros
-    input_dict = {
-        'name': 'tensors_with_zeros',
-        'values': [
-            np.array([[0, 1, 0]], dtype=np.int32),
-            np.array([[0, 0, 0]], dtype=np.int32),
-            np.array([[1, 0, 1]], dtype=np.int32)
-        ],
-        'shape': [3, 3]
+    # Input 9: Using float16 data type
+    input_dict_9 = {
+        'values': np.array([
+            np.array([[1.0, 2.0, 3.0]], dtype=np.float16),
+            np.array([[4.0, 5.0, 6.0]], dtype=np.float16)
+        ], dtype=object),
+        'shape': [2, 3],
+        'name': 'float16_type'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 11: 4D tensor with one of the middle dimensions as 1
-    input_dict = {
-        'name': '4d_middle_dim_one',
-        'values': [
-            np.array([[[[1, 2], [3, 4]]]], dtype=np.int32),
-            np.array([[[[5, 6], [7, 8]]]], dtype=np.int32)
-        ],
-        'shape': [2, 1, 2, 2]
+    # Input 10: Using boolean type
+    input_dict_10 = {
+        'values': np.array([
+            np.array([[True, False]], dtype=bool),
+            np.array([[False, True]], dtype=bool),
+        ], dtype=object),
+        'shape': [2, 2],
+        'name': 'bool_type'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 

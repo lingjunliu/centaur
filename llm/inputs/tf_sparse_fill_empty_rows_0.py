@@ -14,133 +14,119 @@ def tf_sparse_fill_empty_rows_inputs():
     """
     list_of_inputs = []
 
-    # Helper function to create a tf.SparseTensor and add a .size attribute
-    # to make it compatible with the testing framework that expects it.
-    def create_sparse_tensor_with_size(indices, values, dense_shape, values_dtype=None):
-        indices_np = np.array(indices, dtype=np.int64)
-        values_np = np.array(values, dtype=values_dtype) if values_dtype else np.array(values)
-        dense_shape_np = np.array(dense_shape, dtype=np.int64)
+    # Helper function to create input dictionaries.
+    # The API requires a tf.SparseTensor. We will provide this directly, as providing
+    # a dense tensor or numpy array causes a TypeError within the API call.
+    def create_input_dict(indices, values, dense_shape, default_value, name=None):
+        # Handle the case of empty indices correctly by providing a 2D array of shape [0, rank].
+        if not indices:
+            rank = len(dense_shape)
+            indices_np = np.empty((0, rank), dtype=np.int64)
+        else:
+            indices_np = np.array(indices, dtype=np.int64)
 
-        sp_tensor = tf.SparseTensor(indices=indices_np,
-                                    values=values_np,
-                                    dense_shape=dense_shape_np)
-        
-        # Monkey-patch the .size attribute for the testing framework
-        sp_tensor.size = values_np.size
-        
-        return sp_tensor
+        # The sp_input must be a SparseTensor.
+        sp_input = tf.SparseTensor(
+            indices=indices_np,
+            values=values,
+            dense_shape=np.array(dense_shape, dtype=np.int64)
+        )
 
-    # Input 1: Basic case from documentation (int32)
-    sp_input_1 = create_sparse_tensor_with_size(
+        # The default_value must be a scalar tensor of a matching dtype.
+        default_value_tensor = tf.constant(default_value, dtype=sp_input.dtype)
+
+        input_dict = {
+            'sp_input': sp_input,
+            'default_value': default_value_tensor,
+            'name': name
+        }
+        return input_dict
+
+    # Input 1: Basic example from the documentation
+    list_of_inputs.append(create_input_dict(
         indices=[[0, 1], [0, 3], [2, 0], [3, 1]],
-        values=[10, 20, 30, 40],
+        values=np.array([10, 20, 30, 40], dtype=np.int32),
         dense_shape=[5, 6],
-        values_dtype=np.int32
-    )
-    default_value_1 = np.array(99, dtype=np.int32)
-    input_dict_1 = {'sp_input': sp_input_1, 'default_value': default_value_1, 'name': 'basic_case'}
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+        default_value=0,
+        name='basic_int_example'
+    ))
 
-    # Input 2: Float32 type with a negative default value
-    sp_input_2 = create_sparse_tensor_with_size(
-        indices=[[1, 1], [3, 2]],
-        values=[1.1, 3.3],
-        dense_shape=[4, 4],
-        values_dtype=np.float32
-    )
-    default_value_2 = np.array(-1.0, dtype=np.float32)
-    input_dict_2 = {'sp_input': sp_input_2, 'default_value': default_value_2, 'name': 'float_case'}
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
-
-    # Input 3: No empty rows
-    sp_input_3 = create_sparse_tensor_with_size(
-        indices=[[0, 0], [1, 1], [2, 2]],
-        values=[1, 2, 3],
-        dense_shape=[3, 4],
-        values_dtype=np.int32
-    )
-    default_value_3 = np.array(0, dtype=np.int32)
-    input_dict_3 = {'sp_input': sp_input_3, 'default_value': default_value_3, 'name': 'no_empty_rows'}
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
-
-    # Input 4: All rows are empty
-    sp_input_4 = create_sparse_tensor_with_size(
-        indices=np.empty((0, 2), dtype=np.int64),
-        values=[],
-        dense_shape=[4, 5],
-        values_dtype=np.int32
-    )
-    default_value_4 = np.array(-1, dtype=np.int32)
-    input_dict_4 = {'sp_input': sp_input_4, 'default_value': default_value_4, 'name': 'all_empty_rows'}
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
-
-    # Input 5: Large shape with many empty rows
-    sp_input_5 = create_sparse_tensor_with_size(
-        indices=[[1, 50], [9, 99]],
-        values=[100, 200],
-        dense_shape=[10, 100],
-        values_dtype=np.int32
-    )
-    default_value_5 = np.array(5, dtype=np.int32)
-    input_dict_5 = {'sp_input': sp_input_5, 'default_value': default_value_5, 'name': 'large_shape'}
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
-
-    # Input 6: Empty first and last rows, float64 type
-    sp_input_6 = create_sparse_tensor_with_size(
-        indices=[[1, 0], [1, 2], [2, 1]],
-        values=[1.0, 2.0, 3.0],
-        dense_shape=[4, 3],
-        values_dtype=np.float64
-    )
-    default_value_6 = np.array(0.0, dtype=np.float64)
-    input_dict_6 = {'sp_input': sp_input_6, 'default_value': default_value_6, 'name': 'boundary_empty_rows'}
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
-
-    # Input 7: int64 type with large numbers
-    sp_input_7 = create_sparse_tensor_with_size(
-        indices=[[0, 0]],
-        values=[np.iinfo(np.int64).max - 1],
-        dense_shape=[2, 2],
-        values_dtype=np.int64
-    )
-    default_value_7 = np.array(np.iinfo(np.int64).min + 1, dtype=np.int64)
-    input_dict_7 = {'sp_input': sp_input_7, 'default_value': default_value_7, 'name': 'int64_case'}
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
-
-    # Input 8: Single column tensor
-    sp_input_8 = create_sparse_tensor_with_size(
-        indices=[[0, 0], [3, 0]],
-        values=[1, 4],
-        dense_shape=[5, 1],
-        values_dtype=np.int32
-    )
-    default_value_8 = np.array(9, dtype=np.int32)
-    input_dict_8 = {'sp_input': sp_input_8, 'default_value': default_value_8, 'name': None}
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
-
-    # Input 9: Minimal 2x2 case with one empty row and negative values
-    sp_input_9 = create_sparse_tensor_with_size(
+    # Input 2: Floating point values with negative default
+    list_of_inputs.append(create_input_dict(
         indices=[[1, 1]],
-        values=[-5],
-        dense_shape=[2, 2],
-        values_dtype=np.int32
-    )
-    default_value_9 = np.array(0, dtype=np.int32)
-    input_dict_9 = {'sp_input': sp_input_9, 'default_value': default_value_9, 'name': 'minimal_2x2'}
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
-    
-    # Input 10: complex64 type
-    sp_input_10 = create_sparse_tensor_with_size(
-        indices=[[0, 1]],
-        values=[(1+2j)],
-        dense_shape=[3, 3],
-        values_dtype=np.complex64
-    )
-    default_value_10 = np.array((0+0j), dtype=np.complex64)
-    input_dict_10 = {'sp_input': sp_input_10, 'default_value': default_value_10, 'name': 'complex_case'}
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+        values=np.array([3.14], dtype=np.float32),
+        dense_shape=[3, 2],
+        default_value=-1.0
+    ))
 
-    return list_of_inputs
+    # Input 3: String values
+    list_of_inputs.append(create_input_dict(
+        indices=[[0, 0], [2, 1]],
+        values=np.array(['hello', 'world'], dtype=object),
+        dense_shape=[3, 3],
+        default_value='missing',
+        name='string_example'
+    ))
+
+    # Input 4: A completely empty SparseTensor
+    list_of_inputs.append(create_input_dict(
+        indices=[],
+        values=np.array([], dtype=np.int32),
+        dense_shape=[4, 5],
+        default_value=99
+    ))
+
+    # Input 5: A full SparseTensor (no empty rows)
+    list_of_inputs.append(create_input_dict(
+        indices=[[0, 0], [1, 1], [2, 2]],
+        values=np.array([1, 2, 3], dtype=np.int32),
+        dense_shape=[3, 4],
+        default_value=-9
+    ))
+
+    # Input 6: Negative integer values
+    list_of_inputs.append(create_input_dict(
+        indices=[[0, 1], [2, 2]],
+        values=np.array([-10, -20], dtype=np.int32),
+        dense_shape=[4, 3],
+        default_value=-99
+    ))
+
+    # Input 7: Empty rows at the beginning and end
+    list_of_inputs.append(create_input_dict(
+        indices=[[1, 0], [2, 3]],
+        values=np.array([5.5, 6.6], dtype=np.float64),
+        dense_shape=[4, 5],
+        default_value=0.0,
+        name='float64_example'
+    ))
+
+    # Input 8: Empty columns at the end (should have no effect)
+    list_of_inputs.append(create_input_dict(
+        indices=[[0, 0], [1, 1]],
+        values=np.array([101, 202], dtype=np.int64),
+        dense_shape=[3, 5],
+        default_value=0
+    ))
+
+    # Input 9: Unordered indices (the function should handle this by reordering)
+    list_of_inputs.append(create_input_dict(
+        indices=[[3, 1], [0, 1], [2, 0], [0, 3]],
+        values=np.array([40, 10, 30, 20], dtype=np.int32),
+        dense_shape=[5, 6],
+        default_value=0,
+        name='unordered_indices'
+    ))
+
+    # Input 10: Larger shape with sparse entries
+    list_of_inputs.append(create_input_dict(
+        indices=[[1, 10], [5, 50], [8, 99]],
+        values=np.array([100, 200, 300], dtype=np.int32),
+        dense_shape=[10, 100],
+        default_value=42
+    ))
+
+    return [copy.deepcopy(d) for d in list_of_inputs]
 
 generated_inputs["tf.sparse.fill_empty_rows"] = tf_sparse_fill_empty_rows_inputs()
 

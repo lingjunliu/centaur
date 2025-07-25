@@ -7,149 +7,214 @@ generated_inputs = dict()
 import numpy as np
 import copy
 
-def get_quantized_concat_inputs():
-    """
-    Generates a list of valid inputs for the tf.raw_ops.QuantizedConcat function.
-    """
-    list_of_inputs = []
+def tf_raw_ops_quantized_concat_inputs():
+  """
+  Generates a list of valid inputs for tf.raw_ops.QuantizedConcat.
+  """
+  list_of_inputs = []
 
-    # Case 1: Basic 1D concatenation (dim 0) with quint8
-    input_dict = {
-        'name': 'concat_1d_dim0_quint8',
-        'concat_dim': np.array(0, dtype=np.int32),
-        'values': np.array([
-            np.array([1, 2, 3], dtype=np.uint8),
-            np.array([4, 5], dtype=np.uint8)
-        ], dtype=object),
-        'input_mins': np.array([0.0, 0.0], dtype=np.float32),
-        'input_maxes': np.array([255.0, 255.0], dtype=np.float32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Case 1: Simple 1D Concat (quint8)
+  input_dict_1 = {
+      'name': 'simple_1d_quint8',
+      'concat_dim': np.array(0, dtype=np.int32),
+      'values': [
+          np.array([1, 2, 3], dtype=np.uint8),
+          np.array([4, 5], dtype=np.uint8)
+      ],
+      'input_mins': [
+          np.array(0.0, dtype=np.float32),
+          np.array(0.0, dtype=np.float32)
+      ],
+      'input_maxes': [
+          np.array(255.0, dtype=np.float32),
+          np.array(255.0, dtype=np.float32)
+      ]
+  }
+  list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Case 2: 2D concatenation along dimension 0 with qint8
-    input_dict = {
-        'name': 'concat_2d_dim0_qint8',
-        'concat_dim': np.array(0, dtype=np.int32),
-        'values': np.array([
-            np.array([[-10, -20], [-30, -40]], dtype=np.int8),
-            np.array([[-50, -60]], dtype=np.int8)
-        ], dtype=object),
-        'input_mins': np.array([-128.0, -100.0], dtype=np.float32),
-        'input_maxes': np.array([127.0, 100.0], dtype=np.float32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Case 2: 2D Concat along axis 0 (qint8)
+  input_dict_2 = {
+      'name': '2d_concat_axis0_qint8',
+      'concat_dim': np.array(0, dtype=np.int32),
+      'values': [
+          np.array([[-1, -2, -3], [-4, -5, -6]], dtype=np.int8),
+          np.array([[7, 8, 9]], dtype=np.int8)
+      ],
+      'input_mins': [
+          np.array(-128.0, dtype=np.float32),
+          np.array(-10.0, dtype=np.float32)
+      ],
+      'input_maxes': [
+          np.array(127.0, dtype=np.float32),
+          np.array(10.0, dtype=np.float32)
+      ]
+  }
+  list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Case 3: 2D concatenation along dimension 1 with qint32
-    input_dict = {
-        'name': 'concat_2d_dim1_qint32',
-        'concat_dim': np.array(1, dtype=np.int32),
-        'values': np.array([
-            np.array([[1000], [2000]], dtype=np.int32),
-            np.array([[3000, 4000], [5000, 6000]], dtype=np.int32)
-        ], dtype=object),
-        'input_mins': np.array([-10000.0, -10000.0], dtype=np.float32),
-        'input_maxes': np.array([10000.0, 10000.0], dtype=np.float32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Case 3: 2D Concat along axis 1 (qint8)
+  input_dict_3 = {
+      'name': '2d_concat_axis1_qint8',
+      'concat_dim': np.array(1, dtype=np.int32),
+      'values': [
+          np.array([[1, 2], [4, 5], [7, 8]], dtype=np.int8),
+          np.array([[3], [6], [9]], dtype=np.int8)
+      ],
+      'input_mins': [
+          np.array(-50.0, dtype=np.float32),
+          np.array(-60.0, dtype=np.float32)
+      ],
+      'input_maxes': [
+          np.array(50.0, dtype=np.float32),
+          np.array(60.0, dtype=np.float32)
+      ]
+  }
+  list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Case 4: Concatenating three 2D tensors along dimension 0
-    input_dict = {
-        'name': 'concat_3_tensors_2d_dim0',
-        'concat_dim': np.array(0, dtype=np.int32),
-        'values': np.array([
-            np.array([[1, 2]], dtype=np.uint8),
-            np.array([[3, 4]], dtype=np.uint8),
-            np.array([[5, 6]], dtype=np.uint8)
-        ], dtype=object),
-        'input_mins': np.array([0.0, 1.0, 2.0], dtype=np.float32),
-        'input_maxes': np.array([10.0, 11.0, 12.0], dtype=np.float32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Case 5: 3D concatenation along dimension 0
-    input_dict = {
-        'name': 'concat_3d_dim0',
-        'concat_dim': np.array(0, dtype=np.int32),
-        'values': np.array([
-            np.arange(8, dtype=np.int8).reshape((2, 2, 2)),
-            np.arange(8, 16, dtype=np.int8).reshape((2, 2, 2))
-        ], dtype=object),
-        'input_mins': np.array([-10.0, -20.0], dtype=np.float32),
-        'input_maxes': np.array([10.0, 20.0], dtype=np.float32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Case 6: 3D concatenation along dimension 1
-    input_dict = {
-        'name': 'concat_3d_dim1',
-        'concat_dim': np.array(1, dtype=np.int32),
-        'values': np.array([
-            np.arange(8, dtype=np.int8).reshape((2, 2, 2)),
-            np.arange(12, dtype=np.int8).reshape((2, 3, 2))
-        ], dtype=object),
-        'input_mins': np.array([-10.0, -20.0], dtype=np.float32),
-        'input_maxes': np.array([10.0, 20.0], dtype=np.float32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Case 7: 3D concatenation along dimension 2
-    input_dict = {
-        'name': 'concat_3d_dim2',
-        'concat_dim': np.array(2, dtype=np.int32),
-        'values': np.array([
-            np.arange(8, dtype=np.int8).reshape((2, 2, 2)),
-            np.arange(4, dtype=np.int8).reshape((2, 2, 1))
-        ], dtype=object),
-        'input_mins': np.array([-10.0, -20.0], dtype=np.float32),
-        'input_maxes': np.array([10.0, 20.0], dtype=np.float32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Case 8: Concatenating with a tensor that has a zero-sized dimension
-    input_dict = {
-        'name': 'concat_with_empty_dim',
-        'concat_dim': np.array(0, dtype=np.int32),
-        'values': np.array([
-            np.zeros((0, 5, 5), dtype=np.uint8),
-            np.ones((2, 5, 5), dtype=np.uint8)
-        ], dtype=object),
-        'input_mins': np.array([0.0, 0.0], dtype=np.float32),
-        'input_maxes': np.array([1.0, 1.0], dtype=np.float32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Case 4: Three tensors, 3D Concat along axis 0 (quint8)
+  input_dict_4 = {
+      'name': '3d_concat_axis0_three_tensors_quint8',
+      'concat_dim': np.array(0, dtype=np.int32),
+      'values': [
+          np.random.randint(0, 255, size=(1, 2, 3), dtype=np.uint8),
+          np.random.randint(0, 255, size=(2, 2, 3), dtype=np.uint8),
+          np.random.randint(0, 255, size=(1, 2, 3), dtype=np.uint8)
+      ],
+      'input_mins': [
+          np.array(0.0, dtype=np.float32),
+          np.array(10.0, dtype=np.float32),
+          np.array(20.0, dtype=np.float32)
+      ],
+      'input_maxes': [
+          np.array(200.0, dtype=np.float32),
+          np.array(210.0, dtype=np.float32),
+          np.array(220.0, dtype=np.float32)
+      ]
+  }
+  list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Case 9: High rank (4D) tensor concatenation
-    input_dict = {
-        'name': 'concat_4d',
-        'concat_dim': np.array(3, dtype=np.int32),
-        'values': np.array([
-            np.zeros((1, 2, 3, 4), dtype=np.int8),
-            np.ones((1, 2, 3, 5), dtype=np.int8)
-        ], dtype=object),
-        'input_mins': np.array([-128.0, -128.0], dtype=np.float32),
-        'input_maxes': np.array([127.0, 127.0], dtype=np.float32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Case 5: 3D Concat along axis 1 (qint32)
+  input_dict_5 = {
+      'name': '3d_concat_axis1_qint32',
+      'concat_dim': np.array(1, dtype=np.int32),
+      'values': [
+          np.random.randint(-1000, 1000, size=(2, 1, 3), dtype=np.int32),
+          np.random.randint(-1000, 1000, size=(2, 3, 3), dtype=np.int32)
+      ],
+      'input_mins': [
+          np.array(-10000.0, dtype=np.float32),
+          np.array(-5000.0, dtype=np.float32)
+      ],
+      'input_maxes': [
+          np.array(10000.0, dtype=np.float32),
+          np.array(5000.0, dtype=np.float32)
+      ]
+  }
+  list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Case 10: Four 1D tensors with varying min/max ranges
-    input_dict = {
-        'name': 'concat_4_tensors_1d',
-        'concat_dim': np.array(0, dtype=np.int32),
-        'values': np.array([
-            np.array([0, 1], dtype=np.uint8),
-            np.array([10], dtype=np.uint8),
-            np.array([20, 21, 22], dtype=np.uint8),
-            np.array([30], dtype=np.uint8)
-        ], dtype=object),
-        'input_mins': np.array([-1.0, 5.0, 15.0, 25.0], dtype=np.float32),
-        'input_maxes': np.array([1.0, 15.0, 25.0, 35.0], dtype=np.float32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+  # Case 6: 3D Concat along axis 2 (qint8)
+  input_dict_6 = {
+      'name': '3d_concat_axis2_qint8',
+      'concat_dim': np.array(2, dtype=np.int32),
+      'values': [
+          np.random.randint(-128, 127, size=(2, 3, 1), dtype=np.int8),
+          np.random.randint(-128, 127, size=(2, 3, 4), dtype=np.int8)
+      ],
+      'input_mins': [
+          np.array(-1.0, dtype=np.float32),
+          np.array(-2.0, dtype=np.float32)
+      ],
+      'input_maxes': [
+          np.array(1.0, dtype=np.float32),
+          np.array(2.0, dtype=np.float32)
+      ]
+  }
+  list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    return list_of_inputs
+  # Case 7: Four tensors, 1D Concat (quint8)
+  input_dict_7 = {
+      'name': 'four_tensors_1d_quint8',
+      'concat_dim': np.array(0, dtype=np.int32),
+      'values': [
+          np.array([1, 2], dtype=np.uint8),
+          np.array([3], dtype=np.uint8),
+          np.array([4, 5, 6], dtype=np.uint8),
+          np.array([7, 8], dtype=np.uint8)
+      ],
+      'input_mins': [
+          np.array(0.0, dtype=np.float32),
+          np.array(0.0, dtype=np.float32),
+          np.array(0.0, dtype=np.float32),
+          np.array(0.0, dtype=np.float32)
+      ],
+      'input_maxes': [
+          np.array(10.0, dtype=np.float32),
+          np.array(10.0, dtype=np.float32),
+          np.array(10.0, dtype=np.float32),
+          np.array(10.0, dtype=np.float32)
+      ]
+  }
+  list_of_inputs.append(copy.deepcopy(input_dict_7))
+  
+  # Case 8: 4D Concat along axis 3 (qint8)
+  input_dict_8 = {
+      'name': '4d_concat_axis3_qint8',
+      'concat_dim': np.array(3, dtype=np.int32),
+      'values': [
+          np.random.randint(-128, 127, size=(1, 2, 2, 3), dtype=np.int8),
+          np.random.randint(-128, 127, size=(1, 2, 2, 5), dtype=np.int8)
+      ],
+      'input_mins': [
+          np.array(-128.0, dtype=np.float32),
+          np.array(-128.0, dtype=np.float32)
+      ],
+      'input_maxes': [
+          np.array(127.0, dtype=np.float32),
+          np.array(127.0, dtype=np.float32)
+      ]
+  }
+  list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-generated_inputs = {}
-generated_inputs["tf.raw_ops.QuantizedConcat"] = get_quantized_concat_inputs()
+  # Case 9: Concat with empty tensor along concat_dim
+  input_dict_9 = {
+      'name': 'concat_empty_tensor',
+      'concat_dim': np.array(0, dtype=np.int32),
+      'values': [
+          np.array([], dtype=np.int8).reshape(0, 3),
+          np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int8)
+      ],
+      'input_mins': [
+          np.array(-1.0, dtype=np.float32),
+          np.array(-1.0, dtype=np.float32)
+      ],
+      'input_maxes': [
+          np.array(1.0, dtype=np.float32),
+          np.array(1.0, dtype=np.float32)
+      ]
+  }
+  list_of_inputs.append(copy.deepcopy(input_dict_9))
+
+  # Case 10: Widely different min/max ranges
+  input_dict_10 = {
+      'name': 'different_min_max_ranges',
+      'concat_dim': np.array(0, dtype=np.int32),
+      'values': [
+          np.array([1, 2, 3], dtype=np.int8),
+          np.array([-4, -5], dtype=np.int8)
+      ],
+      'input_mins': [
+          np.array(-1.0, dtype=np.float32),
+          np.array(-128.0, dtype=np.float32)
+      ],
+      'input_maxes': [
+          np.array(1.0, dtype=np.float32),
+          np.array(127.0, dtype=np.float32)
+      ]
+  }
+  list_of_inputs.append(copy.deepcopy(input_dict_10))
+
+  return list_of_inputs
+
+generated_inputs["tf.raw_ops.QuantizedConcat"] = tf_raw_ops_quantized_concat_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

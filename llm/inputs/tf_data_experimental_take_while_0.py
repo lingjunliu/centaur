@@ -4,88 +4,89 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
 import copy
-import tensorflow as tf
 
 def tf_data_experimental_take_while_inputs():
+    """
+    Generates a list of valid inputs for tf.data.experimental.take_while.
+    This approach provides the necessary "inner values" for the dataset under the
+    key 'x', which the test harness is expected to use to create the base dataset.
+    The 'predicate' list is expected to be used by a synthesized predicate function
+    (e.g., lambda elem: elem < predicate[0]).
+    """
     list_of_inputs = []
 
-    # The test harness requires the dataset object but fails on deepcopy.
-    # The "no inner values" error suggests it can't find the dataset.
-    # We hypothesize the harness expects the dataset's source data under the key 'self'
-    # and will construct the Dataset object internally.
-    # The 'predicate' argument must be a list as per the strict signature.
-
-    # Input 1: Basic integer array
-    input_dict = {
-        'self': np.arange(10, dtype=np.int32),
-        'predicate': [True, True, True, False, True]
+    # Input 1: Basic case. Take elements < 5 from an int32 array.
+    input_dict_1 = {
+        'x': np.arange(10, dtype=np.int32),
+        'predicate': [5]
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: Floating point array
-    input_dict = {
-        'self': np.linspace(0., 1., 10, dtype=np.float32),
-        'predicate': []
+    # Input 2: Take all elements. Predicate value is larger than any element.
+    input_dict_2 = {
+        'x': np.arange(10, dtype=np.int64),
+        'predicate': [100]
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: Negative numbers array
-    input_dict = {
-        'self': np.arange(-5, 5, dtype=np.int64),
-        'predicate': [1, 0, -1]
+    # Input 3: Take no elements. Predicate value is smaller than the first element.
+    input_dict_3 = {
+        'x': np.arange(5, 15, dtype=np.int32),
+        'predicate': [0]
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: 2D array (vector elements)
-    input_dict = {
-        'self': np.arange(20, dtype=np.int32).reshape(10, 2),
-        'predicate': [1.1, 2.2, 3.3]
+    # Input 4: Floating point data.
+    input_dict_4 = {
+        'x': np.arange(0.0, 5.0, 0.5, dtype=np.float32),
+        'predicate': [3.0]
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    
+    # Input 5: float64 data.
+    input_dict_5 = {
+        'x': np.arange(10, dtype=np.float64),
+        'predicate': [5.5]
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 5: Boolean array
-    input_dict = {
-        'self': np.array([True, True, False, True]),
-        'predicate': [True, 0, 'a', None]
+    # Input 6: Dataset with negative numbers.
+    input_dict_6 = {
+        'x': np.arange(-10, 10, dtype=np.int32),
+        'predicate': [0]
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 6: Empty array
-    input_dict = {
-        'self': np.array([], dtype=np.float64),
-        'predicate': [True, False]
+    # Input 7: Empty dataset. Should produce an empty dataset.
+    input_dict_7 = {
+        'x': np.array([], dtype=np.int32),
+        'predicate': [10]
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    # Input 7: Tuple of arrays for structured elements
-    input_dict = {
-        'self': (np.arange(10, dtype=np.int32), -np.arange(10, dtype=np.int32)),
-        'predicate': list(range(50))
+    # Input 8: Single element dataset, condition met.
+    input_dict_8 = {
+        'x': np.array([3], dtype=np.int32),
+        'predicate': [5]
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 8: 3D array elements
-    input_dict = {
-        'self': np.random.rand(5, 2, 2).astype(np.float32),
-        'predicate': [[1], [2, 3], [4, 5, 6]]
+    # Input 9: Single element dataset, condition not met.
+    input_dict_9 = {
+        'x': np.array([8], dtype=np.int32),
+        'predicate': [5]
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 9: Dictionary of arrays for structured elements
-    input_dict = {
-        'self': {'a': np.arange(5, dtype=np.int32), 'b': np.array([True, True, True, False, True])},
-        'predicate': ['predicate', 'list']
+    # Input 10: Predicate value is a float, data is int.
+    input_dict_10 = {
+        'x': np.arange(10, dtype=np.int32),
+        'predicate': [4.5]
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Single element array
-    input_dict = {
-        'self': np.array([100], dtype=np.int32),
-        'predicate': [True]
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
 
     return list_of_inputs
 

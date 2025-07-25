@@ -9,113 +9,83 @@ import copy
 
 def tf_raw_ops_variable_inputs():
     """
-    NOTE: The tf.raw_ops.Variable op is designed for TensorFlow 1.x's graph mode
-    and is explicitly not supported in eager execution, which is the default in
-    TensorFlow 2.x. Calling this function in an eager context will always raise
-    a RuntimeError, regardless of the inputs. The provided inputs are valid
-    for the operation's signature if it were to be run in a TF1-style graph.
+    The API `tf.raw_ops.Variable` is incompatible with eager execution,
+    which is the default in modern TensorFlow. This will always raise a
+    RuntimeError when called in an eager context. The inputs below are
+
+    syntactically correct but cannot prevent this fundamental error.
     """
     list_of_inputs = []
 
-    # Input 1: Basic scalar float32
-    input_dict_1 = {
-        'shape': [],
+    # Input 1: Minimal float32
+    input_dict = {
+        'shape': [1],
         'dtype': np.float32,
         'container': '',
         'shared_name': '',
         'name': 'v1'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 1D vector of int32
-    input_dict_2 = {
-        'shape': [10],
+    # Input 2: Minimal int32
+    input_dict = {
+        'shape': [2, 2],
         'dtype': np.int32,
         'container': '',
         'shared_name': '',
         'name': 'v2'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 2D matrix of float32
-    input_dict_3 = {
-        'shape': [4, 4],
-        'dtype': np.float32,
-        'container': '',
-        'shared_name': '',
+    # Input 3: Minimal float64
+    input_dict = {
+        'shape': [3],
+        'dtype': np.float64,
+        'container': 'a',
+        'shared_name': 'b',
         'name': 'v3'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 3D tensor of int32
-    input_dict_4 = {
-        'shape': [2, 3, 5],
-        'dtype': np.int32,
-        'container': '',
-        'shared_name': '',
+    # Input 4: Minimal int64
+    input_dict = {
+        'shape': [4],
+        'dtype': np.int64,
+        'container': 'a',
+        'shared_name': 'c',
         'name': 'v4'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Scalar with float64 dtype
-    input_dict_5 = {
+    # Input 5: Scalar
+    input_dict = {
         'shape': [],
-        'dtype': np.float64,
+        'dtype': np.float32,
         'container': '',
-        'shared_name': '',
+        'shared_name': 's',
         'name': 'v5'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
-
-    # Input 6: Matrix with a container name
-    input_dict_6 = {
-        'shape': [8, 2],
-        'dtype': np.float32,
-        'container': 'my_container',
-        'shared_name': '',
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: uint8
+    input_dict = {
+        'shape': [10],
+        'dtype': np.uint8,
+        'container': 'u',
+        'shared_name': 'u_s',
         'name': 'v6'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Vector with a shared name
-    input_dict_7 = {
-        'shape': [128],
-        'dtype': np.int32,
+    # Input 7: bool
+    input_dict = {
+        'shape': [5],
+        'dtype': np.bool_,
         'container': '',
-        'shared_name': 'my_shared_var',
+        'shared_name': '',
         'name': 'v7'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
-
-    # Input 8: Matrix with both container and shared name
-    input_dict_8 = {
-        'shape': [6, 6],
-        'dtype': np.float32,
-        'container': 'another_container',
-        'shared_name': 'another_shared_var',
-        'name': 'v8'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
-    
-    # Input 9: High-rank tensor
-    input_dict_9 = {
-        'shape': [1, 2, 3, 4],
-        'dtype': np.float32,
-        'container': '',
-        'shared_name': '',
-        'name': 'v9'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
-
-    # Input 10: Vector with int64 dtype
-    input_dict_10 = {
-        'shape': [20],
-        'dtype': np.int64,
-        'container': '',
-        'shared_name': '',
-        'name': 'v10'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

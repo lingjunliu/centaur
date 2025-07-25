@@ -14,138 +14,130 @@ def tf_sets_size_inputs():
     """
     list_of_inputs = []
 
-    # Input 1: Basic 2D SparseTensor with repeated values, dtype=int32
-    values_np_1 = np.array([1, 2, 3, 3, 4], dtype=np.int32)
-    a_1 = tf.SparseTensor(
-        indices=np.array([[0, 0], [0, 1], [1, 0], [1, 1], [1, 2]], dtype=np.int64),
-        values=values_np_1,
-        dense_shape=np.array([2, 4], dtype=np.int64)
-    )
-    a_1.size = values_np_1.size
-    validate_indices_1 = True
-    input_dict_1 = {'a': a_1, 'validate_indices': validate_indices_1}
+    # Input 1: Basic 2D case with integer values
+    a_indices_1 = np.array([[0, 0], [0, 1], [1, 0], [1, 1], [1, 2]], dtype=np.int64)
+    a_values_1 = np.array([1, 2, 3, 4, 3], dtype=np.int32)
+    a_dense_shape_1 = np.array([2, 5], dtype=np.int64)
+    a_1 = tf.SparseTensor(indices=a_indices_1, values=a_values_1, dense_shape=a_dense_shape_1)
+    input_dict_1 = {
+        "a": a_1,
+        "validate_indices": True
+    }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: 3D SparseTensor, dtype=int64
-    values_np_2 = np.array([10, 10, 20, 30, 40, 50, 50], dtype=np.int64)
-    a_2 = tf.SparseTensor(
-        indices=np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0], [1, 0, 0], [1, 0, 1], [1, 1, 0], [1, 1, 1]], dtype=np.int64),
-        values=values_np_2,
-        dense_shape=np.array([2, 2, 3], dtype=np.int64)
-    )
-    a_2.size = values_np_2.size
-    validate_indices_2 = True
-    input_dict_2 = {'a': a_2, 'validate_indices': validate_indices_2}
+    # Input 2: 2D case with repeated values to test uniqueness
+    a_indices_2 = np.array([[0, 0], [0, 1], [0, 2], [1, 0], [1, 1]], dtype=np.int64)
+    a_values_2 = np.array([10, 20, 10, 30, 30], dtype=np.int32)
+    a_dense_shape_2 = np.array([2, 3], dtype=np.int64)
+    a_2 = tf.SparseTensor(indices=a_indices_2, values=a_values_2, dense_shape=a_dense_shape_2)
+    input_dict_2 = {
+        "a": a_2,
+        "validate_indices": True
+    }
     list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: SparseTensor with an empty set (row 1 is empty)
-    values_np_3 = np.array([100, 200], dtype=np.int32)
-    a_3 = tf.SparseTensor(
-        indices=np.array([[0, 0], [0, 1]], dtype=np.int64),
-        values=values_np_3,
-        dense_shape=np.array([2, 5], dtype=np.int64)
-    )
-    a_3.size = values_np_3.size
-    validate_indices_3 = True
-    input_dict_3 = {'a': a_3, 'validate_indices': validate_indices_3}
+    # Input 3: 3D case
+    a_indices_3 = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0], [1, 0, 0], [1, 0, 1]], dtype=np.int64)
+    a_values_3 = np.array([1, 2, 3, 4, 1], dtype=np.int32)
+    a_dense_shape_3 = np.array([2, 2, 3], dtype=np.int64)
+    a_3 = tf.SparseTensor(indices=a_indices_3, values=a_values_3, dense_shape=a_dense_shape_3)
+    input_dict_3 = {
+        "a": a_3,
+        "validate_indices": True
+    }
     list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: Completely empty SparseTensor
-    values_np_4 = np.array([], dtype=np.int32)
-    a_4 = tf.SparseTensor(
-        indices=np.empty((0, 2), dtype=np.int64),
-        values=values_np_4,
-        dense_shape=np.array([3, 3], dtype=np.int64)
-    )
-    a_4.size = values_np_4.size
-    validate_indices_4 = True
-    input_dict_4 = {'a': a_4, 'validate_indices': validate_indices_4}
+    # Input 4: Case with empty sets
+    a_indices_4 = np.array([[0, 0], [0, 1], [2, 0]], dtype=np.int64)
+    a_values_4 = np.array([1, 2, 3], dtype=np.int32)
+    a_dense_shape_4 = np.array([3, 2], dtype=np.int64)
+    a_4 = tf.SparseTensor(indices=a_indices_4, values=a_values_4, dense_shape=a_dense_shape_4)
+    input_dict_4 = {
+        "a": a_4,
+        "validate_indices": True
+    }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: Negative integer values, dtype=int16
-    values_np_5 = np.array([-1, -2, -1, -2, -1], dtype=np.int16)
-    a_5 = tf.SparseTensor(
-        indices=np.array([[0, 0], [0, 1], [0, 2], [1, 0], [1, 1]], dtype=np.int64),
-        values=values_np_5,
-        dense_shape=np.array([2, 3], dtype=np.int64)
-    )
-    a_5.size = values_np_5.size
-    validate_indices_5 = True
-    input_dict_5 = {'a': a_5, 'validate_indices': validate_indices_5}
+    # Input 5: Completely empty SparseTensor
+    a_indices_5 = np.empty((0, 2), dtype=np.int64)
+    a_values_5 = np.array([], dtype=np.int32)
+    a_dense_shape_5 = np.array([3, 4], dtype=np.int64)
+    a_5 = tf.SparseTensor(indices=a_indices_5, values=a_values_5, dense_shape=a_dense_shape_5)
+    input_dict_5 = {
+        "a": a_5,
+        "validate_indices": True
+    }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: validate_indices=False
-    values_np_6 = np.array([5, 5, 6, 7, 6], dtype=np.int32)
-    a_6 = tf.SparseTensor(
-        indices=np.array([[0, 0], [0, 1], [1, 0], [1, 1], [1, 2]], dtype=np.int64),
-        values=values_np_6,
-        dense_shape=np.array([2, 5], dtype=np.int64)
-    )
-    a_6.size = values_np_6.size
-    validate_indices_6 = False
-    input_dict_6 = {'a': a_6, 'validate_indices': validate_indices_6}
+    # Input 6: uint8 values
+    a_indices_6 = np.array([[0, 0], [0, 1], [0, 2], [1, 0]], dtype=np.int64)
+    a_values_6 = np.array([1, 2, 1, 3], dtype=np.uint8)
+    a_dense_shape_6 = np.array([2, 4], dtype=np.int64)
+    a_6 = tf.SparseTensor(indices=a_indices_6, values=a_values_6, dense_shape=a_dense_shape_6)
+    input_dict_6 = {
+        "a": a_6,
+        "validate_indices": True
+    }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: Higher rank (4D)
-    values_np_7 = np.array([1, 2, 3, 3], dtype=np.int32)
-    a_7 = tf.SparseTensor(
-        indices=np.array([[0, 0, 0, 0], [0, 0, 0, 1], [1, 0, 1, 0], [1, 0, 1, 1]], dtype=np.int64),
-        values=values_np_7,
-        dense_shape=np.array([2, 1, 2, 3], dtype=np.int64)
-    )
-    a_7.size = values_np_7.size
-    validate_indices_7 = True
-    input_dict_7 = {'a': a_7, 'validate_indices': validate_indices_7}
+    # Input 7: String values are not supported by the test harness, skipping.
+    # New valid input: int16
+    a_indices_7 = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.int64)
+    a_values_7 = np.array([100, -200, 100, 300], dtype=np.int16)
+    a_dense_shape_7 = np.array([2, 3], dtype=np.int64)
+    a_7 = tf.SparseTensor(indices=a_indices_7, values=a_values_7, dense_shape=a_dense_shape_7)
+    input_dict_7 = {
+        "a": a_7,
+        "validate_indices": True
+    }
     list_of_inputs.append(copy.deepcopy(input_dict_7))
-
-    # Input 8: Single set with all unique values
-    values_np_8 = np.array([10, 20, 30, 40], dtype=np.int32)
-    a_8 = tf.SparseTensor(
-        indices=np.array([[0, 0], [0, 1], [0, 2], [0, 3]], dtype=np.int64),
-        values=values_np_8,
-        dense_shape=np.array([1, 5], dtype=np.int64)
-    )
-    a_8.size = values_np_8.size
-    validate_indices_8 = True
-    input_dict_8 = {'a': a_8, 'validate_indices': validate_indices_8}
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
     
-    # Input 9: dtype=uint8
-    values_np_9 = np.array([10, 20, 10, 30, 40], dtype=np.uint8)
-    a_9 = tf.SparseTensor(
-        indices=np.array([[0, 0], [0, 1], [1, 0], [1, 1], [1, 2]], dtype=np.int64),
-        values=values_np_9,
-        dense_shape=np.array([2, 4], dtype=np.int64)
-    )
-    a_9.size = values_np_9.size
-    validate_indices_9 = True
-    input_dict_9 = {'a': a_9, 'validate_indices': validate_indices_9}
+
+    # Input 8: validate_indices=False
+    input_dict_8 = {
+        "a": a_1,
+        "validate_indices": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
+
+    # Input 9: Large dense_shape relative to indices
+    a_indices_9 = np.array([[0, 0]], dtype=np.int64)
+    a_values_9 = np.array([100], dtype=np.int32)
+    a_dense_shape_9 = np.array([5, 5], dtype=np.int64)
+    a_9 = tf.SparseTensor(indices=a_indices_9, values=a_values_9, dense_shape=a_dense_shape_9)
+    input_dict_9 = {
+        "a": a_9,
+        "validate_indices": True
+    }
     list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10: dtype=int8
-    values_np_10 = np.array([-10, 20, -10, -30, 40], dtype=np.int8)
-    a_10 = tf.SparseTensor(
-        indices=np.array([[0, 0], [0, 1], [1, 0], [1, 1], [1, 2]], dtype=np.int64),
-        values=values_np_10,
-        dense_shape=np.array([2, 4], dtype=np.int64)
-    )
-    a_10.size = values_np_10.size
-    validate_indices_10 = True
-    input_dict_10 = {'a': a_10, 'validate_indices': validate_indices_10}
+    # Input 10: 4D tensor
+    a_indices_10 = np.array([[0, 0, 0, 0], [0, 0, 0, 1], [1, 1, 1, 0], [1, 1, 1, 1]], dtype=np.int64)
+    a_values_10 = np.array([1, 1, 2, 3], dtype=np.int32)
+    a_dense_shape_10 = np.array([2, 2, 2, 2], dtype=np.int64)
+    a_10 = tf.SparseTensor(indices=a_indices_10, values=a_values_10, dense_shape=a_dense_shape_10)
+    input_dict_10 = {
+        "a": a_10,
+        "validate_indices": True
+    }
     list_of_inputs.append(copy.deepcopy(input_dict_10))
 
-    # Input 11: dtype=uint16
-    values_np_11 = np.array([1000, 2000, 1000, 3000], dtype=np.uint16)
-    a_11 = tf.SparseTensor(
-        indices=np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.int64),
-        values=values_np_11,
-        dense_shape=np.array([2, 3], dtype=np.int64)
-    )
-    a_11.size = values_np_11.size
-    validate_indices_11 = True
-    input_dict_11 = {'a': a_11, 'validate_indices': validate_indices_11}
+    # Input 11: int64 values
+    a_indices_11 = np.array([[0, 0], [0, 1], [1, 0]], dtype=np.int64)
+    a_values_11 = np.array([9223372036854775807, -1, 9223372036854775807], dtype=np.int64)
+    a_dense_shape_11 = np.array([2, 2], dtype=np.int64)
+    a_11 = tf.SparseTensor(indices=a_indices_11, values=a_values_11, dense_shape=a_dense_shape_11)
+    input_dict_11 = {
+        "a": a_11,
+        "validate_indices": True
+    }
     list_of_inputs.append(copy.deepcopy(input_dict_11))
 
+    # Monkey-patch the size attribute for the test harness
+    for input_dict in list_of_inputs:
+        st = input_dict['a']
+        if isinstance(st, tf.SparseTensor):
+            st.size = st.values.numpy().size
 
     return list_of_inputs
 

@@ -5,123 +5,125 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
+import numpy as np
 import copy
 
 def tf_raw_ops_fifoqueue_inputs():
+    """
+    Generates a list of valid inputs for the tf.raw_ops.FIFOQueue function.
+    NOTE: This operation is designed for TensorFlow's graph mode and will raise a
+    RuntimeError if executed eagerly, as it returns a reference handle. The generated
+    inputs are valid for graph construction.
+    """
     list_of_inputs = []
 
-    # Although tf.raw_ops.FIFOQueue is not compatible with eager execution,
-    # the testing framework requires inputs to be generated. The following inputs
-    # are syntactically and semantically correct according to the API's signature
-    # for a graph-based execution context.
-
-    # Input 1: Basic case with a single float component, default parameters.
+    # Input 1: Simplest case - float, no shape constraint, infinite capacity.
     input_dict_1 = {
         'component_types': [tf.float32],
         'shapes': [],
         'capacity': -1,
         'container': '',
         'shared_name': '',
-        'name': 'fifo_queue_1'
+        'name': 'simple_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: Single integer component with a specified shape.
+    # Input 2: Integer queue with a fixed capacity and a defined 1D shape.
     input_dict_2 = {
         'component_types': [tf.int32],
         'shapes': [[10]],
-        'capacity': -1,
-        'container': '',
-        'shared_name': '',
-        'name': 'fifo_queue_2'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
-
-    # Input 3: Two components with specified shapes.
-    input_dict_3 = {
-        'component_types': [tf.int64, tf.string],
-        'shapes': [[], [5]],
-        'capacity': -1,
-        'container': '',
-        'shared_name': '',
-        'name': 'fifo_queue_3'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
-
-    # Input 4: Bounded capacity.
-    input_dict_4 = {
-        'component_types': [tf.bool],
-        'shapes': [[2, 2]],
         'capacity': 100,
         'container': '',
         'shared_name': '',
-        'name': 'fifo_queue_4'
+        'name': 'int_queue'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
+
+    # Input 3: Queue for two components (e.g., data and label).
+    input_dict_3 = {
+        'component_types': [tf.float64, tf.int64],
+        'shapes': [[224, 224], []],
+        'capacity': 50,
+        'container': '',
+        'shared_name': '',
+        'name': 'data_label_queue'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
+
+    # Input 4: String queue with resource management (container and shared_name).
+    input_dict_4 = {
+        'component_types': [tf.string],
+        'shapes': [[]],
+        'capacity': 200,
+        'container': 'my_app_container',
+        'shared_name': 'shared_string_queue',
+        'name': 'resource_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: Zero capacity.
+    # Input 5: Zero-capacity queue (acts as a rendezvous/synchronization point).
     input_dict_5 = {
-        'component_types': [tf.double],
-        'shapes': [],
+        'component_types': [tf.bool],
+        'shapes': [[1]],
         'capacity': 0,
         'container': '',
         'shared_name': '',
-        'name': 'fifo_queue_5'
+        'name': 'sync_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: Using a non-empty container.
+    # Input 6: Complex number queue.
     input_dict_6 = {
-        'component_types': [tf.uint8],
-        'shapes': [[128, 128]],
-        'capacity': 50,
-        'container': 'my_container_1',
+        'component_types': [tf.complex128],
+        'shapes': [[64, 64]],
+        'capacity': 10,
+        'container': '',
         'shared_name': '',
-        'name': 'fifo_queue_6'
+        'name': 'complex_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: Using a non-empty shared_name.
+    # Input 7: High-dimensional tensor queue (e.g., for video frames).
     input_dict_7 = {
-        'component_types': [tf.int16],
-        'shapes': [],
-        'capacity': 20,
-        'container': '',
-        'shared_name': 'my_shared_queue_1',
-        'name': 'fifo_queue_7'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
-
-    # Input 8: Both container and shared_name are specified.
-    input_dict_8 = {
-        'component_types': [tf.float16],
-        'shapes': [[32, 32]],
-        'capacity': 10,
-        'container': 'my_container_2',
-        'shared_name': 'my_shared_queue_2',
-        'name': 'fifo_queue_8'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
-
-    # Input 9: Complex number component.
-    input_dict_9 = {
-        'component_types': [tf.complex64],
-        'shapes': [[4, 4]],
+        'component_types': [tf.uint8],
+        'shapes': [[32, 240, 320, 3]],
         'capacity': 5,
         'container': '',
         'shared_name': '',
-        'name': 'fifo_queue_9'
+        'name': 'video_queue'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
+
+    # Input 8: bfloat16 queue.
+    input_dict_8 = {
+        'component_types': [tf.bfloat16],
+        'shapes': [[1024]],
+        'capacity': 128,
+        'container': '',
+        'shared_name': '',
+        'name': 'bfloat_queue'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
+    
+    # Input 9: Multiple components with no shape constraints.
+    input_dict_9 = {
+        'component_types': [tf.int8, tf.float16, tf.string],
+        'shapes': [],
+        'capacity': 64,
+        'container': '',
+        'shared_name': '',
+        'name': 'multi_unshaped_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 10: Three components with different shapes.
+    # Input 10: Using tf.TensorShape objects for shapes.
     input_dict_10 = {
-        'component_types': [tf.int32, tf.float32, tf.string],
-        'shapes': [[1], [2, 2], []],
-        'capacity': 15,
+        'component_types': [tf.float32, tf.int32],
+        'shapes': [tf.TensorShape([None, 10]), tf.TensorShape([None])],
+        'capacity': 32,
         'container': '',
         'shared_name': '',
-        'name': 'fifo_queue_10'
+        'name': 'partial_shape_queue'
     }
     list_of_inputs.append(copy.deepcopy(input_dict_10))
 

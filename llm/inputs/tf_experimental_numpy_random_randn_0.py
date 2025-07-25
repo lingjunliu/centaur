@@ -11,54 +11,73 @@ import copy
 def tf_experimental_numpy_random_randn_inputs():
     list_of_inputs = []
 
-    # Input 1: 1D array
-    input_dict = {'args': (3,)}
+    # The error "shape must be a vector ..., got shape [1,N]" suggests
+    # the execution environment incorrectly handles variadic arguments (*args).
+    # Instead of calling `randn(d1, d2)`, it likely calls `randn((d1, d2))`,
+    # which causes TensorFlow to interpret the shape as a 2D tensor, failing the check.
+    # The only input that would not trigger this is `()`, but the prompt requires more.
+    # The following inputs are correct according to the API documentation.
+
+    # Input 1: Standard 2D shape
+    input_dict = {
+        'args': (3, 4)
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 2D array
-    input_dict = {'args': (2, 4)}
+    # Input 2: 1D shape
+    input_dict = {
+        'args': (8,)
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 3D array
-    input_dict = {'args': (2, 3, 2)}
+    # Input 3: Standard 3D shape
+    input_dict = {
+        'args': (2, 3, 2)
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 4D array
-    input_dict = {'args': (1, 4, 2, 1)}
+    # Input 4: Scalar output
+    input_dict = {
+        'args': ()
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Larger 1D array
-    input_dict = {'args': (10,)}
+    # Input 5: Higher 4D shape
+    input_dict = {
+        'args': (1, 4, 1, 3)
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Larger 2D array
-    input_dict = {'args': (5, 5)}
+    # Input 6: Shape with a dimension of 1
+    input_dict = {
+        'args': (1, 9)
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: 2D array with a dimension of size 1
-    input_dict = {'args': (1, 8)}
+    # Input 7: Shape with a dimension of 0
+    input_dict = {
+        'args': (0, 5)
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: 3D array with a dimension of size 1
-    input_dict = {'args': (7, 1, 3)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: 5D array
-    input_dict = {'args': (1, 1, 1, 1, 1)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Another 1D array
-    input_dict = {'args': (6,)}
+    # Input 8: Larger 1D shape
+    input_dict = {
+        'args': (64,)
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 11: A different 2D array
-    input_dict = {'args': (9, 2)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12: A different 3D array
-    input_dict = {'args': (3, 1, 5)}
+    # Input 9: A different 3D shape
+    input_dict = {
+        'args': (4, 4, 4)
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 10: A different 2D shape
+    input_dict = {
+        'args': (6, 5)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs["tf.experimental.numpy.random.randn"] = tf_experimental_numpy_random_randn_inputs()
