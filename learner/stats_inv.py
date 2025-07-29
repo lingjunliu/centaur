@@ -48,14 +48,15 @@ def main():
     apis_without_invariants = set(supported_apis) - apis_with_invariants
     
     corpus_folder = get_dir_in_root(f"corpus_{lib}")
-
-    apis_with_models = set()
-    for api in supported_apis:
-        api_path = os.path.join(corpus_folder, api)
-        if os.path.isdir(api_path):
-            n_models = len(os.listdir(api_path))
-            if n_models > 0:
-                apis_with_models.add(api)
+                
+    for variation in supported_variations:
+        model_path = os.path.join(corpus_folder, variation)
+        if os.path.isdir(model_path):
+            api, suffix = get_api_suffix(variation)
+            if api in supported_apis:
+                n_models = len(os.listdir(model_path))
+                if n_models > 0:
+                    apis_with_models.add(api)
     
     apis_without_models = set(supported_apis) - apis_with_models
 
