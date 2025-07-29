@@ -48,7 +48,8 @@ def main():
     apis_without_invariants = set(supported_apis) - apis_with_invariants
     
     corpus_folder = get_dir_in_root(f"corpus_{lib}")
-                
+
+    apis_with_models = set()
     for variation in supported_variations:
         model_path = os.path.join(corpus_folder, variation)
         if os.path.isdir(model_path):
