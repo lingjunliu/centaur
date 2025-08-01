@@ -6,11 +6,11 @@ import pickle
 import sys
 
 from z3 import *
-from .z3 import load_existing_models
+from .z3 import load_existing_models, load_abstract_inputs
 from utils.z3_utils import instantiate_args, create_z3_args
 from utils.new_api_utils import get_n_variations, get_lib_version, get_signature
 from utils.misc import create_subdir, get_tmp_dir, get_dir_in_root
-from generator.input_generators import abstract_print
+from generator.input_generators import abstract_print, concretize_input
 from eval.oracle import oracle_crash
 
 import logging
@@ -27,7 +27,7 @@ def save_state(api, n_models, nominal, invalid, crash, excp, generated_inputs, t
     with open(os.path.join(input_dir, f"{api}_{lib}_inputs.pkl"), "wb") as f_in:
         pickle.dump(generated_inputs, f_in)
 
-def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_details=False, use_reference=False):
+def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_details=False, use_reference=False, use_abstracts=True):
     api = get_lib_version(api, lib=lib)
 
     # Initialize directories
@@ -82,7 +82,7 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
         cur_sig = get_signature(api, lib=lib, suffix=suffix)
         model_collection[suffix]["z3_args"] = create_z3_args(cur_sig)
         if os.path.exists(model_dir):
-            model_collection[suffix]["models"] = load_existing_models(model_dir, model_collection[suffix]["z3_args"])
+            model_collection[suffix]["models"] = load_abstract_inputs(model_dir, cur_sig, lib=lib) if use_abstracts else load_existing_models(model_dir, model_collection[suffix]["z3_args"])
         else:
             print(f"No existing models directory found for {api}_{suffix} (expected {model_dir}). Skipping.")
             continue
@@ -126,7 +126,12 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
         model = temp_model_collection[selected_suffix]['models'][selected_model]
         cur_sig = get_signature(api, lib=lib, suffix=selected_suffix)
         
-        concrete_input, abstract_input = instantiate_args(model, cur_sig, model_collection[selected_suffix]['z3_args'], seed=seed, lib=lib)
+        if use_abstracts:
+            abstract_input = model
+            concrete_input = concretize_input(abstract_input, cur_sig, rng=np.random.default_rng(seed))
+        else:
+            concrete_input, abstract_input = instantiate_args(model, cur_sig, model_collection[selected_suffix]['z3_args'], seed=seed, lib=lib)
+
         generated_inputs.append((0, abstract_input, seed, selected_suffix))  # first element is distance, set as 0 for consistency
         
         # Print the abstract input if print_details is True

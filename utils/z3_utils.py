@@ -228,6 +228,37 @@ def model_to_abs(model, signature, z3_args):
 
     return abstract_args
 
+def get_abstract_from_dict(json_dict, signature, lib="torch"):
+    """
+    Convert the saved JSON object to an abstract input.
+    """
+    list_of_string_values = list_of_string_values_torch if lib == "torch" else list_of_string_values_tf
+    abstract_input = {}
+    for key, value in json_dict.items():
+        if key in signature:
+            domain = signature[key]
+            if domain in ["tensor", "tensor_list"]:
+                abstract_input[key] = [elem if isinstance(elem, list) else [elem] for elem in value]
+            elif domain in ["list", "tuple"]:
+                abstract_input[key] = [value[0], [list_of_available_dtypes.index(np.int64)], [np.min(value[0]), np.max(value[0])]]
+            elif domain == "integer":
+                abstract_input[key] = [[value[0]], [value[1]], [value[0], value[0]]]
+            elif domain == "float":
+                val = value[0][0]/value[0][1] if value[0][1] > 0 else 0
+                abstract_input[key] = [[val], [value[1]], [val, val]]
+            elif domain == "string":
+                abstract_input[key] = [[list_of_string_values[value[0]]], [list_of_available_dtypes.index(str)], [list_of_string_values[value[0]], list_of_string_values[value[0]]]]
+            elif domain == "dtype":
+                abstract_input[key] = [[list_of_available_dtypes[value[0]]], [list_of_available_dtypes.index(np.dtype)], [list_of_available_dtypes[value[0]], list_of_available_dtypes[value[0]]]]
+            elif domain == "boolean":
+                abstract_input[key] = [[value[0]], [list_of_available_dtypes.index(bool)], [value[0], value[0]]]
+            else:
+                raise ValueError(f"Unsupported domain: {domain}")
+        else:
+            raise ValueError(f"Key {key} not found in signature.")
+
+    return abstract_input
+
 def instantiate_args(model, signature, z3_args, seed=42, lib="torch", sample_range=True):
     concrete_args = {}
     abstract_args = {}
