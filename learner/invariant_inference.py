@@ -327,17 +327,17 @@ def main():
     
     api, suffix = get_api_suffix(variant)
     # Try random generation for 60 seconds
-    # list_of_true_inv_apis = read_file_in_root(f"True_invariants_{lib}")
-    # if variant not in list_of_true_inv_apis:
-    #     print(f"Running random generation for {api} with suffix {suffix} for 60 seconds to collect baseline validity ratio.")
-    #     valid, invalid, crash = random_fuzz(api, seed=42, duration=60, lib=lib)
-    #     if invalid + crash == 0:
-    #         print(f"API {api} does not throw exceptions with random inputs after running for 60 seconds. No invariants will be inferred.")
-    #         append_file_in_root(f"True_invariants_{lib}", f"{variant}\n")
-    #         return
-    # else:
-    #     print(f"True invariants for {variant} already exist. Skipping random generation AND invariant inference.")
-    #     return
+    list_of_true_inv_apis = read_file_in_root(f"True_invariants_{lib}")
+    if variant not in list_of_true_inv_apis:
+        print(f"Running random generation for {api} with suffix {suffix} for 60 seconds to collect baseline validity ratio.")
+        valid, invalid, crash = random_fuzz(api, seed=42, duration=60, lib=lib)
+        if invalid + crash == 0:
+            print(f"API {api} does not throw exceptions with random inputs after running for 60 seconds. No invariants will be inferred.")
+            append_file_in_root(f"True_invariants_{lib}", f"{variant}\n")
+            return
+    else:
+        print(f"True invariants for {variant} already exist. Skipping random generation AND invariant inference.")
+        return
     
     list_of_rulesets = infer_invariants(api, print_details=True, regen=regen, time_budget=budget, z3=True, lib=lib, suffix=suffix)
     
