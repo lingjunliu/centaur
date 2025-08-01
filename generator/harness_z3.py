@@ -193,7 +193,7 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
     logger.info(f"Fuzzing completed for {api}. Total inputs: {total}, Nominal: {nominal}, Invalid: {invalid}, Crash: {crash}, Exception: {excp}.")
     total_time = time.time() - start
     valid_prcnt = round((total-invalid)*100/total,2) if total > 0 else 0
-    print(f"Models (average): {n_models} | Nominal: {nominal} | Invalid: {invalid} | Crash: {crash} | Exception: {excp} | Total {total} | Validity Rate: {valid_prcnt}%")
+    print(f"Duration: {elapsed} | Models (average): {n_models} | Nominal: {nominal} | Invalid: {invalid} | Crash: {crash} | Exception: {excp} | Total {total} | Validity Rate: {valid_prcnt}%")
     
     save_state(api, n_models, nominal, invalid, crash, excp, generated_inputs, tmp_results, input_dir, lib=lib)
         
