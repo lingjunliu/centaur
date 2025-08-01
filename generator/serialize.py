@@ -17,6 +17,9 @@ def load_model(model_data, z3_args):
     solver = Solver()
     variables = extract_z3_variables(z3_args)
     for name, info in model_data.items():
+        if name not in variables:
+            print(f"Warning: Variable {name} not found in z3_args.")
+            continue
         var = variables[name]
         if info["type"] == "Int":
             solver.add(var == int(info["value"]))

@@ -176,6 +176,58 @@ def collect_neg_constraint(solver, api, rule, z3_args, use_reference=False):
        
     rule_func(*arg_dicts, solver=solver, neg=True)
 
+def model_to_abs(model, signature, z3_args):
+    """
+    Convert a Z3 model to an abstract input.
+    """
+    abstract_args = {}
+
+    for param_name, z3_var in z3_args.items():
+        param_type = signature[param_name]
+        abstract_args[param_name] = []
+        value = None
+        dtype = None
+        value_range = None
+
+        if param_type == "tensor" or param_type == "tensor_list":
+            ndim = model.eval(z3_var['ndim'], model_completion=True).as_long()
+            value = [model.eval(Select(z3_var['shape'], i), model_completion=True).as_long() for i in range(ndim)]
+            dtype = model.eval(z3_var['dtype'], model_completion=True).as_long()
+            low = model.eval(Select(z3_var['range'], 0), model_completion=True).as_long()
+            high = model.eval(Select(z3_var['range'], 1), model_completion=True).as_long()
+            
+            value_range = [low, high]
+            
+        elif param_type in ["list", "tuple"]:
+            length = model.eval(z3_var['length'], model_completion=True).as_long()
+            values = z3_var['values']
+
+            value = [model.eval(Select(values, i), model_completion=True).as_long() for i in range(length)]
+            
+        elif param_type == "integer":
+            value = model.eval(z3_var['value'], model_completion=True).as_long()
+            dtype = model.eval(z3_var['dtype'], model_completion=True).as_long()
+            
+        elif param_type == "float":
+            value = model.eval(z3_var['value'], model_completion=True).as_fraction()
+            dtype = model.eval(z3_var['dtype'], model_completion=True).as_long()
+            value = [value.numerator, value.denominator]
+            
+        elif param_type in ["string", "dtype"]:
+            value = model.eval(z3_var['value'], model_completion=True).as_long()
+            
+        elif param_type == "boolean":
+            value = is_true(model.eval(z3_var['value'], model_completion=True))
+
+        if value is not None:
+            abstract_args[param_name].append(value)
+        if dtype is not None:
+            abstract_args[param_name].append(dtype)
+        if value_range is not None:
+            abstract_args[param_name].append(value_range)
+
+    return abstract_args
+
 def instantiate_args(model, signature, z3_args, seed=42, lib="torch", sample_range=True):
     concrete_args = {}
     abstract_args = {}

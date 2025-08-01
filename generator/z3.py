@@ -4,6 +4,7 @@ from z3 import *
 from .input_generators import abstract_print
 from .definitions import get_definition
 from .serialize import load_model, save_model
+from .abstractify import convert_model_to_abs
 from utils.defaults import MAX_N_DIM, int_buckets, float_buckets
 from utils.misc import create_subdir, get_tmp_dir, get_dir_in_root, bcolors, read_file_in_root
 from utils.new_api_utils import get_lib_version, get_api_suffix
@@ -311,6 +312,8 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
 def load_existing_models(corpus_dir, z3_args):
     models = []
     for model_file in sorted(os.listdir(corpus_dir)):
+        if not model_file.startswith("model-") or not model_file.endswith(".json"):
+            continue
         model_path = os.path.join(corpus_dir, model_file)
         with open(model_path, "r") as f:
             model_data = json.load(f)
@@ -353,6 +356,8 @@ def run_model_gen(variant, duration, n_max, lib, seed, regen, use_reference=Fals
     if os.path.exists(corpus_dir) and not regen:
         models = load_existing_models(corpus_dir, z3_args)
         print(f"Loaded {len(models)} existing models for {api}")
+        convert_model_to_abs(api, lib=lib)
+        print(f"Abstracted {len(models)} models for {api} with suffix {suffix}")
     else:
         if os.path.exists(corpus_dir):
             print(f"Removing existing corpus directory: {corpus_dir}")
@@ -361,6 +366,8 @@ def run_model_gen(variant, duration, n_max, lib, seed, regen, use_reference=Fals
         start_time = time.time()
         models = gen_models(definition, api, z3_args, duration, max_model=n_max, seed=seed, print_details=print_details, corpus_dir=corpus_dir, return_models=False, use_reference=use_reference, lib=lib)
         print(f"{bcolors.OKBLUE}Model generation took {time.time()-start_time} s{bcolors.ENDC}")
+        convert_model_to_abs(api, lib=lib)
+        print(f"Abstracted {len(models)} models for {api} with suffix {suffix}")
     
 
 def main():
