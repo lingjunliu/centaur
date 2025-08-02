@@ -143,6 +143,9 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
 
     elapsed = 0
     start = time.time()
+    timestamp_file = os.path.join(corpus_dir, "timestamps.csv") if corpus_dir else None
+    with open(timestamp_file, "w") as ft:
+        ft.write("model,timestamp\n")
 
     # initialization
     solver_main = Solver()
@@ -278,7 +281,10 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
                     models.append(model)
                 # Save the model
                 if corpus_dir:
+                    timestamp = time.time() - start
                     path = os.path.join(corpus_dir, f"model-{num_model}.json")
+                    with open(timestamp_file, "a") as ft:
+                        ft.write(f"model-{num_model},{timestamp}\n")
                     save_model(model, path)
                 num_model += 1
                 
