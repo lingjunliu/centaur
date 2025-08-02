@@ -141,8 +141,6 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
     blocking_proba = 0.3
     partition_proba = 0.3
 
-    elapsed = 0
-    start = time.time()
     timestamp_file = os.path.join(corpus_dir, "timestamps.csv") if corpus_dir else None
     with open(timestamp_file, "w") as ft:
         ft.write("model,timestamp\n")
@@ -170,6 +168,8 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
 
     solve_times = []
     check_times = []
+    elapsed = 0
+    start = time.time()
     start_time = time.time()
     while elapsed < model_gen_duration and (num_model < max_model or max_model == 0):
         # Strategy #3: Partitioning the solver for boolean variables and add different ranges
