@@ -1,7 +1,7 @@
 #!/bin/bash
 
 n_inputs=${1:-0}      # Pass 0 to run for all inputs, otherwise, mention value
-lib=${2:-torch}       # Lib: torch or tf
+lib=${2:-tf}       # Lib: torch or tf
 n_proc=${3:-100}      # Number of processes to run in parallel
 method=${4:-html}     # Method to run, default is html (supports lcov too)
 native=${5:-False}    # Limit the coverage to the native folder only (only applicable to the html method)

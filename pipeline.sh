@@ -40,4 +40,13 @@ bash scripts/fuzz_with_slurm.sh 180 0 $lib $seed
 if [ "$lib" = "torch" ]; then
   # Step 4: Collect coverage: <n_inputs>
   bash scripts/coverage_with_slurm.sh 0 $lib html False
+elif [ "$lib" = "tf" ]; then
+  # Step 4: Collect coverage using Docker
+  docker build -t tf_216_instr_im . -f instrumented_tf/Dockerfile
+  docker run --name tf_216_instr tf_216_instr_im bash -c "cd /workspace/repo && bash scripts/coverage_parallel.sh 0 tf ${max_parallel} html False"
+  docker cp tf_216_instr:/workspace/repo/.tmp/coverage_tf.csv .tmp/coverage_tf.csv
+  docker rm -f tf_216_instr
+else
+  echo "Error: Unsupported library '$lib'. Supported libraries are 'torch' and 'tf'."
+  exit 1
 fi
