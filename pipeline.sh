@@ -5,7 +5,7 @@
 
 if [ "$#" -eq 0 ]; then
   echo "Error: No arguments provided."
-  echo "Usage: $0 <library> (torch or tf"
+  echo "Usage: $0 <library> (torch or tf)"
   exit 1
 fi
 
