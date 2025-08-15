@@ -14,11 +14,12 @@ retry=${2:-0} # Retry flag (0 means no retry, 1 means retry cancelled jobs)
 seed=200      # Seed for random number generation
 
 # Set environment variables for Slurm
-export max_parallel=160          # Maximum number of parallel jobs (set this based on the number of slurm jobs you want to spawn to run at the same time)
+export max_parallel=160         # Maximum number of parallel jobs (set this based on the number of slurm jobs you want to spawn to run at the same time)
 export max_memory_usage=90      # Maximum memory usage in percentage (set this based on the percentage of memory you do not want to exceed)
+export max_memory_docker=400G   # Maximum memory for Docker container for TensorFlow Coverage (set this based on the memory you want to allocate for Docker)
 
 # Step 1: Infer invariants: <duration> <regen> <library>
-bash scripts/infer_invariants_with_slurm.sh 1200 1 $lib
+bash scripts/infer_invariants_with_slurm.sh 1200 0 $lib
 if [ "$retry" -eq 1 ]; then
   # Cancelled jobs due to memory issues are retried
   python -m utils.parse_cancelled_jobs $lib
@@ -27,7 +28,7 @@ if [ "$retry" -eq 1 ]; then
   export elements_file=${lib}_variations.txt  # Restore elements file for the next steps
 fi
 # Step 2: Generate models: <duration> <n_models> <library> <seed> <regen>
-bash scripts/generate_models_with_slurm.sh 3600 0 $lib $seed 1
+bash scripts/generate_models_with_slurm.sh 3600 0 $lib $seed 0
 if [ "$retry" -eq 1 ]; then
   # Cancelled jobs due to memory issues are retried
   python -m utils.parse_cancelled_jobs $lib
@@ -41,9 +42,13 @@ if [ "$lib" = "torch" ]; then
   # Step 4: Collect coverage: <n_inputs>
   bash scripts/coverage_with_slurm.sh 0 $lib html False
 elif [ "$lib" = "tf" ]; then
-  # Step 4: Collect coverage using Docker
+  # Step 4: Collect coverage using Docker (Put resource limits here)
   docker build -t tf_216_instr_im . -f instrumented_tf/Dockerfile
-  docker run --name tf_216_instr tf_216_instr_im bash -c "cd /workspace/repo && bash scripts/coverage_parallel.sh 0 tf ${max_parallel} html False"
+  docker run \
+  --name tf_216_instr tf_216_instr_im bash \
+  --memory=${max_memory_docker} \
+  --cpus=${max_parallel} \
+  -c "cd /workspace/repo && bash scripts/coverage_parallel.sh 0 tf ${max_parallel} html False"
   docker cp tf_216_instr:/workspace/repo/.tmp/coverage_tf.csv .tmp/coverage_tf.csv
   docker rm -f tf_216_instr
 else
