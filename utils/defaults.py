@@ -29,25 +29,20 @@ float_buckets = [0, 1.0, MAX_N_DIM, MAX_SZ_DIM, np.finfo(np.float16).max, np.fin
 
 # For PyTorch
 list_of_string_values_torch = [
-    "ii",
-    "ii->i",
-    "i,j->ij",
-    "bij,bjk->bik",
-    "...ij->...ji",
-    "bn,anm,bm->ba",
-    "none",
-    "mean",
-    "sum",
-    "max",
-    "constant",
-    "tanh",
+    "ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba",
+    "none", "mean", "sum", "max", "min",
+    "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear",
+    "constant", "reflect", "replicate", "circular",
+    "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"
 ]
 
 # For TensorFlow
 list_of_string_values_tf = [
-    "ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none",
-    "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax",
-    "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"
+    "ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba",
+    "none", "sum", "max", "min", "prod",
+    "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear",
+    "valid", "same", "causal",
+    "channels_last", "channels_first"
 ]
 
 domain_limits_torch = {
