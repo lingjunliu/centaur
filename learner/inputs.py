@@ -300,7 +300,7 @@ def augment_one_input(input_dict, signature, lib="torch", rng=np.random.default_
     mutated_inputs = []
     
     if not match_signature_to_input(input_dict, signature, match_type=True):
-        print(f"{bcolors.WARNING}Skipping input at index {i} as it does not match the signature:\n{signature}{bcolors.ENDC}")
+        # print(f"{bcolors.WARNING}Skipping input at index {i} as it does not match the signature:\n{signature}{bcolors.ENDC}")
         return []  # Skip inputs that do not match the signature
     
     for mutator in mutators:

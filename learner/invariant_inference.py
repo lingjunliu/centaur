@@ -29,7 +29,7 @@ def read_invariants(invariant_file):
     return ruleset
 
 def print_rules(api, ruleset):
-    if len(ruleset) > 0:
+    if ruleset is not None and len(ruleset) > 0:
         print(f"Rules passed for {api}:")
         for arity, rule_name, *args in ruleset:
             print(f"- {rule_name} with arity {arity} on args {args}")
@@ -296,6 +296,9 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
             print(f"Invariant inference took {time.time()-start_time:.2f} seconds\n")
             if print_details:
                 print_rules(variant, ruleset)
+
+            if ruleset is None:
+                continue
 
             # Refining stage: If removing a rule does not decrease the validity ratio, remove it
             print(f"Started rule refinement stage for api {api} (suffix {suff})")
