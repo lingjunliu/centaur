@@ -85,7 +85,7 @@ class Z3ExprTransformer(Transformer):
             cond, then_expr, else_expr = items
         else:
             cond, then_expr = items
-            else_expr = "False"
+            else_expr = "True"
 
         return f"If({cond}, {then_expr}, {else_expr})"
 
