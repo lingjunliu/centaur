@@ -279,7 +279,7 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
                 
                 mutated_inputs = augment_one_input(input_dict, api_signature, lib=lib, rng=rng)
                 for mutated_input in mutated_inputs:
-                    ruleset, status, exception_message = update_ruleset(api, input_dict, ruleset=ruleset, lib=lib)
+                    ruleset, status, exception_message = update_ruleset(api, mutated_input, ruleset=ruleset, lib=lib)
                     if status == "nominal":
                         valid += 1
                     else:
