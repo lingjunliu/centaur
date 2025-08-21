@@ -20,6 +20,7 @@ job_name=inf
 
 PROJECT_DIR=`dirname "$(realpath "$0")"`/..
 tmp_results=$PROJECT_DIR/.tmp/infer_results_${lib}
+mkdir -p ${tmp_results}
 result=$PROJECT_DIR/.tmp/infer_result_${lib}.csv
 echo "api,valid,invalid,valid_prcnt" > ${result}
 
