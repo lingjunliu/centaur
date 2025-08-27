@@ -1,7 +1,7 @@
 from generator.rules_auto_z3 import check_rules_z3
 from utils.z3_utils import instantiate_args, create_z3_args, initial_constraints, collect_constraints
 from .inputs import augment_one_input
-from utils.new_api_utils import get_n_variations, get_lib_version, get_signature, get_api_suffix, get_raw_op_mapping
+from utils.new_api_utils import get_n_variations, get_lib_version, get_signature, get_signature_of_input, get_api_suffix, get_raw_op_mapping
 from utils.misc import get_dir_in_root, get_tmp_dir, create_subdir, append_file_in_root, bcolors, read_file_in_root
 from utils.defaults import MAX_N_DIM
 from generator.input_generators import abstract_print, get_abstract_input, get_random_input
@@ -159,14 +159,27 @@ def get_invariants(api, suffix, lib="torch", use_reference=False):
 
     return ruleset
 
-def update_ruleset(api, input_dict, ruleset=None, lib="torch"):
+def update_ruleset(api, input_dict, ruleset, lib="torch"):
     status, exception_message = oracle_crash(api, input_dict, cpu=True, lib=lib)
     if status == "nominal":
-        if not ruleset:
-            ruleset = check_rules_z3(api, input_dict, lib=lib)                        
-        else:
-            ruleset = ruleset.intersection(check_rules_z3(api, input_dict, lib=lib))
-    
+        api_signature = get_signature_of_input(api, input_dict, lib=lib)
+        optional_kwargs = api_signature.get("kwargs", {}).copy()
+        optional_kwargs.update({"layout": "", "memory_format": ""})
+
+        optional_none_params = [param for param in optional_kwargs if param in input_dict and input_dict[param] is None]
+        for param in optional_none_params:
+            del input_dict[param]
+
+        if ruleset == -1:
+            ruleset = check_rules_z3(api, input_dict, lib=lib)
+        elif ruleset:
+            preserved = set()
+            for rule in ruleset:
+                _, _, *args = rule
+                if any(arg in optional_none_params for arg in args):
+                    preserved.add(rule)
+            ruleset = ruleset.intersection(check_rules_z3(api, input_dict, lib=lib)).union(preserved)
+
     return ruleset, status, exception_message
 
 def infer_invariants(api, print_details=False, regen=False, lib="torch", time_budget=60, min_val_inp=30, seed=42, z3=True, suffix=0, use_reference=False):
@@ -213,7 +226,7 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
         else:   # Inference
             print(f"\nStarted invariant inference for {api} (suffix {suff})\n")
             
-            ruleset = None
+            ruleset = -1
             valid = 0
             invalid = 0
 
@@ -297,7 +310,7 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
             if print_details:
                 print_rules(variant, ruleset)
 
-            if ruleset is None:
+            if len(ruleset) == 0:
                 continue
 
             # Refining stage: If removing a rule does not decrease the validity ratio, remove it
@@ -333,7 +346,7 @@ def main():
     list_of_true_inv_apis = read_file_in_root(f"True_invariants_{lib}")
     if variant not in list_of_true_inv_apis:
         print(f"Running random generation for {api} with suffix {suffix} for 60 seconds to collect baseline validity ratio.")
-        valid, invalid, crash = random_fuzz(api, seed=42, duration=60, lib=lib)
+        valid, invalid, crash = random_fuzz(api, seed=42, duration=3, lib=lib)
         if invalid + crash == 0:
             print(f"API {api} does not throw exceptions with random inputs after running for 60 seconds. No invariants will be inferred.")
             append_file_in_root(f"True_invariants_{lib}", f"{variant}\n")

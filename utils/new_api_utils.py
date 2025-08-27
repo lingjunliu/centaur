@@ -104,6 +104,8 @@ def match_signature(api, signature, lib="torch"):
 
 def match_signature_to_input(input_dict, signature, match_type=False):
     for arg, value in input_dict.items():
+        if arg == "layout" or arg == "memory_format":
+            continue
         if arg not in signature:
             return False
         if match_type:
