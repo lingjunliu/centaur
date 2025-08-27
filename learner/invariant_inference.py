@@ -346,7 +346,7 @@ def main():
     list_of_true_inv_apis = read_file_in_root(f"True_invariants_{lib}")
     if variant not in list_of_true_inv_apis:
         print(f"Running random generation for {api} with suffix {suffix} for 60 seconds to collect baseline validity ratio.")
-        valid, invalid, crash = random_fuzz(api, seed=42, duration=3, lib=lib)
+        valid, invalid, crash = random_fuzz(api, seed=42, duration=60, lib=lib)
         if invalid + crash == 0:
             print(f"API {api} does not throw exceptions with random inputs after running for 60 seconds. No invariants will be inferred.")
             append_file_in_root(f"True_invariants_{lib}", f"{variant}\n")
