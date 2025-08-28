@@ -8,7 +8,7 @@ import sys
 from z3 import *
 from .z3 import load_existing_models, load_abstract_inputs
 from utils.z3_utils import instantiate_args, create_z3_args
-from utils.new_api_utils import get_n_variations, get_lib_version, get_signature
+from utils.new_api_utils import get_n_variations, get_lib_version, get_signature, get_signature_of_input
 from utils.misc import create_subdir, get_tmp_dir, get_dir_in_root
 from generator.input_generators import abstract_print, concretize_input
 from eval.oracle import oracle_crash
@@ -131,7 +131,18 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
             concrete_input = concretize_input(abstract_input, cur_sig, rng=np.random.default_rng(seed))
         else:
             concrete_input, abstract_input = instantiate_args(model, cur_sig, model_collection[selected_suffix]['z3_args'], seed=seed, lib=lib)
+        
+        full_sig = get_signature_of_input(api, concrete_input, lib=lib)
 
+        optional_params = set(full_sig.get("kwargs", {}).keys())
+        optional_params.update(['layout', 'memory_format'])
+        optional_none_prob = 0.2
+
+        for param in optional_params:
+            if param in concrete_input and rng_model.random() < optional_none_prob:
+                concrete_input[param] = None
+                abstract_input[param][0] = [None]
+        
         generated_inputs.append((0, abstract_input, seed, selected_suffix))  # first element is distance, set as 0 for consistency
         
         # Print the abstract input if print_details is True
@@ -188,7 +199,7 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
         # Don't reuse the same model until all models have been used
         del temp_model_collection[selected_suffix]['models'][selected_model]
         if len(temp_model_collection[selected_suffix]['models']) == 0:
-            temp_model_collection[selected_suffix]['models'] = copy.deepcopy(model_collection[suffix]['models'])
+            temp_model_collection[selected_suffix]['models'] = copy.deepcopy(model_collection[selected_suffix]['models'])
 
     logger.info(f"Fuzzing completed for {api}. Total inputs: {total}, Nominal: {nominal}, Invalid: {invalid}, Crash: {crash}, Exception: {excp}.")
     total_time = time.time() - start
