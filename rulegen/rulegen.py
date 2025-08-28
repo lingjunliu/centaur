@@ -1,8 +1,13 @@
 from lark import Lark
-import os, re, time, random, json
+import os, re, time, random, json, sys
 import google.generativeai as genai
 import torch, inspect, pkgutil, types, inspect
+import tensorflow as tf
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from collections import defaultdict
+from utils.defaults import list_of_string_values_torch, list_of_string_values_tf
+from utils.new_api_utils import get_signature, get_n_variations
 
 with open("grammar.lark", "r", encoding="utf-8") as f:
     grammar = f.read()
@@ -23,8 +28,9 @@ def list_all_apis(signature_path="../signatures.json"):
     apis = list({strip_suffix(k) for k in signatures.keys()})
     return apis 
 
-def load_api_errors():
-    err_file = os.path.join(os.path.dirname(__file__), "err_messages_torch")
+def load_api_errors(lib):
+    filename = "err_messages_torch" if lib == "torch" else "err_messages_tf"
+    err_file = os.path.join(os.path.dirname(__file__), filename)
     api_to_errors = defaultdict(list)
 
     with open(err_file, "r") as f:
@@ -45,12 +51,15 @@ def load_api_errors():
     return api_to_errors
 
 api_list = list_all_apis()
-api_to_errors = load_api_errors()
+# api_to_errors = load_api_errors()
 
 def get_doc_by_name(full_name):
     parts = full_name.split('.')
     try:
-        obj = __import__(parts[0])
+        if parts[0] in globals():
+            obj = globals()[parts[0]]
+        else:
+            obj = __import__(parts[0])
         for part in parts[1:]:
             obj = getattr(obj, part)
         return obj.__doc__ or ""
@@ -76,12 +85,12 @@ def log_response(label, prompt, response, dir_path, num_failures=0):
         else:
             log_file.write("\n\n")
 
-def generate_rules(api, max_failures=100, timeout=60):
+def generate_rules(api, lib, max_failures=100, timeout=60):
     num_failures = 0
     num_rules = 1
     rule_defs = set()
 
-    dir_path = os.path.join("../rules-torch", api)
+    dir_path = os.path.join("../rules-torch" if lib == "torch" else "../rules-tf", api)
     os.makedirs(dir_path, exist_ok=True)
     file_path = os.path.join(dir_path, "rules-ebnf")
 
@@ -163,10 +172,15 @@ def generate_rules(api, max_failures=100, timeout=60):
         # error_msg = random.choice(api_to_errors[api])
         # safe_error_msg = error_msg.replace('"', '\\"')
 
+        display_api = api.replace("tf.", "tensorflow.") if lib == "tf" else api
+
         prompt += "\n[Task Description]\n"
-        prompt += f"Define rules that {api} API parameters should satisfy. Refer to the API documentation. "
+        prompt += f"Define rules that {display_api} API parameters should satisfy. Refer to the API documentation. "
         
-        errors = api_to_errors.get(api, [])
+        api_to_errors = load_api_errors(lib)
+        lookup_key = api.replace('.', '_') if lib == "tf" else api
+        errors = api_to_errors.get(lookup_key, [])
+
         if errors:
             prompt += "Particularly, there should be at least one rule to suppress each error message.\n\n"
         else:
@@ -180,13 +194,31 @@ def generate_rules(api, max_failures=100, timeout=60):
         prompt += "[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, "
         prompt += "np.complex64, np.complex128, str, np.dtype]\n\n"
         prompt += "String value should be selected from the following list:\n"
-        prompt += '["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", '
-        prompt += '"mean", "sum", "max", "constant", "tanh"]\n\n'
+        string_values = list_of_string_values_torch if lib == "torch" else list_of_string_values_tf
+        prompt += json.dumps(string_values) + "\n\n"
 
         doc_str = get_doc_by_name(api)
         if doc_str:
             prompt += "[API Documentation]\n"
             prompt += doc_str.lstrip().rstrip() + "\n\n"
+
+        try:
+            n_sigs = get_n_variations(api, lib=lib)
+            if n_sigs == 1:
+                sig = get_signature(api, lib=lib, suffix=0)
+                param_list = [f"{param}: {ptype}" for param, ptype in sig.items()]
+                joined = ", ".join(param_list)
+                prompt += f"[API Signature] {joined}\n\n"
+            elif n_sigs > 1:
+                prompt += "[Possible API Signatures]\n"
+                for i in range(1, n_sigs + 1):
+                    sig = get_signature(api, lib=lib, suffix=i)
+                    param_list = [f"{param}: {ptype}" for param, ptype in sig.items()]
+                    joined = ", ".join(param_list)
+                    prompt += f" - {joined}\n"
+                prompt += "\n"
+        except Exception as e:
+            pass
 
         if errors:
             prompt += "[Error Messages]\n"
@@ -208,6 +240,8 @@ def generate_rules(api, max_failures=100, timeout=60):
         # prompt += f"** IMPORTANT: Bindings should be from {{{params_str}}} and include only variables that are used in the expression. **\n"
         prompt += "** IMPORTANT: Variables should be named v_1, v_2, and so on. **\n"
         prompt += "** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **\n"
+        prompt += "** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **\n"
+        prompt += "** IMPORTANT: For module classes returning instances, include rules for their parameters. **\n"
 
         response = chat.send_message(prompt)
         response = response.text.strip().replace('\u2212', '-').replace(' else true', '')
@@ -281,8 +315,19 @@ def generate_rules(api, max_failures=100, timeout=60):
         feedback = "\n".join(feedback_messages)
 
 def main():
-    for api in api_list:
-        generate_rules(api)
+    if len(sys.argv) != 2 or sys.argv[1] not in ("torch", "tf"):
+        print("Usage: python script.py [torch|tf]")
+        sys.exit(1)
+
+    lib = sys.argv[1]
+    if lib == "torch":
+        lib_apis = [api for api in api_list if api.startswith("torch.")]
+    else:
+        lib_apis = [api for api in api_list if api.startswith("tf.")]
+    
+    lib_apis = ["torch.zeros"]
+    for api in lib_apis:
+        generate_rules(api, lib)
 
 if __name__ == "__main__":
     main()
