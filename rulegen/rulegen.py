@@ -325,7 +325,6 @@ def main():
     else:
         lib_apis = [api for api in api_list if api.startswith("tf.")]
     
-    lib_apis = ["torch.zeros"]
     for api in lib_apis:
         generate_rules(api, lib)
 
