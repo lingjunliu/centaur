@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If reducing along all dimensions then the result has ndim = 0. (Rule 47)
+# If keepdims is false, the output tensor will have one fewer dimension than the input tensor, unless the input is a scalar (Rule 47)
 
 rule_47 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == v["arg2_length"], True, False)) if n else
-          If(v["arg1_ndim"] == v["arg2_length"], True, False))
+    s.add(Not(If(v["arg1_ndim"] == 0, True, If(v["arg2_value"], True, v["arg1_ndim"] > 0))) if n else
+          If(v["arg1_ndim"] == 0, True, If(v["arg2_value"], True, v["arg1_ndim"] > 0)))
 )
 
 def rule_47_func(arg1, arg2, solver=None, neg=False):
@@ -20,22 +20,22 @@ def rule_47_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg2_length = Int('arg2_length')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_length == len(arg2))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 47
-        rule_47(solver, {'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length})
+        rule_47(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_47(solver, {'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length']}, neg)
+        rule_47(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

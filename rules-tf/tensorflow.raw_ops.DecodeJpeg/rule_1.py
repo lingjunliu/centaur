@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# channels should be one of the allowed values: 0, 1, or 3 (Rule 1)
+# channels should be one of the accepted values (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
     s.add(Not(Or(Or(v["arg1_value"] == 0, v["arg1_value"] == 1), v["arg1_value"] == 3)) if n else

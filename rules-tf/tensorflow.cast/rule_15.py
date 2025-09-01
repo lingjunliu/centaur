@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# x is complex128 and dtype is float64 (Rule 15)
+# If x is complex, dtype should not be a real integer type (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] == 10, v["arg2_value"] == 8)) if n else
-          And(v["arg1_dtype"] == 10, v["arg2_value"] == 8))
+    s.add(Not(If((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(v["arg2_value"] == 9, v["arg2_value"] == 10)), True)) if n else
+          If((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(v["arg2_value"] == 9, v["arg2_value"] == 10)), True))
 )
 
 def rule_15_func(arg1, arg2, solver=None, neg=False):

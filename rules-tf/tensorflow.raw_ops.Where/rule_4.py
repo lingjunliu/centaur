@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# condition tensor must be of type tensor and have more than 0 elements in its shape (Rule 4)
+# The shape of condition must be non-zero (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) > 0)) if n else
-          And(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) > 0))
+    s.add(Not(Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])) if n else
+          Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]))
 )
 
 def rule_4_func(arg1, solver=None, neg=False):

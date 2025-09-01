@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# number of dimensions of input tensor should be more than 1 (Rule 4)
+# Tensor x must have at least one dimension (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] > 1) if n else
-          v["arg1_ndim"] > 1)
+    s.add(Not(v["arg1_ndim"] >= 1) if n else
+          v["arg1_ndim"] >= 1)
 )
 
 def rule_4_func(arg1, solver=None, neg=False):

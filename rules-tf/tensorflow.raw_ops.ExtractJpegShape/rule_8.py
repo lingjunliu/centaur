@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# contents should not be null (Rule 8)
+# output_type must be a valid dtype (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != 6) if n else
-          v["arg1_value"] != 6)
+    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] <= 12)) if n else
+          And(v["arg1_value"] >= 0, v["arg1_value"] <= 12))
 )
 
 def rule_8_func(arg1, solver=None, neg=False):
@@ -17,15 +17,15 @@ def rule_8_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, str):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values_tf.index(arg1))
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
 
         # Constraints for rule 8
         rule_8(solver, {'arg1_value': arg1_value})

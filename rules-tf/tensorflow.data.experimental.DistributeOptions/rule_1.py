@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# auto_shard_policy should be an integer, specifically 0, 1, or 2 representing OFF, DATA, FILE respectively (Rule 1)
+# auto_shard_policy must be an integer greater than or equal to 0 (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(Or(Or((v["arg1_value"] == 0), (v["arg1_value"] == 1)), (v["arg1_value"] == 2))) if n else
-          Or(Or((v["arg1_value"] == 0), (v["arg1_value"] == 1)), (v["arg1_value"] == 2)))
+    s.add(Not(v["arg1_value"] >= 0) if n else
+          v["arg1_value"] >= 0)
 )
 
 def rule_1_func(arg1, solver=None, neg=False):

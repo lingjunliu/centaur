@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If tensors have different dtypes, dtypes should be compatible for the minimum operation: int and float allowed (Rule 33)
+# If x1's dtype is float, x2's dtype must also be float. (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(Or(Or((And(v["arg1_dtype"] == 3, v["arg2_dtype"] == 7)), (And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 3))), v["arg1_dtype"] == v["arg2_dtype"])) if n else
-          Or(Or((And(v["arg1_dtype"] == 3, v["arg2_dtype"] == 7)), (And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 3))), v["arg1_dtype"] == v["arg2_dtype"]))
+    s.add(Not(If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, True)) if n else
+          If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, True))
 )
 
 def rule_33_func(arg1, arg2, solver=None, neg=False):

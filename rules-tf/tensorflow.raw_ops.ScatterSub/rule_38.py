@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The rank of updates has to be at least one if ref has rank more than one (Rule 38)
+# if updates is empty, the ref must also be empty (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 1, v["arg2_ndim"] >= 1, False)) if n else
-          If(v["arg1_ndim"] > 1, v["arg2_ndim"] >= 1, False))
+    s.add(Not(If(v["arg2_ndim"] == 0, v["arg1_ndim"] == 0, True)) if n else
+          If(v["arg2_ndim"] == 0, v["arg1_ndim"] == 0, True))
 )
 
 def rule_38_func(arg1, arg2, solver=None, neg=False):

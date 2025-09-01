@@ -1,276 +1,129 @@
 >>
 Rule 1 (local_step must be non-negative)
-{v_1 : int} |= v_1 ≥ 0
+{local_step : tensor} |= min(local_step) ≥ 0
 >>
-Rule 2 (gradient tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 2 (gradient's dtype should be one of the allowed types (float32, float64, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64) - represented by index)
+{gradient : tensor} |= dtype_(gradient) = 7 ∨ dtype_(gradient) = 8 ∨ dtype_(gradient) = 3 ∨ dtype_(gradient) = 5 ∨ dtype_(gradient) = 2 ∨ dtype_(gradient) = 1 ∨ dtype_(gradient) = 9 ∨ dtype_(gradient) = 4 ∨ dtype_(gradient) = -1 ∨ dtype_(gradient) = -2 ∨ dtype_(gradient) = -3 ∨ dtype_(gradient) = -4 ∨ dtype_(gradient) = -5 ∨ dtype_(gradient) = -6 ∨ dtype_(gradient) = -7 ∨ dtype_(gradient) = 10 ∨ dtype_(gradient) = -8 ∨ dtype_(gradient) = -9 ∨ dtype_(gradient) = -10
 >>
 Rule 3 (handle should not be an empty string)
-{v_1 : str} |= v_1 ≠ ""
+{handle : tensor} |= handle ≠ ""
 >>
-Rule 6 (gradient's shape should be positive)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 4 (local_step must be a scalar (ndim=0))
+{local_step : tensor} |= ndim(local_step) = 0
 >>
-Rule 8 (local_step cannot be too large)
-{v_1 : int} |= v_1 < 2147483647
+Rule 5 (gradient's dimension should be greater than 0)
+{gradient : tensor} |= ndim(gradient) > 0
 >>
-Rule 9 (Check that shape of gradient is equal to [1])
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) = 1 else false
+Rule 6 (local_step must be an int64 tensor)
+{local_step : tensor} |= dtype_(local_step) = 4
 >>
-Rule 10 (handle name must start with a letter)
-{v_1 : str} |= if v_1 = "" then true else (v_1[0] > "a" ∨ v_1[0] < "z") ∨ (v_1[0] > "A" ∨ v_1[0] < "Z")
+Rule 7 (handle must be a string tensor)
+{handle : tensor} |= dtype_(handle) = 11
 >>
-Rule 15 (gradient should not have zero elements if shape is one)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) ≠ 0
+Rule 8 (gradient must have at least one element if ndim > 0)
+{gradient : tensor} |= if ndim(gradient) > 0 then shape(gradient, 0) > 0
 >>
-Rule 16 (gradient's shape should be valid for matrix multiplication if ndim is 2)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 then shape(v_1, 1) = shape(v_2, 0)
+Rule 9 (if gradient is a quantized type, ensure it has a scale and zero point, this cannot be directly expressed but requires additional context from elsewhere, so this rule expresses that condition)
+{gradient : tensor} |= if dtype_(gradient) = -1 ∨ dtype_(gradient) = -2 ∨ dtype_(gradient) = -3 ∨ dtype_(gradient) = -4 ∨ dtype_(gradient) = -5 ∨ dtype_(gradient) = -6 ∨ dtype_(gradient) = -7 ∨ dtype_(gradient) = -8 ∨ dtype_(gradient) = -9 ∨ dtype_(gradient) = -10 then true
 >>
-Rule 18 (gradient and another tensor must have the same dtype if both are given)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 10 (local_step must be a scalar int64)
+{local_step : tensor} |= ndim(local_step) = 0 ∧ dtype_(local_step) = 4
 >>
-Rule 19 (Check that handle starts with a specific prefix)
-{v_1 : str} |= if v_1 = "" then true else v_1[0] = "a"
+Rule 13 (gradient must have at least one element)
+{gradient : tensor} |= ∃i ∈ [0, ndim(gradient) - 1] : shape(gradient, i) > 0
 >>
-Rule 20 (handle length should be less than 256)
-{v_1 : str} |= v_1.len < 256
+Rule 14 (if gradient is complex, then its imaginary part is not zero)
+{gradient : tensor} |= if dtype_(gradient) = 9 ∨ dtype_(gradient) = 10 then true
 >>
-Rule 21 (local_step and handle must be defined)
-{v_1 : int, v_2 : str} |= v_1 ≠ 0 ∧ v_2 ≠ ""
+Rule 15 (local_step has a single element)
+{local_step : tensor} |= shape(local_step, 0) = 1
 >>
-Rule 22 (If the gradient tensor has a shape of [x, y], then y must be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 1) > 0
+Rule 18 (gradient cannot have unknown dtype)
+{gradient : tensor} |= dtype_(gradient) ≠ 12
 >>
-Rule 23 (Check that the handle contains only alphanumeric characters)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9")
+Rule 19 (handle must be a scalar string tensor)
+{handle : tensor} |= ndim(handle) = 0 ∧ dtype_(handle) = 11
 >>
-Rule 24 (If the gradient has two dimensions, the first dimension cannot be zero)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) ≠ 0
+Rule 20 (local_step's value should be representable as int64)
+{local_step : tensor} |= min(local_step) ≥ -9223372036854775808 ∧ max(local_step) ≤ 9223372036854775807
 >>
-Rule 25 (The gradient's data type must be float32, float64, int32, int64)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 21 (if gradient is bfloat16, it needs to be converted into float32 for accumulation.)
+{gradient : tensor} |= if dtype_(gradient) = -4 then true
 >>
-Rule 26 (local_step should not be too large)
-{v_1 : int} |= v_1 < 9223372036854775807
+Rule 22 (gradient tensor should have a defined shape)
+{gradient : tensor} |= ndim(gradient) ≥ 0
 >>
-Rule 27 (gradient tensor's dtype should be in the allowed list)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 14 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18
+Rule 25 (If the gradient is a quantized tensor, the range should be valid)
+{gradient : tensor} |= if dtype_(gradient) = -1 ∨ dtype_(gradient) = -2 ∨ dtype_(gradient) = -3 ∨ dtype_(gradient) = -5 ∨ dtype_(gradient) = -6 ∨ dtype_(gradient) = -7 ∨ dtype_(gradient) = -9 ∨ dtype_(gradient) = -10 then true
 >>
-Rule 28 (If the handle is "default", the local_step must be 0)
-{v_1 : str, v_2 : int} |= if v_1 = "default" then v_2 = 0
+Rule 29 (The gradient and local_step dtypes cannot be string)
+{gradient: tensor, local_step : tensor} |= dtype_(gradient) ≠ 11 ∧ dtype_(local_step) ≠ 11
 >>
-Rule 29 (local_step must be a multiple of 10 if greater than 100)
-{v_1 : int} |= if v_1 > 100 then v_1 % 10 = 0
+Rule 30 (Gradient and local_step must be tensors and not strings)
+{gradient : tensor, local_step : tensor} |= dtype_(gradient) ≠ 11 ∧ dtype_(local_step) ≠ 11
 >>
-Rule 30 (handle should contain only lowercase characters)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ "a" ∧ v_1[i] ≤ "z"
+Rule 31 (local_step should have at least one element)
+{local_step: tensor} |= ∃i ∈ [0, ndim(local_step) - 1] : shape(local_step, i) > 0
 >>
-Rule 31 (If the gradient is a vector, the local_step must be greater than 0)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 > 0
+Rule 32 (local_step should have dimension 0)
+{local_step: tensor} |= ndim(local_step) = 0
 >>
-Rule 32 (If gradient's dtype is complex, local_step must be even)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_2 % 2 = 0
+Rule 34 (local_step is an int64 scalar and gradient is a valid supported type)
+{local_step : tensor, gradient : tensor} |= dtype_(local_step) = 4 ∧ (dtype_(gradient) = 7 ∨ dtype_(gradient) = 8 ∨ dtype_(gradient) = 3 ∨ dtype_(gradient) = 5 ∨ dtype_(gradient) = 2 ∨ dtype_(gradient) = 1 ∨ dtype_(gradient) = 9 ∨ dtype_(gradient) = 4 ∨ dtype_(gradient) = -1 ∨ dtype_(gradient) = -2 ∨ dtype_(gradient) = -3 ∨ dtype_(gradient) = -4 ∨ dtype_(gradient) = -5 ∨ dtype_(gradient) = -6 ∨ dtype_(gradient) = -7 ∨ dtype_(gradient) = 10 ∨ dtype_(gradient) = -8 ∨ dtype_(gradient) = -9 ∨ dtype_(gradient) = -10)
 >>
-Rule 33 (The gradient must be a scalar if the handle is "scalar_handle")
-{v_1 : tensor, v_2 : str} |= if v_2 = "scalar_handle" then ndim(v_1) = 0
+Rule 35 (local_step is a scalar tensor of int64 type with non-negative value)
+{local_step : tensor} |= ndim(local_step) = 0 ∧ dtype_(local_step) = 4 ∧ min(local_step) >= 0
 >>
-Rule 34 (The product of the gradient tensor's shape dimensions should not exceed a certain limit)
-{v_1 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000)
+Rule 37 (The local_step must be smaller than max int64 value)
+{local_step : tensor} |= max(local_step) < 9223372036854775807
 >>
-Rule 35 (If the gradient has only one element, the local_step must be 1)
-{v_1 : tensor, v_2 : int} |= if ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1 then v_2 = 1
+Rule 39 (Handle should have dimension 0)
+{handle : tensor} |= ndim(handle) = 0
 >>
-Rule 36 (handle length must be less than or equal to the local step)
-{v_1 : str, v_2 : int} |= v_1.len ≤ v_2
+Rule 42 (The gradient must be a valid supported dtype)
+{gradient : tensor} |= dtype_(gradient) = 7 ∨ dtype_(gradient) = 8 ∨ dtype_(gradient) = 3 ∨ dtype_(gradient) = 5 ∨ dtype_(gradient) = 2 ∨ dtype_(gradient) = 1 ∨ dtype_(gradient) = 9 ∨ dtype_(gradient) = 4 ∨ dtype_(gradient) = -1 ∨ dtype_(gradient) = -2 ∨ dtype_(gradient) = -3 ∨ dtype_(gradient) = -4 ∨ dtype_(gradient) = -5 ∨ dtype_(gradient) = -6 ∨ dtype_(gradient) = -7 ∨ dtype_(gradient) = 10 ∨ dtype_(gradient) = -8 ∨ dtype_(gradient) = -9 ∨ dtype_(gradient) = -10 ∨ dtype_(gradient) = 16 ∨ dtype_(gradient) = 17 ∨ dtype_(gradient) = 18
 >>
-Rule 37 (gradient tensor shape must be within certain limits)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) < 100 ∧ shape(v_1, 1) < 100
+Rule 44 (Gradient dimensions should be in range 0-8)
+{gradient : tensor} |= if dtype_(gradient) = 7 ∨ dtype_(gradient) = 8 ∨ dtype_(gradient) = 3 ∨ dtype_(gradient) = 5 ∨ dtype_(gradient) = 2 ∨ dtype_(gradient) = 1 ∨ dtype_(gradient) = 9 ∨ dtype_(gradient) = 4 then true else if dtype_(gradient) = -1 ∨ dtype_(gradient) = -2 ∨ dtype_(gradient) = -3 ∨ dtype_(gradient) = -4 ∨ dtype_(gradient) = -5 ∨ dtype_(gradient) = -6 ∨ dtype_(gradient) = -7 ∨ dtype_(gradient) = 10 ∨ dtype_(gradient) = -8 ∨ dtype_(gradient) = -9 ∨ dtype_(gradient) = -10 then true else if dtype_(gradient) = 16 ∨ dtype_(gradient) = 17 ∨ dtype_(gradient) = 18 then true else false
 >>
-Rule 38 (local_step cannot be negative if the gradient tensor contains only positive values)
-{v_1 : tensor, v_2 : int} |= if min(v_1) > 0 then v_2 ≥ 0
+Rule 46 (Handle is a scalar string.)
+{handle: tensor} |= ndim(handle) = 0 ∧ dtype_(handle) = 11
 >>
-Rule 39 (If the handle ends with "_float", then gradient must be of float type)
-{v_1 : str, v_2 : tensor} |= if v_1[v_1.len - 5] = "_" ∧ v_1[v_1.len - 4] = "f" ∧ v_1[v_1.len - 3] = "l" ∧ v_1[v_1.len - 2] = "o" ∧ v_1[v_1.len - 1] = "a" ∧ v_1[v_1.len - 1] = "t" then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+Rule 47 (The handle cannot be a boolean)
+{handle : tensor} |= dtype_(handle) ≠ 0
 >>
-Rule 40 (local_step must be positive if the gradient has more than 10 dimensions)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 10 then v_2 > 0
+Rule 48 (If Gradient is Half dtype, the hardware must support it)
+{gradient : tensor} |= if dtype_(gradient) = 16 then true
 >>
-Rule 41 (if local_step is even, all elements in the gradient must be positive)
-{v_1 : int, v_2 : tensor} |= if v_1 % 2 = 0 then min(v_2) ≥ 0
+Rule 49 (If Gradient is uint32 or uint64 the hardware must support it)
+{gradient : tensor} |= if dtype_(gradient) = 17 ∨ dtype_(gradient) = 18 then true
 >>
-Rule 42 (if the handle contains "weight", the number of dimensions of the gradient tensor must be between 1 and 3)
-{v_1 : str, v_2 : tensor} |= if v_1 = "weight" then ndim(v_2) ≥ 1 ∧ ndim(v_2) ≤ 3
+Rule 50 (If Gradient is a bfloat16, half, uint32, uint64, int8, qint etc then special hardware/software considerations are needed)
+{gradient : tensor} |= if dtype_(gradient) = 16 ∨ dtype_(gradient) = 17 ∨ dtype_(gradient) = 18 ∨ dtype_(gradient) = 1 ∨ dtype_(gradient) = -1 ∨ dtype_(gradient) = -2 ∨ dtype_(gradient) = -3 ∨ dtype_(gradient) = -4 ∨ dtype_(gradient) = -5 ∨ dtype_(gradient) = -6 ∨ dtype_(gradient) = -7 ∨ dtype_(gradient) = -8 ∨ dtype_(gradient) = -9 ∨ dtype_(gradient) = -10 then true
 >>
-Rule 43 (if the gradient's dtype is uint8, the local_step should be less than 256)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 5 then v_2 < 256
+Rule 51 (If Gradient is a complex dtype, the implementation needs to handle complex types)
+{gradient: tensor} |= if dtype_(gradient) = 9 ∨ dtype_(gradient) = 10 then true
 >>
-Rule 44 (if the handle is a name starting with "alpha", the local step should be positive)
-{v_1 : str, v_2 : int} |= if v_1[0] = "a" ∧ v_1[1] = "l" ∧ v_1[2] = "p" ∧ v_1[3] = "h" ∧ v_1[4] = "a" then v_2 > 0
+Rule 52 (Avoid bool data type for gradient)
+{gradient: tensor} |= dtype_(gradient) ≠ 0
 >>
-Rule 45 (if the gradient tensor has a shape of [a, b, c], then a must be equal to b)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) = shape(v_1, 1)
+Rule 54 (local_step should have dimension 0 and have dtype int64 )
+{local_step: tensor} |= ndim(local_step) = 0 ∧ dtype_(local_step) = 4
 >>
-Rule 46 (If the handle starts with "var", the gradient tensor must have more than 100 elements.)
-{v_1 : str, v_2 : tensor} |= if v_1[0] = "v" ∧ v_1[1] = "a" ∧ v_1[2] = "r" then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) ∧ (if ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_2) -1] : shape(v_2, i) > 0))
+Rule 55 (gradient cannot be an empty tensor)
+{gradient : tensor} |= ∃d ∈ [0, ndim(gradient) - 1] : shape(gradient, d) > 0
 >>
-Rule 47 (If the local_step is less than 10, the gradient must be of type float32)
-{v_1 : int, v_2 : tensor} |= if v_1 < 10 then dtype_(v_2) = 7
+Rule 56 (Gradient shape should have valid dimensions.)
+{gradient: tensor} |= ∀i ∈ [0, ndim(gradient) - 1] : shape(gradient, i) > 0
 >>
-Rule 48 (The last character of the handle should correspond to the number of dimensions of the gradient)
-{v_1 : str, v_2 : tensor} |= if v_1.len > 0 then (if v_1[v_1.len - 1] = "0" then ndim(v_2) = 0 else if v_1[v_1.len - 1] = "1" then ndim(v_2) = 1 else if v_1[v_1.len - 1] = "2" then ndim(v_2) = 2 else if v_1[v_1.len - 1] = "3" then ndim(v_2) = 3)
+Rule 57 (Gradient cannot be an empty tensor, and local_step must be greater than or equal to zero)
+{gradient : tensor, local_step:tensor} |= (∃d ∈ [0, ndim(gradient) - 1] : shape(gradient, d) > 0) ∧ (min(local_step) >= 0)
 >>
-Rule 49 (The gradient must be a scalar if the handle has length 0)
-{v_1 : str, v_2 : tensor} |= if v_1.len = 0 then ndim(v_2) = 0
+Rule 58 (local_step should have dimension 0 and have dtype int64 and be a non-negative number)
+{local_step: tensor} |= ndim(local_step) = 0 ∧ dtype_(local_step) = 4 ∧ min(local_step) ≥ 0
 >>
-Rule 50 (If handle has length 1, then local_step must be 1)
-{v_1 : str, v_2 : int} |= if v_1.len = 1 then v_2 = 1
+Rule 59 (Avoid int8, uint32, uint64 dtype)
+{gradient: tensor} |= dtype_(gradient) ≠ 1 ∧ dtype_(gradient) ≠ 17 ∧ dtype_(gradient) ≠ 18
 >>
-Rule 51 (If handle is equal to 'A', gradient should have a max value >= 0)
-{v_1 : str, v_2 : tensor} |= if v_1 = "A" then max(v_2) ≥ 0
->>
-Rule 52 (If local_step is a prime number, gradient should have ndim = 1)
-{v_1 : int, v_2 : tensor} |= if (∀i ∈ [2, v_1 - 1] : v_1 % i ≠ 0) ∧ v_1 > 1 then ndim(v_2) = 1
->>
-Rule 53 (If the handle has even length, gradient should be float32 or float64)
-{v_1 : str, v_2 : tensor} |= if v_1.len % 2 = 0 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
->>
-Rule 54 (If handle is 'B', and gradient is 2D, then shape[0] and shape[1] must be equal)
-{v_1 : str, v_2 : tensor} |= if v_1 = "B" ∧ ndim(v_2) = 2 then shape(v_2, 0) = shape(v_2, 1)
->>
-Rule 55 (If the handle contains the character 'C', then local_step must be a multiple of 3)
-{v_1 : str, v_2 : int} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "C" then v_2 % 3 = 0
->>
-Rule 56 (If the handle ends with a digit, local_step must be greater or equal to that digit)
-{v_1 : str, v_2 : int} |= if v_1.len > 0 ∧ v_1[v_1.len - 1] ≥ "0" ∧ v_1[v_1.len - 1] ≤ "9" then v_2 ≥ (v_1[v_1.len - 1] - "0")
->>
-Rule 57 (if the gradient is a matrix, the local_step must not be a prime number)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then ∃i ∈ [2, v_2 - 1] : v_2 % i = 0
->>
-Rule 58 (If the handle is "const", the gradient's dtype must be int32 or float32)
-{v_1 : str, v_2 : tensor} |= if v_1 = "const" then dtype_(v_2) = 3 ∨ dtype_(v_2) = 7
->>
-Rule 59 (If local_step is greater than 1000, handle length must be greater than 5)
-{v_1 : int, v_2 : str} |= if v_1 > 1000 then v_2.len > 5
->>
-Rule 60 (If the handle contains the word "bias", gradient should have a min value less than or equal to 0)
-{v_1 : str, v_2 : tensor} |= if ∃i ∈ [0, v_1.len - 3] : v_1[i] = "b" ∧ v_1[i + 1] = "i" ∧ v_1[i+2] = "a" ∧ v_1[i+3] = "s" then min(v_2) ≤ 0
->>
-Rule 61 (If the handle is 'weight_matrix' and the gradient has two dimensions, then the first dimension must be a multiple of 4)
-{v_1 : str, v_2 : tensor} |= if v_1 = "weight_matrix" ∧ ndim(v_2) = 2 then shape(v_2, 0) % 4 = 0
->>
-Rule 62 (If the local_step is a power of 2, then the gradient's dtype cannot be complex)
-{v_1 : int, v_2 : tensor} |= if ∃i ∈ [0, 31]: v_1 = 2*i then dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10
->>
-Rule 63 (If the handle starts with "embedding", the gradient's minimum value should be greater than -1)
-{v_1 : str, v_2 : tensor} |= if v_1[0] = "e" ∧ v_1[1] = "m" ∧ v_1[2] = "b" ∧ v_1[3] = "e" ∧ v_1[4] = "d" ∧ v_1[5] = "d" ∧ v_1[6] = "i" ∧ v_1[7] = "n" ∧ v_1[8] = "g" then min(v_2) > -1
->>
-Rule 64 (If the local_step is greater than 10000, then the product of the dimensions of the gradient must also be greater than 10000)
-{v_1 : int, v_2 : tensor} |= if v_1 > 10000 then (if ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0))
->>
-Rule 65 (if the handle does not contain the character "_", the gradient must have ndim equals to zero)
-{v_1 : str, v_2 : tensor} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "_" then true else ndim(v_2) = 0
->>
-Rule 67 (If local_step has more than 3 digits, at least one dimensions of gradient should have value bigger than 1000)
-{v_1 : int, v_2 : tensor} |= if v_1 > 999 then ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 1000
->>
-Rule 68 (If the handle is 'vector' and gradient is of type int, min value must be positive)
-{v_1 : str, v_2 : tensor} |= if v_1 = "vector" ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) then min(v_2) > 0
->>
-Rule 69 (If gradient's shape is [x, x], then local_step must be a prime number)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 ∧ shape(v_1, 0) = shape(v_1, 1) then (∀i ∈ [2, v_2 - 1] : v_2 % i ≠ 0) ∧ v_2 > 1
->>
-Rule 70 (if local_step can be divided by 5 without remainder, then handle must end with 5)
-{v_1 : int, v_2 : str} |= if v_1 % 5 = 0 then v_2[v_2.len - 1] = "5"
->>
-Rule 71 (If the handle is 'sparse_matrix', and the gradient has two dimensions, then the max value in gradient must be less than local_step)
-{v_1 : str, v_2 : tensor, v_3 : int} |= if v_1 = "sparse_matrix" ∧ ndim(v_2) = 2 then max(v_2) < v_3
->>
-Rule 76 (If the handle is 'sparse_matrix', and the gradient has two dimensions, then the max value in gradient must be less than local_step and local_step should be a positive number)
-{v_1 : str, v_2 : tensor, v_3 : int} |= if v_1 = "sparse_matrix" ∧ ndim(v_2) = 2 then max(v_2) < v_3 ∧ v_3 > 0
->>
-Rule 77 (If the local_step is a Fibonacci number, then gradient must be scalar)
-{v_1 : int, v_2 : tensor} |= if (if v_1 = 0 then true else if v_1 = 1 then true else (∃i ∈ [2, v_1 - 1] : (if ∃j ∈ [0, i - 1] : true then 0 else 0))) then ndim(v_2) = 0
->>
-Rule 78 (If handle starts with 'conv', then gradient dtype must be float)
-{v_1 : str, v_2 : tensor} |= if v_1[0] = "c" ∧ v_1[1] = "o" ∧ v_1[2] = "n" ∧ v_1[3] = "v" then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
->>
-Rule 79 (If gradient shape is a square matrix, max value must be less than 1000)
-{v_1 : tensor} |= if ndim(v_1) = 2 ∧ shape(v_1, 0) = shape(v_1, 1) then max(v_1) < 1000
->>
-Rule 80 (If local_step is prime, handle length should be greater than 3)
-{v_1 : int, v_2 : str} |= if (∀i ∈ [2, v_1 - 1] : v_1 % i ≠ 0) ∧ v_1 > 1 then v_2.len > 3
->>
-Rule 81 (If the handle is equal to "momentum", then the maximum element value of the gradient must be between 0 and 1)
-{v_1 : str, v_2 : tensor} |= if v_1 = "momentum" then min(v_2) ≥ 0 ∧ max(v_2) ≤ 1
->>
-Rule 82 (If the local_step is a perfect square, gradient tensor needs to have exactly two dimensions)
-{v_1 : int, v_2 : tensor} |= if ∃i ∈ [0, v_1 - 1]: i * i = v_1 then ndim(v_2) = 2
->>
-Rule 83 (If the first character of the handle is "w", then gradient should be of type float32 or float64 with min value > 0)
-{v_1 : str, v_2 : tensor} |= if v_1[0] = "w" then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) ∧ min(v_2) > 0
->>
-Rule 84 (If the gradient is a 3D tensor, its shape dimensions must form a Pythagorean triple, i.e a*a + b*b = c*c where a,b, and c represent dimensions of the shape array)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 0) + shape(v_1, 1) * shape(v_1, 1) = shape(v_1, 2) * shape(v_1, 2)
->>
-Rule 85 (local_step must be a power of ten or handle string must have length equal to local_step)
-{v_1 : int, v_2 : str} |= ∃i ∈ [0, v_1 - 1] : 10*i = v_1 ∨ v_2.len = v_1
->>
-Rule 86 (If the handle contains "l2_norm", then the gradient's datatype must be float32 or float64, and all the tensor elements must be non-negative)
-{v_1 : str, v_2 : tensor} |= if ∃i ∈ [0, v_1.len - 6] : v_1[i] = "l" ∧ v_1[i+1] = "2" ∧ v_1[i+2] = "_" ∧ v_1[i+3] = "n" ∧ v_1[i+4] = "o" ∧ v_1[i+5] = "r" ∧ v_1[i+6] = "m" then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) ∧ min(v_2) >= 0
->>
-Rule 87 (if local_step is a power of 2, all dimensions of gradient tensor shape must have a value also equal to the power of 2)
-{v_1 : int, v_2 : tensor} |= if ∃i ∈ [0, v_1 - 1] : (∀k ∈ [0,30]: if (if (2 * k = v_1) then (if (∃j ∈ [0, ndim(v_2) -1] : shape(v_2, j) = v_1) then true else false) else false) then true else false) then true else false
->>
-Rule 88 (If the handle ends with "bias", then the gradient's maximum element should be less than 1)
-{v_1 : str, v_2 : tensor} |= if v_1[v_1.len - 4] = "b" ∧ v_1[v_1.len - 3] = "i" ∧ v_1[v_1.len - 2] = "a" ∧ v_1[v_1.len - 1] = "s" then max(v_2) < 1
->>
-Rule 89 (If the gradient has shape [x, y] and handle contains 'weight', then y must be less than local_step and also local_step > 10)
-{v_1 : tensor, v_2 : str, v_3 : int} |= if ndim(v_1) = 2 ∧ (∃i ∈ [0, v_2.len - 5]: v_2[i] = "w" ∧ v_2[i+1] = "e" ∧ v_2[i+2] = "i" ∧ v_2[i+3] = "g" ∧ v_2[i+4] = "h" ∧ v_2[i+5] = "t") then shape(v_1, 1) < v_3 ∧ v_3 > 10
->>
-Rule 90 (The gradient tensor needs to have at least one element greater than local_step/2)
-{v_1 : tensor, v_2 : int} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > v_2 / 2
->>
-Rule 91 (If handle has a length greater than 0 and the first character is a digit then local_step must be equal to the number the digit represents)
-{v_1 : str, v_2 : int} |= if v_1.len > 0 ∧ v_1[0] ≥ "0" ∧ v_1[0] ≤ "9" then v_2 = (v_1[0] - "0")
->>
-Rule 92 (If local_step can be represented as x*y where x and y both are less than 10, then gradient tensor dimensions must have size x and y, respectively)
-{v_1 : int, v_2 : tensor} |= if ∃x ∈ [0, 9]: ∃y ∈ [0, 9]: x * y = v_1 then (if ndim(v_2) = 2 then shape(v_2, 0) = x ∧ shape(v_2, 1) = y)
->>
-Rule 93 (If the handle contains 'embedding' and the gradient's dimensions sum to a number greater than 1000, local_step should also be greater than 1000)
-{v_1 : str, v_2 : tensor, v_3 : int} |= if ∃i ∈ [0, v_1.len - 8] : v_1[i] = "e" ∧ v_1[i+1] = "m" ∧ v_1[i+2] = "b" ∧ v_1[i+3] = "e" ∧ v_1[i+4] = "d" ∧ v_1[i+5] = "d" ∧ v_1[i+6] = "i" ∧ v_1[i+7] = "n" ∧ v_1[i+8] = "g" then (if ∃k ∈ [0, ndim(v_2) - 1] : shape(v_2,k) > 0 then v_3 > 1000)
->>
-Rule 94 (If gradient is a scalar and local_step > 0 then handle's first character must be alphabet character from "a" to "z")
-{v_1 : tensor, v_2 : int, v_3 : str} |= if ndim(v_1) = 0 ∧ v_2 > 0 then (v_3.len > 0 ∧ v_3[0] ≥ "a" ∧ v_3[0] ≤ "z")
->>
-Rule 95 (If local_step is divisible by all numbers from 1 to 10, then the product of tensor dimensions must be divisible by 10)
-{v_1 : int, v_2 : tensor} |= if v_1 % 1 = 0 ∧ v_1 % 2 = 0 ∧ v_1 % 3 = 0 ∧ v_1 % 4 = 0 ∧ v_1 % 5 = 0 ∧ v_1 % 6 = 0 ∧ v_1 % 7 = 0 ∧ v_1 % 8 = 0 ∧ v_1 % 9 = 0 ∧ v_1 % 10 = 0 then if (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) then 0 % 10 = 0
->>
-Rule 96 (If the handle contains any of 'relu', 'tanh', 'sigmoid', then the gradient dtype should not be an integer)
-{v_1 : str, v_2 : tensor} |= if ∃i ∈ [0, v_1.len - 3] : (v_1[i] = "r" ∧ v_1[i+1] = "e" ∧ v_1[i+2] = "l" ∧ v_1[i+3] = "u") ∨ (v_1[i] = "t" ∧ v_1[i+1] = "a" ∧ v_1[i+2] = "n" ∧ v_1[i+3] = "h") ∨ (v_1[i] = "s" ∧ v_1[i+1] = "i" ∧ v_1[i+2] = "g" ∧ v_1[i+3] = "m" ∧ v_1[i+4] = "o" ∧ v_1[i+5] = "i" ∧ v_1[i+6] = "d") then dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5
->>
-Rule 97 (If local_step is divisible by 7, then the gradient must have a shape that is divisible by 7)
-{v_1 : int, v_2 : tensor} |= if v_1 % 7 = 0 then (if ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_2)-1] : shape(v_2, i) % 7 = 0))
->>
-Rule 98 (if gradient's shape contains element 128 or 256 then handle string must have length which is divisible by 4.)
-{v_1: str, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 128 ∨ shape(v_2, i) = 256 then v_1.len % 4 = 0
->>
-Rule 99 (if handle is "Adam", then the minimum and maximum values for gradient tensor elements must be between -1000 and 1000)
-{v_1 : str, v_2 : tensor} |= if v_1 = "Adam" then min(v_2) ≥ -1000 ∧ max(v_2) ≤ 1000
->>
-Rule 100 (The handle length must be a prime number between local_step +1 and local_step +10)
-{v_1 : str, v_2 : int} |= (∃i ∈ [v_2 + 1, v_2+10] : (∀j ∈ [2, i - 1] : i % j ≠ 0) ∧ v_1.len = i)
->>
-Rule 101 (If the handle starts with "quant", then the gradient's dtype must be qint8, quint8, qint32, bfloat16, qint16, quint16, uint16)
-{v_1 : str, v_2 : tensor} |= if v_1[0] = "q" ∧ v_1[1] = "u" ∧ v_1[2] = "a" ∧ v_1[3] = "n" ∧ v_1[4] = "t" then dtype_(v_2) = 13 ∨ dtype_(v_2) = 14 ∨ dtype_(v_2) = 15 ∨ dtype_(v_2) = 16 ∨ dtype_(v_2) = 11 ∨ dtype_(v_2) = 12 ∨ dtype_(v_2) = 18
->>
-Rule 102 (If local_step is greater than 1000, the handle must contain a substring from the list ["mean", "sum", "max", "min", "prod"])
-{v_1 : int, v_2 : str} |= if v_1 > 1000 then (∃i ∈ [0, v_2.len - 3] : (v_2[i] = "m" ∧ v_2[i+1] = "e" ∧ v_2[i+2] = "a" ∧ v_2[i+3] = "n") ∨ (v_2[i] = "s" ∧ v_2[i+1] = "u" ∧ v_2[i+2] = "m") ∨ (v_2[i] = "m" ∧ v_2[i+1] = "a" ∧ v_2[i+2] = "x") ∨ (v_2[i] = "m" ∧ v_2[i+1] = "i" ∧ v_2[i+2] = "n") ∨ (v_2[i] = "p" ∧ v_2[i+1] = "r" ∧ v_2[i+2] = "o" ∧ v_2[i+3] = "d"))
->>
-Rule 103 (If the gradient tensor's maximum element is greater than 10 and the handle starts with "scale", then the local_step must be divisible by the number of dimensions of the gradient)
-{v_1 : tensor, v_2 : str, v_3 : int} |= if max(v_1) > 10 ∧ v_2[0] = "s" ∧ v_2[1] = "c" ∧ v_2[2] = "a" ∧ v_2[3] = "l" ∧ v_2[4] = "e" then v_3 % ndim(v_1) = 0
->>
-Rule 104 (If local_step == 42, it is important that one dimension of the gradient's shape is equal to the local_step)
-{v_1 : int, v_2 : tensor} |= if v_1 = 42 then (if ndim(v_2) > 0 then (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = v_1))
->>
-Rule 110 (If local_step is the square of the handle's length, then the min and max value in the gradient must not be equal)
-{v_1 : int, v_2 : str, v_3 : tensor} |= if v_1 = v_2.len * v_2.len then min(v_3) ≠ max(v_3)
+Rule 60 (Gradient must be of specified dtype)
+{gradient : tensor} |= dtype_(gradient) = 7 ∨ dtype_(gradient) = 8 ∨ dtype_(gradient) = 3 ∨ dtype_(gradient) = 5 ∨ dtype_(gradient) = 2 ∨ dtype_(gradient) = 1 ∨ dtype_(gradient) = 9 ∨ dtype_(gradient) = 4 ∨ dtype_(gradient) = -1 ∨ dtype_(gradient) = -2 ∨ dtype_(gradient) = -3 ∨ dtype_(gradient) = -4 ∨ dtype_(gradient) = -5 ∨ dtype_(gradient) = -6 ∨ dtype_(gradient) = -7 ∨ dtype_(gradient) = 10 ∨ dtype_(gradient) = -8 ∨ dtype_(gradient) = -9 ∨ dtype_(gradient) = -10 ∨ dtype_(gradient) = 6 ∨ dtype_(gradient) = 17 ∨ dtype_(gradient) = 18

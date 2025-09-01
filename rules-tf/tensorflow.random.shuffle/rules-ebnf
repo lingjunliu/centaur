@@ -1,114 +1,138 @@
 >>
 Rule 1 (value tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 2 (seed must be a non-negative integer)
+Rule 2 (seed value should be non-negative)
 {v_2 : int} |= v_2 ≥ 0
 >>
-Rule 3 (The data type of the shuffled tensor is the same as the input tensor)
-{v_1 : tensor} |= dtype_(v_1) = dtype_(v_1)
->>
-Rule 4 (The shape of the shuffled tensor is the same as the input tensor)
-{v_1 : tensor} |= shape(v_1) = shape(v_1)
->>
-Rule 10 (The first dimension of the value tensor must be greater than 0)
-{v_1 : tensor} |= shape(v_1, 0) > 0
->>
-Rule 11 (value tensor must be of numeric dtype.)
-{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 9
->>
-Rule 14 (Value must be a tensor of floats or ints)
-{v_1 : tensor} |= (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5) ∨ (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 9)
->>
-Rule 15 (The shape of the tensor should not be too large)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000
->>
-Rule 17 (The seed must be representable by int32)
-{v_2 : int} |= -2147483648 ≤ v_2 ∧ v_2 ≤ 2147483647
->>
-Rule 19 (The rank of the tensor must be less than a threshold)
+Rule 7 (value tensor ndim should not exceed a limit.)
 {v_1 : tensor} |= ndim(v_1) < 10
 >>
-Rule 20 (If the tensor is a matrix, the first dimension must be greater than the second)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) ≥ shape(v_1, 1)
+Rule 8 (value tensor's shape at dimension 0 must be greater than 0)
+{v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 24 (The dtype of the value tensor must be in a specific range)
-{v_1 : tensor} |= 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 11
+Rule 10 (value tensor's dtype is within the valid range)
+{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 12
 >>
-Rule 25 (If the tensor has more than one dimension, then shuffling happens on the first dimension)
-{v_1: tensor} |= if ndim(v_1) > 1 then true
+Rule 11 (If seed is specified, value's dtype should be numerical)
+{v_1 : tensor, v_2 : int} |= if v_2 > 0 then (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11)
 >>
-Rule 26 (The value must be a tensor with at least one element)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 12 (If seed is zero, then value's dtype must be numerical)
+{v_1 : tensor, v_2 : int} |= if v_2 = 0 then (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11)
 >>
-Rule 27 (The data type should not be bool)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 13 (value tensor's size must be greater than 1 to shuffle)
+{v_1 : tensor} |= shape(v_1, 0) > 1
 >>
-Rule 28 (If the tensor is 0 dimensional, the shape must be an empty tuple)
-{v_1 : tensor} |= if ndim(v_1) = 0 then true
+Rule 15 (If the value is a string, the seed should not be used)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 12 then v_2 = 0
 >>
-Rule 29 (The maximum value in the tensor must not exceed a certain limit)
-{v_1 : tensor} |= max(v_1) < 10000
+Rule 16 (value's first dimension cannot be negative)
+{v_1 : tensor} |= shape(v_1, 0) ≥ 0
 >>
-Rule 30 (Name cannot be an empty string)
-{v_3: str} |= v_3 ≠ ""
+Rule 17 (value cannot be boolean type if seed is present)
+{v_1 : tensor, v_2 : int} |= if v_2 > 0 then dtype_(v_1) ≠ 0
 >>
-Rule 34 (The maximum value in the tensor must not exceed a certain limit if it is of integer type)
-{v_1 : tensor} |= if 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 then max(v_1) < 10000
+Rule 18 (If value is complex, seed should be present)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then v_2 > 0
 >>
-Rule 35 (If the tensor has a floating type, then the values should not be NaN)
-{v_1 : tensor} |= if 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 9 then true
->>
-Rule 37 (The tensor cannot have more dimensions than the seed)
-{v_1 : tensor, v_2 : int} |= if v_2 > 0 then ndim(v_1) ≤ v_2
->>
-Rule 38 (If the tensor is a vector, its length must be greater than zero)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 0
->>
-Rule 39 (The number of elements must not be negative)
-{v_1 : tensor} |= min(v_1) > -1000
->>
-Rule 40 (If the tensor is a 3D tensor the dimensions must be less than 1000)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1,0) < 1000 ∧ shape(v_1,1) < 1000 ∧ shape(v_1,2) < 1000
->>
-Rule 41 (Seed should be small enough to avoid overflow, non-negative)
-{v_2 : int} |=  v_2 < 1000000000 ∧ v_2 ≥ 0
->>
-Rule 42 (The tensor cannot have more dimensions than a limit)
+Rule 19 (value's rank cannot be greater than 5)
 {v_1 : tensor} |= ndim(v_1) ≤ 5
 >>
-Rule 44 (The number of elements must be non negative)
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 20 (Name should be a non-empty string)
+{v_3 : str} |= v_3 ≠ ""
 >>
-Rule 46 (Seed must be a small positive integer)
-{v_2 : int} |=  0 ≤ v_2 ∧ v_2 < 1000000000
+Rule 21 (if value's rank is 0, seed should be zero)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 = 0
 >>
-Rule 48 (The number of elements must be non negative if it has integer type)
-{v_1 : tensor} |= if 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 then min(v_1) ≥ 0
+Rule 23 (if the value tensor is empty, then the seed should be zero)
+{v_1 : tensor, v_2 : int} |= if shape(v_1,0) = 0 then v_2 = 0
 >>
-Rule 49 (The first dimension must be less than 10000)
-{v_1 : tensor} |= shape(v_1, 0) < 10000
+Rule 24 (The value tensor can't have dimensions with size less than 1)
+{v_1 : tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 1
 >>
-Rule 50 (If the tensor is complex its dimensions must be less than 500)
-{v_1 : tensor} |= if 10 <= dtype_(v_1) ∧ dtype_(v_1) <= 11 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 500
+Rule 27 (if seed is specified then the first dimension has to be greater than 0)
+{v_1 : tensor, v_2 : int} |= if v_2 > 0 then shape(v_1, 0) > 0
 >>
-Rule 55 (If the tensor is boolean or string, the size of the first dimension must be less than 100)
-{v_1 : tensor} |= if dtype_(v_1) = 0 ∨ dtype_(v_1) = 12 then shape(v_1, 0) < 100
+Rule 28 (If seed is specified the tensor must have at least one dimension)
+{v_1 : tensor, v_2 : int} |= if v_2 > 0 then ndim(v_1) > 0
 >>
-Rule 63 (If name is specified, then its length should be less than 256)
-{v_3:str} |= v_3.len < 256
+Rule 29 (the seed has to be less than a maximum value)
+{v_2 : int} |= v_2 < 2147483647
 >>
-Rule 68 (If the tensor has a floating point type, then minimum value must be greater than a limit)
-{v_1 : tensor} |= if 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 9 then min(v_1) > -1000
+Rule 30 (if the shape of the tensor is unknown, seed must be zero)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) = -1 then v_2 = 0
 >>
-Rule 69 (The name must be composed of valid characters)
-{v_3 : str} |= ∀i ∈ [0, v_3.len - 1] : (v_3[i] ≥ "a" ∧ v_3[i] ≤ "z") ∨ (v_3[i] ≥ "A" ∧ v_3[i] ≤ "Z") ∨ (v_3[i] ≥ "0" ∧ v_3[i] ≤ "9") ∨ v_3[i] = "_"
+Rule 32 (if tensor rank is 1 the size of dim 0 has to be greater than 1)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 1
 >>
-Rule 70 (The tensor's size on dimension zero, can not be zero)
-{v_1 : tensor} |= shape(v_1, 0) ≠ 0
+Rule 33 (If seed is zero, then the data type must be numerical)
+{v_1 : tensor, v_2 : int} |= if v_2 = 0 then 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11
 >>
-Rule 73 (The minimum value is less than maximum value)
-{v_1: tensor} |= min(v_1) ≤ max(v_1)
+Rule 34 (The value must have dimension)
+{v_1: tensor} |= ndim(v_1) >= 1
 >>
-Rule 75 (The tensor's size on dimension zero, can not be zero if the number of dimension is one)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) ≠ 0
+Rule 35 (if there is no seed, it should be zero)
+{v_2:int} |= v_2 = 0
+>>
+Rule 36 (if value shape is unknown seed should be zero)
+{v_1 : tensor, v_2 : int} |= if shape(v_1,0) < 0 then v_2 = 0
+>>
+Rule 38 (if there is a name then the shape dim 0 should be valid)
+{v_1 : tensor, v_3: str} |= if v_3 != "" then shape(v_1, 0) >= 0
+>>
+Rule 39 (If value is a string tensor, the seed argument is ignored)
+{v_1: tensor, v_2: int} |= if dtype_(v_1) = 12 then v_2 = 0
+>>
+Rule 40 (If value has more than 1 dimension and seed is present value is not a string)
+{v_1: tensor, v_2: int} |= if ndim(v_1) > 1 ∧ v_2 > 0 then dtype_(v_1) != 12
+>>
+Rule 41 (Name must be shorter than 255 characters)
+{v_3: str} |= v_3.len < 255
+>>
+Rule 43 (If value is rank-1, then seed must be specified)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 > 0
+>>
+Rule 44 (If the seed is present, the dtype should not be a string)
+{v_1 : tensor, v_2 : int} |= if v_2 > 0 then dtype_(v_1) != 12
+>>
+Rule 45 (If the seed is other than zero, the dtype has to be numerical)
+{v_1 : tensor, v_2 : int} |= if v_2 != 0 then dtype_(v_1) < 12
+>>
+Rule 46 (the seed should be a 32-bit integer value)
+{v_2: int} |= -2147483648 <= v_2 ∧ v_2 <= 2147483647
+>>
+Rule 47 (The shape of the tensor should be defined, and the first dimension must have a defined length.)
+{v_1 : tensor} |= shape(v_1, 0) ≠ null
+>>
+Rule 48 (if seed != 0 rank should be greater than equal 1)
+{v_1 : tensor, v_2 : int} |= if v_2 != 0 then ndim(v_1) >= 1
+>>
+Rule 51 (if name exists, dtype should be numerical)
+{v_1 : tensor, v_3 : str} |= if v_3 ≠ "" then (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 11)
+>>
+Rule 52 (if there is no name, dtype doesn't have to be numerical.)
+{v_1: tensor, v_3: str} |= if v_3 = "" then true else (dtype_(v_1) >=1 ∧ dtype_(v_1) <= 11)
+>>
+Rule 53 (If tensor is empty, seed is ignored)
+{v_1: tensor, v_2: int} |= if shape(v_1, 0) = 0 then v_2 = 0
+>>
+Rule 54 (If value's dtype is bool, seed must be zero)
+{v_1: tensor, v_2: int} |= if dtype_(v_1) = 0 then v_2 = 0
+>>
+Rule 56 (if the dimension size of the input tensor is null, the seed argument is ignored)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) < 0 then v_2 = 0
+>>
+Rule 57 (If value is a string tensor, seed must be zero)
+{v_1 : tensor, v_2: int} |= if dtype_(v_1) = 12 then v_2 = 0
+>>
+Rule 59 (If name parameter is present, then tensor rank must be at least one)
+{v_1: tensor, v_3 : str} |= if v_3 != "" then ndim(v_1) > 0
+>>
+Rule 60 (The dtype cannot be boolean if the seed is not zero)
+{v_1 : tensor, v_2 : int} |= if v_2 != 0 then dtype_(v_1) > 0
+>>
+Rule 61 (If seed is used, rank has to be at least 1 and can not be empty)
+{v_1 : tensor, v_2 : int} |= if v_2 != 0 then ndim(v_1) >= 1 ∧ shape(v_1,0) > 0
+>>
+Rule 65 (if the input tensor is a scalar, the seed must be zero)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 0 then v_2 = 0

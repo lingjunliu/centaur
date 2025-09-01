@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The bytes tensor should have a reasonable number of dimensions to represent a string (Rule 23)
+# bytes tensor can have any number of dimensions (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] <= 10) if n else
-          v["arg1_ndim"] <= 10)
+    s.add(Not(v["arg1_ndim"] >= 0) if n else
+          v["arg1_ndim"] >= 0)
 )
 
 def rule_23_func(arg1, solver=None, neg=False):

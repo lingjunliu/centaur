@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If min > 0, then max should be greater than 0 and less than a large constant (Rule 28)
+# The difference between max and min should be less than a large number (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] > 0, And(v["arg2_value"] > 0, v["arg2_value"] < 1000), False)) if n else
-          If(v["arg1_value"] > 0, And(v["arg2_value"] > 0, v["arg2_value"] < 1000), False))
+    s.add(Not(v["arg2_value"] - v["arg1_value"] < 100000000000000000000) if n else
+          v["arg2_value"] - v["arg1_value"] < 100000000000000000000)
 )
 
 def rule_28_func(arg1, arg2, solver=None, neg=False):

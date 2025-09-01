@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# check string is not one of the forbidden values. (Rule 44)
+# If tensor has only 1 dimension, value should be greater than 5 (Rule 44)
 
 rule_44 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_value"] != 8, v["arg1_value"] != 7), v["arg1_value"] != 11)) if n else
-          And(And(v["arg1_value"] != 8, v["arg1_value"] != 7), v["arg1_value"] != 11))
+    s.add(Not(If(v["arg1_ndim"] == 1, Select(v["arg1_range"], 0) > 5, True)) if n else
+          If(v["arg1_ndim"] == 1, Select(v["arg1_range"], 0) > 5, True))
 )
 
 def rule_44_func(arg1, solver=None, neg=False):
@@ -17,20 +17,23 @@ def rule_44_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, str):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_ndim = Int('arg1_ndim')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values_tf.index(arg1))
+        solver.add(arg1_ndim == arg1.ndim)
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 44
-        rule_44(solver, {'arg1_value': arg1_value})
+        rule_44(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_44(solver, {'arg1_value': arg1['value']}, neg)
+        rule_44(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)

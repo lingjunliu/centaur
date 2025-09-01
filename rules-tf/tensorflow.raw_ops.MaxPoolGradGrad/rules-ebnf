@@ -1,174 +1,363 @@
 >>
-Rule 1 (orig_input, orig_output, and grad must have the same data type)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
+Rule 1 (orig_input, orig_output and grad must have the same dtype)
+{orig_input : tensor, orig_output : tensor, grad : tensor} |= dtype_(orig_input) = dtype_(orig_output) ∧ dtype_(orig_input) = dtype_(grad)
 >>
-Rule 2 (ksize and strides should have length greater than or equal to 4)
-{v_1 : list(int), v_2 : list(int)} |= v_1.len ≥ 4 ∧ v_2.len ≥ 4
+Rule 2 (ksize must have length >= 4)
+{ksize : list(int)} |= ksize.len ≥ 4
 >>
-Rule 3 (padding should be either "SAME" or "VALID")
-{v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID"
+Rule 3 (strides must have length >= 4)
+{strides : list(int)} |= strides.len ≥ 4
 >>
-Rule 4 (data_format should be either "NHWC" or "NCHW")
-{v_1 : str} |= v_1 = "NHWC" ∨ v_1 = "NCHW"
+Rule 4 (padding must be either "SAME" or "VALID")
+{padding : str} |= padding = "SAME" ∨ padding = "VALID"
 >>
-Rule 5 (ksize elements must be positive integers)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 5 (data_format must be either "NHWC" or "NCHW")
+{data_format : str} |= data_format = "NHWC" ∨ data_format = "NCHW"
 >>
-Rule 7 (The input tensor must have at least 4 dimensions when the data format is "NHWC")
-{v_1 : tensor, v_2 : str} |= if v_2 = "NHWC" then ndim(v_1) ≥ 4
+Rule 6 (orig_input must be one of the allowed dtypes)
+{orig_input : tensor} |= dtype_(orig_input) = 7 ∨ dtype_(orig_input) = 8 ∨ dtype_(orig_input) = 3 ∨ dtype_(orig_input) = 6 ∨ dtype_(orig_input) = 2 ∨ dtype_(orig_input) = 1 ∨ dtype_(orig_input) = 5 ∨ dtype_(orig_input) = 9 ∨ dtype_(orig_input) = 4
 >>
-Rule 8 (The input tensor must have at least 4 dimensions when the data format is "NCHW")
-{v_1 : tensor, v_2 : str} |= if v_2 = "NCHW" then ndim(v_1) ≥ 4
+Rule 7 (ksize elements should be greater than zero)
+{ksize : list(int)} |= ∀i ∈ [0, ksize.len - 1] : ksize[i] > 0
 >>
-Rule 9 (ksize and strides should have the same length)
-{v_1 : list(int), v_2 : list(int)} |= v_1.len = v_2.len
+Rule 8 (strides elements should be greater than zero)
+{strides : list(int)} |= ∀i ∈ [0, strides.len - 1] : strides[i] > 0
 >>
-Rule 10 (check for valid tensor dimensions)
-{v_1 : tensor} |= ndim(v_1) > 1
+Rule 9 (Number of dimensions of orig_input should be equal to the length of ksize)
+{orig_input : tensor, ksize : list(int)} |= ndim(orig_input) = ksize.len
 >>
-Rule 19 (orig_input tensor must be a supported type (float32, float64, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64) - represented by checking if the dtype is in a predefined set)
-{v_1 : tensor} |= dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 5
+Rule 10 (Number of dimensions of orig_input should be equal to the length of strides)
+{orig_input : tensor, strides : list(int)} |= ndim(orig_input) = strides.len
 >>
-Rule 20 (ensure ksize and strides values are greater than zero.)
-{v_1: list(int), v_2: list(int)} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] > 0)
+Rule 11 (grad must be a 4-D tensor)
+{grad : tensor} |= ndim(grad) = 4
 >>
-Rule 21 (If data_format is NCHW, the channel dimension should be less than or equal to the number of channels of the input tensor)
-{v_1 : tensor, v_2 : str, v_3 : int} |= if v_2 = "NCHW" then shape(v_1, 1) ≥ v_3
+Rule 12 (shape of orig_input and orig_output should be the same)
+{orig_input : tensor, orig_output : tensor} |= ndim(orig_input) = ndim(orig_output) ∧ ∀i ∈ [0, ndim(orig_input) - 1] : shape(orig_input, i) = shape(orig_output, i)
 >>
-Rule 22 (ksize's size should correspond to orig_input's rank if data_format is NCHW and has valid channel number)
-{v_1 : tensor, v_2 : list(int), v_3: str} |= if v_3 = "NCHW" then v_2.len = ndim(v_1)
+Rule 13 (shape of orig_input and grad might not be the same)
+{orig_input : tensor, grad : tensor} |= ndim(orig_input) = ndim(grad) ∧ ∃i ∈ [0, ndim(orig_input) - 1] : shape(orig_input, i) ≠ shape(grad, i)
 >>
-Rule 23 (ksize's size should correspond to orig_input's rank if data_format is NHWC)
-{v_1 : tensor, v_2 : list(int), v_3: str} |= if v_3 = "NHWC" then v_2.len = ndim(v_1)
+Rule 14 (orig_input must have a valid dtype)
+{orig_input : tensor} |= dtype_(orig_input) = 7 ∨ dtype_(orig_input) = 8 ∨ dtype_(orig_input) = 3 ∨ dtype_(orig_input) = 6 ∨ dtype_(orig_input) = 2 ∨ dtype_(orig_input) = 1 ∨ dtype_(orig_input) = 5
 >>
-Rule 28 (the dimension of grad should be 4)
-{v_1 : tensor} |= ndim(v_1) = 4
+Rule 17 (if data_format is NCHW, number of channels should be the same between orig_input, orig_output and grad)
+{data_format : str, orig_input : tensor, orig_output : tensor, grad : tensor} |= if data_format = "NCHW" then shape(orig_input, 1) = shape(orig_output, 1) ∧ shape(orig_input, 1) = shape(grad, 1)
 >>
-Rule 29 (ksize values must be positive)
-{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 18 (If data_format is NHWC, number of channels should be the same between orig_input, orig_output and grad)
+{data_format : str, orig_input : tensor, orig_output : tensor, grad : tensor} |= if data_format = "NHWC" then shape(orig_input, 3) = shape(orig_output, 3) ∧ shape(orig_input, 3) = shape(grad, 3)
 >>
-Rule 31 (If data_format is NHWC, the channel dimension should be less than or equal to the number of channels of the input tensor)
-{v_1 : tensor, v_2 : str, v_3 : int} |= if v_2 = "NHWC" then shape(v_1, ndim(v_1)-1) ≥ v_3
+Rule 19 (ksize and strides must have the same length)
+{ksize : list(int), strides : list(int)} |= ksize.len = strides.len
 >>
-Rule 32 (orig_input, orig_output, grad tensors should have the same shape.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i))
+Rule 20 (The first element of the shape of orig_input should be the same as the first element of the shape of grad)
+{orig_input : tensor, grad : tensor} |= shape(orig_input, 0) = shape(grad, 0)
 >>
-Rule 33 (ksize and strides lists should have the same elements)
-{v_1 : list(int), v_2 : list(int)} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] = v_2[i])
+Rule 21 (The last element of the shape of orig_input should be the same as the last element of the shape of grad when data_format is NHWC)
+{orig_input : tensor, grad : tensor, data_format : str} |= if data_format = "NHWC" then shape(orig_input, ndim(orig_input) - 1) = shape(grad, ndim(grad) - 1)
 >>
-Rule 34 (ksize and strides list length should equal tensor rank)
-{v_1: tensor, v_2: list(int)} |= ndim(v_1) = v_2.len
+Rule 22 (The second element of the shape of orig_input should be the same as the second element of the shape of grad when data_format is NCHW)
+{orig_input : tensor, grad : tensor, data_format : str} |= if data_format = "NCHW" then shape(orig_input, 1) = shape(grad, 1)
 >>
-Rule 35 (ksize and strides lists should have length 4 if input tensor has length 4)
-{v_1: tensor, v_2: list(int), v_3: list(int)} |= if ndim(v_1) = 4 then v_2.len = 4 ∧ v_3.len = 4
+Rule 23 (ksize[0] and ksize[ndim(orig_input) - 1] should be 1)
+{ksize : list(int), orig_input : tensor} |= ksize[0] = 1 ∧ ksize[ndim(orig_input) -1 ] = 1
 >>
-Rule 36 (If the data format is NCHW, input tensor's channel dimension should be greater than 0)
-{v_1 : tensor, v_2 : str} |= if v_2 = "NCHW" then shape(v_1, 1) > 0
+Rule 24 (strides[0] and strides[ndim(orig_input) - 1] should be 1)
+{strides : list(int), orig_input : tensor} |= strides[0] = 1 ∧ strides[ndim(orig_input) - 1] = 1
 >>
-Rule 37 (If the data format is NHWC, input tensor's channel dimension should be greater than 0)
-{v_1 : tensor, v_2 : str} |= if v_2 = "NHWC" then shape(v_1, ndim(v_1) - 1) > 0
+Rule 26 (The dtypes of orig_input, orig_output and grad must be float32, float64, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, or uint64)
+{orig_input : tensor, orig_output : tensor, grad : tensor} |= (dtype_(orig_input) = 7 ∨ dtype_(orig_input) = 8 ∨ dtype_(orig_input) = 3 ∨ dtype_(orig_input) = 6 ∨ dtype_(orig_input) = 2 ∨ dtype_(orig_input) = 1 ∨ dtype_(orig_input) = 5) ∧ dtype_(orig_input) = dtype_(orig_output) ∧ dtype_(orig_input) = dtype_(grad)
 >>
-Rule 38 (If the input is 4D and data_format is NHWC, ksize[1] and strides[1] should be 1)
-{v_1 : tensor, v_2 : list(int), v_3: list(int), v_4: str} |= if ndim(v_1) = 4 ∧ v_4 = "NHWC" then v_2[1] > 0 ∧ v_3[1] > 0
+Rule 27 (If padding is "SAME", then strides must be less than or equal to ksize)
+{padding : str, strides : list(int), ksize : list(int)} |= if padding = "SAME" then ∀i ∈ [0, strides.len - 1] : strides[i] ≤ ksize[i]
 >>
-Rule 39 (If the input is 4D and data_format is NHWC, ksize[2] and strides[2] should be 1)
-{v_1 : tensor, v_2 : list(int), v_3: list(int), v_4: str} |= if ndim(v_1) = 4 ∧ v_4 = "NHWC" then v_2[2] > 0 ∧ v_3[2] > 0
+Rule 28 (If data_format is "NHWC", then shape[1] of orig_input must be greater than or equal to ksize[1])
+{data_format : str, orig_input : tensor, ksize : list(int)} |= if data_format = "NHWC" then shape(orig_input, 1) ≥ ksize[1]
 >>
-Rule 40 (If the input is 4D and data_format is NCHW, ksize[2] and strides[2] should be 1)
-{v_1 : tensor, v_2 : list(int), v_3: list(int), v_4: str} |= if ndim(v_1) = 4 ∧ v_4 = "NCHW" then v_2[2] > 0 ∧ v_3[2] > 0
+Rule 29 (If data_format is "NHWC", then shape[2] of orig_input must be greater than or equal to ksize[2])
+{data_format : str, orig_input : tensor, ksize : list(int)} |= if data_format = "NHWC" then shape(orig_input, 2) ≥ ksize[2]
 >>
-Rule 41 (If the input is 4D and data_format is NCHW, ksize[3] and strides[3] should be 1)
-{v_1 : tensor, v_2 : list(int), v_3: list(int), v_4: str} |= if ndim(v_1) = 4 ∧ v_4 = "NCHW" then v_2[3] > 0 ∧ v_3[3] > 0
+Rule 30 (If data_format is "NCHW", then shape[2] of orig_input must be greater than or equal to ksize[2])
+{data_format : str, orig_input : tensor, ksize : list(int)} |= if data_format = "NCHW" then shape(orig_input, 2) ≥ ksize[2]
 >>
-Rule 42 (If the input is 4D and data_format is NHWC, ksize[0] and strides[0] should be 1)
-{v_1 : tensor, v_2 : list(int), v_3: list(int), v_4: str} |= if ndim(v_1) = 4 ∧ v_4 = "NHWC" then v_2[0] > 0 ∧ v_3[0] > 0
+Rule 31 (If data_format is "NCHW", then shape[3] of orig_input must be greater than or equal to ksize[3])
+{data_format : str, orig_input : tensor, ksize : list(int)} |= if data_format = "NCHW" then shape(orig_input, 3) ≥ ksize[3]
 >>
-Rule 43 (If the input is 4D and data_format is NCHW, ksize[0] and strides[0] should be 1)
-{v_1 : tensor, v_2 : list(int), v_3: list(int), v_4: str} |= if ndim(v_1) = 4 ∧ v_4 = "NCHW" then v_2[0] > 0 ∧ v_3[0] > 0
+Rule 32 (If data_format is "NHWC", then shape[3] of orig_input must be greater than or equal to ksize[3])
+{data_format : str, orig_input : tensor, ksize : list(int)} |= if data_format = "NHWC" then shape(orig_input, 3) ≥ ksize[3]
 >>
-Rule 44 (Grad's shape matches output after MaxPool operation when padding is VALID and data format is NHWC)
-{v_1 : tensor, v_2 : tensor, v_3: list(int), v_4: list(int), v_5: str, v_6: str} |= if ndim(v_1) = 4 ∧ v_5 = "VALID" ∧ v_6 = "NHWC" then shape(v_1, 1) = (shape(v_2, 1) - v_3[1] + v_4[1]) / v_4[1] ∧ shape(v_1, 2) = (shape(v_2, 2) - v_3[2] + v_4[2]) / v_4[2]
+Rule 33 (If data_format is "NCHW", then shape[2] of orig_input must be greater than or equal to strides[2])
+{data_format : str, orig_input : tensor, strides : list(int)} |= if data_format = "NCHW" then shape(orig_input, 2) ≥ strides[2]
 >>
-Rule 45 (Grad's shape matches output after MaxPool operation when padding is VALID and data format is NCHW)
-{v_1 : tensor, v_2 : tensor, v_3: list(int), v_4: list(int), v_5: str, v_6: str} |= if ndim(v_1) = 4 ∧ v_5 = "VALID" ∧ v_6 = "NCHW" then shape(v_1, 2) = (shape(v_2, 2) - v_3[2] + v_4[2]) / v_4[2] ∧ shape(v_1, 3) = (shape(v_2, 3) - v_3[3] + v_4[3]) / v_4[3]
+Rule 34 (If data_format is "NCHW", then shape[3] of orig_input must be greater than or equal to strides[3])
+{data_format : str, orig_input : tensor, strides : list(int)} |= if data_format = "NCHW" then shape(orig_input, 3) ≥ strides[3]
 >>
-Rule 46 (If the input is 4D and data_format is NCHW, shape(orig_input,1) equals shape(orig_output,1))
-{v_1 : tensor, v_2 : tensor, v_3: str} |= if ndim(v_1) = 4 ∧ v_3 = "NCHW" then shape(v_1, 1) = shape(v_2, 1)
+Rule 35 (If data_format is "NHWC", then shape[1] of orig_input must be greater than or equal to strides[1])
+{data_format : str, orig_input : tensor, strides : list(int)} |= if data_format = "NHWC" then shape(orig_input, 1) ≥ strides[1]
 >>
-Rule 47 (If the input is 4D and data_format is NHWC, shape(orig_input, ndim(orig_input)-1) equals shape(orig_output, ndim(orig_output)-1))
-{v_1 : tensor, v_2 : tensor, v_3: str} |= if ndim(v_1) = 4 ∧ v_3 = "NHWC" then shape(v_1, ndim(v_1)-1) = shape(v_2, ndim(v_2)-1)
+Rule 36 (If data_format is "NHWC", then shape[2] of orig_input must be greater than or equal to strides[2])
+{data_format : str, orig_input : tensor, strides : list(int)} |= if data_format = "NHWC" then shape(orig_input, 2) ≥ strides[2]
 >>
-Rule 52 (Grad's shape matches output after MaxPool operation when padding is SAME and data format is NHWC)
-{v_1 : tensor, v_2 : tensor, v_3: list(int), v_4: str, v_5: str} |= if ndim(v_1) = 4 ∧ v_4 = "SAME" ∧ v_5 = "NHWC" then shape(v_1, 1) = (shape(v_2, 1) + v_3[1] - 1) / v_3[1] ∧ shape(v_1, 2) = (shape(v_2, 2) + v_3[2] - 1) / v_3[2]
+Rule 37 (if padding is VALID, then strides[i] must be less than or equal to ksize[i] for i in range of len(strides))
+{padding : str, strides: list(int), ksize: list(int)} |= if padding = "VALID" then ∀i ∈ [0, strides.len - 1]: strides[i] ≤ ksize[i]
 >>
-Rule 53 (Grad's shape matches output after MaxPool operation when padding is SAME and data format is NCHW)
-{v_1 : tensor, v_2 : tensor, v_3: list(int), v_4: str, v_5: str} |= if ndim(v_1) = 4 ∧ v_4 = "SAME" ∧ v_5 = "NCHW" then shape(v_1, 2) = (shape(v_2, 2) + v_3[2] - 1) / v_3[2] ∧ shape(v_1, 3) = (shape(v_2, 3) + v_3[3] - 1) / v_3[3]
+Rule 38 (length of ksize should match the number of dimensions of orig_input)
+{ksize: list(int), orig_input: tensor} |= ksize.len = ndim(orig_input)
 >>
-Rule 54 (Orig_input and orig_output should have same shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 39 (length of strides should match the number of dimensions of orig_input)
+{strides: list(int), orig_input: tensor} |= strides.len = ndim(orig_input)
 >>
-Rule 58 (Ksize and strides list length should equal tensor rank and be at least 4)
-{v_1: tensor, v_2: list(int)} |= ndim(v_1) = v_2.len ∧ v_2.len >= 4
+Rule 40 (padding string should be one of the allowed values)
+{padding: str} |= padding = "SAME" ∨ padding = "VALID"
 >>
-Rule 59 (Padding should be valid)
-{v_1: str} |= v_1 = "SAME" ∨ v_1 = "VALID"
+Rule 41 (data_format string should be one of the allowed values)
+{data_format: str} |= data_format = "NHWC" ∨ data_format = "NCHW"
 >>
-Rule 60 (Grad's shape matches the expected output size, considering padding and strides - NHWC)
-{v_1 : tensor, v_2 : tensor, v_3: list(int), v_4: list(int), v_5: str} |= if ndim(v_1) = 4 ∧ v_5 = "NHWC" ∧ shape(v_2,1) > 0 ∧ v_3[1] > 0 ∧ v_4[1] > 0 ∧ shape(v_2,2) > 0 ∧ v_3[2] > 0 ∧ v_4[2] > 0 then  if v_5 = "VALID" then shape(v_1, 1) = (shape(v_2, 1) - v_3[1] + v_4[1]) / v_4[1] ∧ shape(v_1, 2) = (shape(v_2, 2) - v_3[2] + v_4[2]) / v_4[2] else shape(v_1, 1) = (shape(v_2, 1) + v_4[1] - 1) / v_4[1] ∧ shape(v_1, 2) = (shape(v_2, 2) + v_4[2] - 1) / v_4[2]
+Rule 42 (if data_format is None, it should be defaulted to NHWC)
+{data_format : str} |= if data_format = "none" then data_format = "NHWC"
 >>
-Rule 61 (Grad's shape matches the expected output size, considering padding and strides - NCHW)
-{v_1 : tensor, v_2 : tensor, v_3: list(int), v_4: list(int), v_5: str} |= if ndim(v_1) = 4 ∧ v_5 = "NCHW" ∧ shape(v_2,2) > 0 ∧ v_3[2] > 0 ∧ v_4[2] > 0 ∧ shape(v_2,3) > 0 ∧ v_3[3] > 0 ∧ v_4[3] > 0 then  if v_5 = "VALID" then shape(v_1, 2) = (shape(v_2, 2) - v_3[2] + v_4[2]) / v_4[2] ∧ shape(v_1, 3) = (shape(v_2, 3) - v_3[3] + v_4[3]) / v_4[3] else shape(v_1, 2) = (shape(v_2, 2) + v_4[2] - 1) / v_4[2] ∧ shape(v_1, 3) = (shape(v_2, 3) + v_4[3] - 1) / v_4[3]
+Rule 43 (if data_format is NHWC, then ksize.len and strides.len should be equal to 4)
+{data_format: str, ksize: list(int), strides: list(int)} |= if data_format = "NHWC" then ksize.len = 4 ∧ strides.len = 4
 >>
-Rule 62 (Data format must be a valid string)
-{v_1: str} |= v_1 = "NHWC" ∨ v_1 = "NCHW"
+Rule 44 (if data_format is NCHW, then ksize.len and strides.len should be equal to 4)
+{data_format: str, ksize: list(int), strides: list(int)} |= if data_format = "NCHW" then ksize.len = 4 ∧ strides.len = 4
 >>
-Rule 63 (If the input is 4D and data_format is NHWC or NCHW then Ksize[0] and Strides[0] must be 1)
-{v_1: tensor, v_2: list(int), v_3: list(int), v_4: str} |= if ndim(v_1) = 4 ∧ (v_4 = "NHWC" ∨ v_4 = "NCHW") then v_2[0] = 1 ∧ v_3[0] = 1
+Rule 45 (orig_input shape[1] and shape[2] must be > 0)
+{orig_input: tensor} |= shape(orig_input, 1) > 0 ∧ shape(orig_input, 2) > 0
 >>
-Rule 64 (If the input is 4D and data_format is NHWC then Ksize[3] and Strides[3] must be 1)
-{v_1: tensor, v_2: list(int), v_3: list(int), v_4: str} |= if ndim(v_1) = 4 ∧ v_4 = "NHWC" then v_2[3] = 1 ∧ v_3[3] = 1
+Rule 46 (if data_format is NCHW, then orig_input shape[2] and shape[3] must be > 0)
+{data_format: str, orig_input: tensor} |= if data_format = "NCHW" then shape(orig_input, 2) > 0 ∧ shape(orig_input, 3) > 0
 >>
-Rule 65 (If the input is 4D and data_format is NCHW then Ksize[1] and Strides[1] must be 1)
-{v_1: tensor, v_2: list(int), v_3: list(int), v_4: str} |= if ndim(v_1) = 4 ∧ v_4 = "NCHW" then v_2[1] = 1 ∧ v_3[1] = 1
+Rule 47 (if data_format is NHWC, then strides[1] and strides[2] must be > 0)
+{data_format: str, strides: list(int)} |= if data_format = "NHWC" then strides[1] > 0 ∧ strides[2] > 0
 >>
-Rule 68 (If the input is 4D and data_format is NHWC or NCHW then Ksize[0] and Strides[0] must be 1, Ksize and Strides must be greater than 0)
-{v_1: tensor, v_2: list(int), v_3: list(int), v_4: str} |= if ndim(v_1) = 4 ∧ (v_4 = "NHWC" ∨ v_4 = "NCHW") then v_2[0] = 1 ∧ v_3[0] = 1 ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] > 0) ∧ (∀i ∈ [0, v_3.len - 1] : v_3[i] > 0) else (∀i ∈ [0, v_2.len - 1] : v_2[i] > 0) ∧ (∀i ∈ [0, v_3.len - 1] : v_3[i] > 0)
+Rule 48 (if data_format is NCHW, then strides[2] and strides[3] must be > 0)
+{data_format: str, strides: list(int)} |= if data_format = "NCHW" then strides[2] > 0 ∧ strides[3] > 0
 >>
-Rule 71 (ksize and strides must have same length)
-{v_1: list(int), v_2: list(int)} |= v_1.len = v_2.len
+Rule 49 (if data_format is NHWC, then ksize[1] and ksize[2] must be > 0)
+{data_format: str, ksize: list(int)} |= if data_format = "NHWC" then ksize[1] > 0 ∧ ksize[2] > 0
 >>
-Rule 72 (The size of ksize and strides should correspond with input tensor's dimension, when data format is NHWC or NCHW.)
-{v_1: tensor, v_2: list(int), v_3: list(int), v_4: str} |= if (v_4 = "NHWC" ∨ v_4 = "NCHW") then v_2.len = ndim(v_1) ∧ v_3.len = ndim(v_1)
+Rule 50 (if data_format is NCHW, then ksize[2] and ksize[3] must be > 0)
+{data_format: str, ksize: list(int)} |= if data_format = "NCHW" then ksize[2] > 0 ∧ ksize[3] > 0
 >>
-Rule 76 (If input is 4D, then the data format must be NHWC or NCHW)
-{v_1: tensor, v_2: str} |= if ndim(v_1) = 4 then v_2 = "NHWC" ∨ v_2 = "NCHW"
+Rule 51 (orig_input shape[0] must be greater than zero)
+{orig_input: tensor} |= shape(orig_input, 0) > 0
 >>
-Rule 78 (If the input is 4D, ksize[1], ksize[2], strides[1] and strides[2] should be greater than 0)
-{v_1: tensor, v_2: list(int), v_3: list(int)} |= if ndim(v_1) = 4 then v_2[1] > 0 ∧ v_2[2] > 0 ∧ v_3[1] > 0 ∧ v_3[2] > 0
+Rule 52 (grad shape[0] must be greater than zero)
+{grad: tensor} |= shape(grad, 0) > 0
 >>
-Rule 79 (Padding should be SAME or VALID if the input is 4D)
-{v_1: tensor, v_2: str} |= if ndim(v_1) = 4 then v_2 = "SAME" ∨ v_2 = "VALID"
+Rule 53 (orig_output shape[0] must be greater than zero)
+{orig_output: tensor} |= shape(orig_output, 0) > 0
 >>
-Rule 81 (If the input is 4D and data_format is NHWC or NCHW, Ksize and Strides must be greater than 0)
-{v_1: tensor, v_2: list(int), v_3: list(int), v_4: str} |= if ndim(v_1) = 4 ∧ (v_4 = "NHWC" ∨ v_4 = "NCHW") then (∀i ∈ [0, v_2.len - 1] : v_2[i] > 0) ∧ (∀i ∈ [0, v_3.len - 1] : v_3[i] > 0)
+Rule 54 (The last dimension of ksize should be positive)
+{ksize: list(int)} |= ksize[ksize.len - 1] > 0
 >>
-Rule 82 (Orig_input and orig_output and grad must have same dimensions)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3)
+Rule 55 (The last dimension of strides should be positive)
+{strides: list(int)} |= strides[strides.len - 1] > 0
 >>
-Rule 85 (The size of ksize and strides should correspond with input tensor's dimension)
-{v_1: tensor, v_2: list(int), v_3: list(int)} |= v_2.len = ndim(v_1) ∧ v_3.len = ndim(v_1)
+Rule 56 (If padding is "SAME" and data_format is "NHWC", then shape[1] of orig_input must be divisible by strides[1])
+{padding: str, data_format: str, orig_input: tensor, strides: list(int)} |= if padding = "SAME" ∧ data_format = "NHWC" then shape(orig_input, 1) % strides[1] = 0
 >>
-Rule 87 (All input tensors must have the same data type)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_2) = dtype_(v_3)
+Rule 57 (If padding is "SAME" and data_format is "NHWC", then shape[2] of orig_input must be divisible by strides[2])
+{padding: str, data_format: str, orig_input: tensor, strides: list(int)} |= if padding = "SAME" ∧ data_format = "NHWC" then shape(orig_input, 2) % strides[2] = 0
 >>
-Rule 88 (Ksize list's length is not less than 4)
-{v_1 : list(int)} |= v_1.len ≥ 4
+Rule 58 (If padding is "SAME" and data_format is "NCHW", then shape[2] of orig_input must be divisible by strides[2])
+{padding: str, data_format: str, orig_input: tensor, strides: list(int)} |= if padding = "SAME" ∧ data_format = "NCHW" then shape(orig_input, 2) % strides[2] = 0
 >>
-Rule 90 (Input tensors's data type must be in allowed list)
-{v_1: tensor} |= dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 7
+Rule 59 (If padding is "SAME" and data_format is "NCHW", then shape[3] of orig_input must be divisible by strides[3])
+{padding: str, data_format: str, orig_input: tensor, strides: list(int)} |= if padding = "SAME" ∧ data_format = "NCHW" then shape(orig_input, 3) % strides[3] = 0
 >>
-Rule 91 (If input is 4D, Ksize and Strides must have elements larger than 0)
-{v_1: tensor, v_2: list(int), v_3: list(int)} |= if ndim(v_1) = 4 then (∀i ∈ [0, v_2.len - 1] : v_2[i] > 0) ∧ (∀i ∈ [0, v_3.len - 1] : v_3[i] > 0)
+Rule 60 (The minimum value of orig_input cannot be greater than the maximum value of orig_input)
+{orig_input: tensor} |= min(orig_input) ≤ max(orig_input)
 >>
-Rule 92 (Ksize and Strides must have same elements)
-{v_1: list(int), v_2: list(int)} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] = v_2[i])
+Rule 61 (If padding is "VALID" and data_format is "NHWC", then shape[1] of orig_input must be greater than or equal to ksize[1])
+{padding: str, data_format: str, orig_input: tensor, ksize: list(int)} |= if padding = "VALID" ∧ data_format = "NHWC" then shape(orig_input, 1) ≥ ksize[1]
+>>
+Rule 62 (If padding is "VALID" and data_format is "NHWC", then shape[2] of orig_input must be greater than or equal to ksize[2])
+{padding: str, data_format: str, orig_input: tensor, ksize: list(int)} |= if padding = "VALID" ∧ data_format = "NHWC" then shape(orig_input, 2) ≥ ksize[2]
+>>
+Rule 63 (If padding is "VALID" and data_format is "NCHW", then shape[2] of orig_input must be greater than or equal to ksize[2])
+{padding: str, data_format: str, orig_input: tensor, ksize: list(int)} |= if padding = "VALID" ∧ data_format = "NCHW" then shape(orig_input, 2) ≥ ksize[2]
+>>
+Rule 64 (If padding is "VALID" and data_format is "NCHW", then shape[3] of orig_input must be greater than or equal to ksize[3])
+{padding: str, data_format: str, orig_input: tensor, ksize: list(int)} |= if padding = "VALID" ∧ data_format = "NCHW" then shape(orig_input, 3) ≥ ksize[3]
+>>
+Rule 65 (If the data format is "NHWC", then the ksize dimensions must be smaller or equal than the dimensions of the input tensor, excluding the batch and channel dimensions)
+{data_format: str, orig_input: tensor, ksize: list(int)} |= if data_format = "NHWC" then ksize[1] ≤ shape(orig_input, 1) ∧ ksize[2] ≤ shape(orig_input, 2)
+>>
+Rule 66 (If the data format is "NCHW", then the ksize dimensions must be smaller or equal than the dimensions of the input tensor, excluding the batch and channel dimensions)
+{data_format: str, orig_input: tensor, ksize: list(int)} |= if data_format = "NCHW" then ksize[2] ≤ shape(orig_input, 2) ∧ ksize[3] ≤ shape(orig_input, 3)
+>>
+Rule 67 (If the data format is "NHWC", then the strides dimensions must be smaller or equal than the dimensions of the input tensor, excluding the batch and channel dimensions if padding is VALID)
+{data_format: str, orig_input: tensor, strides: list(int), padding: str} |= if data_format = "NHWC" ∧ padding = "VALID" then strides[1] ≤ shape(orig_input, 1) ∧ strides[2] ≤ shape(orig_input, 2)
+>>
+Rule 68 (If the data format is "NCHW", then the strides dimensions must be smaller or equal than the dimensions of the input tensor, excluding the batch and channel dimensions if padding is VALID)
+{data_format: str, orig_input: tensor, strides: list(int), padding: str} |= if data_format = "NCHW" ∧ padding = "VALID" then strides[2] ≤ shape(orig_input, 2) ∧ strides[3] ≤ shape(orig_input, 3)
+>>
+Rule 69 (If orig_input has integer data type, it cannot be complex)
+{orig_input: tensor} |= if dtype_(orig_input) = 3 ∨ dtype_(orig_input) = 6 ∨ dtype_(orig_input) = 2 ∨ dtype_(orig_input) = 1 ∨ dtype_(orig_input) = 5 then dtype_(orig_input) ≠ 10 ∧ dtype_(orig_input) ≠ 11
+>>
+Rule 70 (If orig_input has float data type, it cannot be complex)
+{orig_input: tensor} |= if dtype_(orig_input) = 7 ∨ dtype_(orig_input) = 8 then dtype_(orig_input) ≠ 10 ∧ dtype_(orig_input) ≠ 11
+>>
+Rule 73 (ksize cannot be None)
+{ksize: list(int)} |= ksize ≠ "none"
+>>
+Rule 74 (strides cannot be None)
+{strides: list(int)} |= strides ≠ "none"
+>>
+Rule 75 (padding cannot be None)
+{padding: str} |= padding ≠ "none"
+>>
+Rule 76 (if data_format is "NHWC" and padding is "SAME", then strides[1] cannot be zero.)
+{data_format: str, padding: str, strides: list(int)} |= if data_format = "NHWC" ∧ padding = "SAME" then strides[1] ≠ 0
+>>
+Rule 77 (if data_format is "NHWC" and padding is "SAME", then strides[2] cannot be zero.)
+{data_format: str, padding: str, strides: list(int)} |= if data_format = "NHWC" ∧ padding = "SAME" then strides[2] ≠ 0
+>>
+Rule 78 (if data_format is "NCHW" and padding is "SAME", then strides[2] cannot be zero.)
+{data_format: str, padding: str, strides: list(int)} |= if data_format = "NCHW" ∧ padding = "SAME" then strides[2] ≠ 0
+>>
+Rule 79 (if data_format is "NCHW" and padding is "SAME", then strides[3] cannot be zero.)
+{data_format: str, padding: str, strides: list(int)} |= if data_format = "NCHW" ∧ padding = "SAME" then strides[3] ≠ 0
+>>
+Rule 80 (ksize[1] must be less or equal to shape[1])
+{orig_input: tensor, ksize: list(int)} |= ksize[1] <= shape(orig_input, 1)
+>>
+Rule 81 (ksize[2] must be less or equal to shape[2])
+{orig_input: tensor, ksize: list(int)} |= ksize[2] <= shape(orig_input, 2)
+>>
+Rule 82 (ksize[3] must be less or equal to shape[3])
+{orig_input: tensor, ksize: list(int)} |= ksize[3] <= shape(orig_input, 3)
+>>
+Rule 83 (If padding is "VALID", then the output size is (input_size - ksize + 1) / stride)
+{padding: str} |= if padding = "VALID" then true
+>>
+Rule 84 (If padding is "SAME", then the output size is input_size / stride)
+{padding: str} |= if padding = "SAME" then true
+>>
+Rule 85 (If the data_format is NCHW, then the channels dimension should be equal for all tensors.)
+{data_format: str, orig_input: tensor, orig_output: tensor, grad: tensor} |= if data_format = "NCHW" then shape(orig_input, 1) = shape(orig_output, 1) ∧ shape(orig_input, 1) = shape(grad, 1)
+>>
+Rule 86 (The minimum value of grad cannot be greater than the maximum value of grad)
+{grad: tensor} |= min(grad) ≤ max(grad)
+>>
+Rule 87 (The minimum value of orig_output cannot be greater than the maximum value of orig_output)
+{orig_output: tensor} |= min(orig_output) ≤ max(orig_output)
+>>
+Rule 88 (if data_format is NHWC, then shape(orig_input, 3) > 0)
+{data_format : str, orig_input : tensor} |= if data_format = "NHWC" then shape(orig_input, 3) > 0
+>>
+Rule 89 (if data_format is NCHW, then shape(orig_input, 1) > 0)
+{data_format : str, orig_input : tensor} |= if data_format = "NCHW" then shape(orig_input, 1) > 0
+>>
+Rule 90 (if padding is "SAME" then ksize and strides must have the same length)
+{padding : str, ksize : list(int), strides : list(int)} |= if padding = "SAME" then ksize.len = strides.len
+>>
+Rule 91 (If padding is "VALID" then ksize[i] must be less than or equal to shape[i] for all i in range of ndim)
+{padding: str, orig_input: tensor, ksize: list(int)} |= if padding = "VALID" then ∀i ∈ [0, ndim(orig_input) - 1] : ksize[i] ≤ shape(orig_input, i)
+>>
+Rule 96 (If strides is a list, then all elements of strides must be integers)
+{strides: list(int)} |= ∀i ∈ [0, strides.len - 1] : true
+>>
+Rule 97 (If ksize is a list, then all elements of ksize must be integers)
+{ksize: list(int)} |= ∀i ∈ [0, ksize.len - 1] : true
+>>
+Rule 98 (if orig_input has bfloat16 dtype, it is a valid data type)
+{orig_input: tensor} |= dtype_(orig_input) ≠ 9
+>>
+Rule 99 (if orig_input has uint16 dtype, it is a valid data type)
+{orig_input: tensor} |= dtype_(orig_input) ≠ 10
+>>
+Rule 100 (if orig_input has half dtype, it is a valid data type)
+{orig_input: tensor} |= dtype_(orig_input) ≠ 11
+>>
+Rule 106 (If data_format is "NHWC" and padding is "VALID", then output_width = (in_width - filter_width + 1) / strides[2])
+{data_format: str, padding: str} |= if data_format = "NHWC" ∧ padding = "VALID" then true
+>>
+Rule 107 (If data_format is "NHWC" and padding is "SAME", then output_width = ceil(in_width / strides[2]))
+{data_format: str, padding: str} |= if data_format = "NHWC" ∧ padding = "SAME" then true
+>>
+Rule 108 (If data_format is "NCHW" and padding is "VALID", then output_width = (in_width - filter_width + 1) / strides[3])
+{data_format: str, padding: str} |= if data_format = "NCHW" ∧ padding = "VALID" then true
+>>
+Rule 109 (If data_format is "NCHW" and padding is "SAME", then output_width = ceil(in_width / strides[3]))
+{data_format: str, padding: str} |= if data_format = "NCHW" ∧ padding = "SAME" then true
+>>
+Rule 111 (If data_format is "NHWC" and padding is "VALID", then the output dimensions cannot be negative)
+{data_format: str, padding: str, orig_input: tensor, ksize: list(int), strides: list(int)} |= if data_format = "NHWC" ∧ padding = "VALID" then (shape(orig_input, 1) - ksize[1] + 1) / strides[1] > 0 ∧ (shape(orig_input, 2) - ksize[2] + 1) / strides[2] > 0
+>>
+Rule 112 (If data_format is "NCHW" and padding is "VALID", then the output dimensions cannot be negative)
+{data_format: str, padding: str, orig_input: tensor, ksize: list(int), strides: list(int)} |= if data_format = "NCHW" ∧ padding = "VALID" then (shape(orig_input, 2) - ksize[2] + 1) / strides[2] > 0 ∧ (shape(orig_input, 3) - ksize[3] + 1) / strides[3] > 0
+>>
+Rule 113 (ksize[i] must be less than or equal to the corresponding dimension shape(orig_input, i) if padding = VALID)
+{orig_input: tensor, ksize: list(int), padding : str} |= if padding = "VALID" then ∀i ∈ [0, ndim(orig_input) - 1] : ksize[i] ≤ shape(orig_input, i)
+>>
+Rule 114 (strides[i] must be greater than zero)
+{strides: list(int)} |= ∀i ∈ [0, strides.len - 1] : strides[i] > 0
+>>
+Rule 115 (ksize[i] must be greater than zero)
+{ksize: list(int)} |= ∀i ∈ [0, ksize.len - 1] : ksize[i] > 0
+>>
+Rule 116 (grad must be a 4D tensor with non-negative elements.)
+{grad: tensor} |= ndim(grad) = 4 ∧ min(grad) >= 0
+>>
+Rule 117 (The dtypes of orig_input, orig_output, and grad cannot be bool)
+{orig_input: tensor, orig_output: tensor, grad: tensor} |= dtype_(orig_input) ≠ 0 ∧ dtype_(orig_output) ≠ 0 ∧ dtype_(grad) ≠ 0
+>>
+Rule 119 (If data_format is "NHWC" the channel dimension is the last dimension.)
+{data_format: str} |= if data_format = "NHWC" then true
+>>
+Rule 121 (if orig_input has uint16 dtype, then it should be a valid tensor)
+{orig_input: tensor} |= dtype_(orig_input) = 12
+>>
+Rule 123 (orig_input must be one of the followings: float32, float64, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64)
+{orig_input : tensor} |= dtype_(orig_input) = 7 ∨ dtype_(orig_input) = 8 ∨ dtype_(orig_input) = 3 ∨ dtype_(orig_input) = 6 ∨ dtype_(orig_input) = 2 ∨ dtype_(orig_input) = 1 ∨ dtype_(orig_input) = 5 ∨ dtype_(orig_input) = 9 ∨ dtype_(orig_input) = 4 ∨ dtype_(orig_input) = 0 ∨ dtype_(orig_input) = 12
+>>
+Rule 124 (If data_format is "NHWC", then shape(grad, 3) > 0)
+{data_format : str, grad : tensor} |= if data_format = "NHWC" then shape(grad, 3) > 0
+>>
+Rule 125 (If data_format is "NCHW", then shape(grad, 1) > 0)
+{data_format : str, grad : tensor} |= if data_format = "NCHW" then shape(grad, 1) > 0
+>>
+Rule 126 (orig_input, orig_output and grad must have the same number of channels, according to data_format)
+{orig_input : tensor, orig_output : tensor, grad : tensor, data_format : str} |= if data_format = "NHWC" then shape(orig_input, 3) = shape(orig_output, 3) ∧ shape(orig_input, 3) = shape(grad, 3) else if data_format = "NCHW" then shape(orig_input, 1) = shape(orig_output, 1) ∧ shape(orig_input, 1) = shape(grad, 1)
+>>
+Rule 127 (If the orig_input is int8 or uint8, then ksize must be a list of ints with value 1)
+{orig_input : tensor, ksize : list(int)} |= if dtype_(orig_input) = 1 ∨ dtype_(orig_input) = 6 then ∀i ∈ [0, ksize.len - 1] : ksize[i] = 1
+>>
+Rule 128 (If the orig_input is int8 or uint8, then strides must be a list of ints with value 1)
+{orig_input : tensor, strides : list(int)} |= if dtype_(orig_input) = 1 ∨ dtype_(orig_input) = 6 then ∀i ∈ [0, strides.len - 1] : strides[i] = 1
+>>
+Rule 129 (If the data_format is NHWC, then ksize[1] must be less or equal to shape(orig_input, 1))
+{data_format : str, orig_input : tensor, ksize : list(int)} |= if data_format = "NHWC" then ksize[1] ≤ shape(orig_input, 1)
+>>
+Rule 130 (If the data_format is NHWC, then ksize[2] must be less or equal to shape(orig_input, 2))
+{data_format : str, orig_input : tensor, ksize : list(int)} |= if data_format = "NHWC" then ksize[2] ≤ shape(orig_input, 2)
+>>
+Rule 131 (If the data_format is NCHW, then ksize[2] must be less or equal to shape(orig_input, 2))
+{data_format : str, orig_input : tensor, ksize : list(int)} |= if data_format = "NCHW" then ksize[2] ≤ shape(orig_input, 2)
+>>
+Rule 132 (If the data_format is NCHW, then ksize[3] must be less or equal to shape(orig_input, 3))
+{data_format : str, orig_input : tensor, ksize : list(int)} |= if data_format = "NCHW" then ksize[3] ≤ shape(orig_input, 3)
+>>
+Rule 133 (If the strides are greater than the ksize, then there will be holes in the output)
+{strides: list(int), ksize: list(int)} |= ∀i ∈ [0, strides.len - 1] : strides[i] ≤ ksize[i]
+>>
+Rule 134 (If the output dimensions from maxpooling are very small, then the gradients might be zero)
+{orig_input: tensor} |= ndim(orig_input) > 0
+>>
+Rule 136 (The name cannot be an empty string)
+{name: str} |= name ≠ ""
+>>
+Rule 137 (if orig_input has uint32 or uint64 dtype, it is a valid data type.)
+{orig_input: tensor} |= dtype_(orig_input) = 12 ∨ dtype_(orig_input) = 4
+>>
+Rule 138 (ksize and strides can not be None)
+{ksize : list(int), strides : list(int)} |= ksize ≠ "none" ∧ strides ≠ "none"
+>>
+Rule 140 (If data format is NHWC or NCHW, then grad is a 4D tensor)
+{data_format : str, grad : tensor} |= if data_format = "NHWC" ∨ data_format = "NCHW" then ndim(grad) = 4
+>>
+Rule 141 (If orig_input is uint32 or uint64 or half, it is a valid datatype)
+{orig_input : tensor} |= dtype_(orig_input) = 4 ∨ dtype_(orig_input) = 5 ∨ dtype_(orig_input) = 10

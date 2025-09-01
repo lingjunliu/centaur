@@ -5,42 +5,40 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If keepdims is false and axis is a scalar integer, the output tensor's rank is reduced by 1 (Rule 43)
+# When axis is a list, each element must be a valid dimension within the valid range [-rank(input_tensor (Rule 43)
 
 rule_43 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg3_value"] == False, v["arg2_value"] != -1), v["arg1_ndim"] - 1 >= 0, False)) if n else
-          If(And(v["arg3_value"] == False, v["arg2_value"] != -1), v["arg1_ndim"] - 1 >= 0, False))
+    s.add(Not(And((And([Implies(i < (v["arg2_length"] - 1 + 1), And((0 - v["arg1_ndim"]) <= Select(v["arg2_values"], i), Select(v["arg2_values"], i) < v["arg1_ndim"])) for i in range(6)])), (And([Implies(i < (v["arg2_length"] - 1 + 1), And([Implies(j < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) != Select(v["arg2_values"], j)) for j in range(6)])) for i in range(6)])))) if n else
+          And((And([Implies(i < (v["arg2_length"] - 1 + 1), And((0 - v["arg1_ndim"]) <= Select(v["arg2_values"], i), Select(v["arg2_values"], i) < v["arg1_ndim"])) for i in range(6)])), (And([Implies(i < (v["arg2_length"] - 1 + 1), And([Implies(j < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) != Select(v["arg2_values"], j)) for j in range(6)])) for i in range(6)]))))
 )
 
-def rule_43_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_43_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
-            return False
-        if not isinstance(arg3, bool):
+        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg2_value = Int('arg2_value')
-        arg3_value = Bool('arg3_value')
+        arg2_length = Int('arg2_length')
+        arg2_values = Array('arg2_values', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_value == int(arg2))
-        solver.add(arg3_value == arg3)
+        solver.add(arg2_length == len(arg2))
+        for i in range(len(arg2)):
+            arg2_values = Store(arg2_values, i, arg2[i])
 
         # Constraints for rule 43
-        rule_43(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
+        rule_43(solver, {'arg1_ndim': arg1_ndim, 'arg2_values': arg2_values, 'arg2_length': arg2_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_43(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)
+        rule_43(solver, {'arg1_ndim': arg1['ndim'], 'arg2_values': arg2['values'], 'arg2_length': arg2['length']}, neg)

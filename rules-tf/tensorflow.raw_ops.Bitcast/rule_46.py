@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input is qint16, the output can be int8, int16, uint16 (Rule 46)
+# input and output size relation should be maintained (Rule 46)
 
 rule_46 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 16, Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 2), v["arg2_value"] == 6), False)) if n else
-          If(v["arg1_dtype"] == 16, Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 2), v["arg2_value"] == 6), False))
+    s.add(Not(If((v["arg1_dtype"] * 8) > (v["arg2_value"] * 8), True, If((v["arg2_value"] * 8) > (v["arg1_dtype"] * 8), True, (v["arg1_dtype"] * 8) == (v["arg2_value"] * 8)))) if n else
+          If((v["arg1_dtype"] * 8) > (v["arg2_value"] * 8), True, If((v["arg2_value"] * 8) > (v["arg1_dtype"] * 8), True, (v["arg1_dtype"] * 8) == (v["arg2_value"] * 8))))
 )
 
 def rule_46_func(arg1, arg2, solver=None, neg=False):

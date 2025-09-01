@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Shape must be a tuple of integers if provided (Rule 1)
+# size elements should be non-negative to avoid InvalidArgumentError (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)]))
+    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) >= 0) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) >= 0) for i in range(6)]))
 )
 
 def rule_1_func(arg1, solver=None, neg=False):

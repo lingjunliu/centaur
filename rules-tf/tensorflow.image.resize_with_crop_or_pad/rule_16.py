@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# target_height and target_width sum should be smaller than maximum integer (Rule 16)
+# Target height and width together should be smaller than a max value to avoid OOM (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] + v["arg2_value"] < 2147483647) if n else
-          v["arg1_value"] + v["arg2_value"] < 2147483647)
+    s.add(Not(v["arg1_value"] + v["arg2_value"] < 10000) if n else
+          v["arg1_value"] + v["arg2_value"] < 10000)
 )
 
 def rule_16_func(arg1, arg2, solver=None, neg=False):

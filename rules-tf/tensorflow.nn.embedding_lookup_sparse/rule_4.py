@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# max_norm must be a non-negative float if it is not None (Rule 4)
+# max_norm should be non-negative if it is not None. Assuming None is represented as -1, which requires type checking.  Here we only do the type and greater than zero. This assumes max_norm is either float or none(encoded to int (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
     s.add(Not(v["arg1_value"] >= 0) if n else

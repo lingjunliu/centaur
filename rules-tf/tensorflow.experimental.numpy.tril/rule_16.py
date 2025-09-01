@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# k must be an integer and within reasonable bounds relative to the tensor size (Rule 16)
+# k must be less than the maximum integer value (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] > -1000, v["arg1_value"] < 1000)) if n else
-          And(v["arg1_value"] > -1000, v["arg1_value"] < 1000))
+    s.add(Not(v["arg1_value"] < 2147483647) if n else
+          v["arg1_value"] < 2147483647)
 )
 
 def rule_16_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# segment_ids tensor must be of type int32 or int64 (Rule 3)
+# segment_ids must be int32 or int64 (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_dtype"] == 4, v["arg1_dtype"] == 5)) if n else
-          Or(v["arg1_dtype"] == 4, v["arg1_dtype"] == 5))
+    s.add(Not(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4)) if n else
+          Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4))
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

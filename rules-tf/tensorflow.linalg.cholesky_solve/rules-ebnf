@@ -1,51 +1,195 @@
 >>
-Rule 1 (chol should be a float32 or float64 tensor)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 1 (chol and rhs tensors must have the same dtype to avoid InvalidArgumentError)
+{chol : tensor, rhs : tensor} |= dtype_(chol) = dtype_(rhs)
 >>
-Rule 3 (chol and rhs should have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 2 (chol tensor must be float32 or float64 to avoid InvalidArgumentError/NotFoundError)
+{chol : tensor} |= dtype_(chol) = 7 ∨ dtype_(chol) = 8
 >>
-Rule 4 (chol should have at least two dimensions)
-{v_1 : tensor} |= ndim(v_1) ≥ 2
+Rule 3 (rhs tensor must be float32 or float64 to avoid InvalidArgumentError/NotFoundError)
+{rhs : tensor} |= dtype_(rhs) = 7 ∨ dtype_(rhs) = 8
 >>
-Rule 6 (the last two dimensions of chol should be square)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 2) = shape(v_1, ndim(v_1) - 1)
+Rule 4 (chol tensor must have at least two dimensions to avoid square matrix error)
+{chol : tensor} |= ndim(chol) ≥ 2
 >>
-Rule 7 (the second-to-last dimension of rhs should match the dimensions of chol)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 2)
+Rule 5 (rhs tensor must have at least two dimensions)
+{rhs : tensor} |= ndim(rhs) ≥ 2
 >>
-Rule 8 (the shapes of chol and rhs should match up to the last two dimensions)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i) ∧ ndim(v_1) = ndim(v_2)
+Rule 6 (The last two dimensions of chol must be square to avoid square matrix error)
+{chol : tensor} |= shape(chol, ndim(chol) - 2) = shape(chol, ndim(chol) - 1)
 >>
-Rule 9 (chol should be a tensor of float32 or float64)
-{v_1 : tensor} |= (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)
+Rule 7 (The second to last dimension of rhs must equal to the dimensions of chol's last two dimensions)
+{chol : tensor, rhs : tensor} |= shape(chol, ndim(chol) - 1) = shape(rhs, ndim(rhs) - 2)
 >>
-Rule 11 (chol and rhs should have the same number of dimensions)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 8 (The number of dimensions of chol and rhs should be equal)
+{chol : tensor, rhs : tensor} |= ndim(chol) = ndim(rhs)
 >>
-Rule 13 (the second to last dimension of rhs should match the last dimension of chol)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, ndim(v_2) - 2) = shape(v_1, ndim(v_1) - 1)
+Rule 10 (If chol has three dimensions or more, its leading dimensions should be equal to those of rhs)
+{chol : tensor, rhs : tensor} |= if ndim(chol) > 2 then (∀i ∈ [0, ndim(chol) - 3] : shape(chol, i) = shape(rhs, i))
 >>
-Rule 14 (the number of dimensions of chol and rhs must be at least 2)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2
+Rule 20 (Check that all dimensions of chol are positive)
+{chol : tensor} |= ∀i ∈ [0, ndim(chol) - 1] : shape(chol, i) > 0
 >>
-Rule 15 (chol must have positive dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 21 (Check that all dimensions of rhs are positive)
+{rhs : tensor} |= ∀i ∈ [0, ndim(rhs) - 1] : shape(rhs, i) > 0
 >>
-Rule 36 (chol's last two dimensions should match)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
+Rule 22 (chol and rhs tensors must have compatible shapes, considering broadcasting)
+{chol : tensor, rhs : tensor} |= if ndim(chol) = ndim(rhs) then (∀i ∈ [0, ndim(chol) - 3] : shape(chol, i) = shape(rhs, i) ∨ shape(chol, i) = 1 ∨ shape(rhs, i) = 1) ∧ shape(chol, ndim(chol) - 1) = shape(rhs, ndim(rhs) - 2) ∧ shape(chol, ndim(chol) - 2) = shape(chol, ndim(chol) - 1) else false
 >>
-Rule 45 (the number of dimensions in chol and rhs must be equal and at least 2)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_1) ≥ 2
+Rule 23 (Ensure the last two dimensions of chol are not zero)
+{chol : tensor} |= shape(chol, ndim(chol) - 2) > 0 ∧ shape(chol, ndim(chol) - 1) > 0
 >>
-Rule 46 (the leading dimensions of chol and rhs must be equal)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1) - 2 else ndim(v_2) - 2] : shape(v_1, i) = shape(v_2, i)
+Rule 24 (Ensure the second to last dimension of rhs is not zero)
+{rhs: tensor} |= shape(rhs, ndim(rhs) - 2) > 0
 >>
-Rule 57 (The last dimension of chol is positive)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0
+Rule 25 (Dtype of chol must be allowed)
+{chol: tensor} |= dtype_(chol) = 7 ∨ dtype_(chol) = 8
 >>
-Rule 58 (The second to last dimension of chol is positive)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 2) > 0
+Rule 26 (Dtype of rhs must be allowed)
+{rhs: tensor} |= dtype_(rhs) = 7 ∨ dtype_(rhs) = 8
 >>
-Rule 67 (chol and rhs must be of the same floating-point type)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+Rule 27 (chol and rhs tensors must have the same rank if rank of rhs is larger than 1)
+{chol : tensor, rhs : tensor} |= if ndim(rhs) > 1 then ndim(chol) = ndim(rhs)
+>>
+Rule 28 (chol and rhs tensors must have compatible batch shapes)
+{chol : tensor, rhs : tensor} |= if ndim(chol) > 2 ∧ ndim(rhs) > 2 then (∀i ∈ [0, ndim(chol) - 2 - 1] : shape(chol, i) = shape(rhs, i))
+>>
+Rule 29 (The last two dimensions of chol must match each other, avoiding non-square matrices)
+{chol : tensor} |= shape(chol, ndim(chol) - 1) = shape(chol, ndim(chol) - 2)
+>>
+Rule 30 (The second to last dimension of rhs must equal the last dimension of chol, avoiding dimension mismatch in matrix multiplication)
+{chol : tensor, rhs : tensor} |= shape(rhs, ndim(rhs) - 2) = shape(chol, ndim(chol) - 1)
+>>
+Rule 31 (chol's dtype must be float32, float64, complex64, or complex128, avoiding unsupported data types)
+{chol : tensor} |= dtype_(chol) = 7 ∨ dtype_(chol) = 8 ∨ dtype_(chol) = 9 ∨ dtype_(chol) = 10
+>>
+Rule 32 (rhs's dtype must be float32, float64, complex64, or complex128, avoiding unsupported data types)
+{rhs : tensor} |= dtype_(rhs) = 7 ∨ dtype_(rhs) = 8 ∨ dtype_(rhs) = 9 ∨ dtype_(rhs) = 10
+>>
+Rule 33 (If chol has more than 2 dimensions, then rhs must have at least 2 dimensions)
+{chol : tensor, rhs : tensor} |= if ndim(chol) > 2 then ndim(rhs) >= 2
+>>
+Rule 34 (If rhs has more than 2 dimensions, then chol must have at least 2 dimensions)
+{chol : tensor, rhs : tensor} |= if ndim(rhs) > 2 then ndim(chol) >= 2
+>>
+Rule 35 (The last dimension of rhs cannot be zero)
+{rhs: tensor} |= shape(rhs, ndim(rhs) - 1) > 0
+>>
+Rule 36 (If chol has complex dtype, then rhs must also have complex dtype)
+{chol: tensor, rhs: tensor} |= if dtype_(chol) = 9 ∨ dtype_(chol) = 10 then dtype_(rhs) = 9 ∨ dtype_(rhs) = 10
+>>
+Rule 37 (If rhs has complex dtype, then chol must also have complex dtype)
+{chol: tensor, rhs: tensor} |= if dtype_(rhs) = 9 ∨ dtype_(rhs) = 10 then dtype_(chol) = 9 ∨ dtype_(chol) = 10
+>>
+Rule 38 (If chol has float dtype, then rhs must also have float dtype)
+{chol: tensor, rhs: tensor} |= if dtype_(chol) = 7 ∨ dtype_(chol) = 8 then dtype_(rhs) = 7 ∨ dtype_(rhs) = 8
+>>
+Rule 39 (chol and rhs tensors must have same number of dimensions, or chol can be broadcast to rhs)
+{chol : tensor, rhs : tensor} |= ndim(chol) = ndim(rhs) ∨ (ndim(chol) < ndim(rhs) ∧ (∀i ∈ [0, ndim(rhs) - ndim(chol) - 1] : shape(rhs, i) = 1))
+>>
+Rule 42 (chol and rhs must have same dtype, either float32, float64, complex64, or complex128)
+{chol : tensor, rhs : tensor} |= (dtype_(chol) = 7 ∧ dtype_(rhs) = 7) ∨ (dtype_(chol) = 8 ∧ dtype_(rhs) = 8) ∨ (dtype_(chol) = 9 ∧ dtype_(rhs) = 9) ∨ (dtype_(chol) = 10 ∧ dtype_(rhs) = 10)
+>>
+Rule 43 (Last two dimensions of chol must be equal to suppress InvalidArgumentError about square matrices)
+{chol: tensor} |= shape(chol, ndim(chol)-1) = shape(chol, ndim(chol)-2)
+>>
+Rule 44 (If rhs has dimension of size 1, chol should not necessarily have equal dimension)
+{chol : tensor, rhs : tensor} |= if shape(rhs, ndim(rhs)-1) = 1 then true else shape(chol, ndim(chol)-1) = shape(rhs, ndim(rhs)-2)
+>>
+Rule 45 (If chol's rank is larger than 2, the leading dimensions of chol and rhs must match.)
+{chol : tensor, rhs : tensor} |= if ndim(chol) > 2 then ∀i ∈ [0, ndim(chol)-2] : shape(chol, i) = shape(rhs, i)
+>>
+Rule 46 (If any leading dimension is 0, then an error may occur)
+{chol: tensor} |= ∀i ∈ [0, ndim(chol)-2] : shape(chol, i) > 0
+>>
+Rule 47 (If any leading dimension is 0, then an error may occur)
+{rhs: tensor} |= ∀i ∈ [0, ndim(rhs)-2] : shape(rhs, i) > 0
+>>
+Rule 50 (The last dimension of chol can be any size but cannot be zero)
+{chol: tensor} |= shape(chol, ndim(chol) - 1) > 0
+>>
+Rule 51 (To prevent matrix triangular solve errors, chol cannot have dimension 0, 1, 2, 3, 4 or 5)
+{chol: tensor} |= dtype_(chol) ≠ 1 ∧ dtype_(chol) ≠ 2 ∧ dtype_(chol) ≠ 3 ∧ dtype_(chol) ≠ 4 ∧ dtype_(chol) ≠ 5
+>>
+Rule 53 (Last dimension of rhs is allowed to be zero when there are leading dimensions with size zero)
+{rhs: tensor} |= if ndim(rhs) > 2 then (∃i ∈ [0, ndim(rhs)-3] : shape(rhs, i) = 0)
+>>
+Rule 54 (For complex inputs, the imaginary part should not be too large to avoid overflow)
+{chol: tensor} |= if dtype_(chol) = 9 ∨ dtype_(chol) = 10 then max(chol) < 1000
+>>
+Rule 55 (For complex inputs, the imaginary part should not be too large to avoid overflow)
+{rhs: tensor} |= if dtype_(rhs) = 9 ∨ dtype_(rhs) = 10 then max(rhs) < 1000
+>>
+Rule 56 (The last dimension of the chol tensor should be equal to the last dimension of the rhs tensor, only if rhs has only 2 dimensions)
+{chol: tensor, rhs: tensor} |= if ndim(rhs) = 2 then shape(chol, ndim(chol)-1) = shape(rhs, ndim(rhs)-1)
+>>
+Rule 57 (rhs should have at least as many dimensions as chol to avoid broadcast issues, but the shapes must still be compatible)
+{chol: tensor, rhs: tensor} |= ndim(rhs) ≥ ndim(chol)
+>>
+Rule 58 (To prevent InvalidArgumentError due to incompatible types, both chol and rhs must be of the same complex type if one of them is complex)
+{chol: tensor, rhs: tensor} |= if dtype_(chol) = 9 then dtype_(rhs) = 9 else if  dtype_(chol) = 10 then dtype_(rhs) = 10 else if dtype_(rhs) = 9 then dtype_(chol) = 9 else if  dtype_(rhs) = 10 then dtype_(chol) = 10
+>>
+Rule 60 (If rhs has a batch dimension of size 1, chol must have the same batch dimension or no batch dimension)
+{chol: tensor, rhs: tensor} |= if ndim(rhs) > 2 then (∀i ∈ [0, ndim(rhs)-2] : (shape(rhs, i) = 1) ∨ (shape(chol, i) = shape(rhs, i)))
+>>
+Rule 61 (To prevent InvalidArgumentError related to shape mismatch during broadcasting, chol tensor cannot have fewer dimensions than rhs tensor, except for the last dimension)
+{chol: tensor, rhs: tensor} |= ndim(chol) ≥ ndim(rhs) -1
+>>
+Rule 62 (To prevent InvalidArgumentError, chol and rhs should be of same data type, either float32 or float64)
+{chol: tensor, rhs: tensor} |= ((dtype_(chol) = 7) ∧ (dtype_(rhs) = 7)) ∨ ((dtype_(chol) = 8) ∧ (dtype_(rhs) = 8))
+>>
+Rule 63 (If rhs is a matrix (ndim=2), then the last dimensions must be equal to the square dimensions of chol, which should be enforced whether broadcasting is available or not.)
+{chol: tensor, rhs: tensor} |= if ndim(rhs) = 2 then shape(chol, ndim(chol) - 1) = shape(rhs, ndim(rhs)-2)
+>>
+Rule 64 (To prevent potential errors, chol's last two dimensions should have a reasonable upper bound)
+{chol: tensor} |= shape(chol, ndim(chol)-1) < 2048 ∧ shape(chol, ndim(chol)-2) < 2048
+>>
+Rule 65 (The data type of chol must be a valid one to avoid device errors (half))
+{chol : tensor} |= dtype_(chol) ≠ 6
+>>
+Rule 66 (To prevent device errors, rhs must not be of type half)
+{rhs: tensor} |= dtype_(rhs) ≠ 6
+>>
+Rule 67 (To avoid InvalidArgumentError related to the allowed types, chol must be one of bfloat16, double, float, half, complex64, or complex128)
+{chol: tensor} |= dtype_(chol) = 13 ∨ dtype_(chol) = 8 ∨ dtype_(chol) = 7 ∨ dtype_(chol) = 6 ∨ dtype_(chol) = 9 ∨ dtype_(chol) = 10
+>>
+Rule 68 (To avoid InvalidArgumentError related to the allowed types, rhs must be one of bfloat16, double, float, half, complex64, or complex128)
+{rhs: tensor} |= dtype_(rhs) = 13 ∨ dtype_(rhs) = 8 ∨ dtype_(rhs) = 7 ∨ dtype_(rhs) = 6 ∨ dtype_(rhs) = 9 ∨ dtype_(rhs) = 10
+>>
+Rule 69 (To prevent device errors, if chol is bfloat16, rhs must also be bfloat16)
+{chol: tensor, rhs: tensor} |= if dtype_(chol) = 13 then dtype_(rhs) = 13
+>>
+Rule 70 (To prevent InvalidArgumentError, chol cannot be complex if rhs is not complex)
+{chol: tensor, rhs: tensor} |= if dtype_(rhs) = 7 ∨ dtype_(rhs) = 8 ∨ dtype_(rhs) = 13 then dtype_(chol) = 7 ∨ dtype_(chol) = 8 ∨ dtype_(chol) = 13
+>>
+Rule 71 (To prevent InvalidArgumentError, rhs cannot be complex if chol is not complex)
+{chol: tensor, rhs: tensor} |= if dtype_(chol) = 7 ∨ dtype_(chol) = 8 ∨ dtype_(chol) = 13 then dtype_(rhs) = 7 ∨ dtype_(rhs) = 8 ∨ dtype_(rhs) = 13
+>>
+Rule 72 (If rhs is bfloat16, then chol must also be bfloat16.)
+{chol: tensor, rhs: tensor} |= if dtype_(rhs) = 13 then dtype_(chol) = 13
+>>
+Rule 74 (To prevent InvalidArgumentError related to incompatible types, if one of chol or rhs is bfloat16, then the other must be bfloat16, using an if expression)
+{chol: tensor, rhs: tensor} |= if dtype_(chol) = 13 ∨ dtype_(rhs) = 13 then dtype_(chol) = 13 ∧ dtype_(rhs) = 13
+>>
+Rule 75 (Enforce same type, but using only equality and OR)
+{chol: tensor, rhs: tensor} |= (dtype_(chol) = dtype_(rhs))
+>>
+Rule 76 (Enforce same type, but only using OR)
+{chol: tensor, rhs: tensor} |= (dtype_(chol) = 7 ∧ dtype_(rhs) = 7) ∨ (dtype_(chol) = 8 ∧ dtype_(rhs) = 8) ∨ (dtype_(chol) = 9 ∧ dtype_(rhs) = 9) ∨ (dtype_(chol) = 10 ∧ dtype_(rhs) = 10) ∨ (dtype_(chol) = 13 ∧ dtype_(rhs) = 13)
+>>
+Rule 77 (Last two dimensions of chol should be M, M and the two to last dimension of rhs should be M, where M is not zero.)
+{chol : tensor, rhs : tensor} |= shape(chol, ndim(chol) - 1) = shape(chol, ndim(chol) - 2) ∧ shape(rhs, ndim(rhs) - 2) = shape(chol, ndim(chol)-1) ∧ shape(chol, ndim(chol)-1) > 0
+>>
+Rule 78 (chol must be at least rank 2 to have the triangular solve performed on it)
+{chol: tensor} |= ndim(chol) >= 2
+>>
+Rule 79 (rhs should be at least rank 2 to align with matrix multiplication)
+{rhs: tensor} |= ndim(rhs) >= 2
+>>
+Rule 81 (All dimensions must be greater than 0 in chol to be a valid tensor)
+{chol: tensor} |= ∀i ∈ [0, ndim(chol) - 1] : shape(chol, i) > 0
+>>
+Rule 82 (All dimensions must be greater than 0 in rhs to be a valid tensor)
+{rhs: tensor} |= ∀i ∈ [0, ndim(rhs) - 1] : shape(rhs, i) > 0
+>>
+Rule 83 (To prevent matrix triangular solve errors, the dtype should not be bool)
+{chol: tensor} |= dtype_(chol) ≠ 0

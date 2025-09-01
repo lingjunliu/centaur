@@ -1,39 +1,69 @@
 >>
-Rule 3 (If copy is set to False and object is already an ndarray with the same dtype, no copy is performed.)
-{v_1 : tensor, v_2 : bool, v_3 : dtype} |= if v_2 = false then dtype_(v_1) = v_3
+Rule 2 (tensor must have non-negative dimensions)
+{a : tensor} |= ∀i ∈ [0, ndim(a) - 1] : shape(a, i) ≥ 0
 >>
-Rule 7 (The object passed should have a valid data type)
-{v_1 : tensor} |= 0 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 12
+Rule 4 (check if the dtype is compatible with the input tensor's dtype)
+{a : tensor, dtype : dtype} |= dtype_(a) ≠ "torch.int64"
 >>
-Rule 12 (If dtype is specified, the output tensor will have that dtype.)
-{v_1 : dtype} |= 0 ≤ v_1 ∧ v_1 ≤ 12
+Rule 6 (check if the dtype is compatible with the input tensor's dtype)
+{a : tensor, dtype : dtype} |= dtype_(a) ≠ "torch.int64" ∨ dtype = dtype_(a)
 >>
-Rule 13 (If the object passed is a nested sequence, the innermost sequence must have same number of elements.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_1, i+1)
+Rule 7 (dtype should be specified when the input tensor is empty)
+{a : tensor} |= if ∃i ∈ [0, ndim(a) - 1] : shape(a, i) = 0 then true
 >>
-Rule 14 (If the input is a tensor, the output is a tensor.)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 9 (tensor dtype cannot be a string)
+{a : tensor} |= dtype_(a) ≠ "str"
 >>
-Rule 15 (copy parameter must be boolean.)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 10 (if dtype is specified, it should not be string)
+{dtype : dtype} |= dtype ≠ "str"
 >>
-Rule 17 (If dtype is specified, the output tensor will have that dtype.)
-{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
+Rule 11 (check if the specified dtype is valid)
+{dtype : dtype} |= dtype ≠ "torch.int64"
 >>
-Rule 18 (If the object passed is a nested sequence, the innermost sequence must have the same number of elements.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 12 (if the input tensor is of dtype int64, the specified dtype must be specified explicitly)
+{a : tensor, dtype : dtype} |= if dtype_(a) = "torch.int64" then true
 >>
-Rule 19 (copy parameter must be boolean.)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then ndim(v_1) ≥ 0
+Rule 13 (If input tensor's dtype is int64, then the specified dtype should not be None)
+{a : tensor, dtype : dtype} |= if dtype_(a) = "np.int64" then dtype ≠ "none"
 >>
-Rule 23 (If the object passed is a nested sequence, the innermost sequence must have the same number of elements.)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 14 (dtype should be a valid string representation of dtype)
+{dtype : dtype} |= dtype = "bool" ∨ dtype = "np.int8" ∨ dtype = "np.int16" ∨ dtype = "np.int32" ∨ dtype = "np.int64" ∨ dtype = "np.uint8" ∨ dtype = "np.float16" ∨ dtype = "np.float32" ∨ dtype = "np.float64" ∨ dtype = "np.complex64" ∨ dtype = "np.complex128"
 >>
-Rule 36 (if input is a list of strings, it must be a list of strings and nothing else.)
-{v_1 : list(str)} |= v_1.len > 0
+Rule 20 (If input tensor's dtype is np.int64, dtype should be other than 'none' and not explicitly torch.int64)
+{a : tensor, dtype : dtype} |= if dtype_(a) = "np.int64" then dtype ≠ "none" ∧ dtype ≠ "torch.int64"
 >>
-Rule 61 (If the input is a scalar, the output tensor has ndim of 0)
-{v_1 : int ⊎ float ⊎ bool} |= ndim(v_1) = 0
+Rule 21 (If input tensor's dtype is not np.int64, and dtype is specified, then it should not be interpretable as torch.int64)
+{a : tensor, dtype : dtype} |= if dtype_(a) ≠ "np.int64" then dtype ≠ "torch.int64"
 >>
-Rule 71 (Dtype must be a valid dtype number between 0 and 12)
-{v_1 : dtype} |= 0 <= v_1 ∧ v_1 <= 12
+Rule 23 (If input array is of type torch.int64, dtype must be specified.)
+{a: tensor, dtype: dtype} |= if dtype_(a) = "torch.int64" then dtype ≠ "none"
+>>
+Rule 24 (If the input array's dtype is torch.int64, then a valid dtype must be specified.)
+{a: tensor, dtype: dtype} |= if dtype_(a) = "torch.int64" then dtype ≠ "none" ∧ dtype ≠ "torch.int64"
+>>
+Rule 25 (If the input array is of type torch.int64, then dtype must be explicitly specified with a valid tensorflow numpy dtype.)
+{a: tensor, dtype: dtype} |= if dtype_(a) = "torch.int64" then dtype ≠ "none" ∧ dtype ≠ "torch.int64" ∧ (dtype = "bool" ∨ dtype = "np.int8" ∨ dtype = "np.int16" ∨ dtype = "np.int32" ∨ dtype = "np.int64" ∨ dtype = "np.uint8" ∨ dtype = "np.float16" ∨ dtype = "np.float32" ∨ dtype = "np.float64" ∨ dtype = "np.complex64" ∨ dtype = "np.complex128")
+>>
+Rule 26 (If the input array is of type torch.int64, then dtype must be explicitly specified with a valid tensorflow numpy dtype that isn't torch.int64 or 'none'.)
+{a: tensor, dtype: dtype} |= if dtype_(a) = "np.int64" then dtype ≠ "none" ∧ dtype ≠ "torch.int64" ∧ (dtype = "bool" ∨ dtype = "np.int8" ∨ dtype = "np.int16" ∨ dtype = "np.int32" ∨ dtype = "np.uint8" ∨ dtype = "np.float16" ∨ dtype = "np.float32" ∨ dtype = "np.float64" ∨ dtype = "np.complex64" ∨ dtype = "np.complex128" ∨ dtype = "np.dtype")
+>>
+Rule 28 (If the input array is NOT of type torch.int64, then if dtype is specified, it MUST NOT be torch.int64)
+{a: tensor, dtype: dtype} |= if dtype_(a) ≠ "np.int64" then dtype ≠ "torch.int64"
+>>
+Rule 30 (If the input array's dtype is torch.int64, then a valid dtype must be specified. Valid types are those listed in the type encoding, excluding string and torch.int64, or none)
+{a: tensor, dtype: dtype} |= if dtype_(a) = "np.int64" then dtype ≠ "none" ∧ dtype ≠ "torch.int64" ∧ (dtype = "bool" ∨ dtype = "np.int8" ∨ dtype = "np.int16" ∨ dtype = "np.int32" ∨ dtype = "np.int64" ∨ dtype = "np.uint8" ∨ dtype = "np.float16" ∨ dtype = "np.float32" ∨ dtype = "np.float64" ∨ dtype = "np.complex64" ∨ dtype = "np.complex128" ∨ dtype = "np.dtype")
+>>
+Rule 31 (dtype cannot be torch.int64)
+{dtype: dtype} |= dtype ≠ "torch.int64"
+>>
+Rule 37 (If the input array is of type np.int64, a dtype *must* be specified.)
+{a: tensor, dtype: dtype} |= if dtype_(a) = "np.int64" then dtype ≠ "none"
+>>
+Rule 38 (If *any* dtype is specified, it cannot be 'torch.int64')
+{dtype: dtype} |= if dtype ≠ "none" then dtype ≠ "torch.int64"
+>>
+Rule 43 (If the input array's underlying data type is 'torch.int64', then the 'dtype' parameter must be explicitly set to a TensorFlow-compatible data type.)
+{a: tensor, dtype: dtype} |= if dtype_(a) = "torch.int64" then dtype = "bool" ∨ dtype = "np.int8" ∨ dtype = "np.int16" ∨ dtype = "np.int32" ∨ dtype = "np.int64" ∨ dtype = "np.uint8" ∨ dtype = "np.float16" ∨ dtype = "np.float32" ∨ dtype = "np.float64" ∨ dtype = "np.complex64" ∨ dtype = "np.complex128" ∨ dtype = "np.dtype"
+>>
+Rule 44 (If the input array's dtype is np.int64, then dtype must be specified and can not be a string)
+{a: tensor, dtype: dtype} |= if dtype_(a) = "np.int64" then dtype ≠ "none" ∧ dtype ≠ "str"

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# the index cannot be greater than the minimum dimension if valid index (Rule 33)
+# index must be a valid non-negative integer for accessing tensor dimension (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > v["arg2_value"], v["arg2_value"] < Select(v["arg1_range"], 0), False)) if n else
-          If(v["arg1_ndim"] > v["arg2_value"], v["arg2_value"] < Select(v["arg1_range"], 0), False))
+    s.add(Not(If(v["arg1_ndim"] > -1, (And(v["arg2_value"] >= 0, v["arg2_value"] < v["arg1_ndim"])), v["arg2_value"] >= 0)) if n else
+          If(v["arg1_ndim"] > -1, (And(v["arg2_value"] >= 0, v["arg2_value"] < v["arg1_ndim"])), v["arg2_value"] >= 0))
 )
 
 def rule_33_func(arg1, arg2, solver=None, neg=False):
@@ -26,19 +26,16 @@ def rule_33_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
         arg2_value = Int('arg2_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
         solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 33
-        rule_33(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_33(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_33(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)
+        rule_33(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# When padding is used, the shape of the first dimension should be greater than 0 (Rule 54)
+# If input tensor has one or more dimensions, pad can be either true or false. (Rule 54)
 
 rule_54 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"], Select(v["arg1_shape"], 0) > 0, False)) if n else
-          If(v["arg2_value"], Select(v["arg1_shape"], 0) > 0, False))
+    s.add(Not(If(v["arg1_ndim"] > 0, (Or(v["arg2_value"] == True, v["arg2_value"] == False)), True)) if n else
+          If(v["arg1_ndim"] > 0, (Or(v["arg2_value"] == True, v["arg2_value"] == False)), True))
 )
 
 def rule_54_func(arg1, arg2, solver=None, neg=False):
@@ -25,18 +25,17 @@ def rule_54_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
         arg2_value = Bool('arg2_value')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_ndim == arg1.ndim)
         solver.add(arg2_value == arg2)
 
         # Constraints for rule 54
-        rule_54(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_54(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_54(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_54(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

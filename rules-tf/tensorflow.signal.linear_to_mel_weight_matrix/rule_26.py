@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# lower_edge_hertz is less or equal to upper_edge_hertz  (Rule 26)
+# Combined range check for frequency edges (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] <= v["arg2_value"]) if n else
-          v["arg1_value"] <= v["arg2_value"])
+    s.add(Not(And(v["arg1_value"] > 20, v["arg2_value"] < 20000)) if n else
+          And(v["arg1_value"] > 20, v["arg2_value"] < 20000))
 )
 
 def rule_26_func(arg1, arg2, solver=None, neg=False):

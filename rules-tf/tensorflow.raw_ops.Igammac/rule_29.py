@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Either a or x should have at least one dimension (Rule 29)
+# if any element of x is negative then a must be scalar (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0)) if n else
-          Or(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0))
+    s.add(Not(If(Select(v["arg2_range"], 0) < 0, v["arg1_ndim"] == 0, True)) if n else
+          If(Select(v["arg2_range"], 0) < 0, v["arg1_ndim"] == 0, True))
 )
 
 def rule_29_func(arg1, arg2, solver=None, neg=False):
@@ -26,16 +26,17 @@ def rule_29_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg2_ndim = Int('arg2_ndim')
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_ndim == arg2.ndim)
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 29
-        rule_29(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
+        rule_29(solver, {'arg1_ndim': arg1_ndim, 'arg2_range': arg2_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_29(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_29(solver, {'arg1_ndim': arg1['ndim'], 'arg2_range': arg2['range']}, neg)

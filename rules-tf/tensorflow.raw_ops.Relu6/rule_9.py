@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# feature tensor's datatype must be within allowed range (Rule 9)
+# feature tensor cannot have a bool dtype (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(And((v["arg1_dtype"] > 0), (v["arg1_dtype"] < 9))) if n else
-          And((v["arg1_dtype"] > 0), (v["arg1_dtype"] < 9)))
+    s.add(Not(v["arg1_dtype"] != 0) if n else
+          v["arg1_dtype"] != 0)
 )
 
 def rule_9_func(arg1, solver=None, neg=False):

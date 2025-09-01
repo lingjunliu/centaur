@@ -1,51 +1,135 @@
 >>
-Rule 1 (input tensor must be of type string)
-{v_1 : tensor} |= dtype_(v_1) = 12
->>
-Rule 2 (StringStrip input must be a tensor)
+Rule 1 (input must be a tensor)
 {v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 3 (input tensor cannot be empty)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 2 (input tensor must have string type)
+{v_1 : tensor} |= dtype_(v_1) = 12
 >>
-Rule 5 (string tensor elements must be non-empty strings - assuming a 1D tensor)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ ""
+Rule 3 (input tensor must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 7 (string tensor elements should have reasonable length - assuming a 1D tensor. No length function available, so limit string content.)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ "very_long_string_that_is_unlikely"
+Rule 5 (input and output tensors have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 8 (StringStrip input tensor can't have dimensions that are too large, avoiding potential overflow issues)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1024
+Rule 7 (The operation preserves the number of elements)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 9 (The number of dimensions must not be too large to prevent resource exhaustion)
-{v_1 : tensor} |= ndim(v_1) < 8
+Rule 9 (input tensor must be a scalar or have a shape)
+{v_1 : tensor} |= ndim(v_1) = 0 ∨ (ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0)
 >>
-Rule 10 (The tensor must not have zero dimensions, unless it is a scalar)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+Rule 10 (Input tensor must have a valid shape for string dtype)
+{v_1 : tensor} |= dtype_(v_1) = 12 ∧ (ndim(v_1) = 0 ∨ ∀i ∈ [0, if ndim(v_1) > 0 then ndim(v_1) - 1 else 0] : shape(v_1, i) > 0)
 >>
-Rule 11 (If the tensor has more than one dimension, each dimension must be greater than zero)
-{v_1 : tensor} |= if ndim(v_1) > 1 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 11 (output tensor v_2 has the same data type as input tensor v_1)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 14 (Check if the product of the shape is less than limit - avoid potential overflow)
-{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) * shape(v_1, 0) < 1000000
+Rule 12 (The output tensor v_2 has same dimensions as input tensor v_1)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 15 (Check if the product of the shape is less than limit - avoid potential overflow. Limiting total number of elements)
-{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) < 1000
+Rule 13 (output tensor v_2 has a string data type)
+{v_2 : tensor} |= dtype_(v_2) = 12
 >>
-Rule 16 (If the tensor is a scalar, it must be a string)
-{v_1 : tensor} |= if ndim(v_1) = 0 then dtype_(v_1) = 12
+Rule 14 (If input is scalar, output is also scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
 >>
-Rule 18 (String elements in the tensor should be of reasonable length)
-{v_1 : tensor} |= ∀i ∈ [0, if ndim(v_1) > 0 then shape(v_1, 0)-1 else 0] : v_1[i] ≠ "long_string"*10
+Rule 15 (If input is not scalar, all elements in output have the same length as those in input)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ 0 then ∀i ∈ [0, if ndim(v_1) > 0 then shape(v_1, 0) - 1 else 0]: shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 19 (If the input is a scalar string, it should not be an empty string)
-{v_1 : tensor} |= if ndim(v_1) = 0 then v_1 ≠ ""
+Rule 16 (The output tensor must also be string tensor)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 12 ∧ dtype_(v_2) = 12
 >>
-Rule 21 (The input tensor should not contain very short strings, as stripping them is likely unnecessary. Assuming 1D. No length function, so compare directly.)
-{v_1 : tensor} |= ∀i ∈ [0, if ndim(v_1) > 0 then shape(v_1, 0)-1 else 0] : v_1[i] ≠ "a"
+Rule 18 (If input is 1D and output is also 1D, input and output must have same shape)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 22 (If the input is a matrix, ensure that at least one dimension has a reasonable size)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 1 ∨ shape(v_1, 1) > 1
+Rule 19 (if the input and output tensors are not scalar, they must have the same number of elements)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then ∃i ∈ [0, ndim(v_1) -1]: shape(v_1, i) = shape(v_2,i)
 >>
-Rule 23 (If the tensor is a vector, ensure its size is reasonable)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) < 1000
+Rule 20 (input v_1 and output v_2 have same shape if not scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 21 (input v_1 can not be empty and output v_2 can not be empty)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+>>
+Rule 22 (Either both input and output have zero dimensions or both have matching dimensions)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∧ ndim(v_2) = 0) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 23 (if the input is a matrix, the output is also a matrix and they have the same number of rows and columns)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then ndim(v_2) = 2 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1)
+>>
+Rule 25 (The number of elements in the tensor doesn't change after stripping)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 27 (shape(v_1) and shape(v_2) are the same if not a scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i)))
+>>
+Rule 28 (output v_2 shape must match with the input v_1 shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, if ndim(v_1) > 0 then ndim(v_1) - 1 else 0]: shape(v_1, i) = shape(v_2, i))
+>>
+Rule 31 (if ndim(v_1) = 0 , ndim(v_2) must also be 0, and if ndim(v_1) = 1, then ndim(v_2) should be 1 and shape(v_1, 0) should be shape(v_2, 0))
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0 else if ndim(v_1) = 1 then ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 32 (if the tensor v_1 is one dimension, output tensor v_2 should also one dimension)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then ndim(v_2) = 1
+>>
+Rule 33 (shape of output v_2 should have valid values)
+{v_2 : tensor} |= if ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_2) - 1]: shape(v_2, i) ≥ 0
+>>
+Rule 34 (Either the input and output are both scalars, or both tensors with the same shape.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∧ ndim(v_2) = 0) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)))
+>>
+Rule 37 (v_2 and v_1 should have same type and rank and same dimensions if the rank is not zero)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ ndim(v_1) = ndim(v_2) ∧ if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 38 (If the input v_1 is a scalar, the output v_2 must also be a scalar string)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then (ndim(v_2) = 0 ∧ dtype_(v_2) = 12)
+>>
+Rule 39 (If the tensor v_1 is one dimension, the output v_2 must be string and also one dimension with shape(v_1, 0) = shape(v_2, 0))
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then (dtype_(v_2) = 12 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0))
+>>
+Rule 40 (output tensor should have valid shape)
+{v_2 : tensor} |= if ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_2) - 1]: shape(v_2, i) > 0)
+>>
+Rule 41 (Both tensors must be string tensors and should have same shape)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 12 ∧ dtype_(v_2) = 12) ∧ if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 42 (If the input v_1 is a scalar string, the output v_2 must also be a scalar string)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 0 ∧ dtype_(v_1) = 12) then (ndim(v_2) = 0 ∧ dtype_(v_2) = 12)
+>>
+Rule 43 (If v_1 has rank more than zero, its elements shouldn't be none)
+{v_1: tensor} |= if ndim(v_1) > 0 then ∃i ∈ [0, ndim(v_1)-1]: shape(v_1, i) > 0
+>>
+Rule 44 (if input has more than 0 dimensions, then output also should have more than 0)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then ndim(v_2) > 0
+>>
+Rule 45 (If output rank > 0, all the shape values should be greater than 0)
+{v_2: tensor} |= if ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_2) - 1]: shape(v_2, i) > 0
+>>
+Rule 46 (Either both are scalar, or their shapes must match and be string tensors)
+{v_1: tensor, v_2: tensor} |= (ndim(v_1) = 0 ∧ ndim(v_2) = 0) ∨ ((ndim(v_1) > 0 ∧ ndim(v_2) > 0) ∧ (dtype_(v_1) = 12 ∧ dtype_(v_2) = 12) ∧ (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i))))
+>>
+Rule 47 (If either input or output is scalar, both should be)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) = (ndim(v_2) = 0)
+>>
+Rule 49 (If input is scalar or vector, so should output.)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 0 ∨ ndim(v_1) = 1) then (ndim(v_2) = 0 ∨ ndim(v_2) = 1)
+>>
+Rule 50 (If v_1 is not a scalar, then elements in v_2 cannot be 0)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 0 then (ndim(v_2) > 0 ∧ ∀i ∈ [0, ndim(v_2)-1]: shape(v_2,i) > 0)
+>>
+Rule 51 (The rank of the input and output must be equal and if they are one dimension, shape should be same)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ if ndim(v_1) = 1 then shape(v_1,0) = shape(v_2,0)
+>>
+Rule 52 (If the input has rank 0, so should output, and same goes for 1)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0 else if ndim(v_1) = 1 then ndim(v_2) = 1
+>>
+Rule 53 (If output has dimension greater than zero all elements in shape must be greater than zero)
+{v_2: tensor} |= if ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_2)-1]: shape(v_2, i) > 0)
+>>
+Rule 54 (v_2 should have string type)
+{v_2: tensor} |= dtype_(v_2) = 12
+>>
+Rule 55 (if ndim of v1 is greater than 0 then every element in the shape should be greater than 0)
+{v_1: tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) -1]: shape(v_1, i) > 0
+>>
+Rule 56 (Both tensors should have same rank and data type)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ dtype_(v_1) = dtype_(v_2)

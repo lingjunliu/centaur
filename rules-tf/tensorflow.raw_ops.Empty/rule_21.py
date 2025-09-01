@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if init is true, then the dtype should not be str,dtype, list or tuple (Rule 21)
+# If init is true, then dtype cannot be str (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, And(v["arg2_value"] != 11, v["arg2_value"] != 12), False)) if n else
-          If(v["arg1_value"] == True, And(v["arg2_value"] != 11, v["arg2_value"] != 12), False))
+    s.add(Not(If(v["arg1_value"] == True, v["arg2_value"] != 11, True)) if n else
+          If(v["arg1_value"] == True, v["arg2_value"] != 11, True))
 )
 
 def rule_21_func(arg1, arg2, solver=None, neg=False):
@@ -20,7 +20,7 @@ def rule_21_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, bool):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
             return False
 
         # Variable declarations
@@ -30,7 +30,7 @@ def rule_21_func(arg1, arg2, solver=None, neg=False):
 
         # Value assignments
         solver.add(arg1_value == arg1)
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
 
         # Constraints for rule 21
         rule_21(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If there is an axis, max needs to be more than zero (Rule 59)
+# axis should not be out of bounds with negative indexing (Rule 59)
 
 rule_59 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] > 0, Select(v["arg2_range"], 1) > 0, False)) if n else
-          If(v["arg1_value"] > 0, Select(v["arg2_range"], 1) > 0, False))
+    s.add(Not(v["arg2_value"] >= (0 - v["arg1_ndim"])) if n else
+          v["arg2_value"] >= (0 - v["arg1_ndim"]))
 )
 
 def rule_59_func(arg1, arg2, solver=None, neg=False):
@@ -18,25 +18,24 @@ def rule_59_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 59
-        rule_59(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range})
+        rule_59(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_59(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range']}, neg)
+        rule_59(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

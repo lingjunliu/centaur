@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if Tout is complex64 then the shape of real and imag tensors must match (Rule 68)
+# Tout is complex128 if and only if real is float64 and imag is not float32 (Rule 68)
 
 rule_68 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 10, (And(v["arg2_ndim"] == v["arg3_ndim"], And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) == Select(v["arg3_shape"], i)) for i in range(6)]))), True)) if n else
-          If(v["arg1_value"] == 10, (And(v["arg2_ndim"] == v["arg3_ndim"], And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) == Select(v["arg3_shape"], i)) for i in range(6)]))), True))
+    s.add(Not((v["arg1_value"] == 11) == (And((v["arg2_dtype"] == 9), (v["arg3_dtype"] != 8)))) if n else
+          (v["arg1_value"] == 11) == (And((v["arg2_dtype"] == 9), (v["arg3_dtype"] != 8))))
 )
 
 def rule_68_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -29,24 +29,18 @@ def rule_68_func(arg1, arg2, arg3, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_value = Int('arg1_value')
-        arg2_ndim = Int('arg2_ndim')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
-        arg3_ndim = Int('arg3_ndim')
-        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
+        arg2_dtype = Int('arg2_dtype')
+        arg3_dtype = Int('arg3_dtype')
 
         # Value assignments
         solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
-        solver.add(arg2_ndim == arg2.ndim)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
-        solver.add(arg3_ndim == arg3.ndim)
-        for i in range(arg3.ndim):
-            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
 
         # Constraints for rule 68
-        rule_68(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_shape': arg3_shape, 'arg3_ndim': arg3_ndim})
+        rule_68(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_68(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_shape': arg3['shape'], 'arg3_ndim': arg3['ndim']}, neg)
+        rule_68(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The rank of input tensor should be greater than 0 (Rule 43)
+# If the input is a ragged tensor, the inner dimension must be consistent. (Rule 43)
 
 rule_43 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] > 0) if n else
-          v["arg1_ndim"] > 0)
+    s.add(Not(v["arg1_ndim"] > 1) if n else
+          v["arg1_ndim"] > 1)
 )
 
 def rule_43_func(arg1, solver=None, neg=False):

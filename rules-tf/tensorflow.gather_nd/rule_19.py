@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if batch_dims is 0, index tensor's last dimension should not exceed the rank of input tensor (Rule 19)
+# batch_dims must be less than or equal to the rank of both params and indices (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg3_value"] == 0, Select(v["arg2_shape"], v["arg2_ndim"] - 1) <= v["arg1_ndim"], False)) if n else
-          If(v["arg3_value"] == 0, Select(v["arg2_shape"], v["arg2_ndim"] - 1) <= v["arg1_ndim"], False))
+    s.add(Not(And(v["arg3_value"] <= v["arg1_ndim"], v["arg3_value"] <= v["arg2_ndim"])) if n else
+          And(v["arg3_value"] <= v["arg1_ndim"], v["arg3_value"] <= v["arg2_ndim"]))
 )
 
 def rule_19_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -30,20 +30,17 @@ def rule_19_func(arg1, arg2, arg3, solver=None, neg=False):
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
         arg2_ndim = Int('arg2_ndim')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
         arg3_value = Int('arg3_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
         solver.add(arg2_ndim == arg2.ndim)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
         solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 19
-        rule_19(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape, 'arg3_value': arg3_value})
+        rule_19(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_19(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape'], 'arg3_value': arg3['value']}, neg)
+        rule_19(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg3_value': arg3['value']}, neg)

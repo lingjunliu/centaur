@@ -1,39 +1,87 @@
 >>
-Rule 1 (private_threadpool_size must be a non-negative integer)
+Rule 1 (private_threadpool_size should be a non-negative integer)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 4 (use_private_threadpool is a boolean value)
+Rule 2 (use_caller_thread boolean value)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 10 (experimental_optimization_options must be None or a tuple)
-{v_1 : tuple(int)} |= v_1.len ≥ 0
+Rule 3 (private_threadpool_size cannot be a large number)
+{v_1 : int} |= v_1 < 1000
 >>
-Rule 13 (experimental_optimization_options must be None or a tuple)
-{v_1 : str} |= v_1 = "none"
+Rule 4 (private_threadpool_size cannot be zero if use_caller_thread is false)
+{v_1 : int, v_2 : bool} |= if v_2 = false then v_1 > 0
 >>
-Rule 14 (experimental_optimization_options must be None or a tuple)
-{v_1 : str ⊎ tuple(int)} |= (v_1 = "none") ∨ (v_1.len ≥ 0)
+Rule 6 (If private_threadpool_size is set, then use_caller_thread should not be enabled)
+{v_1 : int, v_2 : bool} |= if v_1 > 0 then v_2 = false
 >>
-Rule 16 (experimental_optimization_options can be "none" or a tuple of valid integers representing optimization options)
-{v_1 : str ⊎ tuple(int)} |= if v_1 = "none" then true else ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+Rule 8 (ThreadingOptions must be configured with either private_threadpool_size or use_caller_thread, or both)
+{v_1 : int, v_2 : bool} |= v_1 > 0 ∨ v_2 = true
 >>
-Rule 17 (experimental_optimization_options should be "none" or a tuple with non-negative integers)
-{v_1 : str ⊎ tuple(int)} |= (v_1 = "none") ∨ (if v_1.len > 0 then ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0)
+Rule 9 (private_threadpool_size is zero if and only if use_caller_thread is false)
+{v_1 : int, v_2 : bool} |= (v_1 = 0) = (v_2 = false)
 >>
-Rule 18 (experimental_optimization_options can be "none" or a tuple of non-negative integers)
-{v_1 : str ⊎ tuple(int)} |= (v_1 = "none") ∨ ((v_1.len > 0) ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0))
+Rule 12 (ThreadingOptions parameters should not have opposite extreme values simultaneously.)
+{v_1 : int, v_2 : bool} |= if v_1 > 900 then v_2 = false
 >>
-Rule 19 (experimental_optimization_options can be "none" or a tuple of non-negative integers, and should be a string or a tuple)
-{v_1 : str ⊎ tuple(int)} |= (v_1 = "none") ∨ ((v_1.len > 0) ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0)) ∨ (v_1.len = 0)
+Rule 13 (ThreadingOptions parameters must have valid values)
+{v_1 : int, v_2 : bool} |= v_1 ≥ 0 ∧ (v_2 = true ∨ v_2 = false)
 >>
-Rule 22 (autotune_options should be a boolean value)
-{v_1: bool} |= v_1 = true ∨ v_1 = false
+Rule 14 (private_threadpool_size should not be extremely large to avoid resource exhaustion)
+{v_1 : int} |= v_1 < 2048
 >>
-Rule 28 (model_parallelism_sliceable_size must be a positive integer)
-{v_1 : int} |= v_1 > 0
+Rule 16 (private_threadpool_size must be a valid integer)
+{v_1 : int} |= v_1 = v_1
 >>
-Rule 30 (max_intra_op_parallelism must be greater than or equal to min_intra_op_parallelism)
-{v_1 : int, v_2: int} |= v_1 ≥ v_2
+Rule 17 (use_caller_thread must be a boolean)
+{v_1 : bool} |= v_1 = v_1
 >>
-Rule 32 (autotune_algorithm should be from a list of strings)
-{v_1: str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "constant" ∨ v_1 = "linear" ∨ v_1 = "softplus"
+Rule 18 (If use_caller_thread is true, private_threadpool_size is not effective)
+{v_1 : int, v_2 : bool} |= if v_2 = true then v_1 = 0 ∨ v_1 > 0
+>>
+Rule 19 (When private_threadpool_size is greater than 0, then threading is enabled)
+{v_1 : int} |= if v_1 > 0 then true
+>>
+Rule 20 (The parameters should have valid combinations of values.)
+{v_1 : int, v_2 : bool} |= (v_1 > 0) ∨ (v_2 = true)
+>>
+Rule 21 (private_threadpool_size must be less than the maximum number of threads supported by the system)
+{v_1 : int} |= v_1 < 1024
+>>
+Rule 24 (Setting both options to defaults implies single-threaded execution)
+{v_1 : int, v_2 : bool} |= (v_1 = 0) ∧ (v_2 = false)
+>>
+Rule 25 (use_caller_thread can override private_threadpool_size)
+{v_1 : int, v_2 : bool} |= if v_2 = true then v_1 = 0
+>>
+Rule 26 (If private_threadpool_size and use_caller_thread are default, there's no threading)
+{v_1 : int, v_2 : bool} |= if v_1 = 0 then if v_2 = false then true
+>>
+Rule 27 (use_caller_thread should be preferred if private_threadpool_size is very small)
+{v_1 : int, v_2 : bool} |= if v_1 < 2 then v_2 = true
+>>
+Rule 28 (If private_threadpool_size is non-zero, then we can assume threads are being used)
+{v_1 : int} |= if v_1 ≠ 0 then true
+>>
+Rule 32 (If private_threadpool_size is set very high, there will be increased overhead)
+{v_1 : int} |= v_1 < 512
+>>
+Rule 33 (It is not safe to use the caller thread if it blocks for too long.)
+{v_1 : bool} |= if v_1 = true then true
+>>
+Rule 37 (private_threadpool_size == 0 means use_caller_thread is in effect)
+{v_1 : int, v_2 : bool} |= if v_1 = 0 then v_2 = true ∨ v_2 = false
+>>
+Rule 39 (Setting private_threadpool_size to 1 is same to use_caller_thread = True, but less efficient)
+{v_1 : int, v_2 : bool} |= if v_1 = 1 then v_2 = false
+>>
+Rule 40 (If private_threadpool_size is more than 1, use_caller_thread should be false)
+{v_1 : int, v_2 : bool} |= if v_1 > 1 then v_2 = false
+>>
+Rule 41 (Combining a large private threadpool size with the caller thread is redundant)
+{v_1 : int, v_2 : bool} |= if v_1 > 64 then v_2 = false
+>>
+Rule 44 (if private_threadpool_size = 0, and use_caller_thread = False then no threading)
+{v_1 : int, v_2 : bool} |= if v_1 = 0 then v_2 = false
+>>
+Rule 56 (If private_threadpool_size = 0, multi-threading is disabled. This also makes caller thread in effect)
+{v_1 : int} |= if v_1 = 0 then true

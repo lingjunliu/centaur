@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if the tensor has two dimensions, then the sum of their dimensions must be an even number (Rule 43)
+# If input has rank of 2, then the product of dimension sizes must be non-zero (Rule 43)
 
 rule_43 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 2, (Select(v["arg1_shape"], 0) + Select(v["arg1_shape"], 1)) % 2 == 0, False)) if n else
-          If(v["arg1_ndim"] == 2, (Select(v["arg1_shape"], 0) + Select(v["arg1_shape"], 1)) % 2 == 0, False))
+    s.add(Not(If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) != 0, True)) if n else
+          If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) != 0, True))
 )
 
 def rule_43_func(arg1, solver=None, neg=False):

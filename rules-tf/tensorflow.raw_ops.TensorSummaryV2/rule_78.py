@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if tensor's ndim is greater than 2, then shape[2] must be a positive number (Rule 78)
+# if tensor has dimension > 0, shape must be greater than 0 (Rule 78)
 
 rule_78 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 2, Select(v["arg1_shape"], 2) > 0, False)) if n else
-          If(v["arg1_ndim"] > 2, Select(v["arg1_shape"], 2) > 0, False))
+    s.add(Not(If(v["arg1_ndim"] > 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), True)) if n else
+          If(v["arg1_ndim"] > 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), True))
 )
 
 def rule_78_func(arg1, solver=None, neg=False):

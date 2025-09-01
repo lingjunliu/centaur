@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The shapes of the tensors should be compatible for floor_divide (Rule 13)
+# If the second tensor has no dimensions, the first should also have no dimensions (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(Or(Or((v["arg1_ndim"] == v["arg2_ndim"]), (v["arg1_ndim"] == 0)), (v["arg2_ndim"] == 0))) if n else
-          Or(Or((v["arg1_ndim"] == v["arg2_ndim"]), (v["arg1_ndim"] == 0)), (v["arg2_ndim"] == 0)))
+    s.add(Not(If(v["arg2_ndim"] == 0, v["arg1_ndim"] == 0, True)) if n else
+          If(v["arg2_ndim"] == 0, v["arg1_ndim"] == 0, True))
 )
 
 def rule_13_func(arg1, arg2, solver=None, neg=False):

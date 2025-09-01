@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The number of rows of sum_indices should be less than 1 million. (Rule 45)
+# a_indices must be 2-dimensional with non-negative dimensions and int64 data type (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) < 1000000) if n else
-          Select(v["arg1_shape"], 0) < 1000000)
+    s.add(Not(And(And(And(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) >= 0), Select(v["arg1_shape"], 1) > 0), v["arg1_dtype"] == 5)) if n else
+          And(And(And(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) >= 0), Select(v["arg1_shape"], 1) > 0), v["arg1_dtype"] == 5))
 )
 
 def rule_45_func(arg1, solver=None, neg=False):
@@ -22,16 +22,20 @@ def rule_45_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 45
-        rule_45(solver, {'arg1_shape': arg1_shape})
+        rule_45(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_45(solver, {'arg1_shape': arg1['shape']}, neg)
+        rule_45(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# a must be 3-element vectors if ndim = 1 (Rule 6)
+# the innermost dimension must be 3 if ndim > 1 (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) == 3, False)) if n else
-          If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) == 3, False))
+    s.add(Not(If(v["arg1_ndim"] > 1, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 3, True)) if n else
+          If(v["arg1_ndim"] > 1, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 3, True))
 )
 
 def rule_6_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The axis must be within the dimensions of the tensor when axis is an int. (Rule 10)
+# axis should be within the valid range of dimensions of the input tensor (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_value"] < v["arg1_ndim"]) if n else
-          v["arg2_value"] < v["arg1_ndim"])
+    s.add(Not(And((0 - 1) * v["arg1_ndim"] <= v["arg2_value"], v["arg2_value"] <= v["arg1_ndim"] - 1)) if n else
+          And((0 - 1) * v["arg1_ndim"] <= v["arg2_value"], v["arg2_value"] <= v["arg1_ndim"] - 1))
 )
 
 def rule_10_func(arg1, arg2, solver=None, neg=False):

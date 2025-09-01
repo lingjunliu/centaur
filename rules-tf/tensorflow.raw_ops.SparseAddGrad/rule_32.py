@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# a_indices and sum_indices should be of the same shape when backprop_val_grad has elements. (Rule 32)
+# number of columns of a_indices, b_indices, and sum_indices are the same and positive (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg3_shape"], 0) > 0, And(Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 1), Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)), False)) if n else
-          If(Select(v["arg3_shape"], 0) > 0, And(Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 1), Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)), False))
+    s.add(Not(And(And(Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 1), Select(v["arg2_shape"], 1) == Select(v["arg3_shape"], 1)), Select(v["arg1_shape"], 1) > 0)) if n else
+          And(And(Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 1), Select(v["arg2_shape"], 1) == Select(v["arg3_shape"], 1)), Select(v["arg1_shape"], 1) > 0))
 )
 
 def rule_32_func(arg1, arg2, arg3, solver=None, neg=False):

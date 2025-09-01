@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If tensor's shape has a zero, tensor's value is all zero (Rule 103)
+# If the reference tensor is a 3D tensor, the product of the three dimensions must be less than 10000 (Rule 103)
 
 rule_103 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), If(Select(v["arg1_shape"], i) == 0, And([Implies(j < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], j) == 0) for j in range(6)]), False)) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_ndim"] - 1 + 1), If(Select(v["arg1_shape"], i) == 0, And([Implies(j < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], j) == 0) for j in range(6)]), False)) for i in range(6)]))
+    s.add(Not(If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) < 10000, True)) if n else
+          If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) < 10000, True))
 )
 
 def rule_103_func(arg1, solver=None, neg=False):

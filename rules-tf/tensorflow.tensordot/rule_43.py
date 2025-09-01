@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If axes is specified as a scalar, it must be less than or equal to the number of dimensions of tensors a and b (Rule 43)
+# If axes is 0, the ndim should be greater than 0 (Rule 43)
 
 rule_43 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg3_value"] <= v["arg1_ndim"], v["arg3_value"] <= v["arg2_ndim"])) if n else
-          And(v["arg3_value"] <= v["arg1_ndim"], v["arg3_value"] <= v["arg2_ndim"]))
+    s.add(Not(If(v["arg3_value"] == 0, And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), True)) if n else
+          If(v["arg3_value"] == 0, And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), True))
 )
 
 def rule_43_func(arg1, arg2, arg3, solver=None, neg=False):

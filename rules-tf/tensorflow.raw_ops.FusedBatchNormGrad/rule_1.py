@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# y_backprop, x, scale, reserve_space_1, reserve_space_2 must have float32 type (Rule 1)
+# y_backprop, x, scale, reserve_space_1, reserve_space_2 must have the same dtype (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7), v["arg3_dtype"] == 7), v["arg4_dtype"] == 7), v["arg5_dtype"] == 7)) if n else
-          And(And(And(And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7), v["arg3_dtype"] == 7), v["arg4_dtype"] == 7), v["arg5_dtype"] == 7))
+    s.add(Not(And(And(And(v["arg1_dtype"] == v["arg2_dtype"], v["arg1_dtype"] == v["arg3_dtype"]), v["arg1_dtype"] == v["arg4_dtype"]), v["arg1_dtype"] == v["arg5_dtype"])) if n else
+          And(And(And(v["arg1_dtype"] == v["arg2_dtype"], v["arg1_dtype"] == v["arg3_dtype"]), v["arg1_dtype"] == v["arg4_dtype"]), v["arg1_dtype"] == v["arg5_dtype"]))
 )
 
 def rule_1_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):

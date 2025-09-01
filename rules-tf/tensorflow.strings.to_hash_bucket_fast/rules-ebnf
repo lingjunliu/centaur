@@ -1,87 +1,57 @@
 >>
-Rule 1 (num_buckets should be greater than or equal to 1)
-{v_1 : int} |= v_1 ≥ 1
+Rule 1 (num_buckets must be greater than or equal to 1)
+{v_2 : int} |= v_2 ≥ 1
 >>
-Rule 2 (input should be a tensor)
+Rule 2 (input must be a string tensor)
+{v_1 : tensor} |= dtype_(v_1) = 12
+>>
+Rule 4 (input tensor should not be empty when num_buckets is provided)
+{v_1 : tensor, v_2 : int} |= (ndim(v_1) = 0) ∨ (v_2 ≥ 1)
+>>
+Rule 8 (Input tensor's dimension should be greater than 0)
 {v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 3 (input tensor's elements are strings)
-{v_1 : tensor} |= dtype_(v_1) = 11
+Rule 11 (input tensor should be a non-boolean tensor)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 5 (input tensor's dimension is less than 5)
-{v_1 : tensor} |= ndim(v_1) < 5
+Rule 16 (If input is not string then num_buckets should not be used)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) ≠ 12 then v_2 = 1
 >>
-Rule 6 (num_buckets must be less than 1000)
-{v_1 : int} |= v_1 < 1000
+Rule 19 (Number of dimensions must be > -1)
+{v_1 : tensor} |= ndim(v_1) > -1
 >>
-Rule 7 (input tensor's shape must be greater than 0)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 24 (If input is a boolean tensor, num_buckets should be 1)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 0 then v_2 = 1
 >>
-Rule 8 (num_buckets is positive)
-{v_1 : int} |= v_1 > 0
+Rule 35 (If dtype is bool, number of buckets must be 1, else num_buckets must be greater than 1)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 0 then v_2 = 1 else v_2 ≥ 1
 >>
-Rule 9 (input tensor is not empty)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 50 (Input must be a tensor, and not a boolean object)
+{v_1 : tensor ⊎ bool} |= dtype_(v_1) ≠ 0
 >>
-Rule 10 (input tensor and num_buckets are related)
-{v_1 : tensor, v_2 : int} |= v_2 > 0 ∧ ndim(v_1) ≥ 0
+Rule 62 (Raises error if a boolean is provided as input)
+{v_1 : bool} |= v_1 ≠ v_1
 >>
-Rule 11 (num_buckets is less than or equal to the size of some dimension of input)
-{v_1 : tensor, v_2 : int} |= ∃i ∈ [0, ndim(v_1) - 1] : v_2 ≤ shape(v_1, i)
+Rule 68 (It must be convertible to a tensor, and cannot be just a boolean. )
+{v_1 : tensor ⊎ bool} |= if dtype_(v_1) = 0 then false
 >>
-Rule 13 (If input tensor is 1D, then number of buckets must be smaller than 100)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 < 100
+Rule 71 (If input is a boolean, raise exception, because boolean ndarray cannot be implicitly converted to a Tensor)
+{v_1 : bool ⊎ tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 14 (input tensor is not of complex type)
-{v_1: tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Rule 74 (The input must be a Tensor, and not an unconvertible NumPy array.)
+{v_1 : tensor ⊎ bool} |= ndim(v_1) ≥ 0
 >>
-Rule 15 (num_buckets is less than the total number of elements in input)
-{v_1 : tensor, v_2 : int} |= v_2 < (if ndim(v_1) = 0 then 1 else (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0))
+Rule 80 (Raise error when the input is an unconvertible numpy array)
+{v_1 : tensor ⊎ bool} |= if v_1 = true then false
 >>
-Rule 16 (If input is scalar string, number of buckets must be 1)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 = 1
+Rule 83 (Input parameter cannot be a raw NumPy boolean array, it has to be a Tensor.)
+{v_1 : bool ⊎ tensor} |= (v_1 = false) ∨ (v_1 = true)
 >>
-Rule 17 (num_buckets has some relation with shape of input tensor)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 ≤ shape(v_1, 0) * 2
+Rule 86 (The NumPy boolean cannot be directly passed, use tf.constant instead)
+{v_1 : bool ⊎ tensor} |= if v_1 = true then false
 >>
-Rule 18 (num_buckets is greater than the max length of string in input)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 > 0
+Rule 104 (The data type of the input should be able to be converted implicitly to a Tensor)
+{v_1 : tensor ⊎ bool} |= if v_1 = true then false else if v_1 = false then false
 >>
-Rule 19 (If the first element of input is "Hello", num_buckets must be greater than 1)
-{v_1 : tensor, v_2 : int} |= if shape(v_1,0) > 0 then if v_1[0] = "Hello" then v_2 > 1
->>
-Rule 20 (If input tensor has only one element, num_buckets must be 1 or greater)
-{v_1 : tensor, v_2 : int} |= if (ndim(v_1) = 0) ∨ (ndim(v_1) = 1 ∧ shape(v_1, 0) = 1) then v_2 ≥ 1
->>
-Rule 21 (number of buckets should be power of 2)
-{v_1 : int} |= ∃i ∈ [0, 10] : v_1 = 2 * i
->>
-Rule 23 (num_buckets should not be too small compared to number of strings)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 ≥ shape(v_1, 0) / 2
->>
-Rule 24 (Input tensor must be a string tensor)
-{v_1: tensor} |= dtype_(v_1) = 11
->>
-Rule 26 (If input tensor has at least one element, the number of buckets has to be greater than 0)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 ∧ (∃i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0) then v_2 > 0
->>
-Rule 27 (If the input tensor contains "TensorFlow", num_buckets should be at least 2)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 ∧ (∃i ∈ [0, shape(v_1,0) -1]: v_1[i] = "TensorFlow") then v_2 ≥ 2
->>
-Rule 28 (num_buckets should have a relation with the length of all strings combined)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 < 1000
->>
-Rule 29 (if input is a tensor of empty strings, then buckets should be 1)
-{v_1: tensor, v_2: int} |= if ndim(v_1) > 0 ∧ (∀i ∈ [0, shape(v_1, 0) -1]: v_1[i] = "") then v_2 = 1
->>
-Rule 40 (if input is a tensor of empty strings, the number of buckets should not be 0)
-{v_1: tensor, v_2: int} |= if ndim(v_1) > 0 ∧ (∀i ∈ [0, shape(v_1, 0) -1]: v_1[i] = "") then v_2 > 0
->>
-Rule 46 (Number of buckets is larger than minimum hashable string length.)
-{v_1 : int} |= v_1 > 2
->>
-Rule 58 (If input tensor is empty, the number of buckets should be greater than 0)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 > 0 else if (∃i ∈ [0, ndim(v_1) -1] : shape(v_1, i) = 0) then v_2 > 0
->>
-Rule 64 (If input tensor's element count exceeds 10000, number of buckets has to be greater than 10.)
-{v_1 : tensor, v_2 : int} |= if (if ndim(v_1) = 0 then 1 else (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)) > 10000 then v_2 > 10
+Rule 107 (NumPy boolean ndarray are not implicitly convertible to Tensors. Cast using tf.constant)
+{v_1 : bool ⊎ tensor} |= if dtype_(v_1) = 0 then false

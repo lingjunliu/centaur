@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The tensor's dtype should be a number, complex or float (Rule 16)
+# Input tensor must have a finite minimum value (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 10)) if n else
-          And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 10))
+    s.add(Not(Select(v["arg1_range"], 0) > -1000000000) if n else
+          Select(v["arg1_range"], 0) > -1000000000)
 )
 
 def rule_16_func(arg1, solver=None, neg=False):
@@ -22,15 +22,16 @@ def rule_16_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 16
-        rule_16(solver, {'arg1_dtype': arg1_dtype})
+        rule_16(solver, {'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_16(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_16(solver, {'arg1_range': arg1['range']}, neg)

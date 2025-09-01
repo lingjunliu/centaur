@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# filters' in_channels dimension must match value's in_channels dimension (Rule 8)
+# value's channel count must match filters' input channel count. (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg2_shape"], 3) == Select(v["arg1_shape"], 3)) if n else
-          Select(v["arg2_shape"], 3) == Select(v["arg1_shape"], 3))
+    s.add(Not(Select(v["arg1_shape"], 3) == Select(v["arg2_shape"], 3)) if n else
+          Select(v["arg1_shape"], 3) == Select(v["arg2_shape"], 3))
 )
 
 def rule_8_func(arg1, arg2, solver=None, neg=False):

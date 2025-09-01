@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# dtype should be bool when minimum value is equal to maximum value of tensor (Rule 57)
+# The axis must be of some practical magnitude (Rule 57)
 
 rule_57 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_range"], 0) == Select(v["arg1_range"], 1), v["arg1_dtype"] == 0, False)) if n else
-          If(Select(v["arg1_range"], 0) == Select(v["arg1_range"], 1), v["arg1_dtype"] == 0, False))
+    s.add(Not(And(v["arg1_value"] > -50, v["arg1_value"] < 50)) if n else
+          And(v["arg1_value"] > -50, v["arg1_value"] < 50))
 )
 
 def rule_57_func(arg1, solver=None, neg=False):
@@ -17,23 +17,20 @@ def rule_57_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 57
-        rule_57(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
+        rule_57(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_57(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)
+        rule_57(solver, {'arg1_value': arg1['value']}, neg)

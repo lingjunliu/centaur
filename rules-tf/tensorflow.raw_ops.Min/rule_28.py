@@ -5,43 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if keep_dims is true, the rank is not reduced, otherwise the rank is reduced by number of axis (Rule 28)
+# If the rank of input is zero, the output is the same as the input regardless of axis and keep_dims (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg3_value"] == True, True, v["arg1_ndim"] >= Select(v["arg2_shape"], 0))) if n else
-          If(v["arg3_value"] == True, True, v["arg1_ndim"] >= Select(v["arg2_shape"], 0)))
+    s.add(Not(If(v["arg1_ndim"] == 0, True, True)) if n else
+          If(v["arg1_ndim"] == 0, True, True))
 )
 
-def rule_28_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_28_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
-            return False
-        if not isinstance(arg3, bool):
-            return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
-        arg3_value = Bool('arg3_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
-        solver.add(arg3_value == arg3)
 
         # Constraints for rule 28
-        rule_28(solver, {'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg3_value': arg3_value})
+        rule_28(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_28(solver, {'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg3_value': arg3['value']}, neg)
+        rule_28(solver, {'arg1_ndim': arg1['ndim']}, neg)

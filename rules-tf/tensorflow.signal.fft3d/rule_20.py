@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Innermost dimensions are power of 2 (Rule 20)
+# input tensor has valid shape (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(And((Select(v["arg1_shape"], v["arg1_ndim"] - 3) > 0), ((Select(v["arg1_shape"], v["arg1_ndim"] - 3) % (Select(v["arg1_shape"], v["arg1_ndim"] - 3) - 1)) == 1)), (Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0)), ((Select(v["arg1_shape"], v["arg1_ndim"] - 2) % (Select(v["arg1_shape"], v["arg1_ndim"] - 2) - 1)) == 1)), (Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0)), ((Select(v["arg1_shape"], v["arg1_ndim"] - 1) % (Select(v["arg1_shape"], v["arg1_ndim"] - 1) - 1)) == 1))) if n else
-          And(And(And(And(And((Select(v["arg1_shape"], v["arg1_ndim"] - 3) > 0), ((Select(v["arg1_shape"], v["arg1_ndim"] - 3) % (Select(v["arg1_shape"], v["arg1_ndim"] - 3) - 1)) == 1)), (Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0)), ((Select(v["arg1_shape"], v["arg1_ndim"] - 2) % (Select(v["arg1_shape"], v["arg1_ndim"] - 2) - 1)) == 1)), (Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0)), ((Select(v["arg1_shape"], v["arg1_ndim"] - 1) % (Select(v["arg1_shape"], v["arg1_ndim"] - 1) - 1)) == 1)))
+    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), If(v["arg1_ndim"] > 0, Select(v["arg1_shape"], i) > 0, True)) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_ndim"] - 1 + 1), If(v["arg1_ndim"] > 0, Select(v["arg1_shape"], i) > 0, True)) for i in range(6)]))
 )
 
 def rule_20_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_20_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 20
-        rule_20(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_20(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_20(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_20(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

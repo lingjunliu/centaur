@@ -1,174 +1,120 @@
 >>
-Rule 1 (var and accum must have the same type)
+Rule 1 (var and accum must have the same dtype)
 {var : tensor, accum : tensor} |= dtype_(var) = dtype_(accum)
 >>
-Rule 2 (lr, l1, l2, and grad must have the same type as var)
+Rule 2 (lr, l1, l2, and grad must have the same dtype as var)
 {var : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= dtype_(var) = dtype_(lr) ∧ dtype_(var) = dtype_(l1) ∧ dtype_(var) = dtype_(l2) ∧ dtype_(var) = dtype_(grad)
 >>
-Rule 3 (lr must be a scalar)
-{lr : tensor} |= ndim(lr) = 0
+Rule 3 (lr, l1, l2, and grad must be scalar tensors)
+{lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= ndim(lr) = 0 ∧ ndim(l1) = 0 ∧ ndim(l2) = 0 ∧ ndim(grad) = 0
 >>
-Rule 4 (l1 must be a scalar)
-{l1 : tensor} |= ndim(l1) = 0
+Rule 4 (use_locking must be a boolean)
+{use_locking : bool} |= use_locking = true ∨ use_locking = false
 >>
-Rule 5 (l2 must be a scalar)
-{l2 : tensor} |= ndim(l2) = 0
+Rule 5 (var and accum should have the same shape)
+{var : tensor, accum : tensor} |= ndim(var) = ndim(accum) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(accum, i)
 >>
-Rule 6 (grad must have the same shape as var)
-{var : tensor, grad : tensor} |= ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(grad, i)
+Rule 6 (var, accum, lr, l1, l2, grad should be tensors)
+{var : tensor, accum : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= ndim(var) ≥ 0 ∧ ndim(accum) ≥ 0 ∧ ndim(lr) ≥ 0 ∧ ndim(l1) ≥ 0 ∧ ndim(l2) ≥ 0 ∧ ndim(grad) ≥ 0
 >>
-Rule 8 (var must be a float32, float64, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, or uint64.)
-{var : tensor} |= dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 3 ∨ dtype_(var) = 6 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 10
+Rule 8 (if use_locking is true, then var and accum shapes must be the same)
+{use_locking : bool, var : tensor, accum : tensor} |= if use_locking = true then (ndim(var) = ndim(accum) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(accum, i))
 >>
-Rule 9 (var and accum have the same number of dimensions)
-{var : tensor, accum : tensor} |= ndim(var) = ndim(accum)
+Rule 9 (var must have a valid data type)
+{var : tensor} |= dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 10 ∨ dtype_(var) = 4
 >>
-Rule 10 (lr must be non-negative)
-{lr : tensor} |= min(lr) ≥ 0
+Rule 10 (grad and var dimensions should align for element-wise operations)
+{var: tensor, grad: tensor} |= ndim(var) = ndim(grad) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(grad, i)
 >>
-Rule 11 (l1 must be non-negative)
-{l1 : tensor} |= min(l1) ≥ 0
+Rule 11 (lr, l1 and l2 must be non-negative)
+{lr : tensor, l1 : tensor, l2 : tensor} |= min(lr) ≥ 0 ∧ min(l1) ≥ 0 ∧ min(l2) ≥ 0
 >>
-Rule 12 (l2 must be non-negative)
-{l2 : tensor} |= min(l2) ≥ 0
+Rule 12 (If var is a float type, then lr, l1, l2, and grad should also be float types)
+{var : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 7 ∨ dtype_(var) = 8 then dtype_(lr) = 7 ∨ dtype_(lr) = 8 ∧ dtype_(l1) = 7 ∨ dtype_(l1) = 8 ∧ dtype_(l2) = 7 ∨ dtype_(l2) = 8 ∧ dtype_(grad) = 7 ∨ dtype_(grad) = 8
 >>
-Rule 13 (All elements in grad must be finite if var is float)
-{var : tensor, grad : tensor} |= if dtype_(var) = 7 ∨ dtype_(var) = 8 then ∀i ∈ [0, ndim(grad) - 1] : ∃j ∈ [0, shape(grad, i)-1] : grad[j] ≠ "inf" ∧ grad[j] ≠ "-inf"
+Rule 13 (If var is an integer type, then lr, l1, l2 and grad should also be integer types)
+{var : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 1 ∨ dtype_(var) = 2 ∨ dtype_(var) = 3 ∨ dtype_(var) = 4 ∨ dtype_(var) = 5 then dtype_(lr) = 1 ∨ dtype_(lr) = 2 ∨ dtype_(lr) = 3 ∨ dtype_(lr) = 4 ∨ dtype_(lr) = 5 ∧ dtype_(l1) = 1 ∨ dtype_(l1) = 2 ∨ dtype_(l1) = 3 ∨ dtype_(l1) = 4 ∨ dtype_(l1) = 5 ∧ dtype_(l2) = 1 ∨ dtype_(l2) = 2 ∨ dtype_(l2) = 3 ∨ dtype_(l2) = 4 ∨ dtype_(l2) = 5 ∧ dtype_(grad) = 1 ∨ dtype_(grad) = 2 ∨ dtype_(grad) = 3 ∨ dtype_(grad) = 4 ∨ dtype_(grad) = 5
 >>
-Rule 14 (If var is quantized type then lr, l1, l2, grad cannot be float)
-{var : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 4 ∨ dtype_(var) = 5 ∨ dtype_(var) = 0 ∨ dtype_(var) = 9 ∨ dtype_(var) = 2 ∨ dtype_(var) = 6 then dtype_(lr) ≠ 7 ∧ dtype_(lr) ≠ 8 ∧ dtype_(l1) ≠ 7 ∧ dtype_(l1) ≠ 8 ∧ dtype_(l2) ≠ 7 ∧ dtype_(l2) ≠ 8 ∧ dtype_(grad) ≠ 7 ∧ dtype_(grad) ≠ 8
+Rule 14 (If var is a complex type, then lr, l1, l2 and grad should also be complex types)
+{var : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 9 ∨ dtype_(var) = 10 then dtype_(lr) = 9 ∨ dtype_(lr) = 10 ∧ dtype_(l1) = 9 ∨ dtype_(l1) = 10 ∧ dtype_(l2) = 9 ∨ dtype_(l2) = 10 ∧ dtype_(grad) = 9 ∨ dtype_(grad) = 10
 >>
-Rule 15 (if var is bfloat16, then lr, l1, l2, and grad must also be bfloat16)
-{var : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 11 then dtype_(lr) = 11 ∧ dtype_(l1) = 11 ∧ dtype_(l2) = 11 ∧ dtype_(grad) = 11
+Rule 16 (If var is bfloat16, half, uint32, uint64, qint8, quint8, qint32, qint16, quint16, uint16, lr, l1, l2 and grad should also be of same types respectively)
+{var : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 11 ∨ dtype_(var) = 6 then dtype_(lr) = 11 ∨ dtype_(lr) = 6 ∧ dtype_(l1) = 11 ∨ dtype_(l1) = 6 ∧ dtype_(l2) = 11 ∨ dtype_(l2) = 6 ∧ dtype_(grad) = 11 ∨ dtype_(grad) = 6 else if dtype_(var) = 16 ∨ dtype_(var) = 17 then dtype_(lr) = 16 ∨ dtype_(lr) = 17 ∧ dtype_(l1) = 16 ∨ dtype_(l1) = 17 ∧ dtype_(l2) = 16 ∨ dtype_(l2) = 17 ∧ dtype_(grad) = 16 ∨ dtype_(grad) = 17 else if dtype_(var) = 0 ∨ dtype_(var) = 12 ∨ dtype_(var) = 13 ∨ dtype_(var) = 14 ∨ dtype_(var) = 15 then dtype_(lr) = 0 ∨ dtype_(lr) = 12 ∨ dtype_(lr) = 13 ∨ dtype_(lr) = 14 ∨ dtype_(lr) = 15 ∧ dtype_(l1) = 0 ∨ dtype_(l1) = 12 ∨ dtype_(l1) = 13 ∨ dtype_(l1) = 14 ∨ dtype_(l1) = 15 ∧ dtype_(l2) = 0 ∨ dtype_(l2) = 12 ∨ dtype_(l2) = 13 ∨ dtype_(l2) = 14 ∨ dtype_(l2) = 15 ∧ dtype_(grad) = 0 ∨ dtype_(grad) = 12 ∨ dtype_(grad) = 13 ∨ dtype_(grad) = 14 ∨ dtype_(grad) = 15
 >>
-Rule 16 (if var is float32, then lr, l1, l2, and grad must also be float32)
-{var : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 7 then dtype_(lr) = 7 ∧ dtype_(l1) = 7 ∧ dtype_(l2) = 7 ∧ dtype_(grad) = 7
+Rule 18 (lr, l1, l2 are scalars)
+{lr : tensor, l1: tensor, l2:tensor} |= ndim(lr) = 0 ∧ ndim(l1) = 0 ∧ ndim(l2) = 0
 >>
-Rule 17 (if var is float64, then lr, l1, l2, and grad must also be float64)
-{var : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 8 then dtype_(lr) = 8 ∧ dtype_(l1) = 8 ∧ dtype_(l2) = 8 ∧ dtype_(grad) = 8
+Rule 22 (The values of l1 and l2 should be small)
+{l1 : tensor, l2 : tensor} |= max(l1) ≤ 100 ∧ max(l2) ≤ 100
 >>
-Rule 18 (if var is complex64, then lr, l1, l2, and grad must also be complex64)
-{var : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 9 then dtype_(lr) = 9 ∧ dtype_(l1) = 9 ∧ dtype_(l2) = 9 ∧ dtype_(grad) = 9
+Rule 23 (lr, l1, l2 should be non negative scalar tensors)
+{lr : tensor, l1 : tensor, l2 : tensor} |= min(lr) ≥ 0 ∧ min(l1) ≥ 0 ∧ min(l2) ≥ 0 ∧ ndim(lr) = 0 ∧ ndim(l1) = 0 ∧ ndim(l2) = 0
 >>
-Rule 19 (if var is complex128, then lr, l1, l2, and grad must also be complex128)
-{var : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 10 then dtype_(lr) = 10 ∧ dtype_(l1) = 10 ∧ dtype_(l2) = 10 ∧ dtype_(grad) = 10
+Rule 24 (If var is uint8, int16, int8, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, uint32, uint64 the grad should have same type respectively)
+{var : tensor, grad: tensor} |= if dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 0 ∨ dtype_(var) = 12 ∨ dtype_(var) = 13 ∨ dtype_(var) = 11 ∨ dtype_(var) = 14 ∨ dtype_(var) = 15 ∨ dtype_(var) = 16 ∨ dtype_(var) = 17 ∨ dtype_(var) = 4 then dtype_(grad) = dtype_(var)
 >>
-Rule 20 (If var is int8, then lr, l1, l2, and grad must also be int8)
-{var : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 1 then dtype_(lr) = 1 ∧ dtype_(l1) = 1 ∧ dtype_(l2) = 1 ∧ dtype_(grad) = 1
+Rule 25 (var must be a float32, float64, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64)
+{var: tensor} |= dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 9 ∨ dtype_(var) = 4 ∨ dtype_(var) = 0 ∨ dtype_(var) = 12 ∨ dtype_(var) = 13 ∨ dtype_(var) = 11 ∨ dtype_(var) = 14 ∨ dtype_(var) = 15 ∨ dtype_(var) = 16 ∨ dtype_(var) = 10 ∨ dtype_(var) = 6 ∨ dtype_(var) = 17
 >>
-Rule 21 (If var is int16, then lr, l1, l2, and grad must also be int16)
-{var : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 2 then dtype_(lr) = 2 ∧ dtype_(l1) = 2 ∧ dtype_(l2) = 2 ∧ dtype_(grad) = 2
+Rule 28 (If the dtype of var is complex64 or complex128, then the shape of grad should match the shape of var)
+{var: tensor, grad: tensor} |= if dtype_(var) = 9 ∨ dtype_(var) = 10 then (ndim(var) = ndim(grad) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(grad, i))
 >>
-Rule 22 (If var is int32, then lr, l1, l2, and grad must also be int32)
-{var : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 3 then dtype_(lr) = 3 ∧ dtype_(l1) = 3 ∧ dtype_(l2) = 3 ∧ dtype_(grad) = 3
+Rule 29 (if var is complex64 or complex128, then lr, l1, l2 also should have same type and scalar)
+{var: tensor, lr: tensor, l1: tensor, l2: tensor} |= if dtype_(var) = 9 ∨ dtype_(var) = 10 then (dtype_(lr) = dtype_(var) ∧ ndim(lr) = 0 ∧ dtype_(l1) = dtype_(var) ∧ ndim(l1) = 0 ∧ dtype_(l2) = dtype_(var) ∧ ndim(l2) = 0)
 >>
-Rule 23 (If var is int64, then lr, l1, l2, and grad must also be int64)
-{var : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 4 then dtype_(lr) = 4 ∧ dtype_(l1) = 4 ∧ dtype_(l2) = 4 ∧ dtype_(grad) = 4
+Rule 31 (If the dtype of var is float32 or float64, then the shape of grad should match the shape of var)
+{var: tensor, grad: tensor} |= if dtype_(var) = 7 ∨ dtype_(var) = 8 then (ndim(var) = ndim(grad) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(grad, i))
 >>
-Rule 24 (If var is uint8, then lr, l1, l2, and grad must also be uint8)
-{var : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 5 then dtype_(lr) = 5 ∧ dtype_(l1) = 5 ∧ dtype_(l2) = 5 ∧ dtype_(grad) = 5
+Rule 32 (If the dtype of var is int32, uint8, int16, int8, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, uint32, uint64 the grad should have the same shape)
+{var: tensor, grad: tensor} |= if dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 4 ∨ dtype_(var) = 0 ∨ dtype_(var) = 12 ∨ dtype_(var) = 13 ∨ dtype_(var) = 11 ∨ dtype_(var) = 14 ∨ dtype_(var) = 15 ∨ dtype_(var) = 16 ∨ dtype_(var) = 17 then (ndim(var) = ndim(grad) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(grad, i))
 >>
-Rule 25 (If var is uint16, then lr, l1, l2, and grad must also be uint16)
-{var : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 15 then dtype_(lr) = 15 ∧ dtype_(l1) = 15 ∧ dtype_(l2) = 15 ∧ dtype_(grad) = 15
+Rule 33 (If the dtype of var is bfloat16, half, uint32, uint64 the grad shape must match the shape of var)
+{var: tensor, grad: tensor} |= if dtype_(var) = 11 ∨ dtype_(var) = 6 ∨ dtype_(var) = 17 ∨ dtype_(var) = 16 then (ndim(var) = ndim(grad) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(grad, i))
 >>
-Rule 26 (If var is uint32, then lr, l1, l2, and grad must also be uint32)
-{var : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 17 then dtype_(lr) = 17 ∧ dtype_(l1) = 17 ∧ dtype_(l2) = 17 ∧ dtype_(grad) = 17
+Rule 34 (Accum must have the same shape as Var)
+{var: tensor, accum: tensor} |= (ndim(var) = ndim(accum) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(accum, i))
 >>
-Rule 27 (If var is uint64, then lr, l1, l2, and grad must also be uint64)
-{var : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 18 then dtype_(lr) = 18 ∧ dtype_(l1) = 18 ∧ dtype_(l2) = 18 ∧ dtype_(grad) = 18
+Rule 35 (If the dtype of var is bfloat16, half, uint32, uint64 and use_locking is True the accum shape must match the shape of var)
+{var: tensor, accum: tensor, use_locking: bool} |= if (dtype_(var) = 11 ∨ dtype_(var) = 6 ∨ dtype_(var) = 17 ∨ dtype_(var) = 16) ∧ use_locking = true then (ndim(var) = ndim(accum) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(accum, i))
 >>
-Rule 30 (If var is qint16, then lr, l1, l2, and grad must also be qint16)
-{var : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 12 then dtype_(lr) = 12 ∧ dtype_(l1) = 12 ∧ dtype_(l2) = 12 ∧ dtype_(grad) = 12
+Rule 36 (If the dtype of var is int32, uint8, int16, int8, int64 and use_locking is True the accum shape must match the shape of var)
+{var: tensor, accum: tensor, use_locking: bool} |= if (dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 4) ∧ use_locking = true then (ndim(var) = ndim(accum) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(accum, i))
 >>
-Rule 31 (If var is quint16, then lr, l1, l2, and grad must also be quint16)
-{var : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 13 then dtype_(lr) = 13 ∧ dtype_(l1) = 13 ∧ dtype_(l2) = 13 ∧ dtype_(grad) = 13
+Rule 37 (If the dtype of var is complex64 or complex128 and use_locking is True the accum shape must match the shape of var)
+{var: tensor, accum: tensor, use_locking: bool} |= if (dtype_(var) = 9 ∨ dtype_(var) = 10) ∧ use_locking = true then (ndim(var) = ndim(accum) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(accum, i))
 >>
-Rule 33 (If var is float16, then lr, l1, l2, and grad must also be float16)
-{var : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 6 then dtype_(lr) = 6 ∧ dtype_(l1) = 6 ∧ dtype_(l2) = 6 ∧ dtype_(grad) = 6
+Rule 38 (If the dtype of var is float32 or float64 and use_locking is True the accum shape must match the shape of var)
+{var: tensor, accum: tensor, use_locking: bool} |= if (dtype_(var) = 7 ∨ dtype_(var) = 8) ∧ use_locking = true then (ndim(var) = ndim(accum) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(accum, i))
 >>
-Rule 34 (Var and accum should have the same shape.)
-{var : tensor, accum : tensor} |= ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(accum, i)
+Rule 39 (If the dtype of var is int32, uint8, int16, int8, int64, qint8, quint8, qint32, qint16, quint16, uint16, uint32, uint64, complex64, complex128, bfloat16, half, uint32, uint64, then lr, l1 and l2 also should have same type and scalar tensors)
+{var: tensor, lr: tensor, l1: tensor, l2: tensor} |= if (dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 4 ∨ dtype_(var) = 0 ∨ dtype_(var) = 12 ∨ dtype_(var) = 13 ∨ dtype_(var) = 11 ∨ dtype_(var) = 14 ∨ dtype_(var) = 15 ∨ dtype_(var) = 16 ∨ dtype_(var) = 17 ∨ dtype_(var) = 9 ∨ dtype_(var) = 10 ∨ dtype_(var) = 6) then (dtype_(lr) = dtype_(var) ∧ ndim(lr) = 0 ∧ dtype_(l1) = dtype_(var) ∧ ndim(l1) = 0 ∧ dtype_(l2) = dtype_(var) ∧ ndim(l2) = 0)
 >>
-Rule 35 (lr, l1 and l2 must be scalar tensors with the same dtype)
-{lr : tensor, l1 : tensor, l2 : tensor} |= ndim(lr) = 0 ∧ ndim(l1) = 0 ∧ ndim(l2) = 0 ∧ dtype_(lr) = dtype_(l1) ∧ dtype_(lr) = dtype_(l2)
+Rule 40 (All Tensors should have at least one dimension)
+{var: tensor, accum: tensor, lr: tensor, l1: tensor, l2: tensor, grad: tensor} |= ndim(var) ≥ 0 ∧ ndim(accum) ≥ 0 ∧ ndim(lr) ≥ 0 ∧ ndim(l1) ≥ 0 ∧ ndim(l2) ≥ 0 ∧ ndim(grad) ≥ 0
 >>
-Rule 36 (If var is half, then lr, l1, l2, and grad must also be half)
-{var : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 16 then dtype_(lr) = 16 ∧ dtype_(l1) = 16 ∧ dtype_(l2) = 16 ∧ dtype_(grad) = 16
+Rule 41 (If the dtype of var is float32 or float64 then lr, l1 and l2 should be scalar tensors)
+{var: tensor, lr: tensor, l1: tensor, l2: tensor} |= if (dtype_(var) = 7 ∨ dtype_(var) = 8) then (dtype_(lr) = dtype_(var) ∧ ndim(lr) = 0 ∧ dtype_(l1) = dtype_(var) ∧ ndim(l1) = 0 ∧ dtype_(l2) = dtype_(var) ∧ ndim(l2) = 0)
 >>
-Rule 37 (If var is bfloat16, then minimum value of grad should be greater than -1000.)
-{var : tensor, grad : tensor} |= if dtype_(var) = 11 then min(grad) > -1000
+Rule 42 (If the dtype of var is int32, uint8, int16, int8, int64 then lr, l1 and l2 should be scalar tensors)
+{var: tensor, lr: tensor, l1: tensor, l2: tensor} |= if (dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 4) then (dtype_(lr) = dtype_(var) ∧ ndim(lr) = 0 ∧ dtype_(l1) = dtype_(var) ∧ ndim(l1) = 0 ∧ dtype_(l2) = dtype_(var) ∧ ndim(l2) = 0)
 >>
-Rule 38 (If var is bfloat16, then maximum value of grad should be less than 1000.)
-{var : tensor, grad : tensor} |= if dtype_(var) = 11 then max(grad) < 1000
+Rule 43 (If the dtype of var is other types like qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, uint32, uint64, complex64, complex128, half then lr, l1 and l2 should be scalar tensors)
+{var: tensor, lr: tensor, l1: tensor, l2: tensor} |= if (dtype_(var) = 0 ∨ dtype_(var) = 12 ∨ dtype_(var) = 13 ∨ dtype_(var) = 11 ∨ dtype_(var) = 14 ∨ dtype_(var) = 15 ∨ dtype_(var) = 16 ∨ dtype_(var) = 17 ∨ dtype_(var) = 9 ∨ dtype_(var) = 10 ∨ dtype_(var) = 6) then (dtype_(lr) = dtype_(var) ∧ ndim(lr) = 0 ∧ dtype_(l1) = dtype_(var) ∧ ndim(l1) = 0 ∧ dtype_(l2) = dtype_(var) ∧ ndim(l2) = 0)
 >>
-Rule 40 (if var is qint8, accum, lr, l1, l2, grad all have dtype qint8)
-{var : tensor, accum : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 4 then dtype_(accum) = 4 ∧ dtype_(lr) = 4 ∧ dtype_(l1) = 4 ∧ dtype_(l2) = 4 ∧ dtype_(grad) = 4
+Rule 44 (If the dtype of var is any type (float32, float64, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64) the grad dtype has to be the same)
+{var: tensor, grad: tensor} |= if (dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 4 ∨ dtype_(var) = 0 ∨ dtype_(var) = 12 ∨ dtype_(var) = 13 ∨ dtype_(var) = 11 ∨ dtype_(var) = 14 ∨ dtype_(var) = 15 ∨ dtype_(var) = 16 ∨ dtype_(var) = 17 ∨ dtype_(var) = 9 ∨ dtype_(var) = 10 ∨ dtype_(var) = 6 ∨ dtype_(var) = 7 ∨ dtype_(var) = 8) then (dtype_(grad) = dtype_(var))
 >>
-Rule 41 (if var is quint8, accum, lr, l1, l2, grad all have dtype quint8)
-{var : tensor, accum : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 5 then dtype_(accum) = 5 ∧ dtype_(lr) = 5 ∧ dtype_(l1) = 5 ∧ dtype_(l2) = 5 ∧ dtype_(grad) = 5
+Rule 46 (If var's dtype is not complex64 or complex128 then grad should have same shape as var)
+{var: tensor, grad: tensor} |= if (dtype_(var) ≠ 9 ∧ dtype_(var) ≠ 10) then (ndim(var) = ndim(grad) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(grad, i))
 >>
-Rule 42 (If var is qint16, accum, lr, l1, l2, grad all have dtype qint16)
-{var : tensor, accum : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 12 then dtype_(accum) = 12 ∧ dtype_(lr) = 12 ∧ dtype_(l1) = 12 ∧ dtype_(l2) = 12 ∧ dtype_(grad) = 12
+Rule 47 (If var's dtype is not float32 or float64 then lr, l1, and l2 should have same shape as var)
+{var: tensor, lr: tensor, l1: tensor, l2: tensor} |= if (dtype_(var) ≠ 7 ∧ dtype_(var) ≠ 8) then (dtype_(lr) = dtype_(var) ∧ ndim(lr) = 0 ∧ dtype_(l1) = dtype_(var) ∧ ndim(l1) = 0 ∧ dtype_(l2) = dtype_(var) ∧ ndim(l2) = 0)
 >>
-Rule 43 (If var is quint16, accum, lr, l1, l2, grad all have dtype quint16)
-{var : tensor, accum : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 13 then dtype_(accum) = 13 ∧ dtype_(lr) = 13 ∧ dtype_(l1) = 13 ∧ dtype_(l2) = 13 ∧ dtype_(grad) = 13
+Rule 48 (If the dtype of var is qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, uint32, uint64 then lr, l1 and l2 should be scalar tensors)
+{var: tensor, lr: tensor, l1: tensor, l2: tensor} |= if (dtype_(var) = 0 ∨ dtype_(var) = 12 ∨ dtype_(var) = 13 ∨ dtype_(var) = 11 ∨ dtype_(var) = 14 ∨ dtype_(var) = 15 ∨ dtype_(var) = 16 ∨ dtype_(var) = 17) then (dtype_(lr) = dtype_(var) ∧ ndim(lr) = 0 ∧ dtype_(l1) = dtype_(var) ∧ ndim(l1) = 0 ∧ dtype_(l2) = dtype_(var) ∧ ndim(l2) = 0)
 >>
-Rule 44 (If var is bfloat16, accum, lr, l1, l2, grad all have dtype bfloat16)
-{var : tensor, accum : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 11 then dtype_(accum) = 11 ∧ dtype_(lr) = 11 ∧ dtype_(l1) = 11 ∧ dtype_(l2) = 11 ∧ dtype_(grad) = 11
+Rule 49 (l1 and l2 cannot be negative)
+{l1: tensor, l2: tensor} |= min(l1) ≥ 0 ∧ min(l2) ≥ 0
 >>
-Rule 45 (If var is half, accum, lr, l1, l2, grad all have dtype half)
-{var : tensor, accum : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 16 then dtype_(accum) = 16 ∧ dtype_(lr) = 16 ∧ dtype_(l1) = 16 ∧ dtype_(l2) = 16 ∧ dtype_(grad) = 16
->>
-Rule 46 (If var is float32, accum, lr, l1, l2, grad all have dtype float32)
-{var : tensor, accum : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 7 then dtype_(accum) = 7 ∧ dtype_(lr) = 7 ∧ dtype_(l1) = 7 ∧ dtype_(l2) = 7 ∧ dtype_(grad) = 7
->>
-Rule 47 (If var is float64, accum, lr, l1, l2, grad all have dtype float64)
-{var : tensor, accum : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 8 then dtype_(accum) = 8 ∧ dtype_(lr) = 8 ∧ dtype_(l1) = 8 ∧ dtype_(l2) = 8 ∧ dtype_(grad) = 8
->>
-Rule 48 (If var is complex64, accum, lr, l1, l2, grad all have dtype complex64)
-{var : tensor, accum : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 9 then dtype_(accum) = 9 ∧ dtype_(lr) = 9 ∧ dtype_(l1) = 9 ∧ dtype_(l2) = 9 ∧ dtype_(grad) = 9
->>
-Rule 49 (If var is complex128, accum, lr, l1, l2, grad all have dtype complex128)
-{var : tensor, accum : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 10 then dtype_(accum) = 10 ∧ dtype_(lr) = 10 ∧ dtype_(l1) = 10 ∧ dtype_(l2) = 10 ∧ dtype_(grad) = 10
->>
-Rule 50 (If var is int8, accum, lr, l1, l2, grad all have dtype int8)
-{var : tensor, accum : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 1 then dtype_(accum) = 1 ∧ dtype_(lr) = 1 ∧ dtype_(l1) = 1 ∧ dtype_(l2) = 1 ∧ dtype_(grad) = 1
->>
-Rule 51 (If var is int16, accum, lr, l1, l2, grad all have dtype int16)
-{var : tensor, accum : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 2 then dtype_(accum) = 2 ∧ dtype_(lr) = 2 ∧ dtype_(l1) = 2 ∧ dtype_(l2) = 2 ∧ dtype_(grad) = 2
->>
-Rule 52 (If var is int32, accum, lr, l1, l2, grad all have dtype int32)
-{var : tensor, accum : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 3 then dtype_(accum) = 3 ∧ dtype_(lr) = 3 ∧ dtype_(l1) = 3 ∧ dtype_(l2) = 3 ∧ dtype_(grad) = 3
->>
-Rule 55 (If var is uint16, accum, lr, l1, l2, grad all have dtype uint16)
-{var : tensor, accum : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 15 then dtype_(accum) = 15 ∧ dtype_(lr) = 15 ∧ dtype_(l1) = 15 ∧ dtype_(l2) = 15 ∧ dtype_(grad) = 15
->>
-Rule 56 (If var is uint32, accum, lr, l1, l2, grad all have dtype uint32)
-{var : tensor, accum : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 17 then dtype_(accum) = 17 ∧ dtype_(lr) = 17 ∧ dtype_(l1) = 17 ∧ dtype_(l2) = 17 ∧ dtype_(grad) = 17
->>
-Rule 57 (If var is uint64, accum, lr, l1, l2, grad all have dtype uint64)
-{var : tensor, accum : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= if dtype_(var) = 18 then dtype_(accum) = 18 ∧ dtype_(lr) = 18 ∧ dtype_(l1) = 18 ∧ dtype_(l2) = 18 ∧ dtype_(grad) = 18
->>
-Rule 58 (If the dimension of var is greater than 0, all the elements must be non-negative if the type of var is uint8)
-{var : tensor} |= if dtype_(var) = 5 ∧ ndim(var) > 0 then min(var) ≥ 0
->>
-Rule 59 (If the dimension of var is greater than 0, all the elements must be non-negative if the type of var is uint16)
-{var : tensor} |= if dtype_(var) = 15 ∧ ndim(var) > 0 then min(var) ≥ 0
->>
-Rule 60 (If the dimension of var is greater than 0, all the elements must be non-negative if the type of var is uint32)
-{var : tensor} |= if dtype_(var) = 17 ∧ ndim(var) > 0 then min(var) ≥ 0
->>
-Rule 61 (If the dimension of var is greater than 0, all the elements must be non-negative if the type of var is uint64)
-{var : tensor} |= if dtype_(var) = 18 ∧ ndim(var) > 0 then min(var) ≥ 0
->>
-Rule 62 (If the dimension of var is greater than 0, all the elements must be non-negative if the type of var is uint32 and l1 is non-zero)
-{var : tensor, l1 : tensor} |= if dtype_(var) = 17 ∧ ndim(var) > 0 ∧ min(l1) > 0 then min(var) ≥ 0
->>
-Rule 63 (If the dimension of var is greater than 0, all the elements must be non-negative if the type of var is uint64 and l1 is non-zero)
-{var : tensor, l1 : tensor} |= if dtype_(var) = 18 ∧ ndim(var) > 0 ∧ min(l1) > 0 then min(var) ≥ 0
->>
-Rule 64 (l1 and l2 must be non-negative tensors)
-{l1 : tensor, l2 : tensor} |= min(l1) ≥ 0 ∧ min(l2) ≥ 0
->>
-Rule 69 (accum, lr, l1, l2, grad should have same number of elements as var.)
-{var : tensor, accum : tensor, lr : tensor, l1 : tensor, l2 : tensor, grad : tensor} |= ∀i ∈ [0, ndim(var) - 1]: shape(var, i) = shape(accum, i) ∧ ∀i ∈ [0, ndim(var) - 1]: shape(var, i) = shape(lr, i) ∧  ∀i ∈ [0, ndim(var) - 1]: shape(var, i) = shape(l1, i) ∧  ∀i ∈ [0, ndim(var) - 1]: shape(var, i) = shape(l2, i) ∧ ∀i ∈ [0, ndim(var) - 1]: shape(var, i) = shape(grad, i)
+Rule 52 (If var's dtype is qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, uint32, uint64, complex64, complex128, half,  and use_locking is True the accum shape must match the shape of var)
+{var: tensor, accum: tensor, use_locking: bool} |= if (dtype_(var) = 0 ∨ dtype_(var) = 12 ∨ dtype_(var) = 13 ∨ dtype_(var) = 11 ∨ dtype_(var) = 14 ∨ dtype_(var) = 15 ∨ dtype_(var) = 16 ∨ dtype_(var) = 17 ∨ dtype_(var) = 9 ∨ dtype_(var) = 10 ∨ dtype_(var) = 6) ∧ use_locking = true then (ndim(var) = ndim(accum) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(accum, i))

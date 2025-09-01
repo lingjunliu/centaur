@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the shapes of tensors x and y are different, at least one of them should be broadcastable to the other (Rule 28)
+# If x and y are matrices, number of columns of x must match number of columns of y (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] != v["arg2_ndim"], (If(v["arg1_ndim"] < v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], v["arg2_ndim"] - v["arg1_ndim"] + i), Select(v["arg1_shape"], i) == 1)) for i in range(6)]), And([Implies(i < (v["arg2_ndim"] - 1 + 1), Or(Select(v["arg2_shape"], i) == Select(v["arg1_shape"], v["arg1_ndim"] - v["arg2_ndim"] + i), Select(v["arg2_shape"], i) == 1)) for i in range(6)]))), False)) if n else
-          If(v["arg1_ndim"] != v["arg2_ndim"], (If(v["arg1_ndim"] < v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], v["arg2_ndim"] - v["arg1_ndim"] + i), Select(v["arg1_shape"], i) == 1)) for i in range(6)]), And([Implies(i < (v["arg2_ndim"] - 1 + 1), Or(Select(v["arg2_shape"], i) == Select(v["arg1_shape"], v["arg1_ndim"] - v["arg2_ndim"] + i), Select(v["arg2_shape"], i) == 1)) for i in range(6)]))), False))
+    s.add(Not(If(And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 2), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 1), True)) if n else
+          If(And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 2), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 1), True))
 )
 
 def rule_28_func(arg1, arg2, solver=None, neg=False):

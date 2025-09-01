@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The tensor shape should be in the range 1-10 (Rule 51)
+# If the shape of tensor is larger than max_int, report error (Rule 51)
 
 rule_51 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], i) > 0, Select(v["arg1_shape"], i) < 11)) for i in range(6)]), False)) if n else
-          If(v["arg1_ndim"] > 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], i) > 0, Select(v["arg1_shape"], i) < 11)) for i in range(6)]), False))
+    s.add(Not(If(v["arg1_ndim"] > 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 2147483647) for i in range(6)]), True)) if n else
+          If(v["arg1_ndim"] > 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 2147483647) for i in range(6)]), True))
 )
 
 def rule_51_func(arg1, solver=None, neg=False):

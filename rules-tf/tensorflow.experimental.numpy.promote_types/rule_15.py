@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Promoting an int with a complex gives a complex (Rule 15)
+# Avoid combination of string and bool dtypes (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(If((And((And(1 <= v["arg1_value"], v["arg1_value"] <= 5)), (And(9 <= v["arg2_value"], v["arg2_value"] <= 10)))), True, If((And((And(1 <= v["arg2_value"], v["arg2_value"] <= 5)), (And(9 <= v["arg1_value"], v["arg1_value"] <= 10)))), True, False))) if n else
-          If((And((And(1 <= v["arg1_value"], v["arg1_value"] <= 5)), (And(9 <= v["arg2_value"], v["arg2_value"] <= 10)))), True, If((And((And(1 <= v["arg2_value"], v["arg2_value"] <= 5)), (And(9 <= v["arg1_value"], v["arg1_value"] <= 10)))), True, False)))
+    s.add(Not(Or((And(v["arg1_value"] == 0, v["arg2_value"] == 12)), (And(v["arg1_value"] == 12, v["arg2_value"] == 0)))) if n else
+          Or((And(v["arg1_value"] == 0, v["arg2_value"] == 12)), (And(v["arg1_value"] == 12, v["arg2_value"] == 0))))
 )
 
 def rule_15_func(arg1, arg2, solver=None, neg=False):

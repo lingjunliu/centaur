@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# indices and segment_ids must have integer dtypes: int32 or int64 using dtype_ function (Rule 22)
+# If sparse_gradient is true, then the data tensor must be float or double (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(And(Or((v["arg1_dtype"] == 3), (v["arg1_dtype"] == 4)), (Or((v["arg2_dtype"] == 3), (v["arg2_dtype"] == 4))))) if n else
-          And(Or((v["arg1_dtype"] == 3), (v["arg1_dtype"] == 4)), (Or((v["arg2_dtype"] == 3), (v["arg2_dtype"] == 4)))))
+    s.add(Not(If(v["arg2_value"] == True, Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), True)) if n else
+          If(v["arg2_value"] == True, Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), True))
 )
 
 def rule_22_func(arg1, arg2, solver=None, neg=False):
@@ -20,22 +20,22 @@ def rule_22_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 22
-        rule_22(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_22(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_22(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_22(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if the dtype is int8/uint8, then min/max must be small (Rule 38)
+# If the dtype is bool, then the values should be either 0 or 1. (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 5), And(Select(v["arg1_range"], 0) > -128, Select(v["arg1_range"], 1) < 256), False)) if n else
-          If(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 5), And(Select(v["arg1_range"], 0) > -128, Select(v["arg1_range"], 1) < 256), False))
+    s.add(Not(If(v["arg1_dtype"] == 0, And(Select(v["arg1_range"], 0) == 0, Select(v["arg1_range"], 1) == 1), True)) if n else
+          If(v["arg1_dtype"] == 0, And(Select(v["arg1_range"], 0) == 0, Select(v["arg1_range"], 1) == 1), True))
 )
 
 def rule_38_func(arg1, solver=None, neg=False):

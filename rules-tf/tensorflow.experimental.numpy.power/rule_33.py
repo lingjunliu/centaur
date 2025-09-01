@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# One of the tensors must be a numerical type (Rule 33)
+# Scalar exponent, array base. The elements of the array base must be non-negative if the exponent is non-integer, consolidated into one rule. (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] < 12, v["arg2_dtype"] < 12)) if n else
-          And(v["arg1_dtype"] < 12, v["arg2_dtype"] < 12))
+    s.add(Not(If(Or((And(v["arg2_ndim"] == 0, (And(v["arg2_dtype"] > 5, v["arg2_dtype"] < 10)))), (And(v["arg1_ndim"] == 0, (And(v["arg1_dtype"] > 5, v["arg1_dtype"] < 10))))), And(Select(v["arg1_range"], 0) >= 0, Select(v["arg2_range"], 0) >= 0), True)) if n else
+          If(Or((And(v["arg2_ndim"] == 0, (And(v["arg2_dtype"] > 5, v["arg2_dtype"] < 10)))), (And(v["arg1_ndim"] == 0, (And(v["arg1_dtype"] > 5, v["arg1_dtype"] < 10))))), And(Select(v["arg1_range"], 0) >= 0, Select(v["arg2_range"], 0) >= 0), True))
 )
 
 def rule_33_func(arg1, arg2, solver=None, neg=False):
@@ -25,17 +25,27 @@ def rule_33_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
         arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg2_ndim = Int('arg2_ndim')
         arg2_dtype = Int('arg2_dtype')
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg2_ndim == arg2.ndim)
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 33
-        rule_33(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_33(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype, 'arg2_range': arg2_range, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_33(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_33(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype'], 'arg2_range': arg2['range'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']}, neg)

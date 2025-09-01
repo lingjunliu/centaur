@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input is bfloat16, then the max value should not be too high (Rule 32)
+# if features is of dtype float32, then it must be within the representable range (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 7, Select(v["arg1_range"], 1) < 1000, False)) if n else
-          If(v["arg1_dtype"] == 7, Select(v["arg1_range"], 1) < 1000, False))
+    s.add(Not(If(v["arg1_dtype"] == 7, And(Select(v["arg1_range"], 0) > -3.4028235e+38, Select(v["arg1_range"], 1) < 3.4028235e+38), True)) if n else
+          If(v["arg1_dtype"] == 7, And(Select(v["arg1_range"], 0) > -3.4028235e+38, Select(v["arg1_range"], 1) < 3.4028235e+38), True))
 )
 
 def rule_32_func(arg1, solver=None, neg=False):

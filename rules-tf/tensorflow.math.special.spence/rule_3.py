@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# input tensor should have at least one dimension (Rule 3)
+# x must be a tensor with dimension greater than 0 (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] >= 1) if n else
-          v["arg1_ndim"] >= 1)
+    s.add(Not(v["arg1_ndim"] > 0) if n else
+          v["arg1_ndim"] > 0)
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

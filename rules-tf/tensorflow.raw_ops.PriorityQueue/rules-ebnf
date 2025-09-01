@@ -1,45 +1,51 @@
 >>
-Rule 1 (The first component of the element in the queue must be int64, type encoded as 4)
-{v_1 : list(int)} |= v_1.len > 0 ∧ v_1[0] = 4
+Rule 1 (capacity must be non-negative or -1)
+{v_1 : int} |= v_1 ≥ -1
 >>
-Rule 2 (Capacity should be non-negative or -1)
-{v_1 : int} |= v_1 ≥ 0 ∨ v_1 = -1
+Rule 2 (shapes list must have the same length as component_types if it is not empty)
+{v_1 : list(tensor), v_2 : list(int)} |= (v_1.len = 0) ∨ (v_1.len = v_2.len)
 >>
-Rule 3 (Shapes list length should be 0 or equal to the length of component_types list)
-{v_1 : list(tensor), v_2 : list(dtype)} |= v_1.len = 0 ∨ v_1.len = v_2.len
+Rule 3 (shapes can be an empty list)
+{v_1 : list(tensor)} |= v_1.len ≥ 0
 >>
-Rule 4 (If capacity is 0, then shapes list should not be empty)
-{v_1 : int, v_2 : list(tensor)} |= if v_1 = 0 then v_2.len ≠ 0
+Rule 6 (component_types must be a list)
+{v_1 : list(int)} |= v_1.len ≥ 0
 >>
-Rule 13 (If capacity is non-negative, it must be representable as an int32)
-{v_1 : int} |= if v_1 ≥ 0 then v_1 ≤ 2147483647
+Rule 7 (If component_types is provided, the type of each component must be a valid dtype index.)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] = 0 ∨ v_1[i] = 1 ∨ v_1[i] = 2 ∨ v_1[i] = 3 ∨ v_1[i] = 4 ∨ v_1[i] = 5 ∨ v_1[i] = 6 ∨ v_1[i] = 7 ∨ v_1[i] = 8 ∨ v_1[i] = 9 ∨ v_1[i] = 10 ∨ v_1[i] = 11 ∨ v_1[i] = 12
 >>
-Rule 15 (container name should be a valid string - not empty or too long)
-{v_1 : str} |= v_1.len < 256
+Rule 8 (If component_types is not empty, shapes must have the same number of elements.)
+{v_1 : list(int), v_2 : list(tensor)} |= (v_1.len = 0) ∨ (v_1.len = v_2.len)
 >>
-Rule 17 (Either shared_name and container should be the same, or at least one of them should be specified)
-{v_1 : str, v_2 : str} |= v_1 = v_2 ∨ v_1.len > 0 ∨ v_2.len > 0
+Rule 12 (shared_name is a non-empty string implies container should also be a non-empty string)
+{v_1 : str, v_2 : str} |= if v_1 ≠ "" then v_2 ≠ ""
 >>
-Rule 19 (Component types should not be strings or complex numbers)
-{v_1 : list(dtype)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ 11 ∧ v_1[i] ≠ 9 ∧ v_1[i] ≠ 10
+Rule 28 (If shapes is empty, only one element may be dequeued at a time)
+{v_1 : list(tensor), v_2 : int} |= if v_1.len = 0 then v_2 = -1
 >>
-Rule 21 (Component types should be valid - existing ones in the type list)
-{v_1 : list(dtype)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 12
+Rule 34 (capacity should be less than a maximum value)
+{v_1 : int} |= v_1 < 2147483647
 >>
-Rule 23 (If shapes list is empty, component_types must also be empty.)
-{v_1 : list(tensor), v_2 : list(dtype)} |= if v_1.len = 0 then v_2.len = 0
+Rule 42 (If component_types is empty, only one shape is allowed in shapes list, or shapes list should also be empty)
+{v_1 : list(int), v_2 : list(tensor)} |= if v_1.len = 0 then (v_2.len = 0 ∨ v_2.len = 1)
 >>
-Rule 25 (If the capacity is non-negative, then it should be a reasonable size)
-{v_1 : int} |= if v_1 ≥ 0 then v_1 < 100000
+Rule 55 (container string length should be less than a value)
+{v_1 : str} |= v_1.len < 1000
 >>
-Rule 28 (If capacity is non-negative, then shapes list must be specified)
-{v_1 : int, v_2 : list(tensor)} |= if v_1 ≥ 0 then v_2.len > 0
+Rule 62 (container string should be selected from the list)
+{v_1:str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear" ∨ v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "causal" ∨ v_1 = "channels_last" ∨ v_1 = "channels_first" ∨ v_1 = ""
 >>
-Rule 30 (Shapes list and component types list should both be empty, or both be non-empty)
-{v_1 : list(tensor), v_2 : list(dtype)} |= (v_1.len = 0 ∧ v_2.len = 0) ∨ (v_1.len > 0 ∧ v_2.len > 0)
+Rule 76 (Name string should be selected from the list)
+{v_1:str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear" ∨ v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "causal" ∨ v_1 = "channels_last" ∨ v_1 = "channels_first" ∨ v_1 = "" ∨ v_1 = ""
 >>
-Rule 32 (If shapes list and component_types list is non-empty, their length should match)
-{v_1 : list(tensor), v_2 : list(dtype)} |= if v_1.len > 0 ∧ v_2.len > 0 then v_1.len = v_2.len
+Rule 77 (If shapes list has length more than zero, component types should have type of int64, namely, 4)
+{v_1: list(tensor), v_2: list(int)} |= if v_1.len > 0 then  v_2[0] = 4
 >>
-Rule 34 (If component_types list is non-empty, first element must be int64)
-{v_1 : list(dtype)} |= if v_1.len > 0 then v_1[0] = 4
+Rule 83 (The first component of any element must be a scalar int64)
+{v_1 : list(int)} |= if v_1.len > 0 then v_1[0] = 4
+>>
+Rule 84 (If name is specified, shared_name should also be specified)
+{v_1:str, v_2:str} |= if v_1 ≠ "" then v_2 ≠ ""
+>>
+Rule 111 (if the list of shapes is not empty, the first element in component_types must be 4)
+{v_1 : list(tensor), v_2 : list(int)} |= if v_1.len > 0 then v_2[0] = 4

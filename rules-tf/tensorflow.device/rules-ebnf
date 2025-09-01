@@ -1,66 +1,108 @@
 >>
-Rule 2 (device_name should not be an empty string)
+Rule 1 (device_name should not be empty)
 {v_1 : str} |= v_1 ≠ ""
 >>
-Rule 4 (device_name containing "device:gpu" should not have job specified)
-{v_1 : str} |= if (v_1 = "device:gpu") then false
+Rule 2 (device_name must contain '/device:' substring)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 7] : v_1[i] = "/" ∧ v_1[i+1] = "d" ∧ v_1[i+2] = "e" ∧ v_1[i+3] = "v" ∧ v_1[i+4] = "i" ∧ v_1[i+5] = "c" ∧ v_1[i+6] = "e" ∧ v_1[i+7] = ":"
 >>
-Rule 6 (device_name should not be true)
-{v_1 : bool} |= if (v_1 = true) then false
+Rule 3 (device_name must start with "/")
+{v_1 : str} |= v_1[0] = "/"
 >>
-Rule 7 (device_name should not be false)
-{v_1 : bool} |= if (v_1 = false) then false
+Rule 4 (device_name component "cpu" exists)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 2] : v_1[i] = "/" ∧ v_1[i+1] = "c" ∧ v_1[i+2] = "p" ∧ v_1[i+3] = "u"
 >>
-Rule 8 (device_name containing "gpu" should have a task specified)
-{v_1 : str} |= if (v_1 = "gpu") then false
+Rule 5 (device_name component "gpu" exists)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 2] : v_1[i] = "/" ∧ v_1[i+1] = "g" ∧ v_1[i+2] = "p" ∧ v_1[i+3] = "u"
 >>
-Rule 9 (device_name should have device type specified)
-{v_1 : str} |= if (v_1 = "cpu") ∨ (v_1 = "gpu") then true else false
+Rule 6 (device_name must contain "job" component if specified)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 3] : v_1[i] = "/" ∧ v_1[i+1] = "j" ∧ v_1[i+2] = "o" ∧ v_1[i+3] = "b" then true
 >>
-Rule 11 (length of device_name cannot exceed 256)
+Rule 7 (device_name must contain "task" component if specified)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 4] : v_1[i] = "/" ∧ v_1[i+1] = "t" ∧ v_1[i+2] = "a" ∧ v_1[i+3] = "s" ∧ v_1[i+4] = "k" then true
+>>
+Rule 8 (device_name can contain only allowed characters)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = "/" ∨ v_1[i] = ":" ∨ v_1[i] = "-" ∨ v_1[i] = "_"
+>>
+Rule 9 (device_name should have valid job name, if job specified)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 3] : v_1[i] = "/" ∧ v_1[i+1] = "j" ∧ v_1[i+2] = "o" ∧ v_1[i+3] = "b" then ∃j ∈ [i+4, v_1.len - 1] : v_1[j] = "/" ∨ v_1[j] = ":"
+>>
+Rule 10 (device_name should have valid task number, if task specified)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 4] : v_1[i] = "/" ∧ v_1[i+1] = "t" ∧ v_1[i+2] = "a" ∧ v_1[i+3] = "s" ∧ v_1[i+4] = "k" then ∃j ∈ [i+5, v_1.len - 1] : v_1[j] = "/" ∨ v_1[j] = ":"
+>>
+Rule 11 (device_name should have valid device type, if device specified)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 6] : v_1[i] = "/" ∧ v_1[i+1] = "d" ∧ v_1[i+2] = "e" ∧ v_1[i+3] = "v" ∧ v_1[i+4] = "i" ∧ v_1[i+5] = "c" ∧ v_1[i+6] = "e" then ∃j ∈ [i+7, v_1.len - 1] : v_1[j] = "/" ∨ v_1[j] = ":"
+>>
+Rule 12 (device_name should have valid device number, if device specified)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 6] : v_1[i] = "/" ∧ v_1[i+1] = "d" ∧ v_1[i+2] = "e" ∧ v_1[i+3] = "v" ∧ v_1[i+4] = "i" ∧ v_1[i+5] = "c" ∧ v_1[i+6] = "e" then ∃j ∈ [i+7, v_1.len - 1] : v_1[j] ≥ "0" ∧ v_1[j] ≤ "9"
+>>
+Rule 13 (device_name should not contain leading/trailing whitespaces)
+{v_1 : str} |= v_1[0] ≠ " " ∧ v_1[v_1.len - 1] ≠ " "
+>>
+Rule 15 (device_name should not contain multiple consecutive slashes)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 2] : if v_1[i] = "/" then v_1[i+1] ≠ "/"
+>>
+Rule 18 (If job is specified, worker should also be specified)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 3] : v_1[i] = "/" ∧ v_1[i+1] = "j" ∧ v_1[i+2] = "o" ∧ v_1[i+3] = "b" then ∃k ∈ [0, v_1.len - 5] : v_1[k] = "/" ∧ v_1[k+1] = "w" ∧ v_1[k+2] = "o" ∧ v_1[k+3] = "r" ∧ v_1[k+4] = "k" ∧ v_1[k+5] = "e"
+>>
+Rule 19 (If worker is specified, task should also be specified)
+{v_1 : str} |= if ∃k ∈ [0, v_1.len - 5] : v_1[k] = "/" ∧ v_1[k+1] = "w" ∧ v_1[k+2] = "o" ∧ v_1[k+3] = "r" ∧ v_1[k+4] = "k" ∧ v_1[k+5] = "e" then ∃l ∈ [0, v_1.len - 4] : v_1[l] = "/" ∧ v_1[l+1] = "t" ∧ v_1[l+2] = "a" ∧ v_1[l+3] = "s" ∧ v_1[l+4] = "k"
+>>
+Rule 20 (If task is specified, device type and number also have to be specified)
+{v_1 : str} |= if ∃l ∈ [0, v_1.len - 4] : v_1[l] = "/" ∧ v_1[l+1] = "t" ∧ v_1[l+2] = "a" ∧ v_1[l+3] = "s" ∧ v_1[l+4] = "k" then ∃m ∈ [0, v_1.len - 6] : v_1[m] = "/" ∧ v_1[m+1] = "d" ∧ v_1[m+2] = "e" ∧ v_1[m+3] = "v" ∧ v_1[m+4] = "i" ∧ v_1[m+5] = "c" ∧ v_1[m+6] = "e"
+>>
+Rule 21 (Device number should be a non-negative integer)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 6] : v_1[i] = "/" ∧ v_1[i+1] = "d" ∧ v_1[i+2] = "e" ∧ v_1[i+3] = "v" ∧ v_1[i+4] = "i" ∧ v_1[i+5] = "c" ∧ v_1[i+6] = "e" then (if ∃j ∈ [i+7, v_1.len - 1] : v_1[j] ≥ "0" ∧ v_1[j] ≤ "9" then true else false)
+>>
+Rule 22 (Device type should be either 'cpu' or 'gpu' if device number is present)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 7] : v_1[i] = "/" ∧ v_1[i+1] = "d" ∧ v_1[i+2] = "e" ∧ v_1[i+3] = "v" ∧ v_1[i+4] = "i" ∧ v_1[i+5] = "c" ∧ v_1[i+6] = "e" ∧ ∃j ∈ [i+7, v_1.len - 1] : v_1[j] ≥ "0" ∧ v_1[j] ≤ "9" then (∃k ∈ [i+7, v_1.len - 1] : v_1[k] = "c" ∧ v_1[k+1] = "p" ∧ v_1[k+2] = "u") ∨ (∃l ∈ [i+7, v_1.len - 1] : v_1[l] = "g" ∧ v_1[l+1] = "p" ∧ v_1[l+2] = "u")
+>>
+Rule 23 (If task is specified, a valid task number must be present)
+{v_1 : str} |= if ∃l ∈ [0, v_1.len - 4] : v_1[l] = "/" ∧ v_1[l+1] = "t" ∧ v_1[l+2] = "a" ∧ v_1[l+3] = "s" ∧ v_1[l+4] = "k" then (∃m ∈ [l+5, v_1.len - 1] : v_1[m] ≥ "0" ∧ v_1[m] ≤ "9" ∧ (v_1[m+1] = "/" ∨ m = v_1.len-1))
+>>
+Rule 24 (If the device type is specified, then the device number must also be specified)
+{v_1 : str} |= if ∃m ∈ [0, v_1.len - 7] : v_1[m] = "/" ∧ v_1[m+1] = "d" ∧ v_1[m+2] = "e" ∧ v_1[m+3] = "v" ∧ v_1[m+4] = "i" ∧ v_1[m+5] = "c" ∧ v_1[m+6] = "e" then (∃k ∈ [m+7, v_1.len - 1] : v_1[k] ≥ "0" ∧ v_1[k] ≤ "9")
+>>
+Rule 28 (The segments of the device string name must be well separated with '/')
+{v_1 : str} |= ∀i ∈ [1, v_1.len - 1]: if (v_1[i] = "/") then (v_1[i-1] ≠ "/")
+>>
+Rule 29 (If the worker is specified, then the job has also to be specified)
+{v_1 : str} |= if ∃k ∈ [0, v_1.len - 5] : v_1[k] = "/" ∧ v_1[k+1] = "w" ∧ v_1[k+2] = "o" ∧ v_1[k+3] = "r" ∧ v_1[k+4] = "k" ∧ v_1[k+5] = "e" then ∃i ∈ [0, v_1.len - 3] : v_1[i] = "/" ∧ v_1[i+1] = "j" ∧ v_1[i+2] = "o" ∧ v_1[i+3] = "b"
+>>
+Rule 31 (No empty segment names are allowed)
+{v_1 : str} |= ∀i ∈ [1, v_1.len - 1]: if (v_1[i] = "/" ∧ v_1[i-1] ≠ "/") then true else (v_1[i] ≠ "/" ∨ v_1[i-1] = "/")
+>>
+Rule 32 (No empty segment names are allowed)
+{v_1 : str} |= ∀i ∈ [1, v_1.len - 1]: if v_1[i] = "/" then v_1[i-1] ≠ "/"
+>>
+Rule 33 (If device number is provided, it must be an integer)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 6] : v_1[i] = "/" ∧ v_1[i+1] = "d" ∧ v_1[i+2] = "e" ∧ v_1[i+3] = "v" ∧ v_1[i+4] = "i" ∧ v_1[i+5] = "c" ∧ v_1[i+6] = "e" then (∀j ∈ [i+7, v_1.len-1] : (v_1[j] ≥ "0" ∧ v_1[j] ≤ "9") ∨ v_1[j] = "/")
+>>
+Rule 34 (Device name should not be excessively long)
 {v_1 : str} |= v_1.len < 256
 >>
-Rule 13 (device_name starting with /job must have /device specified)
-{v_1 : str} |= if (v_1[0] = "/") ∧ (v_1[1] = "j") ∧ (v_1[2] = "o") ∧ (v_1[3] = "b") then (∃i ∈ [0, v_1.len -1] : v_1[i] = "d" ∧ v_1[i+1] = "e" ∧ v_1[i+2] = "v" ∧ v_1[i+3] = "i" ∧ v_1[i+4] = "c" ∧ v_1[i+5] = "e")
+Rule 35 (Device type and id are consistent)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 6] : v_1[i] = "/" ∧ v_1[i+1] = "d" ∧ v_1[i+2] = "e" ∧ v_1[i+3] = "v" ∧ v_1[i+4] = "i" ∧ v_1[i+5] = "c" ∧ v_1[i+6] = "e" then (if ∃k ∈ [i+7, v_1.len - 1] : v_1[k] = "c" ∧ v_1[k+1] = "p" ∧ v_1[k+2] = "u" then true else (if ∃l ∈ [i+7, v_1.len - 1] : v_1[l] = "g" ∧ v_1[l+1] = "p" ∧ v_1[l+2] = "u" then true else false ))
 >>
-Rule 14 (device_name should include the /device component)
-{v_1 : str} |= (∃i ∈ [0, v_1.len - 1] : v_1[i] = "d" ∧ v_1[i+1] = "e" ∧ v_1[i+2] = "v" ∧ v_1[i+3] = "i" ∧ v_1[i+4] = "c" ∧ v_1[i+5] = "e")
+Rule 36 (Device number is a valid integer.)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 6] : v_1[i] = "/" ∧ v_1[i+1] = "d" ∧ v_1[i+2] = "e" ∧ v_1[i+3] = "v" ∧ v_1[i+4] = "i" ∧ v_1[i+5] = "c" ∧ v_1[i+6] = "e" then (if ∃j ∈ [i+7, v_1.len - 1] : v_1[j] ≥ "0" ∧ v_1[j] ≤ "9" then (∀k ∈ [j+1, v_1.len-1] : (v_1[k] ≥ "0" ∧ v_1[k] ≤ "9") ∨ v_1[k] = "/") else false)
 >>
-Rule 15 (device_name with /device:GPU requires a number identifier)
-{v_1 : str} |= if (∃i ∈ [0, v_1.len - 1] : v_1[i] = "d" ∧ v_1[i+1] = "e" ∧ v_1[i+2] = "v" ∧ v_1[i+3] = "i" ∧ v_1[i+4] = "c" ∧ v_1[i+5] = "e" ∧ v_1[i+6] = ":" ∧ v_1[i+7] = "g" ∧ v_1[i+8] = "p" ∧ v_1[i+9] = "u") then (∃j ∈ [i+10, v_1.len -1] : v_1[j] = "0" ∨ v_1[j] = "1" ∨ v_1[j] = "2" ∨ v_1[j] = "3" ∨ v_1[j] = "4" ∨ v_1[j] = "5" ∨ v_1[j] = "6" ∨ v_1[j] = "7" ∨ v_1[j] = "8" ∨ v_1[j] = "9")
+Rule 37 (No extra '/' is allowed after the device number if specified)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 6] : v_1[i] = "/" ∧ v_1[i+1] = "d" ∧ v_1[i+2] = "e" ∧ v_1[i+3] = "v" ∧ v_1[i+4] = "i" ∧ v_1[i+5] = "c" ∧ v_1[i+6] = "e" then (if ∃j ∈ [i+7, v_1.len - 1] : v_1[j] ≥ "0" ∧ v_1[j] ≤ "9" then (∀k ∈ [j+1, v_1.len-1] : v_1[k] ≠ "/"))
 >>
-Rule 16 (if a device name includes /task, then it must include /job)
-{v_1 : str} |= if (∃i ∈ [0, v_1.len - 1] : v_1[i] = "t" ∧ v_1[i+1] = "a" ∧ v_1[i+2] = "s" ∧ v_1[i+3] = "k") then (∃j ∈ [0, v_1.len -1] : v_1[j] = "j" ∧ v_1[j+1] = "o" ∧ v_1[j+2] = "b")
+Rule 38 (Task should be an integer if it is specified in the device name.)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 4] : v_1[i] = "/" ∧ v_1[i+1] = "t" ∧ v_1[i+2] = "a" ∧ v_1[i+3] = "s" ∧ v_1[i+4] = "k" then (if ∃j ∈ [i+5, v_1.len - 1] : v_1[j] ≥ "0" ∧ v_1[j] ≤ "9" then (∀k ∈ [j+1, v_1.len-1] : (v_1[k] ≥ "0" ∧ v_1[k] ≤ "9") ∨ v_1[k] = "/") else false)
 >>
-Rule 17 (device_name with /job must include worker)
-{v_1 : str} |= if (∃i ∈ [0, v_1.len - 1] : v_1[i] = "j" ∧ v_1[i+1] = "o" ∧ v_1[i+2] = "b") then (∃j ∈ [0, v_1.len -1] : v_1[j] = "w" ∧ v_1[j+1] = "o" ∧ v_1[j+2] = "r" ∧ v_1[j+3] = "k" ∧ v_1[j+4] = "e" ∧ v_1[j+5] = "r")
+Rule 39 (worker should be an integer if it is specified in the device name.)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 5] : v_1[i] = "/" ∧ v_1[i+1] = "w" ∧ v_1[i+2] = "o" ∧ v_1[i+3] = "r" ∧ v_1[i+4] = "k" ∧ v_1[i+5] = "e" then (if ∃j ∈ [i+6, v_1.len - 1] : v_1[j] ≥ "0" ∧ v_1[j] ≤ "9" then (∀k ∈ [j+1, v_1.len-1] : (v_1[k] ≥ "0" ∧ v_1[k] ≤ "9") ∨ v_1[k] = "/") else false)
 >>
-Rule 18 (device_name must start with / if any part specified)
-{v_1 : str} |= if (v_1.len > 0) then v_1[0] = "/"
+Rule 40 (No extra '/' is allowed after the task if specified.)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 4] : v_1[i] = "/" ∧ v_1[i+1] = "t" ∧ v_1[i+2] = "a" ∧ v_1[i+3] = "s" ∧ v_1[i+4] = "k" then (if ∃j ∈ [i+5, v_1.len - 1] : v_1[j] ≥ "0" ∧ v_1[j] ≤ "9" then (∀k ∈ [j+1, v_1.len-1] :  v_1[k] ≠ "/"))
 >>
-Rule 19 (device_name with /job must contain alphanumeric characters after job)
-{v_1 : str} |= if (∃i ∈ [0, v_1.len - 1] : v_1[i] = "j" ∧ v_1[i+1] = "o" ∧ v_1[i+2] = "b") then (∃j ∈ [i+3, v_1.len - 1] : (v_1[j] ≥ "a" ∧ v_1[j] ≤ "z") ∨ (v_1[j] ≥ "A" ∧ v_1[j] ≤ "Z") ∨ (v_1[j] ≥ "0" ∧ v_1[j] ≤ "9"))
+Rule 44 (The job name can contain only alphanumeric characters and underscores.)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 3] : v_1[i] = "/" ∧ v_1[i+1] = "j" ∧ v_1[i+2] = "o" ∧ v_1[i+3] = "b" then (∀j ∈ [i+4, if ∃k ∈ [i+4, v_1.len-1]: v_1[k]="/" ∨ v_1[k]=":" then k else v_1.len ] : ( (v_1[j] ≥ "a" ∧ v_1[j] ≤ "z") ∨ (v_1[j] ≥ "A" ∧ v_1[j] ≤ "Z") ∨ (v_1[j] ≥ "0" ∧ v_1[j] ≤ "9") ∨ v_1[j] = "_" ))
 >>
-Rule 20 (device_name with /device must contain alphanumeric characters after device)
-{v_1 : str} |= if (∃i ∈ [0, v_1.len - 1] : v_1[i] = "d" ∧ v_1[i+1] = "e" ∧ v_1[i+2] = "v" ∧ v_1[i+3] = "i" ∧ v_1[i+4] = "c" ∧ v_1[i+5] = "e") then (∃j ∈ [i+6, v_1.len - 1] : (v_1[j] ≥ "a" ∧ v_1[j] ≤ "z") ∨ (v_1[j] ≥ "A" ∧ v_1[j] ≤ "Z") ∨ (v_1[j] ≥ "0" ∧ v_1[j] ≤ "9"))
+Rule 45 (The job name can contain only alphanumeric characters and underscores.)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 3] : v_1[i] = "/" ∧ v_1[i+1] = "j" ∧ v_1[i+2] = "o" ∧ v_1[i+3] = "b" then (∀j ∈ [i+4, if ∃k ∈ [i+4, v_1.len]: v_1[k] = "/" ∨ v_1[k] = ":" then k else v_1.len ] : ( (v_1[j] ≥ "a" ∧ v_1[j] ≤ "z") ∨ (v_1[j] ≥ "A" ∧ v_1[j] ≤ "Z") ∨ (v_1[j] ≥ "0" ∧ v_1[j] ≤ "9") ∨ v_1[j] = "_" ))
 >>
-Rule 21 (device_name with /worker must contain alphanumeric characters after worker)
-{v_1 : str} |= if (∃i ∈ [0, v_1.len - 1] : v_1[i] = "w" ∧ v_1[i+1] = "o" ∧ v_1[i+2] = "r" ∧ v_1[i+3] = "k" ∧ v_1[i+4] = "e" ∧ v_1[i+5] = "r") then (∃j ∈ [i+6, v_1.len - 1] : (v_1[j] ≥ "a" ∧ v_1[j] ≤ "z") ∨ (v_1[j] ≥ "A" ∧ v_1[j] ≤ "Z") ∨ (v_1[j] ≥ "0" ∧ v_1[j] ≤ "9"))
->>
-Rule 22 (device_name with /task must contain alphanumeric characters after task)
-{v_1 : str} |= if (∃i ∈ [0, v_1.len - 1] : v_1[i] = "t" ∧ v_1[i+1] = "a" ∧ v_1[i+2] = "s" ∧ v_1[i+3] = "k") then (∃j ∈ [i+4, v_1.len - 1] : (v_1[j] ≥ "a" ∧ v_1[j] ≤ "z") ∨ (v_1[j] ≥ "A" ∧ v_1[j] ≤ "Z") ∨ (v_1[j] ≥ "0" ∧ v_1[j] ≤ "9"))
->>
-Rule 23 (device_name with /device and number, number must be an integer)
-{v_1 : str} |= if (∃i ∈ [0, v_1.len - 1] : v_1[i] = "d" ∧ v_1[i+1] = "e" ∧ v_1[i+2] = "v" ∧ v_1[i+3] = "i" ∧ v_1[i+4] = "c" ∧ v_1[i+5] = "e") then (∀j ∈ [i+6, v_1.len - 1] : if (v_1[j] ≥ "0" ∧ v_1[j] ≤ "9") then true else false)
->>
-Rule 24 (device_name cannot be solely "device:cpu")
-{v_1 : str} |= if v_1 = "device:cpu" then false
->>
-Rule 28 (device_name with /job, worker, task, device must be ordered correctly)
-{v_1 : str} |= if (∃i ∈ [0, v_1.len - 1] : v_1[i] = "j" ∧ v_1[i+1] = "o" ∧ v_1[i+2] = "b") then (∃j ∈ [0, v_1.len - 1] : v_1[j] = "w" ∧ v_1[j+1] = "o" ∧ v_1[j+2] = "r" ∧ v_1[j+3] = "k" ∧ v_1[j+4] = "e" ∧ v_1[j+5] = "r" ∧ ∃k ∈ [0, v_1.len - 1] : v_1[k] = "t" ∧ v_1[k+1] = "a" ∧ v_1[k+2] = "s" ∧ v_1[k+3] = "k" ∧ ∃l ∈ [0, v_1.len - 1] : v_1[l] = "d" ∧ v_1[l+1] = "e" ∧ v_1[l+2] = "v" ∧ v_1[l+3] = "i" ∧ v_1[l+4] = "c" ∧ v_1[l+5] = "e" ∧ i < j ∧ j < k ∧ k < l)
->>
-Rule 29 (device_name with /job, worker, task, device must be ordered correctly with contains)
-{v_1 : str} |= if (v_1 = "/job") then (v_1 = "/worker") ∧ (v_1 = "/task") ∧ (v_1 = "/device")
->>
-Rule 30 (device_name with /job, worker, task, device must be ordered correctly)
-{v_1 : str} |= if (∃i ∈ [0, v_1.len - 1] : v_1[i] = "j" ∧ v_1[i+1] = "o" ∧ v_1[i+2] = "b") then (∃j ∈ [i+1, v_1.len - 1] : v_1[j] = "w" ∧ v_1[j+1] = "o" ∧ v_1[j+2] = "r" ∧ v_1[j+3] = "k" ∧ v_1[j+4] = "e" ∧ v_1[j+5] = "r" ∧ ∃k ∈ [j+1, v_1.len - 1] : v_1[k] = "t" ∧ v_1[k+1] = "a" ∧ v_1[k+2] = "s" ∧ v_1[k+3] = "k" ∧ ∃l ∈ [k+1, v_1.len - 1] : v_1[l] = "d" ∧ v_1[l+1] = "e" ∧ v_1[l+2] = "v" ∧ v_1[l+3] = "i" ∧ v_1[l+4] = "c" ∧ v_1[l+5] = "e")
+Rule 46 (The job name can contain only alphanumeric characters and underscores.)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 3] : v_1[i] = "/" ∧ v_1[i+1] = "j" ∧ v_1[i+2] = "o" ∧ v_1[i+3] = "b" then (∀j ∈ [i+4, (if ∃k ∈ [i+4, v_1.len]: v_1[k] = "/" ∨ v_1[k] = ":" then k else v_1.len) ] : ( (v_1[j] ≥ "a" ∧ v_1[j] ≤ "z") ∨ (v_1[j] ≥ "A" ∧ v_1[j] ≤ "Z") ∨ (v_1[j] ≥ "0" ∧ v_1[j] ≤ "9") ∨ v_1[j] = "_" ))

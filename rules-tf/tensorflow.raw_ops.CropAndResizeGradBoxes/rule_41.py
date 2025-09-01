@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The second dimension of boxes must be equal to 4 (Rule 41)
+# image's depth should be positive (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 1) == 4) if n else
-          Select(v["arg1_shape"], 1) == 4)
+    s.add(Not(Select(v["arg1_shape"], 3) > 0) if n else
+          Select(v["arg1_shape"], 3) > 0)
 )
 
 def rule_41_func(arg1, solver=None, neg=False):

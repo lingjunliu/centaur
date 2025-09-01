@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# sampled_candidates must be a vector with a positive number of elements (Rule 63)
+# If true_classes is a matrix its first dimension must be greater or equal than 1 (Rule 63)
 
 rule_63 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) > 0)) if n else
-          And(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) > 0))
+    s.add(Not(If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) >= 1, True)) if n else
+          If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) >= 1, True))
 )
 
 def rule_63_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_63_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 63
-        rule_63(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_63(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_63(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_63(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

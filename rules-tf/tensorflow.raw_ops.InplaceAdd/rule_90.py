@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-#  If x and v have type string, make sure they match  (Rule 90)
+# x and v must have the same data type (Rule 90)
 
 rule_90 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, False)) if n else
-          If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, False))
+    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
+          v["arg1_dtype"] == v["arg2_dtype"])
 )
 
 def rule_90_func(arg1, arg2, solver=None, neg=False):

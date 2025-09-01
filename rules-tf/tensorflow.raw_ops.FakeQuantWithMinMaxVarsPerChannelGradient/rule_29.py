@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# gradients, inputs, min and max should have the same type (Rule 29)
+# If narrow_range is true, then the range between min and max should be narrow (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_dtype"] == v["arg2_dtype"], v["arg1_dtype"] == v["arg3_dtype"]), v["arg1_dtype"] == v["arg4_dtype"])) if n else
-          And(And(v["arg1_dtype"] == v["arg2_dtype"], v["arg1_dtype"] == v["arg3_dtype"]), v["arg1_dtype"] == v["arg4_dtype"]))
+    s.add(Not(If(v["arg1_value"] == True, Select(v["arg3_range"], 1) - Select(v["arg2_range"], 0) <= (2 * v["arg4_value"] - 1), True)) if n else
+          If(v["arg1_value"] == True, Select(v["arg3_range"], 1) - Select(v["arg2_range"], 0) <= (2 * v["arg4_value"] - 1), True))
 )
 
 def rule_29_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
@@ -20,32 +20,34 @@ def rule_29_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, bool):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
         if not isinstance(arg3, np.ndarray):
             return False
-        if not isinstance(arg4, np.ndarray):
+        if not (isinstance(arg4, (int, np.integer)) and not isinstance(arg4, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
-        arg3_dtype = Int('arg3_dtype')
-        arg4_dtype = Int('arg4_dtype')
+        arg1_value = Bool('arg1_value')
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg3_range = Array('arg3_range', IntSort(), IntSort())
+        arg4_value = Int('arg4_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
-        solver.add(arg4_dtype == list_of_available_dtypes.index(arg4.dtype))
+        solver.add(arg1_value == arg1)
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        arg3_range = Store(arg3_range, 0, int(np.min(arg3)))
+        arg3_range = Store(arg3_range, 1, int(np.max(arg3)))
+        solver.add(arg4_value == int(arg4))
 
         # Constraints for rule 29
-        rule_29(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype, 'arg4_dtype': arg4_dtype})
+        rule_29(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range, 'arg3_range': arg3_range, 'arg4_value': arg4_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_29(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype'], 'arg4_dtype': arg4['dtype']}, neg)
+        rule_29(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range'], 'arg3_range': arg3['range'], 'arg4_value': arg4['value']}, neg)

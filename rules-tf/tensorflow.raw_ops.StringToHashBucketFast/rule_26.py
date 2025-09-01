@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if input tensor is 2D, number of buckets has a relation with product of the dimensions (Rule 26)
+# The number of dimensions of the input tensor and the number of bits of num_buckets should not be too large together, as it might cause integer overflow (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 2, v["arg2_value"] > Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) / 10, False)) if n else
-          If(v["arg1_ndim"] == 2, v["arg2_value"] > Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) / 10, False))
+    s.add(Not(v["arg1_ndim"] + (v["arg2_value"] * v["arg2_value"]) < 1000) if n else
+          v["arg1_ndim"] + (v["arg2_value"] * v["arg2_value"]) < 1000)
 )
 
 def rule_26_func(arg1, arg2, solver=None, neg=False):
@@ -26,19 +26,16 @@ def rule_26_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_value = Int('arg2_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 26
-        rule_26(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_26(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_26(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)
+        rule_26(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

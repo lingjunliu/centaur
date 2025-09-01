@@ -5,44 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# min_features is less than max_features when features are qint8 (Rule 15)
+# if features is qint8, quint8, qint32, qint16, or quint16, out_type should also be one of them if specified (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 1, Select(v["arg2_range"], 0) < Select(v["arg3_range"], 1), False)) if n else
-          If(v["arg1_dtype"] == 1, Select(v["arg2_range"], 0) < Select(v["arg3_range"], 1), False))
+    s.add(Not(If(Or(Or(Or(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 5)), (v["arg1_dtype"] == 3)), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 13)), Or(Or(Or(Or(Or((v["arg2_value"] == 0), (v["arg2_value"] == 1)), (v["arg2_value"] == 5)), (v["arg2_value"] == 3)), (v["arg2_value"] == 2)), (v["arg2_value"] == 13)), True)) if n else
+          If(Or(Or(Or(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 5)), (v["arg1_dtype"] == 3)), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 13)), Or(Or(Or(Or(Or((v["arg2_value"] == 0), (v["arg2_value"] == 1)), (v["arg2_value"] == 5)), (v["arg2_value"] == 3)), (v["arg2_value"] == 2)), (v["arg2_value"] == 13)), True))
 )
 
-def rule_15_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_15_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
-            return False
-        if not isinstance(arg3, np.ndarray):
+        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
-        arg3_range = Array('arg3_range', IntSort(), IntSort())
+        arg2_value = Int('arg2_value')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
-        arg3_range = Store(arg3_range, 0, int(np.min(arg3)))
-        arg3_range = Store(arg3_range, 1, int(np.max(arg3)))
+        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
 
         # Constraints for rule 15
-        rule_15(solver, {'arg1_dtype': arg1_dtype, 'arg2_range': arg2_range, 'arg3_range': arg3_range})
+        rule_15(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_15(solver, {'arg1_dtype': arg1['dtype'], 'arg2_range': arg2['range'], 'arg3_range': arg3['range']}, neg)
+        rule_15(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

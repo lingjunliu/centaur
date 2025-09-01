@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# features tensor must be one of the allowed quantized types (Rule 1)
+# features tensor must be of type qint8, quint8, qint32, qint16, or quint16, which corresponds to type indices 1, 5, 3, 2, 16. (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
     s.add(Not(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 5), v["arg1_dtype"] == 3), v["arg1_dtype"] == 2), v["arg1_dtype"] == 16)) if n else

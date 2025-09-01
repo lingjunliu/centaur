@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the provided dtype is int32, the values tensor must have an int32 dtype (Rule 77)
+# if dtype is complex, num_required should be greater than 1 (Rule 77)
 
 rule_77 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 3, v["arg2_dtype"] == 3, False)) if n else
-          If(v["arg1_value"] == 3, v["arg2_dtype"] == 3, False))
+    s.add(Not(If(Or(v["arg1_value"] == 9, v["arg1_value"] == 10), Select(v["arg2_range"], 0) > 1, True)) if n else
+          If(Or(v["arg1_value"] == 9, v["arg1_value"] == 10), Select(v["arg2_range"], 0) > 1, True))
 )
 
 def rule_77_func(arg1, arg2, solver=None, neg=False):
@@ -26,16 +26,17 @@ def rule_77_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_value = Int('arg1_value')
-        arg2_dtype = Int('arg2_dtype')
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 77
-        rule_77(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype})
+        rule_77(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_77(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_77(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range']}, neg)

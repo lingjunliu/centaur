@@ -1,66 +1,144 @@
 >>
-Rule 1 (input tensor should be of type int32)
-{v_1 : tensor} |= dtype_(v_1) = 3
+Rule 1 (input tensor must be of type int32)
+{input : tensor} |= dtype_(input) = 3
 >>
-Rule 2 (input tensor should have non-zero dimensions)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 2 (input tensor must have non-negative dimensions)
+{input : tensor} |= ∀i ∈ [0, ndim(input) - 1] : shape(input, i) ≥ 0
 >>
-Rule 3 (minimum value of input tensor should be greater than or equal to -1)
-{v_1 : tensor} |= min(v_1) ≥ -1
+Rule 5 (The tensor's dimension must be greater than or equal to 0)
+{input : tensor} |= ndim(input) ≥ 0
 >>
-Rule 4 (maximum value of input tensor should be less than or equal to the maximum possible unicode code point, e.g., 0x10FFFF, but we'll use a smaller value for practicality to avoid potential overflow issues)
-{v_1 : tensor} |= max(v_1) ≤ 1114111
+Rule 8 (input tensor is empty or has positive dimensions)
+{input : tensor} |= (∃i ∈ [0, ndim(input) - 1] : shape(input, i) = 0) ∨ (∀i ∈ [0, ndim(input) - 1] : shape(input, i) > 0)
 >>
-Rule 5 (input tensor's shape should be a tuple of positive integers)
-{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 10 (input tensor must be of type int32 and have positive dimensions)
+{input : tensor} |= dtype_(input) = 3 ∧ ∀i ∈ [0, ndim(input) - 1] : shape(input, i) > 0
 >>
-Rule 6 (The shape of the input tensor must be within a reasonable limit, preventing extremely large tensors)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≤ 2048
+Rule 11 (name parameter cannot be an empty string)
+{name : str} |= name ≠ ""
 >>
-Rule 7 (The input tensor should not have more than 5 dimensions.)
-{v_1 : tensor} |= ndim(v_1) ≤ 5
+Rule 12 (input tensor must be of type int32 and have a rank greater than 0)
+{input : tensor} |= dtype_(input) = 3 ∧ ndim(input) > 0
 >>
-Rule 8 (If the input tensor is a scalar, its value must be a valid unicode code point)
-{v_1 : tensor} |= if ndim(v_1) = 0 then (v_1 ≥ -1 ∧ v_1 ≤ 1114111)
+Rule 15 (input tensor must be of type int32 and have a rank greater than or equal to 0)
+{input : tensor} |= dtype_(input) = 3 ∧ ndim(input) ≥ 0
 >>
-Rule 9 (The number of elements in the tensor should not exceed a certain limit to prevent memory issues)
-{v_1 : tensor} |=  if ndim(v_1) = 0 then 1 ≤ 1000000 else (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≤ 1000)
+Rule 16 (if input tensor is a scalar, its rank must be 0)
+{input : tensor} |= if ∃i ∈ [0, ndim(input) - 1] : shape(input, i) ≠ 1 then ndim(input) = 0
 >>
-Rule 11 (The input tensor's values must be representable by int32 without overflow or underflow if converted from other integer types)
-{v_1 : tensor} |= if dtype_(v_1) = 1 then min(v_1) ≥ -2147483648 ∧ max(v_1) ≤ 2147483647 else if dtype_(v_1) = 2 then min(v_1) ≥ -2147483648 ∧ max(v_1) ≤ 2147483647 else if dtype_(v_1) = 4 then max(v_1) ≤ 2147483647 else if dtype_(v_1) = 5 then max(v_1) ≤ 2147483647
+Rule 17 (If the input tensor is not a scalar, then at least one dimension must be greater than 0)
+{input : tensor} |= if ndim(input) > 0 then ∃i ∈ [0, ndim(input) - 1] : shape(input, i) > 0
 >>
-Rule 16 (The total number of elements in the input tensor should be less than or equal to 2^20, a reasonable limit to avoid memory explosion)
-{v_1 : tensor} |= if ndim(v_1) = 0 then true else (if ndim(v_1) = 1 then shape(v_1, 0) ≤ 1048576 else (if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) ≤ 1048576 else (if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) ≤ 1048576 else (if ndim(v_1) = 4 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) ≤ 1048576 else (if ndim(v_1) = 5 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) ≤ 1048576)))))
+Rule 18 (input tensor must be of type int32 and have a rank greater than or equal to 0 and less than or equal to 5)
+{input : tensor} |= dtype_(input) = 3 ∧ ndim(input) ≥ 0 ∧ ndim(input) ≤ 5
 >>
-Rule 17 (if the input is a scalar tensor, it cannot be a NaN value)
-{v_1 : tensor} |= if ndim(v_1) = 0 then v_1 = v_1
+Rule 19 (If the input tensor has a shape, each dimension must be a non-negative integer)
+{input : tensor} |= if ndim(input) > 0 then ∀i ∈ [0, ndim(input) - 1] : shape(input, i) ≥ 0
 >>
-Rule 18 (if the input tensor has at least one element, then the minimum value should be greater than or equal to -1.)
-{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∨ ndim(v_1) = 0 then min(v_1) ≥ -1
+Rule 20 (The product of input tensor dimensions must not exceed the maximum allowed integer value for int32)
+{input : tensor} |= if ndim(input) > 0 then (∀i ∈ [0, ndim(input) - 1] : shape(input, i) ≥ 0)
 >>
-Rule 19 (if the input tensor has at least one element, then the maximum value should be less than or equal to 1114111.)
-{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∨ ndim(v_1) = 0 then max(v_1) ≤ 1114111
+Rule 22 (input tensor's minimum value must be greater than or equal to the smallest valid unicode code point i.e. 0)
+{input : tensor} |= min(input) >= 0
 >>
-Rule 20 (if the input tensor is empty, then the min and max values are not relevant, so we don't need to check them.)
-{v_1 : tensor} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∧ ndim(v_1) > 0 then true else if ndim(v_1) = 0 then true else (min(v_1) ≥ -1 ∧ max(v_1) ≤ 1114111)
+Rule 23 (input tensor's maximum value must be less than or equal to the largest valid unicode code point i.e. 1114111)
+{input : tensor} |= max(input) <= 1114111
 >>
-Rule 21 (if the input is not a scalar, each value in the tensor should be greater than or equal to -1 and less than or equal to 1114111)
-{v_1 : tensor} |= if ndim(v_1) ≠ 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : (if ndim(v_1) = 1 then (v_1[i] ≥ -1 ∧ v_1[i] ≤ 1114111))
+Rule 24 (input tensor's minimum value must be greater than or equal to the smallest valid unicode code point i.e. 0, and its maximum value must be less than or equal to the largest valid unicode code point i.e. 1114111)
+{input : tensor} |= min(input) >= 0 ∧ max(input) <= 1114111
 >>
-Rule 23 (for tensors with more than 1 dimension, check if each element satisfies the unicode condition)
-{v_1 : tensor} |= if ndim(v_1) > 1 then (∀i ∈ [0, shape(v_1, 0) - 1] : (∀j ∈ [0, shape(v_1, 1) - 1] : (if ndim(v_1) = 2 then (v_1[i * shape(v_1, 1) + j] ≥ -1 ∧ v_1[i * shape(v_1, 1) + j] ≤ 1114111))))
+Rule 26 (input tensor's minimum value must be greater than or equal to the smallest valid unicode code point i.e. 0, and its maximum value must be less than or equal to the largest valid unicode code point i.e. 1114111, and it must have a dtype of int32)
+{input : tensor} |= min(input) >= 0 ∧ max(input) <= 1114111 ∧ dtype_(input) = 3
 >>
-Rule 24 (for tensors with more than 1 dimension, check if each element satisfies the unicode condition, using recursion)
-{v_1 : tensor} |= if ndim(v_1) > 1 then (∀i ∈ [0, shape(v_1, 0) - 1] : (if ndim(v_1) = 2 then (v_1[i * shape(v_1, 1) + 0] ≥ -1 ∧ v_1[i * shape(v_1, 1) + 0] ≤ 1114111 ∧ (∀j ∈ [1, shape(v_1, 1) - 1] : v_1[i * shape(v_1, 1) + j] ≥ -1 ∧ v_1[i * shape(v_1, 1) + j] ≤ 1114111))))
+Rule 27 (The input tensor must have a dtype of int32, a minimum value greater than or equal to 0, a maximum value less than or equal to 1114111, and the shape should not be empty)
+{input : tensor} |= dtype_(input) = 3 ∧ min(input) >= 0 ∧ max(input) <= 1114111 ∧ ndim(input) >= 0
 >>
-Rule 25 (for tensors with more than 1 dimension, check if each element satisfies the unicode condition, generalized for up to 5 dimensions)
-{v_1 : tensor} |= if ndim(v_1) > 1 then (∀i ∈ [0, shape(v_1, 0) - 1] : (if ndim(v_1) = 2 then (∀j ∈ [0, shape(v_1, 1) - 1] : (v_1[i * shape(v_1, 1) + j] ≥ -1 ∧ v_1[i * shape(v_1, 1) + j] ≤ 1114111)) else if ndim(v_1) = 3 then (∀j ∈ [0, shape(v_1, 1) - 1] : (∀k ∈ [0, shape(v_1, 2) - 1] : (v_1[i * shape(v_1, 1) * shape(v_1, 2) + j * shape(v_1, 2) + k] ≥ -1 ∧ v_1[i * shape(v_1, 1) * shape(v_1, 2) + j * shape(v_1, 2) + k] ≤ 1114111))) else if ndim(v_1) = 4 then (∀j ∈ [0, shape(v_1, 1) - 1] : (∀k ∈ [0, shape(v_1, 2) - 1] : (∀l ∈ [0, shape(v_1, 3) - 1] : (v_1[i * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) + j * shape(v_1, 2) * shape(v_1, 3) + k * shape(v_1, 3) + l] ≥ -1 ∧ v_1[i * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) + j * shape(v_1, 2) * shape(v_1, 3) + k * shape(v_1, 3) + l] ≤ 1114111)))) else if ndim(v_1) = 5 then (∀j ∈ [0, shape(v_1, 1) - 1] : (∀k ∈ [0, shape(v_1, 2) - 1] : (∀l ∈ [0, shape(v_1, 3) - 1] : (∀m ∈ [0, shape(v_1, 4) - 1] : (v_1[i * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) + j * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) + k * shape(v_1, 3) * shape(v_1, 4) + l * shape(v_1, 4) + m] ≥ -1 ∧ v_1[i * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) + j * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) + k * shape(v_1, 3) * shape(v_1, 4) + l * shape(v_1, 4) + m] ≤ 1114111)))))))
+Rule 28 (The input tensor must have a dtype of int32, a minimum value greater than or equal to 0, a maximum value less than or equal to 1114111)
+{input : tensor} |= dtype_(input) = 3 ∧ min(input) >= 0 ∧ max(input) <= 1114111
 >>
-Rule 26 (The input cannot have a dimension of size zero if ndim > 0)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 30 (The input tensor must have a dtype of int32 and its elements should fall in the valid unicode codepoint range)
+{input : tensor} |= dtype_(input) = 3 ∧ ∀i ∈ [0, ndim(input)-1] : min(input) >= 0 ∧ max(input) <= 1114111
 >>
-Rule 27 (if the tensor is empty, then it should have ndim = 0)
-{v_1 : tensor} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then ndim(v_1) = 0
+Rule 32 (All elements of the input tensor should be valid Unicode code points)
+{input : tensor} |= ∀i ∈ [0, ndim(input)-1] : min(input) >= 0 ∧ max(input) <= 1114111
 >>
-Rule 28 (if the tensor is empty, the operation is trivially valid)
-{v_1 : tensor} |= if (∃i ∈ [0, if ndim(v_1) > 0 then ndim(v_1) - 1 else 0] : shape(v_1, i) = 0) ∨ ndim(v_1) = 0 then true
+Rule 33 (The number of dimensions of the input tensor should be between 0 and 5)
+{input : tensor} |=  0 <= ndim(input) ∧ ndim(input) <= 5
+>>
+Rule 34 (All elements of the input tensor should be valid Unicode code points, and the number of dimensions should be between 0 and 5)
+{input : tensor} |= dtype_(input) = 3 ∧ ∀i ∈ [0, ndim(input)-1] : min(input) >= 0 ∧ max(input) <= 1114111 ∧ 0 <= ndim(input) ∧ ndim(input) <= 5
+>>
+Rule 35 (The input tensor must have a dtype of int32, the number of dimensions should be between 0 and 5, and if it is not empty, all elements should be valid Unicode code points)
+{input : tensor} |= dtype_(input) = 3 ∧ 0 <= ndim(input) ∧ ndim(input) <= 5 ∧ (if ndim(input) > 0 then (∀i ∈ [0, ndim(input)-1] : min(input) >= 0 ∧ max(input) <= 1114111))
+>>
+Rule 36 (The input tensor must have a dtype of int32, the number of dimensions should be between 0 and 5)
+{input : tensor} |= dtype_(input) = 3 ∧ 0 <= ndim(input) ∧ ndim(input) <= 5
+>>
+Rule 37 (If the input tensor is not empty, all elements should be valid Unicode code points)
+{input : tensor} |= if ndim(input) > 0 then (∀i ∈ [0, ndim(input)-1] : min(input) >= 0 ∧ max(input) <= 1114111)
+>>
+Rule 39 (The input tensor must have a rank between 0 and 5)
+{input : tensor} |= 0 <= ndim(input) ∧ ndim(input) <= 5
+>>
+Rule 40 (The input tensor must have a dtype of int32, all elements must be valid Unicode code points, and it must be a scalar or have at least one dimension greater than 0)
+{input : tensor} |= dtype_(input) = 3 ∧ ∀i ∈ [0, if ndim(input)>0 then ndim(input)-1 else 0] : min(input) >= 0 ∧ max(input) <= 1114111 ∧ (ndim(input) = 0 ∨ (∃j ∈ [0, if ndim(input)>0 then ndim(input)-1 else 0]: shape(input, j) > 0))
+>>
+Rule 42 (The input tensor must have a dtype of int32 and its elements should be valid Unicode code points)
+{input : tensor} |= dtype_(input) = 3 ∧ ∀i ∈ [0, if ndim(input)>0 then ndim(input)-1 else 0] : min(input) >= 0 ∧ max(input) <= 1114111
+>>
+Rule 45 (The input tensor must have a rank between 0 and 5 and if its rank is greater than 0 then shape should have at least one element)
+{input : tensor} |= 0 <= ndim(input) ∧ ndim(input) <= 5 ∧ (if ndim(input) > 0 then ∃i ∈ [0, ndim(input)-1] : true)
+>>
+Rule 47 (All elements of the input tensor should be valid Unicode code points)
+{input : tensor} |= ∀i ∈ [0, if ndim(input)>0 then ndim(input)-1 else 0] : min(input) >= 0 ∧ max(input) <= 1114111
+>>
+Rule 49 (The input tensor must have a dtype of int32, a rank between 0 and 5, and its elements should be valid Unicode code points)
+{input : tensor} |= dtype_(input) = 3 ∧ 0 <= ndim(input) ∧ ndim(input) <= 5 ∧ ∀i ∈ [0, if ndim(input)>0 then ndim(input)-1 else 0] : min(input) >= 0 ∧ max(input) <= 1114111
+>>
+Rule 55 (The input tensor must have a dtype of int32, a rank between 0 and 5, and all elements must be valid Unicode code points)
+{input : tensor} |= dtype_(input) = 3 ∧ 0 <= ndim(input) ∧ ndim(input) <= 5 ∧ ∀i ∈ [0, if ndim(input)>0 then ndim(input)-1 else 0] : (min(input) >= 0 ∧ max(input) <= 1114111)
+>>
+Rule 59 (The input tensor must have a dtype of int32, and if it is not empty, all elements must be valid Unicode code points)
+{input : tensor} |= dtype_(input) = 3 ∧ (if ndim(input) > 0 then (∀i ∈ [0, ndim(input)-1] : min(input) >= 0 ∧ max(input) <= 1114111))
+>>
+Rule 63 (The input tensor must have a dtype of int32, a rank between 0 and 5, and if it is not empty, all elements must be valid Unicode code points)
+{input : tensor} |= dtype_(input) = 3 ∧ 0 <= ndim(input) ∧ ndim(input) <= 5 ∧ (if ∃i ∈ [0, ndim(input)-1]: true then (∀i ∈ [0, ndim(input)-1] : min(input) >= 0 ∧ max(input) <= 1114111))
+>>
+Rule 66 (If the input tensor is not empty, all elements must be valid Unicode code points)
+{input : tensor} |= if ∃i ∈ [0, ndim(input)-1] : true then (∀i ∈ [0, ndim(input)-1] : min(input) >= 0 ∧ max(input) <= 1114111)
+>>
+Rule 68 (If the input tensor is not empty, then each element should be a valid unicode code point)
+{input : tensor} |= if ∃i ∈ [0, ndim(input)-1] : shape(input, i) > 0 then (∀i ∈ [0, ndim(input)-1] : min(input) >= 0 ∧ max(input) <= 1114111)
+>>
+Rule 69 (The input tensor must have a dtype of int32, a rank between 0 and 5, and its elements should be valid Unicode code points)
+{input : tensor} |= dtype_(input) = 3 ∧ 0 <= ndim(input) ∧ ndim(input) <= 5 ∧ (if ∃i ∈ [0, if ndim(input) > 0 then ndim(input)-1 else 0] : shape(input, i) > 0 then (∀i ∈ [0, ndim(input)-1] : min(input) >= 0 ∧ max(input) <= 1114111))
+>>
+Rule 70 (The input tensor must have a dtype of int32 and its elements must be valid Unicode code points)
+{input : tensor} |= dtype_(input) = 3 ∧ ∀i ∈ [0, if ndim(input)>0 then ndim(input)-1 else 0] : (min(input) >= 0 ∧ max(input) <= 1114111)
+>>
+Rule 78 (The input tensor must be of type int32, have a rank between 0 and 5, and each element (if the tensor is non-empty) must be a valid unicode code point.)
+{input : tensor} |= dtype_(input) = 3 ∧ (0 <= ndim(input) ∧ ndim(input) <= 5) ∧ (if ndim(input) > 0 then ∀i ∈ [0, ndim(input)-1] : (min(input) >= 0 ∧ max(input) <= 1114111))
+>>
+Rule 80 (The input tensor must be a scalar or have a rank between 1 and 5 and each element must be a valid unicode code point)
+{input : tensor} |= (ndim(input) = 0) ∨ (1 <= ndim(input) ∧ ndim(input) <= 5 ∧ (∀i ∈ [0, ndim(input)-1] : (min(input) >= 0 ∧ max(input) <= 1114111)))
+>>
+Rule 81 (The input tensor must be of type int32 and be a scalar or have a rank between 1 and 5. If the input is not scalar all elements must be valid unicode code points)
+{input : tensor} |= dtype_(input) = 3 ∧ ((ndim(input) = 0) ∨ (1 <= ndim(input) ∧ ndim(input) <= 5 ∧ (if ndim(input) > 0 then ∀i ∈ [0, ndim(input)-1] : (min(input) >= 0 ∧ max(input) <= 1114111))))
+>>
+Rule 82 (The input tensor must have a dtype of int32 and must be a scalar or have a rank between 1 and 5)
+{input : tensor} |= dtype_(input) = 3 ∧ ((ndim(input) = 0) ∨ (1 <= ndim(input) ∧ ndim(input) <= 5))
+>>
+Rule 83 (If the input tensor is not a scalar, then all its elements must be valid unicode code points)
+{input : tensor} |= if ndim(input) > 0 then ∀i ∈ [0, ndim(input)-1] : (min(input) >= 0 ∧ max(input) <= 1114111)
+>>
+Rule 85 (If the input tensor is a scalar it must have rank 0. Otherwise, it must have a rank between 1 and 5 and each element be a valid unicode codepoint)
+{input : tensor} |= if ndim(input) = 0 then true else (1 <= ndim(input) ∧ ndim(input) <= 5 ∧ ∀i ∈ [0, ndim(input)-1] : (min(input) >= 0 ∧ max(input) <= 1114111))
+>>
+Rule 86 (The input tensor must be of type int32 and, if the tensor is not scalar, each element must be a valid unicode codepoint)
+{input : tensor} |= dtype_(input) = 3 ∧ (if ndim(input) > 0 then ∀i ∈ [0, ndim(input)-1] : (min(input) >= 0 ∧ max(input) <= 1114111))
+>>
+Rule 87 (The input tensor must be a scalar or have a rank between 1 and 5)
+{input : tensor} |= (ndim(input) = 0) ∨ (1 <= ndim(input) ∧ ndim(input) <= 5)
+>>
+Rule 89 (If the input tensor has at least one dimension, then all its elements must be valid unicode code points)
+{input : tensor} |= if ∃i ∈ [0, ndim(input)-1] : shape(input, i) > 0 then ∀i ∈ [0, ndim(input)-1] : (min(input) >= 0 ∧ max(input) <= 1114111)

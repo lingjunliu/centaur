@@ -5,32 +5,51 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# var must have a valid dtype: float32, float64, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64. (Rule 36)
+# Shape of var, ms, mom, and grad tensors should match (Rule 36)
 
 rule_36 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 3), v["arg1_dtype"] == 5), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 9), v["arg1_dtype"] == 4), v["arg1_dtype"] == 13), v["arg1_dtype"] == 14), v["arg1_dtype"] == 15), v["arg1_dtype"] == 16), v["arg1_dtype"] == 17), v["arg1_dtype"] == 18), v["arg1_dtype"] == 19)) if n else
-          Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 3), v["arg1_dtype"] == 5), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 9), v["arg1_dtype"] == 4), v["arg1_dtype"] == 13), v["arg1_dtype"] == 14), v["arg1_dtype"] == 15), v["arg1_dtype"] == 16), v["arg1_dtype"] == 17), v["arg1_dtype"] == 18), v["arg1_dtype"] == 19))
+    s.add(Not(And(And(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), Select(v["arg1_shape"], 0) == Select(v["arg3_shape"], 0)), Select(v["arg1_shape"], 0) == Select(v["arg4_shape"], 0))) if n else
+          And(And(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), Select(v["arg1_shape"], 0) == Select(v["arg3_shape"], 0)), Select(v["arg1_shape"], 0) == Select(v["arg4_shape"], 0)))
 )
 
-def rule_36_func(arg1, solver=None, neg=False):
+def rule_36_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
+    arg4 = next(iter(arg4.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
+        if not isinstance(arg2, np.ndarray):
+            return False
+        if not isinstance(arg3, np.ndarray):
+            return False
+        if not isinstance(arg4, np.ndarray):
+            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
+        arg4_shape = Array('arg4_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        for i in range(arg3.ndim):
+            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
+        for i in range(arg4.ndim):
+            arg4_shape = Store(arg4_shape, i, arg4.shape[i])
 
         # Constraints for rule 36
-        rule_36(solver, {'arg1_dtype': arg1_dtype})
+        rule_36(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape, 'arg3_shape': arg3_shape, 'arg4_shape': arg4_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_36(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_36(solver, {'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape'], 'arg3_shape': arg3['shape'], 'arg4_shape': arg4['shape']}, neg)

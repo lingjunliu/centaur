@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The depth of images tensor should be 1 or 3. (Rule 13)
+# ymin of bounding box must be in range [0.0, 1.0] (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(Or(Select(v["arg1_shape"], 3) == 1, Select(v["arg1_shape"], 3) == 3)) if n else
-          Or(Select(v["arg1_shape"], 3) == 1, Select(v["arg1_shape"], 3) == 3))
+    s.add(Not(Select(v["arg1_range"], 0) >= 0.0) if n else
+          Select(v["arg1_range"], 0) >= 0.0)
 )
 
 def rule_13_func(arg1, solver=None, neg=False):
@@ -22,16 +22,16 @@ def rule_13_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 13
-        rule_13(solver, {'arg1_shape': arg1_shape})
+        rule_13(solver, {'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_13(solver, {'arg1_shape': arg1['shape']}, neg)
+        rule_13(solver, {'arg1_range': arg1['range']}, neg)

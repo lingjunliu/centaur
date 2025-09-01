@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Input cannot be int16 tensor (Rule 26)
+# Limit maximum value when dtype is float16 to prevent overflow (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 2) if n else
-          v["arg1_dtype"] != 2)
+    s.add(Not(If(v["arg1_dtype"] == 6, (And(Select(v["arg1_range"], 0) > -60000, Select(v["arg1_range"], 1) < 60000)), True)) if n else
+          If(v["arg1_dtype"] == 6, (And(Select(v["arg1_range"], 0) > -60000, Select(v["arg1_range"], 1) < 60000)), True))
 )
 
 def rule_26_func(arg1, solver=None, neg=False):
@@ -23,14 +23,17 @@ def rule_26_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 26
-        rule_26(solver, {'arg1_dtype': arg1_dtype})
+        rule_26(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_26(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_26(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)

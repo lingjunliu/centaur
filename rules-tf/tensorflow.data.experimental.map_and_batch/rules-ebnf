@@ -1,156 +1,210 @@
 >>
-Rule 1 (batch_size must be greater than 0)
-{v_1 : int} |= v_1 > 0
+Rule 1 (batch_size should be greater than 0)
+{batch_size : tensor} |= batch_size > 0
 >>
-Rule 3 (drop_remainder must be a boolean value)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 2 (num_parallel_batches should be greater than 0)
+{num_parallel_batches : tensor} |= num_parallel_batches > 0
 >>
-Rule 4 (num_parallel_calls must be greater or equal to -1)
-{v_1 : int} |= v_1 ≥ -1
+Rule 3 (drop_remainder should be a boolean value)
+{drop_remainder : tensor} |= drop_remainder = true ∨ drop_remainder = false
 >>
-Rule 5 (batch_size and num_parallel_batches' product must be greater than 0)
-{v_1 : int, v_2 : int} |= v_1 * v_2 > 0
+Rule 4 (num_parallel_calls should be greater than or equal to -1, allowing AUTOTUNE)
+{num_parallel_calls : tensor} |= num_parallel_calls ≥ -1
 >>
-Rule 8 (if drop_remainder is true, batch_size must be greater than 0)
-{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 0
+Rule 5 (batch_size and num_parallel_batches' product should be less than a max threshold)
+{batch_size : tensor, num_parallel_batches : tensor} |= batch_size * num_parallel_batches < 1024
 >>
-Rule 10 (num_parallel_batches must be an int type)
-{v_1 : int} |= v_1 ≥ 1
+Rule 6 (If drop_remainder is true, the batch_size must be greater than 0)
+{batch_size : tensor, drop_remainder : tensor} |= if drop_remainder = true then batch_size > 0
 >>
-Rule 12 (If num_parallel_calls is AUTOTUNE, then it equals -1)
-{v_1 : int} |= if v_1 = -1 then true else false
+Rule 7 (batch_size cannot be negative)
+{batch_size : tensor} |= batch_size ≥ 0
 >>
-Rule 13 (The output dataset should have the same dtype as the input dataset.)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 8 (num_parallel_batches cannot be negative)
+{num_parallel_batches : tensor} |= num_parallel_batches ≥ 0
 >>
-Rule 16 (num_parallel_calls can either be AUTOTUNE (-1) or a positive integer)
-{v_1 : int} |= (v_1 = -1) ∨ (v_1 > 0)
+Rule 17 (If both num_parallel_batches and num_parallel_calls are specified, it should raise ValueError (represented by a constant false))
+{num_parallel_batches : tensor, num_parallel_calls : tensor} |= num_parallel_batches > 0 ∧ num_parallel_calls > 0 ∧ false
 >>
-Rule 17 (If drop_remainder is false, the output dataset's size could be smaller than batch_size)
-{v_1 : bool, v_2: int, v_3: int} |= if v_1 = false then v_3 ≤ v_2
+Rule 18 (The product of batch_size and num_parallel_batches must be representable as an int32)
+{batch_size : tensor, num_parallel_batches : tensor} |= batch_size * num_parallel_batches < 2147483647
 >>
-Rule 18 (batch_size and num_parallel_batches must both be positive integers)
-{v_1 : int, v_2 : int} |= (v_1 > 0) ∧ (v_2 > 0)
+Rule 19 (num_parallel_calls can be tf.data.AUTOTUNE, which is equivalent to -1)
+{num_parallel_calls : tensor} |= num_parallel_calls = -1 ∨ num_parallel_calls > 0
 >>
-Rule 20 (If both num_parallel_batches and num_parallel_calls are specified, then the product of batch_size and num_parallel_batches should be equal to num_parallel_calls)
-{v_1 : int, v_2 : int, v_3 : int} |= if (v_2 > 0) ∧ (v_3 > 0) then v_1 * v_2 = v_3
+Rule 20 (batch_size is a scalar tensor)
+{batch_size : tensor} |= ndim(batch_size) = 0
 >>
-Rule 21 (ValueError is raised if both num_parallel_batches and num_parallel_calls are specified.)
-{v_1 : int, v_2 : int} |= if v_1 > 0 ∧ v_2 > 0 then false
+Rule 21 (num_parallel_batches is a scalar tensor)
+{num_parallel_batches : tensor} |= ndim(num_parallel_batches) = 0
 >>
-Rule 25 (batch_size must be non-zero)
-{v_1 : int} |= v_1 ≠ 0
+Rule 22 (num_parallel_calls is a scalar tensor)
+{num_parallel_calls : tensor} |= ndim(num_parallel_calls) = 0
 >>
-Rule 27 (batch_size should be less than or equal to the size of the dataset)
-{v_1 : int, v_2 : int} |= v_1 ≤ v_2
+Rule 23 (drop_remainder is a scalar tensor)
+{drop_remainder : tensor} |= ndim(drop_remainder) = 0
 >>
-Rule 29 (if drop_remainder is true, then the last batch is dropped)
-{v_1 : bool} |= if v_1 = true then true else false
+Rule 24 (If num_parallel_calls is AUTOTUNE (-1), then batch_size * num_parallel_batches must be a valid int32)
+{batch_size : tensor, num_parallel_batches : tensor, num_parallel_calls : tensor} |= if num_parallel_calls = -1 then batch_size * num_parallel_batches < 2147483647
 >>
-Rule 30 (if num_parallel_calls is specified, batch_size * num_parallel_batches is ignored)
-{v_1 : int, v_2 : int, v_3 : int} |= if v_3 > 0 then true else v_1 * v_2 > 0
+Rule 25 (If num_parallel_batches and num_parallel_calls are BOTH specified, a ValueError will be raised.)
+{num_parallel_batches : tensor, num_parallel_calls : tensor} |= if num_parallel_batches > 0 then if num_parallel_calls > 0 then false
 >>
-Rule 32 (If num_parallel_batches is not specified, it defaults to 1)
-{v_1 : int, v_2 : int} |= if v_2 > 0 then true else v_1 > 0
+Rule 26 (dtype of batch_size should be int64)
+{batch_size : tensor} |= dtype_(batch_size) = 4
 >>
-Rule 38 (batch_size * num_parallel_batches should not cause overflow of int32)
-{v_1 : int, v_2 : int} |= v_1 * v_2 < 2147483647
+Rule 27 (dtype of num_parallel_batches should be int64)
+{num_parallel_batches : tensor} |= dtype_(num_parallel_batches) = 4
 >>
-Rule 39 (If the drop_remainder is true, the last batch is discarded if smaller than batch_size)
-{v_1 : bool, v_2 : int, v_3 : int} |= if v_1 = true then v_3 = v_2
+Rule 28 (dtype of num_parallel_calls should be int32)
+{num_parallel_calls : tensor} |= dtype_(num_parallel_calls) = 3
 >>
-Rule 40 (num_parallel_calls must not cause contention if CPU is scarce)
-{v_1 : int} |= v_1 < 1024
+Rule 29 (dtype of drop_remainder should be bool)
+{drop_remainder : tensor} |= dtype_(drop_remainder) = 0
 >>
-Rule 51 (If num_parallel_batches is specified and > 1, contention may increase)
-{v_1 : int} |= if v_1 > 1 then true else false
+Rule 30 (batch_size should not be greater than the dataset size. Assume a dataset of size 1024 for this rule)
+{batch_size : tensor} |= batch_size ≤ 1024
 >>
-Rule 52 (batch size must be less than the maximum possible integer)
-{v_1 : int} |= v_1 < 2147483647
+Rule 31 (If drop_remainder is false, then the batch_size can be greater than the dataset size, but the model should handle this case. Assume a dataset of size 1024 for this rule)
+{batch_size : tensor, drop_remainder : tensor} |= if drop_remainder = false then batch_size > 0 else batch_size ≤ 1024
 >>
-Rule 54 (If num_parallel_batches and num_parallel_calls are both used, map_func is applied batch_size * num_parallel_batches times in parallel)
-{v_1 : int, v_2 : int} |= if v_1 > 0 ∧ v_2 > 0 then true else false
+Rule 33 (batch_size * num_parallel_batches should not cause an overflow)
+{batch_size : tensor, num_parallel_batches : tensor} |= batch_size < 2147483647 / num_parallel_batches
 >>
-Rule 57 (batch_size cannot overflow the maximum possible integer)
-{v_1 : int, v_2: int} |= if v_2 > 0 then v_1 < 2147483647 / v_2
+Rule 34 (num_parallel_calls should not be larger than a reasonable number of CPUs (assume 16))
+{num_parallel_calls : tensor} |= num_parallel_calls <= 16 ∨ num_parallel_calls = -1
 >>
-Rule 58 (map_func must return a tensor to be batched)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 35 (map_func should be a list)
+{map_func : list(tensor)} |= map_func.len ≥ 0
 >>
-Rule 60 (If drop remainder then the batch size and input tensor must have a compatible shape)
-{v_1: tensor, v_2: int, v_3: bool} |= if v_3 = true then shape(v_1, 0) = v_2
+Rule 36 (batch_size should not be greater than the dataset size if drop_remainder is true. Let's say the dataset size is 1024)
+{batch_size : tensor, drop_remainder : tensor} |= if drop_remainder = true then batch_size <= 1024
 >>
-Rule 65 (Batch size * Num parallel batches cannot cause an integer overflow in num_parallel_calls)
-{v_1 : int, v_2: int} |= v_1 * v_2 < 2147483647
+Rule 37 (If batch_size is greater than the dataset size and drop_remainder is true, the program will produce an empty dataset. Let's say the dataset size is 1024)
+{batch_size : tensor, drop_remainder : tensor} |= if batch_size > 1024 then if drop_remainder = true then true
 >>
-Rule 66 (If the input dataset is empty, the output dataset is also empty)
-{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0)
+Rule 38 (num_parallel_batches should be less than or equal to the dataset size divided by batch_size. Let's say the dataset size is 1024.)
+{batch_size : tensor, num_parallel_batches : tensor} |= num_parallel_batches <= 1024 / batch_size ∨ batch_size > 1024
 >>
-Rule 69 (If num_parallel_calls is -1 then it is autotune)
-{v_1: int} |= if v_1 = -1 then true else false
+Rule 39 (num_parallel_calls must be non-negative or equal to -1)
+{num_parallel_calls : tensor} |= num_parallel_calls ≥ 0 ∨ num_parallel_calls = -1
 >>
-Rule 70 (The maximum number of num_parallel_batches is limited)
-{v_1 : int} |= v_1 < 65536
+Rule 40 (If num_parallel_batches is specified, then batch_size must also be specified)
+{batch_size : tensor, num_parallel_batches : tensor} |= if num_parallel_batches > 0 then batch_size > 0
 >>
-Rule 71 (If the dataset is empty, then the map_func will not be invoked)
-{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
+Rule 41 (If num_parallel_calls is specified, the map_func must be provided.)
+{map_func : list(tensor), num_parallel_calls : tensor} |= if num_parallel_calls > 0 ∨ num_parallel_calls = -1 then map_func.len > 0
 >>
-Rule 72 (Batch_size must be non-negative value)
-{v_1: int} |= v_1 > 0
+Rule 44 (num_parallel_batches can be at most the number of available batches in the dataset given dataset of size 1024)
+{batch_size : tensor, num_parallel_batches : tensor} |= num_parallel_batches <= 1024 / batch_size
 >>
-Rule 74 (If drop_remainder is true, the final batch will be omitted if its batch size is less than the batch_size argument)
-{v_1: bool} |= if v_1 = true then true else false
+Rule 46 (If num_parallel_calls is specified (not -1), the map_func must be provided with length > 0.)
+{map_func : list(tensor), num_parallel_calls : tensor} |= if num_parallel_calls ≠ -1 then map_func.len > 0
 >>
-Rule 77 (Shape of the output of map_func must be compatible with the input data.)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 48 (If drop_remainder is false, then the batch size could be less than the actual batch size towards the end of the dataset given dataset size 1024)
+{batch_size : tensor, drop_remainder : tensor} |= if drop_remainder = false then batch_size <= 1024
 >>
-Rule 78 (batch_size multiplied by num_parallel_batches can cause an overflow)
-{v_1: int, v_2: int} |= v_1 * v_2 < 2147483647
+Rule 49 (The number of tensors in map_func should be reasonable. Let's limit it to 16.)
+{map_func : list(tensor)} |= map_func.len <= 16
 >>
-Rule 79 (Drop_remainder can affect the size of batches in the resulting dataset)
-{v_1: bool, v_2: int, v_3: int} |= if v_1 = true then v_3 = v_2 else v_3 <= v_2
+Rule 53 (If drop_remainder is false, then the batch size could be less than the actual batch size towards the end of the dataset given dataset size 1024. Ensure batch_size <= 1024 )
+{batch_size : tensor, drop_remainder : tensor} |= if drop_remainder = false then batch_size ≤ 1024
 >>
-Rule 80 (If Num parallel batches is not provided then it defaults to 1)
-{v_1: int, v_2: int} |= if v_2 > 0 then true else v_1 > 0
+Rule 54 (The number of tensors in map_func should be reasonable. Let's limit it to 16. It has to be a non-negative number)
+{map_func : list(tensor)} |= map_func.len ≤ 16 ∧ map_func.len ≥ 0
 >>
-Rule 83 (Map_func must return a tensor of same rank as the input dataset)
-{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2)
+Rule 55 (If num_parallel_batches is specified, then batch_size must be specified and greater than 0)
+{batch_size : tensor, num_parallel_batches : tensor} |= num_parallel_batches > 0 ∧ batch_size > 0
 >>
-Rule 84 (Batch_size must be less than or equal to the dataset size if drop_remainder is False)
-{v_1: int, v_2: int, v_3: bool} |= if v_3 = false then v_1 <= v_2
+Rule 56 (If num_parallel_calls is specified (not -1), the map_func must be provided with length > 0.)
+{map_func : list(tensor), num_parallel_calls : tensor} |= num_parallel_calls ≠ -1 ∧ map_func.len > 0
 >>
-Rule 85 (If num_parallel_calls is AUTOTUNE then batch size must be specified.)
-{v_1: int, v_2: int} |= if v_2 = -1 then v_1 > 0
+Rule 63 (If drop_remainder is false, ensure batch_size is within dataset constraints by ensuring batch_size is non-negative)
+{batch_size : tensor, drop_remainder : tensor} |= drop_remainder = false ∧ batch_size ≥ 0
 >>
-Rule 87 (If drop_remainder is True, batch size should be less than dataset length)
-{v_1 : bool, v_2 : int, v_3: int} |= if v_1 = true then v_2 < v_3
+Rule 69 (If drop_remainder is false, ensure batch_size is within dataset constraints by requiring it to be non-negative. And less than some max_batch_size=1000)
+{batch_size : tensor, drop_remainder : tensor} |= drop_remainder = false ∧ batch_size ≥ 0 ∧ batch_size ≤ 1000
 >>
-Rule 88 (If batch size is 1 then num parallel batches are not really needed)
-{v_1 : int, v_2 : int} |= if v_1 = 1 then v_2 = 1
+Rule 71 (If the map_func is empty, then batch_size should still be valid)
+{map_func : list(tensor), batch_size : tensor} |= if map_func.len = 0 then batch_size > 0
 >>
-Rule 90 (num parallel calls can also be dynamically decided)
-{v_1 : int} |= v_1 > -2
+Rule 72 (If num_parallel_batches is specified, then batch_size must be specified and greater than 0, and smaller than 1000.)
+{batch_size : tensor, num_parallel_batches : tensor} |= num_parallel_batches > 0 ∧ batch_size > 0 ∧ batch_size < 1000
 >>
-Rule 91 (If drop_remainder is false then the last batch could have a different shape)
-{v_1 : tensor, v_2 : bool, v_3 : int} |= if v_2 = false then shape(v_1,0) ≤ v_3 else shape(v_1, 0) = v_3
+Rule 75 (The batch_size must not be excessively large when drop_remainder is false, limit dataset size to 1000)
+{batch_size : tensor, drop_remainder : tensor} |= drop_remainder = false ∧ batch_size ≤ 1000
 >>
-Rule 92 (The map_func should transform tensors to tensors of smaller or equal size)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_2, i) ≤ shape(v_1, i)
+Rule 77 (num_parallel_batches has to be reasonable. Let's limit it to 16)
+{num_parallel_batches : tensor} |= num_parallel_batches ≤ 16 ∧ num_parallel_batches ≥ 0
 >>
-Rule 93 (If batch size exceeds data size then num_parallel_batches does not matter.)
-{v_1 : int, v_2 : int, v_3 : int} |= if v_1 > v_2 then true else v_3 > 0
+Rule 84 (batch_size and num_parallel_batches' product should be less than a max threshold of 2048)
+{batch_size : tensor, num_parallel_batches : tensor} |= batch_size * num_parallel_batches < 2048
 >>
-Rule 94 (If drop_remainder is enabled and dataset size is not a multiple of batch_size an element is discarded.)
-{v_1 : int, v_2 : int, v_3 : bool} |= if v_3 = true then v_1 % v_2 = 0
+Rule 87 (If drop_remainder is false, and dataset size is assumed to be 1024, the batch_size should be smaller than dataset size. )
+{batch_size : tensor, drop_remainder : tensor} |= drop_remainder = false ∧ batch_size < 1024
 >>
-Rule 96 (When AUTOTUNE is specified then num_parallel_calls is -1)
-{v_1: int} |= v_1 = -1 ∨ v_1 > 0
+Rule 89 (If num_parallel_calls = AUTOTUNE (-1), the batch_size should not be excessively high. limit dataset size to 1000)
+{batch_size : tensor, num_parallel_calls : tensor} |= num_parallel_calls = -1 ∧ batch_size < 1000
 >>
-Rule 97 (If the dataset has multiple dimensions the map function is applied to each)
-{v_1: tensor} |= ndim(v_1) > 0
+Rule 90 (batch_size * num_parallel_batches can be at most 1000)
+{batch_size : tensor, num_parallel_batches : tensor} |= batch_size * num_parallel_batches < 1000
 >>
-Rule 98 (Batch size can be equal to the dataset length)
-{v_1: int, v_2: int} |= v_1 <= v_2
+Rule 93 (num_parallel_batches has to be less than a certain max to avoid too much contention)
+{num_parallel_batches : tensor} |= num_parallel_batches < 32
 >>
-Rule 99 (There should be enough memory for the batches)
-{v_1: tensor, v_2: int, v_3 : int} |= shape(v_1, 0) * v_2 * v_3 < 1000000000
+Rule 94 (If drop_remainder is specified, the batch_size should correspond to a multiple of elements.)
+{drop_remainder : tensor, batch_size: tensor} |= if drop_remainder = true then batch_size > 0
+>>
+Rule 95 (batch_size has to be valid)
+{batch_size: tensor} |= batch_size > 0
+>>
+Rule 96 (batch_size * num_parallel_batches can be at most 1000. Also num_parallel_batches should not be excessively large)
+{batch_size : tensor, num_parallel_batches : tensor} |= batch_size * num_parallel_batches < 1000 ∧ num_parallel_batches < 32
+>>
+Rule 99 (If drop_remainder is true, batch_size must have some value)
+{drop_remainder : tensor, batch_size : tensor} |= if drop_remainder = true then batch_size > 0
+>>
+Rule 100 (num_parallel_calls should not be excessively large)
+{num_parallel_calls: tensor} |= num_parallel_calls < 32 ∨ num_parallel_calls = -1
+>>
+Rule 112 (If drop_remainder is set to false, at least batch_size is positive)
+{drop_remainder : tensor, batch_size : tensor} |= if drop_remainder = false then batch_size > 0
+>>
+Rule 113 (Check the dtypes of batch_size and num_parallel_batches match.)
+{batch_size: tensor, num_parallel_batches: tensor} |= dtype_(batch_size) = dtype_(num_parallel_batches)
+>>
+Rule 117 (if num_parallel_calls AUTOTUNE (-1), then batch_size has to be reasonable for a typical system. limit dataset size to 1000)
+{num_parallel_calls: tensor, batch_size: tensor} |= num_parallel_calls = -1 ∧ batch_size < 1000
+>>
+Rule 118 (All input parameters have to be a Tensor.)
+{batch_size : tensor, num_parallel_batches : tensor, drop_remainder: tensor, num_parallel_calls: tensor} |= ndim(batch_size) = 0 ∧ ndim(num_parallel_batches) = 0 ∧ ndim(drop_remainder) = 0 ∧ ndim(num_parallel_calls) = 0
+>>
+Rule 123 (Enforce upper limits of num_parallel_batches, if provided)
+{num_parallel_batches: tensor} |= num_parallel_batches < 32
+>>
+Rule 125 (batch_size should be positive and also less than dataset size (1000 for this example.) and the parameter should be valid)
+{batch_size: tensor} |= batch_size > 0 ∧ batch_size < 1000
+>>
+Rule 130 (batch_size data type has to be reasonable.)
+{batch_size: tensor} |= 1 <= dtype_(batch_size) ∧ dtype_(batch_size) <= 5
+>>
+Rule 136 (Require tensors provided to have a reasonable and compatible data type.)
+{batch_size : tensor, num_parallel_batches: tensor} |= dtype_(batch_size) = 4 ∧ dtype_(num_parallel_batches) = 4
+>>
+Rule 141 (If at least one of num_parallel_batches of batch_size is defined as positive and non-zero, they also must be scalar values)
+{batch_size : tensor, num_parallel_batches : tensor} |= (batch_size > 0 ∨ num_parallel_batches > 0) ∧ ndim(batch_size) = 0 ∧ ndim(num_parallel_batches) = 0
+>>
+Rule 146 (if the dataset shouldn't contain a shorter batch, the batch_size is set to be positive)
+{drop_remainder : tensor} |= drop_remainder = true
+>>
+Rule 148 (num_parallel_calls should be a reasonable value. And also greater than or equal to -1, for the autotune case)
+{num_parallel_calls : tensor} |= num_parallel_calls < 32 ∨ num_parallel_calls = -1
+>>
+Rule 153 (The data type of num_parallel_batches must match that of batch_size)
+{batch_size : tensor, num_parallel_batches : tensor} |= dtype_(batch_size) = dtype_(num_parallel_batches)
+>>
+Rule 154 (batch_size can't be too low when num_parallel_batches is greater than 1)
+{batch_size : tensor, num_parallel_batches : tensor} |= if num_parallel_batches > 1 then batch_size > 1
+>>
+Rule 159 (When providing the correct datatype)
+{batch_size : tensor, num_parallel_batches: tensor} |= (1 <= dtype_(batch_size) ∧ dtype_(batch_size) <= 5) ∧ (1 <= dtype_(num_parallel_batches) ∧ dtype_(num_parallel_batches) <= 5)

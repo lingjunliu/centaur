@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# nest1 and nest2 are both lists with length of nest1 > nest2  (Rule 54)
+# One of the list is empty (Rule 54)
 
 rule_54 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_length"] > v["arg2_length"]) if n else
-          v["arg1_length"] > v["arg2_length"])
+    s.add(Not(Or((v["arg1_length"] == 0), (v["arg2_length"] == 0))) if n else
+          Or((v["arg1_length"] == 0), (v["arg2_length"] == 0)))
 )
 
 def rule_54_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# type parameter should be an integer between 0 and 12 inclusive (Rule 1)
+# type must be an integer or dtype (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(And(0 <= v["arg1_value"], v["arg1_value"] <= 12)) if n else
-          And(0 <= v["arg1_value"], v["arg1_value"] <= 12))
+    s.add(Not(And(1 <= v["arg1_value"], Or(v["arg1_value"] <= 5, v["arg1_value"] == 13))) if n else
+          And(1 <= v["arg1_value"], Or(v["arg1_value"] <= 5, v["arg1_value"] == 13)))
 )
 
 def rule_1_func(arg1, solver=None, neg=False):
@@ -17,7 +17,7 @@ def rule_1_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
             return False
 
         # Variable declarations
@@ -25,7 +25,7 @@ def rule_1_func(arg1, solver=None, neg=False):
         arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
 
         # Constraints for rule 1
         rule_1(solver, {'arg1_value': arg1_value})

@@ -1,114 +1,129 @@
 >>
-Rule 1 (input_indices should have rank 2)
+Rule 1 (input_indices must be a 2D tensor)
+{input_indices : tensor} |= ndim(input_indices) = 2
+>>
+Rule 2 (input_shape must be a 1D tensor)
+{input_shape : tensor} |= ndim(input_shape) = 1
+>>
+Rule 3 (reduction_axes must be a 1D tensor)
+{reduction_axes : tensor} |= ndim(reduction_axes) = 1
+>>
+Rule 4 (first dimension of input_indices must match the number of non-empty values in input_values)
+{input_indices : tensor, input_values : tensor} |= shape(input_indices, 0) = shape(input_values, 0)
+>>
+Rule 5 (second dimension of input_indices must match the length of input_shape)
+{input_indices : tensor, input_shape : tensor} |= shape(input_indices, 1) = shape(input_shape, 0)
+>>
+Rule 7 (input_values must be of a supported type)
+{input_values : tensor} |= dtype_(input_values) = 7 ∨ dtype_(input_values) = 8 ∨ dtype_(input_values) = 3 ∨ dtype_(input_values) = 5 ∨ dtype_(input_values) = 2 ∨ dtype_(input_values) = 1 ∨ dtype_(input_values) = 4 ∨ dtype_(input_values) = 6 ∨ dtype_(input_values) = 13 ∨ dtype_(input_values) = 14 ∨ dtype_(input_values) = 15
+>>
+Rule 8 (all elements in reduction_axes must be within the valid range based on the rank of input_shape)
+{input_shape : tensor, reduction_axes : tensor} |= ∀ v_1 ∈ [0, shape(reduction_axes, 0) - 1] : reduction_axes[v_1] ≥ (-1 * shape(input_shape, 0)) ∧ reduction_axes[v_1] < shape(input_shape, 0)
+>>
+Rule 9 (shape of input_shape should be positive)
+{input_shape : tensor} |= ∀ v_1 ∈ [0, shape(input_shape, 0) - 1] : input_shape[v_1] > 0
+>>
+Rule 18 (reduction_axes cannot have duplicate elements)
+{reduction_axes : tensor} |= ∀ v_1 ∈ [0, shape(reduction_axes, 0) - 1] : ∀ v_2 ∈ [v_1 + 1, shape(reduction_axes, 0) - 1] : reduction_axes[v_1] ≠ reduction_axes[v_2]
+>>
+Rule 19 (input_indices must be a 2D tensor)
 {v_1 : tensor} |= ndim(v_1) = 2
 >>
-Rule 2 (input_values should have rank 1)
+Rule 20 (input_shape must be a 1D tensor)
 {v_1 : tensor} |= ndim(v_1) = 1
 >>
-Rule 5 (input_indices first dimension length should equal input_values length)
+Rule 22 (first dimension of input_indices must match the number of non-empty values in input_values)
 {v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 6 (values dtype can be float32, float64, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 0
->>
-Rule 7 (keep_dims should be a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
->>
-Rule 10 (input_shape elements should be non negative)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : v_1[i] ≥ 0
->>
-Rule 12 (if keep_dims is true, the output rank should be less than or equal to the input rank)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then shape(v_2, 0) ≤ ndim(v_2)
->>
-Rule 13 (input indices dtype should be int64)
-{v_1 : tensor} |= dtype_(v_1) = 5
->>
-Rule 15 (reduction axes dtype should be int32)
-{v_1 : tensor} |= dtype_(v_1) = 4
->>
-Rule 18 (input_shape elements should be non negative)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
->>
-Rule 19 (reduction axes elements should be within the valid range)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ (0 - shape(v_1, 0)) ∧ v_2[i] < shape(v_1, 0)
->>
-Rule 20 (if keep_dims is true, reduction axes length must be less than input shape length)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then shape(v_2, 0) ≤ shape(v_3, 0)
->>
-Rule 24 (Input shape length must be greater than zero)
-{v_1 : tensor} |= shape(v_1,0) > 0
->>
-Rule 26 (input_indices shape[1] and input_shape shape[0] are related to the rank R)
-{v_1 : tensor, v_2: tensor} |= shape(v_1, 1) = shape(v_2, 0)
->>
-Rule 27 (if reduction axes is empty then keepdims should be false)
-{v_1 : tensor, v_2 : bool} |= if shape(v_1,0) = 0 then v_2 = false
->>
-Rule 28 (input_indices is a tensor of int64)
-{v_1: tensor} |= dtype_(v_1) = 5
->>
-Rule 30 (reduction_axes is a tensor of int32)
-{v_1: tensor} |= dtype_(v_1) = 4
->>
-Rule 33 (reduction axes values must be less than input rank if keep_dims is false, otherwise can be equal.)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < shape(v_1,0) else ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ shape(v_1,0)
->>
-Rule 34 (input_shape values must be positive.)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
->>
-Rule 35 (Input_indices dimensions must be valid for the input shape.)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < shape(v_2, i)
->>
-Rule 39 (reduction axes values must be less than input rank if keep_dims is false.)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < shape(v_1,0)
->>
-Rule 42 (The rank of input indices and the shape of input shape should be consistent)
-{v_1 : tensor, v_2: tensor} |= shape(v_1,1) = shape(v_2, 0)
->>
-Rule 43 (reduction_axes values must be within valid range of input_shape length and they must be valid dimensions - non negative)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ (0 - shape(v_1,0)) ∧ v_2[i] < shape(v_1,0)
->>
-Rule 44 (keep_dims is a boolean)
-{v_1: bool} |= v_1 = true ∨ v_1 = false
->>
-Rule 50 (input_values is a tensor of allowed dtypes)
-{v_1: tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 0
->>
-Rule 54 (input_indices and input_shape should have compatible shapes.)
+Rule 23 (second dimension of input_indices must match the length of input_shape)
 {v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = shape(v_2, 0)
 >>
-Rule 55 (reduction axes's absolute values must be less than input_shape length)
-{v_1: tensor, v_2: tensor} |= ∀i ∈ [0, shape(v_2,0)-1] : v_2[i] > (0-shape(v_1,0)) ∧ v_2[i] < shape(v_1,0)
+Rule 24 (input_values must be of a supported type)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 14 ∨ dtype_(v_1) = 15
 >>
-Rule 57 (Input_indices dimensions must be valid for the input shape, and the input shape dimensions must be greater than 0.)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < v_2[i] ∧ v_2[i] > 0
+Rule 25 (all elements in reduction_axes must be within the valid range based on the rank of input_shape)
+{v_1 : tensor, v_2 : tensor} |= ∀ v_3 ∈ [0, shape(v_2, 0) - 1] : v_1[v_3] ≥ (-1 * shape(v_2, 0)) ∧ v_1[v_3] < shape(v_2, 0)
 >>
-Rule 60 (Input_indices's elements must be less than corresponding shape value of input_shape.)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < v_2[i]
+Rule 26 (shape of input_shape should be positive)
+{v_1 : tensor} |= ∀ v_2 ∈ [0, shape(v_1, 0) - 1] : v_1[v_2] > 0
 >>
-Rule 66 (input_shape is a 1D tensor)
-{v_1: tensor} |= ndim(v_1) = 1
+Rule 27 (reduction_axes cannot have duplicate elements)
+{v_1 : tensor} |= ∀ v_2 ∈ [0, shape(v_1, 0) - 1] : ∀ v_3 ∈ [v_2 + 1, shape(v_1, 0) - 1] : v_1[v_2] ≠ v_1[v_3]
 >>
-Rule 74 (Input_indices's elements must be less than corresponding shape value of input_shape. And input shape values must be non-negative)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < v_2[i] ∧ v_2[i] ≥ 0
+Rule 30 (input_shape must be a 1D tensor)
+{v_2 : tensor} |= ndim(v_2) = 1
 >>
-Rule 90 (if keep_dims is true reduction axes length is less than input shape length)
-{v_1: bool, v_2: tensor, v_3: tensor} |= if v_1 = true then shape(v_2, 0) <= shape(v_3, 0)
+Rule 31 (reduction_axes must be a 1D tensor)
+{v_3 : tensor} |= ndim(v_3) = 1
 >>
-Rule 96 (Input_shape's elements should be non-negative)
-{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
+Rule 35 (all elements in reduction_axes must be within the valid range based on the rank of input_shape)
+{v_1 : tensor, v_2 : tensor} |= ∀ v_3 ∈ [0, shape(v_1, 0) - 1] : v_1[v_3] ≥ (-1 * shape(v_2, 0)) ∧ v_1[v_3] < shape(v_2, 0)
 >>
-Rule 102 (input_indices and input_shape dimensions should be aligned, and Input_indices's elements must be less than corresponding shape value of input_shape.)
-{v_1 : tensor, v_2 : tensor} |=  shape(v_1,1) = shape(v_2, 0) ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < v_2[i]
+Rule 38 (if keep_dims is true, reduction axes dimensions are retained with length 1)
+{keep_dims : bool, input_shape : tensor, reduction_axes : tensor} |= if keep_dims = true then (∀ v_1 ∈ [0, shape(reduction_axes, 0) - 1] : reduction_axes[v_1] < shape(input_shape,0) ∧ reduction_axes[v_1] >= (-1*shape(input_shape,0)))
 >>
-Rule 107 (Input_indices and input_shape dimensions should be aligned, and Input_indices's elements must be less than corresponding shape value of input_shape. Also, input_shape elements must be non-negative)
-{v_1 : tensor, v_2 : tensor} |=  shape(v_1,1) = shape(v_2, 0) ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < v_2[i] ∧ v_2[i] ≥ 0
+Rule 39 (input_indices must be a 2D tensor, input_shape must be a 1D tensor, reduction_axes must be a 1D tensor)
+{input_indices : tensor, input_shape : tensor, reduction_axes : tensor} |= ndim(input_indices) = 2 ∧ ndim(input_shape) = 1 ∧ ndim(reduction_axes) = 1
 >>
-Rule 115 (reduction_axes values must be within valid range of input_shape length, considering negative indexing)
-{v_1: tensor, v_2: tensor} |= ∀i ∈ [0, shape(v_2,0)-1] : v_2[i] ≥ (0-shape(v_1,0)) ∧ v_2[i] < shape(v_1,0)
+Rule 40 (first dimension of input_indices must match the number of non-empty values in input_values, and second dimension of input_indices must match the length of input_shape)
+{input_indices : tensor, input_values : tensor, input_shape : tensor} |= shape(input_indices, 0) = shape(input_values, 0) ∧ shape(input_indices, 1) = shape(input_shape, 0)
 >>
-Rule 116 (Input_values and input_indices have same length in the first dimension)
-{v_1 : tensor, v_2:tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 42 (all elements in reduction_axes must be within the valid range based on the rank of input_shape, and shape of input_shape should be positive)
+{reduction_axes : tensor, input_shape : tensor} |= (∀ v_1 ∈ [0, shape(reduction_axes, 0) - 1] : reduction_axes[v_1] ≥ (-1 * shape(input_shape, 0)) ∧ reduction_axes[v_1] < shape(input_shape, 0)) ∧ (∀ v_2 ∈ [0, shape(input_shape, 0) - 1] : input_shape[v_2] > 0)
 >>
-Rule 122 (Input_indices and input_shape dimensions should be aligned, Input_indices's elements must be valid w.r.t input shape and reduction axes elements should be within valid range of input_shape length, considering negative indexing)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |=  shape(v_1,1) = shape(v_2, 0) ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < v_2[i] ∧ ∀i ∈ [0, shape(v_3,0)-1] : v_3[i] ≥ (0-shape(v_2,0)) ∧ v_3[i] < shape(v_2,0)
+Rule 45 (input_indices must be a 2D tensor, input_shape must be a 1D tensor, reduction_axes must be a 1D tensor)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1
+>>
+Rule 46 (first dimension of input_indices must match the number of non-empty values in input_values, and second dimension of input_indices must match the length of input_shape)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_3, 0)
+>>
+Rule 47 (input_values must be of a supported type, reduction_axes cannot have duplicate elements)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 14 ∨ dtype_(v_1) = 15) ∧ (∀ v_3 ∈ [0, shape(v_2, 0) - 1] : ∀ v_4 ∈ [v_3 + 1, shape(v_2, 0) - 1] : v_2[v_3] ≠ v_2[v_4])
+>>
+Rule 53 (reduction_axes, input_shape relationship and input_shape positivity)
+{reduction_axes : tensor, input_shape : tensor} |= (∀ v_1 ∈ [0, shape(reduction_axes, 0) - 1] : reduction_axes[v_1] ≥ (-1 * shape(input_shape, 0)) ∧ reduction_axes[v_1] < shape(input_shape, 0)) ∧ (∀ v_2 ∈ [0, shape(input_shape, 0) - 1] : input_shape[v_2] > 0) ∧ (∀ v_3 ∈ [0, shape(reduction_axes, 0) - 1] : ∀ v_4 ∈ [v_3 + 1, shape(reduction_axes, 0) - 1] : reduction_axes[v_3] ≠ reduction_axes[v_4])
+>>
+Rule 55 (input tensors dimensionality and shape constraints)
+{input_indices : tensor, input_values : tensor, input_shape : tensor, reduction_axes : tensor} |= ndim(input_indices) = 2 ∧ ndim(input_shape) = 1 ∧ ndim(reduction_axes) = 1 ∧ shape(input_indices, 0) = shape(input_values, 0) ∧ shape(input_indices, 1) = shape(input_shape, 0)
+>>
+Rule 59 (Tensor properties and shape relationships)
+{input_indices : tensor, input_values : tensor, input_shape : tensor, reduction_axes : tensor} |= ndim(input_indices) = 2 ∧ ndim(input_shape) = 1 ∧ ndim(reduction_axes) = 1 ∧ shape(input_indices, 0) = shape(input_values, 0) ∧ shape(input_indices, 1) = shape(input_shape, 0) ∧ (∀ v_2 ∈ [0, shape(input_shape, 0) - 1] : input_shape[v_2] > 0)
+>>
+Rule 61 (Reduction axes valid range and uniqueness)
+{reduction_axes : tensor, input_shape : tensor} |= (∀ v_1 ∈ [0, shape(reduction_axes, 0) - 1] : reduction_axes[v_1] ≥ (-1 * shape(input_shape, 0)) ∧ reduction_axes[v_1] < shape(input_shape, 0)) ∧ (∀ v_3 ∈ [0, shape(reduction_axes, 0) - 1] : ∀ v_4 ∈ [v_3 + 1, shape(reduction_axes, 0) - 1] : reduction_axes[v_3] ≠ reduction_axes[v_4])
+>>
+Rule 63 (Tensor properties and shape relationships)
+{input_indices : tensor, input_values : tensor, input_shape : tensor, reduction_axes : tensor} |= ndim(input_indices) = 2 ∧ ndim(input_shape) = 1 ∧ ndim(reduction_axes) = 1 ∧ shape(input_indices, 0) = shape(input_values, 0) ∧ shape(input_indices, 1) = shape(input_shape, 0) ∧ (∀ v_2 ∈ [0, shape(input_shape, 0) - 1] : input_shape[v_2] > 0) ∧ (∀ v_3 ∈ [0, shape(reduction_axes, 0) - 1] : ∀ v_4 ∈ [v_3 + 1, shape(reduction_axes, 0) - 1] : reduction_axes[v_3] ≠ reduction_axes[v_4])
+>>
+Rule 66 (reduction_axes is empty implies a single element tensor will be returned)
+{reduction_axes : tensor} |= if shape(reduction_axes, 0) = 0 then true
+>>
+Rule 67 (Tensor properties, shape relationships, and valid ranges)
+{input_indices : tensor, input_values : tensor, input_shape : tensor, reduction_axes : tensor, keep_dims : bool} |= ndim(input_indices) = 2 ∧ ndim(input_shape) = 1 ∧ ndim(reduction_axes) = 1 ∧ shape(input_indices, 0) = shape(input_values, 0) ∧ shape(input_indices, 1) = shape(input_shape, 0) ∧ (∀ v_2 ∈ [0, shape(input_shape, 0) - 1] : input_shape[v_2] > 0) ∧ (∀ v_3 ∈ [0, shape(reduction_axes, 0) - 1] : ∀ v_4 ∈ [v_3 + 1, shape(reduction_axes, 0) - 1] : reduction_axes[v_3] ≠ reduction_axes[v_4]) ∧ (if keep_dims = true then (∀ v_1 ∈ [0, shape(reduction_axes, 0) - 1] : reduction_axes[v_1] < shape(input_shape,0) ∧ reduction_axes[v_1] >= (-1*shape(input_shape,0))))
+>>
+Rule 70 (Tensor properties, shape relationships, and valid ranges)
+{input_indices : tensor, input_values : tensor, input_shape : tensor, reduction_axes : tensor, keep_dims : bool} |= ndim(input_indices) = 2 ∧ ndim(input_shape) = 1 ∧ ndim(reduction_axes) = 1 ∧ shape(input_indices, 0) = shape(input_values, 0) ∧ shape(input_indices, 1) = shape(input_shape, 0) ∧ (∀ v_2 ∈ [0, shape(input_shape, 0) - 1] : input_shape[v_2] > 0) ∧ (∀ v_3 ∈ [0, shape(reduction_axes, 0) - 1] : ∀ v_4 ∈ [v_3 + 1, shape(reduction_axes, 0) - 1] : reduction_axes[v_3] ≠ reduction_axes[v_4]) ∧ (if keep_dims = true then (∀ v_1 ∈ [0, shape(reduction_axes, 0) - 1] : reduction_axes[v_1] < shape(input_shape,0) ∧ reduction_axes[v_1] >= (-1*shape(input_shape,0)))) ∧ (dtype_(input_values) = 7 ∨ dtype_(input_values) = 8 ∨ dtype_(input_values) = 3 ∨ dtype_(input_values) = 5 ∨ dtype_(input_values) = 2 ∨ dtype_(input_values) = 1 ∨ dtype_(input_values) = 4 ∨ dtype_(input_values) = 6 ∨ dtype_(input_values) = 13 ∨ dtype_(input_values) = 14 ∨ dtype_(input_values) = 15)
+>>
+Rule 72 (reduction_axes is empty implies a single element tensor will be returned)
+{reduction_axes : tensor} |= shape(reduction_axes, 0) ≥ 0
+>>
+Rule 74 (Reduction axes can't exceed input shape's rank)
+{reduction_axes : tensor, input_shape : tensor} |= shape(reduction_axes, 0) ≤ shape(input_shape, 0)
+>>
+Rule 75 (Reduction Axes elements are bounded by Input Shape's Rank)
+{reduction_axes : tensor, input_shape : tensor} |= ∀ v_1 ∈ [0, shape(reduction_axes, 0) - 1] : reduction_axes[v_1] ≥ (-1 * shape(input_shape, 0)) ∧ reduction_axes[v_1] < shape(input_shape, 0)
+>>
+Rule 76 (All encompassing tensor properties and relationships)
+{input_indices : tensor, input_values : tensor, input_shape : tensor, reduction_axes : tensor, keep_dims : bool} |= ndim(input_indices) = 2 ∧ ndim(input_shape) = 1 ∧ ndim(reduction_axes) = 1 ∧ shape(input_indices, 0) = shape(input_values, 0) ∧ shape(input_indices, 1) = shape(input_shape, 0) ∧ (∀ v_2 ∈ [0, shape(input_shape, 0) - 1] : input_shape[v_2] > 0) ∧ (∀ v_3 ∈ [0, shape(reduction_axes, 0) - 1] : ∀ v_4 ∈ [v_3 + 1, shape(reduction_axes, 0) - 1] : reduction_axes[v_3] ≠ reduction_axes[v_4]) ∧ (if keep_dims = true then (∀ v_5 ∈ [0, shape(reduction_axes, 0) - 1] : reduction_axes[v_5] < shape(input_shape,0) ∧ reduction_axes[v_5] >= (-1*shape(input_shape,0)))) ∧ (dtype_(input_values) = 7 ∨ dtype_(input_values) = 8 ∨ dtype_(input_values) = 3 ∨ dtype_(input_values) = 5 ∨ dtype_(input_values) = 2 ∨ dtype_(input_values) = 1 ∨ dtype_(input_values) = 4 ∨ dtype_(input_values) = 6 ∨ dtype_(input_values) = 13 ∨ dtype_(input_values) = 14 ∨ dtype_(input_values) = 15)
+>>
+Rule 80 (All encompassing tensor properties and relationships)
+{input_indices : tensor, input_values : tensor, input_shape : tensor, reduction_axes : tensor, keep_dims : bool} |= ndim(input_indices) = 2 ∧ ndim(input_shape) = 1 ∧ ndim(reduction_axes) = 1 ∧ shape(input_indices, 0) = shape(input_values, 0) ∧ shape(input_indices, 1) = shape(input_shape, 0) ∧ (∀ v_2 ∈ [0, shape(input_shape, 0) - 1] : input_shape[v_2] > 0) ∧ (∀ v_3 ∈ [0, shape(reduction_axes, 0) - 1] : ∀ v_4 ∈ [v_3 + 1, shape(reduction_axes, 0) - 1] : reduction_axes[v_3] ≠ reduction_axes[v_4]) ∧ (if keep_dims = true then (∀ v_5 ∈ [0, shape(reduction_axes, 0) - 1] : reduction_axes[v_5] < shape(input_shape,0) ∧ reduction_axes[v_5] >= (-1*shape(input_shape,0)))) ∧ (dtype_(input_values) = 7 ∨ dtype_(input_values) = 8 ∨ dtype_(input_values) = 3 ∨ dtype_(input_values) = 5 ∨ dtype_(input_values) = 2 ∨ dtype_(input_values) = 1 ∨ dtype_(input_values) = 4 ∨ dtype_(input_values) = 6 ∨ dtype_(input_values) = 13 ∨ dtype_(input_values) = 14 ∨ dtype_(input_values) = 15) ∧ (∀ v_1 ∈ [0, shape(reduction_axes, 0) - 1] : reduction_axes[v_1] ≥ (-1 * shape(input_shape, 0)) ∧ reduction_axes[v_1] < shape(input_shape, 0))
+>>
+Rule 81 (Combination of all constraints)
+{input_indices : tensor, input_values : tensor, input_shape : tensor, reduction_axes : tensor, keep_dims : bool} |= ndim(input_indices) = 2 ∧ ndim(input_shape) = 1 ∧ ndim(reduction_axes) = 1 ∧ shape(input_indices, 0) = shape(input_values, 0) ∧ shape(input_indices, 1) = shape(input_shape, 0) ∧ (∀ v_2 ∈ [0, shape(input_shape, 0) - 1] : input_shape[v_2] > 0) ∧ (∀ v_3 ∈ [0, shape(reduction_axes, 0) - 1] : ∀ v_4 ∈ [v_3 + 1, shape(reduction_axes, 0) - 1] : reduction_axes[v_3] ≠ reduction_axes[v_4]) ∧ (if keep_dims = true then (∀ v_5 ∈ [0, shape(reduction_axes, 0) - 1] : reduction_axes[v_5] < shape(input_shape,0) ∧ reduction_axes[v_5] >= (-1*shape(input_shape,0)))) ∧ (dtype_(input_values) = 7 ∨ dtype_(input_values) = 8 ∨ dtype_(input_values) = 3 ∨ dtype_(input_values) = 5 ∨ dtype_(input_values) = 2 ∨ dtype_(input_values) = 1 ∨ dtype_(input_values) = 4 ∨ dtype_(input_values) = 6 ∨ dtype_(input_values) = 13 ∨ dtype_(input_values) = 14 ∨ dtype_(input_values) = 15) ∧ (∀ v_1 ∈ [0, shape(reduction_axes, 0) - 1] : reduction_axes[v_1] >= (-1 * shape(input_shape, 0)) ∧ reduction_axes[v_1] < shape(input_shape, 0))
+>>
+Rule 82 (Combination of all constraints)
+{input_indices : tensor, input_values : tensor, input_shape : tensor, reduction_axes : tensor, keep_dims : bool} |= ndim(input_indices) = 2 ∧ ndim(input_shape) = 1 ∧ ndim(reduction_axes) = 1 ∧ shape(input_indices, 0) = shape(input_values, 0) ∧ shape(input_indices, 1) = shape(input_shape, 0) ∧ (∀ v_2 ∈ [0, shape(input_shape, 0) - 1] : input_shape[v_2] > 0) ∧ (∀ v_3 ∈ [0, shape(reduction_axes, 0) - 1] : ∀ v_4 ∈ [v_3 + 1, shape(reduction_axes, 0) - 1] : reduction_axes[v_3] ≠ reduction_axes[v_4]) ∧ (if keep_dims = true then (∀ v_5 ∈ [0, shape(reduction_axes, 0) - 1] : reduction_axes[v_5] < shape(input_shape,0) ∧ reduction_axes[v_5] >= (-1*shape(input_shape,0)))) ∧ (dtype_(input_values) = 7 ∨ dtype_(input_values) = 8 ∨ dtype_(input_values) = 3 ∨ dtype_(input_values) = 5 ∨ dtype_(input_values) = 2 ∨ dtype_(input_values) = 1 ∨ dtype_(input_values) = 4 ∨ dtype_(input_values) = 6 ∨ dtype_(input_values) = 13 ∨ dtype_(input_values) = 14 ∨ dtype_(input_values) = 15) ∧ (∀ v_6 ∈ [0, shape(reduction_axes, 0) - 1] : reduction_axes[v_6] >= (-1 * shape(input_shape, 0)) ∧ reduction_axes[v_6] < shape(input_shape, 0))
+>>
+Rule 83 (Combination of all constraints)
+{input_indices : tensor, input_values : tensor, input_shape : tensor, reduction_axes : tensor, keep_dims : bool} |= ndim(input_indices) = 2 ∧ ndim(input_shape) = 1 ∧ ndim(reduction_axes) = 1 ∧ shape(input_indices, 0) = shape(input_values, 0) ∧ shape(input_indices, 1) = shape(input_shape, 0) ∧ (∀ v_2 ∈ [0, shape(input_shape, 0) - 1] : input_shape[v_2] > 0) ∧ (∀ v_3 ∈ [0, shape(reduction_axes, 0) - 1] : ∀ v_4 ∈ [v_3 + 1, shape(reduction_axes, 0) - 1] : reduction_axes[v_3] ≠ reduction_axes[v_4]) ∧ (if keep_dims = true then (∀ v_5 ∈ [0, shape(reduction_axes, 0) - 1] : reduction_axes[v_5] < shape(input_shape,0) ∧ reduction_axes[v_5] >= (-1*shape(input_shape,0)))) ∧ (dtype_(input_values) = 7 ∨ dtype_(input_values) = 8 ∨ dtype_(input_values) = 3 ∨ dtype_(input_values) = 5 ∨ dtype_(input_values) = 2 ∨ dtype_(input_values) = 1 ∨ dtype_(input_values) = 4 ∨ dtype_(input_values) = 6 ∨ dtype_(input_values) = 13 ∨ dtype_(input_values) = 14 ∨ dtype_(input_values) = 15) ∧ (∀ v_7 ∈ [0, shape(reduction_axes, 0) - 1] : reduction_axes[v_7] >= (-1 * shape(input_shape, 0)) ∧ reduction_axes[v_7] < shape(input_shape, 0))

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# width dimension of image must be greater than 0 (Rule 4)
+# inner 3 dims of image.shape must be > 0 to avoid ValueError, covering height dimension (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0) if n else
-          Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0)
+    s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 3) > 0) if n else
+          Select(v["arg1_shape"], v["arg1_ndim"] - 3) > 0)
 )
 
 def rule_4_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_4_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 4
-        rule_4(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_4(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_4(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_4(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# tensor cannot be int16 (Rule 13)
+# x must be a float32 or float64 tensor to avoid InvalidArgumentError related to 'T' attribute of 'Neg' Op (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 2) if n else
-          v["arg1_dtype"] != 2)
+    s.add(Not(Or(v["arg1_dtype"] == 8, v["arg1_dtype"] == 9)) if n else
+          Or(v["arg1_dtype"] == 8, v["arg1_dtype"] == 9))
 )
 
 def rule_13_func(arg1, solver=None, neg=False):

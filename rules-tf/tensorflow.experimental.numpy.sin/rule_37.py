@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# the difference between minimum and maximum should be less than 10000 in the tensor. (Rule 37)
+# If the tensor dtype is int8 or uint8, then max should be smaller than 128 and 255 respectively (Rule 37)
 
 rule_37 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 1) - Select(v["arg1_range"], 0) < 10000) if n else
-          Select(v["arg1_range"], 1) - Select(v["arg1_range"], 0) < 10000)
+    s.add(Not(If(v["arg1_dtype"] == 1, Select(v["arg1_range"], 1) < 128, If(v["arg1_dtype"] == 5, Select(v["arg1_range"], 1) < 256, True))) if n else
+          If(v["arg1_dtype"] == 1, Select(v["arg1_range"], 1) < 128, If(v["arg1_dtype"] == 5, Select(v["arg1_range"], 1) < 256, True)))
 )
 
 def rule_37_func(arg1, solver=None, neg=False):
@@ -22,16 +22,18 @@ def rule_37_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_dtype = Int('arg1_dtype')
         arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 37
-        rule_37(solver, {'arg1_range': arg1_range})
+        rule_37(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_37(solver, {'arg1_range': arg1['range']}, neg)
+        rule_37(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)

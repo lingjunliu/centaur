@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If x is uint16 then y must be uint16 (Rule 22)
+# If y is int8, int16, int32, int64, then x is one of int types, or uint8 (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 4, v["arg2_dtype"] == 4, False)) if n else
-          If(v["arg1_dtype"] == 4, v["arg2_dtype"] == 4, False))
+    s.add(Not(If(Or(Or(Or((v["arg2_dtype"] == 1), (v["arg2_dtype"] == 2)), (v["arg2_dtype"] == 3)), (v["arg2_dtype"] == 4)), Or(Or(Or(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 3)), (v["arg1_dtype"] == 4)), (v["arg1_dtype"] == 5)), True)) if n else
+          If(Or(Or(Or((v["arg2_dtype"] == 1), (v["arg2_dtype"] == 2)), (v["arg2_dtype"] == 3)), (v["arg2_dtype"] == 4)), Or(Or(Or(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 3)), (v["arg1_dtype"] == 4)), (v["arg1_dtype"] == 5)), True))
 )
 
 def rule_22_func(arg1, arg2, solver=None, neg=False):

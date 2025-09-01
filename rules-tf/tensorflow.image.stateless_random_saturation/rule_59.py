@@ -5,17 +5,18 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the image is an empty tensor then the lower bound must be 1 and the upper bound must be 1 (Rule 59)
+# seed is a 1D tensor shape (2, (Rule 59)
 
 rule_59 = lambda s, v, n=False: (
-    s.add(Not(If(Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)]), And(v["arg2_value"] == 1, v["arg3_value"] == 1), False)) if n else
-          If(Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)]), And(v["arg2_value"] == 1, v["arg3_value"] == 1), False))
+    s.add(Not(If(And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 3, (Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10))), (And(And(And(And(v["arg4_ndim"] == 1, Select(v["arg4_shape"], 0) == 2), (Or(v["arg4_dtype"] == 3, v["arg4_dtype"] == 4))), v["arg2_value"] >= 0), v["arg3_value"] > v["arg2_value"])), True)) if n else
+          If(And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 3, (Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10))), (And(And(And(And(v["arg4_ndim"] == 1, Select(v["arg4_shape"], 0) == 2), (Or(v["arg4_dtype"] == 3, v["arg4_dtype"] == 4))), v["arg2_value"] >= 0), v["arg3_value"] > v["arg2_value"])), True))
 )
 
-def rule_59_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_59_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
     arg3 = next(iter(arg3.values()))
+    arg4 = next(iter(arg4.values()))
 
     # Invariant learning phase
     if not solver:
@@ -25,25 +26,36 @@ def rule_59_func(arg1, arg2, arg3, solver=None, neg=False):
             return False
         if not isinstance(arg3, (float, np.floating)):
             return False
+        if not isinstance(arg4, np.ndarray):
+            return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
         arg2_value = Real('arg2_value')
         arg3_value = Real('arg3_value')
+        arg4_ndim = Int('arg4_ndim')
+        arg4_shape = Array('arg4_shape', IntSort(), IntSort())
+        arg4_dtype = Int('arg4_dtype')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_value == arg2)
         solver.add(arg3_value == arg3)
+        solver.add(arg4_ndim == arg4.ndim)
+        for i in range(arg4.ndim):
+            arg4_shape = Store(arg4_shape, i, arg4.shape[i])
+        solver.add(arg4_dtype == list_of_available_dtypes.index(arg4.dtype))
 
         # Constraints for rule 59
-        rule_59(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
+        rule_59(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value, 'arg3_value': arg3_value, 'arg4_shape': arg4_shape, 'arg4_ndim': arg4_ndim, 'arg4_dtype': arg4_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_59(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)
+        rule_59(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value'], 'arg4_shape': arg4['shape'], 'arg4_ndim': arg4['ndim'], 'arg4_dtype': arg4['dtype']}, neg)

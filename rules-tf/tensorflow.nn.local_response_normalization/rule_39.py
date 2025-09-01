@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the depth_radius is large, the first dimension of input tensor must be not so small to avoid out of bound. (Rule 39)
+# If the input tensor's last dimension is too small for depth_radius, then force depth_radius to a valid size. (Rule 39)
 
 rule_39 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] > 10, Select(v["arg1_shape"], 0) > 5, False)) if n else
-          If(v["arg2_value"] > 10, Select(v["arg1_shape"], 0) > 5, False))
+    s.add(Not(If(Select(v["arg1_shape"], 3) <= 2 * v["arg2_value"], v["arg2_value"] == Select(v["arg1_shape"], 3) / 2, True)) if n else
+          If(Select(v["arg1_shape"], 3) <= 2 * v["arg2_value"], v["arg2_value"] == Select(v["arg1_shape"], 3) / 2, True))
 )
 
 def rule_39_func(arg1, arg2, solver=None, neg=False):

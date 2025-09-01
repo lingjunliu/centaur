@@ -1,150 +1,66 @@
 >>
-Rule 1 (crop_window must have length 4)
-{v_1 : tensor} |= v_1.len = 4
->>
-Rule 2 (channels must be one of 0, 1, or 3)
-{v_1 : int} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 3
->>
-Rule 3 (ratio must be one of 1, 2, 4, or 8)
+Rule 1 (ratio should be one of the allowed values)
 {v_1 : int} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 4 ∨ v_1 = 8
 >>
-Rule 4 (acceptable_fraction must be between 0 and 1, inclusive)
-{v_1 : float} |= v_1 ≥ 0.0 ∧ v_1 ≤ 1.0
+Rule 2 (channels should be a valid value)
+{v_1 : int} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 3
 >>
-Rule 5 (dct_method must be either an empty string, "INTEGER_FAST", or "INTEGER_ACCURATE")
+Rule 3 (dct_method must be one of the allowed strings)
 {v_1 : str} |= v_1 = "" ∨ v_1 = "INTEGER_FAST" ∨ v_1 = "INTEGER_ACCURATE"
 >>
-Rule 6 (crop_window values must be non-negative)
-{v_1 : tensor} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+Rule 4 (crop_window must have length 4)
+{v_1 : tensor} |= shape(v_1, 0) = 4
 >>
-Rule 7 (crop_height + crop_y <= image_height AND crop_width + crop_x <= image_width (approximation))
-{v_1 : tensor, v_2 : tensor} |= v_1[0] + v_1[2] <= shape(v_2, 0) ∧ v_1[1] + v_1[3] <= shape(v_2, 1)
+Rule 5 (acceptable_fraction must be between 0 and 1)
+{v_1 : float} |= v_1 ≥ 0.0 ∧ v_1 ≤ 1.0
 >>
-Rule 8 (contents should be a non-empty string)
-{v_1 : str} |= v_1 ≠ ""
+Rule 6 (crop_window elements should be non-negative)
+{v_1 : tensor} |= ∀i ∈ [0, 3] : v_1[i] ≥ 0
 >>
-Rule 9 (crop_window height and width should be positive)
-{v_1 : tensor} |= v_1[2] > 0 ∧ v_1[3] > 0
->>
-Rule 10 (crop_window data type must be int32)
-{v_1 : tensor} |= dtype_(v_1) = 3
->>
-Rule 11 (channels must be a non-negative integer)
-{v_1 : int} |= v_1 ≥ 0
->>
-Rule 12 (ratio must be a positive integer)
+Rule 7 (ratio must be a positive integer)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 13 (acceptable_fraction cannot be negative)
+Rule 8 (crop_window must be a int32 tensor)
+{v_1 : tensor} |= dtype_(v_1) = 3
+>>
+Rule 10 (contents must be a non-empty string)
+{v_1 : str} |= v_1 ≠ ""
+>>
+Rule 11 (ratio should not be zero)
+{v_1 : int} |= v_1 ≠ 0
+>>
+Rule 12 (ratio should be within the int32 range)
+{v_1 : int} |= v_1 ≥ -2147483648 ∧ v_1 ≤ 2147483647
+>>
+Rule 13 (crop_window values should be within a reasonable range)
+{v_1 : tensor} |= ∀i ∈ [0, 3] : v_1[i] ≤ 2048
+>>
+Rule 15 (contents is not none)
+{v_1 : str} |= v_1 ≠ "none"
+>>
+Rule 16 (crop_height and crop_width should be positive)
+{v_1 : tensor} |= v_1[2] > 0 ∧ v_1[3] > 0
+>>
+Rule 17 (crop_y and crop_x should be non-negative)
+{v_1 : tensor} |= v_1[0] ≥ 0 ∧ v_1[1] ≥ 0
+>>
+Rule 19 (acceptable_fraction should be a non-negative float)
 {v_1 : float} |= v_1 ≥ 0.0
 >>
-Rule 14 (contents cannot be an empty tensor)
-{v_1 : tensor} |= ndim(v_1) = 0
+Rule 21 (acceptable_fraction should be less than or equal to 1.0)
+{v_1 : float} |= v_1 ≤ 1.0
 >>
-Rule 15 (crop_window contains valid crop region)
-{v_1 : tensor, v_2 : tensor} |= v_1[0] ≥ 0 ∧ v_1[1] ≥ 0 ∧ v_1[2] > 0 ∧ v_1[3] > 0 ∧ v_1[0] + v_1[2] ≤ shape(v_2, 0) ∧ v_1[1] + v_1[3] ≤ shape(v_2, 1)
+Rule 26 (dct_method is a string with a reasonable length)
+{v_1 : str} |= v_1.len ≤ 20
 >>
-Rule 16 (If try_recover_truncated is true, acceptable_fraction must be greater than 0)
+Rule 27 (channels must be a non-negative integer)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 30 (try_recover_truncated should have a reasonable value)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 32 (if try_recover_truncated is true, acceptable_fraction should be greater than zero)
 {v_1 : bool, v_2 : float} |= if v_1 = true then v_2 > 0.0
 >>
-Rule 17 (contents must be of string type)
-{v_1 : tensor} |= dtype_(v_1) = 11
->>
-Rule 21 (crop_window height and width must be less than or equal to the original image height and width)
-{v_1 : tensor, v_2 : tensor} |= v_1[2] ≤ shape(v_2, 0) ∧ v_1[3] ≤ shape(v_2, 1)
->>
-Rule 22 (Crop window starting coordinates can not exceed image dimensions)
-{v_1: tensor, v_2: tensor} |= v_1[0] < shape(v_2, 0) ∧ v_1[1] < shape(v_2, 1)
->>
-Rule 23 (Contents must be a scalar string tensor)
-{v_1: tensor} |= ndim(v_1) = 0 ∧ dtype_(v_1) = 11
->>
-Rule 25 (If ratio is not 1, fancy_upscaling should not matter - simplified)
-{v_1 : int} |= if v_1 ≠ 1 then true
->>
-Rule 26 (crop_y and crop_x must be less than the image height and width after downscaling with ratio)
-{v_1 : tensor, v_2 : int, v_3 : tensor} |= v_1[0] < shape(v_3, 0) / v_2 ∧ v_1[1] < shape(v_3, 1) / v_2
->>
-Rule 31 (crop_window should be a 1D tensor)
-{v_1 : tensor} |= ndim(v_1) = 1
->>
-Rule 32 (If try_recover_truncated is false acceptable_fraction does not matter)
-{v_1: bool} |= if v_1 = false then true
->>
-Rule 33 (channels must be an integer)
-{v_1: float ⊎ int} |= if (v_1 - (v_1 % 1)) = v_1 then true else false
->>
-Rule 35 (try_recover_truncated must be a boolean)
-{v_1: bool} |= v_1 = true ∨ v_1 = false
->>
-Rule 36 (channels must be an integer, more grammar friendly)
-{v_1: int ⊎ float} |= ∃i ∈ [-100000, 100000] : v_1 = i
->>
-Rule 38 (channels must be 0, 1, or 3 if specified)
-{v_1: int} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 3
->>
-Rule 39 (ratio must be 1, 2, 4, or 8 if specified)
-{v_1: int} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 4 ∨ v_1 = 8
->>
-Rule 40 (channels must be an integer, different formulation)
-{v_1: float ⊎ int} |= (v_1 % 1) = 0
->>
-Rule 42 (crop_window tensor must have int32 elements)
-{v_1: tensor} |= dtype_(v_1) = 3
->>
-Rule 50 (channels must be an integer, no duplicates)
-{v_1: float ⊎ int} |= if v_1 % 1 = 0 then true else false
->>
-Rule 51 (acceptable_fraction must be a float, checking type.)
-{v_1 : float ⊎ int} |= if v_1 % 1 ≠ 0 then true else false
->>
-Rule 54 (channels must be a non-negative integer or zero)
-{v_1 : int ⊎ float} |= if v_1 % 1 = 0 then v_1 ≥ 0 else false
->>
-Rule 55 (ratio must be a positive integer greater than zero.)
-{v_1 : int ⊎ float} |= if v_1 % 1 = 0 then v_1 > 0 else false
->>
-Rule 56 (Fancy upscaling must be a boolean, different binding name)
-{v_fancy: bool} |= v_fancy = true ∨ v_fancy = false
->>
-Rule 57 (channels must be a non-negative integer or zero, explicit type check and range)
-{v_1 : int ⊎ float} |= if (v_1 % 1 = 0) ∧ (v_1 ≥ 0) then true else false
->>
-Rule 58 (ratio must be a positive integer greater than zero, explicit type check and range)
-{v_1 : int ⊎ float} |= if (v_1 % 1 = 0) ∧ (v_1 > 0) then true else false
->>
-Rule 60 (dct_method valid values using or)
-{v_dct : str} |= v_dct = "" ∨ v_dct = "INTEGER_FAST" ∨ v_dct = "INTEGER_ACCURATE"
->>
-Rule 66 (try_recover_truncated must be a boolean, complete and no redundancy)
-{v_try: bool} |= v_try = true ∨ v_try = false
->>
-Rule 67 (acceptable_fraction valid range check)
-{v_acc: float} |= v_acc ≥ 0.0 ∧ v_acc ≤ 1.0
->>
-Rule 68 (Fancy upscaling must be a boolean, checking is boolean)
-{v_fancy: bool} |= true = v_fancy ∨ false = v_fancy
->>
-Rule 69 (contents is a scalar)
-{v_contents: tensor} |= ndim(v_contents) = 0
->>
-Rule 70 (crop_window is 1D)
-{v_crop: tensor} |= ndim(v_crop) = 1
->>
-Rule 71 (ratio parameter type check: int or float can be int only)
-{v_ratio: int ⊎ float} |= (v_ratio % 1) = 0
->>
-Rule 72 (channels parameter type check: int or float can be int only)
-{v_channels: int ⊎ float} |= (v_channels % 1) = 0
->>
-Rule 73 (acceptable_fraction parameter type check: int or float can be float only)
-{v_fraction: int ⊎ float} |= (v_fraction % 1) ≠ 0
->>
-Rule 74 (if try_recover_truncated is true, acceptable fraction should be provided)
-{v_try : bool, v_acc : float} |= if v_try = true then v_acc ≥ 0.0 ∧ v_acc ≤ 1.0
->>
-Rule 75 (crop_window values must be less than image dimensions approximation)
-{v_crop: tensor, v_image: tensor} |= v_crop[0] < shape(v_image, 0) ∧ v_crop[1] < shape(v_image, 1)
->>
-Rule 76 (if ratio is greater than 1, crop dimensions must be divisible by ratio)
-{v_ratio: int, v_crop: tensor} |= if v_ratio > 1 then (v_crop[2] % v_ratio) = 0 ∧ (v_crop[3] % v_ratio) = 0
+Rule 33 (if try_recover_truncated is false, acceptable_fraction should be 1.0)
+{v_1 : bool, v_2 : float} |= if v_1 = false then v_2 = 1.0

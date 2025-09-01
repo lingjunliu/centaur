@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# axis must be an integer and within the valid range (Rule 26)
+# If axis equals rank of x then that's invalid (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(And((0 - v["arg1_ndim"]) <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"])) if n else
-          And((0 - v["arg1_ndim"]) <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"]))
+    s.add(Not(v["arg2_value"] != v["arg1_ndim"]) if n else
+          v["arg2_value"] != v["arg1_ndim"])
 )
 
 def rule_26_func(arg1, arg2, solver=None, neg=False):

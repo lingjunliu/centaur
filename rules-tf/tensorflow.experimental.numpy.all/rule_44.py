@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input is empty the result is true (Rule 44)
+# Restrict the number of dimensions of the input tensor to avoid too much computation (Rule 44)
 
 rule_44 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 0, True, False)) if n else
-          If(v["arg1_ndim"] == 0, True, False))
+    s.add(Not(v["arg1_ndim"] < 6) if n else
+          v["arg1_ndim"] < 6)
 )
 
 def rule_44_func(arg1, solver=None, neg=False):

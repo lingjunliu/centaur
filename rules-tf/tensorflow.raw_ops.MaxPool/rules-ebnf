@@ -1,111 +1,285 @@
 >>
-Rule 1 (ksize and strides must have length greater than or equal to 4)
-{v_1 : list(int), v_2 : list(int)} |= v_1.len ≥ 4 ∧ v_2.len ≥ 4
+Rule 1 (ksize must have length greater than or equal to 4)
+{v_1 : list(int)} |= v_1.len ≥ 4
 >>
-Rule 2 (explicit_paddings list length should be even)
-{v_1 : list(int)} |= v_1.len % 2 = 0
->>
-Rule 3 (padding string must be one of the allowed values)
+Rule 3 (padding must be one of the allowed strings)
 {v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID" ∨ v_1 = "EXPLICIT"
 >>
-Rule 4 (data_format string must be one of the allowed values)
+Rule 4 (data_format must be one of the allowed strings)
 {v_1 : str} |= v_1 = "NHWC" ∨ v_1 = "NCHW" ∨ v_1 = "NCHW_VECT_C"
 >>
-Rule 5 (ksize and strides lists must have the same length)
-{v_1 : list(int), v_2 : list(int)} |= v_1.len = v_2.len
+Rule 5 (If padding is EXPLICIT, explicit_paddings must be provided and its length must be a multiple of 2)
+{v_1 : str, v_2 : list(int)} |= if v_1 = "EXPLICIT" then v_2.len % 2 = 0
 >>
-Rule 6 (at least one dimension of ksize should be greater than 1)
-{v_1 : list(int)} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] > 1
+Rule 6 (input tensor must have rank 4)
+{v_1 : tensor} |= ndim(v_1) = 4
 >>
-Rule 7 (all elements in ksize and strides must be positive)
-{v_1 : list(int), v_2 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+Rule 7 (ksize elements must be greater than 0)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 8 (If padding is EXPLICIT, explicit_paddings should be provided)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "EXPLICIT" then v_2.len > 0
->>
-Rule 9 (input tensor must have at least 4 dimensions)
-{v_1 : tensor} |= ndim(v_1) ≥ 4
->>
-Rule 10 (batch size must be greater than 0)
-{v_1 : tensor} |= shape(v_1, 0) > 0
->>
-Rule 11 (explicit_paddings length must be twice the input tensor's rank if padding is EXPLICIT)
-{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "EXPLICIT" then v_2.len = 2 * ndim(v_3)
->>
-Rule 12 (If data format is NCHW, the channel dimension must be a positive integer)
-{v_1 : str, v_2 : tensor} |= if v_1 = "NCHW" then shape(v_2, 1) > 0
->>
-Rule 13 (If data format is NHWC, the channel dimension must be a positive integer)
-{v_1 : str, v_2 : tensor} |= if v_1 = "NHWC" then shape(v_2, 3) > 0
->>
-Rule 15 (input tensor dtype should be float32 or float64)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
->>
-Rule 17 (ksize and strides cannot have zero values)
-{v_1 : list(int), v_2 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≠ 0
->>
-Rule 18 (ksize and strides cannot be all ones simultaneously)
-{v_1 : list(int), v_2 : list(int)} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] ≠ 1 ∨ ∃i ∈ [0, v_2.len - 1] : v_2[i] ≠ 1
->>
-Rule 19 (If padding is EXPLICIT, explicit_paddings length must be at least 8)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "EXPLICIT" then v_2.len ≥ 8
->>
-Rule 21 (When padding is EXPLICIT, explicit_paddings length must be equal to twice the number of spatial dimensions * 2)
-{v_1 : str, v_2 : list(int), v_3 : str} |= if v_1 = "EXPLICIT" then if v_3 = "NHWC" ∨ v_3 = "NCHW" then v_2.len = 8
->>
-Rule 23 (If padding is SAME, explicit_paddings should be an empty list)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "SAME" then v_2.len = 0
->>
-Rule 24 (If padding is VALID, explicit_paddings should be an empty list)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "VALID" then v_2.len = 0
->>
-Rule 25 (explicit_paddings values should be non-negative)
+Rule 9 (explicit paddings elements must be non-negative)
 {v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 26 (When data_format is NCHW_VECT_C, the number of channels must be divisible by a certain factor (e.g., 4 or 8) which is not expressible here so omitted)
-{v_1 : str, v_2 : tensor} |= if v_1 = "NCHW_VECT_C" then shape(v_2, 1) > 0
+Rule 10 (the type of input tensor must be in the allowed list, encoded by integers as described in task description.)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 2
 >>
-Rule 27 (When data_format is NCHW, ksize[2] and strides[2] should correspond to in_height)
-{v_1 : str, v_2 : list(int), v_3 : list(int)} |= if v_1 = "NCHW" then v_2[2] > 0 ∧ v_3[2] > 0
+Rule 11 (The number of explicit paddings must be less than or equal to twice the input dimension if padding is EXPLICIT)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "EXPLICIT" then v_2.len ≤ 2 * ndim(v_3)
 >>
-Rule 28 (When data_format is NHWC, ksize[1] and strides[1] should correspond to in_height)
-{v_1 : str, v_2 : list(int), v_3 : list(int)} |= if v_1 = "NHWC" then v_2[1] > 0 ∧ v_3[1] > 0
+Rule 12 (If padding is EXPLICIT and explicit paddings are provided, ksize length must be at least half of explicit paddings length)
+{v_1 : str, v_2 : list(int), v_3 : list(int)} |= if v_1 = "EXPLICIT" ∧ v_2.len > 0 then v_3.len ≥ v_2.len / 2
 >>
-Rule 29 (When data_format is NCHW, ksize[3] and strides[3] should correspond to in_width)
-{v_1 : str, v_2 : list(int), v_3 : list(int)} |= if v_1 = "NCHW" then v_2[3] > 0 ∧ v_3[3] > 0
+Rule 13 (ksize and strides must have same length)
+{v_1 : list(int), v_2 : list(int)} |= v_1.len = v_2.len
 >>
-Rule 30 (When data_format is NHWC, ksize[2] and strides[2] should correspond to in_width)
-{v_1 : str, v_2 : list(int), v_3 : list(int)} |= if v_1 = "NHWC" then v_2[2] > 0 ∧ v_3[2] > 0
+Rule 14 (If data format is NCHW, the second element of ksize should be less or equal than the number of channels.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NCHW" then v_2[1] ≤ shape(v_3, 1)
 >>
-Rule 31 (When data_format is NHWC, ksize[3] and strides[3] should correspond to in_channels)
-{v_1 : str, v_2 : list(int), v_3 : list(int)} |= if v_1 = "NHWC" then v_2[3] > 0 ∧ v_3[3] > 0
+Rule 15 (If data format is NHWC, the third element of ksize should be less or equal than the number of channels.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NHWC" then v_2[3] ≤ shape(v_3, 3)
 >>
-Rule 32 (When data_format is NCHW, ksize[1] should correspond to in_channels)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "NCHW" then v_2[1] > 0
+Rule 16 (if explicit paddings is empty list and padding is EXPLICIT, then its wrong.)
+{v_1 : str, v_2 : list(int)} |= if v_1 = "EXPLICIT" then v_2.len > 0
 >>
-Rule 33 (When data_format is NCHW_VECT_C, ksize[1] should be one)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "NCHW_VECT_C" then v_2[1] = 1
+Rule 18 (If data format is NCHW, the height and width dimensions of input must be greater or equal than ksize and strides height and width respectively)
+{v_1 : str, v_2 : list(int), v_3 : list(int), v_4 : tensor} |= if v_1 = "NCHW" then shape(v_4, 2) ≥ v_2[2] ∧ shape(v_4, 3) ≥ v_2[3] ∧ shape(v_4, 2) ≥ v_3[2] ∧ shape(v_4, 3) ≥ v_3[3]
 >>
-Rule 35 (input tensor must be of a supported type)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2
+Rule 19 (If data format is NHWC, the height and width dimensions of input must be greater or equal than ksize and strides height and width respectively)
+{v_1 : str, v_2 : list(int), v_3 : list(int), v_4 : tensor} |= if v_1 = "NHWC" then shape(v_4, 1) ≥ v_2[1] ∧ shape(v_4, 2) ≥ v_2[2] ∧ shape(v_4, 1) ≥ v_3[1] ∧ shape(v_4, 2) ≥ v_3[2]
 >>
-Rule 37 (When data_format is NCHW_VECT_C, the last dimension of the ksize and strides list should be equal to the last dimension of the input)
-{v_1 : str, v_2 : list(int), v_3 : list(int), v_4 : tensor} |= if v_1 = "NCHW_VECT_C" then v_2[v_2.len - 1] = shape(v_4, ndim(v_4) -1) ∧ v_3[v_3.len - 1] = shape(v_4, ndim(v_4) - 1)
+Rule 20 (If padding is VALID, explicit_paddings should be an empty list.)
+{v_1 : str, v_2 : list(int)} |= if v_1 = "VALID" then v_2.len = 0
 >>
-Rule 38 (When data_format is NCHW, ksize length must equal to input tensor's ndim)
-{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NCHW" then v_2.len = ndim(v_3)
+Rule 21 (If padding is SAME, explicit_paddings should be an empty list.)
+{v_1 : str, v_2 : list(int)} |= if v_1 = "SAME" then v_2.len = 0
 >>
-Rule 39 (When data_format is NHWC, ksize length must equal to input tensor's ndim)
-{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NHWC" then v_2.len = ndim(v_3)
+Rule 22 (The batch size dimension of the output will match the input)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= (v_3 = "NHWC" ∧ shape(v_1, 0) = shape(v_2, 0)) ∨ (v_3 = "NCHW" ∧ shape(v_1, 0) = shape(v_2, 0))
 >>
-Rule 40 (When data_format is NCHW_VECT_C, ksize length must equal to input tensor's ndim)
-{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NCHW_VECT_C" then v_2.len = ndim(v_3)
+Rule 23 (explicit_paddings length is not zero only if padding is EXPLICIT)
+{v_1 : str, v_2 : list(int)} |= if v_2.len > 0 then v_1 = "EXPLICIT"
 >>
-Rule 44 (When data_format is NCHW_VECT_C, ksize and strides length must equal to input tensor's ndim)
-{v_1 : str, v_2 : list(int), v_3 : list(int), v_4 : tensor} |= if v_1 = "NCHW_VECT_C" then v_2.len = ndim(v_4) ∧ v_3.len = ndim(v_4)
+Rule 24 (If data format is NCHW, the channel dimension of input must be greater than or equal to the ksize channel dimension.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NCHW" then shape(v_3, 1) ≥ v_2[1]
 >>
-Rule 45 (When data_format is NCHW, the dimension of explicit_padding must be multiple of 2)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "NCHW" then v_2.len % 2 = 0
+Rule 25 (If data format is NHWC, the channel dimension of input must be greater than or equal to the ksize channel dimension.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NHWC" then shape(v_3, 3) ≥ v_2[3]
 >>
-Rule 46 (When data_format is NHWC, the dimension of explicit_padding must be multiple of 2)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "NHWC" then v_2.len % 2 = 0
+Rule 26 (The first element of explicit paddings must not be greater than the spatial dimension. Assuming NHWC.)
+{v_1: list(int), v_2: str, v_3 : tensor} |= if v_2 = "NHWC" ∧ v_1.len > 0 then v_1[0] ≤ shape(v_3, 1)
+>>
+Rule 27 (If padding is EXPLICIT, the explicit_paddings length must be twice the number of spatial dimensions. Assuming NHWC.)
+{v_1 : str, v_2 : list(int), v_3: str} |= if v_1 = "EXPLICIT" ∧ v_3 = "NHWC" then v_2.len = 8
+>>
+Rule 28 (ksize and strides values must not be larger than the corresponding input dimensions.)
+{v_1: tensor, v_2: list(int), v_3: list(int)} |= ∀i ∈ [0, 3] : v_2[i] ≤ shape(v_1, i) ∧ v_3[i] ≤ shape(v_1, i)
+>>
+Rule 29 (When data_format is NCHW, then ksize[0] and strides[0] should be 1)
+{v_1: str, v_2: list(int), v_3: list(int)} |= if v_1 = "NCHW" then v_2[0] = 1 ∧ v_3[0] = 1
+>>
+Rule 30 (When data_format is NHWC, then ksize[0] and strides[0] should be 1)
+{v_1: str, v_2: list(int), v_3: list(int)} |= if v_1 = "NHWC" then v_2[0] = 1 ∧ v_3[0] = 1
+>>
+Rule 31 (If padding is EXPLICIT, the sum of explicit paddings for each dimension must be less than the input dimension size.)
+{v_1 : list(int), v_2 : str, v_3 : tensor} |= if v_2 = "NHWC" ∧ v_1.len > 0 then v_1[0] + v_1[1] ≤ shape(v_3, 1) ∧ v_1[2] + v_1[3] ≤ shape(v_3, 2) ∧ v_1[4] + v_1[5] ≤ shape(v_3, 3)
+>>
+Rule 33 (If data format is NCHW, then ksize[3] and strides[3] should be 1)
+{v_1: str, v_2: list(int), v_3: list(int)} |= if v_1 = "NCHW" then v_2[3] = 1 ∧ v_3[3] = 1
+>>
+Rule 34 (If data format is NHWC, then ksize[1] and strides[1] should be 1)
+{v_1: str, v_2: list(int), v_3: list(int)} |= if v_1 = "NHWC" then v_2[1] = 1 ∧ v_3[1] = 1
+>>
+Rule 35 (If padding is EXPLICIT, and data format is NCHW, then explicit_paddings length must be 8)
+{v_1 : str, v_2 : list(int), v_3 : str} |= if v_1 = "EXPLICIT" ∧ v_3 = "NCHW" then v_2.len = 8
+>>
+Rule 36 (If padding is EXPLICIT, the sum of explicit paddings for height dimension must be less than ksize height dimension. Assuming NHWC)
+{v_1: list(int), v_2: str, v_3: list(int)} |= if v_2 = "NHWC" ∧ v_1.len > 0 then v_1[2] + v_1[3] < v_3[2]
+>>
+Rule 37 (If padding is EXPLICIT, the sum of explicit paddings for width dimension must be less than ksize width dimension. Assuming NHWC)
+{v_1: list(int), v_2: str, v_3: list(int)} |= if v_2 = "NHWC" ∧ v_1.len > 0 then v_1[4] + v_1[5] < v_3[3]
+>>
+Rule 38 (ksize must not be larger than input tensor)
+{v_1 : tensor, v_2 : list(int)} |=  ∀i ∈ [0, v_2.len - 1] : v_2[i] ≤ shape(v_1, i)
+>>
+Rule 40 (When data_format is NCHW, then strides[1] should be 1)
+{v_1: str, v_2: list(int)} |= if v_1 = "NCHW" then v_2[1] = 1
+>>
+Rule 41 (When data_format is NHWC and explicit paddings length is greater than zero, explicit_paddings[1] == explicit_paddings[3] == explicit_paddings[5] == explicit_paddings[7] == 0)
+{v_1 : str, v_2 : list(int)} |= if v_1 = "NHWC" ∧ v_2.len > 0 then v_2[1] = 0 ∧ v_2[3] = 0 ∧ v_2[5] = 0 ∧ v_2[7] = 0
+>>
+Rule 42 (If data_format is NHWC and padding is SAME, then explicit_paddings should be an empty list.)
+{v_1 : str, v_2 : str, v_3 : list(int)} |= if v_1 = "NHWC" ∧ v_2 = "SAME" then v_3.len = 0
+>>
+Rule 43 (If data_format is NCHW and padding is SAME, then explicit_paddings should be an empty list.)
+{v_1 : str, v_2 : str, v_3 : list(int)} |= if v_1 = "NCHW" ∧ v_2 = "SAME" then v_3.len = 0
+>>
+Rule 44 (If data_format is NHWC, then the dimension of input tensor should be [batch, 1, width, channel])
+{v_1 : str, v_2: tensor} |= if v_1 = "NHWC" then shape(v_2, 1) = 1
+>>
+Rule 45 (If data_format is NCHW, then ksize[2] should be 1)
+{v_1 : str, v_2: list(int)} |= if v_1 = "NCHW" then v_2[2] = 1
+>>
+Rule 46 (The ksize and strides length must be 4)
+{v_1: list(int), v_2: list(int)} |= v_1.len = 4 ∧ v_2.len = 4
+>>
+Rule 47 (If data format is NCHW, then explicit_paddings[0] == explicit_paddings[1] == explicit_paddings[6] == explicit_paddings[7] == 0)
+{v_1 : str, v_2 : list(int)} |= if v_1 = "NCHW" ∧ v_2.len > 0 then v_2[0] = 0 ∧ v_2[1] = 0 ∧ v_2[6] = 0 ∧ v_2[7] = 0
+>>
+Rule 48 (The explicit_paddings must be an empty list or have length of 8)
+{v_1: list(int)} |= v_1.len = 0 ∨ v_1.len = 8
+>>
+Rule 49 (If data_format is NHWC, the batch and channel explicit paddings (0, 1, 6, 7) should be zero)
+{v_1 : str, v_2 : list(int)} |= if v_1 = "NHWC" ∧ v_2.len = 8 then v_2[0] = 0 ∧ v_2[1] = 0 ∧ v_2[6] = 0 ∧ v_2[7] = 0
+>>
+Rule 50 (If data_format is NCHW, the batch and channel explicit paddings (0, 1, 6, 7) should be zero)
+{v_1 : str, v_2 : list(int)} |= if v_1 = "NCHW" ∧ v_2.len = 8 then v_2[0] = 0 ∧ v_2[1] = 0 ∧ v_2[6] = 0 ∧ v_2[7] = 0
+>>
+Rule 51 (if padding is not explicit, then explicit_paddings should be empty)
+{v_1: str, v_2: list(int)} |= if v_1 ≠ "EXPLICIT" then v_2.len = 0
+>>
+Rule 52 (The input must be one of the allowed types: encoded by integers as described in task description)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 14
+>>
+Rule 53 (If data_format is NCHW, then the channel dimension of ksize and strides should equal to 1)
+{v_1: str, v_2: list(int), v_3: list(int)} |= if v_1 = "NCHW" then v_2[1] = 1 ∧ v_3[1] = 1
+>>
+Rule 54 (If padding is EXPLICIT and data format is NHWC, then the explicit padding values must be less than half the input dimensions, except for the batch and channel.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "EXPLICIT" ∧ ndim(v_3) = 4 then v_2[2] < shape(v_3, 1) / 2 ∧ v_2[3] < shape(v_3, 1) / 2 ∧ v_2[4] < shape(v_3, 2) / 2 ∧ v_2[5] < shape(v_3, 2) / 2
+>>
+Rule 55 (If padding is EXPLICIT and data format is NCHW, then the explicit padding values must be less than half the input dimensions, except for the batch and channel.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "EXPLICIT" ∧ ndim(v_3) = 4 then v_2[2] < shape(v_3, 2) / 2 ∧ v_2[3] < shape(v_3, 2) / 2 ∧ v_2[4] < shape(v_3, 3) / 2 ∧ v_2[5] < shape(v_3, 3) / 2
+>>
+Rule 56 (If data_format is NHWC, then the height dimension of ksize must be less or equal than the height dimension of the input tensor.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NHWC" then v_2[2] ≤ shape(v_3, 1)
+>>
+Rule 57 (If data_format is NHWC, then the width dimension of ksize must be less or equal than the width dimension of the input tensor.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NHWC" then v_2[3] ≤ shape(v_3, 2)
+>>
+Rule 58 (If data_format is NCHW, then the height dimension of ksize must be less or equal than the height dimension of the input tensor.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NCHW" then v_2[2] ≤ shape(v_3, 2)
+>>
+Rule 59 (If data_format is NCHW, then the width dimension of ksize must be less or equal than the width dimension of the input tensor.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NCHW" then v_2[3] ≤ shape(v_3, 3)
+>>
+Rule 62 (If explicit paddings are provided then length of explicit paddings must be greater than 0)
+{v_1 : list(int)} |= if v_1.len > 0 then true else false
+>>
+Rule 63 (if padding is explicit, then the explicit paddings list must have a length of 8)
+{v_1 : str, v_2 : list(int)} |= if v_1 = "EXPLICIT" then v_2.len = 8
+>>
+Rule 69 (If data_format is NHWC, the 1st, 3rd, 5th, and 7th elements of explicit_paddings must be smaller than input's height and the 2nd, 4th, 6th, and 8th elements are zero)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NHWC" ∧ v_2.len = 8 then v_2[1] = 0 ∧ v_2[3] = 0 ∧ v_2[5] = 0 ∧ v_2[7] = 0 ∧ v_2[0] < shape(v_3, 1) ∧ v_2[2] < shape(v_3, 2) ∧ v_2[4] < shape(v_3, 1) ∧ v_2[6] < shape(v_3, 2)
+>>
+Rule 74 (The ksize and strides length must be equal to the rank of the input tensor)
+{v_1 : tensor, v_2: list(int), v_3: list(int)} |= v_2.len = ndim(v_1) ∧ v_3.len = ndim(v_1)
+>>
+Rule 75 (If padding is EXPLICIT, then the 0th, 2nd, 4th, and 6th elements of explicit_paddings must be smaller than input's width dimension, when data format is NHWC or NCHW.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if (v_1 = "NHWC" ∨ v_1 = "NCHW") ∧ v_2.len = 8 then v_2[0] < shape(v_3, 2) ∧ v_2[2] < shape(v_3, 2) ∧ v_2[4] < shape(v_3, 2) ∧ v_2[6] < shape(v_3, 2)
+>>
+Rule 81 (The rank of ksize, strides and input tensor must be same)
+{v_1 : tensor, v_2 : list(int), v_3 : list(int)} |= ndim(v_1) = v_2.len ∧ ndim(v_1) = v_3.len
+>>
+Rule 82 (The input must be one of allowed dtypes as in documentation encoded via integers)
+{v_1: tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 14
+>>
+Rule 83 (If data_format is NHWC and padding is EXPLICIT, the first element of explicit_paddings must be less than or equal to the first dimension of the input tensor.)
+{v_1 : str, v_2 : list(int), v_3 : tensor, v_4: str} |= if v_1 = "NHWC" ∧ v_4 = "EXPLICIT" then v_2[0] ≤ shape(v_3, 1)
+>>
+Rule 84 (If data_format is NCHW and padding is EXPLICIT, the second element of explicit_paddings must be less than or equal to the second dimension of the input tensor.)
+{v_1 : str, v_2 : list(int), v_3 : tensor, v_4: str} |= if v_1 = "NCHW" ∧ v_4 = "EXPLICIT" then v_2[1] ≤ shape(v_3, 1)
+>>
+Rule 85 (If data_format is NHWC, the first element of explicit_paddings must be less than or equal to the first dimension of the input tensor.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NHWC" then v_2[0] ≤ shape(v_3, 1)
+>>
+Rule 89 (If data_format is NHWC and padding is EXPLICIT, the explicit padding for height start and end must be less than or equal the height dimension of the input.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NHWC" ∧ v_2.len = 8 then v_2[2] ≤ shape(v_3, 1) ∧ v_2[3] ≤ shape(v_3, 1)
+>>
+Rule 90 (If data_format is NHWC and padding is EXPLICIT, the explicit padding for width start and end must be less or equal than the width dimension of the input.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NHWC" ∧ v_2.len = 8 then v_2[4] ≤ shape(v_3, 2) ∧ v_2[5] ≤ shape(v_3, 2)
+>>
+Rule 91 (If data_format is NCHW and padding is EXPLICIT, the explicit padding for height start and end must be less or equal than the height dimension of the input.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NCHW" ∧ v_2.len = 8 then v_2[2] ≤ shape(v_3, 2) ∧ v_2[3] ≤ shape(v_3, 2)
+>>
+Rule 92 (If data_format is NCHW and padding is EXPLICIT, the explicit padding for width start and end must be less or equal than the width dimension of the input.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NCHW" ∧ v_2.len = 8 then v_2[4] ≤ shape(v_3, 3) ∧ v_2[5] ≤ shape(v_3, 3)
+>>
+Rule 93 (ksize elements must be positive integers)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 95 (If padding is EXPLICIT and data format is NHWC, then the explicit padding for height start must be less than the height dimension of the input tensor and other height padding parameter is related to shape of output tensor.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NHWC" ∧ v_2.len = 8 then v_2[2] < shape(v_3, 1)
+>>
+Rule 96 (If padding is EXPLICIT and data format is NHWC, then the explicit padding for width start must be less than the width dimension of the input tensor and other width padding parameter is related to shape of output tensor.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NHWC" ∧ v_2.len = 8 then v_2[4] < shape(v_3, 2)
+>>
+Rule 97 (If padding is EXPLICIT and data format is NCHW, then the explicit padding for height start must be less than the height dimension of the input tensor and other height padding parameter is related to shape of output tensor.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NCHW" ∧ v_2.len = 8 then v_2[2] < shape(v_3, 2)
+>>
+Rule 98 (If padding is EXPLICIT and data format is NCHW, then the explicit padding for width start must be less than the width dimension of the input tensor and other width padding parameter is related to shape of output tensor.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NCHW" ∧ v_2.len = 8 then v_2[4] < shape(v_3, 3)
+>>
+Rule 99 (If explicit padding is present, and data_format is NHWC, padding at dimension 1 (channel dimension) must be 0)
+{v_1: str, v_2: list(int)} |= if v_1 = "NHWC" ∧ v_2.len > 0 then v_2[1] = 0 ∧ v_2[3] = 0
+>>
+Rule 100 (If explicit padding is present, and data_format is NCHW, padding at dimension 0 (batch dimension) must be 0)
+{v_1: str, v_2: list(int)} |= if v_1 = "NCHW" ∧ v_2.len > 0 then v_2[0] = 0 ∧ v_2[1] = 0
+>>
+Rule 101 (If data_format is NHWC and padding is EXPLICIT, then explicit_paddings[0] + explicit_paddings[1] should be less than or equal to shape(input,1)-1.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NHWC" ∧ v_2.len = 8 then v_2[0] + v_2[1] ≤ shape(v_3, 1)-1
+>>
+Rule 102 (If data_format is NCHW and padding is EXPLICIT, then explicit_paddings[0] + explicit_paddings[1] should be less than or equal to shape(input,2)-1.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NCHW" ∧ v_2.len = 8 then v_2[0] + v_2[1] ≤ shape(v_3, 2)-1
+>>
+Rule 103 (If padding is EXPLICIT and data_format is NHWC, then the 5th dimension of explicit padding must be smaller than shape of input,1)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NHWC" ∧ v_2.len = 8 then v_2[4] <= shape(v_3, 1)
+>>
+Rule 104 (If padding is EXPLICIT and data_format is NCHW, then the 5th dimension of explicit padding must be smaller than shape of input,2)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NCHW" ∧ v_2.len = 8 then v_2[4] <= shape(v_3, 2)
+>>
+Rule 105 (If padding is EXPLICIT and data_format is NHWC, then the 6th dimension of explicit padding must be smaller than shape of input,2)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NHWC" ∧ v_2.len = 8 then v_2[5] <= shape(v_3, 2)
+>>
+Rule 106 (The rank of the input tensor, ksize and strides is equal to 4.)
+{v_1 : tensor, v_2 : list(int), v_3 : list(int)} |= ndim(v_1) = 4 ∧ v_2.len = 4 ∧ v_3.len = 4
+>>
+Rule 107 (If data_format is NHWC and padding is EXPLICIT, explicit_paddings[0]+ksize[2]-strides[2] <= shape(input,1))
+{v_1 : str, v_2 : list(int), v_3 : tensor, v_4: list(int)} |= if v_1 = "NHWC" ∧ v_2.len = 8 then v_2[0] + v_4[2] - v_3[2] <= shape(v_3, 1)
+>>
+Rule 108 (If data_format is NCHW and padding is EXPLICIT, explicit_paddings[0]+ksize[2]-strides[2] <= shape(input,2))
+{v_1 : str, v_2 : list(int), v_3 : tensor, v_4: list(int)} |= if v_1 = "NCHW" ∧ v_2.len = 8 then v_2[0] + v_4[2] - v_3[2] <= shape(v_3, 2)
+>>
+Rule 109 (If data_format is NHWC and padding is EXPLICIT, explicit_paddings[2]+ksize[3]-strides[3] <= shape(input,2))
+{v_1 : str, v_2 : list(int), v_3 : tensor, v_4: list(int)} |= if v_1 = "NHWC" ∧ v_2.len = 8 then v_2[2] + v_4[3] - v_3[3] <= shape(v_3, 2)
+>>
+Rule 110 (If data_format is NCHW and padding is EXPLICIT, explicit_paddings[2]+ksize[3]-strides[3] <= shape(input,3))
+{v_1 : str, v_2 : list(int), v_3 : tensor, v_4: list(int)} |= if v_1 = "NCHW" ∧ v_2.len = 8 then v_2[2] + v_4[3] - v_3[3] <= shape(v_3, 3)
+>>
+Rule 111 (the value of the stride should be positive integer)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len-1] : v_1[i] > 0
+>>
+Rule 113 (If data_format is NHWC and padding is EXPLICIT, then explicit_paddings[2]+ksize[3]-strides[3] should be less than or equal to shape(input,2).)
+{v_1 : str, v_2 : list(int), v_3 : list(int), v_4 : tensor} |= if v_1 = "NHWC" ∧ v_2.len = 8 then v_2[2] + v_3[3] - v_4[3] <= shape(v_4, 2)
+>>
+Rule 114 (If data_format is NCHW and padding is EXPLICIT, then explicit_paddings[2]+ksize[3]-strides[3] should be less than or equal to shape(input,3).)
+{v_1 : str, v_2 : list(int), v_3 : list(int), v_4 : tensor} |= if v_1 = "NCHW" ∧ v_2.len = 8 then v_2[2] + v_3[3] - v_4[3] <= shape(v_4, 3)
+>>
+Rule 117 (ksize values can not be zero)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len-1] : v_1[i] != 0
+>>
+Rule 119 (If data_format is NHWC and padding is EXPLICIT, then the value of (explicit_paddings[0] + ksize[2]) should be less than or equal to (shape(input,1)+strides[2] - 1).)
+{v_1 : str, v_2 : list(int), v_3 : list(int), v_4 : tensor} |= if v_1 = "NHWC" ∧ v_2.len = 8 then v_2[0] + v_3[2] <= shape(v_4, 1) + v_3[2] - 1
+>>
+Rule 120 (If data_format is NCHW and padding is EXPLICIT, then the value of (explicit_paddings[0] + ksize[2]) should be less than or equal to (shape(input,2)+strides[2] - 1).)
+{v_1 : str, v_2 : list(int), v_3 : list(int), v_4 : tensor} |= if v_1 = "NCHW" ∧ v_2.len = 8 then v_2[0] + v_3[2] <= shape(v_4, 2) + v_3[2] - 1
+>>
+Rule 121 (If padding is EXPLICIT and data format is NHWC, explicit_paddings[2]+ksize[3] <= shape(input,2)+strides[3]-1.)
+{v_1 : str, v_2 : list(int), v_3 : list(int), v_4 : tensor} |= if v_1 = "NHWC" ∧ v_2.len = 8 then v_2[2] + v_3[3] <= shape(v_4, 2)+v_3[3]-1
+>>
+Rule 122 (If padding is EXPLICIT and data format is NCHW, explicit_paddings[2]+ksize[3] <= shape(input,3)+strides[3]-1.)
+{v_1 : str, v_2 : list(int), v_3 : list(int), v_4 : tensor} |= if v_1 = "NCHW" ∧ v_2.len = 8 then v_2[2] + v_3[3] <= shape(v_4, 3)+v_3[3]-1
+>>
+Rule 123 (Explicit paddings elements should have positive or zero values)
+{v_1 : list(int)} |= ∀i ∈ [0,v_1.len-1] : v_1[i] >= 0
+>>
+Rule 124 (The dimensions of ksize, strides, and explicit_paddings should not be larger than dimensions of input tensor when format is NCHW.)
+{v_1 : str, v_2 : list(int), v_3: list(int), v_4: tensor} |= if v_1 = "NCHW" then v_2[2] <= shape(v_4,2) ∧ v_2[3] <= shape(v_4,3) ∧ v_3[2] <= shape(v_4,2) ∧ v_3[3] <= shape(v_4,3)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check if a string value is contained in the possible values (Rule 58)
+# n must be such that n * 2 is less than the maximum value. (Rule 58)
 
 rule_58 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_value"] == 21, v["arg1_value"] == 12)) if n else
-          Or(v["arg1_value"] == 21, v["arg1_value"] == 12))
+    s.add(Not(v["arg1_value"] < 1073741823) if n else
+          v["arg1_value"] < 1073741823)
 )
 
 def rule_58_func(arg1, solver=None, neg=False):
@@ -17,15 +17,15 @@ def rule_58_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, str):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values_tf.index(arg1))
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 58
         rule_58(solver, {'arg1_value': arg1_value})

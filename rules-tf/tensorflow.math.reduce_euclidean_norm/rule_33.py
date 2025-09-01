@@ -5,42 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If axis is a tuple, and keepdims is True, then the number of dimensions equal to the length of axis should be reduced. (Rule 33)
+# If axis equals none, then keepdims should have no effect on computation (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg3_value"] == True, v["arg1_ndim"] - v["arg2_length"] == v["arg1_ndim"], False)) if n else
-          If(v["arg3_value"] == True, v["arg1_ndim"] - v["arg2_length"] == v["arg1_ndim"], False))
+    s.add(Not(If(v["arg1_value"] == none, True, True)) if n else
+          If(v["arg1_value"] == none, True, True))
 )
 
-def rule_33_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_33_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
-            return False
-        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
-            return False
-        if not isinstance(arg3, bool):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_length = Int('arg2_length')
-        arg3_value = Bool('arg3_value')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_length == len(arg2))
-        solver.add(arg3_value == arg3)
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 33
-        rule_33(solver, {'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length, 'arg3_value': arg3_value})
+        rule_33(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_33(solver, {'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length'], 'arg3_value': arg3['value']}, neg)
+        rule_33(solver, {'arg1_value': arg1['value']}, neg)

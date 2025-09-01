@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if input is greater than the max int, it throws an error. (Rule 57)
+# seed should not be a small number to avoid predictable results (Rule 57)
 
 rule_57 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 2147483648) if n else
-          v["arg1_value"] < 2147483648)
+    s.add(Not(If(v["arg1_value"] < 100, False, True)) if n else
+          If(v["arg1_value"] < 100, False, True))
 )
 
 def rule_57_func(arg1, solver=None, neg=False):

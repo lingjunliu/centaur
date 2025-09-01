@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If features has an int dtype, the result will have the same int dtype (Rule 6)
+# The features tensor must not be of boolean type (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 3, v["arg1_dtype"] == 3, If(v["arg1_dtype"] == 4, v["arg1_dtype"] == 4, If(v["arg1_dtype"] == 6, v["arg1_dtype"] == 6, If(v["arg1_dtype"] == 2, v["arg1_dtype"] == 2, If(v["arg1_dtype"] == 1, v["arg1_dtype"] == 1, False)))))) if n else
-          If(v["arg1_dtype"] == 3, v["arg1_dtype"] == 3, If(v["arg1_dtype"] == 4, v["arg1_dtype"] == 4, If(v["arg1_dtype"] == 6, v["arg1_dtype"] == 6, If(v["arg1_dtype"] == 2, v["arg1_dtype"] == 2, If(v["arg1_dtype"] == 1, v["arg1_dtype"] == 1, False))))))
+    s.add(Not(v["arg1_dtype"] != 0) if n else
+          v["arg1_dtype"] != 0)
 )
 
 def rule_6_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If any dimension of y is zero, then x must also have the same dimension zero. (Rule 34)
+# x and y must have same ndim and shape (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(If(Or([And(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) == 0) for i in range(6)]), Or([And(j < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], j) == 0) for j in range(6)]), False)) if n else
-          If(Or([And(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) == 0) for i in range(6)]), Or([And(j < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], j) == 0) for j in range(6)]), False))
+    s.add(Not(And(v["arg1_ndim"] == v["arg2_ndim"], (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])))) if n else
+          And(v["arg1_ndim"] == v["arg2_ndim"], (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))))
 )
 
 def rule_34_func(arg1, arg2, solver=None, neg=False):

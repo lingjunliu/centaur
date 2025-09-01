@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Tensor v_1 must have either 1, 2, or 3 dimensions (Rule 15)
+# value tensor cannot be a scalar (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(v["arg1_ndim"] == 1, v["arg1_ndim"] == 2), v["arg1_ndim"] == 3)) if n else
-          Or(Or(v["arg1_ndim"] == 1, v["arg1_ndim"] == 2), v["arg1_ndim"] == 3))
+    s.add(Not(v["arg1_ndim"] != 0) if n else
+          v["arg1_ndim"] != 0)
 )
 
 def rule_15_func(arg1, solver=None, neg=False):

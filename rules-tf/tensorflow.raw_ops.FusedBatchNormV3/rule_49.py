@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The dtypes of scale, offset, mean, variance should be the same (Rule 49)
+# If is_training is false, at least one of mean and variance must not be empty (Rule 49)
 
 rule_49 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] == v["arg2_dtype"], v["arg1_dtype"] == v["arg3_dtype"])) if n else
-          And(v["arg1_dtype"] == v["arg2_dtype"], v["arg1_dtype"] == v["arg3_dtype"]))
+    s.add(Not(If(v["arg1_value"] == False, Or((Select(v["arg2_shape"], 0) > 0), (Select(v["arg3_shape"], 0) > 0)), True)) if n else
+          If(v["arg1_value"] == False, Or((Select(v["arg2_shape"], 0) > 0), (Select(v["arg3_shape"], 0) > 0)), True))
 )
 
 def rule_49_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -19,7 +19,7 @@ def rule_49_func(arg1, arg2, arg3, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, bool):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
@@ -28,19 +28,21 @@ def rule_49_func(arg1, arg2, arg3, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
-        arg3_dtype = Int('arg3_dtype')
+        arg1_value = Bool('arg1_value')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
+        solver.add(arg1_value == arg1)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        for i in range(arg3.ndim):
+            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
 
         # Constraints for rule 49
-        rule_49(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype})
+        rule_49(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg3_shape': arg3_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_49(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype']}, neg)
+        rule_49(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg3_shape': arg3['shape']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# check tensor shape[0] is greater than shape[1] (Rule 29)
+# Check whether shape of the tensor is not empty (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) > Select(v["arg1_shape"], 1)) if n else
-          Select(v["arg1_shape"], 0) > Select(v["arg1_shape"], 1))
+    s.add(Not(Select(v["arg1_shape"], 0) != 0) if n else
+          Select(v["arg1_shape"], 0) != 0)
 )
 
 def rule_29_func(arg1, solver=None, neg=False):

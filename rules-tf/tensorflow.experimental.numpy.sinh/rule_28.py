@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the tensor has a dimension of size 1, the next dimension must be greater than 1 (Rule 28)
+# The shape of the input tensor should be within reasonable limits to avoid memory issues. (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 1, If(Select(v["arg1_shape"], 0) == 1, Select(v["arg1_shape"], 1) > 1, False), False)) if n else
-          If(v["arg1_ndim"] > 1, If(Select(v["arg1_shape"], 0) == 1, Select(v["arg1_shape"], 1) > 1, False), False))
+    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 10000) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 10000) for i in range(6)]))
 )
 
 def rule_28_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_28_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 28
-        rule_28(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_28(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_28(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_28(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

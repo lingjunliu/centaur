@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If weights are provided, its dimension should be less than or equal to input array's dimension (Rule 69)
+# Tensors should have valid data types or should be empty. (Rule 69)
 
 rule_69 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_ndim"] > 0, v["arg2_ndim"] <= v["arg1_ndim"], False)) if n else
-          If(v["arg2_ndim"] > 0, v["arg2_ndim"] <= v["arg1_ndim"], False))
+    s.add(Not(If(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), v["arg1_dtype"] == v["arg2_dtype"], True)) if n else
+          If(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), v["arg1_dtype"] == v["arg2_dtype"], True))
 )
 
 def rule_69_func(arg1, arg2, solver=None, neg=False):
@@ -26,16 +26,20 @@ def rule_69_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
+        arg1_dtype = Int('arg1_dtype')
         arg2_ndim = Int('arg2_ndim')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 69
-        rule_69(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
+        rule_69(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_69(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_69(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']}, neg)

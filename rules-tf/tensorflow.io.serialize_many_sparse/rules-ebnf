@@ -1,39 +1,156 @@
 >>
-Rule 1 (Input tensor must have rank greater than 1)
+Rule 1 (Input must be a SparseTensor, implying rank R > 1)
 {sp_input : tensor} |= ndim(sp_input) > 1
 >>
-Rule 2 (The first dimension of the input tensor must be greater than zero)
+Rule 2 (out_type must be a valid dtype)
+{out_type : dtype} |= out_type = 0 ∨ out_type = 1 ∨ out_type = 2 ∨ out_type = 3 ∨ out_type = 4 ∨ out_type = 5 ∨ out_type = 6 ∨ out_type = 7 ∨ out_type = 8 ∨ out_type = 9 ∨ out_type = 10 ∨ out_type = 12
+>>
+Rule 6 (First dimension of sparse_shape must be greater than 0)
 {sp_input : tensor} |= shape(sp_input, 0) > 0
 >>
-Rule 3 (out_type should be a valid dtype)
+Rule 13 (The first dimension of sp_input shape must be equal to batch size N)
+{sp_input : tensor, v_1: int} |= v_1 > 0 ∧ shape(sp_input, 0) = v_1
+>>
+Rule 14 (Check if out_type is integer dtype.)
+{out_type : dtype} |= out_type = 1 ∨ out_type = 2 ∨ out_type = 3 ∨ out_type = 4 ∨ out_type = 5
+>>
+Rule 15 (sp_input must be a tensor and have at least two dimensions, and shape[0] > 0)
+{sp_input : tensor} |= ndim(sp_input) > 1 ∧ shape(sp_input, 0) > 0
+>>
+Rule 17 (out_type must be an integer or floating-point dtype)
+{out_type : dtype} |= out_type = 1 ∨ out_type = 2 ∨ out_type = 3 ∨ out_type = 4 ∨ out_type = 5 ∨ out_type = 6 ∨ out_type = 7 ∨ out_type = 8
+>>
+Rule 20 (out_type must be a valid dtype in range [0, 12])
 {out_type : dtype} |= 0 ≤ out_type ∧ out_type ≤ 12
 >>
-Rule 12 (Input tensor's dtype must be int, float, or bool)
-{sp_input : tensor} |= 0 ≤ dtype_(sp_input) ∧ dtype_(sp_input) ≤ 9
+Rule 21 (If out_type is floating-point, then it has to be float16, float32, or float64)
+{out_type : dtype} |= if out_type = 6 then true else if out_type = 7 then true else if out_type = 8 then true
 >>
-Rule 13 (Output type cannot be a string)
-{out_type : dtype} |= out_type ≠ 11
+Rule 29 (Dtype must be an element of the allowed dtypes)
+{out_type : dtype} |= out_type = 0 ∨ out_type = 1 ∨ out_type = 2 ∨ out_type = 3 ∨ out_type = 4 ∨ out_type = 5 ∨ out_type = 6 ∨ out_type = 7 ∨ out_type = 8 ∨ out_type = 9 ∨ out_type = 10 ∨ out_type = 11 ∨ out_type = 12
 >>
-Rule 17 (Input tensor's dtype must be a valid dtype)
-{sp_input : tensor} |= 0 <= dtype_(sp_input) ∧ dtype_(sp_input) <= 12
+Rule 33 (If the tensor is not a SparseTensor, the condition is false.)
+{sp_input : tensor} |= ndim(sp_input) > 0
 >>
-Rule 18 (If out_type is an integer dtype, the values in the sparse tensor should also be representable as integers)
-{sp_input : tensor, out_type : dtype} |= if 1 <= out_type ∧ out_type <= 5 then ∃i ∈ [0, shape(sp_input,0)-1] : min(sp_input) ≥ -2147483648 ∧ max(sp_input) <= 2147483647
+Rule 39 (sp_input must be a tensor with rank > 1 and batch size > 0, out_type must be a valid dtype)
+{sp_input : tensor, out_type : dtype} |= ndim(sp_input) > 1 ∧ shape(sp_input, 0) > 0 ∧ 0 ≤ out_type ∧ out_type ≤ 12
 >>
-Rule 19 (If out_type is a boolean, the values in the sparse tensor should also be boolean)
-{sp_input : tensor, out_type : dtype} |= if out_type = 0 then ∀i ∈ [0, shape(sp_input,0)-1] : sp_input[i] = true ∨ sp_input[i] = false
+Rule 40 (Check that the shape of sp_input is greater than [1,1])
+{sp_input : tensor} |=  (shape(sp_input, 0) > 1 ∧ ndim(sp_input) > 1)
 >>
-Rule 28 (The data type of out_type must be a valid data type)
+Rule 45 (dtype of sp_input must be an integer between 1 and 8)
+{sp_input : tensor} |= if dtype_(sp_input) > 0 then dtype_(sp_input) < 9 else false
+>>
+Rule 46 (Check the out_type dtype matches the dtype of sp_input indices. )
+{sp_input : tensor, out_type: dtype} |= if dtype_(sp_input) = 1 then out_type = 1 else if dtype_(sp_input) = 2 then out_type = 2 else if dtype_(sp_input) = 3 then out_type = 3 else if dtype_(sp_input) = 4 then out_type = 4 else if dtype_(sp_input) = 5 then out_type = 5
+>>
+Rule 48 (Ensure that if sp_input's dtype is a bool, then out_type is also bool)
+{sp_input : tensor, out_type: dtype} |= if dtype_(sp_input) = 0 then out_type = 0
+>>
+Rule 50 ( out_type type matches sp_input type.)
+{sp_input : tensor, out_type : dtype} |= dtype_(sp_input) = out_type
+>>
+Rule 52 (out_type should be a valid numerical type)
+{out_type : dtype} |= 1 <= out_type ∧ out_type <= 8
+>>
+Rule 53 (Check that sp_input has a numerical dtype)
+{sp_input: tensor} |= 1 <= dtype_(sp_input) ∧ dtype_(sp_input) <= 8
+>>
+Rule 54 (Check the dimensions of shape of sp_input are positive.)
+{sp_input : tensor} |= ∀i ∈ [0, ndim(sp_input) -1] : shape(sp_input, i) > 0
+>>
+Rule 56 (out_type must be a valid dtype)
 {out_type : dtype} |= 0 <= out_type ∧ out_type <= 12
 >>
-Rule 30 (The shape of the output tensor is (N, 3) where N = shape(sp_input, 0))
-{sp_input : tensor} |= shape(sp_input, 1) = 3
+Rule 57 (Check if sp_input is a tensor of the correct type, such as an int)
+{sp_input : tensor} |= dtype_(sp_input) = 1 ∨ dtype_(sp_input) = 2 ∨ dtype_(sp_input) = 3 ∨ dtype_(sp_input) = 4 ∨ dtype_(sp_input) = 5 ∨ dtype_(sp_input) = 6 ∨ dtype_(sp_input) = 7 ∨ dtype_(sp_input) = 8 ∨ dtype_(sp_input) = 9 ∨ dtype_(sp_input) = 10
 >>
-Rule 34 (If the sparse tensor elements are of type string, out_type must also be string)
-{sp_input : tensor, out_type : dtype} |= if dtype_(sp_input) = 11 then out_type = 11
+Rule 59 (sp_input must be a tensor with rank > 1 and batch size > 0, and out_type must be a valid dtype)
+{sp_input : tensor, out_type : dtype} |= ndim(sp_input) > 1 ∧ shape(sp_input, 0) > 0 ∧ 0 <= out_type ∧ out_type <= 12
 >>
-Rule 42 (If sp_input's elements are float16, float32, or float64, the out_type also must be float16, float32, or float64)
-{sp_input : tensor, out_type : dtype} |= if dtype_(sp_input) = 6 ∨ dtype_(sp_input) = 7 ∨ dtype_(sp_input) = 8 then out_type = 6 ∨ out_type = 7 ∨ out_type = 8
+Rule 62 (Ensure out_type dtype matches sp_input indices dtype, and sp_input is a tensor with positive dimensions)
+{sp_input : tensor, out_type : dtype} |=  (dtype_(sp_input) = 1 ∧ out_type = 1) ∨ (dtype_(sp_input) = 2 ∧ out_type = 2) ∨ (dtype_(sp_input) = 3 ∧ out_type = 3) ∨ (dtype_(sp_input) = 4 ∧ out_type = 4) ∨ (dtype_(sp_input) = 5 ∧ out_type = 5) ∧ ∀i ∈ [0, ndim(sp_input) - 1] : shape(sp_input, i) > 0
 >>
-Rule 47 (The output tensor must have 2 dimensions)
-{sp_input : tensor} |= ndim(sp_input) = 2
+Rule 63 (sp_input must be a tensor with rank > 1, batch size > 0, all dimensions positive and out_type must be a valid dtype)
+{sp_input : tensor, out_type : dtype} |= ndim(sp_input) > 1 ∧ shape(sp_input, 0) > 0 ∧ (∀i ∈ [0, ndim(sp_input) - 1] : shape(sp_input, i) > 0) ∧ 0 <= out_type ∧ out_type <= 12
+>>
+Rule 65 (Ensure out_type dtype matches sp_input indices dtype)
+{sp_input : tensor, out_type : dtype} |= if dtype_(sp_input) = 1 then out_type = 1 else if dtype_(sp_input) = 2 then out_type = 2 else if dtype_(sp_input) = 3 then out_type = 3 else if dtype_(sp_input) = 4 then out_type = 4 else if dtype_(sp_input) = 5 then out_type = 5
+>>
+Rule 67 (sp_input must be a tensor with rank > 1, batch size > 0, and all dimensions positive)
+{sp_input : tensor} |= ndim(sp_input) > 1 ∧ shape(sp_input, 0) > 0 ∧ (∀i ∈ [0, ndim(sp_input) - 1] : shape(sp_input, i) > 0)
+>>
+Rule 70 (Ensure out_type dtype matches sp_input indices dtype, and out_type is int or float)
+{sp_input : tensor, out_type : dtype} |= ((dtype_(sp_input) = 1 ∨ dtype_(sp_input) = 2 ∨ dtype_(sp_input) = 3 ∨ dtype_(sp_input) = 4 ∨ dtype_(sp_input) = 5) ∧ 1 <= out_type ∧ out_type <= 5) ∨ ((dtype_(sp_input) = 6 ∨ dtype_(sp_input) = 7 ∨ dtype_(sp_input) = 8) ∧ 6 <= out_type ∧ out_type <= 8)
+>>
+Rule 74 (Ensure out_type dtype matches sp_input indices dtype)
+{sp_input : tensor, out_type : dtype} |= if (dtype_(sp_input) = 1 ∨ dtype_(sp_input) = 2 ∨ dtype_(sp_input) = 3 ∨ dtype_(sp_input) = 4 ∨ dtype_(sp_input) = 5) then (out_type = 1 ∨ out_type = 2 ∨ out_type = 3 ∨ out_type = 4 ∨ out_type = 5) else if (dtype_(sp_input) = 6 ∨ dtype_(sp_input) = 7 ∨ dtype_(sp_input) = 8) then (out_type = 6 ∨ out_type = 7 ∨ out_type = 8)
+>>
+Rule 75 (sp_input must be a tensor with rank > 1, batch size > 0, all dimensions positive, dtype int or float)
+{sp_input : tensor} |= ndim(sp_input) > 1 ∧ shape(sp_input, 0) > 0 ∧ (∀i ∈ [0, ndim(sp_input) - 1] : shape(sp_input, i) > 0) ∧ 1 <= dtype_(sp_input) ∧ dtype_(sp_input) <= 8
+>>
+Rule 77 (Check that sp_input's first dimension is greater than 1 )
+{sp_input : tensor} |= shape(sp_input, 0) > 1
+>>
+Rule 81 (Ensure that shape is always positive)
+{sp_input : tensor} |= ∀i ∈ [0, ndim(sp_input) - 1] : shape(sp_input, i) > 0
+>>
+Rule 82 (Ensure out_type dtype matches sp_input indices dtype or, if not possible out_type has a reasonable value )
+{sp_input : tensor, out_type : dtype} |= if (dtype_(sp_input) = 1 ∨ dtype_(sp_input) = 2 ∨ dtype_(sp_input) = 3 ∨ dtype_(sp_input) = 4 ∨ dtype_(sp_input) = 5) then (out_type = 1 ∨ out_type = 2 ∨ out_type = 3 ∨ out_type = 4 ∨ out_type = 5) else (1 <= out_type ∧ out_type <= 8)
+>>
+Rule 85 (Match type of sp_input and out_type if sp_input is a valid sparse tensor)
+{sp_input : tensor, out_type : dtype} |= if (dtype_(sp_input) = 1 ∨ dtype_(sp_input) = 2 ∨ dtype_(sp_input) = 3 ∨ dtype_(sp_input) = 4 ∨ dtype_(sp_input) = 5 ∨ dtype_(sp_input) = 6 ∨ dtype_(sp_input) = 7 ∨ dtype_(sp_input) = 8 ∨ dtype_(sp_input) = 9 ∨ dtype_(sp_input) = 10) then (out_type = 1 ∨ out_type = 2 ∨ out_type = 3 ∨ out_type = 4 ∨ out_type = 5 ∨ out_type = 6 ∨ out_type = 7 ∨ out_type = 8 ∨ out_type = 9 ∨ out_type = 10)
+>>
+Rule 86 (Shape of sparse input must be greater than 1)
+{sp_input : tensor} |=  shape(sp_input,0) > 1
+>>
+Rule 88 (Match type of sp_input and out_type or set both to int)
+{sp_input : tensor, out_type : dtype} |= if (dtype_(sp_input) = 1 ∨ dtype_(sp_input) = 2 ∨ dtype_(sp_input) = 3 ∨ dtype_(sp_input) = 4 ∨ dtype_(sp_input) = 5) then (out_type = 1 ∨ out_type = 2 ∨ out_type = 3 ∨ out_type = 4 ∨ out_type = 5) else if (dtype_(sp_input) = 6 ∨ dtype_(sp_input) = 7 ∨ dtype_(sp_input) = 8) then (out_type = 6 ∨ out_type = 7 ∨ out_type = 8) else (out_type = 1)
+>>
+Rule 89 (Shape of sparse input must be greater than 1 along the first dimension)
+{sp_input : tensor} |= shape(sp_input,0) > 1
+>>
+Rule 90 (Test dtype of tensor )
+{sp_input : tensor} |= 1 <= dtype_(sp_input) ∧ dtype_(sp_input) <= 8
+>>
+Rule 91 (sp_input must be a tensor with rank > 1, batch size > 0, and all dimensions positive, dtype must be in range 1-8 and  out_type is a valid dtype)
+{sp_input : tensor, out_type : dtype} |= ndim(sp_input) > 1 ∧ shape(sp_input, 0) > 0 ∧ (∀i ∈ [0, ndim(sp_input) - 1] : shape(sp_input, i) > 0) ∧ 1 <= dtype_(sp_input) ∧ dtype_(sp_input) <= 8 ∧ 0 <= out_type ∧ out_type <= 12
+>>
+Rule 94 (Validate data types between 0 and 8)
+{sp_input : tensor} |= if dtype_(sp_input) > 1 then dtype_(sp_input) < 8 else false
+>>
+Rule 95 (sp_input must be a tensor with rank > 1, batch size > 0, all dimensions positive and must have a valid data type)
+{sp_input : tensor} |= ndim(sp_input) > 1 ∧ shape(sp_input, 0) > 0 ∧ (∀i ∈ [0, ndim(sp_input) - 1] : shape(sp_input, i) > 0) ∧ (1 <= dtype_(sp_input) ∧ dtype_(sp_input) <= 8)
+>>
+Rule 99 (sp_input must be a tensor with rank > 1, batch size > 0, all dimensions positive, a valid dtype, and out_type is a valid dtype between 0-12)
+{sp_input : tensor, out_type : dtype} |= ndim(sp_input) > 1 ∧ shape(sp_input, 0) > 0 ∧ (∀i ∈ [0, ndim(sp_input) - 1] : shape(sp_input, i) > 0) ∧ (1 <= dtype_(sp_input) ∧ dtype_(sp_input) <= 8) ∧ (0 <= out_type ∧ out_type <= 12)
+>>
+Rule 106 (out_type should not be a string )
+{out_type : dtype} |= out_type ≠ 11
+>>
+Rule 108 (Ensure compatibility between dtype of sp_input and out_type or at least ensure out_type is numerical type)
+{sp_input : tensor, out_type : dtype} |= if (dtype_(sp_input) = 1 ∨ dtype_(sp_input) = 2 ∨ dtype_(sp_input) = 3 ∨ dtype_(sp_input) = 4 ∨ dtype_(sp_input) = 5) then (out_type = 1 ∨ out_type = 2 ∨ out_type = 3 ∨ out_type = 4 ∨ out_type = 5) else if (dtype_(sp_input) = 6 ∨ dtype_(sp_input) = 7 ∨ dtype_(sp_input) = 8) then (out_type = 6 ∨ out_type = 7 ∨ out_type = 8) else (1 <= out_type ∧ out_type <=8 )
+>>
+Rule 110 (Out_type != string)
+{out_type:dtype} |= out_type ≠ 11
+>>
+Rule 112 (Ensure compatibility between dtype of sp_input and out_type and is numerical)
+{sp_input : tensor, out_type : dtype} |= if (dtype_(sp_input) = 1 ∨ dtype_(sp_input) = 2 ∨ dtype_(sp_input) = 3 ∨ dtype_(sp_input) = 4 ∨ dtype_(sp_input) = 5) then (out_type = 1 ∨ out_type = 2 ∨ out_type = 3 ∨ out_type = 4 ∨ out_type = 5) else if (dtype_(sp_input) = 6 ∨ dtype_(sp_input) = 7 ∨ dtype_(sp_input) = 8) then (out_type = 6 ∨ out_type = 7 ∨ out_type = 8) else  (1 <= out_type ∧ out_type <=8 )
+>>
+Rule 114 (Dtype(sp_input) should be not boolean type)
+{sp_input : tensor} |= dtype_(sp_input) ≠ 0
+>>
+Rule 116 (Check type compatibility between out_type and sp_input. Also Check for all dimension greater than 1)
+{sp_input : tensor, out_type : dtype} |= if (dtype_(sp_input) = 1 ∨ dtype_(sp_input) = 2 ∨ dtype_(sp_input) = 3 ∨ dtype_(sp_input) = 4 ∨ dtype_(sp_input) = 5) then (out_type = 1 ∨ out_type = 2 ∨ out_type = 3 ∨ out_type = 4 ∨ out_type = 5) else if (dtype_(sp_input) = 6 ∨ dtype_(sp_input) = 7 ∨ dtype_(sp_input) = 8) then (out_type = 6 ∨ out_type = 7 ∨ out_type = 8) ∧ shape(sp_input,0) > 1
+>>
+Rule 118 (Out_type != string, boolean, or dtype.)
+{out_type:dtype} |= out_type ≠ 0 ∧ out_type ≠ 11 ∧ out_type ≠ 12
+>>
+Rule 120 (DataType compatibility between out_type and sp_input OR compatibility of both types with bool)
+{sp_input : tensor, out_type : dtype} |= (if (dtype_(sp_input) = 1 ∨ dtype_(sp_input) = 2 ∨ dtype_(sp_input) = 3 ∨ dtype_(sp_input) = 4 ∨ dtype_(sp_input) = 5) then (out_type = 1 ∨ out_type = 2 ∨ out_type = 3 ∨ out_type = 4 ∨ out_type = 5) else if (dtype_(sp_input) = 6 ∨ dtype_(sp_input) = 7 ∨ dtype_(sp_input) = 8) then (out_type = 6 ∨ out_type = 7 ∨ out_type = 8)) ∨ (dtype_(sp_input) = 0 ∧ out_type = 0)
+>>
+Rule 121 (Ensure that sparse_shape has valid first dimension)
+{sp_input : tensor} |= shape(sp_input,0) > 0
+>>
+Rule 122 (Check for tensor object )
+{sp_input : tensor} |= ndim(sp_input) >= 1

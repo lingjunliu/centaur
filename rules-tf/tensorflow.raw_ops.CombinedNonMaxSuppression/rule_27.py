@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If q of boxes is equal to 1 then same boxes are used for all classes (Rule 27)
+# scores shape[0] must be greater than 0 (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_shape"], 2) == 1, True, False)) if n else
-          If(Select(v["arg1_shape"], 2) == 1, True, False))
+    s.add(Not(Select(v["arg1_shape"], 0) > 0) if n else
+          Select(v["arg1_shape"], 0) > 0)
 )
 
 def rule_27_func(arg1, solver=None, neg=False):

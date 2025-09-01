@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the shape tensor is of rank 1, its first element should be greater than 0 (Rule 48)
+# Ensure shape has at least one element, if not scalar (Rule 48)
 
 rule_48 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) > 0, False)) if n else
-          If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) > 0, False))
+    s.add(Not(If(v["arg1_ndim"] > 0, Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), True)) if n else
+          If(v["arg1_ndim"] > 0, Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), True))
 )
 
 def rule_48_func(arg1, solver=None, neg=False):

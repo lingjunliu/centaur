@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# x and y should have the same number of dimensions if neither of them is a scalar (Rule 17)
+# Tensors must be of compatible rank for broadcasting or be scalar (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] != 0, v["arg2_ndim"] != 0), v["arg1_ndim"] == v["arg2_ndim"], False)) if n else
-          If(And(v["arg1_ndim"] != 0, v["arg2_ndim"] != 0), v["arg1_ndim"] == v["arg2_ndim"], False))
+    s.add(Not(If(Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), True, True)) if n else
+          If(Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), True, True))
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):

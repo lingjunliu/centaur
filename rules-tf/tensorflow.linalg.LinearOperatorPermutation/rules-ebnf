@@ -1,66 +1,150 @@
 >>
-Rule 1 (The permutation vector must be a 1D tensor)
-{v_1 : tensor} |= ndim(v_1) = 1
->>
-Rule 2 (The elements in the permutation vector must be non-negative integers)
+Rule 1 (perm tensor must have integer dtype)
 {v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
 >>
-Rule 3 (The permutation vector's elements must be unique)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j]
+Rule 2 (perm tensor must be a vector (rank-1 tensor))
+{v_1 : tensor} |= ndim(v_1) = 1
+>>
+Rule 3 (perm tensor values must be non-negative)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
 >>
 Rule 4 (is_non_singular must be a boolean)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 8 (The maximum value in permutation vector should be less than vector length)
-{v_1 : tensor} |= max(v_1) < shape(v_1, 0)
+Rule 9 (dtype must be one of the supported types)
+{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 12
 >>
-Rule 9 (Shape of input tensor to matmul must be compatible with the permutation size)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1,0) = shape(v_2, ndim(v_2)-2)
->>
-Rule 10 (The permutation vector cannot be empty)
+Rule 10 (perm tensor length must be greater than zero)
 {v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 14 (is_non_singular must be a boolean. If it is true, then determinant must not be zero)
-{v_1 : bool} |= if v_1 then true
+Rule 11 (Check is_square implies matrix is square)
+{v_1 : bool} |= if v_1 then v_1 = true
 >>
-Rule 31 (Shape of the linear operator should be square when is_square is true)
-{v_1: bool, v_2: tensor} |= if v_1 then shape(v_2, ndim(v_2)-1) = shape(v_2, ndim(v_2)-2)
+Rule 15 (is_non_singular must be a boolean with a dependency on is_square)
+{v_1 : bool, v_2 : bool} |= if v_2 then v_1 = true
 >>
-Rule 32 (If the LinearOperator is positive definite, it must also be self-adjoint)
-{v_1: bool, v_2: bool} |= if v_1 then v_2
+Rule 19 (dtype must be one of the supported types and relate to the perm tensor's dtype if provided)
+{v_1 : dtype, v_2 : tensor} |= (v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 12) ∧ (if v_1 ≠ 12 then dtype_(v_2) = v_1)
 >>
-Rule 33 (The permutation vector must be a 1D tensor and its dtype must be integer)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5)
+Rule 20 (values in perm must be unique)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i+1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j]
 >>
-Rule 38 (If the LinearOperator is positive definite, it must also be self-adjoint and non-singular)
-{v_1: bool, v_2: bool, v_3: bool} |= if v_1 then v_2 ∧ v_3
+Rule 22 (perm tensor values must be within the valid range)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < shape(v_1, 0)
 >>
-Rule 40 (If the LinearOperator is non-singular, then its determinant is non-zero.)
-{v_1: bool} |= if v_1 then true
+Rule 26 (If the permutation is the identity, the operator is self-adjoint)
+{v_1 : tensor, v_2 : bool} |= if (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = i) then v_2 = true
 >>
-Rule 41 (A batch matrix with compatible shape)
-{v_1 : tensor, v_2: tensor} |= ndim(v_2) >= 2 ∧ shape(v_1,0) = shape(v_2, ndim(v_2)-2)
+Rule 28 (perm tensor and dtype relation)
+{v_1 : tensor, v_2 : dtype} |= (v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5) ∧ (dtype_(v_1) = v_2)
 >>
-Rule 43 (If the LinearOperator is positive definite, it must also be self-adjoint and non-singular and square)
-{v_1: bool, v_2: bool, v_3: bool, v_4: bool} |= if v_1 then v_2 ∧ v_3 ∧ v_4
+Rule 29 (perm must have at least one element if is_square is set)
+{v_1 : tensor, v_2 : bool} |= if v_2 then shape(v_1, 0) > 0
 >>
-Rule 47 (Check if the permutation vector contains all values from 0 to N-1 where N is size of the vector)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : ∃j ∈ [0, shape(v_1, 0) - 1] : v_1[j] = i
+Rule 37 (is_square implies properties)
+{v_1 : bool, v_2 : bool, v_3: bool, v_4: bool, v_5: bool} |= if v_1 then true else (v_2 = false ∧ v_3 = false ∧ v_4 = false ∧ v_5 = false)
 >>
-Rule 54 (The element of permutation vector must be in the range [0, N-1])
-{v_1 : tensor} |= 0 ≤ min(v_1) ∧ max(v_1) < shape(v_1, 0)
+Rule 38 (String should correspond to valid name, accepting any string but it must have length smaller than 20 characters)
+{v_1 : str} |= v_1.len < 20
 >>
-Rule 61 (If the shape of input tensor is [B1,...,Bb] + [N, R], the permutation vector should be N)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, ndim(v_2) - 2)
+Rule 44 (is_square implies properties and vice versa)
+{v_1 : bool, v_2 : bool, v_3: bool, v_4: bool, v_5: bool} |= (if v_1 then (v_2 = true ∧ v_3 = true ∧ v_4 = true ∧ v_5 = true) else (v_2 = false ∧ v_3 = false ∧ v_4 = false ∧ v_5 = false))
 >>
-Rule 66 (Check if the permutation vector contains all values from 0 to N-1 where N is size of the vector and its elements are unique)
-{v_1 : tensor} |= (∀i ∈ [0, shape(v_1, 0) - 1] : ∃j ∈ [0, shape(v_1, 0) - 1] : v_1[j] = i) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j])
+Rule 45 (String should correspond to valid name, accepting any string but it must have length smaller than 20 characters and only contain letters)
+{v_1 : str} |= v_1.len < 20 ∧ ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z")
 >>
-Rule 69 (If is square, N and N should be same)
-{v_1 : tensor, v_2 : bool} |= if v_2 then shape(v_1, ndim(v_1)-1) = shape(v_1, ndim(v_1)-2)
+Rule 50 (if is_square then perm is square)
+{v_1 : tensor, v_2 : bool} |= if v_2 then shape(v_1, 0) > 0 ∧ (∀i ∈ [0, shape(v_1,0) - 1]: v_1[i] < shape(v_1, 0))
 >>
-Rule 74 (The last two dimensions of the linear operator shape must be equal to N)
-{v_1 : tensor} |= ndim(v_1) >= 2 ∧ shape(v_1, ndim(v_1)-1) = shape(v_1, ndim(v_1)-2)
+Rule 51 (Perm tensor's data type must be integer and within a valid range)
+{v_1 : tensor, v_2 : dtype} |= (v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5) ∧ (dtype_(v_1) = v_2) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0)
 >>
-Rule 82 (Check min and max values in permutation vector)
-{v_1: tensor} |= min(v_1) >= 0 ∧ max(v_1) < shape(v_1, 0)
+Rule 52 (If perm is empty then is_square should be False)
+{v_1 : tensor, v_2: bool} |= if shape(v_1, 0) = 0 then v_2 = false
+>>
+Rule 53 (is_square implies properties and vice versa)
+{v_1 : bool, v_2 : bool, v_3: bool, v_4: bool, v_5: bool} |= (v_1 = true ∧ v_2 = true ∧ v_3 = true ∧ v_4 = true ∧ v_5 = true) ∨ (v_1 = false ∧ v_2 = false ∧ v_3 = false ∧ v_4 = false ∧ v_5 = false)
+>>
+Rule 55 (if is_square then perm is square and its values are within valid range and are non-negative)
+{v_1 : tensor, v_2 : bool} |= if v_2 then shape(v_1, 0) > 0 ∧ (∀i ∈ [0, shape(v_1,0) - 1]: v_1[i] < shape(v_1, 0) ∧ v_1[i] ≥ 0)
+>>
+Rule 59 (String should correspond to valid name and only contain letters)
+{v_1 : str} |= v_1.len > 0 ∧ v_1.len < 20 ∧ ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z")
+>>
+Rule 61 (If perm is empty then is_square should be False and other bools should be False)
+{v_1 : tensor, v_2: bool, v_3: bool, v_4: bool, v_5:bool} |= if shape(v_1, 0) = 0 then (v_2 = false ∧ v_3 = false ∧ v_4 = false ∧ v_5 = false)
+>>
+Rule 62 (Perm tensor's data type must be integer and corresponds with dtype)
+{v_1 : tensor, v_2: dtype} |= (v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5) ∧ dtype_(v_1) = v_2
+>>
+Rule 64 (String should correspond to valid name and only contain letters or numbers)
+{v_1 : str} |= v_1.len > 0 ∧ v_1.len < 20 ∧ ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] <= "9")
+>>
+Rule 67 (Perm tensor's values are unique given is square)
+{v_1 : tensor, v_2: bool} |= if v_2 then (∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i+1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j])
+>>
+Rule 70 (if perm is not valid then properties have to be set as False)
+{v_1 : tensor, v_2: bool, v_3: bool, v_4: bool, v_5:bool} |= if shape(v_1, 0) = 0 ∨ (∃i ∈ [0, shape(v_1,0) - 1]: v_1[i] ≥ shape(v_1, 0) ∨ v_1[i] < 0) ∨ (∃i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i+1, shape(v_1, 0) - 1] : v_1[i] = v_1[j]) then (v_2 = false ∧ v_3 = false ∧ v_4 = false ∧ v_5 = false)
+>>
+Rule 71 (Perm tensor is integer and is a vector)
+{v_1 : tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ ndim(v_1) = 1
+>>
+Rule 75 (Perm tensor is integer and is a vector)
+{v_1 : tensor, v_2: dtype} |= (v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5) ∧ ndim(v_1) = 1
+>>
+Rule 76 (If permutation vector is empty, then it is not square.)
+{v_1: tensor, v_2: bool} |= if shape(v_1,0) = 0 then v_2 = false
+>>
+Rule 78 (String should correspond to valid name and only contain letters or numbers and the first char should be letter)
+{v_1 : str} |= v_1.len > 0 ∧ v_1.len < 20 ∧ (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z") ∧ ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] <= "9")
+>>
+Rule 79 (if perm is not valid then properties have to be set as False)
+{v_1 : tensor, v_2: bool, v_3: bool, v_4: bool, v_5:bool} |= if shape(v_1, 0) = 0 ∨ (∃i ∈ [0, shape(v_1,0) - 1]: v_1[i] ≥ shape(v_1, 0) ∨ v_1[i] < 0) ∨ (∃i ∈ [0, shape(v_1, 0) - 1] : ∃j ∈ [i+1, shape(v_1, 0) - 1] : v_1[i] = v_1[j]) then (v_2 = false ∧ v_3 = false ∧ v_4 = false ∧ v_5 = false)
+>>
+Rule 81 (if is_square, the permutation vector has to contain unique and valid elements.)
+{v_1: tensor, v_2: bool} |= if v_2 then shape(v_1, 0) > 0 ∧ (∀i ∈ [0, shape(v_1,0) - 1]: v_1[i] < shape(v_1, 0) ∧ v_1[i] ≥ 0)  ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i+1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j])
+>>
+Rule 82 (If permutation vector is valid, the is_square should be consistent.)
+{v_1: tensor, v_2: bool} |= if (shape(v_1, 0) > 0 ∧ (∀i ∈ [0, shape(v_1,0) - 1]: v_1[i] < shape(v_1, 0) ∧ v_1[i] ≥ 0)  ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i+1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j])) then true else v_2 = false
+>>
+Rule 83 (String should correspond to valid name and only contain letters or numbers)
+{v_1 : str} |= v_1.len > 0 ∧ v_1.len < 20 ∧ ((v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z")) ∧ ∀i ∈ [0, v_1.len - 1] : ((v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] <= "9"))
+>>
+Rule 86 (Perm tensor is one dimensional)
+{v_1: tensor} |= ndim(v_1) = 1
+>>
+Rule 87 (If permutation vector is valid and square then the flags must all align accordingly)
+{v_1: tensor, v_2: bool, v_3: bool, v_4: bool, v_5: bool, v_6: bool} |= if shape(v_1, 0) > 0 ∧ (∀i ∈ [0, shape(v_1,0) - 1]: v_1[i] < shape(v_1, 0) ∧ v_1[i] ≥ 0)  ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i+1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j]) ∧ v_2 then (v_3 = true ∧ v_4 = true ∧ v_5 = true ∧ v_6 = true) else (v_3 = false ∧ v_4 = false ∧ v_5 = false ∧ v_6 = false)
+>>
+Rule 91 (if is_square is false, then non-singular, self_adjoint, and positive_definite must be false)
+{v_1 : bool, v_2: bool, v_3: bool, v_4: bool} |= if v_1 then true else (v_2=false ∧ v_3=false ∧ v_4=false)
+>>
+Rule 93 (String should correspond to valid name and contain letters or numbers, or underscore)
+{v_1 : str} |= v_1.len > 0 ∧ v_1.len < 20 ∧ ((v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z")) ∧ ∀i ∈ [0, v_1.len - 1] : ((v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] <= "9") ∨ v_1[i] = "_")
+>>
+Rule 94 (Perm tensor is integer and one dimensional)
+{v_1 : tensor, v_2: dtype} |= (v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5) ∧ dtype_(v_1) = v_2 ∧ ndim(v_1) = 1
+>>
+Rule 97 (If permutation vector is valid, the properties must all be consistent)
+{v_1: tensor, v_2: bool, v_3: bool, v_4: bool, v_5: bool, v_6: bool} |= if shape(v_1, 0) > 0 ∧ (∀i ∈ [0, shape(v_1,0) - 1]: v_1[i] < shape(v_1, 0) ∧ v_1[i] ≥ 0)  ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i+1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j])  then v_2 = v_3 ∧ v_2= v_4 ∧ v_2= v_5 ∧ v_2 = v_6 else (v_2= false ∧ v_3 = false ∧ v_4 = false ∧ v_5 = false ∧ v_6 = false)
+>>
+Rule 98 (String should correspond to valid name, contain letters, numbers, underscore and not start with number)
+{v_1 : str} |= v_1.len > 0 ∧ v_1.len < 20 ∧ ((v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z") ∨ v_1[0] = "_") ∧ ∀i ∈ [0, v_1.len - 1] : ((v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] <= "9") ∨ v_1[i] = "_")
+>>
+Rule 101 (The length of the permutation vector should not exceed 256)
+{v_1 : tensor} |= shape(v_1, 0) < 256
+>>
+Rule 105 (String cannot be empty)
+{v_1: str} |= v_1.len > 0
+>>
+Rule 106 (Properties should match valid is_square permutation tensor)
+{v_1: tensor, v_2: bool, v_3: bool, v_4: bool, v_5: bool, v_6: bool} |= if shape(v_1, 0) > 0 ∧ (∀i ∈ [0, shape(v_1,0) - 1]: v_1[i] < shape(v_1, 0) ∧ v_1[i] ≥ 0)  ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i+1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j])  then v_2 = v_3 ∧ v_2= v_4 ∧ v_2= v_5 ∧ v_2 = v_6
+>>
+Rule 108 (The length of the permutation vector should be less than 256, and the permutation tensor is 1D)
+{v_1 : tensor} |= shape(v_1, 0) < 256 ∧ ndim(v_1) = 1
+>>
+Rule 114 (Properties are interlinked based on validity of permutation vector)
+{v_1: tensor, v_2: bool, v_3: bool, v_4: bool, v_5: bool, v_6: bool} |= if shape(v_1, 0) > 0 ∧ (∀i ∈ [0, shape(v_1,0) - 1]: v_1[i] < shape(v_1, 0))  ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i+1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j])  then v_2 = v_3 ∧ v_2= v_4 ∧ v_2= v_5 ∧ v_2 = v_6 else v_2 = false
+>>
+Rule 115 (if is_square, values should be in valid range)
+{v_1: tensor, v_2: bool} |= if v_2 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < shape(v_1, 0)

@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# inputs should have exactly 2 dimensions (Rule 4)
+# inputs should have a rank of 2 (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
     s.add(Not(v["arg1_ndim"] == 2) if n else

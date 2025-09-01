@@ -1,129 +1,189 @@
 >>
-Rule 1 (img1 and img2 must have the same rank)
-{img1 : tensor, img2 : tensor} |= ndim(img1) = ndim(img2)
+Rule 1 (Input tensors must have rank at least 3 to avoid shape error.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 3 ∧ ndim(v_2) ≥ 3
 >>
-Rule 2 (img1 and img2 last three dimensions should exist)
-{img1 : tensor, img2 : tensor} |= ndim(img1) ≥ 3 ∧ ndim(img2) ≥ 3
+Rule 2 (Input tensors must have compatible shapes.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 4] : shape(v_1, i) = shape(v_2, i) else false
 >>
-Rule 3 (max_val must be a positive number)
-{max_val : int ⊎ float} |= max_val > 0
+Rule 3 (img1 and img2 must have the same rank)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 4 (power_factors must be a list of floats)
-{power_factors : list(float)} |= power_factors.len > 0
+Rule 4 (max_val should be positive)
+{v_1 : float} |= v_1 > 0
 >>
-Rule 5 (filter_size must be a positive integer)
-{filter_size : int} |= filter_size > 0
+Rule 5 (filter_size should be positive)
+{v_1 : int} |= v_1 > 0
 >>
-Rule 6 (filter_sigma must be a positive float)
-{filter_sigma : float} |= filter_sigma > 0
+Rule 7 (k1 should be non-negative)
+{v_1 : float} |= v_1 ≥ 0
 >>
-Rule 7 (k1 must be a float between 0 and 1)
-{k1 : float} |= k1 ≥ 0 ∧ k1 ≤ 1
+Rule 8 (k2 should be non-negative and less than 0.4)
+{v_1 : float} |= v_1 ≥ 0 ∧ v_1 < 0.4
 >>
-Rule 8 (k2 must be a float between 0 and 0.4)
-{k2 : float} |= k2 > 0 ∧ k2 < 0.4
+Rule 9 (power_factors must be a tuple of floats)
+{v_1 : tuple(float), v_2 : tensor} |= v_1.len ≤ shape(v_2, ndim(v_2) - 3)
 >>
-Rule 9 (img1 and img2 must have positive pixel values - simplified)
-{img1 : tensor, img2 : tensor} |= min(img1) ≥ 0 ∧ min(img2) ≥ 0
+Rule 10 (power_factors should have a length within reasonable bounds, e.g., <= 10)
+{v_1 : tuple(float)} |= v_1.len ≤ 10
 >>
-Rule 10 (Number of scales used is the length of the power_factors list)
-{power_factors : list(float), img1 : tensor} |= power_factors.len > 0 ∧ power_factors.len ≤ shape(img1, ndim(img1)-1)
+Rule 11 (The images must have only positive pixel values)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) ≥ 0 ∧ min(v_2) ≥ 0
 >>
-Rule 11 (img1 and img2 must have compatible shapes for broadcasting except the last 3 dimensions)
-{img1 : tensor, img2 : tensor} |= ∀i ∈ [0, if ndim(img1) - 3 ≥ ndim(img2) - 3 then ndim(img1) - 4 else ndim(img2) - 4] : ndim(img1) - 4 - i < 0 ∨ ndim(img2) - 4 - i < 0 ∨ shape(img1, ndim(img1) - 4 - i) = 1 ∨ shape(img2, ndim(img2) - 4 - i) = 1 ∨ shape(img1, ndim(img1) - 4 - i) = shape(img2, ndim(img2) - 4 - i)
+Rule 12 (Input tensors must have rank at least 3 to avoid shape error, expressed differently.)
+{v_1 : tensor} |= ndim(v_1) > 2
 >>
-Rule 12 (img1 and img2 data types should match)
-{img1 : tensor, img2 : tensor} |= dtype_(img1) = dtype_(img2)
+Rule 15 (Images must have same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 13 (power_factors elements must be between 0 and 1)
-{power_factors : list(float)} |= ∀i ∈ [0, power_factors.len - 1] : power_factors[i] ≥ 0 ∧ power_factors[i] ≤ 1
+Rule 16 (shape of images should be positive)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0
 >>
-Rule 14 (filter_size must be less than or equal to the height and width of the images)
-{filter_size : int, img1 : tensor} |= filter_size ≤ shape(img1, ndim(img1) - 3) ∧ filter_size ≤ shape(img1, ndim(img1) - 2)
+Rule 17 (Ensure filter size is not excessively large relative to image dimensions)
+{v_1 : int, v_2 : tensor} |= v_1 < shape(v_2, ndim(v_2) - 2) ∧ v_1 < shape(v_2, ndim(v_2) - 3)
 >>
-Rule 15 (img1's last dimension must be greater than 0)
-{img1 : tensor} |= shape(img1, ndim(img1) - 1) > 0
+Rule 18 (max_val should be greater than or equal to the max pixel value)
+{v_1 : float, v_2 : tensor} |= v_1 ≥ max(v_2)
 >>
-Rule 16 (img2's last dimension must be greater than 0)
-{img2 : tensor} |= shape(img2, ndim(img2) - 1) > 0
+Rule 19 (Check if power_factors contains only non-negative numbers.)
+{v_1 : tuple(float)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 17 (The length of power_factors should be reasonable)
-{power_factors : list(float)} |= power_factors.len < 10
+Rule 20 (Check that power_factors is not an empty tuple.)
+{v_1 : tuple(float)} |= v_1.len > 0
 >>
-Rule 18 (max_val is greater than the min of img1 and img2)
-{max_val : int ⊎ float, img1 : tensor, img2 : tensor} |= max_val > min(img1) ∧ max_val > min(img2)
+Rule 21 (If images are grayscale, the channel dimension should be 1.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 ∧ dtype_(v_2) = 0 then shape(v_1, ndim(v_1)-1) = 1 ∧ shape(v_2, ndim(v_2)-1) = 1
 >>
-Rule 19 (img1's last three dimensions shape must be positive)
-{img1 : tensor} |= shape(img1, ndim(img1) - 1) > 0 ∧ shape(img1, ndim(img1) - 2) > 0 ∧ shape(img1, ndim(img1) - 3) > 0
+Rule 22 (filter_size should not be zero)
+{v_1 : int} |= v_1 ≠ 0
 >>
-Rule 20 (img2's last three dimensions shape must be positive)
-{img2 : tensor} |= shape(img2, ndim(img2) - 1) > 0 ∧ shape(img2, ndim(img2) - 2) > 0 ∧ shape(img2, ndim(img2) - 3) > 0
+Rule 24 (If the channel dimension of img1 is not 1 or 3, raise an error.)
+{v_1 : tensor} |= shape(v_1, ndim(v_1)-1) = 1 ∨ shape(v_1, ndim(v_1)-1) = 3
 >>
-Rule 21 (The values in power_factors should sum to 1, approximately)
-{power_factors : list(float)} |= ∃i ∈ [0, power_factors.len - 1] : (power_factors[0] + power_factors[1] + power_factors[2] + power_factors[3] + power_factors[4]) > 0.99 ∧ (power_factors[0] + power_factors[1] + power_factors[2] + power_factors[3] + power_factors[4]) < 1.01
+Rule 26 (The number of power_factors should not be greater than the smallest spatial dimension of the images.)
+{v_1 : tuple(float), v_2 : tensor} |= v_1.len ≤ shape(v_2, ndim(v_2)-3) ∧ v_1.len ≤ shape(v_2, ndim(v_2)-2)
 >>
-Rule 22 (k1 should be less than max_val)
-{k1 : float, max_val : int ⊎ float} |= k1 < max_val
+Rule 27 (filter_size must be less or equal to all spatial dimensions)
+{v_1 : int, v_2 : tensor} |= v_1 ≤ shape(v_2, ndim(v_2)-3) ∧ v_1 ≤ shape(v_2, ndim(v_2)-2)
 >>
-Rule 23 (k2 should be less than max_val)
-{k2 : float, max_val : int ⊎ float} |= k2 < max_val
+Rule 28 (Dimensions of image must be positive)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 3) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0
 >>
-Rule 26 (power_factors length should be less than or equal to img1's smallest dimension amongst the first ndim-3, if ndim > 3)
-{power_factors : list(float), img1 : tensor} |= if ndim(img1) > 3 then power_factors.len ≤ shape(img1, 0)
+Rule 29 (If img1 and img2 have different shapes in height/width, an error will be raised)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1)-3) = shape(v_2, ndim(v_2)-3) ∧ shape(v_1, ndim(v_1)-2) = shape(v_2, ndim(v_2)-2)
 >>
-Rule 27 (power_factors length should be less than or equal to img2's smallest dimension amongst the first ndim-3, if ndim > 3)
-{power_factors : list(float), img2 : tensor} |= if ndim(img2) > 3 then power_factors.len ≤ shape(img2, 0)
+Rule 30 (Check the last dimension(channel) must be the same in both images)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1)-1) = shape(v_2, ndim(v_2)-1)
 >>
-Rule 28 (filter_sigma must be less than filter_size)
-{filter_sigma : float, filter_size : int} |= filter_sigma < filter_size
+Rule 31 (max_val must be greater than min value of both images)
+{v_1 : float, v_2 : tensor, v_3 : tensor} |= v_1 ≥ min(v_2) ∧ v_1 ≥ min(v_3)
 >>
-Rule 30 (If ndim is greater than 3, then the shape of dimension 0 should be greater than 0)
-{img1 : tensor} |= if ndim(img1) > 3 then shape(img1, 0) > 0
+Rule 32 (filter_sigma should be less than the filter_size)
+{v_1 : float, v_2 : int} |= v_1 < v_2
 >>
-Rule 32 (The shape of img1 and img2 must match except for the channel dimension when ndim >= 3)
-{img1 : tensor, img2 : tensor} |= if ndim(img1) >= 3 then (∀i ∈ [0, ndim(img1) - 2] : shape(img1, i) = shape(img2, i))
+Rule 33 (k1 should be less than max_val)
+{v_1 : float, v_2 : float} |= v_1 < v_2
 >>
-Rule 33 (k1 is non-negative)
-{k1 : float} |= k1 ≥ 0
+Rule 35 (k1 should be less than or equal to max_val)
+{v_1 : float, v_2 : float} |= v_1 ≤ v_2
 >>
-Rule 34 (k2 is non-negative)
-{k2 : float} |= k2 ≥ 0
+Rule 37 (max_val should be much greater than k1)
+{v_1 : float, v_2 : float} |= v_2 > 10 * v_1
 >>
-Rule 35 (max_val must be greater than or equal to 0)
-{max_val : int ⊎ float} |= max_val ≥ 0
+Rule 39 (max_val must be reasonably large to be meaningful for MS-SSIM)
+{v_1 : float} |= v_1 > 1.0
 >>
-Rule 37 (If ndim(img1) and ndim(img2) are greater than 3, the shapes of img1 and img2 must be compatible for broadcasting for the first dimensions)
-{img1 : tensor, img2 : tensor} |= if ndim(img1) > 3 ∧ ndim(img2) > 3 then (∀i ∈ [0, if ndim(img1) - 3 > ndim(img2) - 3 then ndim(img1) - 3 else ndim(img2) - 3] : (ndim(img1) - 3 - i < 0) ∨ (ndim(img2) - 3 - i < 0) ∨ (shape(img1, ndim(img1) - 3 - i) = shape(img2, ndim(img2) - 3 - i)) ∨ (shape(img1, ndim(img1) - 3 - i) = 1) ∨ (shape(img2, ndim(img2) - 3 - i) = 1))
+Rule 40 (Check if the number of scales (power_factors) is reasonably low)
+{v_1 : tuple(float)} |= v_1.len < 6
 >>
-Rule 38 (filter_size must be greater than 1)
-{filter_size : int} |= filter_size > 1
+Rule 41 (Shape should not be empty, it will cause rank error)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
 >>
-Rule 40 (If ndim(img1) and ndim(img2) are 3 and the shapes of img1 and img2 must match for the first dimensions)
-{img1 : tensor, img2 : tensor} |= if ndim(img1) = 3 ∧ ndim(img2) = 3 then (∀i ∈ [0, ndim(img1) - 1 - 1] : shape(img1, i) = shape(img2, i))
+Rule 42 (Shape of tensor should not contain negative value, if so, it will cause error.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 41 (filter_sigma must be greater or equal to 0)
-{filter_sigma : float} |= filter_sigma ≥ 0
+Rule 43 (Images should be batched)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 4) > 0
 >>
-Rule 45 (If the images have the same number of dimension, they must have the same size for the first dimension)
-{img1 : tensor, img2 : tensor} |= if ndim(img1) = ndim(img2) then shape(img1, 0) = shape(img2, 0)
+Rule 44 (If one image is grayscale, the other should be as well)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, ndim(v_1)-1) = 1 then shape(v_2, ndim(v_2)-1) = 1
 >>
-Rule 49 (If ndim(img1) and ndim(img2) are greater than 3, the shapes of img1 and img2 must be the same for the second dimension)
-{img1 : tensor, img2 : tensor} |= if ndim(img1) > 3 ∧ ndim(img2) > 3 then shape(img1, 1) = shape(img2, 1)
+Rule 45 (power_factors must contain positive number)
+{v_1 : tuple(float)} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 50 (If img1 and img2 have 4 dimensions then the number of channels must be greater then 0)
-{img1 : tensor, img2 : tensor} |= if ndim(img1) = 4 ∧ ndim(img2) = 4 then shape(img1, 3) > 0 ∧ shape(img2, 3) > 0
+Rule 46 (k1 and k2 must be non-negative to ensure valid SSIM range)
+{v_1 : float, v_2 : float} |= v_1 ≥ 0 ∧ v_2 ≥ 0
 >>
-Rule 52 (The filter size should be less than 256)
-{filter_size : int} |= filter_size < 256
+Rule 48 (Images must have 3 dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3
 >>
-Rule 53 (If the images have the same number of dimension, they must have compatible shape)
-{img1 : tensor, img2 : tensor} |= if ndim(img1) = ndim(img2) then (∀i ∈ [0, ndim(img1) - 1] : shape(img1, i) = shape(img2, i) ∨ shape(img1, i) = 1 ∨ shape(img2, i) = 1)
+Rule 49 (Check the last dimension (channel) can not be zero)
+{v_1 : tensor} |= shape(v_1, ndim(v_1)-1) ≠ 0
 >>
-Rule 54 (The channel dimension of the images should be the same)
-{img1 : tensor, img2 : tensor} |= shape(img1, ndim(img1) - 1) = shape(img2, ndim(img2) - 1)
+Rule 50 (The number of channel must be positive)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1)-1) > 0 ∧ shape(v_2, ndim(v_2)-1) > 0
 >>
-Rule 55 (max_val must be greater than or equal to the max pixel value)
-{max_val : int ⊎ float, img1 : tensor, img2 : tensor} |= max_val ≥ max(img1) ∧ max_val ≥ max(img2)
+Rule 51 (Shape of tensor should be broadcastable)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, 2] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1
 >>
-Rule 57 (k2 must be a float less than 1)
-{k2 : float} |= k2 < 1
+Rule 52 (If one image has batch size of 1, other has too)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) = 1 then shape(v_2, 0) = 1
+>>
+Rule 53 (if filter_size is odd)
+{v_1 : int} |= (v_1 % 2) ≠ 0
+>>
+Rule 54 (The channel dimension of img1 and img2 must be equal, or one of them must be 1.)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1)-1) = shape(v_2, ndim(v_2)-1) ∨ shape(v_1, ndim(v_1)-1) = 1 ∨ shape(v_2, ndim(v_2)-1) = 1
+>>
+Rule 55 (Check if max_val is large than 0.0001 to avoid division by zero error)
+{v_1 : float} |= v_1 > 0.0001
+>>
+Rule 56 (Images must have same height to calculate SSIM properly)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1)-3) = shape(v_2, ndim(v_2)-3)
+>>
+Rule 57 (Images must have same width to calculate SSIM properly)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1)-2) = shape(v_2, ndim(v_2)-2)
+>>
+Rule 58 (Ensure max_val is not zero)
+{v_1 : float} |= v_1 ≠ 0
+>>
+Rule 59 (The image dimensions must be greater than 1 to allow for valid computations.)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1)-3) > 1 ∧ shape(v_1, ndim(v_1)-2) > 1 ∧ shape(v_2, ndim(v_2)-3) > 1 ∧ shape(v_2, ndim(v_2)-2) > 1
+>>
+Rule 60 (The image height and width dimensions must be greater than or equal to the filter size)
+{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1)-3) ≥ v_2 ∧ shape(v_1, ndim(v_1)-2) ≥ v_2
+>>
+Rule 62 (Check if max pixel value is the same in both images)
+{v_1 : tensor, v_2 : tensor} |= max(v_1) = max(v_2)
+>>
+Rule 63 (max_val must be greater than the minimum value of image1 and image2)
+{v_1 : float, v_2 : tensor, v_3 : tensor} |= v_1 > min(v_2) ∧ v_1 > min(v_3)
+>>
+Rule 64 (Ensure image dimension >=2 to calculate SSIM)
+{v_1 : tensor} |= shape(v_1, ndim(v_1)-3) ≥ 2 ∧ shape(v_1, ndim(v_1)-2) ≥ 2
+>>
+Rule 65 (For rank 3 tensors, image height/width should not be zero)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ shape(v_1, 0) ≠ 0 ∧ shape(v_1, 1) ≠ 0
+>>
+Rule 66 (If power_factors length is more than 1, the size of tensors must be large enough.)
+{v_1 : tuple(float), v_2 : tensor} |= if v_1.len > 1 then shape(v_2, ndim(v_2)-3) > 1 ∧ shape(v_2, ndim(v_2)-2) > 1
+>>
+Rule 67 (filter_size should be less than image size to avoid error)
+{v_1 : int, v_2 : tensor} |= v_1 < shape(v_2, 0) ∧ v_1 < shape(v_2, 1)
+>>
+Rule 68 (If img1 and img2 are rank 4, height, width and channel should be same)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 4 ∧ ndim(v_2) = 4 then shape(v_1, 1) = shape(v_2, 1) ∧ shape(v_1, 2) = shape(v_2, 2) ∧ shape(v_1, 3) = shape(v_2, 3)
+>>
+Rule 69 (If img1 and img2 are rank 3, height and width should be same)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 ∧ ndim(v_2) = 3 then shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1)
+>>
+Rule 70 (filter_sigma should be a valid float number.)
+{v_1 : float} |= v_1 > 0.0 ∧ v_1 < 100000.0
+>>
+Rule 71 (If images are color images(channel = 3), all shape except channel should be equal)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, ndim(v_1)-1) = 3 ∧ shape(v_2, ndim(v_2)-1) = 3 then shape(v_1, ndim(v_1)-3) = shape(v_2, ndim(v_2)-3) ∧ shape(v_1, ndim(v_1)-2) = shape(v_2, ndim(v_2)-2)
+>>
+Rule 73 (The image tensors can not be complex type)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11 ∧ dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11
+>>
+Rule 74 (If images are batched color images(channel = 3), all shape except batch should be same)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ shape(v_1, 3) = 3 ∧ shape(v_2, 3) = 3 then shape(v_1, 1) = shape(v_2, 1) ∧ shape(v_1, 2) = shape(v_2, 2)

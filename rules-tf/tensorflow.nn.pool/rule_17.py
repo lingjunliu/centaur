@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If data format is None or doesn't start with NC, input spatial dimensions must match window_shape, strides, and dilations (Rule 17)
+# input tensor rank should be N+2 (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] - 2 == v["arg2_length"]) if n else
-          v["arg1_ndim"] - 2 == v["arg2_length"])
+    s.add(Not(v["arg1_ndim"] == v["arg2_value"] + 2) if n else
+          v["arg1_ndim"] == v["arg2_value"] + 2)
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):
@@ -20,22 +20,22 @@ def rule_17_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg2_length = Int('arg2_length')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_length == len(arg2))
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 17
-        rule_17(solver, {'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length})
+        rule_17(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_17(solver, {'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length']}, neg)
+        rule_17(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

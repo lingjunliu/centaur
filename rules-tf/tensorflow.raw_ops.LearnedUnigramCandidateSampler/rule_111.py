@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If range_max is 1, then num_sampled must be 1 or smaller. (0 is possible, will be casted to 1 (Rule 111)
+# seed and seed2 must be valid non-negative integers (Rule 111)
 
 rule_111 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 1, v["arg2_value"] <= 1, False)) if n else
-          If(v["arg1_value"] == 1, v["arg2_value"] <= 1, False))
+    s.add(Not(And(v["arg1_value"] >= 0, v["arg2_value"] >= 0)) if n else
+          And(v["arg1_value"] >= 0, v["arg2_value"] >= 0))
 )
 
 def rule_111_func(arg1, arg2, solver=None, neg=False):

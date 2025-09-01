@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if x is int8, y must also be int8 (Rule 17)
+# if x is bfloat16, y must be bfloat16 (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 1, v["arg2_dtype"] == 1, False)) if n else
-          If(v["arg1_dtype"] == 1, v["arg2_dtype"] == 1, False))
+    s.add(Not(If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9, True)) if n else
+          If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9, True))
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):

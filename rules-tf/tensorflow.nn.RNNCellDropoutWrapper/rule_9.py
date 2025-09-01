@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input_keep_prob is specified then it must be 1, since RNNCellDropoutWrapper is deprecated (Rule 9)
+# DType must be a valid TensorFlow DType index (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] == 1) if n else
-          v["arg1_value"] == 1)
+    s.add(Not(Or(Or(Or(Or(v["arg1_value"] == 6, v["arg1_value"] == 7), v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10)) if n else
+          Or(Or(Or(Or(v["arg1_value"] == 6, v["arg1_value"] == 7), v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10))
 )
 
 def rule_9_func(arg1, solver=None, neg=False):
@@ -17,15 +17,15 @@ def rule_9_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
 
         # Constraints for rule 9
         rule_9(solver, {'arg1_value': arg1_value})

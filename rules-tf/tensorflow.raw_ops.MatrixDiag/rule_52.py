@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The shape of the diagonal tensor should fit within the int32 range. (Rule 52)
+# if shape(diagonal,0 (Rule 52)
 
 rule_52 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 131072) for i in range(6)]), False)) if n else
-          If(v["arg1_ndim"] > 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 131072) for i in range(6)]), False))
+    s.add(Not(If(And(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) == 0), Or([And(i < (v["arg1_ndim"] + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)]), True)) if n else
+          If(And(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) == 0), Or([And(i < (v["arg1_ndim"] + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)]), True))
 )
 
 def rule_52_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# dtype must be smaller than 12 (Rule 17)
+# if destination dtype is dtype, it should be a valid dtype (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 12) if n else
-          v["arg1_value"] < 12)
+    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] <= 12)) if n else
+          And(v["arg1_value"] >= 0, v["arg1_value"] <= 12))
 )
 
 def rule_17_func(arg1, solver=None, neg=False):

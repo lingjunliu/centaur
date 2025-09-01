@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If range_given is false, the input tensor must have at least one dimension (Rule 32)
+# if narrow range is true, signed_input must be true (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == False, v["arg2_ndim"] > 0, False)) if n else
-          If(v["arg1_value"] == False, v["arg2_ndim"] > 0, False))
+    s.add(Not(If(v["arg2_value"] == True, v["arg1_value"] == True, True)) if n else
+          If(v["arg2_value"] == True, v["arg1_value"] == True, True))
 )
 
 def rule_32_func(arg1, arg2, solver=None, neg=False):
@@ -20,22 +20,22 @@ def rule_32_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, bool):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Bool('arg1_value')
-        arg2_ndim = Int('arg2_ndim')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
         solver.add(arg1_value == arg1)
-        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 32
-        rule_32(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim})
+        rule_32(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_32(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_32(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

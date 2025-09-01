@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The tensor should have a reasonable number of dimensions. (Rule 30)
+# The number of dimensions of the input tensor must be a reasonable value. (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] < 6) if n else
-          v["arg1_ndim"] < 6)
+    s.add(Not(v["arg1_ndim"] < 10) if n else
+          v["arg1_ndim"] < 10)
 )
 
 def rule_30_func(arg1, solver=None, neg=False):

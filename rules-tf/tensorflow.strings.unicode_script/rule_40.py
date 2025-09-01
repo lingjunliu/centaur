@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The minimum value in input tensor must be greater or equal to -1 (Rule 40)
+# if dtype is numpy dtype it has to be between np.int8 and np.uint8 (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) >= -1) if n else
-          Select(v["arg1_range"], 0) >= -1)
+    s.add(Not(If(v["arg1_dtype"] == 12, Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), True)) if n else
+          If(v["arg1_dtype"] == 12, Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), True))
 )
 
 def rule_40_func(arg1, solver=None, neg=False):
@@ -22,16 +22,15 @@ def rule_40_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 40
-        rule_40(solver, {'arg1_range': arg1_range})
+        rule_40(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_40(solver, {'arg1_range': arg1['range']}, neg)
+        rule_40(solver, {'arg1_dtype': arg1['dtype']}, neg)

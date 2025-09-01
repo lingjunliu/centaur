@@ -1,48 +1,114 @@
 >>
-Rule 3 (bands and rhs should have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 1 (BandedTriangularSolve input tensors must be of allowed dtypes)
+{v_1 : tensor} |= dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 6
 >>
-Rule 6 (bands shape rank should be at least 2)
+Rule 2 (bands tensor should not be empty)
+{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+>>
+Rule 4 (bands tensor should have at least two dimensions)
 {v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 7 (rhs shape rank should be at least 1)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 5 (rhs tensor should have at least one dimension)
+{v_2 : tensor} |= ndim(v_2) ≥ 1
 >>
-Rule 13 (lower can be either true or false)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 6 (lower and adjoint should be boolean)
+{v_3 : bool, v_4 : bool} |= v_3 = true ∨ v_3 = false ∧ v_4 = true ∨ v_4 = false
 >>
-Rule 20 (The second to last dimension of bands should be greater than zero)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 2) > 0
+Rule 7 (rhs tensor M dimension must match the last dimension of bands)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - (if ndim(v_2) > 1 then 2 else 1 ))
 >>
-Rule 21 (The last dimension of bands should be greater than zero)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0
+Rule 8 (bands and rhs tensor batch dimensions should be compatible)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) else (∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 23 (If rhs has more than one dimension then the last dimension of bands and the second to last dimension of rhs should be the same)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 1 then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2)
+Rule 9 (bands and rhs tensor batch dimensions should be compatible)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i)) else (∀i ∈ [0, ndim(v_2) - 1 -1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 26 (If bands has more than 2 dimensions and rhs has more than 1 dimension, then all batch dimensions except the last should be the same)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 2 ∧ ndim(v_2) > 1 then true
+Rule 10 (bands and rhs tensor batch dimensions should be compatible)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i)) else (∀i ∈ [0, ndim(v_2) - 2] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 27 (bands should be a tensor with at least 2 dimensions and the last dimension should be greater than 0)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) > 0
+Rule 11 (bands and rhs tensor batch dimensions should be compatible, handling different ndims)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i)) else if ndim(v_1) > ndim(v_2) then (∀i ∈ [0, ndim(v_2) - 2] : shape(v_1, i) = shape(v_2, i)) else (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 28 (rhs should be a tensor with at least 1 dimension and the last dimension should be greater than 0)
-{v_1 : tensor} |= ndim(v_1) ≥ 1 ∧ shape(v_1, ndim(v_1) - 1) > 0
+Rule 12 (bands and rhs tensor batch dimensions should be compatible, complete)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i)) else if ndim(v_1) > ndim(v_2) then (∀i ∈ [0, ndim(v_2) - 2] : shape(v_1, i) = shape(v_2, i)) else if ndim(v_1) > 1 then (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 29 (bands and rhs should have the same dtype and if rhs has more than one dimension then the last dimension of bands and the second to last dimension of rhs should be the same)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ if ndim(v_2) > 1 then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2)
+Rule 13 (bands and rhs tensor batch dimensions should be compatible and tensors are not empty)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0 ∧ if ndim(v_1) < ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i)) else if ndim(v_1) > ndim(v_2) then (∀i ∈ [0, ndim(v_2) - 2] : shape(v_1, i) = shape(v_2, i)) else if ndim(v_1) > 1 then (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 34 (If bands is 3D tensor and rhs is 2D tensor, the first dimension of bands and rhs must be equal)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 ∧ ndim(v_2) = 2 then shape(v_1, 0) = shape(v_2, 0)
+Rule 14 (bands and rhs tensor batch dimensions should be compatible, more concise)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0 ∧ if ndim(v_1) < ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i)) else (∀i ∈ [0, ndim(v_2) - 2] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 35 (If bands is 4D tensor and rhs is 3D tensor, the first two dimension of bands and rhs must be equal)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 4 ∧ ndim(v_2) = 3 then shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1)
+Rule 15 (bands and rhs tensor batch dimensions should be compatible and not scalar)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ if ndim(v_1) < ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i)) else (∀i ∈ [0, ndim(v_2) - 2] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 64 (The bands should have at least 2 dimensions, and rhs at least 1 dimension)
+Rule 16 (bands and rhs tensor batch dimensions should be compatible and neither can be scalar, and also M dimension should be consistent)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 1 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - (if ndim(v_2) > 1 then 2 else 1)) ∧ if ndim(v_1) < ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i)) else (∀i ∈ [0, ndim(v_2) - 2] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 17 (bands and rhs tensor must have the same type and relevant shapes)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ ndim(v_1) > 1 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - (if ndim(v_2) > 1 then 2 else 1)) ∧ if ndim(v_1) < ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i)) else (∀i ∈ [0, ndim(v_2) - 2] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 18 (BandedTriangularSolve input tensors must be of allowed dtypes and consistent shapes)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 6) ∧ dtype_(v_1) = dtype_(v_2) ∧ ndim(v_1) > 1 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - (if ndim(v_2) > 1 then 2 else 1)) ∧ if ndim(v_1) < ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i)) else (∀i ∈ [0, ndim(v_2) - 2] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 19 (BandedTriangularSolve input tensors must be of allowed dtypes and consistent shapes, and not empty tensors)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 6) ∧ dtype_(v_1) = dtype_(v_2) ∧ ndim(v_1) > 1 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - (if ndim(v_2) > 1 then 2 else 1)) ∧ if ndim(v_1) < ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i)) else (∀i ∈ [0, ndim(v_2) - 2] : shape(v_1, i) = shape(v_2, i)) ∧ shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0
+>>
+Rule 20 (Complete check for BandedTriangularSolve, data types, shapes and non-emptiness)
+{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4 : bool} |= (dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 6) ∧ dtype_(v_1) = dtype_(v_2) ∧ ndim(v_1) > 1 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - (if ndim(v_2) > 1 then 2 else 1)) ∧ if ndim(v_1) < ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i)) else (∀i ∈ [0, ndim(v_2) - 2] : shape(v_1, i) = shape(v_2, i)) ∧ shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0 ∧ (v_3 = true ∨ v_3 = false) ∧ (v_4 = true ∨ v_4 = false)
+>>
+Rule 22 (If dtype is half, lower and adjoint must be true)
+{v_1 : tensor, v_3 : bool, v_4 : bool} |= if dtype_(v_1) = 6 then v_3 = true ∧ v_4 = true
+>>
+Rule 26 (either lower or adjoint must be true)
+{v_3 : bool, v_4 : bool} |= v_3 = true ∨ v_4 = true
+>>
+Rule 28 (bands tensor K and M dimensions must be positive)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0
+>>
+Rule 30 (must have at least two dimensions and a valid dtype)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 6)
+>>
+Rule 31 (bands tensor must have valid dtype, and if dtype is half, K and M must be positive)
+{v_1 : tensor} |= (dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 6) ∧ if dtype_(v_1) = 6 then shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0
+>>
+Rule 33 (If lower is true, then RHS tensor must have at least one dimension)
+{v_2 : tensor, v_3 : bool} |= if v_3 = true then ndim(v_2) ≥ 1
+>>
+Rule 34 (if lower is true, the rhs tensor must have a shape that is compatible with the shape of the bands)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - (if ndim(v_2) > 1 then 2 else 1))
+>>
+Rule 35 (if adjoint is true, the bands tensor must have at least two dimensions)
+{v_1 : tensor, v_4 : bool} |= if v_4 = true then ndim(v_1) ≥ 2
+>>
+Rule 36 (bands and rhs must have same dtype, and bands cannot be half)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) ≠ 6
+>>
+Rule 37 (If adjoint is true, then bands and rhs must have same dtype which must be complex)
+{v_1 : tensor, v_2 : tensor, v_4 : bool} |= if v_4 = true then dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 38 (If the shape of rhs isn't known statically, rhs will be treated as a matrix rather than a vector)
+{v_2 : tensor} |= ndim(v_2) ≤ 2
+>>
+Rule 39 (bands tensor must have at least 2 dimensions, and rhs must have at least 1)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 1
 >>
-Rule 74 (The bands should have at least 2 dimensions, and rhs at least 1 dimension, and the last dimensions of the bands and rhs must be greater than 0)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 1 ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_2, ndim(v_2) - 1) > 0
+Rule 40 (If adjoint is false, the lower parameter is irrelevant.)
+{v_3 : bool, v_4 : bool} |= if v_4 = false then true else (v_3 = true ∨ v_3 = false)
 >>
-Rule 86 (If bands is 3D tensor and rhs is 1D tensor, the first dimension of bands and rhs should be the same)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 ∧ ndim(v_2) = 1 then shape(v_1, 0) = shape(v_2, 0)
+Rule 41 (If lower is true, then bands must have at least 2 dimensions)
+{v_1 : tensor, v_3 : bool} |= if v_3 = true then ndim(v_1) ≥ 2
+>>
+Rule 42 (If lower is true, then rhs must have at least one dimension, and bands must have at least 2)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 1
+>>
+Rule 43 (If lower is false, then RHS tensor must have at least one dimension, and bands must have at least 2)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 1
+>>
+Rule 44 (Requires allowed dtypes for both input tensors, requires non-zero last two dimensions of bands)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 6) ∧ shape(v_1, ndim(v_1)-1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ dtype_(v_1) = dtype_(v_2)
+>>
+Rule 45 (If adjoint is false, bands and rhs must be non-half dtype)
+{v_1 : tensor, v_2 : tensor, v_4 : bool} |= if v_4 = false then dtype_(v_1) ≠ 6 ∧ dtype_(v_2) ≠ 6
+>>
+Rule 46 (If adjoint is true, the bands tensor must have a valid dtype)
+{v_1 : tensor, v_4 : bool} |= if v_4 = true then (dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 6)

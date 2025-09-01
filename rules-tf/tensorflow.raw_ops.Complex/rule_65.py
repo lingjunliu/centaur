@@ -5,16 +5,17 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Shape compatibility: either ndim are equal or one of ndim is zero. Use If statement for grammar (Rule 65)
+# If imag is float64, then Tout must be complex128 or real must be float64 (Rule 65)
 
 rule_65 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == v["arg2_ndim"], True, If(v["arg1_ndim"] == 0, True, If(v["arg2_ndim"] == 0, True, False)))) if n else
-          If(v["arg1_ndim"] == v["arg2_ndim"], True, If(v["arg1_ndim"] == 0, True, If(v["arg2_ndim"] == 0, True, False))))
+    s.add(Not(If(v["arg2_dtype"] == 9, Or((v["arg3_value"] == 11), (v["arg1_dtype"] == 9)), True)) if n else
+          If(v["arg2_dtype"] == 9, Or((v["arg3_value"] == 11), (v["arg1_dtype"] == 9)), True))
 )
 
-def rule_65_func(arg1, arg2, solver=None, neg=False):
+def rule_65_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
@@ -22,20 +23,24 @@ def rule_65_func(arg1, arg2, solver=None, neg=False):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
+        if not (isinstance(arg3, torch.dtype) or isinstance(arg3, tf.dtypes.DType)):
+            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_ndim = Int('arg2_ndim')
+        arg1_dtype = Int('arg1_dtype')
+        arg2_dtype = Int('arg2_dtype')
+        arg3_value = Int('arg3_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg3_value == list_of_available_dtypes.index(np_dtype(arg3)))
 
         # Constraints for rule 65
-        rule_65(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
+        rule_65(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_65(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_65(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_value': arg3['value']}, neg)

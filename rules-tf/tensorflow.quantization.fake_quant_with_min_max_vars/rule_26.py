@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# inputs must be a float32 tensor (type 7 (Rule 26)
+# input tensor's dtype should be float16, float32, or float64 (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == 7) if n else
-          v["arg1_dtype"] == 7)
+    s.add(Not(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)) if n else
+          Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8))
 )
 
 def rule_26_func(arg1, solver=None, neg=False):

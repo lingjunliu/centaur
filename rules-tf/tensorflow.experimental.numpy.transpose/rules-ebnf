@@ -1,75 +1,165 @@
 >>
-Rule 3 (If axes is given, it must have the same length as the number of dimensions of the input tensor if it's not None)
-{v_1 : tensor, v_2 : list(int)} |= if v_2.len ≠ 0 then v_2.len = ndim(v_1)
+Rule 2 (The length of the axes tuple must be less than or equal to the rank of the tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ ndim(v_1)
 >>
-Rule 6 (The number of dimensions of input tensor should be less than 32)
-{v_1 : tensor} |= ndim(v_1) < 32
+Rule 3 (Each element in the axes tuple must be non-negative and less than the rank of the tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
 >>
-Rule 7 (If axes is given, each element must be non-negative)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+Rule 4 (The axes tuple should not contain duplicate values.)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i + 1, v_1.len - 1] : v_1[i] ≠ v_1[j]
 >>
-Rule 9 (If axes is given, its length must be less than or equal to the rank of the tensor)
-{v_1 : tensor, v_2 : list(int)} |= v_2.len ≤ ndim(v_1)
+Rule 6 (The axes tuple length must match the tensor's rank if axes is not None)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then v_2.len = ndim(v_1)
 >>
-Rule 11 (If axes is given, its elements must be unique)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i + 1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+Rule 7 (The axes tuple can be empty only if the tensor has less than or equal to one dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 0 then ndim(v_1) ≤ 1
 >>
-Rule 13 (The axes argument's length should be less than or equal to number of dimensions of tensor)
-{v_1 : tensor, v_2: list(int)} |= v_2.len <= ndim(v_1)
+Rule 8 (If axes are provided, they must be a permutation of the tensor's dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then (∀i ∈ [0, v_2.len - 1] : ∃j ∈ [0, ndim(v_1) - 1] : v_2[i] = j) ∧ (∀j ∈ [0, ndim(v_1) - 1] : ∃i ∈ [0, v_2.len - 1] : v_2[i] = j)
 >>
-Rule 14 (If axes is not None, it must have a valid length)
-{v_1 : tensor, v_2 : list(int)} |= if v_2.len ≠ 0 then v_2.len ≤ ndim(v_1)
+Rule 9 (If axes is None, the tensor must have at least two dimensions for a non-trivial transpose.)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 0 then ndim(v_1) ≥ 2
 >>
-Rule 15 (If axes is given, its elements must be valid dimensions for input tensor)
-{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+Rule 10 (If axes is specified, no element within it should exceed the maximum possible dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : v_2[i] < ndim(v_1)
 >>
-Rule 18 (If axes is None, then it should be a string "none")
-{v_1 : str} |= v_1 = "none"
+Rule 12 (If axes is specified, all elements must be non-negative indices.)
+{v_1 : tuple(int)} |= if v_1.len > 0 then ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 21 (Axes must be a permutation of [0, 1, ..., ndim(a)-1])
-{v_1 : tensor, v_2 : list(int)} |= if v_2.len ≠ 0 then (v_2.len = ndim(v_1) ∧ ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1))
+Rule 13 (If axes is a tuple, all elements of it must be integers)
+{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : true
 >>
-Rule 22 (If axes is not None and has length equal to the number of dimensions, all elements must be unique)
-{v_1 : tensor, v_2 : list(int)} |= if v_2.len = ndim(v_1) then ∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i + 1, v_2.len - 1] : v_2[i] ≠ v_2[j]
+Rule 15 (If axes is specified, its elements must be a valid permutation)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then (v_2.len = ndim(v_1)) ∧ (∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)) ∧ (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i + 1, v_2.len - 1] : v_2[i] ≠ v_2[j])
 >>
-Rule 23 (If axes is not None, its elements must be valid dimensions of the tensor.)
-{v_1 : tensor, v_2 : list(int)} |= if v_2.len ≠ 0 then ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+Rule 16 (The tensor rank must not exceed a certain limit)
+{v_1 : tensor} |= ndim(v_1) ≤ 10
 >>
-Rule 25 (Axes should be a list of unique integers in the range [0, ndim(a)) )
-{v_1 : tensor, v_2 : list(int)} |= if v_2.len ≠ 0 then (v_2.len = ndim(v_1) ∧ ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1) ∧  ∀j ∈ [i+1, v_2.len - 1]: v_2[i] ≠ v_2[j])
+Rule 20 (Tensor must have a valid rank.)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 26 (If axes is not None and of correct length, then all elements should be unique)
-{v_1 : list(int)} |= if v_1.len ≠ 0 then ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i+1, v_1.len - 1]: v_1[i] ≠ v_1[j]
+Rule 22 (If axes is not specified (None), the tensor must have at least two dimensions.)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 0 then ndim(v_1) >= 2
 >>
-Rule 29 (If axes is given, the values must be integers. Also list length must be same as tensor's ndim)
-{v_1 : list(int), v_2 : tensor} |= if v_1.len ≠ 0 then (v_1.len = ndim(v_2) ∧ ∀i ∈ [0, v_1.len - 1] : 0 ≤ v_1[i] ∧ v_1[i] < ndim(v_2))
+Rule 28 (If axes is specified, its values must be a permutation of the tensor's dimensions, meaning each dimension index must appear exactly once.)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then (∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)) ∧ (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i + 1, v_2.len - 1] : v_2[i] ≠ v_2[j])
 >>
-Rule 31 (axes values should be in ascending order)
-{v_1 : list(int)} |= if v_1.len > 1 then ∀i ∈ [0, v_1.len - 2] : v_1[i] < v_1[i+1]
+Rule 29 (The axes tuple must contain only non-negative integers less than the rank of the input tensor.)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1))
 >>
-Rule 32 (The elements of axes must be a permutation of range(ndim(a)))
-{v_1 : tensor, v_2 : list(int)} |= if v_2.len ≠ 0 then (v_2.len = ndim(v_1) ∧ ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1) ∧ ∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1]: v_2[i] ≠ v_2[j])
+Rule 31 (If axes is not specified then its length is zero.)
+{v_2 : tuple(int)} |= v_2.len = 0 ∨ v_2.len > 0
 >>
-Rule 33 (If the input tensor has a rank, axes cannot have more elements than it.)
-{v_1: tensor, v_2: list(int)} |= v_2.len <= ndim(v_1)
+Rule 33 (If axes is specified, it must be a permutation of the tensor's dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then (v_2.len = ndim(v_1)) ∧ (∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)) ∧ (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i + 1, v_2.len - 1] : v_2[i] ≠ v_2[j]) else ndim(v_1) > 0
 >>
-Rule 34 (Axes cannot have elements that are out of bounds for the number of dimensions in input)
-{v_1: tensor, v_2: list(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : v_2[i] >= 0 ∧ v_2[i] < ndim(v_1)
+Rule 34 (If axes is not specified, and the input tensor has ndim > 1, then implicitly reverse the order of the axes)
+{v_1 : tensor, v_2: tuple(int)} |= if v_2.len = 0 then ndim(v_1) > 1
 >>
-Rule 36 (axes must have the same number of dimensions as the input tensor if specified)
-{v_1: tensor, v_2: list(int)} |= if v_2.len > 0 then v_2.len = ndim(v_1)
+Rule 35 (axes can be an empty tuple when ndim is not greater than 1)
+{v_1: tensor, v_2: tuple(int)} |= if ndim(v_1) <= 1 then v_2.len = 0
 >>
-Rule 37 (If axes is specified, its elements must be unique.)
-{v_1: list(int)} |= if v_1.len > 0 then ∀i ∈ [0, v_1.len - 1]: ∀j ∈ [i+1, v_1.len - 1]: v_1[i] ≠ v_1[j]
+Rule 37 (If the input tensor has rank 0 or 1, then the axes argument must be None or empty)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) <= 1 then v_2.len = 0
 >>
-Rule 38 (If axes is given, each element must be a valid axis for the tensor)
-{v_1: tensor, v_2: list(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : 0 <= v_2[i] ∧ v_2[i] < ndim(v_1)
+Rule 38 (Axes tuple cannot be too large, avoid stack overflow.)
+{v_2: tuple(int)} |= v_2.len < 64
 >>
-Rule 40 (If axes is specified, its length must equal to tensor's ndim and be a permutation of [0, ..., ndim(tensor) - 1])
-{v_1: tensor, v_2: list(int)} |= if v_2.len > 0 then (v_2.len = ndim(v_1) ∧ ∀i ∈ [0, v_2.len - 1]: ∀j ∈ [i+1, v_2.len - 1]: v_2[i] ≠ v_2[j])
+Rule 40 (The rank of input tensor should be less than or equal to 32)
+{v_1 : tensor} |= ndim(v_1) <= 32
 >>
-Rule 42 (If axes is specified, each element must be a valid axis for the tensor. valid axis for the tensor is between -ndim(v_1) and ndim(v_1) -1.)
-{v_1: tensor, v_2: list(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : (0 <= v_2[i] + ndim(v_1) ∧ v_2[i] + ndim(v_1) < 2*ndim(v_1))
+Rule 43 (If axes is None and input has more than 1 dimension, it defaults to reversed(range(ndim(a))).)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 0 then ndim(v_1) > 1
 >>
-Rule 44 (If axes is specified, each element must be a valid axis for the tensor. Valid axis for the tensor is between -ndim(v_1) and ndim(v_1) -1.)
-{v_1: tensor, v_2: list(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : (v_2[i] >= (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1))
+Rule 44 (The axes tuple elements must be integers.)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : true
+>>
+Rule 46 (The shape of tensor must be defined, all values must be non-negative.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) >= 0
+>>
+Rule 47 (Tensor must have rank between 0 and 32, inclusive.)
+{v_1: tensor} |= 0 <= ndim(v_1) ∧ ndim(v_1) <= 32
+>>
+Rule 50 (axes cannot be a very long tuple)
+{v_2 : tuple(int)} |= v_2.len < 1000
+>>
+Rule 53 (Axes should not be too large. Large axes requires excessive memory)
+{v_2 : tuple(int)} |= v_2.len < 10000
+>>
+Rule 55 (If axes is None and the input has fewer than 2 dimensions, no transpose occurs.)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 0 then ndim(v_1) < 2
+>>
+Rule 56 (If the number of axes is the same, the shape should match after transposing )
+{v_1 : tensor, v_2 : tensor, v_3 : tuple(int)} |= if v_3.len = ndim(v_1) then ∀i ∈ [0, v_3.len - 1] : shape(v_1, i) = shape(v_2, v_3[i])
+>>
+Rule 59 (If output tensor is given, its shape should match with transposed shape of input tensor)
+{v_1 : tensor, v_2 : tensor, v_3 : tuple(int)} |=  if v_3.len > 0 then ∀i ∈ [0, v_3.len - 1] : shape(v_1, v_3[i]) = shape(v_2, i)
+>>
+Rule 62 (If axes is an empty tuple, input tensor with 0 or 1 dimensions remains unchanged.)
+{v_1 : tensor, v_2: tuple(int)} |= if v_2.len = 0 then ndim(v_1) <= 1
+>>
+Rule 65 (If tensor rank is more than 1, axes should not be None)
+{v_1: tensor, v_2: tuple(int)} |= if ndim(v_1) > 1 then v_2.len > 0 ∨ v_2.len = 0
+>>
+Rule 67 (The tensor should have dimensions)
+{v_1 : tensor} |= ndim(v_1) >= 0
+>>
+Rule 68 (When axes has length 0, the shape of input tensor should match shape of the output tensor)
+{v_1: tensor, v_2: tensor, v_3 : tuple(int)} |= if v_3.len = 0 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 70 (If axes is not specified, and the rank of the tensor is one, there is no change)
+{v_1 : tensor, v_2: tuple(int)} |= if v_2.len = 0 then ndim(v_1) = 1
+>>
+Rule 71 (Each value in axes should be less than the maximum allowed dimension 255)
+{v_2: tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 256
+>>
+Rule 74 (If input tensor is given, each dimension should be less than 2048)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2048
+>>
+Rule 76 (When axes is None and the tensor has only one dimension, no change.)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 0 then ndim(v_1) = 1
+>>
+Rule 77 (The rank of input tensor must be a small number.)
+{v_1: tensor} |= ndim(v_1) <= 64
+>>
+Rule 80 (If the tensor is a vector then axes should always be None)
+{v_1: tensor, v_2: tuple(int)} |= if ndim(v_1) = 1 then v_2.len = 0
+>>
+Rule 82 (axes cannot have negative values)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : if v_2.len > 0 then v_2[i] ≥ 0
+>>
+Rule 83 (Tensor cannot be a scalar and must be at least a vector for transpose to occur)
+{v_1 : tensor} |= ndim(v_1) >= 1
+>>
+Rule 85 (if the tensor rank is 0 or less, no transpose can happen.)
+{v_1: tensor} |= ndim(v_1) > 0
+>>
+Rule 89 (axes must be integers)
+{v_2: tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : true
+>>
+Rule 92 (If axes has no element, shape of input and output tensor remain same)
+{v_1 : tensor, v_2 : tensor, v_3 : tuple(int)} |= if v_3.len = 0 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 94 (if input is 0D tensor, axes must be None)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 0 then v_2.len = 0
+>>
+Rule 95 (The elements in the axes tuple must not repeat and every number in [0, ndim(v_1)) should be present.)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then (∀i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, v_2.len - 1] : v_2[j] = i)
+>>
+Rule 97 (Transpose should only be applied to tensors that are not bool)
+{v_1:tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 98 (axes can be None only if the input tensor's rank is less than 2)
+{v_1: tensor, v_2: tuple(int)} |= if v_2.len = 0 then ndim(v_1) < 2
+>>
+Rule 100 (If input has less than 2 dimensions and no axes are given, don't transpose)
+{v_1: tensor, v_2 : tuple(int)} |= if v_2.len = 0 then ndim(v_1) < 2
+>>
+Rule 101 (When axes is specified, the dimension size cannot be larger than maximum shape limit(2048))
+{v_1 : tensor, v_2: tuple(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : shape(v_1, v_2[i]) < 2048
+>>
+Rule 103 (Axes must be specified for tensors whose number of dimensions are greater than 1.)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) > 1 then v_2.len > 0
+>>
+Rule 104 (Axes values should not be too large (less than the square root of max int.)
+{v_2: tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 46340

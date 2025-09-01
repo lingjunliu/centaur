@@ -5,33 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If key is specified, key >= 0 and key < 9223372036854775807 (Rule 48)
+# the sum of the absolute values of capacity and memory_limit should be less than 10000 (Rule 48)
 
 rule_48 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) < 9223372036854775807)) if n else
-          And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) < 9223372036854775807))
+    s.add(Not(v["arg1_value"] + v["arg2_value"] < 10000) if n else
+          v["arg1_value"] + v["arg2_value"] < 10000)
 )
 
-def rule_48_func(arg1, solver=None, neg=False):
+def rule_48_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+            return False
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_value = Int('arg1_value')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_value == int(arg1))
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 48
-        rule_48(solver, {'arg1_range': arg1_range})
+        rule_48(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_48(solver, {'arg1_range': arg1['range']}, neg)
+        rule_48(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

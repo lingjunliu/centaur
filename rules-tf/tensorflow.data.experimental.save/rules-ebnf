@@ -1,57 +1,141 @@
 >>
-Rule 1 (path should be a non-empty string)
-{v_1 : str} |= v_1 ≠ ""
+Rule 1 (path must be a non-empty string)
+{v_2 : str} |= v_2 ≠ ""
 >>
-Rule 3 (checkpoint_interval in checkpoint_args should be a positive integer)
-{v_1 : int} |= v_1 > 0
+Rule 2 (compression must be either "GZIP" or "NONE")
+{v_3 : str} |= v_3 = "GZIP" ∨ v_3 = "NONE"
 >>
-Rule 4 (max_to_keep in checkpoint_args should be a non-negative integer)
-{v_1 : int} |= v_1 ≥ 0
+Rule 3 (shard_func should return int64)
+{v_4 : tensor} |= dtype_(v_4) = 5
 >>
-Rule 5 (compression must be either "GZIP" or "NONE")
-{v_1 : str} |= v_1 = "GZIP" ∨ v_1 = "NONE"
+Rule 4 (checkpoint_args must be a list)
+{v_5 : list(int)} |= v_5.len > 0
 >>
-Rule 7 (checkpoint_interval should be greater than max_to_keep)
-{v_1 : int, v_2 : int} |= v_1 > v_2
+Rule 5 (dataset must not be empty, assuming emptiness is reflected in shape)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 12 (checkpoint_interval should be greater than max_to_keep when both are specified)
-{v_1 : int, v_2 : int} |= if v_1 > 0 ∧ v_2 ≥ 0 then v_1 > v_2
+Rule 6 (path string length must be less than 256, prevent excessively long paths)
+{v_2 : str} |= v_2.len < 256
 >>
-Rule 16 (checkpoint_interval should be greater than max_to_keep when max_to_keep is present)
-{v_1 : int, v_2 : int} |= if v_2 > 0 then v_1 > v_2
+Rule 7 (shard_func result must be non-negative)
+{v_4 : tensor} |= min(v_4) ≥ 0
 >>
-Rule 19 (dataset cannot be empty)
+Rule 8 (checkpoint interval in checkpoint_args must be a positive integer)
+{v_5 : list(int)} |= v_5[0] > 0
+>>
+Rule 9 (step counter must be non-negative)
+{v_5 : list(int)} |= v_5[1] ≥ 0
+>>
+Rule 12 (checkpoint_args must be a list of strings when specified for string values)
+{v_5 : list(str)} |= v_5.len > 0
+>>
+Rule 13 (checkpoint_args must contain at least 3 elements if specified)
+{v_5 : list(int) ⊎ list(str)} |= v_5.len ≥ 3
+>>
+Rule 15 (max_to_keep must be greater than zero if present)
+{v_5 : list(int)} |= v_5.len < 4 ∨ v_5[3] > 0
+>>
+Rule 16 (shard_func's tensor output ndim must be 0)
+{v_4: tensor} |= ndim(v_4) = 0
+>>
+Rule 17 (dataset tensor's dtype must be one of the allowed types)
+{v_1: tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+>>
+Rule 20 (checkpoint_args must have positive values for interval and max_to_keep)
+{v_5 : list(int)} |= v_5.len ≥ 1 ∧ v_5[0] > 0 ∧ (v_5.len < 4 ∨ v_5[3] > 0)
+>>
+Rule 21 (directory in checkpoint_args should be a valid path)
+{v_5 : list(str)} |= v_5.len ≥ 3 ∧ v_5[2] ≠ ""
+>>
+Rule 22 (If checkpoint_args are provided, step_counter needs to be present and non-negative)
+{v_5 : list(int)} |= v_5.len > 1 ∧ v_5[1] ≥ 0
+>>
+Rule 23 (The length of the string should be smaller than 255)
+{v_2 : str} |= v_2.len < 255
+>>
+Rule 24 (dataset tensor's dtype must be one of the allowed types, extended)
+{v_1: tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 ∨ dtype_(v_1) = 12
+>>
+Rule 25 (checkpoint_args must be a list of at least 3 elements if specified with strings for directory)
+{v_5 : list(str)} |= v_5.len ≥ 3
+>>
+Rule 27 (max_to_keep must be greater or equal to zero if present)
+{v_5 : list(int)} |= v_5.len < 4 ∨ v_5[3] ≥ 0
+>>
+Rule 28 (shard_func result must be smaller than a max value)
+{v_4 : tensor} |= max(v_4) < 10000
+>>
+Rule 31 (shard_func's tensor output dtype must be int64)
+{v_4 : tensor} |= dtype_(v_4) = 4
+>>
+Rule 32 (path must have a valid format)
+{v_2 : str} |= ∃i ∈ [0, v_2.len - 1] : v_2[i] = "/"
+>>
+Rule 34 (compression must be a string and be one of the allowed values)
+{v_3: str} |= v_3 = "GZIP" ∨ v_3 = "NONE"
+>>
+Rule 35 (path string must be less than 1000 chars to prevent memory issues)
+{v_2 : str} |= v_2.len < 1000
+>>
+Rule 36 (checkpoint_args can't have a checkpoint entry)
+{v_5 : list(str)} |= v_5.len < 5
+>>
+Rule 37 (dataset must have non-zero elements)
+{v_1: tensor} |= min(v_1) ≠ max(v_1)
+>>
+Rule 41 (dataset must have at least one element (shape > 0))
 {v_1: tensor} |= ndim(v_1) > 0
 >>
-Rule 24 (dataset cannot have negative dimensions)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 43 (The path length can't be larger than 500)
+{v_2 : str} |= v_2.len < 500
 >>
-Rule 26 (The dataset argument is required and should be a tensor)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 44 (compression can only be none if saving locally)
+{v_2 : str, v_3 : str} |= if v_2[0] = "/" then v_3 = "NONE" ∨ v_3 = "GZIP" else v_3 = "NONE"
 >>
-Rule 31 (dataset element type supported)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 ∨ dtype_(v_1) = 12
+Rule 45 (Shard func needs to return single element tensor of int64)
+{v_4 : tensor} |= ndim(v_4) = 0 ∧ dtype_(v_4) = 4
 >>
-Rule 32 (checkpoint_interval should be greater than max_to_keep only if both are positive)
-{v_1 : int, v_2 : int} |= if v_1 > 0 ∧ v_2 > 0 then v_1 > v_2
+Rule 46 (checkpoint interval needs to be smaller than 100000)
+{v_5 : list(int)} |= v_5.len > 0 ∧ v_5[0] < 100000
 >>
-Rule 36 (dataset element must be of a supported dtype)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 ∨ dtype_(v_1) = 12 ∨ dtype_(v_1) = 13
+Rule 47 (If compression is specified, the path must be a string)
+{v_2 : str, v_3: str} |= if v_3 = "GZIP" ∨ v_3 = "NONE" then v_2 ≠ ""
 >>
-Rule 42 (dataset element must be of a supported dtype - integer, float or string)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 12
+Rule 48 (Max to keep in checkpoint args must be smaller than 1000)
+{v_5: list(int)} |= v_5.len < 4 ∨ v_5[3] < 1000
 >>
-Rule 54 (dataset element must have a supported dtype (int, float, str, bool))
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 12 ∨ dtype_(v_1) = 0
+Rule 51 (If checkpoint args are present, checkpoint_interval needs to be an integer.)
+{v_5 : list(int)} |= v_5.len > 0 ∧ (v_5[0] = 0 ∨ v_5[0] > 0)
 >>
-Rule 60 (dataset elements must have a supported data type (int, float, string, bool or dtype))
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 12 ∨ dtype_(v_1) = 0 ∨ dtype_(v_1) = 13
+Rule 53 (If compression is GZIP, then zlib must be installed)
+{v_3 : str} |= if v_3 = "GZIP" then true
 >>
-Rule 65 (directory in checkpoint_args must not be empty)
-{v_1: str} |= v_1 != ""
+Rule 54 (the save method should not have checkpoint parameter)
+{v_5: list(str)} |= v_5.len < 6
 >>
-Rule 66 (dataset element must have a dtype of integer, float, bool, str, or dtype)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 0 ∨ dtype_(v_1) = 12 ∨ dtype_(v_1) = 13
+Rule 55 (If Checkpoint Args, then check point interval needs to be positive.)
+{v_5: list(int)} |= if v_5.len > 0 then v_5[0] > 0 else True
 >>
-Rule 72 (Supported dtypes for the dataset: int, float, bool, str, dtype)
-{v_1 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 12 ∨ dtype_(v_1) = 13
+Rule 56 (If max_to_keep is present, it should be a positive integer)
+{v_5 : list(int)} |= v_5.len < 4 ∨ (v_5[3] > 0 ∧ v_5[3] < 1000)
+>>
+Rule 58 (If shard_func is present then its output min should not be equal to its output max.)
+{v_4 : tensor} |= min(v_4) ≠ max(v_4)
+>>
+Rule 60 (If max_to_keep is defined, then Checkpoint Interval also needs to be defined)
+{v_5 : list(int)} |= if v_5.len = 4 then v_5[0] > 0 else True
+>>
+Rule 61 (If Checkpoint Arguments are defined then they need to be greater than one element)
+{v_5 : list(int)} |= v_5.len > 1 ∨ v_5.len = 0
+>>
+Rule 62 (Either both the step_counter, directory and checkpoint_interval needs to be defined.)
+{v_5 : list(int) ⊎ list(str)} |= if v_5.len > 0 then v_5.len ≥ 3 else True
+>>
+Rule 63 (If step_counter is defined in the checkpoint args then the interval must also be defined and be a positive value)
+{v_5 : list(int)} |= if v_5.len > 1 then v_5[0] > 0 else True
+>>
+Rule 64 (The path must be a string with length greater than zero)
+{v_2 : str} |= v_2.len > 0
+>>
+Rule 77 (The path cannot contain "checkpoint" as a substring.)
+{v_2 : str} |= if v_2.len < 10 then true else ∀i ∈ [0, v_2.len - 9] : (v_2[i] ≠ "c" ∨ (v_2[i] = "c" ∧ v_2[i+1] ≠ "h") ∨ (v_2[i] = "c" ∧ v_2[i+1] = "h" ∧ v_2[i+2] ≠ "e") ∨ (v_2[i] = "c" ∧ v_2[i+1] = "h" ∧ v_2[i+2] = "e" ∧ v_2[i+3] ≠ "c") ∨ (v_2[i] = "c" ∧ v_2[i+1] = "h" ∧ v_2[i+2] = "e" ∧ v_2[i+3] = "c" ∧ v_2[i+4] ≠ "k") ∨ (v_2[i] = "c" ∧ v_2[i+1] = "h" ∧ v_2[i+2] = "e" ∧ v_2[i+3] = "c" ∧ v_2[i+4] = "k" ∧ v_2[i+5] ≠ "p") ∨ (v_2[i] = "c" ∧ v_2[i+1] = "h" ∧ v_2[i+2] = "e" ∧ v_2[i+3] = "c" ∧ v_2[i+4] = "k" ∧ v_2[i+5] = "p" ∧ v_2[i+6] ≠ "o") ∨ (v_2[i] = "c" ∧ v_2[i+1] = "h" ∧ v_2[i+2] = "e" ∧ v_2[i+3] = "c" ∧ v_2[i+4] = "k" ∧ v_2[i+5] = "p" ∧ v_2[i+6] = "o" ∧ v_2[i+7] ≠ "i") ∨ (v_2[i] = "c" ∧ v_2[i+1] = "h" ∧ v_2[i+2] = "e" ∧ v_2[i+3] = "c" ∧ v_2[i+4] = "k" ∧ v_2[i+5] = "p" ∧ v_2[i+6] = "o" ∧ v_2[i+7] = "i" ∧ v_2[i+8] ≠ "n") ∨ (v_2[i] = "c" ∧ v_2[i+1] = "h" ∧ v_2[i+2] = "e" ∧ v_2[i+3] = "c" ∧ v_2[i+4] = "k" ∧ v_2[i+5] = "p" ∧ v_2[i+6] = "o" ∧ v_2[i+7] = "i" ∧ v_2[i+8] = "n" ∧ v_2[i+9] ≠ "t"))

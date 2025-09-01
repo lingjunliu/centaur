@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# input width dimension should be greater than zero (Rule 15)
+# filter width must be greater than zero (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 2) > 0) if n else
-          Select(v["arg1_shape"], 2) > 0)
+    s.add(Not(Select(v["arg1_shape"], 1) > 0) if n else
+          Select(v["arg1_shape"], 1) > 0)
 )
 
 def rule_15_func(arg1, solver=None, neg=False):

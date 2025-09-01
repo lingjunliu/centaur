@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input is 1D, output is 2D, shape is input length plus abs(k (Rule 20)
+# If v is a matrix, k must be less or equal to the number of columns (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 1, And(v["arg1_ndim"] + 1 == 2, (Select(v["arg1_shape"], 0) + (If(v["arg2_value"] > 0, v["arg2_value"], (0 - v["arg2_value"])))) == (Select(v["arg1_shape"], 0) + (If(v["arg2_value"] > 0, v["arg2_value"], (0 - v["arg2_value"]))))), False)) if n else
-          If(v["arg1_ndim"] == 1, And(v["arg1_ndim"] + 1 == 2, (Select(v["arg1_shape"], 0) + (If(v["arg2_value"] > 0, v["arg2_value"], (0 - v["arg2_value"])))) == (Select(v["arg1_shape"], 0) + (If(v["arg2_value"] > 0, v["arg2_value"], (0 - v["arg2_value"]))))), False))
+    s.add(Not(And(v["arg1_ndim"] == 2, v["arg2_value"] <= Select(v["arg1_shape"], 1))) if n else
+          And(v["arg1_ndim"] == 2, v["arg2_value"] <= Select(v["arg1_shape"], 1)))
 )
 
 def rule_20_func(arg1, arg2, solver=None, neg=False):
@@ -36,9 +36,9 @@ def rule_20_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 20
-        rule_20(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_20(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_20(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_20(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

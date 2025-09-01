@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# channels values should have finite values (Rule 75)
+# channels must be positive or 0 (Rule 75)
 
 rule_75 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 200) if n else
-          v["arg1_value"] < 200)
+    s.add(Not(v["arg1_value"] >= 0) if n else
+          v["arg1_value"] >= 0)
 )
 
 def rule_75_func(arg1, solver=None, neg=False):

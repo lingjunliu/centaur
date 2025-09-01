@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check if the tensor has more than 0 dimensions (Rule 6)
+# Input tensor dimension should be greater than equal to zero. (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
     s.add(Not(v["arg1_ndim"] >= 0) if n else

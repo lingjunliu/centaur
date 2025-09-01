@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the output dtype is provided as qint32, x and y should be qint32 and the min of x should be less than or equal to zero (Rule 65)
+# If Toutput is qint8, quint8, qint16, quint16 or qint32 it must have the same dtype as x and y. (Rule 65)
 
 rule_65 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 3, And(And(v["arg2_dtype"] == 3, v["arg3_dtype"] == 3), Select(v["arg2_range"], 0) <= 0), False)) if n else
-          If(v["arg1_value"] == 3, And(And(v["arg2_dtype"] == 3, v["arg3_dtype"] == 3), Select(v["arg2_range"], 0) <= 0), False))
+    s.add(Not(If(Or(Or(Or(Or(v["arg3_value"] == 1, v["arg3_value"] == 5), v["arg3_value"] == 2), v["arg3_value"] == 4), v["arg3_value"] == 3), And(v["arg1_dtype"] == v["arg2_dtype"], v["arg1_dtype"] == v["arg3_value"]), True)) if n else
+          If(Or(Or(Or(Or(v["arg3_value"] == 1, v["arg3_value"] == 5), v["arg3_value"] == 2), v["arg3_value"] == 4), v["arg3_value"] == 3), And(v["arg1_dtype"] == v["arg2_dtype"], v["arg1_dtype"] == v["arg3_value"]), True))
 )
 
 def rule_65_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -19,31 +19,28 @@ def rule_65_func(arg1, arg2, arg3, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
+        if not isinstance(arg1, np.ndarray):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
-        if not isinstance(arg3, np.ndarray):
+        if not (isinstance(arg3, torch.dtype) or isinstance(arg3, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_dtype = Int('arg1_dtype')
         arg2_dtype = Int('arg2_dtype')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
-        arg3_dtype = Int('arg3_dtype')
+        arg3_value = Int('arg3_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
-        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
+        solver.add(arg3_value == list_of_available_dtypes.index(np_dtype(arg3)))
 
         # Constraints for rule 65
-        rule_65(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype, 'arg2_range': arg2_range, 'arg3_dtype': arg3_dtype})
+        rule_65(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_65(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype'], 'arg2_range': arg2['range'], 'arg3_dtype': arg3['dtype']}, neg)
+        rule_65(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_value': arg3['value']}, neg)

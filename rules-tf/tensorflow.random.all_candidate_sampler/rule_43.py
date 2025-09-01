@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# num_sampled is reasonably sized compared to the maximum possible class. (Rule 43)
+# The number of target classes per training example should be a positive integer (Rule 43)
 
 rule_43 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 2000000000) if n else
-          v["arg1_value"] < 2000000000)
+    s.add(Not(v["arg1_value"] > 0) if n else
+          v["arg1_value"] > 0)
 )
 
 def rule_43_func(arg1, solver=None, neg=False):

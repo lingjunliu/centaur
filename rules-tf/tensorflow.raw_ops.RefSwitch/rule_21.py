@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# pred tensor must be scalar and boolean (Rule 21)
+# If the dimension of data is 1, then the max value in the tensor must be less than 1000 (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] == 0, v["arg1_dtype"] == 0)) if n else
-          And(v["arg1_ndim"] == 0, v["arg1_dtype"] == 0))
+    s.add(Not(If(v["arg1_ndim"] == 1, Select(v["arg1_range"], 1) < 1000, True)) if n else
+          If(v["arg1_ndim"] == 1, Select(v["arg1_range"], 1) < 1000, True))
 )
 
 def rule_21_func(arg1, solver=None, neg=False):
@@ -23,16 +23,17 @@ def rule_21_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 21
-        rule_21(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim})
+        rule_21(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_21(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_21(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)

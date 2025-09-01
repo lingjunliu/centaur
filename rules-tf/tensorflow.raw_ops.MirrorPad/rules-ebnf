@@ -1,120 +1,141 @@
 >>
-Rule 2 (paddings must have two columns)
-{v_2 : tensor} |= shape(v_2, 1) = 2
+Rule 1 (paddings must be a 2D tensor)
+{v_2 : tensor} |= ndim(v_2) = 2
 >>
-Rule 3 (number of rows in paddings must be equal to the rank of the input tensor)
+Rule 2 (paddings must have int32 or int64 dtype: 3–5)
+{v_2 : tensor} |= 3 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5
+>>
+Rule 3 (The number of rows in paddings must be the same as the rank of input)
 {v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) = ndim(v_1)
 >>
 Rule 4 (mode must be either "REFLECT" or "SYMMETRIC")
 {v_3 : str} |= v_3 = "REFLECT" ∨ v_3 = "SYMMETRIC"
 >>
-Rule 5 (paddings[D, 0] must be no greater than input.dim_size(D) for all D)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : v_2[i * 2] ≤ shape(v_1, i)
+Rule 5 (paddings[D, 0] and paddings[D, 1] must be non-negative)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i*2] ≥ 0 ∧ v_2[i*2 + 1] ≥ 0
 >>
-Rule 6 (paddings[D, 1] must be no greater than input.dim_size(D) for all D)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : v_2[i * 2 + 1] ≤ shape(v_1, i)
+Rule 6 (paddings[D, 0] and paddings[D, 1] must be no greater than input.dim_size(D))
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i*2] ≤ shape(v_1, i) ∧ v_2[i*2 + 1] ≤ shape(v_1, i)
 >>
-Rule 7 (paddings[D, 0] must be non-negative for all D)
-{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i * 2] ≥ 0
+Rule 7 (paddings[D, 0] and paddings[D, 1] must be no greater than input.dim_size(D)-1)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "SYMMETRIC" then (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i*2] ≤ shape(v_1, i) ∧ v_2[i*2 + 1] ≤ shape(v_1, i)) else (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i*2] ≤ shape(v_1, i) - 1 ∧ v_2[i*2 + 1] ≤ shape(v_1, i) - 1)
 >>
-Rule 8 (paddings[D, 1] must be non-negative for all D)
-{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i * 2 + 1] ≥ 0
+Rule 8 (Input and output tensors have the same dtype)
+{v_1 : tensor} |= dtype_(v_1) = dtype_(v_1)
 >>
-Rule 9 (input tensor should not be empty.)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 9 (Paddings rows must be less than or equal to input dimensions)
+{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) ≤ ndim(v_1)
 >>
-Rule 10 (paddings must be an integer tensor of type int32 or int64)
+Rule 10 (The paddings tensor has two columns)
+{v_2 : tensor} |= shape(v_2, 1) = 2
+>>
+Rule 11 (If input tensor is empty, paddings must also be empty)
+{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then (shape(v_2, 0) = 0)
+>>
+Rule 12 (If mode is "REFLECT", paddings[D, 0] and paddings[D, 1] must be less than input.dim_size(D))
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "REFLECT" then (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i*2] < shape(v_1, i) ∧ v_2[i*2 + 1] < shape(v_1, i))
+>>
+Rule 13 (If mode is "SYMMETRIC", paddings[D, 0] and paddings[D, 1] must be less than or equal to input.dim_size(D))
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "SYMMETRIC" then (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i*2] ≤ shape(v_1, i) ∧ v_2[i*2 + 1] ≤ shape(v_1, i))
+>>
+Rule 14 (Paddings tensor's data type must be int32 or int64)
 {v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
 >>
-Rule 19 (paddings must be an integer tensor of type int32 or int64, and have rank 2)
-{v_2 : tensor} |= (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ ndim(v_2) = 2
+Rule 15 (Paddings tensor must have non-negative values)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) * shape(v_2, 1) - 1] : v_2[i] ≥ 0
 >>
-Rule 20 (number of dimensions of paddings must be the same or equal than number of dimensions of input)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 2 ∧ shape(v_2, 0) = ndim(v_1)
+Rule 16 (If input tensor has rank 0, paddings should have shape [0,2])
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 0 then shape(v_2, 0) = 0 ∧ shape(v_2, 1) = 2
 >>
-Rule 22 (paddings elements must not exceed input shape)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : v_2[i * 2] ≤ shape(v_1, i) ∧ v_2[i * 2 + 1] ≤ shape(v_1, i)
+Rule 19 (If input tensor is a scalar, paddings must be a [0,2] tensor)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then shape(v_2, 0) = 0 ∧ shape(v_2, 1) = 2
 >>
-Rule 23 (sum of paddings elements and shape in each dimension must be a positive number)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) + v_2[i * 2] + v_2[i * 2 + 1] > 0
+Rule 20 (If input has dimension D, then paddings must have a row for D)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) -1 ] : ∃j ∈ [0, shape(v_2, 0) -1] : i = j
 >>
-Rule 24 (input tensor must have positive dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 21 (For each row D in paddings, the sum of paddings[D,0] and paddings[D,1] must be less than the size of input's dimension D, considering SYMMETRIC mode.)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "SYMMETRIC" then (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i*2] + v_2[i*2 + 1] ≤ shape(v_1, i))
 >>
-Rule 27 (paddings elements must not exceed input shape plus or minus one depending of the mode)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= ∀i ∈ [0, ndim(v_1) - 1] : if v_3 = "REFLECT" then v_2[i * 2] ≤ shape(v_1, i) - 1 ∧ v_2[i * 2 + 1] ≤ shape(v_1, i) - 1 else v_2[i * 2] ≤ shape(v_1, i) ∧ v_2[i * 2 + 1] ≤ shape(v_1, i)
+Rule 22 (For each row D in paddings, the sum of paddings[D,0] and paddings[D,1] must be less than input's dimension D, considering REFLECT mode.)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "REFLECT" then (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i*2] + v_2[i*2 + 1] < shape(v_1, i))
 >>
-Rule 31 (number of dimensions of paddings must be 2)
-{v_2 : tensor} |= ndim(v_2) = 2
+Rule 23 (Paddings tensor must have int32 or int64 elements)
+{v_2 : tensor} |= 3 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 4
 >>
-Rule 35 (The sum of paddings and input tensor shape along any dimension must be positive)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) + v_2[i*2] + v_2[i*2 + 1] > 0
+Rule 25 (If mode is not provided, it defaults to "REFLECT", therefore all conditions for "REFLECT" must be met)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i*2] + v_2[i*2 + 1] < shape(v_1, i)
 >>
-Rule 36 (paddings must be an integer tensor of type int32 or int64 and have exactly two columns)
-{v_2 : tensor} |= (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ shape(v_2, 1) = 2
+Rule 27 (If input tensor is a matrix, then paddings must be a matrix with the same number of rows)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then shape(v_1,0) = shape(v_2,0)
 >>
-Rule 39 (the padding values must be less than or equal to the dimension size, considering the mode)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= ∀i ∈ [0, ndim(v_1) - 1] : if v_3 = "REFLECT" then v_2[i * 2] < shape(v_1, i) ∧ v_2[i * 2 + 1] < shape(v_1, i) else v_2[i * 2] ≤ shape(v_1, i) ∧ v_2[i * 2 + 1] ≤ shape(v_1, i)
+Rule 28 (Shape of the output tensor can be calculated from the shape of the input tensor and the paddings.)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, i) + v_2[i*2] + v_2[i*2 + 1] > 0
 >>
-Rule 40 (padding values must be non-negative)
-{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i * 2] ≥ 0 ∧ v_2[i * 2 + 1] ≥ 0
+Rule 30 (For each row D in paddings, the sum of paddings[D,0] and paddings[D,1] cannot cause an overflow for the dimension D)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, i) + v_2[i*2] + v_2[i*2 + 1] < 2147483647
 >>
-Rule 47 (paddings must have a valid shape)
-{v_2 : tensor} |= shape(v_2, 0) > 0 ∧ shape(v_2, 1) = 2
+Rule 31 (The rank of input must be equal to the number of rows in paddings)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = shape(v_2, 0)
 >>
-Rule 51 (the padding values must be less than or equal to the dimension size, considering the mode, and be non-negative)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= ∀i ∈ [0, ndim(v_1) - 1] : (if v_3 = "REFLECT" then v_2[i * 2] < shape(v_1, i) ∧ v_2[i * 2 + 1] < shape(v_1, i) else v_2[i * 2] ≤ shape(v_1, i) ∧ v_2[i * 2 + 1] ≤ shape(v_1, i)) ∧ v_2[i * 2] ≥ 0 ∧ v_2[i * 2 + 1] ≥ 0
+Rule 33 (If input tensor is a vector, then paddings must be a matrix with 1 row)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then shape(v_2, 0) = 1
 >>
-Rule 56 (the padding values must satisfy constraints depending on the mode and must be non-negative, combined in one rule)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= ∀i ∈ [0, ndim(v_1) - 1] : (v_2[i * 2] ≥ 0 ∧ v_2[i * 2 + 1] ≥ 0) ∧ (if v_3 = "REFLECT" then v_2[i * 2] < shape(v_1, i) ∧ v_2[i * 2 + 1] < shape(v_1, i) else v_2[i * 2] ≤ shape(v_1, i) ∧ v_2[i * 2 + 1] ≤ shape(v_1, i))
+Rule 34 (If input tensor is a 3D tensor, then paddings must be a matrix with 3 rows)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 then shape(v_2, 0) = 3
 >>
-Rule 57 (The result of adding the paddings to the original shape must result in a shape whose values are positive)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) + v_2[i * 2] + v_2[i*2 + 1] > 0
+Rule 35 (If input tensor is a 4D tensor, then paddings must be a matrix with 4 rows)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 4 then shape(v_2, 0) = 4
 >>
-Rule 58 (paddings must be an integer tensor of type int32 or int64 and have exactly two columns and be rank 2)
-{v_2 : tensor} |= (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ shape(v_2, 1) = 2 ∧ ndim(v_2) = 2
+Rule 36 (If the first dimension of paddings is non-zero, the mode must be provided)
+{v_2 : tensor, v_3 : str} |= if shape(v_2, 0) > 0 then (v_3 = "REFLECT" ∨ v_3 = "SYMMETRIC")
 >>
-Rule 61 (the padding values must satisfy constraints depending on the mode, and the resulting padded size must be positive)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= ∀i ∈ [0, ndim(v_1) - 1] : (if v_3 = "REFLECT" then v_2[i * 2] < shape(v_1, i) ∧ v_2[i * 2 + 1] < shape(v_1, i) else v_2[i * 2] ≤ shape(v_1, i) ∧ v_2[i * 2 + 1] ≤ shape(v_1, i)) ∧ (shape(v_1, i) + v_2[i * 2] + v_2[i*2 + 1] > 0)
+Rule 39 (If paddings is empty, no mirroring will occur.)
+{v_2 : tensor} |= if shape(v_2, 0) = 0 then true
 >>
-Rule 72 (paddings non negativity and respect shape limit based on mode)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= ∀i ∈ [0, ndim(v_1) - 1] : v_2[i * 2] ≥ 0 ∧ v_2[i * 2 + 1] ≥ 0 ∧ (if v_3 = "REFLECT" then v_2[i * 2] < shape(v_1, i) ∧ v_2[i * 2 + 1] < shape(v_1, i) else v_2[i * 2] ≤ shape(v_1, i) ∧ v_2[i * 2 + 1] ≤ shape(v_1, i))
+Rule 40 (If the paddings tensor is empty, all dimensions of the input tensor will remain unchanged.)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) = 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, i))
 >>
-Rule 90 (Padding elements are within allowed bounds of original dimensions given mode and the padded size is positive)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= ∀i ∈ [0, ndim(v_1) - 1] : v_2[i * 2] ≥ 0 ∧ v_2[i * 2 + 1] ≥ 0 ∧ (if v_3 = "REFLECT" then v_2[i * 2] < shape(v_1, i) ∧ v_2[i * 2 + 1] < shape(v_1, i) else v_2[i * 2] ≤ shape(v_1, i) ∧ v_2[i * 2 + 1] ≤ shape(v_1, i)) ∧ shape(v_1, i) + v_2[i * 2] + v_2[i * 2 + 1] > 0
+Rule 41 (If the paddings tensor is empty, no mirroring will occur and the output tensor will be identical to the input tensor)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) = 0 then ndim(v_1) = ndim(v_1) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, i))
 >>
-Rule 91 (If the input has a certain shape, the paddings must be less than or equal)
-{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 2 then v_2[0] < 100 ∧ v_2[1] < 100
+Rule 42 (If paddings is not empty, all dimensions of the input tensor must be addressed in the paddings.)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) > 0 then ndim(v_1) = shape(v_2, 0)
 >>
-Rule 97 (Paddings must be an integer tensor with correct dtype, shape, rank, and values with relation to dimension size given mode)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ shape(v_2, 1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_2, 0) = ndim(v_1) ∧ (v_3 = "REFLECT" ∨ v_3 = "SYMMETRIC") ∧ ∀i ∈ [0, ndim(v_1) - 1] : v_2[i * 2] ≥ 0 ∧ v_2[i * 2 + 1] ≥ 0 ∧ (if v_3 = "REFLECT" then v_2[i * 2] < shape(v_1, i) ∧ v_2[i * 2 + 1] < shape(v_1, i) else v_2[i * 2] ≤ shape(v_1, i) ∧ v_2[i * 2 + 1] ≤ shape(v_1, i))
+Rule 43 (If the input tensor's dimensions are all of size 1 and paddings is not empty, the size of paddings[D,0] and paddings[D,1] determine size of output)
+{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1) ∧ shape(v_2, 0) > 0 then (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i*2] ≥ 0 ∧ v_2[i*2 + 1] ≥ 0)
 >>
-Rule 98 (if the input tensor has a rank of one, the padding values must be smaller than 20)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then v_2[0] < 20 ∧ v_2[1] < 20
+Rule 44 (If the input tensor has dimensions greater than 0, the padding values cannot be larger than the dimension size -1 (REFLECT) or dimension size (SYMMETRIC))
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if ndim(v_1) > 0 then (if v_3 = "REFLECT" then (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i*2] < shape(v_1, i) ∧ v_2[i*2 + 1] < shape(v_1, i)) else (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i*2] ≤ shape(v_1, i) ∧ v_2[i*2 + 1] ≤ shape(v_1, i)))
 >>
-Rule 102 (If any dimension in v_1 is greater than 5 then min of the paddings must be equal to the dimension size)
-{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 5 then min(v_2) = shape(v_1, 0)
+Rule 45 (if input has dimensions, then the output will have a shape based on summing paddings and input shape.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, i) + v_2[i*2] + v_2[i*2 + 1] > 0)
 >>
-Rule 103 (The mode variable cannot be "linear" and have ndim=3)
-{v_1 : tensor, v_3 : str} |= if v_3 = "linear" then ndim(v_1) ≠ 3
+Rule 46 (The shape of input tensor should be the same with shape of paddings' each row.)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0)-1] : ndim(v_1) > 0 ∧ shape(v_1, i) > 0
 >>
-Rule 105 (The minimum padding value must be less than the maximum dimension size across all dimensions if the input tensor ndim is less than or equal to 4)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≤ 4 then min(v_2) < shape(v_1, 0)
+Rule 47 (If the input tensor's shape at one dim is 0, padding value at the dim should also be 0)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0)-1] : if shape(v_1, i) = 0 then v_2[i*2] = 0 ∧ v_2[i*2 + 1] = 0
 >>
-Rule 107 (The mode variable cannot be "linear" and have ndim=3. Also mode is not None)
-{v_1 : tensor, v_3 : str} |= if v_3 = "linear" then ndim(v_1) ≠ 3 else v_3 ≠ "none"
+Rule 48 (If paddings is a matrix with a row length > 0, each element must be non-negative and an integer number)
+{v_2 : tensor} |= if shape(v_2, 0) > 0 then ∀i ∈ [0, shape(v_2, 0) * shape(v_2, 1) - 1] : v_2[i] ≥ 0 ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4)
 >>
-Rule 109 (If input dtype is float32 then min should be larger than -1)
-{v_1: tensor} |= if dtype_(v_1) = 7 then min(v_1) > -1
+Rule 49 (If input has dimensions, and mode is reflect, paddings cannot be equal to the input size or the padding will wrap)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if ndim(v_1) > 0 ∧ v_3 = "REFLECT" then (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i*2] ≠ shape(v_1,i) ∧ v_2[i*2+1] ≠ shape(v_1,i) )
 >>
-Rule 110 (If input has 4 dimensions then max should be less than 100)
-{v_1: tensor} |= if ndim(v_1) = 4 then max(v_1) < 100
+Rule 50 (If input has dimensions, and mode is reflect, the padding values cannot result in shape dimension equals zero)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if ndim(v_1) > 0 ∧ v_3 = "REFLECT" then (∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, i) + v_2[i*2] + v_2[i*2 + 1] > 0)
 >>
-Rule 111 (Check mode for equality)
-{v_3: str} |= v_3 = "REFLECT"
+Rule 51 (Input must be at least rank 1 when the mode is defined.)
+{v_1 : tensor, v_3 : str} |= if v_3 = "REFLECT" ∨ v_3 = "SYMMETRIC" then ndim(v_1) ≥ 1
 >>
-Rule 112 (If paddings has int32 then the number must be positive)
-{v_2: tensor} |= if dtype_(v_2) = 3 then v_2[0] > 0
+Rule 52 (if any padding row is specified, a mode must be given)
+{v_2: tensor, v_3: str} |= if shape(v_2,0) > 0 then (v_3 = "REFLECT" ∨ v_3 = "SYMMETRIC")
 >>
-Rule 113 (Shape in 0 axis of v1 should be less than 20 if padding has int64 dtype)
-{v_1: tensor, v_2:tensor} |= if dtype_(v_2) = 4 then shape(v_1, 0) < 20
+Rule 55 (If a mode is provided and the input shape is 0, the paddings must be [0,2])
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if (v_3 = "REFLECT" ∨ v_3 = "SYMMETRIC") ∧ ndim(v_1) = 0 then shape(v_2, 0) = 0 ∧ shape(v_2, 1) = 2
+>>
+Rule 56 (If the input rank is greater than the padding rank, the padding rank can't be 0)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 0 ∧ ndim(v_1) > shape(v_2, 0) then shape(v_2, 0) > 0
+>>
+Rule 58 (The padding values should be able to fit into int32 or int64 depending on paddings dtype)
+{v_2 : tensor} |= if dtype_(v_2) = 3 then (min(v_2) ≥ -2147483648 ∧ max(v_2) ≤ 2147483647) else (min(v_2) ≥ -9223372036854775808 ∧ max(v_2) ≤ 9223372036854775807)

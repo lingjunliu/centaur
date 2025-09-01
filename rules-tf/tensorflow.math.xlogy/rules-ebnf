@@ -1,132 +1,123 @@
 >>
-Rule 1 (xlogy x and y must have the same type)
-{x : tensor, y : tensor} |= dtype_(x) = dtype_(y)
+Rule 1 (xlogy input tensors must have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 2 (xlogy x must be a half, bfloat16, float32, float64, complex64, or complex128 tensor)
-{x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10 ∨ dtype_(x) = 11
+Rule 2 (xlogy input tensor v_1 must be of a supported type: half, bfloat16, float32, float64, complex64, complex128; encoded as a type in the type list)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 6
 >>
-Rule 4 (shape of x and y should be same)
-{x : tensor, y : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(y, i)
+Rule 3 (xlogy input tensors must have compatible shapes to avoid shape incompatibility error)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : if i < ndim(v_2) then shape(v_1, i) = shape(v_2, i)
 >>
-Rule 5 (xlogy x cannot be a bool tensor)
-{x : tensor} |= dtype_(x) ≠ 0
+Rule 4 (xlogy input tensor v_1's dtype must be in allowed dtypes)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 6 (xlogy: if x is float32, then y must be float32)
-{x : tensor, y : tensor} |= if dtype_(x) = 7 then dtype_(y) = 7
+Rule 5 (Shapes of input tensors x and y should be equal to avoid broadcasting issues.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 7 (xlogy: if x is float64, then y must be float64)
-{x : tensor, y : tensor} |= if dtype_(x) = 8 then dtype_(y) = 8
+Rule 6 (If either input tensor has a dimension of size 0, then the output should also have a dimension of size 0, preventing shape errors during computation)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0)
 >>
-Rule 8 (xlogy: if x is complex64, then y must be complex64)
-{x : tensor, y : tensor} |= if dtype_(x) = 9 then dtype_(y) = 9
+Rule 7 (The data type of the input tensors should be a floating-point or complex type, ensuring valid mathematical operations)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 9 (xlogy: if x is complex128, then y must be complex128)
-{x : tensor, y : tensor} |= if dtype_(x) = 10 then dtype_(y) = 10
+Rule 8 (Tensor v_1 should not be a bool tensor.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 10 (xlogy: if x is half, then y must be half)
-{x : tensor, y : tensor} |= if dtype_(x) = 6 then dtype_(y) = 6
+Rule 9 (Input tensors must have the same number of dimensions for element-wise operation.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 11 (xlogy x and y must have compatible shapes)
-{x : tensor, y : tensor} |= ndim(x) = ndim(y) ∧ ∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(y, i)
+Rule 10 (Check if the dimensions of the tensors are compatible for broadcasting.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) -1]: shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) -1 -i) ∨ shape(v_1, ndim(v_1) - 1 - i) = 1 else ∀i ∈ [0, ndim(v_2) -1]: shape(v_2, ndim(v_2) - 1 - i) = shape(v_1, ndim(v_1) -1 -i) ∨ shape(v_2, ndim(v_2) - 1 - i) = 1
 >>
-Rule 12 (xlogy x must be a valid type (half, bfloat16, float32, float64, complex64, or complex128))
-{x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10
+Rule 11 (At least one of the tensors should have float type.)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 13 (xlogy y cannot be a bool tensor)
-{y : tensor} |= dtype_(y) ≠ 0
+Rule 12 (If the rank of the tensors are different, the smaller rank tensor must be broadcastable to the larger rank tensor)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∃i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_2, i) = 1 else  ∃i ∈ [0, ndim(v_1) - ndim(v_2) - 1] : shape(v_1, i) = 1
 >>
-Rule 14 (xlogy tensors should not have zero dimensions)
-{x : tensor, y : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0 ∧ shape(y, i) > 0
+Rule 13 (The dtype of tensor v_1 must be in the set of allowed dtypes.)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12
 >>
-Rule 16 (xlogy: if x is float64, then y must be float64, expressed with and)
-{x : tensor, y : tensor} |= dtype_(x) = 8 ∧ dtype_(y) = 8 ∨ (dtype_(x) ≠ 8 ∧ true)
+Rule 14 (The type of tensor v_1 and v_2 should not be bool)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0
 >>
-Rule 17 (xlogy: Check if x and y are complex numbers, then ensure they match)
-{x : tensor, y : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then dtype_(x) = dtype_(y)
+Rule 15 (If the ranks are different, the shapes should be compatible with broadcasting.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i + (ndim(v_2) - ndim(v_1))) ∨ shape(v_1, i) = 1 else ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, i + (ndim(v_1) - ndim(v_2))) ∨ shape(v_2, i) = 1
 >>
-Rule 18 (xlogy enforces matching types when either input is a complex number)
-{x : tensor, y : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10 then dtype_(x) = dtype_(y)
+Rule 16 (Both tensors should have compatible dtypes i.e., floating-point or complex types)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 6) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 6)
 >>
-Rule 19 (xlogy: Ensure both tensors have a valid xlogy type)
-{x : tensor, y : tensor} |= (dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10) ∧ (dtype_(y) = 6 ∨ dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10)
+Rule 17 (If ndim(v_1) and ndim(v_2) are both 0, then they must have same dtype and shape)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 20 (xlogy requires valid tensor dimensions)
-{x : tensor, y : tensor} |= ndim(x) > 0 ∧ ndim(y) > 0
+Rule 18 (The datatype of the input tensors must be in the allowed datatypes, or the code will throw an error.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 12)
 >>
-Rule 21 (xlogy if x's type is float32, y's type must not be complex)
-{x : tensor, y : tensor} |= if dtype_(x) = 7 then dtype_(y) ≠ 9 ∧ dtype_(y) ≠ 10
+Rule 19 (Shapes should either match, or be broadcastable i.e. one dimension must be 1 or absent)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2) -1] : if i < ndim(v_1) ∧ i < ndim(v_2) then shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1
 >>
-Rule 22 (xlogy ensures x and y have same rank if both are complex)
-{x : tensor, y : tensor} |= if (dtype_(x) = 9 ∨ dtype_(x) = 10) ∧ (dtype_(y) = 9 ∨ dtype_(y) = 10) then ndim(x) = ndim(y)
+Rule 20 (Check if input tensors have supported type, and the types are equal.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12) ∧ dtype_(v_1) = dtype_(v_2)
 >>
-Rule 23 (xlogy: complex tensors should have ndim greater than 0)
-{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then ndim(x) > 0
+Rule 21 (When shapes do not match, broadcasting must be possible, meaning the trailing dimensions are either equal or one of them is 1.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) ≥ ndim(v_2) then ∀i ∈ [0, ndim(v_2) - 1]: shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1) ∨ shape(v_2, ndim(v_2) - i - 1) = 1 else ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1) ∨ shape(v_1, ndim(v_1) - i - 1) = 1
 >>
-Rule 24 (xlogy: if x and y are not complex tensors, their types must be same)
-{x : tensor, y : tensor} |= if dtype_(x) < 9 ∧ dtype_(y) < 9 then dtype_(x) = dtype_(y)
+Rule 23 (If the tensors have different rank, then the tensor with lower rank needs to have a shape of 1 in the beginning dimensions in order to be able to broadcast.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_2, i) = 1 else if ndim(v_2) < ndim(v_1) then ∀i ∈ [0, ndim(v_1) - ndim(v_2) - 1] : shape(v_1, i) = 1
 >>
-Rule 25 (xlogy requires float or complex tensors as input)
-{x : tensor, y : tensor} |= (6 ≤ dtype_(x) ∧ dtype_(x) ≤ 10) ∧ (6 ≤ dtype_(y) ∧ dtype_(y) ≤ 10)
+Rule 24 (The dtype of tensor v_2 must be in the set of allowed dtypes.)
+{v_2 : tensor} |= dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
 >>
-Rule 31 (xlogy requires tensor dimensions greater than or equal to 0)
-{x : tensor, y : tensor} |= (ndim(x) ≥ 0) ∧ (ndim(y) ≥ 0)
+Rule 25 (Either both tensors have the same shape, or broadcasting is possible and the smaller-rank tensor is padded with leading 1s)
+{v_1: tensor, v_2: tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) < ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i + (ndim(v_2) - ndim(v_1))) ∨ shape(v_1, i) = 1) ∧ (∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1]: shape(v_2, i) = 1)) ∨ (ndim(v_2) < ndim(v_1) ∧ (∀i ∈ [0, ndim(v_2) - 1]: shape(v_2, i) = shape(v_1, i + (ndim(v_1) - ndim(v_2))) ∨ shape(v_2, i) = 1) ∧ (∀i ∈ [0, ndim(v_1) - ndim(v_2) - 1]: shape(v_1, i) = 1))
 >>
-Rule 32 (xlogy input tensors must have same dtype from the allowed list)
-{x : tensor, y : tensor} |= (dtype_(x) = dtype_(y)) ∧ (dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10)
+Rule 27 (If the ranks are different, then broadcasting should be possible only if leading dimensions of the higher rank tensor are 1)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_2, i) = 1 else if ndim(v_2) < ndim(v_1) then ∀i ∈ [0, ndim(v_1) - ndim(v_2) - 1] : shape(v_1, i) = 1
 >>
-Rule 34 (xlogy: dimensions of tensors should align if they are complex)
-{x : tensor, y : tensor} |= if (dtype_(x) = 9 ∨ dtype_(x) = 10) then ∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(y, i)
+Rule 28 (If ndim of v_1 != ndim of v_2, and both > 0, broadcasting needs to happen by padding smaller one with 1s in leading dimensions and remaining dimensions need to match)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > ndim(v_2) ∧ ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_2)-1] : shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_2, i) = 1) ∧ (∀i ∈ [0, ndim(v_1) - ndim(v_2) - 1]: shape(v_1, i) = 1) else if ndim(v_2) > ndim(v_1) ∧ ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1)-1] : shape(v_2, ndim(v_2) - ndim(v_1) + i) = shape(v_1, i) ∨ shape(v_1, i) = 1) ∧ (∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1]: shape(v_2, i) = 1)
 >>
-Rule 35 (xlogy input tensors must have same rank if they are complex or same shape for float)
-{x : tensor, y : tensor} |= if (dtype_(x) = 9 ∨ dtype_(x) = 10) then ndim(x) = ndim(y) else (∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(y, i))
+Rule 29 (The shapes of the tensors must be broadcastable. This requires that for each dimension, they are either equal, or one of them is 1, or one of them is absent.)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2) -1]: (if i < ndim(v_1) ∧ i < ndim(v_2) then (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))
 >>
-Rule 36 (xlogy at least one dimension)
-{x : tensor} |= ndim(x) ≥ 1
+Rule 30 (Shapes of the two input tensors must be broadcastable, with dimension sizes either matching or being 1, and the dtypes being allowed)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : (if i < ndim(v_1) ∧ i < ndim(v_2) then shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
 >>
-Rule 39 (xlogy shape compatibility check using shapes function if x has smaller ndim.)
-{x : tensor, y : tensor} |= if ndim(x) < ndim(y) then ∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(y, i)
+Rule 31 (If the dtypes are valid for xlogy, then either the shapes match, or they are broadcastable meaning one of them should be 1 along differing dimensions)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 12) ∧ (∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : (if i < ndim(v_1) ∧ i < ndim(v_2) then (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)))
 >>
-Rule 40 (xlogy broadcasting compatibility required.)
-{x : tensor, y : tensor} |= ∀i ∈ [0, if ndim(x) ≥ ndim(y) then ndim(x) else ndim(y) - 1] : (if (ndim(x) - i - 1 < 0) ∨ (ndim(y) - i - 1 < 0) then true else (shape(x, ndim(x) - i - 1) = 1) ∨ (shape(y, ndim(y) - i - 1) = 1) ∨ (shape(x, ndim(x) - i - 1) = shape(y, ndim(y) - i - 1)))
+Rule 32 (If v_1 and v_2 have different number of dimensions and are not scalars, they should conform to the broadcasting rules which is to have size 1 on the leading dimensions of the tensor that has lower rank)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) ∧ ndim(v_1) ≠ 0 ∧ ndim(v_2) ≠ 0 then (if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_2, i) = 1 else ∀i ∈ [0, ndim(v_1) - ndim(v_2) - 1] : shape(v_1, i) = 1)
 >>
-Rule 41 (xlogy: Check for complex tensors and enforce matching shapes.)
-{x : tensor, y : tensor} |= if (dtype_(x) = 9 ∨ dtype_(x) = 10) then (ndim(x) = ndim(y) ∧ ∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(y, i))
+Rule 33 (If the dtypes of the tensors are supported, then they must have compatible shapes, or the broadcasting must be possible and smaller rank tensor must have 1 for its leading dimensions)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 12) ∧ (∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : (if i < ndim(v_1) ∧ i < ndim(v_2) then (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))) ∧ if ndim(v_1) ≠ ndim(v_2) ∧ ndim(v_1) ≠ 0 ∧ ndim(v_2) ≠ 0 then (if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_2, i) = 1 else ∀i ∈ [0, ndim(v_1) - ndim(v_2) - 1] : shape(v_1, i) = 1)
 >>
-Rule 42 (xlogy output dtype must match inputs.)
-{x : tensor, y : tensor} |= (dtype_(x) = 6 ∧ dtype_(y) = 6) ∨ (dtype_(x) = 7 ∧ dtype_(y) = 7) ∨ (dtype_(x) = 8 ∧ dtype_(y) = 8) ∨ (dtype_(x) = 9 ∧ dtype_(y) = 9) ∨ (dtype_(x) = 10 ∧ dtype_(y) = 10)
+Rule 34 (If any of the input tensors does not have supported type or are of different type or are incompatible in shape, this should be caught before computation, so that we avoid runtime errors)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 12) ∧ (dtype_(v_1) = dtype_(v_2)) ∧ (∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : (if i < ndim(v_1) ∧ i < ndim(v_2) then (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))) ∧ if ndim(v_1) ≠ ndim(v_2) ∧ ndim(v_1) ≠ 0 ∧ ndim(v_2) ≠ 0 then (if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_2, i) = 1 else ∀i ∈ [0, ndim(v_1) - ndim(v_2) - 1] : shape(v_1, i) = 1)
 >>
-Rule 43 (xlogy: require x and y to have compatible dtypes given the list of allowed dtypes -- without LET)
-{x : tensor, y : tensor} |= (dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10) ∧ (dtype_(y) = 6 ∨ dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10) ∧ dtype_(x) = dtype_(y)
+Rule 35 (Check for correct dtypes and compatibility based on rank. Either dtypes are correct and the shapes match, or if shapes don't match, then broadcasting is possible.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 12) ∧ ((ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : (if i < ndim(v_1) ∧ i < ndim(v_2) then (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))))
 >>
-Rule 44 (xlogy shape compatibility check using shapes function if x has smaller ndim, ensure x and y have same valid dtype.)
-{x : tensor, y : tensor} |= (dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10) ∧ (dtype_(y) = 6 ∨ dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10) ∧ if ndim(x) < ndim(y) then ∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(y, i)
+Rule 36 (To avoid type and shape errors, the tensors must be either the same shape and the same allowed dtype, or boradcasting must work and each tensor must be of a valid type)
+{v_1 : tensor, v_2 : tensor} |= ((dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 12) ∧ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))) ∨ ((dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 12) ∧ (∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : (if i < ndim(v_1) ∧ i < ndim(v_2) then (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))) ∧ if ndim(v_1) ≠ ndim(v_2) ∧ ndim(v_1) ≠ 0 ∧ ndim(v_2) ≠ 0 then (if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_2, i) = 1 else ∀i ∈ [0, ndim(v_1) - ndim(v_2) - 1] : shape(v_1, i) = 1))
 >>
-Rule 45 (xlogy: enforce matching shapes through universal quantification or matching dtype.)
-{x : tensor, y : tensor} |= (dtype_(x) = 6 ∧ dtype_(y) = 6) ∨ (dtype_(x) = 7 ∧ dtype_(y) = 7) ∨ (dtype_(x) = 8 ∧ dtype_(y) = 8) ∨ (dtype_(x) = 9 ∧ dtype_(y) = 9) ∨ (dtype_(x) = 10 ∧ dtype_(y) = 10) ∨ (∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(y, i) ∧ ndim(x) = ndim(y))
+Rule 37 (The tensors must either have compatible types and the same shape, or if not, they must at least conform to the broadcasting rules for shapes.)
+{v_1 : tensor, v_2 : tensor} |= ((dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 12) ∧ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))) ∨ ((dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 12) ∧ (∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : (if i < ndim(v_1) ∧ i < ndim(v_2) then (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))) ∧ (if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_2, i) = 1 else if ndim(v_2) < ndim(v_1) then ∀i ∈ [0, ndim(v_1) - ndim(v_2) - 1] : shape(v_1, i) = 1))
 >>
-Rule 46 (xlogy input tensors must have the same dtype from the allowed list and same shape)
-{x : tensor, y : tensor} |= (dtype_(x) = dtype_(y)) ∧ (dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10) ∧ (∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(y, i)) ∧ (ndim(x) = ndim(y))
+Rule 38 (The tensors must have the same dtype, and if they have different shapes, they must conform to the broadcasting rules for shapes.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = dtype_(v_2)) ∧ (∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : (if i < ndim(v_1) ∧ i < ndim(v_2) then (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))) ∧ (if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_2, i) = 1 else if ndim(v_2) < ndim(v_1) then ∀i ∈ [0, ndim(v_1) - ndim(v_2) - 1] : shape(v_1, i) = 1)
 >>
-Rule 47 (xlogy complex input tensors must have same rank and the same shape)
-{x : tensor, y : tensor} |= if (dtype_(x) = 9 ∨ dtype_(x) = 10) then (ndim(x) = ndim(y)) ∧ (∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(y, i))
+Rule 39 (Input tensors should have the same allowed dtype, or they should conform to rules of broadcasting and have the required dtype)
+{v_1 : tensor, v_2 : tensor} |= ((dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 12)) ∧ (((ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))) ∨ (∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : (if i < ndim(v_1) ∧ i < ndim(v_2) then (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))) ∧ (if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_2, i) = 1 else if ndim(v_2) < ndim(v_1) then ∀i ∈ [0, ndim(v_1) - ndim(v_2) - 1] : shape(v_1, i) = 1))
 >>
-Rule 49 (xlogy valid ranks: 0 or greater )
-{x : tensor, y : tensor} |= ndim(x) ≥ 0 ∧ ndim(y) ≥ 0
+Rule 40 (All the condition should be satisfied. Namely, the data type should be valid, and the shapes should be either equal or broadcastable. Also, lower rank tensor must have shape 1 at its leading dimension to do broadcasting)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 12) ∧ ((ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : (if i < ndim(v_1) ∧ i < ndim(v_2) then (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)))) ∧ (if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_2, i) = 1 else if ndim(v_2) < ndim(v_1) then ∀i ∈ [0, ndim(v_1) - ndim(v_2) - 1] : shape(v_1, i) = 1) ∧ dtype_(v_1) = dtype_(v_2)
 >>
-Rule 50 (xlogy input tensors must have compatible dtypes and conform to broadcasting rules)
-{x : tensor, y : tensor} |= (dtype_(x) = dtype_(y)) ∧ (dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10) ∧ (∀i ∈ [0, if ndim(x) ≥ ndim(y) then ndim(x) - 1 else ndim(y) - 1] : (if (ndim(x) - i - 1 < 0) ∨ (ndim(y) - i - 1 < 0) then true else (shape(x, ndim(x) - i - 1) = 1) ∨ (shape(y, ndim(y) - i - 1) = 1) ∨ (shape(x, ndim(x) - i - 1) = shape(y, ndim(y) - i - 1))))
+Rule 41 (The tensors must have the same allowed dtype; furthermore, their dimensions must either match or conform to broadcasting rules with a constraint such that lower dimensional tensors must be padded from the left with dimensions of size 1)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 12) ∧ ((ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : (if i < ndim(v_1) ∧ i < ndim(v_2) then (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)) ∧ (if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_2, i) = 1 else if ndim(v_2) < ndim(v_1) then ∀i ∈ [0, ndim(v_1) - ndim(v_2) - 1] : shape(v_1, i) = 1)))
 >>
-Rule 51 (xlogy requires either compatible broadcasting shapes, or if complex tensors, matching shapes)
-{x : tensor, y : tensor} |= (dtype_(x) = 9 ∨ dtype_(x) = 10) ∨ (dtype_(y) = 9 ∨ dtype_(y) = 10) ∨ (∀i ∈ [0, if ndim(x) ≥ ndim(y) then ndim(x) - 1 else ndim(y) - 1] : (if (ndim(x) - i - 1 < 0) ∨ (ndim(y) - i - 1 < 0) then true else (shape(x, ndim(x) - i - 1) = 1) ∨ (shape(y, ndim(y) - i - 1) = 1) ∨ (shape(x, ndim(x) - i - 1) = shape(y, ndim(y) - i - 1))))
+Rule 42 (All conditions must be met to ensure compatibility: Both tensors must have a floating-point or complex dtype, their dtypes must match, and their shapes must be either identical or broadcastable. Broadcasting mandates that either the dimensions are equal or one is 1, with the lower-dimensional tensor padded with leading 1s)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 12) ∧ (dtype_(v_1) = dtype_(v_2)) ∧ ((ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : (if i < ndim(v_1) ∧ i < ndim(v_2) then (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))) ∧ (if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_2, i) = 1 else if ndim(v_2) < ndim(v_1) then ∀i ∈ [0, ndim(v_1) - ndim(v_2) - 1] : shape(v_1, i) = 1))
 >>
-Rule 52 (xlogy: If shapes are identical, types must be valid)
-{x : tensor, y : tensor} |=  (∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(y, i)) ∧ (dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10)
->>
-Rule 54 (xlogy tensors have compatible shapes when dtypes are same.)
-{x : tensor, y : tensor} |= if (dtype_(x) = dtype_(y)) ∧ (dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10) then (∀i ∈ [0, if ndim(x) ≥ ndim(y) then ndim(x) - 1 else ndim(y) - 1] : (if (ndim(x) - i - 1 < 0) ∨ (ndim(y) - i - 1 < 0) then true else (shape(x, ndim(x) - i - 1) = 1) ∨ (shape(y, ndim(y) - i - 1) = 1) ∨ (shape(x, ndim(x) - i - 1) = shape(y, ndim(y) - i - 1))))
->>
-Rule 55 (xlogy shapes for each tensor element greater than 0.)
-{x : tensor, y : tensor} |= (∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0) ∧ (∀i ∈ [0, ndim(y) - 1] : shape(y, i) > 0)
->>
-Rule 56 (xlogy ensures valid dtypes and if they are complex, same number of dimensions)
-{x : tensor, y : tensor} |= (dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10) ∧ (dtype_(y) = 6 ∨ dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10) ∧ (if (dtype_(x) = 9 ∨ dtype_(x) = 10) then ndim(x) = ndim(y))
+Rule 43 (Both tensors must have either matching and supported dtypes, or must follow the broadcasting rules; namely, that every dimension that differs is of size 1 in at least one of the tensors. Moreover, any leading dimensions of tensors with different rank must be of size 1.)
+{v_1 : tensor, v_2 : tensor} |= ((dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 12) ∧ (dtype_(v_1) = dtype_(v_2)) ∧ ((ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : (if i < ndim(v_1) ∧ i < ndim(v_2) then (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)) ∧ (if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_2, i) = 1 else if ndim(v_2) < ndim(v_1) then ∀i ∈ [0, ndim(v_1) - ndim(v_2) - 1] : shape(v_1, i) = 1))))

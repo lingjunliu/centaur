@@ -1,99 +1,243 @@
 >>
-Rule 1 (shape must be an int32 or int64 tensor)
+Rule 1 (shape should have positive dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 2 (seed and seed2 are non-negative integers)
+{v_1 : int, v_2 : int} |= v_1 ≥ 0 ∧ v_2 ≥ 0
+>>
+Rule 3 (dtype must be one of the supported types)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 13
+>>
+Rule 4 (shape must be of type int32 or int64)
 {v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
 >>
-Rule 2 (dtype must be a half, bfloat16, float32, or float64 (6, 7, 8))
-{v_2 : dtype} |= v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8
+Rule 5 (seed is non-negative when seed2 is zero)
+{v_1 : int, v_2 : int} |= if v_2 = 0 then v_1 ≥ 0
 >>
-Rule 3 (seed and seed2 must be non-negative)
-{v_3 : int, v_4 : int} |= v_3 ≥ 0 ∧ v_4 ≥ 0
->>
-Rule 4 (if seed is zero, seed2 must also be zero, or vice versa)
-{v_3 : int, v_4 : int} |= if v_3 = 0 then v_4 = 0
->>
-Rule 6 (seed cannot be equal to seed2 to avoid collisions, but they are optional so only need to check if both are provided)
-{v_3 : int, v_4 : int} |= if v_3 ≠ 0 ∧ v_4 ≠ 0 then v_3 ≠ v_4
->>
-Rule 7 (shape tensor must have at least one element greater than zero.)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 11 (shape tensor must have non-negative elements)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
->>
-Rule 12 (The number of dimensions in the shape tensor must be less than 64)
-{v_1 : tensor} |= ndim(v_1) < 64
->>
-Rule 13 (The shape tensor must be 1 dimensional)
-{v_1 : tensor} |= ndim(v_1) = 1
->>
-Rule 14 (if seed is non zero, seed2 can be any value.)
-{v_3 : int, v_4 : int} |= if v_3 ≠ 0 then true else v_4 = 0
->>
-Rule 15 (The product of the dimensions of the shape tensor must be less than a maximum value)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000000)
->>
-Rule 16 (The product of the dimensions of the shape tensor is positive)
-{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ ndim(v_1) > 0
->>
-Rule 17 (If dtype is float16 then shape tensor has dimensions less than 2^16)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 6 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 65536)
->>
-Rule 18 (If shape is empty, then result will contain single value)
-{v_1 : tensor} |= if ndim(v_1) = 0 then true else (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) ≥ 0)
->>
-Rule 19 (If the product of shape tensor's dimension equals zero, the result tensor will have at least one element with value 0.)
-{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then true else (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
->>
-Rule 21 (the product of the dimensions of the shape tensor must be less than a maximum value to prevent out-of-memory)
-{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ (shape(v_1, 0) * shape(v_1, 0) < 10000000)
->>
-Rule 22 (If seed2 is non zero, seed can be any value)
-{v_3 : int, v_4 : int} |= if v_4 ≠ 0 then true else v_3 = 0
->>
-Rule 23 (Both seed and seed2 should have the same sign.)
-{v_3 : int, v_4 : int} |= if v_3 > 0 then v_4 ≥ 0 else if v_3 < 0 then v_4 ≤ 0
->>
-Rule 26 (Either both seeds are present, or none are)
-{v_3 : int, v_4 : int} |= (v_3 = 0 ∧ v_4 = 0) ∨ (v_3 ≠ 0 ∧ v_4 ≠ 0)
->>
-Rule 27 (If seed and seed2 are the same, and not 0, it will result in a weak random number generator.)
-{v_3 : int, v_4 : int} |= if (v_3 ≠ 0 ∧ v_4 ≠ 0) then v_3 ≠ v_4
->>
-Rule 28 (At least one of the seeds must be zero, if both are not provided)
-{v_3 : int, v_4 : int} |= v_3 = 0 ∨ v_4 = 0
->>
-Rule 29 (Shape can not be an empty tensor)
+Rule 6 (shape has at least one dimension)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 30 (If the shape tensor is int32, the value must be within range)
-{v_1 : tensor} |= if dtype_(v_1) = 3 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483647)
+Rule 7 (dtype must be float16, float32, or float64)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
 >>
-Rule 31 (seed2 is only useful if seed is also provided)
-{v_3 : int, v_4 : int} |= if v_4 ≠ 0 then v_3 ≠ 0
+Rule 10 (If seed is zero, then seed2 is also zero, or vice versa.)
+{v_1 : int, v_2 : int} |= (v_1 = 0 ∨ v_2 = 0)
 >>
-Rule 32 (the shape's element count must be less than or equal to max int)
-{v_1 : tensor} |= (shape(v_1, 0) * shape(v_1, 0)) ≤ 2147483647
+Rule 11 (shape must be a 1D tensor)
+{v_1 : tensor} |= ndim(v_1) = 1
 >>
-Rule 37 (Shape tensor must have a reasonable number of dimensions)
-{v_1 : tensor} |= ndim(v_1) < 100
+Rule 12 (shape elements must be positive)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
 >>
-Rule 38 (If shape tensor contains zero, then at least one element of output tensor will be 0)
-{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then true
+Rule 14 (If seed is zero, then seed2 is also zero, or vice versa.)
+{v_1 : int, v_2 : int} |= (v_1 = 0) ∨ (v_2 = 0)
 >>
-Rule 41 (If the shape is empty, then result will have the specified dtype)
-{v_1 : tensor, v_2 : dtype} |= if ndim(v_1) = 0 then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8)
+Rule 15 (shape must be a 1D tensor and its elements are positive)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
 >>
-Rule 42 (if seed !=0 then seed2 should also not be a multiple of seed)
-{v_3: int, v_4: int} |= if v_3 ≠ 0 then v_4 % v_3 ≠ 0
+Rule 17 (If seed is defined then it has to be non-negative, same goes for seed2)
+{v_1 : int, v_2 : int} |= if v_1 ≠ 0 then v_1 ≥ 0 ∧ if v_2 ≠ 0 then v_2 ≥ 0
 >>
-Rule 46 (The seeds should be less than the max int)
-{v_3 : int, v_4 : int} |= v_3 < 2147483647 ∧ v_4 < 2147483647
+Rule 18 (seed and seed2 cannot be both zero)
+{v_1 : int, v_2 : int} |= if (v_1 = 0) then (v_2 ≠ 0)
 >>
-Rule 49 (shape dimensions should be smaller than a max value)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 10000
+Rule 23 (Either seed or seed2 must be specified if both are non-zero)
+{v_1 : int, v_2 : int} |= if (v_1 ≠ 0) ∧ (v_2 ≠ 0) then (v_1 > 0) ∨ (v_2 > 0)
 >>
-Rule 50 (Seed and seed2 can not both be 1)
-{v_3 : int, v_4 : int} |= if v_3 = 1 then v_4 ≠ 1
+Rule 24 (If shape is not empty, all dimensions must be positive)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 51 (If the dtype is half then the dimensions of shape can be less than max half)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 6 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 65504)
+Rule 26 (If seed is non-zero, it must be a positive integer)
+{v_1 : int} |= if v_1 ≠ 0 then v_1 > 0
+>>
+Rule 28 (If seed or seed2 is defined, then seed + seed2 should be greater than 0 to ensure it will seed)
+{v_1 : int, v_2 : int} |= if (v_1 ≠ 0) ∨ (v_2 ≠ 0) then (v_1 + v_2) > 0
+>>
+Rule 29 (shape rank should be less than or equal to 8 for performance reasons)
+{v_1 : tensor} |= ndim(v_1) ≤ 8
+>>
+Rule 30 (Shape values are within a reasonable range to prevent excessive memory usage)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483647
+>>
+Rule 33 (If seed is non-zero, seed2 must be defined as well)
+{v_1 : int, v_2 : int} |= if v_1 ≠ 0 then v_2 ≠ 0
+>>
+Rule 35 (Shape tensor should not have zero elements)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0)-1] : v_1[i] ≠ 0
+>>
+Rule 36 (Shape values should not be too large to prevent overflow errors in computations involving them)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 100000000
+>>
+Rule 37 (dtype must be one of the specified floating point or bfloat16 types, represented by their integer index)
+{v_1: dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+>>
+Rule 39 (Shape values should be small enough to avoid integer overflow when calculating the output tensor size.)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 2048
+>>
+Rule 40 (If seed and seed2 are different, they must be greater than 0)
+{v_1: int, v_2: int} |= if v_1 ≠ v_2 then v_1 > 0 ∧ v_2 > 0
+>>
+Rule 42 (If shape is empty, then no dtype is needed)
+{v_1: tensor, v_2: dtype} |= if shape(v_1,0) = 0 then true else v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8
+>>
+Rule 43 (If shape is an empty tensor then seed and seed2 should not be defined.)
+{v_1 : tensor, v_2 : int, v_3: int} |= if shape(v_1,0) = 0 then v_2=0 ∧ v_3=0
+>>
+Rule 44 (Shape should have fewer than 32 elements to avoid resource exhaustion.)
+{v_1 : tensor} |= shape(v_1, 0) < 32
+>>
+Rule 45 (If seed and seed2 are both zero, then the shape tensor must be provided, i.e, not empty)
+{v_1 : tensor, v_2 : int, v_3: int} |= if (v_2 = 0) ∧ (v_3=0) then shape(v_1, 0) > 0
+>>
+Rule 46 (If shape is non-empty, then shape must contain positive integers)
+{v_1 : tensor} |= if shape(v_1,0) > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
+>>
+Rule 49 (If shape is non-empty, the elements in the shape cannot be zero.)
+{v_1 : tensor} |= if shape(v_1,0) > 0 then ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ 0
+>>
+Rule 50 (shape tensor can not contain negative values)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1,0)-1] : v_1[i] ≥ 0
+>>
+Rule 51 (The `dtype` must be a floating point type.)
+{v_1: dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 13
+>>
+Rule 52 (If seed2 is specified then seed must be as well)
+{v_1 : int, v_2 : int} |= if v_2 ≠ 0 then v_1 ≠ 0
+>>
+Rule 56 (The `dtype` must be a floating point type or half type.)
+{v_1: dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9
+>>
+Rule 58 (If the shape tensor is empty, then no other parameters are required)
+{v_1 : tensor} |= if shape(v_1,0) = 0 then true else shape(v_1, 0) > 0
+>>
+Rule 59 (Shape values must be within reasonable bounds)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1,0)-1] : v_1[i] < 20000
+>>
+Rule 60 (The number of elements in shape must be less then 8, as larger tensors can take a long time to generate)
+{v_1 : tensor} |= shape(v_1,0) < 8
+>>
+Rule 61 (Seed should be non-zero if specified to give the randomness.)
+{v_1: int} |= if v_1 ≠ 0 then v_1 > 0
+>>
+Rule 64 (Seed and seed2 must be non negative if they are defined.)
+{v_1: int, v_2: int} |= if v_1 > 0 then v_1 ≥ 0 ∧ if v_2 > 0 then v_2 ≥ 0
+>>
+Rule 65 (If Seed or seed2 are non zero then the seed for the random number generator is deterministic.)
+{v_1: int, v_2: int} |= if v_1 ≠ 0 ∨ v_2 ≠ 0 then v_1 ≥ 0 ∧ v_2 ≥ 0
+>>
+Rule 67 (Seed and seed2 should both be non zero or both be zero)
+{v_1: int, v_2:int} |= (v_1 = 0 ∧ v_2 = 0) ∨ (v_1 ≠ 0 ∧ v_2 ≠ 0)
+>>
+Rule 68 (If the shape tensor is empty, then no other parameters are required, dtype is the exception)
+{v_1 : tensor, v_2: dtype} |= if shape(v_1,0) = 0 then v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 else shape(v_1, 0) > 0
+>>
+Rule 69 (Shape values must be within reasonable bounds, less then 2^15)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1,0)-1] : v_1[i] < 32768
+>>
+Rule 70 (If Seed or seed2 are non zero then the seed for the random number generator is deterministic and should also be greater then 0.)
+{v_1: int, v_2: int} |= if v_1 ≠ 0 ∨ v_2 ≠ 0 then v_1 > 0 ∧ v_2 > 0
+>>
+Rule 71 (The shape cannot contain zero elements if shape contains > 0 elements)
+{v_1: tensor} |= if shape(v_1,0) > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ 0
+>>
+Rule 72 (The output dtype must be a float type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9
+>>
+Rule 74 (If shape has elements, it must be int32 or int64.)
+{v_1: tensor} |= if shape(v_1,0) > 0 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+>>
+Rule 75 (If seed2 is zero, seed can be any non-negative number, otherwise it must be non-zero)
+{v_1: int, v_2: int} |= if v_2 = 0 then v_1 ≥ 0 else v_1 > 0
+>>
+Rule 77 (If shape is not provided, seed and seed2 do not matter.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if shape(v_1, 0) = 0 then true else v_2 = 0 ∨ v_3 = 0
+>>
+Rule 78 (The shape tensor cannot contain zero elements)
+{v_1: tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ 0
+>>
+Rule 81 (Seed needs to be defined if seed2 is specified.)
+{v_1: int, v_2: int} |= if v_2 ≠ 0 then v_1 ≠ 0
+>>
+Rule 84 (If seed2 is 0, then seed1 can be anything)
+{v_1: int, v_2: int} |= if v_2 = 0 then true else v_1 > 0
+>>
+Rule 85 (if seed is not zero, seed2 must not be zero)
+{v_1: int, v_2: int} |= if v_1 ≠ 0 then v_2 ≠ 0
+>>
+Rule 88 (If shape is non-empty then each value must be greater than 0)
+{v_1 : tensor} |= if shape(v_1, 0) > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
+>>
+Rule 89 (if shape length is zero, seed1 and seed2 have to also be zero)
+{v_1: tensor, v_2: int, v_3: int} |= if shape(v_1, 0) = 0 then v_2 = 0 ∧ v_3 = 0
+>>
+Rule 93 (If shape is defined, dtype must be one of the allowed types.)
+{v_1: tensor, v_2: dtype} |= if shape(v_1, 0) > 0 then v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9
+>>
+Rule 94 (shape values should be small so computation does not take too long or overflow)
+{v_1: tensor} |= if shape(v_1, 0) > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 1024
+>>
+Rule 97 (The shape tensor can contain positive elements)
+{v_1: tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
+>>
+Rule 99 (seed values can't be too big so calculations don't overflow)
+{v_1: int, v_2: int} |= v_1 < 2147483647 ∧ v_2 < 2147483647
+>>
+Rule 100 (The shape tensor can only contain positive numbers)
+{v_1: tensor} |= if shape(v_1, 0) > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
+>>
+Rule 101 (If the seed is not provided/0, a random seed will be created)
+{v_1: int} |= if v_1 = 0 then true else v_1 > 0
+>>
+Rule 105 (if shape has elements, then the output type can be only one of the floating point numbers, or bfloat16)
+{v_1: tensor, v_2 : dtype} |= if shape(v_1, 0) > 0 then v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9
+>>
+Rule 107 (all shape must have integer dtype)
+{v_1: tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+>>
+Rule 109 (If Seed and Seed2 are 0 no tensor should be created)
+{v_1: tensor, v_2: int, v_3: int} |= if v_2 = 0 ∧ v_3 = 0 then shape(v_1, 0) = 0
+>>
+Rule 110 (shape values can not be extremely large so they won't exhaust the memory)
+{v_1: tensor} |= if shape(v_1, 0) > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 4096
+>>
+Rule 113 (Shape values can not be large so they won't exhaust memory, should also contain some value if len > 0)
+{v_1: tensor} |= if shape(v_1, 0) > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0 ∧  v_1[i] < 4096
+>>
+Rule 120 (If seed or seed2 are provided a shape should be provided as well)
+{v_1: int, v_2: int, v_3: tensor} |= if v_1 ≠ 0 ∨ v_2 ≠ 0 then shape(v_3, 0) > 0
+>>
+Rule 121 (If tensor has shape, it must be of dtype int32 or int64)
+{v_1: tensor} |= if shape(v_1, 0) > 0 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+>>
+Rule 122 (If there is a shape then dtype must be float16, bfloat16, float32, float64.)
+{v_1: tensor, v_2: dtype} |= if shape(v_1, 0) > 0 then  v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9
+>>
+Rule 123 (Shape provided, the elements of it has to be positive and less then a value to avoid overflow)
+{v_1: tensor} |= if shape(v_1, 0) > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 4096 ∧ v_1[i] > 0
+>>
+Rule 125 (If you are providing a seed, make sure it's in the correct range)
+{v_1: int} |= if v_1 ≠ 0 then v_1 < 2147483647 ∧ v_1 > 0
+>>
+Rule 132 (if shape does not exist seed and seed2 should also not exist)
+{v_1 : tensor, v_2: int, v_3 : int} |= if shape(v_1, 0) = 0 then v_2 = 0 ∧ v_3 = 0
+>>
+Rule 133 (If tensor with a valid shape is provided, elements of it have to be smaller and positive, of only integer dtypes int32, int64)
+{v_1: tensor} |= if shape(v_1, 0) > 0 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 4096 ∧ v_1[i] > 0
+>>
+Rule 135 (Dtype needs to be of the specified types if seed is not zero)
+{v_1: int, v_2 : dtype} |= if v_1 ≠ 0 then  v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9
+>>
+Rule 136 (If shape and seed are provided, seed2 should also be provided)
+{v_1: tensor, v_2: int, v_3: int} |= if shape(v_1, 0) > 0 ∧ v_2 ≠ 0 then v_3 ≠ 0
+>>
+Rule 137 (If there is no shape tensor then seed can not be defined.)
+{v_1: tensor, v_2: int} |= if shape(v_1, 0) = 0 then v_2 = 0
+>>
+Rule 138 (if seed provided is a value > than 0, then also seed2 needs to be > 0 to help with entropy generation)
+{v_1: int, v_2: int} |= if v_1 > 0 then v_2 > 0
+>>
+Rule 149 (There shouldn't be two zeros used for seed generation )
+{v_1: int, v_2: int} |= if v_1 = 0 then v_2 ≠ 0
+>>
+Rule 152 (If shape is zero and seed is not zero, seed 2 cannot be defined)
+{v_1: tensor, v_2: int, v_3: int} |= if shape(v_1, 0) = 0 ∧ v_2≠ 0 then v_3 = 0

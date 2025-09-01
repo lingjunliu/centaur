@@ -1,141 +1,147 @@
 >>
-Rule 1 (seed should be a tensor with shape [2])
+Rule 1 (seed tensor must have shape [2])
 {v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = 2
 >>
-Rule 2 (seed dtype should be int32 or int64)
+Rule 2 (seed tensor must have dtype int32 or int64)
 {v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
 >>
-Rule 3 (num should be a positive integer)
-{v_2 : int} |= v_2 > 0
+Rule 3 (num must be a positive integer)
+{v_1 : int} |= v_1 > 0
 >>
-Rule 6 (seed is not empty)
+Rule 4 (alg must be a supported string)
+{v_1 : str} |= v_1 = "philox" ∨ v_1 = "threefry" ∨ v_1 = "auto_select"
+>>
+Rule 5 (num should not be zero)
+{v_1 : int} |= v_1 ≠ 0
+>>
+Rule 10 (seed tensor has an explicit dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 12
+>>
+Rule 11 (num must be less than max int32)
+{v_1 : int} |= v_1 < 2147483647
+>>
+Rule 12 (alg must not be an empty string)
+{v_1 : str} |= v_1 ≠ ""
+>>
+Rule 13 (seed tensor cannot be None)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 14 (num must be representable as an integer without loss of precision)
+{v_1 : float} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9
+>>
+Rule 15 (seed's first dimension must be positive.)
 {v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 11 (alg is one of the allowed string values)
-{v_3 : str} |= v_3 = "relu" ∨ v_3 = "tanh" ∨ v_3 = "sigmoid" ∨ v_3 = "softmax" ∨ v_3 = "elu" ∨ v_3 = "selu" ∨ v_3 = "gelu" ∨ v_3 = "swish"
+Rule 16 (Dtype of seed can't be bool)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 12 (num must be less than or equal to max int)
-{v_2 : int} |= v_2 ≤ 2147483647
+Rule 20 (if seed is int32, num must be less than max int32/2)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 3 then v_2 < 1073741823
 >>
-Rule 13 (If seed is int32, num must be less than or equal to max int)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 3 then v_2 ≤ 2147483647
+Rule 21 (If alg is auto_select, seed must be int32 when using XLA)
+{v_1 : str, v_2 : tensor} |= if v_1 = "auto_select" then dtype_(v_2) = 3
 >>
-Rule 14 (alg should be a valid string)
-{v_3 : str} |= v_3 = "none"
+Rule 22 (seed's rank must be less than 2)
+{v_1 : tensor} |= ndim(v_1) < 2
 >>
-Rule 15 (alg should be a valid string or None)
-{v_3 : str} |= v_3 = "none" ∨ v_3 = "relu" ∨ v_3 = "tanh" ∨ v_3 = "sigmoid" ∨ v_3 = "softmax" ∨ v_3 = "elu" ∨ v_3 = "selu" ∨ v_3 = "gelu" ∨ v_3 = "swish"
+Rule 23 (num must be less than a very large number to avoid overflow)
+{v_1 : int} |= v_1 < 10000000
 >>
-Rule 16 (seed elements should be non-negative)
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 24 (alg cannot be "none")
+{v_1 : str} |= v_1 ≠ "none"
 >>
-Rule 17 (seed cannot have NaN values)
-{v_1 : tensor} |= max(v_1) ≠ "NaN" ∧ min(v_1) ≠ "NaN"
+Rule 25 (If seed has no explicit dtype, num must be greater than 0.)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 12 then v_2 > 0
 >>
-Rule 18 (num should be smaller than tensor size)
-{v_1 : tensor, v_2 : int} |= v_2 ≤ max(v_1)
+Rule 26 (If seed is int64, num must be less than max int64 /2.)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 4 then v_2 < 4611686018427387903
 >>
-Rule 19 (if alg is none, seed dtype must be int32 or int64)
-{v_1 : tensor, v_3 : str} |= if v_3 = "none" then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 27 (If seed is int32, num must be representable as an int32.)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 3 then v_2 = 0 ∨ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5 ∨ v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9
 >>
-Rule 20 (seed shape must be [2] if dtype is not specified)
-{v_1 : tensor} |= if dtype_(v_1) = 12 then true else shape(v_1,0) = 2
+Rule 29 (dtype of seed must be one of the allowed dtypes)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
 >>
-Rule 23 (num is smaller than 2^31)
-{v_2 : int} |= v_2 < 2147483648
+Rule 30 (if alg is not specified, it defaults to "auto_select")
+{v_1 : str} |= if v_1 = "" then v_1 = "auto_select"
 >>
-Rule 24 (alg cannot be empty string)
-{v_3 : str} |= v_3 ≠ ""
+Rule 31 (The seed must have 2 elements in the first dimension)
+{v_1 : tensor} |= shape(v_1, 0) = 2
 >>
-Rule 25 (If seed has dtype, it should be int32 or int64)
-{v_1 : tensor} |= if dtype_(v_1) ≠ 12 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 33 (If seed does not have an explicit dtype (dtype_=12) then the dtype must be specified later)
+{v_1 : tensor} |= if dtype_(v_1) = 12 then false
 >>
-Rule 26 (if dtype is not explicitly specified, seed must have shape [2])
-{v_1: tensor} |= if dtype_(v_1) = 12 then true else shape(v_1, 0) = 2
+Rule 34 (seed must have a valid dtype)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 28 (If alg is other than None, the seed must be int32)
-{v_1 : tensor, v_3 : str} |= if v_3 ≠ "none" then dtype_(v_1) = 3
+Rule 36 (num must be an integer greater than zero, and less than some reasonable upper bound to prevent memory allocation issues)
+{v_1 : int} |= v_1 > 0 ∧ v_1 < 10000
 >>
-Rule 30 (num cannot be zero)
-{v_2 : int} |= v_2 ≠ 0
+Rule 44 (If the seed has no dtype, a ValueError will occur)
+{v_1 : tensor} |= dtype_(v_1) != 12
 >>
-Rule 31 (The elements in seed are less than max int)
-{v_1 : tensor} |= max(v_1) < 2147483647 ∧ min(v_1) > -2147483648
+Rule 53 (Seed tensor must not have dimension greater than 1)
+{v_1 : tensor} |= ndim(v_1) <= 1
 >>
-Rule 33 (num is non-negative)
-{v_2 : int} |= v_2 ≥ 0
+Rule 56 (seed must have a dimension. Fixes the NoneType error.)
+{v_1: tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 35 (seed elements should not be too big)
-{v_1 : tensor} |= max(v_1) < 2147483648
+Rule 57 (If Seed does not have an explicit dtype then one must be assigned before use)
+{v_1: tensor} |= dtype_(v_1) != 12
 >>
-Rule 36 (seed tensor can only be 1D)
-{v_1: tensor} |= ndim(v_1) = 1
->>
-Rule 38 (If the seed is an int32, num must be less than max int32)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 3 then v_2 < 2147483648
->>
-Rule 40 (Seed must be 1D tensor)
+Rule 62 (Seed tensor must have rank 1.)
 {v_1 : tensor} |= ndim(v_1) = 1
 >>
-Rule 43 (Seed must be of shape [2])
-{v_1: tensor} |= shape(v_1, 0) = 2
+Rule 63 (The size of the seed tensor must be 2.)
+{v_1 : tensor} |= shape(v_1,0) = 2
 >>
-Rule 44 (num should be a small positive number)
-{v_2 : int} |= v_2 > 0 ∧ v_2 < 1000
+Rule 64 (If seed is a float type, it must be a valid float type)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 45 (If seed dtype is not specified, ensure its shape is [2])
-{v_1 : tensor} |= if dtype_(v_1) = 12 then true else shape(v_1, 0) = 2
+Rule 71 (The seed must not be a boolean type. )
+{v_1:tensor} |= dtype_(v_1) != 0
 >>
-Rule 47 (If seed has a dtype explicitly defined, it should be int32 or int64)
-{v_1 : tensor} |= if dtype_(v_1) = 12 then true else dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 73 (Number of seeds has to be greater than zero)
+{v_1: int} |= v_1 > 0
 >>
-Rule 49 (seed's elements should be positive)
-{v_1 : tensor} |= min(v_1) >= 0
+Rule 75 (Seed tensor cannot be complex data type)
+{v_1 : tensor} |= dtype_(v_1) != 9 ∧ dtype_(v_1) != 10
 >>
-Rule 51 (If num is greater than 1, the seed must be int32 or int64)
-{v_1 : tensor, v_2 : int} |= if v_2 > 1 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 76 (Seed can be float16, float32, float64, int32, int64)
+{v_1: tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
 >>
-Rule 56 (If seed has dtype and alg is not none, then seed has to be int32 type)
-{v_1 : tensor, v_3 : str} |= if dtype_(v_1) != 12 ∧ v_3 != "none" then dtype_(v_1) = 3
+Rule 77 (Seed tensor cannot be a bool type)
+{v_1 : tensor} |= dtype_(v_1) != 0
 >>
-Rule 58 (If alg is specified and seed has dtype, seed has to be int32 or int64)
-{v_1 : tensor, v_3 : str} |= if v_3 != "none" ∧ dtype_(v_1) != 12 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 81 (The seed tensor must have explicit dtype not none.)
+{v_1:tensor} |= dtype_(v_1) != 12
 >>
-Rule 59 (the value of num should not be too large)
-{v_2 : int} |= v_2 < 10000
+Rule 82 (Dtype of seed needs to be a valid datatype (int or float))
+{v_1: tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 63 (num should be reasonably small)
-{v_2 : int} |= v_2 < 5000
+Rule 85 (Seed needs to be rank one tensor)
+{v_1: tensor} |= ndim(v_1) = 1
 >>
-Rule 65 (If alg is none and seed is int64, then num should not be too large.)
-{v_1 : tensor, v_2 : int, v_3 : str} |= if dtype_(v_1) = 4 ∧ v_3 = "none" then v_2 < 1000000
+Rule 87 (seed.shape needs to be (2, ))
+{v_1: tensor} |= shape(v_1,0) = 2
 >>
-Rule 66 (If alg parameter is none and seed dtype is specified, it should be an int)
-{v_1 : tensor, v_3 : str} |= if v_3 = "none" ∧ dtype_(v_1) != 12 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 91 (Number of seeds must be valid and from allowed Alg)
+{v_1: str} |= v_1 = "philox" ∨ v_1 = "threefry" ∨ v_1 = "auto_select"
 >>
-Rule 68 (The seed must have a defined type. If specified explicitly, must be int32 or int64.)
-{v_1: tensor} |= if dtype_(v_1) = 12 then true else dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 92 (If dtype is bool, raise a ValueError)
+{v_1: tensor} |= dtype_(v_1) != 0
 >>
-Rule 70 (If seed is a tensor with dtype and alg != none, it must have int32 dtype)
-{v_1 : tensor, v_3 : str} |= if v_3 ≠ "none" ∧ dtype_(v_1) ≠ 12 then dtype_(v_1) = 3
+Rule 96 (Seed needs to be of rank 1 and size 2)
+{v_1: tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = 2
 >>
-Rule 74 (If seed does not have dtype specified and has alg=None, it must have shape [2])
-{v_1 : tensor, v_3: str} |= if dtype_(v_1) = 12 ∧ v_3 = "none" then shape(v_1, 0) = 2
+Rule 99 (If the seed does not have valid type, such as complex64 or complex128, raise a ValueError.)
+{v_1: tensor} |= dtype_(v_1) != 9 ∧ dtype_(v_1) != 10
 >>
-Rule 75 (If num is a very large number, seed must be int64)
-{v_1: tensor, v_2: int} |= if v_2 > 100000 then dtype_(v_1) = 4
+Rule 102 (seed needs to be a tensor, not other data types like NoneType)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 76 (num is within the int range)
-{v_2:int} |= v_2 < 2147483648
+Rule 110 (Seed must be a tensor and contain positive numbers )
+{v_1 : tensor} |= min(v_1) > 0
 >>
-Rule 77 (if seed is int32 and alg is None, num must not exceed a certain limit.)
-{v_1 : tensor, v_2 : int, v_3 : str} |= if dtype_(v_1) = 3 ∧ v_3 = "none" then v_2 < 10000000
->>
-Rule 78 (If alg is not specified, then alg must be "none")
-{v_3: str} |= v_3 = "none"
->>
-Rule 80 (seed tensor must have shape 2 if dtype is defined)
-{v_1 : tensor} |= if dtype_(v_1) != 12 then shape(v_1, 0) = 2
->>
-Rule 81 (if the seed is a dtype and the alg is not None, seed dtype is an integer dtype)
-{v_1 : tensor, v_3:str} |= if v_3 != "none" ∧ dtype_(v_1) != 12 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 112 (Seed requires at least two values, since the first dimension must be > 1)
+{v_1 : tensor} |= shape(v_1, 0) > 1

@@ -1,135 +1,111 @@
 >>
 Rule 1 (n must be greater than 0)
-{n : int} |= n > 0
+{n : tensor} |= n > 0
 >>
-Rule 2 (length of component_types list must be greater than or equal to 1)
+Rule 2 (component_types list must have at least one element)
 {component_types : list(dtype)} |= component_types.len ≥ 1
 >>
-Rule 3 (timeout_ms must be greater or equal to -1)
+Rule 3 (timeout_ms must be greater than or equal to -1)
 {timeout_ms : int} |= timeout_ms ≥ -1
 >>
-Rule 5 (n must be a positive integer and less than a maximum value)
-{n : int} |= n > 0 ∧ n < 10000
+Rule 4 (n must be an integer)
+{n : tensor} |= dtype_(n) = 2 ∨ dtype_(n) = 3 ∨ dtype_(n) = 4
 >>
-Rule 6 (the first component type must be a valid dtype)
-{component_types : list(dtype)} |= component_types[0] ≥ 0 ∧ component_types[0] ≤ 12
+Rule 5 (handle must be a tensor of type string)
+{handle : tensor} |= dtype_(handle) = 11
 >>
-Rule 8 (timeout_ms must be a non-negative integer or -1)
+Rule 6 (component_types must be a list of valid dtypes, encoded as integers.)
+{component_types : list(int)} |= ∀i ∈ [0, component_types.len - 1] : component_types[i] ≥ 0 ∧ component_types[i] ≤ 12
+>>
+Rule 7 (If timeout_ms is not -1, then n must be 1.)
+{timeout_ms : int, n : tensor} |= if timeout_ms ≠ -1 then n = 1
+>>
+Rule 8 (n must be a positive integer tensor)
+{n : tensor} |= dtype_(n) = 4 ∧ n > 0
+>>
+Rule 11 (component_types is a list of valid dtypes.)
+{component_types : list(dtype)} |= ∀i ∈ [0, component_types.len - 1] : component_types[i] = 0 ∨ component_types[i] = 1 ∨ component_types[i] = 2 ∨ component_types[i] = 3 ∨ component_types[i] = 4 ∨ component_types[i] = 5 ∨ component_types[i] = 6 ∨ component_types[i] = 7 ∨ component_types[i] = 8 ∨ component_types[i] = 9 ∨ component_types[i] = 10 ∨ component_types[i] = 11 ∨ component_types[i] = 12
+>>
+Rule 12 (If timeout_ms is -1, then it should be treated as infinite wait.)
 {timeout_ms : int} |= timeout_ms = -1 ∨ timeout_ms ≥ 0
 >>
-Rule 9 (n must be less than a fixed maximum queue size)
-{n : int} |= n < 2048
+Rule 13 (handle must be a tensor)
+{handle : tensor} |= ndim(handle) ≥ 0
 >>
-Rule 10 (component_types must not be an empty list)
+Rule 14 (n must be a tensor with scalar shape)
+{n : tensor} |= ndim(n) = 0
+>>
+Rule 15 (component_types length must be less than or equal to a maximum value, say 100)
+{component_types : list(dtype)} |= component_types.len ≤ 100
+>>
+Rule 17 (n's dtype must be int32)
+{n : tensor} |= dtype_(n) = 3
+>>
+Rule 20 (component_types elements must be valid dtypes)
+{component_types : list(dtype)} |= ∀i ∈ [0, component_types.len - 1] : component_types[i] ≠ 13
+>>
+Rule 22 (component_types must not contain dtype 13, which represents `np.dtype`)
+{component_types : list(int)} |= ∀i ∈ [0, component_types.len - 1] : component_types[i] ≠ 12
+>>
+Rule 23 (If component_types has only one type, all components must have that type)
+{component_types : list(dtype), n : tensor} |= component_types.len = 1
+>>
+Rule 24 (The handle must be a scalar tensor of dtype string)
+{handle : tensor} |= ndim(handle) = 0 ∧ dtype_(handle) = 11
+>>
+Rule 28 (If component_types has more than one dtype, the output tensors will also have different dtypes)
+{component_types : list(dtype)} |= component_types.len > 1
+>>
+Rule 30 (If timeout_ms is non-negative, it must be a valid integer)
+{timeout_ms : int} |= timeout_ms ≥ 0 ∨ timeout_ms = -1
+>>
+Rule 31 (The number of output tensors should match the number of component types)
 {component_types : list(dtype)} |= component_types.len > 0
 >>
-Rule 11 (If timeout is specified, n must be smaller than a limit)
-{n : int, timeout_ms : int} |= if timeout_ms > -1 then n < 512
+Rule 32 (If component_types has length 1, then all output tensors must have the same dtype)
+{component_types : list(dtype)} |= if component_types.len = 1 then true
 >>
-Rule 12 (All component types must be valid dtypes)
-{component_types : list(dtype)} |= ∀i ∈ [0, component_types.len - 1] : component_types[i] ≥ 0 ∧ component_types[i] ≤ 12
+Rule 33 (If component_types is a list of the same element, the components should have the same type.)
+{component_types : list(dtype)} |= ∀i ∈ [1, component_types.len - 1] : component_types[0] = component_types[i]
 >>
-Rule 14 (n must be a small number if component types are strings - with quantification)
-{n : int, component_types : list(dtype)} |= ∀i ∈ [0, component_types.len - 1] : if component_types[i] = 11 then n < 64
+Rule 34 (The timeout_ms should be a valid integer or -1.)
+{timeout_ms : int} |= timeout_ms = -1 ∨ (timeout_ms ≥ 0 ∧ timeout_ms ≤ 2147483647)
 >>
-Rule 15 (n cannot be negative)
-{n : int} |= n ≥ 0
+Rule 36 (If timeout_ms is specified, n must equal to 1.)
+{timeout_ms : int, n : tensor} |= if timeout_ms > -1 then n = 1
 >>
-Rule 16 (timeout_ms should be within a reasonable range)
-{timeout_ms : int} |= timeout_ms ≥ -1 ∧ timeout_ms < 60000
+Rule 41 (The 'n' parameter must be a non-negative integer)
+{n : tensor} |= n ≥ 0
 >>
-Rule 17 (If timeout is very large, n must be very small)
-{n : int, timeout_ms : int} |= if timeout_ms > 30000 then n < 32
+Rule 43 (If timeout_ms is greater than or equal to 0 then the type of n must be int32)
+{timeout_ms : int, n : tensor} |= if timeout_ms ≥ 0 then dtype_(n) = 3
 >>
-Rule 18 (If all component types are the same, n can be larger)
-{n : int, component_types : list(dtype)} |= if ∀i ∈ [1, component_types.len - 1] : component_types[0] = component_types[i] then n < 1024 else n < 64
+Rule 44 (If n is greater than 1, timeout_ms must be equal to -1)
+{n : tensor, timeout_ms : int} |= if n > 1 then timeout_ms = -1
 >>
-Rule 19 (timeout_ms should not be excessively large, especially if n is large)
-{n : int, timeout_ms : int} |= if n > 500 then timeout_ms < 10000
+Rule 45 (If n is not 1 and if n is provided then timout_ms cannot be provided)
+{n : tensor, timeout_ms : int} |= if n ≠ 1 then timeout_ms = -1
 >>
-Rule 20 (If the timeout is set to -1, n should not be zero)
-{n : int, timeout_ms : int} |= if timeout_ms = -1 then n > 0
+Rule 46 (If timeout_ms is specified, then n should be provided)
+{timeout_ms : int, n : tensor} |= if timeout_ms ≠ -1 then true
 >>
-Rule 21 (If timeout_ms is not -1, it should be a positive integer)
-{timeout_ms : int} |= if timeout_ms ≠ -1 then timeout_ms > 0
+Rule 47 (If the number of component_types is greater than one, then the output tensors will be multiple)
+{component_types : list(dtype)} |= if component_types.len > 1 then true
 >>
-Rule 22 (The length of component_types cannot exceed a certain limit)
-{component_types : list(dtype)} |= component_types.len < 16
+Rule 50 (All tensors must have a defined shape)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 24 (If component_types contains a string, then all component_types must be a string - using 'and')
-{component_types : list(dtype)} |= if 11 = component_types[0] then ∀i ∈ [1, component_types.len - 1] : component_types[i] = 11
+Rule 52 (All component types must be valid)
+{component_types : list(dtype)} |= ∀i ∈ [0, component_types.len - 1] : component_types[i] = 0 ∨ component_types[i] = 1 ∨ component_types[i] = 2 ∨ component_types[i] = 3 ∨ component_types[i] = 4 ∨ component_types[i] = 5 ∨ component_types[i] = 6 ∨ component_types[i] = 7 ∨ component_types[i] = 8 ∨ component_types[i] = 9 ∨ component_types[i] = 10 ∨ component_types[i] = 11
 >>
-Rule 25 (If component_types contains a string, then all component_types must be a string - combined conditions)
-{component_types : list(dtype)} |= (11 = component_types[0] ∧ ∀i ∈ [1, component_types.len - 1] : component_types[i] = 11) ∨ (11 ≠ component_types[0])
+Rule 54 (If timeout_ms is provided, then the shape of n must be scalar)
+{timeout_ms : int, n : tensor} |= if timeout_ms ≠ -1 then ndim(n) = 0
 >>
-Rule 26 (if all component_types are int, timeout should be positive)
-{component_types : list(dtype), timeout_ms : int} |= if ∀i ∈ [0, component_types.len - 1] : component_types[i] = 3 ∨ component_types[i] = 4 then timeout_ms > 0 ∨ timeout_ms = -1
+Rule 55 (If there is a timeout_ms, then only one tuple can be dequeued)
+{timeout_ms:int, n:tensor} |= if timeout_ms>-1 then n=1
 >>
-Rule 27 (if all component_types are numerical dtypes, n should be greater or equal 1)
-{component_types : list(dtype), n : int} |= if ∀i ∈ [0, component_types.len - 1] : component_types[i] < 11 then n ≥ 1
+Rule 57 (If n > 1, then each component of the dequeued tensors will have size n along the 0th dimension, and the component_types list must have the same length of output tensors.)
+{n : tensor, component_types : list(dtype)} |= if n > 1 then component_types.len > 0
 >>
-Rule 29 (if component_types has a bool, n should not be too high, check first element)
-{component_types : list(dtype), n : int} |= if 0 = component_types[0] then n < 128
->>
-Rule 30 (if timeout_ms is very small, n must also be very small)
-{n : int, timeout_ms : int} |= if timeout_ms > 0 ∧ timeout_ms < 100 then n < 16
->>
-Rule 31 (If n is zero, timeout must be -1)
-{n : int, timeout_ms : int} |= if n = 0 then timeout_ms = -1
->>
-Rule 32 (If the queue is configured to not block, then timeout_ms should not be set)
-{timeout_ms : int} |= timeout_ms = -1
->>
-Rule 33 (If all component_types are bool, then N should be 1)
-{component_types : list(dtype), n : int} |= if ∀i ∈ [0, component_types.len - 1] : component_types[i] = 0 then n = 1
->>
-Rule 36 (If n is close to max_int and component_types contains int8, n must be small - no 'in')
-{component_types : list(dtype), n : int} |= if n > 2147483640 then if component_types[0] = 1 ∨ component_types[1] = 1 ∨ component_types[2] = 1 ∨ component_types[3] = 1 ∨ component_types[4] = 1 ∨ component_types[5] = 1 ∨ component_types[6] = 1 ∨ component_types[7] = 1 ∨ component_types[8] = 1 ∨ component_types[9] = 1 ∨ component_types[10] = 1 ∨ component_types[11] = 1 ∨ component_types[12] = 1 then n < 16
->>
-Rule 37 (If component_types contains int8, n must be small)
-{component_types : list(dtype), n : int} |= if component_types[0] = 1 then n < 16
->>
-Rule 38 (If the number of components is large, limit N to prevent excessive memory usage)
-{component_types : list(dtype), n : int} |= if component_types.len > 8 then n < 32
->>
-Rule 39 (If timeout_ms is specified, it should be less than max int)
-{timeout_ms : int} |= if timeout_ms ≠ -1 then timeout_ms < 2147483647
->>
-Rule 40 (If timeout_ms is very large and n is also very large, then the server could hang. Thus, prevent both being large)
-{n : int, timeout_ms : int} |= if timeout_ms > 30000 then n < 100
->>
-Rule 42 (If handle is an empty string then this is invalid)
-{handle: str} |= handle ≠ ""
->>
-Rule 43 (The number of components must be a reasonable value)
-{component_types : list(dtype)} |= component_types.len < 32
->>
-Rule 45 (n should not be greater than int32 max)
-{n : int} |= n ≤ 2147483647
->>
-Rule 47 (n must be less than 2147483647 to avoid overflow errors)
-{n : int} |= n < 2147483647
->>
-Rule 48 (The value of n must be smaller than the queue's maximum capacity to avoid blocking indefinitely)
-{n: int} |= n < 2147483647
->>
-Rule 50 (The number of components should not be high if a small timeout is specified, as many large operations are impossible)
-{component_types : list(dtype), timeout_ms : int} |= if timeout_ms < 1000 then component_types.len < 8
->>
-Rule 51 (The number of components cannot be very large if timeout is a very small positive number)
-{component_types : list(dtype), timeout_ms : int} |= if timeout_ms > 0 ∧ timeout_ms < 100 then component_types.len < 4
->>
-Rule 52 (If the number of components is greater than 1, and N is large, the timeout_ms must be larger than 0 to prevent indefinite blocking)
-{component_types : list(dtype), n : int, timeout_ms : int} |= if component_types.len > 1 ∧ n > 512 then timeout_ms > 0
->>
-Rule 53 (If component_types only contains float16, then n must be relatively small for memory safety)
-{component_types : list(dtype), n : int} |= if ∀i ∈ [0, component_types.len - 1] : component_types[i] = 6 then n < 256
->>
-Rule 54 (If timeout_ms is equal to -1, then n can not be a large number)
-{n : int, timeout_ms : int} |= if timeout_ms = -1 then n < 10000
->>
-Rule 55 (If all component types are floats, then timeout_ms should be larger than 0 to prevent race conditions when waiting)
-{component_types : list(dtype), timeout_ms : int} |= if ∀i ∈ [0, component_types.len - 1] : component_types[i] = 7 ∨ component_types[i] = 8 ∨ component_types[i] = 9 then timeout_ms > 0 ∨ timeout_ms = -1
->>
-Rule 56 (If component_types are exclusively complex numbers, timeout_ms must not be -1)
-{component_types : list(dtype), timeout_ms : int} |= if ∀i ∈ [0, component_types.len - 1] : component_types[i] = 9 ∨ component_types[i] = 10 then timeout_ms ≠ -1
+Rule 58 (If n > 0 then the first dimension of every output tensor is n)
+{n : tensor} |= n>0

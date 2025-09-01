@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# nest1 is a tuple and nest2 is a list of the same length (Rule 5)
+# Check type is true implies expand composite is false (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_length"] == v["arg2_length"]) if n else
-          v["arg1_length"] == v["arg2_length"])
+    s.add(Not(If(v["arg1_value"], v["arg2_value"] == False, True)) if n else
+          If(v["arg1_value"], v["arg2_value"] == False, True))
 )
 
 def rule_5_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_5_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, bool):
             return False
-        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg2_length = Int('arg2_length')
+        arg1_value = Bool('arg1_value')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        solver.add(arg2_length == len(arg2))
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 5
-        rule_5(solver, {'arg1_length': arg1_length, 'arg2_length': arg2_length})
+        rule_5(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_5(solver, {'arg1_length': arg1['length'], 'arg2_length': arg2['length']}, neg)
+        rule_5(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

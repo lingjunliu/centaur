@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If compression is specified and width is not, then width should have a default value (Rule 31)
+# Each dimension must be positive or compression is invalid. (Rule 31)
 
 rule_31 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg2_value"] != -1, Select(v["arg1_shape"], v["arg1_ndim"] - 2) == 0), True, False)) if n else
-          If(And(v["arg2_value"] != -1, Select(v["arg1_shape"], v["arg1_ndim"] - 2) == 0), True, False))
+    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or(Select(v["arg1_shape"], i) > 0, v["arg2_value"] < -1)) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or(Select(v["arg1_shape"], i) > 0, v["arg2_value"] < -1)) for i in range(6)]))
 )
 
 def rule_31_func(arg1, arg2, solver=None, neg=False):
@@ -36,9 +36,9 @@ def rule_31_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 31
-        rule_31(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_31(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_31(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_31(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

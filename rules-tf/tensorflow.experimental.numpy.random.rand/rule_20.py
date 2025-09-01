@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If a shape is provided as a list of integers, then the length of the list should be greater than zero (Rule 20)
+# Size is neither excessively large nor negative (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_length"] > 0) if n else
-          v["arg1_length"] > 0)
+    s.add(Not(And(v["arg1_value"] > -1000, v["arg1_value"] < 2000000000)) if n else
+          And(v["arg1_value"] > -1000, v["arg1_value"] < 2000000000))
 )
 
 def rule_20_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_20_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 20
-        rule_20(solver, {'arg1_length': arg1_length})
+        rule_20(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_20(solver, {'arg1_length': arg1['length']}, neg)
+        rule_20(solver, {'arg1_value': arg1['value']}, neg)

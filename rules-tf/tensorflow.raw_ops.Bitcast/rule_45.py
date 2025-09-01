@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If output is bfloat16, then input must be from allowlist (Rule 45)
+# Quantized types are only allowed with quantized types (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == 13, Or(Or(v["arg1_dtype"] == 13, v["arg1_dtype"] == 7), v["arg1_dtype"] == 9), False)) if n else
-          If(v["arg2_value"] == 13, Or(Or(v["arg1_dtype"] == 13, v["arg1_dtype"] == 7), v["arg1_dtype"] == 9), False))
+    s.add(Not((v["arg1_dtype"] > 12) == (v["arg2_value"] > 12)) if n else
+          (v["arg1_dtype"] > 12) == (v["arg2_value"] > 12))
 )
 
 def rule_45_func(arg1, arg2, solver=None, neg=False):

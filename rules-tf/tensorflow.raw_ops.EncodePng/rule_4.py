@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# channels dimension of the image tensor must be 1, 2, 3, or 4 (Rule 4)
+# image tensor channels should be 1, 2, 3, or 4 (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
     s.add(Not(Or(Or(Or(Select(v["arg1_shape"], 2) == 1, Select(v["arg1_shape"], 2) == 2), Select(v["arg1_shape"], 2) == 3), Select(v["arg1_shape"], 2) == 4)) if n else

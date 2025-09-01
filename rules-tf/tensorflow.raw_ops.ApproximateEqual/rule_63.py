@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If x is a uint16, then y is a uint16 (Rule 63)
+# If tolerance is not supplied, x and y dtypes must be equal, and must be in the supported set (Rule 63)
 
 rule_63 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 16, v["arg2_dtype"] == 16, False)) if n else
-          If(v["arg1_dtype"] == 16, v["arg2_dtype"] == 16, False))
+    s.add(Not(And(v["arg1_dtype"] == v["arg2_dtype"], (Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 3), v["arg1_dtype"] == 5), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 9), v["arg1_dtype"] == 4), v["arg1_dtype"] == 16), v["arg1_dtype"] == 6), v["arg1_dtype"] == 17), v["arg1_dtype"] == 18), v["arg1_dtype"] == 11), v["arg1_dtype"] == 12), v["arg1_dtype"] == 13), v["arg1_dtype"] == 14), v["arg1_dtype"] == 15)))) if n else
+          And(v["arg1_dtype"] == v["arg2_dtype"], (Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 3), v["arg1_dtype"] == 5), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 9), v["arg1_dtype"] == 4), v["arg1_dtype"] == 16), v["arg1_dtype"] == 6), v["arg1_dtype"] == 17), v["arg1_dtype"] == 18), v["arg1_dtype"] == 11), v["arg1_dtype"] == 12), v["arg1_dtype"] == 13), v["arg1_dtype"] == 14), v["arg1_dtype"] == 15))))
 )
 
 def rule_63_func(arg1, arg2, solver=None, neg=False):

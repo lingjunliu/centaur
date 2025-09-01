@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The integer seed must not be null (Rule 30)
+# seed should be a prime number for better randomness (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != null) if n else
-          v["arg1_value"] != null)
+    s.add(Not(Or([And(i < (v["arg1_value"] - 1 + 1), Or(v["arg1_value"] % i == 0, v["arg1_value"] < 2)) for i in range(6)])) if n else
+          Or([And(i < (v["arg1_value"] - 1 + 1), Or(v["arg1_value"] % i == 0, v["arg1_value"] < 2)) for i in range(6)]))
 )
 
 def rule_30_func(arg1, solver=None, neg=False):

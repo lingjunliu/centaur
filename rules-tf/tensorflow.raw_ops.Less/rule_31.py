@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the shape of tensor x has the same length as y, then the elements of the y must all be int (Rule 31)
+# If shape is not applicable, then dimensions must be 0 (Rule 31)
 
 rule_31 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == v["arg2_length"], True, False)) if n else
-          If(v["arg1_ndim"] == v["arg2_length"], True, False))
+    s.add(Not(If((And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0)), True, (And(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0)))) if n else
+          If((And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0)), True, (And(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0))))
 )
 
 def rule_31_func(arg1, arg2, solver=None, neg=False):
@@ -20,22 +20,22 @@ def rule_31_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg2_length = Int('arg2_length')
+        arg2_ndim = Int('arg2_ndim')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_length == len(arg2))
+        solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 31
-        rule_31(solver, {'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length})
+        rule_31(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_31(solver, {'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length']}, neg)
+        rule_31(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)

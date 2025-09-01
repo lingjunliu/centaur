@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# input tensor's rank must be more than 0 (Rule 32)
+# block_size should be a non-negative integer and at least 2 (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] > 0) if n else
-          v["arg1_ndim"] > 0)
+    s.add(Not(And(v["arg1_value"] >= 2, (v["arg1_value"] - (v["arg1_value"] % 1)) == v["arg1_value"])) if n else
+          And(v["arg1_value"] >= 2, (v["arg1_value"] - (v["arg1_value"] % 1)) == v["arg1_value"]))
 )
 
 def rule_32_func(arg1, solver=None, neg=False):
@@ -17,20 +17,18 @@ def rule_32_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)) or isinstance(arg1, (float, np.floating))):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
 
         # Constraints for rule 32
-        rule_32(solver, {'arg1_ndim': arg1_ndim})
+        rule_32(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_32(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_32(solver, {'arg1_value': arg1['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If ndim > 2 then the last two dimensions' size should be the same (Rule 21)
+# if the rank of input tensor is greater than 2, then the shape of the last two dimensions cannot be different (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2), False)) if n else
-          If(v["arg1_ndim"] > 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2), False))
+    s.add(Not(If(v["arg1_ndim"] > 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2), True)) if n else
+          If(v["arg1_ndim"] > 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2), True))
 )
 
 def rule_21_func(arg1, solver=None, neg=False):

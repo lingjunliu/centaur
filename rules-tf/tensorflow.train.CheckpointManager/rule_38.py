@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The max_to_keep value must be between 1 and 1000 (Rule 38)
+# Checkpoint name should be a valid string (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] > 0, v["arg1_value"] < 1001)) if n else
-          And(v["arg1_value"] > 0, v["arg1_value"] < 1001))
+    s.add(Not(Or(Or(v["arg1_value"] == 11, v["arg1_value"] == 12), v["arg1_value"] == 13)) if n else
+          Or(Or(v["arg1_value"] == 11, v["arg1_value"] == 12), v["arg1_value"] == 13))
 )
 
 def rule_38_func(arg1, solver=None, neg=False):
@@ -17,15 +17,15 @@ def rule_38_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, str):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_value = String('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
+        solver.add(arg1_value == list_of_string_values_tf.index(arg1))
 
         # Constraints for rule 38
         rule_38(solver, {'arg1_value': arg1_value})

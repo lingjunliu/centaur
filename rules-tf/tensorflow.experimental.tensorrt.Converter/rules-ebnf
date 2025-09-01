@@ -1,87 +1,282 @@
 >>
-Rule 1 (maximum_cached_engines should be greater than 0)
-{v_1 : int} |= v_1 > 0
+Rule 1 (TensorRT support required for conversion)
+{v_1 : str, v_2 : str} |= if v_1 ≠ "none" ∨ v_2 = "INT8" then true else false
 >>
-Rule 2 (precision_mode should be a valid string)
+Rule 2 (Precision mode must be a valid string)
 {v_1 : str} |= v_1 = "FP32" ∨ v_1 = "FP16" ∨ v_1 = "INT8"
 >>
-Rule 3 (use_calibration should be a boolean value)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
->>
-Rule 4 (profile_strategy should be a valid string)
-{v_1 : str} |= v_1 = "Range" ∨ v_1 = "Optimal" ∨ v_1 = "Range+Optimal" ∨ v_1 = "None"
->>
-Rule 6 (TrtGraphConverterV2: minimum_segment_size should be greater than or equal to zero)
+Rule 3 (Maximum cached engines must be non-negative)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 7 (maximum_cached_engines should be less than a maximum limit)
-{v_1 : int} |= v_1 < 1024
->>
-Rule 9 (optimization_precision should be a valid integer)
-{v_1 : int} |= v_1 = 7 ∨ v_1 = 8
->>
-Rule 11 (precision_mode must be one of the allowed values when use_calibration is enabled)
-{v_1 : str, v_2 : bool} |= if v_2 then v_1 = "INT8" else v_1 = "FP32" ∨ v_1 = "FP16" ∨ v_1 = "INT8"
->>
-Rule 12 (min_seg_size should be less than max_workspace_size)
-{v_1 : int, v_2 : int} |= v_1 ≤ v_2
->>
-Rule 13 (use_dynamic_shape requires a profile strategy)
-{v_1 : bool, v_2 : str} |= if v_1 then v_2 = "Range" ∨ v_2 = "Optimal" ∨ v_2 = "Range+Optimal"
->>
-Rule 14 (If precision mode is INT8, then use_calibration must be true.)
+Rule 4 (use_calibration must be true if precision_mode is INT8)
 {v_1 : str, v_2 : bool} |= if v_1 = "INT8" then v_2 = true
 >>
-Rule 22 (conversion_params.trt_logger_level should be a string)
-{v_1 : str} |= v_1 = "INFO" ∨ v_1 = "WARNING" ∨ v_1 = "ERROR" ∨ v_1 = "FATAL"
+Rule 5 (dynamic_shape_profile_strategy must be a valid string if use_dynamic_shape is true)
+{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 = "Range" ∨ v_2 = "Optimal" ∨ v_2 = "Range+Optimal"
 >>
-Rule 23 (quantization_mode must be a string from the allowed values if use_calibration is True)
-{v_1 : str, v_2 : bool} |= if v_2 then v_1 = "MIN_MAX" ∨ v_1 = "CALIBRATED"
+Rule 7 (input_saved_model_dir should not be an empty string)
+{v_1 : str} |= v_1 ≠ ""
 >>
-Rule 30 (profiling_strategy should be string)
-{v_1: str} |= v_1 = "Range" ∨ v_1 = "Optimal" ∨ v_1 = "Range+Optimal"
+Rule 9 (use_dynamic_shape and dynamic_shape_profile_strategy are codependent)
+{v_1 : bool, v_2 : str} |= (v_1 = true ∧ (v_2 = "Range" ∨ v_2 = "Optimal" ∨ v_2 = "Range+Optimal")) ∨ (v_1 = false ∧ v_2 = "")
 >>
-Rule 31 (optimization_level should be in a valid range)
-{v_1:int} |= v_1 >= 0 ∧ v_1 <= 5
+Rule 10 (maximum_cached_engines must be 1 if use_calibration is true and precision_mode is INT8)
+{v_1 : int, v_2 : bool, v_3 : str} |= if v_2 = true ∧ v_3 = "INT8" then v_1 = 1
 >>
-Rule 33 (conversion params FP16 fallback must be boolean)
-{v_1: bool} |= v_1 = true ∨ v_1 = false
+Rule 11 (TensorRT support required for specific configurations)
+{v_1 : str, v_2 : bool} |= if (v_1 = "INT8" ∧ v_2 = true) then true
 >>
-Rule 37 (calibration_input_fn needs to return tensors)
-{v_1: tensor} |= ndim(v_1) > 0
+Rule 12 (Precision mode has valid options)
+{v_1 : str} |= v_1 = "FP32" ∨ v_1 = "FP16" ∨ v_1 = "INT8" ∨ v_1 = "none"
 >>
-Rule 43 (If INT8 mode, use calibration must be true)
+Rule 13 (Maximum cached engines related to calibration)
+{v_1 : int, v_2 : bool} |= if v_2 = true then v_1 > 0
+>>
+Rule 14 (Calibration necessitates INT8 precision)
+{v_1 : str, v_2 : bool} |= if v_2 = true then v_1 = "INT8"
+>>
+Rule 15 (Dynamic shape profile requires a strategy if dynamic shape is used)
+{v_1 : bool, v_2 : str} |= if v_1 = true then (v_2 = "Range" ∨ v_2 = "Optimal" ∨ v_2 = "Range+Optimal") else v_2 = ""
+>>
+Rule 16 (Minimum segment size can be zero if no conversion params are specified)
+{v_1 : int, v_2 : str} |= if v_2 = "" then v_1 ≥ 0
+>>
+Rule 18 (Workspace size restriction depends on precision mode)
+{v_1 : int, v_2 : str} |= if v_2 = "FP32" then v_1 > 0
+>>
+Rule 21 (Input Saved Model Tags should be defined)
+{v_1 : list(str)} |= v_1.len > 0
+>>
+Rule 22 (TensorRT configuration requires non-empty signature key)
+{v_1 : str, v_2 : str} |= if v_2 ≠ "none" then v_1 ≠ ""
+>>
+Rule 24 (Maximum cached engines must be specified if precision mode is selected)
+{v_1 : int, v_2 : str} |= if v_2 = "FP32" ∨ v_2 = "FP16" ∨ v_2 = "INT8" then v_1 > 0
+>>
+Rule 25 (Input Saved Model Tags should be defined with correct type)
+{v_1 : list(str)} |=  ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ ""
+>>
+Rule 26 (Dynamic Shape is conditional on strategy provided)
+{v_1 : bool, v_2 : str} |= if v_1 = true then (v_2 = "Range" ∨ v_2 = "Optimal" ∨ v_2 = "Range+Optimal") else v_2 = "none"
+>>
+Rule 27 (Minimum Segment Size Dependency on Conversion Params)
+{v_1 : int, v_2 : str} |= if v_2 ≠ "" then v_1 ≥ 0
+>>
+Rule 28 (Allow build at runtime is conditional to use_dynamic_shape being false)
+{v_1 : bool, v_2 : bool} |= if v_1 = true then v_2 = false
+>>
+Rule 29 (Workspace Size larger than minimum segment)
+{v_1 : int, v_2 : int} |= v_1 ≥ v_2
+>>
+Rule 30 (Input saved model signature key is not none)
+{v_1 : str} |= v_1 ≠ "none"
+>>
+Rule 33 (Minimum Segment Size is dependent on conversion params not being empty)
+{v_1 : int, v_2 : str} |= if v_2 ≠ "" then v_1 > 0
+>>
+Rule 34 (Workspace size should be positive)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 35 (Input Saved Model Signature Key Should match known string)
+{v_1:str} |= v_1 = "none" ∨ v_1 = "SignatureDef key"
+>>
+Rule 36 (Dynamic shape requires strategy being non-empty if use_dynamic_shape is true)
+{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 ≠ ""
+>>
+Rule 37 (If precision mode is INT8, then use_calibration should be true)
 {v_1: str, v_2: bool} |= if v_1 = "INT8" then v_2 = true
 >>
-Rule 47 (use dynamic shape must be enabled if min/max dims are different)
-{v_1 : list(int), v_2 : list(int), v_3:bool} |= if v_1.len = v_2.len ∧ (∃i ∈ [0, v_1.len - 1]: v_1[i] ≠ v_2[i]) then v_3 = true
+Rule 39 (When dynamic shape is used, profile strategy must be Range, Optimal or Range+Optimal)
+{v_1: bool, v_2: str} |= if v_1 = true then (v_2 = "Range" ∨ v_2 = "Optimal" ∨ v_2 = "Range+Optimal")
 >>
-Rule 49 (max workspace size bytes must be positive)
+Rule 40 (Minimum segment size must not be negative.)
+{v_1: int} |= v_1 >= 0
+>>
+Rule 41 (Use Calibration can only be true if Precision Mode is INT8)
+{v_1: bool, v_2: str} |= if v_1 = true then v_2 = "INT8"
+>>
+Rule 42 (If conversion_params is not empty string, then minimum segment size must be non negative)
+{v_1: str, v_2: int} |= if v_1 != "" then v_2 >= 0
+>>
+Rule 44 (Max workspace size in bytes needs to be a non-zero positive number)
 {v_1: int} |= v_1 > 0
 >>
-Rule 53 (Int8 calibration maximum cached engines must be 1)
-{v_1: str, v_2: int} |= if v_1 = "INT8" then v_2 = 1
+Rule 45 (When allow_build_at_runtime is enabled, use_dynamic_shape should be false)
+{v_1: bool, v_2: bool} |= if v_1 = true then v_2 = false
 >>
-Rule 62 (maximum cached engines must be non-negative)
+Rule 46 (if use_dynamic_shape is false, dynamic_shape_profile_strategy must be an empty string)
+{v_1: bool, v_2: str} |= if v_1 = false then v_2 = ""
+>>
+Rule 47 (maximum_cached_engines has to be 1 if use_calibration is true)
+{v_1: int, v_2: bool} |= if v_2 = true then v_1 = 1
+>>
+Rule 51 (When precision mode is none, maximum_cached_engines must be 0)
+{v_1: str, v_2: int} |= if v_1 = "none" then v_2 = 0
+>>
+Rule 52 (If Dynamic Shape is true then you must use a valid profile strategy)
+{v_1: bool, v_2:str} |= if v_1 = true then (v_2 = "Range" ∨ v_2 = "Optimal" ∨ v_2 = "Range+Optimal")
+>>
+Rule 53 (Input saved model tags list must not be empty)
+{v_1: list(str)} |= v_1.len > 0
+>>
+Rule 55 (if allow_build_at_runtime and use_calibration is true then precision_mode has to be INT8)
+{v_1: bool, v_2: bool, v_3: str} |= if (v_1 = true ∧ v_2 = true) then v_3 = "INT8"
+>>
+Rule 56 (When precision mode is none, use calibration is not true)
+{v_1: str, v_2: bool} |= if v_1 = "none" then v_2 = false
+>>
+Rule 57 (if the profile strategy isn't an empty string then use_dynamic_shape has to be true)
+{v_1: str, v_2: bool} |= if v_1 ≠ "" then v_2 = true
+>>
+Rule 58 (Minimum segment size must not be negative when conversion_params is specified)
+{v_1: int, v_2: str} |= if v_2 ≠ "" then v_1 ≥ 0
+>>
+Rule 60 (The length of input saved model tags has to be at least one)
+{v_1: list(str)} |= v_1.len >= 1
+>>
+Rule 61 (if precision_mode is set to INT8, use_calibration must be set to true, and maximum_cached_engines must be set to 1)
+{v_1: str, v_2: bool, v_3: int} |= if v_1 = "INT8" then v_2 = true ∧ v_3 = 1
+>>
+Rule 62 (if allow_build_at_runtime is enabled, precision mode can not be INT8)
+{v_1: bool, v_2: str} |= if v_1 = true then v_2 ≠ "INT8"
+>>
+Rule 63 (Minimum segment size should be a valid integer)
 {v_1: int} |= v_1 ≥ 0
 >>
-Rule 63 (optimization level must be a valid integer.)
-{v_1: int} |= v_1 ≥ 0 ∧ v_1 ≤ 5
+Rule 64 (If dynamic shape is used and profile strategy is other than none)
+{v_1:bool, v_2:str} |= if v_1 = true then (v_2 = "Range" ∨ v_2 = "Optimal" ∨ v_2 = "Range+Optimal")
 >>
-Rule 64 (if use calibration, need to provide calibration input function)
-{v_1 : bool, v_2 : str} |= if v_1 then v_2 ≠ "none"
+Rule 65 (workspace size must be positive, if allow_build_at_runtime is enabled)
+{v_1: int, v_2:bool} |= if v_2 = true then v_1 > 0
 >>
-Rule 70 (precision mode can be only set to a specific value if using calibration)
-{v_1: str, v_2:bool} |= if v_2 then v_1 = "INT8" else v_1 = "FP32" ∨ v_1 = "FP16"
+Rule 66 (If allow_build_at_runtime is true, the maximum_cached_engines has to be greater than 0)
+{v_1: bool, v_2: int} |= if v_1 = true then v_2 > 0
 >>
-Rule 71 (if use calibration, the mode has to be valid)
-{v_1: bool, v_2: str} |= if v_1 then v_2 = "MIN_MAX" ∨ v_2 = "CALIBRATED"
+Rule 67 (If input_saved_model_signature_key is not none, then precision_mode cannot be none)
+{v_1: str, v_2: str} |= if v_1 ≠ "none" then v_2 ≠ "none"
 >>
-Rule 82 (profile strategy needs to be a valid value.)
-{v_1: str} |= v_1 = "Range" ∨ v_1 = "Optimal" ∨ v_1 = "Range+Optimal" ∨ v_1 = "None"
+Rule 69 (The dynamic_shape_profile_strategy must have values in given list or be an empty string)
+{v_1:str} |= v_1 = "Range" ∨ v_1 = "Optimal" ∨ v_1 = "Range+Optimal" ∨ v_1 = ""
 >>
-Rule 85 (conversion params must have a precision mode set)
-{v_1: str} |= v_1 = "FP32" ∨ v_1 = "FP16" ∨ v_1 = "INT8"
+Rule 71 (Precision mode can not be INT8, if allow_build_at_runtime is enabled)
+{v_1:str, v_2:bool} |= if v_2 = true then v_1 ≠ "INT8"
 >>
-Rule 86 (If use dynamic shape, then profile_strategy must be specified)
-{v_1: bool, v_2:str} |= if v_1 then v_2 = "Range" ∨ v_2 = "Optimal" ∨ v_2 = "Range+Optimal"
+Rule 72 (Maximum Cached Engines should be 0 if precision_mode is none)
+{v_1: int, v_2: str} |= if v_2 = "none" then v_1 = 0
+>>
+Rule 73 (When use_dynamic_shape is false, profile strategy must be an empty string)
+{v_1: bool, v_2:str} |= if v_1 = false then v_2 = ""
+>>
+Rule 74 (If you are going to use calibration, use_calibration must be set to true)
+{v_1: bool, v_2: str} |= if v_2 = "INT8" then v_1 = true
+>>
+Rule 75 (If input_saved_model_signature_key is not none, input_saved_model_tags needs to be specified )
+{v_1: str, v_2: list(str)} |= if v_1 ≠ "none" then v_2.len > 0
+>>
+Rule 76 (If using INT8 precision, maximum_cached_engines must be set to 1 and fixed)
+{v_1: str, v_2: int} |= if v_1 = "INT8" then v_2 = 1
+>>
+Rule 78 (Input Saved Model Signature Key needs to be not none if allow_build_at_runtime is enabled)
+{v_1: str, v_2: bool} |= if v_2 = true then v_1 ≠ "none"
+>>
+Rule 79 (The minimum segment size depends on precision mode)
+{v_1: int, v_2 : str} |= if v_2 ≠ "none" then v_1 ≥ 0
+>>
+Rule 83 (Max_workspace_size_bytes needs to be larger than minimum_segment_size)
+{v_1: int, v_2:int} |= v_1 > v_2
+>>
+Rule 85 (If conversion params is an empty string, minimum segment size must be non negative.)
+{v_1: str, v_2: int} |= if v_1 = "" then v_2 ≥ 0
+>>
+Rule 86 (If dynamic shape is enabled, then the precision cannot be INT8.)
+{v_1: bool, v_2:str} |= if v_1 = true then v_2 ≠ "INT8"
+>>
+Rule 88 (If allow_build_at_runtime is true, then the input saved model must have signature key)
+{v_1: bool, v_2: str} |= if v_1 = true then v_2 ≠ "none"
+>>
+Rule 89 (maximum_cached_engines needs to be greater than 0 if precision is specified)
+{v_1: int, v_2: str} |= if v_2 = "FP32" ∨ v_2 = "FP16" ∨ v_2 = "INT8" then v_1 > 0
+>>
+Rule 93 (The Maximum Cached Engines should be one if precision_mode is INT8)
+{v_1: int, v_2: str} |= if v_2 = "INT8" then v_1 = 1
+>>
+Rule 98 (Allow_build_at_runtime must be false if precision_mode is INT8.)
+{v_1: bool, v_2:str} |= if v_2 = "INT8" then v_1 = false
+>>
+Rule 101 (if precision_mode is specified then Maximum Cached Engines must be positive.)
+{v_1: str, v_2: int} |= if (v_1 = "FP32" ∨ v_1 = "FP16" ∨ v_1 = "INT8") then v_2 > 0
+>>
+Rule 103 (When the precision mode is specified, and use_calibration is not enabled, max_cached_engines has to be greater than 0)
+{v_1: str, v_2: bool, v_3: int} |= if v_1 ≠ "none" ∧ v_2 = false then v_3 > 0
+>>
+Rule 104 (If allow_build_at_runtime is enabled precision_mode must be None or FP32 or FP16)
+{v_1:bool, v_2:str} |= if v_1 = true then (v_2 = "none" ∨ v_2 = "FP32" ∨ v_2 = "FP16")
+>>
+Rule 105 (If the input directory is empty, the input saved model tags list does not matter.)
+{v_1: str, v_2: list(str)} |= if v_1 = "" then true else v_2.len >= 0
+>>
+Rule 107 (If precision_mode is not none the maximum_cached_engines needs to be greater than or equal to zero.)
+{v_1: str, v_2: int} |= if v_1 ≠ "none" then v_2 ≥ 0
+>>
+Rule 108 (If allow_build_at_runtime is enabled then minimum_segment_size does not matter)
+{v_1: bool, v_2: int} |= if v_1 = true then v_2 ≥ 0
+>>
+Rule 109 (Use_calibration needs to be False if allow_build_at_runtime is Enabled)
+{v_1:bool, v_2:bool} |= if v_1 = true then v_2 = false
+>>
+Rule 110 (dynamic_shape_profile_strategy has to be none if use_dynamic_shape is false)
+{v_1:str, v_2: bool} |= if v_2 = false then v_1 = ""
+>>
+Rule 111 (When precision mode is set to INT8, allow_build_at_runtime should be false)
+{v_1: str, v_2: bool} |= if v_1 = "INT8" then v_2 = false
+>>
+Rule 112 (If you are using Dynamic Shape the a dynamic profile strategy has to be specified)
+{v_1: bool, v_2: str} |= if v_1 = true then v_2 ≠ ""
+>>
+Rule 113 (Maximum cached engines must be greater or equal than 0 if precision mode is not equal to None)
+{v_1:str, v_2:int} |= if v_1 ≠ "none" then v_2 >= 0
+>>
+Rule 114 (If input_saved_model_signature_key is set to a value different to none, then input_saved_model_tags can not be empty)
+{v_1:str, v_2: list(str)} |= if v_1 ≠ "none" then v_2.len > 0
+>>
+Rule 115 (Minimum Segment Size Needs to be valid, in the range between 0 and max_workspace_size_bytes)
+{v_1:int, v_2: int} |= 0 ≤ v_1 ∧ v_1 ≤ v_2
+>>
+Rule 116 (If precision mode is not none and not equal to INT8 the maximum_cached_engines Needs to be greater or equal than 0.)
+{v_1: str, v_2: int} |= if (v_1 ≠ "none" ∧ v_1 ≠ "INT8") then v_2 ≥ 0
+>>
+Rule 117 (If Dynamic Shape Is Enabled profile_strategy must have value)
+{v_1: bool, v_2:str} |= if v_1 = true then v_2 ≠ ""
+>>
+Rule 118 (if precision_mode = INT8 the use_calibration property should be automatically true)
+{v_1: str, v_2:bool} |= if v_1 = "INT8" then v_2 = true
+>>
+Rule 123 (If conversion_params has not been specified minimum_segment_size can be anything)
+{v_1: str, v_2: int} |= if v_1 = "" then true else v_2 ≥ 0
+>>
+Rule 126 (If the use_calibration parameter is set, precision_mode parameter should have "INT8" value)
+{v_1:bool, v_2:str} |= if v_1 = true then v_2 = "INT8"
+>>
+Rule 128 (if max_workspace_size_bytes is not zero, allow_build_at_runtime cannot be set to True)
+{v_1: int, v_2:bool} |= if v_1 ≠ 0 then v_2 = false
+>>
+Rule 130 (Maximum Cached Engines needs to be 1 when using INT8 precision)
+{v_1:str, v_2:int} |= if v_1 = "INT8" then v_2 = 1
+>>
+Rule 131 (When using INT8 the use_calibration parameter should be set to true.)
+{v_1:str, v_2: bool} |= if v_1 = "INT8" then v_2 = true
+>>
+Rule 132 (If allow_build_at_runtime is enabled the maximum_cached_engines parameter must be 0.)
+{v_1: bool, v_2: int} |= if v_1 = true then v_2 = 0
+>>
+Rule 138 (Maximum cached engines should be a value > 0 when allow_build_at_runtime = false)
+{v_1: int, v_2: bool} |= if v_2 = false then v_1 > 0
+>>
+Rule 139 (Minimum Segment Size needs to be less than or equal to max workspace size bytes)
+{v_1: int, v_2:int} |= v_1 ≤ v_2
+>>
+Rule 150 (If no conversion params have been specified to the API then any value is valid for minimum_segment_size parameter.)
+{v_1:str, v_2:int} |= if v_1 = "" then true else v_2 ≥ 0
+>>
+Rule 151 (Maximum Cached Engines has to be a positive integer only when precision mode is different to None (no precision))
+{v_1: str, v_2: int} |= if v_1 ≠ "none" then v_2 > 0

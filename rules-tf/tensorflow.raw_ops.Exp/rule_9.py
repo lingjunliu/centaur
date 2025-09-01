@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# complex tensors should have imaginary part not equal to zero (Rule 9)
+# x cannot have uint8 type (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 9, True, False)) if n else
-          If(v["arg1_dtype"] == 9, True, False))
+    s.add(Not(v["arg1_dtype"] != 5) if n else
+          v["arg1_dtype"] != 5)
 )
 
 def rule_9_func(arg1, solver=None, neg=False):

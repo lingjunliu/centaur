@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The number of elements in shape must be same as the number of distributions specified in alpha (Rule 98)
+# To ensure seed values create unique numbers for different values they cannot both be equal. (Rule 98)
 
 rule_98 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)) if n else
-          Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0))
+    s.add(Not(v["arg1_value"] != v["arg2_value"]) if n else
+          v["arg1_value"] != v["arg2_value"])
 )
 
 def rule_98_func(arg1, arg2, solver=None, neg=False):
@@ -18,26 +18,24 @@ def rule_98_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg1_value = Int('arg1_value')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg1_value == int(arg1))
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 98
-        rule_98(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape})
+        rule_98(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_98(solver, {'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape']}, neg)
+        rule_98(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

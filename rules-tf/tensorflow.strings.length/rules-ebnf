@@ -1,156 +1,21 @@
 >>
-Rule 1 (input tensor should be of type string)
-{v_1 : tensor} |= dtype_(v_1) = 11
+Rule 2 (input tensor should be a string tensor)
+{v_1 : tensor} |= dtype_(v_1) = "str"
 >>
-Rule 2 (unit should be either "BYTE" or "UTF8_CHAR")
-{v_2 : str} |= v_2 = "BYTE" ∨ v_2 = "UTF8_CHAR"
->>
-Rule 3 (input tensor should have a positive number of elements)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 4 (input tensor's rank should be at least 1)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
->>
-Rule 5 (If input tensor is a scalar, it must be a valid string)
-{v_1 : tensor} |= if ndim(v_1) = 0 then dtype_(v_1) = 11
->>
-Rule 6 (unit should not be empty string)
-{v_2 : str} |= v_2 ≠ ""
->>
-Rule 7 (If the input tensor is empty, then the unit does not matter)
-{v_1 : tensor, v_2 : str} |= if ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then true else v_2 = "BYTE" ∨ v_2 = "UTF8_CHAR"
->>
-Rule 8 (The shape of the input tensor should be within a reasonable limit)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000
->>
-Rule 9 (input tensor must have at least one element if unit is UTF8_CHAR)
-{v_1 : tensor, v_2 : str} |= if v_2 = "UTF8_CHAR" then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 10 (input cannot be an empty tensor if unit is UTF8_CHAR)
-{v_1: tensor, v_2: str} |= if v_2 = "UTF8_CHAR" then ndim(v_1) > 0
->>
-Rule 12 (The length of the input string should be less than a maximum value)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≤ 256
->>
-Rule 13 (If input is a scalar, the unit must be specified)
-{v_1 : tensor, v_2 : str} |= if ndim(v_1) = 0 then v_2 = "BYTE" ∨ v_2 = "UTF8_CHAR"
->>
-Rule 16 (If the input tensor is a scalar string, then the length is at least 0)
-{v_1 : tensor} |= if ndim(v_1) = 0 then min(v_1) ≥ 0
->>
-Rule 17 (If the unit is UTF8_CHAR, each string must be valid unicode and less than 4 bytes)
-{v_1 : tensor, v_2 : str} |= if v_2 = "UTF8_CHAR" then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≤ 4
->>
-Rule 18 (The unit must be either BYTE or UTF8_CHAR)
+Rule 3 (unit should be "BYTE" or "UTF8_CHAR")
 {v_1 : str} |= v_1 = "BYTE" ∨ v_1 = "UTF8_CHAR"
 >>
-Rule 19 (If the string is very large, then unit should be byte)
-{v_1 : tensor, v_2 : str} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1024 then v_2 = "BYTE"
+Rule 6 (check if tensor is not a bool tensor to prevent ValueError)
+{v_1 : tensor} |= dtype_(v_1) ≠ "bool"
 >>
-Rule 20 (The number of dimensions in the input should not be too large)
-{v_1 : tensor} |= ndim(v_1) ≤ 5
+Rule 7 (input tensor must be a string tensor and not boolean)
+{v_1 : tensor} |= dtype_(v_1) = "str" ∧ dtype_(v_1) ≠ "bool"
 >>
-Rule 22 (The product of the dimensions of the input tensor should be less than a limit)
-{v_1 : tensor} |= if ndim(v_1) = 0 then true else if ndim(v_1) = 1 then shape(v_1, 0) < 10000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 10000
+Rule 16 (Combined check for input type and unit value)
+{v_1 : tensor, v_2 : str} |= dtype_(v_1) = "str" ∧ dtype_(v_1) ≠ "bool" ∧ (v_2 = "BYTE" ∨ v_2 = "UTF8_CHAR")
 >>
-Rule 24 (The string cannot be too long to prevent overflow)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) < 2147483647
+Rule 17 (Combined check for input type and unit value)
+{v_1 : tensor, v_2 : str} |= dtype_(v_1) = "str" ∧ (v_2 = "BYTE" ∨ v_2 = "UTF8_CHAR")
 >>
-Rule 25 (If the tensor has dimensions with size 0, then unit does not matter)
-{v_1 : tensor, v_2 : str} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then true else v_2 = "BYTE" ∨ v_2 = "UTF8_CHAR"
->>
-Rule 26 (If the unit is UTF8_CHAR, the string's bytesize cannot be too large to be representable in int32)
-{v_1 : tensor, v_2 : str} |= if v_2 = "UTF8_CHAR" then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) * 4 < 2147483647
->>
-Rule 29 (For scalar, when the unit is UTF8, string should be max 4 bytes)
-{v_1: tensor, v_2: str} |= if ndim(v_1) = 0 ∧ v_2 = "UTF8_CHAR" then shape(v_1) <= 4
->>
-Rule 31 (If tensor is passed, then unit is specified)
-{v_1 : tensor, v_2 : str} |= if ndim(v_1) > 0 then v_2 = "BYTE" ∨ v_2 = "UTF8_CHAR"
->>
-Rule 32 (If the string has unicode chars, unit should be utf-8)
-{v_1: tensor, v_2: str} |= if ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 1 then if v_2 = "BYTE" then false
->>
-Rule 33 (If the unit is bytes, the length is between 0 and 2**31 -1)
-{v_1: tensor, v_2: str} |= if v_2 = "BYTE" then ∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) >= 0 ∧ shape(v_1, i) < 2147483647
->>
-Rule 35 (If tensor dimension size is 1, unit must be specified.)
-{v_1 : tensor, v_2: str} |= if ndim(v_1) = 1 then v_2="BYTE" ∨ v_2 = "UTF8_CHAR"
->>
-Rule 36 (if a scalar string, then length is greater than -1)
-{v_1: tensor} |= if ndim(v_1) = 0 then min(v_1) > -1
->>
-Rule 37 (the dimension must not be dynamically shaped)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ -1
->>
-Rule 38 (Tensor must be string dtype.)
-{v_1: tensor} |= dtype_(v_1) = 11
->>
-Rule 39 (If string has non-ascii chars, UTF8 unit is recommended)
-{v_1: tensor, v_2: str} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1 then if v_2 = "BYTE" then false
->>
-Rule 40 (Shape should be representable in int32)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 2147483647
->>
-Rule 43 (the input string must not be None)
-{v_1: tensor} |= v_1 ≠ "none"
->>
-Rule 44 (Unit cannot be a number.)
-{v_1: str} |= v_1 ≠ 0 ∧ v_1 ≠ 1 ∧ v_1 ≠ 2
->>
-Rule 45 (The input dimension cannot be negative)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > -1
->>
-Rule 46 (The string unit can only be BYTE or UTF8_CHAR)
-{v_1: str} |= v_1 = "BYTE" ∨ v_1 = "UTF8_CHAR"
->>
-Rule 48 (If empty tensor is used, ignore unit setting.)
-{v_1: tensor} |= if ndim(v_1) = 0 then true
->>
-Rule 49 (The shape must not exceed max int)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≤ 2147483647
->>
-Rule 50 (The string must be a valid tensor)
-{v_1: tensor} |= ndim(v_1) >=0
->>
-Rule 52 (Unit must be specified when input is a tensor with shape dimensions defined)
-{v_1: tensor, v_2: str} |= if ndim(v_1) > 0 ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then v_2 = "BYTE" ∨ v_2 = "UTF8_CHAR"
->>
-Rule 53 (Cannot compute the length of a DT_STRING_REF dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 12
->>
-Rule 55 (If there are zero dimensions, unit is disregarded)
-{v_1: tensor, v_2: str} |= if ndim(v_1) = 0 then true else v_2 = "BYTE" ∨ v_2 = "UTF8_CHAR"
->>
-Rule 56 (The unit should not be any of the keywords)
-{v_1: str} |= v_1 ≠ "ii" ∧ v_1 ≠ "ii->i" ∧ v_1 ≠ "i,j->ij" ∧ v_1 ≠ "bij,bjk->bik" ∧ v_1 ≠ "...ij->...ji" ∧ v_1 ≠ "bn,anm,bm->ba" ∧ v_1 ≠ "none" ∧ v_1 ≠ "mean" ∧ v_1 ≠ "sum" ∧ v_1 ≠ "max" ∧ v_1 ≠ "min" ∧ v_1 ≠ "prod" ∧ v_1 ≠ "relu" ∧ v_1 ≠ "tanh" ∧ v_1 ≠ "sigmoid" ∧ v_1 ≠ "softmax" ∧ v_1 ≠ "elu" ∧ v_1 ≠ "selu" ∧ v_1 ≠ "gelu" ∧ v_1 ≠ "swish" ∧ v_1 ≠ "constant" ∧ v_1 ≠ "linear" ∧ v_1 ≠ "softplus"
->>
-Rule 58 (If there is 1 dimension, then unit must be defined)
-{v_1: tensor, v_2: str} |= if ndim(v_1) = 1 then v_2 = "BYTE" ∨ v_2 = "UTF8_CHAR"
->>
-Rule 59 (The shape should be int32 or less)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483647
->>
-Rule 60 (The dimension should be zero or higher)
-{v_1: tensor} |= ndim(v_1) >= 0
->>
-Rule 61 (The input tensor rank must be less than or equal to 6)
-{v_1 : tensor} |= ndim(v_1) ≤ 6
->>
-Rule 63 (if tensor is scalar, then string length is less than 1000)
-{v_1: tensor} |= if ndim(v_1) = 0 then shape(v_1) < 1000
->>
-Rule 67 (Tensor with rank 0 must have specified unit)
-{v_1: tensor, v_2: str} |= if ndim(v_1) = 0 then v_2 = "BYTE" ∨ v_2 = "UTF8_CHAR"
->>
-Rule 69 (String tensors must contain all positive or zero length strings)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) >= 0
->>
-Rule 70 (Valid UTF8 needs unit to be defined as UTF8_CHAR)
-{v_1: tensor, v_2: str} |= if ∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 1 then if v_2 = "UTF8_CHAR" then true
->>
-Rule 71 (Unit is required when there is one or more dimensions)
-{v_1: tensor, v_2: str} |= if ndim(v_1) >= 1 then v_2 = "BYTE" ∨ v_2 = "UTF8_CHAR"
->>
-Rule 75 (Zero dimensions must be accounted for)
-{v_1 : tensor} |= ndim(v_1) >= 0
+Rule 19 (Check for valid input tensor and unit)
+{v_1 : tensor, v_2 : str} |= (dtype_(v_1) = "str") ∧ (v_2 = "BYTE" ∨ v_2 = "UTF8_CHAR")

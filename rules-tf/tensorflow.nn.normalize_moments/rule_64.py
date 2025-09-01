@@ -5,16 +5,17 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If shift is a tensor, then max(shift (Rule 64)
+# The dtypes has a registration by reciprocal (Rule 64)
 
 rule_64 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 0, Select(v["arg1_range"], 1) <= Select(v["arg2_range"], 1), False)) if n else
-          If(v["arg1_ndim"] > 0, Select(v["arg1_range"], 1) <= Select(v["arg2_range"], 1), False))
+    s.add(Not(And(And((Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 3), v["arg1_dtype"] == 2)), (Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 3), v["arg2_dtype"] == 2))), (Or(Or(Or(v["arg3_dtype"] == 7, v["arg3_dtype"] == 8), v["arg3_dtype"] == 3), v["arg3_dtype"] == 2)))) if n else
+          And(And((Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 3), v["arg1_dtype"] == 2)), (Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 3), v["arg2_dtype"] == 2))), (Or(Or(Or(v["arg3_dtype"] == 7, v["arg3_dtype"] == 8), v["arg3_dtype"] == 3), v["arg3_dtype"] == 2))))
 )
 
-def rule_64_func(arg1, arg2, solver=None, neg=False):
+def rule_64_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
@@ -22,24 +23,24 @@ def rule_64_func(arg1, arg2, solver=None, neg=False):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
+        if not isinstance(arg3, np.ndarray):
+            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
+        arg2_dtype = Int('arg2_dtype')
+        arg3_dtype = Int('arg3_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
 
         # Constraints for rule 64
-        rule_64(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg2_range': arg2_range})
+        rule_64(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_64(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg2_range': arg2['range']}, neg)
+        rule_64(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype']}, neg)

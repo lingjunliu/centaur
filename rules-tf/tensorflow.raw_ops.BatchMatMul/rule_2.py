@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# x and y must have ndim >= 2 (Rule 2)
+# x and y must be at least 2-dimensional (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(And(v["arg1_ndim"] >= 2, v["arg2_ndim"] >= 2)) if n else

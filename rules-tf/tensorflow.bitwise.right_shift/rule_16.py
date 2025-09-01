@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if x is uint32, y cannot be negative (Rule 16)
+# Number of dimension should be less than or equal to 8 (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 7, And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_range"], 0) >= 0) for i in range(6)]), False)) if n else
-          If(v["arg1_dtype"] == 7, And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_range"], 0) >= 0) for i in range(6)]), False))
+    s.add(Not(And(v["arg1_ndim"] <= 8, v["arg2_ndim"] <= 8)) if n else
+          And(v["arg1_ndim"] <= 8, v["arg2_ndim"] <= 8))
 )
 
 def rule_16_func(arg1, arg2, solver=None, neg=False):
@@ -25,20 +25,17 @@ def rule_16_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_ndim = Int('arg1_ndim')
         arg2_ndim = Int('arg2_ndim')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
         solver.add(arg2_ndim == arg2.ndim)
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 16
-        rule_16(solver, {'arg1_dtype': arg1_dtype, 'arg2_range': arg2_range, 'arg2_ndim': arg2_ndim})
+        rule_16(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_16(solver, {'arg1_dtype': arg1['dtype'], 'arg2_range': arg2['range'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_16(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)

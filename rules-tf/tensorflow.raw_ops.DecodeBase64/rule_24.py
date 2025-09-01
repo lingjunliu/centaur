@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The input tensor has at least one string value whose length is divisble by 4. (Rule 24)
+# If the input is 2D, the length of each string should be a multiple of 4, or a multiple of 4 + 2, or a multiple of 4 + 3. (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(Or([And(i < (If(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) - 1, 0) + 1), Select(v["arg1_shape"], i) % 4 == 0) for i in range(6)])) if n else
-          Or([And(i < (If(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) - 1, 0) + 1), Select(v["arg1_shape"], i) % 4 == 0) for i in range(6)]))
+    s.add(Not(If(v["arg1_ndim"] == 2, And([Implies(i < (Select(v["arg1_shape"], 0) - 1 + 1), Or(Or(Select(v["arg1_shape"], 1) % 4 == 0, Select(v["arg1_shape"], 1) % 4 == 2), Select(v["arg1_shape"], 1) % 4 == 3)) for i in range(6)]), True)) if n else
+          If(v["arg1_ndim"] == 2, And([Implies(i < (Select(v["arg1_shape"], 0) - 1 + 1), Or(Or(Select(v["arg1_shape"], 1) % 4 == 0, Select(v["arg1_shape"], 1) % 4 == 2), Select(v["arg1_shape"], 1) % 4 == 3)) for i in range(6)]), True))
 )
 
 def rule_24_func(arg1, solver=None, neg=False):

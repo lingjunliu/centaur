@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The input tensor must have rank of 2 or more (Rule 32)
+# tensor must be a square matrix to avoid InvalidArgumentError (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] >= 2) if n else
-          v["arg1_ndim"] >= 2)
+    s.add(Not(And(Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg1_shape"], v["arg1_ndim"] - 1), Select(v["arg1_shape"], 0) >= 0)) if n else
+          And(Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg1_shape"], v["arg1_ndim"] - 1), Select(v["arg1_shape"], 0) >= 0))
 )
 
 def rule_32_func(arg1, solver=None, neg=False):
@@ -23,14 +23,17 @@ def rule_32_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 32
-        rule_32(solver, {'arg1_ndim': arg1_ndim})
+        rule_32(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_32(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_32(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

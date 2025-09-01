@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input tensor is complex128 then the real part will be float64 (Rule 14)
+# If dtype is boolean, the API is still valid (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 11, True, False)) if n else
-          If(v["arg1_dtype"] == 11, True, False))
+    s.add(Not(If(v["arg1_dtype"] == 0, True, True)) if n else
+          If(v["arg1_dtype"] == 0, True, True))
 )
 
 def rule_14_func(arg1, solver=None, neg=False):

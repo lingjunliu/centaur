@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the maximum value of the tensor is finite, then the tensor values are valid (Rule 21)
+# The dtype of x must not be bool (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(And(Select(v["arg1_range"], 1) > -1000000000000000.0, Select(v["arg1_range"], 1) < 1000000000000000.0), True, False)) if n else
-          If(And(Select(v["arg1_range"], 1) > -1000000000000000.0, Select(v["arg1_range"], 1) < 1000000000000000.0), True, False))
+    s.add(Not(v["arg1_dtype"] != 1) if n else
+          v["arg1_dtype"] != 1)
 )
 
 def rule_21_func(arg1, solver=None, neg=False):
@@ -22,16 +22,15 @@ def rule_21_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 21
-        rule_21(solver, {'arg1_range': arg1_range})
+        rule_21(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_21(solver, {'arg1_range': arg1['range']}, neg)
+        rule_21(solver, {'arg1_dtype': arg1['dtype']}, neg)

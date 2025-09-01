@@ -5,32 +5,42 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Seed must be a 1D tensor (Rule 33)
+# If dtype is an integer type, then minval and maxval should be of integer type (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] == 1) if n else
-          v["arg1_ndim"] == 1)
+    s.add(Not(If(Or(Or(v["arg1_value"] == 3, v["arg1_value"] == 4), v["arg1_value"] == 5), And((Or(Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 4), v["arg2_dtype"] == 5)), (Or(Or(v["arg3_dtype"] == 3, v["arg3_dtype"] == 4), v["arg3_dtype"] == 5))), True)) if n else
+          If(Or(Or(v["arg1_value"] == 3, v["arg1_value"] == 4), v["arg1_value"] == 5), And((Or(Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 4), v["arg2_dtype"] == 5)), (Or(Or(v["arg3_dtype"] == 3, v["arg3_dtype"] == 4), v["arg3_dtype"] == 5))), True))
 )
 
-def rule_33_func(arg1, solver=None, neg=False):
+def rule_33_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
+            return False
+        if not isinstance(arg2, np.ndarray):
+            return False
+        if not isinstance(arg3, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_value = Int('arg1_value')
+        arg2_dtype = Int('arg2_dtype')
+        arg3_dtype = Int('arg3_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
 
         # Constraints for rule 33
-        rule_33(solver, {'arg1_ndim': arg1_ndim})
+        rule_33(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_33(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_33(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Last element of allowed batch sizes must equal max_batch_size, where max_batch_size is v_2 and allowed_batch_sizes is v_1 if list not empty (Rule 15)
+# allowed_batch_sizes is an empty list or the max_batch_size appears in it (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_length"] > 0, Select(v["arg1_values"], v["arg1_length"] - 1) == v["arg2_value"], False)) if n else
-          If(v["arg1_length"] > 0, Select(v["arg1_values"], v["arg1_length"] - 1) == v["arg2_value"], False))
+    s.add(Not(Or((v["arg1_length"] == 0), (Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) == v["arg2_value"]) for i in range(6)])))) if n else
+          Or((v["arg1_length"] == 0), (Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) == v["arg2_value"]) for i in range(6)]))))
 )
 
 def rule_15_func(arg1, arg2, solver=None, neg=False):

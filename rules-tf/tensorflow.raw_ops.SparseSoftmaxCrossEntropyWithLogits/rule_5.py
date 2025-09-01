@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The number of rows in features should be equal to the length of labels (Rule 5)
+# batch size of features and labels must match (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
     s.add(Not(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)) if n else

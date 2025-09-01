@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If ref is a quantized type then value must be too, alternative expression (Rule 39)
+# if ref is complex, value must be complex and vice versa (Rule 39)
 
 rule_39 = lambda s, v, n=False: (
-    s.add(Not(If(Or((v["arg1_dtype"] == 4), (v["arg1_dtype"] == 5)), Or((v["arg2_dtype"] == 4), (v["arg2_dtype"] == 5)), False)) if n else
-          If(Or((v["arg1_dtype"] == 4), (v["arg1_dtype"] == 5)), Or((v["arg2_dtype"] == 4), (v["arg2_dtype"] == 5)), False))
+    s.add(Not((If((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), (If((Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), (Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), True))))) if n else
+          (If((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), (If((Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), (Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), True)))))
 )
 
 def rule_39_func(arg1, arg2, solver=None, neg=False):

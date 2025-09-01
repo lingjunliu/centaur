@@ -8,8 +8,8 @@ from z3 import *
 # tensor_names must be a 1D string tensor (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] == 1, v["arg1_dtype"] == 11)) if n else
-          And(v["arg1_ndim"] == 1, v["arg1_dtype"] == 11))
+    s.add(Not(v["arg1_ndim"] == 1) if n else
+          v["arg1_ndim"] == 1)
 )
 
 def rule_2_func(arg1, solver=None, neg=False):
@@ -23,16 +23,14 @@ def rule_2_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 2
-        rule_2(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim})
+        rule_2(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_2(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_2(solver, {'arg1_ndim': arg1['ndim']}, neg)

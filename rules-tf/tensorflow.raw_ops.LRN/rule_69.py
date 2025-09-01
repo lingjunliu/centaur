@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# depth_radius must be less than or equal to half of the last dimension (Rule 69)
+# If the image depth is small, the depth radius must also be small (Rule 69)
 
 rule_69 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_value"] <= Select(v["arg1_shape"], 3) / 2) if n else
-          v["arg2_value"] <= Select(v["arg1_shape"], 3) / 2)
+    s.add(Not(If(Select(v["arg1_shape"], 3) < 10, v["arg2_value"] < 3, True)) if n else
+          If(Select(v["arg1_shape"], 3) < 10, v["arg2_value"] < 3, True))
 )
 
 def rule_69_func(arg1, arg2, solver=None, neg=False):

@@ -1,90 +1,120 @@
 >>
-Rule 1 (indices must be an integer tensor (int32 or int64))
-{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 1 (indices tensor (v_2) must be int32 or int64)
+{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
 >>
-Rule 2 (updates must have the same type as ref)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 2 (updates tensor (v_3) must have the same type as ref tensor (v_1))
+{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3)
 >>
-Rule 3 (use_locking should be a boolean value)
+Rule 3 (use_locking must be a boolean)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 7 (bad_indices_policy must be a string and has a default value)
-{v_1 : str} |= v_1 = "" ∨ v_1 = "ignore" ∨ v_1 = "error"
+Rule 4 (bad_indices_policy must be a valid string)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "min" ∨ v_1 = "max"
 >>
-Rule 8 (indices rank should be greater than or equal to 1)
+Rule 5 (indices tensor rank (ndim(v_2)) must be greater than or equal to 1)
+{v_2 : tensor} |= ndim(v_2) ≥ 1
+>>
+Rule 6 (ref tensor rank (ndim(v_1)) must be greater than or equal to 1)
 {v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 16 (rank of indices should be less than or equal to 5)
-{v_1 : tensor} |= ndim(v_1) ≤ 5
+Rule 7 (Updates tensor ndim(v_3) rank must be equal to ndim(v_2)-1 + ndim(v_1) - K, where K is the size of the last dimension of the indices (v_2) tensor)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∃ K ∈ [1, ndim(v_1)] : ndim(v_3) = ndim(v_2) - 1 + ndim(v_1) - K
 >>
-Rule 17 (K must be greater than 0 and less than or equal to rank of ref)
-{v_1 : tensor, v_2 : tensor} |= 0 < shape(v_2, ndim(v_2) - 1) ∧ shape(v_2, ndim(v_2) - 1) ≤ ndim(v_1)
->>
-Rule 18 (The number of dimensions of updates must relate to ref, indices and K.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_3) = ndim(v_2) - 1 + ndim(v_1) - shape(v_2, ndim(v_2) - 1)
->>
-Rule 34 (The second last dimension of indices must be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, ndim(v_1) - 2) > 0
->>
-Rule 39 (The dimension of last axis of indices must be less than or equal to rank of ref)
+Rule 10 (shape of the innermost dimension of indices tensor must be less or equal to rank of ref tensor)
 {v_1 : tensor, v_2 : tensor} |= shape(v_2, ndim(v_2) - 1) ≤ ndim(v_1)
 >>
-Rule 41 (indices values must be within ref bounds)
-{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ max(v_2) < shape(v_1, 0)
+Rule 18 (The number of dimensions of updates must be at least one)
+{v_1 : tensor} |= ndim(v_1) >= 1
 >>
-Rule 42 (indices values must be within ref bounds on all dimensions)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, ndim(v_2) -1) -1] : min(v_2) ≥ 0 ∧ max(v_2) < shape(v_1, i)
+Rule 21 (K must be less or equal to the ndim of ref)
+{v_1 : tensor, v_2 : tensor} |= shape(v_2, ndim(v_2) - 1) <= ndim(v_1)
 >>
-Rule 43 (updates shape must match ref shape from K onwards, given indices shape.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, ndim(v_1) - shape(v_2, ndim(v_2) - 1) -1]: shape(v_3, ndim(v_2)-1+i) = shape(v_1, shape(v_2, ndim(v_2) - 1)+i)
+Rule 22 (indices tensor must be 2D if ref tensor is 1D)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then ndim(v_2) = 2
 >>
-Rule 44 (updates shape must match indices shape apart from last dimension.)
-{v_1 : tensor, v_2 : tensor} |=  ∀i ∈ [0, ndim(v_2) - 1]: shape(v_2, i) = shape(v_1, i)
+Rule 23 (If bad_indices_policy is "sum", updates and ref must have the same shape from K to P-1)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "sum" then ∃K ∈ [1, ndim(v_1)] : ∀i ∈ [K, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i - (ndim(v_2) -1 - K))
 >>
-Rule 45 (updates and ref tensor should have same dtype)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 26 (If bad_indices_policy is "sum", updates and ref must have the same shape from K to P-1, where K is the size of the last dimension of indices)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : str} |= if v_4 = "sum" then ∃ K ∈ [1, ndim(v_1)] : (shape(v_2, ndim(v_2) -1) = K) ∧ (∀i ∈ [K, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i - K +1))
 >>
-Rule 49 (updates shape must match ref shape from K onwards, given indices shape.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, ndim(v_1) - shape(v_2, ndim(v_2) - 1)]: shape(v_3, ndim(v_2)-1+i) = shape(v_1, shape(v_2, ndim(v_2) - 1)+i)
+Rule 29 (If bad_indices_policy is "sum", updates and ref must have compatible shapes based on K)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : str} |= if v_4 = "sum" then ∃ K ∈ [1, ndim(v_1)] : (shape(v_2, ndim(v_2) -1) = K) ∧ (∀i ∈ [0, ndim(v_1) - K] : shape(v_1, ndim(v_1) -1 -i) = shape(v_3, ndim(v_3) - 1 - i ))
 >>
-Rule 51 (indices values must be within ref bounds on all dimensions)
-{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1]:  min(v_2) ≥ 0 ∧ max(v_2) < shape(v_1, i)
+Rule 33 (If bad_indices_policy is "sum", updates and ref must have compatible shapes based on K, and K must be valid based on rank of indices and ref)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : str} |= if v_4 = "sum" then (∃ K ∈ [1, ndim(v_1)] : (shape(v_2, ndim(v_2) -1) = K) ∧ (∀i ∈ [0, ndim(v_1) - K] : shape(v_1, ndim(v_1) -1 -i) = shape(v_3, ndim(v_3) - 1 - i )))
 >>
-Rule 57 (updates shape must match indices shape apart from last dimension.)
-{v_2 : tensor, v_3 : tensor} |=  ∀i ∈ [0, ndim(v_2) - 1]: if i < ndim(v_2) -1 then shape(v_2, i) = shape(v_3, i)
+Rule 35 (shape of the innermost dimension of indices must be greater than 0)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0
 >>
-Rule 63 (updates rank should be positive)
-{v_1: tensor} |= ndim(v_1) > 0
+Rule 36 (If bad_indices_policy is "sum", updates and ref must have compatible shapes based on K, and K must be valid based on rank of indices and ref, and updates rank is correct)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : str} |= if v_4 = "sum" then (∃ K ∈ [1, ndim(v_1)] : (shape(v_2, ndim(v_2) -1) = K) ∧ (∀i ∈ [0, ndim(v_1) - K] : shape(v_1, ndim(v_1) -1 -i) = shape(v_3, ndim(v_3) - 1 - i )) ∧ (ndim(v_3) = ndim(v_2) - 1 + ndim(v_1) - K))
 >>
-Rule 71 (indices must have at least one dimension)
-{v_1: tensor} |= ndim(v_1) >= 1
+Rule 40 (Updates and ref must have compatible shapes when bad_indices_policy is used )
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : str} |= if v_4 ≠ "none" then (∃ K ∈ [1, ndim(v_1)] : (shape(v_2, ndim(v_2) -1) = K) ∧ (∀i ∈ [0, ndim(v_1) - K] : shape(v_1, ndim(v_1) -1 -i) = shape(v_3, ndim(v_3) - 1 - i )))
 >>
-Rule 79 (K must be less than or equal to P)
-{v_1: tensor, v_2: tensor} |= shape(v_2, ndim(v_2) - 1) <= ndim(v_1)
+Rule 41 (Indices must have rank >= 1)
+{v_1 : tensor} |= ndim(v_1) >=1
 >>
-Rule 80 (updates shape must match ref shape from K onwards, given indices shape.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, ndim(v_1) - shape(v_2, ndim(v_2) - 1) - 1]: shape(v_3, ndim(v_2)-1+i) = shape(v_1, shape(v_2, ndim(v_2) - 1)+i)
+Rule 44 (All tensors must have rank >= 1)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) >= 1 ∧ ndim(v_2) >= 1 ∧ ndim(v_3) >= 1
 >>
-Rule 81 (updates shape must match indices shape apart from last dimension.)
-{v_2 : tensor, v_3 : tensor} |=  ∀i ∈ [0, ndim(v_2) - 1]: if i < ndim(v_2) - 1 then shape(v_2, i) = shape(v_3, i)
+Rule 46 (If bad_indices_policy is "sum", updates and ref must have compatible shapes, and K must be a valid dimension, indices must be int type, and updates rank must match expectation)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : str} |= if v_4 = "sum" then (∃ K ∈ [1, ndim(v_1)] : (shape(v_2, ndim(v_2) -1) = K) ∧ (∀i ∈ [0, ndim(v_1) - K] : shape(v_1, ndim(v_1) -1 -i) = shape(v_3, ndim(v_3) - 1 - i )) ∧ (ndim(v_3) = ndim(v_2) - 1 + ndim(v_1) - K) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4))
 >>
-Rule 94 (indices value must be non negative )
-{v_1 : tensor} |= min(v_1) >= 0
+Rule 48 (Indices and updates must have compatible leading dimensions, up to Q-2)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 2] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 102 (indices value must be non negative )
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 49 (If bad_indices_policy is "sum", updates and ref must have compatible shapes (from K onwards))
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : str} |= if v_4 = "sum" then (∃ K ∈ [1, ndim(v_1)] : (shape(v_2, ndim(v_2) -1) = K) ∧ (∀i ∈ [K, ndim(v_1) -1] : shape(v_1, i) = shape(v_3, i - K + (ndim(v_2)-ndim(v_3)))))
 >>
-Rule 111 (K must be greater than zero)
-{v_1: tensor} |= shape(v_1, ndim(v_1) - 1) > 0
+Rule 50 (If bad_indices_policy is "sum", updates and ref must have compatible shapes in trailing dimensions)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : str} |= if v_4 = "sum" then (∃ K ∈ [1, ndim(v_1)] : (shape(v_2, ndim(v_2) -1) = K) ∧ (∀i ∈ [K, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i - K + (ndim(v_3) - (ndim(v_1)-K) ) )))
 >>
-Rule 119 (indices must have dimension greater than zero)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 51 (Indices must be int32 or int64)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
 >>
-Rule 126 (indices value must be non negative and within the shape of ref)
-{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, shape(v_2, ndim(v_2) - 1) - 1]: max(v_2) < shape(v_1, i)
+Rule 54 (updates dtype must match ref dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 127 (ref tensor should have dimension greater than K)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) >= shape(v_2, ndim(v_2) - 1)
+Rule 55 (If bad_indices_policy is "sum", updates and ref must have compatible shapes in trailing dimensions and ndim)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : str} |= if v_4 = "sum" then (∃ K ∈ [1, ndim(v_1)] : (shape(v_2, ndim(v_2) -1) = K) ∧ (∀i ∈ [K, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i - K + (ndim(v_3) - (ndim(v_1)-K) ))))
 >>
-Rule 135 (max index value must be within the bounds of ref tensor)
-{v_1 : tensor, v_2 : tensor} |= max(v_2) < shape(v_1, 0)
+Rule 56 (The innermost dimension of indices tensor must be in range [1, ndim(ref)])
+{v_1 : tensor, v_2 : tensor} |= 1 ≤ shape(v_2, ndim(v_2) - 1) ∧ shape(v_2, ndim(v_2) - 1) ≤ ndim(v_1)
+>>
+Rule 59 (If bad_indices_policy is "sum", updates and ref must have compatible shapes with correct dimensions)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : str} |= if v_4 = "sum" then (∃ K ∈ [1, ndim(v_1)] : (shape(v_2, ndim(v_2) -1) = K) ∧ (∀i ∈ [K, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i - K + (ndim(v_3) - (ndim(v_1)-K) )) ∧ ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0))
+>>
+Rule 65 (If bad_indices_policy is "sum", updates and ref must have compatible shapes in trailing dimensions given K value)
+{v_1 : tensor, v_2 : tensor, v_3 : str, v_4 : tensor} |= if v_3 = "sum" then (∃ K ∈ [1, ndim(v_1)] : shape(v_2, ndim(v_2) -1) = K ∧ (∀i ∈ [K, ndim(v_1) - 1] : shape(v_1, i) = shape(v_4, i - K + (ndim(v_4) - (ndim(v_1)-K)))))
+>>
+Rule 68 (The updates tensor has compatible shape with the ref tensor given K and Q)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |=  ∃ K ∈ [1, ndim(v_1)] : (ndim(v_3) = ndim(v_2) - 1 + ndim(v_1) - K)
+>>
+Rule 69 (If bad_indices_policy is "sum", update and ref must have compatible shapes in trailing dimensions)
+{v_1 : tensor, v_2 : tensor, v_3 : str, v_4 : tensor} |= if v_3 = "sum" then (∃ K ∈ [1, ndim(v_1)] : (shape(v_2, ndim(v_2) -1) = K) ∧ (∀i ∈ [K, ndim(v_1) - 1] : shape(v_1, i) = shape(v_4, i - K + (ndim(v_4) - (ndim(v_1)-K)))))
+>>
+Rule 71 (The updates tensor must have shape as expected given ref and indices tensors)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |=  ∃ K ∈ [1, ndim(v_1)] : (ndim(v_3) = ndim(v_2) - 1 + ndim(v_1) - K) ∧ (1 <= ndim(v_1) ) ∧ (1 <= ndim(v_2) ) ∧ (1 <= ndim(v_3) )
+>>
+Rule 72 (If bad_indices_policy is specified then there must be compatible shapes between ref, indices and updates based on dimension)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : str} |= if v_4 ≠ "none" then (∃ K ∈ [1, ndim(v_1)] : (shape(v_2, ndim(v_2) -1) = K) ∧ (∀i ∈ [K, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i - K + (ndim(v_3) - (ndim(v_1)-K)))))
+>>
+Rule 73 (Indices tensor's last dimension K value must be less than or equal to the ref tensor's rank P)
+{v_1 : tensor, v_2 : tensor} |= shape(v_2, ndim(v_2)-1) <= ndim(v_1)
+>>
+Rule 75 (Updates must have the right shape, based on ref, indices, and K)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∃ K ∈ [1, ndim(v_1)] : (ndim(v_3) = ndim(v_2) - 1 + ndim(v_1) - K)
+>>
+Rule 76 (If bad_indices_policy is not none, shape compatibility of trailing dimensions is enforced given dimension of K)
+{v_1 : tensor, v_2 : tensor, v_3 : str, v_4 : tensor} |= if v_3 ≠ "none" then (∃ K ∈ [1, ndim(v_1)] : (shape(v_2, ndim(v_2) -1) = K) ∧ (∀i ∈ [K, ndim(v_1) - 1] : shape(v_1, i) = shape(v_4, i - K + (ndim(v_4) - (ndim(v_1)-K)))))
+>>
+Rule 80 (Indices tensor K dimension range check)
+{v_1 : tensor, v_2 : tensor} |= 1 ≤ shape(v_2, ndim(v_2)-1) ∧ shape(v_2, ndim(v_2)-1) ≤ ndim(v_1)
+>>
+Rule 81 (When bad indices policy is on, the updates and ref tensors' shapes are compatible)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4: str} |= if v_4 ≠ "none" then (∃ K ∈ [1, ndim(v_1)] : shape(v_2, ndim(v_2)-1) = K ∧ (∀i ∈ [K, ndim(v_1)-1] : shape(v_1, i) = shape(v_3, i - K + (ndim(v_3) - (ndim(v_1)-K)))))
+>>
+Rule 90 (If bad indices policy isn't none, the shape from K+1 to end of ref must match updates.)
+{v_1 : tensor, v_2 : tensor, v_3 : str, v_4 : tensor} |= if v_3 ≠ "none" then (∃ K ∈ [1, ndim(v_1)] : (shape(v_2, ndim(v_2) -1) = K) ∧ (∀i ∈ [0, ndim(v_1) - K - 1] : shape(v_1, ndim(v_1) - 1 - i) = shape(v_4, ndim(v_4) - 1 - i)))

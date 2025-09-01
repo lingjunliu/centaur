@@ -1,36 +1,75 @@
 >>
-Rule 4 (Validating the directory path is not empty)
+Rule 1 (export_dir should not be an empty string)
 {v_1 : str} |= v_1 ≠ ""
 >>
-Rule 9 (export_dir length should be greater than 0)
-{v_1 : str} |= v_1.len > 0
+Rule 2 (tags must be a non-empty list if provided)
+{v_1 : list(str)} |= v_1.len > 0
 >>
-Rule 16 (tags is a tuple and its length is greater than zero)
-{v_1 : tuple(str)} |= v_1.len > 0
+Rule 4 (If tags is a list of strings, all strings must be non-empty.)
+{v_1 : list(str)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ ""
 >>
-Rule 17 (tag is a string and it isn't "none")
-{v_1 : str} |= v_1 ≠ "none"
->>
-Rule 19 (if tags is a tuple, all its elements should be strings)
-{v_1 : tuple(str)} |= ∀i ∈ [0, v_1.len - 1] : true
->>
-Rule 30 (The number of tags should be reasonable.)
-{v_1 : tuple(str)} |= v_1.len < 100
->>
-Rule 46 (If the tags parameter is a tuple, it must be a tuple of strings, all of which must be non-empty)
-{v_1 : tuple(str)} |= v_1.len > 0 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ ""
->>
-Rule 48 (export_dir should have an acceptable length)
+Rule 5 (export_dir length should be less than 256)
 {v_1 : str} |= v_1.len < 256
 >>
-Rule 58 (The number of tags has to be less than a limit)
-{v_1 : tuple(str)} |= v_1.len < 200
+Rule 7 (export_dir should not contain any special characters)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = "_" ∨ v_1[i] = "/" ∨ v_1[i] = "."
 >>
-Rule 71 (The number of tags should be limited)
-{v_1 : tuple(str)} |= v_1.len < 150
+Rule 10 (options should only contain allowed characters)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = "_"
 >>
-Rule 77 (Enforce length limitations on export_dir strings to be less than a reasonable maximum)
-{v_1 : str} |= v_1.len < 200
+Rule 11 (string should not be only spaces)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] ≠ " "
 >>
-Rule 83 (Export Dir string should be less than 255 characters)
-{v_1 : str} |= v_1.len < 255
+Rule 13 (export_dir should be a valid path)
+{v_1 : str} |= v_1.len > 0
+>>
+Rule 14 (tags list should not contain duplicate entries)
+{v_1 : list(str)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i+1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+>>
+Rule 15 (options should be selected from a predefined set of strings)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "causal"
+>>
+Rule 16 (if tags is an empty list then options must be none)
+{v_1 : list(str), v_2 : str} |= if v_1.len = 0 then v_2 = "none"
+>>
+Rule 18 (options string must only contain alpha numeric or underscores)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = "_"
+>>
+Rule 19 (if export_dir contains "latest" then tags should be none)
+{v_1 : str, v_2: list(str)} |= if (∃i ∈ [0, v_1.len - 1] : v_1[i] = "latest") then v_2.len = 0
+>>
+Rule 27 (export_dir should be a valid path with a saved_model.pb file)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] = "saved_model.pb"
+>>
+Rule 28 (If tags are provided, all tags must be selected from a predefined set of strings (example))
+{v_1: list(str)} |= (v_1.len = 0) ∨ (∀i ∈ [0, v_1.len - 1] : v_1[i] = "serve" ∨ v_1[i] = "gpu" ∨ v_1[i] = "tpu")
+>>
+Rule 29 (If export_dir is a relative path, it should resolve to an absolute path)
+{v_1: str} |= if v_1[0] = "/" then true else (∃i ∈ [0, v_1.len - 1]: v_1[i] ≠ ".")
+>>
+Rule 30 (Tags should contain "serve" if not targeting a specific hardware)
+{v_1: list(str)} |= if v_1.len > 0 then (∃i ∈ [0, v_1.len - 1] : v_1[i] = "serve")
+>>
+Rule 31 (Options string, if provided, should be shorter than 64 characters.)
+{v_1 : str} |= v_1.len < 64
+>>
+Rule 35 (The export_dir must not be None or Null)
+{v_1 : str} |= v_1 ≠ "None" ∧ v_1 ≠ "Null"
+>>
+Rule 36 (export_dir should not be None or an empty string)
+{v_1 : str} |= v_1 ≠ "None" ∧ v_1 ≠ ""
+>>
+Rule 37 (If tags are provided as a list, the list should not be too long, limit to 10)
+{v_1: list(str)} |= v_1.len ≤ 10
+>>
+Rule 38 (If options is not None, and contains authentication related fields, then export_dir must be a URL)
+{v_1: str, v_2: str} |= if (∃i ∈ [0, v_1.len - 1]: v_1[i] = "username") ∨ (∃i ∈ [0, v_1.len - 1]: v_1[i] = "password") then (∃j ∈ [0, v_2.len - 1]: v_2[j] = ":")
+>>
+Rule 39 (The export_dir should end with "/" if it is a directory)
+{v_1: str} |= if (∃i ∈ [0, v_1.len - 1]: v_1[i] = ".") then true else v_1[v_1.len-1] = "/"
+>>
+Rule 53 (options string must be lowercase)
+{v_1: str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ "a" ∧ v_1[i] ≤ "z"
+>>
+Rule 120 (If options is not None, and contains authentication related fields, then export_dir must be a URL with appropriate protocol)
+{v_1: str, v_2: str} |= if (∃i ∈ [0, v_1.len - 1]: v_1[i] = "username") ∨ (∃i ∈ [0, v_1.len - 1]: v_1[i] = "password") then (∃j ∈ [0, v_2.len - 1]: v_2[j] = ":") ∧ (v_2[0] = "h" ∧ v_2[1] = "t" ∧ v_2[2] = "t" ∧ v_2[3] = "p")

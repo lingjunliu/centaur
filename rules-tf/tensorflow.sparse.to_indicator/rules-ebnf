@@ -1,132 +1,81 @@
 >>
-Rule 1 (sp_input values should be int32 or int64)
+Rule 2 (vocab_size must be greater than 0)
+{v_2 : int} |= v_2 > 0
+>>
+Rule 3 (sp_input values should be int32 or int64)
 {v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
 >>
-Rule 2 (vocab_size should be greater than 0)
-{v_1 : int} |= v_1 > 0
->>
-Rule 3 (all values in sp_input should be less than vocab_size)
-{v_1 : tensor, v_2 : int} |= ∀i ∈ [0, shape(v_1, ndim(v_1) - 1) - 1] : v_1[i] < v_2
->>
-Rule 5 (sp_input's ndim should be greater than or equal to 1)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
->>
-Rule 6 (sp_input values should be non-negative)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, ndim(v_1) - 1) - 1] : v_1[i] ≥ 0
->>
-Rule 7 (vocab_size should be greater than the maximum value in sp_input)
+Rule 4 (vocab_size should be greater than the maximum value of sp_input)
 {v_1 : tensor, v_2 : int} |= max(v_1) < v_2
 >>
-Rule 9 (sp_input should have at least one element if vocab_size is greater than 0)
-{v_1 : tensor, v_2 : int} |= if v_2 > 0 then shape(v_1, 0) > 0
+Rule 9 (sp_input must be a SparseTensor, ensuring it has a valid number of dimensions (at least 1))
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 10 (sp_input's rank should be less than or equal to 5)
-{v_1 : tensor} |= ndim(v_1) ≤ 5
+Rule 10 (vocab_size must be positive and less than or equal to 2^63 - 1 to be representable as int64)
+{v_2 : int} |= v_2 > 0 ∧ v_2 ≤ 9223372036854775807
 >>
-Rule 12 (sp_input's last dimension's size should be less than or equal to vocab_size)
-{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) ≤ v_2
+Rule 12 (The minimum value of sp_input must be non-negative)
+{v_1 : tensor} |= min(v_1) >= 0
 >>
-Rule 13 (sp_input is not null)
+Rule 15 (The minimum value of sp_input must be non-negative)
+{v_1 : tensor} |= min(v_1) ≥ 0
+>>
+Rule 18 (sp_input must be a tensor with int32 or int64 dtype, vocab_size must be a positive integer, and the max value of sp_input must be less than vocab_size)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ v_2 > 0 ∧ v_2 ≤ 9223372036854775807 ∧ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∧ min(v_1) ≥ 0 ∧ max(v_1) < v_2
+>>
+Rule 20 (sp_input must be a tensor with int32 or int64 dtype, vocab_size must be a positive integer, and the max value of sp_input must be less than vocab_size, and minimum value of sp_input must be non-negative)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ v_2 > 0 ∧ v_2 ≤ 9223372036854775807 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ min(v_1) ≥ 0 ∧ max(v_1) < v_2
+>>
+Rule 21 (Shape of sp_input should be less than or equal to 2)
+{v_1: tensor} |= ndim(v_1) <= 2
+>>
+Rule 23 (Ensure values of sp_input are within vocab_size)
+{v_1 : tensor, v_2 : int} |= ∀i ∈ [0, shape(v_1, ndim(v_1) - 1) -1]: v_1[i] < v_2
+>>
+Rule 25 (sp_input must be a SparseTensor and the vocab_size must be a positive integer)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ v_2 > 0
+>>
+Rule 30 (combined rule to ensure no value in sp_input exceeds vocab_size)
+{v_1 : tensor, v_2 : int} |= min(v_1) >= 0 ∧ max(v_1) < v_2 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
+>>
+Rule 31 (sp_input must be a SparseTensor, vocab_size must be a positive integer, values of sp_input must be non-negative and less than vocab_size, and sp_input must be of int32 or int64 dtype)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ v_2 > 0 ∧ min(v_1) ≥ 0 ∧ max(v_1) < v_2 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
+>>
+Rule 32 (The shape of sp_input must have at least one element.)
 {v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 15 (vocab_size should not be too large to avoid overflow)
-{v_1 : int} |= v_1 < 2147483647
+Rule 41 (Values of sp_input must be non-negative and less than vocab_size, and sp_input must be of int32 or int64 dtype)
+{v_1 : tensor, v_2 : int} |= min(v_1) ≥ 0 ∧ max(v_1) < v_2 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
 >>
-Rule 16 (The number of dimensions in sp_input must be less than vocab_size)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) < v_2
+Rule 43 (values of sp_input cannot exceed the maximum int64 value)
+{v_1:tensor} |= max(v_1) <= 9223372036854775807
 >>
-Rule 18 (if the vocab_size is very large, the sp_input shouldn't have too many dimensions to avoid huge memory usage)
-{v_1 : tensor, v_2 : int} |= if v_2 > 10000 then ndim(v_1) ≤ 3
+Rule 44 (sp_input must be a SparseTensor with int32 or int64 dtype, vocab_size must be a positive integer, and values of sp_input must be non-negative and less than vocab_size and also not too large to fit int64)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ v_2 > 0 ∧ min(v_1) ≥ 0 ∧ max(v_1) < v_2 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ max(v_1) <= 9223372036854775807
 >>
-Rule 20 (if sp_input has only one dimension, its size should be less than vocab_size)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then shape(v_1, 0) < v_2
+Rule 45 (values in sp_input must fit within vocab_size)
+{v_1: tensor, v_2: int} |= ∀i ∈ [0, shape(v_1, ndim(v_1) -1) -1]: v_1[i] < v_2
 >>
-Rule 22 (sp_input cannot be a boolean tensor)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 46 (sp_input must be a SparseTensor with int32 or int64 dtype, vocab_size must be a positive integer, and values of sp_input must be non-negative and less than vocab_size and also not too large to fit int64, also minimum value of sp_input is less than vocab_size )
+{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ v_2 > 0 ∧ min(v_1) ≥ 0 ∧ max(v_1) < v_2 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ max(v_1) <= 9223372036854775807 ∧ min(v_1) < v_2
 >>
-Rule 23 (sp_input must have values)
-{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, ndim(v_1) - 1) - 1] : v_1[i] ≠ 0
+Rule 47 (Indices of sp_input should be non negative)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, ndim(v_1) -1) -1] : v_1[i] >= 0
 >>
-Rule 24 (If vocab_size is small, then dimensions of sp_input should also be small)
-{v_1 : tensor, v_2 : int} |= if v_2 < 100 then ∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) < 20
+Rule 51 (sp_input values must fit the type)
+{v_1: tensor} |= if dtype_(v_1) = 3 then max(v_1) <= 2147483647 else max(v_1) <= 9223372036854775807
 >>
-Rule 25 (vocab_size should not be negative)
-{v_1 : int} |= v_1 ≥ 0
+Rule 63 (values in sp_input fit the type)
+{v_1: tensor} |= if dtype_(v_1) = 3 then max(v_1) <= 2147483647 else if dtype_(v_1) = 4 then max(v_1) <= 9223372036854775807 else false
 >>
-Rule 26 (if sp_input is empty, then vocab_size doesn't matter)
-{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) = 0 then true else v_2 > 0
+Rule 65 (Values must fit within the range of their respective dtypes.)
+{v_1 : tensor} |= (dtype_(v_1) = 3 ∧ max(v_1) <= 2147483647) ∨ (dtype_(v_1) = 4 ∧ max(v_1) <= 9223372036854775807)
 >>
-Rule 27 (sp_input should not have dimensions with size 0 except the first one)
-{v_1 : tensor} |= ∀i ∈ [1, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+Rule 66 (Combined validation of tensor, vocab_size and tensor's properties)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ v_2 > 0 ∧ min(v_1) ≥ 0 ∧ max(v_1) < v_2 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ max(v_1) <= 9223372036854775807 ∧ min(v_1) < v_2 ∧ ((dtype_(v_1) = 3 ∧ max(v_1) <= 2147483647) ∨ (dtype_(v_1) = 4 ∧ max(v_1) <= 9223372036854775807))
 >>
-Rule 29 (if vocab_size is 0, then at least one dimension of sp_input should be 0)
-{v_1 : tensor, v_2 : int} |= if v_2 = 0 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
+Rule 81 (External validation - SparseTensor & row-major order)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) >= 0
 >>
-Rule 30 (vocab_size should be positive if the sp_input is not a scalar)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 > 0
->>
-Rule 32 (sp_input should be a rank-1 tensor if vocab_size is not provided)
-{v_1 : tensor, v_2 : int} |= if v_2 = -1 then ndim(v_1) = 1
->>
-Rule 33 (if vocab_size is smaller than 10, then sp_input should also be small)
-{v_1 : tensor, v_2 : int} |= if v_2 < 10 then max(v_1) < 10
->>
-Rule 34 (if vocab_size is greater than 1000, then make sure there are enough elements in sp_input.)
-{v_1 : tensor, v_2 : int} |= if v_2 > 1000 then shape(v_1, 0) > 100
->>
-Rule 35 (if sp_input has more than one dimension, vocab_size should be large enough)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 1 then v_2 > shape(v_1, ndim(v_1) - 1)
->>
-Rule 37 (the minimum value of the sp_input cannot exceed the maximum possible int value)
-{v_1: tensor} |= min(v_1) < 2147483647
->>
-Rule 38 (vocab_size must be greater than the largest value in sp_input's last dimension)
-{v_1 : tensor, v_2 : int} |= ∀i ∈ [0, shape(v_1, ndim(v_1) -1) - 1]: v_1[i] < v_2
->>
-Rule 39 (If vocab_size is 1, then the sparse tensor should only contain values of 0.)
-{v_1 : tensor, v_2 : int} |= if v_2 = 1 then ∀i ∈ [0, shape(v_1, ndim(v_1) -1) - 1]: v_1[i] = 0
->>
-Rule 40 (the dimensions of sp_input tensor cannot have a negative value)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
->>
-Rule 41 (If vocab_size is very large, the size of the sp_input should be limited.)
-{v_1 : tensor, v_2 : int} |= if v_2 > 100000 then shape(v_1, 0) < 10000
->>
-Rule 42 (The max of sp_input must be a reasonable size.)
-{v_1 : tensor} |= max(v_1) < 1000000
->>
-Rule 43 (If the sp_input has shape [1, x, y], then vocab_size should be greater than x or y)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 ∧ shape(v_1, 0) = 1 then (v_2 > shape(v_1, 1) ∨ v_2 > shape(v_1, 2))
->>
-Rule 44 (If vocab_size and a dimension are both 1, then all values should be 0)
-{v_1 : tensor, v_2 : int} |= if (v_2 = 1) ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1) then ∀j ∈ [0, shape(v_1, ndim(v_1) -1) -1] : v_1[j] = 0
->>
-Rule 45 (If vocab_size is extremely small, then the values should be closer to zero)
-{v_1: tensor, v_2: int} |= if v_2 < 5 then max(v_1) < 3
->>
-Rule 46 (Check if sp_input's dimension is not over 32, as this operation might not support tensors with extremely high dimensionality.)
-{v_1: tensor} |= ndim(v_1) < 32
->>
-Rule 48 (The vocab size has to be greater than the min in the tensor)
-{v_1 : tensor, v_2 : int} |= min(v_1) < v_2
->>
-Rule 49 (sp_input should not have NaN values.)
-{v_1: tensor} |= ∀i ∈ [0, shape(v_1, ndim(v_1) -1) -1]: v_1[i] = v_1[i]
->>
-Rule 50 (If vocab_size is greater than 100, the max of the sp_input should not be too high)
-{v_1: tensor, v_2: int} |= if v_2 > 100 then max(v_1) < 1000
->>
-Rule 53 (If vocab_size is greater than 100, the max of the sp_input should not be extremely high)
-{v_1: tensor, v_2: int} |= if v_2 > 100 then max(v_1) < 10000000
->>
-Rule 54 (If sp_input is multi-dimensional, vocab_size has to be reasonably large.)
-{v_1: tensor, v_2: int} |= if ndim(v_1) > 1 then v_2 > 10
->>
-Rule 55 (sp_input dtype should not be bool)
-{v_1: tensor} |= dtype_(v_1) ≠ 0
->>
-Rule 56 (vocab_size should be at least the max value found within sp_input)
-{v_1: tensor, v_2 : int} |= max(v_1) < v_2
->>
-Rule 57 (if vocab_size is very big, then number of dimension should be small.)
-{v_1: tensor, v_2: int} |= if v_2 > 100000 then ndim(v_1) < 4
+Rule 82 (Combining all constraints on inputs)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ v_2 > 0 ∧ min(v_1) ≥ 0 ∧ max(v_1) < v_2 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ max(v_1) <= 9223372036854775807 ∧ min(v_1) < v_2 ∧ ((dtype_(v_1) = 3 ∧ max(v_1) <= 2147483647) ∨ (dtype_(v_1) = 4 ∧ max(v_1) <= 9223372036854775807)) ∧ ∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) >= 0

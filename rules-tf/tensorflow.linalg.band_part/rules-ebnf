@@ -1,96 +1,96 @@
 >>
-Rule 4 (num_lower must be an integer and greater than or equal to -1)
-{v_1 : int} |= v_1 ≥ -1
->>
-Rule 6 (input tensor must have at least 2 dimensions)
+Rule 1 (input tensor must be at least 2-dimensional)
 {v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 15 (If num_lower and num_upper are both negative, then input tensor must be at least of rank 2)
-{v_1 : int, v_2 : int, v_3 : tensor} |= if v_1 < 0 ∧ v_2 < 0 then ndim(v_3) ≥ 2
+Rule 2 (num_lower must be negative or less or equal to the number of rows of the input tensor)
+{v_1 : tensor, v_2 : int} |= v_2 < 0 ∨ v_2 ≤ shape(v_1, ndim(v_1) - 2)
 >>
-Rule 17 (Shape of input must be greater than 0 for at least one dimension)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 3 (num_upper must be negative or less or equal to the number of columns of the input tensor)
+{v_1 : tensor, v_3 : int} |= v_3 < 0 ∨ v_3 ≤ shape(v_1, ndim(v_1) - 1)
 >>
-Rule 18 (num_lower must be an integer and less than or equal to largest possible integer)
-{v_1 : int} |= v_1 ≤ 2147483647
+Rule 6 (num_lower must be negative or less or equal to the number of rows of the input tensor)
+{v_1 : tensor, v_2 : int} |= v_2 < 0 ∨ (ndim(v_1) ≥ 2 ∧ v_2 ≤ shape(v_1, ndim(v_1) - 2))
 >>
-Rule 20 (num_lower and num_upper should not be both zero, unless the input is one dimensional)
-{v_1 : int, v_2 : int, v_3 : tensor} |= if v_1 = 0 ∧ v_2 = 0 then ndim(v_3) = 1
+Rule 7 (num_upper must be negative or less or equal to the number of columns of the input tensor)
+{v_1 : tensor, v_3 : int} |= v_3 < 0 ∨ (ndim(v_1) ≥ 2 ∧ v_3 ≤ shape(v_1, ndim(v_1) - 1))
 >>
-Rule 21 (The shape of the input should not be empty)
+Rule 8 (input tensor must be at least 2-dimensional for num_lower to be valid)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) < 2 ∨ v_2 < 0 ∨ v_2 ≤ shape(v_1, ndim(v_1) - 2)
+>>
+Rule 9 (input tensor must be at least 2-dimensional for num_upper to be valid)
+{v_1 : tensor, v_3 : int} |= ndim(v_1) < 2 ∨ v_3 < 0 ∨ v_3 ≤ shape(v_1, ndim(v_1) - 1)
+>>
+Rule 10 (input tensor must have at least one dimension)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 22 (Check that num_lower is not greater than maximum possible band)
-{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, ndim(v_1) -1)
+Rule 11 (If the input tensor has fewer than 2 dimensions, num_lower and num_upper must be negative)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) < 2 then v_2 < 0 ∧ v_3 < 0
 >>
-Rule 24 (Data type of the input tensor can not be boolean)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 12 (num_lower is within the acceptable range or negative when input has sufficient dimensions)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 2 then v_2 < 0 ∨ v_2 <= shape(v_1, ndim(v_1) - 2)
 >>
-Rule 27 (If num_lower is greater than num_upper, the output should be zero tensor)
-{v_1 : int, v_2 : int} |= if v_1 > v_2 then true
+Rule 13 (num_upper is within the acceptable range or negative when input has sufficient dimensions)
+{v_1 : tensor, v_3 : int} |= if ndim(v_1) >= 2 then v_3 < 0 ∨ v_3 <= shape(v_1, ndim(v_1) - 1)
 >>
-Rule 28 (If num_lower is negative and num_upper is not negative then the lower part should be kept)
-{v_1 : int, v_2 : int} |= if v_1 < 0 ∧ v_2 ≥ 0 then true
+Rule 16 (Combined check for input dimensions and num_lower/num_upper range)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (ndim(v_1) < 2 ∧ v_2 < 0 ∧ v_3 < 0) ∨ (ndim(v_1) >= 2 ∧ v_2 < 0 ∨ v_2 <= shape(v_1, ndim(v_1) - 2)) ∧ (ndim(v_1) >= 2 ∧ v_3 < 0 ∨ v_3 <= shape(v_1, ndim(v_1) - 1))
 >>
-Rule 29 (If num_lower is not negative and num_upper is negative then the upper part should be kept)
-{v_1 : int, v_2 : int} |= if v_1 ≥ 0 ∧ v_2 < 0 then true
+Rule 18 (input has at least one dimension)
+{v_1 : tensor} |= ndim(v_1) >= 1
 >>
-Rule 31 (num_lower must be an integer and greater or equal to the negative of size of last dimension of input tensor)
-{v_1 : int, v_2 : tensor} |= v_1 ≥ (0 - shape(v_2, ndim(v_2) - 1))
+Rule 19 (If ndim is less than 2 num_lower should not be greater than -1)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) < 2 then v_2 < 0
 >>
-Rule 33 (If num_lower is greater than num_upper, the output should be zero tensor)
-{v_1 : int, v_2 : int, v_3 : tensor} |= if v_1 > v_2 then max(v_3) = 0 ∧ min(v_3) = 0
+Rule 20 (If ndim is less than 2 num_upper should not be greater than -1)
+{v_1 : tensor, v_3 : int} |= if ndim(v_1) < 2 then  v_3 < 0
 >>
-Rule 35 (num_lower must be an integer and must be less than or equal to the size of the last dimension of input tensor)
-{v_1 : int, v_2 : tensor} |= v_1 ≤ shape(v_2, ndim(v_2) - 1)
+Rule 22 (Ensure num_lower and num_upper have consistent sign constraints based on input tensor rank)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (ndim(v_1) ≥ 2) ∨ (v_2 < 0 ∧ v_3 < 0)
 >>
-Rule 37 (If the input tensor is a matrix, then num_lower and num_upper must be between -(matrix size) and +(matrix size))
-{v_1 : int, v_2 : int, v_3 : tensor} |= if ndim(v_3) = 2 then v_1 ≥ (0 - shape(v_3, 1)) ∧ v_1 ≤ shape(v_3, 1) ∧ v_2 ≥ (0 - shape(v_3, 1)) ∧ v_2 ≤ shape(v_3, 1)
+Rule 23 (num_lower range is okay if input has at least 2 dimensions otherwise ensure it is negative)
+{v_1 : tensor, v_2 : int} |=  (ndim(v_1) < 2 ∧ v_2 < 0) ∨ (ndim(v_1) >= 2 ∧ (v_2 < 0 ∨ v_2 ≤ shape(v_1, ndim(v_1) - 2)))
 >>
-Rule 38 (If num_lower is greater than num_upper, then at least one element of the output tensor must be zero)
-{v_1 : int, v_2 : int, v_3 : tensor} |= if v_1 > v_2 then ∃i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) = 0 ∨ min(v_3) = 0
+Rule 24 (num_upper range is okay if input has at least 2 dimensions otherwise ensure it is negative)
+{v_1 : tensor, v_3 : int} |= (ndim(v_1) < 2 ∧ v_3 < 0) ∨ (ndim(v_1) >= 2 ∧ (v_3 < 0 ∨ v_3 ≤ shape(v_1, ndim(v_1) - 1)))
 >>
-Rule 41 (if the rank of the input is greater than 2, then the last two dimensions should have same size if num_lower = 0 and num_upper = 0)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) > 2 ∧ v_2 = 0 ∧ v_3 = 0 then shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
+Rule 25 (Comprehensive check for dimension and band parameters)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) < 2 then v_2 < 0 ∧ v_3 < 0 else (v_2 < 0 ∨ v_2 ≤ shape(v_1, ndim(v_1) - 2)) ∧ (v_3 < 0 ∨ v_3 ≤ shape(v_1, ndim(v_1) - 1))
 >>
-Rule 45 (If input is a matrix, num_lower can be at most rows - 1)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then v_2 ≤ shape(v_1, 0) - 1
+Rule 27 (If the input is 1D, both band parameters should be negative)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 1 then v_2 < 0 ∧ v_3 < 0
 >>
-Rule 46 (If input is a matrix, num_upper can be at most cols - 1)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then v_2 ≤ shape(v_1, 1) - 1
+Rule 30 (Num_lower must be within valid range or negative and num_upper must be within valid range or negative, separate conditions)
+{v_1 : tensor, v_2 : int, v_3 : int} |= ((ndim(v_1) >= 2) ∧ ((v_2 < 0) ∨ (v_2 ≤ shape(v_1, ndim(v_1) - 2)))) ∧ ((ndim(v_1) >= 2) ∧ ((v_3 < 0) ∨ (v_3 ≤ shape(v_1, ndim(v_1) - 1)))) ∨ ((ndim(v_1) < 2) ∧ (v_2 < 0) ∧ (v_3 < 0))
 >>
-Rule 49 (If input is not a matrix, then num_lower should be greater or equal to negative of last dimension)
-{v_1 : int, v_2 : tensor} |= if ndim(v_2) ≠ 2 then v_1 ≥ (0 - shape(v_2, ndim(v_2) - 1))
+Rule 31 (Correct band parameters)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (ndim(v_1) < 2 ∧ v_2 < 0 ∧ v_3 < 0) ∨ (ndim(v_1) ≥ 2 ∧ (v_2 < 0 ∨ v_2 ≤ shape(v_1, ndim(v_1) - 2)) ∧ (v_3 < 0 ∨ v_3 ≤ shape(v_1, ndim(v_1) - 1)))
 >>
-Rule 59 (If num_lower is not negative and num_upper is not negative and input tensor's last two dimensions are not the same, the operation is invalid)
-{v_1 : int, v_2 : int, v_3 : tensor} |= if v_1 ≥ 0 ∧ v_2 ≥ 0 ∧ ndim(v_3) > 1 ∧ shape(v_3, ndim(v_3)-1) ≠ shape(v_3, ndim(v_3)-2) then false
+Rule 33 (If ndim < 2 both v2 and v3 must be negative)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) < 2 then (v_2 < 0 ∧ v_3 < 0)
 >>
-Rule 62 (If num_lower is greater or equal to 0 and smaller than width of last dimension, it satisfies)
-{v_1 : int, v_2 : tensor} |= if v_1 ≥ 0 ∧ v_1 < shape(v_2, ndim(v_2) - 1) then true
+Rule 34 (If ndim >= 2 then check for validity of num_lower)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 2 then (v_2 < 0 ∨ v_2 <= shape(v_1, ndim(v_1) - 2))
 >>
-Rule 64 (num_lower must be an integer and less than or equal to size of dimension for matrix)
-{v_1 : int, v_2 : tensor} |= if ndim(v_2) = 2 then v_1 ≤ shape(v_2,0)
+Rule 35 (If ndim >= 2 then check for validity of num_upper)
+{v_1 : tensor, v_3 : int} |= if ndim(v_1) >= 2 then (v_3 < 0 ∨ v_3 <= shape(v_1, ndim(v_1) - 1))
 >>
-Rule 65 (num_upper must be an integer and less than or equal to size of dimension for matrix)
-{v_1 : int, v_2 : tensor} |= if ndim(v_2) = 2 then v_1 ≤ shape(v_2,1)
+Rule 38 (Validity based on dimensionality)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (ndim(v_1) < 2 ∧ v_2 < 0 ∧ v_3 < 0) ∨ (ndim(v_1) >= 2 ∧ (v_2 < 0 ∨ (v_2 ≥ min(v_2) ∧ v_2 ≤ shape(v_1, ndim(v_1) - 2))) ∧ (v_3 < 0 ∨ (v_3 ≥ min(v_3) ∧ v_3 ≤ shape(v_1, ndim(v_1) - 1))))
 >>
-Rule 66 (If num_lower and num_upper are very big, band_part should behave like identity)
-{v_1 : int, v_2 : int} |= if v_1 ≥ 100000 ∧ v_2 ≥ 100000 then true
+Rule 40 (Dimensionality and band constraints for linalg.band_part)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (ndim(v_1) ≥ 2 ∧ (v_2 < 0 ∨ v_2 ≤ shape(v_1, ndim(v_1) - 2)) ∧ (v_3 < 0 ∨ v_3 ≤ shape(v_1, ndim(v_1) - 1))) ∨ (ndim(v_1) < 2 ∧ v_2 < 0 ∧ v_3 < 0)
 >>
-Rule 67 (If the rank of input is 2 and num_lower is less than 0 and num_upper is nonnegative then the result must be upper triangular matrix)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 2 ∧ v_2 < 0 ∧ v_3 ≥ 0 then true
+Rule 43 (The values of num_lower and num_upper must be valid given the shape of input tensor)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) < 2 then v_2 < 0 ∧ v_3 < 0 else (v_2 < 0 ∨ v_2 ≤ (if ndim(v_1) > 1 then shape(v_1, ndim(v_1) - 2) else 0)) ∧ (v_3 < 0 ∨ v_3 ≤ (if ndim(v_1) > 0 then shape(v_1, ndim(v_1) - 1) else 0))
 >>
-Rule 68 (If the rank of input is 2 and num_lower is nonnegative and num_upper is less than 0 then the result must be lower triangular matrix)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 2 ∧ v_2 ≥ 0 ∧ v_3 < 0 then true
+Rule 44 (band parameters must be correct for tensors with >0 dimensions)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (ndim(v_1) < 2 ∧ v_2 < 0 ∧ v_3 < 0) ∨ (ndim(v_1) ≥ 2 ∧ (v_2 < 0 ∨ v_2 ≤ (if ndim(v_1) > 1 then shape(v_1, ndim(v_1) - 2) else 0)) ∧ (v_3 < 0 ∨ v_3 ≤ (if ndim(v_1) > 0 then shape(v_1, ndim(v_1) - 1) else 0)))
 >>
-Rule 69 (If num_lower is negative, then it should be -1)
-{v_1: int} |= if v_1 < 0 then v_1 = -1
+Rule 51 (Combined conditions for the band parameters' validity given the input tensor)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (ndim(v_1) < 2 ∧ v_2 < 0 ∧ v_3 < 0) ∨ (ndim(v_1) ≥ 2 ∧ (v_2 < 0 ∨ v_2 ≤ shape(v_1, if ndim(v_1) > 1 then ndim(v_1) - 2 else 0)) ∧ (v_3 < 0 ∨ v_3 ≤ shape(v_1, if ndim(v_1) > 0 then ndim(v_1) - 1 else 0)))
 >>
-Rule 71 (if num_lower is negative, it should be -1)
-{v_1 : int} |= if v_1 < 0 then v_1 = -1
+Rule 63 (If the input is at least 2D, the band parameters must allow at least a 1x1 matrix to be kept)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) >= 2 then v_2 > -2 ∧ v_3 > -2
 >>
-Rule 73 (if num_lower is -1 and num_upper is -1 and input is a matrix, then at least one dimension should be bigger than 0)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 2 ∧ v_2 = -1 ∧ v_3 = -1 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
->>
-Rule 74 (num_lower and num_upper must be integers between -1 and maximum int)
-{v_1 : int, v_2: int} |= v_1 ≥ -1 ∧ v_1 ≤ 2147483647 ∧ v_2 ≥ -1 ∧ v_2 ≤ 2147483647
+Rule 64 (input has rank >= 1 and if rank >= 2 then the band parameter is valid)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) >= 1 ∧ (if ndim(v_1) >= 2 then v_2 < 0 ∨ v_2 <= shape(v_1, ndim(v_1) - 2))

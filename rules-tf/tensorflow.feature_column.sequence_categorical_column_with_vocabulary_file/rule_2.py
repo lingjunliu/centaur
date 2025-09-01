@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# num_oov_buckets should be a non-negative integer (Rule 2)
+# vocabulary_size must be greater than or equal to 1 (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] >= 0) if n else
-          v["arg1_value"] >= 0)
+    s.add(Not(v["arg1_value"] >= 1) if n else
+          v["arg1_value"] >= 1)
 )
 
 def rule_2_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# log_warning can control output (Rule 7)
+# log_warning is a boolean (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, 1 > 0, 1 > -1)) if n else
-          If(v["arg1_value"] == True, 1 > 0, 1 > -1))
+    s.add(Not(If(v["arg1_value"] == True, True, True)) if n else
+          If(v["arg1_value"] == True, True, True))
 )
 
 def rule_7_func(arg1, solver=None, neg=False):

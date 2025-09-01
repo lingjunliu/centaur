@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# y must have at least one dimension if x is not scalar (Rule 7)
+# x and y must have same number of dimensions (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0, False)) if n else
-          If(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0, False))
+    s.add(Not(v["arg1_ndim"] == v["arg2_ndim"]) if n else
+          v["arg1_ndim"] == v["arg2_ndim"])
 )
 
 def rule_7_func(arg1, arg2, solver=None, neg=False):

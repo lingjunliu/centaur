@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the dtype of input v_1 is bfloat16, then ndim(v_1 (Rule 8)
+# If the input tensor 'x' is of type bfloat16 or half, then it must have at least one dimension. (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, v["arg1_ndim"] > 0, False)) if n else
-          If(v["arg1_dtype"] == 6, v["arg1_ndim"] > 0, False))
+    s.add(Not(If(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_ndim"] >= 1, True)) if n else
+          If(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_ndim"] >= 1, True))
 )
 
 def rule_8_func(arg1, solver=None, neg=False):
@@ -30,9 +30,9 @@ def rule_8_func(arg1, solver=None, neg=False):
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 8
-        rule_8(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim})
+        rule_8(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_8(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_8(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype']}, neg)

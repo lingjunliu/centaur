@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if the shape is a list of size 1, element cannot be zero (Rule 21)
+# shape values should be small enough to avoid overflow (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_length"] == 1, Select(v["arg1_values"], 0) != 0, False)) if n else
-          If(v["arg1_length"] == 1, Select(v["arg1_values"], 0) != 0, False))
+    s.add(Not(And([Implies(v_2 < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], v_2) < 2147483647) for v_2 in range(6)])) if n else
+          And([Implies(v_2 < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], v_2) < 2147483647) for v_2 in range(6)]))
 )
 
 def rule_21_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input is complex, the output should not have complex dtype (Rule 12)
+# If the input tensor has a complex dtype, it must be either complex64 or complex128 (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11), And(v["arg1_dtype"] != 10, v["arg1_dtype"] != 11), False)) if n else
-          If(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11), And(v["arg1_dtype"] != 10, v["arg1_dtype"] != 11), False))
+    s.add(Not(If(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11), True, If(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 1), v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 12), v["arg1_dtype"] == 13), True, False))) if n else
+          If(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11), True, If(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 1), v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 12), v["arg1_dtype"] == 13), True, False)))
 )
 
 def rule_12_func(arg1, solver=None, neg=False):

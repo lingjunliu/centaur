@@ -1,108 +1,102 @@
 >>
-Rule 1 (message_type must be a non-empty string)
+Rule 3 (message_type should not be empty)
 {v_1 : str} |= v_1 ≠ ""
 >>
-Rule 2 (length of field_names and output_types must be the same)
-{v_1 : list(str), v_2 : list(int)} |= v_1.len = v_2.len
->>
-Rule 3 (output_types must be a list of valid type indices)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 12
->>
-Rule 5 (message_format must be either "binary" or "text")
+Rule 5 (message_format should be either "binary" or "text")
 {v_1 : str} |= v_1 = "binary" ∨ v_1 = "text"
 >>
-Rule 6 (sanitize must be a boolean value)
+Rule 7 (at least one field name and output type should be present)
+{v_1 : list(str), v_2 : list(int)} |= shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0
+>>
+Rule 8 (number of field names should match the number of output types)
+{v_1 : list(str), v_2 : list(int)} |= shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 9 (output type should be a valid type code)
+{v_1 : list(int), v_2 : int} |= (v_2 ≥ 0) ∧ (v_2 ≤ 12) ∧ (shape(v_1, 0) > 0) ∧ (∃ idx ∈ [0, shape(v_1, 0) - 1] : v_1[idx] = v_2)
+>>
+Rule 10 (descriptor source starts with bytes:// implies non-empty bytes)
+{v_1: str, v_2: tensor} |= if (v_1 = "bytes://") then (shape(v_2,0) > 0)
+>>
+Rule 11 (field_names should be a list of strings)
+{v_1 : list(str)} |= ∀i ∈ [0, shape(v_1, 0) - 1] : true
+>>
+Rule 12 (output_types should be a list of ints)
+{v_1 : list(int)} |= ∀i ∈ [0, shape(v_1, 0) - 1] : true
+>>
+Rule 15 (field_names and output_types lists must have the same length if both are provided)
+{v_1 : list(str), v_2 : list(int)} |= if shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0 then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 16 (descriptor_source starts with bytes:// requires tensor bytes)
+{v_1 : str, v_2 : tensor} |= if v_1 = "bytes://" then ndim(v_2) > 0
+>>
+Rule 17 (output_types values must be valid type indexes)
+{v_1 : list(int)} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 12
+>>
+Rule 18 (field_names and output_types lists must have the same length if both are not empty and all output_types values must be valid type indexes if the list is not empty)
+{v_1 : list(str), v_2 : list(int)} |= if shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0 then (shape(v_1, 0) = shape(v_2, 0) ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0 ∧ v_2[i] ≤ 12) else if shape(v_2, 0) > 0 then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0 ∧ v_2[i] ≤ 12
+>>
+Rule 24 (If descriptor_source starts with 'bytes://' a tensor bytes must be provided)
+{v_1 : str, v_2 : tensor} |= if (v_1 = "bytes://") then (ndim(v_2) > 0)
+>>
+Rule 31 (field_names and output_types lists, if both are present, should have the same length, and each value in output_types should be a valid data type index)
+{v_1 : list(str), v_2 : list(int)} |= if shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0 then (shape(v_1, 0) = shape(v_2, 0) ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0 ∧ v_2[i] ≤ 12)
+>>
+Rule 32 (If descriptor_source starts with 'bytes://', a tensor bytes must be provided and not empty.)
+{v_1 : str, v_2 : tensor} |= if (v_1 = "bytes://") then (ndim(v_2) > 0 ∧ shape(v_2,0) > 0)
+>>
+Rule 42 (field_names list and output_types list should not have elements that are None. Otherwise, TypeError will be raised.)
+{v_1 : list(str), v_2 : list(int)} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ "None" ∧ ∀j ∈ [0, shape(v_2, 0) - 1] : v_2[j] ≠ "None"
+>>
+Rule 54 (If field_names contains non-string element. Otherwise, TypeError: Expected string for argument 'field_names' not -10 will be raised.)
+{v_1 : list(str)} |=  ∀i ∈ [0, shape(v_1, 0) - 1] : true
+>>
+Rule 59 (message_type string length should be under certain limit)
+{v_1 : str} |= shape(v_1, 0) < 256
+>>
+Rule 60 (sanitize parameter must be boolean)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 8 (field_names must be a list of non-empty strings)
-{v_1 : list(str)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ ""
+Rule 61 (descriptor_source should only have http or local protocol.)
+{v_1 : str} |= if v_1 = "local://" then true else if v_1 = "http://" then true else false
 >>
-Rule 9 (bytes must be a non-empty tensor)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 64 (descriptor_source should start with a known protocol.)
+{v_1 : str} |= v_1 = "" ∨ v_1 = "local://" ∨ v_1 = "bytes://"
 >>
-Rule 10 (descriptor_source must be a valid string: empty, "local://", or starts with "bytes://")
-{v_1 : str} |= v_1 = "" ∨ v_1 = "local://" ∨ (v_1.len > 7 ∧ v_1[0] = "b" ∧ v_1[1] = "y" ∧ v_1[2] = "t" ∧ v_1[3] = "e" ∧ v_1[4] = "s" ∧ v_1[5] = ":" ∧ v_1[6] = "/")
+Rule 65 (Number of byte strings in 'bytes' should be less than 1024, for security reason)
+{v_1 : tensor} |= shape(v_1, 0) < 1024
 >>
-Rule 11 (if descriptor_source is a file path, it must be a non-empty string)
-{v_1 : str} |= if v_1 ≠ "" ∧ v_1 ≠ "local://" ∧ (v_1.len ≤ 7 ∨ v_1[0] ≠ "b" ∨ v_1[1] ≠ "y" ∨ v_1[2] ≠ "t" ∨ v_1[3] ≠ "e" ∨ v_1[4] ≠ "s" ∨ v_1[5] ≠ ":" ∨ v_1[6] ≠ "/") then v_1.len > 0
+Rule 66 (output_types cannot contain a type which is complex. Proto doesn't have complex output)
+{v_1 : list(int)} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ 9 ∧ v_1[i] ≠ 10
 >>
-Rule 12 (if message_format is defined, bytes tensor must not be empty)
-{v_1 : tensor, v_2 : str} |= if v_2 = "binary" ∨ v_2 = "text" then ndim(v_1) > 0
+Rule 72 (The length of field_names cannot be greater than 256 for stability reasons)
+{v_1 : list(str)} |= shape(v_1, 0) < 256
 >>
-Rule 13 (If descriptor_source starts with "bytes://", the rest of the string should represent a valid serialized FileDescriptorSet)
-{v_1 : str} |= if v_1.len > 7 ∧ v_1[0] = "b" ∧ v_1[1] = "y" ∧ v_1[2] = "t" ∧ v_1[3] = "e" ∧ v_1[4] = "s" ∧ v_1[5] = ":" ∧ v_1[6] = "/" then v_1.len > 8
+Rule 74 (message_type should be valid string.)
+{v_1 : str} |= v_1="tf.compat.v1.Summary.Value"
 >>
-Rule 15 (The length of the bytes tensor should be greater than zero)
-{v_1: tensor} |= shape(v_1, 0) > 0
+Rule 75 (If sanitize is set to true, then the descriptor_source should not be an empty string.)
+{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 ≠ ""
 >>
-Rule 16 (If sanitize is true, the message_type string should be valid)
-{v_1 : str, v_2 : bool} |= if v_2 = true then v_1 ≠ ""
+Rule 77 (If message_format is "text", then sanitize should be true.)
+{v_1 : str, v_2 : bool} |= if v_1 = "text" then v_2 = true
 >>
-Rule 17 (output_types must be a non-empty list)
-{v_1 : list(int)} |= v_1.len > 0
+Rule 78 (output_types cannot be empty if field_names is not empty.)
+{v_1 : list(str), v_2 : list(int)} |= if shape(v_1, 0) > 0 then shape(v_2, 0) > 0
 >>
-Rule 18 (field_names must be a non-empty list)
-{v_1 : list(str)} |= v_1.len > 0
+Rule 79 (If output_types is a list, and its length is greater than 0, all output_types values must be a valid data type indexes)
+{v_1 : list(int)} |=  if (shape(v_1, 0) > 0) then (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 12)
 >>
-Rule 19 (If message_format is "text", the bytes tensor must contain valid text proto)
-{v_1 : tensor, v_2 : str} |= if v_2 = "text" then ndim(v_1) > 0
+Rule 82 (If descriptor_source is local, then message_type should be "tf.compat.v1.Summary.Value" or "tf.train.Features.FeatureEntry" )
+{v_1 : str, v_2 : str} |= if v_1 = "local://" then v_2 = "tf.compat.v1.Summary.Value" ∨ v_2 = "tf.train.Features.FeatureEntry"
 >>
-Rule 20 (If the message type is specified, it must be a valid proto message name)
-{v_1 : str} |= v_1.len > 0
+Rule 83 (If descriptor_source is local, then message_type should be "tf.compat.v1.Summary.Value" or "tf.train.Features.FeatureEntry" )
+{v_1 : str, v_2 : str} |= if v_1 = "local://" then (v_2 = "tf.compat.v1.Summary.Value" ∨ v_2 = "tf.train.Features.FeatureEntry")
 >>
-Rule 21 (Output types should be of valid TF DTypes)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1]: v_1[i] ≥ 0 ∧ v_1[i] ≤ 12
+Rule 86 (field_names needs to be a list and should have the same length as output_types's)
+{v_1 : list(str), v_2 : list(int)} |= if shape(v_2, 0) > 0 then (shape(v_1, 0) = shape(v_2, 0))
 >>
-Rule 22 (If descriptor source is set to 'local://', the message type should match a linked-in proto definition.)
-{v_1 : str, v_2: str} |= if v_1 = "local://" then v_2.len > 0
+Rule 88 (The bytes parameter must be a 1D tensor)
+{v_1 : tensor} |= ndim(v_1) = 1
 >>
-Rule 23 (The bytes tensor must be of type string)
-{v_1: tensor} |= dtype_(v_1) = 11
->>
-Rule 24 (The field_names list must contain valid field names within the specified message_type)
-{v_1: str, v_2: list(str)} |= v_1.len > 0 ∧ v_2.len > 0
->>
-Rule 26 (The message_type should correspond to a valid proto definition in the descriptor source.)
-{v_1: str, v_2: str} |= v_2.len > 0 ∧ v_1.len > 0
->>
-Rule 27 (If sanitize is enabled, the output_types can't be complex numbers.)
-{v_1: list(int), v_2: bool} |= if v_2 = true then ∀i ∈ [0, v_1.len - 1]: v_1[i] ≠ 9 ∧ v_1[i] ≠ 10
->>
-Rule 30 (Message format argument can only be text or binary)
-{v_1 : str} |= v_1 = "text" ∨ v_1 = "binary"
->>
-Rule 33 (If the output_types is a list of strings, all tensors must be rank one.)
-{v_1: list(int), v_2: list(str), v_3: tensor} |= if v_1.len = v_2.len ∧ dtype_(v_3) = 11 then ndim(v_3) = 1
->>
-Rule 38 (If message_format is defined then bytes tensor must not be empty)
-{v_1 : str, v_2: tensor} |= if v_1 = "binary" ∨ v_1 = "text" then ndim(v_2) > 0
->>
-Rule 39 (If the output_types contains strings, all corresponding output tensors will have dtype string.)
-{v_1: list(int), v_2: list(str)} |= ∀i ∈ [0, v_1.len - 1] : if v_1[i] = 11 then ∃j ∈ [0, v_2.len - 1] : v_2[j] = "str"
->>
-Rule 41 (If the message format is "text" or "binary", sanitize can only be a boolean value)
-{v_1 : str, v_2: bool} |= if v_1 = "binary" ∨ v_1 = "text" then v_2 = true ∨ v_2 = false
->>
-Rule 42 (If the output_types contains a specific type, the field must be decodable to it)
-{v_1: list(int), v_2: list(str)} |= ∀i ∈ [0, v_1.len - 1] : if v_1[i] = 12 then ∃j ∈ [0, v_2.len - 1] : v_2[j] = "dtype"
->>
-Rule 44 (If the message_format is defined then the bytes tensor shape must match batch shape)
-{v_1 : str, v_2: tensor, v_3: tensor} |= if v_1 = "binary" ∨ v_1 = "text" then shape(v_2, 0) = shape(v_3, 0)
->>
-Rule 47 (The byte tensor must have a shape.)
-{v_1: tensor} |= ndim(v_1) > 0
->>
-Rule 50 (If sanitize is true and the message_format is text, bytes tensor must be valid UTF-8 string)
-{v_1 : str, v_2: tensor, v_3: bool} |= if v_3 = true ∧ v_1 = "text" then dtype_(v_2) = 11
->>
-Rule 51 (sizes must be int32 tensor)
-{v_1: tensor} |= dtype_(v_1) = 3
->>
-Rule 53 (If the message_format is "text", then sanitize should be enabled (true))
-{v_1: str, v_2: bool} |= if v_1 = "text" then v_2 = true
->>
-Rule 54 (The number of output values matches field_names and output_types)
-{v_1: list(str), v_2: list(int), v_3: list(tensor)} |= v_1.len = v_2.len ∧ v_1.len = v_3.len
->>
-Rule 56 (If the message_format is "text", then sanitize needs to be enabled)
-{v_1 : str, v_2: bool} |= if v_1 = "text" then v_2 = true
+Rule 90 (The bytes parameter must be a 1D tensor and its dtype is string)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ dtype_(v_1) = 11

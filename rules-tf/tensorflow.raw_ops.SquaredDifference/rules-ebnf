@@ -1,81 +1,87 @@
 >>
-Rule 5 (x and y must have the same number of dimensions)
-{x : tensor, y : tensor} |= ndim(x) = ndim(y)
+Rule 1 (x and y must have the same data type)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 6 (shapes of x and y must be compatible for broadcasting, checking the dimensions match if not 1)
-{x : tensor, y : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(y, i) ∨ shape(x, i) = 1 ∨ shape(y, i) = 1
+Rule 2 (x must be a valid type: bfloat16, half, float32, float64, int32, int64, complex64, or complex128. Representing these types with their integer encodings.)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
 >>
-Rule 7 (x's dimension should not be zero)
-{x : tensor} |= ndim(x) > 0
+Rule 3 (tensors x and y must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 8 (y's dimension should not be zero)
-{y : tensor} |= ndim(y) > 0
+Rule 6 (x must be a valid type: bfloat16, half, float32, float64, int32, int64, complex64, or complex128. Representing these types with their integer encodings.)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 9 (x's shape in each dimension must be positive)
-{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
->>
-Rule 10 (y's shape in each dimension must be positive)
-{y : tensor} |= ∀i ∈ [0, ndim(y) - 1] : shape(y, i) > 0
->>
-Rule 11 (x's dtype must be one of bfloat16(16), half(23), float32(7), float64(8), int32(3), int64(4), complex64(10), complex128(11))
-{x : tensor} |= dtype_(x) = 16 ∨ dtype_(x) = 23 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 10 ∨ dtype_(x) = 11
->>
-Rule 12 (x and y must have the same dtype)
-{x : tensor, y : tensor} |= dtype_(x) = dtype_(y)
->>
-Rule 19 (x's dtype must be one of bfloat16(16), half(23), float32(7), float64(8), int32(3), int64(4), complex64(10), complex128(11))
-{v_1 : tensor} |= dtype_(v_1) = 16 ∨ dtype_(v_1) = 23 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
->>
-Rule 20 (x and y must have compatible shapes for broadcasting)
-{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1
->>
-Rule 21 (If x is complex64, y must also be complex64.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 10
->>
-Rule 22 (If x is complex128, y must also be complex128.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 11 then dtype_(v_2) = 11
->>
-Rule 23 (Number of dimensions must be less than or equal to 8 to avoid performance issues with broadcasting)
-{v_1 : tensor} |= ndim(v_1) ≤ 8
->>
-Rule 31 (If the number of dimension of x is more than 1, all the dimensions should be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) > 1 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 34 (x and y must have the same rank/number of dimensions)
+Rule 8 (Number of dimensions of x must be equal to number of dimensions of y)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 35 (Shapes of x and y are equal if they have the same rank)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 9 (x and y must have compatible shapes for broadcasting)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ ndim(v_2) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, ndim(v_1) - ndim(v_2) + i) ∨ shape(v_2, i) = 1) ∨ (ndim(v_2) ≥ ndim(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, ndim(v_2) - ndim(v_1) + i) ∨ shape(v_1, i) = 1)
 >>
-Rule 36 (Complex tensors require the same complex type)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 10 else if dtype_(v_1) = 11 then dtype_(v_2) = 11
+Rule 11 (If x is int32 or int64, y must also be int32 or int64)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
 >>
-Rule 37 (Rank needs to be less or equal to 5)
-{v_1 : tensor} |= ndim(v_1) <= 5
+Rule 12 (If x is complex64 or complex128, y must also be complex64 or complex128)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
 >>
-Rule 38 (If x has a dimension of size zero, so must y at the same index)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : if shape(v_1, i) = 0 then shape(v_2, i) = 0
+Rule 16 (x must be bfloat16, half, float32, float64, int32, int64, complex64, or complex128)
+{v_1 : tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)
 >>
-Rule 39 (If y has a dimension of size zero, so must x at the same index)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : if shape(v_2, i) = 0 then shape(v_1, i) = 0
+Rule 17 (x and y's dtypes must be both real or both complex)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) < 9 ∧ dtype_(v_2) < 9) ∨ (dtype_(v_1) ≥ 9 ∧ dtype_(v_2) ≥ 9)
 >>
-Rule 45 (The shapes must be broadcastable)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1
+Rule 18 (if x is of type bfloat16 or half, then y must be of type bfloat16 or half as well)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7
 >>
-Rule 46 (x and y's dtypes must be valid)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 16 ∨ dtype_(v_1) = 23 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (dtype_(v_2) = 16 ∨ dtype_(v_2) = 23 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11)
+Rule 22 (x and y must have the same rank if broadcasting is not used)
+{v_1: tensor, v_2: tensor} |= (ndim(v_1) = ndim(v_2))
 >>
-Rule 49 (Number of dimensions should be less or equal to 6, to be reasonable)
-{v_1 : tensor} |= ndim(v_1) <= 6
+Rule 24 (If x is int32, y cannot be complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 3 then dtype_(v_2) < 9
 >>
-Rule 50 (Ensure broadcasting occurs correctly, even if ranks are unequal)
-{v_1 : tensor, v_2 : tensor} |=  ∃i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (if ndim(v_1) - i - 1 ≥ 0 then shape(v_1, ndim(v_1) - i - 1) = 1 ∨ (if ndim(v_2) - i - 1 ≥ 0 then shape(v_2, ndim(v_2) - i - 1) = 1 else false) else false) ∨ (if ndim(v_2) - i - 1 ≥ 0 then shape(v_2, ndim(v_2) - i - 1) = 1 ∨ (if ndim(v_1) - i - 1 ≥ 0 then shape(v_1, ndim(v_1) - i - 1) = 1 else false) else false)
+Rule 25 (If x is int64, y cannot be complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 4 then dtype_(v_2) < 9
 >>
-Rule 51 (If y's shape at a given dimension is 1, x's shape at same dimension must not be zero)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_2)-1] : if shape(v_2,i) = 1 then shape(v_1, i) ≠ 0
+Rule 26 (if x is complex64, y must be complex64)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 then dtype_(v_2) = 9
 >>
-Rule 53 (If x is an integer type, y must also be an integer type and vice versa)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) then (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) else if (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) then (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
+Rule 27 (if x is complex128, y must be complex128)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 10
 >>
-Rule 56 (Ensure broadcasting occurs correctly, even if ranks are unequal)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then  ∃i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (if ndim(v_1) - i - 1 ≥ 0 then shape(v_1, ndim(v_1) - i - 1) = 1 ∨ (if ndim(v_2) - i - 1 ≥ 0 then shape(v_2, ndim(v_2) - i - 1) = 1 else false) else false) ∨ (if ndim(v_2) - i - 1 ≥ 0 then shape(v_2, ndim(v_2) - i - 1) = 1 ∨ (if ndim(v_1) - i - 1 ≥ 0 then shape(v_1, ndim(v_1) - i - 1) = 1 else false) else false)
+Rule 30 (If broadcasting, at least one tensor must have ndim > 0)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∨ ndim(v_2) > 0
+>>
+Rule 31 (if x is float16, y cannot be complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) < 9
+>>
+Rule 32 (if x is float32, y cannot be complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) < 9
+>>
+Rule 33 (y must be bfloat16, half, float32, float64, int32, int64, complex64, or complex128)
+{v_2 : tensor} |= (dtype_(v_2) = 6) ∨ (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8) ∨ (dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4) ∨ (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10)
+>>
+Rule 36 (x and y's dtypes must be both integer, both float or both complex)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) < 5 ∧ dtype_(v_2) < 5) ∨ (5 < dtype_(v_1) ∧ dtype_(v_1) < 9 ∧ 5 < dtype_(v_2) ∧ dtype_(v_2) < 9) ∨ (dtype_(v_1) > 8 ∧ dtype_(v_2) > 8)
+>>
+Rule 38 (if x is bfloat16, y must be bfloat16)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6
+>>
+Rule 39 (if x is half, y must be half)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7
+>>
+Rule 40 (if x is int32, y must be int32)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 3 then dtype_(v_2) = 3
+>>
+Rule 41 (if x is int64, y must be int64)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 4 then dtype_(v_2) = 4
+>>
+Rule 43 (if x is float32, y must be float32)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = 8
+>>
+Rule 44 (if x is float64, y must be float64)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 5 then dtype_(v_2) = 5
+>>
+Rule 45 (x and y must have compatible shapes based on broadcasting rules)
+{v_1 : tensor, v_2 : tensor} |=  (ndim(v_1) ≥ ndim(v_2) ∧ ∀i ∈ [0, ndim(v_2) - 1] : (shape(v_2, i) = shape(v_1, ndim(v_1) - ndim(v_2) + i)) ∨ (shape(v_2, i) = 1)) ∨ (ndim(v_2) ≥ ndim(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, ndim(v_2) - ndim(v_1) + i)) ∨ (shape(v_1, i) = 1))
+>>
+Rule 100 (x and y are both bfloat16, half, float32, float64, int32, int64, complex64, or complex128 and of same type)
+{v_1 : tensor, v_2 : tensor} |= ((dtype_(v_1) = 6 ∧ dtype_(v_2) = 6) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 8) ∨ (dtype_(v_1) = 3 ∧ dtype_(v_2) = 3) ∨ (dtype_(v_1) = 4 ∧ dtype_(v_2) = 4) ∨ (dtype_(v_1) = 9 ∧ dtype_(v_2) = 9) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_2) = 10))

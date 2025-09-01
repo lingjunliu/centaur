@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check if the minimum and maximum values of the tensor are finite. (Rule 38)
+# If the min and max values of the tensor are the same, then the values must be a valid number (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_range"], 0) > -1e15, Select(v["arg1_range"], 1) < 1e15)) if n else
-          And(Select(v["arg1_range"], 0) > -1e15, Select(v["arg1_range"], 1) < 1e15))
+    s.add(Not(If(Select(v["arg1_range"], 0) == Select(v["arg1_range"], 1), Select(v["arg1_range"], 0) == Select(v["arg1_range"], 0), True)) if n else
+          If(Select(v["arg1_range"], 0) == Select(v["arg1_range"], 1), Select(v["arg1_range"], 0) == Select(v["arg1_range"], 0), True))
 )
 
 def rule_38_func(arg1, solver=None, neg=False):

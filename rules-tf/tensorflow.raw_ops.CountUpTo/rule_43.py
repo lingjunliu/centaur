@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# ref can hold the value of limit (Rule 43)
+# the limit should be a valid integer based on the ref's datatype, preventing overflow during increment (Rule 43)
 
 rule_43 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 3, v["arg2_value"] <= 2147483647, v["arg2_value"] <= 9223372036854775807)) if n else
-          If(v["arg1_dtype"] == 3, v["arg2_value"] <= 2147483647, v["arg2_value"] <= 9223372036854775807))
+    s.add(Not(Or((And(v["arg1_dtype"] == 2, v["arg2_value"] < 2147483647)), (And(v["arg1_dtype"] == 3, v["arg2_value"] < 9223372036854775807)))) if n else
+          Or((And(v["arg1_dtype"] == 2, v["arg2_value"] < 2147483647)), (And(v["arg1_dtype"] == 3, v["arg2_value"] < 9223372036854775807))))
 )
 
 def rule_43_func(arg1, arg2, solver=None, neg=False):

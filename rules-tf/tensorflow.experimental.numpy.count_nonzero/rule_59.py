@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If ndim of the tensor is zero, then dtype has to be int or float (Rule 59)
+# if the data type of tensor is boolean, then number of dimensions should not be very large (Rule 59)
 
 rule_59 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 0, Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), False)) if n else
-          If(v["arg1_ndim"] == 0, Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), False))
+    s.add(Not(If(v["arg1_dtype"] == 0, v["arg1_ndim"] < 15, True)) if n else
+          If(v["arg1_dtype"] == 0, v["arg1_ndim"] < 15, True))
 )
 
 def rule_59_func(arg1, solver=None, neg=False):
@@ -30,9 +30,9 @@ def rule_59_func(arg1, solver=None, neg=False):
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 59
-        rule_59(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim})
+        rule_59(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_59(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_59(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# check if max value of tensor is less than the constant value (Rule 23)
+# If dtype is specified, its string representation must be a valid TF or numpy dtype (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 1) < v["arg2_value"]) if n else
-          Select(v["arg1_range"], 1) < v["arg2_value"])
+    s.add(Not(If(v["arg2_value"] != 12, True, (Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 1), v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)))) if n else
+          If(v["arg2_value"] != 12, True, (Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 1), v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10))))
 )
 
 def rule_23_func(arg1, arg2, solver=None, neg=False):
@@ -20,23 +20,22 @@ def rule_23_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
         arg2_value = Int('arg2_value')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
 
         # Constraints for rule 23
-        rule_23(solver, {'arg1_range': arg1_range, 'arg2_value': arg2_value})
+        rule_23(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_23(solver, {'arg1_range': arg1['range'], 'arg2_value': arg2['value']}, neg)
+        rule_23(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

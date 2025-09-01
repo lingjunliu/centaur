@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The size of the last dimension of image must be None, 1 or 3. Since None is not supported with this DSL, only check if it is 1 or 3. (Rule 3)
+# image must have 1 or 3 channels in last dimension (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
     s.add(Not(Or(Select(v["arg1_shape"], 2) == 1, Select(v["arg1_shape"], 2) == 3)) if n else

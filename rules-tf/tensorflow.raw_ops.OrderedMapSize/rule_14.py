@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# capacity and memory limit must be different (Rule 14)
+# capacity and memory_limit interaction (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != v["arg2_value"]) if n else
-          v["arg1_value"] != v["arg2_value"])
+    s.add(Not(If(v["arg1_value"] > 0, v["arg2_value"] >= 0, True)) if n else
+          If(v["arg1_value"] > 0, v["arg2_value"] >= 0, True))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):

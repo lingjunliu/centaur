@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The input tensor must have at least one dimension if axis is not None. (Rule 4)
+# keepdims must be a boolean. (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] != -42, v["arg1_ndim"] > 0, False)) if n else
-          If(v["arg2_value"] != -42, v["arg1_ndim"] > 0, False))
+    s.add(Not(Or(v["arg2_value"] == True, v["arg2_value"] == False)) if n else
+          Or(v["arg2_value"] == True, v["arg2_value"] == False))
 )
 
 def rule_4_func(arg1, arg2, solver=None, neg=False):
@@ -20,22 +20,20 @@ def rule_4_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_value = Int('arg2_value')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 4
-        rule_4(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_4(solver, {'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_4(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)
+        rule_4(solver, {'arg2_value': arg2['value']}, neg)

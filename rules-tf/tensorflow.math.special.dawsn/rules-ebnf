@@ -1,105 +1,180 @@
 >>
-Rule 1 (Input tensor must be of type float32 or float64)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 1 (x must be float32 or float64 to avoid InvalidArgumentError)
+{x : tensor} |= dtype_(x) = 7 ∨ dtype_(x) = 8
 >>
-Rule 2 (The shape of the output tensor is the same as the input tensor)
-{v_1 : tensor} |= shape(v_1) = shape(v_1)
+Rule 5 (x's dtype must be float32 or float64)
+{x : tensor} |= dtype_(x) = 8 ∨ dtype_(x) = 7
 >>
-Rule 4 (Input tensor must be a real number)
-{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Rule 6 (The rank of input x must be greater than or equal to 0)
+{x : tensor} |= ndim(x) ≥ 0
 >>
-Rule 7 (The input tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 7 (Check if the tensor x's element is finite.)
+{x : tensor} |= ∀i ∈ [0, shape(x,0) -1] : min(x) > -1000000000 ∧ max(x) < 1000000000
 >>
-Rule 8 (If min of tensor is less than max of tensor)
-{v_1 : tensor} |= min(v_1) ≤ max(v_1)
+Rule 9 (The shape of the tensor x must be defined)
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
 >>
-Rule 10 (The min of the tensor must be a number)
-{v_1 : tensor} |= min(v_1) = min(v_1)
+Rule 10 (Name must be a valid string)
+{name: str} |= name = "none" ∨ name = "sum" ∨ name = "max" ∨ name = "min" ∨ name = "prod" ∨ name = "relu" ∨ name = "tanh" ∨ name = "sigmoid" ∨ name = "softmax" ∨ name = "elu" ∨ name = "selu" ∨ name = "gelu" ∨ name = "swish" ∨ name = "softplus" ∨ name = "linear" ∨ name = "valid" ∨ name = "same" ∨ name = "causal" ∨ name = "channels_last" ∨ name = "channels_first"
 >>
-Rule 11 (Shape of input tensor must be greater than 0)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 11 (x's dtype must be float32 or float64)
+{x : tensor} |= if dtype_(x) = 7 then true else if dtype_(x) = 8 then true else false
 >>
-Rule 12 (The ndim of tensor must be less than or equal to 5)
-{v_1 : tensor} |= ndim(v_1) ≤ 5
+Rule 12 (Check for NaN values in tensor x)
+{x : tensor} |= ∃i ∈ [0, ndim(x) - 1] : min(x) ≠ "NaN" ∧ max(x) ≠ "NaN"
 >>
-Rule 14 (The shape of input tensor must be defined)
-{v_1 : tensor} |= shape(v_1) ≠ shape(v_1) + 1
+Rule 13 (If x is float32, it should be in a reasonable range to prevent overflow during computation)
+{x : tensor} |= if dtype_(x) = 7 then min(x) > -1000 ∧ max(x) < 1000
 >>
-Rule 15 (The ndim of the input tensor must be greater than 0)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 15 (Check if x is a finite tensor)
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x,i) -1] : (x[j] > -1000000 ∧ x[j] < 1000000)
 >>
-Rule 22 (Tensor values must be finite)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : min(v_1) < 10000000000 ∧ max(v_1) > -10000000000
+Rule 16 (If dtype is float32 check that the maximum absolute value is under 1000)
+{x : tensor} |= if dtype_(x) = 7 then max(x) < 1000 ∧ min(x) > -1000
 >>
-Rule 26 (Tensor values are not NaN)
-{v_1 : tensor} |= min(v_1) = min(v_1) ∧ max(v_1) = max(v_1)
+Rule 18 (Check if x has non-inf values when dtype is float64)
+{x : tensor} |= if dtype_(x) = 8 then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1] : x[j] ≠ "inf" ∧ x[j] ≠ "-inf"
 >>
-Rule 27 (If ndim is 1 then shape must be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 0
+Rule 19 (The tensor x must have a rank between 0 and 5)
+{x : tensor} |= ndim(x) ≥ 0 ∧ ndim(x) ≤ 5
 >>
-Rule 28 (The input tensor's elements should be within a reasonable range)
-{v_1 : tensor} |= ∀x ∈ [min(v_1), max(v_1)] : x > -1000 ∧ x < 1000
+Rule 21 (If x's dtype is float16, it will cause NotFoundError)
+{x : tensor} |= dtype_(x) ≠ 6
 >>
-Rule 30 (The tensor should have a valid shape)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 22 (x can not be complex64 or complex128 )
+{x : tensor} |= dtype_(x) ≠ 9 ∧ dtype_(x) ≠ 10
 >>
-Rule 31 (If tensor has a dimension, the dimension must be a number)
-{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) = shape(v_1, 0)
+Rule 24 (Enforce x to have a valid shape to prevent runtime errors)
+{x : tensor} |= ndim(x) > 0 ∧ ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
 >>
-Rule 34 (The tensor cannot have inf values)
-{v_1 : tensor} |= max(v_1) ≠ 10000000000 ∧ min(v_1) ≠ -10000000000
+Rule 25 (If the data type of x is float32 or float64, it cannot contain NaN values)
+{x : tensor} |= if dtype_(x) = 7 ∨ dtype_(x) = 8 then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1] : x[j] ≠ "NaN"
 >>
-Rule 35 (The tensor dtype must be defined)
-{v_1 : tensor} |= dtype_(v_1) = dtype_(v_1)
+Rule 27 (x's elements should not be too large to avoid overflow)
+{x : tensor} |= max(x) < 1000000 ∧ min(x) > -1000000
 >>
-Rule 36 (Shape of a tensor must be positive)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+Rule 32 (x must be of type float32, float64, bfloat16, or half to avoid InvalidArgumentError)
+{x : tensor} |= dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 0 ∨ dtype_(x) = 6
 >>
-Rule 42 (The tensor can only have values that float can represent)
-{v_1 : tensor} |= min(v_1) > -3.4028235e38 ∧ max(v_1) < 3.4028235e38
+Rule 33 (Name must be a string with a limited set of allowed values or no value at all)
+{name : str} |= name = "none" ∨ name = "sum" ∨ name = "max" ∨ name = "min" ∨ name = "prod" ∨ name = "relu" ∨ name = "tanh" ∨ name = "sigmoid" ∨ name = "softmax" ∨ name = "elu" ∨ name = "selu" ∨ name = "gelu" ∨ name = "swish" ∨ name = "softplus" ∨ name = "linear" ∨ name = "valid" ∨ name = "same" ∨ name = "causal" ∨ name = "channels_last" ∨ name = "channels_first" ∨ name = ""
 >>
-Rule 44 (The input tensor's elements should be real numbers)
-{v_1 : tensor} |= ∃x ∈ [min(v_1), max(v_1)] : true
+Rule 34 (The elements in tensor x shouldn't be extremely large or small to prevent overflow.)
+{x : tensor} |= min(x) > -10000000 ∧ max(x) < 10000000
 >>
-Rule 47 (The shape must have non-negative dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 35 (x must be of a valid dtype to prevent InvalidArgumentError)
+{x : tensor} |= dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 6 ∨ dtype_(x) = 0
 >>
-Rule 52 (The ndim of input tensor cannot be greater than 8)
-{v_1 : tensor} |= ndim(v_1) ≤ 8
+Rule 37 (x must have a limited rank to prevent memory explosion)
+{x : tensor} |= ndim(x) < 6
 >>
-Rule 54 (The values of the tensor cannot be infinite)
-{v_1 : tensor} |= max(v_1) < 10000000000 ∧ min(v_1) > -10000000000
+Rule 39 (Ensure that x's values are within acceptable bounds.)
+{x : tensor} |= min(x) > -1e9 ∧ max(x) < 1e9
 >>
-Rule 55 (The dtype of input tensor must be a known dtype.)
-{v_1 : tensor} |= dtype_(v_1) ≠ 12
+Rule 40 (Ensure the shape of the tensor is valid)
+{x : tensor} |= ndim(x) ≥ 0 ∧ ∀i ∈ [0, if ndim(x) > 0 then ndim(x)-1 else 0] : shape(x,i) > 0
 >>
-Rule 56 (The tensor has a dimension)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1)-1] : true
+Rule 42 (x shouldn't have inf or nan values to avoid undefined behavior)
+{x : tensor} |= ∃i ∈ [0, ndim(x)-1]: ∃j ∈ [0, shape(x, i)-1]: x[j] ≠ "inf" ∧ x[j] ≠ "-inf" ∧ x[j] ≠ "NaN"
 >>
-Rule 60 (if the tensor's rank is zero, it can only have one value)
-{v_1 : tensor} |= if ndim(v_1) = 0 then shape(v_1, 0) = 1
+Rule 43 (x must have a reasonable range of values)
+{x : tensor} |= min(x) > -10000 ∧ max(x) < 10000
 >>
-Rule 62 (If tensor has a dimension, the size of the dimension should be limited)
-{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) < 1000
+Rule 45 (If x's dtype is half, NotFoundError can occur)
+{x : tensor} |= if dtype_(x) = 6 then ∃i ∈ [0, ndim(x)-1]: shape(x, i) = 0
 >>
-Rule 63 (The absolute value of all tensor elements must be less than or equal to 1000)
-{v_1 : tensor} |= ∀x ∈ [min(v_1), max(v_1)] : x ≥ -1000 ∧ x ≤ 1000
+Rule 48 (To prevent NaN or Inf from appearing during calculations, ensure the input tensor doesn't contain them.)
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1] : (x[j] < 1000000000000.0 ∧ x[j] > -1000000000000.0)
 >>
-Rule 66 (The tensor values are finite)
-{v_1 : tensor} |= ∀x ∈ [min(v_1), max(v_1)] : x = x
+Rule 49 (Shape should not cause integer overflow when Dawson integral is calculated)
+{x: tensor} |= ndim(x) < 5
 >>
-Rule 67 (Tensor size should not exceed a limit to prevent OOM errors)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2048
+Rule 51 (If x's dtype is half, ensure that shape is not too large due to NotFoundError on some platforms.)
+{x : tensor} |= if dtype_(x) = 6 then ndim(x) < 4 ∧ ∀i ∈ [0, ndim(x) -1]: shape(x, i) < 1000
 >>
-Rule 71 (The tensor's shape should have valid values)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, i)
+Rule 52 (x must have values representable within the chosen precision (float32 or float64).)
+{x : tensor} |= min(x) > -3.4028235e38 ∧ max(x) < 3.4028235e38
 >>
-Rule 76 (All shapes must be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+Rule 55 (Check x does not contain inf, -inf or nan for stable results.)
+{x : tensor} |= ∃i ∈ [0, ndim(x) - 1] : ∃j ∈ [0, shape(x, i) - 1] : (x[j] > -3.4028235e38 ∧ x[j] < 3.4028235e38)
 >>
-Rule 79 (The tensor's shape cannot be empty)
-{v_1 : tensor} |= ndim(v_1) > -1
+Rule 60 (Limit shape size if dtype=half to avoid NotFoundError in some devices)
+{x : tensor} |= if dtype_(x) = 6 then shape(x,0) < 2048
 >>
-Rule 80 (If the tensor has any dimension, the size should be reasonable to avoid very large memory consumption)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 4096
+Rule 61 (Values need to be finite to avoid unstable behavior during calculations)
+{x : tensor} |= ∃i ∈ [0, ndim(x) - 1] : ∃j ∈ [0, shape(x, i) - 1] : (x[j] ≠ "inf" ∧ x[j] ≠ "-inf" ∧ x[j] ≠ "NaN")
+>>
+Rule 63 (If the tensor is of half type then its elements should not be very large so that underflow/overflow does not occur)
+{x : tensor} |= if dtype_(x) = 6 then min(x) > -65500 ∧ max(x) < 65500
+>>
+Rule 64 (The input values must be finite)
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1] : (x[j] ≠ "inf" ∧ x[j] ≠ "-inf" ∧ x[j] ≠ "NaN")
+>>
+Rule 66 (If the tensor is of half type, limit size of the tensor due to some device limitations related to NotFoundError)
+{x: tensor} |= if dtype_(x) = 6 then shape(x,0) < 2048
+>>
+Rule 67 (x can't contain NaN or Inf to ensure stable results.)
+{x : tensor} |= if dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 0 ∨ dtype_(x) = 6 then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1] : (x[j] ≠ "inf" ∧ x[j] ≠ "-inf" ∧ x[j] ≠ "NaN")
+>>
+Rule 69 (If data type is float16 (half) then ensure that tensor dimension is reasonable to avoid "NotFoundError" due to device limitation)
+{x : tensor} |= if dtype_(x) = 6 then ndim(x) < 5
+>>
+Rule 70 (Dawson's integral requires finite inputs. Ensure that x doesn't contain INF or NaN values)
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1] : (x[j] < 3.4028234663852886e+38 ∧ x[j] > -3.4028234663852886e+38)
+>>
+Rule 72 (For float16, limit the number of elements because smaller tensors are better supported on some platforms)
+{x : tensor} |= if dtype_(x) = 6 then ∀i ∈ [0, ndim(x)-1]: shape(x, i) < 4096
+>>
+Rule 73 (The input tensor x must not contain inf or NaN values to guarantee a stable calculation)
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1] : (x[j] > -340282346638528859811704183484516377600.0 ∧ x[j] < 340282346638528859811704183484516377600.0)
+>>
+Rule 76 (The input `x` must have reasonable values to ensure that the output will also be reasonable.)
+{x : tensor} |= min(x) > -34028234663852885981170418348451637760.0 ∧ max(x) < 34028234663852885981170418348451637760.0
+>>
+Rule 78 (If the dtype of x is half then ensure the product of its shape dimensions is less than 1 million to avoid `NotFoundError`.)
+{x: tensor} |= if dtype_(x) = 6 then shape(x, 0) < 1000000
+>>
+Rule 79 (Ensure x has finite values to avoid `NaN` results.)
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1] : (x[j] > -34028234663852885981170418348451637760.0 ∧ x[j] < 34028234663852885981170418348451637760.0)
+>>
+Rule 81 (To mitigate `NotFoundError` issues when operating on half-precision tensors, limit the size of x.)
+{x : tensor} |= if dtype_(x) = 6 then shape(x, 0) < 4096
+>>
+Rule 82 (Ensure that input 'x' doesn't contain `NaN` or `Inf` values for predictable and stable results.)
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1] : (x[j] < 34028234663852885981170418348451637760.0 ∧ x[j] > -34028234663852885981170418348451637760.0)
+>>
+Rule 87 (limit number of elements of `x` if dtype is half)
+{x : tensor} |= if dtype_(x) = 6 then shape(x,0) < 524288
+>>
+Rule 90 (If the input is `float16`, limit total elements in the tensor to avoid potential `NotFoundError`.)
+{x : tensor} |= if dtype_(x) = 6 then (∀i ∈ [0, ndim(x)-1]: shape(x, i) < 2048)
+>>
+Rule 91 (Check that 'x' is finite in every element to prevent potential NaN or infinite results during calculations)
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1] : x[j] > -3.4028235e38 ∧ x[j] < 3.4028235e38
+>>
+Rule 93 (For `float16` (half) tensors, limit the maximum dimension size to avoid `NotFoundError` issues on some devices)
+{x : tensor} |= if dtype_(x) = 6 then shape(x,0) < 4096
+>>
+Rule 94 (The input tensor must not contain infinite or NaN elements to ensure stable computation.)
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1] : x[j] ≠ "inf" ∧ x[j] ≠ "-inf" ∧ x[j] ≠ "NaN"
+>>
+Rule 96 (If using half-precision, keep the shape small to avoid device limitations and NotFoundError)
+{x : tensor} |= if dtype_(x) = 6 then (∃d ∈ [0, ndim(x)-1]: shape(x, d) < 2048)
+>>
+Rule 103 (The input tensor must not contain any infinite or NaN values)
+{x : tensor} |= ∃i ∈ [0, ndim(x)-1] : ∃j ∈ [0, shape(x, i)-1]: x[j] ≠ "inf" ∧ x[j] ≠ "-inf" ∧ x[j] ≠ "NaN"
+>>
+Rule 106 (Enforce finite values for stable calculations)
+{x: tensor} |= (min(x) ≠ "inf") ∧ (max(x) ≠ "inf") ∧ (min(x) ≠ "-inf") ∧ (max(x) ≠ "-inf") ∧ (min(x) ≠ "NaN") ∧ (max(x) ≠ "NaN")
+>>
+Rule 108 (Avoid half dtype if number of element more than 2^20 for device compatibility)
+{x : tensor} |= if dtype_(x) = 6 then ∃i ∈ [0, ndim(x)-1]: shape(x, i) < 1048576
+>>
+Rule 111 (Limit total elements in half tensors to avoid NotFoundError related to device limitations)
+{x : tensor} |= if dtype_(x) = 6 then (∃i ∈ [0, ndim(x)-1] : shape(x, i) < 2048)
+>>
+Rule 112 (The values in x must be of a reasonable size for stable calculations.)
+{x: tensor} |= min(x) > -3.4028235e+38 ∧ max(x) < 3.4028235e+38
+>>
+Rule 115 (Ensure input tensor `x` has finite values.)
+{x: tensor} |= ∀i ∈ [0, ndim(x)-1] : ∀j ∈ [0, shape(x,i)-1] : x[j] > -3.4028235e+38 ∧ x[j] < 3.4028235e+38

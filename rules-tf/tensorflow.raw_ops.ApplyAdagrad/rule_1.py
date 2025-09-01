@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# var, accum, lr, and grad must have the same type (Rule 1)
+# var, accum, lr, and grad must have the same data type (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
     s.add(Not(And(And(v["arg1_dtype"] == v["arg2_dtype"], v["arg1_dtype"] == v["arg3_dtype"]), v["arg1_dtype"] == v["arg4_dtype"])) if n else

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The number of elements in tags should be greater than zero (Rule 8)
+# values' dtype must be a bfloat16, uint16, half, uint32, uint64 if tf version >=2.13 (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) > 0) if n else
-          Select(v["arg1_shape"], 0) > 0)
+    s.add(Not(If(Or([And(v_1 < (1000 + 1), v_1 > 212) for v_1 in range(6)]), Or(Or(Or(Or(v["arg1_dtype"] == 13, v["arg1_dtype"] == 14), v["arg1_dtype"] == 15), v["arg1_dtype"] == 16), v["arg1_dtype"] == 17), True)) if n else
+          If(Or([And(v_1 < (1000 + 1), v_1 > 212) for v_1 in range(6)]), Or(Or(Or(Or(v["arg1_dtype"] == 13, v["arg1_dtype"] == 14), v["arg1_dtype"] == 15), v["arg1_dtype"] == 16), v["arg1_dtype"] == 17), True))
 )
 
 def rule_8_func(arg1, solver=None, neg=False):
@@ -22,16 +22,15 @@ def rule_8_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 8
-        rule_8(solver, {'arg1_shape': arg1_shape})
+        rule_8(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_8(solver, {'arg1_shape': arg1['shape']}, neg)
+        rule_8(solver, {'arg1_dtype': arg1['dtype']}, neg)

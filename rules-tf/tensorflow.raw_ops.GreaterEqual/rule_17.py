@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If one tensor's datatype is float32, the other should also be float32 (Rule 17)
+# If x is scalar then y must be scalar or shape of y must be 1. (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, False)) if n else
-          If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, False))
+    s.add(Not(If(v["arg1_ndim"] == 0, (Or(v["arg2_ndim"] == 0, (And(v["arg2_ndim"] > 0, (And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) == 1) for i in range(6)])))))), True)) if n else
+          If(v["arg1_ndim"] == 0, (Or(v["arg2_ndim"] == 0, (And(v["arg2_ndim"] > 0, (And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) == 1) for i in range(6)])))))), True))
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):
@@ -25,17 +25,20 @@ def rule_17_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_ndim = Int('arg2_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 17
-        rule_17(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_17(solver, {'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_17(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_17(solver, {'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']}, neg)

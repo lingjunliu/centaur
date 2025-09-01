@@ -5,64 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If use_locking is true, then shapes of all tensors must be the same (Rule 42)
+# l1 and var must have the same dtype (Rule 42)
 
 rule_42 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, (And(And(And(v["arg2_ndim"] == v["arg3_ndim"], v["arg2_ndim"] == v["arg4_ndim"]), v["arg2_ndim"] == v["arg5_ndim"]), (And([Implies(i < (v["arg2_ndim"] - 1 + 1), And(And(Select(v["arg2_shape"], i) == Select(v["arg3_shape"], i), Select(v["arg2_shape"], i) == Select(v["arg4_shape"], i)), Select(v["arg2_shape"], i) == Select(v["arg5_shape"], i))) for i in range(6)])))), False)) if n else
-          If(v["arg1_value"] == True, (And(And(And(v["arg2_ndim"] == v["arg3_ndim"], v["arg2_ndim"] == v["arg4_ndim"]), v["arg2_ndim"] == v["arg5_ndim"]), (And([Implies(i < (v["arg2_ndim"] - 1 + 1), And(And(Select(v["arg2_shape"], i) == Select(v["arg3_shape"], i), Select(v["arg2_shape"], i) == Select(v["arg4_shape"], i)), Select(v["arg2_shape"], i) == Select(v["arg5_shape"], i))) for i in range(6)])))), False))
+    s.add(Not(v["arg2_dtype"] == v["arg1_dtype"]) if n else
+          v["arg2_dtype"] == v["arg1_dtype"])
 )
 
-def rule_42_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
+def rule_42_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
-    arg4 = next(iter(arg4.values()))
-    arg5 = next(iter(arg5.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not isinstance(arg1, np.ndarray):
             return False
         if not isinstance(arg2, np.ndarray):
-            return False
-        if not isinstance(arg3, np.ndarray):
-            return False
-        if not isinstance(arg4, np.ndarray):
-            return False
-        if not isinstance(arg5, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_ndim = Int('arg2_ndim')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
-        arg3_ndim = Int('arg3_ndim')
-        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
-        arg4_ndim = Int('arg4_ndim')
-        arg4_shape = Array('arg4_shape', IntSort(), IntSort())
-        arg5_ndim = Int('arg5_ndim')
-        arg5_shape = Array('arg5_shape', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_ndim == arg2.ndim)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
-        solver.add(arg3_ndim == arg3.ndim)
-        for i in range(arg3.ndim):
-            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
-        solver.add(arg4_ndim == arg4.ndim)
-        for i in range(arg4.ndim):
-            arg4_shape = Store(arg4_shape, i, arg4.shape[i])
-        solver.add(arg5_ndim == arg5.ndim)
-        for i in range(arg5.ndim):
-            arg5_shape = Store(arg5_shape, i, arg5.shape[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 42
-        rule_42(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_shape': arg3_shape, 'arg3_ndim': arg3_ndim, 'arg4_shape': arg4_shape, 'arg4_ndim': arg4_ndim, 'arg5_shape': arg5_shape, 'arg5_ndim': arg5_ndim})
+        rule_42(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_42(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_shape': arg3['shape'], 'arg3_ndim': arg3['ndim'], 'arg4_shape': arg4['shape'], 'arg4_ndim': arg4['ndim'], 'arg5_shape': arg5['shape'], 'arg5_ndim': arg5['ndim']}, neg)
+        rule_42(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

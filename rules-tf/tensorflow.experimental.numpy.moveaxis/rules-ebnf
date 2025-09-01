@@ -1,66 +1,243 @@
 >>
-Rule 2 (The source and destination axes should not be the same)
-{v_1 : int, v_2 : int} |= v_1 ≠ v_2
+Rule 4 (input tensor must have at least one dimension to allow moveaxis)
+{a : tensor} |= ndim(a) ≥ 1
 >>
-Rule 4 (If source and destination are lists, their lengths must match)
-{v_1 : list(int), v_2 : list(int)} |= v_1.len = v_2.len
+Rule 6 (source and destination cannot be the same, avoiding no move)
+{a : tensor, source : int, destination : int} |= source ≠ destination
 >>
-Rule 6 (If the source is a list of int, then each element should be int)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : true
+Rule 10 (If source is negative, it's the same as ndim(a) + source)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then v_2 + ndim(v_1) ≥ 0
 >>
-Rule 7 (source and destination axes must be within the valid range based on the number of dimensions of the input tensor)
+Rule 11 (If destination is negative, it's the same as ndim(a) + destination)
+{v_1 : tensor, v_3 : int} |= if v_3 < 0 then v_3 + ndim(v_1) ≥ 0
+>>
+Rule 12 (source should be within the valid range of axes for the input tensor)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+>>
+Rule 13 (destination should be within the valid range of axes for the input tensor)
+{v_1 : tensor, v_3 : int} |= v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
+>>
+Rule 14 (source and destination should be different)
+{v_2 : int, v_3 : int} |= v_2 ≠ v_3
+>>
+Rule 19 (source and destination should be different if ndim > 1)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) > 1 then v_2 ≠ v_3
+>>
+Rule 20 (If source is negative, it must be a valid index)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then v_2 + ndim(v_1) ≥ (0 - ndim(v_1))
+>>
+Rule 21 (If destination is negative, it must be a valid index)
+{v_1 : tensor, v_3 : int} |= if v_3 < 0 then v_3 + ndim(v_1) ≥ (0-ndim(v_1))
+>>
+Rule 25 (Absolute value of source should be less than the number of dimensions)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then (0 - v_2) ≤ ndim(v_1) else v_2 < ndim(v_1)
+>>
+Rule 26 (Absolute value of destination should be less than the number of dimensions)
+{v_1 : tensor, v_3 : int} |= if v_3 < 0 then (0-v_3) ≤ ndim(v_1) else v_3 < ndim(v_1)
+>>
+Rule 27 (Both source and destination should be valid axes)
 {v_1 : tensor, v_2 : int, v_3 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
 >>
-Rule 11 (If source and destination are tuples, their lengths must be equal)
-{v_1 : tuple(int), v_2 : tuple(int)} |= v_1.len = v_2.len
+Rule 29 (Destination must be a valid axis)
+{v_1 : tensor, v_3 : int} |=  v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
 >>
-Rule 14 (If source and destination are lists of ints, then each element in source and destination should be within dimension range of tensor)
-{v_1 : tensor, v_2 : list(int), v_3 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1) ∧ v_3[i] ≥ (0 - ndim(v_1)) ∧ v_3[i] < ndim(v_1)
+Rule 30 (if source < 0, then source + ndim(v_1) must be a valid positive axis)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then v_2 + ndim(v_1) ≥ 0 ∧ v_2 + ndim(v_1) < ndim(v_1)
 >>
-Rule 15 (If source is an int and destination is a tuple, the tuple's length should be 1)
-{v_1 : tuple(int)} |= v_1.len = 1
+Rule 31 (if destination < 0, then destination + ndim(v_1) must be a valid positive axis)
+{v_1 : tensor, v_3 : int} |= if v_3 < 0 then v_3 + ndim(v_1) ≥ 0 ∧ v_3 + ndim(v_1) < ndim(v_1)
 >>
-Rule 20 (if source and destination are list of ints, then the elements should be distinct )
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i+1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+Rule 32 (Source and destination should both be valid axes)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∧ (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1))
 >>
-Rule 22 (If source and destination are lists of ints, and v_2 has duplicate values, then ndim(v_1) should be greater than v_2.len)
-{v_1 : tensor, v_2 : list(int)} |= if (∃i ∈ [0, v_2.len - 1] : ∃j ∈ [i+1, v_2.len - 1] : v_2[i] = v_2[j]) then ndim(v_1) > v_2.len
+Rule 35 (tensor must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) >= 1
 >>
-Rule 23 (If source and destination are provided as sequence (list/tuple), no element can appear more than once)
-{v_1 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i+1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+Rule 36 (The tensor should not have any dimensions that are zero)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 24 (If source and destination are lists, they must have the same unique elements)
-{v_1 : list(int), v_2 : list(int)} |= (∀i ∈ [0, v_1.len - 1] : ∃j ∈ [0, v_2.len - 1] : v_1[i] = v_2[j]) ∧ (∀i ∈ [0, v_2.len - 1] : ∃j ∈ [0, v_1.len - 1] : v_2[i] = v_1[j]) ∧ (∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i+1, v_1.len - 1] : v_1[i] ≠ v_1[j]) ∧ (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j])
+Rule 37 (If the tensor has at least 1 dimension, both source and dest must be a valid axis.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) >= 1 then (v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_1))
 >>
-Rule 25 (The length of source (list/tuple) should be less than or equal to the number of dimensions of tensor)
-{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= v_2.len ≤ ndim(v_1)
+Rule 38 (if source < 0, then its absolute value should be less than the number of dimensions)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then 0 - v_2 <= ndim(v_1)
 >>
-Rule 26 (If source and destination are lists of int, then the sum of their absolute values should be less than twice the number of dimensions)
-{v_1 : tensor, v_2 : list(int), v_3 : list(int)} |= (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)) ∧ (∀i ∈ [0, v_3.len - 1] : v_3[i] ≥ (0 - ndim(v_1)) ∧ v_3[i] < ndim(v_1)) ∧ (∃i ∈ [0, ndim(v_1) -1]: true)
+Rule 39 (if destination < 0, then its absolute value should be less than the number of dimensions)
+{v_1 : tensor, v_3 : int} |= if v_3 < 0 then 0 - v_3 <= ndim(v_1)
 >>
-Rule 27 (If the dimensions are provided in list(int)/tuple(int) formats, they must be valid positive indices to dimensions of input tensor)
-{v_1: tensor, v_2: list(int) ⊎ tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ v_2[i] ≤ ndim(v_1)
+Rule 43 (if source is negative, converting it to positive should result in valid axis)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then v_2 + ndim(v_1) >= 0 ∧ v_2 + ndim(v_1) < ndim(v_1)
 >>
-Rule 28 (The destination list/tuple's length must be the same as the source list/tuple's length)
-{v_1 : list(int) ⊎ tuple(int), v_2 : list(int) ⊎ tuple(int)} |= v_1.len = v_2.len
+Rule 44 (if destination is negative, converting it to positive should result in valid axis)
+{v_1 : tensor, v_3 : int} |= if v_3 < 0 then v_3 + ndim(v_1) >= 0 ∧ v_3 + ndim(v_1) < ndim(v_1)
 >>
-Rule 29 (If source or dest is a tuple or list, the elements must all be integers)
-{v_1 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, v_1.len - 1]: true
+Rule 45 (Negative source and destination should be valid, even if originally negative)
+{v_1: tensor, v_2: int, v_3: int} |= if v_2 < 0 ∧ v_3 < 0 then (v_2 + ndim(v_1) >= 0 ∧ v_2 + ndim(v_1) < ndim(v_1) ∧ v_3 + ndim(v_1) >= 0 ∧ v_3 + ndim(v_1) < ndim(v_1))
 >>
-Rule 30 (If the source dimensions are provided as a list or tuple, ensure that no dimension is moved to the same position in the destination list/tuple.)
-{v_1 : list(int) ⊎ tuple(int), v_2 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ v_2[i]
+Rule 46 (if the tensor has only one dimension source and destination are effectively same)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 1 then v_2 = v_3
 >>
-Rule 32 (If the source and destination lists have the same length, the absolute sum of values in both lists must not exceed the total number of axes.)
-{v_1 : tensor, v_2 : list(int), v_3 : list(int)} |= if v_2.len = v_3.len then (∃i ∈ [0, ndim(v_1) - 1] : true)
+Rule 47 (Source and destination should both be valid axes for a multi-dimensional tensor)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) > 1 then (v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_1))
 >>
-Rule 33 (If source and destination are provided as sequence (list/tuple), no element can appear more than once and the sum of the absolute value of the elements should be less or equal to ndim(v_1))
-{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j]) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0-ndim(v_1)) ∧ v_2[i] < ndim(v_1))
+Rule 48 (Source must be a valid axis or can be converted to a valid axis using ndim)
+{v_1 : tensor, v_2 : int} |= v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∨ (v_2 < 0 ∧ v_2 + ndim(v_1) >= 0 ∧ v_2 + ndim(v_1) < ndim(v_1))
 >>
-Rule 34 (If source and destination are both lists or tuples, they can only contain each dimension index once)
-{v_1 : list(int) ⊎ tuple(int), v_2 : list(int) ⊎ tuple(int)} |= (∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i+1, v_1.len - 1] : v_1[i] ≠ v_1[j]) ∧ (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j])
+Rule 49 (Destination must be a valid axis or can be converted to a valid axis using ndim)
+{v_1 : tensor, v_3 : int} |= v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) ∨ (v_3 < 0 ∧ v_3 + ndim(v_1) >= 0 ∧ v_3 + ndim(v_1) < ndim(v_1))
 >>
-Rule 35 (If source and destination are both a list or tuple of integers with the same length, the new position of each axis should not exceed the total number of dimensions of the tensor.)
-{v_1: tensor, v_2 : list(int) ⊎ tuple(int), v_3: list(int) ⊎ tuple(int)} |=  (v_2.len = v_3.len) ∧ (∀i ∈ [0, v_3.len - 1]: v_3[i] < ndim(v_1) ∧ v_3[i] ≥ (0 - ndim(v_1)))
+Rule 51 (Number of dimensions should be less than a limit)
+{v_1: tensor} |= ndim(v_1) < 32
 >>
-Rule 36 (When source and destination are both list or tuple, then the combination of their values are unique)
-{v_1: list(int) ⊎ tuple(int), v_2: list(int) ⊎ tuple(int)} |= (v_1.len = v_2.len) ∧ ∀i ∈ [0, v_1.len - 1]: ∀j ∈ [i + 1, v_1.len - 1]: (v_1[i] ≠ v_1[j] ∧ v_2[i] ≠ v_2[j]) ∧ ∀k ∈ [0, v_1.len - 1]: ∀l ∈ [0, v_2.len - 1]: v_1[k] ≠ v_2[l]
+Rule 52 (Source and destination are valid axes, and the tensor has at least 1 dimension.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= ndim(v_1) >= 1 ∧ (v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_1))
+>>
+Rule 56 (If any dimension has size 0, then the number of elements is 0)
+{v_1: tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 57 (If the tensor has at least 1 dimension, both source and dest must be a valid axis. Source and destination should both have same sign or opposite sign.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= ndim(v_1) >= 1 ∧ (v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) ∧ (v_2 >= 0 ∧ v_3 >= 0 ∨ v_2 < 0 ∧ v_3 < 0 ∨ v_2 >= 0 ∧ v_3 < 0 ∨ v_2 < 0 ∧ v_3 >= 0)
+>>
+Rule 58 (Both source and destination cannot be -ndim(v_1))
+{v_1: tensor, v_2: int, v_3:int} |= if ndim(v_1) > 0 then (v_2 ≠ (0-ndim(v_1)) ∨ v_3 ≠ (0-ndim(v_1)))
+>>
+Rule 59 (The source axis cannot be out of bounds for the specific dimension, even if negative)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then v_2 + ndim(v_1) >= 0 ∧ v_2 + ndim(v_1) < ndim(v_1) else v_2 >= 0 ∧ v_2 < ndim(v_1)
+>>
+Rule 60 (The destination axis cannot be out of bounds for the specific dimension, even if negative)
+{v_1 : tensor, v_3 : int} |= if v_3 < 0 then v_3 + ndim(v_1) >= 0 ∧ v_3 + ndim(v_1) < ndim(v_1) else v_3 >= 0 ∧ v_3 < ndim(v_1)
+>>
+Rule 61 (If there are zero-sized dimension, moveaxis doesnt matter )
+{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then true
+>>
+Rule 62 (If the tensor is multi-dimensional, source and dest must be valid for moveaxis, either positive or negative)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) > 1 then ((v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) ∨ (v_2 + ndim(v_1) >= 0 ∧ v_2 + ndim(v_1) < ndim(v_1) ∧ v_3 + ndim(v_1) >= 0 ∧ v_3 + ndim(v_1) < ndim(v_1)))
+>>
+Rule 63 (Source cannot be equal to negative ndim, same for destination)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (v_2 ≠ (0 - ndim(v_1))) ∧ (v_3 ≠ (0 - ndim(v_1)))
+>>
+Rule 64 (Source must be a valid dimension for that axis)
+{v_1: tensor, v_2: int} |= v_2 < ndim(v_1) ∧ v_2 >= (0 - ndim(v_1))
+>>
+Rule 65 (Dest must be valid for destination axis)
+{v_1: tensor, v_3: int} |= v_3 < ndim(v_1) ∧ v_3 >= (0 - ndim(v_1))
+>>
+Rule 71 (absolute value of source and destination must be less than a threshold (avoid overflow))
+{v_2 : int, v_3 : int} |= if v_2 < 0 then (0 - v_2) ≤ 100 else v_2 ≤ 100 ∧ if v_3 < 0 then (0 - v_3) ≤ 100 else v_3 ≤ 100
+>>
+Rule 72 (If the tensor is multi-dimensional, source and dest must be valid axes, considering either sign.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) > 1 then ((v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∨ (v_2 + ndim(v_1) >= 0 ∧ v_2 + ndim(v_1) < ndim(v_1))) ∧ ((v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) ∨ (v_3 + ndim(v_1) >= 0 ∧ v_3 + ndim(v_1) < ndim(v_1)))
+>>
+Rule 73 (Source and dest cannot be negative ndim at the same time)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) > 0 then (v_2 ≠ (0 - ndim(v_1)) ∨ v_3 > (0 - ndim(v_1)))
+>>
+Rule 76 (sum of source and destination must be less than the largest signed 32 bit integer)
+{v_2 : int, v_3 : int} |= v_2 + v_3 < 2147483647
+>>
+Rule 77 (If the tensor is multi-dimensional, source and dest must be valid, and also not both equal to negative ndim)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) > 1 then (((v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∨ (v_2 + ndim(v_1) >= 0 ∧ v_2 + ndim(v_1) < ndim(v_1))) ∧ ((v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) ∨ (v_3 + ndim(v_1) >= 0 ∧ v_3 + ndim(v_1) < ndim(v_1)))) ∧ (v_2 ≠ (0 - ndim(v_1)) ∨ v_3 > (0 - ndim(v_1)))
+>>
+Rule 78 (Source is valid, considering negative indices)
+{v_1: tensor, v_2: int} |= (v_2 < ndim(v_1) ∧ v_2 >= (0 - ndim(v_1))) ∨ (v_2 < 0 ∧ v_2 + ndim(v_1) >= 0 ∧ v_2 + ndim(v_1) < ndim(v_1))
+>>
+Rule 79 (Destination is valid, considering negative indices)
+{v_1: tensor, v_3: int} |= (v_3 < ndim(v_1) ∧ v_3 >= (0 - ndim(v_1))) ∨ (v_3 < 0 ∧ v_3 + ndim(v_1) >= 0 ∧ v_3 + ndim(v_1) < ndim(v_1))
+>>
+Rule 80 (If the number of dimensions is greater than 1, source and destination must not be the same)
+{v_1: tensor, v_2: int, v_3: int} |= if ndim(v_1) > 1 then v_2 ≠ v_3
+>>
+Rule 81 (tensor must have one or more dimensions, ndim > 0 )
+{v_1: tensor} |= ndim(v_1) > 0
+>>
+Rule 82 (If the tensor is multi-dimensional, source and dest must be valid, and the source and destination dimensions shouldn't exceed the maximum allowed dimensions.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) > 1 then (((v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∨ (v_2 + ndim(v_1) >= 0 ∧ v_2 + ndim(v_1) < ndim(v_1))) ∧ ((v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) ∨ (v_3 + ndim(v_1) >= 0 ∧ v_3 + ndim(v_1) < ndim(v_1))))
+>>
+Rule 83 (absolute value of Source must be a valid dimension)
+{v_1: tensor, v_2: int} |= if v_2 >= 0 then v_2 < ndim(v_1) else (0-v_2) <= ndim(v_1)
+>>
+Rule 84 (absolute value of Dest must be valid)
+{v_1: tensor, v_3: int} |= if v_3 >= 0 then v_3 < ndim(v_1) else (0-v_3) <= ndim(v_1)
+>>
+Rule 86 (Source is not the only dimension if num dimensions > 1 )
+{v_1: tensor, v_2: int} |= if ndim(v_1) > 1 then v_2 ≠ ndim(v_1)
+>>
+Rule 91 (Source cant be zero size )
+{v_1: tensor, v_2: int} |= shape(v_1,v_2) > 0
+>>
+Rule 92 (valid axes, regardless of whether they are negative, must be within range.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= ((v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∨ (v_2 + ndim(v_1) >= 0 ∧ v_2 + ndim(v_1) < ndim(v_1))) ∧ ((v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) ∨ (v_3 + ndim(v_1) >= 0 ∧ v_3 + ndim(v_1) < ndim(v_1)))
+>>
+Rule 93 (The value is not zero!)
+{v_2: int ⊎ float} |= v_2 ≠ 0
+>>
+Rule 96 (ndim cant be more than 32)
+{v_1 : tensor} |= ndim(v_1) < 32
+>>
+Rule 100 (If number of dimensions is 1, the source and dest must not be the same and must exist)
+{v_1: tensor, v_2: int, v_3: int} |= if ndim(v_1) = 1 then v_2 = 0 ∧ v_3 = 0
+>>
+Rule 105 (source dimension value should be smaller than some number )
+{v_2: int} |=  v_2 < 1000
+>>
+Rule 106 (destination dimension value should be smaller than some number)
+{v_3: int} |= v_3 < 1000
+>>
+Rule 108 (If any dimension of the tensor is 0, the operation is effectively a no-op)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 109 (Source and dest cannot both refer to the last axis for dim > 1)
+{v_1: tensor, v_2: int, v_3: int} |= if ndim(v_1) > 1 then (v_2 ≠ (ndim(v_1) - 1) ∨ v_3 < (ndim(v_1) -1))
+>>
+Rule 110 (if number of dimensions of the tensor is one, shape of the tensor must be one)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 0
+>>
+Rule 111 (If source is the same as destination do nothing)
+{v_2: int, v_3: int} |= v_2 ≠ v_3
+>>
+Rule 113 (The shape of the tensor should be non-zero in all dimensions - must contain at least 1 element along each dimension)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 114 (Source or Destination are not equal when the source and destination axes are not valid)
+{v_2: int, v_3: int} |= v_2 = v_3 ∨ v_2 ≠ v_3
+>>
+Rule 118 (If tensor is multi-dimensional, then source axis should be within specific bound)
+{v_1: tensor, v_2: int} |= if ndim(v_1) > 1 then v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+>>
+Rule 119 (If tensor is multi-dimensional, then destination axis should be within specific bound )
+{v_1: tensor, v_3: int} |= if ndim(v_1) > 1 then v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
+>>
+Rule 120 (If moving to the same dimension do nothing.  The Source and Destination index should not exceed the maximum 32 bit signed number limit.)
+{v_2: int, v_3: int} |= v_2 ≠ v_3 ∧ v_2 < 2147483647 ∧ v_3 < 2147483647
+>>
+Rule 122 (If the tensor is multi-dimensional, source and dest must be valid within range and indexing, and there must be nonzero elements on those axes)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) > 1 then (((v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∨ (v_2 + ndim(v_1) >= 0 ∧ v_2 + ndim(v_1) < ndim(v_1))) ∧ ((v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) ∨ (v_3 + ndim(v_1) >= 0 ∧ v_3 + ndim(v_1) < ndim(v_1))) ∧ shape(v_1,v_2) > 0 ∧ shape(v_1, v_3) > 0)
+>>
+Rule 123 (Source and dest should be different and not both be -ndim)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) > 0 then v_2 ≠ v_3 ∧ (v_2 ≠ (0-ndim(v_1)) ∨ v_3 > (0 - ndim(v_1)))
+>>
+Rule 124 (Source must be smaller and not negative)
+{v_2: int} |= v_2 < 20 ∧ v_2 > -20
+>>
+Rule 125 (Dest must be smaller and not negative)
+{v_3: int} |= v_3 < 20 ∧  v_3 > -20
+>>
+Rule 128 (If non-zero size in those dimension Source, dest are same or not zero)
+{v_2: int, v_3: int} |= v_2 ≠ v_3 ∨ v_2 = 0 ∨ v_3 = 0
+>>
+Rule 129 (Source is valid)
+{v_1: tensor, v_2: int} |= 0 - ndim(v_1) ≤ v_2 ∧ v_2 < ndim(v_1)
+>>
+Rule 130 (Dest is valid)
+{v_1: tensor, v_3: int} |=  0 - ndim(v_1) ≤ v_3 ∧ v_3 < ndim(v_1)
+>>
+Rule 131 (data type within the range)
+{v_1 : tensor} |= dtype_(v_1) ≥ 0 ∧ dtype_(v_1) ≤ 12
+>>
+Rule 134 (shape of the axis to be moved must be positive.)
+{v_1 : tensor, v_2 : int} |= shape(v_1, v_2) > 0
+>>
+Rule 135 (shape of destination axis to be moved must be positive.)
+{v_1 : tensor, v_3 : int} |= shape(v_1, v_3) > 0
+>>
+Rule 136 (If it's moving on a single dimension, must be between those sizes!)
+{v_2: int, v_3: int} |= v_2 > -1000 ∧ v_2 < 1000 ∧ v_3 > -1000 ∧ v_3 < 1000

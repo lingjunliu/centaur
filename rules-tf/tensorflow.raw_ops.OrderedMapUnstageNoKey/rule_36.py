@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If capacity is specified, memory_limit has to be specified. (Rule 36)
+# memory_limit must be less or equal to capacity (Rule 36)
 
 rule_36 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] > 0, v["arg2_value"] >= 0, False)) if n else
-          If(v["arg1_value"] > 0, v["arg2_value"] >= 0, False))
+    s.add(Not(v["arg1_value"] <= v["arg2_value"]) if n else
+          v["arg1_value"] <= v["arg2_value"])
 )
 
 def rule_36_func(arg1, arg2, solver=None, neg=False):

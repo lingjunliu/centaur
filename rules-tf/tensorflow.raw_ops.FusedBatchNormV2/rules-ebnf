@@ -1,195 +1,231 @@
 >>
 Rule 1 (x must be a 4D tensor)
-{x : tensor} |= ndim(x) = 4
+{x: tensor} |= ndim(x) = 4
 >>
-Rule 2 (scale must be a 1D tensor)
-{scale : tensor} |= ndim(scale) = 1
+Rule 2 (x's dtype must be half, bfloat16, or float32, encoded as 6, 7, or 8, respectively)
+{x: tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8
 >>
-Rule 3 (offset must be a 1D tensor)
-{offset : tensor} |= ndim(offset) = 1
+Rule 3 (scale, offset, mean, variance must be 1D tensors)
+{scale: tensor, offset: tensor, mean: tensor, variance: tensor} |= ndim(scale) = 1 ∧ ndim(offset) = 1 ∧ ndim(mean) = 1 ∧ ndim(variance) = 1
 >>
-Rule 4 (mean must be a 1D tensor)
-{mean : tensor} |= ndim(mean) = 1
+Rule 4 (scale, offset, mean, variance must have float32 dtype, encoded as 8)
+{scale: tensor, offset: tensor, mean: tensor, variance: tensor} |= dtype_(scale) = 8 ∧ dtype_(offset) = 8 ∧ dtype_(mean) = 8 ∧ dtype_(variance) = 8
 >>
-Rule 5 (variance must be a 1D tensor)
-{variance : tensor} |= ndim(variance) = 1
+Rule 5 (offset must have the same type as scale)
+{scale: tensor, offset: tensor} |= dtype_(scale) = dtype_(offset)
 >>
-Rule 6 (scale, offset, mean, variance have the same shape)
-{scale : tensor, offset : tensor, mean : tensor, variance : tensor} |= shape(scale, 0) = shape(offset, 0) ∧ shape(scale, 0) = shape(mean, 0) ∧ shape(scale, 0) = shape(variance, 0)
+Rule 6 (mean must have the same type as scale)
+{scale: tensor, mean: tensor} |= dtype_(scale) = dtype_(mean)
 >>
-Rule 7 (epsilon must be greater than or equal to 0)
-{epsilon : float} |= epsilon ≥ 0
+Rule 7 (variance must have the same type as scale)
+{scale: tensor, variance: tensor} |= dtype_(scale) = dtype_(variance)
 >>
-Rule 8 (data_format must be either "NHWC" or "NCHW")
-{data_format : str} |= data_format = "NHWC" ∨ data_format = "NCHW"
->>
-Rule 9 (exponential_avg_factor must be between 0 and 1)
-{exponential_avg_factor : float} |= exponential_avg_factor ≥ 0 ∧ exponential_avg_factor ≤ 1
->>
-Rule 10 (is_training must be a boolean value)
-{is_training : bool} |= is_training = true ∨ is_training = false
->>
-Rule 11 (x's dtype must be float16, float32 or bfloat16)
-{x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7
->>
-Rule 12 (scale's dtype must be float32)
-{scale : tensor} |= dtype_(scale) = 7
->>
-Rule 13 (offset's dtype must be float32)
-{offset : tensor} |= dtype_(offset) = 7
->>
-Rule 14 (mean's dtype must be float32)
-{mean : tensor} |= dtype_(mean) = 7
->>
-Rule 15 (variance's dtype must be float32)
-{variance : tensor} |= dtype_(variance) = 7
->>
-Rule 16 (If data_format is NHWC, the channel dimension (C) is the last dimension, otherwise it is the second dimension.)
-{x : tensor, data_format : str, scale : tensor} |= if data_format = "NHWC" then shape(x, ndim(x) - 1) = shape(scale, 0) else if data_format = "NCHW" then shape(x, 1) = shape(scale, 0) else false
->>
-Rule 17 (x and scale must have compatible dtypes)
-{x : tensor, scale : tensor} |= if dtype_(x) = 6 then dtype_(scale) = 7 else if dtype_(x) = 7 then dtype_(scale) = 7
->>
-Rule 18 (x and offset must have compatible dtypes)
-{x : tensor, offset : tensor} |= if dtype_(x) = 6 then dtype_(offset) = 7 else if dtype_(x) = 7 then dtype_(offset) = 7
->>
-Rule 19 (The length of the scale tensor must be greater than zero.)
-{scale : tensor} |= shape(scale, 0) > 0
->>
-Rule 20 (The length of the offset tensor must be greater than zero.)
-{offset : tensor} |= shape(offset, 0) > 0
->>
-Rule 21 (x must have positive shape dimensions)
-{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
->>
-Rule 22 (scale must have positive shape dimensions)
-{scale : tensor} |= ∀i ∈ [0, ndim(scale) - 1] : shape(scale, i) > 0
->>
-Rule 23 (offset must have positive shape dimensions)
-{offset : tensor} |= ∀i ∈ [0, ndim(offset) - 1] : shape(offset, i) > 0
->>
-Rule 24 (mean must have positive shape dimensions)
-{mean : tensor} |= ∀i ∈ [0, ndim(mean) - 1] : shape(mean, i) > 0
->>
-Rule 25 (variance must have positive shape dimensions)
-{variance : tensor} |= ∀i ∈ [0, ndim(variance) - 1] : shape(variance, i) > 0
->>
-Rule 26 (If data_format is NCHW, the dimension of channel must be equal to the dimension of scale.)
-{x : tensor, data_format : str, scale : tensor} |= if data_format = "NCHW" then shape(x, 1) = shape(scale, 0)
->>
-Rule 27 (If data_format is NHWC, the dimension of channel must be equal to the dimension of scale.)
-{x : tensor, data_format : str, scale : tensor} |= if data_format = "NHWC" then shape(x, 3) = shape(scale, 0)
->>
-Rule 28 (epsilon must be a finite number)
-{epsilon : float} |= epsilon < 1000000000 ∧ epsilon > -1000000000
->>
-Rule 29 (exponential_avg_factor must be a finite number)
-{exponential_avg_factor : float} |= exponential_avg_factor < 1000000000 ∧ exponential_avg_factor > -1000000000
->>
-Rule 30 (If x is float16, then epsilon must be float)
-{x : tensor, epsilon : float} |= if dtype_(x) = 6 then epsilon > 0
->>
-Rule 31 (mean's length must be greater than zero.)
-{mean : tensor} |= shape(mean, 0) > 0
->>
-Rule 32 (variance's length must be greater than zero.)
-{variance : tensor} |= shape(variance, 0) > 0
->>
-Rule 33 (If is_training is false, then mean and variance should not be empty)
-{is_training : bool, mean : tensor, variance : tensor} |= if is_training = false then shape(mean, 0) > 0 ∧ shape(variance, 0) > 0
->>
-Rule 34 (If is_training is true, then mean and variance can be empty)
-{is_training : bool, mean : tensor, variance : tensor} |= if is_training = true then shape(mean, 0) = 0 ∧ shape(variance, 0) = 0 ∨ shape(mean, 0) > 0 ∧ shape(variance, 0) > 0
->>
-Rule 37 (The epsilon value must be a positive number)
-{epsilon : float} |= epsilon > 0
->>
-Rule 38 (If x's dtype is float16 then scale's dtype should be float32)
-{x : tensor, scale : tensor} |= if dtype_(x) = 6 then dtype_(scale) = 7
->>
-Rule 39 (If x's dtype is bfloat16 then scale's dtype should be float32)
-{x : tensor, scale : tensor} |= if dtype_(x) = 13 then dtype_(scale) = 7
->>
-Rule 40 (If x's dtype is float32 then scale's dtype should be float32)
-{x : tensor, scale : tensor} |= if dtype_(x) = 7 then dtype_(scale) = 7
->>
-Rule 41 (If x's dtype is float16 then offset's dtype should be float32)
-{x : tensor, offset : tensor} |= if dtype_(x) = 6 then dtype_(offset) = 7
->>
-Rule 42 (If x's dtype is bfloat16 then offset's dtype should be float32)
-{x : tensor, offset : tensor} |= if dtype_(x) = 13 then dtype_(offset) = 7
->>
-Rule 43 (If x's dtype is float32 then offset's dtype should be float32)
-{x : tensor, offset : tensor} |= if dtype_(x) = 7 then dtype_(offset) = 7
->>
-Rule 44 (If x's dtype is float16 then mean's dtype should be float32)
-{x : tensor, mean : tensor} |= if dtype_(x) = 6 then dtype_(mean) = 7
->>
-Rule 45 (If x's dtype is bfloat16 then mean's dtype should be float32)
-{x : tensor, mean : tensor} |= if dtype_(x) = 13 then dtype_(mean) = 7
->>
-Rule 46 (If x's dtype is float32 then mean's dtype should be float32)
-{x : tensor, mean : tensor} |= if dtype_(x) = 7 then dtype_(mean) = 7
->>
-Rule 47 (If x's dtype is float16 then variance's dtype should be float32)
-{x : tensor, variance : tensor} |= if dtype_(x) = 6 then dtype_(variance) = 7
->>
-Rule 48 (If x's dtype is bfloat16 then variance's dtype should be float32)
-{x : tensor, variance : tensor} |= if dtype_(x) = 13 then dtype_(variance) = 7
->>
-Rule 49 (If x's dtype is float32 then variance's dtype should be float32)
-{x : tensor, variance : tensor} |= if dtype_(x) = 7 then dtype_(variance) = 7
->>
-Rule 50 (x must be a 4D tensor with valid shape)
-{x : tensor} |= ndim(x) = 4 ∧ shape(x,0) > 0 ∧ shape(x,1) > 0 ∧ shape(x,2) > 0 ∧ shape(x,3) > 0
->>
-Rule 51 (scale must be a 1D tensor with positive shape)
-{scale : tensor} |= ndim(scale) = 1 ∧ shape(scale, 0) > 0
->>
-Rule 52 (offset must be a 1D tensor with positive shape)
-{offset : tensor} |= ndim(offset) = 1 ∧ shape(offset, 0) > 0
->>
-Rule 53 (mean must be a 1D tensor with non-negative shape)
-{mean : tensor} |= ndim(mean) = 1 ∧ shape(mean, 0) ≥ 0
->>
-Rule 54 (variance must be a 1D tensor with non-negative shape)
-{variance : tensor} |= ndim(variance) = 1 ∧ shape(variance, 0) ≥ 0
->>
-Rule 55 (If data_format is NCHW, the channel dimension should be less than the number of dimensions.)
-{x : tensor, data_format : str} |= if data_format = "NCHW" then 1 < ndim(x)
->>
-Rule 56 (If data_format is NHWC, the channel dimension should be less than the number of dimensions.)
-{x : tensor, data_format : str} |= if data_format = "NHWC" then 3 < ndim(x)
->>
-Rule 57 (The value of data_format should be either NHWC or NCHW)
+Rule 8 (data_format must be "NHWC" or "NCHW")
 {data_format: str} |= data_format = "NHWC" ∨ data_format = "NCHW"
 >>
-Rule 58 (If x has float16 dtype, then epsilon should be a float number)
-{x: tensor, epsilon: float} |= if dtype_(x) = 6 then epsilon > 0
+Rule 9 (epsilon must be greater than or equal to 0)
+{epsilon: float} |= epsilon ≥ 0
 >>
-Rule 61 (if x's dtype is bfloat16 then epsilon should be a float number)
-{x: tensor, epsilon: float} |= if dtype_(x) = 13 then epsilon > 0
+Rule 10 (shape of scale, offset, mean, and variance should be equal.)
+{scale: tensor, offset: tensor, mean: tensor, variance: tensor, x: tensor} |= shape(scale,0) = shape(offset,0) ∧ shape(scale,0) = shape(mean,0) ∧ shape(scale,0) = shape(variance,0) ∧ if data_format = "NHWC" then shape(x,3) = shape(scale,0) else if data_format = "NCHW" then shape(x,1) = shape(scale,0) else false
 >>
-Rule 62 (if x's dtype is float32 then epsilon should be a float number)
-{x: tensor, epsilon: float} |= if dtype_(x) = 7 then epsilon > 0
->>
-Rule 63 (If is_training is True, mean and variance must have the same shape)
-{is_training : bool, mean : tensor, variance : tensor} |= if is_training = true then shape(mean, 0) = shape(variance, 0)
->>
-Rule 64 (epsilon should be a small positive float)
-{epsilon: float} |= epsilon > 0 ∧ epsilon < 1
->>
-Rule 65 (exponential_avg_factor must be a float between 0 and 1 inclusive.)
+Rule 11 (exponential_avg_factor must be between 0 and 1 inclusive)
 {exponential_avg_factor: float} |= exponential_avg_factor ≥ 0 ∧ exponential_avg_factor ≤ 1
 >>
-Rule 66 (If exponential_avg_factor is not between 0 and 1, it is an invalid value)
-{exponential_avg_factor: float} |= exponential_avg_factor < 0 ∨ exponential_avg_factor > 1
+Rule 12 (If is_training is true, then mean and variance tensors must have size 0)
+{is_training: bool, mean: tensor, variance: tensor} |= if is_training = true then shape(mean, 0) = 0 ∧ shape(variance, 0) = 0
 >>
-Rule 67 (x's dtype can only be half, bfloat16, or float32)
-{x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 13 ∨ dtype_(x) = 7
+Rule 13 (if data_format is NCHW then channel dimension must be equal to scale length.)
+{x: tensor, scale: tensor, data_format: str} |= if data_format = "NCHW" then shape(x, 1) = shape(scale, 0)
 >>
-Rule 70 (If is_training is False, mean and variance must have the same positive shape)
-{is_training : bool, mean : tensor, variance : tensor} |= if is_training = false then shape(mean, 0) = shape(variance, 0) ∧ shape(mean, 0) > 0
+Rule 14 (if data_format is NHWC then channel dimension must be equal to scale length.)
+{x: tensor, scale: tensor, data_format: str} |= if data_format = "NHWC" then shape(x, 3) = shape(scale, 0)
 >>
-Rule 71 (If is_training is False, then mean and variance shapes must be the same as scale shape.)
-{is_training : bool, mean : tensor, variance : tensor, scale: tensor} |= if is_training = false then shape(mean, 0) = shape(scale, 0) ∧ shape(variance, 0) = shape(scale, 0)
+Rule 15 (Epsilon must be a positive float)
+{epsilon: float} |= epsilon > 0
+>>
+Rule 17 (offset must have the same shape as scale)
+{scale: tensor, offset: tensor} |= shape(scale, 0) = shape(offset, 0)
+>>
+Rule 18 (mean must have the same shape as scale)
+{scale: tensor, mean: tensor} |= shape(scale, 0) = shape(mean, 0)
+>>
+Rule 19 (variance must have the same shape as scale)
+{scale: tensor, variance: tensor} |= shape(scale, 0) = shape(variance, 0)
+>>
+Rule 20 (is_training is a boolean variable)
+{is_training: bool} |= is_training = true ∨ is_training = false
+>>
+Rule 21 (scale must be a float32 tensor)
+{scale: tensor} |= dtype_(scale) = 8
+>>
+Rule 22 (offset must be a float32 tensor)
+{offset: tensor} |= dtype_(offset) = 8
+>>
+Rule 23 (mean must be a float32 tensor)
+{mean: tensor} |= dtype_(mean) = 8
+>>
+Rule 24 (variance must be a float32 tensor)
+{variance: tensor} |= dtype_(variance) = 8
+>>
+Rule 26 (If exponential_avg_factor is 1, then the mean and variance tensors must have size 0)
+{exponential_avg_factor: float, mean: tensor, variance: tensor} |= if exponential_avg_factor = 1 then shape(mean, 0) = 0 ∧ shape(variance, 0) = 0
+>>
+Rule 27 (scale and x must have compatible dtypes; if x is half/bfloat16, scale is float32.)
+{x: tensor, scale: tensor} |= if dtype_(x) = 6 ∨ dtype_(x) = 7 then dtype_(scale) = 8
+>>
+Rule 28 (offset and x must have compatible dtypes; if x is half/bfloat16, offset is float32.)
+{x: tensor, offset: tensor} |= if dtype_(x) = 6 ∨ dtype_(x) = 7 then dtype_(offset) = 8
+>>
+Rule 29 (mean and x must have compatible dtypes; if x is half/bfloat16, mean is float32.)
+{x: tensor, mean: tensor} |= if dtype_(x) = 6 ∨ dtype_(x) = 7 then dtype_(mean) = 8
+>>
+Rule 30 (variance and x must have compatible dtypes; if x is half/bfloat16, variance is float32.)
+{x: tensor, variance: tensor} |= if dtype_(x) = 6 ∨ dtype_(x) = 7 then dtype_(variance) = 8
+>>
+Rule 31 (If x's dtype is float16 then scale's dtype must be float32)
+{x: tensor, scale: tensor} |= if dtype_(x) = 6 then dtype_(scale) = 8
+>>
+Rule 32 (If x's dtype is bfloat16 then scale's dtype must be float32)
+{x: tensor, scale: tensor} |= if dtype_(x) = 7 then dtype_(scale) = 8
+>>
+Rule 35 (If x is a 4D tensor, its dimensions must be positive)
+{x: tensor} |= if ndim(x) = 4 then ∀i ∈ [0, 3] : shape(x, i) > 0
+>>
+Rule 36 (If x's dtype is float16 then offset's dtype must be float32)
+{x: tensor, offset: tensor} |= if dtype_(x) = 6 then dtype_(offset) = 8
+>>
+Rule 37 (If x's dtype is bfloat16 then offset's dtype must be float32)
+{x: tensor, offset: tensor} |= if dtype_(x) = 7 then dtype_(offset) = 8
+>>
+Rule 38 (If x's dtype is float16 then mean's dtype must be float32)
+{x: tensor, mean: tensor} |= if dtype_(x) = 6 then dtype_(mean) = 8
+>>
+Rule 39 (If x's dtype is bfloat16 then mean's dtype must be float32)
+{x: tensor, mean: tensor} |= if dtype_(x) = 7 then dtype_(mean) = 8
+>>
+Rule 40 (If x's dtype is float16 then variance's dtype must be float32)
+{x: tensor, variance: tensor} |= if dtype_(x) = 6 then dtype_(variance) = 8
+>>
+Rule 41 (If x's dtype is bfloat16 then variance's dtype must be float32)
+{x: tensor, variance: tensor} |= if dtype_(x) = 7 then dtype_(variance) = 8
+>>
+Rule 44 (The length of scale should be greater than zero)
+{scale: tensor} |= shape(scale, 0) > 0
+>>
+Rule 45 (The length of offset should be greater than zero)
+{offset: tensor} |= shape(offset, 0) > 0
+>>
+Rule 46 (The length of mean should be greater than zero)
+{mean: tensor} |= shape(mean, 0) > 0
+>>
+Rule 47 (The length of variance should be greater than zero)
+{variance: tensor} |= shape(variance, 0) > 0
+>>
+Rule 48 (If is_training is false then mean and variance should not be empty)
+{is_training: bool, mean: tensor, variance: tensor} |= if is_training = false then shape(mean, 0) > 0 ∧ shape(variance, 0) > 0
+>>
+Rule 53 (If is_training is false then mean and variance tensors must have equal shapes)
+{is_training: bool, mean: tensor, variance: tensor} |= if is_training = false then shape(mean, 0) = shape(variance, 0)
+>>
+Rule 54 (If x is float16, scale, offset, mean, variance must have the same shape)
+{x: tensor, scale: tensor, offset: tensor, mean: tensor, variance: tensor} |= if dtype_(x) = 6 then shape(scale, 0) = shape(offset, 0) ∧ shape(offset, 0) = shape(mean, 0) ∧ shape(mean, 0) = shape(variance, 0)
+>>
+Rule 55 (If x is bfloat16, scale, offset, mean, variance must have the same shape)
+{x: tensor, scale: tensor, offset: tensor, mean: tensor, variance: tensor} |= if dtype_(x) = 7 then shape(scale, 0) = shape(offset, 0) ∧ shape(offset, 0) = shape(mean, 0) ∧ shape(mean, 0) = shape(variance, 0)
+>>
+Rule 56 (scale, offset, mean and variance must have the same dtype.)
+{scale: tensor, offset: tensor, mean: tensor, variance: tensor} |= dtype_(scale) = dtype_(offset) ∧ dtype_(offset) = dtype_(mean) ∧ dtype_(mean) = dtype_(variance)
+>>
+Rule 57 (If x's dtype is float32, scale, offset, mean, variance must have the same shape and dtype)
+{x: tensor, scale: tensor, offset: tensor, mean: tensor, variance: tensor} |= if dtype_(x) = 8 then shape(scale, 0) = shape(offset, 0) ∧ shape(offset, 0) = shape(mean, 0) ∧ shape(mean, 0) = shape(variance, 0) ∧ dtype_(scale) = dtype_(offset) ∧ dtype_(offset) = dtype_(mean) ∧ dtype_(mean) = dtype_(variance)
+>>
+Rule 58 (if x is float32 then scale must be float32)
+{x: tensor, scale: tensor} |= if dtype_(x) = 8 then dtype_(scale) = 8
+>>
+Rule 59 (if x is float32 then offset must be float32)
+{x: tensor, offset: tensor} |= if dtype_(x) = 8 then dtype_(offset) = 8
+>>
+Rule 60 (if x is float32 then mean must be float32)
+{x: tensor, mean: tensor} |= if dtype_(x) = 8 then dtype_(mean) = 8
+>>
+Rule 61 (if x is float32 then variance must be float32)
+{x: tensor, variance: tensor} |= if dtype_(x) = 8 then dtype_(variance) = 8
+>>
+Rule 62 (If epsilon is not defined, it will default to 0.0001)
+{epsilon: float} |= epsilon = 0.0001 ∨ epsilon ≠ 0.0001
+>>
+Rule 63 (If exponential_avg_factor is not defined, it will default to 1)
+{exponential_avg_factor: float} |= exponential_avg_factor = 1 ∨ exponential_avg_factor ≠ 1
+>>
+Rule 64 (If data_format is not defined, it will default to "NHWC")
+{data_format: str} |= data_format = "NHWC" ∨ data_format ≠ "NHWC"
+>>
+Rule 65 (If is_training is not defined, it will default to True)
+{is_training: bool} |= is_training = true ∨ is_training ≠ true
+>>
+Rule 66 (epsilon must be less than or equal to 1.)
+{epsilon: float} |= epsilon ≤ 1
+>>
+Rule 67 (The first dimension of x must be greater than zero.)
+{x: tensor} |= shape(x, 0) > 0
+>>
+Rule 68 (If x's dtype is bfloat16 then exponential_avg_factor is only valid when 0 < exponential_avg_factor <= 1)
+{x: tensor, exponential_avg_factor: float} |= if dtype_(x) = 7 then exponential_avg_factor > 0 ∧ exponential_avg_factor ≤ 1
+>>
+Rule 69 (If x's dtype is float16 then exponential_avg_factor is only valid when 0 < exponential_avg_factor <= 1)
+{x: tensor, exponential_avg_factor: float} |= if dtype_(x) = 6 then exponential_avg_factor > 0 ∧ exponential_avg_factor ≤ 1
+>>
+Rule 70 (If x's dtype is float32 then exponential_avg_factor is only valid when 0 < exponential_avg_factor <= 1)
+{x: tensor, exponential_avg_factor: float} |= if dtype_(x) = 8 then exponential_avg_factor > 0 ∧ exponential_avg_factor ≤ 1
+>>
+Rule 72 (mean and variance must have the same dtype.)
+{mean: tensor, variance: tensor} |= dtype_(mean) = dtype_(variance)
+>>
+Rule 73 (If data_format is defined as NHWC then the size of the last dimension of X equals to the size of scale)
+{x : tensor, scale : tensor, data_format : str} |= if data_format = "NHWC" then shape(x, 3) = shape(scale, 0)
+>>
+Rule 74 (If data_format is defined as NCHW then the size of the second dimension of X equals to the size of scale)
+{x : tensor, scale : tensor, data_format : str} |= if data_format = "NCHW" then shape(x, 1) = shape(scale, 0)
+>>
+Rule 75 (scale and offset must be float32 tensors.)
+{scale: tensor, offset: tensor} |= dtype_(scale) = 8 ∧ dtype_(offset) = 8
+>>
+Rule 76 (mean and variance must be float32 tensors.)
+{mean: tensor, variance: tensor} |= dtype_(mean) = 8 ∧ dtype_(variance) = 8
+>>
+Rule 77 (If is_training is True then the mean and variance must be empty)
+{is_training: bool, mean: tensor, variance: tensor} |= if is_training then shape(mean,0) = 0 ∧ shape(variance,0) = 0
+>>
+Rule 78 (If is_training is False then the mean and variance are required)
+{is_training: bool, mean: tensor, variance: tensor} |= if is_training = false then shape(mean,0) > 0 ∧ shape(variance,0) > 0
+>>
+Rule 79 (If x's dtype is float16 then epsilon is only valid when epsilon > 0)
+{x: tensor, epsilon: float} |= if dtype_(x) = 6 then epsilon > 0
+>>
+Rule 80 (If x's dtype is bfloat16 then epsilon is only valid when epsilon > 0)
+{x: tensor, epsilon: float} |= if dtype_(x) = 7 then epsilon > 0
+>>
+Rule 81 (If x's dtype is float32 then epsilon is only valid when epsilon > 0)
+{x: tensor, epsilon: float} |= if dtype_(x) = 8 then epsilon > 0
+>>
+Rule 84 (x and scale must have compatible dtypes, where if x is half or bfloat16, scale must be float32)
+{x: tensor, scale: tensor} |= (dtype_(x) = 6 ∧ dtype_(scale) = 8) ∨ (dtype_(x) = 7 ∧ dtype_(scale) = 8) ∨ (dtype_(x) = 8 ∧ dtype_(scale) = 8)
+>>
+Rule 85 (x and offset must have compatible dtypes, where if x is half or bfloat16, offset must be float32)
+{x: tensor, offset: tensor} |= (dtype_(x) = 6 ∧ dtype_(offset) = 8) ∨ (dtype_(x) = 7 ∧ dtype_(offset) = 8) ∨ (dtype_(x) = 8 ∧ dtype_(offset) = 8)
+>>
+Rule 86 (x and mean must have compatible dtypes, where if x is half or bfloat16, mean must be float32)
+{x: tensor, mean: tensor} |= (dtype_(x) = 6 ∧ dtype_(mean) = 8) ∨ (dtype_(x) = 7 ∧ dtype_(mean) = 8) ∨ (dtype_(x) = 8 ∧ dtype_(mean) = 8)
+>>
+Rule 87 (x and variance must have compatible dtypes, where if x is half or bfloat16, variance must be float32)
+{x: tensor, variance: tensor} |= (dtype_(x) = 6 ∧ dtype_(variance) = 8) ∨ (dtype_(x) = 7 ∧ dtype_(variance) = 8) ∨ (dtype_(x) = 8 ∧ dtype_(variance) = 8)
+>>
+Rule 88 (If is_training is True then mean and variance should be empty and have shape(0)==0 )
+{is_training : bool, mean : tensor, variance : tensor} |= if is_training = true then shape(mean, 0) = 0 ∧ shape(variance, 0) = 0
+>>
+Rule 89 (If x's dtype is float32 then exponential_avg_factor must be between 0 and 1)
+{x: tensor, exponential_avg_factor: float} |= if dtype_(x) = 8 then exponential_avg_factor ≥ 0 ∧ exponential_avg_factor ≤ 1
+>>
+Rule 90 (If x's dtype is float16 then exponential_avg_factor is only valid when 0 <= exponential_avg_factor <= 1)
+{x: tensor, exponential_avg_factor: float} |= if dtype_(x) = 6 then exponential_avg_factor ≥ 0 ∧ exponential_avg_factor ≤ 1

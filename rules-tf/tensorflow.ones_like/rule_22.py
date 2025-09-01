@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input tensor is complex64, then the dtype argument should be complex64 or unspecified (Rule 22)
+# If dtype is specified, it should be compatible (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 9, Or(v["arg2_value"] == 9, v["arg2_value"] == 12), False)) if n else
-          If(v["arg1_dtype"] == 9, Or(v["arg2_value"] == 9, v["arg2_value"] == 12), False))
+    s.add(Not(If(v["arg2_value"] == 12, True, v["arg1_dtype"] == v["arg2_value"])) if n else
+          If(v["arg2_value"] == 12, True, v["arg1_dtype"] == v["arg2_value"]))
 )
 
 def rule_22_func(arg1, arg2, solver=None, neg=False):

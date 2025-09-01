@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# shape of sparse_indices[1] == shape of sparse_shape[0] (Rule 68)
+# If sparse_shape represents an empty tensor, then sparse_indices must have zero rows (Rule 68)
 
 rule_68 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0)) if n else
-          Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0))
+    s.add(Not(If(Select(v["arg2_shape"], 0) == 0, Select(v["arg1_shape"], 0) == 0, True)) if n else
+          If(Select(v["arg2_shape"], 0) == 0, Select(v["arg1_shape"], 0) == 0, True))
 )
 
 def rule_68_func(arg1, arg2, solver=None, neg=False):

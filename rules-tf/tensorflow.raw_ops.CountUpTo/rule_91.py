@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# after incrementing will not exceed the limit (Rule 91)
+# If limit is greater than the maximum representable value for int32, then ref's data type must be int64, and also make sure the starting value is zero (Rule 91)
 
 rule_91 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 1) + 1 <= v["arg2_value"]) if n else
-          Select(v["arg1_range"], 1) + 1 <= v["arg2_value"])
+    s.add(Not(If(v["arg2_value"] > 2147483647, And(And(v["arg1_dtype"] == 3, Select(v["arg1_range"], 0) == 0), Select(v["arg1_range"], 1) == 0), True)) if n else
+          If(v["arg2_value"] > 2147483647, And(And(v["arg1_dtype"] == 3, Select(v["arg1_range"], 0) == 0), Select(v["arg1_range"], 1) == 0), True))
 )
 
 def rule_91_func(arg1, arg2, solver=None, neg=False):
@@ -25,18 +25,20 @@ def rule_91_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_dtype = Int('arg1_dtype')
         arg1_range = Array('arg1_range', IntSort(), IntSort())
         arg2_value = Int('arg2_value')
 
         # Value assignments
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
         solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 91
-        rule_91(solver, {'arg1_range': arg1_range, 'arg2_value': arg2_value})
+        rule_91(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_91(solver, {'arg1_range': arg1['range'], 'arg2_value': arg2['value']}, neg)
+        rule_91(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

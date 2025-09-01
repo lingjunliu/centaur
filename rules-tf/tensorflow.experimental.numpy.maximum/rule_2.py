@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Input tensors v_1 and v_2 must have compatible dtypes to allow for a maximum operation (Rule 2)
+# The dtypes of the two tensors must be compatible (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(v["arg1_dtype"] == v["arg2_dtype"], (And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 8))), (And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 7)))) if n else
-          Or(Or(v["arg1_dtype"] == v["arg2_dtype"], (And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 8))), (And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 7))))
+    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
+          v["arg1_dtype"] == v["arg2_dtype"])
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

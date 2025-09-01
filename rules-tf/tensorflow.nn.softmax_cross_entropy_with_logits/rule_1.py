@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# logits and labels must have the same dtype (Rule 1)
+# logits and labels must have the same dtype and be float16, float32, or float64 (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
-          v["arg1_dtype"] == v["arg2_dtype"])
+    s.add(Not(And(v["arg1_dtype"] == v["arg2_dtype"], (Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)))) if n else
+          And(v["arg1_dtype"] == v["arg2_dtype"], (Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8))))
 )
 
 def rule_1_func(arg1, arg2, solver=None, neg=False):

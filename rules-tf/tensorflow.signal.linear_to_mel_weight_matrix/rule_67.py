@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Number of mel bins should scale appropriately at given ranges and relationships. (Rule 67)
+# If lower_edge_hertz is greater than 100, then upper_edge_hertz must be greater than 1000 (Rule 67)
 
 rule_67 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] > 50, v["arg1_value"] < 5000, False)) if n else
-          If(v["arg2_value"] > 50, v["arg1_value"] < 5000, False))
+    s.add(Not(If(v["arg1_value"] > 100, v["arg2_value"] > 1000, True)) if n else
+          If(v["arg1_value"] > 100, v["arg2_value"] > 1000, True))
 )
 
 def rule_67_func(arg1, arg2, solver=None, neg=False):
@@ -20,17 +20,17 @@ def rule_67_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, (float, np.floating)):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Real('arg1_value')
-        arg2_value = Int('arg2_value')
+        arg2_value = Real('arg2_value')
 
         # Value assignments
         solver.add(arg1_value == arg1)
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 67
         rule_67(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})

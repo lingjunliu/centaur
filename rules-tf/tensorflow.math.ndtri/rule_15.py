@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# check input tensor is not complex (Rule 15)
+# x should not have complex dtypes (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
     s.add(Not(And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10)) if n else

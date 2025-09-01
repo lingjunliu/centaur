@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If dtype is string, then the length of shape must be less than or equal to 1 (Rule 35)
+# If dtype is bool, then shape values should result in a small tensor (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 11, v["arg2_length"] <= 1, False)) if n else
-          If(v["arg1_value"] == 11, v["arg2_length"] <= 1, False))
+    s.add(Not(If(v["arg1_value"] == 0, And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) < 10) for i in range(6)]), True)) if n else
+          If(v["arg1_value"] == 0, And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) < 10) for i in range(6)]), True))
 )
 
 def rule_35_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,27 @@ def rule_35_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
             return False
-        if not ((isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)) or (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2))):
+        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Int('arg1_value')
         arg2_length = Int('arg2_length')
+        arg2_values = Array('arg2_values', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
         solver.add(arg2_length == len(arg2))
+        for i in range(len(arg2)):
+            arg2_values = Store(arg2_values, i, arg2[i])
 
         # Constraints for rule 35
-        rule_35(solver, {'arg1_value': arg1_value, 'arg2_length': arg2_length})
+        rule_35(solver, {'arg1_value': arg1_value, 'arg2_values': arg2_values, 'arg2_length': arg2_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_35(solver, {'arg1_value': arg1['value'], 'arg2_length': arg2['length']}, neg)
+        rule_35(solver, {'arg1_value': arg1['value'], 'arg2_values': arg2['values'], 'arg2_length': arg2['length']}, neg)

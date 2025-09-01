@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The element type of the tensor is real-valued, i.e., not complex (Rule 3)
+# input tensor cannot have boolean dtype (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] != 10, v["arg1_dtype"] != 11)) if n else
-          And(v["arg1_dtype"] != 10, v["arg1_dtype"] != 11))
+    s.add(Not(v["arg1_dtype"] != 0) if n else
+          v["arg1_dtype"] != 0)
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

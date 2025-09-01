@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# number of rows in indices should match length of values (Rule 4)
+# dense_shape has rank equal to indices's second dimension (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)) if n else
-          Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0))
+    s.add(Not(Select(v["arg1_shape"], 1) == v["arg2_ndim"]) if n else
+          Select(v["arg1_shape"], 1) == v["arg2_ndim"])
 )
 
 def rule_4_func(arg1, arg2, solver=None, neg=False):
@@ -26,18 +26,17 @@ def rule_4_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg2_ndim = Int('arg2_ndim')
 
         # Value assignments
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 4
-        rule_4(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape})
+        rule_4(solver, {'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_4(solver, {'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape']}, neg)
+        rule_4(solver, {'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim']}, neg)

@@ -1,126 +1,198 @@
 >>
 Rule 1 (x must be a 4D tensor)
-{v_1 : tensor} |= ndim(v_1) = 4
+{x : tensor} |= ndim(x) = 4
 >>
-Rule 2 (x must be of type half, bfloat16, or float32 which are encoded as indices 6, 7, 8 respectively)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 2 (scale must be a 1D tensor)
+{scale : tensor} |= ndim(scale) = 1
 >>
-Rule 3 (scale must be of type bfloat16 or float32 which are encoded as indices 7, 8 respectively)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 3 (offset must be a 1D tensor)
+{offset : tensor} |= ndim(offset) = 1
 >>
-Rule 4 (offset must have the same type as scale)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 4 (mean must be a 1D tensor)
+{mean : tensor} |= ndim(mean) = 1
 >>
-Rule 7 (scale, offset, mean and variance must be 1D tensors)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ ndim(v_4) = 1
+Rule 5 (variance must be a 1D tensor)
+{variance : tensor} |= ndim(variance) = 1
 >>
-Rule 8 (epsilon must be a float and greater than 0)
-{v_1 : float} |= v_1 > 0
+Rule 6 (epsilon must be non-negative)
+{epsilon : float} |= epsilon ≥ 0
 >>
-Rule 9 (exponential_avg_factor must be a float and greater than or equal to 0 and less than or equal to 1)
-{v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
+Rule 7 (data_format must be a valid string option)
+{data_format : str} |= data_format = "NHWC" ∨ data_format = "NCHW" ∨ data_format = "NDHWC" ∨ data_format = "NCDHW"
 >>
-Rule 10 (data_format must be one of the allowed strings)
-{v_1 : str} |= v_1 = "NHWC" ∨ v_1 = "NCHW" ∨ v_1 = "NDHWC" ∨ v_1 = "NCDHW"
+Rule 8 (is_training must be a boolean)
+{is_training : bool} |= is_training = true ∨ is_training = false
 >>
-Rule 11 (is_training must be a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 9 (scale and offset must have the same dtype)
+{scale : tensor, offset : tensor} |= dtype_(scale) = dtype_(offset)
 >>
-Rule 12 (If data format is NHWC, then the channel dimension is the last dimension. If data format is NCHW, then the channel dimension is the second dimension.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : str} |= if v_5 = "NHWC" then shape(v_2, 0) = shape(v_1, 3) ∧ shape(v_3, 0) = shape(v_1, 3) ∧ shape(v_4, 0) = shape(v_1, 3) else if v_5 = "NCHW" then shape(v_2, 0) = shape(v_1, 1) ∧ shape(v_3, 0) = shape(v_1, 1) ∧ shape(v_4, 0) = shape(v_1, 1)
+Rule 10 (scale and mean must have the same dtype)
+{scale : tensor, mean : tensor} |= dtype_(scale) = dtype_(mean)
 >>
-Rule 16 (scale, offset, mean and variance must have same type)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3) ∧ dtype_(v_1) = dtype_(v_4)
+Rule 11 (scale and variance must have the same dtype)
+{scale : tensor, variance : tensor} |= dtype_(scale) = dtype_(variance)
 >>
-Rule 22 (If data format is NHWC, then the channel dimension is the last dimension. If data format is NCHW, then the channel dimension is the second dimension. Check the shapes of x and scale)
-{v_1 : tensor, v_2 : tensor, v_3: str} |= if v_3 = "NHWC" then shape(v_2, 0) = shape(v_1, 3) else if v_3 = "NCHW" then shape(v_2, 0) = shape(v_1, 1)
+Rule 12 (x, scale, offset, mean and variance all have compatible dtypes.)
+{x : tensor, scale : tensor, offset : tensor, mean : tensor, variance : tensor} |= (dtype_(x) = 6 ∨ dtype_(x) = 7) ∧ (dtype_(scale) = 6 ∨ dtype_(scale) = 7) ∧ (dtype_(offset) = 6 ∨ dtype_(offset) = 7) ∧ (dtype_(mean) = 6 ∨ dtype_(mean) = 7) ∧ (dtype_(variance) = 6 ∨ dtype_(variance) = 7)
 >>
-Rule 23 (If data format is NDHWC, then the channel dimension is the fourth dimension.)
-{v_1 : tensor, v_2 : tensor, v_3: str} |= if v_3 = "NDHWC" then shape(v_2, 0) = shape(v_1, 4)
+Rule 13 (The length of scale, offset, mean, and variance should be the same when not empty.)
+{scale : tensor, offset : tensor, mean : tensor, variance : tensor} |= if shape(scale, 0) > 0 ∧ shape(offset, 0) > 0 ∧ shape(mean, 0) > 0 ∧ shape(variance, 0) > 0 then shape(scale, 0) = shape(offset, 0) ∧ shape(scale, 0) = shape(mean, 0) ∧ shape(scale, 0) = shape(variance, 0)
 >>
-Rule 24 (If data format is NCDHW, then the channel dimension is the second dimension.)
-{v_1 : tensor, v_2 : tensor, v_3: str} |= if v_3 = "NCDHW" then shape(v_2, 0) = shape(v_1, 1)
+Rule 14 (exponential_avg_factor must be non-negative)
+{exponential_avg_factor : float} |= exponential_avg_factor ≥ 0
 >>
-Rule 28 (scale, offset, mean, variance are 1D tensors and their shapes must match.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ ndim(v_4) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) = shape(v_3, 0) ∧ shape(v_1, 0) = shape(v_4, 0)
+Rule 15 (x must have a valid dtype)
+{x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 1
 >>
-Rule 34 (If data format is NHWC, the last dim of x has the same size of scale.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NHWC" then shape(v_1, 3) = shape(v_2, 0)
+Rule 16 (scale must have a valid dtype)
+{scale : tensor} |= dtype_(scale) = 7 ∨ dtype_(scale) = 1
 >>
-Rule 35 (If data format is NCHW, the second dim of x has the same size of scale.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NCHW" then shape(v_1, 1) = shape(v_2, 0)
+Rule 17 (If data_format is "NCHW", the dimension C should be the second dimension of X)
+{x : tensor, data_format : str, scale : tensor} |= if data_format = "NCHW" then shape(scale, 0) = shape(x, 1)
 >>
-Rule 36 (If data format is NDHWC, the fourth dim of x has the same size of scale.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NDHWC" then shape(v_1, 4) = shape(v_2, 0)
+Rule 18 (If data_format is "NHWC", the dimension C should be the last dimension of X)
+{x : tensor, data_format : str, scale : tensor} |= if data_format = "NHWC" then shape(scale, 0) = shape(x, 3)
 >>
-Rule 37 (If data format is NCDHW, the second dim of x has the same size of scale.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NCDHW" then shape(v_1, 1) = shape(v_2, 0)
+Rule 19 (If data_format is "NDHWC", the dimension C should be the last dimension of X)
+{x : tensor, data_format : str, scale : tensor} |= if data_format = "NDHWC" then shape(scale, 0) = shape(x, 4)
 >>
-Rule 38 (x must be a 4D tensor and of type half, bfloat16, or float32)
-{v_1 : tensor} |= ndim(v_1) = 4 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+Rule 20 (If data_format is "NCDHW", the dimension C should be the second dimension of X)
+{x : tensor, data_format : str, scale : tensor} |= if data_format = "NCDHW" then shape(scale, 0) = shape(x, 1)
 >>
-Rule 39 (scale must be 1D tensor and of type bfloat16, or float32)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+Rule 24 (x, scale, offset must have the same type)
+{x: tensor, scale: tensor, offset: tensor} |= if dtype_(x) = 1 then dtype_(scale) = 1 ∧ dtype_(offset) = 1 else if dtype_(x) = 7 then dtype_(scale) = 7 ∧ dtype_(offset) = 7 else dtype_(scale) = 1 ∧ dtype_(offset) = 1
 >>
-Rule 40 (offset, mean and variance must be 1D tensors, and have same shape as scale)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) = shape(v_3, 0) ∧ shape(v_1, 0) = shape(v_4, 0)
+Rule 25 (epsilon must be less than or equal to 1)
+{epsilon : float} |= epsilon ≤ 1
 >>
-Rule 49 (The dtypes of scale, offset, mean, variance should be the same)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
+Rule 26 (exponential_avg_factor must be less than or equal to 1)
+{exponential_avg_factor : float} |= exponential_avg_factor ≤ 1
 >>
-Rule 51 (scale must be 1D tensor)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 27 (If mean is empty, variance must also be empty)
+{mean : tensor, variance : tensor} |= if shape(mean, 0) = 0 then shape(variance, 0) = 0
 >>
-Rule 52 (The data types of scale, offset, mean, and variance should be consistent with the data type of scale itself. And scale's type can only be bfloat16 or float32.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+Rule 28 (scale and offset must have compatible dtypes with x)
+{x: tensor, scale: tensor, offset: tensor} |= if dtype_(x) = 1 then dtype_(scale) = 1 ∧ dtype_(offset) = 1 else if dtype_(x) = 7 then dtype_(scale) = 7 ∧ dtype_(offset) = 7 else dtype_(x) = 6 ∧ dtype_(scale) = 6 ∧ dtype_(offset) = 6
 >>
-Rule 58 (If data format is NHWC, then the size of the last dimension of x should be equal to the size of the first dimension of scale/offset/mean/variance.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NHWC" then shape(v_1, 3) = shape(v_2, 0) else if v_3 = "NCHW" then shape(v_1, 1) = shape(v_2, 0) else if v_3 = "NDHWC" then shape(v_1, 4) = shape(v_2, 0) else if v_3 = "NCDHW" then shape(v_1, 1) = shape(v_2, 0)
+Rule 29 (If variance is empty, mean must also be empty)
+{mean : tensor, variance : tensor} |= if shape(variance, 0) = 0 then shape(mean, 0) = 0
 >>
-Rule 59 (offset, mean, variance should have the same shape with the scale)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) = shape(v_3, 0)
+Rule 30 (exponential_avg_factor must be a valid float number)
+{exponential_avg_factor : float} |= exponential_avg_factor ≥ 0 ∧ exponential_avg_factor ≤ 1
 >>
-Rule 69 (If data format is NHWC, then the channel size of x and scale must match. Same for other data formats)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NHWC" then shape(v_1, 3) = shape(v_2, 0) else if v_3 = "NCHW" then shape(v_1, 1) = shape(v_2, 0) else if v_3 = "NDHWC" then shape(v_1, 4) = shape(v_2, 0) else shape(v_1, 1) = shape(v_2, 0)
+Rule 31 (epsilon must be a valid float number)
+{epsilon : float} |= epsilon ≥ 0 ∧ epsilon ≤ 1
 >>
-Rule 70 (The shape of offset/mean/variance should be the same as the shape of scale)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 32 (If is_training is false, mean and variance should not be empty)
+{is_training : bool, mean : tensor, variance : tensor} |= if is_training = false then shape(mean, 0) > 0 ∧ shape(variance, 0) > 0
 >>
-Rule 73 (The shapes of scale, offset, mean and variance must match.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) = shape(v_3, 0) ∧ shape(v_1, 0) = shape(v_4, 0)
+Rule 33 (If x is half, scale and offset must also be half)
+{x : tensor, scale : tensor, offset : tensor} |= if dtype_(x) = 6 then dtype_(scale) = 6 ∧ dtype_(offset) = 6
 >>
-Rule 82 (Check the shape relations when data_format is NHWC)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : str} |= if v_5 = "NHWC" then shape(v_1, 3) = shape(v_2, 0) ∧ shape(v_1, 3) = shape(v_3, 0) ∧ shape(v_1, 3) = shape(v_4, 0)
+Rule 34 (If x is bfloat16, scale and offset must also be bfloat16)
+{x : tensor, scale : tensor, offset : tensor} |= if dtype_(x) = 1 then dtype_(scale) = 1 ∧ dtype_(offset) = 1
 >>
-Rule 83 (Check the shape relations when data_format is NCHW)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : str} |= if v_5 = "NCHW" then shape(v_1, 1) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_3, 0) ∧ shape(v_1, 1) = shape(v_4, 0)
+Rule 35 (If x is float32, scale and offset must also be float32)
+{x : tensor, scale : tensor, offset : tensor} |= if dtype_(x) = 7 then dtype_(scale) = 7 ∧ dtype_(offset) = 7
 >>
-Rule 84 (Check the shape relations when data_format is NDHWC)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : str} |= if v_5 = "NDHWC" then shape(v_1, 4) = shape(v_2, 0) ∧ shape(v_1, 4) = shape(v_3, 0) ∧ shape(v_1, 4) = shape(v_4, 0)
+Rule 36 (If is_training is true, mean and variance should be empty)
+{is_training : bool, mean : tensor, variance : tensor} |= if is_training = true then shape(mean, 0) = 0 ∧ shape(variance, 0) = 0
 >>
-Rule 85 (Check the shape relations when data_format is NCDHW)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : str} |= if v_5 = "NCDHW" then shape(v_1, 1) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_3, 0) ∧ shape(v_1, 1) = shape(v_4, 0)
+Rule 37 (If is_training is true, exponential_avg_factor doesn't affect)
+{is_training : bool, exponential_avg_factor : float} |= if is_training = true then true else exponential_avg_factor ≥ 0 ∧ exponential_avg_factor ≤ 1
 >>
-Rule 86 (x should be 4D, scale/offset/mean/variance should be 1D.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 4 ∧ ndim(v_2) = 1
+Rule 38 (When is_training is true, the value of epsilon has no effect)
+{is_training : bool, epsilon : float} |= if is_training = true then true else epsilon ≥ 0
 >>
-Rule 94 (scale/offset/mean/variance should be 1D tensors with the same dtype)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ dtype_(v_1) = dtype_(v_2)
+Rule 40 (If data_format is NHWC or NDHWC, channel dimension should be last.)
+{x : tensor, data_format : str, scale : tensor} |= if data_format = "NHWC" then shape(x, 3) = shape(scale, 0) else if data_format = "NDHWC" then shape(x, 4) = shape(scale, 0)
 >>
-Rule 102 (If data_format is specified, the number of spatial dimensions should be consistent)
-{v_1: str, v_2: tensor} |= if v_1 = "NHWC" ∨ v_1 = "NCHW" then ndim(v_2) = 4 else if v_1 = "NDHWC" ∨ v_1 = "NCDHW" then ndim(v_2) = 5
+Rule 41 (If data_format is NCHW or NCDHW, channel dimension should be 1.)
+{x : tensor, data_format : str, scale : tensor} |= if data_format = "NCHW" then shape(x, 1) = shape(scale, 0) else if data_format = "NCDHW" then shape(x, 1) = shape(scale, 0)
 >>
-Rule 104 (scale, offset, mean, variance: the number of elements in each tensor should be greater than 0)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0 ∧ shape(v_3, 0) > 0 ∧ shape(v_4, 0) > 0
+Rule 42 (If data_format is NCHW or NCDHW, then x must have at least 2 dimensions.)
+{x : tensor, data_format : str} |= if data_format = "NCHW" ∨ data_format = "NCDHW" then ndim(x) ≥ 2
 >>
-Rule 110 (data_format affects how the shapes align)
-{v_1 : tensor, v_2 : tensor, v_3: str} |= if v_3 = "NHWC" then shape(v_1, 3) = shape(v_2, 0) else if v_3 = "NCHW" then shape(v_1, 1) = shape(v_2, 0) else if v_3 = "NDHWC" then shape(v_1, 4) = shape(v_2, 0) else shape(v_1, 1) = shape(v_2, 0)
+Rule 43 (If data_format is NHWC or NDHWC, then x must have at least 4 dimensions.)
+{x : tensor, data_format : str} |= if data_format = "NHWC" ∨ data_format = "NDHWC" then ndim(x) ≥ 4
 >>
-Rule 112 (Offset/Mean/Variance must be 1D tensors)
-{v_1: tensor} |= ndim(v_1) = 1
+Rule 46 (If mean and variance are both empty, then is_training should be true.)
+{mean : tensor, variance : tensor, is_training : bool} |= if shape(mean, 0) = 0 ∧ shape(variance, 0) = 0 then is_training = true
 >>
-Rule 119 (If the data format is NHWC, then the number of channels of x should be the same as the number of elements of scale, offset, mean, and variance)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : str} |= if v_5 = "NHWC" then shape(v_1, 3) = shape(v_2, 0) ∧ shape(v_1, 3) = shape(v_3, 0) ∧ shape(v_1, 3) = shape(v_4, 0) else if v_5 = "NCHW" then shape(v_1, 1) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_3, 0) ∧ shape(v_1, 1) = shape(v_4, 0) else if v_5 = "NDHWC" then shape(v_1, 4) = shape(v_2, 0) ∧ shape(v_1, 4) = shape(v_3, 0) ∧ shape(v_1, 4) = shape(v_4, 0) else shape(v_1, 1) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_3, 0) ∧ shape(v_1, 1) = shape(v_4, 0)
+Rule 49 (If is_training is false, at least one of mean and variance must not be empty)
+{is_training : bool, mean : tensor, variance : tensor} |= if is_training = false then (shape(mean, 0) > 0) ∨ (shape(variance, 0) > 0)
 >>
-Rule 128 (If the data format is NHWC, NCHW, NDHWC, or NCDHW, the number of channels of x should match the first dimension of the other tensors.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |=  if v_3 = "NHWC" then shape(v_1, 3) = shape(v_2, 0) else if v_3 = "NCHW" then shape(v_1, 1) = shape(v_2, 0) else if v_3 = "NDHWC" then shape(v_1, 4) = shape(v_2, 0) else shape(v_1, 1) = shape(v_2, 0)
+Rule 50 (If the mean and variance are not empty then they must have size equal to the last dimension of the input tensor x.)
+{x: tensor, mean:tensor, variance: tensor, data_format: str} |= if shape(mean,0) > 0 ∧ shape(variance, 0) > 0 then if data_format = "NHWC" then shape(x,3) = shape(mean,0) ∧ shape(x,3) = shape(variance, 0) else if data_format = "NCHW" then shape(x,1) = shape(mean,0) ∧ shape(x,1) = shape(variance, 0) else if data_format = "NDHWC" then shape(x,4) = shape(mean,0) ∧ shape(x,4) = shape(variance, 0) else if data_format = "NCDHW" then shape(x,1) = shape(mean,0) ∧ shape(x,1) = shape(variance, 0)
+>>
+Rule 51 (If x is not half, bfloat16, or float32 then it is invalid)
+{x : tensor} |= dtype_(x) ≠ 6 ∧ dtype_(x) ≠ 1 ∧ dtype_(x) ≠ 7
+>>
+Rule 52 (scale can only be bfloat16, or float32)
+{scale: tensor} |= dtype_(scale) ≠ 1 ∧ dtype_(scale) ≠ 7
+>>
+Rule 53 (x and scale must have the same dtype)
+{x: tensor, scale: tensor} |= dtype_(x) = dtype_(scale)
+>>
+Rule 54 (If data_format is either NCHW or NCDHW, x must be at least 4 dimensional.)
+{x : tensor, data_format : str} |= if data_format = "NCHW" ∨ data_format = "NCDHW" then ndim(x) = 4
+>>
+Rule 55 (If x's shape is [N,C,H,W] and data_format is NCHW, then scale's shape should be [C])
+{x : tensor, scale : tensor, data_format : str} |= if data_format = "NCHW" then ndim(x) = 4 ∧ ndim(scale) = 1 ∧ shape(x,1) = shape(scale,0)
+>>
+Rule 56 (epsilon should be greater than or equal to 0.0)
+{epsilon : float} |= epsilon ≥ 0.0
+>>
+Rule 57 (x must be half, bfloat16, or float32)
+{x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 1 ∨ dtype_(x) = 7
+>>
+Rule 58 (x's dtype must be same as scale's dtype)
+{x : tensor, scale : tensor} |= dtype_(x) = dtype_(scale)
+>>
+Rule 60 (scale must have a bfloat16 or float32 dtype)
+{scale: tensor} |= dtype_(scale) = 1 ∨ dtype_(scale) = 7
+>>
+Rule 61 (If data_format = "NHWC", then x.shape[3] = scale.shape[0])
+{x : tensor, scale : tensor, data_format : str} |= if data_format = "NHWC" then shape(x, 3) = shape(scale, 0)
+>>
+Rule 62 (If the mean is empty, the variance must be empty, and is_training must be true)
+{mean : tensor, variance : tensor, is_training : bool} |= if shape(mean, 0) = 0 then shape(variance, 0) = 0 ∧ is_training = true
+>>
+Rule 63 (If is_training = false and the mean is empty, this is invalid)
+{is_training : bool, mean : tensor} |= if is_training = false then shape(mean,0) > 0
+>>
+Rule 64 (If x's shape is [N,H,W,C] and data_format is NHWC, then scale's shape should be [C])
+{x : tensor, scale : tensor, data_format : str} |= if data_format = "NHWC" then ndim(x) = 4 ∧ ndim(scale) = 1 ∧ shape(x,3) = shape(scale,0)
+>>
+Rule 65 (If data_format is NDHWC, then x must be 5 dimensional)
+{x:tensor, data_format: str} |= if data_format = "NDHWC" then ndim(x) = 5
+>>
+Rule 67 (If data_format is NCDHW, then x must be 5 dimensional)
+{x:tensor, data_format: str} |= if data_format = "NCDHW" then ndim(x) = 5
+>>
+Rule 68 (If x's shape is [N,D,H,W,C] and data_format is NDHWC, then scale's shape should be [C])
+{x : tensor, scale : tensor, data_format : str} |= if data_format = "NDHWC" then ndim(x) = 5 ∧ ndim(scale) = 1 ∧ shape(x,4) = shape(scale,0)
+>>
+Rule 69 (If is_training is true then mean and variance must be empty)
+{is_training : bool, mean : tensor, variance: tensor} |= if is_training = true then shape(mean, 0) = 0 ∧ shape(variance, 0) = 0
+>>
+Rule 70 (If x's shape is [N,D,H,W,C] and data_format is NCDHW, then scale's shape should be [C])
+{x : tensor, scale : tensor, data_format : str} |= if data_format = "NCDHW" then ndim(x) = 5 ∧ ndim(scale) = 1 ∧ shape(x,1) = shape(scale,0)
+>>
+Rule 71 (if is_training = false and variance is empty, then this is invalid)
+{is_training : bool, variance : tensor} |= if is_training = false then shape(variance,0) > 0
+>>
+Rule 73 (If data_format = "NCHW" ∨ data_format = "NCDHW" then x.shape[1] = scale.shape[0])
+{x : tensor, scale : tensor, data_format : str} |= if data_format = "NCHW" ∨ data_format = "NCDHW" then shape(x, 1) = shape(scale, 0)
+>>
+Rule 74 (Offset can only be bfloat16, or float32)
+{offset: tensor} |= dtype_(offset) = 1 ∨ dtype_(offset) = 7
+>>
+Rule 75 (If x has 3 dimensions, then it is invalid)
+{x:tensor} |= ndim(x) ≠ 3
+>>
+Rule 76 (If data_format = "NCHW", then x must be at least 4 dimensional)
+{x : tensor, data_format : str} |= if data_format = "NCHW" then ndim(x) ≥ 4
+>>
+Rule 77 (If is_training is false and variance is empty, then mean is also empty)
+{is_training : bool, variance : tensor, mean : tensor} |= if is_training = false ∧ shape(variance, 0) = 0 then shape(mean, 0) = 0

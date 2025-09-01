@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Filters must have compatible out_channels with output_shape (Rule 30)
+# If filter's shape is defined, value in_channel must match (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 2) == Select(v["arg2_shape"], 3)) if n else
-          Select(v["arg1_shape"], 2) == Select(v["arg2_shape"], 3))
+    s.add(Not(If(And(And(And(Select(v["arg2_shape"], 0) > 0, Select(v["arg2_shape"], 1) > 0), Select(v["arg2_shape"], 2) > 0), Select(v["arg2_shape"], 3) > 0), Select(v["arg1_shape"], 3) == Select(v["arg2_shape"], 3), True)) if n else
+          If(And(And(And(Select(v["arg2_shape"], 0) > 0, Select(v["arg2_shape"], 1) > 0), Select(v["arg2_shape"], 2) > 0), Select(v["arg2_shape"], 3) > 0), Select(v["arg1_shape"], 3) == Select(v["arg2_shape"], 3), True))
 )
 
 def rule_30_func(arg1, arg2, solver=None, neg=False):

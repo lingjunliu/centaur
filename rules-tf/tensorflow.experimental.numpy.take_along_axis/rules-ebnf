@@ -1,114 +1,147 @@
 >>
-Rule 2 (The axis parameter must be non-negative.)
-{v_1 : int} |= v_1 ≥ 0
+Rule 1 (arr and indices should be tensors)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
 >>
-Rule 3 (Indices tensor must be an integer type.)
-{v_1: tensor} |= dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 3 (indices should have integer dtype)
+{v_2 : tensor} |= dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5
 >>
-Rule 4 (Shape of input tensor and indices must match except for the axis dimension if axis is provided.)
-{v_1 : tensor, v_2 : tensor, v_3: int} |= (∀i ∈ [0, ndim(v_1) - 1] : (i ≠ v_3 ∨ shape(v_1, i) = shape(v_2, i)))
+Rule 4 (arr and indices should have compatible shapes along the axis)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_1, v_3) = shape(v_2, v_3) ∨ shape(v_1, v_3) = 1 ∨ shape(v_2, v_3) = 1
 >>
-Rule 5 (Shape of the indices tensor must be less than or equal to input tensor.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≤ ndim(v_1)
+Rule 6 (arr cannot have zero dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 7 (If the input tensor is empty, the output should be empty as well.)
-{v_1 : tensor} |= if shape(v_1, 0) = 0 then shape(v_1, 0) = 0
+Rule 7 (indices cannot have zero dimensions)
+{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
 >>
-Rule 8 (Indices tensor should have valid indices.)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= min(v_2) ≥ 0 ∧ max(v_2) < shape(v_1, v_3)
+Rule 9 (axis should be within the valid range of dimensions for arr)
+{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) <= v_2 ∧ v_2 < ndim(v_1)
 >>
-Rule 9 (Indices must be within the valid range of the corresponding dimension of input tensor)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0 ∧ v_2[i] < shape(v_1, v_3)
+Rule 12 (Axis must be within the rank of arr, or -1)
+{v_1 : tensor, v_2 : int} |= (v_2 = -1) ∨ ((0 - ndim(v_1)) <= v_2 ∧ v_2 < ndim(v_1))
 >>
-Rule 10 (If the input tensor is of type float32, the output tensor should be of type float32 too)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_1) = 7
+Rule 15 (The number of dimensions of indices must be at least one)
+{v_2 : tensor} |= ndim(v_2) ≥ 1
 >>
-Rule 16 (The indices and input tensors must have the same number of dimensions.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
->>
-Rule 21 (The axis parameter must be less than the number of dimensions of input)
+Rule 16 (axis should be less than the number of dimensions of arr)
 {v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
 >>
-Rule 22 (The input and indices tensors should have compatible data types. Here we check float type)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7
+Rule 17 (axis should be greater than or equal to negative number of dimensions of arr)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1))
 >>
-Rule 24 (If the input tensor is of type complex64, the output tensor should be of type complex64 too)
-{v_1 : tensor} |= if dtype_(v_1) = 9 then dtype_(v_1) = 9
+Rule 18 (if axis is None, indices must have the same shape as arr)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 25 (If the input tensor is of type bool, the output tensor should be of type bool too)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_1) = 0
+Rule 19 (elements in indices should be within the bounds of the selected dimension)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= ∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ (0 - shape(v_1, v_3))) ∧ (v_2[i] < shape(v_1, v_3))
 >>
-Rule 26 (If the input tensor is of type int32, the output tensor should be of type int32 too)
-{v_1 : tensor} |= if dtype_(v_1) = 3 then dtype_(v_1) = 3
->>
-Rule 27 (If indices is a tuple, the length must match number of dimensions of input)
-{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len
->>
-Rule 28 (The data type of the output must be the same as the data type of input)
+Rule 20 (Data type of arr and indices must be the same)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 31 (If indices is a scalar, then indices must be in valid range.)
-{v_1: tensor, v_2: int} |= v_2 >= 0 ∧ v_2 < shape(v_1, 0)
+Rule 23 (arr and indices must have at least one dimension)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1
 >>
-Rule 37 (Indices and Input must be of the same shape.)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 24 (If axis is specified, indices should have the same number of dimensions as arr)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 ≠ -1 then ndim(v_1) = ndim(v_2)
 >>
-Rule 38 (The indices must be an integer tensor)
-{v_1 : tensor} |= dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 25 (Shape of indices and input array should be compatible along specified axis)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 ≥ 0 then shape(v_2, v_3) = shape(v_1, v_3)
 >>
-Rule 39 (Input tensor cannot be empty along specified axis)
-{v_1 : tensor, v_2 : int} |= shape(v_1, v_2) > 0
+Rule 31 (Shape of indices should be compatible with the shape of arr along other axes than the specified axis)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= ∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_3 ∧ v_3 ≥ 0 then shape(v_2, i) = shape(v_1, i)
 >>
-Rule 41 (if input is float64 then indices should be int64)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = 4
+Rule 33 (Axis should be within the valid dimension range)
+{v_1 : tensor, v_3 : int} |= (0 - ndim(v_1)) ≤ v_3 ∧ v_3 < ndim(v_1)
 >>
-Rule 42 (The input and the output should have same dtype)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 34 (Shape of indices should be compatible with the shape of arr along other axes than the specified axis)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 ≥ 0 then ∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_3 then shape(v_2, i) = shape(v_1, i)
 >>
-Rule 43 (Indices and Input must be of the same shape if axis is None)
-{v_1 : tensor, v_2 : tensor, v_3: int} |= if v_3 = -1 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 39 (Indices elements must be within the bounds of arr along the specified axis)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 ≥ 0 then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ (0 - shape(v_1, v_3)) ∧ v_2[i] < shape(v_1, v_3)
 >>
-Rule 46 (if input is float64 then indices should be int64 if axis is specified.)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if dtype_(v_1) = 8 ∧ v_3 ≠ -1 then dtype_(v_2) = 4
+Rule 44 (When axis is None, the number of elements in indices must match the number of elements in arr.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 then shape(v_1,0) = shape(v_2,0)
 >>
-Rule 48 (Shape of indices must equal input shape if axis is none)
-{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) = shape(v_2,0)
+Rule 47 (When axis is None, the number of elements in indices must match the number of elements in arr.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 49 (Indices and Input must be of the same shape if axis is None and input dimension is greater than zero)
-{v_1 : tensor, v_2 : tensor, v_3: int} |= if v_3 = -1 ∧ ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 50 (When axis is None, the shape of indices must match the shape of arr.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 50 (if input is float64 then indices should be int64 if axis is specified and indices dimension is greater than zero)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if dtype_(v_1) = 8 ∧ v_3 ≠ -1 ∧ ndim(v_2) > 0 then dtype_(v_2) = 4
+Rule 54 (The shape of the indices tensor must be broadcastable to the shape of the input tensor along the axes other than the axis parameter.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 ≥ 0 then ∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_3 then (shape(v_2, i) = shape(v_1, i)) ∨ shape(v_2, i) = 1 ∨ shape(v_1, i) = 1
 >>
-Rule 52 (Indices should have same number of dimensions as input, given valid dimension)
-{v_1: tensor, v_2:tensor, v_3: int} |= v_3 > -1 ∧ v_3 < ndim(v_1) ∧ ndim(v_1) = ndim(v_2)
+Rule 56 (The indices tensor must have a valid shape.)
+{v_2 : tensor, v_3 : int} |= if v_3 ≥ 0 then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0 else shape(v_2,0) > 0
 >>
-Rule 56 (If indices have more dimensions than input, it is invalid)
-{v_1: tensor, v_2: tensor} |= ndim(v_2) <= ndim(v_1) + 1
+Rule 57 (If axis is None, the indices must be a scalar.)
+{v_2 : tensor, v_3 : int} |= if v_3 = -1 then ndim(v_2) = 0
 >>
-Rule 58 (If the input has dimension 0 the output also has dimension 0)
-{v_1: tensor} |= if ndim(v_1) = 0 then ndim(v_1) = 0
+Rule 58 (If axis is None, indices must be an integer scalar within range -arr.size to arr.size - 1.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 then (min(v_2) ≥ (0 - shape(v_1,0))) ∧ (max(v_2) < shape(v_1, 0))
 >>
-Rule 59 (Input tensor must have positive dimensions)
-{v_1 : tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 59 (If axis is None and arr is a scalar, indices must also be a scalar with value 0)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 ∧ ndim(v_1) = 0 then ndim(v_2) = 0 ∧ v_2 = 0
 >>
-Rule 60 (If indices is a list, it must be of same length as the input at axis 0)
-{v_1 : tensor, v_2 : list(int)} |= v_2.len = shape(v_1, 0)
+Rule 60 (If axis is None and arr is a scalar, indices must also be a scalar with a valid integer value)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 ∧ ndim(v_1) = 0 then ndim(v_2) = 0 ∧ (v_2 ≥ -1) ∧ (v_2 ≤ 0)
 >>
-Rule 61 (Indices should contain only non-negative values.)
-{v_1 : tensor} |= min(v_1) >= 0
+Rule 61 (If axis is None and arr is a scalar, indices must also be a scalar with a valid integer value between -1 and 0 inclusive)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 ∧ ndim(v_1) = 0 then ndim(v_2) = 0 ∧ (v_2 ≥ -1 ∧ v_2 ≤ 0)
 >>
-Rule 62 (The axis parameter, if provided, must be within the valid range of axes for the input tensor)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 62 (If axis is None and arr is a scalar, indices must also be a scalar with a valid integer value such that the element at that index exists)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 ∧ ndim(v_1) = 0 then ndim(v_2) = 0 ∧ ((v_2 = -1) ∨ (v_2 = 0))
 >>
-Rule 67 (If indices tensor is empty then output tensor is also empty, for a valid dimension)
-{v_1 : tensor, v_2 : tensor, v_3: int} |= if shape(v_2, v_3) = 0 then shape(v_1,v_3) = 0
+Rule 63 (If axis is None and the array is a scalar, the indices must also be a scalar with a value of 0 or -1)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 ∧ ndim(v_1) = 0 then ndim(v_2) = 0 ∧ (v_2 = 0 ∨ v_2 = -1)
 >>
-Rule 69 (The indices tensor must be of integer type.)
-{v_1: tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Rule 64 (If axis is None and arr is a scalar, indices must also be a scalar with a valid integer value equal to 0 or -1)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 ∧ ndim(v_1) = 0 then ndim(v_2) = 0 ∧ (v_2 = 0 ∨ v_2 = (0-1))
 >>
-Rule 71 (Indices must be smaller than the length of given axis)
-{v_1:tensor, v_2:tensor, v_3:int} |= max(v_2) < shape(v_1, v_3)
+Rule 65 (If axis is None and arr is a scalar, indices must be a scalar tensor with value 0 or -1)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 ∧ ndim(v_1) = 0 then ndim(v_2) = 0 ∧ (v_2 = 0 ∨ v_2 = (0 - 1))
 >>
-Rule 75 (Indices have to be within the range of -input_shape[axis] to input_shape[axis]-1 if axis is specified)
-{v_1: tensor, v_2:tensor, v_3:int} |= min(v_2) >= (0-shape(v_1, v_3)) ∧ max(v_2) < shape(v_1, v_3)
+Rule 67 (If arr and indices are scalars, the axis must be None)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then v_3 = -1
+>>
+Rule 68 (If axis is None, indices cannot have more dimensions than arr)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 then ndim(v_2) ≤ ndim(v_1)
+>>
+Rule 69 (When axis is None, the number of elements of arr and indices must be same)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1,i) = shape(v_2,i)
+>>
+Rule 70 (When axis is None, the product of the shape of indices must match product of the shape of arr)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) ∧ (∃j ∈ [0, ndim(v_1) - 1]: ∃k ∈ [0, ndim(v_2) - 1]: shape(v_1, j) = shape(v_2,k))
+>>
+Rule 71 (When axis is None, the product of the dimensions of indices must match product of the dimensions of arr)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 then (min(v_1) > 0) ∧ (min(v_2) > 0) ∧ (max(v_1) = max(v_2))
+>>
+Rule 72 (When axis is None, the number of elements in arr and indices must be same)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) ∧ (min(v_1) = min(v_2)) ∧ (max(v_1) = max(v_2))
+>>
+Rule 73 (When axis is None, the total number of elements in arr and indices must be the same)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∃j ∈ [0, ndim(v_2) - 1]: shape(v_2, j) > 0) ∧ (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i))
+>>
+Rule 74 (When axis is None, the number of elements in arr and indices must be the same. Calculate the total elements with recursive lambda function and compare)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 then (min(v_1) > 0) ∧ (min(v_2) > 0) ∧ (max(v_1) > 0) ∧ (max(v_2) > 0)
+>>
+Rule 75 (if axis is None then indices must be the same size as input array)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 then ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 76 (if axis is None then indices must have the same shape as input array)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 77 (if axis is None then indices and arr must have same number of elements)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∃j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) > 0) ∧ (max(v_1) = max(v_2))
+>>
+Rule 79 (If axis is not None, indices should be of integer data type)
+{v_2 : tensor, v_3 : int} |= if v_3 ≠ -1 then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
+>>
+Rule 80 (if axis is None then indices must be of integer data type)
+{v_2 : tensor, v_3 : int} |= if v_3 = -1 then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
+>>
+Rule 81 (The number of dimensions of indices must be less than or equal to the number of dimensions of arr plus one.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≤ ndim(v_1) + 1
+>>
+Rule 82 (The number of dimensions of indices must be at least 1 and less than or equal to the number of dimensions of arr plus one.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_2) ≥ 1) ∧ (ndim(v_2) ≤ ndim(v_1) + 1)

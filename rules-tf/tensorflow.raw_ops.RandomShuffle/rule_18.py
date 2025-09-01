@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the seed is non-zero, the seed2 must be in a specific range (Rule 18)
+# If seed and seed2 are 0, the operation uses a random seed, so it's stochastic and not reproducible (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] != 0, And(v["arg2_value"] > -2147483648, v["arg2_value"] < 2147483647), False)) if n else
-          If(v["arg1_value"] != 0, And(v["arg2_value"] > -2147483648, v["arg2_value"] < 2147483647), False))
+    s.add(Not(If(And(v["arg1_value"] == 0, v["arg2_value"] == 0), True, True)) if n else
+          If(And(v["arg1_value"] == 0, v["arg2_value"] == 0), True, True))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):

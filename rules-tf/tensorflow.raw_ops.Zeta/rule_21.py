@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input tensors x and q are 1D, then their sizes should be the same (Rule 21)
+# Either x or q should be a scalar, or they should have compatible shapes for broadcasting. (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 1), Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), False)) if n else
-          If(And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 1), Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), False))
+    s.add(Not(Or(Or((v["arg1_ndim"] == 0), (v["arg2_ndim"] == 0)), (And(And(v["arg1_ndim"] >= 0, v["arg2_ndim"] >= 0), And([Implies(i < (If(v["arg1_ndim"] >= v["arg2_ndim"], v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), If(And(v["arg1_ndim"] - i - 1 >= 0, v["arg2_ndim"] - i - 1 >= 0), Or(Or(Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - i - 1), Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == 1), Select(v["arg2_shape"], v["arg2_ndim"] - i - 1) == 1), True)) for i in range(6)]))))) if n else
+          Or(Or((v["arg1_ndim"] == 0), (v["arg2_ndim"] == 0)), (And(And(v["arg1_ndim"] >= 0, v["arg2_ndim"] >= 0), And([Implies(i < (If(v["arg1_ndim"] >= v["arg2_ndim"], v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), If(And(v["arg1_ndim"] - i - 1 >= 0, v["arg2_ndim"] - i - 1 >= 0), Or(Or(Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - i - 1), Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == 1), Select(v["arg2_shape"], v["arg2_ndim"] - i - 1) == 1), True)) for i in range(6)])))))
 )
 
 def rule_21_func(arg1, arg2, solver=None, neg=False):

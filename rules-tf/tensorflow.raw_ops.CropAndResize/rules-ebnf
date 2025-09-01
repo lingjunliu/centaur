@@ -1,354 +1,108 @@
 >>
-Rule 1 (image tensor must be 4-dimensional)
-{v_1 : tensor} |= ndim(v_1) = 4
+Rule 1 (image tensor must be of rank 4)
+{image : tensor} |= ndim(image) = 4
 >>
-Rule 2 (boxes tensor must be 2-dimensional)
-{v_1 : tensor} |= ndim(v_1) = 2
+Rule 2 (boxes tensor must be of rank 2)
+{boxes : tensor} |= ndim(boxes) = 2
 >>
-Rule 3 (boxes tensor's last dimension must be 4)
-{v_1 : tensor} |= ndim(v_1) = 2 ∧ shape(v_1, 1) = 4
+Rule 3 (boxes tensor must have shape [num_boxes, 4])
+{boxes : tensor} |= shape(boxes, 1) = 4
 >>
-Rule 4 (box_ind tensor must be 1-dimensional)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 4 (box_ind tensor must be of rank 1)
+{box_ind : tensor} |= ndim(box_ind) = 1
 >>
-Rule 6 (crop_size tensor must have length 2)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = 2
+Rule 5 (crop_size tensor must be of rank 1)
+{crop_size : tensor} |= ndim(crop_size) = 1
 >>
-Rule 7 (crop_height and crop_width must be positive)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = 2 ∧ v_1[0] > 0 ∧ v_1[1] > 0
+Rule 6 (crop_size tensor must have 2 elements)
+{crop_size : tensor} |= shape(crop_size, 0) = 2
 >>
-Rule 8 (box_ind elements should be in the range [0, batch))
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 4 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < shape(v_2,0)
+Rule 7 (crop_height and crop_width from crop_size must be positive)
+{crop_size : tensor} |= crop_size[0] > 0 ∧ crop_size[1] > 0
 >>
-Rule 9 (method must be bilinear or nearest)
-{v_1 : str} |= v_1 = "bilinear" ∨ v_1 = "nearest"
+Rule 8 (box_ind values must be within the valid range [0, batch))
+{image : tensor, box_ind : tensor} |= ∀i ∈ [0, shape(box_ind, 0) - 1] : box_ind[i] ≥ 0 ∧ box_ind[i] < shape(image, 0)
 >>
-Rule 10 (image type must be in the allowed list)
-{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 5
+Rule 9 (image tensor dtype constraint: uint8, uint16, int8, int16, int32, int64, half, float32, float64)
+{image : tensor} |= dtype_(image) = 5 ∨ dtype_(image) = 1 ∨ dtype_(image) = 2 ∨ dtype_(image) = 3 ∨ dtype_(image) = 4 ∨ dtype_(image) = 0 ∨ dtype_(image) = 6 ∨ dtype_(image) = 7 ∨ dtype_(image) = 8
 >>
-Rule 11 (extrapolation_value is not allowed to be NaN)
-{v_1 : float} |= v_1 = v_1
+Rule 10 (boxes tensor must be float32)
+{boxes : tensor} |= dtype_(boxes) = 7
 >>
-Rule 12 (number of boxes must match between boxes and box_ind)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0)
+Rule 11 (box_ind tensor must be int32)
+{box_ind : tensor} |= dtype_(box_ind) = 3
 >>
-Rule 13 (image height and width must be positive, accessing shape)
-{v_1 : tensor} |= ndim(v_1) = 4 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+Rule 12 (crop_size tensor must be int32)
+{crop_size : tensor} |= dtype_(crop_size) = 3
 >>
-Rule 14 (boxes values must be in range [-inf, inf])
-{v_1 : tensor} |= ndim(v_1) = 2 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [0, 3] : v_1[i * 4 + j] = v_1[i * 4 + j]
+Rule 13 (method must be bilinear or nearest)
+{method : str} |= method = "bilinear" ∨ method = "nearest"
 >>
-Rule 15 (boxes data type must be float32)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∧ ndim(v_1) = 2
+Rule 28 (number of boxes should match between boxes and box_ind)
+{boxes : tensor, box_ind : tensor} |= shape(boxes, 0) = shape(box_ind, 0)
 >>
-Rule 16 (box_ind data type must be int32)
-{v_1 : tensor} |= dtype_(v_1) = 3 ∧ ndim(v_1) = 1
+Rule 29 (combined shape constraints for image, boxes, box_ind)
+{image : tensor, boxes : tensor, box_ind : tensor} |= ndim(image) = 4 ∧ ndim(boxes) = 2 ∧ shape(boxes, 1) = 4 ∧ ndim(box_ind) = 1 ∧ shape(boxes, 0) = shape(box_ind, 0)
 >>
-Rule 18 (extrapolation_value must be a valid float32 number)
-{v_1 : float} |= min(v_1) = min(v_1)
+Rule 30 (combined shape and type constraints for crop_size)
+{crop_size : tensor} |= ndim(crop_size) = 1 ∧ shape(crop_size, 0) = 2 ∧ crop_size[0] > 0 ∧ crop_size[1] > 0 ∧ dtype_(crop_size) = 3
 >>
-Rule 19 (If y1 > y2, crop is up-down flipped)
-{v_1 : tensor} |= ndim(v_1) = 2 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : if v_1[i * 4 + 0] > v_1[i * 4 + 2] then true
+Rule 33 (box_ind tensor must be int32 and its values within range)
+{image : tensor, box_ind : tensor} |= dtype_(box_ind) = 3 ∧ ∀i ∈ [0, shape(box_ind, 0) - 1] : box_ind[i] ≥ 0 ∧ box_ind[i] < shape(image, 0)
 >>
-Rule 20 (Image channels must be positive)
-{v_1 : tensor} |= ndim(v_1) = 4 ∧ shape(v_1, 3) > 0
+Rule 35 (Combined constraints for image, boxes, box_ind, crop_size)
+{image : tensor, boxes : tensor, box_ind : tensor, crop_size : tensor, method : str} |= ndim(image) = 4 ∧ ndim(boxes) = 2 ∧ shape(boxes, 1) = 4 ∧ ndim(box_ind) = 1 ∧ shape(boxes, 0) = shape(box_ind, 0) ∧ ndim(crop_size) = 1 ∧ shape(crop_size, 0) = 2 ∧ crop_size[0] > 0 ∧ crop_size[1] > 0 ∧ dtype_(crop_size) = 3 ∧ dtype_(boxes) = 7 ∧ dtype_(box_ind) = 3 ∧ (dtype_(image) = 5 ∨ dtype_(image) = 1 ∨ dtype_(image) = 2 ∨ dtype_(image) = 3 ∨ dtype_(image) = 4 ∨ dtype_(image) = 0 ∨ dtype_(image) = 6 ∨ dtype_(image) = 7 ∨ dtype_(image) = 8) ∧ (method = "bilinear" ∨ method = "nearest")
 >>
-Rule 21 (image height must be less than a constant value.)
-{v_1 : tensor} |= shape(v_1, 1) < 2048
+Rule 36 (Image height and width must be positive)
+{image : tensor} |= shape(image, 1) > 0 ∧ shape(image, 2) > 0
 >>
-Rule 22 (If x1 > x2, crop is left-right flipped)
-{v_1 : tensor} |= ndim(v_1) = 2 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : if v_1[i * 4 + 1] > v_1[i * 4 + 3] then true
+Rule 38 (Combined rule for image dimensions and box_ind range)
+{image : tensor, box_ind : tensor} |= shape(image, 1) > 0 ∧ shape(image, 2) > 0 ∧ ∀i ∈ [0, shape(box_ind, 0) - 1] : box_ind[i] ≥ 0 ∧ box_ind[i] < shape(image, 0)
 >>
-Rule 23 (extrapolation_value must be greater than negative one)
-{v_1 : float} |= v_1 > -1.0
+Rule 42 (combined constraints for image, boxes, box_ind, crop_size including image dimensions and box_ind range)
+{image : tensor, boxes : tensor, box_ind : tensor, crop_size : tensor} |= ndim(image) = 4 ∧ ndim(boxes) = 2 ∧ shape(boxes, 1) = 4 ∧ ndim(box_ind) = 1 ∧ shape(boxes, 0) = shape(box_ind, 0) ∧ ndim(crop_size) = 1 ∧ shape(crop_size, 0) = 2 ∧ crop_size[0] > 0 ∧ crop_size[1] > 0 ∧ shape(image, 1) > 0 ∧ shape(image, 2) > 0 ∧ ∀i ∈ [0, shape(box_ind, 0) - 1] : box_ind[i] ≥ 0 ∧ box_ind[i] < shape(image, 0)
 >>
-Rule 24 (Image width must be less than constant value)
-{v_1 : tensor} |= shape(v_1, 2) < 2048
+Rule 43 (dtype constraints for input tensors)
+{image : tensor, boxes : tensor, box_ind : tensor, crop_size : tensor} |= dtype_(boxes) = 7 ∧ dtype_(box_ind) = 3 ∧ dtype_(crop_size) = 3 ∧ (dtype_(image) = 5 ∨ dtype_(image) = 1 ∨ dtype_(image) = 2 ∨ dtype_(image) = 3 ∨ dtype_(image) = 4 ∨ dtype_(image) = 0 ∨ dtype_(image) = 6 ∨ dtype_(image) = 7 ∨ dtype_(image) = 8)
 >>
-Rule 25 (box_ind values must be non-negative)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
+Rule 45 (Combined constraints for image, boxes, box_ind, crop_size including image dimensions and box_ind range and method)
+{image : tensor, boxes : tensor, box_ind : tensor, crop_size : tensor, method : str} |= ndim(image) = 4 ∧ ndim(boxes) = 2 ∧ shape(boxes, 1) = 4 ∧ ndim(box_ind) = 1 ∧ shape(boxes, 0) = shape(box_ind, 0) ∧ ndim(crop_size) = 1 ∧ shape(crop_size, 0) = 2 ∧ crop_size[0] > 0 ∧ crop_size[1] > 0 ∧ shape(image, 1) > 0 ∧ shape(image, 2) > 0 ∧ ∀i ∈ [0, shape(box_ind, 0) - 1] : box_ind[i] ≥ 0 ∧ box_ind[i] < shape(image, 0) ∧ (method = "bilinear" ∨ method = "nearest")
 >>
-Rule 26 (boxes data type and image data type exist)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 4
+Rule 47 (Combined constraints for image, boxes, box_ind, crop_size, method and dtypes)
+{image : tensor, boxes : tensor, box_ind : tensor, crop_size : tensor, method : str} |= ndim(image) = 4 ∧ shape(image, 1) > 0 ∧ shape(image, 2) > 0 ∧ ndim(boxes) = 2 ∧ shape(boxes, 1) = 4 ∧ dtype_(boxes) = 7 ∧ ndim(box_ind) = 1 ∧ shape(boxes, 0) = shape(box_ind, 0) ∧ dtype_(box_ind) = 3 ∧ ∀i ∈ [0, shape(box_ind, 0) - 1] : box_ind[i] ≥ 0 ∧ box_ind[i] < shape(image, 0) ∧ ndim(crop_size) = 1 ∧ shape(crop_size, 0) = 2 ∧ crop_size[0] > 0 ∧ crop_size[1] > 0 ∧ dtype_(crop_size) = 3 ∧ (dtype_(image) = 5 ∨ dtype_(image) = 1 ∨ dtype_(image) = 2 ∨ dtype_(image) = 3 ∨ dtype_(image) = 4 ∨ dtype_(image) = 0 ∨ dtype_(image) = 6 ∨ dtype_(image) = 7 ∨ dtype_(image) = 8) ∧ (method = "bilinear" ∨ method = "nearest")
 >>
-Rule 27 (Boxes tensor and box_ind tensor exist)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 1
+Rule 48 (Combined constraints for all input tensors and method)
+{image : tensor, boxes : tensor, box_ind : tensor, crop_size : tensor, method : str} |= ndim(image) = 4 ∧ shape(image, 1) > 0 ∧ shape(image, 2) > 0 ∧ (dtype_(image) = 5 ∨ dtype_(image) = 1 ∨ dtype_(image) = 2 ∨ dtype_(image) = 3 ∨ dtype_(image) = 4 ∨ dtype_(image) = 0 ∨ dtype_(image) = 6 ∨ dtype_(image) = 7 ∨ dtype_(image) = 8) ∧ ndim(boxes) = 2 ∧ shape(boxes, 1) = 4 ∧ dtype_(boxes) = 7 ∧ ndim(box_ind) = 1 ∧ shape(boxes, 0) = shape(box_ind, 0) ∧ dtype_(box_ind) = 3 ∧ ∀i ∈ [0, shape(box_ind, 0) - 1] : box_ind[i] ≥ 0 ∧ box_ind[i] < shape(image, 0) ∧ ndim(crop_size) = 1 ∧ shape(crop_size, 0) = 2 ∧ crop_size[0] > 0 ∧ crop_size[1] > 0 ∧ dtype_(crop_size) = 3 ∧ (method = "bilinear" ∨ method = "nearest")
 >>
-Rule 28 (Check if image depth is greater than 0)
-{v_1 : tensor} |= shape(v_1, 3) > 0
+Rule 50 (Image shape constraints)
+{image : tensor} |= ndim(image) = 4 ∧ shape(image, 1) > 0 ∧ shape(image, 2) > 0
 >>
-Rule 29 (Check if boxes has valid values using min/max)
-{v_1 : tensor} |= min(v_1) = min(v_1) ∧ max(v_1) = max(v_1)
+Rule 51 (Boxes shape and dtype constraints)
+{boxes : tensor} |= ndim(boxes) = 2 ∧ shape(boxes, 1) = 4 ∧ dtype_(boxes) = 7
 >>
-Rule 30 (Crop size elements are not equal)
-{v_1 : tensor} |= v_1[0] ≠ v_1[1]
+Rule 52 (Box_ind shape and dtype constraints)
+{box_ind : tensor, image : tensor} |= ndim(box_ind) = 1 ∧ shape(boxes, 0) = shape(box_ind, 0) ∧ dtype_(box_ind) = 3 ∧ ∀i ∈ [0, shape(box_ind, 0) - 1] : box_ind[i] ≥ 0 ∧ box_ind[i] < shape(image, 0)
 >>
-Rule 31 (Box_ind is an integer and is not equal to zero)
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 54 (Image dtype constraints)
+{image : tensor} |= (dtype_(image) = 5 ∨ dtype_(image) = 1 ∨ dtype_(image) = 2 ∨ dtype_(image) = 3 ∨ dtype_(image) = 4 ∨ dtype_(image) = 0 ∨ dtype_(image) = 6 ∨ dtype_(image) = 7 ∨ dtype_(image) = 8)
 >>
-Rule 32 (method is not equal to a random string)
-{v_1 : str} |= v_1 ≠ "random"
+Rule 56 (Combined image constraints)
+{image : tensor} |= ndim(image) = 4 ∧ shape(image, 1) > 0 ∧ shape(image, 2) > 0 ∧ (dtype_(image) = 5 ∨ dtype_(image) = 1 ∨ dtype_(image) = 2 ∨ dtype_(image) = 3 ∨ dtype_(image) = 4 ∨ dtype_(image) = 0 ∨ dtype_(image) = 6 ∨ dtype_(image) = 7 ∨ dtype_(image) = 8)
 >>
-Rule 33 (image and boxes exist together)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 4 ∧ ndim(v_2) = 2
+Rule 61 (Combined shape, dtype and value range constraints)
+{image : tensor, boxes : tensor, box_ind : tensor, crop_size : tensor} |= ndim(image) = 4 ∧ shape(image, 1) > 0 ∧ shape(image, 2) > 0 ∧ (dtype_(image) = 5 ∨ dtype_(image) = 1 ∨ dtype_(image) = 2 ∨ dtype_(image) = 3 ∨ dtype_(image) = 4 ∨ dtype_(image) = 0 ∨ dtype_(image) = 6 ∨ dtype_(image) = 7 ∨ dtype_(image) = 8) ∧ ndim(boxes) = 2 ∧ shape(boxes, 1) = 4 ∧ dtype_(boxes) = 7 ∧ ndim(box_ind) = 1 ∧ shape(boxes, 0) = shape(box_ind, 0) ∧ dtype_(box_ind) = 3 ∧ ∀i ∈ [0, shape(box_ind, 0) - 1] : box_ind[i] ≥ 0 ∧ box_ind[i] < shape(image, 0) ∧ ndim(crop_size) = 1 ∧ shape(crop_size, 0) = 2 ∧ crop_size[0] > 0 ∧ crop_size[1] > 0 ∧ dtype_(crop_size) = 3
 >>
-Rule 34 (extrapolation value is a positive number)
-{v_1 : float} |= v_1 ≥ 0.0
+Rule 66 (Check that the number of boxes is non-negative)
+{boxes: tensor} |= shape(boxes,0) ≥ 0
 >>
-Rule 35 (boxes values are less than or equal to one)
-{v_1 : tensor} |= ndim(v_1) = 2 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [0, 3] : v_1[i * 4 + j] ≤ 1
+Rule 71 (The 3rd dimension of the image tensor (depth) is non-negative)
+{image: tensor} |= shape(image, 3) ≥ 0
 >>
-Rule 36 (image batch size greater than 0)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 72 (The number of boxes is non-negative and within limits)
+{boxes: tensor} |= shape(boxes,0) ≥ 0 ∧ shape(boxes,0) < 2147483647
 >>
-Rule 37 (box_ind is not equal to maximum int32 value)
-{v_1 : tensor} |= max(v_1) < 2147483647
+Rule 73 (Image and box_ind batch size consistency)
+{image : tensor, box_ind : tensor} |= shape(box_ind, 0) ≤ shape(image, 0)
 >>
-Rule 38 (Check method is not an empty string)
-{v_1 : str} |= v_1 ≠ ""
->>
-Rule 39 (Image exists and box_ind exists)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 4 ∧ ndim(v_2) = 1
->>
-Rule 40 (crop_height is not equal to crop_width)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ v_1[0] ≠ v_1[1]
->>
-Rule 41 (extrapolation value is less than a constant value)
-{v_1 : float} |= v_1 < 100000.0
->>
-Rule 42 (If image height equals image width)
-{v_1 : tensor} |= if shape(v_1, 1) = shape(v_1, 2) then true
->>
-Rule 43 (box_ind min value is not greater than its max value)
-{v_1 : tensor} |= min(v_1) ≤ max(v_1)
->>
-Rule 44 (crop_size elements are greater than or equal to one)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ v_1[0] ≥ 1 ∧ v_1[1] ≥ 1
->>
-Rule 46 (check image data type is not bool)
-{v_1 : dtype} |= v_1 ≠ 0
->>
-Rule 47 (Ensure extrapolation_value is less than or equal to 1.0)
-{v_1 : float} |= v_1 ≤ 1.0
->>
-Rule 48 (box_ind tensor and crop_size tensor)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1
->>
-Rule 49 (If batch size is 1 then y1 should be smaller than y2)
-{v_1 : tensor} |= if shape(v_1, 0) = 1 then v_1[0*4+0] ≤ v_1[0*4+2]
->>
-Rule 50 (boxes values must be greater than or equal to zero)
-{v_1 : tensor} |= ndim(v_1) = 2 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [0, 3] : v_1[i * 4 + j] ≥ 0
->>
-Rule 53 (extrapolation value is not equal to a very large number)
-{v_1 : float} |= v_1 ≠ 10000000000.0
->>
-Rule 54 (box_ind has a reasonable range based on image height/width)
-{v_1 : tensor, v_2 : tensor} |=  ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < shape(v_2, 1) ∨ v_1[i] < shape(v_2, 2)
->>
-Rule 55 (Check if crop_height plus crop_width is less than constant.)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ v_1[0] + v_1[1] < 4096
->>
-Rule 56 (y1 and y2 should be less than or equal to one)
-{v_1 : tensor} |= ndim(v_1) = 2 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i * 4 + 0] ≤ 1 ∧  v_1[i * 4 + 2] ≤ 1
->>
-Rule 57 (Ensure extrapolation_value is not a very small negative number)
-{v_1 : float} |= v_1 > -10000.0
->>
-Rule 58 (If batch_size > 1, enforce y1 <= y2 for at least one box)
-{v_1 : tensor} |= if shape(v_1, 0) > 1 then ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i * 4 + 0] ≤ v_1[i * 4 + 2]
->>
-Rule 59 (Image and boxes shapes are related)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) = shape(v_1, 0)
->>
-Rule 60 (box_ind and image must have compatible batch sizes if box_ind is not empty)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) > 0 then  max(v_1) < shape(v_2, 0)
->>
-Rule 61 (Check that crop_height is a valid positive integer)
-{v_1 : tensor} |= v_1[0] > 0
->>
-Rule 62 (Check method is a valid string, case insensitive comparison)
-{v_1 : str} |= v_1 = "bilinear" ∨ v_1 = "Bilinear" ∨ v_1 = "nearest" ∨ v_1 = "Nearest"
->>
-Rule 63 (boxes exists and it is not empty)
-{v_1 : tensor} |= ndim(v_1) = 2 ∧ shape(v_1, 0) > 0
->>
-Rule 64 (Check if extrapolation value is not infinite.)
-{v_1 : float} |= v_1 ≠ "inf" ∧ v_1 ≠ "-inf"
->>
-Rule 66 (Check if image_height is a multiple of 4)
-{v_1 : tensor} |= shape(v_1, 1) % 4 = 0
->>
-Rule 67 (If batch_size > 1, enforce x1 <= x2 for at least one box)
-{v_1 : tensor} |= if shape(v_1, 0) > 1 then ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i * 4 + 1] ≤ v_1[i * 4 + 3]
->>
-Rule 68 (boxes values should be within a reasonable range [-10, 10])
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [0, 3] : v_1[i * 4 + j] ≥ -10 ∧ v_1[i * 4 + j] ≤ 10
->>
-Rule 69 (Crop_width should be a valid positive integer)
-{v_1 : tensor} |= v_1[1] > 0
->>
-Rule 70 (Enforce x1 <= x2 for at least one box if batch size is 1 and boxes num > 1)
-{v_1 : tensor} |= if shape(v_1, 0) = 1 ∧ shape(v_1,0)>1 then ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i * 4 + 1] ≤ v_1[i * 4 + 3]
->>
-Rule 71 (Check that image_width is a multiple of 4)
-{v_1 : tensor} |= shape(v_1, 2) % 4 = 0
->>
-Rule 72 (extrapolation value should be between -1 and 1)
-{v_1 : float} |= v_1 >= -1.0 ∧ v_1 <= 1.0
->>
-Rule 74 (box_ind values must be less than image height and width)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < shape(v_2, 1) ∧ v_1[i] < shape(v_2, 2)
->>
-Rule 76 (Image and box_ind tensors exist and have compatible shapes if box_ind not empty)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1,0) > 0 then max(v_1) < shape(v_2, 0)
->>
-Rule 77 (boxes values should be NaN or within a reasonable range [-10, 10])
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [0, 3] : (v_1[i * 4 + j] ≥ -10 ∧ v_1[i * 4 + j] ≤ 10) ∨ v_1[i*4+j] ≠ v_1[i*4+j]
->>
-Rule 78 (if image height is 1 then y1 = 0 and y2 = 1)
-{v_1 : tensor} |= if shape(v_1, 1) = 1 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i * 4 + 0] = 0 ∧ v_1[i * 4 + 2] = 1
->>
-Rule 79 (image data type should not be complex)
-{v_1 : dtype} |= v_1 ≠ 9 ∧ v_1 ≠ 10
->>
-Rule 80 (box_ind max value must be less than batch size)
-{v_1 : tensor, v_2 : tensor} |= max(v_1) < shape(v_2, 0)
->>
-Rule 81 (extrapolation value should not be too large positive or negative)
-{v_1 : float} |= v_1 > -1000.0 ∧ v_1 < 1000.0
->>
-Rule 82 (crop_size exists and is not equal to zero)
-{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ v_1[0] + v_1[1] >0
->>
-Rule 83 (If the image is grayscale then the extrapolation value should be 0)
-{v_1 : tensor, v_2 : float} |= if shape(v_1, 3) = 1 then v_2 = 0.0
->>
-Rule 84 (Check that image_width and image_height are less than maximum value)
-{v_1 : tensor} |= shape(v_1, 1) < 4096 ∧ shape(v_1, 2) < 4096
->>
-Rule 85 (image dtype is valid 0-8, but not 5 because uint8 is deprecated)
-{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
->>
-Rule 86 (check at least one box is valid if the method is nearest)
-{v_1 : tensor} |= if shape(v_1, 0) > 0 then ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i * 4 + 0] ≤ v_1[i * 4 + 2] ∧ v_1[i * 4 + 1] ≤ v_1[i * 4 + 3]
->>
-Rule 88 (Image and crop size tensor relationship)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) ≥ v_2[0] ∧ shape(v_1, 2) ≥ v_2[1]
->>
-Rule 89 (extrapolation value is greater than -2.0)
-{v_1 : float} |= v_1 > -2.0
->>
-Rule 90 (if method is nearest then extrapolation value is 0)
-{v_1 : str, v_2 : float} |= if v_1 = "nearest" then v_2 = 0.0
->>
-Rule 92 (image is valid only if batch size is less than large number)
-{v_1 : tensor} |= shape(v_1, 0) < 10000
->>
-Rule 94 (crop_size is not equal to 0)
-{v_1 : tensor} |= v_1[0] + v_1[1] > 0
->>
-Rule 95 (Check if image_width + image_height is less than constant value)
-{v_1 : tensor} |= shape(v_1, 1) + shape(v_1, 2) < 8192
->>
-Rule 97 (if image height is 1 then box_ind must have unique values)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 1) = 1 then ∀i ∈ [0, shape(v_2, 0) - 1] : ∀j ∈ [i+1, shape(v_2, 0) - 1] : v_2[i] ≠ v_2[j]
->>
-Rule 98 (boxes values should be in the range [-1, 2])
-{v_1 : tensor} |= ndim(v_1) = 2 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [0, 3] : v_1[i * 4 + j] ≥ -1 ∧ v_1[i * 4 + j] ≤ 2
->>
-Rule 99 (if image width is 1 then x1 = 0 and x2 = 1)
-{v_1 : tensor} |= if shape(v_1, 2) = 1 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i * 4 + 1] = 0 ∧ v_1[i * 4 + 3] = 1
->>
-Rule 100 (extrapolation value is zero if image is an integer type)
-{v_1 : dtype, v_2 : float} |= if v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 then v_2 = 0.0
->>
-Rule 101 (crop_size and boxes have a reasonable relationship if method is nearest)
-{v_1 : tensor, v_2: tensor, v_3: str} |= if v_3 = "nearest" then (v_1[0] < shape(v_2, 1) ∧ v_1[1] < shape(v_2, 2))
->>
-Rule 103 (If the image is grayscale then y1 and y2 must be the same value)
-{v_1 : tensor} |= if shape(v_1, 3) = 1 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i*4 + 0] = v_1[i*4 + 2]
->>
-Rule 104 (box_ind and image have valid relationship)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) ≥ 0 ∧ max(v_1) < shape(v_2, 0)
->>
-Rule 106 (extrapolation value must between -5 and 5)
-{v_1 : float} |= v_1 ≥ -5 ∧ v_1 ≤ 5
->>
-Rule 107 (if image width is not one, we do not force same y1 and y2 values)
-{v_1 : tensor} |= if shape(v_1, 2) ≠ 1 then true else ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i*4 + 0] = v_1[i*4 + 2]
->>
-Rule 109 ( crop size can never be equal)
-{v_1: tensor} |= v_1[0] ≠ v_1[1]
->>
-Rule 110 (boxes values exists in reasonable bounds)
-{v_1 : tensor} |= min(v_1) >= -10 ∧ max(v_1) <= 10
->>
-Rule 111 (box_ind have reasonable values )
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) > 0 ∧ max(v_1) < shape(v_2,0)
->>
-Rule 112 (Boxes all contain finite values)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [0, 3] : v_1[i*4 + j] = v_1[i*4 + j]
->>
-Rule 113 (Extrapolation value valid bounds)
-{v_1 : float} |= min(v_1) ≥ -10 ∧ max(v_1) ≤ 10
->>
-Rule 115 ( boxes exist and have positive dimension shapes.)
-{v_1 : tensor} |= ndim(v_1) = 2 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) = 4
->>
-Rule 116 (If batchsize equal one then enforce x1 <= x2)
-{v_1 : tensor} |= if shape(v_1, 0) = 1 then v_1[0*4+1] <= v_1[0*4+3]
->>
-Rule 118 (If image width is one then all boxes should start at the same X and stop at the same X)
-{v_1: tensor} |= if shape(v_1, 2) = 1 then  ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i*4 + 1] = v_1[i*4+3]
->>
-Rule 119 (Extrapolation and image has valid dependency)
-{v_1 : float, v_2 : tensor} |= if (dtype_(v_2) = 0 ∨ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) then v_1 = 0.0
->>
-Rule 120 (Crop Size Height must be less than Image Height)
-{v_1: tensor, v_2: tensor} |= v_2[0] ≤ shape(v_1, 1)
->>
-Rule 122 (Ensure that extrapolation_value isn't too far from mean of boxes if box_ind is singular)
-{v_1 : float, v_2: tensor} |= if shape(v_2, 0) = 1 then v_1 > min(v_2) ∧ v_1 < max(v_2)
->>
-Rule 123 (If batch size is one force the x coordinate is valid)
-{v_1 : tensor} |= if shape(v_1, 0) = 1 then v_1[0*4+1] ≤ v_1[0*4+3]
->>
-Rule 124 (image and box_ind shape relationship)
-{v_1 : tensor, v_2 : tensor} |= max(v_2) < shape(v_1, 0)
->>
-Rule 126 (if image width == 1 then extrapolate value must equal the maximum of boxes)
-{v_1 : tensor, v_2 : float} |= if shape(v_1, 2) = 1 then v_2 = max(v_1)
->>
-Rule 128 (Image is 4D tensor with no Zero dimensions)
-{v_1 : tensor} |= ndim(v_1) = 4 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
->>
-Rule 129 (boxes must be between 0 and 1, if all other shapes are one)
-{v_1 : tensor} |= if shape(v_1,0) = 1 ∧ shape(v_1,1) = 4 then  ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [0, 3] : v_1[i * 4 + j] ≥ 0 ∧ v_1[i * 4 + j] ≤ 1
->>
-Rule 130 (extrapolation value is greater than minimal float)
-{v_1 : float} |= v_1 > -3.4028235e+38
->>
-Rule 131 (Check if image batch has valid relation with another attribute)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
->>
-Rule 132 (box_ind does not point to a weird number)
-{v_1 : tensor} |= max(v_1) ≠ -1
->>
-Rule 133 (if image width == 1 then the y coordinate must valid)
-{v_1 : tensor} |= if shape(v_1, 2) = 1 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i*4 + 0] >=0 ∧ v_1[i*4 + 0] <= 1
->>
-Rule 134 (Extrapolation should be NaN or within valid range)
-{v_1: float} |= v_1 = v_1 ∧ v_1 >= -5 ∧ v_1 <= 5
->>
-Rule 135 (box_ind can not have too many different values )
-{v_1 : tensor} |= shape(v_1, 0) <= 256
->>
-Rule 136 ( crop_size should have a value larger than or equal to 1)
-{v_1 : tensor} |= v_1[0] >= 1 ∧ v_1[1] >=1
->>
-Rule 137 (ensure if the box in Y is 1 then it’s the minimum valid number)
-{v_1 : tensor, v_2: tensor} |= if shape(v_1, 1) = 1 then  ∀i ∈ [0, shape(v_2, 0) - 1] :  v_2[i*4 + 0] = 0 ∧ v_2[i*4+2] = 1
->>
-Rule 138 (Check at least one box is greater than certain threshold)
-{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i * 4 + 0] > 0.0 ∨ v_1[i * 4 + 1] > 0.0 ∨ v_1[i * 4 + 2] > 0.0 ∨ v_1[i * 4 + 3] > 0.0
+Rule 74 (Box coordinates are within [0, 1], with extrapolation allowed)
+{boxes : tensor} |= ∀i ∈ [0, shape(boxes, 0) - 1] : ∀j ∈ [0, 3] : true

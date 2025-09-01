@@ -5,43 +5,39 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if include_batch_in_index is true, then batch * height * width * channel < max(Targmax (Rule 33)
+# strides cannot be greater than the input size in any dimension (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, (If(v["arg3_value"] == 2, (Select(v["arg2_shape"], 0) * Select(v["arg2_shape"], 1) * Select(v["arg2_shape"], 2) * Select(v["arg2_shape"], 3) < 2147483647), (Select(v["arg2_shape"], 0) * Select(v["arg2_shape"], 1) * Select(v["arg2_shape"], 2) * Select(v["arg2_shape"], 3) < 9223372036854775807))), (If(v["arg3_value"] == 2, (Select(v["arg2_shape"], 1) * Select(v["arg2_shape"], 2) * Select(v["arg2_shape"], 3) < 2147483647), (Select(v["arg2_shape"], 1) * Select(v["arg2_shape"], 2) * Select(v["arg2_shape"], 3) < 9223372036854775807))))) if n else
-          If(v["arg1_value"] == True, (If(v["arg3_value"] == 2, (Select(v["arg2_shape"], 0) * Select(v["arg2_shape"], 1) * Select(v["arg2_shape"], 2) * Select(v["arg2_shape"], 3) < 2147483647), (Select(v["arg2_shape"], 0) * Select(v["arg2_shape"], 1) * Select(v["arg2_shape"], 2) * Select(v["arg2_shape"], 3) < 9223372036854775807))), (If(v["arg3_value"] == 2, (Select(v["arg2_shape"], 1) * Select(v["arg2_shape"], 2) * Select(v["arg2_shape"], 3) < 2147483647), (Select(v["arg2_shape"], 1) * Select(v["arg2_shape"], 2) * Select(v["arg2_shape"], 3) < 9223372036854775807)))))
+    s.add(Not(And(Select(v["arg2_values"], 1) <= Select(v["arg1_shape"], 1), Select(v["arg2_values"], 2) <= Select(v["arg1_shape"], 2))) if n else
+          And(Select(v["arg2_values"], 1) <= Select(v["arg1_shape"], 1), Select(v["arg2_values"], 2) <= Select(v["arg1_shape"], 2)))
 )
 
-def rule_33_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_33_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
-            return False
-        if not (isinstance(arg3, torch.dtype) or isinstance(arg3, tf.dtypes.DType)):
+        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
-        arg3_value = Int('arg3_value')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_values = Array('arg2_values', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
-        solver.add(arg3_value == list_of_available_dtypes.index(np_dtype(arg3)))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        for i in range(len(arg2)):
+            arg2_values = Store(arg2_values, i, arg2[i])
 
         # Constraints for rule 33
-        rule_33(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg3_value': arg3_value})
+        rule_33(solver, {'arg1_shape': arg1_shape, 'arg2_values': arg2_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_33(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg3_value': arg3['value']}, neg)
+        rule_33(solver, {'arg1_shape': arg1['shape'], 'arg2_values': arg2['values']}, neg)

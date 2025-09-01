@@ -1,87 +1,78 @@
 >>
-Rule 1 (starts, limits and deltas must have the same number of dimensions if they are tensors)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_2) = ndim(v_3)
+Rule 1 (starts, limits, and deltas should have compatible shapes for broadcasting)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_1) = 0 ∨ ndim(v_2) = 0 ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))) ∧ (ndim(v_1) = 0 ∨ ndim(v_3) = 0 ∨ (ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i))) ∧ (ndim(v_2) = 0 ∨ ndim(v_3) = 0 ∨ (ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)))
 >>
-Rule 2 (if starts, limits and deltas are tensors, then shapes of starts, limits, and deltas tensors should be the same)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)
+Rule 3 (starts, limits, and deltas must have the same shape when they are vectors)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0 then shape(v_1,0) = shape(v_2,0) ∧ shape(v_1,0) = shape(v_3,0)
 >>
-Rule 3 (dtype must be a valid dtype - represented by an integer)
-{v_1 : dtype} |= 0 ≤ v_1 ∧ v_1 ≤ 12
+Rule 4 (dtype should be a valid dtype)
+{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 11 ∨ v_1 = 12 ∨ v_1 = 13
 >>
-Rule 4 (starts and limits must have the same dtype, either int or float)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ dtype_(v_1) = dtype_(v_2)
->>
-Rule 5 (deltas must have a numerical dtype)
-{v_1 : tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
->>
-Rule 6 (if starts is int, limits must also be int, deltas must also be int)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4)
->>
-Rule 7 (if starts is float, limits can be either int or float, and deltas can be either int or float)
-{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then true
->>
-Rule 8 (if starts and limits are scalars, deltas should also be scalar)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then ndim(v_3) = 0
->>
-Rule 9 (if starts is a scalar and limits is a tensor, then deltas can be either tensor or scalar)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) > 0 then true
->>
-Rule 10 (if limits is a scalar and starts is a tensor, then deltas can be either tensor or scalar)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 ∧ ndim(v_1) > 0 then true
->>
-Rule 11 (if starts is a tensor, limits is a tensor, they must have the same shape)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
->>
-Rule 12 (row_splits_dtype should be either int32 or int64 (3 or 4))
+Rule 6 (row_splits_dtype should be a valid dtype)
 {v_1 : dtype} |= v_1 = 3 ∨ v_1 = 4
 >>
-Rule 13 (if starts is int, and limits is int, deltas should not be zero.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) then ∀i ∈ [0, shape(v_1,0) -1 ] : v_3[i] ≠ 0
+Rule 7 (starts must be integer or float)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 14 (if starts, limits, and deltas are tensors, and starts[i] < limits[i], then deltas[i] must be greater than 0)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0) then ∀i ∈ [0, shape(v_1, 0) - 1] : if v_1[i] < v_2[i] then v_3[i] > 0
+Rule 10 (start, limits, and deltas dtypes should be compatible)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
 >>
-Rule 15 (if starts, limits, and deltas are tensors, and starts[i] > limits[i], then deltas[i] must be less than 0)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0) then ∀i ∈ [0, shape(v_1, 0) - 1] : if v_1[i] > v_2[i] then v_3[i] < 0
+Rule 13 (If limits are specified, starts should also be specified)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ndim(v_1) > 0
 >>
-Rule 16 (if dtype is specified it must be integer or floating point.)
-{v_1: dtype} |= (v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8)
+Rule 19 (If starts is not specified, limits must be specified)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) > 0
 >>
-Rule 17 (If starts is a tensor and its shape is [n], then limits and deltas should also be tensors with shape [n], or scalars)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 1 then (ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ ndim(v_3) = 1 ∧ shape(v_1, 0) = shape(v_3, 0)) ∨ (ndim(v_2) = 0 ∧ ndim(v_3) = 0)
+Rule 20 (deltas should be nonzero if starts and limits are specified)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then ∃i ∈ [0, shape(v_1,0) - 1] : v_3[i] ≠ 0
 >>
-Rule 18 (if starts or limits is a scalar and deltas is a tensor, then the number of elements in deltas must be positive)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) = 0 ∨ ndim(v_2) = 0) ∧ ndim(v_3) > 0 then shape(v_3, 0) > 0
+Rule 33 (DType must be in the allowed set)
+{v_1 : dtype} |= v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 12
 >>
-Rule 19 (if starts and limits are tensors with ndim > 0, and deltas is scalar, then starts and limits must have same shape)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) > 0 ∧ ndim(v_2) > 0) ∧ ndim(v_3) = 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 34 (deltas should be nonzero if starts and limits are specified and have at least one element)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1,0) > 0 then ∃i ∈ [0, shape(v_1,0) - 1] : v_3[i] ≠ 0
 >>
-Rule 20 (If dtype is not specified (dtype = -1), and starts and limits are integers, then deltas should be either int or float)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if v_4 = -1 ∧ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) then (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 6 ∨ dtype_(v_3) = 7 ∨ dtype_(v_3) = 8)
+Rule 37 (When starts, limits and deltas are specified as tensors, ensure they have compatible shapes)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0 then shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) = shape(v_3, 0)
 >>
-Rule 22 (if dtype is specified (not -1) and starts and limits are int, the dtype must be integer)
-{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= if v_3 ≠ -1 ∧ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) then (v_3 = 1 ∨ v_3 = 2 ∨ v_3 = 3 ∨ v_3 = 4 ∨ v_3 = 5)
+Rule 43 (starts or limits must be specified)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∨ ndim(v_2) > 0
 >>
-Rule 23 (if dtype is specified (not -1) and starts and limits are float, the dtype must be float)
-{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= if v_3 ≠ -1 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) then (v_3 = 6 ∨ v_3 = 7 ∨ v_3 = 8)
+Rule 45 (When starts, limits and deltas are vectors and starts < limits, deltas should be positive)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0 then ∀i ∈ [0, shape(v_1,0) - 1] : if v_1[i] < v_2[i] then v_3[i] > 0
 >>
-Rule 24 (if dtype is specified and is int or float, then starts, limits, and deltas should have the same dtype.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if v_4 ≠ -1 ∧ (v_4 = 1 ∨ v_4 = 2 ∨ v_4 = 3 ∨ v_4 = 4 ∨ v_4 = 5 ∨ v_4 = 6 ∨ v_4 = 7 ∨ v_4 = 8) then dtype_(v_1) = v_4 ∧ dtype_(v_2) = v_4 ∧ dtype_(v_3) = v_4
+Rule 46 (When starts, limits and deltas are vectors and starts > limits, deltas should be negative)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0 then ∀i ∈ [0, shape(v_1,0) - 1] : if v_1[i] > v_2[i] then v_3[i] < 0
 >>
-Rule 25 (if dtype is specified, and starts and limits have different dtypes, then the dtype should be at least as high as both of them)
-{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= if v_3 ≠ -1 ∧ dtype_(v_1) ≠ dtype_(v_2) then v_3 ≥ dtype_(v_1) ∧ v_3 ≥ dtype_(v_2)
+Rule 54 (starts and limits should have compatible dtypes)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 26 (if the dtype is complex64 or complex128, then starts, limits, and deltas must also be complex)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if (v_4 = 9 ∨ v_4 = 10) then (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) ∧ (dtype_(v_3) = 9 ∨ dtype_(v_3) = 10)
+Rule 56 (deltas should be nonzero if starts and limits are specified and the length of the vector is more than 0. Only check when they are vectors)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0 ∧ shape(v_1,0) > 0 then ∃i ∈ [0, shape(v_1,0) - 1] : v_3[i] ≠ 0
 >>
-Rule 27 (if dtype is specified as str, the starts, limits and deltas types should be compatible to string casting.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if v_4 = 11 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) ∧ (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5 ∨ dtype_(v_3) = 6 ∨ dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 9 ∨ dtype_(v_3) = 10)
+Rule 59 (The dtypes of starts, limits, and deltas should be the same. Only check if all of them are tensors.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0 then dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
 >>
-Rule 29 (If name argument is provided, it should not be an empty string)
-{v_1 : str} |= v_1 ≠ ""
+Rule 61 (deltas should be nonzero if starts and limits are specified and the length of the vector is more than 0. Only check when they are vectors. Check only if at least one has ndim > 0)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) > 0 ∨ ndim(v_2) > 0 ∨ ndim(v_3) > 0) ∧ ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0 ∧ shape(v_1,0) > 0 then ∃i ∈ [0, shape(v_1,0) - 1] : v_3[i] ≠ 0
 >>
-Rule 30 (If starts, limits, and deltas are all scalars, then deltas should not be zero.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 0 then v_3 ≠ 0
+Rule 62 (When starts, limits and deltas are specified as tensors, ensure they have compatible shapes, but only compare if the ndims are more than 0. Check only if at least one has ndim > 0)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) > 0 ∨ ndim(v_2) > 0 ∨ ndim(v_3) > 0) ∧ ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0 then shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) = shape(v_3, 0)
 >>
-Rule 31 (Starts, limits and deltas dtypes should be the same)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_2) = dtype_(v_3)
+Rule 64 (The dtypes of starts, limits, and deltas should be the same if they are all specified as tensors)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) > 0 ∨ ndim(v_2) > 0 ∨ ndim(v_3) > 0) ∧ ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0 then dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
+>>
+Rule 68 (Either starts or limits must be specified as a tensor if dtype is not specified)
+{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= if v_3 = 0 then ndim(v_1) > 0 ∨ ndim(v_2) > 0
+>>
+Rule 73 (Either starts or limits must be specified as a tensor if dtype is not specified and at least one is a tensor)
+{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= if (ndim(v_1) > 0 ∨ ndim(v_2) > 0) ∧ v_3 = 0 then ndim(v_1) > 0 ∨ ndim(v_2) > 0
+>>
+Rule 75 (If dtype is not specified (dtype is 0) the data types of starts, limits, and deltas should be integer or float.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if v_4 = 0 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) ∧ (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5 ∨ dtype_(v_3) = 6 ∨ dtype_(v_3) = 7 ∨ dtype_(v_3) = 8)
+>>
+Rule 80 (The dtypes of starts, limits, and deltas should be the same if they are all specified as tensors. It's OK to have different dtypes if starts, limits, deltas and dtype are specified, since we will cast them to the specified dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if v_4 = 0 ∧ ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0 then dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
+>>
+Rule 88 (DType must be tf.int32, tf.int64 or the default one, which is 0.)
+{v_1 : dtype} |= v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 0

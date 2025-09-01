@@ -1,114 +1,147 @@
 >>
-Rule 1 (The last dimension of the input images tensor must have size 3)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) = 3
+Rule 1 (images dtype must be either floating point or integer)
+{images : tensor} |= dtype_(images) = 1 ∨ dtype_(images) = 2 ∨ dtype_(images) = 3 ∨ dtype_(images) = 4 ∨ dtype_(images) = 5 ∨ dtype_(images) = 6 ∨ dtype_(images) = 7 ∨ dtype_(images) = 8
 >>
-Rule 2 (The input images tensor must have rank greater than or equal to 1)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 2 (images last dimension must have size 3)
+{images : tensor} |= shape(images, ndim(images) - 1) = 3
 >>
-Rule 4 (Tensor's dimensions should be positive)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 3 (images tensor must have at least one dimension to prevent errors during grayscale conversion)
+{images : tensor} |= ndim(images) ≥ 1
 >>
-Rule 5 (The image tensor should not have zero dimensions)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 5 (dtype of images should not be complex)
+{images : tensor} |= dtype_(images) ≠ 9 ∧ dtype_(images) ≠ 10
 >>
-Rule 6 (The image tensor should be of type float or int)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 6 (images tensor should not have zero dimensions, which could cause matrix size incompatibility)
+{images : tensor} |= ∀i ∈ [0, ndim(images) - 1] : shape(images, i) > 0
 >>
-Rule 7 (Check if the tensor has at least one dimension)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 7 (images tensor should have at least rank 3)
+{images : tensor} |= ndim(images) ≥ 3
 >>
-Rule 8 (Check if name is empty string)
-{v_1 : str} |= v_1 ≠ ""
+Rule 8 (dtype of images must be either floating point or integer, and must be a real number (no complex numbers))
+{images : tensor} |= (dtype_(images) = 1) ∨ (dtype_(images) = 2) ∨ (dtype_(images) = 3) ∨ (dtype_(images) = 4) ∨ (dtype_(images) = 5) ∨ (dtype_(images) = 7) ∨ (dtype_(images) = 8)
 >>
-Rule 13 (Tensor's dimensions should be positive, and the product of all dimensions should be positive as well)
-{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+Rule 9 (If the image tensor is of integer type, its values should be within a reasonable range to prevent overflow issues)
+{images : tensor} |= if dtype_(images) = 1 then min(images) ≥ 0 ∧ max(images) ≤ 255 else if dtype_(images) = 2 then min(images) ≥ -32768 ∧ max(images) ≤ 32767 else if dtype_(images) = 3 then min(images) ≥ -2147483648 ∧ max(images) ≤ 2147483647 else if dtype_(images) = 4 then min(images) ≥ -9223372036854775808 ∧ max(images) ≤ 9223372036854775807 else if dtype_(images) = 5 then min(images) ≥ 0 ∧ max(images) ≤ 255
 >>
-Rule 15 (Check if the tensor has at least one dimension and that all dimensions are not zero)
-{v_1 : tensor} |= ndim(v_1) > 0 ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+Rule 10 (Ensure image is not an empty tensor to avoid errors during processing)
+{images : tensor} |= ∃i ∈ [0, ndim(images) - 1] : shape(images, i) > 0
 >>
-Rule 17 (Check if the dtype is a float type)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 11 (If images is a matrix, the first dimension must not be zero)
+{images : tensor} |= if ndim(images) = 2 then shape(images, 0) > 0
 >>
-Rule 18 (If the tensor has rank 1, the dimension must be at least 3)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) ≥ 3
+Rule 12 (If the image tensor is a vector, it must be of length 3)
+{images : tensor} |= if ndim(images) = 1 then shape(images, 0) = 3
 >>
-Rule 19 (Check the size of the last dimension of tensor is within limits)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then shape(v_1, ndim(v_1) -1) ≤ v_2
+Rule 13 (images tensor should have positive values)
+{images : tensor} |= min(images) ≥ 0
 >>
-Rule 22 (Images tensor must have at least one dimension)
-{v_1: tensor} |= ndim(v_1) >= 1
+Rule 14 (If images is a rank 2 tensor, then the first dimension must not be zero. Furthermore if the second dimension exists, ensure that it is equal to 3)
+{images : tensor} |= if ndim(images) = 2 then (shape(images, 0) > 0 ∧ (if shape(images, 0) > 0 then shape(images, 1) = 3))
 >>
-Rule 23 (Images tensor elements should be of integer or floating point type)
-{v_1: tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 15 (If the input tensor has more than two dimensions, then the last dimension must be equal to 3.)
+{images : tensor} |= if ndim(images) > 2 then shape(images, ndim(images) - 1) = 3
 >>
-Rule 24 (if the image has dimensions, then at least on of them must be greater than 0)
-{v_1: tensor} |= if ndim(v_1) > 0 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+Rule 16 (If images is a rank 0 tensor (scalar), it must be a tensor with a single RGB value)
+{images : tensor} |= if ndim(images) = 0 then false
 >>
-Rule 26 (Check if dtype of the tensor is float or int)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 17 (The last dimension cannot be zero to avoid matrix size incompatibility errors)
+{images : tensor} |= if ndim(images) > 0 then shape(images, ndim(images)-1) ≠ 0
 >>
-Rule 29 (The last dimension must be greater or equal to 3)
-{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, ndim(v_1)-1) >=3
+Rule 18 (images must be a tensor with numerical dtype)
+{images : tensor} |= (dtype_(images) ≥ 1 ∧ dtype_(images) ≤ 8)
 >>
-Rule 32 (Images tensor elements should be of numeric type)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+Rule 19 (If images is a tensor with ndim=3 and last dimension =3 , then other dimensions should also have some values, i.e. no zero dimensions to prevent matrix multiplication issues)
+{images : tensor} |= if ndim(images) = 3 ∧ shape(images, 2) = 3 then (shape(images, 0) > 0 ∧ shape(images, 1) > 0)
 >>
-Rule 33 (Check dimension 0 for reasonable image size, for tensors that have at least one dimension)
-{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) > 0
+Rule 20 (If images is a tensor with ndim = 4, all dimensions should have some size >0 to avoid incompatible matrix size)
+{images : tensor} |= if ndim(images) = 4 then (shape(images, 0) > 0 ∧ shape(images, 1) > 0 ∧ shape(images, 2) > 0 ∧ shape(images, 3) > 0)
 >>
-Rule 34 (If the last dimension exists, it must have size 3)
-{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, ndim(v_1) - 1) = 3
+Rule 21 (The shape of the images tensor should not result in matrix multiplication of empty matrices)
+{images : tensor} |= ndim(images) < 2 ∨ (ndim(images) ≥ 2 ∧ ∀i ∈ [0, ndim(images)-1] : shape(images, i) > 0)
 >>
-Rule 36 (The tensor dimensions should be greater or equal to 0)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 22 (If the images tensor has only one dimension, then the first dimension must be size 3 and dtype must be numeric)
+{images : tensor} |= if ndim(images) = 1 then shape(images, 0) = 3 ∧ (dtype_(images) ≥ 1 ∧ dtype_(images) ≤ 8)
 >>
-Rule 37 (dtype of the tensor must be one of the supported types)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
+Rule 23 (images should not be a bool type tensor)
+{images : tensor} |= dtype_(images) ≠ 0
 >>
-Rule 38 (If the tensor has more than 1 dimension, the last dimension has to be 3)
-{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, ndim(v_1) - 1) = 3
+Rule 24 (If images is a rank 2 tensor, then shape of images should be compatible, in the sense that either dim 0 or dim 1 should be 3. And in case dim 0 or dim1 is not 3, it should be at least 1)
+{images : tensor} |= if ndim(images) = 2 then (shape(images, 0) = 3 ∨ shape(images, 1) = 3) ∧ shape(images, 0) > 0 ∧ shape(images, 1) > 0
 >>
-Rule 44 (For tensor with more than 1 dimensions, ensure dimension sizes are at least 1)
-{v_1 : tensor} |= if ndim(v_1) > 1 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+Rule 25 (images should be a tensor with numerical dtype and having at least one dimension)
+{images : tensor} |= (dtype_(images) ≥ 1 ∧ dtype_(images) ≤ 8) ∧ ndim(images) ≥ 1
 >>
-Rule 45 (if name argument exist check if its empty)
-{v_1:str} |= v_1 = ""
+Rule 26 (The combination of dimensions and data type must be a valid tensor structure)
+{images : tensor} |= (ndim(images) = 1 ∧ shape(images, 0) = 3 ∧ (dtype_(images) ≥ 1 ∧ dtype_(images) ≤ 8)) ∨ (ndim(images) > 1 ∧ shape(images, ndim(images)-1) = 3 ∧ (dtype_(images) ≥ 1 ∧ dtype_(images) ≤ 8) ∧ ∀i ∈ [0, ndim(images)-1] : shape(images, i) > 0)
 >>
-Rule 46 (If the tensor has one dimension, then the size of this dimension needs to be larger than 0)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 0
+Rule 27 (If images has ndim =2, the last dimension must have size 3)
+{images : tensor} |= if ndim(images) = 2 then shape(images, 1) = 3
 >>
-Rule 47 (The shape of the first dimension should be smaller than a maximal value)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then shape(v_1, 0) < v_2
+Rule 29 (images must be a rank 3 or higher tensor and last dimension should have size 3 and should be a numerical dtype to be compatible)
+{images : tensor} |= (ndim(images) ≥ 3 ∧ shape(images, ndim(images) - 1) = 3 ∧ (dtype_(images) ≥ 1 ∧ dtype_(images) ≤ 8))
 >>
-Rule 56 (Tensor with more than 2 dimensions, the second dimension is a reasonable size)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 1 then shape(v_1, 1) < v_2
+Rule 30 (images should be a 3D tensor with shape[2] = 3, to ensure proper rgb to grayscale conversion)
+{images: tensor} |= (ndim(images) = 3 ∧ shape(images, 2) = 3)
 >>
-Rule 63 (The first dimension size should be less than the second dimension size.)
-{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 0) < shape(v_1, 1)
+Rule 31 (images must be a tensor of type float or int with at least 3 dimensions, and the third dimension should be 3)
+{images: tensor} |= ((dtype_(images) ≥ 1 ∧ dtype_(images) ≤ 8) ∧ ndim(images) ≥ 3 ∧ shape(images, ndim(images)-1) = 3)
 >>
-Rule 64 (Images tensor elements must be a numeric type)
-{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
+Rule 32 (If images is a rank greater than 1 tensor, then the last dimension must be equal to 3 to avoid matrix size incompatibility)
+{images : tensor} |= if ndim(images) > 1 then shape(images, ndim(images) - 1) = 3
 >>
-Rule 65 (The shape of the second dimension must be a positive number)
-{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 1) > 0
+Rule 34 (If images is a rank > 1 tensor, then images needs to have a valid numeric dtype and all shape dimensions should have positive value, to prevent matrix size incompatible error)
+{images : tensor} |= if ndim(images) > 1 then ((dtype_(images) ≥ 1 ∧ dtype_(images) ≤ 8) ∧  ∀i ∈ [0, ndim(images)-1] : shape(images, i) > 0)
 >>
-Rule 71 (The minimum value of the tensor must be less than the maximum value of the tensor)
-{v_1 : tensor} |= min(v_1) ≤ max(v_1)
+Rule 35 (For tensors with more than one dimension, the last dimension size must be 3, to represent the RGB channels, and ensure data consistency)
+{images: tensor} |= if (ndim(images) > 1) then shape(images, ndim(images)-1) = 3
 >>
-Rule 72 (Image has dimensions and a third dimensions should be compared to a maximal value)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 2 then shape(v_1, 2) < v_2
+Rule 36 (If the input tensor `images` has shape (0, x), (x, 0), or (0, 0), then the conversion cannot happen, to prevent the Matrix size-incompatible error)
+{images: tensor} |=  (ndim(images) = 2) ∧ ((shape(images, 0) ≠ 0) ∧ (shape(images, 1) ≠ 0))
 >>
-Rule 73 (The name must be non empty and longer than a given length)
-{v_1: str, v_2: int} |= v_1 ≠ "" ∧ v_1.len > v_2
+Rule 37 (Images should have a last dimension of size 3 if rank is greater than 0. Images of rank 0 aren't supported.)
+{images: tensor} |= (ndim(images) = 0) ∨ (ndim(images) > 0 ∧ shape(images, ndim(images)-1) = 3)
 >>
-Rule 74 (if dtype is integer, it should be in given range)
-{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then true else false
+Rule 38 (the last dimension should be 3, ndim>0 and dtype is either int or float)
+{images : tensor} |= (ndim(images)>0) ∧ (shape(images, ndim(images) - 1) = 3) ∧ ((dtype_(images) >= 1 ∧ dtype_(images) <=5) ∨ (dtype_(images) >= 7 ∧ dtype_(images) <= 8))
 >>
-Rule 80 (The size of first dimension should not be larger than second dimension if both exist)
-{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 0) ≤ shape(v_1, 1)
+Rule 39 ( Images rank should be in the range [1, 5] to cover common image tensor ranks and prevent unnecessary computations)
+{images: tensor} |= (ndim(images) >= 1) ∧ (ndim(images) <= 5)
 >>
-Rule 81 (if dtype is integer, it should be a positive number.)
-{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then ∀i ∈ [0, ndim(v_1)-1]: min(v_1) >= 0
+Rule 40 (Combining numeric data type check and shape compatibility requirements)
+{images : tensor} |= ((dtype_(images) >= 1 ∧ dtype_(images) <= 5) ∨ (dtype_(images) >= 7 ∧ dtype_(images) <= 8)) ∧ if ndim(images) > 0 then shape(images, ndim(images) -1 ) = 3
 >>
-Rule 83 (If name is provided, length should be greater than a min length)
-{v_1 : str, v_2: int} |= if v_1 ≠ "" then v_1.len > v_2
+Rule 41 (images must be a tensor of at least rank 1 with a supported data type and last dimension of size 3.)
+{images : tensor} |= ndim(images) ≥ 1 ∧ ((dtype_(images) ≥ 1 ∧ dtype_(images) ≤ 5) ∨ (dtype_(images) ≥ 7 ∧ dtype_(images) ≤ 8)) ∧ shape(images, ndim(images) - 1) = 3
+>>
+Rule 42 (Combine all necessary and sufficient rules for images to be a valid tensor for rgb_to_grayscale conversion)
+{images: tensor} |= (ndim(images) >= 1) ∧ ((dtype_(images) >= 1 ∧ dtype_(images) <= 5) ∨ (dtype_(images) >= 7 ∧ dtype_(images) <= 8)) ∧ if ndim(images) > 1 then shape(images, ndim(images)-1) = 3 ∧ ∀i ∈ [0, ndim(images)-1] : shape(images, i) > 0 else if ndim(images) = 1 then shape(images, 0) = 3 else false
+>>
+Rule 43 (The image tensor should not be a scalar, it should be numerical, and if it has 2+ dimensions, then shape of the last dimension should be 3.)
+{images : tensor} |= ndim(images) > 0 ∧ ((dtype_(images) >= 1 ∧ dtype_(images) <= 5) ∨ (dtype_(images) >= 7 ∧ dtype_(images) <= 8)) ∧ (if ndim(images) > 1 then shape(images, ndim(images)-1) = 3)
+>>
+Rule 44 (The images should have numerical data type, more than zero dimensions, and appropriate shape)
+{images: tensor} |= ((dtype_(images) >= 1 ∧ dtype_(images) <= 5) ∨ (dtype_(images) >= 7 ∧ dtype_(images) <= 8)) ∧ (ndim(images) > 0) ∧ (if ndim(images) = 1 then (shape(images, 0) = 3) else shape(images, ndim(images)-1) = 3)
+>>
+Rule 45 (image must have correct shape for grayscale operation)
+{images : tensor} |= (ndim(images) > 0) ∧ (∀i ∈ [0, ndim(images) - 1] : shape(images, i) > 0) ∧ (if ndim(images) > 1 then shape(images, ndim(images)-1) = 3 else if ndim(images) = 1 then shape(images, 0) = 3)
+>>
+Rule 46 (images tensor should be valid or raise an appropriate error.)
+{images : tensor} |= ((dtype_(images) = 1) ∨ (dtype_(images) = 2) ∨ (dtype_(images) = 3) ∨ (dtype_(images) = 4) ∨ (dtype_(images) = 5) ∨ (dtype_(images) = 7) ∨ (dtype_(images) = 8)) ∧ (ndim(images) > 0 ∧ ∀i ∈ [0, ndim(images) - 1] : shape(images, i) > 0) ∧ if ndim(images) > 1 then shape(images, ndim(images)-1) = 3 else if ndim(images) = 1 then shape(images, 0) = 3 else false
+>>
+Rule 47 (image tensor can be converted to grayscale if it meets a valid type and shape constraints, where supported dtypes are numeric values, has at least one dimension, all shape dimension must be positive and the last dimension must have shape=3 for ndim>1)
+{images : tensor} |= ((dtype_(images) ≥ 1 ∧ dtype_(images) ≤ 5) ∨ (dtype_(images) ≥ 7 ∧ dtype_(images) ≤ 8)) ∧ ndim(images) ≥ 1 ∧ (∀i ∈ [0, ndim(images) - 1] : shape(images, i) > 0) ∧ if ndim(images) > 1 then shape(images, ndim(images)-1) = 3 else shape(images,0) =3
+>>
+Rule 48 (To avoid AttributeError and InvalidArgumentError, images tensor must be of rank 1 or more, contain numeric values, the shape in each dimension must be valid (positive integers) and appropriate for RGB images)
+{images : tensor} |= ndim(images) > 0 ∧ (dtype_(images) = 1 ∨ dtype_(images) = 2 ∨ dtype_(images) = 3 ∨ dtype_(images) = 4 ∨ dtype_(images) = 5 ∨ dtype_(images) = 7 ∨ dtype_(images) = 8) ∧ (∀i ∈ [0, ndim(images) - 1] : shape(images, i) > 0) ∧ (if ndim(images) > 1 then shape(images, ndim(images) - 1) = 3 else shape(images, 0) = 3)
+>>
+Rule 49 (Combine shape, size, and datatype constraints, enforcing consistency for a successful conversion)
+{images: tensor} |= ((dtype_(images) >= 1 ∧ dtype_(images) <= 5) ∨ (dtype_(images) >= 7 ∧ dtype_(images) <= 8)) ∧ ndim(images) >= 1 ∧ (∀i ∈ [0, ndim(images) - 1] : shape(images, i) > 0) ∧ (if ndim(images) > 1 then shape(images, ndim(images)-1) = 3 else shape(images, 0) = 3) ∧ (ndim(images) <=5)
+>>
+Rule 50 (The image needs a numeric dtype and valid tensor dimensions; if the tensor has more than one dimension, then the last dimension should be equal to 3)
+{images : tensor} |= ((dtype_(images) >= 1 ∧ dtype_(images) <= 5) ∨ (dtype_(images) >= 7 ∧ dtype_(images) <= 8)) ∧ ndim(images) > 0 ∧ (∀i ∈ [0, ndim(images) - 1] : shape(images, i) > 0) ∧ (if ndim(images) > 1 then shape(images, ndim(images)-1) = 3)
+>>
+Rule 51 (images can be converted if all these constraints are met)
+{images : tensor} |= ((dtype_(images) ≥ 1 ∧ dtype_(images) ≤ 5) ∨ (dtype_(images) ≥ 7 ∧ dtype_(images) ≤ 8)) ∧ (ndim(images) > 0) ∧ (∀i ∈ [0, ndim(images) - 1] : shape(images, i) > 0) ∧ (if ndim(images) > 1 then shape(images, ndim(images)-1) = 3 else if ndim(images) = 1 then shape(images, 0) = 3 else false) ∧ (ndim(images) <= 5)
+>>
+Rule 52 (The image tensor should satisfy a number of combined rules, mainly related to having correct dtype and shape)
+{images: tensor} |= ndim(images) >= 1 ∧ ((dtype_(images) >= 1 ∧ dtype_(images) <= 5) ∨ (dtype_(images) >= 7 ∧ dtype_(images) <= 8)) ∧ (if ndim(images) > 1 then (shape(images, ndim(images)-1) = 3) ∧ (∀i ∈ [0, ndim(images)-1] : shape(images, i) > 0) else (shape(images, 0) = 3))

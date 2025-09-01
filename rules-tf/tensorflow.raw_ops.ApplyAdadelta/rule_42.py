@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the variable is one of the allowed integer types, the learning rate, decay factor and constant factor must also be one of those types (Rule 42)
+# If dtype of var is float64, then dtype of lr, rho, and epsilon should also be float64 (Rule 42)
 
 rule_42 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 5), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 4), v["arg1_dtype"] == 16), v["arg1_dtype"] == 17), v["arg1_dtype"] == 18), v["arg1_dtype"] == 19), And(And(Or(Or(Or(Or(Or(Or(Or(Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 5), v["arg2_dtype"] == 2), v["arg2_dtype"] == 1), v["arg2_dtype"] == 4), v["arg2_dtype"] == 16), v["arg2_dtype"] == 17), v["arg2_dtype"] == 18), v["arg2_dtype"] == 19), Or(Or(Or(Or(Or(Or(Or(Or(v["arg3_dtype"] == 3, v["arg3_dtype"] == 5), v["arg3_dtype"] == 2), v["arg3_dtype"] == 1), v["arg3_dtype"] == 4), v["arg3_dtype"] == 16), v["arg3_dtype"] == 17), v["arg3_dtype"] == 18), v["arg3_dtype"] == 19)), Or(Or(Or(Or(Or(Or(Or(Or(v["arg4_dtype"] == 3, v["arg4_dtype"] == 5), v["arg4_dtype"] == 2), v["arg4_dtype"] == 1), v["arg4_dtype"] == 4), v["arg4_dtype"] == 16), v["arg4_dtype"] == 17), v["arg4_dtype"] == 18), v["arg4_dtype"] == 19)), False)) if n else
-          If(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 5), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 4), v["arg1_dtype"] == 16), v["arg1_dtype"] == 17), v["arg1_dtype"] == 18), v["arg1_dtype"] == 19), And(And(Or(Or(Or(Or(Or(Or(Or(Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 5), v["arg2_dtype"] == 2), v["arg2_dtype"] == 1), v["arg2_dtype"] == 4), v["arg2_dtype"] == 16), v["arg2_dtype"] == 17), v["arg2_dtype"] == 18), v["arg2_dtype"] == 19), Or(Or(Or(Or(Or(Or(Or(Or(v["arg3_dtype"] == 3, v["arg3_dtype"] == 5), v["arg3_dtype"] == 2), v["arg3_dtype"] == 1), v["arg3_dtype"] == 4), v["arg3_dtype"] == 16), v["arg3_dtype"] == 17), v["arg3_dtype"] == 18), v["arg3_dtype"] == 19)), Or(Or(Or(Or(Or(Or(Or(Or(v["arg4_dtype"] == 3, v["arg4_dtype"] == 5), v["arg4_dtype"] == 2), v["arg4_dtype"] == 1), v["arg4_dtype"] == 4), v["arg4_dtype"] == 16), v["arg4_dtype"] == 17), v["arg4_dtype"] == 18), v["arg4_dtype"] == 19)), False))
+    s.add(Not(If(v["arg1_dtype"] == 8, And(And(v["arg2_dtype"] == 8, v["arg3_dtype"] == 8), v["arg4_dtype"] == 8), True)) if n else
+          If(v["arg1_dtype"] == 8, And(And(v["arg2_dtype"] == 8, v["arg3_dtype"] == 8), v["arg4_dtype"] == 8), True))
 )
 
 def rule_42_func(arg1, arg2, arg3, arg4, solver=None, neg=False):

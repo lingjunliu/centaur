@@ -1,87 +1,102 @@
 >>
-Rule 1 (min_jpeg_quality must be non-negative)
-{v_1 : int} |= v_1 ≥ 0
->>
-Rule 2 (max_jpeg_quality must be less than or equal to 100)
-{v_1 : int} |= v_1 ≤ 100
->>
-Rule 3 (min_jpeg_quality must be less than max_jpeg_quality)
+Rule 1 (min_jpeg_quality must be less than max_jpeg_quality)
 {v_1 : int, v_2 : int} |= v_1 < v_2
 >>
-Rule 4 (seed must be a tensor of shape [2])
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = 2
+Rule 2 (jpeg encoding range must be between 0 and 100 for min_jpeg_quality)
+{v_1 : int} |= 0 ≤ v_1 ∧ v_1 ≤ 100
 >>
-Rule 6 (image must be a 3D tensor)
-{v_1 : tensor} |= ndim(v_1) = 3
+Rule 4 (seed must have shape [2])
+{v_1 : tensor} |= shape(v_1, 0) = 2 ∧ ndim(v_1) = 1
 >>
-Rule 7 (image's last dimension must be 1 or 3)
-{v_1 : tensor} |= shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 3
->>
-Rule 13 (seed must be a tensor of type int32 or int64)
+Rule 5 (seed must have dtype int32 or int64)
 {v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
 >>
-Rule 17 (image dtype must be uint8)
-{v_1 : tensor} |= dtype_(v_1) = 5
+Rule 6 (image last dimension must be 1 or 3)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) = 1 ∨ shape(v_1, ndim(v_1) - 1) = 3
 >>
-Rule 18 (min_jpeg_quality and max_jpeg_quality cannot be equal)
-{v_1 : int, v_2 : int} |= v_1 ≠ v_2
+Rule 7 (image must be at least a 3D tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 3
 >>
-Rule 19 (seed's elements must be int32 or int64)
-{v_1 : tensor} |= ∀i ∈ [0, 1] : dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
->>
-Rule 20 (min and max quality must be less than or equal to each other and 100)
-{v_1: int, v_2: int} |= v_1 <= 100 ∧ v_2 <= 100
->>
-Rule 21 (image shape must be greater than 0 on all dimensions)
-{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
->>
-Rule 22 (min_jpeg_quality and max_jpeg_quality are valid)
+Rule 9 (jpeg encoding range must be between 0 and 100 for min_jpeg_quality and max_jpeg_quality)
 {v_1 : int, v_2 : int} |= 0 ≤ v_1 ∧ v_1 ≤ 100 ∧ 0 ≤ v_2 ∧ v_2 ≤ 100
 >>
-Rule 23 (min_jpeg_quality is less than max_jpeg_quality and both are within the valid range)
-{v_1 : int, v_2 : int} |= 0 ≤ v_1 ∧ v_1 < v_2 ∧ v_2 ≤ 100
+Rule 14 (min_jpeg_quality must be an integer)
+{v_1 : int ⊎ float} |= if v_1 < 0 then false
 >>
-Rule 24 (seed is a 1D tensor with length 2 and int32/int64 type)
+Rule 15 (seed must be a tensor of int32 or int64 with correct shape)
 {v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = 2 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
 >>
-Rule 25 (image has valid shape and dtype)
-{v_1 : tensor} |= ndim(v_1) = 3 ∧ (shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 3) ∧ dtype_(v_1) = 5
+Rule 16 (min_jpeg_quality and max_jpeg_quality must be within range and min < max)
+{v_1 : int, v_2 : int} |= 0 ≤ v_1 ∧ v_1 ≤ 100 ∧ 0 ≤ v_2 ∧ v_2 ≤ 100 ∧ v_1 < v_2
 >>
-Rule 30 (max_jpeg_quality is greater than min_jpeg_quality)
-{v_1 : int, v_2 : int} |= v_2 > v_1
+Rule 17 (image last dimension must be 1 or 3 and image at least 3D)
+{v_1 : tensor} |= ndim(v_1) ≥ 3 ∧ (shape(v_1, ndim(v_1) - 1) = 1 ∨ shape(v_1, ndim(v_1) - 1) = 3)
 >>
-Rule 36 (image tensor is a 3D tensor and channel size is valid)
-{v_1 : tensor} |= ndim(v_1) = 3 ∧ (shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 3)
+Rule 18 (image must have uint8 dtype)
+{v_1 : tensor} |= dtype_(v_1) = 5
 >>
-Rule 41 (image tensor shape constraints)
-{v_1 : tensor} |= ndim(v_1) = 3 ∧ (shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 3) ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 19 (max_jpeg_quality cannot be negative)
+{v_1: int} |= v_1 >= 0
 >>
-Rule 44 (min jpeg quality is positive)
-{v_1 : int} |= v_1 >= 0
+Rule 20 (Combined rule for min/max jpeg quality and seed tensor)
+{v_1 : int, v_2 : int, v_3 : tensor} |= 0 ≤ v_1 ∧ v_1 ≤ 100 ∧ 0 ≤ v_2 ∧ v_2 ≤ 100 ∧ v_1 < v_2 ∧ ndim(v_3) = 1 ∧ shape(v_3, 0) = 2 ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4)
 >>
-Rule 45 (image dimensions must be positive)
-{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 23 (min_jpeg_quality and max_jpeg_quality should be integers)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= (if v_1 < 0 then false) ∧ (if v_2 < 0 then false)
 >>
-Rule 48 (jpeg quality range is valid)
-{v_1 : int, v_2 : int} |= v_1 ≥ 0 ∧ v_1 < v_2 ∧ v_2 ≤ 100
+Rule 25 (Ensure min and max quality are integers)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= if v_1 < 0 then false ∧ if v_2 < 0 then false
 >>
-Rule 55 (all args are valid)
-{v_1 : tensor, v_2 : int, v_3 : int, v_4 : tensor} |= ndim(v_1) = 3 ∧ (shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 3) ∧ dtype_(v_1) = 5 ∧ v_2 ≥ 0 ∧ v_2 < v_3 ∧ v_3 ≤ 100 ∧ ndim(v_4) = 1 ∧ shape(v_4, 0) = 2 ∧ (dtype_(v_4) = 3 ∨ dtype_(v_4) = 4)
+Rule 26 (Image constraints: 3D+, last dim 1 or 3, uint8 dtype)
+{v_1 : tensor} |= ndim(v_1) ≥ 3 ∧ (shape(v_1, ndim(v_1) - 1) = 1 ∨ shape(v_1, ndim(v_1) - 1) = 3) ∧ dtype_(v_1) = 5
 >>
-Rule 56 (image tensor conforms to specifications)
-{v_1 : tensor} |= ndim(v_1) = 3 ∧ (shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 3) ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ dtype_(v_1) = 5
+Rule 35 (Ensure quality parameters have integer type)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= (v_1 % 1) = 0 ∧ (v_2 % 1) = 0
 >>
-Rule 59 (min_jpeg_quality is valid)
-{v_1 : int} |= 0 <= v_1 ∧ v_1 <= 100
+Rule 37 (Quality parameters must be non negative integers)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≥ 0 ∧ v_2 ≥ 0 ∧ (v_1 % 1) = 0 ∧ (v_2 % 1) = 0
 >>
-Rule 69 (all is well)
-{v_1 : tensor, v_2 : int, v_3 : int, v_4 : tensor} |= ndim(v_1) = 3 ∧ (shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 3) ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ dtype_(v_1) = 5 ∧ v_2 ≥ 0 ∧ v_2 < v_3 ∧ v_3 ≤ 100 ∧ ndim(v_4) = 1 ∧ shape(v_4, 0) = 2 ∧ (dtype_(v_4) = 3 ∨ dtype_(v_4) = 4)
+Rule 39 (Constraints for min and max quality parameters)
+{v_1 : int, v_2 : int} |= 0 ≤ v_1 ∧ v_1 ≤ 100 ∧ 0 ≤ v_2 ∧ v_2 ≤ 100 ∧ v_1 < v_2 ∧ (v_1 % 1) = 0 ∧ (v_2 % 1) = 0
 >>
-Rule 70 (image is a valid 3D uint8 tensor with channel size 1 or 3 and all dimensions are positive.)
-{v_1 : tensor} |= ndim(v_1) = 3 ∧ (shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 3) ∧ ∀i ∈ [0, 2] : shape(v_1, i) > 0 ∧ dtype_(v_1) = 5
+Rule 43 (Combined requirements: Integer qualities and valid image)
+{v_1 : tensor, v_2 : int ⊎ float, v_3 : int ⊎ float} |= ndim(v_1) ≥ 3 ∧ (shape(v_1, ndim(v_1) - 1) = 1 ∨ shape(v_1, ndim(v_1) - 1) = 3) ∧ dtype_(v_1) = 5 ∧ (v_2 % 1) = 0 ∧ (v_3 % 1) = 0 ∧ v_2 ≥ 0 ∧ v_3 ≥ 0
 >>
-Rule 72 (qualities are in valid range and min < max)
-{v_1 : int, v_2 : int} |= 0 <= v_1 ∧ v_1 < v_2 ∧ v_2 <= 100
+Rule 48 ( Combined properties for seed and quality constraints.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = 2 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ 0 ≤ v_2 ∧ v_2 ≤ 100 ∧ 0 ≤ v_3 ∧ v_3 ≤ 100 ∧ v_2 < v_3 ∧ (v_2 % 1) = 0 ∧ (v_3 % 1) = 0
 >>
-Rule 74 (validity of min_jpeg_quality)
-{ v_1 : int } |= 0 <= v_1 ∧ v_1 <= 100
+Rule 51 ( Combined Image and quality constraints)
+{v_1 : tensor, v_2 : int, v_3 : int} |= ndim(v_1) ≥ 3 ∧ (shape(v_1, ndim(v_1) - 1) = 1 ∨ shape(v_1, ndim(v_1) - 1) = 3) ∧ dtype_(v_1) = 5 ∧ 0 ≤ v_2 ∧ v_2 ≤ 100 ∧ 0 ≤ v_3 ∧ v_3 ≤ 100 ∧ v_2 < v_3 ∧ (v_2 % 1) = 0 ∧ (v_3 % 1) = 0
+>>
+Rule 52 (Combined constraints for the image and seed tensors)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 3 ∧ (shape(v_1, ndim(v_1) - 1) = 1 ∨ shape(v_1, ndim(v_1) - 1) = 3) ∧ dtype_(v_1) = 5 ∧ ndim(v_2) = 1 ∧ shape(v_2, 0) = 2 ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4)
+>>
+Rule 64 (Verify all parameters are valid)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : tensor} |= if ( ndim(v_1) ≥ 3 ∧ (shape(v_1, ndim(v_1) - 1) = 1 ∨ shape(v_1, ndim(v_1) - 1) = 3) ∧ dtype_(v_1) = 5 ) then true else false ∧ if ( 0 ≤ v_2 ∧ v_2 ≤ 100 ∧ 0 ≤ v_3 ∧ v_3 ≤ 100 ∧ v_2 < v_3 ∧ (v_2 % 1) = 0 ∧ (v_3 % 1) = 0 ) then true else false ∧ if(ndim(v_4) = 1 ∧ shape(v_4, 0) = 2 ∧ (dtype_(v_4) = 3 ∨ dtype_(v_4) = 4)) then true else false
+>>
+Rule 68 (Quality and seed constraints)
+{v_1 : int, v_2 : int, v_3 : tensor} |= 0 ≤ v_1 ∧ v_1 ≤ 100 ∧ 0 ≤ v_2 ∧ v_2 ≤ 100 ∧ v_1 < v_2 ∧ (v_1 % 1) = 0 ∧ (v_2 % 1) = 0 ∧ ndim(v_3) = 1 ∧ shape(v_3, 0) = 2 ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4)
+>>
+Rule 75 (Combined check for image, seed , min and max quality )
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : tensor } |= if ndim(v_1) ≥ 3 ∧ (shape(v_1, ndim(v_1) - 1) = 1 ∨ shape(v_1, ndim(v_1) - 1) = 3) ∧ dtype_(v_1) = 5 then true else false ∧ if 0 ≤ v_2 ∧ v_2 ≤ 100 ∧ 0 ≤ v_3 ∧ v_3 ≤ 100 ∧ v_2 < v_3 ∧ (v_2 % 1) = 0 ∧ (v_3 % 1) = 0 then true else false ∧ if ndim(v_4) = 1 ∧ shape(v_4, 0) = 2 ∧ (dtype_(v_4) = 3 ∨ dtype_(v_4) = 4) then true else false
+>>
+Rule 76 ( Combined requirements on parameters)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : tensor} |= ndim(v_1) ≥ 3 ∧ (shape(v_1, ndim(v_1) - 1) = 1 ∨ shape(v_1, ndim(v_1) - 1) = 3) ∧ dtype_(v_1) = 5 ∧ 0 ≤ v_2 ∧ v_2 ≤ 100 ∧ 0 ≤ v_3 ∧ v_3 ≤ 100 ∧ v_2 < v_3 ∧ (v_2 % 1) = 0 ∧ (v_3 % 1) = 0 ∧ ndim(v_4) = 1 ∧ shape(v_4, 0) = 2 ∧ (dtype_(v_4) = 3 ∨ dtype_(v_4) = 4)
+>>
+Rule 77 (Ensure the image qualities should be integer values )
+{v_1 : int ⊎ float, v_2: int ⊎ float} |= (v_1 % 1) = 0 ∧ (v_2 % 1) = 0
+>>
+Rule 78 (Image, quality, and seed check all in one go)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : tensor} |= (ndim(v_1) ≥ 3 ∧ (shape(v_1, ndim(v_1) - 1) = 1 ∨ shape(v_1, ndim(v_1) - 1) = 3) ∧ dtype_(v_1) = 5) ∧ (0 ≤ v_2 ∧ v_2 ≤ 100 ∧ 0 ≤ v_3 ∧ v_3 ≤ 100 ∧ v_2 < v_3 ∧ (v_2 % 1) = 0 ∧ (v_3 % 1) = 0) ∧ (ndim(v_4) = 1 ∧ shape(v_4, 0) = 2 ∧ (dtype_(v_4) = 3 ∨ dtype_(v_4) = 4))
+>>
+Rule 86 ( Combined Quality Checks to prevent value errors.)
+{v_1 : int, v_2: int} |= 0 ≤ v_1 ∧ v_1 ≤ 100 ∧ 0 ≤ v_2 ∧ v_2 ≤ 100 ∧ v_1 < v_2 ∧ (v_1 % 1) = 0 ∧ (v_2 % 1) = 0
+>>
+Rule 88 (Ensure qualities are integers by checking if they are ints or floats + have zero fractional part)
+{v_1: int⊎ float, v_2: int ⊎ float} |= (v_1 % 1) = 0 ∧ (v_2 % 1) = 0
+>>
+Rule 89 ( Enforce seed tensor shape.)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = 2
+>>
+Rule 96 (Check that the image qualities are of integer type, enforces a single check on min and max qualities combined)
+{v_1 : int ⊎ float, v_2: int ⊎ float} |= if (v_1 % 1) = 0 ∧ (v_2 % 1) = 0 then true else false

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# noise_shape must be a 1-D integer Tensor (Rule 3)
+# noise_shape must be a 1-D integer tensor (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] == 1, Or(Or(v["arg1_dtype"] == 2, v["arg1_dtype"] == 3), v["arg1_dtype"] == 4))) if n else
-          And(v["arg1_ndim"] == 1, Or(Or(v["arg1_dtype"] == 2, v["arg1_dtype"] == 3), v["arg1_dtype"] == 4)))
+    s.add(Not(And(v["arg1_ndim"] == 1, v["arg1_dtype"] == 3)) if n else
+          And(v["arg1_ndim"] == 1, v["arg1_dtype"] == 3))
 )
 
 def rule_3_func(arg1, solver=None, neg=False):
@@ -30,9 +30,9 @@ def rule_3_func(arg1, solver=None, neg=False):
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 3
-        rule_3(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim})
+        rule_3(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_3(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_3(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype']}, neg)

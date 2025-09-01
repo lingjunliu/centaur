@@ -1,102 +1,39 @@
 >>
-Rule 1 (params should not be empty)
-{v_1 : tensor ⊎ list(tensor)} |= if v_1.len = 0 then false
+Rule 1 (ids tensor should be int32 or int64 to avoid InvalidArgumentError)
+{ids : tensor} |= dtype_(ids) = 3 ∨ dtype_(ids) = 4
 >>
-Rule 2 (ids should be int32 or int64)
-{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 2 (params cannot be empty, which would lead to ValueError)
+{params : list(tensor)} |= params.len > 0
 >>
-Rule 3 (max_norm should be a non-negative float if provided)
-{v_1 : float} |= v_1 ≥ 0
+Rule 3 (max_norm should be non-negative to avoid unexpected clipping)
+{max_norm : float} |= max_norm ≥ 0
 >>
-Rule 5 (the number of ids in the ids tensor should not be zero)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 4 (ids tensor must have non-negative values to avoid InvalidArgumentError related to out-of-bounds access)
+{ids : tensor} |= min(ids) ≥ 0
 >>
-Rule 6 (ids should be a 1-D tensor)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 5 (ids tensor's maximum value should be less than the size of the first dimension of params)
+{params : tensor, ids : tensor} |= max(ids) < shape(params, 0)
 >>
-Rule 7 (If params is a single tensor, its rank should be greater than 0)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 7 (dtype of elements in params should be float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64 to avoid InvalidArgumentError)
+{params : tensor} |= dtype_(params) ≠ 10 ∧ dtype_(params) ≠ 9
 >>
-Rule 10 (params and ids have the same type)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 8 (Check to prevent OOM errors. shape(params, 0) * max(ids) should be smaller than a threshold)
+{params : tensor, ids : tensor} |= shape(params, 0) * max(ids) < 100000000
 >>
-Rule 11 (if max_norm is not None, params should be float type)
-{v_1 : tensor, v_2: float} |= if v_2 > 0 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 9 (Check the shape of elements in params to prevent ResourceExhaustedError)
+{params : tensor} |= shape(params, 1) < 10000
 >>
-Rule 17 (ids must have smaller or equal number of dimensions than params.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≤ ndim(v_1)
+Rule 17 (Check to prevent OOM errors. shape(params, 0) * max(ids) should be smaller than a threshold when params is a tensor)
+{params : tensor, ids : tensor} |= shape(params, 0) * (max(ids) + 1) < 100000000
 >>
-Rule 18 (max_norm is positive if it's defined)
-{v_1 : float} |= v_1 > 0
+Rule 30 (ids tensor must be of rank 1)
+{ids : tensor} |= ndim(ids) = 1
 >>
-Rule 19 (The elements of ids should be less than the size of params)
-{v_1 : tensor, v_2 : tensor} |= max(v_2) < shape(v_1, 0)
+Rule 31 (max_norm should be None or a float)
+{max_norm : float ⊎ str} |= (max_norm = "none") ∨ (max_norm ≥ 0)
 >>
-Rule 20 (If params is int32 then ids can be int32)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 3 then dtype_(v_2) = 3
+Rule 57 (If max_norm is a float, then its value should be representable in the dtype of params.)
+{params : tensor, max_norm : float} |= if dtype_(params) = 6 then max_norm < 65500
 >>
-Rule 21 (If params is int64 then ids can be int64)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 4 then dtype_(v_2) = 4
->>
-Rule 22 (if params is of type float32 or float64 then max_norm should be of type float32 or float64)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
->>
-Rule 23 (If params is complex64 or complex128 then max_norm should be complex64 or complex128)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
->>
-Rule 24 (if ids is int32 then the values should be non-negative)
-{v_1 : tensor} |= if dtype_(v_1) = 3 then min(v_1) >= 0
->>
-Rule 25 (if ids is int64 then the values should be non-negative)
-{v_1 : tensor} |= if dtype_(v_1) = 4 then min(v_1) >= 0
->>
-Rule 26 (If the rank of ids is greater than zero, min(ids) must be greater or equal to zero)
-{v_1: tensor} |= if ndim(v_1) > 0 then min(v_1) >= 0
->>
-Rule 27 (If max_norm is defined, then the values in ids must be valid indices for params.)
-{v_1: tensor, v_2: tensor, v_3: float} |= if v_3 > 0 then max(v_2) < shape(v_1, 0)
->>
-Rule 28 (If max_norm is defined, it must be a positive number)
-{v_1: float} |= if v_1 > 0 then v_1 > 0
->>
-Rule 29 (If max_norm is a float, then params needs to be a float tensor)
-{v_1: tensor, v_2: float} |= if v_2 > 0 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
->>
-Rule 31 (Shape of output tensor must have the same dimensions as the shape of params except for the first dimension)
-{v_1: tensor, v_2: tensor} |= ∀i ∈ [1, ndim(v_1) -1]: shape(v_1, i) = shape(v_2, i)
->>
-Rule 33 (if ids is of int type then it should be in range of int32/int64)
-{v_1: tensor} |= if dtype_(v_1) = 3 then min(v_1) >= -2147483648 ∧ max(v_1) <= 2147483647 else if dtype_(v_1) = 4 then min(v_1) >= -9223372036854775808 ∧ max(v_1) <= 9223372036854775807
->>
-Rule 34 (The number of elements in ids should be less than 2^31)
-{v_1: tensor} |= shape(v_1, 0) < 2147483648
->>
-Rule 36 (If params is a list of tensors, there must be at least one tensor in the list.)
-{v_1: list(tensor)} |= v_1.len > 0
->>
-Rule 39 (If max_norm is defined, the dtype of ids and params needs to be the same.)
-{v_1 : tensor, v_2: tensor, v_3: float} |= if v_3 > 0 then dtype_(v_1) = dtype_(v_2)
->>
-Rule 40 (If params is complex64 or complex128, then max_norm must be specified)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_2 > 0
->>
-Rule 42 (The number of dimensions in params and the result must be the same)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
->>
-Rule 43 (if params is a list, it should have at least one element)
-{v_1: list(tensor)} |= v_1.len >= 1
->>
-Rule 45 (If the shape of ids is (x), the shape of the output must be (x, params.shape[1:])
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 1 then ndim(v_1) = ndim(v_2) else ndim(v_1) = 1
->>
-Rule 48 (If max_norm is not None then the absolute values of params must be less than or equal to max_norm)
-{v_1 : tensor, v_2 : float} |= if v_2 > 0 then min(v_1) ≥ 0 ∧ max(v_1) ≤ v_2
->>
-Rule 49 (The shape of the ids tensor must be less than or equal to the shape of params along each dimension)
-{v_1: tensor, v_2: tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) -1]: shape(v_1, i) >= shape(v_2, i)
->>
-Rule 52 (if params is a single tensor, then output should be of same dtype of params)
-{v_1:tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
->>
-Rule 55 (If max_norm is specified, ids should be of integer type (int32 or int64))
-{v_1 : tensor, v_2: float} |= if v_2 > 0 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 71 (If ids' dtype is bool, it should be converted to a valid type (int16, int32, int64) )
+{ids : tensor} |= dtype_(ids) ≠ 0

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The input tensor should not have dimensions greater than 6. (Rule 50)
+# If the shape of diagonal is [N], output's shape should also be [N, N] (Rule 50)
 
 rule_50 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] <= 6) if n else
-          v["arg1_ndim"] <= 6)
+    s.add(Not(If(v["arg1_ndim"] == 1, v["arg1_ndim"] + 1 == 2, True)) if n else
+          If(v["arg1_ndim"] == 1, v["arg1_ndim"] + 1 == 2, True))
 )
 
 def rule_50_func(arg1, solver=None, neg=False):

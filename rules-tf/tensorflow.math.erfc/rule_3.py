@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# input tensor must have float type (Rule 3)
+# Input tensor type cannot be integer (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)) if n else
-          Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8))
+    s.add(Not(And(And(And(And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5)) if n else
+          And(And(And(And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5))
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

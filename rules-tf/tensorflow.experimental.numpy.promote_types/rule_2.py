@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If both types are integers, ensure they are within the integer range. (Rule 2)
+# type1 and type2 cannot be lists (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(If(And(And(And(1 <= v["arg1_value"], v["arg1_value"] <= 5), 1 <= v["arg2_value"]), v["arg2_value"] <= 5), True, False)) if n else
-          If(And(And(And(1 <= v["arg1_value"], v["arg1_value"] <= 5), 1 <= v["arg2_value"]), v["arg2_value"] <= 5), True, False))
+    s.add(Not(And(v["arg1_value"] != 7, v["arg2_value"] != 7)) if n else
+          And(v["arg1_value"] != 7, v["arg2_value"] != 7))
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# depth_radius should be less than half of the last dimension size of input (Rule 14)
+# depth_radius is less than the image width (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_value"] < Select(v["arg1_shape"], 3) / 2) if n else
-          v["arg2_value"] < Select(v["arg1_shape"], 3) / 2)
+    s.add(Not(v["arg2_value"] < Select(v["arg1_shape"], 2)) if n else
+          v["arg2_value"] < Select(v["arg1_shape"], 2))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):

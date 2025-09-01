@@ -5,37 +5,33 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# max_attempts * min_object_covered should be smaller than 100 (Rule 80)
+# area_range[1] must be less than or equal to 1 (Rule 80)
 
 rule_80 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] * v["arg2_value"] < 100) if n else
-          v["arg1_value"] * v["arg2_value"] < 100)
+    s.add(Not(Select(v["arg1_values"], 1) <= 1) if n else
+          Select(v["arg1_values"], 1) <= 1)
 )
 
-def rule_80_func(arg1, arg2, solver=None, neg=False):
+def rule_80_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
-            return False
-        if not isinstance(arg2, (float, np.floating)):
+        if not (isinstance(arg1, list) and all(isinstance(e, (float, np.floating)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_value = Real('arg2_value')
+        arg1_values = Array('arg1_values', IntSort(), RealSort())
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        solver.add(arg2_value == arg2)
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 80
-        rule_80(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_80(solver, {'arg1_values': arg1_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_80(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_80(solver, {'arg1_values': arg1['values']}, neg)

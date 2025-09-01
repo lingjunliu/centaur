@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If padding value is defined its shape should be zero (Rule 67)
+# padding_value must be a scalar tensor (Rule 67)
 
 rule_67 = lambda s, v, n=False: (
     s.add(Not(v["arg1_ndim"] == 0) if n else

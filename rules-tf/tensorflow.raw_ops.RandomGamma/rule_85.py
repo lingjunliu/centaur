@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If seeds are provided, both must be non-negative (Rule 85)
+# if seed2 is specified then seed has to be specified as well (Rule 85)
 
 rule_85 = lambda s, v, n=False: (
-    s.add(Not(Or((And(v["arg1_value"] == 0, v["arg2_value"] == 0)), (And(v["arg1_value"] >= 0, v["arg2_value"] >= 0)))) if n else
-          Or((And(v["arg1_value"] == 0, v["arg2_value"] == 0)), (And(v["arg1_value"] >= 0, v["arg2_value"] >= 0))))
+    s.add(Not(If(v["arg2_value"] != 0, v["arg1_value"] != 0, True)) if n else
+          If(v["arg2_value"] != 0, v["arg1_value"] != 0, True))
 )
 
 def rule_85_func(arg1, arg2, solver=None, neg=False):

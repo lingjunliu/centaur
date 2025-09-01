@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# value height and width can not be negative (Rule 39)
+# filters tensor shape is valid (Rule 39)
 
 rule_39 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_shape"], 1) >= 0, Select(v["arg1_shape"], 2) >= 0)) if n else
-          And(Select(v["arg1_shape"], 1) >= 0, Select(v["arg1_shape"], 2) >= 0))
+    s.add(Not(And(And(And(Select(v["arg1_shape"], 0) > 0, Select(v["arg1_shape"], 1) > 0), Select(v["arg1_shape"], 2) > 0), Select(v["arg1_shape"], 3) > 0)) if n else
+          And(And(And(Select(v["arg1_shape"], 0) > 0, Select(v["arg1_shape"], 1) > 0), Select(v["arg1_shape"], 2) > 0), Select(v["arg1_shape"], 3) > 0))
 )
 
 def rule_39_func(arg1, solver=None, neg=False):

@@ -5,37 +5,33 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# lower and upper must be floats and lower <= upper (Rule 31)
+# image's shape[0] is reasonable (Rule 31)
 
 rule_31 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] <= v["arg2_value"]) if n else
-          v["arg1_value"] <= v["arg2_value"])
+    s.add(Not(Select(v["arg1_shape"], 0) < 1000) if n else
+          Select(v["arg1_shape"], 0) < 1000)
 )
 
-def rule_31_func(arg1, arg2, solver=None, neg=False):
+def rule_31_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
-            return False
-        if not isinstance(arg2, (float, np.floating)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
-        arg2_value = Real('arg2_value')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_value == arg2)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 31
-        rule_31(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_31(solver, {'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_31(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_31(solver, {'arg1_shape': arg1['shape']}, neg)

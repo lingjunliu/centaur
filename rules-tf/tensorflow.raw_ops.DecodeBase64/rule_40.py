@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Input string lengths are within limits. (Rule 40)
+# Input tensor must be non-empty. (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (If(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) - 1, 0) + 1), Select(v["arg1_shape"], i) < 4096) for i in range(6)])) if n else
-          And([Implies(i < (If(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) - 1, 0) + 1), Select(v["arg1_shape"], i) < 4096) for i in range(6)]))
+    s.add(Not(Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])) if n else
+          Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]))
 )
 
 def rule_40_func(arg1, solver=None, neg=False):

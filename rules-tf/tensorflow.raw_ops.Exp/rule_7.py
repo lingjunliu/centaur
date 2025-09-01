@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# check if type of tensor v_1 and v_2 is equal to specific value (Rule 7)
+# x cannot have int32 type (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == 7) if n else
-          v["arg1_dtype"] == 7)
+    s.add(Not(v["arg1_dtype"] != 3) if n else
+          v["arg1_dtype"] != 3)
 )
 
 def rule_7_func(arg1, solver=None, neg=False):

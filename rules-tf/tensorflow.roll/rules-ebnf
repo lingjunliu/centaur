@@ -1,63 +1,135 @@
 >>
-Rule 2 (shift must be int32 or int64, corresponding to types 3 and 4)
-{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Rule 2 (shift and axis must have integer dtypes)
+{shift : tensor, axis : tensor} |= dtype_(shift) = 2 ∨ dtype_(shift) = 3 ∨ dtype_(shift) = 4 ∧ dtype_(axis) = 2 ∨ dtype_(axis) = 3 ∨ dtype_(axis) = 4
 >>
-Rule 3 (axis must be int32 or int64, corresponding to types 3 and 4)
-{v_3 : tensor} |= dtype_(v_3) = 3 ∨ dtype_(v_3) = 4
+Rule 3 (shift and axis must be 0-D or 1-D)
+{shift : tensor, axis : tensor} |= ndim(shift) ≤ 1 ∧ ndim(axis) ≤ 1
 >>
-Rule 4 (input tensor ndim should be greater than or equal to the maximum axis specified in v_3)
-{v_1 : tensor, v_3 : tensor} |= (ndim(v_3) = 0 ∧ v_3 < ndim(v_1)) ∨ (ndim(v_3) = 1 ∧ ∀i ∈ [0, v_3.len - 1] : v_3[i] < ndim(v_1))
+Rule 4 (shift and axis must have the same number of dimensions if they are not scalars)
+{shift : tensor, axis : tensor} |= (ndim(shift) = 0 ∧ ndim(axis) = 0) ∨ (ndim(shift) > 0 ∧ ndim(axis) > 0 ∧ ndim(shift) = ndim(axis))
 >>
-Rule 6 (If axis is a scalar, it should be non-negative)
-{v_3 : tensor} |= if ndim(v_3) = 0 then v_3 ≥ 0
+Rule 5 (If shift is a scalar, axis must be a scalar)
+{shift : tensor, axis : tensor} |= if ndim(shift) = 0 then ndim(axis) = 0
 >>
-Rule 7 (shift and axis should have compatible dimensions when both are 1D)
-{v_2 : tensor, v_3 : tensor} |= (ndim(v_2) = 0 ∧ ndim(v_3) = 0) ∨ (ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ v_2.len = v_3.len) ∨ (ndim(v_2) = 0 ∧ ndim(v_3) = 1) ∨ (ndim(v_2) = 1 ∧ ndim(v_3) = 0)
+Rule 6 (axis's dtype must be int32 or int64)
+{axis : tensor} |= dtype_(axis) = 2 ∨ dtype_(axis) = 3
 >>
-Rule 10 (input tensor ndim should be greater than or equal to the maximum axis specified in v_3 when axis is not a scalar)
-{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) = 1 then ∀i ∈ [0, v_3.len - 1] : v_3[i] < ndim(v_1)
+Rule 7 (shift's dtype must be int32 or int64)
+{shift : tensor} |= dtype_(shift) = 2 ∨ dtype_(shift) = 3
 >>
-Rule 11 (If axis is a scalar, it should be non-negative and less than the number of dimensions of the input)
-{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 then 0 ≤ v_3 ∧ v_3 < ndim(v_1)
+Rule 8 (If shift and axis are 1-D, their shapes must match)
+{shift : tensor, axis : tensor} |= if ndim(shift) = 1 ∧ ndim(axis) = 1 then shape(shift, 0) = shape(axis, 0)
 >>
-Rule 12 (Shape of the input tensor is positive)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 9 (Each element in axis must be a valid axis for the input tensor)
+{input : tensor, axis : tensor} |= ∀i ∈ [0, shape(axis, 0) - 1] : -1 * ndim(input) ≤ axis[i] ∧ axis[i] < ndim(input)
 >>
-Rule 14 (shift and axis must be int32 or int64 tensors)
-{v_2 : tensor, v_3 : tensor} |= (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4)
+Rule 10 (Each element in shift must be an integer)
+{shift : tensor} |= ∀i ∈ [0, shape(shift, 0) - 1] : shift[i] = shift[i]
 >>
-Rule 19 (shift and axis are both 1D tensors implies they have same length)
-{v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 1 ∧ ndim(v_3) = 1 then v_2.len = v_3.len
+Rule 11 (If shift is a 1-D tensor, then all its elements must be int32 or int64)
+{shift : tensor} |= if ndim(shift) = 1 then ∀i ∈ [0, shape(shift, 0) - 1] : dtype_(shift) = 2 ∨ dtype_(shift) = 3
 >>
-Rule 21 (If axis is a scalar, it should be non-negative and less than the number of dimensions of the input. if axis is a list then all elements must satisfy the same constraint)
-{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 then 0 ≤ v_3 ∧ v_3 < ndim(v_1) else ∀i ∈ [0, v_3.len - 1] : 0 ≤ v_3[i] ∧ v_3[i] < ndim(v_1)
+Rule 12 (If axis is a 1-D tensor, then all its elements must be int32 or int64)
+{axis : tensor} |= if ndim(axis) = 1 then ∀i ∈ [0, shape(axis, 0) - 1] : dtype_(axis) = 2 ∨ dtype_(axis) = 3
 >>
-Rule 23 (if shift is scalar, axis must also be scalar or 0D tensor)
-{v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 0 then ndim(v_3) = 0
+Rule 13 (axis values must be int32 or int64)
+{axis : tensor} |= ∀i ∈ [0, shape(axis, 0) - 1] : axis[i] = 2 ∨ axis[i] = 3 ∨ axis[i] = 4
 >>
-Rule 25 (shift and axis must be int32 or int64 tensors)
-{v_2 : tensor, v_3 : tensor} |= (dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4) ∧ (dtype_(v_3) = 3) ∨ (dtype_(v_3) = 4)
+Rule 14 (shift values must be int32 or int64)
+{shift : tensor} |= ∀i ∈ [0, shape(shift, 0) - 1] : shift[i] = 2 ∨ shift[i] = 3 ∨ shift[i] = 4
 >>
-Rule 28 (The number of dimensions of shift and axis should be the same)
-{v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_3)
+Rule 16 (If axis is a scalar, its absolute value should be less than the rank of the input tensor)
+{input : tensor, axis : tensor} |= if ndim(axis) = 0 then 0 - axis < ndim(input) ∧ axis < ndim(input)
 >>
-Rule 29 (Shift and axis must be int32 or int64 tensors)
-{v_2 : tensor, v_3 : tensor} |= (dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4) ∧ ((dtype_(v_3) = 3) ∨ (dtype_(v_3) = 4))
+Rule 17 (If axis is a scalar, its absolute value should be less than the rank of the input tensor)
+{input : tensor, axis : tensor} |= if ndim(axis) = 0 then (axis < ndim(input) ∧ 0 - axis < ndim(input))
 >>
-Rule 33 (if shift is a list, axis must be a list of the same length)
-{v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 1 then ndim(v_3) = 1 ∧ v_2.len = v_3.len
+Rule 19 (If axis is a scalar, it should be a valid axis for the input tensor)
+{input : tensor, axis : tensor} |= if ndim(axis) = 0 then (0 - ndim(input)) ≤ axis ∧ axis < ndim(input)
 >>
-Rule 38 (The input tensor should have a rank greater than 0)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 20 (If axis is a scalar, it should be a valid axis for the input tensor)
+{input : tensor, axis : tensor} |= if ndim(axis) = 0 then (0 - ndim(input) ≤ axis) ∧ (axis < ndim(input))
 >>
-Rule 43 (Input Tensor must be of higher rank than any axis)
-{v_1 : tensor, v_3: tensor} |=  if ndim(v_3) = 0 then v_3 < ndim(v_1) else ∀i ∈ [0, v_3.len - 1] : v_3[i] < ndim(v_1)
+Rule 21 (If axis is a scalar, it should be a valid axis for the input tensor)
+{input : tensor, axis : tensor} |= if ndim(axis) = 0 then (0 - ndim(input)) ≤ axis ∧ (axis < ndim(input)) else if ndim(axis) = 1 then true else false
 >>
-Rule 50 (If axis is a scalar, it should be a valid axis for the input tensor)
-{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 then (0 - ndim(v_1)) ≤ v_3 ∧ v_3 < ndim(v_1)
+Rule 22 (If axis is a 1-D tensor, all its elements should be valid axes for the input tensor)
+{input : tensor, axis : tensor} |= if ndim(axis) = 1 then ∀i ∈ [0, shape(axis, 0) - 1] : (0 - ndim(input)) ≤ axis[i] ∧ (axis[i] < ndim(input))
 >>
-Rule 51 (If axis is a list, elements must be valid axes for the input tensor)
-{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) = 1 then ∀i ∈ [0, v_3.len - 1] : (0 - ndim(v_1)) ≤ v_3[i] ∧ v_3[i] < ndim(v_1)
+Rule 23 (axis can only be a scalar or 1-D tensor)
+{axis: tensor} |= ndim(axis) = 0 ∨ ndim(axis) = 1
 >>
-Rule 55 (If axis is a scalar, it should be a valid axis for the input tensor)
-{v_1 : tensor, v_3 : int} |= (0 - ndim(v_1)) ≤ v_3 ∧ v_3 < ndim(v_1)
+Rule 24 (shift can only be a scalar or 1-D tensor)
+{shift: tensor} |= ndim(shift) = 0 ∨ ndim(shift) = 1
+>>
+Rule 25 (dtype of axis and shift must be int32 or int64)
+{axis: tensor, shift: tensor} |= (dtype_(axis) = 2 ∨ dtype_(axis) = 3) ∧ (dtype_(shift) = 2 ∨ dtype_(shift) = 3)
+>>
+Rule 26 (The size of shift and axis must match the number of dimensions of the input tensor if shift and axis are both lists.)
+{input: tensor, shift: tensor, axis: tensor} |= if ndim(shift) = 1 ∧ ndim(axis) = 1 then shape(shift, 0) ≤ ndim(input) ∧ shape(axis, 0) ≤ ndim(input)
+>>
+Rule 27 (If shift and axis are 1-D, their sizes must be less than or equal to the number of dimensions of the input tensor)
+{input: tensor, shift: tensor, axis: tensor} |= if ndim(shift) = 1 ∧ ndim(axis) = 1 then (shape(shift, 0) ≤ ndim(input)) ∧ (shape(axis, 0) ≤ ndim(input))
+>>
+Rule 28 (If shift and axis are 1-D and same dimension then their size must be same)
+{shift: tensor, axis: tensor} |= if ndim(shift) = 1 ∧ ndim(axis) = 1 then shape(shift, 0) = shape(axis, 0)
+>>
+Rule 29 (axis must be int32 or int64)
+{axis: tensor} |= dtype_(axis) = 2 ∨ dtype_(axis) = 3
+>>
+Rule 30 (shift must be int32 or int64)
+{shift: tensor} |= dtype_(shift) = 2 ∨ dtype_(shift) = 3
+>>
+Rule 31 (if axis and shift are scalars, they must be int32 or int64)
+{axis: tensor, shift: tensor} |= if ndim(axis) = 0 ∧ ndim(shift) = 0 then (dtype_(axis) = 2 ∨ dtype_(axis) = 3) ∧ (dtype_(shift) = 2 ∨ dtype_(shift) = 3)
+>>
+Rule 33 (Taxis' of bool is not allowed)
+{axis: tensor} |= dtype_(axis) ≠ 0
+>>
+Rule 35 (If axis is a scalar then shift must be a scalar)
+{axis: tensor, shift: tensor} |= if ndim(axis) = 0 then ndim(shift) = 0
+>>
+Rule 37 (If the dimension of axis is 1, then all the elements should be valid axis)
+{input : tensor, axis : tensor} |= if ndim(axis) = 1 then ∀i ∈ [0, shape(axis,0)-1]: axis[i] >= (0-ndim(input)) ∧ axis[i] < ndim(input)
+>>
+Rule 38 (Taxis' of bool is not allowed)
+{axis: tensor, input: tensor} |= if dtype_(axis) = 0 then false else ∀i ∈ [0, shape(axis, 0) - 1] : (0 - ndim(input)) <= axis[i] ∧ axis[i] < ndim(input)
+>>
+Rule 39 (Taxis' of bool is not allowed.)
+{input: tensor, axis: tensor} |= if dtype_(axis) = 0 then false else if ndim(axis) = 1 then ∀i ∈ [0, shape(axis, 0) - 1] : (0 - ndim(input)) <= axis[i] ∧ axis[i] < ndim(input)
+>>
+Rule 40 (if axis is 1D and same dimension, then all shift values are int32 or int64)
+{input: tensor, axis: tensor, shift: tensor} |= if dtype_(axis) = 0 then false else if ndim(axis) = 1 ∧ ndim(shift) = 1 ∧ shape(axis, 0) = shape(shift, 0) then ∀i ∈ [0, shape(axis, 0) - 1] : (0 - ndim(input)) <= axis[i] ∧ axis[i] < ndim(input) ∧ (dtype_(shift) = 2 ∨ dtype_(shift) = 3)
+>>
+Rule 41 (If axis is 1D and same dimension, then all shift values are int32 or int64, and shape of axis and shift less than equal ndim of input)
+{input: tensor, axis: tensor, shift: tensor} |= if dtype_(axis) = 0 then false else if ndim(axis) = 1 ∧ ndim(shift) = 1 ∧ shape(axis, 0) = shape(shift, 0) then ∀i ∈ [0, shape(axis, 0) - 1] : (0 - ndim(input)) <= axis[i] ∧ axis[i] < ndim(input) ∧ (dtype_(shift) = 2 ∨ dtype_(shift) = 3) ∧ shape(axis, 0) <= ndim(input) ∧ shape(shift, 0) <= ndim(input)
+>>
+Rule 42 (if axis is 1D and same dimension, then all shift and axis values are int32 or int64, and shape of axis and shift less than equal ndim of input)
+{input: tensor, axis: tensor, shift: tensor} |= if dtype_(axis) = 0 then false else if ndim(axis) = 1 ∧ ndim(shift) = 1 ∧ shape(axis, 0) = shape(shift, 0) then ∀i ∈ [0, shape(axis, 0) - 1] : (0 - ndim(input)) <= axis[i] ∧ axis[i] < ndim(input) ∧ (dtype_(shift) = 2 ∨ dtype_(shift) = 3) ∧ (dtype_(axis) = 2 ∨ dtype_(axis) = 3) ∧ shape(axis, 0) <= ndim(input) ∧ shape(shift, 0) <= ndim(input)
+>>
+Rule 43 (If axis is 1D, then all elements are less than the number of dims, shift can be scalar or 1D with correct dtype)
+{input: tensor, axis: tensor, shift: tensor} |= if ndim(axis) = 1 then ∀i ∈ [0, shape(axis, 0) - 1] : (0 - ndim(input)) <= axis[i] ∧ axis[i] < ndim(input) ∧ ( (ndim(shift) = 0 ∧ (dtype_(shift) = 2 ∨ dtype_(shift) = 3)) ∨ (ndim(shift) = 1 ∧ shape(axis,0) = shape(shift, 0) ∧ (dtype_(shift) = 2 ∨ dtype_(shift) = 3)))
+>>
+Rule 44 (if axis is 1D, then all elements are valid, shift can be scalar or 1D with correct dtype, all dtypes are correct)
+{input: tensor, axis: tensor, shift: tensor} |= if dtype_(axis) = 0 then false else if ndim(axis) = 1 then ∀i ∈ [0, shape(axis, 0) - 1] : (0 - ndim(input)) <= axis[i] ∧ axis[i] < ndim(input) ∧ ( (ndim(shift) = 0 ∧ (dtype_(shift) = 2 ∨ dtype_(shift) = 3)) ∨ (ndim(shift) = 1 ∧ shape(axis,0) = shape(shift, 0) ∧ (dtype_(shift) = 2 ∨ dtype_(shift) = 3))) ∧ (dtype_(axis) = 2 ∨ dtype_(axis) = 3) ∧ (dtype_(shift) = 2 ∨ dtype_(shift) = 3)
+>>
+Rule 45 (axis must be int32 or int64 to avoid InvalidArgumentError and less than ndim)
+{input: tensor, axis: tensor} |= (dtype_(axis) = 2 ∨ dtype_(axis) = 3) ∧ (∀i ∈ [0, shape(axis, 0) - 1] : axis[i] >= (0-ndim(input)) ∧ axis[i] < ndim(input))
+>>
+Rule 46 (The shapes of shift and axis should match and they should have int32 or int64 type and their values should be a valid axis if they are 1D)
+{input: tensor, axis: tensor, shift: tensor} |= if ndim(axis) = 1 ∧ ndim(shift) = 1 then shape(axis, 0) = shape(shift, 0) ∧ (dtype_(axis) = 2 ∨ dtype_(axis) = 3) ∧ (dtype_(shift) = 2 ∨ dtype_(shift) = 3) ∧ (∀i ∈ [0, shape(axis, 0) - 1] : (0 - ndim(input)) <= axis[i] ∧ axis[i] < ndim(input))
+>>
+Rule 47 (if axis is a tensor, its values must be int32 or int64, and no bool allowed)
+{axis: tensor} |= (dtype_(axis) = 2 ∨ dtype_(axis) = 3)
+>>
+Rule 48 (shift must be int32 or int64)
+{shift: tensor} |= (dtype_(shift) = 2 ∨ dtype_(shift) = 3)
+>>
+Rule 49 (shift must be int32 or int64, If axis is 1D, then all elements are valid.)
+{input: tensor, axis: tensor, shift: tensor} |= (dtype_(shift) = 2 ∨ dtype_(shift) = 3)  ∧ (if ndim(axis) = 1 then ∀i ∈ [0, shape(axis, 0) - 1] : (0 - ndim(input)) <= axis[i] ∧ axis[i] < ndim(input))
+>>
+Rule 50 (shift and axis must be 0-D or 1-D and their dtypes must be int32 or int64)
+{shift: tensor, axis: tensor} |= (ndim(shift) = 0 ∨ ndim(shift) = 1) ∧ (ndim(axis) = 0 ∨ ndim(axis) = 1) ∧ (dtype_(axis) = 2 ∨ dtype_(axis) = 3) ∧ (dtype_(shift) = 2 ∨ dtype_(shift) = 3)
+>>
+Rule 51 (If axis is 1D and its values are smaller than number of dimensions of the input tensor then the shift must be valid (scalar or 1D), no bool is allowed and dtypes of shift and axis are correct)
+{input: tensor, axis: tensor, shift: tensor} |=  (ndim(axis) = 0) ∨ (ndim(axis) = 1 ∧ ∀i ∈ [0, shape(axis, 0) - 1] : (0 - ndim(input)) <= axis[i] ∧ axis[i] < ndim(input)) ∧ ( (ndim(shift) = 0 ∧ (dtype_(shift) = 2 ∨ dtype_(shift) = 3)) ∨ (ndim(shift) = 1 ∧ shape(axis,0) = shape(shift, 0) ∧ (dtype_(shift) = 2 ∨ dtype_(shift) = 3))) ∧ (dtype_(axis) = 2 ∨ dtype_(axis) = 3)

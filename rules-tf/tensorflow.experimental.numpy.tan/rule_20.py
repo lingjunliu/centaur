@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check if dtype is float16, float32, or float64 (Rule 20)
+# if the tensor is complex64, then promoting to complex128 may avoid precision loss (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)) if n else
-          Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8))
+    s.add(Not(If(v["arg1_dtype"] == 9, True, True)) if n else
+          If(v["arg1_dtype"] == 9, True, True))
 )
 
 def rule_20_func(arg1, solver=None, neg=False):

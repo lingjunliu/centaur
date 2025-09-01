@@ -1,129 +1,159 @@
 >>
-Rule 1 (input tensor must be of complex64 or complex128 type)
+Rule 1 (input tensor must be of type complex64 or complex128)
 {v_1 : tensor} |= dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
 >>
-Rule 2 (Tout must be float32 or float64 if defined)
+Rule 2 (Tout must be float32 or float64 if specified)
 {v_2 : dtype} |= v_2 = 8 ∨ v_2 = 9
 >>
-Rule 3 (If Tout is defined, the output tensor type must match Tout)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 8 then dtype_(v_1) = 8 else if v_2 = 9 then dtype_(v_1) = 9
+Rule 3 (if Tout is provided it must be a floating-point type)
+{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ 0 then (dtype_(v_1) = 10 ∧ v_2 = 8) ∨ (dtype_(v_1) = 11 ∧ v_2 = 9)
 >>
-Rule 4 (input tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 7 (Tout must be float32 or float64 if specified and not default)
+{v_2 : dtype} |= if v_2 ≠ 0 then (v_2 = 8 ∨ v_2 = 9)
 >>
-Rule 5 (input tensor's type should not be bool, int or string)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_1) ≠ 12
->>
-Rule 6 (If Tout is defined, it should be a float type)
-{v_2 : dtype} |= if v_2 ≠ 8 ∧ v_2 ≠ 9 then true
->>
-Rule 8 (If Tout is float32, then the max value of the input tensor should be less than 1e38)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 8 then max(v_1) < 10000000000000000000000000000000000000
->>
-Rule 9 (Input tensor cannot be an empty tensor)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 10 (If Tout is defined, it should match the output tensor dtype)
-{v_1 : tensor, v_2 : dtype} |= (v_2 = 8 ∧ dtype_(v_1) = 8) ∨ (v_2 = 9 ∧ dtype_(v_1) = 9) ∨ (v_2 ≠ 8 ∧ v_2 ≠ 9)
->>
-Rule 11 (If the input tensor is complex64, Tout should be float32)
+Rule 8 (If input is complex64, Tout must be float32)
 {v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 10 then v_2 = 8
 >>
-Rule 12 (If the input tensor is complex128, Tout should be float64)
+Rule 9 (If input is complex128, Tout must be float64)
 {v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 11 then v_2 = 9
 >>
-Rule 13 (If Tout is not defined, it defaults to float32, which requires input to be complex64.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ 8 ∧ v_2 ≠ 9 then dtype_(v_1) = 10
+Rule 10 (The returned tensor will have the same shape as the input tensor)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, i)
 >>
-Rule 14 (The output tensor's dimensions should match the input tensor's dimensions.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
->>
-Rule 15 (The output tensor's shape should match the input tensor's shape.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
->>
-Rule 16 (If Tout is float32, the output tensor's dtype is float32)
+Rule 11 (if Tout is float32, output tensor dtype is float32)
 {v_1 : tensor, v_2 : dtype} |= if v_2 = 8 then dtype_(v_1) = 8
 >>
-Rule 17 (If Tout is float64, the output tensor's dtype is float64)
+Rule 12 (if Tout is float64, output tensor dtype is float64)
 {v_1 : tensor, v_2 : dtype} |= if v_2 = 9 then dtype_(v_1) = 9
 >>
-Rule 18 (If Tout is not explicitly defined, output tensor's dtype defaults to float32)
-{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ 8 ∧ v_2 ≠ 9 then dtype_(v_1) = 8
->>
-Rule 19 (If Tout is explicitly defined, it must be compatible with the input tensor's dtype)
-{v_1 : tensor, v_2 : dtype} |= (dtype_(v_1) = 10 ∧ v_2 = 8) ∨ (dtype_(v_1) = 11 ∧ v_2 = 9)
->>
-Rule 20 (If Tout is not specified, the operation should default to float32)
-{v_1 : tensor} |= if shape(v_1, 0) > 0 then true
->>
-Rule 22 (If Tout is float32, the output tensor's values are the real part of the complex64 input tensor.)
-{v_1 : dtype} |= if v_1 = 8 then true
->>
-Rule 23 (If Tout is float64, the output tensor's values are the real part of the complex128 input tensor.)
-{v_1 : dtype} |= if v_1 = 9 then true
->>
-Rule 24 (If Tout is not specified, it should be float32.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ 8 ∧ v_2 ≠ 9 then true else if dtype_(v_1) = 8 then true else false
->>
-Rule 27 (If Tout is not specified, and input is complex64, output tensor's dtype defaults to float32)
-{v_1 : tensor} |= if dtype_(v_1) = 10 then true else if dtype_(v_1) = 11 then false else false
->>
-Rule 28 (If Tout is not specified, and input is complex128, output tensor's dtype defaults to float32, which is incorrect and should raise an error)
-{v_1 : tensor} |= if dtype_(v_1) = 11 then false
->>
-Rule 29 (The shape of the output tensor must be the same as the shape of the input tensor.)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
->>
-Rule 30 (The output tensor's dtype should be float32 or float64.)
+Rule 13 (Output tensor will have float32 or float64 dtype)
 {v_1 : tensor} |= dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
 >>
-Rule 31 (If the input is complex64, the output is float32)
-{v_1: tensor} |= if dtype_(v_1) = 10 then true
+Rule 15 (Output tensor has same number of dimensions as input)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 32 (If the input is complex128, the output is float64)
-{v_1: tensor} |= if dtype_(v_1) = 11 then true
+Rule 16 (if input tensor's dtype is complex64 then output tensor's dtype is float32)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 8
 >>
-Rule 33 (If Tout is not specified and the input is complex128, the output should be of type float64)
-{v_1 : tensor, v_2 : dtype} |= if (v_2 ≠ 8 ∧ v_2 ≠ 9) ∧ (dtype_(v_1) = 11) then dtype_(v_1) = 9
+Rule 17 (if input tensor's dtype is complex128 then output tensor's dtype is float64)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 11 then dtype_(v_2) = 9
 >>
-Rule 37 (If no Tout is provided, the output is assumed to be float32)
-{v_1 : tensor, v_2 : dtype} |= if (v_2 ≠ 8) ∧ (v_2 ≠ 9) then (dtype_(v_1) = 8)
+Rule 18 (Output tensor has a floating-point dtype if the input is complex)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 10 ∧ dtype_(v_2) = 8) ∨ (dtype_(v_1) = 11 ∧ dtype_(v_2) = 9)
 >>
-Rule 38 (The output type should correspond to the input. If Complex64, then output Float32. If Complex128, output Float64)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 8 else if dtype_(v_1) = 11 then dtype_(v_2) = 9 else false
+Rule 19 (input tensor must have ndim greater than 0)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 40 (The output dtype should correspond to the Tout argument, or default to float32)
-{v_1: tensor, v_2: dtype} |= if (v_2 = 8) ∨ (v_2 = 9) then true else dtype_(v_1) = 8
+Rule 20 (If Tout is specified, the output tensor has the specified dtype)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 8 then dtype_(v_1) = 8 else if v_2 = 9 then dtype_(v_1) = 9
 >>
-Rule 41 (If Tout is not specified, it should default to float32 when input is complex64, float64 when input is complex128)
-{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ 8 ∧ v_2 ≠ 9 then (if dtype_(v_1) = 10 then true else if dtype_(v_1) = 11 then false else false)
+Rule 21 (Tout is a valid dtype)
+{v_1 : dtype} |= v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 0
 >>
-Rule 42 (If the type is complex64, the number of bytes per element must be 8)
-{v_1 : tensor} |= if dtype_(v_1) = 10 then true
+Rule 22 (If Tout is specified, the output tensor dtype is the same as Tout)
+{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ 0 then dtype_(v_1) = v_2
 >>
-Rule 43 (If the type is complex128, the number of bytes per element must be 16)
-{v_1 : tensor} |= if dtype_(v_1) = 11 then true
+Rule 23 (shape of the output tensor is the same as the input tensor)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 44 (If the type of Tout is not explicitly specified, and input type is complex64, the output type is float32.)
-{v_1 : tensor, v_2: dtype} |= if dtype_(v_1) = 10 ∧ v_2 ≠ 8 ∧ v_2 ≠ 9 then true
+Rule 27 (If Tout is specified, output dtype matches)
+{v_2 : tensor, v_3 : dtype} |= if v_3 = 8 then dtype_(v_2) = 8 else if v_3 = 9 then dtype_(v_2) = 9
 >>
-Rule 45 (If the type of Tout is not explicitly specified, and input type is complex128, the output type is float64.)
-{v_1 : tensor, v_2: dtype} |= if dtype_(v_1) = 11 ∧ v_2 ≠ 8 ∧ v_2 ≠ 9 then true
+Rule 28 (If output dtype is float32, input must be complex64)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 8 then dtype_(v_1) = 10
 >>
-Rule 46 (Complex numbers cannot have a dimension size of zero)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+Rule 29 (If output dtype is float64, input must be complex128)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 9 then dtype_(v_1) = 11
 >>
-Rule 47 (If the type of Tout is not provided, it should return type float32.)
-{v_1 : tensor, v_2 : dtype} |= if (v_2 ≠ 8 ∧ v_2 ≠ 9) then dtype_(v_1) = 8
+Rule 32 (Tout's value must correspond to a valid dtype)
+{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 8 ∨ v_1 = 9
 >>
-Rule 48 (Output cannot be of type string)
-{v_1 : tensor} |= dtype_(v_1) ≠ 12
+Rule 34 (The output tensor's dtype depends on Tout)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 8 then dtype_(v_1) = 8 else if v_2 = 9 then dtype_(v_1) = 9 else (dtype_(v_1) = 8 ∨ dtype_(v_1) = 9)
 >>
-Rule 49 (Name is an optional string, but if passed must be one valid operation name)
-{v_1 : str} |= v_1 = "Real" ∨ v_1 = "RealDiv" ∨ v_1 = "Complex" ∨ v_1 = "Imag" ∨ v_1 = "Angle"
+Rule 35 (If Tout is not specified, output is float32 unless input is complex128, then output is float64)
+{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= if v_3 = 0 then if dtype_(v_1) = 11 then dtype_(v_2) = 9 else dtype_(v_2) = 8
 >>
-Rule 50 (Name is an optional string, but if passed must be a valid operation name or none of the listed strings)
-{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "constant" ∨ v_1 = "linear" ∨ v_1 = "softplus" ∨ v_1 = "Real" ∨ v_1 = "RealDiv" ∨ v_1 = "Complex" ∨ v_1 = "Imag" ∨ v_1 = "Angle" ∨ true
+Rule 36 (If Tout is explicitly specified, output must match that Tout)
+{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ 0 then if v_2 = 8 then dtype_(v_1) = 8 else if v_2 = 9 then dtype_(v_1) = 9 else false
 >>
-Rule 51 (Name is an optional string, or not specified at all)
-{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "constant" ∨ v_1 = "linear" ∨ v_1 = "softplus" ∨ v_1 = "Real" ∨ v_1 = "RealDiv" ∨ v_1 = "Complex" ∨ v_1 = "Imag" ∨ v_1 = "Angle"
+Rule 37 (If Tout is not specified, output is float32)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 0 then dtype_(v_1) = 8
+>>
+Rule 38 (If input is complex64, Tout can only be float32 or default)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 10 then v_2 = 8 ∨ v_2 = 0
+>>
+Rule 39 (If input is complex128, Tout can only be float64 or default)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 11 then v_2 = 9 ∨ v_2 = 0
+>>
+Rule 42 (If Tout is float32, input must be complex64)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 8 then dtype_(v_1) = 10
+>>
+Rule 43 (If Tout is float64, input must be complex128)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 9 then dtype_(v_1) = 11
+>>
+Rule 46 (If no Tout is given, and input is complex64, output is float32)
+{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= if v_3 = 0 ∧ dtype_(v_1) = 10 then dtype_(v_2) = 8
+>>
+Rule 47 (If Tout is specified, its value should be a valid float dtype)
+{v_1 : dtype} |= if v_1 ≠ 0 then v_1 = 8 ∨ v_1 = 9
+>>
+Rule 49 (When no Tout is specified, and input is complex128, output is float64)
+{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= if v_3 = 0 ∧ dtype_(v_1) = 11 then dtype_(v_2) = 9
+>>
+Rule 50 (If Tout is specified, and it's a valid float, the output tensor's dtype must match Tout)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 8 ∨ v_2 = 9 then dtype_(v_1) = v_2
+>>
+Rule 51 (If Tout is not specified and input is complex64 then output is float32, else if input is complex128 output is float64)
+{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= if v_3 = 0 then if dtype_(v_1) = 10 then dtype_(v_2) = 8 else if dtype_(v_1) = 11 then dtype_(v_2) = 9
+>>
+Rule 55 (When Tout is the default, if input is complex64, output is float32 else output is float64)
+{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= if v_3 = 0 then if dtype_(v_1) = 10 then dtype_(v_2) = 8 else dtype_(v_2) = 9
+>>
+Rule 57 (When Tout is specified and input is not complex64 or 128, then something went wrong and the result is invalid )
+{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ 0 then if dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11 then false
+>>
+Rule 59 (If input is complex64 or complex128, then the Tout parameter has to be a float, otherwise something is wrong)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then (v_2 = 0 ∨ v_2 = 8 ∨ v_2 = 9)
+>>
+Rule 68 (The output tensor must have a floating point dtype when Tout is not specified)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 0 then dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
+>>
+Rule 69 (If no Tout is specified, and the input tensor is complex64 or complex128, the output tensor is float32 or float64 respectively)
+{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= if v_3 = 0 then (if dtype_(v_1) = 10 then dtype_(v_2) = 8 else if dtype_(v_1) = 11 then dtype_(v_2) = 9)
+>>
+Rule 70 (If a specific Tout is specified and input is complex64, the output MUST be float32)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 8 then dtype_(v_1) = 8 ∧ dtype_(v_2) = 10 else if v_2=9 then dtype_(v_1)=9 ∧ dtype_(v_2) =11
+>>
+Rule 71 (If a specific Tout is specified and input is complex128, the output MUST be float64)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 9 then dtype_(v_1) = 9 ∧ dtype_(v_2) = 11
+>>
+Rule 72 (If a specific Tout is provided, it has to be a valid dtype)
+{v_1 : dtype} |= if v_1 ≠ 0 then (v_1 = 8 ∨ v_1 = 9)
+>>
+Rule 74 (If Tout is explicitly specified and is float32 or float64 and the corresponding input tensor is either complex64 or complex128, then the output must match Tout)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 8 then (dtype_(v_1) = 8 ∧ dtype_(v_2) = 10) else if v_2 = 9 then (dtype_(v_1) = 9 ∧ dtype_(v_2) = 11)
+>>
+Rule 75 (If Tout is float32, the input MUST be complex64, output will also be float32)
+{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= if v_3 = 8 then dtype_(v_1) = 10 ∧ dtype_(v_2) = 8
+>>
+Rule 76 (If Tout is float64, the input MUST be complex128, output will also be float64)
+{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= if v_3 = 9 then dtype_(v_1) = 11 ∧ dtype_(v_2) = 9
+>>
+Rule 79 (If a specific Tout is provided (not the default) and it is a valid float dtype (8 or 9), then the output's dtype MUST match Tout's dtype)
+{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ 0 ∧ (v_2 = 8 ∨ v_2 = 9) then dtype_(v_1) = v_2
+>>
+Rule 81 (If a specific Tout is float32 or float64 is specified, and input isn't complex64 or complex128 then it will cause an error)
+{v_1 : tensor, v_2 : dtype} |= if (v_2 = 8 ∨ v_2 = 9) then (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 )
+>>
+Rule 88 (If a specific Tout is provided it has to be float32 or float64, if not, error is caused)
+{v_1 : dtype} |= if v_1 ≠ 0 then v_1=8 ∨ v_1 = 9
+>>
+Rule 93 (When Tout is NOT specified, if the INPUT is complex64, the OUTPUT must be float32, otherwise, if the INPUT is complex128, the output MUST be float64)
+{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= if v_3 = 0 then (if dtype_(v_1) = 10 then dtype_(v_2) = 8 else dtype_(v_2) = 9)
+>>
+Rule 95 (When Tout is default, output is float32 if input is complex64, else if tout is default and input is complex128, output is float64)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 0 then (if dtype_(v_1) = 10 then true else dtype_(v_1) = 11 )
+>>
+Rule 96 (If output is float64 then the input must be complex128, if output is float32 then input must be complex64)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 9 then dtype_(v_1) = 11 else if dtype_(v_2) = 8 then dtype_(v_1) = 10

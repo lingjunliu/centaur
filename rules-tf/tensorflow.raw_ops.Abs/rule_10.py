@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# x can be of int16 type (Rule 10)
+# if input is complex, it should be complex64 or complex128 (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == 3) if n else
-          v["arg1_dtype"] == 3)
+    s.add(Not(If(v["arg1_dtype"] == 10, True, If(v["arg1_dtype"] == 9, True, True))) if n else
+          If(v["arg1_dtype"] == 10, True, If(v["arg1_dtype"] == 9, True, True)))
 )
 
 def rule_10_func(arg1, solver=None, neg=False):

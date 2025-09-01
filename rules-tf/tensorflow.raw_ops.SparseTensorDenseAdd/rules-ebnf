@@ -1,66 +1,72 @@
 >>
-Rule 1 (a_indices and a_shape must have the same type)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 1 (a_indices must be a 2-D tensor)
+{a_indices : tensor} |= ndim(a_indices) = 2
 >>
-Rule 2 (a_shape's elements must be greater than 0)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 2 (a_shape must be a 1-D tensor)
+{a_shape : tensor} |= ndim(a_shape) = 1
 >>
-Rule 3 (b's shape should match a_shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = ndim(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_2, i) = shape(v_1, i)
+Rule 3 (b must have ndims dimensions, where ndims is the length of a_shape)
+{a_shape : tensor, b : tensor} |= ndim(b) = shape(a_shape, 0)
 >>
-Rule 4 (a_indices must be 2-dimensional)
-{v_1 : tensor} |= ndim(v_1) = 2
+Rule 4 (shape of b must match a_shape)
+{a_shape : tensor, b : tensor} |= (∀i ∈ [0, shape(a_shape, 0) - 1] : shape(b, i) = a_shape[i])
 >>
-Rule 5 (a_shape must be 1-dimensional)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 5 (a_indices must have int32 or int64 dtype)
+{a_indices : tensor} |= dtype_(a_indices) = 3 ∨ dtype_(a_indices) = 4
 >>
-Rule 7 (a_indices's data type must be int32 or int64)
-{v_1 : tensor} |= dtype_(v_1) = 2 ∨ dtype_(v_1) = 4
+Rule 6 (a_values must have a valid dtype)
+{a_values : tensor} |= dtype_(a_values) = 7 ∨ dtype_(a_values) = 8 ∨ dtype_(a_values) = 3 ∨ dtype_(a_values) = 5 ∨ dtype_(a_values) = 2 ∨ dtype_(a_values) = 1 ∨ dtype_(a_values) = 9 ∨ dtype_(a_values) = 4 ∨ dtype_(a_values) = 6 ∨ dtype_(a_values) = 14 ∨ dtype_(a_values) = 15 ∨ dtype_(a_values) = 16 ∨ dtype_(a_values) = 10 ∨ dtype_(a_values) = 17 ∨ dtype_(a_values) = 18
 >>
-Rule 9 (Number of dimensions of b should be equal to the number of elements in a_shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = shape(v_2, 0)
+Rule 7 (b must have the same dtype as a_values)
+{a_values : tensor, b : tensor} |= dtype_(a_values) = dtype_(b)
 >>
-Rule 10 (a_indices's second dimension (number of columns) must match the number of elements in a_shape)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = shape(v_2, 0)
+Rule 8 (a_shape must have the same dtype as a_indices)
+{a_indices : tensor, a_shape : tensor} |= dtype_(a_indices) = dtype_(a_shape)
 >>
-Rule 13 (a_indices's first dimension must be less than or equal to the product of a_shape's elements)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) ≤ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i))
+Rule 9 (number of rows in a_indices must match number of elements in a_values)
+{a_indices : tensor, a_values : tensor} |= shape(a_indices, 0) = shape(a_values, 0)
 >>
-Rule 15 (shape of b should have the same number of dimensions as the length of a_shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = shape(v_1, 0)
+Rule 10 (a_shape elements should be non-negative)
+{a_shape : tensor} |= ∀i ∈ [0, shape(a_shape, 0) - 1] : a_shape[i] ≥ 0
 >>
-Rule 16 (a_indices values are valid indices into b)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [0, shape(v_1, 1) - 1] : v_2[shape(v_1, j)] < shape(v_3, j)
+Rule 13 (a_shape cannot have zero values)
+{a_shape : tensor} |= ∀i ∈ [0, shape(a_shape, 0) - 1] : a_shape[i] > 0
 >>
-Rule 18 (if a_values is float32 or float64, then b must be float32 or float64)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+Rule 22 (a_shape must have int32 or int64 dtype)
+{a_shape : tensor} |= dtype_(a_shape) = 3 ∨ dtype_(a_shape) = 4
 >>
-Rule 23 (max value of a_indices must be smaller than shape of b at corresponding dimension)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀j ∈ [0, shape(v_2, 0) - 1] : max(v_1) < shape(v_3, j)
+Rule 23 (if a_shape has length 0 then b must be a scalar.)
+{a_shape : tensor, b : tensor} |= if shape(a_shape, 0) = 0 then ndim(b) = 0
 >>
-Rule 25 (the number of elements in a_shape should equal to the number of dimensions in b)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1,0) = ndim(v_2)
+Rule 24 (if a_shape has length greater than 0, then the product of a_shape elements should be greater than 0)
+{a_shape : tensor} |= if shape(a_shape, 0) > 0 then (∃i ∈ [0, shape(a_shape, 0) - 1] : a_shape[i] > 0)
 >>
-Rule 26 (a_indices's elements are non-negative)
-{v_1 : tensor} |= min(v_1) >= 0
+Rule 26 (if a_shape is not empty, then a_indices first dimension size can be zero)
+{a_shape : tensor, a_indices : tensor} |= if shape(a_shape, 0) > 0 then shape(a_indices, 0) ≥ 0
 >>
-Rule 30 ( the shape of tensor b must be equal to a_shape)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_3, i) = shape(v_2, i)
+Rule 27 (If a_shape is empty, a_indices has to be empty as well)
+{a_shape : tensor, a_indices : tensor} |= if shape(a_shape, 0) = 0 then shape(a_indices, 1) = 0 ∧ shape(a_indices, 0) = 0
 >>
-Rule 31 (a_values must be of a supported type)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18 ∨ dtype_(v_1) = 19 ∨ dtype_(v_1) = 20 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 21 ∨ dtype_(v_1) = 22
+Rule 28 (a_values must be 1-dimensional)
+{a_values : tensor} |= ndim(a_values) = 1
 >>
-Rule 35 (if a_values is complex64, then b must also be complex64 or complex128)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 9 then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+Rule 29 (shape of a_indices' second dimension should equal the length of a_shape)
+{a_indices : tensor, a_shape : tensor} |= shape(a_indices, 1) = shape(a_shape, 0)
 >>
-Rule 36 (if a_values is complex128, then b must also be complex64 or complex128)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 10 then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+Rule 30 (If a_shape is not empty, then its min element is greater than 0)
+{a_shape : tensor} |= if shape(a_shape, 0) > 0 then min(a_shape) > 0
 >>
-Rule 37 (if a_values is bfloat16, then b must also be bfloat16)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 16 then dtype_(v_2) = 16
+Rule 31 (if a_values is empty, then a_indices should also be empty)
+{a_values : tensor, a_indices : tensor} |= if shape(a_values, 0) = 0 then shape(a_indices, 0) = 0 ∧ shape(a_indices, 1) = 0
 >>
-Rule 38 (if a_values is qint8, then b must also be qint8)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 17 then dtype_(v_2) = 17
+Rule 32 (If a_values is not empty, then min of a_values should be greater or equal than 0)
+{a_values : tensor} |= if shape(a_values, 0) > 0 then min(a_values) ≥ 0
 >>
-Rule 39 (if a_values is quint8, then b must also be quint8)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 18 then dtype_(v_2) = 18
+Rule 33 (If a_values is not empty, then max of a_values should be smaller or equal than 1)
+{a_values : tensor} |= if shape(a_values, 0) > 0 then max(a_values) ≤ 1
+>>
+Rule 34 (if a_values is not empty and consists of 0s, then the output tensor will be the same as b)
+{a_values : tensor, b : tensor} |= if shape(a_values, 0) > 0 ∧ min(a_values) = 0 ∧ max(a_values) = 0 then ndim(a_values) = ndim(b)
+>>
+Rule 35 (if shape(a_shape,0) is zero then a_values must be empty as well)
+{a_shape : tensor, a_values : tensor} |= if shape(a_shape, 0) = 0 then shape(a_values, 0) = 0

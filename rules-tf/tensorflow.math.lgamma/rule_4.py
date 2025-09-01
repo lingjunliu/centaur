@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input tensor contains large positive values, the output should not be infinite (Rule 4)
+# Check for NaN and Infinity (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_range"], 1) > 100, Select(v["arg1_range"], 1) < 1000, False)) if n else
-          If(Select(v["arg1_range"], 1) > 100, Select(v["arg1_range"], 1) < 1000, False))
+    s.add(Not(And(Select(v["arg1_range"], 0) > -10000, Select(v["arg1_range"], 1) < 10000)) if n else
+          And(Select(v["arg1_range"], 0) > -10000, Select(v["arg1_range"], 1) < 10000))
 )
 
 def rule_4_func(arg1, solver=None, neg=False):

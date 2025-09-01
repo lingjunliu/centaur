@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If indices_or_sections is an integer, it must be greater than 0 (Rule 33)
+# Indices_or_sections should be non-negative. (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] > 0) if n else
-          v["arg1_value"] > 0)
+    s.add(Not(v["arg1_value"] >= 0) if n else
+          v["arg1_value"] >= 0)
 )
 
 def rule_33_func(arg1, solver=None, neg=False):

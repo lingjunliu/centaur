@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# dtype of input tensor cannot be string or dtype (Rule 2)
+# dtype of tensor should be a valid type (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] != 11, v["arg1_dtype"] != 12)) if n else
-          And(v["arg1_dtype"] != 11, v["arg1_dtype"] != 12))
+    s.add(Not(And(v["arg1_dtype"] >= 0, v["arg1_dtype"] <= 12)) if n else
+          And(v["arg1_dtype"] >= 0, v["arg1_dtype"] <= 12))
 )
 
 def rule_2_func(arg1, solver=None, neg=False):

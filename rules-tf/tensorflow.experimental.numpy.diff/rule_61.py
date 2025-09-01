@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input is a tensor, and the order is larger than the dimension of the tensor, then order becomes dimension of tensor. (Rule 61)
+# if axis is larger than ndim(a (Rule 61)
 
 rule_61 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] > v["arg1_ndim"], v["arg2_value"] == v["arg1_ndim"], False)) if n else
-          If(v["arg2_value"] > v["arg1_ndim"], v["arg2_value"] == v["arg1_ndim"], False))
+    s.add(Not(If(v["arg1_ndim"] > 0, If(v["arg2_value"] >= v["arg1_ndim"], False, True), True)) if n else
+          If(v["arg1_ndim"] > 0, If(v["arg2_value"] >= v["arg1_ndim"], False, True), True))
 )
 
 def rule_61_func(arg1, arg2, solver=None, neg=False):

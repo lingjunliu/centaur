@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# reserve_space_1, reserve_space_2 and reserve_space_3 must be 1D tensor (Rule 3)
+# reserve_space_1, reserve_space_2 and reserve_space_3 must be of type float32 (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 1), v["arg3_ndim"] == 1)) if n else
-          And(And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 1), v["arg3_ndim"] == 1))
+    s.add(Not(And(And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8), v["arg3_dtype"] == 8)) if n else
+          And(And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8), v["arg3_dtype"] == 8))
 )
 
 def rule_3_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -28,19 +28,19 @@ def rule_3_func(arg1, arg2, arg3, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_ndim = Int('arg2_ndim')
-        arg3_ndim = Int('arg3_ndim')
+        arg1_dtype = Int('arg1_dtype')
+        arg2_dtype = Int('arg2_dtype')
+        arg3_dtype = Int('arg3_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_ndim == arg2.ndim)
-        solver.add(arg3_ndim == arg3.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
 
         # Constraints for rule 3
-        rule_3(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg3_ndim': arg3_ndim})
+        rule_3(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_3(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg3_ndim': arg3['ndim']}, neg)
+        rule_3(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype']}, neg)

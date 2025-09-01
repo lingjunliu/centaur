@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the year is not a leap year, then the day cannot be greater than 28 when the month is February (Rule 27)
+# The year, month, and day must form a valid date (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(If(And((Or(v["arg1_value"] % 4 != 0, v["arg1_value"] % 100 == 0)), (v["arg1_value"] % 400 != 0)), If(v["arg2_value"] == 2, v["arg3_value"] <= 28, False), False)) if n else
-          If(And((Or(v["arg1_value"] % 4 != 0, v["arg1_value"] % 100 == 0)), (v["arg1_value"] % 400 != 0)), If(v["arg2_value"] == 2, v["arg3_value"] <= 28, False), False))
+    s.add(Not(And(And(And(And(v["arg1_value"] > 0, v["arg2_value"] >= 1), v["arg2_value"] <= 12), v["arg3_value"] >= 1), (If(v["arg2_value"] == 2, If(And(v["arg1_value"] % 4 == 0, (Or(v["arg1_value"] % 100 != 0, v["arg1_value"] % 400 == 0))), v["arg3_value"] <= 29, v["arg3_value"] <= 28), If(Or(Or(Or(v["arg2_value"] == 4, v["arg2_value"] == 6), v["arg2_value"] == 9), v["arg2_value"] == 11), v["arg3_value"] <= 30, v["arg3_value"] <= 31))))) if n else
+          And(And(And(And(v["arg1_value"] > 0, v["arg2_value"] >= 1), v["arg2_value"] <= 12), v["arg3_value"] >= 1), (If(v["arg2_value"] == 2, If(And(v["arg1_value"] % 4 == 0, (Or(v["arg1_value"] % 100 != 0, v["arg1_value"] % 400 == 0))), v["arg3_value"] <= 29, v["arg3_value"] <= 28), If(Or(Or(Or(v["arg2_value"] == 4, v["arg2_value"] == 6), v["arg2_value"] == 9), v["arg2_value"] == 11), v["arg3_value"] <= 30, v["arg3_value"] <= 31)))))
 )
 
 def rule_27_func(arg1, arg2, arg3, solver=None, neg=False):

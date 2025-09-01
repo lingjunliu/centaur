@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if dtype is not supported for initialization then do not init. (Rule 45)
+# If init is true and dtype is complex64 or complex128, then the initialized value should be complex(0, 0 (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] > 10, v["arg2_value"] == False, False)) if n else
-          If(v["arg1_value"] > 10, v["arg2_value"] == False, False))
+    s.add(Not(If(And((Or(v["arg1_value"] == 9, v["arg1_value"] == 10)), v["arg2_value"] == True), True, True)) if n else
+          If(And((Or(v["arg1_value"] == 9, v["arg1_value"] == 10)), v["arg2_value"] == True), True, True))
 )
 
 def rule_45_func(arg1, arg2, solver=None, neg=False):
@@ -18,7 +18,7 @@ def rule_45_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
             return False
         if not isinstance(arg2, bool):
             return False
@@ -29,7 +29,7 @@ def rule_45_func(arg1, arg2, solver=None, neg=False):
         arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
         solver.add(arg2_value == arg2)
 
         # Constraints for rule 45

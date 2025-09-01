@@ -1,48 +1,114 @@
 >>
-Rule 1 (input must be a tensor of type string)
-{v_1 : tensor} |= dtype_(v_1) = 11
+Rule 1 (input must be a string tensor)
+{input : tensor} |= dtype_(input) = 11
 >>
-Rule 2 (pad is a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 2 (pad must be a boolean)
+{pad : bool} |= pad = true ∨ pad = false
 >>
-Rule 3 (input tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 7 (input tensor must have at least one dimension)
+{input : tensor} |= ndim(input) ≥ 1
 >>
-Rule 5 (input tensor cannot have more than 8 dimensions)
-{v_1 : tensor} |= ndim(v_1) ≤ 8
+Rule 8 (if input is empty, pad should be false)
+{input : tensor, pad : bool} |= if shape(input, 0) = 0 then pad = false
 >>
-Rule 6 (shape of the input tensor cannot be empty)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 9 (input must be a string tensor and pad must be a boolean)
+{input : tensor, pad : bool} |= dtype_(input) = 11 ∧ (pad = true ∨ pad = false)
 >>
-Rule 7 (pad can only be true or false)
-{v_1 : bool} |= (v_1 = true) ∨ (v_1 = false)
+Rule 10 (if input is empty and pad is true, the result should also be an empty string)
+{input : tensor, pad : bool} |= if ndim(input) = 0 ∧ pad = true then true
 >>
-Rule 9 (If padding is enabled then the length of the last dimension must be a multiple of 3 before encoding)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then shape(v_1, ndim(v_1) - 1) % 3 = 0
+Rule 12 (the length of each element in input tensor must be less than a certain max value)
+{input : tensor} |= ∀i ∈ [0, shape(input, 0) - 1] : shape(input, i) < 1024
 >>
-Rule 10 (input tensor shape must not contain a zero dimension.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+Rule 14 (if input is empty and pad is true, the result should also be an empty string, which translates to output tensor having zero dimension)
+{input : tensor, pad : bool} |= if ndim(input) = 0 ∧ pad = true then ndim(input) = 0
 >>
-Rule 13 (If padding is disabled, the last dimension's size must be a multiple of 3)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then shape(v_1, ndim(v_1) - 1) % 3 = 0
+Rule 15 (the length of each string element in input tensor should be within a reasonable limit to avoid extremely long base64 strings)
+{input : tensor} |= ∀i ∈ [0, shape(input, 0) - 1] : shape(input, i) ≤ 1024
 >>
-Rule 19 (If pad is true, each string in the tensor must have a length that is a multiple of 3.)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then ∀i ∈ [0, shape(v_1,0) - 1] : (shape(v_1, i) % 3) = 0
+Rule 19 (if input is an empty tensor, pad should default to false, otherwise, if pad is true, the padding should happen.)
+{input : tensor, pad : bool} |= if ndim(input) = 0 then pad = false
 >>
-Rule 21 (If the input tensor is empty, then the pad parameter has no effect.)
-{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then true
+Rule 20 (Each element in the input string tensor has a size limit to avoid excessive memory usage)
+{input : tensor} |= ∀i ∈ [0, shape(input, 0) - 1] : shape(input, i) ≤ 2048
 >>
-Rule 23 (If the input tensor is a scalar, then padding is not relevant)
-{v_1 : tensor} |= if ndim(v_1) = 0 then true
+Rule 22 (if the input string tensor is a scalar, then the output should also be a scalar string)
+{input : tensor} |= if ndim(input) = 0 then true
 >>
-Rule 24 (If input is not padded, the final encoded output length needs to be a multiple of 4)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then shape(v_1, ndim(v_1) -1) % 4 = 0
+Rule 24 (if any of the input strings has length > 0 then the number of chars should be divisible by 3 if padding is false)
+{input : tensor, pad : bool} |= if pad = false then (∃i ∈ [0, shape(input, 0) - 1] : shape(input, i) > 0)
 >>
-Rule 25 (If the input tensor is not padded then the strings should have length multiple of 3)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then ∀i ∈ [0, shape(v_1,0) - 1] : (shape(v_1, i) % 3) = 0
+Rule 28 (If padding is disabled, the length of input strings have to be divisible by 3 for efficient processing)
+{input : tensor, pad : bool} |= if pad = false then ∀i ∈ [0, shape(input, 0) - 1] : shape(input, i) % 3 = 0
 >>
-Rule 26 (The size of the encoded string tensor will always be larger or equal to the size of the unencoded tensor)
-{v_1 : tensor} |= shape(v_1, 0) <= shape(v_1, 0)
+Rule 30 (The number of dimensions of the input tensor must be greater than or equal to 0)
+{input : tensor} |= ndim(input) ≥ 0
 >>
-Rule 29 (Strings in input tensor v_1 must all have the same length if pad=false and ndim=1)
-{v_1 : tensor, v_2 : bool} |= if ndim(v_1) = 1 ∧ v_2 = false then ∀i ∈ [1, shape(v_1,0)-1] : shape(v_1,0) = shape(v_1, i)
+Rule 35 (if input has at least one string and the padding is disabled then ensure that the length of each string is divisible by 3)
+{input : tensor, pad : bool} |= if pad = false ∧ ndim(input) > 0 then ∀i ∈ [0, shape(input,0)-1] : shape(input, i) % 3 = 0
+>>
+Rule 36 (If input is a scalar, then the output will be scalar. If input is a vector then the output will be a vector)
+{input : tensor} |= if ndim(input) = 0 then true else if ndim(input) = 1 then true
+>>
+Rule 42 (If the padding is disabled and any of the input strings has length > 0, then ensure that the length of the string is a multiple of 3)
+{input : tensor, pad : bool} |= if pad = false ∧ (∃i ∈ [0, shape(input, 0) - 1] : shape(input, i) > 0) then ∀i ∈ [0, shape(input,0)-1] : shape(input, i) % 3 = 0
+>>
+Rule 45 (If padding is disabled and input is not empty, then the length of each string must be a multiple of 3)
+{input : tensor, pad : bool} |= if pad = false ∧ (ndim(input) > 0) then ∀i ∈ [0, shape(input, 0) - 1] : shape(input, i) % 3 = 0
+>>
+Rule 47 (The number of dimensions of the input tensor must not exceed 2)
+{input : tensor} |= ndim(input) ≤ 2
+>>
+Rule 54 (If input tensor is empty, pad is automatically set to false.)
+{input: tensor} |= if ndim(input) = 0 then true
+>>
+Rule 56 (If padding is disabled and if there exists at least one non-empty string, each string in the input must have a length which is a multiple of 3)
+{input : tensor, pad : bool} |= if pad = false ∧ (∃i ∈ [0, shape(input, 0) - 1] : shape(input, i) > 0) then ∀j ∈ [0, shape(input,0)-1] : shape(input, j) % 3 = 0
+>>
+Rule 59 (If there exists at least one non-empty string in the input, and padding is disabled, ensure each string length is a multiple of 3 for efficient base64 encoding)
+{input : tensor, pad : bool} |= if (∃i ∈ [0, shape(input, 0) - 1] : shape(input, i) > 0) ∧ pad = false then ∀j ∈ [0, shape(input,0)-1] : shape(input, j) % 3 = 0
+>>
+Rule 62 (if padding is disabled then the length of each string must be a multiple of 3)
+{input : tensor, pad : bool} |= if (pad = false) then ∀i ∈ [0, shape(input, 0) - 1] : shape(input, i) % 3 = 0
+>>
+Rule 68 (If input contains non-empty string(s) and padding is disabled, ensure strings are 3x long)
+{input : tensor, pad : bool} |= if (∃i ∈ [0, shape(input, 0) - 1] : shape(input, i) > 0) ∧ (pad = false) then ∀j ∈ [0, shape(input,0)-1] : shape(input, j) % 3 = 0
+>>
+Rule 72 (If input has dimension zero, padding is irrelevent.)
+{input : tensor} |= ndim(input) = 0 ∧ shape(input,0) = 0
+>>
+Rule 74 (For non-empty inputs, if padding is disabled, then enforce string lengths be a multiple of 3.)
+{input : tensor, pad : bool} |= if pad = false then (∀i ∈ [0, shape(input, 0) - 1] : shape(input, i) % 3 = 0)
+>>
+Rule 78 (If the input has zero dimensions, the operation should return a zero dimension string tensor)
+{input : tensor} |= ndim(input) = 0 ∧ shape(input, 0) = 0
+>>
+Rule 86 (If there exist non-empty strings and padding is disabled, each string's length must be a multiple of 3)
+{input : tensor, pad : bool} |= if (pad = false) then (∃i ∈ [0, shape(input, 0) - 1] : shape(input, i) > 0) ∧ (∀j ∈ [0, shape(input,0)-1] : shape(input, j) % 3 = 0)
+>>
+Rule 87 (The shape of the output is the same as input)
+{input : tensor} |= ndim(input) = ndim(input)
+>>
+Rule 92 (If any non-empty string exists and padding is disabled, strings length must be multiples of 3)
+{input : tensor, pad : bool} |= if (pad = false) then (∃i ∈ [0, shape(input, 0) - 1] : shape(input, i) > 0 ∧ (∀j ∈ [0, shape(input,0)-1] : shape(input, j) % 3 = 0))
+>>
+Rule 93 (If the input is scalar the result must be scalar)
+{input : tensor} |= ndim(input) = 0
+>>
+Rule 99 (With padding, the encoded string has a length that is a multiple of 4.)
+{pad: bool} |= if (pad = true) then true
+>>
+Rule 102 (Base64 encoded output with padding will be a multiple of 4)
+{pad : bool} |= (pad = true) ∨ (pad = false)
+>>
+Rule 105 (When padding is enabled, the base64 string's shape[0] is guaranteed to be a multiple of 4 )
+{pad : bool} |= if (pad = true) then (true) else (pad = false)
+>>
+Rule 116 (If padding is off and the string is not empty, each string length must be a multiple of 3)
+{input : tensor, pad : bool} |= if (pad = false) then ((∃i ∈ [0, shape(input, 0) - 1] : shape(input, i) > 0) ∧ (∀j ∈ [0, shape(input,0)-1] : shape(input, j) % 3 = 0))
+>>
+Rule 117 (String must not be longer than maximum base64 input size)
+{input: tensor} |= ∀i ∈ [0, shape(input, 0) - 1] : shape(input, i) < 65536
+>>
+Rule 120 (Strings should not be excessively long)
+{input: tensor} |= ∀i ∈ [0, shape(input, 0) - 1] : shape(input, i) < 4096

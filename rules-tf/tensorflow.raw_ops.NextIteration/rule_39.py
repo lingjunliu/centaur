@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The number of elements in each dimension of the output tensor must be greater than or equal to 1. (Rule 39)
+# If the data tensor represents an embedding, ensure the embedding dimension is not zero (Rule 39)
 
 rule_39 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) >= 1) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) >= 1) for i in range(6)]))
+    s.add(Not(If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 1) != 0, True)) if n else
+          If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 1) != 0, True))
 )
 
 def rule_39_func(arg1, solver=None, neg=False):

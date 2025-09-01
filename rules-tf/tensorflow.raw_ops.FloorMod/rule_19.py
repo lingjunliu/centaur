@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if x is int64, y must also be int64 (Rule 19)
+# if x is float32, y must be float32 (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 4, v["arg2_dtype"] == 4, False)) if n else
-          If(v["arg1_dtype"] == 4, v["arg2_dtype"] == 4, False))
+    s.add(Not(If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, True)) if n else
+          If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, True))
 )
 
 def rule_19_func(arg1, arg2, solver=None, neg=False):

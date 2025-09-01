@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If value is a complex type, then bias must be a complex type (Rule 27)
+# If value's dtype is float16, float32, or float64, then bias's dtype must also be one of them (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 9), Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 9), False)) if n else
-          If(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 9), Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 9), False))
+    s.add(Not(If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), True)) if n else
+          If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), True))
 )
 
 def rule_27_func(arg1, arg2, solver=None, neg=False):

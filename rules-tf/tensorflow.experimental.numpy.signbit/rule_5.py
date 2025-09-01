@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check if the input tensor's minimum value is less than zero (Rule 5)
+# The input tensor's element should not be none. (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) < 0) if n else
-          Select(v["arg1_range"], 0) < 0)
+    s.add(Not(And(Select(v["arg1_range"], 0) != none, Select(v["arg1_range"], 1) != none)) if n else
+          And(Select(v["arg1_range"], 0) != none, Select(v["arg1_range"], 1) != none))
 )
 
 def rule_5_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# select_columns and column_names must have the same length if both are provided (Rule 17)
+# select_columns and column_defaults must have the same length if both are specified. (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_length"] > 0, v["arg2_length"] > 0), v["arg1_length"] == v["arg2_length"], False)) if n else
-          If(And(v["arg1_length"] > 0, v["arg2_length"] > 0), v["arg1_length"] == v["arg2_length"], False))
+    s.add(Not(v["arg1_length"] == v["arg2_length"]) if n else
+          v["arg1_length"] == v["arg2_length"])
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):
@@ -18,7 +18,7 @@ def rule_17_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not (isinstance(arg1, list) and all(isinstance(e, str) for e in arg1)):
             return False
         if not (isinstance(arg2, list) and all(isinstance(e, str) for e in arg2)):
             return False

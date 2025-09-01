@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If one tensor's dimension is greater than 1, then the other should be too (Rule 20)
+# At least one tensor must have ndim > 0 (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 1, v["arg2_ndim"] > 1, False)) if n else
-          If(v["arg1_ndim"] > 1, v["arg2_ndim"] > 1, False))
+    s.add(Not(Or(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0)) if n else
+          Or(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0))
 )
 
 def rule_20_func(arg1, arg2, solver=None, neg=False):

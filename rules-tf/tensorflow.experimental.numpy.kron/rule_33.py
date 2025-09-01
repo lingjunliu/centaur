@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Dtype of tensors should be numerical (Rule 33)
+# If one tensor is bool, then the other should not be complex, and vice-versa (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(v["arg1_dtype"] > 0, v["arg1_dtype"] < 11), v["arg2_dtype"] > 0), v["arg2_dtype"] < 11)) if n else
-          And(And(And(v["arg1_dtype"] > 0, v["arg1_dtype"] < 11), v["arg2_dtype"] > 0), v["arg2_dtype"] < 11))
+    s.add(Not(Or(Or((And((v["arg1_dtype"] == 0), (And(v["arg2_dtype"] != 9, v["arg2_dtype"] != 10)))), (And((v["arg2_dtype"] == 0), (And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10))))), (And((v["arg1_dtype"] != 0), (v["arg2_dtype"] != 0))))) if n else
+          Or(Or((And((v["arg1_dtype"] == 0), (And(v["arg2_dtype"] != 9, v["arg2_dtype"] != 10)))), (And((v["arg2_dtype"] == 0), (And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10))))), (And((v["arg1_dtype"] != 0), (v["arg2_dtype"] != 0)))))
 )
 
 def rule_33_func(arg1, arg2, solver=None, neg=False):

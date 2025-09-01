@@ -1,105 +1,138 @@
 >>
-Rule 2 (size's length must be the same as value's rank)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = shape(v_2, 0)
+Rule 1 (size must have the same rank as value)
+{value : tensor, size : tensor} |= ndim(value) = ndim(size)
 >>
-Rule 3 (each dimension of value must be greater than or equal to corresponding dimension of size)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ shape(v_2, i)
+Rule 2 (all elements in size must be positive)
+{size : tensor} |= ∀i ∈ [0, ndim(size) - 1] : shape(size, i) > 0
 >>
-Rule 4 (seed must be a positive integer)
-{v_1 : int} |= v_1 > 0
+Rule 3 (value.shape must be greater than or equal to size)
+{value : tensor, size : tensor} |= ∀i ∈ [0, ndim(value) - 1] : shape(value, i) ≥ shape(size, i)
 >>
-Rule 6 (value should have positive dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 4 (seed must be a non-negative integer)
+{seed : int} |= seed ≥ 0
 >>
-Rule 7 (size must be a 1-D tensor)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 5 (size must be a 1-D tensor)
+{size : tensor} |= ndim(size) = 1
 >>
-Rule 8 (size's length must be the same as value's rank)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = shape(v_1, 0)
+Rule 6 (name cannot be an empty string)
+{name : str} |= name ≠ ""
 >>
-Rule 9 (each dimension of value must be greater than or equal to corresponding dimension of size)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) ≥ shape(v_1, i)
+Rule 7 (ensure the seed is not too large to prevent overflow)
+{seed : int} |= seed < 2147483647
 >>
-Rule 13 (size's dtype should be int32 or int64)
-{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 8 (value tensor should not have any dimension of size 0)
+{value : tensor} |= ∀i ∈ [0, ndim(value) - 1] : shape(value, i) > 0
 >>
-Rule 14 (value's dtype should not be a string)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
+Rule 9 (size cannot have any zero dimensions, to avoid slicing with empty sizes)
+{size : tensor} |= ∀i ∈ [0, ndim(size) - 1] : shape(size, i) ≠ 0
 >>
-Rule 15 (If seed is present, it must be non-negative)
-{v_1 : int} |= v_1 ≥ 0
+Rule 10 (value's rank must be at least 1)
+{value : tensor} |= ndim(value) ≥ 1
 >>
-Rule 16 (value should have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 11 (size's rank must be at least 1)
+{size : tensor} |= ndim(size) ≥ 1
 >>
-Rule 17 (value and size must have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 12 (value's shape must be a valid shape, i.e. no negative dimensions)
+{value: tensor} |= ∀i ∈ [0, ndim(value) - 1]: shape(value, i) > 0
 >>
-Rule 18 (If value is a scalar, size must be a scalar)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+Rule 13 (size's shape must be a valid shape, i.e. no negative dimensions)
+{size: tensor} |= ∀i ∈ [0, ndim(size) - 1]: shape(size, i) > 0
 >>
-Rule 20 (if value is empty, size should also be empty)
-{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then (∃j ∈ [0, ndim(v_2) - 1]: shape(v_2, j) = 0)
+Rule 14 (Check if value and size have compatible dtypes)
+{value: tensor, size: tensor} |= dtype_(value) = dtype_(size)
 >>
-Rule 21 (size must be smaller than or equal to value)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≤ shape(v_2, i)
+Rule 15 (size should not exceed the maximum allowed dimensions (e.g. 7))
+{size : tensor} |= ndim(size) ≤ 7
 >>
-Rule 23 (size and value should have the same number of elements if they are both 1D tensors)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 then shape(v_1, 0) = shape(v_2, 0)
+Rule 16 (If size is provided as a tuple, its length must match the rank of value)
+{value: tensor, size: tuple(int)} |= size.len = ndim(value)
 >>
-Rule 24 (seed must be a scalar if present)
-{v_1 : int} |= ndim(v_1) = 0
+Rule 17 (If size is provided as a tuple, each element must be a non-negative integer)
+{size: tuple(int)} |= ∀i ∈ [0, size.len - 1]: size[i] ≥ 0
 >>
-Rule 25 (name must be selected from predefined values)
-{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "constant" ∨ v_1 = "linear" ∨ v_1 = "softplus"
+Rule 18 (If size is provided as a tuple, value's shape must be greater or equal to the tuple size)
+{value: tensor, size: tuple(int)} |= ∀i ∈ [0, size.len - 1]: shape(value, i) ≥ size[i]
 >>
-Rule 26 (If size is int32, value's dimension should not be greater than the max value of int32)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 3 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≤ 2147483647
+Rule 19 (The seed value should be within a reasonable range)
+{seed : int} |= seed > -4294967296 ∧ seed < 4294967296
 >>
-Rule 27 (If value is complex, size's dtype should be int32 or int64)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Rule 20 (shape of value should not be unknown)
+{value: tensor} |= ∃i ∈ [0, ndim(value)-1] : shape(value, i) ≠ -1
 >>
-Rule 28 (If seed is present, ensure value's dtype is not bool)
-{v_1: tensor, v_2 : int} |= if v_2 ≥ 0 then dtype_(v_1) ≠ 0
+Rule 21 (shape of size should not be unknown)
+{size: tensor} |= ∃i ∈ [0, ndim(size)-1] : shape(size, i) ≠ -1
 >>
-Rule 29 (If size is complex, value should also be complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 then dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 24 (If shape of value is fully defined, then each dimension must be greater than 0)
+{value: tensor} |= if (∀i ∈ [0, ndim(value) - 1] : shape(value, i) ≠ -1) then (∀i ∈ [0, ndim(value) - 1] : shape(value, i) > 0)
 >>
-Rule 31 (if size's dimension is 0, it must be a valid number)
-{v_1: tensor} |= if ndim(v_1) = 0 then min(v_1) ≥ 0
+Rule 26 (if size is a tensor, it should be 1D with length equals to value's ndim)
+{value: tensor, size: tensor} |= if ndim(size) = 1 then shape(size, 0) = ndim(value) else false
 >>
-Rule 32 (If value's dimension is 0, it must be a valid number, and size dimension should be 0 as well.)
-{v_1: tensor, v_2 : tensor} |= if ndim(v_1) = 0 then min(v_1) ≥ 0 ∧ ndim(v_2) = 0
+Rule 27 (If size is a tensor, and value's shape is known then each element in size must be <= than the corresponding value's shape)
+{value: tensor, size: tensor} |= if (∀i ∈ [0, ndim(value) - 1] : shape(value, i) ≠ -1) ∧ ndim(size) = 1 then (∀i ∈ [0, shape(size, 0) - 1] : shape(size, i) ≤ shape(value, i) )
 >>
-Rule 33 (Value and Size must have same dtype if Value is bool)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0
+Rule 28 (if size is a tensor and value's shape is not fully defined then size cannot be a constant)
+{value: tensor, size: tensor} |= if (∃i ∈ [0, ndim(value) - 1] : shape(value, i) = -1) ∧ ndim(size) = 1 then (∀i ∈ [0, shape(size, 0) - 1] : shape(size, i) ≠ 0)
 >>
-Rule 34 (Value and Size should have same dtype if Value is string)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 11 then dtype_(v_2) = 11
+Rule 29 (If size is a tensor, all its elements must be non-negative integers)
+{size: tensor} |= if ndim(size) = 1 then (∀i ∈ [0, shape(size, 0) - 1] : shape(size, i) ≥ 0)
 >>
-Rule 35 (Size must be integer if Dtype is integer for value)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Rule 31 (if size is a tensor and all its elements are defined then it should have int-compatible dtype)
+{size: tensor} |= if (∀i ∈ [0, ndim(size)-1] : shape(size, i) ≠ -1) then (dtype_(size) = 1 ∨ dtype_(size) = 2 ∨ dtype_(size) = 3 ∨ dtype_(size) = 4 ∨ dtype_(size) = 5)
 >>
-Rule 37 (If size has more than one element based on its shape, it should be a 1-D tensor, and dtype should be an int)
-{v_1: tensor} |= if shape(v_1, 0) > 1 then ndim(v_1) = 1 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
+Rule 32 (If size is a tensor and its shape is fully defined then it must have rank 1)
+{size: tensor} |= if (∀i ∈ [0, ndim(size) - 1] : shape(size, i) ≠ -1) then ndim(size) = 1
 >>
-Rule 38 (if seed provided, value must be a float tensor)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 33 (if value has a defined shape, the number of dimensions should be less than a maximum value to prevent errors during the calculations (e.g. < 64))
+{value : tensor} |= if (∀i ∈ [0, ndim(value) - 1] : shape(value, i) ≠ -1) then ndim(value) < 64
 >>
-Rule 39 (if value has dimensions higher than 2, size should be int64)
-{v_1: tensor, v_2 : tensor} |= if ndim(v_1) > 2 then dtype_(v_2) = 4
+Rule 35 (if value is a tensor and its shape is fully defined, the product of the dimensions cannot exceed a maximum value to prevent overflow. Using max function as a workaround.)
+{value : tensor} |= if (∀i ∈ [0, ndim(value) - 1] : shape(value, i) ≠ -1) then max(value) < 2147483647
 >>
-Rule 40 (value cannot be complex128)
-{v_1: tensor} |= dtype_(v_1) ≠ 10
+Rule 37 (if value is a tensor and its shape is fully defined and size's shape is fully defined, then sum of size elements cannot exceed value shape's product)
+{value : tensor, size: tensor} |= if (∀i ∈ [0, ndim(value) - 1] : shape(value, i) ≠ -1) ∧ (∀i ∈ [0, ndim(size) - 1] : shape(size, i) ≠ -1) then (∀i ∈ [0, ndim(size)-1]:shape(size, i)≤ shape(value, i))
 >>
-Rule 42 (if value has uint8 dtype, ensure size also has uint8 dtype, if size is used to hold image data)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 5 then dtype_(v_2) = 5
+Rule 38 (if value is a tensor and its shape is fully defined and size's shape is fully defined, then every element in size's shape must be less or equal to respective value's shape)
+{value : tensor, size: tensor} |= if (∀i ∈ [0, ndim(value) - 1] : shape(value, i) ≠ -1) ∧ (∀i ∈ [0, ndim(size) - 1] : shape(size, i) ≠ -1) ∧ ndim(size) = 1 then (∀i ∈ [0, shape(size,0)-1]: shape(size, i) ≤ shape(value, i))
 >>
-Rule 43 (if value has complex64 dtype, ensure size also has int32 dtype)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 then dtype_(v_2) = 3
+Rule 39 (if value is a tensor and its shape is fully defined, the dimensions must be within the range of int32 to prevent issues during calculations of offset)
+{value : tensor} |= if (∀i ∈ [0, ndim(value) - 1] : shape(value, i) ≠ -1) then (∀i ∈ [0, ndim(value) - 1]: shape(value, i) < 2147483647)
 >>
-Rule 44 (if value is float16, float32 or float64 then size must have dtype int32 or int64)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Rule 42 (if value is a tensor and its shape is fully defined, then its dimensions must not be equal to zero)
+{value : tensor} |= if (∀i ∈ [0, ndim(value) - 1] : shape(value, i) ≠ -1) then (∀i ∈ [0, ndim(value) - 1]: shape(value, i) ≠ 0)
 >>
-Rule 45 (If shape of value is not a multiple of size, value cannot be bool)
-{v_1: tensor, v_2 : tensor} |= if ∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) % shape(v_2, i) = 0 then true else dtype_(v_1) ≠ 0
+Rule 43 (if value's shape is fully defined and size is fully defined as a tensor, then the shape of size must less than or equal to the shape of value)
+{value: tensor, size: tensor} |= if (∀i ∈ [0, ndim(value) - 1] : shape(value, i) ≠ -1) ∧ (∀i ∈ [0, ndim(size) - 1] : shape(size, i) ≠ -1) ∧ ndim(size) = 1 then (∀i ∈ [0, shape(size, 0) -1]: shape(size, i) ≤ shape(value, i))
+>>
+Rule 44 (value and size should have same type)
+{value : tensor, size : tensor} |= dtype_(value) = dtype_(size)
+>>
+Rule 45 (value and size dtypes must belong to the same type family)
+{value: tensor, size: tensor} |= if (dtype_(value) = 1 ∨ dtype_(value) = 2 ∨ dtype_(value) = 3 ∨ dtype_(value) = 4 ∨ dtype_(value) = 5) then (dtype_(size) = 1 ∨ dtype_(size) = 2 ∨ dtype_(size) = 3 ∨ dtype_(size) = 4 ∨ dtype_(size) = 5) else if (dtype_(value) = 6 ∨ dtype_(value) = 7 ∨ dtype_(value) = 8) then (dtype_(size) = 6 ∨ dtype_(size) = 7 ∨ dtype_(size) = 8)
+>>
+Rule 46 (if size is provided as a tensor and value's shape is not fully defined then the number of dimensions in size cannot exceed the number of dimensions in value.)
+{value: tensor, size: tensor} |= if (∃i ∈ [0, ndim(value) - 1] : shape(value, i) = -1) ∧ ndim(size) = 1 then (shape(size, 0) ≤ ndim(value))
+>>
+Rule 47 (If size is a tensor and its shape is fully defined, then its dtype must be int32 or int64 to correctly index into the value tensor)
+{size: tensor} |= if (∀i ∈ [0, ndim(size) - 1] : shape(size, i) ≠ -1) then (dtype_(size) = 3 ∨ dtype_(size) = 4)
+>>
+Rule 48 (If value's shape is fully defined, every dimension of value must be greater or equal than 1)
+{value: tensor} |= if (∀i ∈ [0, ndim(value) - 1] : shape(value, i) ≠ -1) then (∀i ∈ [0, ndim(value) - 1]: shape(value, i) ≥ 1)
+>>
+Rule 49 (if the dtype of value is bfloat16, size should have the same dtype)
+{value : tensor, size : tensor} |= if dtype_(value) = 14 then dtype_(size) = 14
+>>
+Rule 50 (if size is a tensor, its shape should be defined and should contain no zero to prevent slice errors)
+{size: tensor} |= if (∀i ∈ [0, ndim(size) - 1] : shape(size, i) ≠ -1) then (∀i ∈ [0, ndim(size) - 1]: shape(size, i) ≠ 0) ∧ ndim(size) = 1
+>>
+Rule 51 (When value is a bfloat16 tensor, size must be also bfloat16 and value should not have dimensions smaller than one, size must be also equal to value or return error)
+{value : tensor, size : tensor} |= if dtype_(value) = 7 then (dtype_(size) = 7) ∧ (∀i ∈ [0, ndim(value)-1] : shape(value,i) ≥ 1 ) ∧ (∀i ∈ [0, ndim(size)-1]: shape(size, i) = shape(value, i))
+>>
+Rule 53 (If size is a tensor and fully defined, all element in size must be smaller or equal than 2147483647)
+{size : tensor} |= if (∀i ∈ [0, ndim(size) - 1] : shape(size, i) ≠ -1) then (∀i ∈ [0, ndim(size) - 1]: shape(size, i) ≤ 2147483647)
+>>
+Rule 54 (if dtype of value is a quantized type, the size needs also to be of a quantized type.)
+{value : tensor, size : tensor} |= if (dtype_(value) = 6 ∨ dtype_(value) = 7 ∨ dtype_(value) = 8 ∨ dtype_(value) = 9 ∨ dtype_(value) = 10 ∨ dtype_(value) = 11) then (dtype_(size) = 6 ∨ dtype_(size) = 7 ∨ dtype_(size) = 8 ∨ dtype_(size) = 9 ∨ dtype_(size) = 10 ∨ dtype_(size) = 11)
+>>
+Rule 55 (Name should not be causal when using random_crop api)
+{name: str} |= name ≠ "causal"

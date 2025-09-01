@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The first dimension should not be zero (Rule 37)
+# The size of the first dimension should be less than the maximum possible value for int64 (Rule 37)
 
 rule_37 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) > 0) if n else
-          Select(v["arg1_shape"], 0) > 0)
+    s.add(Not(Select(v["arg1_shape"], 0) < 9223372036854775807) if n else
+          Select(v["arg1_shape"], 0) < 9223372036854775807)
 )
 
 def rule_37_func(arg1, solver=None, neg=False):

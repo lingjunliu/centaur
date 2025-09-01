@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if var is qint8, accum, lr, l1, l2, grad all have dtype qint8 (Rule 40)
+# All Tensors should have at least one dimension (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 4, And(And(And(And(v["arg2_dtype"] == 4, v["arg3_dtype"] == 4), v["arg4_dtype"] == 4), v["arg5_dtype"] == 4), v["arg6_dtype"] == 4), False)) if n else
-          If(v["arg1_dtype"] == 4, And(And(And(And(v["arg2_dtype"] == 4, v["arg3_dtype"] == 4), v["arg4_dtype"] == 4), v["arg5_dtype"] == 4), v["arg6_dtype"] == 4), False))
+    s.add(Not(And(And(And(And(And(v["arg1_ndim"] >= 0, v["arg2_ndim"] >= 0), v["arg3_ndim"] >= 0), v["arg4_ndim"] >= 0), v["arg5_ndim"] >= 0), v["arg6_ndim"] >= 0)) if n else
+          And(And(And(And(And(v["arg1_ndim"] >= 0, v["arg2_ndim"] >= 0), v["arg3_ndim"] >= 0), v["arg4_ndim"] >= 0), v["arg5_ndim"] >= 0), v["arg6_ndim"] >= 0))
 )
 
 def rule_40_func(arg1, arg2, arg3, arg4, arg5, arg6, solver=None, neg=False):
@@ -37,25 +37,25 @@ def rule_40_func(arg1, arg2, arg3, arg4, arg5, arg6, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
-        arg3_dtype = Int('arg3_dtype')
-        arg4_dtype = Int('arg4_dtype')
-        arg5_dtype = Int('arg5_dtype')
-        arg6_dtype = Int('arg6_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_ndim = Int('arg2_ndim')
+        arg3_ndim = Int('arg3_ndim')
+        arg4_ndim = Int('arg4_ndim')
+        arg5_ndim = Int('arg5_ndim')
+        arg6_ndim = Int('arg6_ndim')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
-        solver.add(arg4_dtype == list_of_available_dtypes.index(arg4.dtype))
-        solver.add(arg5_dtype == list_of_available_dtypes.index(arg5.dtype))
-        solver.add(arg6_dtype == list_of_available_dtypes.index(arg6.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg3_ndim == arg3.ndim)
+        solver.add(arg4_ndim == arg4.ndim)
+        solver.add(arg5_ndim == arg5.ndim)
+        solver.add(arg6_ndim == arg6.ndim)
 
         # Constraints for rule 40
-        rule_40(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype, 'arg4_dtype': arg4_dtype, 'arg5_dtype': arg5_dtype, 'arg6_dtype': arg6_dtype})
+        rule_40(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg3_ndim': arg3_ndim, 'arg4_ndim': arg4_ndim, 'arg5_ndim': arg5_ndim, 'arg6_ndim': arg6_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_40(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype'], 'arg4_dtype': arg4['dtype'], 'arg5_dtype': arg5['dtype'], 'arg6_dtype': arg6['dtype']}, neg)
+        rule_40(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg3_ndim': arg3['ndim'], 'arg4_ndim': arg4['ndim'], 'arg5_ndim': arg5['ndim'], 'arg6_ndim': arg6['ndim']}, neg)

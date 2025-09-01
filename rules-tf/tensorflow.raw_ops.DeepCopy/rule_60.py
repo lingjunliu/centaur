@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input tensor is float64 then it should be a non-quantized tensor (Rule 60)
+# For complex tensors, the real and imaginary parts can't be infinite (Rule 60)
 
 rule_60 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 8, True, False)) if n else
-          If(v["arg1_dtype"] == 8, True, False))
+    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), True, True)) if n else
+          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), True, True))
 )
 
 def rule_60_func(arg1, solver=None, neg=False):

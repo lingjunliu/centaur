@@ -2,173 +2,383 @@
 Rule 1 (ragged_rank must be non-negative)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 2 (ragged_rank must be less than K, where K is derived from pylist)
-{v_1 : int, v_2 : tensor} |= v_1 < ndim(v_2)
+Rule 4 (row_splits_dtype should be tf.int32 or tf.int64)
+{v_1 : dtype} |= v_1 = 2 ∨ v_1 = 5
 >>
-Rule 3 (dtype must be a valid dtype index)
-{v_1 : int} |= v_1 ≥ 0 ∧ v_1 ≤ 12
+Rule 5 (dtype must be valid, here just checking if non-negative assuming dtype is encoded as integer index)
+{v_1 : dtype} |= v_1 ≥ 0
 >>
-Rule 4 (inner_shape must be a tuple of non-negative integers)
+Rule 6 (inner_shape elements should be non-negative)
 {v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 5 (inner_shape length should not exceed dimension)
-{v_1 : tuple(int), v_2 : tensor} |= v_1.len < ndim(v_2)
+Rule 7 (inner_shape should have a reasonable length)
+{v_1 : tuple(int)} |= v_1.len < 10
 >>
-Rule 6 (if ragged_rank is specified, its value affects comparison with K - len(inner_shape) - 1)
-{v_1 : int, v_2 : tuple(int), v_3 : tensor} |= v_1 < ndim(v_3) - v_2.len
+Rule 9 (Check the pylist is not empty.)
+{v_1 : list(int)} |= v_1.len > 0
 >>
-Rule 7 (row_splits_dtype must be int32 or int64, represented by integer type index)
-{v_1 : int} |= v_1 = 3 ∨ v_1 = 4
+Rule 10 (Name is a string)
+{v_1 : str} |= v_1 ≠ ""
 >>
-Rule 8 (pylist's elements should be compatible with dtype)
-{v_1 : tensor, v_2 : int} |= dtype_(v_1) = v_2
+Rule 11 (ragged_rank cannot be too large)
+{v_1 : int} |= v_1 < 10000
 >>
-Rule 9 (pylist cannot be null)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 14 (inner shape can't be too large)
+{v_1 : tuple(int)} |= v_1.len < 5
 >>
-Rule 12 (If ragged_rank is zero, inner shape should correspond to the innermost dimension)
-{v_1 : int, v_2 : tuple(int), v_3 : tensor} |= if v_1 = 0 then v_2.len = ndim(v_3) -1
+Rule 15 (dtype should be in the predefined list, here, checking within range)
+{v_1: dtype} |= v_1 < 13 ∧ v_1 >= 0
 >>
-Rule 14 (If inner shape is specified, then ragged rank has to be at least zero)
-{v_1 : int, v_2 : tuple(int)} |= if v_2.len > 0 then v_1 ≥ 0
+Rule 17 (ragged_rank cannot be too large)
+{v_1 : int} |= v_1 < 1000000
 >>
-Rule 15 (Check ragged_rank is less than K where K is tensor's rank)
-{v_1: int, v_2: tensor} |= v_1 < ndim(v_2)
+Rule 19 (dtype must be valid, here just checking if non-negative assuming dtype is encoded as integer index)
+{v_1 : dtype} |= v_1 ≥ 0 ∧ v_1 < 13
 >>
-Rule 16 (dtype must be compatible with the values in pylist.)
-{v_1: int, v_2: tensor} |= if v_1 = 0 then dtype_(v_2) = 0
+Rule 25 (Check tuple length is reasonable)
+{v_1: tuple(int)} |= v_1.len < 6
 >>
-Rule 17 (Either ragged_rank or inner_shape should be specified, but not both.)
-{v_1 : int, v_2 : tuple(int)} |= if v_1 > -1 then v_2.len = 0 else if v_2.len > 0 then v_1 = -1
+Rule 26 (Check list length is reasonable)
+{v_1: list(int)} |= v_1.len < 20
 >>
-Rule 19 (inner shape dimension matches the last dimension of pylist if ragged_rank is not specified)
-{v_1: tuple(int), v_2: tensor, v_3: int} |= if v_3 < 0 then v_1.len = shape(v_2, ndim(v_2) - 1)
+Rule 27 (If ragged rank and inner shape are both specified, the length of inner_shape should be reasonable.)
+{v_1 : int, v_2 : tuple(int)} |= if v_1 > 0 then v_2.len < 5
 >>
-Rule 22 (If row_splits_dtype is specified then it must be an int)
-{v_1: int} |= if v_1 = 3 then true else if v_1 = 4 then true else false
+Rule 28 (pylist and ragged_rank should be compatible)
+{v_1: list(int), v_2: int} |= v_2 < 100 ∧ v_1.len > 0
 >>
-Rule 23 (if inner_shape is not specified, its length is zero)
-{v_1 : tuple(int)} |= v_1.len ≥ 0
+Rule 33 (inner_shape elements should be non-negative)
+{v_1 : tuple(int)} |= v_1.len = 0 ∨ (∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0)
 >>
-Rule 24 (ragged_rank should be less or equal than rank of tensor)
-{v_1 : int, v_2 : tensor} |= v_1 <= ndim(v_2)
+Rule 38 (Name is a string and its length must be less than 20)
+{v_1 : str} |= v_1.len < 20
 >>
-Rule 25 (If ragged rank is zero, it means the result is not ragged)
-{v_1 : int} |= v_1 >= 0
+Rule 39 (Check dtype is either int, float or bool)
+{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 4 ∨ v_1 = 7
 >>
-Rule 26 (Check the inner_shape elements value)
-{v_1 : tuple(int)} |=  ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 40 (Ragged rank and pylist length should have some relationship, especially when ragged rank is zero)
+{v_1: int, v_2: list(int)} |= if v_1 = 0 then v_2.len > 0
 >>
-Rule 27 (If ragged_rank is specified, then the result has at least one ragged dimension)
-{v_1 : int} |= v_1 > 0
+Rule 41 (Ragged rank should not be too small compared to pylist elements)
+{v_1: int, v_2: list(int)} |= if v_1 > 5 then true else v_2.len > 0
 >>
-Rule 28 (If the pylist is a list of strings, the dtype has to be String (index 11))
-{v_1 : tensor, v_2: int} |= if dtype_(v_1) = 11 then v_2 = 11
+Rule 42 (inner_shape values should be less than 1000)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 1000
 >>
-Rule 29 (If the inner_shape is specified, the last dimensions of the tensor have to match)
-{v_1 : tensor, v_2: tuple(int)} |= v_2.len > 0 ∧ shape(v_1, ndim(v_1) - 1) = v_2[v_2.len - 1]
+Rule 43 (name should not be none)
+{v_1 : str} |= v_1 ≠ "none"
 >>
-Rule 30 (ragged_rank must be int type)
-{v_1 : int} |= v_1 > -2147483648 ∧ v_1 < 2147483647
+Rule 44 (ragged_rank must be within a reasonable bound given the size of pylist)
+{v_1 : int, v_2 : list(int)} |= v_1 < v_2.len * 2
 >>
-Rule 31 (pylist has bool type then dtype should be bool type.)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 0 then v_2 = 0
+Rule 45 (dtype should not be string or dtype itself)
+{v_1 : dtype} |= v_1 ≠ 11 ∧ v_1 ≠ 12
 >>
-Rule 32 (If dtype is specified, the type of the list values have to match the specified dtype)
-{v_1 : tensor, v_2 : int} |= if v_2 = 1 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1
+Rule 46 (inner_shape should have less dimensions if ragged_rank is high)
+{v_1 : int, v_2 : tuple(int)} |= if v_1 > 5 then v_2.len < 3
 >>
-Rule 33 (If row_splits_dtype is tf.int32, then values can be up to the limit of int32.)
-{v_1 : int, v_2 : tensor} |= if v_1 = 3 then max(v_2) < 2147483647
+Rule 47 (name can either be "none" or have length more than 3)
+{v_1 : str} |= v_1 = "none" ∨ v_1.len > 3
 >>
-Rule 34 (Ragged Rank must be non-negative or unspecified)
-{v_1 : int} |= v_1 >= -1
+Rule 49 (If inner_shape is specified, it shouldn't be an empty tuple and pylist must also be defined)
+{v_1: tuple(int), v_2: list(int)} |= if v_1.len > 0 then v_2.len > 0
 >>
-Rule 35 (Inner shape cannot be empty.)
-{v_1 : tuple(int)} |= v_1.len > 0
+Rule 50 (if pylist is empty, dtype should be specified.)
+{v_1: list(int), v_2: dtype} |= if v_1.len = 0 then v_2 > 0
 >>
-Rule 36 (If ragged rank is unspecified, defaults to max(0, K - 1 - len(inner_shape)))
-{v_1 : int, v_2 : tensor, v_3 : tuple(int)} |= if v_1 < 0 then v_3.len < ndim(v_2)
+Rule 51 (if pylist contains large numbers, limit max ragged rank)
+{v_1: list(int), v_2: int} |= if min(v_1) < -1000 then v_2 < 5
 >>
-Rule 37 (If row_splits_dtype is tf.int64, then values can be up to the limit of int64.)
-{v_1 : int, v_2 : tensor} |= if v_1 = 4 then max(v_2) < 9223372036854775807
+Rule 52 (if ragged rank is non zero then pylist must be more than 1 element)
+{v_1: int, v_2: list(int)} |= if v_1 > 0 then v_2.len > 1
 >>
-Rule 38 (Check that the values inside the pylist are compatible with the specified dtype when specified)
-{v_1 : tensor, v_2: int} |= if v_2 ≠ -1 then (if dtype_(v_1) = v_2 then true else false)
+Rule 53 (If inner_shape is empty, the rank should not be zero)
+{v_1: tuple(int), v_2: int} |= if v_1.len = 0 then v_2 > 0
 >>
-Rule 39 (If pylist is empty, ragged_rank is one greater than the maximum depth of empty lists)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 = 1
+Rule 56 (inner_shape should have less dimensions if ragged_rank is high, but not too small relative to ragged rank)
+{v_1 : int, v_2 : tuple(int)} |= if v_1 > 5 then v_2.len < 3 else if v_1 < 2 then v_2.len >0
 >>
-Rule 40 (Inner shape must be a tuple)
-{v_1 : tuple(int)} |= v_1.len >= 0
+Rule 62 (If inner_shape is empty, the rank should not be zero, and also not greater than 10)
+{v_1: tuple(int), v_2: int} |= if v_1.len = 0 then v_2 > 0 ∧ v_2 < 10
 >>
-Rule 41 (if inner_shape is defined ragged rank has to be defined.)
-{v_1 : int, v_2 : tuple(int)} |= if v_2.len > 0 then v_1 >= 0
+Rule 63 (row_splits_dtype must be valid and less than 10)
+{v_1: dtype} |= v_1 < 10
 >>
-Rule 42 (if dtype is not specified then the type is infered from pylist.)
-{v_1: tensor, v_2: int} |= if v_2 = -1 then dtype_(v_1) > -1
+Rule 64 (pylist should not be an empty list if ragged_rank is also 0)
+{v_1 : list(int), v_2: int} |= if v_2 = 0 then v_1.len > 0
 >>
-Rule 43 (If inner_shape is specified, the number of dimensions of the inner values must be consistent.)
-{v_1 : tuple(int), v_2 : tensor} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1]: shape(v_2, i) = v_1[i]
+Rule 65 (Name should not be longer than 50)
+{v_1 : str} |= v_1.len < 50
 >>
-Rule 44 (Check if row_splits_dtype is not specified)
-{v_1: int} |= v_1 = 3 ∨ v_1 = 4
+Rule 67 (pylist and dtype should be compatible. Example: If dtype is bool, pylist elements must be 0 or 1)
+{v_1 : list(int), v_2 : dtype} |= if v_2 = 0 then ∀i ∈ [0, v_1.len - 1] : v_1[i] = 0 ∨ v_1[i] = 1
 >>
-Rule 46 (if inner_shape is specified ragged_rank should be less than K - len(inner_shape))
-{v_1: int, v_2: tuple(int), v_3 : tensor} |= if v_2.len > 0 then v_1 < ndim(v_3) - v_2.len
+Rule 68 (ragged_rank and inner_shape should have some relationship - if inner_shape has 2 elements, ragged_rank should be greater than or equal to 2.)
+{v_1 : int, v_2: tuple(int)} |= if v_2.len > 1 then v_1 ≥ 2
 >>
-Rule 47 (inner_shape must be valid)
-{v_1: tuple(int)} |= v_1.len >= 0 ∧ ∀i ∈ [0, v_1.len - 1]: v_1[i] > 0
+Rule 69 (If pylist has more than 100 elements, limit the dtype index to less than 7)
+{v_1 : list(int), v_2: dtype} |= if v_1.len > 100 then v_2 < 7
 >>
-Rule 48 (If dtype is a string (index 11), the list elements have to be strings)
-{v_1: int, v_2: tensor} |= if v_1 = 11 then dtype_(v_2) = 11
+Rule 70 (If row_splits_dtype is specified as int32 then pylist should not contain very large numbers)
+{v_1 : list(int), v_2: dtype} |= if v_2 = 2 then max(v_1) < 2147483647
 >>
-Rule 50 (If ragged rank is specified as 0, the tensor is not ragged.)
-{v_1: int} |= if v_1 = 0 then true else if v_1 > 0 then true else false
+Rule 71 (If row_splits_dtype is specified as int64 then pylist should not contain numbers larger than int64 limit)
+{v_1 : list(int), v_2: dtype} |= if v_2 = 5 then max(v_1) < 9223372036854775807
 >>
-Rule 51 (The dtype argument must be compatible with elements in pylist.)
-{v_1 : int, v_2: tensor} |=  (if v_1 = 0 then dtype_(v_2) = 0) ∧ (if v_1 = 1 then dtype_(v_2) = 1) ∧ (if v_1 = 11 then dtype_(v_2) = 11)
+Rule 72 (If pylist has large numbers, limit maximum inner shape)
+{v_1 : list(int), v_2: tuple(int)} |= if min(v_1) < -1000 then v_2.len < 2
 >>
-Rule 53 (If dtype is complex64 or complex128, pylist values must be complex numbers.)
-{v_1 : int, v_2 : tensor} |= if v_1 = 9 ∨ v_1 = 10 then dtype_(v_2) = v_1
+Rule 73 (If there are elements of the type list, pylist needs to have more than 2 elements )
+{v_1: list(list(int))} |= v_1.len > 2
 >>
-Rule 54 (if inner shape defined the length of it should be greater than zero)
-{v_1: tuple(int)} |= v_1.len > 0
+Rule 74 (pylist should not be an empty list if dtype is bool, otherwise, pylist can be empty)
+{v_1 : list(int), v_2: dtype} |= if v_2 = 0 then v_1.len > 0
 >>
-Rule 58 (ragged_rank and the length of inner_shape should not exceed the number of tensor dimensions.)
-{v_1: int, v_2: tuple(int), v_3: tensor} |= v_1 + v_2.len <= ndim(v_3)
+Rule 75 (Name should not be longer than 50, unless it contains the word 'custom')
+{v_1 : str} |= if v_1 = "custom" then true else v_1.len < 50
 >>
-Rule 59 (if there are scalar values pylist has to be a tensor, list, or tuple.)
-{v_1: tensor} |= ndim(v_1) > 0
+Rule 76 (If inner shape is specified and has length greater than zero, then the first element must be non-negative.)
+{v_1 : tuple(int)} |= if v_1.len > 0 then v_1[0] ≥ 0
 >>
-Rule 60 (The tensor is a list of lists)
-{v_1: tensor} |= shape(v_1,0) > 0
+Rule 77 (pylist and dtype should be compatible, If dtype is complex, pylist elements must be less than 10000 in absolute value)
+{v_1 : list(int), v_2 : dtype} |= if v_2 = 9 ∨ v_2 = 10 then ∀i ∈ [0, v_1.len - 1] : v_1[i] < 10000 ∧ v_1[i] > -10000
 >>
-Rule 61 (If the dtype is not specified then the default is chosen based on the scalar values in pylist.)
-{v_1: tensor, v_2: int} |= if v_2 < 0 then dtype_(v_1) > 0
+Rule 78 (ragged_rank and inner_shape should have some relationship - if inner_shape has more than 3 elements, ragged_rank cannot be a very small number)
+{v_1 : int, v_2: tuple(int)} |= if v_2.len > 3 then v_1 > 1
 >>
-Rule 62 (If the ragged rank is specified then it should be less than or equal to the rank of pylist.)
-{v_1: int, v_2: tensor} |= v_1 <= ndim(v_2)
+Rule 79 (If pylist has more than 100 elements, limit the dtype index to less than 7 unless pylist contains only non-negative values.)
+{v_1 : list(int), v_2: dtype} |= if v_1.len > 100 ∧ min(v_1) < 0 then v_2 < 7
 >>
-Rule 63 (If there are no scalar values, then K is one greater than the maximum depth of empty lists)
-{v_1: tensor} |= ndim(v_1) >= 0
+Rule 80 (If row_splits_dtype is specified as int32 then pylist should not contain numbers very close to the int32 limit)
+{v_1 : list(int), v_2: dtype} |= if v_2 = 2 then max(v_1) < 2147483000
 >>
-Rule 64 (Elements in the inner_shape tuple must be greater than zero)
-{v_1: tuple(int)} |= v_1.len > 0 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 81 (If row_splits_dtype is specified as int64 then pylist should not contain numbers larger than int64 limit - check only minimum value now)
+{v_1 : list(int), v_2: dtype} |= if v_2 = 5 then min(v_1) > -9223372036854775807
 >>
-Rule 66 (If the ragged rank is not specified then K is taken to be the max of empty lists.)
-{v_1: tensor, v_2: int} |= if v_2 < 0 then ndim(v_1) >= 0
+Rule 82 (If pylist has large numbers, limit maximum inner shape, checking the condition for the positive numbers)
+{v_1 : list(int), v_2: tuple(int)} |= if max(v_1) > 1000 then v_2.len < 2
 >>
-Rule 68 (Check that the values in pylist match the provided type index)
-{v_1 : int, v_2 : tensor} |= (if v_1=0 then dtype_(v_2) = 0) ∧ (if v_1 = 1 then dtype_(v_2) = 1) ∧ (if v_1 = 2 then dtype_(v_2) = 2) ∧ (if v_1 = 3 then dtype_(v_2) = 3) ∧ (if v_1 = 4 then dtype_(v_2) = 4) ∧ (if v_1 = 5 then dtype_(v_2) = 5) ∧ (if v_1 = 6 then dtype_(v_2) = 6) ∧ (if v_1 = 7 then dtype_(v_2) = 7) ∧ (if v_1 = 8 then dtype_(v_2) = 8) ∧ (if v_1 = 9 then dtype_(v_2) = 9) ∧ (if v_1 = 10 then dtype_(v_2) = 10) ∧ (if v_1 = 11 then dtype_(v_2) = 11) ∧ (if v_1 = 12 then dtype_(v_2) = 12)
+Rule 87 (pylist and dtype should be compatible, If dtype is complex, pylist elements must be less than 10000 in absolute value)
+{v_1 : list(int), v_2 : int} |= if v_2 = 9 ∨ v_2 = 10 then ∀i ∈ [0, v_1.len - 1] : v_1[i] < 10000 ∧ v_1[i] > -10000
 >>
-Rule 70 (if row_splits_dtype is not specified the defaut is used)
-{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 88 (ragged_rank and inner_shape should have some relationship - if inner_shape has more than 3 elements, ragged_rank cannot be a very small number)
+{v_1 : int, v_2: tuple(int)} |= if v_2.len > 3 then v_1 ≥ 2
 >>
-Rule 71 (The pylist's elements must compatible with specified type.)
-{v_1 : tensor, v_2 : int} |= if v_2 != -1 then dtype_(v_1) = v_2
+Rule 89 (If pylist has more than 100 elements, limit the dtype index to less than 7 unless pylist contains only non-negative values.)
+{v_1 : list(int), v_2: int} |= if v_1.len > 100 ∧ min(v_1) < 0 then v_2 < 7
 >>
-Rule 72 (pylist's elements should be compatible with dtype)
-{v_1: tensor, v_2 : int} |= if v_2 = 0 then dtype_(v_1) = 0
+Rule 90 (If row_splits_dtype is specified as int32 then pylist should not contain numbers very close to the int32 limit)
+{v_1 : list(int), v_2: int} |= if v_2 = 2 then max(v_1) < 2147483000
 >>
-Rule 73 (The input list must be compatible to the type of the RaggedTensor)
-{v_1: tensor, v_2: int} |= dtype_(v_1) = v_2
+Rule 91 (If row_splits_dtype is specified as int64 then pylist should not contain numbers larger than int64 limit - check only minimum value now)
+{v_1 : list(int), v_2: int} |= if v_2 = 5 then min(v_1) > -9223372036854775807
+>>
+Rule 93 ( If there are elements of type list, dtype should not be string type (index 11) )
+{ v_1 : int} |= v_1 ≠ 11
+>>
+Rule 94 (row_splits_dtype should be tf.int32 or tf.int64)
+{v_1 : int} |= v_1 = 2 ∨ v_1 = 5
+>>
+Rule 95 (If dtype is bool, and row_splits_dtype is int32 then pylist length cannot be a very large number)
+{v_1: list(int), v_2: int} |= if v_2 = 2 ∧ v_1[0] = 0 then v_1.len < 1000000
+>>
+Rule 96 (If dtype is int8 and row_splits_dtype is int64 then pylist elements must be in certain range)
+{v_1: list(int), v_2: int} |= if v_2 = 5 then ∀i ∈ [0, v_1.len - 1] : v_1[i] > -128 ∧ v_1[i] < 127
+>>
+Rule 97 (If inner_shape is specified then dtype cannot be str)
+{v_1: tuple(int), v_2: int} |= if v_1.len > 0 then v_2 ≠ 11
+>>
+Rule 98 (If the first pylist item has a certain value, then row_splits_dtype must be certain value)
+{v_1: list(int), v_2: int} |= if v_1[0] = 1 then v_2 = 2
+>>
+Rule 99 (if ragged rank is non zero then pylist max element must be more than -1)
+{v_1: int, v_2: list(int)} |= if v_1 > 0 then max(v_2) > -1
+>>
+Rule 100 ( if dtype is 0, and row split is int32, there are some contraints)
+{v_1 : list(int), v_2: int} |= if v_2 = 2 ∧ v_1.len > 0 then (∀i ∈ [0, v_1.len - 1]: v_1[i] = 0 ∨ v_1[i] = 1 )
+>>
+Rule 101 ( if the row_splits_dtype is int32 the elements have to be smaller than a constant)
+{ v_1: list(int) , v_2 : int} |= if v_2 = 2 then (∀i ∈ [0, v_1.len - 1] : v_1[i] < 200000 )
+>>
+Rule 102 (if row_splits_dtype is int32 then pylist shouldn't have to many elements )
+{v_1 : list(int), v_2: int} |= if v_2 = 2 then v_1.len < 500
+>>
+Rule 103 (Check name is valid)
+{v_1 : str} |= v_1 ≠ "abc"
+>>
+Rule 104 (row_splits_dtype should be tf.int32 or tf.int64, must be nonnegative)
+{v_1 : int} |= v_1 = 2 ∨ v_1 = 5 ∧ v_1 ≥ 0
+>>
+Rule 105 (If dtype is bool, and row_splits_dtype is int32 then pylist length cannot be a very large number)
+{v_1: list(int), v_2: int} |= if v_2 = 2 ∧ min(v_1) = 0 ∧ max(v_1) = 1 then v_1.len < 1000000
+>>
+Rule 106 (If dtype is int8 and row_splits_dtype is int64 then pylist elements must be in certain range)
+{v_1: list(int), v_2: int} |= if v_2 = 5 then (∃i ∈ [0, v_1.len - 1] : v_1[i] > -128) ∧ (∃i ∈ [0, v_1.len - 1] : v_1[i] < 127)
+>>
+Rule 107 (If inner_shape is specified then dtype must be less than 10)
+{v_1: tuple(int), v_2: int} |= if v_1.len > 0 then v_2 < 10
+>>
+Rule 108 (If the first pylist item is not 1 or 0, row_splits_dtype must be a certain value, other than 2 or 5.)
+{v_1: list(int), v_2: int} |= if v_1[0] ≠ 1 ∧ v_1[0] ≠ 0 then v_2 > 5
+>>
+Rule 109 (if ragged rank is non zero then pylist min element must be positive)
+{v_1: int, v_2: list(int)} |= if v_1 > 0 then min(v_2) > 0
+>>
+Rule 110 ( if dtype is 0, and row split is int32, check max pylist value is less than 2)
+{v_1 : list(int), v_2: int} |= if v_2 = 2 ∧ v_1.len > 0 then (∀i ∈ [0, v_1.len - 1]: v_1[i] < 2 )
+>>
+Rule 111 ( If inner_shape has zero length then pylist cannot be too big)
+{v_1 : list(int), v_2 : tuple(int)} |= if v_2.len = 0 then v_1.len < 256
+>>
+Rule 112 (If there are more than two elements and is small , then pylist max element can be bigger 0)
+{ v_1: list(int) , v_2: int} |= if v_1.len > 2 ∧ v_2 < 100 then max(v_1) > 0
+>>
+Rule 113 ( if first element is less than 1 then ragged_rank has to be zero.)
+{v_1 : list(int), v_2 : int} |= if v_1.len > 0 ∧ v_1[0] < 1 then v_2 = 0
+>>
+Rule 114 (row_splits_dtype should be tf.int32 or tf.int64, must be nonnegative and not complex)
+{v_1 : int} |= (v_1 = 2 ∨ v_1 = 5) ∧ v_1 ≥ 0 ∧ v_1 < 9
+>>
+Rule 115 (If dtype is bool, and row_splits_dtype is int32 then the absolute of pylist length cannot be too small)
+{v_1: list(int), v_2: int} |= if v_2 = 2 ∧ min(v_1) = 0 ∧ max(v_1) = 1 then v_1.len > 10
+>>
+Rule 116 (If dtype is int8 and row_splits_dtype is int64 then pylist elements must not have more than 3 digits)
+{v_1: list(int), v_2: int} |= if v_2 = 5 then (∀i ∈ [0, v_1.len - 1] : v_1[i] > -999) ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] < 999)
+>>
+Rule 118 (If the first pylist item is not 1 or 0, row_splits_dtype must be a certain value, less than 10.)
+{v_1: list(int), v_2: int} |= if v_1.len > 0 ∧ v_1[0] ≠ 1 ∧ v_1[0] ≠ 0 then v_2 < 10
+>>
+Rule 119 (if ragged rank is non zero then pylist min element must be greater than -100)
+{v_1: int, v_2: list(int)} |= if v_1 > 0 then min(v_2) > -100
+>>
+Rule 120 ( if dtype is 0, and row split is int32, all items have to satisfy some logic expression )
+{v_1 : list(int), v_2: int} |= if v_2 = 2 ∧ v_1.len > 0 then (∀i ∈ [0, v_1.len - 1]: v_1[i] = 0 ∨ v_1[i] = 1 ∨ v_1.len <5)
+>>
+Rule 121 ( If inner_shape has zero length then pylist cannot have a maximum element that goes above a value )
+{v_1 : list(int), v_2 : tuple(int)} |= if v_2.len = 0 then max(v_1) < 10000
+>>
+Rule 122 (If there are more than two elements and is small , then pylist min element can be bigger than -10)
+{ v_1: list(int) , v_2 : int} |= if v_1.len > 2 ∧ v_2 < 100 then min(v_1) > -10
+>>
+Rule 123 (Check name has more elements than 5)
+{v_1 : str} |= v_1.len > 5
+>>
+Rule 126 (If dtype is int8 and row_splits_dtype is int64 then pylist elements must not have more than 3 digits)
+{v_1: list(int), v_2: int} |= if v_2 = 5 then (∃i ∈ [0, v_1.len - 1] : v_1[i] > -999) ∧ (∃i ∈ [0, v_1.len - 1] : v_1[i] < 999)
+>>
+Rule 127 (If inner_shape is specified then dtype must not be of type string, but needs to be smaller than 12)
+{v_1: tuple(int), v_2: int} |= if v_1.len > 0 then v_2 < 12
+>>
+Rule 132 (If there are more than two elements and is small , then pylist min element can be bigger than -10)
+{ v_1: list(int) , v_2: int} |= if v_1.len > 2 ∧ v_2 < 100 then min(v_1) > -10
+>>
+Rule 134 (If dtype is int8 and row_splits_dtype is int64 then pylist elements must not have more than 3 digits or they need to be non-negative.)
+{v_1: list(int), v_2: int} |= if v_2 = 5 then (∀i ∈ [0, v_1.len - 1] : v_1[i] > -999 ∧ v_1[i] < 999) ∨ (∀i ∈ [0, v_1.len - 1] : v_1[i] >= 0 )
+>>
+Rule 135 (If inner_shape is specified, then dtype cannot be of type string or complex numbers)
+{v_1: tuple(int), v_2: int} |= if v_1.len > 0 then v_2 < 9
+>>
+Rule 136 (If the first pylist item is not 1 or 0 and the elements has more than 2 digits row_splits_dtype must be a certain value, which cannot be equal to 2)
+{v_1: list(int), v_2: int} |= if v_1.len > 0 ∧ v_1[0] ≠ 1 ∧ v_1[0] ≠ 0 ∧ (∀i ∈ [0, v_1.len - 1]: v_1[i] > 99 ∨ v_1[i] < -99) then v_2 ≠ 2
+>>
+Rule 137 (if ragged rank is non zero check for max and min conditions in pylist element)
+{v_1: int, v_2: list(int)} |= if v_1 > 0 then min(v_2) > -100  ∧ max(v_2) < 10000
+>>
+Rule 138 ( if there are 2 or more pylist elements then at least one element has to be greater then zero.)
+{v_1 : list(int)} |= if v_1.len > 1 then (∃i ∈ [0, v_1.len -1] : v_1[i] > 0)
+>>
+Rule 139 (If row_split_dtype is set to 2 (tf.int32), and first element is smaller than 10 check if there is some relationship with pylist size )
+{v_1 : list(int), v_2 : int } |= if v_1[0] < 10 ∧ v_2 = 2 then ( v_1.len < 2000 )
+>>
+Rule 140 (if ragged rank is greater than 0, then pylist length is smaller than 5)
+{v_1 : list(int), v_2 : int} |= if v_2 > 0 then v_1.len < 5
+>>
+Rule 141 ( if inner shape length is one or more then row_split_dtype should not be zero.)
+{v_1 : tuple(int), v_2 : int} |= if v_1.len > 0 then v_2 > 0
+>>
+Rule 142 (If any pylist element is less than 0 then pylist.length should be less than a constant)
+{v_1 : list(int)} |= if (∃i ∈ [0, v_1.len - 1] : v_1[i] < 0) then v_1.len < 100
+>>
+Rule 143 ( If any pylist element is very big, then ragged rank should not also be a very large number)
+{v_1: list(int), v_2 : int} |= if max(v_1) > 1000000 then v_2 < 10
+>>
+Rule 144 (If dtype is int8 and row_splits_dtype is int64 then sum of pylist elements must not be a very big number)
+{v_1: list(int), v_2: int} |= if v_2 = 5 then (∀i ∈ [0, v_1.len - 1] : v_1[i] < 1000000000)
+>>
+Rule 145 (If inner_shape is specified, then dtype must not be str, or float64.)
+{v_1: tuple(int), v_2: int} |= if v_1.len > 0 then v_2 ≠ 11 ∧ v_2 ≠ 8
+>>
+Rule 146 (If the first pylist item is not 1 or 0 , then all row splits elements will satisfy one condition )
+{v_1: list(int), v_2: int} |= if v_1.len > 0 ∧ v_1[0] ≠ 1 ∧ v_1[0] ≠ 0 then v_2 < 5
+>>
+Rule 147 (if ragged rank is non zero then pylist min element must be equal zero)
+{v_1: int, v_2: list(int)} |= if v_1 > 0 then min(v_2) = 0
+>>
+Rule 148 ( if there are elements of dtype bool in the pylist then ragged_rank must be zero.)
+{ v_1: list(int) , v_2 : int} |= if v_1.len > 0 ∧ v_1[0] = 0 then v_2 = 0
+>>
+Rule 149 ( If row_split_dtype is set to 2 (tf.int32), and then pylist has to have more than 5 elements )
+{v_1 : list(int), v_2 : int } |= if v_2 = 2  then ( v_1.len > 5 )
+>>
+Rule 150 (if there's more than 0 elements in inner_shape and the dtype is smaller than 5 check the first element of the list )
+{v_1 : list(int), v_2 : tuple(int), v_3 : int} |= if v_2.len > 0 ∧ v_3 < 5  then  v_1[0] < 10
+>>
+Rule 152 (If any pylist element is less than 10 then all elements are like that )
+{v_1 : list(int)} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] < 10 )
+>>
+Rule 153 ( if the pylist has more than 1 element and row split type is 2, max element should be more than 0 )
+{v_1: list(int), v_2 : int} |= if v_1.len > 1 ∧ v_2 = 2 then max(v_1) > 0
+>>
+Rule 154 (If dtype is int8 and row_splits_dtype is int64 then pylist elements must not have more than 3 digits and be positive )
+{v_1: list(int), v_2: int} |= if v_2 = 5 then (∀i ∈ [0, v_1.len - 1] : v_1[i] < 999) ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] >= 0 )
+>>
+Rule 155 (If inner_shape is specified and ragged_rank less than three then dtype must be less or equal to  5 )
+{v_1: tuple(int), v_2: int} |= if v_1.len > 0 ∧ v_2 < 3 then v_2 <= 5
+>>
+Rule 156 (If the first pylist item is not 1 or 0 and row splits can't have zero elements.)
+{v_1: list(int), v_2: int} |= if v_1.len > 0 ∧ v_1[0] ≠ 1 ∧ v_1[0] ≠ 0 then v_2 > 0
+>>
+Rule 157 (If ragged rank has length and the number is smaller than the max number in a pylist then is valid)
+{v_1: int, v_2: list(int)} |= if v_1 > 0 then v_1 < max(v_2)
+>>
+Rule 158 (If there are more then one element on the pylist then dtype can't be smaller than 1 )
+{ v_1: list(int) , v_2 : int} |= if v_1.len > 1 then v_2 > 1
+>>
+Rule 159 ( If row_split_dtype is set to 2 (tf.int32), and there's a minimum for a pylist has to be bigger than 1)
+{v_1 : list(int), v_2 : int } |= if v_2 = 2  then min(v_1) > 1
+>>
+Rule 160 (if there's more than 0 elements in inner_shape and the dtype is bigger than 5 or raggedRank is 0 then the first element of the list need to be smaller than 0 )
+{v_1 : list(int), v_2 : tuple(int), v_3 : int} |= if v_2.len > 0 ∧ ( v_3 > 5 ∨ v_3 = 0)  then  v_1[0] < 0
+>>
+Rule 162 (If any pylist element is even then at least one other has to be odd. )
+{v_1 : list(int)} |= (∃i ∈ [0, v_1.len - 1] : v_1[i] % 2 = 0) ∧ (∃i ∈ [0, v_1.len - 1] : v_1[i] % 2 ≠ 0)
+>>
+Rule 163 (pylist max should be less than ragged_rank power to 2)
+{v_1: list(int), v_2 : int} |= max(v_1) < v_2 * v_2
+>>
+Rule 164 (If dtype is int8 and row_splits_dtype is int64 then pylist elements must not have more than 3 digits and be positive or max of pylist is bigger than 100.)
+{v_1: list(int), v_2: int} |= if v_2 = 5 then ((∀i ∈ [0, v_1.len - 1] : v_1[i] < 999) ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] >= 0 )) ∨ max(v_1) > 100
+>>
+Rule 165 (If inner_shape is specified and ragged_rank less than three then dtype must be less or equal to  5 or the pylist is not empty.)
+{v_1: tuple(int), v_2: int, v_3: list(int)} |= if v_1.len > 0 ∧ v_2 < 3 then (v_2 <= 5 ∨ v_3.len > 0)
+>>
+Rule 167 (if ragged rank has length and max of pylist is bigger then the max and min has to satisfy the relation is the min plus raggedRank )
+{v_1: int, v_2: list(int)} |= if v_1 > 0 ∧ max(v_2) > v_1 then min(v_2) + v_1 > max(v_2)
+>>
+Rule 168 (If there are more then one element on the pylist then dtype can't be string and innerShape has to have no elements)
+{ v_1: list(int) , v_2 : int, v_3 : tuple(int)} |= if v_1.len > 1 then v_2 ≠ 11 ∧ v_3.len = 0
+>>
+Rule 169 ( If row_split_dtype is set to 2 (tf.int32), and there's a maximum for a pylist length, dtype shouldn't be complex )
+{v_1 : list(int), v_2 : int } |= if v_2 = 2 ∧ v_1.len < 20 then v_2 < 9
+>>
+Rule 170 (if there's more than 0 elements in inner_shape and the dtype is bigger than 5 or raggedRank is 0 then the first element of the list need to be smaller than 0 or greater than 0 )
+{v_1 : list(int), v_2 : tuple(int), v_3 : int} |= if v_2.len > 0 ∧ ( v_3 > 5 ∨ v_3 = 0)  then  v_1[0] < 0 ∨ v_1[0] > 0
+>>
+Rule 171 (name length can be up to 10)
+{v_1 : str} |= v_1.len < 10
+>>
+Rule 172 (If any pylist element is even then ragged rank should be smaller than 10)
+{v_1 : list(int), v_2 : int} |= (∃i ∈ [0, v_1.len - 1] : v_1[i] % 2 = 0) ∧ v_2 < 10
+>>
+Rule 173 ( If ragged rank is bigger than 2 then pylist length should be bigger than 2)
+{ v_1 : list(int), v_2 : int} |= if v_2 > 2 then v_1.len > 2

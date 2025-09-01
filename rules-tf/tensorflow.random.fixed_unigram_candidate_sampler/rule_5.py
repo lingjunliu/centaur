@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# num_shards should be greater than 0 if shard is also defined (Rule 5)
+# shard should be less than num_shards if num_shards > 1 (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] > 0, v["arg1_value"] > 0, False)) if n else
-          If(v["arg2_value"] > 0, v["arg1_value"] > 0, False))
+    s.add(Not(If(v["arg2_value"] > 1, v["arg1_value"] < v["arg2_value"], True)) if n else
+          If(v["arg2_value"] > 1, v["arg1_value"] < v["arg2_value"], True))
 )
 
 def rule_5_func(arg1, arg2, solver=None, neg=False):

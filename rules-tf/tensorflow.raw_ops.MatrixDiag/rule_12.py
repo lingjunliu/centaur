@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the diagonal's shape's product overflows, then the shape values must be small. (Rule 12)
+# If diagonal is a scalar, the output is a matrix [1, 1] (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 1000) for i in range(6)]), True, False)) if n else
-          If(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 1000) for i in range(6)]), True, False))
+    s.add(Not(If(v["arg1_ndim"] == 0, And(Select(v["arg1_shape"], 0) == 1, Select(v["arg1_shape"], 1) == 1), True)) if n else
+          If(v["arg1_ndim"] == 0, And(Select(v["arg1_shape"], 0) == 1, Select(v["arg1_shape"], 1) == 1), True))
 )
 
 def rule_12_func(arg1, solver=None, neg=False):

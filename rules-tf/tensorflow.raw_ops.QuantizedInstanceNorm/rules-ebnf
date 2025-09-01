@@ -1,99 +1,123 @@
 >>
-Rule 3 (min_separation must be a positive float)
-{v_1 : float} |= v_1 > 0
+Rule 1 (x should be a quantized tensor type)
+{x : tensor} |= dtype_(x) = 1 ∨ dtype_(x) = 5 ∨ dtype_(x) = 3 ∨ dtype_(x) = 2 ∨ dtype_(x) = 16
 >>
-Rule 4 (variance_epsilon must be a non-negative float)
-{v_1 : float} |= v_1 ≥ 0
+Rule 2 (x_min and x_max should be float32 tensors)
+{x_min : tensor, x_max : tensor} |= dtype_(x_min) = 7 ∧ dtype_(x_max) = 7
 >>
-Rule 5 (given_y_min must be less than or equal to given_y_max if output_range_given is true)
-{v_1 : bool, v_2 : float, v_3 : float} |= if v_1 = true then v_2 ≤ v_3
+Rule 3 (x should be a 4D tensor)
+{x : tensor} |= ndim(x) = 4
 >>
-Rule 6 (x_min must be less than or equal to x_max)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) ≤ max(v_2)
+Rule 4 (min_separation should be greater than 0)
+{min_separation : float} |= min_separation > 0.0
 >>
-Rule 7 (min_separation should be less than or equal to the difference between x_max and x_min)
-{v_1 : tensor, v_2 : tensor, v_3 : float} |= v_3 ≤ max(v_2) - min(v_1)
+Rule 5 (variance_epsilon should be greater than or equal to 0)
+{variance_epsilon : float} |= variance_epsilon ≥ 0.0
 >>
-Rule 8 (x tensor must be of type qint8, quint8, qint32, qint16, or quint16)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 7
+Rule 6 (given_y_min should be less than or equal to given_y_max if output_range_given is true)
+{output_range_given : bool, given_y_min : float, given_y_max : float} |= if output_range_given then given_y_min ≤ given_y_max
 >>
-Rule 9 (x_min and x_max must be float32)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 8 ∧ dtype_(v_2) = 8
+Rule 7 (x_min should be less than x_max)
+{x_min : tensor, x_max : tensor} |= min(x_min) < max(x_max)
 >>
-Rule 17 (x must be a 4D tensor)
-{v_1 : tensor} |= ndim(v_1) = 4
+Rule 10 (x_min and x_max should be scalar tensors)
+{x_min : tensor, x_max : tensor} |= ndim(x_min) = 0 ∧ ndim(x_max) = 0
 >>
-Rule 18 (y tensor has the same dtype as x tensor)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 11 (given_y_min should be less than given_y_max)
+{given_y_min : float, given_y_max : float} |= given_y_min < given_y_max
 >>
-Rule 20 (min_separation is less than or equal to 1)
-{v_1 : float} |= v_1 ≤ 1
+Rule 14 (x_min and x_max should have the same shape)
+{x_min : tensor, x_max : tensor} |= ndim(x_min) = ndim(x_max) ∧ (ndim(x_min) = 0 ∨ (∀i ∈ [0, ndim(x_min) - 1] : shape(x_min, i) = shape(x_max, i)))
 >>
-Rule 25 (output_range_given must be a boolean value)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 18 (min_separation should be less than the range of given_y_max and given_y_min if output_range_given is true)
+{output_range_given : bool, given_y_min : float, given_y_max : float, min_separation : float} |= if output_range_given then min_separation < (given_y_max - given_y_min)
 >>
-Rule 31 (min_separation must be less than the difference between x_max and x_min)
-{v_1 : float, v_2 : tensor, v_3 : tensor} |= v_1 < max(v_3) - min(v_2)
+Rule 19 (x_min must be less than or equal to all elements of x)
+{x : tensor, x_min : tensor} |= min(x_min) ≤ min(x)
 >>
-Rule 32 (If output_range_given is true then given_y_min should be less than given_y_max)
-{v_1 : bool, v_2 : float, v_3 : float} |= if v_1 = true then v_2 < v_3
+Rule 20 (x_max must be greater than or equal to all elements of x)
+{x : tensor, x_max : tensor} |= max(x_max) ≥ max(x)
 >>
-Rule 38 (variance_epsilon is within a reasonable range)
-{v_1 : float} |= 0 ≤ v_1 ∧ v_1 ≤ 0.1
+Rule 22 (if output_range_given is true, min_separation should be greater than zero)
+{output_range_given : bool, min_separation : float} |= if output_range_given then min_separation > 0.0
 >>
-Rule 44 (y_min and y_max must be float if output_range_given is set to true)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then dtype_(v_2) = 8 ∧ dtype_(v_3) = 8
+Rule 23 (x_min and x_max should be different)
+{x_min : tensor, x_max : tensor} |= min(x_min) ≠ max(x_max)
 >>
-Rule 55 (If output_range_given is true then given_y_min must be a float)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then dtype_(v_2) = 8
+Rule 27 (x_min must be less than x_max by at least min_separation)
+{x_min : tensor, x_max : tensor, min_separation : float} |= max(x_max) - min(x_min) ≥ min_separation
 >>
-Rule 66 (If output_range_given is false, given_y_min is 0)
-{v_1 : bool, v_2 : float} |= if v_1 = false then v_2 = 0
+Rule 31 (variance_epsilon must be a positive float)
+{variance_epsilon : float} |= variance_epsilon > 0.0
 >>
-Rule 68 (min_separation must be less than or equal to the difference between x_max and x_min)
-{v_1 : float, v_2 : tensor, v_3 : tensor} |= v_1 ≤ max(v_3) - min(v_2)
+Rule 33 (If output_range_given is true, given_y_min must be less than given_y_max)
+{output_range_given : bool, given_y_min : float, given_y_max : float} |= if output_range_given then given_y_min < given_y_max
 >>
-Rule 72 (If output_range_given is false, given_y_min must be 0.0)
-{v_1 : bool, v_2 : float} |= if v_1 = false then v_2 = 0.0
+Rule 35 (If output_range_given is False, then given_y_min and given_y_max are ignored)
+{output_range_given : bool} |= if output_range_given then true
 >>
-Rule 74 (variance_epsilon must be greater than 0 and less than 1)
-{v_1 : float} |= 0 < v_1 ∧ v_1 < 1
+Rule 38 (If output_range_given is True, then min_separation is smaller than given_y_max - given_y_min)
+{output_range_given : bool, given_y_min : float, given_y_max : float, min_separation : float} |= if output_range_given then min_separation < given_y_max - given_y_min
 >>
-Rule 78 (If output_range_given is false, then given_y_min and given_y_max are both 0.0)
-{v_1 : bool, v_2 : float, v_3 : float} |= if v_1 = false then v_2 = 0.0 ∧ v_3 = 0.0
+Rule 39 (variance_epsilon is greater than 0)
+{variance_epsilon : float} |= variance_epsilon > 0
 >>
-Rule 85 (min_separation is smaller than 1)
-{v_1 : float} |= v_1 < 1
+Rule 40 (min_separation is non-negative)
+{min_separation : float} |= min_separation ≥ 0
 >>
-Rule 90 (If output_range_given is not given (false), then given_y_min and given_y_max are not used.)
-{v_1 : bool} |= if v_1 = false then true
+Rule 41 (if output_range_given is true, given_y_min < given_y_max, otherwise true)
+{output_range_given: bool, given_y_min: float, given_y_max: float} |= if output_range_given then given_y_min < given_y_max
 >>
-Rule 102 (x_min must be less than x_max)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) < max(v_2)
+Rule 42 (If output_range_given is True, then min_separation > 0, otherwise true)
+{output_range_given: bool, min_separation: float} |= if output_range_given then min_separation > 0
 >>
-Rule 108 (If output_range_given is true, then given_y_min and given_y_max are used)
-{v_1 : bool} |= if v_1 = true then true
+Rule 43 (If not output_range_given, y_min and y_max are calculated, and min_separation must be non-negative)
+{output_range_given: bool, min_separation: float} |= if output_range_given then true else min_separation ≥ 0
 >>
-Rule 109 (variance_epsilon must be less than min_separation)
-{v_1 : float, v_2 : float} |= v_1 < v_2
+Rule 44 (if min_separation is specified, it must be a non-negative float)
+{min_separation: float} |= min_separation ≥ 0.0
 >>
-Rule 110 (x_min and x_max tensors must have one element)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0
+Rule 46 (min_separation should be smaller than the range x_max - x_min)
+{x_min: tensor, x_max: tensor, min_separation: float} |= min_separation < max(x_max) - min(x_min)
 >>
-Rule 114 (min_separation should be greater than 0.0)
-{v_1 : float} |= v_1 > 0.0
+Rule 48 (If output_range_given is true then given_y_min is smaller or equal to given_y_max)
+{output_range_given: bool, given_y_min: float, given_y_max: float} |= if output_range_given then given_y_min <= given_y_max
 >>
-Rule 120 (min_separation should be greater than 1e-10)
-{v_1 : float} |= v_1 > 1e-10
+Rule 49 (If variance_epsilon is provided, it must be a non-negative float number)
+{variance_epsilon: float} |= variance_epsilon >= 0.0
 >>
-Rule 127 (min_separation should be greater than 1e-10 and smaller than 1)
-{v_1 : float} |=  1e-10 < v_1 ∧ v_1 < 1
+Rule 50 (If output_range_given is true and given_y_min and given_y_max are specified then min_separation is smaller or equal to given_y_max - given_y_min)
+{output_range_given: bool, given_y_min: float, given_y_max: float, min_separation: float} |= if output_range_given then min_separation <= given_y_max - given_y_min
 >>
-Rule 128 (If output_range_given is not given (false), then given_y_min must be equal to zero.)
-{v_1: bool, v_2: float} |= if v_1 = false then v_2 = 0.0
+Rule 51 (If x_min and x_max are specified, then x_min is smaller than x_max)
+{x_min: tensor, x_max: tensor} |= min(x_min) < max(x_max)
 >>
-Rule 132 (If output_range_given is true, then given_y_min must be smaller or equal to given_y_max.)
-{v_1: bool, v_2 : float, v_3 : float} |= if v_1 = true then v_2 ≤ v_3
+Rule 52 (If min_separation is provided, it must be less than or equal to the difference between max(x_max) and min(x_min))
+{x_min: tensor, x_max: tensor, min_separation: float} |= min_separation <= max(x_max) - min(x_min)
 >>
-Rule 134 (If output_range_given is true, then given_y_min has to be less than x_max)
-{v_1 : bool, v_2 : float, v_3 : tensor} |= if v_1 = true then v_2 < max(v_3)
+Rule 53 (The input tensor x should be a 4D tensor.)
+{x: tensor} |= ndim(x) = 4
+>>
+Rule 54 (variance_epsilon must be greater or equal to 0)
+{variance_epsilon: float} |= variance_epsilon >= 0
+>>
+Rule 57 (If output_range_given is true, then the difference between given_y_max and given_y_min must be greater than 0)
+{output_range_given: bool, given_y_min: float, given_y_max: float} |= if output_range_given then given_y_max - given_y_min > 0
+>>
+Rule 60 (x_min and x_max have to be different)
+{x_min: tensor, x_max: tensor} |= min(x_min) != max(x_max)
+>>
+Rule 61 (x_min should be less than or equal to all values in x.)
+{x: tensor, x_min: tensor} |= min(x_min) <= min(x)
+>>
+Rule 62 (x_max should be greater than or equal to all values in x.)
+{x: tensor, x_max: tensor} |= max(x_max) >= max(x)
+>>
+Rule 63 (x is one of the supported dtypes)
+{x: tensor} |= dtype_(x) = 1 ∨ dtype_(x) = 5 ∨ dtype_(x) = 3 ∨ dtype_(x) = 2 ∨ dtype_(x) = 16
+>>
+Rule 68 (The data type of x_min and x_max should be float32)
+{x_min: tensor, x_max: tensor} |= dtype_(x_min) = 7 ∧ dtype_(x_max) = 7
+>>
+Rule 72 (The difference between x_max and x_min should be a positive value)
+{x_min: tensor, x_max: tensor} |= max(x_max) - min(x_min) > 0

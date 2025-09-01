@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If value Tensor dimension =0, then Bias size should also be zero (Rule 51)
+# If value's dtype is float32, then bias's dtype must also be float32 (Rule 51)
 
 rule_51 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 0, Select(v["arg2_shape"], 0) == 0, False)) if n else
-          If(v["arg1_ndim"] == 0, Select(v["arg2_shape"], 0) == 0, False))
+    s.add(Not(If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, True)) if n else
+          If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, True))
 )
 
 def rule_51_func(arg1, arg2, solver=None, neg=False):
@@ -25,18 +25,17 @@ def rule_51_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 51
-        rule_51(solver, {'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape})
+        rule_51(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_51(solver, {'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape']}, neg)
+        rule_51(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

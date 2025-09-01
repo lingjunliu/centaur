@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the dtype is boolean then maximum must be 1. (Rule 59)
+# If input tensor is bool, the min and max values should be either 0 or 1 (Rule 59)
 
 rule_59 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 0, Select(v["arg1_range"], 1) == 1, False)) if n else
-          If(v["arg1_dtype"] == 0, Select(v["arg1_range"], 1) == 1, False))
+    s.add(Not(If(v["arg1_dtype"] == 0, And(Select(v["arg1_range"], 0) == 0, Select(v["arg1_range"], 1) == 1), True)) if n else
+          If(v["arg1_dtype"] == 0, And(Select(v["arg1_range"], 0) == 0, Select(v["arg1_range"], 1) == 1), True))
 )
 
 def rule_59_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_59_func(arg1, solver=None, neg=False):
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 59
-        rule_59(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_59(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_59(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_59(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)

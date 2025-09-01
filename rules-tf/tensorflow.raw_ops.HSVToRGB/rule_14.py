@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the tensor is 4D or higher, the last dimension must be 3 (Rule 14)
+# The product of the dimensions of images should be greater than zero (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] >= 4, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 3, False)) if n else
-          If(v["arg1_ndim"] >= 4, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 3, False))
+    s.add(Not(Select(v["arg1_shape"], 0) * (If(v["arg1_ndim"] > 1, Select(v["arg1_shape"], 1), 1)) * (If(v["arg1_ndim"] > 2, Select(v["arg1_shape"], 2), 1)) > 0) if n else
+          Select(v["arg1_shape"], 0) * (If(v["arg1_ndim"] > 1, Select(v["arg1_shape"], 1), 1)) * (If(v["arg1_ndim"] > 2, Select(v["arg1_shape"], 2), 1)) > 0)
 )
 
 def rule_14_func(arg1, solver=None, neg=False):

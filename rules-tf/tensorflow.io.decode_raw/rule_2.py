@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# fixed_length must be a multiple of the size of out_type when fixed_length is specified and positive (Rule 2)
+# fixed_length must be a multiple of the size of out_type, using a simplified representation by encoding dtype (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] > 0, v["arg1_value"] % (If(v["arg2_value"] == 0, 1, If(v["arg2_value"] == 1, 1, If(v["arg2_value"] == 2, 2, If(v["arg2_value"] == 3, 4, If(v["arg2_value"] == 4, 8, If(v["arg2_value"] == 5, 1, If(v["arg2_value"] == 6, 2, If(v["arg2_value"] == 7, 4, If(v["arg2_value"] == 8, 8, If(v["arg2_value"] == 9, 8, If(v["arg2_value"] == 10, 16, 1)))))))))))) == 0, False)) if n else
-          If(v["arg1_value"] > 0, v["arg1_value"] % (If(v["arg2_value"] == 0, 1, If(v["arg2_value"] == 1, 1, If(v["arg2_value"] == 2, 2, If(v["arg2_value"] == 3, 4, If(v["arg2_value"] == 4, 8, If(v["arg2_value"] == 5, 1, If(v["arg2_value"] == 6, 2, If(v["arg2_value"] == 7, 4, If(v["arg2_value"] == 8, 8, If(v["arg2_value"] == 9, 8, If(v["arg2_value"] == 10, 16, 1)))))))))))) == 0, False))
+    s.add(Not(Or(Or(Or(Or(Or(Or(Or(Or(Or((And(v["arg2_value"] == 1, v["arg1_value"] % 1 == 0)), (And(v["arg2_value"] == 2, v["arg1_value"] % 1 == 0))), (And(v["arg2_value"] == 3, v["arg1_value"] % 4 == 0))), (And(v["arg2_value"] == 4, v["arg1_value"] % 8 == 0))), (And(v["arg2_value"] == 5, v["arg1_value"] % 1 == 0))), (And(v["arg2_value"] == 6, v["arg1_value"] % 2 == 0))), (And(v["arg2_value"] == 7, v["arg1_value"] % 2 == 0))), (And(v["arg2_value"] == 8, v["arg1_value"] % 4 == 0))), (And(v["arg2_value"] == 9, v["arg1_value"] % 8 == 0))), (And(v["arg2_value"] == 10, v["arg1_value"] % 8 == 0)))) if n else
+          Or(Or(Or(Or(Or(Or(Or(Or(Or((And(v["arg2_value"] == 1, v["arg1_value"] % 1 == 0)), (And(v["arg2_value"] == 2, v["arg1_value"] % 1 == 0))), (And(v["arg2_value"] == 3, v["arg1_value"] % 4 == 0))), (And(v["arg2_value"] == 4, v["arg1_value"] % 8 == 0))), (And(v["arg2_value"] == 5, v["arg1_value"] % 1 == 0))), (And(v["arg2_value"] == 6, v["arg1_value"] % 2 == 0))), (And(v["arg2_value"] == 7, v["arg1_value"] % 2 == 0))), (And(v["arg2_value"] == 8, v["arg1_value"] % 4 == 0))), (And(v["arg2_value"] == 9, v["arg1_value"] % 8 == 0))), (And(v["arg2_value"] == 10, v["arg1_value"] % 8 == 0))))
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

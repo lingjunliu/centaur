@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If default_value exists, it must be non-negative and less than num_buckets (Rule 22)
+# If num_buckets is large, default value cannot be negative and far from zero (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] != -1, And(v["arg1_value"] >= 0, v["arg1_value"] < v["arg2_value"]), False)) if n else
-          If(v["arg1_value"] != -1, And(v["arg1_value"] >= 0, v["arg1_value"] < v["arg2_value"]), False))
+    s.add(Not(If(v["arg2_value"] > 100000, v["arg1_value"] >= 0, True)) if n else
+          If(v["arg2_value"] > 100000, v["arg1_value"] >= 0, True))
 )
 
 def rule_22_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# shape(backprop_val_grad, 0 (Rule 41)
+# a_indices values should be within valid range for input shape (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) < 200000) if n else
-          Select(v["arg1_shape"], 0) < 200000)
+    s.add(Not(Select(v["arg1_range"], 0) >= 0) if n else
+          Select(v["arg1_range"], 0) >= 0)
 )
 
 def rule_41_func(arg1, solver=None, neg=False):
@@ -22,16 +22,16 @@ def rule_41_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 41
-        rule_41(solver, {'arg1_shape': arg1_shape})
+        rule_41(solver, {'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_41(solver, {'arg1_shape': arg1['shape']}, neg)
+        rule_41(solver, {'arg1_range': arg1['range']}, neg)

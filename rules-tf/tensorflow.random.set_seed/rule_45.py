@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Seed can't be greater than 2147483647 and less than -2147483648 (Rule 45)
+# seed should be a relatively large integer (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] <= 2147483647, v["arg1_value"] >= -2147483648)) if n else
-          And(v["arg1_value"] <= 2147483647, v["arg1_value"] >= -2147483648))
+    s.add(Not(v["arg1_value"] > 1024) if n else
+          v["arg1_value"] > 1024)
 )
 
 def rule_45_func(arg1, solver=None, neg=False):

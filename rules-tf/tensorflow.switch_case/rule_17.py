@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# All callables in branch_fns must return the same data type, checking for int and float (Rule 17)
+# If branch_fns is a list, then the branch_index must be in the range [0, len(branch_fns (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(And((Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4)), (Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4)))) if n else
-          And((Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4)), (Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4))))
+    s.add(Not(And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= v["arg2_length"] - 1)) if n else
+          And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= v["arg2_length"] - 1))
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):
@@ -20,22 +20,23 @@ def rule_17_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, list) and all(isinstance(e, str) for e in arg2)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg2_length = Int('arg2_length')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg2_length == len(arg2))
 
         # Constraints for rule 17
-        rule_17(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_17(solver, {'arg1_range': arg1_range, 'arg2_length': arg2_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_17(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_17(solver, {'arg1_range': arg1['range'], 'arg2_length': arg2['length']}, neg)

@@ -5,38 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If destination_prefix is empty, allow_missing_files must be true. "Empty" means shape = 0 (Rule 120)
+# Destination prefix is string type (Rule 120)
 
 rule_120 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_shape"], 0) == 0, v["arg2_value"] == True, False)) if n else
-          If(Select(v["arg1_shape"], 0) == 0, v["arg2_value"] == True, False))
+    s.add(Not(v["arg1_dtype"] == 12) if n else
+          v["arg1_dtype"] == 12)
 )
 
-def rule_120_func(arg1, arg2, solver=None, neg=False):
+def rule_120_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, bool):
-            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_value = Bool('arg2_value')
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 120
-        rule_120(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_120(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_120(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_120(solver, {'arg1_dtype': arg1['dtype']}, neg)

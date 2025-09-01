@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Alpha should not be excessively large (Rule 36)
+# The minimum value of var should be less than or equal to the maximum value of var. (Rule 36)
 
 rule_36 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 1) < 1000) if n else
-          Select(v["arg1_range"], 1) < 1000)
+    s.add(Not(Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1)) if n else
+          Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1))
 )
 
 def rule_36_func(arg1, solver=None, neg=False):

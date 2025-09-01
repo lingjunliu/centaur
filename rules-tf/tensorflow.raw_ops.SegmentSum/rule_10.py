@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if the data tensor is of type float16, float32 or float64, the segment_ids must be of type int32 (Rule 10)
+# data tensor cannot be complex128 when segment_ids is int32 (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg2_dtype"] == 3, False)) if n else
-          If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg2_dtype"] == 3, False))
+    s.add(Not(If(v["arg2_dtype"] == 3, v["arg1_dtype"] != 10, True)) if n else
+          If(v["arg2_dtype"] == 3, v["arg1_dtype"] != 10, True))
 )
 
 def rule_10_func(arg1, arg2, solver=None, neg=False):

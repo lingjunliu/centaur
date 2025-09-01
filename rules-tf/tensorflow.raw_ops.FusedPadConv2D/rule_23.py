@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# filter_height and filter_width must be smaller than input height and width, respectively (Rule 23)
+# input tensor's last dimension must match filter tensor's third dimension (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg2_shape"], 0) <= Select(v["arg1_shape"], 1), Select(v["arg2_shape"], 1) <= Select(v["arg1_shape"], 2))) if n else
-          And(Select(v["arg2_shape"], 0) <= Select(v["arg1_shape"], 1), Select(v["arg2_shape"], 1) <= Select(v["arg1_shape"], 2)))
+    s.add(Not(Select(v["arg1_shape"], 3) == Select(v["arg2_shape"], 2)) if n else
+          Select(v["arg1_shape"], 3) == Select(v["arg2_shape"], 2))
 )
 
 def rule_23_func(arg1, arg2, solver=None, neg=False):

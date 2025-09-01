@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The elements inside axis cannot exceed the number of dimensions (Rule 50)
+# If axis is not None (-1 (Rule 50)
 
 rule_50 = lambda s, v, n=False: (
-    s.add(Not(Or([And(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) < v["arg1_ndim"]) for i in range(6)])) if n else
-          Or([And(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) < v["arg1_ndim"]) for i in range(6)]))
+    s.add(Not(If(v["arg2_value"] < 0, v["arg2_value"] >= (0 - v["arg1_ndim"]), True)) if n else
+          If(v["arg2_value"] < 0, v["arg2_value"] >= (0 - v["arg1_ndim"]), True))
 )
 
 def rule_50_func(arg1, arg2, solver=None, neg=False):
@@ -20,25 +20,22 @@ def rule_50_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg2_length = Int('arg2_length')
-        arg2_values = Array('arg2_values', IntSort(), IntSort())
+        arg2_value = Int('arg2_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_length == len(arg2))
-        for i in range(len(arg2)):
-            arg2_values = Store(arg2_values, i, arg2[i])
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 50
-        rule_50(solver, {'arg1_ndim': arg1_ndim, 'arg2_values': arg2_values, 'arg2_length': arg2_length})
+        rule_50(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_50(solver, {'arg1_ndim': arg1['ndim'], 'arg2_values': arg2['values'], 'arg2_length': arg2['length']}, neg)
+        rule_50(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

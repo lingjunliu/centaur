@@ -1,201 +1,189 @@
 >>
 Rule 1 (value tensor must be 4-dimensional)
-{v_1 : tensor} |= ndim(v_1) = 4
+{value : tensor} |= ndim(value) = 4
 >>
-Rule 2 (value tensor must be of type float32, float64, int32, or int64)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 3 (pooling_ratio length must be greater than or equal to 4)
+{pooling_ratio : list(float)} |= pooling_ratio.len ≥ 4
 >>
-Rule 3 (pooling_ratio list must have length greater than or equal to 4)
-{v_1 : list(float)} |= v_1.len ≥ 4
+Rule 4 (pooling_ratio elements must be greater than or equal to 1.0)
+{pooling_ratio : list(float)} |= ∀i ∈ [0, pooling_ratio.len - 1] : pooling_ratio[i] ≥ 1.0
 >>
-Rule 4 (first and last elements of pooling_ratio list must be 1.0)
-{v_1 : list(float)} |= v_1[0] = 1.0 ∧ v_1[v_1.len - 1] = 1.0
+Rule 5 (value tensor's data type must be float32, float64, int32, or int64)
+{value : tensor} |= dtype_(value) = 7 ∨ dtype_(value) = 8 ∨ dtype_(value) = 3 ∨ dtype_(value) = 4
 >>
-Rule 5 (elements of pooling_ratio list must be greater than or equal to 1.0)
-{v_1 : list(float)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 1.0
+Rule 6 (seed and seed2 must be non-negative)
+{seed : int, seed2 : int} |= seed ≥ 0 ∧ seed2 ≥ 0
 >>
-Rule 6 (seed must be non-negative)
-{v_1 : int} |= v_1 ≥ 0
+Rule 7 (overlapping is a boolean)
+{overlapping : bool} |= overlapping = true ∨ overlapping = false
 >>
-Rule 8 (overlapping is a boolean value)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 8 (pseudo_random is a boolean)
+{pseudo_random : bool} |= pseudo_random = true ∨ pseudo_random = false
 >>
-Rule 11 (batch and channel pooling ratios are 1.0)
-{v_1 : list(float)} |= v_1[0] = 1.0 ∧ v_1[3] = 1.0
+Rule 9 (deterministic is a boolean)
+{deterministic : bool} |= deterministic = true ∨ deterministic = false
 >>
-Rule 12 (height and width pooling ratios are greater than or equal to 1.0)
-{v_1 : list(float)} |= v_1[1] ≥ 1.0 ∧ v_1[2] ≥ 1.0
+Rule 11 (first and last elements of pooling_ratio must be 1.0)
+{pooling_ratio : list(float)} |= pooling_ratio[0] = 1.0 ∧ pooling_ratio[shape(pooling_ratio,0) - 1] = 1.0
 >>
-Rule 18 (pooling ratio list's length corresponds to the number of dimensions in value tensor)
-{v_1 : tensor, v_2 : list(float)} |= ndim(v_1) = v_2.len
+Rule 12 (pooling_ratio length must be greater than or equal to 4)
+{pooling_ratio : list(float)} |= shape(pooling_ratio,0) ≥ 4
 >>
-Rule 19 (seed and seed2 should not be the same if both are non-zero)
-{v_1 : int, v_2 : int} |= if v_1 ≠ 0 ∧ v_2 ≠ 0 then v_1 ≠ v_2
+Rule 13 (pooling_ratio elements must be greater than or equal to 1.0)
+{pooling_ratio : list(float)} |= ∀i ∈ [0, shape(pooling_ratio,0) - 1] : pooling_ratio[i] ≥ 1.0
 >>
-Rule 20 (product of pooling ratios should be greater than 1)
-{v_1 : list(float)} |= v_1[0] * v_1[1] * v_1[2] * v_1[3] > 1.0
+Rule 19 (pooling_ratio's second element must be greater than or equal to 1.0)
+{pooling_ratio : list(float)} |= pooling_ratio[1] ≥ 1.0
 >>
-Rule 22 (if deterministic is true, seed and seed2 should be set.)
-{v_1 : bool, v_2 : int, v_3 : int} |= if v_1 = true then v_2 ≠ 0 ∧ v_3 ≠ 0
+Rule 20 (pooling_ratio's third element must be greater than or equal to 1.0)
+{pooling_ratio : list(float)} |= pooling_ratio[2] ≥ 1.0
 >>
-Rule 23 (the value tensor's shape must be positive)
-{v_1 : tensor} |= ∀i ∈ [0, 3] : shape(v_1, i) > 0
+Rule 21 (seed and seed2 are equal)
+{seed : int, seed2 : int} |= seed = seed2
 >>
-Rule 24 (if seed is non-zero, seed2 must also be non-zero)
-{v_1 : int, v_2 : int} |= if v_1 ≠ 0 then v_2 ≠ 0
+Rule 22 (if pseudo_random is true, then deterministic must be false)
+{pseudo_random : bool, deterministic : bool} |= if pseudo_random = true then deterministic = false
 >>
-Rule 25 (if value is int32 or int64, pooling ratios must result in integer output sizes)
-{v_1 : tensor, v_2 : list(float)} |= if dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then (shape(v_1,1) / v_2[1]) = (shape(v_1,1) / v_2[1]) ∧ (shape(v_1,2) / v_2[2]) = (shape(v_1,2) / v_2[2])
+Rule 23 (value must have a shape with all dimensions greater than 0)
+{value : tensor} |= ∀i ∈ [0, ndim(value) - 1] : shape(value, i) > 0
 >>
-Rule 27 (If overlapping is true, pooling ratios must be small)
-{v_1 : bool, v_2 : list(float)} |= if v_1 = true then v_2[1] < 2.0 ∧ v_2[2] < 2.0
+Rule 24 (the length of pooling_ratio must be equal to the number of dimensions in value)
+{value : tensor, pooling_ratio : list(float)} |= shape(pooling_ratio, 0) = ndim(value)
 >>
-Rule 28 (The pooling ratio values should not be too large to cause an empty output)
-{v_1 : tensor, v_2 : list(float)} |= (shape(v_1, 1) / v_2[1]) > 0 ∧ (shape(v_1, 2) / v_2[2]) > 0
+Rule 25 (value's datatype must be one of int32 or float32 if seed is non-zero)
+{value : tensor, seed : int} |= if seed ≠ 0 then (dtype_(value) = 3 ∨ dtype_(value) = 7)
 >>
-Rule 34 (batch and channel dimensions should not be pooled)
-{v_1 : tensor, v_2 : list(float)} |= shape(v_1,0) / v_2[0] = shape(v_1,0) ∧ shape(v_1,3) / v_2[3] = shape(v_1,3)
+Rule 26 (If overlapping is true, the value's datatype must be float32 or float64)
+{overlapping : bool, value : tensor} |= if overlapping = true then (dtype_(value) = 7 ∨ dtype_(value) = 8)
 >>
-Rule 36 (If seed is zero, seed2 must be zero too)
-{v_1 : int, v_2 : int} |= if v_1 = 0 then v_2 = 0
+Rule 27 (If deterministic is true, seed and seed2 must be zero)
+{deterministic : bool, seed : int, seed2 : int} |= if deterministic = true then seed = 0 ∧ seed2 = 0
 >>
-Rule 37 (The value tensor must be of type float or int)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6
+Rule 28 (value cannot be an empty tensor)
+{value : tensor} |= ∃i ∈ [0, ndim(value) - 1] : shape(value, i) ≠ 0
 >>
-Rule 39 (The dimensions after pooling should be less than or equal to original dimensions)
-{v_1 : tensor, v_2 : list(float)} |= (shape(v_1, 1) / v_2[1]) <= shape(v_1, 1) ∧ (shape(v_1, 2) / v_2[2]) <= shape(v_1, 2)
+Rule 29 (if value is int32, int64, then overlapping is false)
+{value : tensor, overlapping : bool} |= if (dtype_(value) = 3 ∨ dtype_(value) = 4) then overlapping = false
 >>
-Rule 40 (if overlapping is true, pooling ratio cannot exceed the size of the original dimension)
-{v_1 : bool, v_2 : tensor, v_3 : list(float)} |= if v_1 = true then v_3[1] ≤ shape(v_2, 1) ∧ v_3[2] ≤ shape(v_2, 2)
+Rule 30 (if the length of pooling_ratio is greater than 4, then seed must be greater than zero)
+{pooling_ratio: list(float), seed: int} |= if shape(pooling_ratio, 0) > 4 then seed > 0
 >>
-Rule 41 (If deterministic is set, overlapping must be set to false)
-{v_1 : bool, v_2 : bool} |= if v_1 = true then v_2 = false
+Rule 31 (if pseudo_random is false then seed and seed2 must be zero)
+{pseudo_random : bool, seed : int, seed2 : int} |= if pseudo_random = false then seed = 0 ∧ seed2 = 0
 >>
-Rule 42 (pooling ratios must be greater than 0.)
-{v_1 : list(float)} |= ∀i ∈ [0, 3] : v_1[i] > 0
+Rule 32 (The second and third elements of pooling ratio must be less than or equal to the corresponding dimensions of value tensor)
+{value : tensor, pooling_ratio : list(float)} |= shape(pooling_ratio, 0) = 4 ∧ shape(value,1) ≥ pooling_ratio[1] ∧ shape(value,2) ≥ pooling_ratio[2]
 >>
-Rule 43 (if value is float16, 32 or 64, the pooling ratio must not result in too much precision loss)
-{v_1 : tensor, v_2 : list(float)} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then shape(v_1,1) / v_2[1] > 1 ∧ shape(v_1,2) / v_2[2] > 1
+Rule 34 (The pooling_ratio tensor should be of shape [4])
+{pooling_ratio : list(float)} |= shape(pooling_ratio,0) = 4
 >>
-Rule 44 (pooling ratios must not be infinite or NaN)
-{v_1 : list(float)} |= ∀i ∈ [0, 3] : v_1[i] < 1000000 ∧ v_1[i] > -1000000
+Rule 37 (If the pooling ratio is greater than 1, overlapping should be true)
+{pooling_ratio : list(float), overlapping : bool} |= if shape(pooling_ratio, 0) = 4 ∧ (pooling_ratio[1] > 1.0 ∨ pooling_ratio[2] > 1.0) then overlapping = true
 >>
-Rule 45 (if the value tensor is int type then the output type must be int too)
-{v_1 : tensor} |= if dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 38 (If the pooling ratio has invalid shape, seed must be positive)
+{pooling_ratio : list(float), seed : int} |= if shape(pooling_ratio, 0) < 4 then seed > 0
 >>
-Rule 46 (if pseudo_random is false, the seeds can be ignored )
-{v_1 : bool, v_2 : int, v_3 : int} |= if v_1 = false then v_2 = 0 ∧ v_3 = 0
+Rule 39 (If pooling_ratio is 4D, the datatype of value can be either float32, float64, int32, int64)
+{pooling_ratio : list(float), value : tensor} |= if shape(pooling_ratio, 0) = 4 then (dtype_(value) = 7 ∨ dtype_(value) = 8 ∨ dtype_(value) = 3 ∨ dtype_(value) = 4)
 >>
-Rule 47 (The height and width pooling ratios cannot be so small that they result in output dimension sizes larger than the input)
-{v_1 : tensor, v_2 : list(float)} |= shape(v_1, 1) / v_2[1] ≤ shape(v_1, 1) ∧ shape(v_1, 2) / v_2[2] ≤ shape(v_1, 2)
+Rule 40 (if seed or seed2 is set, then pseudo_random should be true)
+{seed : int, seed2 : int, pseudo_random : bool} |= if seed ≠ 0 ∨ seed2 ≠ 0 then pseudo_random = true
 >>
-Rule 48 (deterministic should be false, seed and seed2 must be 0.)
-{v_1 : bool, v_2 : int, v_3 : int} |= if v_1 = true then v_2 = 0 ∧ v_3 = 0
+Rule 41 (value's datatype and pooling ratio are co-dependent)
+{value : tensor, pooling_ratio : list(float)} |= if dtype_(value) = 7 then shape(pooling_ratio, 0) ≥ 4 else if dtype_(value) = 8 then shape(pooling_ratio, 0) ≥ 4 else if dtype_(value) = 3 then shape(pooling_ratio, 0) ≥ 4 else if dtype_(value) = 4 then shape(pooling_ratio, 0) ≥ 4
 >>
-Rule 49 (Pooling ratios should not be excessively close to 1.0 to avoid minimal pooling)
-{v_1 : list(float)} |= ∀i ∈ [1, 2] : v_1[i] > 1.05 ∨ v_1[i] < 0.95
+Rule 42 (if overlapping is true, the value's min must be greater than 0.)
+{overlapping : bool, value : tensor} |= if overlapping = true then min(value) > 0
 >>
-Rule 51 (value shape[1] and value shape[2] need to be greater than 1 for pooling to make sense)
-{v_1 : tensor} |= shape(v_1, 1) > 1 ∧ shape(v_1, 2) > 1
+Rule 43 (If seed is non-zero, then pseudo_random must be true)
+{seed : int, pseudo_random : bool} |= if seed ≠ 0 then pseudo_random = true
 >>
-Rule 52 (if datatype is int, overlap is false)
-{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then v_2 = false
+Rule 44 (If seed2 is non-zero, then pseudo_random must be true)
+{seed2 : int, pseudo_random : bool} |= if seed2 ≠ 0 then pseudo_random = true
 >>
-Rule 53 (pseudorandom needs integers as seeds)
-{v_1 : bool, v_2 : int, v_3 : int} |= if v_1 = true then v_2 > 0 ∧ v_3 > 0
+Rule 45 (If pseudo_random is true, then value must have a shape)
+{pseudo_random : bool, value : tensor} |= if pseudo_random = true then ∃i ∈ [0, ndim(value) - 1] : shape(value, i) > 0
 >>
-Rule 54 (Pooling ratios should not cause the output to have a smaller size than 1)
-{v_1 : tensor, v_2 : list(float)} |= shape(v_1, 1) / v_2[1] ≥ 1 ∧ shape(v_1, 2) / v_2[2] ≥ 1
+Rule 46 (If the length of the pooling ratio is not equal to 4, then the seed and seed2 must be zero)
+{pooling_ratio : list(float), seed : int, seed2 : int} |= if shape(pooling_ratio, 0) ≠ 4 then seed = 0 ∧ seed2 = 0
 >>
-Rule 56 (The pooling ratio must result in a valid shape)
-{v_1 : tensor, v_2 : list(float)} |= (shape(v_1, 1) / v_2[1]) = (shape(v_1, 1) / v_2[1]) ∧ (shape(v_1, 2) / v_2[2]) = (shape(v_1, 2) / v_2[2])
+Rule 48 (If the value is a quantized type, pseudo_random must be false.)
+{value : tensor, pseudo_random : bool} |= if dtype_(value) = 1 ∨ dtype_(value) = 5 then pseudo_random = false
 >>
-Rule 57 (overlapping is valid when the pooling ratios are of float type)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+Rule 49 (If overlapping is true, then pseudo_random must be true)
+{overlapping : bool, pseudo_random : bool} |= if overlapping = true then pseudo_random = true
 >>
-Rule 58 (Overlapping is not applicable when value is int32 or int64)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4
+Rule 50 (If deterministic is true, overlapping must be false)
+{deterministic : bool, overlapping : bool} |= if deterministic = true then overlapping = false
 >>
-Rule 60 (If value is int32 or int64 and seed or seed2 is non-zero, deterministic must be true)
-{v_1 : tensor, v_2 : int, v_3 : int, v_4 : bool} |= if (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (v_2 ≠ 0 ∨ v_3 ≠ 0) then v_4 = true
+Rule 51 (value shape's first and last dimensions must be 1 if pooling ratio's first and last are)
+{value : tensor, pooling_ratio : list(float)} |= if shape(pooling_ratio,0) = 4 ∧ pooling_ratio[0] = 1.0 then shape(value, 0) > 0 ∧ if shape(pooling_ratio,0) = 4 ∧ pooling_ratio[3] = 1.0 then shape(value, 3) > 0
 >>
-Rule 61 (The value tensor cannot have zero dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, 3] : shape(v_1, i) ≠ 0
+Rule 52 (If overlapping is true, then min(value) must be non negative)
+{overlapping : bool, value : tensor} |= if overlapping = true then min(value) ≥ 0
 >>
-Rule 62 (If overlap is true, pooling_ratio[1] * shape(value, 1) must not be too small to be averaged)
-{v_1 : bool, v_2 : tensor, v_3 : list(float)} |= if v_1 = true then v_3[1] * shape(v_2, 1) > 1
+Rule 53 (If seed is non-zero, then seed2 must also be non-zero)
+{seed : int, seed2 : int} |= if seed ≠ 0 then seed2 ≠ 0
 >>
-Rule 63 (If overlap is true, pooling_ratio[2] * shape(value, 2) must not be too small to be averaged)
-{v_1 : bool, v_2 : tensor, v_3 : list(float)} |= if v_1 = true then v_3[2] * shape(v_2, 2) > 1
+Rule 54 (If seed2 is non-zero, then seed must also be non-zero)
+{seed : int, seed2 : int} |= if seed2 ≠ 0 then seed ≠ 0
 >>
-Rule 64 (If pseudo_random is false then seed must be zero)
-{v_1 : bool, v_2 : int} |= if v_1 = false then v_2 = 0
+Rule 55 (if pseudo_random is true, then seed must be non zero or seed2 must be non zero)
+{pseudo_random : bool, seed : int, seed2 : int} |= if pseudo_random = true then seed ≠ 0 ∨ seed2 ≠ 0
 >>
-Rule 67 (if seed is provided, then pseudo_random must be true)
-{v_1 : int, v_2 : bool} |= if v_1 ≠ 0 then v_2 = true
+Rule 56 (If deterministic is true, then seed and seed2 must be 0)
+{deterministic: bool, seed: int, seed2: int} |= if deterministic = true then seed = 0 ∧ seed2 = 0
 >>
-Rule 68 (The product of dimensions after applying pooling ratio must be greater than 0)
-{v_1 : tensor, v_2 : list(float)} |= (shape(v_1, 1) / v_2[1]) * (shape(v_1, 2) / v_2[2]) > 0
+Rule 57 (if dtype of value is int32 or int64, overlapping must be false)
+{value : tensor, overlapping : bool} |= if dtype_(value) = 3 ∨ dtype_(value) = 4 then overlapping = false
 >>
-Rule 75 (if seed is provided then deterministic must be false)
-{v_1 : int, v_2 : bool} |= if v_1 ≠ 0 then v_2 = false
+Rule 58 (If the second element in pooling_ratio is greater than shape(value,1), then seed must be greater than zero)
+{pooling_ratio : list(float), value : tensor, seed : int} |= if shape(pooling_ratio, 0) = 4 ∧ pooling_ratio[1] > shape(value, 1) then seed > 0
 >>
-Rule 78 (pseudo random needs a seed, and seed2 must be different)
-{v_1 : bool, v_2 : int, v_3 : int} |= if v_1 = true then v_2 ≠ 0 ∧ v_3 ≠ 0 ∧ v_2 ≠ v_3
+Rule 59 (If the third element in pooling_ratio is greater than shape(value,2), then seed must be greater than zero)
+{pooling_ratio : list(float), value : tensor, seed : int} |= if shape(pooling_ratio, 0) = 4 ∧ pooling_ratio[2] > shape(value, 2) then seed > 0
 >>
-Rule 79 (if deterministic is true, then pseudo_random should also be true )
-{v_1 : bool, v_2 : bool} |= if v_1 = true then v_2 = true
+Rule 60 (If the sum of seed and seed2 is even, then overlapping must be false)
+{seed: int, seed2: int, overlapping: bool} |= if (seed + seed2) % 2 = 0 then overlapping = false
 >>
-Rule 80 (if pseudo random is used with seed, then seed2 must be a different positive number )
-{v_1 : bool, v_2 : int, v_3 : int} |= if v_1 = true then v_2 > 0 ∧ v_3 > 0 ∧ v_2 ≠ v_3
+Rule 61 (If the sum of seed and seed2 is odd, then pseudo_random must be true)
+{seed: int, seed2: int, pseudo_random: bool} |= if (seed + seed2) % 2 ≠ 0 then pseudo_random = true
 >>
-Rule 82 (If overlap is true, the kernel size in col and row must be greater than 1 )
-{v_1 : bool, v_2 : list(float)} |= if v_1 = true then v_2[1] > 1.0 ∧ v_2[2] > 1.0
+Rule 62 (If pseudo_random is true, then value's shape second dimension must be greater than 1)
+{pseudo_random: bool, value : tensor} |= if pseudo_random = true then shape(value, 1) > 1
 >>
-Rule 86 (Pooling ratio cannot be equal to the batch and channel dimension sizes, it only applies to height and width)
-{v_1 : tensor, v_2 : list(float)} |= shape(v_1, 0) ≠ v_2[0] ∧ shape(v_1, 3) ≠ v_2[3]
+Rule 63 (If pseudo_random is true, then value's shape third dimension must be greater than 1)
+{pseudo_random: bool, value : tensor} |= if pseudo_random = true then shape(value, 2) > 1
 >>
-Rule 89 (If deterministic is true, seed should be 0)
-{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 = 0
+Rule 64 (If pseudo_random is true, then value's shape fourth dimension must be greater than 1)
+{pseudo_random: bool, value : tensor} |= if pseudo_random = true then shape(value, 3) > 1
 >>
-Rule 94 (seed and seed2 can't be negative)
-{v_1 : int, v_2 : int} |= v_1 ≥ 0 ∧ v_2 ≥ 0
+Rule 65 (if the first element of the shape of value tensor is less than seed, then the overlapping should be false)
+{value: tensor, seed: int, overlapping: bool} |= if shape(value, 0) < seed then overlapping = false
 >>
-Rule 96 (Overlapping must be disabled if data type is int)
-{v_1 : bool, v_2 : tensor} |= if dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 then v_1 = false
+Rule 66 (if the second element of the shape of value tensor is less than seed, then the overlapping should be false)
+{value: tensor, seed: int, overlapping: bool} |= if shape(value, 1) < seed then overlapping = false
 >>
-Rule 98 (if the seed is nonzero, both overlapping and deterministic must be disabled)
-{v_1 : int, v_2 : bool, v_3 : bool} |= if v_1 ≠ 0 then v_2 = false ∧ v_3 = false
+Rule 67 (if the third element of the shape of value tensor is less than seed, then the overlapping should be false)
+{value: tensor, seed: int, overlapping: bool} |= if shape(value, 2) < seed then overlapping = false
 >>
-Rule 101 (Overlapping is only valid when you apply pooling on the whole image)
-{v_1 : bool, v_2 : tensor, v_3 : list(float)} |= if v_1 = true then (shape(v_2, 1) / v_3[1]) = 1 ∧ (shape(v_2, 2) / v_3[2]) = 1
+Rule 68 (if the fourth element of the shape of value tensor is less than seed, then the overlapping should be false)
+{value: tensor, seed: int, overlapping: bool} |= if shape(value, 3) < seed then overlapping = false
 >>
-Rule 102 (overlap works better with higher shape ratios)
-{v_1 : bool, v_2 : tensor, v_3 : list(float)} |= if v_1 = true then shape(v_2, 1) / v_3[1] > 4 ∧ shape(v_2, 2) / v_3[2] > 4
+Rule 69 (If seed2 is non-zero, then the shape of the value tensor must be greater than the seed2)
+{value: tensor, seed2: int} |= if seed2 ≠ 0 then shape(value, 0) > seed2 ∧ shape(value, 1) > seed2 ∧ shape(value, 2) > seed2 ∧ shape(value, 3) > seed2
 >>
-Rule 103 (if pseudorandom is true, the shape must be large enough to be pooled from)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then shape(v_2, 1) > 2 ∧ shape(v_2, 2) > 2
+Rule 70 (if value tensor is not 4D, then overlapping must be false)
+{value : tensor, overlapping : bool} |= if ndim(value) ≠ 4 then overlapping = false
 >>
-Rule 107 (the value needs at least one row and one column)
-{v_1 : tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+Rule 71 (if value tensor is not 4D, then pooling_ratio length can be less than 4)
+{value : tensor, pooling_ratio: list(float)} |= if ndim(value) ≠ 4 then shape(pooling_ratio, 0) < 4
 >>
-Rule 112 (Shape after pooling row must be greater or equal to 1.)
-{v_1 : tensor, v_2 : list(float)} |= (shape(v_1, 1) / v_2[1]) ≥ 1
+Rule 72 (if seed is zero, then seed2 must be zero)
+{seed : int, seed2 : int} |= if seed = 0 then seed2 = 0
 >>
-Rule 113 (Shape after pooling col must be greater or equal to 1)
-{v_1 : tensor, v_2 : list(float)} |= (shape(v_1, 2) / v_2[2]) ≥ 1
+Rule 73 (If overlapping is True, then each dimension of shape of the input tensor value should be larger than 1)
+{overlapping: bool, value: tensor} |= if overlapping = true then (shape(value,0) > 1 ∧ shape(value,1) > 1 ∧ shape(value,2) > 1 ∧ shape(value,3) > 1)
 >>
-Rule 117 (the pooling ratio should be valid)
-{v_1 : list(float)} |= ∀i ∈ [0,3] : v_1[i] > 0
->>
-Rule 118 (If overlapping is enabled and the value is float16, it may be imprecise)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then dtype_(v_2) ≠ 6
->>
-Rule 121 (If pseudo random is used, seed cannot be zero and it must be different with seed2, also if the value isn't of type float)
-{v_1 : bool, v_2 : int, v_3 : int, v_4 : tensor} |= if v_1 = true then v_2 > 0 ∧ v_3 > 0 ∧ v_2 ≠ v_3 ∧ dtype_(v_4) = 7 ∨ dtype_(v_4) = 8
->>
-Rule 122 (pooling ratios height and width must be different to 1.0, if the overlapping is enabled)
-{v_1 : bool, v_2 : list(float)} |= if v_1 = true then v_2[1] ≠ 1.0 ∧ v_2[2] ≠ 1.0
->>
-Rule 123 (The height pooling should not be higher to value height.)
-{v_1 : tensor, v_2 : list(float)} |= if v_2[1] > shape(v_1, 1) then false
+Rule 74 (If seed is used then pooling_ratio shape should be 4)
+{seed : int, pooling_ratio : list(float)} |= if seed > 0 then shape(pooling_ratio, 0) = 4

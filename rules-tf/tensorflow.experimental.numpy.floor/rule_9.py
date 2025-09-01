@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The ndim of the input tensor should be less than or equal to 5 (Rule 9)
+# Input tensor v_1 must have positive values (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] <= 5) if n else
-          v["arg1_ndim"] <= 5)
+    s.add(Not(Select(v["arg1_range"], 0) > 0) if n else
+          Select(v["arg1_range"], 0) > 0)
 )
 
 def rule_9_func(arg1, solver=None, neg=False):
@@ -22,15 +22,16 @@ def rule_9_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 9
-        rule_9(solver, {'arg1_ndim': arg1_ndim})
+        rule_9(solver, {'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_9(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_9(solver, {'arg1_range': arg1['range']}, neg)

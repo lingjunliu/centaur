@@ -5,37 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If a tuple is given as decimals it must have the same ndim as the input tensor (Rule 10)
+# If the input tensor's dtype is complex, decimals must be specified (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] == v["arg2_length"]) if n else
-          v["arg1_ndim"] == v["arg2_length"])
+    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or([And(v_2 < (10 + 1), v_2 > 0) for v_2 in range(6)]), True)) if n else
+          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or([And(v_2 < (10 + 1), v_2 > 0) for v_2 in range(6)]), True))
 )
 
-def rule_10_func(arg1, arg2, solver=None, neg=False):
+def rule_10_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
-            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_length = Int('arg2_length')
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_length == len(arg2))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 10
-        rule_10(solver, {'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length})
+        rule_10(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_10(solver, {'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length']}, neg)
+        rule_10(solver, {'arg1_dtype': arg1['dtype']}, neg)

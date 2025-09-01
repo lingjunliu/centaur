@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the minimum element is smaller than 0.1, then the dtype must be float64 (Rule 55)
+# Check dtype, if it is half, make sure the input is not too small, due to underflow (Rule 55)
 
 rule_55 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_range"], 0) < 0.1, v["arg1_dtype"] == 8, False)) if n else
-          If(Select(v["arg1_range"], 0) < 0.1, v["arg1_dtype"] == 8, False))
+    s.add(Not(If(v["arg1_dtype"] == 6, Select(v["arg1_range"], 0) > -60000, True)) if n else
+          If(v["arg1_dtype"] == 6, Select(v["arg1_range"], 0) > -60000, True))
 )
 
 def rule_55_func(arg1, solver=None, neg=False):

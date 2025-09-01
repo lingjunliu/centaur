@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If data is half, indices must be int32 or int64 (Rule 25)
+# indices and segment_ids have compatible dtypes (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 7, Or(v["arg2_dtype"] == 4, v["arg2_dtype"] == 5), False)) if n else
-          If(v["arg1_dtype"] == 7, Or(v["arg2_dtype"] == 4, v["arg2_dtype"] == 5), False))
+    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
+          v["arg1_dtype"] == v["arg2_dtype"])
 )
 
 def rule_25_func(arg1, arg2, solver=None, neg=False):

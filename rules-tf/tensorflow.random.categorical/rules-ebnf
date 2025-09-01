@@ -1,153 +1,102 @@
 >>
-Rule 1 (logits must be a 2D tensor)
-{v_1 : tensor} |= ndim(v_1) = 2
+Rule 1 (dtype must be int32 or int64)
+{v_1 : dtype} |= v_1 = "int32" ∨ v_1 = "int64"
 >>
-Rule 2 (num_samples must be a non-negative integer)
+Rule 2 (num_samples must be non-negative)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 3 (dtype must be int32 or int64)
-{v_1 : dtype} |= v_1 = 3 ∨ v_1 = 4
+Rule 3 (logits must be a 2D tensor)
+{v_1 : tensor} |= ndim(v_1) = 2
 >>
-Rule 4 (batch size must be positive)
+Rule 4 (batch_size must be greater than zero)
 {v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 5 (number of classes must be positive)
+Rule 5 (num_classes must be greater than zero)
 {v_1 : tensor} |= shape(v_1, 1) > 0
 >>
-Rule 6 (num_samples should be less than a maximum value to prevent memory issues, assuming max class size is 1000)
-{v_1 : int} |= v_1 < 1000
->>
-Rule 8 (logits tensor must have floating point type)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
->>
-Rule 9 (Shape of the output)
+Rule 8 (shape of the logits tensor and number of samples must be consistent)
 {v_1 : tensor, v_2 : int} |= shape(v_1, 0) > 0 ∧ v_2 > 0
 >>
-Rule 10 (Logits cannot contain NaN or infinite values)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1,0) - 1] : ∀j ∈ [0, shape(v_1,1) - 1] : min(v_1) > -1000000 ∧ max(v_1) < 1000000
+Rule 11 (dtype must be int32 or int64)
+{v_3 : dtype} |= v_3 = "int32" ∨ v_3 = "int64"
 >>
-Rule 12 (num_samples must be a non-negative integer and less than the maximum number of classes)
-{v_1 : int, v_2 : tensor} |= v_1 ≥ 0 ∧ v_1 ≤ shape(v_2, 1)
+Rule 12 (num_samples must be greater than zero)
+{v_2 : int} |= v_2 > 0
 >>
-Rule 18 (Shape of the output should match the batch size of the logits tensor)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 14 (name must be a non-empty string)
+{v_4 : str} |= v_4 ≠ ""
 >>
-Rule 19 (Logits cannot contain NaN or infinite values - ensuring at least one finite value exists)
-{v_1 : tensor} |= ∃i ∈ [0, shape(v_1,0) - 1] : ∃j ∈ [0, shape(v_1,1) - 1] : min(v_1) > -1000000 ∧ max(v_1) < 1000000
+Rule 15 (If seed is provided, it should be a non-negative integer)
+{v_5 : int} |= v_5 ≥ 0
 >>
-Rule 20 (num_samples cannot be zero)
-{v_1 : int} |= v_1 > 0
+Rule 16 (shape of logits dimension 1 must be smaller than a limit to avoid OOM errors)
+{v_1 : tensor} |= shape(v_1, 1) < 2048
 >>
-Rule 22 (dtype can only be none if num_samples is 1)
-{v_1 : int, v_2 : dtype} |= if v_2 = 12 then v_1 = 1
+Rule 17 (shape of logits dimension 0 must be smaller than a limit to avoid OOM errors)
+{v_1 : tensor} |= shape(v_1, 0) < 2048
 >>
-Rule 23 (The second dimension of logits should be greater than 1 if num_samples > 0)
-{v_1 : tensor, v_2 : int} |= if v_2 > 0 then shape(v_1, 1) > 1
+Rule 18 (dtype must be int32 or int64)
+{v_3 : dtype} |= v_3 = "tf.int32" ∨ v_3 = "tf.int64"
 >>
-Rule 26 (num_samples should be a valid integer)
-{v_1 : int} |= (v_1 > -2147483648) ∧ (v_1 < 2147483647)
->>
-Rule 27 (Batch size should be a valid int)
-{v_1 : tensor} |= (shape(v_1, 0) > -2147483648) ∧ (shape(v_1, 0) < 2147483647)
->>
-Rule 28 (Number of classes should be a valid int)
-{v_1 : tensor} |= (shape(v_1, 1) > -2147483648) ∧ (shape(v_1, 1) < 2147483647)
->>
-Rule 32 (num_samples must be a non-negative integer and less than the maximum number of classes + a small margin)
-{v_1 : int, v_2 : tensor} |= v_1 ≥ 0 ∧ v_1 ≤ shape(v_2, 1) + 10
->>
-Rule 33 (logits must be a tensor)
-{v_1 : tensor} |= ndim(v_1) > 0
->>
-Rule 34 (If logits is empty and num_samples > 0, there is an error)
-{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) = 0 ∨ shape(v_1, 1) = 0 then v_2 = 0
->>
-Rule 36 (num_samples is not larger than int32 max)
-{v_1 : int} |= v_1 < 2147483647
->>
-Rule 37 (The second dimension of logits should be greater than 0 if num_samples > 0)
-{v_1 : tensor, v_2 : int} |= if v_2 > 0 then shape(v_1, 1) > 0
->>
-Rule 38 (logits must be a tensor with at least one element)
+Rule 20 (logits must have valid shape - no dimension is negative)
 {v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
 >>
-Rule 40 (The dtype must be int32, int64 or default(none))
-{v_1 : dtype} |= v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 12
+Rule 26 (logits must have valid shape - no dimension is negative and not too large)
+{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 1) < 4096
 >>
-Rule 41 (logits cannot be a boolean tensor)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 27 (num_samples should be less than a maximum value to prevent OOM)
+{v_2 : int} |= v_2 < 10000
 >>
-Rule 43 (The second dimension of logits should be greater than 0 if num_samples is 0)
-{v_1 : tensor, v_2 : int} |= if v_2 = 0 then shape(v_1, 1) > 0
+Rule 28 (logits dimension size should be reasonable)
+{v_1 : tensor} |= shape(v_1, 0) < 1000
 >>
-Rule 45 (If logits has only one class, num_samples must be 1)
-{v_1 : tensor, v_2 : int} |= if shape(v_1, 1) = 1 then v_2 = 1
+Rule 29 (Name should not exceed some max length)
+{v_4 : str} |= v_4.len < 256
 >>
-Rule 48 (logits can not be complex type tensor)
-{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Rule 30 (Seed should not be too large)
+{v_5 : int} |= v_5 < 1000000000
 >>
-Rule 49 (The second dimension of logits must be at least one)
-{v_1 : tensor} |= shape(v_1, 1) ≥ 1
+Rule 32 (The num_samples parameter must be a non-negative integer and not too large.)
+{v_2 : int} |= v_2 > 0 ∧ v_2 < 10000
 >>
-Rule 51 (The shape of logits must be valid, cannot be zero)
-{v_1: tensor} |= shape(v_1,0) > 0 ∧ shape(v_1,1) > 0
+Rule 33 (The logits tensor must have dimensions that are not too large. Dimension 0 should also be present )
+{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) < 4096
 >>
-Rule 55 (The logit values should not all be extremely negative, making the probabilities very tiny which can cause numerical issues.)
-{v_1 : tensor} |= min(v_1) > -100
+Rule 35 (Seed must be within reasonable bounds)
+{v_5 : int} |= v_5 > -2147483648 ∧ v_5 < 2147483647
 >>
-Rule 57 (If seed is provided, it has to be non negative and less than the maximum seed value)
-{v_1 : int} |= v_1 ≥ 0 ∧ v_1 < 2147483647
+Rule 68 (Logits shape must be valid and reasonable)
+{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 0) < 10000
 >>
-Rule 62 (The logit values should be smaller than maximum value )
-{v_1 : tensor} |= max(v_1) < 100
+Rule 74 (Shape of logits cannot be too large)
+{v_1 : tensor} |= shape(v_1, 0) < 10000 ∧ shape(v_1, 1) < 1000
 >>
-Rule 63 (If the logits has a shape of [batch_size, num_classes], the output should have at least batch_size rows.)
-{v_1 : tensor, v_2: tensor} |= shape(v_1,0) ≤ shape(v_2, 0)
+Rule 78 (The maximum value of logits should not be too large)
+{v_1 : tensor} |= max(v_1) < 1000
 >>
-Rule 73 (The number of classes should be no more than int max)
-{v_1 : tensor} |= shape(v_1,1) < 2147483647
+Rule 84 (Logits' second dimension must be less than or equal to 1000 to prevent OOM.)
+{v_1 : tensor} |= shape(v_1, 1) ≤ 1000
 >>
-Rule 74 (The batch size should be no more than int max)
-{v_1 : tensor} |= shape(v_1,0) < 2147483647
+Rule 90 (The minimum log-probability value must be less than some threshold.)
+{v_1 : tensor} |= min(v_1) > -1000
 >>
-Rule 75 (logits must be a float or double tensor)
-{v_1: tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 96 (The number of classes should be reasonable and not exceed a limit)
+{v_1 : tensor} |= shape(v_1, 1) < 2000
 >>
-Rule 79 (num_samples should be a non negative number )
-{v_1 : int} |= v_1 >= 0
+Rule 102 (Each row of logits must sum to a finite value to avoid division by zero.)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : (min(v_1) > -1000)
 >>
-Rule 80 (If the number of classes is just one, then the num_samples should be 1)
-{v_1: tensor, v_2: int} |= if shape(v_1,1) = 1 then v_2 = 1
+Rule 108 (All numbers in logits tensor must be smaller than inf)
+{v_1 : tensor} |= min(v_1) ≠ "-inf" ∧ max(v_1) ≠ "inf"
 >>
-Rule 81 (If logits contains NaN, then the calculation may give erroneous results)
-{v_1 : tensor} |= min(v_1) > -9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
+Rule 114 (The logits must not contain large negative values that would cause underflow)
+{v_1 : tensor} |= min(v_1) > -20
 >>
-Rule 82 (If logits contains Inf or -Inf then the results are undefined)
-{v_1: tensor} |= max(v_1) < 9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
+Rule 120 (The logits should not have large numbers, to prevent numerical instability during calculation of probabilities )
+{v_1 : tensor} |= max(v_1) < 20
 >>
-Rule 84 (If logits contains NaN, then the calculation may give erroneous results)
-{v_1 : tensor} |= min(v_1) > -9999999999999999
+Rule 126 (Logits cannot all be the same value)
+{v_1 : tensor} |= min(v_1) ≠ max(v_1)
 >>
-Rule 85 (If logits contains Inf or -Inf then the results are undefined)
-{v_1: tensor} |= max(v_1) < 9999999999999999
->>
-Rule 86 (Dtype has to be a valid dtype enum)
-{v_1:dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 11 ∨ v_1 = 12
->>
-Rule 87 (Num samples can't be larger than the maximum possible integer representation)
-{v_1:int} |= v_1 < 2147483647
->>
-Rule 88 (logits should have at least one batch)
-{v_1 : tensor} |= shape(v_1,0) > 0
->>
-Rule 90 (The shape of logits must have at least two dimensions)
-{v_1: tensor} |= ndim(v_1) >= 2
->>
-Rule 91 (Num samples must be a valid int)
-{v_1: int} |= v_1 < 2147483647
->>
-Rule 92 (If logits contains NaN, then it leads to bad output)
-{v_1 : tensor} |= min(v_1) > -99999999
->>
-Rule 93 (If logits contains Inf or -Inf then the results are undefined)
-{v_1: tensor} |= max(v_1) < 99999999
+Rule 132 (The row dimension of the logits should not be extremely large.)
+{v_1 : tensor} |= shape(v_1, 0) < 5000

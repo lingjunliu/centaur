@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# indices and segment_ids must have the same rank (Rule 4)
+# indices and segment_ids must be 1D tensors (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] == v["arg2_ndim"]) if n else
-          v["arg1_ndim"] == v["arg2_ndim"])
+    s.add(Not(And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 1)) if n else
+          And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 1))
 )
 
 def rule_4_func(arg1, arg2, solver=None, neg=False):

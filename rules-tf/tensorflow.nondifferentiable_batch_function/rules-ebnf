@@ -1,66 +1,153 @@
 >>
-Rule 1 (Number of batch threads must be a positive integer)
+Rule 1 (num_batch_threads must be a positive integer)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 3 (Batch timeout must be a non-negative integer)
+Rule 3 (batch_timeout_micros must be a non-negative integer)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 5 (Allowed batch sizes must be monotonically increasing)
+Rule 5 (allowed_batch_sizes must be monotonically increasing)
 {v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 2] : v_1[i] < v_1[i+1]
 >>
-Rule 6 (Last element of allowed batch sizes must equal max_batch_size, where max_batch_size is v_2 and allowed_batch_sizes is v_1)
-{v_1 : list(int), v_2 : int} |= v_1[v_1.len - 1] = v_2
->>
-Rule 10 (If allowed_batch_sizes list is empty, then max_batch_size must be greater than zero.)
-{v_1 : list(int), v_2 : int} |= if v_1.len = 0 then v_2 > 0
->>
-Rule 14 (Allowed batch sizes must be monotonically increasing if not empty)
-{v_1 : list(int)} |= if v_1.len > 1 then ∀i ∈ [0, v_1.len - 2] : v_1[i] < v_1[i+1]
->>
-Rule 15 (Last element of allowed batch sizes must equal max_batch_size, where max_batch_size is v_2 and allowed_batch_sizes is v_1 if list not empty)
+Rule 6 (The last element of allowed_batch_sizes must equal max_batch_size when allowed_batch_sizes is not empty.)
 {v_1 : list(int), v_2 : int} |= if v_1.len > 0 then v_1[v_1.len - 1] = v_2
 >>
-Rule 17 (If max_batch_size and max_enqueued_batches are given, max_batch_size must be less than or equal to max_enqueued_batches multiplied by 1000)
-{v_1 : int, v_2 : int} |= v_1 ≤ v_2 * 1000
->>
-Rule 24 (If max_batch_size is greater than zero, batch_timeout_micros should not be zero. max_batch_size is v_1, batch_timeout_micros is v_2)
-{v_1 : int, v_2 : int} |= if v_1 > 0 then v_2 > 0
->>
-Rule 31 (If allowed_batch_sizes is not empty then max_batch_size must be included in allowed_batch_sizes)
-{v_1 : list(int), v_2 : int} |= if v_1.len > 0 then ∃i ∈ [0, v_1.len -1] : v_1[i] = v_2
->>
-Rule 44 (if autograph is true, then enable_large_batch_splitting should also be true)
-{v_1 : bool, v_2 : bool} |= if v_1 then v_2
->>
-Rule 45 (If allowed_batch_sizes is not empty, then each element should be less than or equal to max_batch_size, where allowed_batch_sizes is v_1 and max_batch_size is v_2)
-{v_1 : list(int), v_2 : int} |= if v_1.len > 0 then ∀i ∈ [0, v_1.len - 1] : v_1[i] ≤ v_2
->>
-Rule 54 (number of batch threads should be less than 1000)
-{v_1 : int} |= v_1 < 1000
->>
-Rule 63 (The length of allowed batch sizes list must be less than 1000)
-{v_1 : list(int)} |= v_1.len < 1000
->>
-Rule 70 (If enable_large_batch_splitting is true, max_batch_size must be greater than zero.)
-{v_1 : bool, v_2 : int} |= if v_1 then v_2 > 0
->>
-Rule 77 (max_enqueued_batches should be greater than 0 and less than 10000)
-{v_1 : int} |= v_1 > 0 ∧ v_1 < 10000
->>
-Rule 83 (max_enqueued_batches must be a positive integer and greater or equal to 10)
-{v_1 : int} |= v_1 ≥ 10
->>
-Rule 84 (batch_timeout_micros must be smaller than 1000000000)
+Rule 11 (batch_timeout_micros must be less than a maximum value to avoid overflow)
 {v_1 : int} |= v_1 < 1000000000
 >>
-Rule 90 (max_enqueued_batches must be a positive integer and greater or equal to 1)
-{v_1 : int} |= v_1 ≥ 1
+Rule 12 (num_batch_threads must be less than a maximum value to avoid resource exhaustion)
+{v_1 : int} |= v_1 < 1024
 >>
-Rule 91 (allowed_batch_sizes must contain positive integers)
+Rule 14 (Elements in allowed_batch_sizes must be positive)
 {v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 97 (allowed_batch_sizes can not contains duplicate element if the list is not empty)
-{v_1 : list(int)} |= if v_1.len > 1 then ∀i ∈ [0, v_1.len - 2] : ∀j ∈ [i+1, v_1.len -1] : v_1[i] ≠ v_1[j]
+Rule 15 (allowed_batch_sizes is an empty list or the max_batch_size appears in it)
+{v_1 : list(int), v_2 : int} |= (v_1.len = 0) ∨ (∃i ∈ [0, v_1.len - 1] : v_1[i] = v_2)
 >>
-Rule 98 (num_batch_threads must be smaller or equal to max_enqueued_batches)
-{v_1 : int, v_2 : int} |= v_1 <= v_2
+Rule 16 (If allowed_batch_sizes is provided, it must be sorted in ascending order and contain max_batch_size as the last element.)
+{v_1 : list(int), v_2 : int} |= if v_1.len > 0 then (∀i ∈ [0, v_1.len - 2] : v_1[i] < v_1[i+1]) ∧ (v_1[v_1.len - 1] = v_2)
+>>
+Rule 17 (Relationship between max_batch_size and max_enqueued_batches, limiting total memory usage)
+{v_1 : int, v_2 : int} |= v_1 * v_2 < 100000
+>>
+Rule 18 (If enable_large_batch_splitting is true, max_batch_size should be larger than a minimum threshold)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 16
+>>
+Rule 19 (If allowed_batch_sizes is not empty, the max_batch_size must be included)
+{v_1 : list(int), v_2 : int} |= if v_1.len > 0 then (∃i ∈ [0, v_1.len - 1] : v_1[i] = v_2)
+>>
+Rule 20 (If autograph is enabled, ensure num_batch_threads is small for debugging)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 < 32
+>>
+Rule 21 (allowed_batch_sizes should be less than max_batch_size)
+{v_1 : list(int), v_2 : int} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≤ v_2
+>>
+Rule 22 (max_batch_size should be a multiple of a value in allowed_batch_sizes if allowed_batch_sizes is not empty.)
+{v_1 : list(int), v_2 : int} |= if v_1.len > 0 then (∃i ∈ [0, v_1.len - 1] : v_2 % v_1[i] = 0) ∨ (∃i ∈ [0, v_1.len - 1] : v_1[i] % v_2 = 0)
+>>
+Rule 23 (batch_timeout_micros should be reasonably small compared to max_batch_size to prevent excessive delays)
+{v_1 : int, v_2 : int} |= v_1 < v_2 * 100000
+>>
+Rule 24 (If large batch splitting is enabled, the number of threads shouldn't be too high for efficient scheduling)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 < 64
+>>
+Rule 25 (Relationship between batch_timeout_micros and max_enqueued_batches)
+{v_1 : int, v_2 : int} |= v_1 / v_2 > 100
+>>
+Rule 26 (If enable_large_batch_splitting is enabled, max_enqueued_batches should be greater than 1 to allow for concurrent processing.)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 1
+>>
+Rule 27 (If autograph is enabled, batch_timeout_micros should be high enough to allow compile time)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 100
+>>
+Rule 28 (If allowed_batch_sizes is empty, max_batch_size should be relatively small to prevent large memory allocations.)
+{v_1 : list(int), v_2 : int} |= if v_1.len = 0 then v_2 < 4096
+>>
+Rule 29 (if autograph is false, the batch_timeout_micros should be relatively large to allow for potential CPU scheduling delays.)
+{v_1 : bool, v_2 : int} |= if v_1 = false then v_2 > 500
+>>
+Rule 30 (max_enqueued_batches should be small relative to the system memory)
+{v_1 : int} |= v_1 < 50
+>>
+Rule 31 (The allowed_batch_sizes list should not have duplicate entries.)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i+1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+>>
+Rule 32 (If autograph is enabled, enable_large_batch_splitting should be preferred for performance)
+{v_1 : bool, v_2 : bool} |= if v_1 = true then v_2 = true
+>>
+Rule 33 (num_batch_threads must be less than or equal to max_enqueued_batches to avoid resource contention)
+{v_1 : int, v_2 : int} |= v_1 ≤ v_2
+>>
+Rule 34 (If enable_large_batch_splitting is enabled, max_batch_size should be significantly larger than the smallest allowed_batch_size, if any)
+{v_1 : bool, v_2 : int, v_3 : list(int)} |= if v_1 = true ∧ v_3.len > 0 then v_2 > v_3[0] * 4
+>>
+Rule 35 (If allowed_batch_sizes is empty, max_batch_size should be at least a minimum size to make batching useful)
+{v_1 : list(int), v_2 : int} |= if v_1.len = 0 then v_2 > 4
+>>
+Rule 36 (If autograph is enabled and large batch splitting is disabled, ensure the batch timeout is short to prevent latency.)
+{v_1 : bool, v_2 : bool, v_3 : int} |= if v_1 = true ∧ v_2 = false then v_3 < 2000
+>>
+Rule 37 (If autograph and enable_large_batch_splitting are both true, num_batch_threads should not be too high, as splitting can be more efficient on fewer threads.)
+{v_1 : bool, v_2 : bool, v_3 : int} |= if v_1 = true ∧ v_2 = true then v_3 < 16
+>>
+Rule 38 (If allowed_batch_sizes is not empty, it should contain at least one valid batch size, smaller than or equal to the max_batch_size)
+{v_1 : list(int), v_2 : int} |= if v_1.len > 0 then ∃i ∈ [0, v_1.len - 1] : v_1[i] ≤ v_2
+>>
+Rule 39 (When enable_large_batch_splitting is enabled and there are allowed batch sizes, the smallest allowed batch size should be a reasonable fraction of the largest allowed batch size, to make the splitting effective.)
+{v_1 : bool, v_2 : list(int)} |= if v_1 = true ∧ v_2.len > 0 then v_2[0] > v_2[v_2.len - 1] / 8
+>>
+Rule 40 (If autograph is enabled and the framework determines that the graph operations are too expensive with respect to batching time, reduce max_batch_size.)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 < 2048
+>>
+Rule 41 (If enable_large_batch_splitting is true and the operation involves non-trivial data transfers, a longer batch_timeout_micros may be beneficial.)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 50
+>>
+Rule 42 (max_enqueued_batches should be significantly less than max_batch_size to prevent large memory allocation per enqueued batch)
+{v_1 : int, v_2 : int} |= v_1 < v_2 / 4
+>>
+Rule 43 (If enable_large_batch_splitting is false, max_batch_size should be closer to the typical batch sizes expected by the underlying function for optimal performance.)
+{v_1 : bool, v_2 : int} |= if v_1 = false then v_2 < 1024
+>>
+Rule 44 (If enable_large_batch_splitting is enabled and autograph is disabled, then the batch_timeout_micros should be greater than zero to account for overhead)
+{v_1 : bool, v_2 : bool, v_3 : int} |= if v_1 = true ∧ v_2 = false then v_3 > 0
+>>
+Rule 45 (If num_batch_threads is too high, it can negatively impact batch_timeout_micros, so if threads are maxed out, batch timeout should be higher)
+{v_1 : int, v_2 : int} |= if v_1 > 64 then v_2 > 100
+>>
+Rule 46 (If max_batch_size is very large, enable_large_batch_splitting is preferred to avoid OOM errors)
+{v_1 : int, v_2 : bool} |= if v_1 > 8192 then v_2 = true
+>>
+Rule 47 (batch_timeout_micros should scale linearly with max_enqueued_batches to ensure a good balance between latency and throughput)
+{v_1 : int, v_2 : int} |= v_1 < v_2 * 5000
+>>
+Rule 48 (If autograph is disabled and the underlying graph operations are complex or involve many dependencies, max_enqueued_batches should be increased to improve throughput.)
+{v_1 : bool, v_2 : int} |= if v_1 = false then v_2 > 5
+>>
+Rule 50 (If autograph is enabled, batch_timeout_micros should be large enough to amortize the cost of compilation, but not excessively large, as that can lead to increased latency for small batch sizes.)
+{v_1 : bool, v_2 : int} |= if v_1 = true then 100 < v_2 ∧ v_2 < 1000000
+>>
+Rule 52 (When enable_large_batch_splitting is enabled, the number of batch threads and max enqueued batches must not be set so high to cause memory exhaustion when the input is split.)
+{v_1 : bool, v_2 : int, v_3 : int} |= if v_1 = true then v_2 * v_3 < 500
+>>
+Rule 53 (If there are allowed_batch_sizes, max_enqueued_batches should be reasonably small, otherwise, queue padding will be very inefficient.)
+{v_1 : list(int), v_2 : int} |= if v_1.len > 0 then v_2 < 20
+>>
+Rule 54 (If the underlying function makes heavy use of vector instructions (e.g. SIMD), then num_batch_threads should be a power of 2 to prevent performance degradations related to memory layout and alignment)
+{v_1 : int} |= ∃i ∈ [0, 10] : v_1 = 2 * i
+>>
+Rule 69 (max_enqueued_batches cannot be larger than a system defined maximum value.)
+{v_1 : int} |= v_1 < 256
+>>
+Rule 70 (batch_timeout_micros should not be excessively high)
+{v_1: int} |= v_1 < 5000000
+>>
+Rule 71 (If autograph is enabled, ensure the maximum enqueued batches is reasonably high to hide autograph compilation latency.)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 ≥ 5
+>>
+Rule 72 (Ensure max_batch_size is not excessively small)
+{v_1 : int} |= v_1 > 1
+>>
+Rule 74 (Ensure batch_timeout_micros is not zero)
+{v_1 : int} |= v_1 ≠ 0
+>>
+Rule 75 (num_batch_threads must be less than or equal to 1000)
+{v_1 : int} |= v_1 ≤ 1000

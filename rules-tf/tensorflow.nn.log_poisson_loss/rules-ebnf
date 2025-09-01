@@ -1,144 +1,174 @@
 >>
-Rule 1 (targets and log_input should have the same shape)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 1 (log_input and targets must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1) ∧ shape(v_1, 2) = shape(v_2, 2) ∧ shape(v_1, 3) = shape(v_2, 3) ∧ shape(v_1, 4) = shape(v_2, 4)
 >>
-Rule 2 (log_input should be of type float32 or float64)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 2 (log_input must be float32 or float64)
+{v_1 : tensor} |= dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
 >>
 Rule 3 (compute_full_loss should be a boolean)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 4 (targets should be a tensor)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 5 (targets must have non-negative values, because of poisson distribution)
+{v_1 : tensor} |= min(v_1) ≥ 0
 >>
-Rule 10 (If compute_full_loss is true then targets should be positive)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then min(v_1) ≥ 0
+Rule 6 (targets must be an integer.)
+{v_1: tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
 >>
-Rule 11 (log_input and target tensors have compatible dtypes)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 8)
+Rule 7 (log_input and targets must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 12 (If compute_full_loss is true, then target tensors should have no NaN values)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then min(v_1) ≠ "nan"
+Rule 11 (targets must be an integer type)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
 >>
-Rule 13 (Targets must be non-negative when compute_full_loss is true and log_input is zero)
-{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 = true then ∀i ∈ [0, ndim(v_1) - 1]: (shape(v_1, i) = shape(v_2, i)) ∧ (∀j ∈ [0, shape(v_1,i)-1]: (v_2[j] >= 0) ∨ (v_1[j] != 0.0))
+Rule 23 (The shape of targets should be greater than 0)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 14 (log_input cannot be NaN)
-{v_1 : tensor} |= min(v_1) ≠ "nan" ∧ max(v_1) ≠ "nan"
+Rule 24 (Targets should be an integer)
+{v_1 : tensor} |= (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5)
 >>
-Rule 15 (Targets must have finite values)
-{v_1: tensor} |= min(v_1) ≠ "inf" ∧ max(v_1) ≠ "inf"
+Rule 25 (targets can not have negative value)
+{v_1 : tensor} |= min(v_1) >= 0
 >>
-Rule 16 (log_input and target tensors have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 40 (log_input and targets must have compatible shapes for broadcasting)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∨ (ndim(v_1) > ndim(v_2) ∧ ∀i ∈ [0, ndim(v_2) -1]: shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i)) ∨ (ndim(v_2) > ndim(v_1) ∧ ∀i ∈ [0, ndim(v_1) -1]: shape(v_2, ndim(v_2) - ndim(v_1) + i) = shape(v_1, i))
 >>
-Rule 17 (if compute_full_loss is false, then targets can have negative values)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then true else min(v_1) ≥ 0
+Rule 48 (The product of the dimensions of targets must be greater or equal to zero)
+{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4)  >= 0
 >>
-Rule 18 (log_input is not infinite)
-{v_1 : tensor} |= min(v_1) ≠ "inf" ∧ max(v_1) ≠ "inf"
+Rule 49 (log_input can not be complex)
+{v_1 : tensor} |= dtype_(v_1) != 10 ∧ dtype_(v_1) != 11
 >>
-Rule 21 (If compute_full_loss is true, then targets cannot be infinite.)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then min(v_1) ≠ "inf" ∧ max(v_1) ≠ "inf"
+Rule 50 (log_input and targets must have compatible shapes for broadcasting. Checking number of elements)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) = shape(v_2, 0) * shape(v_2, 1) * shape(v_2, 2) * shape(v_2, 3) * shape(v_2, 4)
 >>
-Rule 22 (Targets and Log_input must have more than one element)
-{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1) ∧ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 1)
+Rule 54 (If targets are int8, then values should be within the range of int8)
+{v_1 : tensor} |= if dtype_(v_1) = 1 then min(v_1) >= -128 ∧ max(v_1) <= 127
 >>
-Rule 24 (If compute_full_loss is true, then all target values must be integers)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Rule 55 (log_input and targets must have the same number of elements)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) ∧ (shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) = shape(v_2, 0) * shape(v_2, 1) * shape(v_2, 2) * shape(v_2, 3) * shape(v_2, 4))
 >>
-Rule 25 (compute_full_loss must be either True or False)
-{v_1: bool} |= v_1 = true ∨ v_1 = false
+Rule 58 (If targets are int8, then values should be within the range of int8, int16 and so on)
+{v_1 : tensor} |= if dtype_(v_1) = 1 then min(v_1) >= -128 ∧ max(v_1) <= 127 else if dtype_(v_1) = 2 then min(v_1) >= -32768 ∧ max(v_1) <= 32767 else if dtype_(v_1) = 3 then min(v_1) >= -2147483648 ∧ max(v_1) <= 2147483647 else if dtype_(v_1) = 4 then min(v_1) >= -9223372036854775808 ∧ max(v_1) <= 9223372036854775807
 >>
-Rule 26 (If compute_full_loss is true, then targets must be integer valued)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] % 1 = 0
->>
-Rule 27 (log_input must be a finite number)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≠ "inf" ∧ v_1[j] ≠ "-inf"
->>
-Rule 30 (Targets and Log_input must have the same rank.)
-{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2)
->>
-Rule 31 (If compute_full_loss is true, target values must be non-negative and log_input values cannot be zero)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then (min(v_1) ≥ 0 ∧ min(v_2) > "-inf" )
->>
-Rule 32 (If log_input contains negative values, compute_full_loss must be false)
-{v_1 : tensor, v_2 : bool} |= if ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : v_1[j] < 0 then v_2 = false
->>
-Rule 33 (Targets cannot be complex number)
+Rule 59 (log_input must be a real number)
 {v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
 >>
-Rule 35 (If compute_full_loss is true, then targets dtype must be int)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5)
+Rule 65 (targets and log_input need to have same number of dimensions to avoid broadcast issues.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 36 (If compute_full_loss is true, target tensors cannot contain NaN values)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≠ "nan"
+Rule 66 (log_input data type needs to be explicitly float32 or float64 for calculations.)
+{v_1 : tensor} |= (dtype_(v_1) > 7) ∧ (dtype_(v_1) < 10)
 >>
-Rule 37 (If targets contains NaN, compute_full_loss must be false)
-{v_1 : tensor, v_2 : bool} |= if ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : v_1[j] = "nan" then v_2 = false
+Rule 67 (compute_full_loss should only be true/false.)
+{v_1 : bool} |= (v_1 = true) ∨ (v_1 = false)
 >>
-Rule 41 (If compute_full_loss is True, targets must be non-negative integers)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≥ 0 ∧ v_1[j] % 1 = 0
+Rule 68 (Targets should have integer type.)
+{v_1 : tensor} |= (dtype_(v_1) > 0) ∧ (dtype_(v_1) < 6)
 >>
-Rule 42 (If log_input values are small, compute_full_loss should be set to false)
-{v_1: tensor, v_2: bool} |= if min(v_1) < -10 then v_2 = false
+Rule 69 (targets must be of non-complex data type)
+{v_1: tensor} |= dtype_(v_1) < 10
 >>
-Rule 44 (log_input cannot be infinite.)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≠ "inf" ∧ v_1[j] ≠ "-inf"
+Rule 70 (All dimensions of log_input must be greater than 0)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 47 (If targets contains negative values, compute_full_loss must be false)
-{v_1: tensor, v_2: bool} |= if ∃i ∈ [0, ndim(v_1) - 1]: ∃j ∈ [0, shape(v_1, i) - 1]: v_1[j] < 0 then v_2 = false
+Rule 71 (Enforce shape equality by checking that the *product* of the dimensions is equal.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) > 0) ∧ (ndim(v_2) > 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) ∧ (shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) = shape(v_2, 0) * shape(v_2, 1) * shape(v_2, 2) * shape(v_2, 3) * shape(v_2, 4))
 >>
-Rule 49 (Targets' values must be finite numbers.)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: ∀j ∈ [0, shape(v_1, i) - 1]: v_1[j] ≠ "inf" ∧ v_1[j] ≠ "-inf"
+Rule 74 (targets should be non-negative if the dtype is unsigned int, use list to define the types)
+{v_1: tensor} |= if (dtype_(v_1) = 5) then (min(v_1) >= 0)
 >>
-Rule 50 (Log_input's values must be finite numbers, and not NaN)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: ∀j ∈ [0, shape(v_1, i) - 1]: v_1[j] ≠ "inf" ∧ v_1[j] ≠ "-inf" ∧ v_1[j] ≠ "nan"
+Rule 75 (log_input must not be a complex number)
+{v_1 : tensor} |= dtype_(v_1) < 10
 >>
-Rule 52 (If compute_full_loss is True, log_input values must be finite)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≠ "inf" ∧ v_1[j] ≠ "-inf" ∧ v_1[j] ≠ "nan"
+Rule 76 (Log input cannot be string)
+{v_1: tensor} |= dtype_(v_1) != 12
 >>
-Rule 53 (If targets contains negative or NaN values, compute_full_loss must be False)
-{v_1: tensor, v_2: bool} |= if ∃i ∈ [0, ndim(v_1) - 1]: ∃j ∈ [0, shape(v_1, i) - 1]: (v_1[j] < 0) ∨ (v_1[j] = "nan") then v_2 = false
+Rule 77 (Dimensions of log_input and targets must be positive to avoid errors in further calculations)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
 >>
-Rule 55 (The values of Log input must be a valid number)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≠ "nan"
+Rule 78 (The datatype of log_input must be either float32 or float64)
+{v_1: tensor} |= (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9)
 >>
-Rule 56 (if compute_full_loss is false, then negative or infinite values are permitted in targets)
-{v_1: tensor, v_2: bool} |= if v_2 = false then true else ∀i ∈ [0, ndim(v_1) - 1]: ∀j ∈ [0, shape(v_1, i) - 1]: v_1[j] ≥ 0 ∧ v_1[j] ≠ "inf" ∧ v_1[j] ≠ "-inf" ∧ v_1[j] ≠ "nan"
+Rule 82 (log_input datatype cannot be string to avoid ValueError)
+{v_1 : tensor} |= dtype_(v_1) != 12
 >>
-Rule 57 (log_input must contain finite values)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≠ "nan" ∧ v_1[j] ≠ "inf" ∧ v_1[j] ≠ "-inf"
+Rule 83 (the number of elements in target and log_input must match, making product same)
+{v_1 : tensor, v_2 : tensor} |= (shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) = shape(v_2, 0) * shape(v_2, 1) * shape(v_2, 2) * shape(v_2, 3) * shape(v_2, 4))
 >>
-Rule 58 (If log_input contains large positive values, compute_full_loss should be false.)
-{v_1 : tensor, v_2 : bool} |= if max(v_1) > 10 then v_2 = false
+Rule 84 (targets and log_input must both be tensors and have a non-zero number of elements to avoid a shape-related ValueError)
+{v_1 : tensor, v_2 : tensor} |=  (shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4)) > 0 ∧ (shape(v_2, 0) * shape(v_2, 1) * shape(v_2, 2) * shape(v_2, 3) * shape(v_2, 4)) > 0 ∧ (ndim(v_1) > 0) ∧ (ndim(v_2) > 0) ∧ ( shape(v_1, 0) = shape(v_2, 0)) ∧ ( shape(v_1, 1) = shape(v_2, 1)) ∧ ( shape(v_1, 2) = shape(v_2, 2)) ∧ ( shape(v_1, 3) = shape(v_2, 3)) ∧ ( shape(v_1, 4) = shape(v_2, 4))
 >>
-Rule 59 (If Log_input contains very small values, then the compute_full_loss parameter has to be false)
-{v_1 : tensor, v_2: bool} |= if min(v_1) < -10 then v_2 = false
+Rule 85 (the log_input tensor can be either float32 or float64, using comparison again but in opposite order)
+{v_1 : tensor} |= (dtype_(v_1) ≥ 8) ∧ (dtype_(v_1) ≤ 9)
 >>
-Rule 61 (If compute_full_loss is set to true, the minimum value of targets needs to be 0)
-{v_1: tensor, v_2 : bool} |= if v_2 = true then min(v_1) ≥ 0
+Rule 87 (Targets need to be non-negative values, or not integer at all)
+{v_1 : tensor} |= if ((dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5)) then (min(v_1) >= 0)
 >>
-Rule 62 (log_input and targets should not be string)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 12 ∧ dtype_(v_2) ≠ 12
+Rule 89 (Check if log_input datatype is not string to avoid value error)
+{v_1 : tensor} |= dtype_(v_1) ≠ 12
 >>
-Rule 63 (If log_input contains a NaN value, compute_full_loss must be false.)
-{v_1 : tensor, v_2: bool} |= if ∃i ∈ [0, ndim(v_1) - 1]: ∃j ∈ [0, shape(v_1, i) - 1]: v_1[j] = "nan" then v_2 = false
+Rule 102 (log_input can't be another dtype - Must be float32 OR float64)
+{v_1 : tensor} |= (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9)
 >>
-Rule 64 (The minimum and maximum of log_input are not infinite)
-{v_1: tensor} |= min(v_1) ≠ "inf" ∧ max(v_1) ≠ "inf" ∧ min(v_1) ≠ "-inf" ∧ max(v_1) ≠ "-inf"
+Rule 103 (compute_full_loss must be one of two boolean values)
+{v_1: bool} |= (v_1 = true) ∨ (v_1=false)
 >>
-Rule 65 (If the user chooses compute_full_loss, then the dtype should be an int to be able to approximate stirling)
-{v_1: tensor, v_2: bool} |= if v_2 = true then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5)
+Rule 105 (Check for not a complex data type)
+{v_1: tensor} |= (dtype_(v_1) ≠ 10) ∧ (dtype_(v_1) ≠ 11)
 >>
-Rule 66 (compute_full_loss cannot be true when targets contains NaN value)
-{v_1: tensor, v_2: bool} |= if ∃i ∈ [0, ndim(v_1) - 1]: ∃j ∈ [0, shape(v_1, i) - 1]: v_1[j] = "nan" then v_2 = false
+Rule 110 (Log Input: Not equal to complex64)
+{v_1 : tensor} |= dtype_(v_1) ≠ 10
 >>
-Rule 67 (If Targets has inf/ -inf , the compute_full_loss should not be performed)
-{v_1: tensor, v_2: bool} |= if ∃i ∈ [0, ndim(v_1) - 1]: ∃j ∈ [0, shape(v_1, i) - 1]: (v_1[j] = "inf") ∨ (v_1[j] = "-inf") then v_2 = false
+Rule 111 (Log Input: Not equal to complex128)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
 >>
-Rule 69 (Both the log input and the target should have the same data type)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 112 (Shape of targets and log_input should have positive length)
+{v_1 : tensor, v_2 : tensor} |= (shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) > 0) ∧ (shape(v_2, 0) * shape(v_2, 1) * shape(v_2, 2) * shape(v_2, 3) * shape(v_2, 4) > 0)
 >>
-Rule 70 (Log_input should be a tensor.)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 113 (Log Input: Must have dtype code greater than 7 and less than 10)
+{v_1: tensor} |= (dtype_(v_1) > 7) ∧ (dtype_(v_1) < 10)
+>>
+Rule 114 (Should be 0 or 1)
+{v_1 : bool} |= (v_1 = true) ∨ (v_1=false)
+>>
+Rule 115 (Name must have length greater than or equal to 0)
+{v_1 : str} |= v_1.len ≥ 0
+>>
+Rule 118 (Target and Log Input: Number of Dimensions should be the same to match output shape)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2)
+>>
+Rule 119 (Log Input: dtype must be in range of acceptable floats)
+{v_1 : tensor} |= 8 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 9
+>>
+Rule 128 (dtype of Log Input, must not be complex)
+{v_1 : tensor} |= (dtype_(v_1) ≠ 10) ∧ (dtype_(v_1) ≠ 11)
+>>
+Rule 129 (Dimensions, if Log Input and targets are not the same then False, otherwise True)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then false
+>>
+Rule 130 (Log Input, It can not be Int8)
+{v_1: tensor} |= (dtype_(v_1) ≠ 1)
+>>
+Rule 131 (compute_full_loss must not be a string)
+{v_1: bool} |= if (v_1 = "any string") then false
+>>
+Rule 132 (Compute full loss, it can not be an int)
+{v_1 : bool} |= (v_1 ≠ 1)
+>>
+Rule 135 (Targets and Log Input: Must have compatible shapes to avoid ValueError, checking only the first dimensions.)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 136 (Log Input must be non-integer as target must be integer, checking using !=)
+{v_1: tensor} |= (dtype_(v_1) != 1) ∧ (dtype_(v_1) != 2) ∧ (dtype_(v_1) != 3) ∧ (dtype_(v_1) != 4) ∧ (dtype_(v_1) != 5)
+>>
+Rule 137 (compute_full_loss should not be string)
+{v_1: bool} |= (v_1 != "none")
+>>
+Rule 138 (Shape of Log input must not be equal to 0)
+{v_1: tensor} |= shape(v_1, 0) != 0
+>>
+Rule 139 (Check if targets datatype is not complex64)
+{v_1 : tensor} |= (dtype_(v_1) ≠ 10)
+>>
+Rule 140 (The shape of target data should be more than 10)
+{v_1 : tensor} |= (shape(v_1, 0) > 10) ∨ (shape(v_1, 1) > 10)

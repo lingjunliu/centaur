@@ -1,51 +1,111 @@
 >>
-Rule 1 (path should be a non-empty string)
+Rule 2 (path must be a non-empty string)
 {v_1 : str} |= v_1 ≠ ""
 >>
-Rule 2 (element_spec must be a tensor)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 4 (compression must be either "GZIP" or "NONE")
+{v_1: str} |= v_1 = "GZIP" ∨ v_1 = "NONE"
 >>
-Rule 3 (compression must be "GZIP" or "NONE")
+Rule 9 (element_spec should be a list of same type specs.)
+{v_1 : list(dtype)} |= v_1.len > 0
+>>
+Rule 14 (element_spec should not be empty)
+{v_1 : list(int) } |= v_1.len > 0
+>>
+Rule 15 (element_spec must not be an empty list of float.)
+{v_1 : list(float) } |= v_1.len > 0
+>>
+Rule 20 (element_spec should have a small length to prevent errors, like less than 5)
+{v_1 : list(dtype)} |= v_1.len < 5
+>>
+Rule 27 (path must be non empty)
+{v_1 : str} |= v_1 != ""
+>>
+Rule 28 (compression has to be NONE or GZIP)
+{v_1 : str} |= v_1 = "NONE" ∨ v_1 = "GZIP"
+>>
+Rule 32 (element_spec must have a certain length)
+{v_1 : list(dtype)} |= v_1.len > 1
+>>
+Rule 44 (Path must be a valid string)
+{v_1:str} |= v_1 != ""
+>>
+Rule 45 (Compression must be GZIP or NONE)
 {v_1 : str} |= v_1 = "GZIP" ∨ v_1 = "NONE"
 >>
-Rule 7 (compression must be "GZIP" or "NONE" or empty string)
-{v_1 : str} |= v_1 = "GZIP" ∨ v_1 = "NONE" ∨ v_1 = ""
+Rule 46 (element_spec must be greater than zero for int)
+{v_1 : list(int)} |= v_1.len > 0
 >>
-Rule 8 (if element_spec is a tuple, it should have at least one element)
-{v_1 : tuple(tensor)} |= v_1.len > 0
+Rule 51 (If compression is GZIP, path should contain .gz)
+{v_1:str, v_2:str} |= if v_2 = "GZIP" then ∃i ∈ [0, v_1.len - 1] : v_1[i] = "." ∧ v_1[i+1] = "g" ∧ v_1[i+2] = "z"
 >>
-Rule 9 (if element_spec is a list, it should have at least one element)
-{v_1 : list(tensor)} |= v_1.len > 0
+Rule 52 (Shape must be smaller than 10 to avoid errors)
+{v_1:list(dtype)} |= v_1.len < 10
 >>
-Rule 10 (reader_func returns a dataset.)
-{v_1 : tensor} |= ndim(v_1) >=0
+Rule 58 (If element_spec is empty, path must have .old)
+{v_1 : str, v_2 : list(dtype)} |= if v_2.len = 0 then ∃i ∈ [0, v_1.len - 1] : v_1[i] = "." ∧ v_1[i+1] = "o" ∧ v_1[i+2] = "l" ∧ v_1[i+3] = "d"
 >>
-Rule 17 (if element_spec is a tensor, then it must have a defined dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 12
+Rule 61 (If compression is GZIP, path should contain .gz)
+{v_1 : str, v_2 : list(dtype)} |= if v_1 = "GZIP" then ∃i ∈ [0, v_2.len - 1] : v_2[i] = "." ∧ v_2[i+1] = "g" ∧ v_2[i+2] = "z"
 >>
-Rule 20 (element_spec cannot be an empty tuple)
-{v_1: tuple(tensor)} |= v_1.len > 0
+Rule 62 (element_spec must have a smaller length than 5, when compression is GZIP)
+{v_1 : str, v_2 : list(dtype)} |= if v_1 = "GZIP" then v_2.len < 5
 >>
-Rule 25 (element_spec cannot be an empty list)
-{v_1: list(tensor)} |= v_1.len > 0
+Rule 63 (if reader_func is an empty list element_spec must be empty)
+{v_1 : list(dtype), v_2 : list(dtype)} |= if v_2.len = 0 then v_1.len = 0
 >>
-Rule 28 (element_spec cannot be an empty list or tuple)
-{v_1: list(tensor) ⊎ tuple(tensor)} |= v_1.len > 0
+Rule 66 (If compression is GZIP, path should contain .gz)
+{v_1 : str, v_2 : str} |= if v_1 = "GZIP" then ∃i ∈ [0, v_2.len - 1] : v_2[i] = "." ∧ v_2[i+1] = "g" ∧ v_2[i+2] = "z"
 >>
-Rule 30 (If the shape of element_spec has more than one dimension, all dimensions should be greater than 0)
-{v_1: tensor} |= if ndim(v_1) > 1 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 67 (Reader func must not have length of negative 1)
+{v_1 : list(dtype)} |= v_1.len > -1
 >>
-Rule 35 (if reader_func exists, the input must be a tensor)
-{v_1: tensor} |= ndim(v_1) >=0
+Rule 81 (Path, Compression, and element_spec all play into validity)
+{v_1 : str, v_2 : list(dtype), v_3: str} |= if v_3 = "GZIP" then (∃i ∈ [0, v_1.len - 1] : v_1[i] = "." ∧ v_1[i+1] = "g" ∧ v_1[i+2] = "z") ∧ v_2.len < 5 else v_1.len > 0
 >>
-Rule 45 (If element spec is a tensor, its number of dimension should be positive)
-{v_1 : tensor} |= ndim(v_1) >= 0
+Rule 82 (Path and element spec size influence the number of shards)
+{v_1 : str, v_2 : list(dtype)} |= if v_2.len > 0 then shape(v_2, 0) < v_1.len
 >>
-Rule 49 (If element_spec has more than one dimension, then first two dimensions shouldn't be equal to zero.)
-{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 83 (Compression and element_spec's influence)
+{v_1 : str, v_2 : list(dtype)} |= if v_1 = "GZIP" then v_2.len > 0 else v_2.len = 0
 >>
-Rule 54 (If compression is GZIP, then path must have a '.gz' suffix)
-{v_1 : str, v_2 : str} |= if v_1 = "GZIP" then v_2.len > 3 ∧ v_2[v_2.len - 1] = "z" ∧ v_2[v_2.len - 2] = "g" ∧ v_2[v_2.len - 3] = "."
+Rule 84 (Path, Compression, and element_spec)
+{v_1 : str, v_2 : list(dtype), v_3: str} |= if v_3 = "GZIP" then (∃i ∈ [0, v_1.len - 1] : v_1[i] = "." ∧ v_1[i+1] = "g" ∧ v_1[i+2] = "z") ∧ (v_2.len > 0) else v_1.len > 0
 >>
-Rule 70 (If the shape of element_spec is 0, then ndim(element_spec) should be 0)
-{v_1: tensor} |= if ndim(v_1) = 0 then true
+Rule 85 (Reader function exist depends on element_spec)
+{v_1 : list(dtype), v_2 : list(dtype)} |= if v_1.len > 0 then v_2.len > 0 else v_2.len = 0
+>>
+Rule 86 (Compression must be NONE when element spec is also not NONE. )
+{v_1: str, v_2: list(dtype)} |= if v_2.len = 0 then v_1 = "NONE"
+>>
+Rule 87 (Path depends on Compression + Element spec)
+{v_1 : str, v_2 : list(dtype), v_3: str} |= if v_3 = "GZIP" then (∃i ∈ [0, v_1.len - 1] : v_1[i] = "." ∧ v_1[i+1] = "g" ∧ v_1[i+2] = "z") ∧ v_1.len > 5 else v_1.len > 0 ∧ v_2.len < 5
+>>
+Rule 88 (If use list length is less than path Length and Path greater than zero)
+{v_1 : str, v_2 : list(dtype)} |= if v_1.len > v_2.len then v_1.len > 0 else false
+>>
+Rule 89 (If no compression, length is 0 )
+{v_1: str, v_2: list(dtype)} |= if v_1 = "NONE" then v_2.len = 0
+>>
+Rule 90 (Relationship between element spec and compression on path)
+{v_1 : str, v_2 : list(dtype), v_3: str} |= if v_3 = "GZIP" then (∃i ∈ [0, v_1.len - 1] : v_1[i] = "." ∧ v_1[i+1] = "g" ∧ v_1[i+2] = "z") ∧ (v_2.len > 0) else (v_1.len > 0)
+>>
+Rule 91 ( If there is Element Spec and compression then length is affected)
+{v_1 : str, v_2 : list(dtype)} |=  if v_2.len > 0 then v_1.len > shape(v_2,0) else v_1.len >0
+>>
+Rule 92 (Element spec affect compression option)
+{v_1: str, v_2: list(dtype)} |= if v_1 != "NONE" then v_2.len > 0
+>>
+Rule 93 (Path depends on Compression + element_spec length)
+{v_1 : str, v_2 : list(dtype), v_3: str} |= if v_3 = "GZIP" then (∃i ∈ [0, v_1.len - 1] : v_1[i] = "." ∧ v_1[i+1] = "g" ∧ v_1[i+2] = "z") ∧ (v_2.len > 0 ∧ v_1.len > 5) else (v_1.len > 0)
+>>
+Rule 94 (If compression is not NONE, element_spec must have the same type)
+{v_1 : list(dtype), v_2 : str} |= if v_1.len > 0 then v_2 ≠ "NONE"
+>>
+Rule 95 (If compression is NONE, the length of element spec must be 0)
+{v_1: str, v_2: list(dtype)} |= if v_1 = "NONE" then v_2.len = 0 else v_2.len > 0
+>>
+Rule 96 ( If the path contains '.gz' , compression type must be GZIP )
+{v_1: str, v_2: str} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "." ∧ v_1[i+1] = "g" ∧ v_1[i+2] = "z" then v_2 = "GZIP"
+>>
+Rule 98 (If the element spec is longer, path cant be named "null")
+{v_1 : str, v_2 : list(dtype)} |= if v_2.len > 2 then v_1 != "null"

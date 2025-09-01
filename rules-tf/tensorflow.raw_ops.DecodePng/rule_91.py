@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# When the number of channel is 4, the output must have 4 channel (Rule 91)
+# if dtype is tf.uint16, then min value in the tensor has to be greater or equal to 0 (Rule 91)
 
 rule_91 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == 4, Select(v["arg1_shape"], 2) == 4, False)) if n else
-          If(v["arg2_value"] == 4, Select(v["arg1_shape"], 2) == 4, False))
+    s.add(Not(If(v["arg1_value"] == 2, Select(v["arg2_range"], 0) >= 0, True)) if n else
+          If(v["arg1_value"] == 2, Select(v["arg2_range"], 0) >= 0, True))
 )
 
 def rule_91_func(arg1, arg2, solver=None, neg=False):
@@ -18,25 +18,25 @@ def rule_91_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_value = Int('arg2_value')
+        arg1_value = Int('arg1_value')
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 91
-        rule_91(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_91(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_91(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_91(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range']}, neg)

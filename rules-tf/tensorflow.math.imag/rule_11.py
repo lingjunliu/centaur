@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input dtype is float16, float32, float64, complex64, complex128 then dtype value is 6, 7, 8, 10, 11 (Rule 11)
+# if input is float, then result is same dtype as input (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 10), v["arg1_dtype"] == 11), True, False)) if n else
-          If(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 10), v["arg1_dtype"] == 11), True, False))
+    s.add(Not(If(v["arg1_dtype"] == 7, v["arg1_dtype"] == 7, If(v["arg1_dtype"] == 8, v["arg1_dtype"] == 8, True))) if n else
+          If(v["arg1_dtype"] == 7, v["arg1_dtype"] == 7, If(v["arg1_dtype"] == 8, v["arg1_dtype"] == 8, True)))
 )
 
 def rule_11_func(arg1, solver=None, neg=False):

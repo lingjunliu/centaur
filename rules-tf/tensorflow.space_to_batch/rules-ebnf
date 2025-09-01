@@ -1,54 +1,39 @@
 >>
-Rule 1 (input tensor must be N-Dimensional where N >= 1)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 1 (block_shape must be a 1-D tensor)
+{block_shape : tensor} |= ndim(block_shape) = 1
 >>
-Rule 2 (block_shape tensor must be 1-Dimensional)
-{v_2 : tensor} |= ndim(v_2) = 1
+Rule 2 (paddings must be a 2-D tensor)
+{paddings : tensor} |= ndim(paddings) = 2
 >>
-Rule 3 (paddings tensor must be 2-Dimensional)
-{v_3 : tensor} |= ndim(v_3) = 2
+Rule 3 (block_shape values must be >= 1)
+{block_shape : tensor} |= ∀ i ∈ [0, shape(block_shape, 0) - 1] : shape(block_shape, i) ≥ 1
 >>
-Rule 4 (block_shape values must be greater than or equal to 1)
-{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 1
+Rule 4 (paddings values must be >= 0)
+{paddings : tensor} |= ∀ i ∈ [0, shape(paddings, 0) - 1] : (shape(paddings, i) ≥ 0) ∧ (shape(paddings, i) ≥ 0)
 >>
-Rule 6 (block_shape dimension must match paddings first dimension)
-{v_2 : tensor, v_3 : tensor} |= shape(v_2, 0) = shape(v_3, 0)
+Rule 5 (paddings shape[1] must be 2)
+{paddings : tensor} |= shape(paddings, 1) = 2
 >>
-Rule 12 (block_shape values must be of integer type)
-{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Rule 6 (block_shape and paddings must have the same first dimension length)
+{block_shape : tensor, paddings : tensor} |= shape(block_shape, 0) = shape(paddings, 0)
 >>
-Rule 13 (paddings values must be of integer type)
-{v_3 : tensor} |= dtype_(v_3) = 3 ∨ dtype_(v_3) = 4
+Rule 7 (input must be a tensor)
+{input : tensor} |= ndim(input) > 0
 >>
-Rule 15 (Paddings dimension size check)
-{v_3 : tensor} |= shape(v_3, 1) = 2
+Rule 8 (input shape[i+1] + pad_start + pad_end must be divisible by block_shape[i])
+{input : tensor, block_shape : tensor, paddings : tensor} |= ∀ i ∈ [0, shape(block_shape, 0) - 1] : (shape(input, i + 1) + shape(paddings, i*2) + shape(paddings, i*2+1)) % shape(block_shape, i) = 0
 >>
-Rule 16 (input block_shape and paddings should have compatible dtypes)
-{v_2 : tensor, v_3 : tensor} |= dtype_(v_2) = dtype_(v_3)
+Rule 9 (block_shape's dtype should be int32 or int64)
+{block_shape : tensor} |= dtype_(block_shape) = 2 ∨ dtype_(block_shape) = 4
 >>
-Rule 17 (input dimension size check with block_shape and paddings)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_2, 0) ≤ ndim(v_1) - 1 ∧ shape(v_3, 0) ≤ ndim(v_1) - 1
+Rule 10 (paddings's dtype should be int32 or int64)
+{paddings : tensor} |= dtype_(paddings) = 2 ∨ dtype_(paddings) = 4
 >>
-Rule 19 (Number of spatial dimensions must be less than or equal to the total number of dimensions in input)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) ≤ ndim(v_1)
+Rule 11 (input's dtype must be in the allowed list)
+{input : tensor} |= dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 4 ∨ dtype_(input) = 5 ∨ dtype_(input) = 3 ∨ dtype_(input) = 2 ∨ dtype_(input) = 9 ∨ dtype_(input) = 1 ∨ dtype_(input) = 0 ∨ dtype_(input) = 6 ∨ dtype_(input) = 10
 >>
-Rule 26 (Block shape cannot be larger than input spatial dimensions)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ shape(v_1, i + 1)
+Rule 12 (The length of paddings should not be greater than the input's number of spatial dimensions)
+{input : tensor, paddings : tensor} |= shape(paddings, 0) <= ndim(input) - 1
 >>
-Rule 27 (broadcasting compatibility for tensor shapes)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)
->>
-Rule 28 (the given string should be a valid padding type)
-{v_1 : str} |= v_1 = "constant" ∨ v_1 = "reflect" ∨ v_1 = "symmetric"
->>
-Rule 29 (valid 2D transposed convolution)
-{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) - 1) + shape(v_2, 2) - 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) - 1) + shape(v_2, 3) - 2 × v_4 > 0
->>
-Rule 30 (4D tensor with all shape dimensions positive)
-{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
->>
-Rule 31 (tuple of ints represents valid shape dimensions)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
->>
-Rule 32 (block_shape must have positive values)
-{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] > 0
+Rule 13 (block_shape's dimension should be equal to the number of spatial dimensions of the input)
+{input : tensor, block_shape : tensor} |= shape(block_shape, 0) = ndim(input) - 1

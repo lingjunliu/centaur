@@ -1,162 +1,141 @@
 >>
-Rule 1 (begin tensor must be 1-dimensional)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 1 (begin and size must be int32 or int64 tensors)
+{v_2 : tensor, v_3 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∧ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4
 >>
-Rule 3 (begin and size tensors should have the same length)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 2 (begin and size must be 1-D tensors)
+{v_2 : tensor, v_3 : tensor} |= ndim(v_2) = 1 ∧ ndim(v_3) = 1
 >>
-Rule 4 (begin values should be non-negative)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
+Rule 3 (begin and size must have the same length)
+{v_2 : tensor, v_3 : tensor} |= shape(v_2, 0) = shape(v_3, 0)
 >>
-Rule 5 (size values can be -1 or greater than 0)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = -1 ∨ v_1[i] > 0
+Rule 5 (begin[i] + size[i] must be less than or equal to the dimension size of input_)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] + v_3[i] ≤ shape(v_1, i)
 >>
-Rule 6 (begin + size should be less than or equal to the corresponding dimension of input_)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_2, 0) = shape(v_3, 0) ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] + v_3[i] ≤ shape(v_1, i)
+Rule 7 (input_ must be a tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 7 (input_ tensor must have same rank or higher than begin/size tensors.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ shape(v_2, 0)
+Rule 12 (begin[i] must be non-negative)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0
 >>
-Rule 8 (If size[i] is -1, then size[i] = input_.dim_size(i) - begin[i])
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_2, 0) = shape(v_3, 0) ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : if v_3[i] = -1 then v_3[i] = shape(v_1, i) - v_2[i]
+Rule 14 (size[i] can be -1, meaning all remaining elements)
+{v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : v_3[i] ≥ -1
 >>
-Rule 9 (begin tensor must be of type int32 or int64)
-{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 19 (The sum of the elements of begin must be less than the product of the shape of input_)
+{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < shape(v_1, i)
 >>
-Rule 11 (begin tensor must be 1-dimensional and non-empty)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) > 0
->>
-Rule 13 (input_ tensor must be at least 1-dimensional)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
->>
-Rule 14 (The number of dimensions in begin and size must be less than or equal to the number of dimensions in input_)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) ≥ ndim(v_2) ∧ ndim(v_1) ≥ ndim(v_3)
->>
-Rule 16 (begin and size tensor data types should be the same)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
->>
-Rule 18 (input_ tensor rank should be greater than or equal to the rank of begin/size)
+Rule 24 (input_ must have at least as many dimensions as begin and size)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ ndim(v_2)
 >>
-Rule 19 (size tensor elements can be -1)
-{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = -1
+Rule 25 (The elements of size cannot be all zero)
+{v_3 : tensor} |= ∃i ∈ [0, shape(v_3, 0) - 1] : v_3[i] ≠ 0
 >>
-Rule 20 (The begin values must not cause out of bounds access)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_2[i] ≥ 0 ∧ v_2[i] < shape(v_1, i)
+Rule 30 (input_ must have at least as many dimensions as begin and size, and must be greater than 0)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ ndim(v_2) ∧ ndim(v_1) > 0
 >>
-Rule 21 (Begin and size must be tensors)
-{v_1: tensor, v_2: tensor} |= ndim(v_1) >=1 ∧ ndim(v_2) >=1
+Rule 36 (Check if shape of input is valid)
+{v_1 : tensor} |= ndim(v_1) < 5
 >>
-Rule 22 (input_ is a tensor with at least one dimension)
-{v_1 : tensor} |= ndim(v_1) >= 1
+Rule 37 (Check if at least one element of size is greater than zero)
+{v_3 : tensor} |= ∃i ∈ [0, shape(v_3, 0) - 1] : v_3[i] > 0
 >>
-Rule 23 (If size[i] is -1, remaining elements are selected, so begin[i] must be within bounds)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : if v_2[i] = -1 then v_1[i] >=0 ∧ v_1[i] < shape(v_1, i)
+Rule 41 (begin and size dtypes must match)
+{v_2 : tensor, v_3 : tensor} |= dtype_(v_2) = dtype_(v_3)
 >>
-Rule 24 (Begin and Size have the same number of elements)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1,0) = shape(v_2,0)
+Rule 47 (Check that begin and size have positive shape[0])
+{v_2 : tensor, v_3 : tensor} |= shape(v_2, 0) > 0 ∧ shape(v_3, 0) > 0
 >>
-Rule 27 (Input_, begin and size must all be tensors)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) >= 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1
+Rule 52 (size cannot have negative element other than -1)
+{v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : v_3[i] > -2
 >>
-Rule 28 (Begin and size tensors elements must be non-negative unless equal to -1)
-{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1]: v_1[i] >= -1
+Rule 53 (input_ cannot be a scalar)
+{v_1 : tensor} |= ndim(v_1) ≠ 0
 >>
-Rule 29 (begin and size have valid shape)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1,0) > 0 ∧ shape(v_2, 0) > 0
+Rule 57 (size must be 1-D)
+{v_3 : tensor} |= ndim(v_3) = 1
 >>
-Rule 31 (If shape(input_,i) is zero then shape(begin, 0) must be less than or equal to ndim(input_))
-{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, ndim(v_1) -1 ] : if shape(v_1, i) = 0 then shape(v_2, 0) <= ndim(v_1)
+Rule 58 (begin must be 1-D)
+{v_2 : tensor} |= ndim(v_2) = 1
 >>
-Rule 32 (If shape(input_,i) is zero then begin[i] must be zero)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : if shape(v_1, i) = 0 then v_2[i] = 0
+Rule 62 (input_ rank must be the same as the size of begin/size)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = shape(v_2, 0)
 >>
-Rule 33 (begin and size tensors must have elements that allow valid slices within the input tensor)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_2, 0) = shape(v_3, 0) ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0 ∧ v_2[i] < shape(v_1, i) ∧ v_2[i] + v_3[i] ≤ shape(v_1, i)
+Rule 63 (All values in begin should be less than shape(input_))
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < shape(v_1, i)
 >>
-Rule 34 (Begin and Size rank must be 1)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1
+Rule 69 (Check that all values in size are less than shape(input_) - begin)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_3[i] <= shape(v_1, i) - v_2[i]
 >>
-Rule 35 (Begin and Size tensors must be int32 or int64)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4)
+Rule 79 (begin should be non-negative and size must be positive, when not -1)
+{v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] >= 0 ∧ (v_3[i] > 0 ∨ v_3[i] = -1)
 >>
-Rule 36 (Number of elements in Begin and Size should not exceed number of dimensions in Input)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) <= ndim(v_2)
+Rule 82 (input_ rank must be the same as the size of begin/size, and must be greater than 0)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = shape(v_2, 0) ∧ ndim(v_1) > 0
 >>
-Rule 38 (If any of the dimensions of input is zero, begin must also be zero)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1,0) = shape(v_2,0) ∧ ∀i ∈ [0, ndim(v_1) -1] : if shape(v_1, i) = 0 then v_2[i] = 0
+Rule 83 (begin must be less than shape(input_) and must be non-negative)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < shape(v_1, i) ∧ v_2[i] >= 0
 >>
-Rule 39 (Input_ must be a tensor)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 84 (size should be greater than 0 or equal to -1)
+{v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : v_3[i] > 0 ∨ v_3[i] = -1
 >>
-Rule 40 (Size cannot contain zero, unless the original shape also has a zero at that index)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_2, 0) = shape(v_3, 0) ∧ ∀i ∈ [0, shape(v_2,0) - 1]: if v_3[i] = 0 then shape(v_1, i) = 0
+Rule 89 (size[i] can only be -1 if begin[i] is 0 and input_.shape[i] is greater than 0)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : if v_3[i] = -1 then v_2[i] = 0 ∧ shape(v_1, i) > 0
 >>
-Rule 41 (If a size is -1, begin must also be valid.)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : if v_2[i] = -1 then v_1[i] >= 0 ∧ v_1[i] < shape(v_1, i)
+Rule 94 (Elements of begin must be less than the corresponding dimension size and non-negative)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < shape(v_1, i) ∧ v_2[i] ≥ 0
 >>
-Rule 42 (If size is greater than -1, then size + begin must be within bounds.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_2, 0) = shape(v_3, 0) ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : if v_3[i] > -1 then v_2[i] + v_3[i] <= shape(v_1, i)
+Rule 97 (Check if size and begin are 1-D tensors and their shapes are compatible)
+{v_2 : tensor, v_3 : tensor} |= ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_2, 0) = shape(v_3, 0)
 >>
-Rule 43 (If any shape in the input tensor is 0, the resulting tensor will also have a 0 in corresponding axis)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1,0) = shape(v_2,0) ∧ ∀i ∈ [0, shape(v_1,0) -1] : if shape(v_1, i) = 0 then v_2[i] = 0
+Rule 99 (begin[i] + size[i] must be less than or equal to shape(input_)[i] if size[i] != -1)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : if v_3[i] ≠ -1 then v_2[i] + v_3[i] ≤ shape(v_1, i)
 >>
-Rule 44 (Begin and Size element product within valid limit.)
-{v_1 : tensor, v_2: tensor} |= ∀i ∈ [0, shape(v_1,0) -1]: v_1[i] * v_2[i] < 2147483647
+Rule 102 (Check shape compatibility between input, begin, and size)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = shape(v_2, 0) ∧ ndim(v_1) = shape(v_3, 0) ∧ ndim(v_1) > 0 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1
 >>
-Rule 45 (Begin, Size is not an empty list)
-{v_1 : tensor} |= shape(v_1,0) > 0
+Rule 106 (Check if size and begin are 1-D tensors and shape is compatible to input_)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_2, 0) = ndim(v_1) ∧ shape(v_3, 0) = ndim(v_1)
 >>
-Rule 46 (Shape must match if not -1)
-{v_1 : tensor, v_2: tensor, v_3 : tensor} |= shape(v_2, 0) = shape(v_3, 0) ∧ ∀i ∈ [0, shape(v_2, 0) -1] : if v_3[i] != -1 then v_2[i] + v_3[i] <= shape(v_1, i)
+Rule 107 (Every begin[i] must be in range of input_.shape[i])
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : 0 <= v_2[i] ∧ v_2[i] < shape(v_1, i)
 >>
-Rule 47 (Begin is non-negative)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] >= 0
+Rule 110 (Check shape compatibility between input, begin, and size)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 1 ∧ shape(v_2, 0) = ndim(v_1)
 >>
-Rule 49 (If size contains a -1, Begin shape must correspond to that dimension.)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ ∀i ∈ [0, shape(v_1, 0) - 1]: if v_2[i] = -1 then v_1[i] >=0
+Rule 111 (If size[i] = -1, then  size[i] + begin[i] == input.shape[i] must be true, or begin[i] + size[i] <= shape(input_)[i])
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : if v_3[i] = -1 then true else v_2[i] + v_3[i] <= shape(v_1, i)
 >>
-Rule 50 (Begin rank must not exceed input rank)
-{v_1 : tensor, v_2: tensor} |= ndim(v_1) >= ndim(v_2)
+Rule 114 (Check shape compatibility, size and begin are 1-D)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_2, 0) = ndim(v_1)
 >>
-Rule 51 (Begin's element must not exceed input_'s shape)
-{v_1: tensor, v_2: tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ ∀i ∈ [0, shape(v_1, 0) -1]: v_1[i] < shape(v_2, i)
+Rule 115 (Check elements relationship for valid slice range)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : 0 <= v_2[i] ∧ (v_3[i] = -1 ∨ (v_2[i] + v_3[i] <= shape(v_1, i)))
 >>
-Rule 52 (Size's element must allow valid slicing)
-{v_1: tensor, v_2: tensor, v_3: tensor} |= shape(v_2, 0) = shape(v_3, 0) ∧ ∀i ∈ [0, shape(v_2, 0) -1]: v_2[i] + v_3[i] <= shape(v_1, i)
+Rule 119 (Check begin[i] + size[i] is within range for all i, if size[i] is not equal to -1)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : if v_3[i] = -1 then true else (0 <= v_2[i] ∧ v_2[i] + v_3[i] <= shape(v_1, i))
 >>
-Rule 53 (Ensure begin and size are non-empty.)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0
+Rule 123 (Each size[i] can only be -1 if the corresponding begin[i] is in the valid range and input_.shape[i] > 0, and the size values themselves should be greater than -2)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] :  v_3[i] > -2  ∧ (if v_3[i] = -1 then (0 <= v_2[i] ∧ v_2[i] < shape(v_1, i) ∧ shape(v_1, i) > 0))
 >>
-Rule 54 (If Input_ is zero then, size is zero)
-{v_1 : tensor, v_2: tensor, v_3 : tensor} |= shape(v_2, 0) = shape(v_3, 0) ∧ ∀i ∈ [0, shape(v_2, 0) -1]: if shape(v_1, i) = 0 then v_3[i] = 0
+Rule 126 (Check number of dimensions and properties for begin, size, and input_ tensors.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_2, 0) = ndim(v_1)  ∧ shape(v_3, 0) = ndim(v_1)
 >>
-Rule 55 (Begin and Size must have same number of axis)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 127 (Each begin[i] must be in range of input_.shape[i])
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : 0 <= v_2[i] ∧ v_2[i] < shape(v_1, i)  ∧ v_3[i] > -2
 >>
-Rule 56 (Input_ is a valid tensor)
-{v_1: tensor} |= ndim(v_1) >=1
+Rule 131 (begin values and begin + size values (if size not -1) must be within bounds of the input tensor's shape)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : (0 <= v_2[i] ∧ v_2[i] < shape(v_1, i)) ∧ (v_3[i] = -1 ∨ (0 <= v_2[i] ∧ v_2[i] + v_3[i] <= shape(v_1, i)))
 >>
-Rule 57 (If a dimension size of the input is 0, the corresponding dimension in size must be 0 or -1)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1,0) = shape(v_2,0) ∧ ∀i ∈ [0, shape(v_1,0) -1] : if shape(v_1, i) = 0 then v_2[i] = 0 ∨ v_2[i] = -1
+Rule 134 (Shape and dimension constraints)
+{v_1 : tensor, v_2 : tensor} |=  ndim(v_2) = 1 ∧ shape(v_2, 0) = ndim(v_1)
 >>
-Rule 61 (If size is negative, throw an error.)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) -1] : v_1[i] ≠ -2 ∧ v_1[i] ≠ -3 ∧ v_1[i] ≠ -4 ∧ v_1[i] < 0 ∨ v_1[i] = -1
+Rule 135 (If size[i] = -1, requires 0 <= begin[i] < shape(v_1, i). Otherwise, the condition 0 <= begin[i] <= begin[i] + size[i] <= shape(v_1, i) must hold)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : if v_3[i] = -1 then (0 <= v_2[i] ∧ v_2[i] < shape(v_1, i)) else (0 <= v_2[i] ∧ v_2[i] + v_3[i] <= shape(v_1, i))
 >>
-Rule 63 (Shape should be reasonable, i.e not be huge numbers.)
-{v_1 : tensor, v_2: tensor} |= shape(v_1,0) < 1000 ∧ shape(v_2,0) < 1000
+Rule 138 (All requirements must be met for each i to determine shape)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_2) = 1) ∧ (ndim(v_3) = 1) ∧ (shape(v_2, 0) = ndim(v_1)) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : (0 <= v_2[i]) ∧ (v_2[i] < shape(v_1, i)) ∧ (v_3[i] > -2))
 >>
-Rule 65 (Begin and size length must be less or equal than dimension of input)
-{v_1 : tensor, v_2: tensor} |= shape(v_1, 0) <= ndim(v_2)
+Rule 141 (Dimensions of begin/size tensors, input tensor, and sizes of each are related and follow the slice constraints)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_2) = 1) ∧ (shape(v_2, 0) = ndim(v_1)) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : (0 <= v_2[i]) ∧ (v_2[i] < shape(v_1, i)) ∧ (v_3[i] > -2) ∧ (v_3[i] = -1 ∨ (v_2[i] + v_3[i] <= shape(v_1, i))))
 >>
-Rule 66 (Input_ is a tensor with at least one dimension)
-{v_1: tensor} |= ndim(v_1) >= 1
->>
-Rule 67 (Size must not contain a zero if input contains a non-zero element.)
-{v_1 : tensor, v_2: tensor, v_3 : tensor} |= shape(v_2, 0) = shape(v_3, 0) ∧ ∀i ∈ [0, shape(v_2, 0) -1]: if shape(v_1, i) != 0 then v_3[i] != 0
->>
-Rule 69 (begin and size tensors must have elements that allow valid slices.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_2, 0) = shape(v_3, 0) ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] >= 0 ∧ v_2[i] + v_3[i] <= shape(v_1, i)
->>
-Rule 70 (The product of each dimension must be less than signed integer max)
-{v_1: tensor, v_2: tensor} |= ∀i ∈ [0, shape(v_1,0) -1]: v_1[i] * v_2[i] < 2147483647
+Rule 147 (All conditions must be respected for shape of begin, size and input and value of each element.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |=  (∀i ∈ [0, shape(v_2, 0) - 1] : (ndim(v_2) = 1) ∧ (shape(v_2, 0) = ndim(v_1)) ∧ (0 <= v_2[i]) ∧ (v_2[i] < shape(v_1, i)) ∧ (v_3[i] > -2) ∧ (v_3[i] = -1 ∨ (v_2[i] + v_3[i] <= shape(v_1, i))))

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The tensor should not have large values, to prevent overflow in cosh (Rule 25)
+# The absolute value of the minimum and maximum elements of the input tensor should not be extremely large to prevent overflow. (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 1) < 100) if n else
-          Select(v["arg1_range"], 1) < 100)
+    s.add(Not(And(Select(v["arg1_range"], 1) < 100, Select(v["arg1_range"], 0) > -100)) if n else
+          And(Select(v["arg1_range"], 1) < 100, Select(v["arg1_range"], 0) > -100))
 )
 
 def rule_25_func(arg1, solver=None, neg=False):

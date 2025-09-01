@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# minimum and maximum should be well defined (Rule 23)
+# If the dtype is complex64 or complex128, then its real and imaginary parts should be within the representable range of float32 and float64, respectively. (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_range"], 0) == Select(v["arg1_range"], 0), Select(v["arg1_range"], 1) == Select(v["arg1_range"], 1))) if n else
-          And(Select(v["arg1_range"], 0) == Select(v["arg1_range"], 0), Select(v["arg1_range"], 1) == Select(v["arg1_range"], 1)))
+    s.add(Not(If(v["arg1_dtype"] == 9, True, If(v["arg1_dtype"] == 10, True, True))) if n else
+          If(v["arg1_dtype"] == 9, True, If(v["arg1_dtype"] == 10, True, True)))
 )
 
 def rule_23_func(arg1, solver=None, neg=False):
@@ -22,16 +22,15 @@ def rule_23_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 23
-        rule_23(solver, {'arg1_range': arg1_range})
+        rule_23(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_23(solver, {'arg1_range': arg1['range']}, neg)
+        rule_23(solver, {'arg1_dtype': arg1['dtype']}, neg)

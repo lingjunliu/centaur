@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If bias is 1 and alpha is 1, then beta can be anything between 0 and 1 (Rule 121)
+# If beta is not near 0.5 then alpha has to be smaller than 20, for normalization to have an effect. bias must be reasonable. (Rule 121)
 
 rule_121 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_value"] == 1, v["arg2_value"] == 1), And(v["arg3_value"] >= 0, v["arg3_value"] <= 1), False)) if n else
-          If(And(v["arg1_value"] == 1, v["arg2_value"] == 1), And(v["arg3_value"] >= 0, v["arg3_value"] <= 1), False))
+    s.add(Not(If(Or(v["arg2_value"] < 0.4, v["arg2_value"] > 0.6), And(v["arg1_value"] < 20, v["arg3_value"] < 1000), True)) if n else
+          If(Or(v["arg2_value"] < 0.4, v["arg2_value"] > 0.6), And(v["arg1_value"] < 20, v["arg3_value"] < 1000), True))
 )
 
 def rule_121_func(arg1, arg2, arg3, solver=None, neg=False):

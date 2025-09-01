@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The DeepCopy op returns a tensor with the same shape as the input tensor. (Rule 3)
+# The tensor must have a shape with positive dimensions (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg1_shape"], i)) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg1_shape"], i)) for i in range(6)]))
+    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]))
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

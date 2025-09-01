@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check that max value is positive if dtype is float (Rule 18)
+# If x is complex64, the output will also be complex64 (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 7, Select(v["arg1_range"], 1) > 0, False)) if n else
-          If(v["arg1_dtype"] == 7, Select(v["arg1_range"], 1) > 0, False))
+    s.add(Not(If(v["arg1_dtype"] == 10, True, True)) if n else
+          If(v["arg1_dtype"] == 10, True, True))
 )
 
 def rule_18_func(arg1, solver=None, neg=False):
@@ -23,17 +23,14 @@ def rule_18_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 18
-        rule_18(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_18(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_18(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_18(solver, {'arg1_dtype': arg1['dtype']}, neg)

@@ -1,93 +1,171 @@
 >>
-Rule 1 (signal must be a tensor)
-{v_1 : tensor} |= ndim(v_1) ≥ 2
+Rule 1 (signal's rank must be at least 2)
+{signal : tensor} |= ndim(signal) ≥ 2
 >>
 Rule 3 (frame_step must be less than or equal to frame_length)
-{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, ndim(v_1) - 1)
+{signal : tensor, frame_step : int} |= frame_step ≤ shape(signal, ndim(signal) - 1)
 >>
-Rule 5 (frame_step must be greater than zero)
-{v_2 : int} |= v_2 > 0
+Rule 6 (signal's dtype must be in allowed list)
+{signal : tensor} |= dtype_(signal) ≠ 0 ∧ dtype_(signal) ≠ 1 ∧ dtype_(signal) ≠ 2 ∧ dtype_(signal) ≠ 12
 >>
-Rule 7 (The output size is calculated correctly)
-{v_1 : tensor, v_2 : int, v_3 : int} |= v_3 = (shape(v_1, ndim(v_1) - 2) - 1) * v_2 + shape(v_1, ndim(v_1) - 1)
+Rule 7 (signal's rank must be at least 2 and frame_step must be smaller than frame length)
+{signal : tensor, frame_step : int} |= ndim(signal) ≥ 2 ∧ frame_step ≤ shape(signal, ndim(signal) - 1)
 >>
-Rule 8 (signal should not have dimensions equal to zero)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 9 (signal must have positive frame and frame_step to avoid OOM)
+{signal: tensor, frame_step: int} |= shape(signal, ndim(signal) - 2) > 0 ∧ shape(signal, ndim(signal) - 1) > 0 ∧ frame_step > 0
 >>
-Rule 9 (signal's frame_length dimension must be greater than zero)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0
+Rule 12 (signal's dtype must not be bool)
+{signal: tensor} |= dtype_(signal) ≠ 0
 >>
-Rule 10 (signal's frames dimension must be greater than zero)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 2) > 0
+Rule 13 (signal must satisfy rank and shape, dtype must not be bool)
+{signal : tensor, frame_step : int} |= ndim(signal) ≥ 2 ∧ shape(signal, ndim(signal) - 2) > 0 ∧ shape(signal, ndim(signal) - 1) > 0 ∧ frame_step > 0 ∧ frame_step ≤ shape(signal, ndim(signal) - 1) ∧ dtype_(signal) ≠ 0
 >>
-Rule 11 (frame_step and frame_length should not both be very large to avoid OOM)
-{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) * v_2 < 2000000000
+Rule 17 (signal must satisfy rank and shape, frame_step within limits)
+{signal : tensor, frame_step : int} |= ndim(signal) ≥ 2 ∧ shape(signal, ndim(signal) - 2) > 0 ∧ shape(signal, ndim(signal) - 1) > 0 ∧ frame_step > 0 ∧ frame_step ≤ shape(signal, ndim(signal) - 1)
 >>
-Rule 12 (The frame_step must be a scalar Tensor.)
-{v_2 : tensor} |= ndim(v_2) = 0
+Rule 18 (signal's dtype must not be bool and if int32 frame length should be small)
+{signal : tensor} |= dtype_(signal) ≠ 0 ∧ if dtype_(signal) = 3 then shape(signal, ndim(signal) - 1) < 1000
 >>
-Rule 13 (The frame_step must be an integer)
-{v_2 : tensor} |= dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5
+Rule 20 (if signal is int32, frame length should be small AND signal shape should have rank at least 2)
+{signal : tensor} |= if dtype_(signal) = 3 then ndim(signal) >= 2 ∧ shape(signal, ndim(signal) - 1) < 1000
 >>
-Rule 14 (frame_step must be less than or equal to the signal's frame_length)
-{v_1 : tensor, v_2 : tensor} |= v_2 ≤ shape(v_1, ndim(v_1) - 1)
+Rule 21 (signal must satisfy rank, shape, frame_step within limits, dtype valid, int32 frame length)
+{signal : tensor, frame_step : int} |= ndim(signal) ≥ 2 ∧ shape(signal, ndim(signal) - 2) > 0 ∧ shape(signal, ndim(signal) - 1) > 0 ∧ frame_step > 0 ∧ frame_step ≤ shape(signal, ndim(signal) - 1) ∧ dtype_(signal) ≠ 0 ∧ if dtype_(signal) = 3 then shape(signal, ndim(signal) - 1) < 1000
 >>
-Rule 16 (frame_length cannot be zero)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) ≠ 0
+Rule 22 (signal should not have a shape which can cause OOM)
+{signal : tensor} |= shape(signal, ndim(signal)-1) * shape(signal, ndim(signal)-2) < 100000000
 >>
-Rule 17 (If signal has more than 2 dimensions, the leading dimensions must be preserved)
-{v_1 : tensor} |= if ndim(v_1) > 2 then true
+Rule 23 (signal requirements: rank, shape, frame_step, dtype, OOM)
+{signal : tensor, frame_step : int} |= ndim(signal) ≥ 2 ∧ shape(signal, ndim(signal) - 2) > 0 ∧ shape(signal, ndim(signal) - 1) > 0 ∧ frame_step > 0 ∧ frame_step ≤ shape(signal, ndim(signal) - 1) ∧ dtype_(signal) ≠ 0 ∧ shape(signal, ndim(signal)-1) * shape(signal, ndim(signal)-2) < 100000000
 >>
-Rule 18 (frame_step should be an integer tensor if signal is an integer tensor.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5
+Rule 24 (if signal is int32, frame length should be small to avoid paddings issues)
+{signal : tensor} |= if dtype_(signal) = 3 then shape(signal, ndim(signal) - 1) < 1000
 >>
-Rule 20 (Frame_step's value must not be so large that output_size calculation overflows)
-{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 2) < 2000000000 / v_2
+Rule 25 (signal shape should not be a scalar)
+{signal : tensor} |= ∃i ∈ [0, ndim(signal)-1] : shape(signal, i) > 1
 >>
-Rule 21 (frame_step's dtype should match signal's dtype if signal is not integer)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then true else dtype_(v_1) = dtype_(v_2)
+Rule 26 (signal requirements: rank, shape, frame_step, dtype, OOM, valid shape)
+{signal : tensor, frame_step : int} |= ndim(signal) ≥ 2 ∧ shape(signal, ndim(signal) - 2) > 0 ∧ shape(signal, ndim(signal) - 1) > 0 ∧ frame_step > 0 ∧ frame_step ≤ shape(signal, ndim(signal) - 1) ∧ dtype_(signal) ≠ 0 ∧ shape(signal, ndim(signal)-1) * shape(signal, ndim(signal)-2) < 100000000 ∧  (∃i ∈ [0, ndim(signal)-1] : shape(signal, i) > 1)
 >>
-Rule 22 (frame_step must be a positive value)
-{v_2 : tensor} |= min(v_2) > 0
+Rule 28 (signal requirements: rank, shape, frame_step, dtype, OOM, valid shape, small frame length if int32)
+{signal : tensor, frame_step : int} |= ndim(signal) ≥ 2 ∧ shape(signal, ndim(signal) - 2) > 0 ∧ shape(signal, ndim(signal) - 1) > 0 ∧ frame_step > 0 ∧ frame_step ≤ shape(signal, ndim(signal) - 1) ∧ dtype_(signal) ≠ 0 ∧ shape(signal, ndim(signal)-1) * shape(signal, ndim(signal)-2) < 100000000 ∧ (∃i ∈ [0, ndim(signal)-1] : shape(signal, i) > 1) ∧ if dtype_(signal) = 3 then shape(signal, ndim(signal) - 1) < 1000
 >>
-Rule 23 (If signal is complex, framestep should also be complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
+Rule 29 (frames must be smaller than 1 million)
+{signal : tensor} |= shape(signal, ndim(signal)-2) < 1000000
 >>
-Rule 24 (frame_step's dtype should be a valid integer or floating-point type)
-{v_2 : tensor} |= dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+Rule 30 (signal requirements: rank, shape, frame_step, dtype, OOM, valid shape, small frame length if int32, smaller frames size)
+{signal : tensor, frame_step : int} |= ndim(signal) ≥ 2 ∧ shape(signal, ndim(signal) - 2) > 0 ∧ shape(signal, ndim(signal) - 1) > 0 ∧ frame_step > 0 ∧ frame_step ≤ shape(signal, ndim(signal) - 1) ∧ dtype_(signal) ≠ 0 ∧ shape(signal, ndim(signal)-1) * shape(signal, ndim(signal)-2) < 100000000 ∧ (∃i ∈ [0, ndim(signal)-1] : shape(signal, i) > 1) ∧ if dtype_(signal) = 3 then shape(signal, ndim(signal) - 1) < 1000 ∧ shape(signal, ndim(signal)-2) < 1000000
 >>
-Rule 26 (if signal is integer, frame_step should be integer as well)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5) then (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 5)
+Rule 31 (frame_step should be small enough to avoid huge padding )
+{signal: tensor, frame_step: int} |= shape(signal, ndim(signal)-1) - frame_step > -50
 >>
-Rule 28 (frame_step should be less or equal than the frame_length even if they are tensors)
-{v_1 : tensor, v_2 : tensor} |= max(v_2) ≤ shape(v_1, ndim(v_1)-1)
+Rule 32 (signal requirements: rank, shape, frame_step, dtype, OOM, valid shape, small frame length if int32, smaller frames size, frame_step valid to paddings)
+{signal : tensor, frame_step : int} |= ndim(signal) ≥ 2 ∧ shape(signal, ndim(signal) - 2) > 0 ∧ shape(signal, ndim(signal) - 1) > 0 ∧ frame_step > 0 ∧ frame_step ≤ shape(signal, ndim(signal) - 1) ∧ dtype_(signal) ≠ 0 ∧ shape(signal, ndim(signal)-1) * shape(signal, ndim(signal)-2) < 100000000 ∧ (∃i ∈ [0, ndim(signal)-1] : shape(signal, i) > 1) ∧ if dtype_(signal) = 3 then shape(signal, ndim(signal) - 1) < 1000 ∧ shape(signal, ndim(signal)-2) < 1000000 ∧ shape(signal, ndim(signal)-1) - frame_step > -50
 >>
-Rule 29 (output_size must be positive)
-{v_1 : tensor, v_2 : int} |= (shape(v_1, ndim(v_1) - 2) - 1) * v_2 + shape(v_1, ndim(v_1) - 1) > 0
+Rule 33 (signal should not have a shape that results in a scalar output)
+{signal : tensor, frame_step : int} |= (shape(signal, ndim(signal) - 2) - 1) * frame_step + shape(signal, ndim(signal) - 1) > 1
 >>
-Rule 31 (If signal's dtype is complex64, frame_step's dtype must also be complex64)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 then dtype_(v_2) = 9
+Rule 34 (signal comprehensive requirements)
+{signal : tensor, frame_step : int} |= ndim(signal) ≥ 2 ∧ shape(signal, ndim(signal) - 2) > 0 ∧ shape(signal, ndim(signal) - 1) > 0 ∧ frame_step > 0 ∧ frame_step ≤ shape(signal, ndim(signal) - 1) ∧ dtype_(signal) ≠ 0 ∧ shape(signal, ndim(signal)-1) * shape(signal, ndim(signal)-2) < 100000000 ∧ (∃i ∈ [0, ndim(signal)-1] : shape(signal, i) > 1) ∧ if dtype_(signal) = 3 then shape(signal, ndim(signal) - 1) < 1000 ∧ shape(signal, ndim(signal)-2) < 1000000 ∧ shape(signal, ndim(signal)-1) - frame_step > -50 ∧ (shape(signal, ndim(signal) - 2) - 1) * frame_step + shape(signal, ndim(signal) - 1) > 1
 >>
-Rule 32 (If signal's dtype is complex128, frame_step's dtype must also be complex128)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 11 then dtype_(v_2) = 11
+Rule 36 (frame_step should be sufficiently smaller than frame_length)
+{signal : tensor, frame_step : int} |= frame_step < shape(signal, ndim(signal) - 1)
 >>
-Rule 33 (If frame_step is a tensor, it should be a 0-dimensional tensor of integer type)
-{v_2 : tensor} |= ndim(v_2) = 0 ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
+Rule 37 (frame_step should not be excessively small)
+{signal : tensor, frame_step : int} |= frame_step > shape(signal, ndim(signal) - 1) / 10
 >>
-Rule 35 (If the frame_step is a tensor, its value should not be greater than the frame length)
-{v_1 : tensor, v_2 : tensor} |= max(v_2) <= shape(v_1, ndim(v_1) -1 )
+Rule 38 (frame_step and signal shape should have a multiplicative cap)
+{signal : tensor, frame_step : int} |= frame_step * shape(signal, ndim(signal) - 2) < 100000
 >>
-Rule 36 (If signal's dtype is float16, frame_step's dtype must also be float16)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6
+Rule 39 (If the frame_length is very large, the frame_step should not be too small)
+{signal: tensor, frame_step: int} |= if shape(signal, ndim(signal) - 1) > 500 then frame_step > 10
 >>
-Rule 37 (If signal's dtype is float32, frame_step's dtype must also be float32)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7
+Rule 40 (frame_step should result to valid output size)
+{signal : tensor, frame_step : int} |= (shape(signal, ndim(signal) - 2) - 1) * frame_step + shape(signal, ndim(signal) - 1) > 0
 >>
-Rule 38 (If signal's dtype is float64, frame_step's dtype must also be float64)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = 8
+Rule 41 (frame_length must not be too large to cause huge paddings if int32)
+{signal: tensor} |= if dtype_(signal) = 3 then shape(signal, ndim(signal) - 1) < 2048
 >>
-Rule 40 (output_size can not be greater than max int)
-{v_1 : tensor, v_2 : int} |= (shape(v_1, ndim(v_1) - 2) - 1) * v_2 + shape(v_1, ndim(v_1) - 1) < 2147483647
+Rule 42 (Signal rank check combined with frame_step positivity)
+{signal: tensor, frame_step: int} |= ndim(signal) >= 2 ∧ frame_step > 0
 >>
-Rule 41 (Frame step should be an int64 if output size is large and needs int64)
-{v_1 : tensor, v_2 : int} |= if (shape(v_1, ndim(v_1) - 2) - 1) > 2147483647 / v_2 then true
+Rule 43 (signal frame and frame_length shape values cannot cause OOM)
+{signal: tensor} |= shape(signal, ndim(signal) - 1) * shape(signal, ndim(signal) - 2) < 500000000
+>>
+Rule 44 (rank is valid, frame_step is limited by shape)
+{signal: tensor, frame_step: int} |= ndim(signal) >= 2 ∧ frame_step <= shape(signal, ndim(signal)-1)
+>>
+Rule 45 (avoid negative paddings by limiting frame_step difference against frame length)
+{signal: tensor, frame_step: int} |= shape(signal, ndim(signal)-1) - frame_step >= 0
+>>
+Rule 46 (signal shape validation and rank >= 2)
+{signal: tensor} |= ndim(signal) >= 2 ∧ shape(signal, ndim(signal)-1) > 0 ∧ shape(signal, ndim(signal)-2) > 0
+>>
+Rule 47 (Frame step must be int-like and less than or equal to frame_length)
+{signal: tensor, frame_step: int} |= frame_step <= shape(signal, ndim(signal)-1)
+>>
+Rule 49 (Frame_step should be valid wrt the shape of Signal)
+{signal: tensor, frame_step: int} |= frame_step > 0 ∧ frame_step <= shape(signal, ndim(signal)-1) ∧ shape(signal, ndim(signal)-1) < 2048
+>>
+Rule 51 (Frame_step should be valid wrt the shape of Signal, small if int32)
+{signal: tensor, frame_step: int} |= frame_step > 0 ∧ frame_step <= shape(signal, ndim(signal)-1) ∧ if dtype_(signal) = 3 then shape(signal, ndim(signal) - 1) < 1000
+>>
+Rule 53 (Frame_step must be valid and if signal dtype is 3, then framelength is valid)
+{signal: tensor, frame_step: int} |= frame_step > 0 ∧ frame_step <= shape(signal, ndim(signal)-1) ∧ if dtype_(signal) = 3 then shape(signal, ndim(signal) - 1) < 2048
+>>
+Rule 54 (The output_size should be non negative)
+{signal: tensor, frame_step: int} |= (shape(signal, ndim(signal)-2)-1)*frame_step + shape(signal, ndim(signal)-1) > 0
+>>
+Rule 56 (Frame_step must be valid based on Signal + small frame length optimization if dtype is int32)
+{signal: tensor, frame_step: int} |= frame_step > 0 ∧ frame_step <= shape(signal, ndim(signal)-1)  ∧ (if dtype_(signal) = 3 then shape(signal, ndim(signal) - 1) < 2048)
+>>
+Rule 59 (Basic signal validation, and frame_length cap)
+{signal: tensor} |= ndim(signal) >= 2 ∧ shape(signal, ndim(signal)-1) > 0 ∧ shape(signal, ndim(signal)-2) > 0 ∧ dtype_(signal) ≠ 0 ∧ shape(signal, ndim(signal) - 1) < 2048
+>>
+Rule 60 (Frame_step validity based on signal)
+{signal: tensor, frame_step: int} |= frame_step > 0 ∧ frame_step <= shape(signal, ndim(signal)-1)
+>>
+Rule 62 (Basic shape, dimension, and dtype validation)
+{signal: tensor} |= ndim(signal) >= 2 ∧ shape(signal, ndim(signal)-1) > 0 ∧ shape(signal, ndim(signal)-2) > 0 ∧ dtype_(signal) ≠ 0
+>>
+Rule 63 (Frame_step validity, accounting for int32 frames)
+{signal: tensor, frame_step: int} |= frame_step > 0 ∧ frame_step <= shape(signal, ndim(signal)-1) ∧ (if dtype_(signal) = 3 then shape(signal, ndim(signal) - 1) < 2048)
+>>
+Rule 64 (Prevent large pad values given frame_step)
+{signal: tensor, frame_step: int} |= shape(signal, ndim(signal) - 1) - frame_step > -28
+>>
+Rule 65 (Signal requirements to prevent ValueError and ensure proper processing)
+{signal: tensor, frame_step: int} |= ndim(signal) >= 2 ∧ shape(signal, ndim(signal)-1) > 0 ∧ shape(signal, ndim(signal)-2) > 0 ∧ frame_step > 0 ∧ frame_step <= shape(signal, ndim(signal)-1)
+>>
+Rule 66 (Padding concerns and avoid bool tensors)
+{signal: tensor} |= dtype_(signal) ≠ 0 ∧ shape(signal, ndim(signal) - 1) < 2048
+>>
+Rule 67 (Prevent huge allocs.)
+{signal: tensor} |= shape(signal, ndim(signal)-1) * shape(signal, ndim(signal)-2) < 500000000
+>>
+Rule 69 (Frame_step constraint on upper bound with safety against int32 && padding)
+{signal: tensor, frame_step: int} |= frame_step > 0 ∧ frame_step <= shape(signal, ndim(signal)-1)  ∧ (if dtype_(signal) = 3 then shape(signal, ndim(signal) - 1) < 2048) ∧ shape(signal, ndim(signal) - 1) - frame_step > -28
+>>
+Rule 75 (Composed: Shape/Dimension & Dtype constraints for signal, and Frame_step constraints based on Signal-frame length)
+{signal: tensor, frame_step: int} |= ndim(signal) >= 2 ∧ shape(signal, ndim(signal)-1) > 0 ∧ shape(signal, ndim(signal)-2) > 0 ∧ dtype_(signal) ≠ 0 ∧ frame_step > 0 ∧ frame_step <= shape(signal, ndim(signal)-1)
+>>
+Rule 77 (If signal is int32, cap on framelength to avoid huge memory padding allocations + Ensure enough system resources)
+{signal: tensor} |= (if dtype_(signal) = 3 then shape(signal, ndim(signal) - 1) < 2048) ∧ shape(signal, ndim(signal)-1) * shape(signal, ndim(signal)-2) < 500000000
+>>
+Rule 80 (Limits to address paddings related issues)
+{signal: tensor, frame_step: int} |= shape(signal, ndim(signal) - 1) - frame_step > -28 ∧ (shape(signal, ndim(signal)-2)-1)*frame_step + shape(signal, ndim(signal)-1) > 0
+>>
+Rule 82 (Combined signal constraints: shape, dimensions, type, OOM limits)
+{signal: tensor} |= ndim(signal) >= 2 ∧ shape(signal, ndim(signal)-1) > 0 ∧ shape(signal, ndim(signal)-2) > 0 ∧ dtype_(signal) ≠ 0 ∧ shape(signal, ndim(signal)-1) * shape(signal, ndim(signal)-2) < 500000000
+>>
+Rule 83 (Frame_step properties to prevent errors)
+{signal: tensor, frame_step: int} |= frame_step > 0 ∧ frame_step <= shape(signal, ndim(signal)-1) ∧ shape(signal, ndim(signal) - 1) - frame_step > -28 ∧ (if dtype_(signal) = 3 then shape(signal, ndim(signal) - 1) < 2048)
+>>
+Rule 85 (Padding and memory consumption management. Smaller frame length is used if dtype is int32 to lower memory requirements)
+{signal: tensor} |= shape(signal, ndim(signal) - 1) - (shape(signal, ndim(signal)-1)) < 28 ∧ shape(signal, ndim(signal)-1) * shape(signal, ndim(signal)-2) < 500000000 ∧ (if dtype_(signal) = 3 then shape(signal, ndim(signal) - 1) < 2048)
+>>
+Rule 87 (Padding and memory safety.)
+{signal: tensor} |= shape(signal, ndim(signal) - 1) - (shape(signal, ndim(signal)-1)) < 28 ∧ shape(signal, ndim(signal)-1) * shape(signal, ndim(signal)-2) < 500000000
+>>
+Rule 91 (Restrict Frame_length when signal data type is Int32)
+{signal: tensor} |= (if dtype_(signal) = 3 then shape(signal, ndim(signal) - 1) < 2048)

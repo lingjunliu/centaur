@@ -1,135 +1,276 @@
 >>
 Rule 1 (input must be a string tensor)
-{v_1 : tensor} |= dtype_(v_1) = 11
+{input : tensor} |= dtype_(input) = 11
 >>
-Rule 4 (input must be a string tensor and a scalar)
-{v_1 : tensor} |= dtype_(v_1) = 11 ∧ ndim(v_1) = 0
+Rule 2 (output_stream must be a valid string value)
+{output_stream : str} |= output_stream = "stderr" ∨ output_stream = "stdout" ∨ output_stream = "file"
 >>
-Rule 5 (output_stream must be a valid string value)
-{v_2 : str} |= v_2 = "stderr" ∨ v_2 = "stdout" ∨ v_2 = "info" ∨ v_2 = "error" ∨ v_2 = "debug"
+Rule 3 (end must be a valid string value)
+{end : str} |= end = "\n" ∨ end = "" ∨ end = "\r\n"
 >>
-Rule 6 (end string should not be too long)
-{v_3 : str} |= v_3.len < 256
+Rule 4 (output_stream and end cannot be the same)
+{output_stream : str, end : str} |= output_stream ≠ end
 >>
-Rule 9 (end string should have reasonable characters)
-{v_3 : str} |= ∀i ∈ [0, v_3.len - 1] : v_3[i] = "\n" ∨ v_3[i] = " " ∨ v_3[i] = "\t"
+Rule 5 (input tensor should be a scalar)
+{input : tensor} |= ndim(input) = 0
 >>
-Rule 11 (input must be a scalar tensor)
-{v_1 : tensor} |= ndim(v_1) = 0
+Rule 6 (output_stream should not be an empty string)
+{output_stream : str} |= output_stream ≠ ""
 >>
-Rule 13 (end string should not be an empty string)
-{v_3 : str} |= v_3.len > 0
+Rule 8 (If output stream is file, end should not be newline)
+{output_stream : str, end : str} |= if output_stream = "file" then end ≠ "\n"
 >>
-Rule 15 (output_stream must be a valid string value and not empty)
-{v_2 : str} |= (v_2 = "stderr" ∨ v_2 = "stdout" ∨ v_2 = "info" ∨ v_2 = "error" ∨ v_2 = "debug") ∧ v_2.len > 0
+Rule 9 (end string should not be too long - simplified approximation)
+{end : str} |= end ≠ "aaaaaaaaaa" ∧ end ≠ "bbbbbbbbbb" ∧ end ≠ "cccccccccc"
 >>
-Rule 16 (end string should have length less than 100)
-{v_3 : str} |= v_3.len < 100
+Rule 12 (If end is specified, it cannot contain special characters)
+{end : str} |= (end ≠ "\t") ∧ (end ≠ "\b") ∧ (end ≠ "\f")
 >>
-Rule 17 (name should be a string with a specific prefix)
-{v_4 : str} |= if v_4.len > 0 then v_4[0] = "P"
+Rule 13 (output_stream should be one of the valid logging levels if not "stderr", "stdout" or "file".)
+{output_stream : str} |= output_stream = "stderr" ∨ output_stream = "stdout" ∨ output_stream = "file" ∨ output_stream = "DEBUG" ∨ output_stream = "INFO" ∨ output_stream = "WARNING" ∨ output_stream = "ERROR"
 >>
-Rule 20 (end string should have length less than 100 and contain only ASCII characters)
-{v_3 : str} |= v_3.len < 100 ∧ ∀i ∈ [0, v_3.len - 1] : (v_3[i] > "\u001F" ∧ v_3[i] < "\u007F")
+Rule 14 (If output_stream is "file", then name must be specified)
+{output_stream : str, name: str} |= if output_stream = "file" then name ≠ ""
 >>
-Rule 21 (name should be a string and if present, have length less than 50)
-{v_4 : str} |= if v_4.len > 0 then v_4.len < 50
+Rule 15 (input tensor's string value cannot be a reserved word)
+{input : tensor} |= dtype_(input) = 11 ∧ (min(input) ≠ "none") ∧ (min(input) ≠ "sum") ∧ (min(input) ≠ "max")
 >>
-Rule 26 (name, if provided, should be a non-empty string)
-{v_4 : str} |= if v_4.len > 0 then v_4.len > 0
+Rule 16 (output_stream can only be a specific logging level)
+{output_stream : str} |= (output_stream = "DEBUG") ∨ (output_stream = "INFO") ∨ (output_stream = "WARNING") ∨ (output_stream = "ERROR") ∨ (output_stream = "stderr") ∨ (output_stream = "stdout") ∨ (output_stream = "file")
 >>
-Rule 29 (end string, if present, should not contain control characters)
-{v_3 : str} |= if v_3.len > 0 then ∀i ∈ [0, v_3.len - 1] : v_3[i] > "\u001F"
+Rule 17 (If name is specified, it should be a valid string)
+{name : str} |= name ≠ ""
 >>
-Rule 33 (end string, if specified, should not contain control characters and have a max length)
-{v_3 : str} |= if v_3.len > 0 then ∀i ∈ [0, v_3.len - 1] : v_3[i] > "\u001F" ∧ v_3.len < 256
+Rule 18 (Name and output_stream can't be the same value.)
+{name : str, output_stream : str} |= name ≠ output_stream
 >>
-Rule 34 (if name is specified, it should contain only alphanumeric characters)
-{v_4 : str} |= if v_4.len > 0 then ∀i ∈ [0, v_4.len - 1] : (v_4[i] ≥ "a" ∧ v_4[i] ≤ "z") ∨ (v_4[i] ≥ "A" ∧ v_4[i] ≤ "Z") ∨ (v_4[i] ≥ "0" ∧ v_4[i] ≤ "9")
+Rule 19 (If end is newline, output stream must be standard out or err)
+{end : str, output_stream : str} |= if end = "\n" then (output_stream = "stderr" ∨ output_stream = "stdout")
 >>
-Rule 39 (input tensor's shape should be valid (not negative))
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 20 (input tensor cannot contain an empty string)
+{input : tensor} |= dtype_(input) = 11 ∧ min(input) ≠ ""
 >>
-Rule 43 (If output stream is "stderr" or "stdout", end must contain a newline)
-{v_2 : str, v_3 : str} |= if v_2 = "stderr" ∨ v_2 = "stdout" then ∃i ∈ [0, v_3.len - 1] : v_3[i] = "\n"
+Rule 21 (If name is specified, it should not contain newline or carriage return characters)
+{name : str} |= (name ≠ "\n") ∧ (name ≠ "\r")
 >>
-Rule 44 (if name is specified, its length should not exceed certain amount )
-{v_4 : str} |= v_4.len < 100
+Rule 22 (If output_stream is a logging level, then name is ignored.)
+{output_stream : str, name : str} |= if (output_stream = "DEBUG") ∨ (output_stream = "INFO") ∨ (output_stream = "WARNING") ∨ (output_stream = "ERROR") then name = ""
 >>
-Rule 49 (If name is specified, it must start with a letter)
-{v_4 : str} |= if v_4.len > 0 then (v_4[0] ≥ "a" ∧ v_4[0] ≤ "z") ∨ (v_4[0] ≥ "A" ∧ v_4[0] ≤ "Z")
+Rule 23 (If name is specified, it should not contain quotes)
+{name : str} |= (name ≠ "\"") ∧ (name ≠ "\'")
 >>
-Rule 53 (If name is provided, it must not be empty)
-{v_4 : str} |= if v_4.len > 0 then true
+Rule 24 (input tensor must have length greater or equal to 1 )
+{input : tensor} |= dtype_(input) = 11 ∧ (max(input) > "")
 >>
-Rule 59 (If output stream is a logging level, then end string must be either empty or contain only newline character)
-{v_2 : str, v_3 : str} |= if v_2 = "info" ∨ v_2 = "error" ∨ v_2 = "debug" then (v_3.len = 0 ∨ (v_3.len > 0 ∧ ∀i ∈ [0, v_3.len - 1] : v_3[i] = "\n"))
+Rule 27 (end string must only contain commonly used characters)
+{end : str} |= end ≠ "\x00" ∧ end ≠ "\x01" ∧ end ≠ "\x02" ∧ end ≠ "\x03"
 >>
-Rule 62 (name length cannot be greater than 255 and should not contain semicolons)
-{v_4 : str} |= v_4.len < 256 ∧ (∀i ∈ [0, v_4.len - 1] : if v_4.len > 0 then v_4[i] ≠ ";")
+Rule 28 (If output_stream is file, then name cannot contain forbidden chars)
+{output_stream: str, name: str} |= if output_stream = "file" then name ≠ "\x00" ∧ name ≠ "\x01" ∧ name ≠ "\x02"
 >>
-Rule 67 (If name is specified, it must satisfy certain condition)
-{v_4 : str} |= if v_4.len > 0 then (v_4.len < 256 ∧ (∀i ∈ [0, v_4.len - 1] : v_4[i] ≠ ";"))
+Rule 29 (If output_stream is file, and end is specified, then the file name is valid and has an extension)
+{output_stream: str, name: str, end: str} |= if output_stream = "file" ∧ end ≠ "\n" then ∃i ∈ [0, 10] : name ≠ "file"
 >>
-Rule 68 (If output stream is a logging level, and end has length > 0 then each character in end string must be '\n')
-{v_2 : str, v_3 : str} |= if v_2 = "info" ∨ v_2 = "error" ∨ v_2 = "debug" then if v_3.len > 0 then ∀i ∈ [0, v_3.len - 1] : v_3[i] = "\n"
+Rule 30 (If name is specified, it should not contain restricted chars )
+{name : str} |= (name ≠ "*") ∧ (name ≠ "?") ∧ (name ≠ "<") ∧ (name ≠ ">") ∧ (name ≠ "|")
 >>
-Rule 69 (output_stream should contain only valid characters.)
-{v_2 : str} |= ∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ "a" ∧ v_2[i] ≤ "z")
+Rule 31 (The input tensor should not contain control characters)
+{input : tensor} |= dtype_(input) = 11 ∧ (min(input) ≠ "\x7F")
 >>
-Rule 72 (end should contain only valid escape sequence characters)
-{v_3 : str} |= ∀i ∈ [0, v_3.len - 1] : v_3[i] = "\\" ∨ v_3[i] = "n" ∨ v_3[i] = "t" ∨ v_3[i] = "r" ∨ v_3[i] = "0" ∨ v_3[i] = "b"
+Rule 32 (output_stream cannot be a comma)
+{output_stream : str} |= output_stream ≠ ","
 >>
-Rule 78 (If name is provided, and the input is "test", throw error)
-{v_4: str, v_1: tensor} |= if v_4.len > 0 then if v_1 = "test" then false
+Rule 33 (If output_stream is not a file, then name should be empty)
+{output_stream : str, name : str} |= if output_stream ≠ "file" then name = ""
 >>
-Rule 83 (If name is provided and input is "test" throw an exception/return false)
-{v_4 : str, v_1: tensor} |= if v_4.len > 0 then if v_1 = "test" then false
+Rule 34 (input must be non empty and contain a valid string value)
+{input : tensor} |= dtype_(input) = 11 ∧ (input = "ii" ∨ input = "ii->i" ∨ input = "i,j->ij" ∨ input = "bij,bjk->bik")
 >>
-Rule 87 (Name must not be "input", "output", or "stream")
-{v_4 : str} |= (v_4 ≠ "input") ∧ (v_4 ≠ "output") ∧ (v_4 ≠ "stream") ∧ (v_4 ≠ "end")
+Rule 35 (If output_stream is DEBUG, INFO, WARNING or ERROR, then name must be empty.)
+{output_stream: str, name: str} |= if (output_stream = "DEBUG") ∨ (output_stream = "INFO") ∨ (output_stream = "WARNING") ∨ (output_stream = "ERROR") then name = ""
 >>
-Rule 89 (end string length cannot be greater than input length)
-{v_3: str, v_1: tensor} |= v_3.len < v_1.len
+Rule 36 (If end is not specified, name must be empty.)
+{end: str, name: str} |= if end = "\n" then name = ""
 >>
-Rule 92 (Name, if given, can not be a reserved keyword)
-{v_4 : str} |= if v_4.len > 0 then (v_4 ≠ "input" ∧ v_4 ≠ "output" ∧ v_4 ≠ "stream" ∧ v_4 ≠ "end")
+Rule 37 (output_stream cannot be null string)
+{output_stream : str} |= output_stream ≠ "\0"
 >>
-Rule 93 (Name string should have standard alphabet characters)
-{v_4 : str} |= ∀i ∈ [0, v_4.len - 1] : (v_4[i] ≥ "a" ∧ v_4[i] ≤ "z") ∨ (v_4[i] ≥ "A" ∧ v_4[i] ≤ "Z") ∨ (v_4[i] ≥ "0" ∧ v_4[i] ≤ "9") ∨ v_4[i] = "_" ∨ v_4.len = 0
+Rule 38 (If the output stream is `stderr` or `stdout`, the name must not be a file path)
+{output_stream: str, name: str} |= if (output_stream = "stderr") ∨ (output_stream = "stdout") then (name ≠ "/tmp/test.txt" ∧ name ≠ "C:\\test.txt")
 >>
-Rule 94 (If dtype of input is a boolean then name must be a constant)
-{v_4 : str, v_1: tensor} |= if dtype_(v_1) = 0 then v_4 = "constant"
+Rule 40 (if the name contains a slash, the output stream must be "file")
+{output_stream: str, name: str} |= if (name = "/" ∨ name = "\\") then output_stream = "file"
 >>
-Rule 97 (Name can not be "input", "output", "stream", or "end")
-{v_4 : str} |= if v_4.len > 0 then (v_4 ≠ "input") ∧ (v_4 ≠ "output") ∧ (v_4 ≠ "stream") ∧ (v_4 ≠ "end")
+Rule 41 (If end is specified, it cannot contain backspace)
+{end : str} |= end ≠ "\b"
 >>
-Rule 99 (If dtype of input is string and output stream is "debug", then name can not be "sensitive")
-{v_4 : str, v_2: str} |= if v_2 = "debug" then if dtype_(v_1) = 11 then if v_4 = "sensitive" then false
+Rule 42 (if the name contains a forward slash, the output stream must be "file")
+{output_stream: str, name: str} |= if name = "/" then output_stream = "file"
 >>
-Rule 102 (If name is specified, it should not be a python keyword)
-{v_4 : str} |= if v_4.len > 0 then v_4 ≠ "and" ∧ v_4 ≠ "as" ∧ v_4 ≠ "assert" ∧ v_4 ≠ "break" ∧ v_4 ≠ "class" ∧ v_4 ≠ "continue" ∧ v_4 ≠ "def" ∧ v_4 ≠ "del" ∧ v_4 ≠ "elif" ∧ v_4 ≠ "else" ∧ v_4 ≠ "except" ∧ v_4 ≠ "False" ∧ v_4 ≠ "finally" ∧ v_4 ≠ "for" ∧ v_4 ≠ "from" ∧ v_4 ≠ "global" ∧ v_4 ≠ "if" ∧ v_4 ≠ "import" ∧ v_4 ≠ "in" ∧ v_4 ≠ "is" ∧ v_4 ≠ "lambda" ∧ v_4 ≠ "None" ∧ v_4 ≠ "nonlocal" ∧ v_4 ≠ "not" ∧ v_4 ≠ "or" ∧ v_4 ≠ "pass" ∧ v_4 ≠ "raise" ∧ v_4 ≠ "return" ∧ v_4 ≠ "True" ∧ v_4 ≠ "try" ∧ v_4 ≠ "while" ∧ v_4 ≠ "with" ∧ v_4 ≠ "yield"
+Rule 43 (if the name contains a back slash, the output stream must be "file")
+{output_stream: str, name: str} |= if name = "\\" then output_stream = "file"
 >>
-Rule 104 (if name contains underscore it should contain only alphabets or numbers.)
-{v_4: str} |= if (∃i ∈ [0, v_4.len - 1] : v_4[i] = "_") then ∀i ∈ [0, v_4.len - 1] : (v_4[i] ≥ "a" ∧ v_4[i] ≤ "z") ∨ (v_4[i] ≥ "A" ∧ v_4[i] ≤ "Z") ∨ (v_4[i] ≥ "0" ∧ v_4[i] ≤ "9") ∨ v_4[i] = "_"
+Rule 44 (If end is specified, it cannot contain formfeed)
+{end : str} |= end ≠ "\f"
 >>
-Rule 108 (If output stream is debug and input string is "secret", name is mandatory.)
-{v_2: str, v_4: str} |= if v_2 = "debug" then v_4.len > 0
+Rule 45 (if output_stream is a file and end is specified, then the name cannot be empty string or newline)
+{output_stream: str, name: str, end: str} |= if output_stream = "file" ∧ end ≠ "\n" then name ≠ "" ∧ name ≠ "\n"
 >>
-Rule 112 (Name cannot be a reserved keyword, either upper case or lower case )
-{v_4 : str} |= if v_4.len > 0 then v_4 ≠ "and" ∧ v_4 ≠ "as" ∧ v_4 ≠ "assert" ∧ v_4 ≠ "break" ∧ v_4 ≠ "class" ∧ v_4 ≠ "continue" ∧ v_4 ≠ "def" ∧ v_4 ≠ "del" ∧ v_4 ≠ "elif" ∧ v_4 ≠ "else" ∧ v_4 ≠ "except" ∧ v_4 ≠ "False" ∧ v_4 ≠ "finally" ∧ v_4 ≠ "for" ∧ v_4 ≠ "from" ∧ v_4 ≠ "global" ∧ v_4 ≠ "if" ∧ v_4 ≠ "import" ∧ v_4 ≠ "in" ∧ v_4 ≠ "is" ∧ v_4 ≠ "lambda" ∧ v_4 ≠ "None" ∧ v_4 ≠ "nonlocal" ∧ v_4 ≠ "not" ∧ v_4 ≠ "or" ∧ v_4 ≠ "pass" ∧ v_4 ≠ "raise" ∧ v_4 ≠ "return" ∧ v_4 ≠ "True" ∧ v_4 ≠ "try" ∧ v_4 ≠ "while" ∧ v_4 ≠ "with" ∧ v_4 ≠ "yield" ∧ v_4 ≠ "AND" ∧ v_4 ≠ "AS" ∧ v_4 ≠ "ASSERT" ∧ v_4 ≠ "BREAK" ∧ v_4 ≠ "CLASS" ∧ v_4 ≠ "CONTINUE" ∧ v_4 ≠ "DEF" ∧ v_4 ≠ "DEL" ∧ v_4 ≠ "ELIF" ∧ v_4 ≠ "ELSE" ∧ v_4 ≠ "EXCEPT" ∧ v_4 ≠ "FALSE" ∧ v_4 ≠ "FINALLY" ∧ v_4 ≠ "FOR" ∧ v_4 ≠ "FROM" ∧ v_4 ≠ "GLOBAL" ∧ v_4 ≠ "IF" ∧ v_4 ≠ "IMPORT" ∧ v_4 ≠ "IN" ∧ v_4 ≠ "IS" ∧ v_4 ≠ "LAMBDA" ∧ v_4 ≠ "NONE" ∧ v_4 ≠ "NONLOCAL" ∧ v_4 ≠ "NOT" ∧ v_4 ≠ "OR" ∧ v_4 ≠ "PASS" ∧ v_4 ≠ "RAISE" ∧ v_4 ≠ "RETURN" ∧ v_4 ≠ "TRUE" ∧ v_4 ≠ "TRY" ∧ v_4 ≠ "WHILE" ∧ v_4 ≠ "WITH" ∧ v_4 ≠ "YIELD"
+Rule 46 (The input tensor cannot contain a string that is too long)
+{input : tensor} |= dtype_(input) = 11 ∧ max(input) ≠ "ThisStringIsWayTooLongToBePrinted"
 >>
-Rule 113 (If name contains only special character or number it is invalid)
-{v_4: str} |= if v_4.len > 0 then ∃i ∈ [0, v_4.len - 1] : (v_4[i] ≥ "a" ∧ v_4[i] ≤ "z") ∨ (v_4[i] ≥ "A" ∧ v_4[i] ≤ "Z")
+Rule 47 (if the name contains a colon, the output stream cannot be stderr or stdout)
+{output_stream: str, name: str} |= if name = ":" then output_stream ≠ "stderr" ∧ output_stream ≠ "stdout"
 >>
-Rule 114 (If dtype of input is string and output stream is "debug", name can only be "constant", "string", "value" )
-{v_4 : str, v_2: str} |= if v_2 = "debug" then if dtype_(v_1) = 11 then v_4 = "constant" ∨ v_4 = "string" ∨ v_4 = "value"
+Rule 48 (If output_stream is file and name includes newline or carriage return, raise exception)
+{output_stream: str, name: str} |= if output_stream = "file" then (name ≠ "\n" ∧ name ≠ "\r")
 >>
-Rule 118 (If name contains only special character or number it is invalid or empty)
-{v_4: str} |= (v_4.len > 0 ∧ (∃i ∈ [0, v_4.len - 1] : (v_4[i] ≥ "a" ∧ v_4[i] ≤ "z") ∨ (v_4[i] ≥ "A" ∧ v_4[i] ≤ "Z"))) ∨ v_4.len = 0
+Rule 49 (if the end contains a colon, raise exception)
+{end : str} |= end ≠ ":"
 >>
-Rule 119 (If dtype of input is boolean, the name string must be from the list of string values)
-{v_4: str, v_1: tensor} |= if dtype_(v_1) = 0 then v_4 = "ii" ∨ v_4 = "ii->i" ∨ v_4 = "i,j->ij" ∨ v_4 = "bij,bjk->bik" ∨ v_4 = "...ij->...ji" ∨ v_4 = "bn,anm,bm->ba" ∨ v_4 = "none" ∨ v_4 = "mean" ∨ v_4 = "sum" ∨ v_4 = "max" ∨ v_4 = "min" ∨ v_4 = "prod" ∨ v_4 = "relu" ∨ v_4 = "tanh" ∨ v_4 = "sigmoid" ∨ v_4 = "softmax" ∨ v_4 = "elu" ∨ v_4 = "selu" ∨ v_4 = "gelu" ∨ v_4 = "swish" ∨ v_4 = "constant" ∨ v_4 = "linear" ∨ v_4 = "softplus"
+Rule 50 (If name is specified as a relative path, output_stream must be file.)
+{output_stream: str, name: str} |= if (name = "./test.txt") ∨ (name = "../test.txt") then output_stream = "file"
 >>
-Rule 124 (If end contains escape character the character should be from list)
-{v_3: str} |=  ∀i ∈ [0, v_3.len - 1] : if v_3[i] = "\\" then v_3[i+1] = "n" ∨ v_3[i+1] = "t" ∨ v_3[i+1] = "r" ∨ v_3[i+1] = "0" ∨ v_3[i+1] = "b"
+Rule 51 (The input tensor should have smaller length)
+{input: tensor} |= dtype_(input) = 11 ∧ max(input) < "abcdefghijklmnopqrstuvwxyz"
+>>
+Rule 52 (The input tensor can be empty string or any valid string)
+{input: tensor} |= dtype_(input) = 11 ∧ (input = "") ∨ (input = "valid_string")
+>>
+Rule 53 (if the output stream is `stderr` , the name must be default value.)
+{output_stream: str, name: str} |= if (output_stream = "stderr") then name = ""
+>>
+Rule 54 (If the output stream is `stdout` , the name must be default value.)
+{output_stream: str, name: str} |= if (output_stream = "stdout") then name = ""
+>>
+Rule 55 (If `end` is an empty string, the name should be an empty string too.)
+{end: str, name: str} |= if (end = "") then name = ""
+>>
+Rule 56 (If the input is too short the name is invalid)
+{input: tensor, name:str} |= if min(input) < "a" then name = ""
+>>
+Rule 57 (If the end is a specific character the input tensor is valid)
+{input: tensor, end: str} |= if end = "Z" then dtype_(input) = 11
+>>
+Rule 58 (The output_stream cannot be one of the reserved string values used for tensor operations)
+{output_stream : str} |= output_stream ≠ "none" ∧ output_stream ≠ "sum" ∧ output_stream ≠ "max" ∧ output_stream ≠ "min"
+>>
+Rule 59 (if the output_stream is file, the end parameter can not be stderr or stdout or file itself.)
+{output_stream : str, end: str} |= if output_stream = "file" then end ≠ "stderr" ∧ end ≠ "stdout" ∧ end ≠ "file"
+>>
+Rule 60 (If the input contains ", " then `end` must be empty)
+{input: tensor, end: str} |= if min(input) = ", " then end = ""
+>>
+Rule 61 (if name is specified, then the output_stream cannot be DEBUG)
+{output_stream: str, name: str} |= if name ≠ "" then output_stream ≠ "DEBUG"
+>>
+Rule 62 (if name is specified, then the output_stream cannot be INFO)
+{output_stream: str, name: str} |= if name ≠ "" then output_stream ≠ "INFO"
+>>
+Rule 63 (If the `name` parameter contains a space, it must be printed to a file)
+{output_stream: str, name: str} |= if name = " " then output_stream = "file"
+>>
+Rule 64 (if name is specified, then the output_stream cannot be WARNING)
+{output_stream: str, name: str} |= if name ≠ "" then output_stream ≠ "WARNING"
+>>
+Rule 65 (if name is specified, then the output_stream cannot be ERROR)
+{output_stream: str, name: str} |= if name ≠ "" then output_stream ≠ "ERROR"
+>>
+Rule 66 (if output_stream is file, name must contain .txt)
+{output_stream: str, name: str} |= if output_stream = "file" then name = "file.txt" ∨ name = "example.txt"
+>>
+Rule 67 (If the end string is not newline, the input string must be smaller than a specific value)
+{input: tensor, end: str} |= if end ≠ "\n" then max(input) < "small string"
+>>
+Rule 68 (If the end string is a custom string, the `output_stream` cannot be default `stderr`)
+{output_stream: str, end: str} |= if end ≠ "\n" then output_stream ≠ "stderr"
+>>
+Rule 69 (if the name contains only numbers, it must output to a logging level)
+{output_stream: str, name: str} |= if name = "123" then (output_stream = "DEBUG" ∨ output_stream = "INFO" ∨ output_stream = "WARNING" ∨ output_stream = "ERROR")
+>>
+Rule 70 (If the output_stream is file, the name must end with extension)
+{output_stream: str, name: str} |= if output_stream = "file" then (name ≠ "test")
+>>
+Rule 71 (if output_stream is specified as other values, the input tensor must contain valid characters)
+{input: tensor, output_stream: str} |= if (output_stream = "DEBUG") ∨ (output_stream = "INFO") ∨ (output_stream = "WARNING") ∨ (output_stream = "ERROR") then max(input) ≠ "@"
+>>
+Rule 72 (if output_stream is file, the input must not be a reserved string value)
+{output_stream: str, input: tensor} |= if output_stream = "file" then (min(input) ≠ "relu" ∧ min(input) ≠ "tanh")
+>>
+Rule 73 (If input is small, then the name must be one or two chars.)
+{input: tensor, name:str} |= if max(input) < "m" then (name = "a" ∨ name = "ab" ∨ name="")
+>>
+Rule 74 (if the input contains the string ' channels', then the name must not be empty)
+{input: tensor, name: str} |= if min(input) = " channels" then name ≠ ""
+>>
+Rule 75 (If the name is a string tensor, it cannot contain an invalid characters for file names if output_stream is file)
+{name: str, output_stream : str} |= if output_stream = "file" then (name ≠ "*" ∧ name ≠ "?" ∧ name ≠ "<" ∧ name ≠ ">" ∧ name ≠ "|" ∧ name ≠ ":")
+>>
+Rule 76 (The input tensor should not contain control chars like escape, only valid characters)
+{input: tensor} |= dtype_(input) = 11 ∧ (min(input) ≠ "\e")
+>>
+Rule 77 (if output stream is not specified as a correct value)
+{output_stream: str} |= (output_stream = "DEBUG") ∨ (output_stream = "INFO") ∨ (output_stream = "WARNING") ∨ (output_stream = "ERROR") ∨ (output_stream = "stderr") ∨ (output_stream = "stdout") ∨ (output_stream = "file")
+>>
+Rule 78 (If `output_stream` is not specified as `stderr` or `stdout`, then `end` must be empty)
+{output_stream: str, end: str} |= if (output_stream ≠ "stderr") ∧ (output_stream ≠ "stdout") then end = ""
+>>
+Rule 79 (if name is specified, and end is newline, the input tensor must only contain alphanumeric)
+{input: tensor, name: str, end:str} |= if (name ≠ "") ∧ (end = "\n") then max(input) < "}"
+>>
+Rule 80 (If output_stream is a valid logging level (DEBUG, INFO, WARNING, ERROR), then name cannot be any other string except empty )
+{output_stream: str, name:str} |= if (output_stream = "DEBUG") ∨ (output_stream = "INFO") ∨ (output_stream = "WARNING") ∨ (output_stream = "ERROR") then name = ""
+>>
+Rule 81 (The name must consist of only lowercase letters if printing to stderr)
+{name: str, output_stream: str} |= if output_stream = "stderr" then (name = "" ∨ name = "a" ∨ name = "b" ∨ name = "c")
+>>
+Rule 82 (if the output stream is file, the end must not be a specific string)
+{output_stream: str, end: str} |= if output_stream = "file" then end ≠ "channels_last"
+>>
+Rule 83 (The output_stream should not be the input tensor.)
+{input: tensor, output_stream:str} |= dtype_(input) = 11 ∧ min(input) ≠ output_stream
+>>
+Rule 84 (If the input tensor is more than one character and `output_stream` is file, name must not be a logging level)
+{input: tensor, output_stream: str, name:str} |= if (max(input) > "a") ∧ (output_stream = "file") then (name ≠ "DEBUG") ∧ (name ≠ "INFO") ∧ (name ≠ "WARNING") ∧ (name ≠ "ERROR")
+>>
+Rule 85 (If the input is a number the name should contain number itself or can be empty to print in standard output)
+{input: tensor, name: str, output_stream:str} |= if min(input) = "1234" then (name = "1234" ∨ output_stream = "stdout")
+>>
+Rule 86 (if output stream is file, then end must not contain any of the reserved string)
+{output_stream: str, end:str} |= if output_stream = "file" then (end ≠ "none" ∧ end ≠ "sum" ∧ end ≠ "max" ∧ end ≠ "min" ∧ end ≠ "prod")
+>>
+Rule 87 (if end is an empty string, then output stream must be one of the listed strings, or must be file)
+{output_stream: str, end: str} |= if end = "" then (output_stream = "stderr" ∨ output_stream = "stdout" ∨ output_stream = "DEBUG" ∨ output_stream = "INFO" ∨ output_stream = "WARNING" ∨ output_stream = "ERROR" ∨ output_stream = "file")
+>>
+Rule 88 (If the name parameter starts with a number and output_stream is file, the end parameter can not be empty )
+{name: str, output_stream: str, end:str} |= if (name = "1file.txt") ∧ (output_stream = "file") then (end ≠ "")
+>>
+Rule 89 (The input tensor cannot be one of the functions defined in FUNC list)
+{input: tensor} |= dtype_(input) = 11 ∧ (min(input) ≠ "ndim") ∧ (min(input) ≠ "shape") ∧ (min(input) ≠ "dtype_") ∧ (min(input) ≠ "min") ∧ (min(input) ≠ "max")
+>>
+Rule 90 (If the output_stream is a file, and the end parameter is specified, the filename `name` should have a specific format `file.txt`)
+{output_stream: str, name: str, end: str} |= if output_stream = "file" ∧ end ≠ "\n" then name = "file.txt"
+>>
+Rule 91 (The end should not be same as one of the accepted string value of tensors)
+{end: str, input: tensor} |= dtype_(input) = 11 ∧ (end ≠ "ii" ∧ end ≠ "ii->i" ∧ end ≠ "i,j->ij")
+>>
+Rule 92 (if name is specified the `end` must contain specific characters such as a,b, or new line)
+{name:str, end:str} |= if (name ≠ "") then (end = "a" ∨ end = "b" ∨ end = "\n")
+>>
+Rule 93 (The output stream must not be one of the boolean value if the input is true.)
+{output_stream:str, input:tensor} |= dtype_(input) = 11 ∧ min(input) = "true" ∧ (output_stream ≠ "true" ∧ output_stream ≠ "false")
+>>
+Rule 94 (if name is specified the `output_stream` parameter value must not be a reserved word)
+{output_stream:str, name: str} |= if (name ≠ "") then (output_stream ≠ "none" ∧ output_stream ≠ "sum" ∧ output_stream ≠ "max" ∧ output_stream ≠ "min")
+>>
+Rule 95 (if the end parameter does not contains newline character, then the name must not be a default standard value (stderr, stdout, file).)
+{name:str, end:str} |= if (end ≠ "\n") then (name ≠ "stderr" ∧ name ≠ "stdout" ∧ name ≠ "file")
+>>
+Rule 96 (If name contains filename then output_stream must be a file AND should have a non empty name)
+{name:str, output_stream: str} |= if (name = "filename.txt") then (output_stream = "file" ∧ name ≠ "")
+>>
+Rule 97 (the input tensor must not have tensor operation related names as data if logging level is specified as output)
+{output_stream:str, input:tensor} |= if (output_stream = "DEBUG") ∨ (output_stream = "INFO") ∨ (output_stream = "WARNING") ∨ (output_stream = "ERROR") then (min(input) ≠ "linear" ∧ min(input) ≠ "valid" ∧ min(input) ≠ "same" ∧ min(input) ≠ "causal")
+>>
+Rule 99 (if input tensor contains 'channel', the end parameter must be an alphabet.)
+{input: tensor, end:str} |= if min(input) = "channel" then (end = "a" ∨ end = "b" ∨ end = "c" ∨ end = "d")

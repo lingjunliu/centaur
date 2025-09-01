@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# sp_shape values (tensor (Rule 53)
+# dtype of sp_values must be half (6 (Rule 53)
 
 rule_53 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == 4) if n else
-          v["arg1_dtype"] == 4)
+    s.add(Not(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)) if n else
+          Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8))
 )
 
 def rule_53_func(arg1, solver=None, neg=False):

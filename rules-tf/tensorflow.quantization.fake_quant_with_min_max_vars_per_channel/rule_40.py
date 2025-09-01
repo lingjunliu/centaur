@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# min and max tensors should be within the range of float32 (Rule 40)
+# min and max must be rank 1 to avoid the InvalidArgumentError: `min` must be rank 1 but is rank 2 (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_range"], 0) >= -3.4028235e+38, Select(v["arg2_range"], 1) <= 3.4028235e+38)) if n else
-          And(Select(v["arg1_range"], 0) >= -3.4028235e+38, Select(v["arg2_range"], 1) <= 3.4028235e+38))
+    s.add(Not(And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 1)) if n else
+          And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 1))
 )
 
 def rule_40_func(arg1, arg2, solver=None, neg=False):
@@ -25,19 +25,17 @@ def rule_40_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg2_ndim = Int('arg2_ndim')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 40
-        rule_40(solver, {'arg1_range': arg1_range, 'arg2_range': arg2_range})
+        rule_40(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_40(solver, {'arg1_range': arg1['range'], 'arg2_range': arg2['range']}, neg)
+        rule_40(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)

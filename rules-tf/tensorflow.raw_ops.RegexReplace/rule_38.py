@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The number of dimensions of pattern and rewrite can't be greater than the number of dimensions of input (Rule 38)
+# If input has rank greater than zero, pattern and rewrite must have rank >= 0 (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg2_ndim"] <= v["arg1_ndim"], v["arg3_ndim"] <= v["arg1_ndim"])) if n else
-          And(v["arg2_ndim"] <= v["arg1_ndim"], v["arg3_ndim"] <= v["arg1_ndim"]))
+    s.add(Not(If(v["arg1_ndim"] > 0, And(v["arg2_ndim"] >= 0, v["arg3_ndim"] >= 0), True)) if n else
+          If(v["arg1_ndim"] > 0, And(v["arg2_ndim"] >= 0, v["arg3_ndim"] >= 0), True))
 )
 
 def rule_38_func(arg1, arg2, arg3, solver=None, neg=False):

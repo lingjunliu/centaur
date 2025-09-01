@@ -5,32 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If axis is a tuple, all elements must be integers. (Rule 9)
+# if axis is none, the result should be a scalar (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), True) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_length"] - 1 + 1), True) for i in range(6)]))
+    s.add(Not(If(v["arg2_value"] == none, v["arg1_ndim"] >= 0, True)) if n else
+          If(v["arg2_value"] == none, v["arg1_ndim"] >= 0, True))
 )
 
-def rule_9_func(arg1, solver=None, neg=False):
+def rule_9_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, np.ndarray):
+            return False
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 9
-        rule_9(solver, {'arg1_length': arg1_length})
+        rule_9(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_9(solver, {'arg1_length': arg1['length']}, neg)
+        rule_9(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

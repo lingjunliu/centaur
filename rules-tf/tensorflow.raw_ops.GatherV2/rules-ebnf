@@ -1,99 +1,207 @@
 >>
-Rule 1 (params tensor must have rank at least axis + 1)
-{params : tensor, axis : int} |= ndim(params) > axis
+Rule 1 (params must be at least rank axis + 1)
+{v_1 : tensor, v_3 : tensor} |= ndim(v_1) ≥ v_3 + 1
 >>
-Rule 4 (batch_dims must be non-negative)
-{batch_dims : int} |= batch_dims ≥ 0
+Rule 2 (indices must be an integer tensor of type int16, int32, or int64)
+{v_2 : tensor} |= dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
 >>
-Rule 5 (indices values must be within the valid range of params shape along axis)
-{params : tensor, indices : tensor, axis : int} |= ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0 ∧ indices[i] < shape(params, axis)
+Rule 3 (axis must be an integer tensor of type int32 or int64)
+{v_3 : tensor} |= dtype_(v_3) = 3 ∨ dtype_(v_3) = 4
 >>
-Rule 7 (indices tensor must be one of the allowed integer types)
-{indices : tensor} |= dtype_(indices) = 2 ∨ dtype_(indices) = 3 ∨ dtype_(indices) = 4
+Rule 4 (batch_dims must be a non-negative integer)
+{v_4 : int} |= v_4 ≥ 0
 >>
-Rule 8 (axis tensor must be one of the allowed integer types)
-{axis : tensor} |= dtype_(axis) = 3 ∨ dtype_(axis) = 4
+Rule 5 (params and indices must be tensors)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
 >>
-Rule 11 (axis value must be within valid range for params ndim using multiplication)
-{params : tensor, axis : int} |= if axis ≥ 0 then axis < ndim(params) else (-1)*axis ≤ ndim(params)
+Rule 7 (params's rank must be greater than axis's)
+{v_1 : tensor, v_3 : tensor} |= ndim(v_1) > ndim(v_3)
 >>
-Rule 12 (indices values must be within the valid range of params shape along axis. Handling negative axis.)
-{params : tensor, indices : tensor, axis : int} |= if axis ≥ 0 then ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0 ∧ indices[i] < shape(params, axis) else ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0 ∧ indices[i] < shape(params, ndim(params) + axis)
+Rule 8 (axis must be a scalar tensor)
+{v_3 : tensor} |= ndim(v_3) = 0
 >>
-Rule 13 (batch_dims must be less than or equal to the rank of indices)
-{indices : tensor, batch_dims : int} |= batch_dims ≤ ndim(indices)
+Rule 9 (indices must be a non-empty tensor)
+{v_2 : tensor} |= ndim(v_2) > 0
 >>
-Rule 14 (params must have at least rank axis + 1.)
-{params: tensor, axis: int} |= ndim(params) ≥ axis + 1
+Rule 10 (params's rank must be non-negative)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 15 (params and output tensor must have the same dtype)
-{params : tensor} |= dtype_(params) = dtype_(params)
+Rule 11 (axis's value range should be valid)
+{v_1 : tensor, v_3 : tensor} |= min(v_3) ≥ (0 - ndim(v_1)) ∧ max(v_3) < ndim(v_1)
 >>
-Rule 17 (batch_dims must be less than or equal to the minimum of the ranks of params and indices, using if statement)
-{params : tensor, indices : tensor, batch_dims : int} |= if ndim(params) ≤ ndim(indices) then batch_dims ≤ ndim(params) else batch_dims ≤ ndim(indices)
+Rule 12 (axis's value range should be valid)
+{v_1 : tensor, v_3 : tensor} |= min(v_3) ≥ (0 - ndim(v_1)) ∧ max(v_3) < ndim(v_1) ∧ ∀i ∈ [0, ndim(v_3)-1]: v_3[i] ≥ (0 - ndim(v_1)) ∧ v_3[i] < ndim(v_1)
 >>
-Rule 18 (If batch_dims is non-zero, params and indices must have a compatible batch shape.)
-{params : tensor, indices : tensor, batch_dims : int} |= if batch_dims > 0 then ∀i ∈ [0, batch_dims - 1] : shape(params, i) = shape(indices, i)
+Rule 14 (indices' values should be within the valid range of params along the specified axis)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= min(v_2) ≥ 0 ∧ max(v_2) < shape(v_1, v_3)
 >>
-Rule 19 (indices values must be integers)
-{indices : tensor} |= ∃i ∈ [0, shape(indices, 0) - 1] : indices[i] = 0 ∨ indices[i] = 1 ∨ indices[i] = 2 ∨ indices[i] = 3 ∨ indices[i] = 4 ∨ indices[i] = 5
+Rule 15 (indices' values should be within the valid range of params along the specified axis when axis is a scalar)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_3) = 0 ∧ min(v_2) ≥ 0 ∧ max(v_2) < shape(v_1, v_3)
 >>
-Rule 22 (params cannot be a string tensor)
-{params : tensor} |= dtype_(params) ≠ 11
+Rule 16 (If batch_dims is not zero then rank of indices + batch_dims <= rank of params)
+{v_1 : tensor, v_2 : tensor, v_4 : int} |= if v_4 ≠ 0 then (ndim(v_2) + v_4) ≤ ndim(v_1)
 >>
-Rule 23 (axis must be a scalar value if it's a tensor)
-{axis : tensor} |= ndim(axis) = 0
+Rule 17 (If batch_dims is not zero then params.shape[:batch_dims] must match indices.shape[:batch_dims])
+{v_1 : tensor, v_2 : tensor, v_4 : int} |= if v_4 ≠ 0 then (∀i ∈ [0, v_4 - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 25 (axis value, if provided as a tensor, must be within valid range for params ndim, using multiplication)
-{params : tensor, axis : tensor} |= (-1)*ndim(params) ≤ axis[0] ∧ axis[0] < ndim(params)
+Rule 18 (params must be at least rank axis + 1, axis can be a single integer rather than a tensor)
+{v_1 : tensor, v_3 : int} |= ndim(v_1) ≥ v_3 + 1
 >>
-Rule 26 (indices values must be within the valid range of params shape along axis)
-{params : tensor, indices : tensor, axis : int} |= ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ (if axis < 0 then 0 else 0) ∧ indices[i] < shape(params, axis)
+Rule 19 (If axis is negative, it should be a valid negative axis)
+{v_1 : tensor, v_3 : int} |= if v_3 < 0 then v_3 ≥ (0 - ndim(v_1))
 >>
-Rule 29 (batch_dims must be an integer, if not, then return false)
-{batch_dims : float ⊎ int} |= if batch_dims = 0 then true else false
+Rule 20 (If axis is positive, it should be a valid positive axis)
+{v_1 : tensor, v_3 : int} |= if v_3 ≥ 0 then v_3 < ndim(v_1)
 >>
-Rule 31 (If axis is provided as a tensor, it must be of integer type)
-{axis: tensor} |= dtype_(axis) = 3 ∨ dtype_(axis) = 4
+Rule 21 (If axis is an int, indices' values should be within the valid range of params along the specified axis)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= min(v_2) ≥ 0 ∧ max(v_2) < shape(v_1, v_3)
 >>
-Rule 34 (Indices cannot be float tensors.)
-{indices : tensor} |= dtype_(indices) ≠ 7 ∧ dtype_(indices) ≠ 8 ∧ dtype_(indices) ≠ 6
+Rule 22 (params and indices should not be the same tensor)
+{v_1 : tensor, v_2 : tensor} |= v_1 ≠ v_2
 >>
-Rule 35 (params tensor must be at least rank 1)
-{params : tensor} |= ndim(params) ≥ 1
+Rule 23 (If axis is a tensor, all values should be the same)
+{v_3 : tensor} |= ∀i ∈ [1, ndim(v_3) - 1]: v_3[0] = v_3[i]
 >>
-Rule 36 (if indices is a tensor, the elements should be non-negative.)
-{indices: tensor} |= min(indices) >= 0
+Rule 24 (axis and batch_dims should not be equal)
+{v_3 : int, v_4 : int} |= v_3 ≠ v_4
 >>
-Rule 37 (If the axis is negative, params rank has to be greater than or equal to the absolute value of axis + 1.)
-{params: tensor, axis: int} |= if axis < 0 then ndim(params) >= (-1 * axis) + 1
+Rule 25 (The dtype of params must be equal to the dtype of the output)
+{v_1 : tensor} |= dtype_(v_1) = dtype_(v_1)
 >>
-Rule 38 (Indices values must be in range [0, params.shape[axis]), if axis isn't negative and axis is smaller than the params rank.)
-{params : tensor, indices : tensor, axis : int} |= if axis >= 0 ∧ axis < ndim(params) then ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] >= 0 ∧ indices[i] < shape(params, axis)
+Rule 28 (batch_dims should be less than or equal to the number of dimensions in both params and indices)
+{v_1 : tensor, v_2 : tensor, v_4 : int} |= v_4 ≤ ndim(v_1) ∧ v_4 ≤ ndim(v_2)
 >>
-Rule 39 (indices dtype has to be in list of supported types: int16, int32, int64)
-{indices : dtype} |= indices = 2 ∨ indices = 3 ∨ indices = 4
+Rule 29 (if axis is a tensor, then it should contain int32 or int64 values)
+{v_3: tensor} |= dtype_(v_3) = 3 ∨ dtype_(v_3) = 4
 >>
-Rule 40 (params tensor must have at least rank axis + 1)
-{params : tensor, axis : int} |= if axis >=0 then ndim(params) > axis else ndim(params) > (axis*-1)-1
+Rule 30 (if batch_dims is greater than zero, the initial dimensions should match)
+{v_1: tensor, v_2: tensor, v_4: int} |= if v_4 > 0 then (∀i ∈ [0, v_4 -1]: shape(v_1, i) = shape(v_2, i))
 >>
-Rule 41 (the indices values, if positive have to be smaller then the relevant shape value)
-{params : tensor, indices : tensor, axis : int} |= ∀i ∈ [0, shape(indices, 0) - 1] : if indices[i] >=0 then indices[i] < shape(params,axis)
+Rule 31 (if batch_dims is greater than or equal to zero)
+{v_4: int} |= v_4 ≥ 0
 >>
-Rule 42 (If axis is negative then indices must be between 0 and shape(params, ndim(params) + axis), else if axis is positive then indices values must be in range 0 and params.shape[axis])
-{params : tensor, indices : tensor, axis : int} |= if axis < 0 then ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0 ∧ indices[i] < shape(params, ndim(params) + axis) else ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0 ∧ indices[i] < shape(params, axis)
+Rule 32 (If indices is int16, the values must be within the range of int16)
+{v_2 : tensor} |= if dtype_(v_2) = 2 then min(v_2) >= -32768 ∧ max(v_2) <= 32767
 >>
-Rule 43 (if indices is a tensor, then each of the elements should be smaller then params.shape[axis])
-{params : tensor, indices : tensor, axis : int} |= ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] < shape(params, axis)
+Rule 33 (if indices is int32, the values must be within the range of int32)
+{v_2 : tensor} |= if dtype_(v_2) = 3 then min(v_2) >= -2147483648 ∧ max(v_2) <= 2147483647
 >>
-Rule 44 (indices values must be non-negative and smaller than the dimension's size of params)
-{params : tensor, indices : tensor, axis : int} |= ∀i ∈ [0, shape(indices, 0) - 1] : 0 <= indices[i] ∧ indices[i] < shape(params, axis)
+Rule 34 (if indices is int64, the values must be within the range of int64)
+{v_2 : tensor} |= if dtype_(v_2) = 4 then min(v_2) >= -9223372036854775808 ∧ max(v_2) <= 9223372036854775807
 >>
-Rule 46 (If axis is not negative params needs to have at least axis+1 dimensions)
-{params: tensor, axis: int} |= if axis >= 0 then ndim(params) >= axis + 1
+Rule 36 (if the shape of params along axis is zero, the output will be filled with zeros. on TPU)
+{v_1 : tensor, v_3 : int} |= if shape(v_1, v_3) = 0 then true
 >>
-Rule 47 (if the indices tensor is not a scalar (ndim>0), the elements needs to be non-negative)
-{indices : tensor} |= if ndim(indices) > 0 then min(indices) >= 0
+Rule 38 (if the shape of params along axis is zero, the output will be filled with zeros. on TPU)
+{v_1 : tensor, v_3 : tensor} |= ∃i ∈ [0, ndim(v_3) -1]: if shape(v_1, v_3[i]) = 0 then true
 >>
-Rule 48 (params must have at least rank batch_dims + 1.)
-{params: tensor, batch_dims: int} |= ndim(params) >= batch_dims + 1
+Rule 39 (batch_dims should be less than or equal to the minimum rank between params and indices)
+{v_1 : tensor, v_2 : tensor, v_4 : int} |= v_4 ≤ (if ndim(v_1) < ndim(v_2) then ndim(v_1) else ndim(v_2))
+>>
+Rule 40 (if the shape of params along axis is zero, the output will be filled with zeros. on TPU)
+{v_1 : tensor, v_3 : tensor} |= ∃i ∈ [0, ndim(v_3) -1]: shape(v_1, v_3[i]) = 0
+>>
+Rule 42 (if the shape of params along at least one axis specified by axis tensor is zero, the output will be filled with zeros. on TPU)
+{v_1 : tensor, v_3 : tensor} |= ∃i ∈ [0, ndim(v_3) - 1]: shape(v_1, v_3[i]) = 0
+>>
+Rule 43 (if params is an empty tensor return a tensor filled with zeros)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = 0
+>>
+Rule 44 (axis value range should be a scalar)
+{v_3: tensor} |= ndim(v_3) = 0
+>>
+Rule 45 (if axis is a tensor of integer, all values must be valid axis)
+{v_1 : tensor, v_3 : tensor} |= ∀i ∈ [0, ndim(v_3) - 1]: v_3[i] ≥ (0 - ndim(v_1)) ∧ v_3[i] < ndim(v_1)
+>>
+Rule 46 (If params' rank is zero, indices' rank should also be zero)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+>>
+Rule 48 (when batch_dims > 0, ensure that the corresponding leading dimensions of params and indices match)
+{v_1 : tensor, v_2 : tensor, v_4 : int} |= if v_4 > 0 then (∀i ∈ [0, v_4 - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 49 (if the shape of params along any dimension is zero, skip range validation)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) -1]: shape(v_1, i) = 0
+>>
+Rule 51 (when batch_dims > 0, batch dimensions of indices tensor must be within params dimension range)
+{v_1: tensor, v_2: tensor, v_4: int} |= if v_4 > 0 then ∀i ∈ [0, v_4-1]: shape(v_2, i) < shape(v_1, i)
+>>
+Rule 52 (params rank should be greater or equal to batch_dims)
+{v_1: tensor, v_4: int} |= ndim(v_1) >= v_4
+>>
+Rule 53 (indices rank should be greater or equal to batch_dims)
+{v_2: tensor, v_4: int} |= ndim(v_2) >= v_4
+>>
+Rule 54 (axis needs to be non-empty)
+{v_3: tensor} |= ndim(v_3) > 0
+>>
+Rule 55 (axis elements needs to be an integer)
+{v_3: tensor} |= ∀i ∈ [0, ndim(v_3) - 1]: dtype_(v_3) = 3 ∨ dtype_(v_3) = 4
+>>
+Rule 56 (indices dimensions should be smaller or equal than params dimensions)
+{v_1: tensor, v_2: tensor} |= ndim(v_2) <= ndim(v_1)
+>>
+Rule 57 (axis dimension should be less or equal than params dimensions)
+{v_1: tensor, v_3: tensor} |= ndim(v_3) <= ndim(v_1)
+>>
+Rule 60 (if indices is a scalar then output rank should be params rank minus 1)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 0 then ndim(v_1) - 1 >= 0
+>>
+Rule 61 (If axis is an integer and negative then indices should not exceed the bounds)
+{v_1: tensor, v_2: tensor, v_3: int} |= if v_3 < 0 then min(v_2) >= 0 ∧ max(v_2) < shape(v_1, v_3)
+>>
+Rule 62 (If params rank is zero indices should be zero dimensional)
+{v_1: tensor, v_2:tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+>>
+Rule 63 (if params is not an empty tensor then the indices values needs to be within params)
+{v_1: tensor, v_2: tensor, v_3: tensor} |= if ∃i ∈ [0, ndim(v_1) -1]: shape(v_1, i) = 0 then true else min(v_2) >= 0 ∧ max(v_2) < shape(v_1, v_3)
+>>
+Rule 65 (batch_dims must be non-negative)
+{v_4: int} |= v_4 >= 0
+>>
+Rule 68 (If axis is an integer, then the indices's values needs to be checked along the valid shape(params) dimension)
+{v_1: tensor, v_2:tensor, v_3: int} |= if ∃i ∈ [0, ndim(v_1) -1]: shape(v_1, i) = 0 then true else if (v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) then (min(v_2) >= 0 ∧ max(v_2) < shape(v_1, v_3))
+>>
+Rule 69 (params's dtype and output dtype must be same)
+{v_1: tensor} |= dtype_(v_1) = dtype_(v_1)
+>>
+Rule 70 (if params rank > 0 , the axis should be less than params rank)
+{v_1: tensor, v_3: tensor} |= if ndim(v_1) > 0 then min(v_3) < ndim(v_1)
+>>
+Rule 71 (if axis is a tensor then min axis value should be greater or equal to negative of params rank)
+{v_1: tensor, v_3: tensor} |= min(v_3) >= (0 - ndim(v_1))
+>>
+Rule 72 (if axis is a tensor then max axis value should be less than params rank)
+{v_1: tensor, v_3: tensor} |= max(v_3) < ndim(v_1)
+>>
+Rule 73 (If axis is an integer and is positive)
+{v_1: tensor, v_2: tensor, v_3: int} |= if v_3 >= 0 then min(v_2) >= 0 ∧ max(v_2) < shape(v_1, v_3)
+>>
+Rule 75 (params's dtype is valid)
+{v_1: tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 ∨ dtype_(v_1) = 12
+>>
+Rule 76 (axis is a valid axis for params)
+{v_1: tensor, v_3: tensor} |= min(v_3) >= (0 - ndim(v_1)) ∧ max(v_3) < ndim(v_1)
+>>
+Rule 77 (The params rank is greater or equal than axis+1 and axis is a scalar)
+{v_1: tensor, v_3: tensor} |= ndim(v_1) >= (v_3 + 1)
+>>
+Rule 78 (All axis values are equal)
+{v_3 : tensor} |= ∀i ∈ [1, ndim(v_3) - 1] : v_3[0] = v_3[i]
+>>
+Rule 79 (If axis is an int, then the value should be between -ndim and ndim-1)
+{v_1: tensor, v_3: int} |= v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
+>>
+Rule 80 (If axis is an int, ensure that indices's values are within params along that axis)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= min(v_2) >= 0 ∧ max(v_2) < shape(v_1, v_3)
+>>
+Rule 82 (indices must be of integer type)
+{v_2: tensor} |= dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+>>
+Rule 86 (If axis is not provided, it defaults to 0. So, the indices should be less than the first dimension)
+{v_1: tensor, v_2: tensor} |= min(v_2) >= 0 ∧ max(v_2) < shape(v_1, 0)
+>>
+Rule 87 (If params is not scalar then axis should be specified)
+{v_1: tensor, v_3: tensor} |= if ndim(v_1) = 0 then true else ndim(v_3) >= 0
+>>
+Rule 89 (if params is scalar indices also needs to be scalar)
+{v_1: tensor, v_2: tensor} |= (if ndim(v_1) = 0 then ndim(v_2) = 0)

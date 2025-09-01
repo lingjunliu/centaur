@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# logits tensor must be float16, float32, or float64, corresponding to dtype 6, 7, or 8 (Rule 1)
+# logits must be of type half, float32, or float64 (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
     s.add(Not(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)) if n else

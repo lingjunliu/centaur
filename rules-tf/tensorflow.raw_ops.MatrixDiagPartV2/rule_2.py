@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# k must be an integer tensor (Rule 2)
+# k tensor must have int32 dtype (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(v["arg1_dtype"] == 3) if n else

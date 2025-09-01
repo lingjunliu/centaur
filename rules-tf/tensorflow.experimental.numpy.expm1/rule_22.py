@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input is a float tensor, values close to zero should be handled carefully for accuracy (Rule 22)
+# If the input is int8 or uint8, restrict the range for avoiding overflow (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), And(Select(v["arg1_range"], 0) > -0.1, Select(v["arg1_range"], 1) < 0.1), False)) if n else
-          If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), And(Select(v["arg1_range"], 0) > -0.1, Select(v["arg1_range"], 1) < 0.1), False))
+    s.add(Not(If(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 5), And(Select(v["arg1_range"], 0) > -5, Select(v["arg1_range"], 1) < 5), True)) if n else
+          If(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 5), And(Select(v["arg1_range"], 0) > -5, Select(v["arg1_range"], 1) < 5), True))
 )
 
 def rule_22_func(arg1, solver=None, neg=False):

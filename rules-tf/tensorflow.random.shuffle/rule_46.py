@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Seed must be a small positive integer (Rule 46)
+# the seed should be a 32-bit integer value (Rule 46)
 
 rule_46 = lambda s, v, n=False: (
-    s.add(Not(And(0 <= v["arg1_value"], v["arg1_value"] < 1000000000)) if n else
-          And(0 <= v["arg1_value"], v["arg1_value"] < 1000000000))
+    s.add(Not(And(-2147483648 <= v["arg1_value"], v["arg1_value"] <= 2147483647)) if n else
+          And(-2147483648 <= v["arg1_value"], v["arg1_value"] <= 2147483647))
 )
 
 def rule_46_func(arg1, solver=None, neg=False):

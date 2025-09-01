@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Shape of x and v must be compatible, considering the rank of x and v are at least 1 (Rule 19)
+# If x is a vector, then v must be a vector (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_ndim"] >= 1, v["arg2_ndim"] >= 1), v["arg1_ndim"] == v["arg2_ndim"])) if n else
-          And(And(v["arg1_ndim"] >= 1, v["arg2_ndim"] >= 1), v["arg1_ndim"] == v["arg2_ndim"]))
+    s.add(Not(If(v["arg1_ndim"] == 1, v["arg2_ndim"] == 1, True)) if n else
+          If(v["arg1_ndim"] == 1, v["arg2_ndim"] == 1, True))
 )
 
 def rule_19_func(arg1, arg2, solver=None, neg=False):

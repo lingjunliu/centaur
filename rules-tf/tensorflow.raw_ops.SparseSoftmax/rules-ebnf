@@ -1,90 +1,111 @@
 >>
-Rule 1 (sp_indices should be a 2-D tensor)
-{v_1 : tensor} |= ndim(v_1) = 2
+Rule 1 (sp_indices must be a 2D tensor)
+{sp_indices : tensor} |= ndim(sp_indices) = 2
 >>
-Rule 2 (sp_indices must be of type int64)
-{v_1 : tensor} |= dtype_(v_1) = 4
+Rule 2 (sp_shape must be a 1D tensor)
+{sp_shape : tensor} |= ndim(sp_shape) = 1
 >>
-Rule 3 (sp_values must be one of half, float32, or float64)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 3 (sp_values must be a 1D tensor)
+{sp_values : tensor} |= ndim(sp_values) = 1
 >>
-Rule 4 (sp_values must be a 1-D tensor)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 4 (sp_indices and sp_values must have the same number of non-zero elements)
+{sp_indices : tensor, sp_values : tensor} |= shape(sp_indices, 0) = shape(sp_values, 0)
 >>
-Rule 7 (Number of non-zero values must be consistent between indices and values)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 5 (sp_values must be of type half, float32, or float64, represented as 6, 7, and 8 respectively)
+{sp_values : tensor} |= dtype_(sp_values) = 6 ∨ dtype_(sp_values) = 7 ∨ dtype_(sp_values) = 8
 >>
-Rule 8 (Shape must have at least two dimensions)
-{v_1 : tensor} |= shape(v_1,0) ≥ 2
+Rule 6 (sp_indices must be of type int64, represented as 4)
+{sp_indices : tensor} |= dtype_(sp_indices) = 4
 >>
-Rule 9 (The rank R of sp_indices should be consistent with shape)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = ndim(v_2)
+Rule 7 (sp_shape must be of type int64, represented as 4)
+{sp_shape : tensor} |= dtype_(sp_shape) = 4
 >>
-Rule 10 (sp_indices, sp_values, and sp_shape should be tensors with consistent first dimension for indices and values, and shape length for indices and shape)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_3, 0)
+Rule 8 (length of sp_shape must be greater than or equal to 2)
+{sp_shape : tensor} |= shape(sp_shape, 0) ≥ 2
 >>
-Rule 11 (sp_shape elements should be non-negative)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 9 (Shape of sp_indices must match rank of sp_shape)
+{sp_indices : tensor, sp_shape : tensor} |= shape(sp_indices, 1) = shape(sp_shape, 0)
 >>
-Rule 12 (sp_indices elements should be non-negative)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : min(v_1) ≥ 0
+Rule 10 (All dimensions of sp_shape must be greater than 0)
+{sp_shape : tensor} |= ∀i ∈ [0, shape(sp_shape, 0) - 1] : shape(sp_shape, i) > 0
 >>
-Rule 13 (Shape of input SparseTensor must be at least 2)
-{v_1 : tensor} |= shape(v_1, 0) ≥ 2
+Rule 12 (The last dimension of sp_shape must be greater than one)
+{sp_shape : tensor} |= shape(sp_shape, shape(sp_shape, 0) -1) > 1
 >>
-Rule 15 (sp_indices rank R must be greater than or equal to 2)
-{v_1 : tensor} |= shape(v_1, 1) ≥ 2
+Rule 13 (The first dimension of sp_shape must be greater than one)
+{sp_shape : tensor} |= shape(sp_shape, 0) > 1
 >>
-Rule 16 (The number of non-empty values in sp_values must be a positive integer)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 15 (The number of values in sp_values must be less than or equal to the product of dimensions in sp_shape)
+{sp_values : tensor, sp_shape : tensor} |= shape(sp_values, 0) ≤ (∀i ∈ [0, shape(sp_shape, 0) - 1] : shape(sp_shape, i))
 >>
-Rule 18 (Shape of input SparseTensor must have a positive number of elements)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 20 (The last dimension of sp_shape represents the class dimension and should be greater than 1)
+{sp_shape : tensor} |= shape(sp_shape, shape(sp_shape, 0) - 1) > 1
 >>
-Rule 19 (sp_indices, sp_values, and sp_shape should have consistent NNZ)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_3, 0) = shape(v_1, 1)
+Rule 29 (sp_shape must be a 1D tensor with values greater than 0)
+{sp_shape : tensor} |= ndim(sp_shape) = 1 ∧ ∀i ∈ [0, shape(sp_shape, 0) - 1] : shape(sp_shape, i) > 0
 >>
-Rule 24 (sp_shape has at least 2 dimensions (B and C))
-{v_1 : tensor} |= ndim(v_1) >= 2
+Rule 33 (sp_values must be a 1D tensor and its size must match the number of rows in sp_indices)
+{sp_indices : tensor, sp_values : tensor} |= ndim(sp_values) = 1 ∧ shape(sp_values, 0) = shape(sp_indices, 0)
 >>
-Rule 34 (sp_indices and sp_shape: The second dimension of sp_indices matches the first dimension of sp_shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 1 ∧ ndim(v_2) > 0 ∧ shape(v_1, 1) = shape(v_2, 0)
+Rule 49 (The shape of sp_indices, sp_values, and sp_shape are consistent with each other)
+{sp_indices : tensor, sp_values : tensor, sp_shape : tensor} |= shape(sp_indices, 0) = shape(sp_values, 0) ∧ shape(sp_indices, 1) = shape(sp_shape, 0)
 >>
-Rule 35 (sp_indices and sp_values: The first dimension of sp_indices matches the first dimension of sp_values)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, 0) = shape(v_2, 0)
+Rule 50 (The dtype of sp_indices and sp_shape must be int64, represented as 4)
+{sp_indices : tensor, sp_shape : tensor} |= dtype_(sp_indices) = 4 ∧ dtype_(sp_shape) = 4
 >>
-Rule 36 (sp_indices and sp_shape: sp_shape's elements should be a subset of values permitted by sp_indices datatype)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) ≥ 0 ∧ max(v_1) < max(v_2)
+Rule 52 (The shape of sp_indices is NNZ x R, where NNZ is the number of non-zero elements and R is the rank.)
+{sp_indices : tensor, sp_shape : tensor, sp_values: tensor} |= shape(sp_indices, 0) = shape(sp_values, 0) ∧ shape(sp_indices, 1) = shape(sp_shape, 0)
 >>
-Rule 38 (sp_indices's max value is smaller than sp_shape's min value when sp_shape has only one dimension)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 1 ∧ max(v_1) < min(v_2)
+Rule 53 (dtype of sp_values must be half (6), float32 (7), or float64 (8))
+{sp_values: tensor} |= dtype_(sp_values) = 6 ∨ dtype_(sp_values) = 7 ∨ dtype_(sp_values) = 8
 >>
-Rule 39 (sp_values has one dimension and it is greater than 0)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) > 0
+Rule 56 (The shape of sp_values must be of rank 1)
+{sp_values: tensor} |= ndim(sp_values) = 1
 >>
-Rule 42 (sp_shape must be a 1D tensor with shape values greater than 0)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
+Rule 61 (The size of sp_values must match the number of rows in sp_indices)
+{sp_indices : tensor, sp_values : tensor} |= shape(sp_values, 0) = shape(sp_indices, 0)
 >>
-Rule 44 (sp_shape must be a 1D tensor and it's length should be greater than or equal to 2)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) ≥ 2
+Rule 62 (The last dimension of sp_shape must be greater than 0 to avoid zero-size tensors.)
+{sp_shape : tensor} |= shape(sp_shape, shape(sp_shape, 0) - 1) > 0
 >>
-Rule 49 (sp_indices and sp_shape: the rank of sparse tensor must be equal to the sp_shape length)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = shape(v_2, 0)
+Rule 63 (The row count of sp_indices must match the number of elements in sp_values)
+{sp_indices: tensor, sp_values: tensor} |= shape(sp_indices, 0) = shape(sp_values, 0)
 >>
-Rule 50 (sp_indices and sp_shape: The rank of the sparse tensor implied by sp_indices must be equal to length of sp_shape. Furthermore, that rank must be >= 2)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = shape(v_2, 0) ∧ shape(v_2, 0) ≥ 2
+Rule 64 (Each element of the shape tensor (sp_shape) must be positive)
+{sp_shape: tensor} |= ∀i ∈ [0, shape(sp_shape, 0) - 1] : shape(sp_shape, i) > 0
 >>
-Rule 53 (sp_shape values (tensor) must be int64)
-{v_1: tensor} |= dtype_(v_1) = 4
+Rule 66 (The number of dimensions in sp_shape must be equal to the second dimension of sp_indices.)
+{sp_indices : tensor, sp_shape : tensor} |= shape(sp_shape, 0) = shape(sp_indices, 1)
 >>
-Rule 54 (sp_indices values should be int64 and must be non negative)
-{v_1 : tensor} |= dtype_(v_1) = 4 ∧ min(v_1) >= 0
+Rule 70 (The dtypes of sp_indices and sp_shape must be int64)
+{sp_indices: tensor, sp_shape: tensor} |= dtype_(sp_indices) = 4 ∧ dtype_(sp_shape) = 4
 >>
-Rule 55 (sp_values dimension should match the shape of sp_indices first dimension)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = shape(v_2, 0)
+Rule 71 (sp_shape must be at least rank 1)
+{sp_shape: tensor} |= ndim(sp_shape) ≥ 1
 >>
-Rule 61 (sp_shape values should be int64 and must be greater than 0)
-{v_1: tensor} |= dtype_(v_1) = 4 ∧ min(v_1) > 0
+Rule 74 (sp_indices must be of rank 2, NNZ x R.)
+{sp_indices: tensor} |= ndim(sp_indices) = 2
 >>
-Rule 63 (sp_values and sp_shape: Both of these should have corresponding shape dimensions greater than 0)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0
+Rule 86 (The size of sp_values must match number of rows in sp_indices)
+{sp_indices : tensor, sp_values: tensor} |= shape(sp_indices, 0) = shape(sp_values, 0)
+>>
+Rule 92 (The rank of the sparse tensor (length of sp_shape) must be at least 2)
+{sp_shape: tensor} |= shape(sp_shape, 0) ≥ 2
+>>
+Rule 95 (The last dimension of the sparse shape must have size greater than 1)
+{sp_shape: tensor} |= shape(sp_shape, shape(sp_shape, 0) - 1) > 1
+>>
+Rule 100 (The number of non-zero values must be within the bounds of the total number of values defined by sp_shape)
+{sp_values: tensor, sp_shape: tensor} |= shape(sp_values, 0) ≤ (∀i ∈ [0, shape(sp_shape, 0) - 1] : shape(sp_shape, i))
+>>
+Rule 101 (sp_shape must specify at least one dimension)
+{sp_shape : tensor} |= shape(sp_shape, 0) ≥ 1
+>>
+Rule 104 (sp_shape specifies at least two dimensions for the sparse tensor)
+{sp_shape: tensor} |= shape(sp_shape, 0) >= 2
+>>
+Rule 107 (The size of the dimension denoted by values must be a positive integer.)
+{sp_values : tensor} |= shape(sp_values, 0) > 0
+>>
+Rule 116 (The number of values in sp_values should be nonzero)
+{sp_values: tensor} |= shape(sp_values, 0) > 0

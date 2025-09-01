@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The dtype of input_min and input_max has to match the dtype of the input (Rule 74)
+# If range_given is true, then min(input_min (Rule 74)
 
 rule_74 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] == v["arg2_dtype"], v["arg1_dtype"] == v["arg3_dtype"])) if n else
-          And(v["arg1_dtype"] == v["arg2_dtype"], v["arg1_dtype"] == v["arg3_dtype"]))
+    s.add(Not(If(v["arg1_value"], Select(v["arg2_range"], 0) <= Select(v["arg3_range"], 1), True)) if n else
+          If(v["arg1_value"], Select(v["arg2_range"], 0) <= Select(v["arg3_range"], 1), True))
 )
 
 def rule_74_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -19,7 +19,7 @@ def rule_74_func(arg1, arg2, arg3, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, bool):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
@@ -28,19 +28,21 @@ def rule_74_func(arg1, arg2, arg3, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
-        arg3_dtype = Int('arg3_dtype')
+        arg1_value = Bool('arg1_value')
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg3_range = Array('arg3_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
+        solver.add(arg1_value == arg1)
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        arg3_range = Store(arg3_range, 0, int(np.min(arg3)))
+        arg3_range = Store(arg3_range, 1, int(np.max(arg3)))
 
         # Constraints for rule 74
-        rule_74(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype})
+        rule_74(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range, 'arg3_range': arg3_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_74(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype']}, neg)
+        rule_74(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range'], 'arg3_range': arg3['range']}, neg)

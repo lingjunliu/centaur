@@ -1,105 +1,123 @@
 >>
-Rule 1 (Input tensor must be of type float16, float32, or float64)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 1 (input and filter tensors must have the same data type)
+{input : tensor, filter : tensor} |= dtype_(input) = dtype_(filter)
 >>
-Rule 2 (Size tensor must be of type int32 and have shape [2])
-{v_2 : tensor} |= dtype_(v_2) = 3 ∧ ndim(v_2) = 1 ∧ shape(v_2, 0) = 2
+Rule 2 (size tensor must have exactly two elements)
+{size : tensor} |= ndim(size) = 1 ∧ shape(size, 0) = 2
 >>
-Rule 3 (Paddings tensor must be of type int32 and have number of rows equal to rank of input tensor)
-{v_1 : tensor, v_3 : tensor} |= dtype_(v_3) = 3 ∧ ndim(v_3) = 2 ∧ shape(v_3, 0) = ndim(v_1)
+Rule 3 (paddings tensor must have the same number of rows as the rank of the input tensor)
+{input : tensor, paddings : tensor} |= shape(paddings, 0) = ndim(input)
 >>
-Rule 4 (Filter tensor must have the same type as input tensor)
-{v_1 : tensor, v_4 : tensor} |= dtype_(v_4) = dtype_(v_1)
+Rule 4 (strides list must have length 4)
+{strides : list(int)} |= strides.len = 4
 >>
-Rule 5 (Input and filter tensors must be 4-dimensional)
-{v_1 : tensor, v_4 : tensor} |= ndim(v_1) = 4 ∧ ndim(v_4) = 4
+Rule 5 (input tensor must be 4-dimensional)
+{input : tensor} |= ndim(input) = 4
 >>
-Rule 6 (Strides list must have length 4)
-{v_6 : list(int)} |= shape(v_6, ".len") = 4
+Rule 6 (filter tensor must be 4-dimensional)
+{filter : tensor} |= ndim(filter) = 4
 >>
-Rule 7 (Padding string must be either "SAME" or "VALID")
-{v_7 : str} |= v_7 = "SAME" ∨ v_7 = "VALID"
+Rule 7 (the number of input channels of the input and filter tensors must match)
+{input : tensor, filter : tensor} |= shape(input, 3) = shape(filter, 2)
 >>
-Rule 8 (Mode string must be either "REFLECT" or "SYMMETRIC")
-{v_5 : str} |= v_5 = "REFLECT" ∨ v_5 = "SYMMETRIC"
+Rule 8 (size tensor elements must be non-negative)
+{size : tensor} |= ∀i ∈ [0, shape(size, 0) - 1] : size[i] ≥ 0
 >>
-Rule 9 (Filter height and width must be positive integers)
-{v_4 : tensor} |= shape(v_4, 0) > 0 ∧ shape(v_4, 1) > 0
+Rule 9 (paddings tensor must have exactly two columns)
+{paddings : tensor} |= shape(paddings, 1) = 2
 >>
-Rule 10 (Input channels of input and filter must be the same)
-{v_1 : tensor, v_4 : tensor} |= shape(v_1, 3) = shape(v_4, 2)
+Rule 10 (mode string must be either "REFLECT" or "SYMMETRIC")
+{mode : str} |= mode = "REFLECT" ∨ mode = "SYMMETRIC"
 >>
-Rule 11 (New height and width specified by size must be non-negative)
-{v_2 : tensor} |= shape(v_2,0) > 0 ∧ shape(v_2,1) > 0
+Rule 11 (padding string must be either "SAME" or "VALID")
+{padding : str} |= padding = "SAME" ∨ padding = "VALID"
 >>
-Rule 13 (Strides values should be positive)
-{v_6 : list(int)} |= ∀i ∈ [0, shape(v_6, ".len") - 1] : v_6[i] > 0
+Rule 12 (size tensor must be of type int32)
+{size : tensor} |= dtype_(size) = 3
 >>
-Rule 15 (The number of channels of filter should be positive.)
-{v_4 : tensor} |= shape(v_4, 3) > 0
+Rule 13 (paddings tensor must be of type int32)
+{paddings : tensor} |= dtype_(paddings) = 3
 >>
-Rule 16 (Padding values should be non-negative)
-{v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : ∀j ∈ [0, shape(v_3, 1) - 1] : v_3[shape(v_3,0) * i + j] ≥ 0
+Rule 14 (input tensor's dtype must be half, float32, or float64)
+{input : tensor} |= dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8
 >>
-Rule 17 (Padding values should be non-negative)
-{v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : ∀j ∈ [0, shape(v_3, 1) - 1] : v_3[shape(v_3, 0) * i + j] ≥ 0
+Rule 15 (strides list elements must be positive)
+{strides : list(int)} |= ∀i ∈ [0, strides.len - 1] : strides[i] > 0
 >>
-Rule 20 (Padding tensor must have the correct shape given the input tensor rank)
-{v_1 : tensor, v_3 : tensor} |= shape(v_3, 0) = ndim(v_1) ∧ shape(v_3, 1) = 2
+Rule 16 (filter height must be greater than zero)
+{filter : tensor} |= shape(filter, 0) > 0
 >>
-Rule 21 (If resize_align_corners is true, the size should be greater than 1)
-{v_8 : bool, v_2 : tensor} |= if v_8 = true then shape(v_2,0) > 1 ∧ shape(v_2,1) > 1
+Rule 17 (filter width must be greater than zero)
+{filter : tensor} |= shape(filter, 1) > 0
 >>
-Rule 22 (When using SYMMETRIC mode, padding values should not cause out-of-bounds access)
-{v_1 : tensor, v_3 : tensor, v_5 : str} |= if v_5 = "SYMMETRIC" then ∀i ∈ [0, shape(v_3,0) - 1] : v_3[shape(v_3,0) * i + 0] < shape(v_1,i) ∧ v_3[shape(v_3,0) * i + 1] < shape(v_1,i)
+Rule 19 (resize_align_corners must be a boolean value)
+{resize_align_corners: bool} |= resize_align_corners = true ∨ resize_align_corners = false
 >>
-Rule 24 (When padding is SAME, the strides should be 1)
-{v_6 : list(int), v_7 : str} |= if v_7 = "SAME" then v_6[0] = 1 ∧ v_6[1] = 1 ∧ v_6[2] = 1 ∧ v_6[3] = 1
+Rule 30 (paddings tensor shape constraints)
+{paddings: tensor} |= shape(paddings, 1) = 2
 >>
-Rule 25 (Strides should be valid for the input dimensions)
-{v_1 : tensor, v_6 : list(int)} |= v_6[0] > 0 ∧ v_6[1] > 0 ∧ v_6[2] > 0 ∧ v_6[3] > 0 ∧ v_6[0] ≤ shape(v_1, 0) ∧ v_6[1] ≤ shape(v_1, 1) ∧ v_6[2] ≤ shape(v_1, 2) ∧ v_6[3] ≤ shape(v_1, 3)
+Rule 38 (paddings elements must be non-negative and paddings has 2 columns)
+{paddings : tensor} |= (shape(paddings, 1) = 2) ∧ (min(paddings) ≥ 0)
 >>
-Rule 26 (The input tensor's height and width should be larger than 0.)
-{v_1 : tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+Rule 40 (size tensor elements must be positive)
+{size : tensor} |= shape(size, 0) = 2 ∧ min(size) > 0
 >>
-Rule 27 (Filter's in_channels and out_channels must be larger than 0)
-{v_4 : tensor} |= shape(v_4, 2) > 0 ∧ shape(v_4, 3) > 0
+Rule 41 (size tensor elements must be non-negative)
+{size : tensor} |= shape(size, 0) = 2 ∧ (min(size) ≥ 0)
 >>
-Rule 28 (If padding is VALID, the size should be smaller or equal than the input's height and width)
-{v_1 : tensor, v_2 : tensor, v_7 : str} |= if v_7 = "VALID" then shape(v_2, 0) <= shape(v_1, 1) ∧ shape(v_2, 1) <= shape(v_1, 2)
+Rule 42 (size tensor elements must be positive)
+{size : tensor} |= (shape(size, 0) = 2) ∧ (min(size) ≥ 0) ∧ (dtype_(size)=3)
 >>
-Rule 29 (The size tensor must have positive values)
-{v_2 : tensor} |= shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0
+Rule 43 (input and filter must have same type)
+{input: tensor, filter: tensor} |= dtype_(input) = dtype_(filter)
 >>
-Rule 30 (The filter height and width can not be larger than the input height and width when the padding is VALID)
-{v_1 : tensor, v_4 : tensor, v_7 : str} |= if v_7 = "VALID" then shape(v_4, 0) <= shape(v_1, 1) ∧ shape(v_4, 1) <= shape(v_1, 2)
+Rule 45 (strides list has length 4)
+{strides: list(int)} |= strides.len = 4
 >>
-Rule 31 (The paddings values should not be greater than the corresponding input size when the mode is REFLECT)
-{v_1 : tensor, v_3 : tensor, v_5 : str} |= if v_5 = "REFLECT" then ∀i ∈ [0, shape(v_3, 0) - 1] : v_3[shape(v_3,0) * i + 0] < shape(v_1, i) ∧ v_3[shape(v_3,0) * i + 1] < shape(v_1, i)
+Rule 47 (number of input channels matches on input and filter)
+{input: tensor, filter: tensor} |= shape(input, 3) = shape(filter, 2)
 >>
-Rule 33 (The paddings tensor cannot be empty)
-{v_3 : tensor} |= shape(v_3, 0) > 0 ∧ shape(v_3, 1) > 0
+Rule 49 (size is int32 tensor)
+{size : tensor} |= dtype_(size) = 3 ∧ ndim(size) = 1
 >>
-Rule 34 (When padding is SAME, the output size should be input_size / stride if stride > 1)
-{v_1 : tensor, v_2 : tensor, v_6 : list(int), v_7 : str} |= if v_7 = "SAME" then if v_6[1] > 1 then shape(v_2, 0) = shape(v_1, 1) / v_6[1]
+Rule 50 (paddings is int32 tensor)
+{paddings : tensor} |= dtype_(paddings) = 3 ∧ ndim(paddings) = 2
 >>
-Rule 36 (The resize_align_corners flag should be a boolean value)
-{v_8 : bool} |= v_8 = true ∨ v_8 = false
+Rule 54 (paddings tensor number of rows must be same as rank of input tensor)
+{paddings: tensor, input: tensor} |= shape(paddings, 0) = ndim(input)
 >>
-Rule 38 (The paddings values must be non-negative)
-{v_3 : tensor} |= min(v_3) ≥ 0
+Rule 55 (strides is valid list)
+{strides : list(int)} |= ∀i ∈ [0, 3] : strides[i] > 0
 >>
-Rule 39 (If padding is SAME, the output size should be input_size + stride - 1 / stride if stride > 1)
-{v_1 : tensor, v_2 : tensor, v_6 : list(int), v_7 : str} |= if v_7 = "SAME" then if v_6[1] > 1 then shape(v_2, 0) = (shape(v_1, 1) + v_6[1] - 1) / v_6[1]
+Rule 56 (strides is valid and has length 4)
+{strides : list(int)} |= strides.len = 4 ∧ ∀i ∈ [0, 3] : strides[i] > 0
 >>
-Rule 40 (strides list should contain only positive numbers.)
-{v_6 : list(int)} |= ∀i ∈ [0, v_6.len - 1] : v_6[i] > 0
+Rule 57 (filter has valid shape)
+{filter : tensor} |= shape(filter, 0) > 0 ∧ shape(filter, 1) > 0
 >>
-Rule 41 (The input tensor must have batch size, in_height, in_width, and in_channels all greater than 0.)
-{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+Rule 58 (resize_align_corners is a boolean)
+{resize_align_corners : bool} |= resize_align_corners = true ∨ resize_align_corners = false
 >>
-Rule 45 (If resize_align_corners is True, then input height and width has to be greater than 1)
-{v_1 : tensor, v_8 : bool} |= if v_8 then shape(v_1, 1) > 1 ∧ shape(v_1, 2) > 1
+Rule 60 (filter data type is half, float32, or float64)
+{filter : tensor} |= dtype_(filter) = 6 ∨ dtype_(filter) = 7 ∨ dtype_(filter) = 8
 >>
-Rule 46 (The size tensor values should be greater than 0)
-{v_2 : tensor} |= min(v_2) > 0
+Rule 64 (paddings and input must have consistent rank for padding)
+{paddings : tensor, input : tensor} |= shape(paddings, 0) = ndim(input)
+>>
+Rule 65 (paddings tensor properties)
+{paddings : tensor, input : tensor} |= dtype_(paddings) = 3 ∧ ndim(paddings) = 2 ∧ shape(paddings, 0) = ndim(input) ∧ shape(paddings, 1) = 2
+>>
+Rule 66 (combined properties of the size tensor)
+{size : tensor} |= dtype_(size) = 3 ∧ ndim(size) = 1 ∧ shape(size, 0) = 2
+>>
+Rule 68 (filter dimensions are positive)
+{filter : tensor} |= shape(filter, 0) > 0 ∧ shape(filter, 1) > 0 ∧ shape(filter,2) > 0 ∧ shape(filter, 3) > 0
+>>
+Rule 70 (combined properties of input and filter tensors)
+{input : tensor, filter : tensor} |= ndim(input) = 4 ∧ ndim(filter) = 4 ∧ dtype_(input) = dtype_(filter) ∧ shape(input, 3) = shape(filter, 2)
+>>
+Rule 72 (paddings are non-negative)
+{paddings : tensor} |= min(paddings) ≥ 0
+>>
+Rule 75 (valid properties of size and paddings)
+{size : tensor, paddings : tensor, input : tensor} |= dtype_(size) = 3 ∧ ndim(size) = 1 ∧ shape(size, 0) = 2 ∧ dtype_(paddings) = 3 ∧ ndim(paddings) = 2 ∧ shape(paddings, 0) = ndim(input) ∧ shape(paddings, 1) = 2

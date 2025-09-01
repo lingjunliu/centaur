@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If x and y are tensors with different dtypes, equal_nan is not applicable (Rule 53)
+# If equal_nan is set to true, then tensors are allowed to have different dtypes (Rule 53)
 
 rule_53 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] != v["arg2_dtype"], v["arg3_value"] == False, False)) if n else
-          If(v["arg1_dtype"] != v["arg2_dtype"], v["arg3_value"] == False, False))
+    s.add(Not(If(v["arg3_value"] == True, True, v["arg1_dtype"] == v["arg2_dtype"])) if n else
+          If(v["arg3_value"] == True, True, v["arg1_dtype"] == v["arg2_dtype"]))
 )
 
 def rule_53_func(arg1, arg2, arg3, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If x is empty tensor, v must be empty tensor as well (Rule 36)
+# v's first dimension should have the same size as i's length (Rule 36)
 
 rule_36 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_shape"], 0) == 0, Select(v["arg2_shape"], 0) == 0, False)) if n else
-          If(Select(v["arg1_shape"], 0) == 0, Select(v["arg2_shape"], 0) == 0, False))
+    s.add(Not(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)) if n else
+          Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0))
 )
 
 def rule_36_func(arg1, arg2, solver=None, neg=False):

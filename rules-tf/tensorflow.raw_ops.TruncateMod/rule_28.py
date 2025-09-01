@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If x's dtype is float64, then y cannot be int32 or int64 (Rule 28)
+# x and y data types must be int32, int64, float32, or float64 and be the same (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 9, And(v["arg2_dtype"] != 3, v["arg2_dtype"] != 4), False)) if n else
-          If(v["arg1_dtype"] == 9, And(v["arg2_dtype"] != 3, v["arg2_dtype"] != 4), False))
+    s.add(Not((And((Or(Or(Or(v["arg1_dtype"] == 2, v["arg1_dtype"] == 3), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), v["arg1_dtype"] == v["arg2_dtype"]))) if n else
+          (And((Or(Or(Or(v["arg1_dtype"] == 2, v["arg1_dtype"] == 3), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), v["arg1_dtype"] == v["arg2_dtype"])))
 )
 
 def rule_28_func(arg1, arg2, solver=None, neg=False):

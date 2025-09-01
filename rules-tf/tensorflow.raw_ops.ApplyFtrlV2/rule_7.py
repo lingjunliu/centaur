@@ -5,16 +5,18 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# l1 and l2 regularization terms should be non-negative (Rule 7)
+# accum, linear, and grad should have the same shape as var (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_range"], 0) >= 0, Select(v["arg2_range"], 0) >= 0)) if n else
-          And(Select(v["arg1_range"], 0) >= 0, Select(v["arg2_range"], 0) >= 0))
+    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), And([Implies(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], i) == Select(v["arg3_shape"], i), And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg4_shape"], i)) for i in range(6)]))) for i in range(6)]))) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), And([Implies(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], i) == Select(v["arg3_shape"], i), And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg4_shape"], i)) for i in range(6)]))) for i in range(6)]))) for i in range(6)]))
 )
 
-def rule_7_func(arg1, arg2, solver=None, neg=False):
+def rule_7_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
+    arg4 = next(iter(arg4.values()))
 
     # Invariant learning phase
     if not solver:
@@ -22,22 +24,34 @@ def rule_7_func(arg1, arg2, solver=None, neg=False):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
+        if not isinstance(arg3, np.ndarray):
+            return False
+        if not isinstance(arg4, np.ndarray):
+            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
+        arg4_shape = Array('arg4_shape', IntSort(), IntSort())
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        for i in range(arg3.ndim):
+            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
+        for i in range(arg4.ndim):
+            arg4_shape = Store(arg4_shape, i, arg4.shape[i])
 
         # Constraints for rule 7
-        rule_7(solver, {'arg1_range': arg1_range, 'arg2_range': arg2_range})
+        rule_7(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg3_shape': arg3_shape, 'arg4_shape': arg4_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_7(solver, {'arg1_range': arg1['range'], 'arg2_range': arg2['range']}, neg)
+        rule_7(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg3_shape': arg3['shape'], 'arg4_shape': arg4['shape']}, neg)

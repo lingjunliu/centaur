@@ -1,78 +1,102 @@
 >>
-Rule 1 (image must be a 3D or 4D tensor)
+Rule 1 (image must be at least three-dimensional)
+{v_1 : tensor} |= ndim(v_1) ≥ 3
+>>
+Rule 2 (image must have either 3 or 4 dimensions)
 {v_1 : tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
 >>
-Rule 2 (If the tensor is 4D, batch dimension must be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 0) > 0
+Rule 3 (inner 3 dims of image.shape must be > 0)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 3) > 0
 >>
-Rule 3 (image must have a width greater than 0)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 2) > 0
->>
-Rule 4 (image must have a height greater than 0)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 3) > 0
->>
-Rule 5 (channels dimension must be greater than 0)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0
->>
-Rule 6 (image dtype must be a floating point or integer)
-{v_1 : tensor} |= 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 9
->>
-Rule 7 (If the tensor is 3D, all dimensions must be greater than zero)
+Rule 4 (image must have positive shape dimensions when it is 3D)
 {v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
 >>
-Rule 8 (If the tensor is 4D, the number of channels should be less than 256)
-{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 3) < 256
+Rule 5 (image must have positive shape dimensions when it is 4D)
+{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
 >>
-Rule 9 (If the image is 3D, height*width*channels must be less than 100000)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 100000
+Rule 10 (ensuring at least one of the supported shapes)
+{v_1 : tensor} |= (ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0)
 >>
-Rule 10 (If the image is 4D, batch*height*width*channels must be less than 1000000)
-{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) < 1000000
+Rule 11 (image shape dimensions must be positive)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 else if ndim(v_1) = 4 then shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 else false
 >>
-Rule 11 (If image is 4D, height and width dimensions must be equal)
-{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 1) = shape(v_1, 2)
+Rule 13 (ensure at least 3 dimensions and last three are positive)
+{v_1 : tensor} |= ndim(v_1) >= 3 ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 3) > 0
 >>
-Rule 12 (If image is 3D and dtype is float32, then min value must be greater than -100)
-{v_1 : tensor} |= if ndim(v_1) = 3 ∧ dtype_(v_1) = 7 then min(v_1) > -100
+Rule 14 (ndim is between 3 and 4, and inner three shapes are positive)
+{v_1 : tensor} |= (ndim(v_1) = 3 ∨ ndim(v_1) = 4) ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 3) > 0
 >>
-Rule 13 (If image is 3D and dtype is float32, then max value must be less than 100)
-{v_1 : tensor} |= if ndim(v_1) = 3 ∧ dtype_(v_1) = 7 then max(v_1) < 100
+Rule 16 (image shape dimensions must be strictly positive for last three dims when ndim >=3)
+{v_1: tensor} |= if ndim(v_1) >= 3 then shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 3) > 0
 >>
-Rule 14 (Check if all values in the tensor are non-negative when the data type is uint8)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) ≥ 0
+Rule 17 (enforce 3 or 4 dimensions, and positive inner dims)
+{v_1 : tensor} |= if ndim(v_1) < 3 then false else (ndim(v_1) = 3 ∨ ndim(v_1) = 4) ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 3) > 0
 >>
-Rule 16 (If the tensor is a complex type, its imaginary part shouldn't be too large)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then max(v_1) < 1000
+Rule 18 (Must be at least 3 dimensions, and inner 3 dimensions must have positive size)
+{v_1 : tensor} |= ndim(v_1) >= 3 ∧ shape(v_1, ndim(v_1)-1) > 0 ∧ shape(v_1, ndim(v_1)-2) > 0 ∧ shape(v_1, ndim(v_1)-3) > 0
 >>
-Rule 17 (if the tensor is 3D, ensure that height and width are not excessively large.)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) < 4096 * 4096
+Rule 19 (check dimensions and positive shape for 3 or 4 dim tensors)
+{v_1 : tensor} |= (ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0) ∨ ndim(v_1) < 3
 >>
-Rule 21 (The product of the shape should not exceed maximum integer value)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 2147483647 else if ndim(v_1) = 4 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) < 2147483647
+Rule 21 (tensor must be 3 or 4 dimensions with the last 3 dims > 0, otherwise it is false)
+{v_1 : tensor} |= if ndim(v_1) < 3 then false else shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 3) > 0 ∧ (ndim(v_1) = 3 ∨ ndim(v_1) = 4)
 >>
-Rule 24 (If the image is 3D, height and width can not be zero simultaneously)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) ≠ 0 ∨ shape(v_1, 1) ≠ 0
+Rule 22 (ensure at least 3 dimensions and inner shapes are positive or ensure 3/4 dimensions appropriately)
+{v_1 : tensor} |= (ndim(v_1) >= 3 ∧ shape(v_1, ndim(v_1)-1) > 0 ∧ shape(v_1, ndim(v_1)-2) > 0 ∧ shape(v_1, ndim(v_1)-3) > 0) ∨ (ndim(v_1) = 3 ∨ ndim(v_1) = 4)
 >>
-Rule 25 (If the image is 4D, height and width can not be zero simultaneously)
-{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 1) ≠ 0 ∨ shape(v_1, 2) ≠ 0
+Rule 23 (combine dimension and shape constraints)
+{v_1 : tensor} |= ndim(v_1) ≥ 3 ∧ (ndim(v_1) = 3 ∨ ndim(v_1) = 4) ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 3) > 0
 >>
-Rule 26 (If image is 3D and channels are 1, then height and width dimensions must be different)
-{v_1 : tensor} |= if ndim(v_1) = 3 ∧ shape(v_1, 2) = 1 then shape(v_1, 0) ≠ shape(v_1, 1)
+Rule 24 (ensure that either we have a tensor with 3 or 4 dimensions and last 3 shapes positive, or if its fewer dims we short circuit to true)
+{v_1 : tensor} |= if ndim(v_1) < 3 then true else (ndim(v_1) = 3 ∨ ndim(v_1) = 4) ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 3) > 0
 >>
-Rule 27 (If the tensor is 4D, and the batch size is greater than 1, then height and width must be the same)
-{v_1 : tensor} |= if ndim(v_1) = 4 ∧ shape(v_1, 0) > 1 then shape(v_1, 1) = shape(v_1, 2)
+Rule 26 (ensure at least 3 dimensions and the last three dims are positive, or enforce 3/4 dimensions, but not simultaneously)
+{v_1 : tensor} |= if ndim(v_1) >= 3 then shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 3) > 0 else ndim(v_1) = 3 ∨ ndim(v_1) = 4
 >>
-Rule 28 (The datatype of the tensor should be int or float)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 29 (If ndim < 3 the value is true, if ndim = 3, shape dimensions 0, 1, 2 must be > 0, if ndim = 4, shape dimensions 1, 2, 3 must be > 0 )
+{v_1: tensor} |= if ndim(v_1) < 3 then true else if ndim(v_1) = 3 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 else if ndim(v_1) = 4 then shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 else false
 >>
-Rule 29 (If the number of channels is 3, the values must be between 0 and 255)
-{v_1 : tensor} |= if shape(v_1, ndim(v_1) - 1) = 3 then min(v_1) ≥ 0 ∧ max(v_1) ≤ 255
+Rule 31 (image dimensions, shape constraints, all in one rule to avoid duplicates)
+{v_1 : tensor} |= (ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0) ∨ (ndim(v_1) < 3)
 >>
-Rule 30 (If the image is 3D and the data type is bool, then all values should be either true or false)
-{v_1 : tensor} |= if ndim(v_1) = 3 ∧ dtype_(v_1) = 0 then (min(v_1) = 0 ∧ max(v_1) = 1) ∨ (min(v_1) = false ∧ max(v_1) = true)
+Rule 32 (if number of dimensions is not 3 or 4, then expression is false, else inner 3 dimensions must be positive)
+{v_1 : tensor} |= if ndim(v_1) ≠ 3 ∧ ndim(v_1) ≠ 4 then false else shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 3) > 0
 >>
-Rule 33 (If the image is 3D and the data type is bool, then all values should be either true or false)
-{v_1 : tensor} |= if ndim(v_1) = 3 ∧ dtype_(v_1) = 0 then min(v_1) = false ∧ max(v_1) = true
+Rule 33 (check dimension range and ensure last three dimensions are positive size)
+{v_1 : tensor} |= (3 ≤ ndim(v_1) ∧ ndim(v_1) ≤ 4) ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 3) > 0
 >>
-Rule 38 (If image is 3D and channels dimension is 3, then the allowed data type is float or uint8)
-{v_1 : tensor} |= if ndim(v_1) = 3 ∧ shape(v_1, 2) = 3 then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 5
+Rule 35 (ndim should be 3 or 4 and inner 3 dims should be strictly positive.)
+{v_1 : tensor} |= (ndim(v_1) = 3 ∨ ndim(v_1) = 4) ∧ shape(v_1, ndim(v_1)-1) > 0 ∧ shape(v_1, ndim(v_1)-2) > 0 ∧ shape(v_1, ndim(v_1)-3) > 0
+>>
+Rule 36 (if ndim < 3 value true, otherwise ndim is either 3/4 AND the appropriate 3 shape constraints hold. this single rule should cover all cases)
+{v_1 : tensor} |= if ndim(v_1) < 3 then true else (ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0)
+>>
+Rule 39 (final comprehensive version)
+{v_1 : tensor} |= (ndim(v_1) ≥ 3 ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 3) > 0) ∧ (ndim(v_1) = 3 ∨ ndim(v_1) = 4)
+>>
+Rule 46 (Tensor dimensions should not be excessively large)
+{v_1 : tensor} |= ndim(v_1) ≤ 10
+>>
+Rule 51 (Last 3 dimensions must be positive if ndim >= 3)
+{v_1 : tensor} |= if ndim(v_1) >= 3 then shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 3) > 0
+>>
+Rule 52 (Comprehensive check - dimension range and shape positivity, must be all true)
+{v_1 : tensor} |= (ndim(v_1) = 3 ∨ ndim(v_1) = 4) ∧ (if ndim(v_1) = 3 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 else shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0)
+>>
+Rule 55 (requires tensor to have 3 or 4 dimensions and ensure all shape values are greater than 0 when ndim is 3 or 4.)
+{v_1 : tensor} |= (ndim(v_1) = 3 ∨ ndim(v_1) = 4) ∧ if ndim(v_1) = 3 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 else shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+>>
+Rule 56 (Valid tensor dimensions with valid shapes)
+{v_1 : tensor} |= (ndim(v_1) = 3 ∧ ∀i ∈ [0, 2] : shape(v_1, i) > 0) ∨ (ndim(v_1) = 4 ∧ ∀i ∈ [1, 3] : shape(v_1, i) > 0)
+>>
+Rule 57 (requires a 3 or 4 dimensional tensor, and checks shape values)
+{v_1 : tensor} |= ((ndim(v_1) = 3) ∧ (shape(v_1, 0) > 0) ∧ (shape(v_1, 1) > 0) ∧ (shape(v_1, 2) > 0)) ∨ ((ndim(v_1) = 4) ∧ (shape(v_1, 1) > 0) ∧ (shape(v_1, 2) > 0) ∧ (shape(v_1, 3) > 0))
+>>
+Rule 58 (requires tensor to be 3 or 4 dimensional and the last three shape values to be greater than 0)
+{v_1 : tensor} |= ((ndim(v_1) = 3) ∨ (ndim(v_1) = 4)) ∧ (shape(v_1, ndim(v_1) - 3) > 0) ∧ (shape(v_1, ndim(v_1) - 2) > 0) ∧ (shape(v_1, ndim(v_1) - 1) > 0)
+>>
+Rule 59 (Check that inner three dims are positive if ndim > 2 and ndim is valid )
+{v_1 : tensor} |= ndim(v_1) > 2 ∧ (ndim(v_1) = 3 ∨ ndim(v_1) = 4) ∧ shape(v_1, ndim(v_1) - 3) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0
+>>
+Rule 60 (Dimensions between 3 and 4, and last 3 shape dimensions positive)
+{v_1 : tensor} |= if (ndim(v_1) ≥ 3) ∧ (ndim(v_1) ≤ 4) then (shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 3) > 0) else false

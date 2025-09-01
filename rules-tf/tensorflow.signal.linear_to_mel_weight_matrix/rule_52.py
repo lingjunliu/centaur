@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Ratio of parameters given medium sample rates (Rule 52)
+# A complex rule combining constraints (Rule 52)
 
 rule_52 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg3_value"] > 22000, (v["arg1_value"] / (v["arg2_value"] + 0.0001)) < 0.5, False)) if n else
-          If(v["arg3_value"] > 22000, (v["arg1_value"] / (v["arg2_value"] + 0.0001)) < 0.5, False))
+    s.add(Not(And((And(v["arg1_value"] > 0, v["arg2_value"] > 0)), If(v["arg3_value"] == 7, True, If(v["arg3_value"] == 8, True, False)))) if n else
+          And((And(v["arg1_value"] > 0, v["arg2_value"] > 0)), If(v["arg3_value"] == 7, True, If(v["arg3_value"] == 8, True, False))))
 )
 
 def rule_52_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -21,19 +21,21 @@ def rule_52_func(arg1, arg2, arg3, solver=None, neg=False):
     if not solver:
         if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, (float, np.floating)):
             return False
-        if not (isinstance(arg3, (float, np.floating)) or (isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool))):
+        if not (isinstance(arg3, torch.dtype) or isinstance(arg3, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Int('arg1_value')
-        arg2_value = Int('arg2_value')
+        arg2_value = Real('arg2_value')
+        arg3_value = Int('arg3_value')
 
         # Value assignments
         solver.add(arg1_value == int(arg1))
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg2_value == arg2)
+        solver.add(arg3_value == list_of_available_dtypes.index(np_dtype(arg3)))
 
         # Constraints for rule 52
         rule_52(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_value': arg3_value})

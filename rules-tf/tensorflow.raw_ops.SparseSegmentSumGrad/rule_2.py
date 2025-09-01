@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# indices must be one of the allowed dtypes (Rule 2)
+# indices must be int32 or int64 (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4)) if n else

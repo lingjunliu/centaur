@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If decimals is a tuple then each element should be less than or equal to the number of fractional bits in the tensor's dtype (Rule 17)
+# If the input tensor's dtype is boolean, decimals must be 0 (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_dtype"] == 6), (And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) <= 10) for i in range(6)])), If((v["arg1_dtype"] == 7), (And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) <= 23) for i in range(6)])), If((v["arg1_dtype"] == 8), (And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) <= 52) for i in range(6)])), False)))) if n else
-          If((v["arg1_dtype"] == 6), (And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) <= 10) for i in range(6)])), If((v["arg1_dtype"] == 7), (And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) <= 23) for i in range(6)])), If((v["arg1_dtype"] == 8), (And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) <= 52) for i in range(6)])), False))))
+    s.add(Not(If(v["arg1_dtype"] == 0, v["arg2_value"] == 0, True)) if n else
+          If(v["arg1_dtype"] == 0, v["arg2_value"] == 0, True))
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):
@@ -20,25 +20,22 @@ def rule_17_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg2_length = Int('arg2_length')
-        arg2_values = Array('arg2_values', IntSort(), IntSort())
+        arg2_value = Int('arg2_value')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_length == len(arg2))
-        for i in range(len(arg2)):
-            arg2_values = Store(arg2_values, i, arg2[i])
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 17
-        rule_17(solver, {'arg1_dtype': arg1_dtype, 'arg2_values': arg2_values, 'arg2_length': arg2_length})
+        rule_17(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_17(solver, {'arg1_dtype': arg1['dtype'], 'arg2_values': arg2['values'], 'arg2_length': arg2['length']}, neg)
+        rule_17(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

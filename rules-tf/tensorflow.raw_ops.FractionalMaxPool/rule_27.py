@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If overlapping is enabled, the pooling ratio should be less than 2.0 for height and width dimensions (Rule 27)
+# If seed is zero, seed2 must also be zero (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, And(Select(v["arg2_values"], 1) < 2.0, Select(v["arg2_values"], 2) < 2.0), False)) if n else
-          If(v["arg1_value"] == True, And(Select(v["arg2_values"], 1) < 2.0, Select(v["arg2_values"], 2) < 2.0), False))
+    s.add(Not(If(v["arg1_value"] == 0, v["arg2_value"] == 0, True)) if n else
+          If(v["arg1_value"] == 0, v["arg2_value"] == 0, True))
 )
 
 def rule_27_func(arg1, arg2, solver=None, neg=False):
@@ -18,25 +18,24 @@ def rule_27_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
-        if not (isinstance(arg2, list) and all(isinstance(e, (float, np.floating)) for e in arg2)):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_values = Array('arg2_values', IntSort(), RealSort())
+        arg1_value = Int('arg1_value')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        for i in range(len(arg2)):
-            arg2_values = Store(arg2_values, i, arg2[i])
+        solver.add(arg1_value == int(arg1))
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 27
-        rule_27(solver, {'arg1_value': arg1_value, 'arg2_values': arg2_values})
+        rule_27(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_27(solver, {'arg1_value': arg1['value'], 'arg2_values': arg2['values']}, neg)
+        rule_27(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

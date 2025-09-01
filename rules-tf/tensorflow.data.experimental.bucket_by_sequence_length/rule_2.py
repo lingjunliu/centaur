@@ -5,35 +5,42 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# bucket_boundaries should be a list of increasing integers (Rule 2)
+# pad_to_bucket_boundary is true then padding_values type should match element type from element_length_func (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i - 1) < Select(v["arg1_values"], i)) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i - 1) < Select(v["arg1_values"], i)) for i in range(6)]))
+    s.add(Not(If(v["arg1_value"], v["arg2_dtype"] == v["arg3_dtype"], True)) if n else
+          If(v["arg1_value"], v["arg2_dtype"] == v["arg3_dtype"], True))
 )
 
-def rule_2_func(arg1, solver=None, neg=False):
+def rule_2_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, bool):
+            return False
+        if not isinstance(arg2, np.ndarray):
+            return False
+        if not isinstance(arg3, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
+        arg1_value = Bool('arg1_value')
+        arg2_dtype = Int('arg2_dtype')
+        arg3_dtype = Int('arg3_dtype')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
 
         # Constraints for rule 2
-        rule_2(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length})
+        rule_2(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_2(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length']}, neg)
+        rule_2(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype']}, neg)

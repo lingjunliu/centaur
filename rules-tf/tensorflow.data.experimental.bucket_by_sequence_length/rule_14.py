@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# element_length_func tensor must have a rank of 1 (Rule 14)
+# element_length_func input tensor must have rank >= 1 (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] == 1) if n else
-          v["arg1_ndim"] == 1)
+    s.add(Not(v["arg1_ndim"] >= 1) if n else
+          v["arg1_ndim"] >= 1)
 )
 
 def rule_14_func(arg1, solver=None, neg=False):

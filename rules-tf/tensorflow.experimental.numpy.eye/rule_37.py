@@ -5,42 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The value of k should not exceed the value of N and M (Rule 37)
+# dtype must be a valid numpy dtype integer representation (Rule 37)
 
 rule_37 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg3_value"] <= v["arg1_value"], v["arg3_value"] <= v["arg2_value"])) if n else
-          And(v["arg3_value"] <= v["arg1_value"], v["arg3_value"] <= v["arg2_value"]))
+    s.add(Not(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_value"] == 1, v["arg1_value"] == 2), v["arg1_value"] == 3), v["arg1_value"] == 4), v["arg1_value"] == 5), v["arg1_value"] == 6), v["arg1_value"] == 7), v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10), v["arg1_value"] == 11), v["arg1_value"] == 12)) if n else
+          Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_value"] == 1, v["arg1_value"] == 2), v["arg1_value"] == 3), v["arg1_value"] == 4), v["arg1_value"] == 5), v["arg1_value"] == 6), v["arg1_value"] == 7), v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10), v["arg1_value"] == 11), v["arg1_value"] == 12))
 )
 
-def rule_37_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_37_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
-            return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
-            return False
-        if not (isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool)):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Int('arg1_value')
-        arg2_value = Int('arg2_value')
-        arg3_value = Int('arg3_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        solver.add(arg2_value == int(arg2))
-        solver.add(arg3_value == int(arg3))
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
 
         # Constraints for rule 37
-        rule_37(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
+        rule_37(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_37(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)
+        rule_37(solver, {'arg1_value': arg1['value']}, neg)

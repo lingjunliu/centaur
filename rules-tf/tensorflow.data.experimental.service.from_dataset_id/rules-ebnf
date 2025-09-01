@@ -1,108 +1,234 @@
 >>
-Rule 1 (dataset_id should be a non-negative integer)
-{v_1 : int} |= v_1 ≥ 0
+Rule 1 (processing_mode must be a valid string or ShardingPolicy)
+{v_1 : str} |= v_1 = "parallel_epochs" ∨ v_1 = "distributed_epoch"
 >>
-Rule 2 (consumer_index must be non-negative if num_consumers is specified)
-{v_1 : int, v_2 : int} |= if v_2 > 0 then v_1 ≥ 0
->>
-Rule 3 (consumer_index must be less than num_consumers if both are specified)
-{v_1 : int, v_2 : int} |= if v_2 > 0 then v_1 < v_2
->>
-Rule 4 (num_consumers must be a positive integer if consumer_index is specified)
-{v_1 : int, v_2 : int} |= if v_1 ≥ 0 then v_2 > 0
->>
-Rule 5 (max_outstanding_requests should be a positive integer)
+Rule 3 (dataset_id must be a positive integer)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 6 (job_name should be a non-empty string)
-{v_1 : str} |= v_1 ≠ ""
+Rule 4 (job_name must be a non-empty string if provided)
+{v_1 : str} |= v_1.len > 0
 >>
-Rule 7 (target_workers must be one of the allowed strings)
+Rule 5 (consumer_index and num_consumers must both be specified or neither)
+{v_1 : int, v_2 : int} |= (v_1 > -1 ∧ v_2 > 0) ∨ (v_1 < 0 ∧ v_2 < 0)
+>>
+Rule 6 (consumer_index must be within the range [0, num_consumers))
+{v_1 : int, v_2 : int} |= v_1 ≥ 0 ∧ v_1 < v_2
+>>
+Rule 9 (target_workers must be a valid string)
 {v_1 : str} |= v_1 = "AUTO" ∨ v_1 = "ANY" ∨ v_1 = "LOCAL"
 >>
-Rule 9 (data_transfer_protocol should be a valid string)
-{v_1 : str} |= v_1 = "grpc" ∨ v_1 = "remote" ∨ v_1 = "auto"
->>
-Rule 10 (service should contain the protocol and address separated by "://")
+Rule 12 (service must be a string in the correct format)
 {v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] = ":"
 >>
-Rule 11 (processing_mode must be either a ShardingPolicy or one of the legacy strings)
-{v_1 : str} |= v_1 = "parallel_epochs" ∨ v_1 = "distributed_epoch" ∨ v_1 = "off" ∨ v_1 = "dynamic" ∨ v_1 = "file" ∨ v_1 = "data"
+Rule 14 (job_name must be a non-empty string if provided)
+{v_1 : str} |= if v_1.len > 0 then true
 >>
-Rule 13 (consumer_index and num_consumers must both be present or both be absent)
-{v_1 : int, v_2 : int} |= (v_1 > -1 ∧ v_2 > -1) ∨ (v_1 < 0 ∧ v_2 < 0)
+Rule 15 (consumer_index and num_consumers must both be specified or neither)
+{v_1 : int, v_2 : int} |= if v_1 ≥ 0 then v_2 > 0 else if v_2 > 0 then v_1 ≥ 0
 >>
-Rule 14 (service string must have the form protocol://address)
-{v_1: str} |= ∃i ∈ [0, v_1.len - 4]: v_1[i] = ":" ∧ v_1[i+1] = "/" ∧ v_1[i+2] = "/"
+Rule 16 (consumer_index must be within the range [0, num_consumers))
+{v_1 : int, v_2 : int} |= if v_2 > 0 then v_1 ≥ 0 ∧ v_1 < v_2
 >>
-Rule 15 (dataset_id must be less than a reasonable upper bound to prevent overflow)
-{v_1: int} |= v_1 < 1000000000
+Rule 17 (num_consumers must be a positive integer when specified and consumer_index is also specified)
+{v_1 : int, v_2 : int} |= if v_1 ≥ 0 then v_2 > 0
 >>
-Rule 16 (max_outstanding_requests must be a reasonable value)
-{v_1 : int} |= v_1 < 1000000
+Rule 18 (max_outstanding_requests must be a non-negative integer)
+{v_1 : int} |= v_1 ≥ 0
 >>
-Rule 17 (If num_consumers is specified, the dataset must have infinite cardinality)
-{v_1 : int} |= if v_1 > 0 then true
->>
-Rule 18 (job_name should only contain alphanumeric characters and underscores)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = "_")
->>
-Rule 19 (The protocol part of service must be a valid protocol)
-{v_1 : str} |= (∃i ∈ [0, v_1.len - 4]: v_1[i] = ":" ∧ v_1[i+1] = "/" ∧ v_1[i+2] = "/" )
->>
-Rule 20 (Dataset ID and consumer index should not be the same)
-{v_1 : int, v_2: int} |= v_1 ≠ v_2
->>
-Rule 21 (consumer_index and num_consumers should both be even or both be odd)
-{v_1 : int, v_2 : int} |= (v_1 % 2 = 0 ∧ v_2 % 2 = 0) ∨ (v_1 % 2 = 1 ∧ v_2 % 2 = 1)
->>
-Rule 24 (The processing_mode should either be equal to the ShardingPolicy enums or one of the old processing mode types.)
-{v_1 : str} |= v_1 = "parallel_epochs" ∨ v_1 = "distributed_epoch" ∨ v_1 = "OFF" ∨ v_1 = "DYNAMIC" ∨ v_1 = "FILE" ∨ v_1 = "DATA"
->>
-Rule 25 (The address part of the service should be a valid address and non-empty)
-{v_1 : str} |= ∃i ∈ [0, v_1.len - 4]: v_1[i] = ":" ∧ v_1[i+1] = "/" ∧ v_1[i+2] = "/" ∧ v_1.len - (i+3) > 0
->>
-Rule 26 (If service is a tuple, the tuple must have length 2)
+Rule 22 (service must be a tuple with two strings)
 {v_1 : tuple(str)} |= v_1.len = 2
 >>
-Rule 28 (The address in the service tuple must be a non-empty string)
-{v_1 : tuple(str)} |= v_1[1] ≠ ""
+Rule 24 (num_consumers must be greater than consumer_index when both are specified)
+{v_1 : int, v_2 : int} |= if v_1 ≥ 0 ∧ v_2 ≥ 0 then v_2 > v_1
 >>
-Rule 29 (If service is a tuple, the tuple must have length 2 and elements should not be empty)
-{v_1 : tuple(str)} |= v_1.len = 2 ∧ v_1[0] ≠ "" ∧ v_1[1] ≠ ""
+Rule 28 (dataset_id is positive and max_outstanding_requests must be less than a threshold)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 < 1000000
 >>
-Rule 30 (If service is a tuple, the first element should be a valid protocol.)
-{v_1 : tuple(str)} |= (v_1[0] = "grpc") ∨ (v_1[0] = "remote")
+Rule 30 (data_transfer_protocol must be a string with a specific format)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] = "/"
 >>
-Rule 33 (If both consumer_index and num_consumers are defined, then num_consumers must be greater than 0)
-{v_1 : int, v_2: int} |= if (v_1 ≥ 0) ∧ (v_2 ≥ 0) then v_2 > 0
+Rule 32 (service must be a tuple with a valid protocol and address)
+{v_1 : tuple(str)} |= v_1.len = 2 ∧ (v_1[0] = "grpc" ∨ v_1[0] = "remote")
 >>
-Rule 35 (data_transfer_protocol must be either grpc or remote or left empty)
-{v_1 : str} |= v_1 = "grpc" ∨ v_1 = "remote" ∨ v_1 = ""
+Rule 34 (element_spec should be of type list where each entry has a valid type)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 37 (If consumer_index and num_consumers are specified, they should both be non-negative)
-{v_1 : int, v_2: int} |= (v_1 ≥ 0 ∧ v_2 ≥ 0) ∨ (v_1 < 0 ∧ v_2 < 0)
+Rule 36 (Check that data_transfer_protocol is either empty or a valid protocol)
+{v_1 : str} |= v_1.len = 0 ∨ v_1 = "grpc" ∨ v_1 = "remote"
 >>
-Rule 38 (If cross_trainer_cache is defined, it should be defined as a string)
-{v_1: str ⊎ int} |= if v_1 = "" then true
+Rule 40 (data_transfer_protocol should not contain invalid characters)
+{v_1: str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ ";"
 >>
-Rule 39 (If service is defined as a string, it must follow the format protocol://address.)
-{v_1 : str} |= ∃i ∈ [0, v_1.len - 4]: v_1[i] = ":" ∧ v_1[i+1] = "/" ∧ v_1[i+2] = "/"
->>
-Rule 41 (If consumer_index and num_consumers are specified, they should both be non-negative and consumer_index must be less than num_consumers)
-{v_1 : int, v_2: int} |= (v_1 ≥ 0 ∧ v_2 ≥ 0 ∧ v_1 < v_2) ∨ (v_1 < 0 ∧ v_2 < 0)
->>
-Rule 43 (If service is defined as a string, it must follow the format protocol://address and the address should be present)
-{v_1 : str} |= ∃i ∈ [0, v_1.len - 4]: v_1[i] = ":" ∧ v_1[i+1] = "/" ∧ v_1[i+2] = "/" ∧ v_1.len - i - 3 > 0
->>
-Rule 47 (The processing_mode can only be distributed_epoch or parallel_epochs if num_consumers is not defined)
-{v_1: str, v_2: int} |= if (v_2 < 0) then (v_1 = "distributed_epoch" ∨ v_1 = "parallel_epochs" ∨ v_1 = "OFF" ∨ v_1 = "DYNAMIC" ∨ v_1 = "FILE" ∨ v_1 = "DATA")
->>
-Rule 49 (If consumer_index and num_consumers are specified, consumer_index is non-negative, and num_consumers is positive, then consumer_index must be less than num_consumers)
-{v_1 : int, v_2: int} |= if (v_1 ≥ 0 ∧ v_2 > 0) then v_1 < v_2
->>
-Rule 51 (The processing_mode can only be distributed_epoch or parallel_epochs if num_consumers is not defined)
-{v_1: str, v_2: int} |= if (v_2 < 0) then (v_1 = "distributed_epoch" ∨ v_1 = "parallel_epochs")
->>
-Rule 58 (The `target_workers` parameter must belong to a closed set of strings)
+Rule 42 (Check that target_workers is a string and valid)
 {v_1: str} |= v_1 = "AUTO" ∨ v_1 = "ANY" ∨ v_1 = "LOCAL"
+>>
+Rule 44 (consumer_index is valid only if num_consumers is also specified)
+{v_1 : int, v_2: int} |= if v_1 ≥ 0 then v_2 > 0
+>>
+Rule 46 (dataset_id is non zero if processing_mode is not empty string)
+{v_1: str, v_2: int} |= if v_1.len > 0 then v_2 > 0
+>>
+Rule 48 (element_spec should be a list and not empty if dataset_id > 0)
+{v_1: int, v_2: list(int)} |= if v_1 > 0 then v_2.len > 0
+>>
+Rule 50 (consumer_index and num_consumers must be specified together)
+{v_1 : int, v_2: int} |= (v_1 ≥ 0 ∧ v_2 > 0) ∨ (v_1 < 0 ∧ v_2 < 0)
+>>
+Rule 52 (if job_name is provided, it must not be the empty string)
+{v_1: str} |= if v_1.len > 0 then true
+>>
+Rule 53 (max_outstanding_requests should be non negative and reasonable)
+{v_1: int} |= v_1 ≥ 0 ∧ v_1 < 100000
+>>
+Rule 56 (service must be in correct format if string)
+{v_1: str} |= ∃i ∈ [0, v_1.len -1] : v_1[i] = "/"
+>>
+Rule 57 (consumer_index and num_consumers must both be specified if one is)
+{v_1: int, v_2: int} |= if v_1 ≥ 0 then v_2 > 0 else if v_2 > 0 then v_1 ≥ 0
+>>
+Rule 58 (max_outstanding_requests must be non negative)
+{v_1: int} |= v_1 ≥ 0
+>>
+Rule 60 (data_transfer_protocol should be either grpc or remote)
+{v_1: str} |= v_1 = "grpc" ∨ v_1 = "remote"
+>>
+Rule 62 (Check consumer_index is less than num_consumers if both are present)
+{v_1: int, v_2: int} |= if v_1 ≥ 0 ∧ v_2 > 0 then v_1 < v_2
+>>
+Rule 63 (max_outstanding_requests must be reasonable)
+{v_1: int} |= v_1 < 1000000
+>>
+Rule 65 (If data_transfer_protocol is present it must be either 'grpc' or 'remote')
+{v_1: str} |= if v_1.len > 0 then v_1 = "grpc" ∨ v_1 = "remote"
+>>
+Rule 66 (dataset_id must be a positive integer)
+{v_1: int} |= v_1 > 0
+>>
+Rule 69 (if consumer_index is defined, num_consumers must also be defined)
+{v_1: int, v_2: int} |= if v_1 ≥ 0 then v_2 > 0
+>>
+Rule 72 (If data_transfer_protocol is specified check if is either 'grpc' or 'remote')
+{v_1:str} |= if v_1.len > 0 then v_1 = "grpc" ∨ v_1 = "remote"
+>>
+Rule 74 (consumer_index has to be smaller than num_consumers)
+{v_1: int, v_2: int} |= if v_2 > 0 then v_1 < v_2
+>>
+Rule 79 (if both num_consumers and consumer_index are provided, consumer_index must be within range of num_consumers)
+{v_1: int, v_2: int} |= if v_2 > 0 then v_1 ≥ 0 ∧ v_1 < v_2
+>>
+Rule 80 (Check valid characters on Job Name)
+{v_1: str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9")
+>>
+Rule 81 (If the element_spec list has more than one dtype all of them must be equal)
+{v_1: list(dtype)} |= if v_1.len > 1 then (∀i ∈ [1, v_1.len - 1] : v_1[0] = v_1[i])
+>>
+Rule 82 (If cross_trainer_cache is specified, make sure list has at least a positive element)
+{v_1: list(int)} |= if v_1.len > 0 then ∃i ∈ [0, v_1.len -1] : v_1[i] > 0
+>>
+Rule 84 (If the service is string, it must be a valid url)
+{v_1: str} |= (∃i ∈ [0, v_1.len - 1] : v_1[i] = ":") ∧ (∃i ∈ [0, v_1.len - 1] : v_1[i] = "/")
+>>
+Rule 86 (The element_spec can not have null dtypes if any dataset id is provided)
+{v_1: int, v_2: list(dtype)} |= if v_1 > 0 then (∀i ∈ [0, v_2.len - 1] : v_2[i] ≠ 0)
+>>
+Rule 87 (if cross_trainer_cache is specified, at least the first element should be greater than 0)
+{v_1: list(int)} |= if v_1.len > 0 then v_1[0] > 0
+>>
+Rule 89 (If the service is a tuple, it must contains 2 strings)
+{v_1: tuple(str)} |= v_1.len = 2
+>>
+Rule 94 (if consumer_index is specified, then num_consumers should be specified)
+{v_1: int, v_2: int} |= if v_1 > -1 then v_2 > 0
+>>
+Rule 95 (Check that the service follows the format protocol://address)
+{v_1: str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] = ":"
+>>
+Rule 96 (Check reasonable size of max_outstanding_requests relative to dataset_id)
+{v_1: int, v_2: int} |= if v_1 > 1000 then v_2 < 10000
+>>
+Rule 99 (data_transfer_protocol has a valid value)
+{v_1: str} |= v_1 = "grpc" ∨ v_1 = "remote" ∨ v_1.len = 0
+>>
+Rule 100 (max_outstanding_requests have a valid value)
+{v_1: int} |= v_1 > -1
+>>
+Rule 104 (If service is a string, its length has to be greater than 0)
+{v_1: str} |= v_1.len > 0
+>>
+Rule 105 (If consumer_index and num_consumers is present, then consumer_index < num_consumers)
+{v_1: int, v_2: int} |= if v_1 > -1 then v_2 > v_1
+>>
+Rule 106 (Check valid characters on data_transfer_protocol if is specified)
+{v_1: str} |= if v_1.len > 0 then (v_1 = "grpc" ∨ v_1 = "remote")
+>>
+Rule 110 (Check if it is a tuple and then it is consistent if the service protocol is "grpc" or "remote")
+{v_1: tuple(str)} |= (v_1.len = 2)
+>>
+Rule 115 (num_consumers must have infinite cardinality if num_consumers is specified)
+{v_1: int, v_2: tensor} |= if v_1 > 0 then (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = -1)
+>>
+Rule 116 (max_outstanding_requests must be a positive integer if dataset_id > 0)
+{v_1: int, v_2: int} |= if v_1 > 0 then v_2 > 0
+>>
+Rule 125 (Dataset ID can not be zero)
+{v_1: int} |= v_1 ≠ 0
+>>
+Rule 130 (Check it is a string, then data_transfer_protocol must have a valid format)
+{v_1:str} |= (v_1 = "grpc" ∨ v_1 = "remote") ∨ (v_1.len = 0)
+>>
+Rule 131 (Check that dataset id is valid integer)
+{v_1:int} |= v_1 > -1
+>>
+Rule 132 (target_workers must be within ["AUTO", "ANY", "LOCAL"])
+{v_1:str} |= v_1 = "AUTO" ∨ v_1 = "ANY" ∨ v_1 = "LOCAL"
+>>
+Rule 134 (element_spec should contain dtypes of the same kind for each entry of dataset)
+{v_1: list(dtype)} |= ∀i ∈ [1, v_1.len - 1] : v_1[0] = v_1[i]
+>>
+Rule 135 (Make sure that the size for cross_trainer_cache is less then 100)
+{v_1: list(int)} |= v_1.len < 100
+>>
+Rule 136 (max_outstanding_requests is a reasonable number in any case)
+{v_1:int} |= v_1 < 10000000
+>>
+Rule 137 (dataset_id valid value is in range)
+{v_1 : int} |= v_1 ≥ 0 ∧ v_1 < 1000000
+>>
+Rule 140 (If num_consumers is specified, dataset cardinality must be infinite)
+{v_1: int, v_2: tensor} |= if v_1 > 0 then shape(v_2, 0) = -1
+>>
+Rule 142 (If cross_trainer_cache has a value check if all its values are positive)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 149 (job_name is valid if it consists of alpha numeric characters)
+{v_1:str} |= ∀i ∈ [0, v_1.len - 1] : ((v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9")) ∨ (v_1.len = 0)
+>>
+Rule 155 (data_transfer_protocol correct values grpc or remote)
+{v_1:str} |= v_1 = "grpc" ∨ v_1 = "remote" ∨ v_1.len = 0
+>>
+Rule 159 (num_consumers and consumer_index, if one is present the other must be)
+{v_1: int, v_2: int} |= (v_1 ≥ 0 ∧ v_2 > 0) ∨ (v_1 < 0 ∧ v_2 < 0)
+>>
+Rule 161 (check if data_transfer_protocol has one of the right values or is empty)
+{v_1 : str} |= v_1 = "grpc" ∨ v_1 = "remote" ∨ v_1.len = 0
+>>
+Rule 162 (Check valid values to max_outstanding_requests relative to size of the element size)
+{v_1 : int, v_2: int} |= if v_2 > 1000 then v_1 < 10000
+>>
+Rule 164 (If both num_consumers and consumer_index are present, consumer_index < num_consumers)
+{v_1: int, v_2: int} |= if v_1 ≥ 0 ∧ v_2 ≥ 0 then v_1 < v_2
+>>
+Rule 165 (dataset_id is positive and max_outstanding_requests must be less than a threshold)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 < 10000000
+>>
+Rule 167 (job_name only accepts specific format)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1.len = 0)
+>>
+Rule 169 (if num_consumers is specified, consumer_index must be also specified)
+{v_1: int, v_2: int} |= if v_1 > 0 then v_2 ≥ 0
+>>
+Rule 170 (max_outstanding_requests needs to be valid)
+{v_1 : int} |= v_1 > 0 ∧ v_1 < 10000000
+>>
+Rule 171 (element_spec list need to be of the same dtype)
+{v_1: list(dtype)} |= ∀i ∈ [1, v_1.len - 1] : v_1[i] = v_1[0]

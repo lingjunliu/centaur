@@ -1,117 +1,114 @@
 >>
-Rule 1 (input_tensor should have a numeric type)
-{v_1 : tensor} |= dtype_(v_1) ≠ "str" ∧ dtype_(v_1) ≠ "bool"
+Rule 3 (keepdims should be a boolean value)
+{keepdims : bool} |= keepdims = true ∨ keepdims = false
 >>
-Rule 5 (keepdims must be a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 4 (if axis is None, input_tensor should not be empty)
+{input_tensor : tensor, axis : int ⊎ tuple(int) ⊎ list(int)} |= if axis = -1 then (∀i ∈ [0, ndim(input_tensor) - 1] : shape(input_tensor, i) > 0)
 >>
-Rule 8 (input tensor shape must be positive)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0
+Rule 6 (input_tensor must not be of boolean type)
+{input_tensor : tensor} |= dtype_(input_tensor) ≠ 0
 >>
-Rule 9 (axis must be greater than or equal to negative rank of input tensor)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1))
+Rule 7 (axis must be within the valid range [-rank(input_tensor), rank(input_tensor)))
+{input_tensor : tensor, axis : int} |= (0 - ndim(input_tensor)) ≤ axis ∧ axis < ndim(input_tensor)
 >>
-Rule 10 (axis must be less than the rank of input tensor)
-{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
+Rule 9 (If axis is None (represented as -1), all dimensions of input_tensor must be greater than 0)
+{input_tensor : tensor, axis : int} |= if axis = -1 then (∀i ∈ [0, ndim(input_tensor) - 1] : shape(input_tensor, i) > 0)
 >>
-Rule 11 (elements in axis list must be greater than or equal to the negative rank of input tensor)
-{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1))
+Rule 10 (if axis is a tuple/list, all elements should be in range)
+{input_tensor : tensor, axis : tuple(int)} |= (∀i ∈ [0, axis.len - 1] : ((0 - ndim(input_tensor)) ≤ axis[i] ∧ axis[i] < ndim(input_tensor)))
 >>
-Rule 12 (elements in axis list must be less than the rank of input tensor)
-{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < ndim(v_1)
+Rule 16 (input_tensor's dtype must be in the allowed list)
+{input_tensor : tensor} |= dtype_(input_tensor) ≠ 0 ∧ dtype_(input_tensor) ≠ 1 ∧ dtype_(input_tensor) ≠ 11
 >>
-Rule 13 (if axis is a list, it should not be empty)
-{v_1 : list(int)} |= v_1.len > 0
+Rule 17 (axis must be within the valid range [0, rank(input_tensor))) when positive)
+{input_tensor : tensor, axis : int} |= if axis ≥ 0 then axis < ndim(input_tensor)
 >>
-Rule 15 (input tensor's data type cannot be string)
-{v_1 : tensor} |= dtype_(v_1) ≠ "str"
+Rule 18 (When axis is a list, each element must be a valid dimension)
+{input_tensor : tensor, axis : list(int)} |= ∀i ∈ [0, axis.len - 1] : axis[i] ≥ (0 - ndim(input_tensor)) ∧ axis[i] < ndim(input_tensor)
 >>
-Rule 16 (input tensor's data type cannot be bool)
-{v_1 : tensor} |= dtype_(v_1) ≠ "bool"
+Rule 19 (When axis is a tuple, each element must be a valid dimension)
+{input_tensor : tensor, axis : tuple(int)} |= ∀i ∈ [0, axis.len - 1] : axis[i] ≥ (0 - ndim(input_tensor)) ∧ axis[i] < ndim(input_tensor)
 >>
-Rule 17 (If axis is None, then keepdims must be true for the result to be a tensor)
-{v_1 : int ⊎ list(int), v_2 : bool} |= if v_1 = -1 then v_2 = true
+Rule 22 (When axis is a list, each element must be a valid dimension)
+{input_tensor : tensor, axis : list(int)} |= ∀i ∈ [0, axis.len - 1] : (0 - ndim(input_tensor)) ≤ axis[i] ∧ axis[i] < ndim(input_tensor)
 >>
-Rule 19 (If axis is None, the output is a scalar.)
-{v_1 : tensor, v_2: int} |= if v_2 = -1 then ndim(v_1) = 0
+Rule 23 (When axis is a tuple, each element must be a valid dimension)
+{input_tensor : tensor, axis : tuple(int)} |= ∀i ∈ [0, axis.len - 1] : (0 - ndim(input_tensor)) ≤ axis[i] ∧ axis[i] < ndim(input_tensor)
 >>
-Rule 20 (If axis is a single integer, then it must be within the valid range of dimensions)
-{v_1 : tensor, v_2 : int} |= (v_2 >= (0 - ndim(v_1))) ∧ (v_2 < ndim(v_1))
+Rule 32 (input_tensor's dtype must be a numeric type)
+{input_tensor : tensor} |= if dtype_(input_tensor) = 0 then false
 >>
-Rule 21 (If axis is a list, all elements of the list must be within the valid range of dimensions)
-{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : (v_2[i] >= (0 - ndim(v_1))) ∧ (v_2[i] < ndim(v_1))
+Rule 36 (input_tensor must have a valid dtype)
+{input_tensor : tensor} |=  dtype_(input_tensor) ≠ 0
 >>
-Rule 22 (Axis must be unique)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i+1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+Rule 37 (axis must be within the valid range [-rank(input_tensor), rank(input_tensor)) if not None(-1))
+{input_tensor : tensor, axis : int} |= if axis ≠ -1 then (0 - ndim(input_tensor)) ≤ axis ∧ axis < ndim(input_tensor)
 >>
-Rule 23 (If keepdims is false, the rank of the tensor is reduced by the number of elements in the axis list)
-{v_1 : tensor, v_2 : list(int), v_3 : bool} |= if v_3 = false then ndim(v_1) > v_2.len
+Rule 43 (When axis is a list, each element must be a valid dimension within the valid range [-rank(input_tensor), rank(input_tensor)), also, all elements must be unique)
+{input_tensor : tensor, axis : list(int)} |= (∀i ∈ [0, axis.len - 1] : (0 - ndim(input_tensor)) ≤ axis[i] ∧ axis[i] < ndim(input_tensor)) ∧ (∀i ∈ [0, axis.len - 1] : ∀j ∈ [i+1, axis.len - 1] : axis[i] ≠ axis[j])
 >>
-Rule 24 (If axis is none, the reduced dimensions are retained if keepdims is true)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then ndim(v_1) = 1
+Rule 44 (When axis is a tuple, each element must be a valid dimension within the valid range [-rank(input_tensor), rank(input_tensor)), all elements must be unique)
+{input_tensor : tensor, axis : tuple(int)} |= (∀i ∈ [0, axis.len - 1] : (0 - ndim(input_tensor)) ≤ axis[i] ∧ axis[i] < ndim(input_tensor))  ∧ (∀i ∈ [0, axis.len - 1] : ∀j ∈ [i+1, axis.len - 1] : axis[i] ≠ axis[j])
 >>
-Rule 25 (The length of axis list should not be greater than the number of dimensions of input tensor)
-{v_1 : tensor, v_2 : list(int)} |= v_2.len ≤ ndim(v_1)
+Rule 46 (When axis is a tuple or list, each element must be a valid dimension within the valid range [-rank(input_tensor), rank(input_tensor)), all elements must be unique)
+{input_tensor : tensor, axis : tuple(int) ⊎ list(int)} |= (∀i ∈ [0, axis.len - 1] : (0 - ndim(input_tensor)) ≤ axis[i] ∧ axis[i] < ndim(input_tensor))  ∧ (∀i ∈ [0, axis.len - 1] : ∀j ∈ [i+1, axis.len - 1] : axis[i] ≠ axis[j])
 >>
-Rule 26 (If keepdims is true, then the shape of the reduced dimensions is 1)
-{v_1 : tensor, v_2 : list(int), v_3 : bool} |= if v_3 = true then ∀i ∈ [0, v_2.len - 1]: shape(v_1, v_2[i]) = 1
+Rule 48 (input_tensor must have a valid dtype for reduce_mean: not bool, and not string)
+{input_tensor : tensor} |= dtype_(input_tensor) ≠ 0 ∧ dtype_(input_tensor) ≠ 11
 >>
-Rule 27 (If the axis is a list, the tensor rank is reduced by the length of the list unless keepdims is true)
-{v_1 : tensor, v_2 : list(int), v_3 : bool} |= if v_3 = false then ndim(v_1) - v_2.len ≥ 0
+Rule 50 (If axis is not None (-1), any reduction dimension (-101 for input with 4 dimension(s)) should not be too negative)
+{input_tensor : tensor, axis : int} |= if axis < 0 then axis ≥ (0 - ndim(input_tensor))
 >>
-Rule 32 (The input tensor must have positive shape)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 52 (When axis is a list or tuple, each element must be a valid dimension within the valid range [-rank(input_tensor), rank(input_tensor)), and the absolute value of axis should not exceed the rank)
+{input_tensor : tensor, axis : tuple(int) ⊎ list(int)} |= (∀i ∈ [0, axis.len - 1] : (0 - ndim(input_tensor)) ≤ axis[i] ∧ axis[i] < ndim(input_tensor))
 >>
-Rule 33 (if axis is a list, all the axes must be within the dimension)
-{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] >= (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)
+Rule 56 (If input_tensor has dimensions, then at least one axis should be provided, or the axis is None(-1))
+{input_tensor : tensor, axis : int ⊎ tuple(int) ⊎ list(int)} |= if ndim(input_tensor) > 0 then true else axis = -1
 >>
-Rule 37 (If axis is a list, all elements of the list must be integers)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : true
+Rule 59 (If axis is specified as a single integer, it must be a valid dimension if the input tensor has more than 0 dimensions, or None (-1).)
+{input_tensor : tensor, axis : int} |= if ndim(input_tensor) > 0 then (0 - ndim(input_tensor)) ≤ axis ∧ axis < ndim(input_tensor) else axis = -1
 >>
-Rule 38 (If axis is a list, then the length of the list must be less than or equal to the number of dimensions in the input tensor)
-{v_1 : tensor, v_2 : list(int)} |= v_2.len <= ndim(v_1)
+Rule 62 (When axis is a list or tuple, elements must satisfy the condition where the input tensor rank is non-zero.)
+{input_tensor : tensor, axis : tuple(int) ⊎ list(int)} |= if ndim(input_tensor) > 0 then (∀i ∈ [0, axis.len - 1] : (0 - ndim(input_tensor)) ≤ axis[i] ∧ axis[i] < ndim(input_tensor))
 >>
-Rule 41 (If axis is not None, then the input tensor's rank must be greater than zero.)
-{v_1 : tensor, v_2 : int ⊎ list(int)} |= if v_2 ≠ -1 then ndim(v_1) > 0
+Rule 64 (For single integer axis, if input_tensor has dimensions, axis must be in range)
+{input_tensor : tensor, axis : int} |= if ndim(input_tensor) > 0 then (0 - ndim(input_tensor)) ≤ axis ∧ axis < ndim(input_tensor)
 >>
-Rule 43 (If keepdims is false and axis is a scalar integer, the output tensor's rank is reduced by 1)
-{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_3 = false ∧ v_2 ≠ -1 then ndim(v_1) - 1 ≥ 0
+Rule 65 (axis is a list or tuple of integers, its length should not exceed the rank of the tensor)
+{input_tensor : tensor, axis : tuple(int) ⊎ list(int)} |= axis.len ≤ ndim(input_tensor)
 >>
-Rule 47 (Dtype of input tensor must be a numerical value if axis is None)
-{v_1 : tensor, v_2 : int} |= if v_2 = -1 then dtype_(v_1) ≠ "str" ∧ dtype_(v_1) ≠ "bool"
+Rule 67 (When axis is specified as a list or tuple, if the input tensor has dimensions, the length should be reasonable)
+{input_tensor : tensor, axis : tuple(int) ⊎ list(int)} |= if ndim(input_tensor) > 0 then axis.len ≤ ndim(input_tensor)
 >>
-Rule 48 (Input tensor must have dimensions of equal size if it has more than one dimension and axis is None)
-{v_1: tensor, v_2 : int} |= if v_2 = -1 ∧ ndim(v_1) > 1 then ∀i ∈ [1, ndim(v_1) - 1]: shape(v_1, 0) = shape(v_1, i)
+Rule 70 (If axis is a list or tuple, all dimensions must be valid)
+{input_tensor : tensor, axis : tuple(int) ⊎ list(int)} |= ∀i ∈ [0, axis.len - 1] : (0 - ndim(input_tensor)) ≤ axis[i] ∧ axis[i] < ndim(input_tensor)
 >>
-Rule 49 (If keepdims is true and axis is None, the output tensor has rank 1 with a single element.)
-{v_1 : tensor, v_2 : bool, v_3: int} |= if v_3 = -1 ∧ v_2 = true then ndim(v_1) = 1
+Rule 71 (If axis is a single integer, check if it's out of range)
+{input_tensor : tensor, axis : int} |= if axis < (0 - ndim(input_tensor)) then false else if axis ≥ ndim(input_tensor) then false
 >>
-Rule 50 (The elements inside axis cannot exceed the number of dimensions)
-{v_1:tensor, v_2:list(int)} |= ∃i ∈ [0, v_2.len - 1] : v_2[i] < ndim(v_1)
+Rule 74 (If axis is a single integer and if the input has shape dimensions, the dimension to reduce should be in range. )
+{input_tensor : tensor, axis : int} |= if (∃i ∈ [0, ndim(input_tensor) - 1] : shape(input_tensor, i) > 0) then (0 - ndim(input_tensor)) ≤ axis ∧ axis < ndim(input_tensor)
 >>
-Rule 51 (Each dimension of the input tensor shape should be greater than zero)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+Rule 77 (Check for a valid single-value axis, also ensure non-empty dimensions in that direction.)
+{input_tensor : tensor, axis : int} |= if axis < 0 then axis ≥ (0 - ndim(input_tensor)) else axis < ndim(input_tensor)
 >>
-Rule 52 (If axis is specified then dtype of tensor is numeric)
-{v_1 : tensor, v_2: int ⊎ list(int)} |= if v_2 ≠ -1 then dtype_(v_1) ≠ "str" ∧ dtype_(v_1) ≠ "bool"
+Rule 82 (If axis is of type list or tuple, the length should be less than or equal to the dimension)
+{input_tensor : tensor, axis : list(int) ⊎ tuple(int)} |= if ndim(input_tensor) > 0 then axis.len ≤ ndim(input_tensor)
 >>
-Rule 53 (If axis is a list, then the elements in axis are all less than the dimension of the tensor)
-{v_1: tensor, v_2: list(int)} |= ∀i ∈ [0, v_2.len -1]: v_2[i] < ndim(v_1)
+Rule 85 (Axis must be within the valid range even if represented as a list or tuple)
+{input_tensor : tensor, axis : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, axis.len - 1] : (0 - ndim(input_tensor)) ≤ axis[i] ∧ axis[i] < ndim(input_tensor)
 >>
-Rule 56 (If axis is a single dimension and keepsdims is false, the output tensor has one less dimension)
-{v_1: tensor, v_2: int, v_3: bool} |= if v_2 ≠ -1 ∧ v_3 = false then ndim(v_1) - 1 > 0
+Rule 88 (If there is a dimension mismatch, it will not proceed, only check if the axis is an integer at least between -100 and 100.)
+{axis : int} |= (0 - 100) ≤ axis ∧ axis ≤ 100
 >>
-Rule 59 (If keepdims is false and the axis is a list, then each element in the list should be unique)
-{v_1 : list(int), v_2 : bool} |= if v_2 = false then ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i+1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+Rule 97 (Axis value should be in proper range, or None if no dimension to reduce)
+{input_tensor : tensor, axis : int} |= if ndim(input_tensor) = 0 then axis = -1 else (0 - ndim(input_tensor)) ≤ axis ∧ axis < ndim(input_tensor)
 >>
-Rule 60 (If axis is None and keepdims is true, then the rank is maintained as 1.)
-{v_1: bool, v_2: int, v_3:tensor} |= if v_2 = -1 ∧ v_1 = true then ndim(v_3) = 1
+Rule 101 (Check single axis validity)
+{axis : int, input_tensor : tensor} |= if (0 - 100) ≤ axis ∧ axis ≤ 100 then if (axis < 0) then axis ≥ (0-ndim(input_tensor)) else axis < ndim(input_tensor) else false
 >>
-Rule 61 (Elements inside axis list should all be unique)
-{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1]: ∀j ∈ [i+1, v_1.len - 1]: v_1[i] ≠ v_1[j]
+Rule 103 (A single integer axis must be within the valid range of dimensions)
+{axis : int, input_tensor : tensor} |= (0 - ndim(input_tensor)) ≤ axis ∧ axis < ndim(input_tensor)
 >>
-Rule 62 (If the data type of the input tensor is not numeric, then it must be a string.)
-{v_1 : tensor} |= if dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 then dtype_(v_1) = 11
->>
-Rule 63 (If the data type is string axis should be none)
-{v_1: tensor, v_2: int} |= if dtype_(v_1) = 11 then v_2 = -1
+Rule 110 (Check if the absolute value of a given axis is smaller than ndim)
+{axis : int, input_tensor : tensor} |= if ndim(input_tensor) > 0 then if axis < 0 then (0 - ndim(input_tensor)) ≤ axis else axis < ndim(input_tensor) else axis = -1

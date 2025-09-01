@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# indices must be an int32 tensor (Rule 5)
+# indices tensor must be of type int32, which corresponds to type index 3 (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == 2) if n else
-          v["arg1_dtype"] == 2)
+    s.add(Not(v["arg1_dtype"] == 3) if n else
+          v["arg1_dtype"] == 3)
 )
 
 def rule_5_func(arg1, solver=None, neg=False):

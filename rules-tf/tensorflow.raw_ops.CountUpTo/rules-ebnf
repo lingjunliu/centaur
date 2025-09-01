@@ -1,126 +1,132 @@
 >>
-Rule 1 (ref must be an int32 or int64 tensor)
-{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 1 (ref tensor must be int32 or int64)
+{ref : tensor} |= dtype_(ref) = 2 ∨ dtype_(ref) = 3
 >>
-Rule 3 (The returned tensor has the same data type as ref)
-{v_1 : tensor} |= dtype_(v_1) = dtype_(v_1)
+Rule 2 (limit must be greater than 0)
+{limit : int} |= limit > 0
 >>
-Rule 4 (limit must be greater than 0)
-{v_2 : int} |= v_2 > 0
+Rule 3 (ref tensor must be a scalar)
+{ref : tensor} |= ndim(ref) = 0
 >>
-Rule 5 (limit cannot be a negative integer)
-{v_2 : int} |= v_2 ≥ 0
+Rule 5 (limit must be less than a maximum value, e.g., 2^31-1)
+{limit : int} |= limit < 2147483647
 >>
-Rule 6 (ref must be a scalar)
-{v_1 : tensor} |= ndim(v_1) = 0
+Rule 10 (limit should be less than a maximum value derived from ref's dtype)
+{ref : tensor, limit : int} |= if dtype_(ref) = 2 then limit < 2147483647 else limit < 9223372036854775807
 >>
-Rule 8 (The returned tensor has the same data type as ref)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 12 (ref tensor must be non-negative)
+{ref : tensor} |= min(ref) ≥ 0
 >>
-Rule 9 (if limit is 0, ref must be 0)
-{v_1 : tensor, v_2 : int} |= if v_2 = 0 then v_1 = 0
+Rule 14 (limit must be a positive integer, expressible as int32)
+{limit : int} |= limit > 0 ∧ limit < 2147483647
 >>
-Rule 11 (Returned tensor type should be int32 or int64)
-{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Rule 15 (if ref is int32, limit should also be representable by int32)
+{ref : tensor, limit : int} |= if dtype_(ref) = 2 then limit < 2147483647
 >>
-Rule 12 (limit cannot be too large)
-{v_2 : int} |= v_2 < 2147483647
+Rule 16 (if ref is int64, limit should also be representable by int64)
+{ref : tensor, limit : int} |= if dtype_(ref) = 3 then limit < 9223372036854775807
 >>
-Rule 13 (if limit is negative, it will cause outofrange exception.)
-{v_2 : int} |= v_2 >= 0
+Rule 17 (limit must be a non-negative integer)
+{limit : int} |= limit ≥ 0
 >>
-Rule 16 (limit should be greater than the initial value of ref.)
-{v_1 : tensor, v_2 : int} |= v_2 > min(v_1)
+Rule 18 (ref tensor can only be int32 or int64)
+{ref: tensor} |= dtype_(ref) = 2 ∨ dtype_(ref) = 3
 >>
-Rule 17 (Limit should be a valid integer that can be represented by ref's dtype)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 3 then v_2 < 2147483647 else v_2 < 9223372036854775807
+Rule 21 (if limit is zero, ref must also be zero)
+{ref: tensor, limit : int} |= if limit = 0 then min(ref) = 0 ∧ max(ref) = 0
 >>
-Rule 21 (The incremented value does not overflow int32 or int64.)
-{v_1 : tensor} |= if dtype_(v_1) = 3 then max(v_1) < 2147483647 else max(v_1) < 9223372036854775807
+Rule 23 (ref should be initialized to zero)
+{ref : tensor} |= min(ref) = 0 ∧ max(ref) = 0
 >>
-Rule 26 (The ref tensor is non-empty)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 24 (limit should be non-negative)
+{limit : int} |= limit >= 0
 >>
-Rule 27 (limit should be representable by the ref tensor's dtype)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 3 then v_2 < 2147483647 ∧ v_2 > -2147483648 else v_2 < 9223372036854775807 ∧ v_2 > -9223372036854775808
+Rule 25 (if ref is initialized to a non-zero value, limit must be greater than that value)
+{ref : tensor, limit : int} |= limit > min(ref) ∧ limit > max(ref)
 >>
-Rule 30 (Limit should be non-negative when ref is uint8.)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 5 then v_2 >= 0
+Rule 26 (limit must be within the valid range of int32 or int64)
+{ref : tensor, limit : int} |= if dtype_(ref) = 2 then -2147483648 ≤ limit ∧ limit ≤ 2147483647 else -9223372036854775808 ≤ limit ∧ limit ≤ 9223372036854775807
 >>
-Rule 31 (The limit can not be less than the current ref.)
-{v_1: tensor, v_2: int} |= v_2 >= min(v_1)
+Rule 27 (ref must be a scalar)
+{ref: tensor} |= ndim(ref) = 0
 >>
-Rule 32 (Limit must be greater than ref if limit != 0)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then v_2 > max(v_1)
+Rule 28 (the limit should be representable within the specified dtype (int32 or int64), avoiding overflow during increment)
+{ref : tensor, limit : int} |= (dtype_(ref) = 2 ∧ limit ≤ 2147483647) ∨ (dtype_(ref) = 3 ∧ limit ≤ 9223372036854775807)
 >>
-Rule 33 (If ref is initialized to limit, it will cause outofrange exception.)
-{v_1 : tensor, v_2 : int} |= min(v_1) < v_2
+Rule 36 (if limit is equal or greater than max value of int32, ref must be int64)
+{ref: tensor, limit: int} |= if limit >= 2147483647 then dtype_(ref) = 3
 >>
-Rule 35 (Limit must be greater than ref if limit != 0 and max(ref) is representable by the dtype of ref )
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then (if dtype_(v_1) = 3 then (max(v_1) < 2147483647 ∧ v_2 > max(v_1)) else (max(v_1) < 9223372036854775807 ∧ v_2 > max(v_1)))
+Rule 37 (limit must be non-negative)
+{limit: int} |= limit >= 0
 >>
-Rule 36 (If limit reaches max value of int32 or int64, outofrange is raised.)
-{v_2 : int} |= (v_2 ≠ 2147483647) ∧ (v_2 ≠ 9223372036854775807)
+Rule 39 (limit must be within representable range of ref's dtype)
+{ref: tensor, limit: int} |= (dtype_(ref) = 2 ∧ limit < 2147483647) ∨ (dtype_(ref) = 3 ∧ limit < 9223372036854775807)
 >>
-Rule 38 (if limit is the maximum possible value, the increment operation will result in an error)
-{v_2 : int} |= v_2 < 2147483647 ∧ v_2 < 9223372036854775807
+Rule 40 (ref's dtype should be capable of representing limit to prevent out of range error)
+{ref: tensor, limit: int} |= if limit > 2147483647 then dtype_(ref) = 3
 >>
-Rule 40 (The limit can not be less than the minimum element of the ref.)
-{v_1 : tensor, v_2 : int} |= v_2 >= min(v_1)
+Rule 43 (the limit should be a valid integer based on the ref's datatype, preventing overflow during increment)
+{ref : tensor, limit : int} |= (dtype_(ref) = 2 ∧ limit < 2147483647) ∨ (dtype_(ref) = 3 ∧ limit < 9223372036854775807)
 >>
-Rule 43 (ref can hold the value of limit)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 3 then v_2 <= 2147483647 else v_2 <= 9223372036854775807
+Rule 44 (If limit is greater than the maximum value of int32, then ref must be int64)
+{ref : tensor, limit : int} |= if limit > 2147483647 then dtype_(ref) = 3
 >>
-Rule 48 (If the limit is 0, initial value of the reference must be 0 too.)
-{v_1 : tensor, v_2 : int} |= if v_2 = 0 then min(v_1) = 0
+Rule 46 (If ref is int32, then limit must be less than the maximum value of int32.)
+{ref: tensor, limit: int} |= if dtype_(ref) = 2 then limit < 2147483647
 >>
-Rule 50 (If max(ref) is close to max limit of its type, incrementing it might cause overflow.)
-{v_1 : tensor} |= if dtype_(v_1) = 3 then max(v_1) < 2147483646 else max(v_1) < 9223372036854775806
+Rule 47 (If ref is int32, then limit must be less than or equal to the maximum value of int32.)
+{ref: tensor, limit: int} |= if dtype_(ref) = 2 then limit <= 2147483647
 >>
-Rule 51 (ref's dtype is compatible with limit's value.)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 3 then v_2 < 2147483648 ∧ v_2 > -2147483649 else v_2 < 9223372036854775808 ∧ v_2 > -9223372036854775809
+Rule 48 (If ref is int64, then limit must be less than or equal to the maximum value of int64.)
+{ref: tensor, limit: int} |= if dtype_(ref) = 3 then limit <= 9223372036854775807
 >>
-Rule 53 (The maximum ref value plus one should not overflow when using int32)
-{v_1 : tensor} |= if dtype_(v_1) = 3 then max(v_1) < 2147483646
+Rule 56 (ref's initial value must be less than limit)
+{ref: tensor, limit: int} |= max(ref) < limit
 >>
-Rule 54 (The maximum ref value plus one should not overflow when using int64)
-{v_1 : tensor} |= if dtype_(v_1) = 4 then max(v_1) < 9223372036854775806
+Rule 60 (If dtype of ref is int32, limit must also be representable as int32)
+{ref: tensor, limit: int} |= if dtype_(ref) = 2 then -2147483648 ≤ limit ∧ limit ≤ 2147483647
 >>
-Rule 56 (Check limit fits within datatype of the ref)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 3 then v_2 < 2147483648 else v_2 < 9223372036854775808
+Rule 61 (If dtype of ref is int64, limit must also be representable as int64)
+{ref: tensor, limit: int} |= if dtype_(ref) = 3 then -9223372036854775808 ≤ limit ∧ limit ≤ 9223372036854775807
 >>
-Rule 62 (Limit can not be less than ref)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ min(v_1)
+Rule 62 (If limit is less than the minimum value of int32, OutOfRange error will occur.)
+{limit: int} |= limit >= -2147483648
 >>
-Rule 63 (If ref and limit are equal, it will raise outofrange.)
-{v_1 : tensor, v_2 : int} |= min(v_1) ≠ v_2
+Rule 63 (If limit is less than the minimum value of int64, OutOfRange error will occur.)
+{limit: int} |= limit >= -9223372036854775808
 >>
-Rule 65 (The maximum possible value plus one cannot be represented by the ref's dtype)
-{v_1 : tensor} |= if dtype_(v_1) = 3 then 2147483648 > 2147483647 else 9223372036854775808 > 9223372036854775807
+Rule 70 (Limit must be expressible as int32 or int64)
+{limit: int} |= limit <= 2147483647 ∨ limit <= 9223372036854775807
 >>
-Rule 71 (Check that the next incremented value can be held by the data type, only applies to the int type)
-{v_1 : tensor} |= if dtype_(v_1) = 3 then max(v_1) < 2147483647 else if dtype_(v_1) = 4 then max(v_1) < 9223372036854775807
+Rule 75 (The data type of limit and ref must be compatible)
+{ref: tensor, limit: int} |= (dtype_(ref) = 2 ∧ limit < 2147483647 ∧ limit >= -2147483648) ∨ (dtype_(ref) = 3 ∧ limit < 9223372036854775807 ∧ limit >= -9223372036854775808)
 >>
-Rule 77 (When incrementing, the resulting tensor value will fit within the range.)
-{v_1 : tensor} |= if dtype_(v_1) = 3 then max(v_1) < 2147483647 else if dtype_(v_1) = 4 then max(v_1) < 9223372036854775807 else false
+Rule 77 (The limit must be a valid int32 or int64)
+{limit: int} |= limit < 2147483647 ∨ limit < 9223372036854775807
 >>
-Rule 82 (Ref is a int32 or int64 scalar tensor)
-{v_1 : tensor} |= ndim(v_1) = 0 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
+Rule 78 (if ref's data type is int32, limit must be an int32, otherwise if ref is int64, limit must be an int64)
+{ref: tensor, limit: int} |= (dtype_(ref) = 2 ∧ limit >= -2147483648 ∧ limit <= 2147483647) ∨ (dtype_(ref) = 3 ∧ limit >= -9223372036854775808 ∧ limit <= 9223372036854775807)
 >>
-Rule 83 (The range of the ref tensor must be less than the limit, prevents out of range)
-{v_1 : tensor, v_2 : int} |= max(v_1) < v_2
+Rule 79 (The maximum value of limit depends on the dtype of ref)
+{ref: tensor, limit: int} |= (dtype_(ref) = 2 ∧ limit ≤ 2147483647) ∨ (dtype_(ref) = 3 ∧ limit ≤ 9223372036854775807)
 >>
-Rule 86 (After incrementing ref, the value must be less than or equal to the limit)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 3 then max(v_1) + 1 ≤ v_2 else max(v_1) + 1 ≤ v_2
+Rule 82 (If limit is greater than or equal to zero, then ref must have either int32 or int64 dtype)
+{limit : int, ref : tensor} |= limit >= 0 ∧ (dtype_(ref) = 2 ∨ dtype_(ref) = 3)
 >>
-Rule 91 (after incrementing will not exceed the limit)
-{v_1 : tensor, v_2 : int} |= max(v_1) + 1 <= v_2
+Rule 85 (ref must be initialized to 0)
+{ref: tensor} |= min(ref) = 0 ∧ max(ref) = 0
 >>
-Rule 92 (After incrementing ref, check whether this value fits into its data type)
-{v_1 : tensor} |= if dtype_(v_1) = 3 then max(v_1) + 1 < 2147483648 else max(v_1) + 1 < 9223372036854775808
+Rule 86 (The maximum value of limit depends on ref's datatype)
+{ref: tensor, limit: int} |= if dtype_(ref) = 2 then limit <= 2147483647 else limit <= 9223372036854775807
 >>
-Rule 98 (If ref reaches to limit, OutOfRange will be raised, if max(ref) + 1 exceeds the limit, the count will go beyond the limit)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 3 then max(v_1) + 1 <= v_2 else max(v_1) + 1 <= v_2
+Rule 87 (limit must be greater than the current value of ref)
+{ref: tensor, limit: int} |= limit > max(ref) ∧ limit > min(ref)
 >>
-Rule 100 (Both ref and returned tensor has to be of int32 or int64 type)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∧ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Rule 89 (If limit exceeds the maximum value of int32, ref must be int64, and also limit must be within the range of int64)
+{ref: tensor, limit: int} |= if limit > 2147483647 then dtype_(ref) = 3 ∧ limit <= 9223372036854775807
+>>
+Rule 90 (ref tensor must be a scalar with either int32 or int64 type, limit must be a non-negative integer)
+{ref : tensor, limit : int} |= ndim(ref) = 0 ∧ (dtype_(ref) = 2 ∨ dtype_(ref) = 3) ∧ limit ≥ 0
+>>
+Rule 91 (If limit is greater than the maximum representable value for int32, then ref's data type must be int64, and also make sure the starting value is zero)
+{ref: tensor, limit: int} |= if limit > 2147483647 then dtype_(ref) = 3 ∧ min(ref) = 0 ∧ max(ref) = 0

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The maximum value in the tensor must not exceed a certain limit if it is of integer type (Rule 34)
+# The value must have dimension (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), Select(v["arg1_range"], 1) < 10000, False)) if n else
-          If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), Select(v["arg1_range"], 1) < 10000, False))
+    s.add(Not(v["arg1_ndim"] >= 1) if n else
+          v["arg1_ndim"] >= 1)
 )
 
 def rule_34_func(arg1, solver=None, neg=False):
@@ -22,18 +22,15 @@ def rule_34_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_ndim == arg1.ndim)
 
         # Constraints for rule 34
-        rule_34(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
+        rule_34(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_34(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)
+        rule_34(solver, {'arg1_ndim': arg1['ndim']}, neg)

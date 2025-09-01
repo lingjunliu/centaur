@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check if tensor is a 3D tensor (Rule 57)
+# If the tensor has more than 0 dimensions then product of all dimensions should be less than a max value to avoid OOM (Rule 57)
 
 rule_57 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] == 3) if n else
-          v["arg1_ndim"] == 3)
+    s.add(Not(If(v["arg1_ndim"] > 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 1000) for i in range(6)]), True)) if n else
+          If(v["arg1_ndim"] > 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 1000) for i in range(6)]), True))
 )
 
 def rule_57_func(arg1, solver=None, neg=False):
@@ -23,14 +23,17 @@ def rule_57_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 57
-        rule_57(solver, {'arg1_ndim': arg1_ndim})
+        rule_57(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_57(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_57(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

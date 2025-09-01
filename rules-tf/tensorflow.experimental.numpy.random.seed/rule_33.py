@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If s is an integer, the value must not be too large (Rule 33)
+# s must be an integer and not a large floating point disguised as an int (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 1000000000) if n else
-          v["arg1_value"] < 1000000000)
+    s.add(Not(v["arg1_value"] < 1.0e10) if n else
+          v["arg1_value"] < 1.0e10)
 )
 
 def rule_33_func(arg1, solver=None, neg=False):

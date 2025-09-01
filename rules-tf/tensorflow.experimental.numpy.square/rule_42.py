@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Values must be representable when squared, and the square of the max absolute value should not result in overflow, specific to each dtype. (Rule 42)
+# The tensor should not contain extremely large negative numbers, which after squaring, results to infinity. (Rule 42)
 
 rule_42 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 1, And(And(Select(v["arg1_range"], 1) < 10, Select(v["arg1_range"], 0) > -10), Select(v["arg1_range"], 1) * Select(v["arg1_range"], 1) < 127), If(v["arg1_dtype"] == 2, And(And(Select(v["arg1_range"], 1) < 181, Select(v["arg1_range"], 0) > -181), Select(v["arg1_range"], 1) * Select(v["arg1_range"], 1) < 32767), If(v["arg1_dtype"] == 3, And(And(Select(v["arg1_range"], 1) < 46340, Select(v["arg1_range"], 0) > -46340), Select(v["arg1_range"], 1) * Select(v["arg1_range"], 1) < 2147483647), If(v["arg1_dtype"] == 4, True, If(v["arg1_dtype"] == 5, Select(v["arg1_range"], 1) < 16, If(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), And(Select(v["arg1_range"], 0) > -1000, Select(v["arg1_range"], 1) < 1000), If(And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10), And(Select(v["arg1_range"], 0) > -1000, Select(v["arg1_range"], 1) < 1000), False)))))))) if n else
-          If(v["arg1_dtype"] == 1, And(And(Select(v["arg1_range"], 1) < 10, Select(v["arg1_range"], 0) > -10), Select(v["arg1_range"], 1) * Select(v["arg1_range"], 1) < 127), If(v["arg1_dtype"] == 2, And(And(Select(v["arg1_range"], 1) < 181, Select(v["arg1_range"], 0) > -181), Select(v["arg1_range"], 1) * Select(v["arg1_range"], 1) < 32767), If(v["arg1_dtype"] == 3, And(And(Select(v["arg1_range"], 1) < 46340, Select(v["arg1_range"], 0) > -46340), Select(v["arg1_range"], 1) * Select(v["arg1_range"], 1) < 2147483647), If(v["arg1_dtype"] == 4, True, If(v["arg1_dtype"] == 5, Select(v["arg1_range"], 1) < 16, If(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), And(Select(v["arg1_range"], 0) > -1000, Select(v["arg1_range"], 1) < 1000), If(And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10), And(Select(v["arg1_range"], 0) > -1000, Select(v["arg1_range"], 1) < 1000), False))))))))
+    s.add(Not(If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), Select(v["arg1_range"], 0) > -3.4028235e38, True)) if n else
+          If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), Select(v["arg1_range"], 0) > -3.4028235e38, True))
 )
 
 def rule_42_func(arg1, solver=None, neg=False):

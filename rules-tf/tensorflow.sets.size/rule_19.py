@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If validate_indices is true, values in a should be non-negative. (Rule 19)
+# If validate_indices is true and tensor has NaN values, undefined behavior might occur (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == True, Select(v["arg1_range"], 0) >= 0, False)) if n else
-          If(v["arg2_value"] == True, Select(v["arg1_range"], 0) >= 0, False))
+    s.add(Not(If(v["arg2_value"] == True, Select(v["arg1_range"], 1) != Select(v["arg1_range"], 1), True)) if n else
+          If(v["arg2_value"] == True, Select(v["arg1_range"], 1) != Select(v["arg1_range"], 1), True))
 )
 
 def rule_19_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# input tensor and mean, variance, beta, gamma tensors must have a floating-point or complex dtype: 6–10, 6-8 for variance (Rule 58)
+# The beta, gamma, mean and variance tensors should have compatible data types and if input is float16, others should be too (Rule 58)
 
 rule_58 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(And(And(And(And(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 10), 6 <= v["arg2_dtype"]), v["arg2_dtype"] <= 10), 6 <= v["arg3_dtype"]), v["arg3_dtype"] <= 8), 6 <= v["arg4_dtype"]), v["arg4_dtype"] <= 10), 6 <= v["arg5_dtype"]), v["arg5_dtype"] <= 10)) if n else
-          And(And(And(And(And(And(And(And(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 10), 6 <= v["arg2_dtype"]), v["arg2_dtype"] <= 10), 6 <= v["arg3_dtype"]), v["arg3_dtype"] <= 8), 6 <= v["arg4_dtype"]), v["arg4_dtype"] <= 10), 6 <= v["arg5_dtype"]), v["arg5_dtype"] <= 10))
+    s.add(Not(And(And(And(v["arg2_dtype"] == v["arg3_dtype"], v["arg4_dtype"] == v["arg5_dtype"]), v["arg2_dtype"] == v["arg4_dtype"]), If(v["arg1_dtype"] == 6, v["arg2_dtype"] == 6, True))) if n else
+          And(And(And(v["arg2_dtype"] == v["arg3_dtype"], v["arg4_dtype"] == v["arg5_dtype"]), v["arg2_dtype"] == v["arg4_dtype"]), If(v["arg1_dtype"] == 6, v["arg2_dtype"] == 6, True)))
 )
 
 def rule_58_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):

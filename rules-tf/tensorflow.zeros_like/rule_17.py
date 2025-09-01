@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If dtype is specified and is a float type, input must be numeric (Rule 17)
+# If the input tensor is quantized, the dtype should also be quantized (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(v["arg2_value"] == 6, v["arg2_value"] == 7), v["arg2_value"] == 8), And(v["arg1_dtype"] != 0, v["arg1_dtype"] != 11), False)) if n else
-          If(Or(Or(v["arg2_value"] == 6, v["arg2_value"] == 7), v["arg2_value"] == 8), And(v["arg1_dtype"] != 0, v["arg1_dtype"] != 11), False))
+    s.add(Not(If(And(v["arg1_dtype"] > 4, v["arg1_dtype"] < 7), And(v["arg2_value"] > 4, v["arg2_value"] < 7), True)) if n else
+          If(And(v["arg1_dtype"] > 4, v["arg1_dtype"] < 7), And(v["arg2_value"] > 4, v["arg2_value"] < 7), True))
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):

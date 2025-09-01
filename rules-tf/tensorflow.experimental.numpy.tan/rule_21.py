@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check the input tensor's dtype is a valid numerical type (Rule 21)
+# If input is float32, it is recommended to use float64 if high precision is required (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9)) if n else
-          Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9))
+    s.add(Not(If(v["arg1_dtype"] == 7, True, True)) if n else
+          If(v["arg1_dtype"] == 7, True, True))
 )
 
 def rule_21_func(arg1, solver=None, neg=False):

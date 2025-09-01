@@ -5,20 +5,18 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If var is quint16, accum, lr, l1, l2, grad all have dtype quint16 (Rule 43)
+# If the dtype of var is other types like qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, uint32, uint64, complex64, complex128, half then lr, l1 and l2 should be scalar tensors (Rule 43)
 
 rule_43 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 13, And(And(And(And(v["arg2_dtype"] == 13, v["arg3_dtype"] == 13), v["arg4_dtype"] == 13), v["arg5_dtype"] == 13), v["arg6_dtype"] == 13), False)) if n else
-          If(v["arg1_dtype"] == 13, And(And(And(And(v["arg2_dtype"] == 13, v["arg3_dtype"] == 13), v["arg4_dtype"] == 13), v["arg5_dtype"] == 13), v["arg6_dtype"] == 13), False))
+    s.add(Not(If((Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 12), v["arg1_dtype"] == 13), v["arg1_dtype"] == 11), v["arg1_dtype"] == 14), v["arg1_dtype"] == 15), v["arg1_dtype"] == 16), v["arg1_dtype"] == 17), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 6)), (And(And(And(And(And(v["arg2_dtype"] == v["arg1_dtype"], v["arg2_ndim"] == 0), v["arg3_dtype"] == v["arg1_dtype"]), v["arg3_ndim"] == 0), v["arg4_dtype"] == v["arg1_dtype"]), v["arg4_ndim"] == 0)), True)) if n else
+          If((Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 12), v["arg1_dtype"] == 13), v["arg1_dtype"] == 11), v["arg1_dtype"] == 14), v["arg1_dtype"] == 15), v["arg1_dtype"] == 16), v["arg1_dtype"] == 17), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 6)), (And(And(And(And(And(v["arg2_dtype"] == v["arg1_dtype"], v["arg2_ndim"] == 0), v["arg3_dtype"] == v["arg1_dtype"]), v["arg3_ndim"] == 0), v["arg4_dtype"] == v["arg1_dtype"]), v["arg4_ndim"] == 0)), True))
 )
 
-def rule_43_func(arg1, arg2, arg3, arg4, arg5, arg6, solver=None, neg=False):
+def rule_43_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
     arg3 = next(iter(arg3.values()))
     arg4 = next(iter(arg4.values()))
-    arg5 = next(iter(arg5.values()))
-    arg6 = next(iter(arg6.values()))
 
     # Invariant learning phase
     if not solver:
@@ -30,32 +28,30 @@ def rule_43_func(arg1, arg2, arg3, arg4, arg5, arg6, solver=None, neg=False):
             return False
         if not isinstance(arg4, np.ndarray):
             return False
-        if not isinstance(arg5, np.ndarray):
-            return False
-        if not isinstance(arg6, np.ndarray):
-            return False
 
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
+        arg2_ndim = Int('arg2_ndim')
         arg2_dtype = Int('arg2_dtype')
+        arg3_ndim = Int('arg3_ndim')
         arg3_dtype = Int('arg3_dtype')
+        arg4_ndim = Int('arg4_ndim')
         arg4_dtype = Int('arg4_dtype')
-        arg5_dtype = Int('arg5_dtype')
-        arg6_dtype = Int('arg6_dtype')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_ndim == arg2.ndim)
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg3_ndim == arg3.ndim)
         solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
+        solver.add(arg4_ndim == arg4.ndim)
         solver.add(arg4_dtype == list_of_available_dtypes.index(arg4.dtype))
-        solver.add(arg5_dtype == list_of_available_dtypes.index(arg5.dtype))
-        solver.add(arg6_dtype == list_of_available_dtypes.index(arg6.dtype))
 
         # Constraints for rule 43
-        rule_43(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype, 'arg4_dtype': arg4_dtype, 'arg5_dtype': arg5_dtype, 'arg6_dtype': arg6_dtype})
+        rule_43(solver, {'arg1_dtype': arg1_dtype, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype, 'arg3_ndim': arg3_ndim, 'arg3_dtype': arg3_dtype, 'arg4_ndim': arg4_ndim, 'arg4_dtype': arg4_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_43(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype'], 'arg4_dtype': arg4['dtype'], 'arg5_dtype': arg5['dtype'], 'arg6_dtype': arg6['dtype']}, neg)
+        rule_43(solver, {'arg1_dtype': arg1['dtype'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype'], 'arg3_ndim': arg3['ndim'], 'arg3_dtype': arg3['dtype'], 'arg4_ndim': arg4['ndim'], 'arg4_dtype': arg4['dtype']}, neg)

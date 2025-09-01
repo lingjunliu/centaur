@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input is of type float, then mask indices type must be in integer. (Rule 53)
+# a and mask_indices must be 1D integer tensors (Rule 53)
 
 rule_53 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), (Or(Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5), v["arg2_dtype"] == 6)), False)) if n else
-          If(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), (Or(Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5), v["arg2_dtype"] == 6)), False))
+    s.add(Not(And(And(And(v["arg1_ndim"] == 1, (Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4))), v["arg2_ndim"] == 1), (Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 4)))) if n else
+          And(And(And(v["arg1_ndim"] == 1, (Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4))), v["arg2_ndim"] == 1), (Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 4))))
 )
 
 def rule_53_func(arg1, arg2, solver=None, neg=False):
@@ -25,17 +25,21 @@ def rule_53_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
         arg1_dtype = Int('arg1_dtype')
+        arg2_ndim = Int('arg2_ndim')
         arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_ndim == arg2.ndim)
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 53
-        rule_53(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_53(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_53(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_53(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']}, neg)

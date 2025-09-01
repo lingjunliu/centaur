@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Logits shape 0 must equal to a constant (Rule 12)
+# The number of classes of logits should be greater than 0 (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) == 64) if n else
-          Select(v["arg1_shape"], 0) == 64)
+    s.add(Not(Select(v["arg1_shape"], 1) > 0) if n else
+          Select(v["arg1_shape"], 1) > 0)
 )
 
 def rule_12_func(arg1, solver=None, neg=False):

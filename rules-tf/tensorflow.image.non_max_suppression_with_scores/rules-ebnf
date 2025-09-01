@@ -1,171 +1,141 @@
 >>
-Rule 1 (boxes must be a 2D float tensor)
-{v_1 : tensor} |= ndim(v_1) = 2 ∧ dtype_(v_1) = 7
+Rule 1 (boxes and scores should have compatible shapes)
+{boxes : tensor, scores : tensor} |= shape(boxes, 0) = shape(scores, 0)
 >>
-Rule 2 (boxes second dimension must be 4)
-{v_1 : tensor} |= shape(v_1, 1) = 4
+Rule 2 (max_output_size must be a positive integer)
+{max_output_size : int} |= max_output_size > 0
 >>
-Rule 3 (scores must be a 1D float tensor)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ dtype_(v_1) = 7
+Rule 3 (iou_threshold must be within the range [0, 1])
+{iou_threshold : float} |= iou_threshold ≥ 0 ∧ iou_threshold ≤ 1
 >>
-Rule 4 (scores and boxes first dimension size must be equal)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 5 (soft_nms_sigma should be a non-negative float number)
+{soft_nms_sigma : float} |= soft_nms_sigma ≥ 0
 >>
-Rule 5 (max_output_size must be a positive integer)
-{v_1 : int} |= v_1 > 0
+Rule 6 (boxes must be a 2D tensor)
+{boxes : tensor} |= ndim(boxes) = 2
 >>
-Rule 6 (iou_threshold must be a float between 0 and 1)
-{v_1 : float} |= v_1 ≥ 0.0 ∧ v_1 ≤ 1.0
+Rule 7 (boxes must have 4 values at the last dimension)
+{boxes : tensor} |= shape(boxes, 1) = 4
 >>
-Rule 8 (soft_nms_sigma must be a non-negative float)
-{v_1 : float} |= v_1 ≥ 0.0
+Rule 8 (boxes and scores must have float type)
+{boxes : tensor, scores : tensor} |= dtype_(boxes) = 8 ∧ dtype_(scores) = 8
 >>
-Rule 9 (iou_threshold is ignored if soft_nms_sigma > 0)
-{v_1 : float, v_2 : float} |= if v_2 > 0.0 then true else v_1 ≥ 0.0 ∧ v_1 ≤ 1.0
+Rule 10 (max_output_size must be less than or equal to the number of boxes)
+{max_output_size : int, boxes : tensor} |= max_output_size ≤ shape(boxes, 0)
 >>
-Rule 10 (boxes tensor must have at least one box if max_output_size > 0)
-{v_1 : tensor, v_2 : int} |= if v_2 > 0 then shape(v_1, 0) > 0
+Rule 17 (boxes and scores must have float32 or float16 type)
+{boxes : tensor, scores : tensor} |= dtype_(boxes) = 7 ∨ dtype_(boxes) = 6 ∧ dtype_(scores) = 7 ∨ dtype_(scores) = 6
 >>
-Rule 23 (score_threshold should not be too high)
-{v_1 : float, v_2 : tensor} |= v_1 ≤ max(v_2)
+Rule 18 (scores must be a 1D tensor)
+{scores : tensor} |= ndim(scores) = 1
 >>
-Rule 24 (The score threshold and iou threshold must be less than 1)
-{v_1 : float, v_2 : float} |= v_1 <= 1.0 ∧ v_2 <= 1.0
+Rule 19 (boxes and scores shapes are valid)
+{boxes : tensor, scores : tensor} |= ndim(boxes) = 2 ∧ shape(boxes, 1) = 4 ∧ ndim(scores) = 1 ∧ shape(boxes, 0) = shape(scores, 0)
 >>
-Rule 25 (If soft_nms_sigma is zero, iou_threshold should be in valid range)
-{v_1 : float, v_2 : float} |= if v_2 = 0.0 then v_1 ≥ 0.0 ∧ v_1 ≤ 1.0
+Rule 20 (thresholds are valid)
+{iou_threshold : float, soft_nms_sigma : float, max_output_size : int} |= iou_threshold ≥ 0 ∧ iou_threshold ≤ 1 ∧ soft_nms_sigma ≥ 0 ∧ max_output_size > 0
 >>
-Rule 26 (boxes and score dtype should be float)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 7
+Rule 22 (boxes and scores shapes and dtypes are valid)
+{boxes : tensor, scores : tensor} |= ndim(boxes) = 2 ∧ shape(boxes, 1) = 4 ∧ ndim(scores) = 1 ∧ shape(boxes, 0) = shape(scores, 0) ∧ (dtype_(boxes) = 7 ∨ dtype_(boxes) = 6) ∧ (dtype_(scores) = 7 ∨ dtype_(scores) = 6)
 >>
-Rule 27 (max_output_size must be less than or equal to the number of boxes)
-{v_1 : int, v_2 : tensor} |= v_1 ≤ shape(v_2, 0)
+Rule 24 (If soft_nms_sigma is zero, then iou_threshold is used, else iou_threshold is ignored.)
+{iou_threshold : float, soft_nms_sigma : float} |= if soft_nms_sigma = 0.0 then iou_threshold ≥ 0 ∧ iou_threshold ≤ 1
 >>
-Rule 28 (soft_nms_sigma and score_threshold should have comparable magnitude)
-{v_1 : float, v_2 : float} |= v_1 ≤ 100.0 ∧ v_2 ≤ 100.0
+Rule 27 (iou_threshold and soft_nms_sigma are valid floats)
+{iou_threshold : float, soft_nms_sigma : float} |= iou_threshold ≥ 0 ∧ iou_threshold ≤ 1 ∧ soft_nms_sigma ≥ 0
 >>
-Rule 29 (If iou_threshold is 1.0 all boxes are selected)
-{v_1 : float} |= if v_1 = 1.0 then true
+Rule 29 (boxes shape is valid)
+{boxes : tensor} |= ndim(boxes) = 2 ∧ shape(boxes, 1) = 4
 >>
-Rule 30 (soft_nms_sigma near infinity results in no suppression)
-{v_1 : float} |= if v_1 > 100000.0 then true
+Rule 32 (boxes and scores dtypes are valid)
+{boxes : tensor, scores : tensor} |= (dtype_(boxes) = 7 ∨ dtype_(boxes) = 6) ∧ (dtype_(scores) = 7 ∨ dtype_(scores) = 6)
 >>
-Rule 31 (The number of boxes cannot be negative.)
-{v_1 : tensor} |= shape(v_1,0) >= 0
+Rule 36 (boxes shape and dtype are valid)
+{boxes : tensor} |= ndim(boxes) = 2 ∧ shape(boxes, 1) = 4 ∧ (dtype_(boxes) = 7 ∨ dtype_(boxes) = 6)
 >>
-Rule 32 (boxes values should be in a reasonable range)
-{v_1 : tensor} |= min(v_1) >= -1000.0 ∧ max(v_1) <= 1000.0
+Rule 37 (scores shape and dtype are valid)
+{scores : tensor} |= ndim(scores) = 1 ∧ (dtype_(scores) = 7 ∨ dtype_(scores) = 6)
 >>
-Rule 33 (If the score is negative, should get suppressed)
-{v_1 : tensor, v_2 : float} |= ∀i ∈ [0, shape(v_1, 0) - 1]: if v_1[i] < v_2 then true
+Rule 42 (iou_threshold is only relevant when soft_nms_sigma is 0)
+{iou_threshold : float, soft_nms_sigma : float} |= if soft_nms_sigma = 0.0 then true else iou_threshold = 0.0
 >>
-Rule 34 (if score_threshold is greater than maximum possible score it returns empty tensor)
-{v_1 : float, v_2: float, v_3: tensor} |= if v_1 > max(v_3) then v_2 >= 0.0
+Rule 49 (Boxes and scores should have the same dtype)
+{boxes : tensor, scores : tensor} |= dtype_(boxes) = dtype_(scores)
 >>
-Rule 35 (The boxes tensor should be of rank 2)
-{v_1: tensor} |= ndim(v_1) = 2
+Rule 54 (boxes and scores have same dtype if float32)
+{boxes : tensor, scores : tensor} |= if dtype_(boxes) = 7 then dtype_(scores) = 7
 >>
-Rule 36 (The scores tensor should be of rank 1)
-{v_1: tensor} |= ndim(v_1) = 1
+Rule 55 (boxes and scores have same dtype if float16)
+{boxes : tensor, scores : tensor} |= if dtype_(boxes) = 6 then dtype_(scores) = 6
 >>
-Rule 38 (If soft_nms_sigma is greater than 0 the soft NMS is applied)
-{v_1: float} |= if v_1 > 0 then true
+Rule 61 (If soft_nms_sigma is greater than 0.0, iou_threshold is not used, otherwise iou_threshold must be between 0 and 1)
+{iou_threshold : float, soft_nms_sigma : float} |= if soft_nms_sigma > 0.0 then true else iou_threshold ≥ 0 ∧ iou_threshold ≤ 1
 >>
-Rule 39 (if score_threshold is too low a large number of boxes may be returned)
-{v_1 : float, v_2: int} |= if v_1 < -1000.0 then v_2 > 0
+Rule 63 (boxes, scores shape, and dtype properties)
+{boxes : tensor, scores : tensor, max_output_size : int, iou_threshold : float, soft_nms_sigma : float} |= ndim(boxes) = 2 ∧ shape(boxes, 1) = 4 ∧ ndim(scores) = 1 ∧ shape(boxes, 0) = shape(scores, 0) ∧ (dtype_(boxes) = 7 ∨ dtype_(boxes) = 6) ∧ (dtype_(scores) = 7 ∨ dtype_(scores) = 6) ∧ max_output_size > 0 ∧ iou_threshold ≥ 0 ∧ iou_threshold ≤ 1 ∧ soft_nms_sigma ≥ 0
 >>
-Rule 40 (max_output_size should not be greater than int max)
-{v_1 : int} |= v_1 <= 2147483647
+Rule 65 (boxes and scores must have same floating-point dtype)
+{boxes : tensor, scores : tensor} |= if dtype_(boxes) = 7 then dtype_(scores) = 7 else if dtype_(boxes) = 6 then dtype_(scores) = 6 else false
 >>
-Rule 41 (Soft nms sigma should not be excessively large)
-{v_1: float} |= v_1 <= 10000.0
+Rule 69 (threshold parameters are valid)
+{max_output_size : int, iou_threshold : float, soft_nms_sigma : float} |= max_output_size > 0 ∧ iou_threshold ≥ 0 ∧ iou_threshold ≤ 1 ∧ soft_nms_sigma ≥ 0
 >>
-Rule 43 (score_threshold should not be excessively large relative to scores)
-{v_1 : float, v_2 : tensor} |= v_1 <= max(v_2) * 10
+Rule 71 (boxes and scores have same dtype)
+{boxes : tensor, scores : tensor} |= if dtype_(boxes) = 7 then dtype_(scores) = 7 else if dtype_(boxes) = 6 then dtype_(scores) = 6
 >>
-Rule 44 (The output size should be non-negative)
-{v_1: int} |= v_1 >= 0
+Rule 72 (boxes dtype must be either float16 or float32)
+{boxes : tensor} |= dtype_(boxes) = 6 ∨ dtype_(boxes) = 7
 >>
-Rule 45 (if the number of boxes is zero, max output size should also be zero)
-{v_1: tensor, v_2: int} |= if shape(v_1,0) = 0 then v_2=0
+Rule 80 (scores must be float16 or float32)
+{scores : tensor} |= dtype_(scores) = 6 ∨ dtype_(scores) = 7
 >>
-Rule 47 (if the soft_nms_sigma is very small, then behavior should approximate hard NMS)
-{v_1: float, v_2: float} |= if v_1 < 0.00001 then v_2 >= 0.0 ∧ v_2 <= 1.0
+Rule 81 (boxes, scores shape and dtype properties must be satisfied)
+{boxes : tensor, scores : tensor} |= ndim(boxes) = 2 ∧ shape(boxes, 1) = 4 ∧ (dtype_(boxes) = 7 ∨ dtype_(boxes) = 6) ∧ ndim(scores) = 1 ∧ (dtype_(scores) = 7 ∨ dtype_(scores) = 6) ∧ shape(boxes, 0) = shape(scores, 0)
 >>
-Rule 50 (box values should be normalized)
-{v_1 : tensor} |= min(v_1) >= 0.0 ∧ max(v_1) <= 1.0
+Rule 85 (boxes and scores shape properties, and dtype must be valid float)
+{boxes : tensor, scores : tensor} |= ndim(boxes) = 2 ∧ shape(boxes, 1) = 4 ∧ ndim(scores) = 1 ∧ shape(boxes, 0) = shape(scores, 0) ∧ (dtype_(boxes) = 7 ∨ dtype_(boxes) = 6) ∧ (dtype_(scores) = 7 ∨ dtype_(scores) = 6) ∧ dtype_(boxes) = dtype_(scores)
 >>
-Rule 51 (Score values should be non negative)
-{v_1: tensor} |= min(v_1) >= 0.0
+Rule 88 (boxes and scores shapes and dtypes)
+{boxes : tensor, scores : tensor} |= ndim(boxes) = 2 ∧ shape(boxes, 1) = 4 ∧ (dtype_(boxes) = 7 ∨ dtype_(boxes) = 6) ∧ ndim(scores) = 1 ∧ (dtype_(scores) = 7 ∨ dtype_(scores) = 6) ∧ shape(boxes, 0) = shape(scores, 0) ∧ dtype_(boxes) = dtype_(scores)
 >>
-Rule 52 (The shape of the boxes tensor should be valid)
-{v_1: tensor} |= shape(v_1, 1) = 4
+Rule 91 (boxes and scores dtype can not be double)
+{boxes : tensor, scores : tensor} |= dtype_(boxes) ≠ 8 ∧ dtype_(scores) ≠ 8
 >>
-Rule 53 (If the iou_threshold is set too high, all boxes may be suppressed)
-{v_1 : float, v_2: tensor} |= if v_1 > 0.99 then shape(v_2,0) >= 0
+Rule 95 (Data type cannot be double)
+{boxes : tensor, scores : tensor, iou_threshold : float, soft_nms_sigma : float} |= dtype_(boxes) ≠ 8 ∧ dtype_(scores) ≠ 8 ∧ soft_nms_sigma < 1000000000000.0 ∧ iou_threshold < 1000000000000.0
 >>
-Rule 54 (box values should be normalized or absolute)
-{v_1 : tensor} |= (min(v_1) >= 0.0 ∧ max(v_1) <= 1.0) ∨ (min(v_1) >= -1000.0 ∧ max(v_1) <= 1000.0)
+Rule 97 (max_output_size and soft_nms_sigma properties)
+{max_output_size : int, soft_nms_sigma : float} |= max_output_size > 0 ∧ soft_nms_sigma ≥ 0
 >>
-Rule 55 (Score values should be in the valid floating-point range)
-{v_1: tensor} |= min(v_1) > -3.4028235e38 ∧ max(v_1) < 3.4028235e38
+Rule 99 (Invalid data type: double)
+{boxes : tensor} |= dtype_(boxes) ≠ 8
 >>
-Rule 56 (max_output_size must be smaller than the maximum integer value)
-{v_1: int} |= v_1 < 2147483647
+Rule 100 (Tensor properties: boxes and scores, and their data types)
+{boxes : tensor, scores : tensor, max_output_size : int, soft_nms_sigma : float} |= ndim(boxes) = 2 ∧ shape(boxes, 1) = 4 ∧ (dtype_(boxes) = 7 ∨ dtype_(boxes) = 6) ∧ ndim(scores) = 1 ∧ (dtype_(scores) = 7 ∨ dtype_(scores) = 6) ∧ shape(boxes, 0) = shape(scores, 0) ∧ dtype_(boxes) = dtype_(scores) ∧ max_output_size > 0 ∧ soft_nms_sigma ≥ 0
 >>
-Rule 57 (If the iou_threshold is set close to zero, it would act like no NMS)
-{v_1 : float} |= if v_1 < 0.001 then true
+Rule 103 (scores cannot be double)
+{scores : tensor} |= dtype_(scores) ≠ 8
 >>
-Rule 58 (The dimension of scores tensor should match the number of bounding boxes.)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2,0)
+Rule 108 (Valid threshold parameters)
+{max_output_size : int, soft_nms_sigma : float, iou_threshold : float} |= max_output_size > 0 ∧ soft_nms_sigma ≥ 0 ∧ (soft_nms_sigma > 0.0 ∨ (iou_threshold ≥ 0.0 ∧ iou_threshold ≤ 1.0))
 >>
-Rule 59 (If score_threshold is set too high, all boxes might be suppressed)
-{v_1 : float, v_2: tensor} |= if v_1 > max(v_2) then true
+Rule 113 (boxes and scores shape and type check)
+{boxes : tensor, scores : tensor, soft_nms_sigma : float, max_output_size : int} |= ndim(boxes) = 2 ∧ shape(boxes, 1) = 4 ∧ (dtype_(boxes) = 7 ∨ dtype_(boxes) = 6) ∧ ndim(scores) = 1 ∧ (dtype_(scores) = 7 ∨ dtype_(scores) = 6) ∧ shape(boxes, 0) = shape(scores, 0) ∧ dtype_(boxes) = dtype_(scores) ∧ soft_nms_sigma ≥ 0 ∧ max_output_size > 0
 >>
-Rule 60 (The max_output_size should be smaller or equal to the number of boxes)
-{v_1 : int, v_2: tensor} |= v_1 <= shape(v_2, 0)
+Rule 116 (Check Tensor and Scalar properties)
+{boxes : tensor, scores : tensor, max_output_size : int, soft_nms_sigma : float, iou_threshold : float} |= ndim(boxes) = 2 ∧ shape(boxes, 1) = 4 ∧ (dtype_(boxes) = 7 ∨ dtype_(boxes) = 6) ∧ ndim(scores) = 1 ∧ (dtype_(scores) = 7 ∨ dtype_(scores) = 6) ∧ shape(boxes, 0) = shape(scores, 0) ∧ dtype_(boxes) = dtype_(scores) ∧ max_output_size > 0 ∧ soft_nms_sigma ≥ 0 ∧ (soft_nms_sigma > 0.0 ∨ (iou_threshold ≥ 0.0 ∧ iou_threshold ≤ 1.0))
 >>
-Rule 61 (Boxes and scores tensor must have compatible data types.)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 7
+Rule 121 (boxes, scores properties: shape, dtype, sizes, and type)
+{boxes : tensor, scores : tensor, max_output_size : int, soft_nms_sigma : float, iou_threshold : float} |= ndim(boxes) = 2 ∧ shape(boxes, 1) = 4 ∧ (dtype_(boxes) = 7 ∨ dtype_(boxes) = 6) ∧ ndim(scores) = 1 ∧ (dtype_(scores) = 7 ∨ dtype_(scores) = 6) ∧ shape(boxes, 0) = shape(scores, 0) ∧ max_output_size > 0 ∧ soft_nms_sigma ≥ 0 ∧ (soft_nms_sigma > 0.0 ∨ (iou_threshold ≥ 0.0 ∧ iou_threshold ≤ 1.0)) ∧ dtype_(boxes) ≠ 8 ∧ dtype_(scores) ≠ 8
 >>
-Rule 62 (soft_nms_sigma should not be a very small negative number)
-{v_1: float} |= v_1 >= -0.000001
+Rule 123 (All parameter constraints excluding the double type)
+{boxes : tensor, scores : tensor, max_output_size : int, soft_nms_sigma : float, iou_threshold : float} |= ndim(boxes) = 2 ∧ shape(boxes, 1) = 4 ∧ (dtype_(boxes) = 7 ∨ dtype_(boxes) = 6) ∧ ndim(scores) = 1 ∧ (dtype_(scores) = 7 ∨ dtype_(scores) = 6) ∧ shape(boxes, 0) = shape(scores, 0) ∧ max_output_size > 0 ∧ soft_nms_sigma ≥ 0 ∧ (soft_nms_sigma > 0.0 ∨ (iou_threshold ≥ 0.0 ∧ iou_threshold ≤ 1.0))
 >>
-Rule 63 (The dimensions for boxes should be greater or equals to 0)
-{v_1 : tensor} |= shape(v_1, 0) >= 0 ∧ shape(v_1, 1) >= 0
+Rule 124 (Do not allow double)
+{boxes : tensor, scores : tensor, soft_nms_sigma : float, iou_threshold : float} |= dtype_(boxes) ≠ 8 ∧ dtype_(scores) ≠ 8 ∧ iou_threshold < 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0 ∧ soft_nms_sigma < 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
 >>
-Rule 64 (if boxes have a large range, scores should be non-zero)
-{v_1: tensor, v_2: tensor} |= if max(v_1) - min(v_1) > 100 then min(v_2) >= 0
+Rule 125 (Comprehensive Check of Input Tensors and Thresholds)
+{boxes : tensor, scores : tensor, max_output_size : int, soft_nms_sigma : float, iou_threshold : float} |= ndim(boxes) = 2 ∧ shape(boxes, 1) = 4 ∧ (dtype_(boxes) = 7 ∨ dtype_(boxes) = 6) ∧ ndim(scores) = 1 ∧ (dtype_(scores) = 7 ∨ dtype_(scores) = 6) ∧ shape(boxes, 0) = shape(scores, 0) ∧ max_output_size > 0 ∧ soft_nms_sigma ≥ 0 ∧ (soft_nms_sigma > 0.0 ∨ (iou_threshold ≥ 0.0 ∧ iou_threshold ≤ 1.0)) ∧ dtype_(boxes) = dtype_(scores)
 >>
-Rule 65 (max output size cannot exceed maximum value for signed int)
-{v_1: int} |= v_1 <= 2147483647
->>
-Rule 66 (If no boxes are provided, no boxes should be returned regardless of max_output_size)
-{v_1: tensor, v_2: int} |= if shape(v_1, 0) = 0 then v_2 = 0
->>
-Rule 68 (Boxes tensor has the right shape)
-{v_1: tensor} |= ndim(v_1) = 2 ∧ shape(v_1, 1) = 4
->>
-Rule 69 (If soft_nms_sigma is small and iou_threshold is high then many boxes with low confidence values are suppressed)
-{v_1: float, v_2: float} |= if v_1 < 0.1 ∧ v_2 > 0.9 then true
->>
-Rule 70 (If the boxes are normalized, then the values should range from 0 to 1.)
-{v_1: tensor} |= if max(v_1) <= 1.0 then min(v_1) >=0.0
->>
-Rule 71 (If the boxes and scores are not finite, then the result may be unreliable.)
-{v_1: tensor, v_2: tensor} |= min(v_1) > -3.4028235e38 ∧ max(v_1) < 3.4028235e38 ∧ min(v_2) > -3.4028235e38 ∧ max(v_2) < 3.4028235e38
->>
-Rule 72 (Max output size needs to be a positive integer)
-{v_1: int} |= v_1 > 0
->>
-Rule 74 (The score_threshold should be less or equal than the highest score)
-{v_1: float, v_2: tensor} |= v_1 <= max(v_2)
->>
-Rule 75 (The maximum number of output boxes cannot exceed int32_max.)
-{v_1 : int} |= v_1 ≤ 2147483647
->>
-Rule 76 (If max_output_size is zero then no selected indices must be returned)
-{v_1 : int} |= if v_1 = 0 then true
->>
-Rule 78 (The dimensions of the scores tensor should be 1.)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 127 (Check the allowed dtypes on tensor)
+{boxes: tensor} |= dtype_(boxes) = 6 ∨ dtype_(boxes) = 7

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if images is half, delta should be small (Rule 14)
+# if images has float16 type, delta should be within a specific range (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, And(Select(v["arg2_range"], 0) >= -1, Select(v["arg2_range"], 1) <= 1), False)) if n else
-          If(v["arg1_dtype"] == 6, And(Select(v["arg2_range"], 0) >= -1, Select(v["arg2_range"], 1) <= 1), False))
+    s.add(Not(If(v["arg1_dtype"] == 6, And(Select(v["arg2_range"], 0) >= -5, Select(v["arg2_range"], 1) <= 5), True)) if n else
+          If(v["arg1_dtype"] == 6, And(Select(v["arg2_range"], 0) >= -5, Select(v["arg2_range"], 1) <= 5), True))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):

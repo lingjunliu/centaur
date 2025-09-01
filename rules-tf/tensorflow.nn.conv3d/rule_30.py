@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Ensure input width is positive (Rule 30)
+# input in_channels dimension must be greater than 0 (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 3) > 0) if n else
-          Select(v["arg1_shape"], 3) > 0)
+    s.add(Not(Select(v["arg1_shape"], 4) > 0) if n else
+          Select(v["arg1_shape"], 4) > 0)
 )
 
 def rule_30_func(arg1, solver=None, neg=False):

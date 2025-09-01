@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# dtype can not be complex64 or complex128 (9 or 10 (Rule 15)
+# vocabulary_size must be less than or equal to a maximum value, represented by a constant MAX_SIZE (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] != 9, v["arg1_value"] != 10)) if n else
-          And(v["arg1_value"] != 9, v["arg1_value"] != 10))
+    s.add(Not(v["arg1_value"] <= 10000) if n else
+          v["arg1_value"] <= 10000)
 )
 
 def rule_15_func(arg1, solver=None, neg=False):

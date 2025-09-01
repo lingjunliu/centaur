@@ -8,8 +8,8 @@ from z3 import *
 # input tensor must be of type qint8, quint8, qint32, qint16, or quint16 (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 5), v["arg1_dtype"] == 3), v["arg1_dtype"] == 2), v["arg1_dtype"] == 4)) if n else
-          Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 5), v["arg1_dtype"] == 3), v["arg1_dtype"] == 2), v["arg1_dtype"] == 4))
+    s.add(Not(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 5), v["arg1_dtype"] == 3), v["arg1_dtype"] == 2), v["arg1_dtype"] == 6)) if n else
+          Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 5), v["arg1_dtype"] == 3), v["arg1_dtype"] == 2), v["arg1_dtype"] == 6))
 )
 
 def rule_1_func(arg1, solver=None, neg=False):

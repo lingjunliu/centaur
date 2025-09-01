@@ -1,84 +1,141 @@
 >>
-Rule 1 (The input array must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
->>
-Rule 3 (If indices_or_sections is an integer, it must be greater than 0)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 > 0
->>
-Rule 5 (The sum of section lengths must equal the length of the split axis.)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_2) = 1 then (∀i ∈ [0, v_2.len - 1] : v_2[i] > 0) ∧ (v_3 < ndim(v_1))
->>
-Rule 8 (If indices_or_sections is a 1D array, its elements must be integers)
-{v_2 : tensor} |= if ndim(v_2) = 1 then (1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5)
->>
-Rule 11 (If indices_or_sections is a 1D array, its elements must be non-negative)
-{v_2 : tensor} |= if ndim(v_2) = 1 then min(v_2) ≥ 0
->>
-Rule 12 (If indices_or_sections is a 1D array, elements are in ascending order)
-{v_2 : tensor} |= if ndim(v_2) = 1 then ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1]
->>
-Rule 14 (If indices_or_sections is an integer and axis is specified, the input tensor's shape along axis must be divisible by indices_or_sections)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 > 0 then shape(v_1, v_3) % v_2 = 0
->>
-Rule 17 (The axis must be within the range of dimensions of the input tensor)
-{v_1 : tensor, v_3 : int} |= (0 ≤ v_3) ∧ (v_3 < ndim(v_1))
->>
-Rule 19 (If indices_or_sections is a tensor, it must have integer type)
-{v_2 : tensor} |= 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5
->>
-Rule 20 (If indices_or_sections is a tensor and the input tensor is a scalar, then indices_or_sections should be empty.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
->>
-Rule 21 (When indices_or_sections is an integer, axis must be less than or equal to ndim(v_1) -1 )
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 > 0 then v_3 ≤ ndim(v_1) -1
->>
-Rule 22 (The input array's dtype cannot be a string)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
->>
-Rule 24 (If indices_or_sections is a tensor, its dtype must be int)
-{v_2 : tensor} |= 1 <= dtype_(v_2) ∧ dtype_(v_2) <= 5
->>
-Rule 27 (If indices_or_sections is a list, the sum of its elements must equal shape(v_1, axis))
-{v_1 : tensor, v_2 : list(int), v_3 : int} |= (v_2.len > 0) ∧ (v_3 < ndim(v_1)) ∧ (∃i ∈ [0, v_2.len -1]: v_2[i] ≥ 0 )
->>
-Rule 29 (If indices_or_sections is an integer, it must evenly divide the length of the axis)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) % v_2 = 0
->>
-Rule 30 (If indices_or_sections is a list, all elements must be non-negative)
-{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
->>
-Rule 31 (If indices_or_sections is a list, the number of elements must be less than shape of v_1 along the specified axis)
-{v_1 : tensor, v_2 : list(int), v_3 : int} |= if ndim(v_1) > 0 then v_2.len < shape(v_1, v_3)
->>
-Rule 32 (If indices_or_sections is a list, it must be sorted in strictly ascending order)
-{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1]
->>
-Rule 33 (If indices_or_sections is an integer, it must be greater than 0)
+Rule 1 (indices_or_sections must be a positive integer)
 {v_2 : int} |= v_2 > 0
 >>
-Rule 35 (If indices_or_sections is a list, its elements must all be positive integers)
-{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
->>
-Rule 36 (When indices_or_sections is a list and axis is specified, the sum of the elements should be equal to shape of the tensor at that axis)
-{v_1 : tensor, v_2 : list(int), v_3 : int} |=  (v_3 < ndim(v_1)) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0)
->>
-Rule 39 (The axis argument must be within the valid range of tensor dimensions)
-{v_1 : tensor, v_3 : int} |=  (0 ≤ v_3) ∧ (v_3 < ndim(v_1))
->>
-Rule 40 (If indices_or_sections is a list and it's not empty, its length must be less than the corresponding dimension)
-{v_1 : tensor, v_2 : list(int), v_3 : int} |= if v_2.len > 0 then v_2.len < shape(v_1, v_3)
->>
-Rule 41 (If indices_or_sections is an integer greater than the size of the axis, then an error will occur)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if (v_2 > 0) ∧ (v_2 > shape(v_1, v_3)) then false
->>
-Rule 42 (If indices_or_sections is a list and it's not empty, each of it's element must be smaller than dimension size)
-{v_1 : tensor, v_2 : list(int), v_3 : int} |= if (v_2.len > 0) then (∀i ∈ [0, v_2.len - 1] : v_2[i] < shape(v_1, v_3))
->>
-Rule 44 (When indices_or_sections is a list and axis is specified, the dimension size at the specified axis must be equal to the sum of the list elements)
-{v_1 : tensor, v_2 : list(int), v_3 : int} |= (v_3 < ndim(v_1)) ∧ (v_2.len > 0)
->>
-Rule 45 (The input tensor must have at least one dimension)
+Rule 2 (ary must have at least one dimension to be split vertically)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 46 (If indices_or_sections is a list, it can't be an empty list)
+Rule 3 (If indices_or_sections is an integer, it must evenly divide the first dimension of ary)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 0) % v_2 = 0
+>>
+Rule 4 (If indices_or_sections is an integer, it should be less than or equal to the size of the 0th dimension.)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, 0)
+>>
+Rule 5 (ary must be a tensor of numerical dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ "str" ∧ dtype_(v_1) ≠ "bool"
+>>
+Rule 6 (indices_or_sections must be less than or equal to the number of rows)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, 0) ∧ v_2 > 0
+>>
+Rule 7 (ary should be at least rank 1)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+>>
+Rule 8 (indices_or_sections can be 0, in which case the array is not split)
+{v_2 : int} |= v_2 ≥ 0
+>>
+Rule 9 (indices_or_sections can be -1, in which case the array has the first dimension with size 1)
+{v_1 : tensor, v_2 : int} |= if v_2 = -1 then shape(v_1, 0) = 1
+>>
+Rule 10 (indices_or_sections is an integer, and the first dimension is evenly divisible by indices_or_sections.)
+{v_1 : tensor, v_2 : int} |= v_2 > 0 ∧ shape(v_1, 0) % v_2 = 0
+>>
+Rule 13 (If indices_or_sections is a list, its elements must be within the bounds of the array's first dimension)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 < v_2[i] ∧ v_2[i] < shape(v_1, 0)
+>>
+Rule 17 (If indices_or_sections is a list, it must be strictly increasing)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1]
+>>
+Rule 22 (If indices_or_sections is a list, and the tensor is split based on sections)
+{v_1 : tensor, v_2 : list(int)} |= v_2.len < shape(v_1, 0)
+>>
+Rule 23 (If indices_or_sections is a list, all elements should be positive)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+>>
+Rule 24 (If indices_or_sections is a list, the last element should be smaller than the size of the 0th dimension of the tensor)
+{v_1 : tensor, v_2 : list(int)} |= v_2[v_2.len - 1] < shape(v_1, 0)
+>>
+Rule 26 (If indices_or_sections is a list, it must be strictly increasing)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i + 1]
+>>
+Rule 29 (if indices_or_sections is an integer, its value must be smaller than the number of rows.)
+{v_1 : tensor, v_2 : int} |= v_2 <= shape(v_1, 0)
+>>
+Rule 31 (If indices_or_sections is a list, and each element in indices_or_sections should be less than the size of the first dimension of ary)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < shape(v_1, 0)
+>>
+Rule 33 (Indices_or_sections should be non-negative.)
+{v_2 : int} |= v_2 >= 0
+>>
+Rule 36 (indices_or_sections must be a list of positive integers sorted in strictly increasing order and the element should be smaller than the shape of ary at 0)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (∀j ∈ [0, v_2.len - 2] : v_2[j] < v_2[j + 1]) ∧ v_2[v_2.len -1] < shape(v_1, 0)
+>>
+Rule 38 (If indices_or_sections is a list, the split must happen at these indices)
+{v_2: list(int)} |= v_2.len > 0
+>>
+Rule 40 (When indices_or_sections is a list it should not be empty)
 {v_2 : list(int)} |= v_2.len > 0
+>>
+Rule 51 (If indices_or_sections is a list, each value needs to be greater than 0 and less than the number of rows)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ v_2[i] < shape(v_1, 0)
+>>
+Rule 52 (If indices_or_sections is an integer, ensure its value is valid w.r.t the number of rows.)
+{v_1 : tensor, v_2 : int} |= 0 < v_2 ∧ v_2 <= shape(v_1, 0)
+>>
+Rule 55 (tensor must have at least rank 1)
+{v_1 : tensor} |= ndim(v_1) >= 1
+>>
+Rule 59 (indices_or_sections must divide the 0th dimension evenly when indices_or_sections is a single integer)
+{v_1: tensor, v_2: int} |= shape(v_1, 0) % v_2 = 0
+>>
+Rule 66 (If the tensor can be split evenly by an integer, the result should have a shape at axis 0 > 0)
+{v_1 : tensor, v_2 : int} |= (shape(v_1, 0) / v_2) > 0
+>>
+Rule 67 (If indices_or_sections is a list, no index value should be greater than shape(ary, 0) -1 )
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] <= shape(v_1, 0) -1
+>>
+Rule 69 (tensor must have at least one row for vertical split)
+{v_1 : tensor} |= shape(v_1, 0) >= 1
+>>
+Rule 70 (if there is list, no number should be smaller than 0)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] >= 0
+>>
+Rule 75 (if the number of sections is 1, returns the original array as the only element of the list)
+{v_2 : int} |= v_2 = 1
+>>
+Rule 81 (If indices_or_sections is a list, the first element must not exceed the first dimension's size of tensor)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then v_2[0] < shape(v_1, 0)
+>>
+Rule 86 (When indices_or_sections is an int, indices_or_sections must be positive and less or equal to ary.shape[0])
+{v_1: tensor, v_2: int} |= 0 < v_2 ∧ v_2 <= shape(v_1, 0)
+>>
+Rule 92 (if the array is to be split into N sections, then the first dimension of the array must be divisible by N)
+{v_1:tensor, v_2:int} |= shape(v_1, 0) % v_2 = 0
+>>
+Rule 93 (Tensor must be 2 dimensional to be split with vsplit )
+{v_1: tensor} |= ndim(v_1) >= 1
+>>
+Rule 94 (Elements in split should be ordered )
+{v_2: list(int)} |= ∀i ∈ [0, v_2.len-2]: v_2[i]<v_2[i+1]
+>>
+Rule 98 (The first tensor should be at least rank 1)
+{v_1: tensor} |= ndim(v_1) > 0
+>>
+Rule 99 (If we split on n_parts, this number must be valid with the input shape)
+{v_1 : tensor, v_2: int} |= shape(v_1, 0) % v_2 = 0
+>>
+Rule 100 (indices_or_sections is the number of equal-sized sub-arrays into which the original array is to be split)
+{v_2: int} |= v_2 > 0
+>>
+Rule 106 (If the tensor shape at axis 0 is 0 then it is only possible split with indices_or_sections equal to 1)
+{v_1: tensor, v_2: int} |= if shape(v_1, 0) = 0 then v_2 = 1
+>>
+Rule 107 (If indices_or_sections is a list, no element can be greater than or equal to the size of dimension 0)
+{v_1: tensor, v_2: list(int)} |= ∀i ∈ [0, v_2.len-1]: v_2[i] < shape(v_1, 0)
+>>
+Rule 109 (Tensor should have a positive shape at axis 0)
+{v_1 : tensor} |= shape(v_1, 0) > 0
+>>
+Rule 112 (Ary should have number of rows greater than or equal to number of splits)
+{v_1: tensor, v_2: int} |= shape(v_1, 0) >= v_2
+>>
+Rule 120 (To have the chance of splitting, there should be at least one row )
+{v_1: tensor} |= shape(v_1, 0) > 0
+>>
+Rule 132 (Tensor data type should be a number)
+{v_1: tensor} |= dtype_(v_1) ≠ "string" ∧ dtype_(v_1) ≠ "bool"
+>>
+Rule 141 (When indices_or_sections is a list and the tensor, the first element in indices_or_sections must not be greater than or equal to tensor dimension size )
+{v_1: tensor, v_2: list(int)} |= if v_2.len > 0 then v_2[0] < shape(v_1, 0)
+>>
+Rule 146 (Ensure that if a list of indices is given, the first index must be valid in the tensor)
+{v_1: tensor, v_2: list(int)} |= if (v_2.len > 0) then v_2[0] < shape(v_1, 0)

@@ -1,105 +1,132 @@
 >>
-Rule 1 (sp_indices must be a 2D tensor)
-{v_1 : tensor} |= ndim(v_1) = 2
+Rule 1 (sp_indices must be a 2-D tensor)
+{sp_indices : tensor} |= ndim(sp_indices) = 2
 >>
-Rule 2 (sp_shape must be a 1D tensor)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 2 (sp_values must be a 1-D tensor)
+{sp_values : tensor} |= ndim(sp_values) = 1
 >>
-Rule 4 (dense must be an R-D tensor, where R is the size of sp_shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = shape(v_2,0)
+Rule 3 (sp_shape must be a 1-D tensor)
+{sp_shape : tensor} |= ndim(sp_shape) = 1
 >>
-Rule 5 (sp_indices.shape[0] must be equal to sp_values.shape[0])
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 4 (dense must be an R-D tensor where R is the rank of the sparse tensor, inferred from sp_shape)
+{sp_shape : tensor, dense : tensor} |= ndim(dense) = shape(sp_shape, 0)
 >>
-Rule 6 (sp_indices data type must be int64)
-{v_1 : tensor} |= dtype_(v_1) = 4
+Rule 5 (sp_values and dense must have the same dtype: float32, float64, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64.)
+{sp_values : tensor, dense : tensor} |= dtype_(sp_values) = dtype_(dense)
 >>
-Rule 8 (sp_values and dense must have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 6 (The length of sp_values must match the number of rows in sp_indices)
+{sp_indices : tensor, sp_values : tensor} |= shape(sp_values, 0) = shape(sp_indices, 0)
 >>
-Rule 9 (sp_values dtype must be one of the supported types: float32, float64, int32, uint8, int16, int8, complex64, int64, bfloat16, complex128, half, uint16, uint32, uint64)
-{v_1 : dtype} |= v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 3 ∨ v_1 = 5 ∨ v_1 = 2 ∨ v_1 = 1 ∨ v_1 = 9 ∨ v_1 = 4 ∨ v_1 = 12 ∨ v_1 = 10 ∨ v_1 = 6 ∨ v_1 = 16 ∨ v_1 = 17 ∨ v_1 = 18
+Rule 7 (The shape of the dense tensor and sp_shape must be compatible)
+{sp_shape : tensor, dense : tensor} |= ∀i ∈ [0, shape(sp_shape, 0) - 1] : shape(dense, i) = shape(sp_shape, i)
 >>
-Rule 10 (shape(sp_shape) must be equal to the last dimension of sp_indices)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 1)
+Rule 8 (sp_indices dtype must be int64)
+{sp_indices : tensor} |= dtype_(sp_indices) = 4
 >>
-Rule 11 (sp_indices shape[1] must be equal to sp_shape shape[0])
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = shape(v_2, 0)
+Rule 9 (sp_shape dtype must be int64)
+{sp_shape : tensor} |= dtype_(sp_shape) = 4
 >>
-Rule 12 (sp_values dtype must be one of the supported types: float32, float64, int32, uint8, int16, int8, complex64, int64, bfloat16, complex128, half, uint16, uint32, uint64)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 12 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18
+Rule 10 (Shape of sp_indices must be [N, R] and shape of sp_shape must be [R])
+{sp_indices : tensor, sp_shape : tensor} |= shape(sp_indices, 1) = shape(sp_shape, 0)
 >>
-Rule 13 (all values in sp_shape must be non-negative)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : shape(v_1, i) ≥ 0
+Rule 12 (sp_values can only have specific dtypes: float32, float64, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64. Represented as a disjunction)
+{sp_values : tensor} |= dtype_(sp_values) = 7 ∨ dtype_(sp_values) = 8 ∨ dtype_(sp_values) = 3 ∨ dtype_(sp_values) = 5 ∨ dtype_(sp_values) = 2 ∨ dtype_(sp_values) = 1 ∨ dtype_(sp_values) = 9 ∨ dtype_(sp_values) = 4 ∨ dtype_(sp_values) = 12
 >>
-Rule 14 (shape(dense) and sp_shape must be compatible for broadcasting if broadcasting is used. simplified: ndim(dense) has to be same as shape(sp_shape,0) or 0)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = shape(v_2,0) ∨ ndim(v_1) = 0
+Rule 13 (Values of sp_indices must be within the bounds specified by sp_shape)
+{sp_indices : tensor, sp_shape : tensor} |= ∀i ∈ [0, shape(sp_indices, 0) - 1] : ∀j ∈ [0, shape(sp_shape, 0) - 1] : 0 ≤ shape(sp_indices, i) ∧ shape(sp_indices, i) < shape(sp_shape, j)
 >>
-Rule 16 (if dense is a scalar, then sp_shape can be anything)
-{v_1 : tensor} |= if ndim(v_1) = 0 then true
+Rule 15 (The rank of the dense tensor must be less than or equal to 5)
+{dense: tensor} |= ndim(dense) ≤ 5
 >>
-Rule 17 (sp_indices values should be within the bounds of sp_shape)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [0, shape(v_1, 1) - 1] : v_1[i * shape(v_1, 1) + j] ≥ 0 ∧ v_1[i * shape(v_1, 1) + j] < shape(v_2, j)
+Rule 17 (The number of dimensions in sp_shape must be a positive integer)
+{sp_shape : tensor} |= shape(sp_shape, 0) > 0
 >>
-Rule 18 (The number of elements pointed by sp_indices can't exceed the total number of elements represented by sp_shape. This is to prevent out-of-bound access)
-{v_1: tensor, v_2: tensor} |= shape(v_1, 0) ≤ (if shape(v_2,0) = 0 then 0 else (if shape(v_2,0) = 1 then 1 else (if shape(v_2,0) = 2 then shape(v_2, 0) * shape(v_2, 1) else shape(v_2,0) * shape(v_2, 1) * shape(v_2, 2))))
+Rule 18 (If sp_shape has more than one dimension, all dimension sizes must be positive)
+{sp_shape : tensor} |= ∀i ∈ [0, shape(sp_shape, 0) - 1] : shape(sp_shape, i) > 0
 >>
-Rule 19 (shape(sp_indices, 1) must be less than or equal to 3. The code assumes the rank of the sparse tensor is at most 3 for indexing)
-{v_1 : tensor} |= shape(v_1, 1) ≤ 3
+Rule 19 (sp_indices shape 1 must be greater than 0)
+{sp_indices : tensor} |= shape(sp_indices, 1) > 0
 >>
-Rule 20 (If sp_shape is a scalar, then dense must be a scalar)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then ndim(v_1) = 0
+Rule 27 (sp_shape's length should match the number of dimensions of the dense tensor)
+{sp_shape : tensor, dense : tensor} |= shape(sp_shape, 0) = ndim(dense)
 >>
-Rule 21 (If sp_shape represents a rank-1 tensor, then dense should be a rank-1 tensor or a scalar.)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) = 1 then ndim(v_1) ≤ 1
+Rule 28 (if dense is a scalar, sp_shape must have length 0.)
+{sp_shape : tensor, dense : tensor} |= if ndim(dense) = 0 then shape(sp_shape, 0) = 0
 >>
-Rule 22 (If sp_shape represents a rank-2 tensor, then dense should be a rank-2 tensor or a scalar.)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) = 2 then ndim(v_1) ≤ 2
+Rule 32 (Shape compatibility between dense and sp_shape: dense must be able to be broadcasted to sp_shape.)
+{dense : tensor, sp_shape : tensor} |= ∀i ∈ [0, shape(sp_shape, 0) - 1] : (ndim(dense) - shape(sp_shape, 0) + i < 0) ∨ (shape(dense, ndim(dense) - shape(sp_shape, 0) + i) = shape(sp_shape, i)) ∨ (shape(dense, ndim(dense) - shape(sp_shape, 0) + i) = 1)
 >>
-Rule 23 (If sp_shape represents a rank-3 tensor, then dense should be a rank-3 tensor or a scalar.)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) = 3 then ndim(v_1) ≤ 3
+Rule 34 (Shape compatibility between dense and sp_shape: dense must be able to be broadcasted to sp_shape.  Considers scalars.)
+{dense : tensor, sp_shape : tensor} |= if ndim(dense) = 0 then shape(sp_shape,0) = 0 else ∀i ∈ [0, shape(sp_shape, 0) - 1] : (ndim(dense) - shape(sp_shape, 0) + i < 0) ∨ (shape(dense, ndim(dense) - shape(sp_shape, 0) + i) = shape(sp_shape, i)) ∨ (shape(dense, ndim(dense) - shape(sp_shape, 0) + i) = 1)
 >>
-Rule 24 (sp_indices's elements must be non-negative)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [0, shape(v_1, 1) - 1] : v_1[i * shape(v_1, 1) + j] ≥ 0
+Rule 35 (sp_values and dense must have a supported dtype (float32, float64, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64))
+{sp_values : tensor, dense : tensor} |= (dtype_(sp_values) = 7 ∨ dtype_(sp_values) = 8 ∨ dtype_(sp_values) = 3 ∨ dtype_(sp_values) = 5 ∨ dtype_(sp_values) = 2 ∨ dtype_(sp_values) = 1 ∨ dtype_(sp_values) = 9 ∨ dtype_(sp_values) = 4) ∧ (dtype_(dense) = 7 ∨ dtype_(dense) = 8 ∨ dtype_(dense) = 3 ∨ dtype_(dense) = 5 ∨ dtype_(dense) = 2 ∨ dtype_(dense) = 1 ∨ dtype_(dense) = 9 ∨ dtype_(dense) = 4)
 >>
-Rule 25 (sp_indices's elements must be less than the corresponding dimension size in sp_shape)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [0, shape(v_1, 1) - 1] : v_1[i * shape(v_1, 1) + j] < shape(v_2, j)
+Rule 36 (Shape compatibility between dense and sp_shape: dense must be able to be broadcasted to sp_shape.)
+{dense : tensor, sp_shape : tensor} |= ∀i ∈ [0, shape(sp_shape, 0) - 1] : (ndim(dense) < shape(sp_shape,0)-i) ∨ (shape(dense, ndim(dense)- shape(sp_shape,0)+i) = shape(sp_shape, i)) ∨ (shape(dense, ndim(dense) - shape(sp_shape, 0) + i) = 1)
 >>
-Rule 26 (sp_values must not be empty if sp_indices is not empty)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) > 0 then shape(v_2, 0) > 0
+Rule 38 (sp_indices must be int64)
+{sp_indices: tensor} |= dtype_(sp_indices) = 4
 >>
-Rule 27 (if shape(sp_shape,0) ==0 then sp_indices must be empty)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2,0) = 0 then shape(v_1, 0) = 0
+Rule 39 (Shape compatibility between dense and sp_shape: dense must be able to be broadcasted to sp_shape.  Considers scalars, handling dimension mismatch.)
+{dense : tensor, sp_shape : tensor} |= if ndim(dense) = 0 then shape(sp_shape,0) = 0 else ∀i ∈ [0, if shape(sp_shape, 0) < ndim(dense) then shape(sp_shape, 0) else ndim(dense) - 1] : (ndim(dense) < shape(sp_shape,0)-i) ∨ (shape(dense, ndim(dense)- shape(sp_shape,0)+i) = shape(sp_shape, i)) ∨ (shape(dense, ndim(dense) - shape(sp_shape, 0) + i) = 1)
 >>
-Rule 28 (if shape(sp_shape,0) !=0 then sp_indices must contain only valid indices)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2,0) ≠ 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [0, shape(v_1, 1) - 1] : v_1[i * shape(v_1, 1) + j] < shape(v_2, j)
+Rule 40 (sp_values's length must match the first dimension of sp_indices)
+{sp_values : tensor, sp_indices : tensor} |= shape(sp_values, 0) = shape(sp_indices, 0)
 >>
-Rule 29 (if shape(sp_shape,0) !=0 then all elements of sp_indices must be valid indices.)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2,0) ≠ 0 then ∃i ∈ [0, shape(v_1, 0) - 1] : ∃j ∈ [0, shape(v_1, 1) - 1] : v_1[i * shape(v_1, 1) + j] < shape(v_2, j)
+Rule 41 (If sp_shape is empty, then dense must be a scalar)
+{sp_shape : tensor, dense : tensor} |= if shape(sp_shape, 0) = 0 then ndim(dense) = 0
 >>
-Rule 30 (if shape(sp_shape,0) !=0 then it must be the case that there is an element on sp_indices which is a valid index)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2,0) ≠ 0 then ∃i ∈ [0, shape(v_1, 0) - 1] : (∃j ∈ [0, shape(v_1, 1) - 1] : v_1[i * shape(v_1, 1) + j] < shape(v_2, j))
+Rule 45 (If sp_shape is not empty, all dimensions are positive)
+{sp_shape : tensor} |= if shape(sp_shape, 0) > 0 then ∀i ∈ [0, shape(sp_shape, 0) - 1] : shape(sp_shape, i) > 0
 >>
-Rule 31 (If sp_shape represents a rank-k tensor, then dense must have at least rank-k dimensions. This ensures compatibility for element-wise operations.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ shape(v_2, 0)
+Rule 47 (sp_shape must be a vector with positive elements)
+{sp_shape : tensor} |= ndim(sp_shape) = 1 ∧  ∀i ∈ [0, shape(sp_shape, 0) - 1] : (shape(sp_shape, i) > 0)
 >>
-Rule 32 (If sp_shape represents a rank-k tensor, and dense also has rank k, then each of the dimensions of dense must be greater than or equal to the corresponding dimensions of the sp_shape to allow broadcasting)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = shape(v_2, 0) then ∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, i) ≥ shape(v_2, i)
+Rule 48 (dense and sp_values must have the same dtype)
+{dense : tensor, sp_values : tensor} |= dtype_(dense) = dtype_(sp_values)
 >>
-Rule 34 (If broadcasting is not used (ndim(dense) = ndim(sp_shape) and dense is not a scalar) , then for each dimension, the size of dense must be at least the size of the corresponding sparse shape)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = shape(v_2, 0) ∧ ndim(v_1) ≠ 0 then ∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, i) ≥ shape(v_2, i)
+Rule 50 (Number of dimensions of dense must match length of sp_shape)
+{dense : tensor, sp_shape : tensor} |= ndim(dense) = shape(sp_shape, 0)
 >>
-Rule 36 (If dense is a scalar, the operation is always valid regardless of other parameters' values.)
-{v_1 : tensor} |= if ndim(v_1) = 0 then true ∨ true ∨ true
+Rule 52 (sp_values and dense must have same dtype)
+{sp_values: tensor, dense: tensor} |= dtype_(sp_values) = dtype_(dense)
 >>
-Rule 39 (If sp_shape is empty, then sp_indices and sp_values should also be empty)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if shape(v_2, 0) = 0 then shape(v_1, 0) = 0 ∧ shape(v_3, 0) = 0
+Rule 53 (Shape compatibility between sp_shape and dense: If dense is not scalar, shapes must be broadcastable)
+{sp_shape : tensor, dense : tensor} |= if ndim(dense) ≠ 0 then ∀i ∈ [0, shape(sp_shape, 0) - 1] : (ndim(dense) < shape(sp_shape,0)-i) ∨ (shape(dense, ndim(dense)- shape(sp_shape,0)+i) = shape(sp_shape, i)) ∨ (shape(dense, ndim(dense) - shape(sp_shape, 0) + i) = 1)
 >>
-Rule 41 (if sp_shape is empty, then dense can be any shape or dimension)
-{v_1 : tensor} |= if shape(v_1, 0) = 0 then true
+Rule 55 (Shape compatibility between sp_shape and dense: If dense is not scalar, shapes must be broadcastable)
+{sp_shape : tensor, dense : tensor} |= if ndim(dense) ≠ 0 then ∀i ∈ [0, shape(sp_shape, 0) - 1] : (ndim(dense) - i < 0) ∨ (shape(dense, ndim(dense)-i) = shape(sp_shape, i)) ∨ (shape(dense, ndim(dense) -i) = 1)
 >>
-Rule 42 (If shape(sp_shape, 0) > 0, then all shape values should be greater than 0)
-{v_1 : tensor} |= if shape(v_1, 0) > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : shape(v_1, i) > 0
+Rule 61 (If dense is not scalar, then the number of dimensions of dense must equal the number of dimensions R in sp_shape)
+{dense : tensor, sp_shape : tensor} |= if ndim(dense) ≠ 0 then ndim(dense) = shape(sp_shape, 0)
 >>
-Rule 44 (If sp_indices and sp_values are both empty, then operation is valid)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) = 0 then shape(v_2, 0) = 0
+Rule 63 (If dense is not a scalar, shape of dense and sp_shape should be same )
+{dense : tensor, sp_shape : tensor} |= if ndim(dense) ≠ 0 then ∀i ∈ [0, shape(sp_shape,0)-1]: shape(dense, i) = shape(sp_shape, i)
+>>
+Rule 68 (If sp_shape's shape is non-zero (R > 0), every dimension of sp_shape should have positive size.)
+{sp_shape : tensor} |= if shape(sp_shape,0) > 0 then ∀i ∈ [0, shape(sp_shape, 0) - 1] : shape(sp_shape, i) > 0
+>>
+Rule 70 (If dense is not a scalar and dense has non-zero dimensions, shape of dense and sp_shape should be broadcastable)
+{dense : tensor, sp_shape : tensor} |= if ndim(dense) ≠ 0 then ∀i ∈ [0, shape(sp_shape,0)-1]: (ndim(dense) - i < 0) ∨ (shape(dense, ndim(dense) -i) = shape(sp_shape, i)) ∨ (shape(dense, ndim(dense) -i) = 1)
+>>
+Rule 72 (If dense is not a scalar and its dimensions are not empty, then dense and sp_shape must be broadcastable)
+{dense : tensor, sp_shape : tensor} |= if ndim(dense) ≠ 0 ∧ ndim(dense) > 0 then ∀i ∈ [0, shape(sp_shape,0)-1]: (ndim(dense) - shape(sp_shape,0) + i < 0) ∨ (shape(dense, ndim(dense) - shape(sp_shape,0) + i) = shape(sp_shape, i)) ∨ (shape(dense, ndim(dense) - shape(sp_shape,0) + i) = 1)
+>>
+Rule 74 (If dense is not a scalar, it has elements in its dimensions, then dense and sp_shape must be broadcastable)
+{dense : tensor, sp_shape : tensor} |= if ndim(dense) ≠ 0 ∧ (∃k ∈ [0, ndim(dense) -1] : shape(dense, k) > 0) then ∀i ∈ [0, shape(sp_shape,0)-1]: (ndim(dense) - shape(sp_shape,0) + i < 0) ∨ (shape(dense, ndim(dense) - shape(sp_shape,0) + i) = shape(sp_shape, i)) ∨ (shape(dense, ndim(dense) - shape(sp_shape,0) + i) = 1)
+>>
+Rule 76 (If dense has non-zero dimension R, then it must be a broadcastable to the dimensions specified by sp_shape)
+{dense : tensor, sp_shape : tensor} |= if (ndim(dense) > 0) then ∀i ∈ [0, shape(sp_shape,0)-1]: (ndim(dense) - shape(sp_shape,0) + i < 0) ∨ (shape(dense, ndim(dense) - shape(sp_shape,0) + i) = shape(sp_shape, i)) ∨ (shape(dense, ndim(dense) - shape(sp_shape,0) + i) = 1)
+>>
+Rule 78 (If dense has dimension > 0 then it must be broadcastable to sp_shape. Also need to take into account cases where sp_shape has shape(sp_shape,0) = 0.)
+{dense : tensor, sp_shape : tensor} |= if ndim(dense) > 0 then ∀i ∈ [0, if shape(sp_shape, 0) > 0 then shape(sp_shape,0)-1 else 0]: (ndim(dense) - shape(sp_shape,0) + i < 0) ∨ (shape(dense, ndim(dense) - shape(sp_shape,0) + i) = shape(sp_shape, i)) ∨ (shape(dense, ndim(dense) - shape(sp_shape,0) + i) = 1)
+>>
+Rule 80 (If dense has elements and its number of dimensions is greater than 0, it must be broadcastable to sp_shape)
+{dense : tensor, sp_shape : tensor} |= if ndim(dense) > 0 ∧ (∃k ∈ [0, ndim(dense) -1] : shape(dense, k) > 0) then ∀i ∈ [0, if shape(sp_shape, 0) > 0 then shape(sp_shape,0)-1 else 0]: (ndim(dense) - shape(sp_shape,0) + i < 0) ∨ (shape(dense, ndim(dense) - shape(sp_shape,0) + i) = shape(sp_shape, i)) ∨ (shape(dense, ndim(dense) - shape(sp_shape,0) + i) = 1)
+>>
+Rule 82 (If dense and sp_shape both have at least one dimension, then dense must be broadcastable to sp_shape)
+{dense : tensor, sp_shape : tensor} |= if ndim(dense) > 0 ∧ shape(sp_shape, 0) > 0 then ∀i ∈ [0, shape(sp_shape,0)-1]: (ndim(dense) - shape(sp_shape,0) + i < 0) ∨ (shape(dense, ndim(dense) - shape(sp_shape,0) + i) = shape(sp_shape, i)) ∨ (shape(dense, ndim(dense) - shape(sp_shape,0) + i) = 1)
+>>
+Rule 84 (dense and sp_shape should have matching ranks R. If dense's shape is specified and not a scalar, dense must be broadcastable to sp_shape)
+{dense : tensor, sp_shape : tensor} |= if ndim(dense) > 0 then (ndim(dense) = shape(sp_shape, 0)) ∧  ∀i ∈ [0, shape(sp_shape,0)-1]: (ndim(dense) - shape(sp_shape,0) + i < 0) ∨ (shape(dense, ndim(dense) - shape(sp_shape,0) + i) = shape(sp_shape, i)) ∨ (shape(dense, ndim(dense) - shape(sp_shape,0) + i) = 1)

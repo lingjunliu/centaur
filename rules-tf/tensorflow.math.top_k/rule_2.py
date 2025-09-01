@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# input tensor must have at least k elements in the last dimension (Rule 2)
+# input tensor should have last dimension greater than or equal to k (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 1) >= v["arg2_value"]) if n else
@@ -36,9 +36,9 @@ def rule_2_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 2
-        rule_2(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_2(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_2(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_2(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

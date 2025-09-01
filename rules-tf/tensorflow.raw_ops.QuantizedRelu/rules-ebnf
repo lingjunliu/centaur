@@ -1,123 +1,153 @@
 >>
-Rule 1 (features must be a quantized type)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 14
+Rule 1 (features tensor must be of type qint8, quint8, qint32, qint16, or quint16)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 4
 >>
-Rule 2 (min_features must be a float32 tensor)
-{v_2 : tensor} |= dtype_(v_2) = 7
+Rule 2 (min_features and max_features must be float32)
+{v_2 : tensor, v_3 : tensor} |= dtype_(v_2) = 8 ∧ dtype_(v_3) = 8
 >>
-Rule 3 (max_features must be a float32 tensor)
-{v_3 : tensor} |= dtype_(v_3) = 7
+Rule 3 (out_type must be one of qint8, quint8, qint32, qint16, or quint16)
+{v_4 : dtype} |= v_4 = 1 ∨ v_4 = 5 ∨ v_4 = 3 ∨ v_4 = 2 ∨ v_4 = 4
 >>
-Rule 4 (out_type must be a quantized dtype if it is specified, otherwise default quint8)
-{v_4 : dtype} |= v_4 = 1 ∨ v_4 = 5 ∨ v_4 = 3 ∨ v_4 = 2 ∨ v_4 = 14
->>
-Rule 5 (min_features and max_features must be scalar tensors)
-{v_2 : tensor, v_3 : tensor} |= ndim(v_2) = 0 ∧ ndim(v_3) = 0
->>
-Rule 7 (min_features must be less than or equal to max_features)
+Rule 4 (min_features must be less than or equal to max_features)
 {v_2 : tensor, v_3 : tensor} |= min(v_2) ≤ max(v_3)
 >>
-Rule 8 (features dtype and out_type dtype must be a quantized type)
-{v_1 : tensor, v_4 : dtype} |= v_4 = 1 ∨ v_4 = 5 ∨ v_4 = 3 ∨ v_4 = 2 ∨ v_4 = 14 ∧ dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 14
+Rule 5 (features tensor should have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 9 (If out_type is specified, it must be one of the allowed quantized types)
-{v_4 : dtype} |= if v_4 ≠ 0 then v_4 = 1 ∨ v_4 = 5 ∨ v_4 = 3 ∨ v_4 = 2 ∨ v_4 = 14
+Rule 6 (min_features and max_features should have the same shape)
+{v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)
 >>
-Rule 10 (min_features and max_features should have the same data type)
-{v_2 : tensor, v_3 : tensor} |= dtype_(v_2) = dtype_(v_3)
+Rule 8 (features, min_features, max_features should have compatible shapes for quantization)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ (ndim(v_1) = ndim(v_3)) ∧ (shape(v_2,0) = 1) ∧ (shape(v_3, 0) = 1)
 >>
-Rule 11 (If features is qint8, out_type can only be qint8 or quint8)
-{v_1 : tensor, v_4 : dtype} |= if dtype_(v_1) = 1 then v_4 = 1 ∨ v_4 = 5
+Rule 10 (if features is qint8, out_type must also be qint8)
+{v_1 : tensor, v_4 : dtype} |= if dtype_(v_1) = 1 then v_4 = 1
 >>
-Rule 12 (If features is quint8, out_type can only be qint8 or quint8)
-{v_1 : tensor, v_4 : dtype} |= if dtype_(v_1) = 5 then v_4 = 1 ∨ v_4 = 5
+Rule 11 (if features is quint8, out_type must also be quint8)
+{v_1 : tensor, v_4 : dtype} |= if dtype_(v_1) = 5 then v_4 = 5
 >>
-Rule 14 (If features is qint32, out_type can only be qint32)
+Rule 12 (if features is qint32, out_type must also be qint32)
 {v_1 : tensor, v_4 : dtype} |= if dtype_(v_1) = 3 then v_4 = 3
 >>
-Rule 15 (If features is qint16, out_type can only be qint16 or quint16)
-{v_1 : tensor, v_4 : dtype} |= if dtype_(v_1) = 2 then v_4 = 2 ∨ v_4 = 14
+Rule 13 (if features is qint16, out_type must also be qint16)
+{v_1 : tensor, v_4 : dtype} |= if dtype_(v_1) = 2 then v_4 = 2
 >>
-Rule 16 (If features is quint16, out_type can only be qint16 or quint16)
-{v_1 : tensor, v_4 : dtype} |= if dtype_(v_1) = 14 then v_4 = 2 ∨ v_4 = 14
+Rule 14 (if features is quint16, out_type must also be quint16)
+{v_1 : tensor, v_4 : dtype} |= if dtype_(v_1) = 4 then v_4 = 4
 >>
-Rule 18 (min_features and max_features must be float tensors)
-{v_2 : tensor, v_3 : tensor} |= dtype_(v_2) = 7 ∧ dtype_(v_3) = 7
+Rule 15 (min_features and max_features must be scalar tensors)
+{v_2 : tensor, v_3 : tensor} |= ndim(v_2) = 0 ∧ ndim(v_3) = 0
 >>
-Rule 20 (min_features and max_features must be scalar float32 tensors and min_features <= max_features)
-{v_2 : tensor, v_3 : tensor} |= ndim(v_2) = 0 ∧ ndim(v_3) = 0 ∧ dtype_(v_2) = 7 ∧ dtype_(v_3) = 7 ∧ min(v_2) ≤ max(v_3)
+Rule 16 (min_features must be less than max_features)
+{v_2 : tensor, v_3 : tensor} |= v_2 < v_3
 >>
-Rule 21 (If out_type is not specified, then the output activations has the same type as features)
-{v_1 : tensor, v_4 : dtype} |= if v_4 = 0 then dtype_(v_1) = 5
+Rule 17 (if features is qint8, min_features and max_features should be within a certain range.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 1 then min(v_2) ≥ -128 ∧ max(v_3) ≤ 127
 >>
-Rule 22 (If out_type is specified and features is qint8 then out_type must also be qint8.)
-{v_1 : tensor, v_4 : dtype} |= if v_4 ≠ 0 ∧ dtype_(v_1) = 1 then v_4 = 1
+Rule 18 (if features is quint8, min_features and max_features should be within a certain range.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 5 then min(v_2) ≥ 0 ∧ max(v_3) ≤ 255
 >>
-Rule 23 (If out_type is specified and features is quint8 then out_type must also be quint8.)
-{v_1 : tensor, v_4 : dtype} |= if v_4 ≠ 0 ∧ dtype_(v_1) = 5 then v_4 = 5
+Rule 19 (if features is qint32, min_features and max_features should be within a certain range.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 3 then min(v_2) ≥ -2147483648 ∧ max(v_3) ≤ 2147483647
 >>
-Rule 24 (If out_type is specified and features is qint32 then out_type must also be qint32.)
-{v_1 : tensor, v_4 : dtype} |= if v_4 ≠ 0 ∧ dtype_(v_1) = 3 then v_4 = 3
+Rule 20 (if features is qint16, min_features and max_features should be within a certain range.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 2 then min(v_2) ≥ -32768 ∧ max(v_3) ≤ 32767
 >>
-Rule 25 (If out_type is specified and features is qint16 then out_type must also be qint16.)
-{v_1 : tensor, v_4 : dtype} |= if v_4 ≠ 0 ∧ dtype_(v_1) = 2 then v_4 = 2
+Rule 21 (if features is quint16, min_features and max_features should be within a certain range.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 4 then min(v_2) ≥ 0 ∧ max(v_3) ≤ 65535
 >>
-Rule 26 (If out_type is specified and features is quint16 then out_type must also be quint16.)
-{v_1 : tensor, v_4 : dtype} |= if v_4 ≠ 0 ∧ dtype_(v_1) = 14 then v_4 = 14
+Rule 22 (max_features must be greater than or equal to min_features)
+{v_2 : tensor, v_3 : tensor} |= max(v_3) ≥ min(v_2)
 >>
-Rule 27 (features, min_features and max_features must have the same shape)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_1, i) = shape(v_3, i)
+Rule 23 (if min_features is not a scalar, its first element should be less than or equal to the first element of max_features if max_features is also not a scalar)
+{v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 0 ∧ ndim(v_3) > 0 then v_2[0] ≤ v_3[0]
 >>
-Rule 28 (If out_type is specified, features, min_features and max_features must have the same shape)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if v_4 ≠ 0 then ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_1, i) = shape(v_3, i)
+Rule 24 (if features has more than 0 dimensions, the value range defined by min_features and max_features must be meaningful, i.e., max_features > min_features.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 then max(v_3) > min(v_2)
 >>
-Rule 29 (If out_type is specified, min_features must be less than or equal to max_features.)
-{v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if v_4 ≠ 0 then min(v_2) ≤ max(v_3)
+Rule 25 (The shapes of features, min_features, and max_features should be broadcastable.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_1) = ndim(v_2) ∨ ndim(v_2) = 0) ∧ (ndim(v_1) = ndim(v_3) ∨ ndim(v_3) = 0)
 >>
-Rule 31 (If the shape of features is [a,b,c], the shape of min_features and max_features must be [], [a,b,c] or [1,1,1])
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = 0 ∧ ndim(v_3) = 0 ∨ (ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_1, i) = shape(v_3, i)) ∨ (ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_2, i) = 1 ∧ shape(v_3, i) = 1)
+Rule 27 (If features is a scalar, min_features and max_features must also be scalars)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0 ∧ ndim(v_3) = 0
 >>
-Rule 35 (Either out_type is compatible with features, or min_features and max_features must have same shape as features)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= (if v_4 ≠ 0 then (dtype_(v_1) = 1 ∧ v_4 = 1) ∨ (dtype_(v_1) = 5 ∧ v_4 = 5) ∨ (dtype_(v_1) = 3 ∧ v_4 = 3) ∨ (dtype_(v_1) = 2 ∧ v_4 = 2) ∨ (dtype_(v_1) = 14 ∧ v_4 = 14)) ∨ (ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_1, i) = shape(v_3, i))
+Rule 28 (If min_features and max_features are not scalars, they should have the same shape.)
+{v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 0 ∧ ndim(v_3) > 0 then ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)
 >>
-Rule 36 (If out_type is not specified, features, min_features and max_features must be scalars or have the same shape)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if v_4 = 0 then (ndim(v_2) = 0 ∧ ndim(v_3) = 0) ∨ (ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_1, i) = shape(v_3, i))
+Rule 29 (If out_type is specified, the range [min_features, max_features] should be appropriate for that type.)
+{v_4 : dtype, v_2 : tensor, v_3 : tensor} |= if v_4 = 1 then min(v_2) ≥ -128 ∧ max(v_3) ≤ 127 else if v_4 = 5 then min(v_2) ≥ 0 ∧ max(v_3) ≤ 255 else if v_4 = 3 then min(v_2) ≥ -2147483648 ∧ max(v_3) ≤ 2147483647 else if v_4 = 2 then min(v_2) ≥ -32768 ∧ max(v_3) ≤ 32767 else if v_4 = 4 then min(v_2) ≥ 0 ∧ max(v_3) ≤ 65535
 >>
-Rule 37 (If out_type is not specified, features and out_type are compatible, and min/max are scalar, then the shape of activations is the same as features)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if v_4 = 0 ∧ ((dtype_(v_1) = 1) ∨ (dtype_(v_1) = 5) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 14)) ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 0 then true
+Rule 30 (min_features and max_features should be scalars if features is a scalar)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then (ndim(v_2) = 0 ∧ ndim(v_3) = 0)
 >>
-Rule 38 (min_features and max_features are scalar and min_features <= max_features)
-{v_2 : tensor, v_3 : tensor} |= ndim(v_2) = 0 ∧ ndim(v_3) = 0 ∧ min(v_2) ≤ max(v_3)
+Rule 31 (if features is a scalar and min_features and max_features are scalars, then max_features must be greater than or equal to min_features)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) = 0) ∧ (ndim(v_2) = 0) ∧ (ndim(v_3) = 0) then v_3 ≥ v_2
 >>
-Rule 41 (If out_type is specified and is different from features, then min_features and max_features must have the same shape with features)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if v_4 ≠ 0 ∧ dtype_(v_1) ≠ v_4 then ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_1, i) = shape(v_3, i)
+Rule 32 (The values in features should be within the range specified by min_features and max_features. This is a general constraint and difficult to express precisely.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= min(v_1) ≥ min(v_2) ∧ max(v_1) ≤ max(v_3)
 >>
-Rule 43 (min_features and max_features must be float32 tensors and min_features <= max_features)
-{v_2 : tensor, v_3 : tensor} |= dtype_(v_2) = 7 ∧ dtype_(v_3) = 7 ∧ min(v_2) ≤ max(v_3)
+Rule 33 (If features has any dimension with size 0, then min_features and max_features can have any value)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then true else (min(v_2) < max(v_3))
 >>
-Rule 44 (If features is a quantized type, min_features and max_features must be float32)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 14 then dtype_(v_2) = 7 ∧ dtype_(v_3) = 7
+Rule 34 (If all dimensions of features are size 1, then min_features and max_features can be any values as long as min_features <= max_features)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1 then min(v_2) ≤ max(v_3)
 >>
-Rule 45 (min_features and max_features must be scalar tensors with float32 dtype)
-{v_2 : tensor, v_3 : tensor} |= ndim(v_2) = 0 ∧ ndim(v_3) = 0 ∧ dtype_(v_2) = 7 ∧ dtype_(v_3) = 7
+Rule 39 (If features is qint32, and out_type is specified as qint8, then min_features and max_features must lie within the valid qint8 range after scaling.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if dtype_(v_1) = 3 ∧ v_4 = 1 then min(v_2) ≥ -128 ∧ max(v_3) ≤ 127
 >>
-Rule 46 (If out_type is specified and it isn't the default, features, min_features, max_features must have compatible shapes)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if v_4 ≠ 0 ∧ v_4 ≠ 5 then ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_1, i) = shape(v_3, i)
+Rule 41 (min_features and max_features should be scalar tensors if features is a scalar, or have compatible shapes to features tensor for broadcasting)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 0) ∨ (ndim(v_1) = ndim(v_2) ∨ ndim(v_2) = 0) ∧ (ndim(v_1) = ndim(v_3) ∨ ndim(v_3) = 0)
 >>
-Rule 48 (If features is qint8, quint8, qint16 or quint16, then out_type has to be one of these as well)
-{v_1 : tensor, v_4 : dtype} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 14 then (v_4 = 1 ∨ v_4 = 5 ∨ v_4 = 2 ∨ v_4 = 14)
+Rule 42 (If min_features is a scalar and max_features is not, then max_features.shape must be broadcastable to feature.shape)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 0 ∧ ndim(v_3) > 0 then ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_3) then ndim(v_1) - 1 else ndim(v_3) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_3) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_3, ndim(v_3) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_3, ndim(v_3) - i - 1)
 >>
-Rule 49 (features dtype and out_type dtype must be a quantized type and min_features and max_features are float32)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= (v_4 = 1 ∨ v_4 = 5 ∨ v_4 = 3 ∨ v_4 = 2 ∨ v_4 = 14) ∧ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 14) ∧ dtype_(v_2) = 7 ∧ dtype_(v_3) = 7
+Rule 43 (If max_features is a scalar and min_features is not, then min_features.shape must be broadcastable to feature.shape)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 ∧ ndim(v_2) > 0 then ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)
 >>
-Rule 50 (If out_type is specified, features and out_type must be compatible)
-{v_1 : tensor, v_4 : dtype} |= if v_4 ≠ 0 then (dtype_(v_1) = 1 ∧ v_4 = 1) ∨ (dtype_(v_1) = 5 ∧ v_4 = 5) ∨ (dtype_(v_1) = 3 ∧ v_4 = 3) ∨ (dtype_(v_1) = 2 ∧ v_4 = 2) ∨ (dtype_(v_1) = 14 ∧ v_4 = 14)
+Rule 44 (If features is qint16, and out_type is specified as qint8, then min_features and max_features must lie within the valid qint8 range after scaling.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if dtype_(v_1) = 2 ∧ v_4 = 1 then min(v_2) ≥ -128 ∧ max(v_3) ≤ 127
 >>
-Rule 51 (features, min_features and max_features have same number of dimensions)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3)
+Rule 45 (If features is quint16, and out_type is specified as quint8, then min_features and max_features must lie within the valid quint8 range after scaling.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if dtype_(v_1) = 4 ∧ v_4 = 5 then min(v_2) ≥ 0 ∧ max(v_3) ≤ 255
 >>
-Rule 54 (If out_type defaults, features must be a quantized type and the data type of min/max is float32)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if v_4 = 0 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 14) ∧ dtype_(v_2) = 7 ∧ dtype_(v_3) = 7
+Rule 46 (If features is quint8, and out_type is specified as qint8, then it is invalid since it's unsigned to signed)
+{v_1 : tensor, v_4 : dtype} |= if dtype_(v_1) = 5 ∧ v_4 = 1 then false
 >>
-Rule 55 (features must be qint8, quint8, qint32, qint16, or quint16 and data type of min_features and max_features is float32)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 14) ∧ dtype_(v_2) = 7 ∧ dtype_(v_3) = 7
+Rule 47 (If features is quint16, and out_type is specified as qint8, then it is invalid since it's unsigned to signed.)
+{v_1 : tensor, v_4 : dtype} |= if dtype_(v_1) = 4 ∧ v_4 = 1 then false
+>>
+Rule 48 (If features is qint16 and out_type is quint8 or quint16, then min_features must be >=0)
+{v_1 : tensor, v_2 : tensor, v_4 : dtype} |= if dtype_(v_1) = 2 ∧ (v_4 = 5 ∨ v_4 = 4) then min(v_2) >= 0
+>>
+Rule 49 (If features is qint32 and out_type is quint8 or quint16, then min_features must be >=0 )
+{v_1 : tensor, v_2 : tensor, v_4 : dtype} |= if dtype_(v_1) = 3 ∧ (v_4 = 5 ∨ v_4 = 4) then min(v_2) >= 0
+>>
+Rule 50 (If features is qint16 and out_type is qint8, then the ratio between max and min of the ranges for features and out_type must be less than a limit.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if dtype_(v_1) = 2 ∧ v_4 = 1 then (max(v_3) / min(v_2)) ≤ (127 / -128)
+>>
+Rule 51 (If features is qint32 and out_type is qint8, then the ratio between max and min of the ranges for features and out_type must be less than a limit.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if dtype_(v_1) = 3 ∧ v_4 = 1 then (max(v_3) / min(v_2)) ≤ (127 / -128)
+>>
+Rule 53 (If features is quint8, and out_type is qint16 or qint32 then the operation is invalid as RELU can only promote the bit width of a signed type or clamp an signed type to an unsigned type. Thus, we can't promote an unsigned type to a higher signed type.)
+{v_1 : tensor, v_4 : dtype} |= if dtype_(v_1) = 5 ∧ (v_4 = 2 ∨ v_4 = 3) then false
+>>
+Rule 54 (If features is quint16, and out_type is qint16 or qint32 then the operation is invalid as RELU can only promote the bit width of a signed type or clamp an signed type to an unsigned type. Thus, we can't promote an unsigned type to a higher signed type.)
+{v_1 : tensor, v_4 : dtype} |= if dtype_(v_1) = 4 ∧ (v_4 = 2 ∨ v_4 = 3) then false
+>>
+Rule 55 (If features is qint32 and out_type is qint16, then the ratio between max and min of the ranges for features and out_type must be less than a limit.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if dtype_(v_1) = 3 ∧ v_4 = 2 then (max(v_3) / min(v_2)) ≤ (32767 / -32768)
+>>
+Rule 56 (If features is quint16 and out_type is quint8, then the ratio between max and min of the ranges for features and out_type must be less than a limit.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if dtype_(v_1) = 4 ∧ v_4 = 5 then (max(v_3) / min(v_2)) ≤ (255 / 0)
+>>
+Rule 58 (If features is qint8, and out_type is quint16 or quint8, then max_features and min_features must be properly bounded within the quint range.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if dtype_(v_1) = 1 ∧ (v_4 = 4 ∨ v_4 = 5) then min(v_2) ≥ 0 ∧ max(v_3) ≤ 65535
+>>
+Rule 59 (If features is qint16, and out_type is quint16, then min_features must be greater or equal to zero, and max_features should be less or equal to 65535.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if dtype_(v_1) = 2 ∧ v_4 = 4 then min(v_2) ≥ 0 ∧ max(v_3) ≤ 65535
+>>
+Rule 60 (If features is qint32, and out_type is quint16, then min_features must be greater or equal to zero, and max_features should be less or equal to 65535.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if dtype_(v_1) = 3 ∧ v_4 = 4 then min(v_2) ≥ 0 ∧ max(v_3) ≤ 65535
+>>
+Rule 61 (If features is qint16, and out_type is quint8, then features should have a limited max/min range after quantization.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : dtype} |= if dtype_(v_1) = 2 ∧ v_4 = 5 then min(v_2) >= 0 ∧ max(v_3) <= 255

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# x and y must have the same dtype (Rule 12)
+# If x is complex64 or complex128, y must also be complex64 or complex128 (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
-          v["arg1_dtype"] == v["arg2_dtype"])
+    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), True)) if n else
+          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), True))
 )
 
 def rule_12_func(arg1, arg2, solver=None, neg=False):

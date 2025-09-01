@@ -1,96 +1,276 @@
 >>
 Rule 1 (n must be a non-negative integer)
-{v_1 : int} |= v_1 ≥ 0
+{n : int} |= n ≥ 0
 >>
-Rule 4 (The data type of the input tensor must be a valid numerical type.)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
+Rule 3 (n must be less than the size of the tensor along the given axis, if the tensor has more than 0 elements)
+{a : tensor, n : int, axis : int} |= if ndim(a) > 0 then n < shape(a, axis)
 >>
-Rule 6 (if the order is greater than or equal to the number of dimensions of the input tensor, then the order becomes the number of dimensions of input tensor.)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ ndim(v_1) then v_2 = ndim(v_1)
+Rule 4 (input tensor must have at least one dimension)
+{a : tensor} |= ndim(a) ≥ 1
 >>
-Rule 8 (axis must be within the valid range of dimensions for the input tensor)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 6 (axis must be within the valid range for the tensor's dimensions)
+{a : tensor, axis : int} |= axis ≥ 0 - ndim(a) ∧ axis < ndim(a)
 >>
-Rule 9 (if axis is None, the input tensor must be one-dimensional)
-{v_1 : tensor, v_2 : int ⊎ str} |= if v_2 = "none" then ndim(v_1) = 1
+Rule 9 (If n is greater than or equal to the size of the array along the given axis, the output is an empty array)
+{a : tensor, n : int, axis : int} |= if ndim(a) > 0 then if n ≥ shape(a, axis) then ∀i ∈ [0, ndim(a) - 1] : shape(a, i) = 0
 >>
-Rule 13 (if the axis is specified, it must be an integer)
-{v_1 : int ⊎ str} |= if v_1 ≠ "none" then true
+Rule 10 (If the axis is None, the result is a 1D array)
+{a : tensor, axis : int} |= if axis < 0 then ndim(a) = 1
 >>
-Rule 14 (When n > 0, the size of the tensor along the axis must be greater than n)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 > 0 then shape(v_1, v_2) > v_3
+Rule 11 (The number of dimensions of output should be greater than or equal to 0)
+{a : tensor, n : int} |= ndim(a) - n ≥ 0
 >>
-Rule 21 (If order is greater than or equal to ndim, the output dimension becomes zero)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ ndim(v_1) then true
+Rule 12 (If n is zero, the input tensor remains unchanged)
+{a : tensor, n : int} |= if n = 0 then a = a
 >>
-Rule 23 (axis must be a valid dimension for the tensor if it's not None)
-{v_1 : tensor, v_2 : int ⊎ str} |= if v_2 ≠ "none" then v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 13 (The data type of output should be the same as the input)
+{a : tensor} |= dtype_(a) = dtype_(a)
 >>
-Rule 24 (If the input tensor is a scalar, n should be 0)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 = 0
+Rule 18 (If the input is a scalar and n is greater than 0, the result is an empty array)
+{a : tensor, n : int} |= if ndim(a) = 0 then if n > 0 then shape(a, 0) = 0
 >>
-Rule 25 (If n is greater than 0, then axis must be provided)
-{v_1 : int, v_2 : int ⊎ str} |= if v_1 > 0 then v_2 ≠ "none"
+Rule 20 (If the input tensor is empty, the output is an empty tensor)
+{a: tensor} |= if (∃i ∈ [0, ndim(a) - 1] : shape(a, i) = 0) then (∀j ∈ [0, ndim(a)-1]: shape(a, j) = 0)
 >>
-Rule 28 (If axis is None, then n must be 1)
-{v_1 : int, v_2 : int ⊎ str} |= if v_2 = "none" then v_1 = 1
+Rule 23 (If the input is a scalar, then n must be 0.)
+{a: tensor, n: int} |= if ndim(a) = 0 then n = 0
 >>
-Rule 29 (If the order is greater than 0, the tensor must have dimension > 0)
-{v_1 : tensor, v_2 : int} |= if v_2 > 0 then ndim(v_1) > 0
+Rule 24 (If axis is specified and out of bounds, raise an error.)
+{a: tensor, axis: int} |= if ndim(a) > 0 then 0 - ndim(a) ≤ axis ∧ axis < ndim(a)
 >>
-Rule 30 (If axis is None, then n must be 1 or 0)
-{v_1 : int, v_2 : int ⊎ str} |= if v_2 = "none" then v_1 = 1 ∨ v_1 = 0
+Rule 26 (If n is greater than the number of elements, return an empty array)
+{a: tensor, n: int, axis: int} |= if ndim(a) > 0 then if n > shape(a, axis) then shape(a, axis) = 0
 >>
-Rule 31 (if axis is none, order must be 0 or 1)
-{v_1: int, v_2: str} |= if v_2 = "none" then v_1 = 0 ∨ v_1 = 1
+Rule 27 (If axis is not specified, diff is applied to the flattened array)
+{a: tensor, n: int} |= if ndim(a) > 0 then (∃i ∈ [0, ndim(a) - 1] : shape(a, i) > 0)
 >>
-Rule 32 (if the input is a tensor of complex type, then the output must be a tensor of complex type)
-{v_1: tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then true
+Rule 28 (If axis is out of range, diff will raise an error)
+{a : tensor, axis : int} |= if ndim(a) > 0 then axis ≥ (0 - ndim(a)) ∧ axis < ndim(a)
 >>
-Rule 33 (if axis is none, order must be a non-negative number.)
-{v_1: int, v_2: str} |= if v_2 = "none" then v_1 ≥ 0
+Rule 29 (If axis is specified, then the array must have more than 0 elements in that dimension)
+{a: tensor, axis: int} |= if axis ≥ 0 ∧ axis < ndim(a) then shape(a, axis) > 0
 >>
-Rule 35 (If the input is a tensor of complex type, order must be 0 or 1)
-{v_1: tensor, v_2: int} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then v_2 = 0 ∨ v_2 = 1
+Rule 30 (The number of times the difference is taken must be less than the size of the specified axis)
+{a : tensor, n : int, axis : int} |= if ndim(a) > 0 then if axis ≥ 0 ∧ axis < ndim(a) then n ≤ shape(a, axis)
 >>
-Rule 38 (if the input is a tensor, the order cannot be larger than the number of dimensions.)
-{v_1: tensor, v_2 : int} |= v_2 <= ndim(v_1)
+Rule 31 (If the number of times the difference is taken is greater than or equal to the length of the axis, then an empty tensor is returned)
+{a: tensor, n: int, axis: int} |= if ndim(a) > 0 then if axis >=0 ∧ axis < ndim(a) then if n >= shape(a, axis) then (∀i ∈ [0, ndim(a) - 1] : shape(a, i) = 0)
 >>
-Rule 39 (the number of differences to take must be non-negative)
-{v_1: int} |= v_1 >= 0
+Rule 33 (if axis is none, apply diff to the flattened array)
+{a : tensor} |= if ndim(a) > 0 then true
 >>
-Rule 41 (if the input is a tensor, the order cannot decrease the dimension to less than 0.)
-{v_1: tensor, v_2 : int} |= (ndim(v_1) - v_2) >= 0
+Rule 34 (number of dimensions should be at least 1 if n > 0)
+{a : tensor, n : int} |= if n > 0 then ndim(a) >= 1
 >>
-Rule 42 (If order is larger than 1, axis must be specified, or the result is undefined.)
-{v_1: int, v_2: str} |= if v_1 > 1 then v_2 ≠ "none"
+Rule 35 (n should be smaller than the maximum possible value)
+{n : int} |= n < 2147483647
 >>
-Rule 43 (If the input is a tensor, and axis is None, the order must be less than 2)
-{v_1: int, v_2: str} |= if v_2 = "none" then v_1 < 2
+Rule 36 (If axis is not provided (None), diff is calculated on the flattened array.)
+{a: tensor, n:int} |= if ndim(a) > 0 then true
 >>
-Rule 47 (If the input is a tensor, and order is more than 1, then the dimension of the tensor must be larger than 1)
-{v_1: tensor, v_2: int} |= if v_2 > 1 then ndim(v_1) > 1
+Rule 37 (If n reduces the size of a dimension to 0, an empty tensor is returned)
+{a : tensor, n : int, axis : int} |= if ndim(a) > 0 then if axis >= 0 ∧ axis < ndim(a) then if shape(a, axis) - n <= 0 then (∀i ∈ [0, ndim(a) - 1] : shape(a, i) = 0)
 >>
-Rule 48 (if n is greater than 0, then the size of the dimension axis has to be greater than n -1.)
-{v_1: tensor, v_2: int, v_3 : int} |= if v_3 > 0 then shape(v_1, v_2) > v_3 -1
+Rule 38 (The input tensor cannot be a boolean tensor)
+{a : tensor} |= dtype_(a) ≠ 0
 >>
-Rule 49 (If the input is a tensor, and order is less than the number of dimensions of the tensor, then the shape of the output tensor along axis should be shape of input tensor - n)
-{v_1: tensor, v_2: int, v_3: int} |= if v_2 < ndim(v_1) then shape(v_1, v_2) > v_3
+Rule 39 (If n is larger than the size of array, empty array is returned)
+{a: tensor, n: int, axis: int} |= if ndim(a) > 0 then if axis >= 0 ∧ axis < ndim(a) then if n > shape(a,axis) then (∀i ∈ [0, ndim(a) - 1] : shape(a, i) = 0)
 >>
-Rule 53 (If axis is None, the input tensor has to be one dimensional)
-{v_1: tensor, v_2: str} |= if v_2 = "none" then ndim(v_1) = 1
+Rule 40 (the result of diff will reduce the size of specified axis)
+{a:tensor, n: int, axis: int} |= if ndim(a) > 0 then if axis >= 0 ∧ axis < ndim(a) then shape(a, axis) - n >= 0
 >>
-Rule 54 (if n is greater than 0, and axis is none, then it will cause an error.)
-{v_1: int, v_2: str} |= if v_1 > 0 then v_2 ≠ "none"
+Rule 42 (Number of dimensions should be less than 64)
+{a: tensor} |= ndim(a) < 64
 >>
-Rule 55 (The axis has to be a valid axis if it is not none)
-{v_1: tensor, v_2: int, v_3: str} |= if v_3 ≠ "none" then v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 43 (If the number of dimensions are zero, then n should also be zero)
+{a: tensor, n:int} |= if ndim(a) = 0 then n = 0
 >>
-Rule 59 (If n is greater than 0, and axis is none, then it will cause an error.)
-{v_1: int, v_2: str} |= if v_1 > 0 ∧ v_2 = "none" then false
+Rule 44 (If the number of dimension is greater than 0, then each dimension should be a positive number)
+{a: tensor} |= if ndim(a) > 0 then ∀i ∈ [0, ndim(a) -1] : shape(a, i) > 0
 >>
-Rule 60 (If the order is greater than 0, then the tensor must have dimension > 0)
-{v_1: tensor, v_2: int} |= if v_2 > 0 then ndim(v_1) > 0
+Rule 45 (If n is not valid, raise an exception)
+{n: int} |= n = n
 >>
-Rule 61 (If the input is a tensor, and the order is larger than the dimension of the tensor, then order becomes dimension of tensor.)
-{v_1: tensor, v_2: int} |= if v_2 > ndim(v_1) then v_2 = ndim(v_1)
+Rule 47 (Input tensor a should be a valid tensor)
+{a: tensor} |= ndim(a) >= 0
+>>
+Rule 49 (If axis is not valid, raise an exception)
+{a: tensor, axis: int} |= axis >= (0 - ndim(a)) ∧ axis < ndim(a)
+>>
+Rule 51 (If shape(a,axis) == 0, the output will be shape(a,axis) == 0 )
+{a: tensor, axis:int} |= if ndim(a) > 0 then if shape(a, axis) = 0 then shape(a, axis) = 0
+>>
+Rule 52 (For multidimensional arrays, the size of the output array will be reduced by n along the specified axis)
+{a: tensor, n: int, axis:int} |= if ndim(a) > 0 then if axis >=0 ∧ axis < ndim(a) then shape(a, axis) - n >= 0
+>>
+Rule 54 (n should be non negative)
+{n : int} |= n >= 0
+>>
+Rule 56 (if the input tensor has only one element, the output should have 0 element if n>0)
+{a : tensor, n: int} |= if (ndim(a) = 0) then ( if (n > 0) then shape(a, 0) = 0)
+>>
+Rule 57 (Input tensor should have same type as output tensor)
+{a: tensor} |= dtype_(a) = dtype_(a)
+>>
+Rule 58 (If axis is not none, its value must be between -ndim(a) to ndim(a)-1)
+{a : tensor, axis: int} |= if ndim(a) > 0 then axis >= (0-ndim(a)) ∧ axis < ndim(a)
+>>
+Rule 59 (if the input is a scalar, then the output is an empty array unless n is zero)
+{a: tensor, n: int} |= if ndim(a) = 0 then if n > 0 then shape(a, 0) = 0
+>>
+Rule 60 (If the input tensor is empty, the output should also be an empty tensor.)
+{a:tensor} |= if (∃i ∈ [0, ndim(a) - 1] : shape(a, i) = 0) then (∀j ∈ [0, ndim(a)-1]: shape(a, j) = 0)
+>>
+Rule 61 (if axis is larger than ndim(a), throw an exception)
+{a : tensor, axis : int} |= if ndim(a) > 0 then if axis >= ndim(a) then false
+>>
+Rule 62 (The value of n should not affect the other dimension except for the specified axis)
+{a: tensor, n: int, axis: int} |= if ndim(a) > 1 then ∀i ∈ [0, ndim(a) - 1] : if i ≠ axis then shape(a,i) = shape(a,i)
+>>
+Rule 64 (If n is larger or equal to the length of array, the output array will be an empty array.)
+{a: tensor, n: int, axis:int} |= if ndim(a) > 0 then if axis >= 0 ∧ axis < ndim(a) then if n >= shape(a,axis) then shape(a,axis) = 0
+>>
+Rule 65 (The diff function can be applied only to numerical tensors)
+{a: tensor} |= dtype_(a) ≠ 0 ∧ dtype_(a) ≠ 11
+>>
+Rule 66 (If a.ndim is zero, the axis argument is not supported)
+{a: tensor} |= if ndim(a) = 0 then false
+>>
+Rule 68 (the output tensor should have ndim = ndim(a) if n=0)
+{a : tensor, n : int} |= if n = 0 then ndim(a) = ndim(a)
+>>
+Rule 69 (If the value specified by axis exceeds the number of dimensions, then an error will occur.)
+{a:tensor, axis: int} |= if ndim(a) > 0 then if axis >= ndim(a) then false
+>>
+Rule 70 (If the input tensor is complex then result should be complex)
+{a : tensor} |= if dtype_(a) = 9 ∨ dtype_(a) = 10 then dtype_(a) = 9 ∨ dtype_(a) = 10
+>>
+Rule 71 (if the number of element is less than n, throw an exception)
+{a:tensor, n: int, axis: int} |= if ndim(a) > 0 then if axis >= 0 ∧ axis < ndim(a) then if shape(a, axis) < n then false
+>>
+Rule 74 (If the input tensor is boolean, then an exception is raised)
+{a:tensor} |= dtype_(a) ≠ 0
+>>
+Rule 75 (if n exceeds dimension size, result is empty)
+{a: tensor, n: int, axis: int} |= if ndim(a) > 0 then if axis >= 0 ∧ axis < ndim(a) then if n > shape(a, axis) then (∀j ∈ [0, ndim(a)-1]: shape(a, j) = 0)
+>>
+Rule 77 (if axis is not within bounds, an error is raised)
+{a: tensor, axis: int} |= if ndim(a) > 0 then (axis >= (0-ndim(a)) ∧ axis < ndim(a))
+>>
+Rule 78 (The number of elements in a dimension should be non-negative)
+{a: tensor} |= ∀i ∈ [0, ndim(a) - 1] : if ndim(a) > 0 then shape(a, i) >= 0
+>>
+Rule 79 (If axis is equal to None, the input tensor is flattened to one dimension)
+{a: tensor, axis: int} |= if axis < 0 then ndim(a) = 1
+>>
+Rule 80 (If input is complex64 or complex128, the output is also complex64 or complex128)
+{a : tensor} |= if dtype_(a) = 9 then dtype_(a) = 9 else if dtype_(a) = 10 then dtype_(a) = 10
+>>
+Rule 81 (If axis = None, the output will be a 1D array, so shape will be (size of a,)-n, where size of a is the number of elements in a )
+{a: tensor, n: int, axis:int} |= if axis < 0 then true
+>>
+Rule 82 (if n is greater than the size of any dimension, then the output tensor will be an empty tensor)
+{a: tensor, n: int, axis : int} |= if ndim(a) > 0 then if axis >= 0 ∧ axis < ndim(a) then if n > shape(a, axis) then (∀i ∈ [0, ndim(a)-1]: shape(a, j) = 0)
+>>
+Rule 83 (the output tensor data type should be numerical)
+{a : tensor} |= dtype_(a) = 1 ∨ dtype_(a) = 2 ∨ dtype_(a) = 3 ∨ dtype_(a) = 4 ∨ dtype_(a) = 5 ∨ dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 9 ∨ dtype_(a) = 10
+>>
+Rule 84 (output tensor should have at least one element if n ==0)
+{a: tensor, n: int} |= if n=0 then if ndim(a) > 0 then (∃i ∈ [0, ndim(a) - 1] : shape(a, i) >= 0)
+>>
+Rule 85 (the output data type cannot be string)
+{a: tensor} |= dtype_(a) ≠ 11
+>>
+Rule 87 (if dtype of a is string, throw exception)
+{a : tensor} |= dtype_(a) ≠ 11
+>>
+Rule 88 (If the value of axis is less than -ndim(a), throw exception)
+{a : tensor, axis : int} |= if ndim(a) > 0 then if axis < (0 - ndim(a)) then false
+>>
+Rule 89 (a cannot be a list)
+{a : list(int)} |= false
+>>
+Rule 90 (if dtype of a is dtype, throw exception)
+{a : tensor} |= dtype_(a) ≠ 12
+>>
+Rule 91 (If dtype of input is not a numerical type, throw an exception)
+{a : tensor} |= if dtype_(a) < 1 ∨ dtype_(a) > 10 then false
+>>
+Rule 95 (If the input tensor has zero elements, output also has zero element)
+{a : tensor} |= if (∃i ∈ [0, ndim(a) - 1] : shape(a, i) = 0) then (∀j ∈ [0, ndim(a)-1]: shape(a, j) = 0)
+>>
+Rule 97 (if the size of a dimension is zero, n must be zero)
+{a: tensor, n: int, axis: int} |= if ndim(a) > 0 then if axis >= 0 ∧ axis < ndim(a) then if shape(a, axis) = 0 then n = 0
+>>
+Rule 98 (a should have numerical dtype)
+{a: tensor} |= if dtype_(a) >= 1 ∧ dtype_(a) <= 10 then true else false
+>>
+Rule 101 (a should have numerical dtype)
+{a: tensor} |= (dtype_(a) >= 1 ∧ dtype_(a) <= 5) ∨ (dtype_(a) >= 6 ∧ dtype_(a) <= 10)
+>>
+Rule 102 (If axis is specified, n must be less than the size of array)
+{a: tensor, n: int, axis: int} |= if ndim(a) > 0 then if axis >= 0 ∧ axis < ndim(a) then n < shape(a,axis)
+>>
+Rule 103 (if diff is calculated across all dimensions, result will be a scalar)
+{a: tensor, n: int} |= if n = ndim(a) then ndim(a) = 0
+>>
+Rule 104 (a has to be a numerical tensor or a complex tensor)
+{a: tensor} |= (dtype_(a) >= 1 ∧ dtype_(a) <= 8) ∨ (dtype_(a) >= 9 ∧ dtype_(a) <= 10)
+>>
+Rule 106 (if the size of the dimension becomes negative, then the result is invalid)
+{a : tensor, n : int, axis : int} |= if ndim(a) > 0 then if axis >=0 ∧ axis < ndim(a) then shape(a, axis) - n >= 0
+>>
+Rule 107 (If number of dimension is 0, then axis should be none)
+{a: tensor, axis: int} |= if ndim(a) = 0 then axis < 0
+>>
+Rule 108 (If axis = None, the input array is flattened and the output is 1D)
+{a: tensor, axis: int} |= if axis < 0 then true
+>>
+Rule 110 (if axis is not None, axis must be an integer between -ndim(a) and ndim(a)-1)
+{a: tensor, axis: int} |= if ndim(a) > 0 then axis >= (0 - ndim(a)) ∧ axis < ndim(a)
+>>
+Rule 112 (if axis is negative, it wraps around to ndim(a)+axis)
+{a: tensor, axis: int} |= if axis < 0 then axis + ndim(a) >= 0
+>>
+Rule 113 (If n is greater than max integer, then throw an exception)
+{n: int} |= n < 2147483647
+>>
+Rule 114 (If axis is a valid axis, output shape on that axis becomes shape[axis] - n)
+{a: tensor, n: int, axis: int} |= if ndim(a) > 0 then if axis >= 0 ∧ axis < ndim(a) then shape(a, axis) - n = shape(a,axis) - n
+>>
+Rule 116 (if any of the dimensions is less than or equal to zero, then it is invalid)
+{a: tensor} |= ∀i ∈ [0, ndim(a) - 1] : if ndim(a) > 0 then shape(a, i) > 0
+>>
+Rule 117 (If the input tensor is complex, then the output is also complex)
+{a: tensor} |= if dtype_(a) = 9 ∨ dtype_(a) = 10 then dtype_(a) = 9 ∨ dtype_(a) = 10
+>>
+Rule 118 (If axis exceeds the number of dimension, then exception will be raised)
+{a: tensor, axis : int} |= if ndim(a) > 0 then if axis >= ndim(a) then false
+>>
+Rule 119 (Number of dimensions of result will be ndim(a) - (n>0?1:0) if axis is not None)
+{a: tensor, n: int, axis:int} |= if axis >= 0 ∧ axis < ndim(a) then ndim(a) - (if n > 0 then 1 else 0) >=0
+>>
+Rule 121 (Number of dimensions of the input tensor should be more than zero if axis is given.)
+{a: tensor, axis : int} |= if axis >= 0 ∧ axis < ndim(a) then ndim(a) > 0
+>>
+Rule 122 (If n is equal to shape along given axis, then result along given axis will be empty)
+{a: tensor, n: int, axis: int} |= if ndim(a) > 0 then if axis >= 0 ∧ axis < ndim(a) then if n = shape(a, axis) then shape(a,axis) = 0
+>>
+Rule 123 (If axis is not specified(None), result will be a 1D array, with shape (a.size-n))
+{a: tensor, n: int, axis:int} |= if axis < 0 then ndim(a) = 1
+>>
+Rule 124 (If the shape of input tensor along a given axis is 1, the shape of output along that axis will be 1-n if n is valid)
+{a: tensor, n: int, axis: int} |= if ndim(a) > 0 then if axis >= 0 ∧ axis < ndim(a) then if shape(a, axis) = 1 then if n < 1 then true else false
+>>
+Rule 125 (If the number of dimension is zero, throw an exception, as there is not axis)
+{a : tensor} |= if ndim(a) = 0 then false
+>>
+Rule 126 (Number of dimensions of the input tensor should be positive if there is an axis value)
+{a: tensor, axis: int} |= if axis = axis then ndim(a) > 0
+>>
+Rule 127 (if axis does not exist, it will raise an exception)
+{a: tensor, axis: int} |= if axis >= (0 - ndim(a)) ∧ axis < ndim(a) then axis = axis
+>>
+Rule 128 (shape must be greater than n)
+{a: tensor, n: int, axis: int} |= if ndim(a) > 0 then if axis >= 0 ∧ axis < ndim(a) then if shape(a, axis) > n then true else false

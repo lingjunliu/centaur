@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The dtype of the output should either match the input or be a float. (Rule 4)
+# if out is specified, its dtype should be the same as dtype (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(v["arg2_value"] == v["arg1_dtype"], (v["arg2_value"] == 7)), (v["arg2_value"] == 8))) if n else
-          Or(Or(v["arg2_value"] == v["arg1_dtype"], (v["arg2_value"] == 7)), (v["arg2_value"] == 8)))
+    s.add(Not(v["arg1_dtype"] == v["arg2_value"]) if n else
+          v["arg1_dtype"] == v["arg2_value"])
 )
 
 def rule_4_func(arg1, arg2, solver=None, neg=False):

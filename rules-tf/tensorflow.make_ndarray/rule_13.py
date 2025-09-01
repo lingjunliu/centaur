@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Tensor should have no more than 5 dimensions. (Rule 13)
+# At least one dimension should be available to prevent an AttributeError (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] <= 5) if n else
-          v["arg1_ndim"] <= 5)
+    s.add(Not(v["arg1_ndim"] > -1) if n else
+          v["arg1_ndim"] > -1)
 )
 
 def rule_13_func(arg1, solver=None, neg=False):

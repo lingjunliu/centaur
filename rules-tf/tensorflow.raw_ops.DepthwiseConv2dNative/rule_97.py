@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If dilations are [1,x,y,1], then the dilations factor of height and width dimension should be smaller or equal to height and width dimension of input tensor (Rule 97)
+# Sizes of the filter height and width should be less or equal than the sizes of input height and width and channel_multiplier > 0 (Rule 97)
 
 rule_97 = lambda s, v, n=False: (
-    s.add(Not(If(And(Select(v["arg2_values"], 0) == 1, Select(v["arg2_values"], 3) == 1), And(Select(v["arg2_values"], 1) <= Select(v["arg1_shape"], 1), Select(v["arg2_values"], 2) <= Select(v["arg1_shape"], 2)), False)) if n else
-          If(And(Select(v["arg2_values"], 0) == 1, Select(v["arg2_values"], 3) == 1), And(Select(v["arg2_values"], 1) <= Select(v["arg1_shape"], 1), Select(v["arg2_values"], 2) <= Select(v["arg1_shape"], 2)), False))
+    s.add(Not(And(And(Select(v["arg2_shape"], 0) <= Select(v["arg1_shape"], 1), Select(v["arg2_shape"], 1) <= Select(v["arg1_shape"], 2)), Select(v["arg2_shape"], 3) > 0)) if n else
+          And(And(Select(v["arg2_shape"], 0) <= Select(v["arg1_shape"], 1), Select(v["arg2_shape"], 1) <= Select(v["arg1_shape"], 2)), Select(v["arg2_shape"], 3) > 0))
 )
 
 def rule_97_func(arg1, arg2, solver=None, neg=False):
@@ -20,24 +20,24 @@ def rule_97_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_values = Array('arg2_values', IntSort(), IntSort())
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        for i in range(len(arg2)):
-            arg2_values = Store(arg2_values, i, arg2[i])
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 97
-        rule_97(solver, {'arg1_shape': arg1_shape, 'arg2_values': arg2_values})
+        rule_97(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_97(solver, {'arg1_shape': arg1['shape'], 'arg2_values': arg2['values']}, neg)
+        rule_97(solver, {'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape']}, neg)

@@ -5,47 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# rank of ref, indices, updates and K should be compatible (Rule 10)
+# ref should be a float32, float64, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, or uint64 (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(v["arg3_ndim"] == v["arg2_ndim"] + v["arg1_ndim"] - v["arg4_value"] - 1) if n else
-          v["arg3_ndim"] == v["arg2_ndim"] + v["arg1_ndim"] - v["arg4_value"] - 1)
+    s.add(Not(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 3), v["arg1_dtype"] == 5), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 10), v["arg1_dtype"] == 4), v["arg1_dtype"] == 12), v["arg1_dtype"] == 6), v["arg1_dtype"] == 9), v["arg1_dtype"] == 11), v["arg1_dtype"] == 13), v["arg1_dtype"] == 14), v["arg1_dtype"] == 15), v["arg1_dtype"] == 0)) if n else
+          Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 3), v["arg1_dtype"] == 5), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 10), v["arg1_dtype"] == 4), v["arg1_dtype"] == 12), v["arg1_dtype"] == 6), v["arg1_dtype"] == 9), v["arg1_dtype"] == 11), v["arg1_dtype"] == 13), v["arg1_dtype"] == 14), v["arg1_dtype"] == 15), v["arg1_dtype"] == 0))
 )
 
-def rule_10_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
+def rule_10_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
-    arg4 = next(iter(arg4.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
-            return False
-        if not isinstance(arg3, np.ndarray):
-            return False
-        if not (isinstance(arg4, (int, np.integer)) and not isinstance(arg4, bool)):
-            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_ndim = Int('arg2_ndim')
-        arg3_ndim = Int('arg3_ndim')
-        arg4_value = Int('arg4_value')
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_ndim == arg2.ndim)
-        solver.add(arg3_ndim == arg3.ndim)
-        solver.add(arg4_value == int(arg4))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 10
-        rule_10(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg3_ndim': arg3_ndim, 'arg4_value': arg4_value})
+        rule_10(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_10(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg3_ndim': arg3['ndim'], 'arg4_value': arg4['value']}, neg)
+        rule_10(solver, {'arg1_dtype': arg1['dtype']}, neg)

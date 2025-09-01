@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# handle should not be empty (Rule 10)
+# First dimension of values should be less than or equal to a max value, e.g., 1024 (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) > 0) if n else
-          Select(v["arg1_shape"], 0) > 0)
+    s.add(Not(Select(v["arg1_shape"], 0) <= 1024) if n else
+          Select(v["arg1_shape"], 0) <= 1024)
 )
 
 def rule_10_func(arg1, solver=None, neg=False):

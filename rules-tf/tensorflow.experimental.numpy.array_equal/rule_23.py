@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If one tensor's minimum element is greater than the other tensor's max element then the comparison will always return false (Rule 23)
+# min of one tensor must be less than max of other (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_range"], 0) > Select(v["arg2_range"], 1), False, False)) if n else
-          If(Select(v["arg1_range"], 0) > Select(v["arg2_range"], 1), False, False))
+    s.add(Not(Select(v["arg1_range"], 0) <= Select(v["arg2_range"], 1)) if n else
+          Select(v["arg1_range"], 0) <= Select(v["arg2_range"], 1))
 )
 
 def rule_23_func(arg1, arg2, solver=None, neg=False):

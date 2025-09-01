@@ -2,164 +2,161 @@
 Rule 1 (input and grad tensors must have the same type)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 2 (argmax tensor must have int32 or int64 dtype)
-{v_3 : tensor} |= dtype_(v_3) = 3 ∨ dtype_(v_3) = 4
->>
-Rule 3 (ksize and strides must have length >= 4)
-{v_4 : list(int), v_5 : list(int)} |= v_4.len ≥ 4 ∧ v_5.len ≥ 4
->>
-Rule 4 (padding must be SAME or VALID)
-{v_6 : str} |= v_6 = "SAME" ∨ v_6 = "VALID"
->>
-Rule 5 (input and grad tensors must have 4 dimensions)
+Rule 2 (input and grad tensors must be 4-dimensional)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4
 >>
-Rule 6 (ksize elements must be greater than zero)
-{v_4 : list(int)} |= ∀i ∈ [0, v_4.len - 1] : v_4[i] > 0
+Rule 3 (ksize must have length greater than or equal to 4)
+{v_1 : list(int)} |= v_1.len ≥ 4
 >>
-Rule 7 (strides elements must be greater than zero)
-{v_5 : list(int)} |= ∀i ∈ [0, v_5.len - 1] : v_5[i] > 0
+Rule 5 (padding must be either "SAME" or "VALID")
+{v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID"
 >>
-Rule 8 (input tensor must be of valid dtype)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 0 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 5
+Rule 6 (argmax tensor must be either int32 or int64)
+{v_1 : tensor} |= dtype_(v_1) = 2 ∨ dtype_(v_1) = 4
 >>
-Rule 9 (include_batch_in_index is a boolean)
-{v_7 : bool} |= v_7 = true ∨ v_7 = false
+Rule 7 (include_batch_in_index must be a boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 10 (The length of ksize and strides must be equal)
-{v_4 : list(int), v_5 : list(int)} |= v_4.len = v_5.len
+Rule 8 (elements of ksize list must be positive integers)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 11 (input dimensions are greater than ksize dimensions)
-{v_1 : tensor, v_4 : list(int)} |= ndim(v_1) = v_4.len ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ v_4[i]
+Rule 10 (input tensor must be one of the supported dtypes)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 17
 >>
-Rule 12 (grad shape matches expected shape from the input, ksize and stride)
-{v_1 : tensor, v_2 : tensor, v_4 : list(int), v_5 : list(int)} |= shape(v_2, 0) = shape(v_1, 0) ∧ shape(v_2, 3) = shape(v_1, 3) ∧ shape(v_2, 1) = (shape(v_1, 1) - v_4[1]) / v_5[1] + 1 ∧ shape(v_2, 2) = (shape(v_1, 2) - v_4[2]) / v_5[2] + 1
+Rule 11 (input and grad tensors must have compatible shapes)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1) ∧ shape(v_1, 2) = shape(v_2, 2) ∧ shape(v_1, 3) = shape(v_2, 3)
 >>
-Rule 15 (Input tensor's dtype must be float32, float64, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 0
+Rule 12 (ksize and strides lists must have the same length)
+{v_1 : list(int), v_2 : list(int)} |= v_1.len = v_2.len
 >>
-Rule 16 (Argmax tensor dimensions must be equal to grad tensor dimensions.)
-{v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_3)
+Rule 13 (if include_batch_in_index is true, then argmax should have the same shape as the output of max_pool)
+{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then shape(v_2, 0) = shape(v_3, 0) ∧ shape(v_2, 1) = shape(v_3, 1) ∧ shape(v_2, 2) = shape(v_3, 2) ∧ shape(v_2, 3) = shape(v_3, 3)
 >>
-Rule 19 (grad shape matches expected shape from the input, ksize and stride)
-{v_1 : tensor, v_2 : tensor, v_4 : list(int), v_5 : list(int)} |= shape(v_2, 0) = shape(v_1, 0) ∧ shape(v_2, 3) = shape(v_1, 3) ∧ shape(v_2, 1) = (shape(v_1, 1) + v_5[1] - v_4[1]) / v_5[1] ∧ shape(v_2, 2) = (shape(v_1, 2) + v_5[2] - v_4[2]) / v_5[2]
+Rule 14 (ksize's first element must be 1)
+{v_1 : list(int)} |= v_1[0] = 1
 >>
-Rule 20 (ksize.len should match the number of dimensions of the input)
-{v_1 : tensor, v_4 : list(int)} |= ndim(v_1) = v_4.len
+Rule 16 (shape of argmax's elements must be non-negative)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 21 (strides.len should match the number of dimensions of the input)
-{v_1 : tensor, v_5 : list(int)} |= ndim(v_1) = v_5.len
+Rule 17 (ksize's elements at index 1 and 2 must be greater than 0)
+{v_1 : list(int)} |= v_1[1] > 0 ∧ v_1[2] > 0
 >>
-Rule 22 (argmax dimensions must be equal to 4)
-{v_3 : tensor} |= ndim(v_3) = 4
+Rule 20 (ksize's last element must be 1)
+{v_1 : list(int)} |= v_1[3] = 1
 >>
-Rule 23 (The length of ksize and strides must be equal, and match the input tensor's dimension)
-{v_1 : tensor, v_4 : list(int), v_5 : list(int)} |= v_4.len = v_5.len ∧ v_4.len = ndim(v_1)
+Rule 22 (argmax's shape[0] must be equal to input's shape[0])
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 24 (grad shape's height dimension matches the calculated height dimension from input, ksize, and stride.)
-{v_1 : tensor, v_2 : tensor, v_4 : list(int), v_5 : list(int)} |= shape(v_2, 1) = ((shape(v_1, 1) - v_4[1] + v_5[1]) / v_5[1])
+Rule 23 (ksize's elements at index 0 and 3 must be 1)
+{v_1 : list(int)} |= v_1[0] = 1 ∧ v_1[3] = 1
 >>
-Rule 25 (grad shape's width dimension matches the calculated width dimension from input, ksize, and stride.)
-{v_1 : tensor, v_2 : tensor, v_4 : list(int), v_5 : list(int)} |= shape(v_2, 2) = ((shape(v_1, 2) - v_4[2] + v_5[2]) / v_5[2])
+Rule 25 (argmax's shape must be equal to the shape of input, grad tensors except batch dimension)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = shape(v_2, 1) ∧ shape(v_1, 2) = shape(v_2, 2) ∧ shape(v_1, 3) = shape(v_2, 3)
 >>
-Rule 26 (Padding attribute must be either VALID or SAME.)
-{v_6 : str} |= v_6 = "VALID" ∨ v_6 = "SAME"
+Rule 26 (if padding is "VALID", then ksize should be less or equal to the input size along height and width)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "VALID" then v_2[1] ≤ shape(v_3, 1) ∧ v_2[2] ≤ shape(v_3, 2)
 >>
-Rule 28 (The max value of argmax should be less than the product of input's height and width)
-{v_1 : tensor, v_3 : tensor} |= max(v_3) < shape(v_1, 1) * shape(v_1, 2)
+Rule 27 (if padding is "SAME", then ksize should be less or equal to the input size along height and width)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "SAME" then v_2[1] ≤ shape(v_3, 1) ∧ v_2[2] ≤ shape(v_3, 2)
 >>
-Rule 29 (grad shape's batch and channel dimension should match input's batch and channel dimension.)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) = shape(v_1, 0) ∧ shape(v_2, 3) = shape(v_1, 3)
+Rule 28 (strides at index 1 and 2 must be less than or equal to ksize at index 1 and 2)
+{v_1 : list(int), v_2 : list(int)} |= v_1[1] ≤ v_2[1] ∧ v_1[2] ≤ v_2[2]
 >>
-Rule 33 (The product of stride and output size, plus ksize is greater than or equal to input size)
-{v_1 : tensor, v_4 : list(int), v_5 : list(int)} |= (v_5[1] * ((shape(v_1, 1) - v_4[1] + v_5[1]) / v_5[1])) + v_4[1] ≥ shape(v_1, 1) ∧ (v_5[2] * ((shape(v_1, 2) - v_4[2] + v_5[2]) / v_5[2])) + v_4[2] ≥ shape(v_1, 2)
+Rule 30 (If padding is SAME, the output size is the same as input size.)
+{v_1 : str, v_2 : tensor, v_3 : tensor, v_4: list(int)} |= if v_1 = "SAME" then shape(v_2, 1) = ((shape(v_3, 1) + v_4[1] - 1) / v_4[1]) ∧ shape(v_2, 2) = ((shape(v_3, 2) + v_4[2] - 1) / v_4[2])
 >>
-Rule 34 (ksize and strides length should be consistent with the input tensor's dimension)
-{v_1 : tensor, v_4 : list(int), v_5 : list(int)} |= ndim(v_1) = v_4.len ∧ ndim(v_1) = v_5.len
+Rule 31 (If padding is VALID, the output size will be calculated as floor((input_size - filter_size + stride) / stride))
+{v_1 : str, v_2 : tensor, v_3 : tensor, v_4: list(int)} |= if v_1 = "VALID" then shape(v_2, 1) = (shape(v_3, 1) - v_4[1] + v_4[1]) / v_4[1] ∧ shape(v_2, 2) = (shape(v_3, 2) - v_4[2] + v_4[2]) / v_4[2]
 >>
-Rule 35 (If include_batch_in_index is true, then argmax values should be within a certain range)
-{v_1 : tensor, v_3 : tensor, v_7 : bool} |= if v_7 = true then max(v_3) < shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 0)
+Rule 32 (If padding is VALID, the output size must be greater than 0)
+{v_1 : str, v_2 : tensor, v_3 : list(int)} |= if v_1 = "VALID" then (shape(v_2, 1) - v_3[1] + v_3[1]) / v_3[1] > 0 ∧ (shape(v_2, 2) - v_3[2] + v_3[2]) / v_3[2] > 0
 >>
-Rule 36 (If include_batch_in_index is false, then argmax values should be within a certain range)
-{v_1 : tensor, v_3 : tensor, v_7 : bool} |= if v_7 = false then max(v_3) < shape(v_1, 1) * shape(v_1, 2)
+Rule 33 (If padding is VALID, the output size can be derived from the input size and strides)
+{v_1 : str, v_2 : tensor, v_3 : tensor, v_4: list(int)} |= if v_1 = "VALID" then shape(v_2, 1) = (shape(v_3, 1) - (v_4[1] -1) -1) / v_4[1] + 1 ∧ shape(v_2, 2) = (shape(v_3, 2) - (v_4[2] -1) -1) / v_4[2] + 1
 >>
-Rule 37 (ksize and stride values must be positive)
-{v_4 : list(int), v_5 : list(int)} |= ∀i ∈ [0, v_4.len - 1] : v_4[i] > 0 ∧ ∀i ∈ [0, v_5.len - 1] : v_5[i] > 0
+Rule 34 (ksize's height and width values must be less or equal to the input's height and width values)
+{v_1 : list(int), v_2 : tensor} |= v_1[1] ≤ shape(v_2, 1) ∧ v_1[2] ≤ shape(v_2, 2)
 >>
-Rule 38 (Ksize length is greater than or equal to 4)
-{v_4 : list(int)} |= v_4.len ≥ 4
+Rule 36 (If include_batch_in_index is false, then argmax should not include batch dimension information)
+{v_1 : bool, v_2 : tensor} |= if v_1 = false then ndim(v_2) = 3
 >>
-Rule 39 (Strides length is greater than or equal to 4)
-{v_5 : list(int)} |= v_5.len ≥ 4
+Rule 37 (If include_batch_in_index is true, then argmax should include batch dimension information and shape match the input's)
+{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then ndim(v_3) = 4 ∧ shape(v_3, 0) = shape(v_2, 0) ∧ shape(v_3, 1) = shape(v_2, 1) ∧ shape(v_3, 2) = shape(v_2, 2) ∧ shape(v_3, 3) = shape(v_2, 3)
 >>
-Rule 41 (input, grad and argmax tensors must have the same batch and channel size)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 3) = shape(v_2, 3) ∧ shape(v_1, 0) = shape(v_3, 0) ∧ shape(v_1, 3) = shape(v_3, 3)
+Rule 39 (If include_batch_in_index is true, then argmax must have the same dtype as int32 or int64)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then dtype_(v_2) = 2 ∨ dtype_(v_2) = 4
 >>
-Rule 42 (The values in ksize and strides should not be zero)
-{v_4 : list(int), v_5 : list(int)} |= ∃i ∈ [0, v_4.len - 1] : v_4[i] ≠ 0 ∧ ∃i ∈ [0, v_5.len - 1] : v_5[i] ≠ 0
+Rule 40 (If include_batch_in_index is false, then argmax must have the same dtype as int32 or int64)
+{v_1 : bool, v_2 : tensor} |= if v_1 = false then dtype_(v_2) = 2 ∨ dtype_(v_2) = 4
 >>
-Rule 43 (If include batch in index is true, argmax must be less than the volume of the first 3 dimensions of the input)
-{v_1 : tensor, v_3 : tensor, v_7 : bool} |= if v_7 = true then max(v_3) < shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2)
+Rule 41 (If strides[1] or strides[2] is greater than 1, then padding must be VALID)
+{v_1 : list(int), v_2 : str} |= if v_1[1] > 1 ∨ v_1[2] > 1 then v_2 = "VALID"
 >>
-Rule 45 (input tensor's type has to be in the allowed list)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 4
+Rule 42 (If strides[1] or strides[2] is greater than ksize[1] or ksize[2] respectively, then padding must be VALID)
+{v_1 : list(int), v_2 : list(int), v_3 : str} |= if v_1[1] > v_2[1] ∨ v_1[2] > v_2[2] then v_3 = "VALID"
 >>
-Rule 47 (Ksize and Strides values should be greater than 0 and ksize & strides lengths >=4 )
-{v_4 : list(int), v_5 : list(int)} |= ∀i ∈ [0, v_4.len - 1] : v_4[i] > 0 ∧ ∀i ∈ [0, v_5.len - 1] : v_5[i] > 0 ∧ v_4.len >= 4 ∧ v_5.len >=4
+Rule 43 (ksize and stride values must not be greater than the corresponding input dimension when VALID padding is used)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "VALID" then v_2[1] <= shape(v_1, 1) ∧ v_2[2] <= shape(v_1, 2) ∧ v_1[1] <= shape(v_1, 1) ∧ v_1[2] <= shape(v_1, 2)
 >>
-Rule 50 (grad tensor must have the same batch and channel size as input)
+Rule 44 (When SAME padding is used, check height and width constraints based on ksize, stride and input shape)
+{v_1 : tensor, v_2 : list(int), v_3 : list(int), v_4: str} |= if v_4 = "SAME" then shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ v_2[1] > 0 ∧ v_2[2] > 0 ∧ v_3[1] > 0 ∧ v_3[2] > 0
+>>
+Rule 45 (Shape of grad tensor should be [N, H, W, C] when include_batch_in_index is false)
+{v_1: tensor, v_2: bool, v_3: tensor} |= if v_2 = false then ndim(v_3) = 4 ∧ shape(v_1,0) = shape(v_3,0)
+>>
+Rule 46 (Shape of argmax tensor must match with the output shape of MaxPool)
+{v_1: tensor, v_2: list(int), v_3: list(int), v_4: str, v_5: tensor} |= if v_4 = "VALID" then shape(v_5, 1) = (shape(v_1, 1) - (v_2[1]-1)-1) / v_3[1] + 1 ∧ shape(v_5, 2) = (shape(v_1, 2) - (v_2[2]-1)-1) / v_3[2] + 1
+>>
+Rule 48 (Shape of argmax tensor must match with the output shape of MaxPool with SAME padding)
+{v_1: tensor, v_2: list(int), v_3: str, v_4: tensor} |= if v_3 = "SAME" then shape(v_4, 1) = ((shape(v_1, 1) + v_2[1] - 1) / v_2[1]) ∧ shape(v_4, 2) = ((shape(v_1, 2) + v_2[2] - 1) / v_2[2])
+>>
+Rule 49 (if include_batch_in_index is true, the first dim of argmax tensor is the same as input)
+{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then shape(v_2, 0) = shape(v_3, 0)
+>>
+Rule 50 (the batch size, channel size of input and grad tensors should be equal)
 {v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 3) = shape(v_2, 3)
 >>
-Rule 51 (argmax tensor must have the same batch and channel size as input)
-{v_1 : tensor, v_3 : tensor} |= shape(v_1, 0) = shape(v_3, 0) ∧ shape(v_1, 3) = shape(v_3, 3)
+Rule 51 (ksize, strides list's second, third element less or equal than input tensor's second, third element)
+{v_1: tensor, v_2: list(int), v_3: list(int)} |= v_2[1] <= shape(v_1, 1) ∧ v_2[2] <= shape(v_1, 2) ∧ v_3[1] <= shape(v_1, 1) ∧ v_3[2] <= shape(v_1, 2)
 >>
-Rule 52 (Ksize and Strides values should be greater than 0 and ksize & strides lengths >=4 )
-{v_4 : list(int), v_5 : list(int)} |= ∀i ∈ [0, v_4.len - 1] : v_4[i] > 0 ∧ ∀i ∈ [0, v_5.len - 1] : v_5[i] > 0 ∧ v_4.len ≥ 4 ∧ v_5.len ≥ 4
+Rule 52 (input, grad tensors' data type must be one of supported type)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 17) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 1 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 13 ∨ dtype_(v_2) = 16 ∨ dtype_(v_2) = 17)
 >>
-Rule 58 (The height dimension of grad matches expected height dimension given the other parameters.)
-{v_1 : tensor, v_2 : tensor, v_4 : list(int), v_5 : list(int)} |= shape(v_2, 1) = (shape(v_1, 1) - v_4[1]) / v_5[1] + 1
+Rule 53 (If padding is VALID, the ksize and strides lists should have last two element as 1)
+{v_1: list(int), v_2: list(int), v_3: str} |= if v_3 = "VALID" then v_1[0] = 1 ∧ v_1[3] = 1 ∧ v_2[0] = 1 ∧ v_2[3] = 1
 >>
-Rule 59 (The width dimension of grad matches expected width dimension given the other parameters.)
-{v_1 : tensor, v_2 : tensor, v_4 : list(int), v_5 : list(int)} |= shape(v_2, 2) = (shape(v_1, 2) - v_4[2]) / v_5[2] + 1
+Rule 54 (If include_batch_in_index is true, shape of argmax should be [batch, height, width, channel])
+{v_1: bool, v_2: tensor} |= if v_1 = true then ndim(v_2) = 4
 >>
-Rule 62 (The height and width dimensions of grad are calculated correctly)
-{v_1 : tensor, v_2 : tensor, v_4 : list(int), v_5 : list(int), v_6 : str} |= if v_6 = "VALID" then shape(v_2, 1) = (shape(v_1, 1) - v_4[1]) / v_5[1] + 1 ∧ shape(v_2, 2) = (shape(v_1, 2) - v_4[2]) / v_5[2] + 1 else shape(v_2, 1) = (shape(v_1, 1) + v_5[1] - 1) / v_5[1] ∧ shape(v_2, 2) = (shape(v_1, 2) + v_5[2] - 1) / v_5[2]
+Rule 55 (If padding is SAME, the ksize and strides lists should have last two element as 1)
+{v_1: list(int), v_2: list(int), v_3: str} |= if v_3 = "SAME" then v_1[0] = 1 ∧ v_1[3] = 1 ∧ v_2[0] = 1 ∧ v_2[3] = 1
 >>
-Rule 67 (The product of stride and output size must be smaller or equal to input size.)
-{v_1 : tensor, v_4 : list(int), v_5 : list(int)} |= (shape(v_1, 1) - v_4[1]) / v_5[1] + 1 > 0 ∧ (shape(v_1, 2) - v_4[2]) / v_5[2] + 1 > 0
+Rule 56 (when include_batch_in_index is true, all tensors should have the same shape)
+{v_1: bool, v_2: tensor, v_3: tensor, v_4: tensor} |= if v_1 = true then shape(v_2, 0) = shape(v_3, 0) ∧ shape(v_2, 1) = shape(v_3, 1) ∧ shape(v_2, 2) = shape(v_3, 2) ∧ shape(v_2, 3) = shape(v_3, 3) ∧ shape(v_2, 0) = shape(v_4, 0) ∧ shape(v_2, 1) = shape(v_4, 1) ∧ shape(v_2, 2) = shape(v_4, 2) ∧ shape(v_2, 3) = shape(v_4, 3)
 >>
-Rule 68 (If padding is VALID, ksize must be smaller or equal than input)
-{v_1 : tensor, v_4 : list(int), v_6: str} |= if v_6 = "VALID" then v_4[1] <= shape(v_1,1) ∧ v_4[2] <= shape(v_1,2)
+Rule 57 (ksize, strides list's all elements greater than zero)
+{v_1: list(int), v_2: list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
 >>
-Rule 71 (The dimensionality of input, grad, argmax must all be 4)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ ndim(v_3) = 4
+Rule 58 (if include_batch_in_index is false, shape of argmax should be [height, width, channel])
+{v_1: bool, v_2: tensor, v_3: tensor, v_4: str, v_5: list(int)} |= if v_1 = false ∧ v_4 = "SAME" then shape(v_2, 1) = ((shape(v_3, 1) + v_5[1] - 1) / v_5[1]) ∧ shape(v_2, 2) = ((shape(v_3, 2) + v_5[2] - 1) / v_5[2]) else if v_1 = false ∧ v_4 = "VALID" then shape(v_2, 1) = (shape(v_3, 1) - (v_5[1] -1) -1) / v_5[1] + 1 ∧ shape(v_2, 2) = (shape(v_3, 2) - (v_5[2] -1) -1) / v_5[2] + 1
 >>
-Rule 74 (If padding is SAME, then the height and width of the output gradient will be equal to the ceiling of the input height/width divided by the strides)
-{v_1 : tensor, v_2 : tensor, v_5 : list(int), v_6 : str} |= if v_6 = "SAME" then shape(v_2, 1) = (shape(v_1, 1) + v_5[1] - 1) / v_5[1] ∧ shape(v_2, 2) = (shape(v_1, 2) + v_5[2] - 1) / v_5[2]
+Rule 59 (Input, grad should be of same shape except when include_batch_in_index is false. Argmax then does not include batch dim information.)
+{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 = true then shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1) ∧ shape(v_1, 2) = shape(v_2, 2) ∧ shape(v_1, 3) = shape(v_2, 3)
 >>
-Rule 75 (If padding is VALID, then the height and width of the output gradient are based on the formula)
-{v_1 : tensor, v_2 : tensor, v_4 : list(int), v_5 : list(int), v_6 : str} |= if v_6 = "VALID" then shape(v_2, 1) = (shape(v_1, 1) - v_4[1]) / v_5[1] + 1 ∧ shape(v_2, 2) = (shape(v_1, 2) - v_4[2]) / v_5[2] + 1
+Rule 60 (if include_batch_in_index is true, height and width of input and argmax should follow this equation when padding is VALID)
+{v_1: bool, v_2: tensor, v_3: tensor, v_4: list(int), v_5: list(int), v_6: str} |= if v_1 = true ∧ v_6 = "VALID" then shape(v_2, 1) = (shape(v_3, 1) - (v_4[1] -1) -1) / v_5[1] + 1 ∧ shape(v_2, 2) = (shape(v_3, 2) - (v_4[2] -1) -1) / v_5[2] + 1
 >>
-Rule 76 (ksize and strides lists should have a length equal to ndim of the tensor)
-{v_1 : tensor, v_4 : list(int), v_5 : list(int)} |= v_4.len = ndim(v_1) ∧ v_5.len = ndim(v_1)
+Rule 61 (if include_batch_in_index is true, height and width of input and argmax should follow this equation when padding is SAME)
+{v_1: bool, v_2: tensor, v_3: tensor, v_4: list(int), v_5: str} |= if v_1 = true ∧ v_5 = "SAME" then shape(v_2, 1) = ((shape(v_3, 1) + v_4[1] - 1) / v_4[1]) ∧ shape(v_2, 2) = ((shape(v_3, 2) + v_4[2] - 1) / v_4[2])
 >>
-Rule 77 (The number of channels must be the same for input, grad, and argmax)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_1, 3) = shape(v_2, 3) ∧ shape(v_1, 3) = shape(v_3, 3)
+Rule 62 (When padding is valid, the calculation of output size is (input_size - ksize + stride)/stride)
+{v_1: tensor, v_2: list(int), v_3: list(int), v_4: str} |= if v_4 = "VALID" then (shape(v_1, 1) - v_2[1] + v_3[1]) / v_3[1] > 0 ∧ (shape(v_1, 2) - v_2[2] + v_3[2]) / v_3[2] > 0
 >>
-Rule 78 (The batch size must be the same for input, grad, and argmax)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) = shape(v_3, 0)
+Rule 63 (If include_batch_in_index is false then all tensors should have the same dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : bool} |= if v_4 = false then dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
 >>
-Rule 86 (All input tensors should have the same dtype)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
+Rule 64 (If include_batch_in_index is false and padding is VALID, height and width of argmax and input tensors follow this equation)
+{v_1: bool, v_2: tensor, v_3: tensor, v_4: list(int), v_5: str} |= if v_1 = false ∧ v_5 = "VALID" then shape(v_2, 0) = (shape(v_3, 1) - (v_4[1] -1) -1) / v_4[1] + 1 ∧ shape(v_2, 1) = (shape(v_3, 2) - (v_4[2] -1) -1) / v_4[2] + 1
 >>
-Rule 95 (The height and width dimensions of the output grad tensor must be calculable based on input tensor's shape, ksize and strides )
-{v_1 : tensor, v_2 : tensor, v_4 : list(int), v_5 : list(int), v_6 : str} |= (v_6 = "VALID" ∧ shape(v_2, 1) = (shape(v_1, 1) - v_4[1]) / v_5[1] + 1 ∧ shape(v_2, 2) = (shape(v_1, 2) - v_4[2]) / v_5[2] + 1) ∨ (v_6 = "SAME" ∧ shape(v_2, 1) = (shape(v_1, 1) + v_5[1] - 1) / v_5[1] ∧ shape(v_2, 2) = (shape(v_1, 2) + v_5[2] - 1) / v_5[2])
->>
-Rule 100 (The height and width of the output grad is correctly calculated based on padding and input shape )
-{v_1 : tensor, v_2 : tensor, v_4 : list(int), v_5 : list(int), v_6 : str} |= (if v_6 = "VALID" then shape(v_2, 1) = (shape(v_1, 1) - v_4[1]) / v_5[1] + 1 ∧ shape(v_2, 2) = (shape(v_1, 2) - v_4[2]) / v_5[2] + 1 else shape(v_2, 1) = (shape(v_1, 1) + v_5[1] - 1) / v_5[1] ∧ shape(v_2, 2) = (shape(v_1, 2) + v_5[2] - 1) / v_5[2])
->>
-Rule 102 (When include batch is true, argmax should contain indices within [0, batch * height * width))
-{v_1 : tensor, v_3 : tensor, v_7 : bool} |= if v_7 = true then 0 ≤ min(v_3) ∧ max(v_3) < shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2)
->>
-Rule 103 (When include batch is false, argmax should contain indices within [0, height * width))
-{v_1 : tensor, v_3 : tensor, v_7 : bool} |= if v_7 = false then 0 ≤ min(v_3) ∧ max(v_3) < shape(v_1, 1) * shape(v_1, 2)
+Rule 65 (If include_batch_in_index is false and padding is SAME, height and width of argmax and input tensors follow this equation)
+{v_1: bool, v_2: tensor, v_3: tensor, v_4: list(int), v_5: str} |= if v_1 = false ∧ v_5 = "SAME" then shape(v_2, 0) = ((shape(v_3, 1) + v_4[1] - 1) / v_4[1]) ∧ shape(v_2, 1) = ((shape(v_3, 2) + v_4[2] - 1) / v_4[2])

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If dtype is half type, the tensor needs at least one element (Rule 61)
+# If dtype of x is complex128, then real and imaginary parts should have the same shape (Rule 61)
 
 rule_61 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, Select(v["arg1_shape"], 0) > 0, False)) if n else
-          If(v["arg1_dtype"] == 6, Select(v["arg1_shape"], 0) > 0, False))
+    s.add(Not(If(v["arg1_dtype"] == 10, Select(v["arg1_shape"], 0) > 0, True)) if n else
+          If(v["arg1_dtype"] == 10, Select(v["arg1_shape"], 0) > 0, True))
 )
 
 def rule_61_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_61_func(arg1, solver=None, neg=False):
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 61
-        rule_61(solver, {'arg1_dtype': arg1_dtype, 'arg1_shape': arg1_shape})
+        rule_61(solver, {'arg1_shape': arg1_shape, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_61(solver, {'arg1_dtype': arg1['dtype'], 'arg1_shape': arg1['shape']}, neg)
+        rule_61(solver, {'arg1_shape': arg1['shape'], 'arg1_dtype': arg1['dtype']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# s as an integer must be non-negative after modulo operation with a large number (Rule 12)
+# s modulo a large prime number should not result in a trivial value like 1 (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not((v["arg1_value"] % 4294967296) >= 0) if n else
-          (v["arg1_value"] % 4294967296) >= 0)
+    s.add(Not(v["arg1_value"] % 1000000007 != 1) if n else
+          v["arg1_value"] % 1000000007 != 1)
 )
 
 def rule_12_func(arg1, solver=None, neg=False):

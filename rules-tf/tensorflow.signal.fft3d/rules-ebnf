@@ -1,54 +1,69 @@
 >>
-Rule 1 (Input tensor must be complex64 or complex128)
-{v_1 : tensor} |= dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
->>
-Rule 2 (Input tensor must have at least 3 dimensions)
+Rule 1 (input tensor should have rank of at least 3)
 {v_1 : tensor} |= ndim(v_1) ≥ 3
 >>
-Rule 3 (Innermost 3 dimensions of input should have size greater than 0)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 3) > 0
+Rule 2 (input tensor should be complex64 or complex128)
+{v_1 : tensor} |= dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
 >>
-Rule 5 (The shape of the innermost 3 dimensions cannot be zero)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) ≠ 0 ∧ shape(v_1, ndim(v_1) - 2) ≠ 0 ∧ shape(v_1, ndim(v_1) - 3) ≠ 0
+Rule 5 (input tensor should have a valid shape, i.e., all dimensions are positive)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 6 (Input tensor must be a tensor)
+Rule 6 (input tensor's dimension should not be less than 0)
 {v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 9 (The ndim of the input cannot be greater than 7)
+Rule 7 (input tensor can not be an empty tensor)
+{v_1 : tensor} |= if ndim(v_1) = 0 then false
+>>
+Rule 9 (name should be non-empty string)
+{v_2 : str} |= v_2 ≠ ""
+>>
+Rule 10 (check if the tensor has valid dimensions)
 {v_1 : tensor} |= ndim(v_1) ≤ 7
 >>
-Rule 10 (Each dimension size of the input tensor must be within a reasonable range (e.g., less than 2048))
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2048
+Rule 11 (the shape of the tensor should not be empty)
+{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) > 0
 >>
-Rule 14 (The input tensor can not have dimensions of size zero)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+Rule 13 (if input tensor's dimension is 0, the shape should also be empty)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true
 >>
-Rule 15 (The innermost dimensions must have consistent sizes)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 3) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0
+Rule 15 (Check if the tensor dimensions are reasonable given the input size)
+{v_1 : tensor} |= shape(v_1, 0) < 2048 ∧ shape(v_1, 1) < 2048 ∧ shape(v_1, 2) < 2048
 >>
-Rule 16 (Check if the tensor's rank is reasonable given the data type.)
-{v_1 : tensor} |= (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ ndim(v_1) ≤ 7
+Rule 17 (The product of the last three dimensions should be greater than 0)
+{v_1 : tensor} |= if ndim(v_1) >= 3 then shape(v_1, ndim(v_1)-1) * shape(v_1, ndim(v_1)-2) * shape(v_1, ndim(v_1)-3) > 0
 >>
-Rule 17 (Input tensor cannot have NaN values.)
-{v_1 : tensor} |= min(v_1) = min(v_1) ∧ max(v_1) = max(v_1)
+Rule 20 (input tensor has valid shape)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : if ndim(v_1) > 0 then shape(v_1, i) > 0
 >>
-Rule 18 (Number of elements in the tensor is less than a limit)
-{v_1 : tensor} |= (shape(v_1, ndim(v_1) - 3) * shape(v_1, ndim(v_1) - 2) * shape(v_1, ndim(v_1) - 1)) < 1048576
+Rule 21 (If the input tensor has fewer than 3 dimensions, all dimensions must be one)
+{v_1 : tensor} |= if ndim(v_1) < 3 ∧ ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 1
 >>
-Rule 20 (Innermost dimensions are power of 2)
-{v_1 : tensor} |= (shape(v_1, ndim(v_1) - 3) > 0) ∧ ((shape(v_1, ndim(v_1) - 3) % (shape(v_1, ndim(v_1) - 3) - 1)) = 1) ∧ (shape(v_1, ndim(v_1) - 2) > 0) ∧ ((shape(v_1, ndim(v_1) - 2) % (shape(v_1, ndim(v_1) - 2) - 1)) = 1) ∧ (shape(v_1, ndim(v_1) - 1) > 0) ∧ ((shape(v_1, ndim(v_1) - 1) % (shape(v_1, ndim(v_1) - 1) - 1)) = 1)
+Rule 25 (If the input tensor has exactly 3 dimensions, all dimensions must be greater than 0)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
 >>
-Rule 21 (Innermost dimensions are power of 2)
-{v_1 : tensor} |= (shape(v_1, ndim(v_1) - 3) > 0) ∧ ((shape(v_1, ndim(v_1) - 3) % 2) = 0) ∧ (shape(v_1, ndim(v_1) - 2) > 0) ∧ ((shape(v_1, ndim(v_1) - 2) % 2) = 0) ∧ (shape(v_1, ndim(v_1) - 1) > 0) ∧ ((shape(v_1, ndim(v_1) - 1) % 2) = 0)
+Rule 31 (Shape is valid)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 22 (Innermost dimensions are power of 2)
-{v_1 : tensor} |= if ndim(v_1) >=3 then ((shape(v_1, ndim(v_1) - 3) > 0) ∧ ((shape(v_1, ndim(v_1) - 3) % 2) = 0) ∧ (shape(v_1, ndim(v_1) - 2) > 0) ∧ ((shape(v_1, ndim(v_1) - 2) % 2) = 0) ∧ (shape(v_1, ndim(v_1) - 1) > 0) ∧ ((shape(v_1, ndim(v_1) - 1) % 2) = 0))
+Rule 38 (input is not a [0, 9] shaped tensor)
+{v_1 : tensor} |= if ndim(v_1) = 2 then (shape(v_1, 0) ≠ 0 ∨ shape(v_1, 1) ≠ 9)
 >>
-Rule 23 (The inner most dimensions should have same size)
-{v_1 : tensor} |= ndim(v_1) >=3 ∧ shape(v_1, ndim(v_1) - 3) = shape(v_1, ndim(v_1) - 2) ∧ shape(v_1, ndim(v_1) - 2) = shape(v_1, ndim(v_1) - 1)
+Rule 43 (Check dimensions)
+{v_1 : tensor} |= if ndim(v_1) > 2 then True else False
 >>
-Rule 24 (The input tensor must not be quantized)
-{v_1 : tensor} |= dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8
+Rule 44 (input tensor has dimension greater than 2)
+{v_1 : tensor} |= ndim(v_1) > 2
 >>
-Rule 25 (Input tensor cannot have Inf values.)
-{v_1 : tensor} |= min(v_1) ≠ "-inf" ∧ max(v_1) ≠ "inf"
+Rule 51 (Input tensor must have dimension at least 3)
+{v_1: tensor} |= ndim(v_1) > 2
+>>
+Rule 54 (Input tensor's datatype must be complex64 or complex128)
+{v_1: tensor} |= dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+>>
+Rule 67 (If ndim = 2, then shape must be different from [0, 9])
+{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) ≠ 0 ∨ shape(v_1, 1) ≠ 9
+>>
+Rule 68 (if input has 2 dimensions, then shape is not [0,9])
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) ≠ 0 ∨ shape(v_1, 1) ≠ 9
+>>
+Rule 87 (The input tensor's innermost 3 dimensions must be defined)
+{v_1 : tensor} |= if ndim(v_1) >= 3 then shape(v_1, ndim(v_1)-1) > 0 ∧ shape(v_1, ndim(v_1)-2) > 0 ∧ shape(v_1, ndim(v_1)-3) > 0

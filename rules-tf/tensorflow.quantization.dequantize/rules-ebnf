@@ -1,69 +1,192 @@
 >>
-Rule 1 (input tensor must be of type qint8, quint8, qint32, qint16, or quint16, which can be represented using int for simplicity)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2
+Rule 1 (input must be one of the supported data types)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 6
 >>
-Rule 2 (min_range must be a scalar float32 tensor)
-{v_2 : tensor} |= dtype_(v_2) = 7 ∧ ndim(v_2) = 0
->>
-Rule 3 (max_range must be a scalar float32 tensor)
-{v_3 : tensor} |= dtype_(v_3) = 7 ∧ ndim(v_3) = 0
->>
-Rule 4 (min_range must be less than or equal to max_range)
-{v_2 : tensor, v_3 : tensor} |= v_2 ≤ v_3
->>
-Rule 5 (mode must be one of the allowed strings)
-{v_4 : str} |= v_4 = "MIN_COMBINED" ∨ v_4 = "MIN_FIRST" ∨ v_4 = "SCALED"
->>
-Rule 6 (If dtype is bfloat16, then mode must be MIN_COMBINED)
-{v_5 : dtype, v_4 : str} |= if v_5 = 6 then v_4 = "MIN_COMBINED"
->>
-Rule 7 (narrow_range must be a boolean)
-{v_6 : bool} |= v_6 = true ∨ v_6 = false
->>
-Rule 9 (dtype must be bfloat16 or float32)
-{v_5 : dtype} |= v_5 = 6 ∨ v_5 = 7
->>
-Rule 10 (If min_range and max_range are the same, scaling_factor becomes zero and it might cause division by zero.)
-{v_2 : tensor, v_3 : tensor} |= v_2 ≠ v_3
->>
-Rule 21 (Input tensor must be quantized, meaning the dtype must be in the range [1,5])
-{v_1 : tensor} |= dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5
->>
-Rule 22 (min_range and max_range should have compatible dtypes, specifically float32)
+Rule 2 (min_range and max_range must be float32)
 {v_2 : tensor, v_3 : tensor} |= dtype_(v_2) = 7 ∧ dtype_(v_3) = 7
 >>
-Rule 25 (axis has a default value)
-{v_1 : tensor, v_7 : int} |= v_7 ≥ (0 - ndim(v_1)) ∧ v_7 < ndim(v_1)
+Rule 3 (dtype must be either bfloat16 or float32)
+{v_8 : dtype} |= v_8 = 6 ∨ v_8 = 7
 >>
-Rule 27 (Input tensor must have more than 0 dimensions)
+Rule 4 (If dtype is bfloat16, mode must be MIN_COMBINED)
+{v_4 : str, v_8 : dtype} |= if v_8 = 6 then v_4 = "MIN_COMBINED"
+>>
+Rule 5 (min_range must be less than or equal to max_range)
+{v_2 : tensor, v_3 : tensor} |= min(v_2) ≤ max(v_3)
+>>
+Rule 6 (axis must be within the valid range for the input tensor's dimensions, considering default value)
+{v_1 : tensor, v_6 : int} |= if ndim(v_1) > 0 then v_6 ≥ -1 * ndim(v_1) ∧ v_6 < ndim(v_1)
+>>
+Rule 7 (narrow_range must be a boolean value)
+{v_7 : bool} |= v_7 = true ∨ v_7 = false
+>>
+Rule 8 (mode must be one of the allowed strings)
+{v_4 : str} |= v_4 = "MIN_COMBINED" ∨ v_4 = "MIN_FIRST" ∨ v_4 = "SCALED"
+>>
+Rule 10 (min_range and max_range must be scalar tensors)
+{v_2 : tensor, v_3 : tensor} |= ndim(v_2) = 0 ∧ ndim(v_3) = 0
+>>
+Rule 11 (input must be one of the supported data types)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2
+>>
+Rule 19 (input tensor must have at least one dimension)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 28 (If axis is not -1 then it should be a valid dimension of the input tensor)
-{v_1 : tensor, v_7 : int} |= if v_7 ≠ -1 then v_7 ≥ (0 - ndim(v_1)) ∧ v_7 < ndim(v_1)
+Rule 21 (check if input is qint16, quint16)
+{v_1 : tensor} |= dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 8 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 7
 >>
-Rule 29 (min_range must be a scalar)
-{v_2 : tensor} |= ndim(v_2) = 0
+Rule 22 (Input dtype must be supported.)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 4
 >>
-Rule 30 (max_range must be a scalar)
-{v_3 : tensor} |= ndim(v_3) = 0
+Rule 23 (min_range and max_range must be finite numbers)
+{v_2 : tensor, v_3 : tensor} |= min(v_2) > -100000000.0 ∧ max(v_3) < 100000000.0
 >>
-Rule 34 (If the mode is scaled, the ranges must be positive, else scaled values do not work)
-{v_4 : str, v_2 : tensor, v_3 : tensor} |= if v_4 = "SCALED" then v_2 > 0 ∧ v_3 > 0
+Rule 24 (Check if axis is within allowed range, considering that axis is optional with default -1)
+{v_1 : tensor, v_6 : int} |= if ndim(v_1) > 0 then v_6 ≥ (0 - ndim(v_1)) ∧ v_6 < ndim(v_1)
 >>
-Rule 38 (max_range must be greater than min_range)
-{v_2 : tensor, v_3 : tensor} |= v_3 > v_2
+Rule 25 (If input has ndim=0, then axis is ignored)
+{v_1 : tensor, v_6 : int} |= if ndim(v_1) = 0 then true else v_6 ≥ (0 - ndim(v_1)) ∧ v_6 < ndim(v_1)
 >>
-Rule 61 (Input tensor's dtype can only be quantized int)
+Rule 28 (Input dtype must be supported. No complex types.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+>>
+Rule 29 (If mode is SCALED, min_range must be 0)
+{v_2 : tensor, v_4 : str} |= if v_4 = "SCALED" then min(v_2) = 0
+>>
+Rule 30 (If dtype is bfloat16, narrow_range is false.)
+{v_7 : bool, v_8 : dtype} |= if v_8 = 6 then v_7 = false
+>>
+Rule 31 (Min_range cannot be positive if max_range is negative)
+{v_2 : tensor, v_3 : tensor} |= if max(v_3) < 0 then min(v_2) <= 0
+>>
+Rule 32 (Input dtype must be a quantized type)
 {v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5
 >>
-Rule 65 (Mode must be from the available options)
-{v_4 : str} |= v_4 = "MIN_COMBINED" ∨ v_4 =  "MIN_FIRST" ∨ v_4 = "SCALED"
+Rule 33 (if input is qint8 or quint8, dtype must be float32)
+{v_1 : tensor, v_8 : dtype} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 then v_8 = 7
 >>
-Rule 71 (input tensor must have a quantized dtype)
+Rule 34 (If the mode is SCALED, then the min range must be equal to zero)
+{v_4 : str, v_2 : tensor} |= if v_4 = "SCALED" then min(v_2) = 0
+>>
+Rule 35 (Input dtype must be a quantized type and not float)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 4
+>>
+Rule 36 (min_range and max_range must have same dtype)
+{v_2 : tensor, v_3 : tensor} |= dtype_(v_2) = dtype_(v_3)
+>>
+Rule 40 (if narrow_range is set, input's max value should not exceed numerical limit)
+{v_1: tensor, v_7: bool} |= if v_7 = true then max(v_1) < 100000
+>>
+Rule 41 (Input dtype must be a quantized type)
 {v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
 >>
-Rule 78 (dtype must be either float32 or bfloat16)
-{v_5 : dtype} |= v_5 = 7 ∨ v_5 = 6
+Rule 42 (if input is qint8 or quint8, dtype must be bfloat16 or float32)
+{v_1 : tensor, v_8 : dtype} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 then v_8 = 6 ∨ v_8 = 7
 >>
-Rule 101 (narrow_range is relevant only if mode is SCALED)
-{v_4 : str, v_6 : bool} |= if v_4 = "SCALED" then v_6 = true ∨ v_6 = false
+Rule 44 (If the dtype is bfloat16, then the mode must be MIN_COMBINED)
+{v_8 : dtype, v_4 : str} |= if v_8 = 6 then v_4 = "MIN_COMBINED"
+>>
+Rule 48 (If mode is MIN_FIRST or MIN_COMBINED, then min_range must be less than max_range)
+{v_4 : str, v_2 : tensor, v_3 : tensor} |= if v_4 = "MIN_FIRST" ∨ v_4 = "MIN_COMBINED" then min(v_2) ≤ max(v_3)
+>>
+Rule 49 (If input is qint32 or qint16, the dtype must be float32)
+{v_1 : tensor, v_8 : dtype} |= if dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 then v_8 = 7
+>>
+Rule 50 (Min range must be less than max range)
+{v_2 : tensor, v_3 : tensor} |= min(v_2) < max(v_3)
+>>
+Rule 52 (If input is qint32 or qint16, the dtype must be float32 or bfloat16)
+{v_1 : tensor, v_8 : dtype} |= if dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 then v_8 = 7 ∨ v_8 = 6
+>>
+Rule 54 (Axis must be within range)
+{v_1 : tensor, v_6: int} |= if ndim(v_1) > 0 then v_6 >= (0 - ndim(v_1)) ∧ v_6 < ndim(v_1)
+>>
+Rule 56 (If the mode is SCALED and dtype is bfloat16, it's invalid)
+{v_4 : str, v_8 : dtype} |= if v_4 = "SCALED" then v_8 ≠ 6
+>>
+Rule 58 (If mode is MIN_COMBINED or MIN_FIRST, min_range should be less or equal to max_range)
+{v_4 : str, v_2 : tensor, v_3 : tensor} |= if v_4 = "MIN_COMBINED" ∨ v_4 = "MIN_FIRST" then min(v_2) ≤ max(v_3)
+>>
+Rule 63 ( narrow_range is boolean or not.)
+{v_7: bool} |= v_7 = true ∨ v_7 = false
+>>
+Rule 67 (Dtype should be float32 or bfloat16)
+{v_8: dtype} |= v_8 = 7 ∨ v_8 = 6
+>>
+Rule 69 (If min_range is zero, then mode is Scaled )
+{v_2 : tensor, v_4 : str} |= if min(v_2) = 0 then v_4 = "SCALED"
+>>
+Rule 71 (If mode is SCALED and dtype is not float32 then throw error)
+{v_4 : str, v_8 : dtype} |= if v_4 = "SCALED" then v_8 = 7
+>>
+Rule 72 (if min range is less than 0 then max range is also less than 0 )
+{v_2: tensor, v_3: tensor} |= if min(v_2) < 0 then max(v_3) < 0
+>>
+Rule 76 (Input dtype must be quantized type)
+{v_1: tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+>>
+Rule 81 (Axis should be in a valid range)
+{v_1: tensor, v_6: int} |= if ndim(v_1) > 0 then v_6 >= (0 - ndim(v_1)) ∧ v_6 < ndim(v_1)
+>>
+Rule 82 (If min_range or max_range has dimension greater than zero, it will be an error)
+{v_2 : tensor, v_3 : tensor} |= ndim(v_2) ≤ 0 ∧ ndim(v_3) ≤ 0
+>>
+Rule 87 (mode cannot be null.)
+{v_4 : str} |= v_4 ≠ "none"
+>>
+Rule 88 (Output dtype should be bfloat16 or float32)
+{v_8: dtype} |= v_8 = 6 ∨ v_8 = 7
+>>
+Rule 91 (If dtype is not float, mode cannot be Scaled)
+{v_8 : dtype, v_4 : str} |= if v_8 ≠ 7 then v_4 ≠ "SCALED"
+>>
+Rule 94 (The output dtype cannot be int64)
+{v_8 : dtype} |= v_8 ≠ 4
+>>
+Rule 97 (If output dtype is bfloat16, the mode must be MIN_COMBINED)
+{v_8: dtype, v_4: str} |= if v_8 = 6 then v_4 = "MIN_COMBINED"
+>>
+Rule 98 (If output dtype is bfloat16, the input dtype cannot be qint32, qint16, quint16)
+{v_1: tensor, v_8: dtype} |= if v_8 = 6 then dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 6
+>>
+Rule 99 ( min_range and max_range data type should be float32.)
+{v_2: tensor, v_3: tensor} |= dtype_(v_2) = 7 ∧ dtype_(v_3) = 7
+>>
+Rule 100 (If the mode is SCALED, min_range needs to be zero.)
+{v_4: str, v_2: tensor} |= if v_4 = "SCALED" then min(v_2) = 0
+>>
+Rule 102 (If dtype is bfloat16, narrow_range must be False)
+{v_8: dtype, v_7: bool} |= if v_8 = 6 then v_7 = false
+>>
+Rule 103 (If dtype is not float32, Mode cannot be SCALED )
+{v_8: dtype, v_4: str} |= if v_8 ≠ 7 then v_4 ≠ "SCALED"
+>>
+Rule 104 (If min range is greater than zero then max range must be greater than min range)
+{v_2: tensor, v_3: tensor} |= if min(v_2) > 0 then max(v_3) > min(v_2)
+>>
+Rule 105 (if dtype is bfloat16 then min and max range data type should be float 32 )
+{v_8: dtype, v_2: tensor, v_3: tensor} |= if v_8 = 6 then dtype_(v_2) = 7 ∧ dtype_(v_3) = 7
+>>
+Rule 112 (If output dtype is bfloat16, input dtype can only be qint8 and quint8)
+{v_8: dtype, v_1: tensor} |= if v_8 = 6 then dtype_(v_1) = 1 ∨ dtype_(v_1) = 5
+>>
+Rule 113 (If the input is qint16 or qint32, the dtype must be float32.)
+{v_1 : tensor, v_8 : dtype} |= if dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 then v_8 = 7
+>>
+Rule 115 (The min and max range values must have the same data type)
+{v_2: tensor, v_3: tensor} |= dtype_(v_2) = dtype_(v_3)
+>>
+Rule 116 (if dtype is not specified then default it to be float32)
+{v_8: dtype} |= if v_8 = 0 then true else v_8 = 6 ∨ v_8 = 7
+>>
+Rule 122 (If dtype is bfloat16, then input dtype must be qint8 or quint8)
+{v_8 : dtype, v_1 : tensor} |= if v_8 = 6 then dtype_(v_1) = 1 ∨ dtype_(v_1) = 5
+>>
+Rule 123 (if axis is defined then the input tensor should have dimensions greater than zero.)
+{v_1 : tensor, v_6 : int} |= if v_6 ≠ -1 then ndim(v_1) > 0
+>>
+Rule 126 (If dtype is float32 or bfloat16, input must be one of allowed quantized types)
+{v_1: tensor, v_8: dtype} |= if v_8 = 7 ∨ v_8 = 6 then dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 4
+>>
+Rule 127 (if min_range equals to max_range, then the result will be constant )
+{v_2: tensor, v_3: tensor} |= min(v_2) ≠ max(v_3)

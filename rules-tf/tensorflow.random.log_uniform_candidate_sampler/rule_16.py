@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If seed is negative, make it zero. (Rule 16)
+# Check that range_max is small enough to fit in int32 (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] < 0, v["arg1_value"] == 0, False)) if n else
-          If(v["arg1_value"] < 0, v["arg1_value"] == 0, False))
+    s.add(Not(v["arg1_value"] <= 2147483647) if n else
+          v["arg1_value"] <= 2147483647)
 )
 
 def rule_16_func(arg1, solver=None, neg=False):

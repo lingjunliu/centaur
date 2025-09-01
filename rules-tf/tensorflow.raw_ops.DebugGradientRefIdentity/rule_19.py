@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# check if input tensor's datatype is uint8 (Rule 19)
+# If input tensor is of np.int8, then no other types are allowed (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == 5) if n else
-          v["arg1_dtype"] == 5)
+    s.add(Not(If(v["arg1_dtype"] == 1, True, True)) if n else
+          If(v["arg1_dtype"] == 1, True, True))
 )
 
 def rule_19_func(arg1, solver=None, neg=False):

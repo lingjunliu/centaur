@@ -1,60 +1,81 @@
 >>
-Rule 1 (boxes rank must be 2 or higher)
-{v_1 : tensor} |= ndim(v_1) ≥ 2
+Rule 1 (boxes tensor must have rank 2 or higher)
+{boxes : tensor} |= ndim(boxes) ≥ 2
 >>
-Rule 2 (scores rank must be 1 or higher)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 2 (boxes tensor must have last dimension of size 4)
+{boxes : tensor} |= ndim(boxes) > 1 ∧ shape(boxes, ndim(boxes) - 1) = 4
 >>
-Rule 3 (last dimension of boxes must be 4)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) = 4
+Rule 3 (scores tensor must have rank 1 or higher)
+{scores : tensor} |= ndim(scores) ≥ 1
 >>
-Rule 4 (num_boxes dimension of boxes and scores must match)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 1)
+Rule 4 (scores tensor and boxes tensor must have the same number of boxes along the dimension before the last one of boxes)
+{boxes : tensor, scores : tensor} |= ndim(boxes) ≥ 2 ∧ ndim(scores) ≥ 1 ∧ shape(scores, ndim(scores) -1) = shape(boxes, ndim(boxes) - 2)
 >>
 Rule 5 (max_output_size must be greater than or equal to 0)
-{v_1 : int} |= v_1 ≥ 0
+{max_output_size : int} |= max_output_size ≥ 0
 >>
 Rule 6 (iou_threshold must be between 0 and 1 inclusive)
-{v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
+{iou_threshold : float} |= 0 ≤ iou_threshold ∧ iou_threshold ≤ 1
 >>
-Rule 11 (tile_size must be greater than 0)
-{v_1 : int} |= v_1 > 0
+Rule 11 (tile_size must be an integer greater than 0)
+{tile_size : int} |= tile_size > 0
 >>
-Rule 12 (boxes and scores shapes should be conformable)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 2 then shape(v_1, 0) = shape(v_2, 0)
+Rule 28 (Shape of boxes must be evenly divisible by tile_size * 4 if tile_size is not 1)
+{boxes : tensor, tile_size : int} |= if tile_size ≠ 1 then shape(boxes, ndim(boxes)-2) % tile_size = 0
 >>
-Rule 13 (iou_threshold must be less than or equal to 1)
-{v_1 : float} |= v_1 <= 1
+Rule 30 (boxes tensor must have last dimension of size 4)
+{boxes : tensor} |= shape(boxes, ndim(boxes) - 1) = 4
 >>
-Rule 21 (boxes and scores shapes should be conformable)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 2 then ∀i ∈ [0, ndim(v_1) - 3] : shape(v_1, i) = shape(v_2, i)
+Rule 32 (scores tensor and boxes tensor must have the same number of boxes along the dimension before the last one of boxes)
+{boxes : tensor, scores : tensor} |= shape(scores, ndim(scores) -1) = shape(boxes, ndim(boxes) - 2)
 >>
-Rule 30 (boxes and scores shapes should be conformable)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 2 then ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i)
+Rule 35 (pad_to_max_output_size must be a boolean)
+{pad_to_max_output_size : bool} |= pad_to_max_output_size = true ∨ pad_to_max_output_size = false
 >>
-Rule 32 (boxes must be float type)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
+Rule 36 (sorted_input must be a boolean)
+{sorted_input : bool} |= sorted_input = true ∨ sorted_input = false
 >>
-Rule 41 (if pad_to_max_output_size is false and boxes have batch dims raise ValueError)
-{v_1: tensor, v_2: bool} |= if v_2 = false then ndim(v_1) <= 2
+Rule 37 (canonicalized_coordinates must be a boolean)
+{canonicalized_coordinates : bool} |= canonicalized_coordinates = true ∨ canonicalized_coordinates = false
 >>
-Rule 42 (boxes and scores dtype should match)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 39 (boxes tensor must have a floating-point dtype if iou_threshold is greater than 0)
+{boxes: tensor, iou_threshold: float} |= if iou_threshold > 0 then (dtype_(boxes) = 6 ∨ dtype_(boxes) = 7 ∨ dtype_(boxes) = 8)
 >>
-Rule 50 (pad_to_max_output_size is only valid if the boxes have batch dimensions if false will throw error)
-{v_1: tensor, v_2: bool} |= if v_2 = false then ndim(v_1) <=2
+Rule 40 (scores tensor must have a floating-point dtype if score_threshold is greater than 0)
+{scores: tensor, score_threshold: float} |= if score_threshold > 0 then (dtype_(scores) = 6 ∨ dtype_(scores) = 7 ∨ dtype_(scores) = 8)
 >>
-Rule 70 (score_threshold should be greater than min score )
-{v_1: float, v_2: tensor} |= v_1 >= min(v_2)
+Rule 54 (boxes tensor must have a floating-point dtype if iou_threshold is greater than 0)
+{boxes: tensor, iou_threshold: float} |= if iou_threshold > 0 then dtype_(boxes) ≥ 6 ∧ dtype_(boxes) ≤ 8
 >>
-Rule 78 (score_threshold cannot be NaN)
-{v_1 : float} |= v_1 = v_1
+Rule 55 (scores tensor must have a floating-point dtype if score_threshold is greater than 0)
+{scores: tensor, score_threshold: float} |= if score_threshold > 0 then dtype_(scores) ≥ 6 ∧ dtype_(scores) ≤ 8
 >>
-Rule 79 (max_output_size should be less than the total number of boxes)
-{v_1: int, v_2: tensor} |= v_1 <= shape(v_2, ndim(v_2)-1)
+Rule 57 (pad_to_max_output_size must be true for batched input)
+{boxes : tensor, pad_to_max_output_size : bool} |= if ndim(boxes) > 2 then pad_to_max_output_size = true
 >>
-Rule 96 (boxes and scores dimensions should match except for the last dimension and the num_boxes)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i) else false
+Rule 72 (boxes and scores must have the same dtype)
+{boxes: tensor, scores: tensor} |= dtype_(boxes) = dtype_(scores)
 >>
-Rule 104 (if boxes have a batch dimenstion, then scores has it too)
-{v_1 : tensor, v_2: tensor} |= if ndim(v_1) > 2 then ndim(v_2) > 1
+Rule 88 (boxes and scores must have compatible dtypes for comparison.)
+{boxes : tensor, scores : tensor} |= (dtype_(boxes) = 7 ∧ dtype_(scores) = 7) ∨ (dtype_(boxes) = 8 ∧ dtype_(scores) = 8) ∨ (dtype_(boxes) = 6 ∧ dtype_(scores) = 6)
+>>
+Rule 103 (scores tensor must be of type float if comparing with score_threshold)
+{scores: tensor, score_threshold: float} |= if score_threshold > 0 then dtype_(scores) = 7 ∨ dtype_(scores) = 8 ∨ dtype_(scores) = 6
+>>
+Rule 118 (Scores tensor cannot have a dimension size of 0)
+{scores : tensor} |= ∀i ∈ [0, ndim(scores)-1] : shape(scores, i) ≠ 0
+>>
+Rule 119 (Boxes tensor must have dimensions that allow division by tile_size)
+{boxes: tensor, tile_size: int} |= (shape(boxes, ndim(boxes) -2) % tile_size = 0) ∨ tile_size = 1
+>>
+Rule 120 (if the slice index is -1, shape of the array must be greater than zero)
+{boxes: tensor} |= shape(boxes, 0) > 0
+>>
+Rule 135 (Scores tensor cannot have a dimension size of 0)
+{scores : tensor} |= ∃i ∈ [0, ndim(scores)-1] : shape(scores, i) > 0
+>>
+Rule 138 (boxes tensor must not have dimensions that lead to zero elements)
+{boxes: tensor} |= ∀i ∈ [0, ndim(boxes)-1]: shape(boxes, i) ≠ 0
+>>
+Rule 139 (scores tensor must not have dimensions that lead to zero elements)
+{scores: tensor} |= ∀i ∈ [0, ndim(scores)-1]: shape(scores, i) ≠ 0

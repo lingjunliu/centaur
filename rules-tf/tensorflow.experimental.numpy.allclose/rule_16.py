@@ -5,16 +5,17 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the shapes of the tensors are different, they must be broadcastable or at least one of them must be a scalar. (Rule 16)
+# if shapes of a and b are the same, then dtypes must also be the same if equal_nan is false (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), True, (And([Implies(i < (If(v["arg1_ndim"] >= v["arg2_ndim"], v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), (If((v["arg1_ndim"] - i - 1) < 0, Select(v["arg2_shape"], v["arg2_ndim"] - i - 1) == 1, If((v["arg2_ndim"] - i - 1) < 0, Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == 1, Or(Or(Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - i - 1), Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == 1), Select(v["arg2_shape"], v["arg2_ndim"] - i - 1) == 1))))) for i in range(6)])))) if n else
-          If(Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), True, (And([Implies(i < (If(v["arg1_ndim"] >= v["arg2_ndim"], v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), (If((v["arg1_ndim"] - i - 1) < 0, Select(v["arg2_shape"], v["arg2_ndim"] - i - 1) == 1, If((v["arg2_ndim"] - i - 1) < 0, Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == 1, Or(Or(Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - i - 1), Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == 1), Select(v["arg2_shape"], v["arg2_ndim"] - i - 1) == 1))))) for i in range(6)]))))
+    s.add(Not(If(And((Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)), (v["arg3_value"] == False)), v["arg1_dtype"] == v["arg2_dtype"], True)) if n else
+          If(And((Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)), (v["arg3_value"] == False)), v["arg1_dtype"] == v["arg2_dtype"], True))
 )
 
-def rule_16_func(arg1, arg2, solver=None, neg=False):
+def rule_16_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
@@ -22,26 +23,30 @@ def rule_16_func(arg1, arg2, solver=None, neg=False):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
+        if not isinstance(arg3, bool):
+            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_ndim = Int('arg2_ndim')
+        arg1_dtype = Int('arg1_dtype')
         arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg2_dtype = Int('arg2_dtype')
+        arg3_value = Bool('arg3_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         for i in range(arg2.ndim):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg3_value == arg3)
 
         # Constraints for rule 16
-        rule_16(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape})
+        rule_16(solver, {'arg1_shape': arg1_shape, 'arg1_dtype': arg1_dtype, 'arg2_shape': arg2_shape, 'arg2_dtype': arg2_dtype, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_16(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']}, neg)
+        rule_16(solver, {'arg1_shape': arg1['shape'], 'arg1_dtype': arg1['dtype'], 'arg2_shape': arg2['shape'], 'arg2_dtype': arg2['dtype'], 'arg3_value': arg3['value']}, neg)

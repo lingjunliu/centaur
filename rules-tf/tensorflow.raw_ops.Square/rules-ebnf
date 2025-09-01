@@ -1,60 +1,159 @@
 >>
-Rule 1 (x must have a supported dtype)
-{x : tensor} |= 1 ≤ dtype_(x) ∧ dtype_(x) ≤ 11 ∧ dtype_(x) ≠ 5 ∧ dtype_(x) ≠ 12
+Rule 1 (The input tensor x must have a supported dtype.)
+{x : tensor} |= dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10 ∨ dtype_(x) = 2 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 5 ∨ dtype_(x) = 6 ∨ dtype_(x) = 1 ∨ dtype_(x) = 0
 >>
-Rule 2 (The output tensor has the same type as the input tensor)
-{x : tensor} |= dtype_(x) = dtype_(x)
+Rule 3 (input tensor should have dimension bigger than 0)
+{x : tensor} |= ndim(x) > 0
 >>
-Rule 3 (x must be a numerical tensor)
-{x : tensor} |= dtype_(x) ≠ 0 ∧ dtype_(x) ≠ 12
+Rule 4 (name parameter's length should be limited)
+{name : str} |= name.len < 200
 >>
-Rule 4 (shape of x must be valid)
-{x : tensor} |= ndim(x) ≥ 0
+Rule 7 (shape of the input tensor should be less than a limit)
+{x : tensor} |= shape(x, 0) < 1000
 >>
-Rule 5 (x can not be a string tensor)
+Rule 8 (If the input tensor is complex, its imaginary part should not have large values.)
+{x : tensor} |= if dtype_(x) = 10 ∨ dtype_(x) = 9 then max(x) < 1000
+>>
+Rule 9 (The minimum value of the input tensor should be less than the maximum)
+{x : tensor} |= min(x) ≤ max(x)
+>>
+Rule 10 (If the tensor is an integer type, the values should not overflow after squaring)
+{x : tensor} |= if dtype_(x) = 2 then max(x) < 46340 ∧ min(x) > -46340 else if dtype_(x) = 3 then max(x) < 65535 ∧ min(x) > -65535 else if dtype_(x) = 4 then true
+>>
+Rule 11 (The shape of the tensor should not contain extremely large values to avoid memory issues)
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) < 2147483647
+>>
+Rule 12 (The input tensor x should not have NaN values)
+{x : tensor} |= ∃i ∈ [0, ndim(x) - 1] : shape(x, i) > 0 ∧ min(x) ≠ "NaN" ∧ max(x) ≠ "NaN"
+>>
+Rule 13 (For integer tensors, all values should be finite)
+{x : tensor} |= if dtype_(x) = 2 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 5 ∨ dtype_(x) = 6 then min(x) > -1000000000000 ∧ max(x) < 1000000000000
+>>
+Rule 14 (The dimension of the tensor must be less than or equal to 6)
+{x : tensor} |= ndim(x) ≤ 6
+>>
+Rule 15 (The number of elements in the tensor should not exceed a limit)
+{x : tensor} |= if ndim(x) = 1 then shape(x, 0) < 100000000 else if ndim(x) = 2 then shape(x, 0) * shape(x, 1) < 100000000 else if ndim(x) = 3 then shape(x, 0) * shape(x, 1) * shape(x, 2) < 100000000
+>>
+Rule 16 (The size of the tensor in bytes should be less than a limit)
+{x : tensor} |= if dtype_(x) = 0 then shape(x,0) * 1 < 2000000000 else if dtype_(x) = 1 then shape(x,0) * 1 < 2000000000 else if dtype_(x) = 2 then shape(x,0) * 2 < 2000000000 else if dtype_(x) = 3 then shape(x,0) * 4 < 2000000000 else if dtype_(x) = 4 then shape(x,0) * 8 < 2000000000 else if dtype_(x) = 5 then shape(x,0) * 1 < 2000000000 else if dtype_(x) = 6 then shape(x,0) * 2 < 2000000000 else if dtype_(x) = 7 then shape(x,0) * 4 < 2000000000 else if dtype_(x) = 8 then shape(x,0) * 8 < 2000000000
+>>
+Rule 17 (For float16, float32, float64, check if they are not inf)
+{x : tensor} |= if dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 then min(x) ≠ "inf" ∧ max(x) ≠ "inf"
+>>
+Rule 18 (if dtype is uint, the values must be positive)
+{x : tensor} |= if dtype_(x) = 5 then min(x) >= 0
+>>
+Rule 19 (if the tensor is bfloat16, the absolute max value should be reasonable)
+{x : tensor} |= if dtype_(x) = 0 then max(x) < 65500
+>>
+Rule 20 (For complex tensors, the real and imaginary components should be within reasonable bounds)
+{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then min(x) > -10000 ∧ max(x) < 10000
+>>
+Rule 21 (For half precision, values should be less than a limit to prevent overflow during square operation)
+{x : tensor} |= if dtype_(x) = 1 then max(x) < 181.019
+>>
+Rule 22 (check the total size of the tensor with dtype to prevent allocating too much memory)
+{x : tensor} |= if dtype_(x) = 0 then shape(x, 0) * shape(x, 1) / 2 < 2000000000 else if dtype_(x) = 1 then shape(x, 0) * shape(x, 1) / 2 < 2000000000 else if dtype_(x) = 2 then shape(x, 0) * shape(x, 1) < 2000000000
+>>
+Rule 23 (Input tensor's dtype should not be bool)
 {x : tensor} |= dtype_(x) ≠ 11
 >>
-Rule 6 (If the tensor is complex, the imaginary part must be 0.)
-{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then min(x) = max(x)
+Rule 24 (If the tensor is uint16, the values must be less than 256 to prevent integer overflow)
+{x : tensor} |= if dtype_(x) = 6 then max(x) < 256
 >>
-Rule 7 (The tensor x should not have dimensions exceeding a limit.)
-{x : tensor} |= ndim(x) ≤ 8
+Rule 25 (if the tensor is uint32, the values must be less than 65536 to prevent integer overflow)
+{x : tensor} |= if dtype_(x) = 7 then max(x) < 65536
 >>
-Rule 8 (The tensor x can not be a bool tensor)
-{x : tensor} |= dtype_(x) ≠ 0
+Rule 26 (If the tensor is uint64, the values must be less than 4294967296 to prevent integer overflow)
+{x : tensor} |= if dtype_(x) = 8 then max(x) < 4294967296
 >>
-Rule 9 (If the tensor x is a uint, then all values should be non negative.)
-{x : tensor} |= if dtype_(x) = 5 ∨ dtype_(x) = 6 then min(x) ≥ 0
+Rule 27 (If the tensor is int8, the values must be in [-16, 15] to be safely squared to int16, and smaller values will improve performance)
+{x : tensor} |= if dtype_(x) = 1 then min(x) >= -16 ∧ max(x) <= 15
 >>
-Rule 10 (Shape of x should not contain negative numbers)
-{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) ≥ 0
+Rule 28 (If the tensor is int16, the values must be in [-23170, 23170] to be safely squared to int32, and smaller values will improve performance)
+{x : tensor} |= if dtype_(x) = 2 then min(x) >= -23170 ∧ max(x) <= 23170
 >>
-Rule 11 (If the tensor is quantized, the min and max values should be present.)
-{x : tensor} |= if dtype_(x) = 1 ∨ dtype_(x) = 5 ∨ dtype_(x) = 6 then ∃v_1 ∈ [0, ndim(x) - 1] : min(x) ≠ max(x)
+Rule 29 (If the tensor is int32, the values must be in [-46340, 46340] to be safely squared to int64, and smaller values will improve performance.)
+{x : tensor} |= if dtype_(x) = 3 then min(x) >= -46340 ∧ max(x) <= 46340
 >>
-Rule 12 (The product of the shape dimensions should be less than a limit.)
-{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) < 10000
+Rule 30 (If the tensor is int64, the values must be in [-2147483647, 2147483647] to prevent integer overflow.)
+{x : tensor} |= if dtype_(x) = 4 then min(x) >= -2147483647 ∧ max(x) <= 2147483647
 >>
-Rule 13 (If the tensor is bfloat16 or half, the values should be finite.)
-{x : tensor} |= if dtype_(x) = 6 ∨ dtype_(x) = 7 then ∀i ∈ [0, ndim(x) - 1] : min(x) ≠ "inf" ∧ max(x) ≠ "inf"
+Rule 31 (If the tensor is uint8, the values must be less than or equals 11, squaring would be smaller than 256, and better performance.)
+{x : tensor} |= if dtype_(x) = 5 then max(x) <= 15
 >>
-Rule 14 (The tensor x should have at least one element.)
-{x : tensor} |= (∃i ∈ [0, ndim(x) - 1] : shape(x, i) > 0)
+Rule 32 (Tensor should not have inf and -inf)
+{x : tensor} |= min(x) ≠ "inf" ∧ max(x) ≠ "-inf"
 >>
-Rule 17 (The number of elements in x should be less than a limit.)
-{x : tensor} |= if ndim(x) > 0 then shape(x, 0) < 1000000
+Rule 33 (if the dtype is uint16, then the max value should be smaller than 362, larger number could cause performance decrease.)
+{x : tensor} |= if dtype_(x) = 6 then max(x) <= 362
 >>
-Rule 18 (The number of elements in x should be less than a limit.)
-{x : tensor} |= if ndim(x) > 0 then ∃i ∈ [0, ndim(x) - 1] : shape(x, i) < 1000000
+Rule 34 (if the dtype is uint32, then the max value should be smaller than 8192, larger number could cause performance decrease.)
+{x : tensor} |= if dtype_(x) = 7 then max(x) <= 8192
 >>
-Rule 19 (The number of elements in x should be less than a limit.)
-{x : tensor} |= if ndim(x) > 0 then ∀i ∈ [0, ndim(x) - 1] : shape(x, i) < 1000
+Rule 35 (If the dtype is uint64, then the max value should be smaller than 65536, larger number could cause performance decrease.)
+{x : tensor} |= if dtype_(x) = 8 then max(x) <= 65536
 >>
-Rule 20 (The number of elements in x should be less than a limit.)
-{x : tensor} |= if ndim(x) > 0 then ∀i ∈ [0, ndim(x) - 1] : shape(x, i) < 1000 ∨ ndim(x) < 2
+Rule 36 (if the dtype is int32, then the min value should be larger than -65536, smaller number could cause performance decrease.)
+{x : tensor} |= if dtype_(x) = 3 then min(x) >= -65536
 >>
-Rule 21 (The number of elements in x should be less than a limit.)
-{x : tensor} |= if ndim(x) > 0 then ∃i ∈ [0, ndim(x) - 1] : shape(x, i) < 1000 ∨ ndim(x) < 1
+Rule 37 (if the dtype is int64, then the min value should be larger than -4294967296, smaller number could cause performance decrease.)
+{x : tensor} |= if dtype_(x) = 4 then min(x) >= -4294967296
 >>
-Rule 22 (The number of elements in x should be less than a limit.)
-{x : tensor} |= if ndim(x) > 0 then ∀i ∈ [0, ndim(x) - 1] : shape(x, i) < 1000 else ndim(x) = 0
+Rule 38 (Input tensor's dtype should not be dtype)
+{x : tensor} |= dtype_(x) ≠ 12
+>>
+Rule 39 (if dtype is uint16, the values must be positive)
+{x : tensor} |= if dtype_(x) = 6 then min(x) >= 0
+>>
+Rule 40 (if dtype is uint32, the values must be positive)
+{x : tensor} |= if dtype_(x) = 7 then min(x) >= 0
+>>
+Rule 41 (if dtype is uint64, the values must be positive)
+{x : tensor} |= if dtype_(x) = 8 then min(x) >= 0
+>>
+Rule 42 (if dtype is int8, then the values must be larger than -128)
+{x : tensor} |= if dtype_(x) = 1 then min(x) >= -128
+>>
+Rule 43 (if dtype is int16, then the values must be larger than -32768)
+{x : tensor} |= if dtype_(x) = 2 then min(x) >= -32768
+>>
+Rule 44 (if dtype is int32, then the values must be larger than -2147483648)
+{x : tensor} |= if dtype_(x) = 3 then min(x) >= -2147483648
+>>
+Rule 45 (if dtype is int64, then the values must be larger than -9223372036854775808)
+{x : tensor} |= if dtype_(x) = 4 then min(x) >= -9223372036854775808
+>>
+Rule 46 (if dtype is int8, then the max value must be smaller than 128)
+{x : tensor} |= if dtype_(x) = 1 then max(x) < 128
+>>
+Rule 47 (if dtype is int16, then the max value must be smaller than 32768)
+{x : tensor} |= if dtype_(x) = 2 then max(x) < 32768
+>>
+Rule 48 (if dtype is int32, then the max value must be smaller than 2147483648)
+{x : tensor} |= if dtype_(x) = 3 then max(x) < 2147483648
+>>
+Rule 49 (if dtype is int64, then the max value must be smaller than 9223372036854775808)
+{x : tensor} |= if dtype_(x) = 4 then max(x) < 9223372036854775808
+>>
+Rule 50 (if dtype is uint8, then the max value must be smaller than 256)
+{x : tensor} |= if dtype_(x) = 5 then max(x) < 256
+>>
+Rule 51 (if dtype is float16, then the values should not be extremely large.)
+{x : tensor} |= if dtype_(x) = 6 then max(x) < 60000
+>>
+Rule 52 (if dtype is float32, then the values should not be extremely large.)
+{x : tensor} |= if dtype_(x) = 7 then max(x) < 10000000
+>>
+Rule 53 (if dtype is float64, then the values should not be extremely large.)
+{x : tensor} |= if dtype_(x) = 8 then max(x) < 1000000000000
+>>
+Rule 54 (name parameter should not contain special characters)
+{name : str} |= ∀i ∈ [0, name.len - 1] : name[i] ≥ "a" ∧ name[i] ≤ "z" ∨ name[i] ≥ "A" ∧ name[i] ≤ "Z" ∨ name[i] ≥ "0" ∧ name[i] ≤ "9" ∨ name[i] = "_"
+>>
+Rule 55 (if dtype is complex64, then the max value of the real part should not be extremely large.)
+{x : tensor} |= if dtype_(x) = 9 then max(x) < 50000
+>>
+Rule 56 (if dtype is complex128, then the max value of the real part should not be extremely large.)
+{x : tensor} |= if dtype_(x) = 10 then max(x) < 1000000

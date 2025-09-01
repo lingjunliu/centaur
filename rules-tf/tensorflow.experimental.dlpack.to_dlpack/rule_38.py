@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the tensor is complex, its dimension cannot be less than 1 (Rule 38)
+# The data type of the input tensor needs to be a supported type by DLPack, from boolean, int8, ..., complex128, as it cannot be a generic tf.dtype, or string. (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg1_ndim"] >= 1, False)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg1_ndim"] >= 1, False))
+    s.add(Not(v["arg1_dtype"] < 11) if n else
+          v["arg1_dtype"] < 11)
 )
 
 def rule_38_func(arg1, solver=None, neg=False):
@@ -22,17 +22,15 @@ def rule_38_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
         arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 38
-        rule_38(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim})
+        rule_38(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_38(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_38(solver, {'arg1_dtype': arg1['dtype']}, neg)

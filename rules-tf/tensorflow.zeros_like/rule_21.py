@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if input is a string, then dtype if specified must be a string (Rule 21)
+# If dtype is float16, float32, or float64, the input must also be of a floating-point type (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 11, Or(v["arg2_value"] == 11, v["arg2_value"] == 12), False)) if n else
-          If(v["arg1_dtype"] == 11, Or(v["arg2_value"] == 11, v["arg2_value"] == 12), False))
+    s.add(Not(If(Or(Or(v["arg2_value"] == 6, v["arg2_value"] == 7), v["arg2_value"] == 8), Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), True)) if n else
+          If(Or(Or(v["arg2_value"] == 6, v["arg2_value"] == 7), v["arg2_value"] == 8), Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), True))
 )
 
 def rule_21_func(arg1, arg2, solver=None, neg=False):

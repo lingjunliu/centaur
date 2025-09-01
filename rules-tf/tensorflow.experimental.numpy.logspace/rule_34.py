@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Num must be 1 or greater if reshape is False (Rule 34)
+# If endpoint is false, num must be greater than or equal to 2. (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == False, v["arg1_value"] >= 1, False)) if n else
-          If(v["arg2_value"] == False, v["arg1_value"] >= 1, False))
+    s.add(Not(If(v["arg2_value"] == False, v["arg1_value"] >= 2, True)) if n else
+          If(v["arg2_value"] == False, v["arg1_value"] >= 2, True))
 )
 
 def rule_34_func(arg1, arg2, solver=None, neg=False):

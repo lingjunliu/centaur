@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If Tout is float32, it should be represented as 8 (Rule 26)
+# Tout must be float32 or float64 if provided (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 8, True, If(v["arg1_value"] == 9, True, If(v["arg1_value"] == 0, True, False)))) if n else
-          If(v["arg1_value"] == 8, True, If(v["arg1_value"] == 9, True, If(v["arg1_value"] == 0, True, False))))
+    s.add(Not(Or(Or(v["arg1_value"] == 0, v["arg1_value"] == 8), v["arg1_value"] == 9)) if n else
+          Or(Or(v["arg1_value"] == 0, v["arg1_value"] == 8), v["arg1_value"] == 9))
 )
 
 def rule_26_func(arg1, solver=None, neg=False):

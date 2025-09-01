@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If dtype is complex64 or complex128, pylist values must be complex numbers. (Rule 53)
+# If inner_shape is empty, the rank should not be zero (Rule 53)
 
 rule_53 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_value"] == 9, v["arg1_value"] == 10), v["arg2_dtype"] == v["arg1_value"], False)) if n else
-          If(Or(v["arg1_value"] == 9, v["arg1_value"] == 10), v["arg2_dtype"] == v["arg1_value"], False))
+    s.add(Not(If(v["arg1_length"] == 0, v["arg2_value"] > 0, True)) if n else
+          If(v["arg1_length"] == 0, v["arg2_value"] > 0, True))
 )
 
 def rule_53_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_53_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_length = Int('arg1_length')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg1_length == len(arg1))
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 53
-        rule_53(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype})
+        rule_53(solver, {'arg1_length': arg1_length, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_53(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_53(solver, {'arg1_length': arg1['length'], 'arg2_value': arg2['value']}, neg)

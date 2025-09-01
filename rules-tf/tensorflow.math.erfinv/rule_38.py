@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# x's dtype should not be bool, int8, int16, int32, int64, uint8 (Rule 38)
+# Tensor v_1 must not be boolean (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(And(v["arg1_dtype"] != 0, v["arg1_dtype"] != 1), v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5)) if n else
-          And(And(And(And(And(v["arg1_dtype"] != 0, v["arg1_dtype"] != 1), v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5))
+    s.add(Not(v["arg1_dtype"] != 0) if n else
+          v["arg1_dtype"] != 0)
 )
 
 def rule_38_func(arg1, solver=None, neg=False):

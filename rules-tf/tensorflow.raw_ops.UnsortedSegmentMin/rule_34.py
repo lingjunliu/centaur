@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The rank of segment_ids should be less or equal to the rank of data (Rule 34)
+# If segment_ids is not empty, data must be of a supported type (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_ndim"] <= v["arg1_ndim"]) if n else
-          v["arg2_ndim"] <= v["arg1_ndim"])
+    s.add(Not(If(Or([And(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) == 0) for i in range(6)]), True, (Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 3), v["arg1_dtype"] == 6), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 4)))) if n else
+          If(Or([And(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) == 0) for i in range(6)]), True, (Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 3), v["arg1_dtype"] == 6), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 4))))
 )
 
 def rule_34_func(arg1, arg2, solver=None, neg=False):
@@ -25,17 +25,20 @@ def rule_34_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_dtype = Int('arg1_dtype')
         arg2_ndim = Int('arg2_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 34
-        rule_34(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
+        rule_34(solver, {'arg1_dtype': arg1_dtype, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_34(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_34(solver, {'arg1_dtype': arg1['dtype'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']}, neg)

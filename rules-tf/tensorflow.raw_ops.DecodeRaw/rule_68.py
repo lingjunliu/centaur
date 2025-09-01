@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If out_type takes more than one byte, little_endian must be specified as boolean. (Rule 68)
+# If the out_type is uint8 (5 (Rule 68)
 
 rule_68 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_value"] > 0, v["arg1_value"] != 5), Or(v["arg2_value"] == True, v["arg2_value"] == False), False)) if n else
-          If(And(v["arg1_value"] > 0, v["arg1_value"] != 5), Or(v["arg2_value"] == True, v["arg2_value"] == False), False))
+    s.add(Not(If(v["arg1_value"] == 5, (Or(v["arg2_value"] == True, v["arg2_value"] == False)), True)) if n else
+          If(v["arg1_value"] == 5, (Or(v["arg2_value"] == True, v["arg2_value"] == False)), True))
 )
 
 def rule_68_func(arg1, arg2, solver=None, neg=False):

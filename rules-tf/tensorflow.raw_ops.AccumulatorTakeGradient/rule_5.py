@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# num_required must be less than a maximum value (Rule 5)
+# dtype must be a valid dtype representation (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 2147483647) if n else
-          v["arg1_value"] < 2147483647)
+    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] <= 18)) if n else
+          And(v["arg1_value"] >= 0, v["arg1_value"] <= 18))
 )
 
 def rule_5_func(arg1, solver=None, neg=False):
@@ -17,7 +17,7 @@ def rule_5_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
             return False
 
         # Variable declarations
@@ -25,7 +25,7 @@ def rule_5_func(arg1, solver=None, neg=False):
         arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
 
         # Constraints for rule 5
         rule_5(solver, {'arg1_value': arg1_value})

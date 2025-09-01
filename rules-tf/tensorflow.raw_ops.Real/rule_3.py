@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If Tout is defined, the output tensor type must match Tout (Rule 3)
+# if Tout is provided it must be a floating-point type (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == 8, v["arg1_dtype"] == 8, If(v["arg2_value"] == 9, v["arg1_dtype"] == 9, False))) if n else
-          If(v["arg2_value"] == 8, v["arg1_dtype"] == 8, If(v["arg2_value"] == 9, v["arg1_dtype"] == 9, False)))
+    s.add(Not(If(v["arg2_value"] != 0, Or((And(v["arg1_dtype"] == 10, v["arg2_value"] == 8)), (And(v["arg1_dtype"] == 11, v["arg2_value"] == 9))), True)) if n else
+          If(v["arg2_value"] != 0, Or((And(v["arg1_dtype"] == 10, v["arg2_value"] == 8)), (And(v["arg1_dtype"] == 11, v["arg2_value"] == 9))), True))
 )
 
 def rule_3_func(arg1, arg2, solver=None, neg=False):

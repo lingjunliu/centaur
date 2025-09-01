@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If arg1 is float16, arg2 must be a float type or complex or dtype (Rule 33)
+# Check if arg1 and arg2 have valid dtype values (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 6, And(6 <= v["arg2_value"], Or(v["arg2_value"] <= 10, v["arg2_value"] == 12)), False)) if n else
-          If(v["arg1_value"] == 6, And(6 <= v["arg2_value"], Or(v["arg2_value"] <= 10, v["arg2_value"] == 12)), False))
+    s.add(Not(And((Or((And(v["arg1_value"] >= 0, v["arg1_value"] <= 12)), (v["arg1_value"] == 11))), (Or((And(v["arg2_value"] >= 0, v["arg2_value"] <= 12)), (v["arg2_value"] == 11))))) if n else
+          And((Or((And(v["arg1_value"] >= 0, v["arg1_value"] <= 12)), (v["arg1_value"] == 11))), (Or((And(v["arg2_value"] >= 0, v["arg2_value"] <= 12)), (v["arg2_value"] == 11)))))
 )
 
 def rule_33_func(arg1, arg2, solver=None, neg=False):

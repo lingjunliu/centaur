@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# stride must be int greater than zero but no more than max allowed value (Rule 116)
+# Stride must be a positive value if it is a int. (Rule 116)
 
 rule_116 = lambda s, v, n=False: (
-    s.add(Not(And(0 < v["arg1_value"], v["arg1_value"] < 100)) if n else
-          And(0 < v["arg1_value"], v["arg1_value"] < 100))
+    s.add(Not(v["arg1_value"] > 0) if n else
+          v["arg1_value"] > 0)
 )
 
 def rule_116_func(arg1, solver=None, neg=False):

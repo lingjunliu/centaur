@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If data is int32, uint8, int16, int8 then segment_ids must be int32 or int64 (Rule 54)
+# If data is half or bfloat16 or uint32 or uint64, segment_ids must be int64 (Rule 54)
 
 rule_54 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 5), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 4), False)) if n else
-          If(Or(Or(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 5), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 4), False))
+    s.add(Not(If(Or(Or(Or(v["arg1_dtype"] == 17, v["arg1_dtype"] == 6), v["arg1_dtype"] == 18), v["arg1_dtype"] == 19), (v["arg2_dtype"] == 4), True)) if n else
+          If(Or(Or(Or(v["arg1_dtype"] == 17, v["arg1_dtype"] == 6), v["arg1_dtype"] == 18), v["arg1_dtype"] == 19), (v["arg2_dtype"] == 4), True))
 )
 
 def rule_54_func(arg1, arg2, solver=None, neg=False):

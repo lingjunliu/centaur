@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If x's dtype is bfloat16, then a's values should be greater than -1 (Rule 18)
+# If a and x have different ranks, the smaller rank should be 0 (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_dtype"] == 9, Select(v["arg1_range"], 0) > -1, False)) if n else
-          If(v["arg2_dtype"] == 9, Select(v["arg1_range"], 0) > -1, False))
+    s.add(Not(If(v["arg1_ndim"] != v["arg2_ndim"], (Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0)), True)) if n else
+          If(v["arg1_ndim"] != v["arg2_ndim"], (Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0)), True))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):
@@ -25,18 +25,17 @@ def rule_18_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_dtype = Int('arg2_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_ndim = Int('arg2_ndim')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 18
-        rule_18(solver, {'arg1_range': arg1_range, 'arg2_dtype': arg2_dtype})
+        rule_18(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_18(solver, {'arg1_range': arg1['range'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_18(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If offset is positive with a 2D input, shape[0] should be greater or equal than offset (Rule 19)
+# If the tensor is 1D, the absolute value of k must be less than the shape (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] == 2, v["arg2_value"] > 0), Select(v["arg1_shape"], 0) >= v["arg2_value"], False)) if n else
-          If(And(v["arg1_ndim"] == 2, v["arg2_value"] > 0), Select(v["arg1_shape"], 0) >= v["arg2_value"], False))
+    s.add(Not(If(v["arg1_ndim"] == 1, (And(v["arg2_value"] > (0 - Select(v["arg1_shape"], 0)), v["arg2_value"] < Select(v["arg1_shape"], 0))), True)) if n else
+          If(v["arg1_ndim"] == 1, (And(v["arg2_value"] > (0 - Select(v["arg1_shape"], 0)), v["arg2_value"] < Select(v["arg1_shape"], 0))), True))
 )
 
 def rule_19_func(arg1, arg2, solver=None, neg=False):
@@ -36,9 +36,9 @@ def rule_19_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 19
-        rule_19(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_19(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_19(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_19(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

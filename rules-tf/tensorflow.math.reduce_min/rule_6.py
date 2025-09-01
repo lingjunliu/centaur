@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# axis must be in the range [-rank(input_tensor (Rule 6)
+# If axis is None, it implies reducing all dimensions, and the input_tensor must have at least one dimension (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(And((0 - v["arg1_ndim"]) <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"])) if n else
-          And((0 - v["arg1_ndim"]) <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"]))
+    s.add(Not(If(v["arg2_value"] == -1, v["arg1_ndim"] > 0, True)) if n else
+          If(v["arg2_value"] == -1, v["arg1_ndim"] > 0, True))
 )
 
 def rule_6_func(arg1, arg2, solver=None, neg=False):

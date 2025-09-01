@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# dtype must be one of the allowed values (Rule 2)
+# dtype should be a valid tf.DType (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_value"] == 7, v["arg1_value"] == 8), v["arg1_value"] == 3), v["arg1_value"] == 5), v["arg1_value"] == 2), v["arg1_value"] == 1), v["arg1_value"] == 9), v["arg1_value"] == 4), v["arg1_value"] == 14), v["arg1_value"] == 11), v["arg1_value"] == 13), v["arg1_value"] == 17), v["arg1_value"] == 15), v["arg1_value"] == 16), v["arg1_value"] == 18), v["arg1_value"] == 6), v["arg1_value"] == 19)) if n else
-          Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_value"] == 7, v["arg1_value"] == 8), v["arg1_value"] == 3), v["arg1_value"] == 5), v["arg1_value"] == 2), v["arg1_value"] == 1), v["arg1_value"] == 9), v["arg1_value"] == 4), v["arg1_value"] == 14), v["arg1_value"] == 11), v["arg1_value"] == 13), v["arg1_value"] == 17), v["arg1_value"] == 15), v["arg1_value"] == 16), v["arg1_value"] == 18), v["arg1_value"] == 6), v["arg1_value"] == 19))
+    s.add(Not(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_value"] == 7, v["arg1_value"] == 8), v["arg1_value"] == 4), v["arg1_value"] == 5), v["arg1_value"] == 3), v["arg1_value"] == 1), v["arg1_value"] == 9), v["arg1_value"] == 6), v["arg1_value"] == 0), v["arg1_value"] == 15), v["arg1_value"] == 2), v["arg1_value"] == 16)) if n else
+          Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_value"] == 7, v["arg1_value"] == 8), v["arg1_value"] == 4), v["arg1_value"] == 5), v["arg1_value"] == 3), v["arg1_value"] == 1), v["arg1_value"] == 9), v["arg1_value"] == 6), v["arg1_value"] == 0), v["arg1_value"] == 15), v["arg1_value"] == 2), v["arg1_value"] == 16))
 )
 
 def rule_2_func(arg1, solver=None, neg=False):

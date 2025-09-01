@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If one of the tensors is boolean, the other should have at least one dimension (Rule 24)
+# if one tensor has a smaller dtype the other should have a larger one (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 0, v["arg2_ndim"] >= 1, If(v["arg2_dtype"] == 0, v["arg1_ndim"] >= 1, False))) if n else
-          If(v["arg1_dtype"] == 0, v["arg2_ndim"] >= 1, If(v["arg2_dtype"] == 0, v["arg1_ndim"] >= 1, False)))
+    s.add(Not(If(v["arg1_dtype"] < v["arg2_dtype"], True, If(v["arg1_dtype"] > v["arg2_dtype"], True, v["arg1_dtype"] == v["arg2_dtype"]))) if n else
+          If(v["arg1_dtype"] < v["arg2_dtype"], True, If(v["arg1_dtype"] > v["arg2_dtype"], True, v["arg1_dtype"] == v["arg2_dtype"])))
 )
 
 def rule_24_func(arg1, arg2, solver=None, neg=False):
@@ -25,21 +25,17 @@ def rule_24_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
         arg1_dtype = Int('arg1_dtype')
-        arg2_ndim = Int('arg2_ndim')
         arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_ndim == arg2.ndim)
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 24
-        rule_24(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim, 'arg2_dtype': arg2_dtype, 'arg2_ndim': arg2_ndim})
+        rule_24(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_24(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim'], 'arg2_dtype': arg2['dtype'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_24(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

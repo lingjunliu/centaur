@@ -5,42 +5,33 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The length of ksize and strides must be equal, and match the input tensor's dimension (Rule 23)
+# ksize's elements at index 0 and 3 must be 1 (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg2_length"] == v["arg3_length"], v["arg2_length"] == v["arg1_ndim"])) if n else
-          And(v["arg2_length"] == v["arg3_length"], v["arg2_length"] == v["arg1_ndim"]))
+    s.add(Not(And(Select(v["arg1_values"], 0) == 1, Select(v["arg1_values"], 3) == 1)) if n else
+          And(Select(v["arg1_values"], 0) == 1, Select(v["arg1_values"], 3) == 1))
 )
 
-def rule_23_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_23_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
-            return False
-        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
-            return False
-        if not (isinstance(arg3, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg3)):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_length = Int('arg2_length')
-        arg3_length = Int('arg3_length')
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_length == len(arg2))
-        solver.add(arg3_length == len(arg3))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 23
-        rule_23(solver, {'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length, 'arg3_length': arg3_length})
+        rule_23(solver, {'arg1_values': arg1_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_23(solver, {'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length'], 'arg3_length': arg3['length']}, neg)
+        rule_23(solver, {'arg1_values': arg1['values']}, neg)

@@ -5,48 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# use dynamic shape must be enabled if min/max dims are different (Rule 47)
+# maximum_cached_engines has to be 1 if use_calibration is true (Rule 47)
 
 rule_47 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_length"] == v["arg2_length"], (Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) != Select(v["arg2_values"], i)) for i in range(6)]))), v["arg3_value"] == True, False)) if n else
-          If(And(v["arg1_length"] == v["arg2_length"], (Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) != Select(v["arg2_values"], i)) for i in range(6)]))), v["arg3_value"] == True, False))
+    s.add(Not(If(v["arg2_value"] == True, v["arg1_value"] == 1, True)) if n else
+          If(v["arg2_value"] == True, v["arg1_value"] == 1, True))
 )
 
-def rule_47_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_47_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
-        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
-            return False
-        if not isinstance(arg3, bool):
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
-        arg2_length = Int('arg2_length')
-        arg2_values = Array('arg2_values', IntSort(), IntSort())
-        arg3_value = Bool('arg3_value')
+        arg1_value = Int('arg1_value')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
-        solver.add(arg2_length == len(arg2))
-        for i in range(len(arg2)):
-            arg2_values = Store(arg2_values, i, arg2[i])
-        solver.add(arg3_value == arg3)
+        solver.add(arg1_value == int(arg1))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 47
-        rule_47(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length, 'arg2_values': arg2_values, 'arg2_length': arg2_length, 'arg3_value': arg3_value})
+        rule_47(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_47(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length'], 'arg2_values': arg2['values'], 'arg2_length': arg2['length'], 'arg3_value': arg3['value']}, neg)
+        rule_47(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

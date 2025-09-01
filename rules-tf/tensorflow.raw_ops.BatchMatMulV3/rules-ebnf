@@ -1,81 +1,177 @@
 >>
-Rule 1 (x and y must have dimension >= 2)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2
+Rule 1 (x and y must have at least 2 dimensions)
+{x : tensor, y : tensor} |= ndim(x) ≥ 2 ∧ ndim(y) ≥ 2
 >>
-Rule 2 (adj_x and adj_y should be boolean values if provided)
-{v_1 : bool, v_2 : bool} |= (v_1 = true ∨ v_1 = false) ∧ (v_2 = true ∨ v_2 = false)
+Rule 4 (x and y should have compatible dtypes, which is implicitly ensured by the API, but let's add a rule involving a complex comparison.)
+{x : tensor, y : tensor} |= (dtype_(x) = 9 ∧ dtype_(y) = 9) ∨ (dtype_(x) = 10 ∧ dtype_(y) = 10) ∨ (dtype_(x) < 9 ∧ dtype_(y) < 9)
 >>
-Rule 3 (x's data type must be within the supported list. 0:bfloat16, 6:half, 7:float32, 8:float64, 5:uint8, 1:int8, 2:int16, 3:int32, 4:int64, 9:complex64, 10:complex128)
-{v_1 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 7 (Shape of output tensor should be larger than 2, which means ndim(x) should be larger than or equal to 2)
+{x : tensor} |= ndim(x) ≥ 2
 >>
-Rule 5 (Tout's data type must be within the supported list. 0:bfloat16, 6:half, 7:float32, 8:float64, 2:int16, 3:int32, 4:int64, 9:complex64, 10:complex128)
-{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 9 ∨ v_1 = 10
+Rule 8 (Tout type is limited to a specific set, using a union)
+{Tout : dtype} |= Tout = 6 ∨ Tout = 7 ∨ Tout = 8 ∨ Tout = 3 ∨ Tout = 0 ∨ Tout = 9 ∨ Tout = 10
 >>
-Rule 6 (If adj_x is true, the last dimension of x must be equal to the first dimension of y)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2)
+Rule 9 (If the last two dimensions of x are 1, output should have same number of dimension with x)
+{x : tensor, y: tensor} |= if shape(x, ndim(x) - 1) = 1 ∧ shape(x, ndim(x) - 2) = 1 then ndim(x) = ndim(y)
 >>
-Rule 7 (If adj_y is true, the second last dimension of y must be equal to the last dimension of x)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then shape(v_2, ndim(v_2) - 2) = shape(v_1, ndim(v_1) - 1)
+Rule 10 (x and y should not be the same tensor.)
+{x: tensor, y: tensor} |= x ≠ y
 >>
-Rule 13 (If Tout is not specified, it should be the same as the dtype of x)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = -1 then dtype_(v_1) = dtype_(v_1)
+Rule 12 (x and y must have compatible dtypes)
+{x : tensor, y : tensor} |= (dtype_(x) = dtype_(y))
 >>
-Rule 15 (x's and y's data type must be among the supported list, check for equality)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 15 (If the last two dimensions of x are 1, then y should also meet this criterion)
+{x : tensor, y : tensor} |= if shape(x, ndim(x) - 1) = 1 ∧ shape(x, ndim(x) - 2) = 1 then shape(y, ndim(y) - 1) = 1 ∧ shape(y, ndim(y) - 2) = 1
 >>
-Rule 16 (If adj_x is true, then the last two dimensions of x must be valid for matrix multiplication)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then ndim(v_1) >= 2
+Rule 16 (x must be a valid type)
+{x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 5 ∨ dtype_(x) = 1 ∨ dtype_(x) = 2 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10
 >>
-Rule 18 (if x and y are batched, the leading dimensions must be broadcastable)
-{v_1 : tensor, v_2 : tensor} |=  ∀i ∈ [0, if ndim(v_1) - 2 ≥ ndim(v_2) - 2 then ndim(v_1) - 3 else ndim(v_2) - 3] : ndim(v_1) - i - 3 < 0 ∨ ndim(v_2) - i - 3 < 0 ∨ shape(v_1, ndim(v_1) - i - 3) = 1 ∨ shape(v_2, ndim(v_2) - i - 3) = 1 ∨ shape(v_1, ndim(v_1) - i - 3) = shape(v_2, ndim(v_2) - i - 3)
+Rule 17 (y must be a valid type)
+{y : tensor} |= dtype_(y) = 6 ∨ dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 5 ∨ dtype_(y) = 1 ∨ dtype_(y) = 2 ∨ dtype_(y) = 3 ∨ dtype_(y) = 4 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10
 >>
-Rule 19 (x should not have zero dimensions)
-{v_1 : tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 18 (if adj_x is true, then shape(x, ndim(x)-1) must equal to shape(y, ndim(y) - 2))
+{x : tensor, y: tensor, adj_x: bool} |= if adj_x then shape(x, ndim(x)-1) = shape(y, ndim(y) - 2)
 >>
-Rule 21 (Tout must match the input type when it is the same)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = dtype_(v_1) then true else false
+Rule 19 (if adj_y is true, then shape(y, ndim(y)-2) must equal to shape(x, ndim(x) - 1))
+{x : tensor, y: tensor, adj_y: bool} |= if adj_y then shape(y, ndim(y)-1) = shape(x, ndim(x) - 2)
 >>
-Rule 27 (The output tensor has the same dtype as Tout)
-{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
+Rule 20 (if Tout is specified, it can not be string)
+{Tout: dtype} |= Tout ≠ 11
 >>
-Rule 28 (x dimensions must be greater than 0)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 22 (y must have at least 2 dimensions)
+{y : tensor} |= ndim(y) ≥ 2
 >>
-Rule 30 (x's dimension should be at least 2)
-{v_1 : tensor} |= ndim(v_1) >= 2
+Rule 30 (adj_x is either true or false)
+{adj_x: bool} |= adj_x = true ∨ adj_x = false
 >>
-Rule 38 (x's dimension should be at least 2 and dimensions must be positive)
-{v_1 : tensor} |= ndim(v_1) >= 2 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 31 (x and y dimensions must match when not broadcasting, 2D case)
+{x : tensor, y : tensor} |= if ndim(x) = 2 ∧ ndim(y) = 2 then shape(x,0) = shape(y,0)
 >>
-Rule 44 (if x and y are not batched, the last 2 dimensions must conform matrix multiplication)
-{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4: bool} |= if (ndim(v_1) = 2) ∧ (ndim(v_2) = 2) then if (v_3 = false) ∧ (v_4 = false) then shape(v_1, 1) = shape(v_2, 0)
+Rule 32 (x and y dimensions must match when not broadcasting, 3D case)
+{x : tensor, y : tensor} |= if ndim(x) = 3 ∧ ndim(y) = 3 then shape(x,0) = shape(y,0)
 >>
-Rule 52 (The data type of x and y must be same)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 33 (x and y dimensions must match when not broadcasting, 4D case)
+{x : tensor, y : tensor} |= if ndim(x) = 4 ∧ ndim(y) = 4 then shape(x,0) = shape(y,0)
 >>
-Rule 61 (if x and y have the same number of dimensions, then those dimensions must be broadcastable.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1
+Rule 34 (x ndim should be more than 1)
+{x : tensor} |= ndim(x) > 1
 >>
-Rule 79 (Either x or y should have at least two dimensions)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) >= 2 ∨ ndim(v_2) >= 2
+Rule 35 (y ndim should be more than 1)
+{y : tensor} |= ndim(y) > 1
 >>
-Rule 87 (The data type of x must be in supported list)
-{v_1: tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 37 (Adj_y should be bool)
+{adj_y: bool} |= adj_y = true ∨ adj_y = false
 >>
-Rule 89 (x and y must have at least two dimensions and all dimension sizes must be positive)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) >= 2 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ ndim(v_2) >= 2 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+Rule 38 (grad_x should be bool)
+{grad_x: bool} |= grad_x = true ∨ grad_x = false
 >>
-Rule 97 (x and y must have at least two dimensions and all dimension sizes must be positive)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) >= 2 ∧ ndim(v_2) >= 2 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+Rule 39 (grad_y should be bool)
+{grad_y: bool} |= grad_y = true ∨ grad_y = false
 >>
-Rule 103 (For the common dimensions of x and y (excluding the last two dimensions), they must be equal)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1) - 2 else ndim(v_2) - 2] : shape(v_1, i) = shape(v_2, i)
+Rule 40 (Tout must be in the list of allowed dtypes if specified)
+{Tout: dtype} |= Tout = 0 ∨ Tout = 6 ∨ Tout = 7 ∨ Tout = 8 ∨ Tout = 3 ∨ Tout = 9 ∨ Tout = 10
 >>
-Rule 111 (For the common dimensions of x and y (excluding the last two dimensions), they must either match or one of them must be 1)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1) - 2 else ndim(v_2) - 2] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1
+Rule 41 (x and y dimensions must match when not broadcasting, 2D case and adj_x is false and adj_y is false)
+{x : tensor, y : tensor, adj_x : bool, adj_y : bool} |= if ndim(x) = 2 ∧ ndim(y) = 2 ∧ adj_x = false ∧ adj_y = false then shape(x,0) = shape(y,0)
 >>
-Rule 114 (x and y must have at least two dimensions)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) >= 2 ∧ ndim(v_2) >= 2
+Rule 42 (Tout must be a valid data type)
+{Tout : dtype} |= Tout = 0 ∨ Tout = 6 ∨ Tout = 7 ∨ Tout = 8 ∨ Tout = 3 ∨ Tout = 9 ∨ Tout = 10
 >>
-Rule 115 (All dimension sizes of x and y must be positive)
-{v_1 : tensor, v_2 : tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+Rule 43 (grad_x must be a bool)
+{grad_x : bool} |= grad_x = true ∨ grad_x = false
+>>
+Rule 44 (grad_y must be a bool)
+{grad_y : bool} |= grad_y = true ∨ grad_y = false
+>>
+Rule 46 (last dimension of x and the second to last dimension of y must match if not adj_x and adj_y are both false)
+{x : tensor, y : tensor, adj_x : bool, adj_y : bool} |= if adj_x = false ∧ adj_y = false then shape(x, ndim(x)-1) = shape(y, ndim(y)-2)
+>>
+Rule 48 (x has valid dtype)
+{x: tensor} |= dtype_(x) = 0 ∨ dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 5 ∨ dtype_(x) = 1 ∨ dtype_(x) = 2 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10
+>>
+Rule 49 (y has valid dtype)
+{y: tensor} |= dtype_(y) = 0 ∨ dtype_(y) = 6 ∨ dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 5 ∨ dtype_(y) = 1 ∨ dtype_(y) = 2 ∨ dtype_(y) = 3 ∨ dtype_(y) = 4 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10
+>>
+Rule 50 (x and y have the same number of dimensions)
+{x : tensor, y : tensor} |= ndim(x) = ndim(y)
+>>
+Rule 58 (x and y have the same number of dimensions and are both 2 or more)
+{x : tensor, y : tensor} |= ndim(x) = ndim(y) ∧ ndim(x) ≥ 2
+>>
+Rule 61 (last dimension of x must match second to last dimension of y if no transpose)
+{x : tensor, y : tensor, adj_x: bool, adj_y:bool} |= if adj_x = false ∧ adj_y = false then shape(x, ndim(x) - 1) = shape(y, ndim(y) - 2)
+>>
+Rule 62 (If adj_x is true, x must have ndim >1)
+{x : tensor, adj_x : bool} |= if adj_x then ndim(x) > 1
+>>
+Rule 63 (If adj_y is true, y must have ndim >1)
+{y : tensor, adj_y : bool} |= if adj_y then ndim(y) > 1
+>>
+Rule 68 (If adjoint x, then shape(x, ndim(x)-1) and shape(y,ndim(y)-2) should meet some condition)
+{x: tensor, y: tensor, adj_x:bool} |= if adj_x then shape(x, ndim(x)-1) = shape(y, ndim(y) - 2)
+>>
+Rule 69 (If adjoint y, then shape(y, ndim(y) -1) and shape(x, ndim(x) - 2) should meet some condition)
+{x: tensor, y: tensor, adj_y:bool} |= if adj_y then shape(y, ndim(y)-1) = shape(x, ndim(x) - 2)
+>>
+Rule 71 (last dimension of x must match second to last dimension of y if no transpose and x has more than 1 dimension)
+{x : tensor, y : tensor, adj_x: bool, adj_y:bool} |= if ndim(x) > 1 ∧ adj_x = false ∧ adj_y = false then shape(x, ndim(x) - 1) = shape(y, ndim(y) - 2)
+>>
+Rule 74 (If adjoint x, then shape(x, ndim(x)-1) and shape(y,ndim(y)-2) should meet some condition and x has more than 1 dimension)
+{x: tensor, y: tensor, adj_x:bool} |= if adj_x ∧ ndim(x) > 1 then shape(x, ndim(x)-1) = shape(y, ndim(y) - 2)
+>>
+Rule 75 (If adjoint y, then shape(y, ndim(y) -1) and shape(x, ndim(x) - 2) should meet some condition and y has more than one dimension)
+{x: tensor, y: tensor, adj_y:bool} |= if adj_y ∧ ndim(y) > 1 then shape(y, ndim(y)-1) = shape(x, ndim(x) - 2)
+>>
+Rule 76 (x and y number of dimensions and are more than 1 dimension)
+{x : tensor, y : tensor} |= ndim(x) = ndim(y) ∧ ndim(x) > 1
+>>
+Rule 91 (If adj_x is true then the last dimension of x must be equal to second to last of y)
+{x : tensor, y : tensor, adj_x: bool} |= if adj_x then shape(x, ndim(x) - 1) = shape(y, ndim(y) - 2)
+>>
+Rule 92 (If adj_y is true then second to last dimension of x must equal to last dimension of y)
+{x : tensor, y : tensor, adj_y: bool} |= if adj_y then shape(x, ndim(x) - 2) = shape(y, ndim(y) - 1)
+>>
+Rule 97 (x and y should have same dtype)
+{x : tensor, y: tensor} |= dtype_(x) = dtype_(y)
+>>
+Rule 98 (Minimum dimension allowed is 2)
+{x : tensor, y: tensor} |= ndim(x) ≥ 2 ∧ ndim(y) ≥ 2
+>>
+Rule 101 (If adj_x is true then the last dimension of x must be equal to second to last of y and both tensors have more than one dimension)
+{x : tensor, y : tensor, adj_x: bool} |= if adj_x ∧ ndim(x) > 1 ∧ ndim(y) > 1 then shape(x, ndim(x) - 1) = shape(y, ndim(y) - 2)
+>>
+Rule 102 (If adj_y is true then second to last dimension of x must equal to last dimension of y and both tensors have more than one dimension)
+{x : tensor, y : tensor, adj_y: bool} |= if adj_y ∧ ndim(x) > 1 ∧ ndim(y) > 1 then shape(x, ndim(x) - 2) = shape(y, ndim(y) - 1)
+>>
+Rule 103 (x and y are valid tensors with appropriate dimension)
+{x: tensor, y: tensor} |= ndim(x) > 1 ∧ ndim(y) > 1
+>>
+Rule 106 (The number of dimensions of x and y are same, and must be at least 2)
+{x: tensor, y: tensor} |= ndim(x) = ndim(y) ∧ ndim(x) >= 2
+>>
+Rule 110 (Check the dtypes allowed for x and y are valid)
+{x : tensor, y : tensor} |= (dtype_(x) = 0 ∨ dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 5 ∨ dtype_(x) = 1 ∨ dtype_(x) = 2 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10) ∧ (dtype_(y) = 0 ∨ dtype_(y) = 6 ∨ dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 5 ∨ dtype_(y) = 1 ∨ dtype_(y) = 2 ∨ dtype_(y) = 3 ∨ dtype_(y) = 4 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10)
+>>
+Rule 116 (adj_x must be a valid bool)
+{adj_x : bool} |= adj_x = true ∨ adj_x = false
+>>
+Rule 117 (adj_y must be a valid bool)
+{adj_y : bool} |= adj_y = true ∨ adj_y = false
+>>
+Rule 127 (adjoint x requires number of dimensions of x and y be greater than or equal to two and proper shape)
+{x : tensor, y : tensor, adj_x : bool} |= if adj_x then ndim(x) >= 2 ∧ ndim(y) >= 2 ∧ shape(x, ndim(x) - 1) = shape(y, ndim(y) - 2)
+>>
+Rule 128 (adjoint y requires number of dimensions of x and y be greater than or equal to two and proper shape)
+{x : tensor, y : tensor, adj_y : bool} |= if adj_y then ndim(x) >= 2 ∧ ndim(y) >= 2 ∧ shape(x, ndim(x) - 2) = shape(y, ndim(y) - 1)
+>>
+Rule 129 (The number of dimensions of x and y should be the same.)
+{x: tensor, y: tensor} |= ndim(x) = ndim(y)
+>>
+Rule 150 (If no transpose, then x has to have equal dimensions with y)
+{x: tensor, y: tensor, adj_x: bool, adj_y: bool} |= if adj_x = false ∧ adj_y = false then shape(x, ndim(x) - 1) = shape(y, ndim(y) - 2)
+>>
+Rule 154 (Check the dtypes allowed for x are valid)
+{x : tensor} |= (dtype_(x) = 0 ∨ dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 5 ∨ dtype_(x) = 1 ∨ dtype_(x) = 2 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10)
+>>
+Rule 155 (Check the dtypes allowed for y are valid)
+{y : tensor} |= (dtype_(y) = 0 ∨ dtype_(y) = 6 ∨ dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 5 ∨ dtype_(y) = 1 ∨ dtype_(y) = 2 ∨ dtype_(y) = 3 ∨ dtype_(y) = 4 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10)

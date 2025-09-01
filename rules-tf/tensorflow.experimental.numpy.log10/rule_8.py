@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input tensor contains negative values, its dtype should be complex. (Rule 8)
+# input tensor must not contain infinite values (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_range"], 0) < 0, (Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), False)) if n else
-          If(Select(v["arg1_range"], 0) < 0, (Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), False))
+    s.add(Not(Select(v["arg1_range"], 1) < 10000000000.0) if n else
+          Select(v["arg1_range"], 1) < 10000000000.0)
 )
 
 def rule_8_func(arg1, solver=None, neg=False):
@@ -22,18 +22,16 @@ def rule_8_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
         arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 8
-        rule_8(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
+        rule_8(solver, {'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_8(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)
+        rule_8(solver, {'arg1_range': arg1['range']}, neg)

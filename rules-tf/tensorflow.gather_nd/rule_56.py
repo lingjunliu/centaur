@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# index depth must be less than or equal to the rank of params when batch_dims is not specified (Rule 56)
+# indices' last dimension plus batch_dims should be less than or equal to params' rank (Rule 56)
 
 rule_56 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg3_value"] == 0, Select(v["arg2_shape"], v["arg2_ndim"] - 1) <= v["arg1_ndim"], False)) if n else
-          If(v["arg3_value"] == 0, Select(v["arg2_shape"], v["arg2_ndim"] - 1) <= v["arg1_ndim"], False))
+    s.add(Not(Select(v["arg2_shape"], v["arg2_ndim"] - 1) + v["arg3_value"] <= v["arg1_ndim"]) if n else
+          Select(v["arg2_shape"], v["arg2_ndim"] - 1) + v["arg3_value"] <= v["arg1_ndim"])
 )
 
 def rule_56_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -41,9 +41,9 @@ def rule_56_func(arg1, arg2, arg3, solver=None, neg=False):
         solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 56
-        rule_56(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape, 'arg3_value': arg3_value})
+        rule_56(solver, {'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_56(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape'], 'arg3_value': arg3['value']}, neg)
+        rule_56(solver, {'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_value': arg3['value']}, neg)

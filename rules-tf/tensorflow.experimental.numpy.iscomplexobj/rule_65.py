@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check for complex dtype directly (Rule 65)
+# If a non-empty tensor contains any complex number, then the function would return true (Rule 65)
 
 rule_65 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_value"] == 10, v["arg1_value"] == 11)) if n else
-          Or(v["arg1_value"] == 10, v["arg1_value"] == 11))
+    s.add(Not(If((Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), (Or((v["arg1_dtype"] == 10), (v["arg1_dtype"] == 11))), False)) if n else
+          If((Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), (Or((v["arg1_dtype"] == 10), (v["arg1_dtype"] == 11))), False))
 )
 
 def rule_65_func(arg1, solver=None, neg=False):
@@ -17,20 +17,25 @@ def rule_65_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 65
-        rule_65(solver, {'arg1_value': arg1_value})
+        rule_65(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_65(solver, {'arg1_value': arg1['value']}, neg)
+        rule_65(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype']}, neg)

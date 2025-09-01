@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# xlogy x must be a half, bfloat16, float32, float64, complex64, or complex128 tensor (Rule 2)
+# xlogy input tensor v_1 must be of a supported type: half, bfloat16, float32, float64, complex64, complex128; encoded as a type in the type list (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 11)) if n else
-          Or(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 11))
+    s.add(Not(Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 10), v["arg1_dtype"] == 9), v["arg1_dtype"] == 6)) if n else
+          Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 10), v["arg1_dtype"] == 9), v["arg1_dtype"] == 6))
 )
 
 def rule_2_func(arg1, solver=None, neg=False):

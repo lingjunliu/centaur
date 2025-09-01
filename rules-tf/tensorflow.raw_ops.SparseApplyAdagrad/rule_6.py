@@ -8,8 +8,8 @@ from z3 import *
 # var and accum must have at least one dimension (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] >= 1, v["arg2_ndim"] >= 1)) if n else
-          And(v["arg1_ndim"] >= 1, v["arg2_ndim"] >= 1))
+    s.add(Not(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0)) if n else
+          And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0))
 )
 
 def rule_6_func(arg1, arg2, solver=None, neg=False):

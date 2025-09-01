@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# number of batch threads should be less than 1000 (Rule 54)
+# If the underlying function makes heavy use of vector instructions (e.g. SIMD (Rule 54)
 
 rule_54 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 1000) if n else
-          v["arg1_value"] < 1000)
+    s.add(Not(Or([And(i < (10 + 1), v["arg1_value"] == 2 * i) for i in range(6)])) if n else
+          Or([And(i < (10 + 1), v["arg1_value"] == 2 * i) for i in range(6)]))
 )
 
 def rule_54_func(arg1, solver=None, neg=False):

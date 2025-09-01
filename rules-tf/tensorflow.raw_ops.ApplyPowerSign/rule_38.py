@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# logbase must be a scalar float32 or float64 (Rule 38)
+# var can be quint8 (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] == 0, (Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)))) if n else
-          And(v["arg1_ndim"] == 0, (Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8))))
+    s.add(Not(v["arg1_dtype"] == 14) if n else
+          v["arg1_dtype"] == 14)
 )
 
 def rule_38_func(arg1, solver=None, neg=False):
@@ -22,17 +22,15 @@ def rule_38_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
         arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 38
-        rule_38(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim})
+        rule_38(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_38(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_38(solver, {'arg1_dtype': arg1['dtype']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# `dropout_state_filter` should belong to the list of available strings (Rule 32)
+# dtype cannot be the torch.int64 type when represented by its integer code. (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(Or(Or(v["arg1_value"] == 6, v["arg1_value"] == 7), v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10), v["arg1_value"] == 11)) if n else
-          Or(Or(Or(Or(Or(v["arg1_value"] == 6, v["arg1_value"] == 7), v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10), v["arg1_value"] == 11))
+    s.add(Not(Or(Or((v["arg1_value"] < 6), (v["arg1_value"] > 10)), (v["arg1_value"] == 12))) if n else
+          Or(Or((v["arg1_value"] < 6), (v["arg1_value"] > 10)), (v["arg1_value"] == 12)))
 )
 
 def rule_32_func(arg1, solver=None, neg=False):
@@ -17,15 +17,15 @@ def rule_32_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, str):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values_tf.index(arg1))
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
 
         # Constraints for rule 32
         rule_32(solver, {'arg1_value': arg1_value})

@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# pooling_ratio list must have length greater than or equal to 4 (Rule 3)
+# pooling_ratio length must be greater than or equal to 4 (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
     s.add(Not(v["arg1_length"] >= 4) if n else

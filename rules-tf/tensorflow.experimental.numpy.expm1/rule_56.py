@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The input tensor's shape shouldn't be very large, avoid possible memory issues (Rule 56)
+# The product of the dimensions must be less than the maximum value allowed for int64 (Rule 56)
 
 rule_56 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) < 1000000, False)) if n else
-          If(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) < 1000000, False))
+    s.add(Not(If(v["arg1_ndim"] > 0, (If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) < 9223372036854775807, If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) < 9223372036854775807, If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) < 9223372036854775807, True)))), True)) if n else
+          If(v["arg1_ndim"] > 0, (If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) < 9223372036854775807, If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) < 9223372036854775807, If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) < 9223372036854775807, True)))), True))
 )
 
 def rule_56_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_56_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 56
-        rule_56(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_56(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_56(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_56(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

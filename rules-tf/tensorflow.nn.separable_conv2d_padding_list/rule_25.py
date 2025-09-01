@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the first padding has the same value, then the second padding should have the same value (Rule 25)
+# strides should be of the same length as dilations (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_values"], 0) == Select(v["arg1_values"], 1), Select(v["arg2_values"], 0) == Select(v["arg2_values"], 1), False)) if n else
-          If(Select(v["arg1_values"], 0) == Select(v["arg1_values"], 1), Select(v["arg2_values"], 0) == Select(v["arg2_values"], 1), False))
+    s.add(Not(v["arg1_length"] == v["arg2_length"]) if n else
+          v["arg1_length"] == v["arg2_length"])
 )
 
 def rule_25_func(arg1, arg2, solver=None, neg=False):
@@ -25,19 +25,17 @@ def rule_25_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
-        arg2_values = Array('arg2_values', IntSort(), IntSort())
+        arg1_length = Int('arg1_length')
+        arg2_length = Int('arg2_length')
 
         # Value assignments
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
-        for i in range(len(arg2)):
-            arg2_values = Store(arg2_values, i, arg2[i])
+        solver.add(arg1_length == len(arg1))
+        solver.add(arg2_length == len(arg2))
 
         # Constraints for rule 25
-        rule_25(solver, {'arg1_values': arg1_values, 'arg2_values': arg2_values})
+        rule_25(solver, {'arg1_length': arg1_length, 'arg2_length': arg2_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_25(solver, {'arg1_values': arg1['values'], 'arg2_values': arg2['values']}, neg)
+        rule_25(solver, {'arg1_length': arg1['length'], 'arg2_length': arg2['length']}, neg)

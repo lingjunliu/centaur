@@ -5,35 +5,44 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# mean must be a 1D tensor with non-negative shape (Rule 53)
+# If is_training is false then mean and variance tensors must have equal shapes (Rule 53)
 
 rule_53 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) >= 0)) if n else
-          And(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) >= 0))
+    s.add(Not(If(v["arg1_value"] == False, Select(v["arg2_shape"], 0) == Select(v["arg3_shape"], 0), True)) if n else
+          If(v["arg1_value"] == False, Select(v["arg2_shape"], 0) == Select(v["arg3_shape"], 0), True))
 )
 
-def rule_53_func(arg1, solver=None, neg=False):
+def rule_53_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, bool):
+            return False
+        if not isinstance(arg2, np.ndarray):
+            return False
+        if not isinstance(arg3, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_value = Bool('arg1_value')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_value == arg1)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        for i in range(arg3.ndim):
+            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
 
         # Constraints for rule 53
-        rule_53(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
+        rule_53(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg3_shape': arg3_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_53(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_53(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg3_shape': arg3['shape']}, neg)

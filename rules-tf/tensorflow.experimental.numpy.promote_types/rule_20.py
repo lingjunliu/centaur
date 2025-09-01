@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If one type is bool, the other cannot be string (Rule 20)
+# If one type is string, the other should not be disallowed (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 0, v["arg2_value"] != 12, If(v["arg2_value"] == 0, v["arg1_value"] != 12, False))) if n else
-          If(v["arg1_value"] == 0, v["arg2_value"] != 12, If(v["arg2_value"] == 0, v["arg1_value"] != 12, False)))
+    s.add(Not(If(v["arg1_value"] == 12, v["arg2_value"] != 0, If(v["arg2_value"] == 12, v["arg1_value"] != 0, True))) if n else
+          If(v["arg1_value"] == 12, v["arg2_value"] != 0, If(v["arg2_value"] == 12, v["arg1_value"] != 0, True)))
 )
 
 def rule_20_func(arg1, arg2, solver=None, neg=False):

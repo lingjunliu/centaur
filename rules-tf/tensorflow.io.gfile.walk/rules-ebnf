@@ -1,45 +1,93 @@
 >>
-Rule 5 (top should be a non-empty string)
-{v_1 : str} |= v_1 ≠ ""
+Rule 1 (top parameter should be a valid string)
+{top : str} |= top ≠ ""
 >>
-Rule 7 (topdown is boolean and thus either true or false)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 2 (topdown parameter should be a boolean value)
+{topdown : bool} |= topdown = true ∨ topdown = false
 >>
-Rule 8 (top should be a string whose length is less than 256)
-{v_1 : str} |= v_1.len < 256
+Rule 4 (If onerror is provided, it should not be empty)
+{onerror : list(int)} |= onerror.len ≥ 0
 >>
-Rule 10 (top must be a valid path, not containing invalid characters)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ "/" ∧ v_1[i] ≠ "\\" ∧ v_1[i] ≠ ":" ∧ v_1[i] ≠ "*" ∧ v_1[i] ≠ "?" ∧ v_1[i] ≠ "\"" ∧ v_1[i] ≠ "<" ∧ v_1[i] ≠ ">" ∧ v_1[i] ≠ "|"
+Rule 9 (top parameter length should not be excessively large)
+{top : str} |= top.len < 2048
 >>
-Rule 14 (top must be a valid path (simplified, checking for a minimum length))
-{v_1 : str} |= v_1.len > 0
+Rule 10 (Combination of top and topdown)
+{top : str, topdown : bool} |= (top.len > 0) ∨ (topdown = false)
 >>
-Rule 18 (top must be a string of reasonable length)
-{v_1 : str} |= v_1.len < 1024
+Rule 13 (onerror parameter can be an empty list or contain strings)
+{onerror : list(str)} |= onerror.len = 0 ∨ (onerror.len > 0 ∧ ∀i ∈ [0, onerror.len - 1] : onerror[i] ≠ "")
 >>
-Rule 24 (top must be a string)
-{v_1 : str} |= v_1.len > 0 ∧ v_1 ≠ ".."
+Rule 15 (Combination of top and topdown: if top is very short, topdown must be true)
+{top : str, topdown : bool} |= if top.len < 3 then topdown = true
 >>
-Rule 28 (top must be a string which is a valid absolute path.)
-{v_1 : str} |= v_1[0] = "/" ∨ v_1[1] = ":"
+Rule 16 (Combination of top and topdown: if top is empty, topdown should be true)
+{top : str, topdown : bool} |= if top = "" then topdown = true
 >>
-Rule 30 (top must be a string, not starting with an invalid character.)
-{v_1 : str} |= v_1.len > 0 ∧ v_1[0] ≠ "*" ∧ v_1[0] ≠ "?"
+Rule 17 (onerror parameter: If it is a non-empty list, the elements must be strings and non-empty.)
+{onerror : list(str)} |= if onerror.len > 0 then (∀i ∈ [0, onerror.len - 1] : onerror[i] ≠ "")
 >>
-Rule 34 (top must be a string whose length is greater than 0 and less than 255)
-{v_1 : str} |= 0 < v_1.len ∧ v_1.len < 255
+Rule 18 (top parameter, combined with onerror. If onerror list has element, top should not be empty)
+{top : str, onerror : list(str)} |= if onerror.len > 0 then top ≠ ""
 >>
-Rule 37 (topdown must be a boolean, and if its false certain order)
-{v_1 : bool} |= if v_1 = false then true
+Rule 21 (If top contains special characters, topdown should be false.)
+{top : str, topdown : bool} |= if ∃i ∈ [0, top.len - 1] : top[i] = "*" ∨ top[i] = "?" ∨ top[i] = "[" ∨ top[i] = "]" then topdown = false
 >>
-Rule 40 (top must be a string of a valid path)
-{v_1 : str} |= v_1.len > 0 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ "\0"
+Rule 23 (onerror is either empty or contains non-empty strings)
+{onerror : list(str)} |= onerror.len = 0 ∨ (onerror.len > 0 ∧ (∀i ∈ [0, onerror.len - 1] : onerror[i] ≠ ""))
 >>
-Rule 46 (top is string, must not be an empty string and must not contain a colon)
-{v_1 : str} |= v_1.len > 0 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ ":"
+Rule 24 (If top contains certain characters, topdown should be false.)
+{top : str, topdown : bool} |= if (∃i ∈ [0, top.len - 1] : top[i] = "*" ∨ top[i] = "?" ∨ top[i] = "[" ∨ top[i] = "]") then topdown = false
 >>
-Rule 52 (top must be a string, that is not equal to the empty string, single dot, or double dots.)
-{v_1 : str} |= v_1 ≠ "" ∧ v_1 ≠ "." ∧ v_1 ≠ ".."
+Rule 25 (Combination rule: if top is too long then onerror should not be empty list.)
+{top: str, onerror: list(str)} |= if top.len > 4096 then onerror.len > 0
 >>
-Rule 58 (top must be a non empty string and must not be a relative path.)
-{v_1 : str} |= v_1.len > 0 ∧ v_1 ≠ "." ∧ v_1 ≠ ".."
+Rule 26 (If top is empty and onerror has values, this is not allowed)
+{top : str, onerror : list(str)} |= if top = "" then onerror.len = 0
+>>
+Rule 28 (If top contains wildcard characters, onerror cannot be empty)
+{top : str, onerror : list(str)} |= if (∃i ∈ [0, top.len - 1] : top[i] = "*" ∨ top[i] = "?" ∨ top[i] = "[" ∨ top[i] = "]") then onerror.len > 0
+>>
+Rule 29 (Combination: if top is extremely long, topdown cannot be true, preventing excessive recursion)
+{top : str, topdown : bool} |= if top.len > 8192 then topdown = false
+>>
+Rule 30 (Interaction: If the path 'top' is a very simple name, then 'onerror' should be empty. Prevents trivial exception handling.)
+{top: str, onerror: list(str)} |= if top.len < 5 then onerror.len = 0
+>>
+Rule 31 (If top contains only numbers, topdown is disallowed)
+{top : str, topdown : bool} |= if ∀i ∈ [0, top.len - 1] : ("0" ≤ top[i] ∧ top[i] ≤ "9") then topdown = false
+>>
+Rule 33 (top and onerror: If onerror.len > 0, the first character of top should be a letter)
+{top: str, onerror: list(str)} |= if onerror.len > 0 then ("a" ≤ top[0] ∧ top[0] ≤ "z") ∨ ("A" ≤ top[0] ∧ top[0] ≤ "Z")
+>>
+Rule 41 (top and onerror: If onerror.len > 0 and top is short, the first character of top must be a letter to ensure a meaningful error.)
+{top: str, onerror: list(str)} |= if onerror.len > 0 ∧ top.len < 10 then ("a" ≤ top[0] ∧ top[0] ≤ "z") ∨ ("A" ≤ top[0] ∧ top[0] ≤ "Z")
+>>
+Rule 45 (top and onerror: If onerror.len > 0 and top contains only special characters or numbers then first character must be an alpha)
+{top: str, onerror: list(str)} |= if onerror.len > 0 ∧ (∀i ∈ [0, top.len - 1] : (("0" ≤ top[i] ∧ top[i] ≤ "9") ∨ (top[i] < "0" ∨ top[i] > "9" ∧ ("a" > top[i] ∨ top[i] > "z") ∧ ("A" > top[i] ∨ top[i] > "Z")))) then ("a" ≤ top[0] ∧ top[0] ≤ "z") ∨ ("A" ≤ top[0] ∧ top[0] ≤ "Z")
+>>
+Rule 47 (If top contains only numbers, or is just a single number, topdown is disallowed to avoid potential infinite loops in numerical paths)
+{top : str, topdown : bool} |= if (∀i ∈ [0, top.len - 1] : ("0" ≤ top[i] ∧ top[i] ≤ "9")) ∨ top.len = 1 then topdown = false
+>>
+Rule 94 (Complex interaction rule: If topdown is true AND top contains a "*", then onerror must contain a string "WildcardError".)
+{top: str, topdown: bool, onerror: list(str)} |= if topdown = true ∧ (∃i ∈ [0, top.len - 1] : top[i] = "*") then (∃j ∈ [0, onerror.len - 1] : onerror[j] = "WildcardError")
+>>
+Rule 99 (Specific error "WildcardError" MUST be present if using topdown with wildcard *)
+{top: str, topdown: bool, onerror: list(str)} |= if topdown = true ∧ (∃i ∈ [0, top.len - 1] : top[i] = "*") then ∃j ∈ [0, onerror.len - 1] : onerror[j] = "WildcardError"
+>>
+Rule 100 (If the top path contains a space and topdown is true, then onerror should have at least one element.)
+{top : str, topdown : bool, onerror: list(str)} |= if topdown = true ∧ (∃i ∈ [0, top.len - 1] : top[i] = " ") then onerror.len > 0
+>>
+Rule 106 (Paths containing spaces with topdown require non-empty error handler)
+{top : str, topdown : bool, onerror: list(str)} |= if topdown = true ∧ ∃i ∈ [0, top.len - 1] : top[i] = " " then onerror.len > 0
+>>
+Rule 114 (onerror requires top contains at least one alphabetic character.)
+{top: str, onerror:list(str)} |= if onerror.len > 0 then (∃i ∈ [0, top.len - 1]: ("a" <= top[i] ∧ top[i] <= "z") ∨ ("A" <= top[i] ∧ top[i] <= "Z"))
+>>
+Rule 119 (topdown+wildcard requires specific error handling)
+{top: str, topdown: bool, onerror: list(str)} |= if topdown = true ∧ ∃i ∈ [0, top.len - 1] : top[i] = "*" then ∃j ∈ [0, onerror.len - 1] : onerror[j] = "WildcardError"
+>>
+Rule 121 (If onerror is defined (length > 0), Top must contain at least ONE alphabetic character. Stronger validity)
+{top: str, onerror: list(str)} |= if onerror.len > 0 then ∃i ∈ [0, top.len - 1]: ("a" <= top[i] ∧ top[i] <= "z") ∨ ("A" <= top[i] ∧ top[i] <= "Z")
+>>
+Rule 128 (onerror handler implies top must have some alphabetic content)
+{top: str, onerror:list(str)} |= if onerror.len > 0 then ∃i ∈ [0, top.len - 1]: ("a" <= top[i] ∧ top[i] <= "z") ∨ ("A" <= top[i] ∧ top[i] <= "Z")

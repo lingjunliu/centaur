@@ -1,48 +1,81 @@
 >>
-Rule 3 (input tensor should have dtype string)
-{v_1 : tensor} |= dtype_(v_1) = 11
+Rule 1 (input tensor should be of string type)
+{v_1 : tensor} |= dtype_(v_1) = 12
 >>
-Rule 4 (The unit must be a valid string)
-{v_1 : str} |= v_1 = "BYTE" ∨ v_1 = "UTF8_CHAR"
+Rule 2 (pos tensor should be of int32 or int64 type)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
 >>
-Rule 5 (length cannot be negative)
+Rule 3 (len tensor should be of the same type as pos tensor)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 4 (pos tensor's elements should be non-negative)
 {v_1 : tensor} |= min(v_1) ≥ 0
 >>
-Rule 6 (pos and len must have the same type, restricted to int32 or int64)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
+Rule 7 (unit should be either BYTE or UTF8_CHAR)
+{v_1 : str} |= v_1 = "BYTE" ∨ v_1 = "UTF8_CHAR"
 >>
-Rule 7 (pos and len must have the same shape if they are not scalar.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ 0 then shape(v_1, 0) = shape(v_2, 0)
+Rule 8 (input should have dimension 0 or more)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 11 (position can be negative, but should be within the negated length of the string)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1,0)-1] : v_2[i] ≥ -1 * shape(v_1, 0)
->>
-Rule 13 (pos and len must have the same shape if they are not scalar.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ 0 then ndim(v_2)≠0 ∧ shape(v_1, 0) = shape(v_2, 0)
->>
-Rule 16 (position can be negative, but should be within the negated length of the string)
-{v_1 : tensor, v_2 : tensor} |=  ∀i ∈ [0, shape(v_1,0)-1] : v_2[i] ≥ -1 * shape(v_1, 0)
->>
-Rule 19 (pos and len must have the same shape if they are not scalar and have more than 0 dimension.)
+Rule 21 (If pos and len are both not scalar, the first dimension shape of pos and len should be the same)
 {v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 22 (position can be negative, but should be within the negated length of the string)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1,0)-1] : v_2[i] ≥ -1 * shape(v_1, 0) ∧ v_2[i] < shape(v_1, 0)
+Rule 22 (If pos and len are both not scalar and have more than one dimension, the second dimension shape of pos and len should be the same)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 1 then shape(v_1, 1) = shape(v_2, 1)
 >>
-Rule 28 (position can be negative, but should be within the negated length of the string)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1,0)-1] : v_2[i] ≥ (0 - shape(v_1, 0)) ∧ v_2[i] < shape(v_1, 0)
+Rule 27 (If pos is scalar, then len must also be scalar, otherwise they must have the same shape along each dimension.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0 else if ndim(v_2) = 0 then ndim(v_1) = 0 else (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 29 (If pos is scalar, then it has to be within range [-length of string, length of string])
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then v_2 ≥ (0 - shape(v_1,0)) ∧ v_2 < shape(v_1,0)
+Rule 32 (If pos is scalar, then len must also be scalar)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) = (ndim(v_2) = 0)
 >>
-Rule 34 (position can be negative, but should be within the negated length of the string)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ∀i ∈ [0, shape(v_1,0)-1] : v_2[i] ≥ (0 - shape(v_1, 0)) ∧ v_2[i] < shape(v_1, 0)
+Rule 33 (If pos and len are not scalar, they must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 48 (input string has to be valid UTF-8 if the unit is set to UTF8_CHAR)
-{v_1 : str} |= if v_1 = "UTF8_CHAR" then true
+Rule 38 (pos and len must either be both scalar or both have the same shape)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∧ ndim(v_2) = 0) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 49 (Pos and Len must have the same shape, otherwise a ValueError is thrown)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∨ ndim(v_2) > 0 then ndim(v_1) = ndim(v_2)
+Rule 43 (If pos and len are not both scalars, they must have the same number of elements)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∨ ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) = shape(v_2, i)
 >>
-Rule 55 (shape of input must be greater than zero.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+Rule 49 (If pos and len are not scalar, their shapes must be equal.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) = shape(v_2, i))
+>>
+Rule 54 (If the position tensor is not a scalar, it must have non-negative values)
+{v_1 : tensor} |= if ndim(v_1) > 0 then min(v_1) ≥ 0
+>>
+Rule 60 (If pos and len have dimension > 0, then they have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) > 0) ∧ (ndim(v_2) > 0) then ndim(v_1) = ndim(v_2)
+>>
+Rule 71 (if ndim of pos > 0, each element in pos must be greater or equal to negative of the length of input strings at corresponding positions)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_2) > 0) then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ (0 - shape(v_1, 0))
+>>
+Rule 81 (If len is not scalar and input is scalar, len must have shape[0] smaller or equal to the length of input)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) > 0 then shape(v_2, 0) ≤ shape(v_1,0)
+>>
+Rule 86 (If length is scalar, then length must be less than or equal to the string length)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then v_2 ≤ shape(v_1, 0)
+>>
+Rule 91 (If len has ndim=1 and input has ndim > 1, then shape of len[0] must be <= shape of input[0])
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 ∧ ndim(v_1) > 1 then shape(v_2, 0) ≤ shape(v_1, 0)
+>>
+Rule 96 (If len is 1D and input is 2D and pos is scalar, then shape of len[0] must be <= shape of input[1])
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 1 ∧ ndim(v_1) = 2 ∧ ndim(v_3) = 0 then shape(v_2, 0) ≤ shape(v_1, 1)
+>>
+Rule 101 (If input is 2D, pos is 1D and len is 1D, then len.shape[0] == pos.shape[0])
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1 then shape(v_2, 0) = shape(v_3, 0)
+>>
+Rule 106 (If input is 1D, and pos and len are 1D, shape[0] of pos and len are the same)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1 then shape(v_2, 0) = shape(v_3, 0)
+>>
+Rule 115 (If input has ndim=2, pos has ndim=1 and len has ndim =1, then pos.shape[0] == len.shape[0] and pos.shape[0] <= input.shape[0])
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1 then shape(v_2, 0) = shape(v_3, 0) ∧ shape(v_2, 0) ≤ shape(v_1, 0)
+>>
+Rule 120 (If all 3 tensors have ndim=1, the shape of all 3 tensors should match.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1 then shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_2, 0) = shape(v_3, 0)
+>>
+Rule 125 (If all three tensors have ndim>0 and input ndim > pos ndim and input ndim > len ndim and pos and len have same ndim, then shape of pos should match shape of input)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0 ∧ ndim(v_1) > ndim(v_2) ∧ ndim(v_1) > ndim(v_3) ∧ ndim(v_2) = ndim(v_3) then ∀i ∈ [0, ndim(v_2) -1] : shape(v_2, i) = shape(v_1, i)
+>>
+Rule 130 (If input is 1D, pos is 1D, and len is 1D, and all 3 shapes match, then every element of pos + len <= shape of input)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_2, 0) = shape(v_3, 0) then ∀i ∈ [0, shape(v_1, 0) - 1] : v_2[i] + v_3[i] ≤ shape(v_1,0)

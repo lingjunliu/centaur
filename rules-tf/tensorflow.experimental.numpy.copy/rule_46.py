@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check the shapes of the tensor and ensure all of them are non-zero and less than 500 (Rule 46)
+# The total size of the tensor must not exceed a reasonable limit for memory. (Rule 46)
 
 rule_46 = lambda s, v, n=False: (
-    s.add(Not(And((And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 500) for i in range(6)])))) if n else
-          And((And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 500) for i in range(6)]))))
+    s.add(Not(If(v["arg1_ndim"] == 0, True, If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) < 2000000000, If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) < 2000000000, If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) < 2000000000, If(v["arg1_ndim"] == 4, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3) < 2000000000, If(v["arg1_ndim"] == 5, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3) * Select(v["arg1_shape"], 4) < 2000000000, True))))))) if n else
+          If(v["arg1_ndim"] == 0, True, If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) < 2000000000, If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) < 2000000000, If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) < 2000000000, If(v["arg1_ndim"] == 4, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3) < 2000000000, If(v["arg1_ndim"] == 5, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3) * Select(v["arg1_shape"], 4) < 2000000000, True)))))))
 )
 
 def rule_46_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_46_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 46
-        rule_46(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_46(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_46(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_46(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

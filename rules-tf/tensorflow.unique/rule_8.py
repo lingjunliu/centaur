@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Input tensor must have at least one element (Rule 8)
+# x's shape must be known (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(Or([And(i < (0 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])) if n else
-          Or([And(i < (0 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]))
+    s.add(Not(Select(v["arg1_shape"], 0) > 0) if n else
+          Select(v["arg1_shape"], 0) > 0)
 )
 
 def rule_8_func(arg1, solver=None, neg=False):

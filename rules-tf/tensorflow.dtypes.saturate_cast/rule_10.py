@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If value is int8, then dtype must not be bool (Rule 10)
+# If value is complex, dtype must also be complex, or float (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 1, v["arg2_value"] != 0, False)) if n else
-          If(v["arg1_dtype"] == 1, v["arg2_value"] != 0, False))
+    s.add(Not(If((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(Or(Or(Or(v["arg2_value"] == 6, v["arg2_value"] == 7), v["arg2_value"] == 8), v["arg2_value"] == 9), v["arg2_value"] == 10)), True)) if n else
+          If((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(Or(Or(Or(v["arg2_value"] == 6, v["arg2_value"] == 7), v["arg2_value"] == 8), v["arg2_value"] == 9), v["arg2_value"] == 10)), True))
 )
 
 def rule_10_func(arg1, arg2, solver=None, neg=False):
@@ -20,7 +20,7 @@ def rule_10_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
             return False
 
         # Variable declarations
@@ -30,7 +30,7 @@ def rule_10_func(arg1, arg2, solver=None, neg=False):
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
 
         # Constraints for rule 10
         rule_10(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})

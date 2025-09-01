@@ -1,123 +1,99 @@
 >>
-Rule 1 (image must be a 4D tensor)
-{v_1 : tensor} |= ndim(v_1) = 4
+Rule 1 (image tensor must be 4-dimensional)
+{image : tensor} |= ndim(image) = 4
 >>
-Rule 2 (image height and width must be positive)
-{v_1 : tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+Rule 2 (boxes tensor must be 2-dimensional)
+{boxes : tensor} |= ndim(boxes) = 2
 >>
-Rule 3 (boxes must be a 2D tensor)
-{v_2 : tensor} |= ndim(v_2) = 2
+Rule 3 (boxes tensor's second dimension must be 4)
+{boxes : tensor} |= shape(boxes, 1) = 4
 >>
-Rule 4 (boxes shape must be [num_boxes, 4])
-{v_2 : tensor} |= shape(v_2, 1) = 4
+Rule 4 (box_indices tensor must be 1-dimensional)
+{box_indices : tensor} |= ndim(box_indices) = 1
 >>
-Rule 5 (box_indices must be a 1D tensor)
-{v_3 : tensor} |= ndim(v_3) = 1
+Rule 5 (crop_size tensor must be 1-dimensional)
+{crop_size : tensor} |= ndim(crop_size) = 1
 >>
-Rule 6 (box_indices shape must be [num_boxes])
-{v_2 : tensor, v_3 : tensor} |= shape(v_3, 0) = shape(v_2, 0)
+Rule 6 (crop_size tensor's first dimension must be 2)
+{crop_size : tensor} |= shape(crop_size, 0) = 2
 >>
-Rule 7 (box_indices values must be int32)
-{v_3 : tensor} |= dtype_(v_3) = 3
+Rule 7 (crop_height must be positive)
+{crop_size : tensor} |= shape(crop_size, 0) > 0
 >>
-Rule 8 (box_indices values must be within [0, batch))
-{v_1 : tensor, v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : v_3[i] ≥ 0 ∧ v_3[i] < shape(v_1, 0)
+Rule 8 (crop_width must be positive)
+{crop_size : tensor} |= shape(crop_size, 1) > 0
 >>
-Rule 9 (crop_size must be a 1D tensor of 2 elements)
-{v_4 : tensor} |= ndim(v_4) = 1 ∧ shape(v_4, 0) = 2
+Rule 9 (method string must be either bilinear or nearest)
+{method : str} |= method = "bilinear" ∨ method = "nearest"
 >>
-Rule 10 (crop_height and crop_width must be positive)
-{v_4 : tensor} |= v_4[0] > 0 ∧ v_4[1] > 0
+Rule 11 (number of boxes must match between boxes and box_indices)
+{boxes : tensor, box_indices : tensor} |= shape(boxes, 0) = shape(box_indices, 0)
 >>
-Rule 11 (method must be either "bilinear" or "nearest")
-{v_5 : str} |= v_5 = "bilinear" ∨ v_5 = "nearest"
+Rule 12 (image height and width must be positive)
+{image : tensor} |= shape(image, 1) > 0 ∧ shape(image, 2) > 0
 >>
-Rule 13 (Check for non-empty image tensor)
-{v_1 : tensor} |= (shape(v_1, 0) > 0) ∧ (shape(v_1, 1) > 0) ∧ (shape(v_1, 2) > 0) ∧ (shape(v_1, 3) > 0)
+Rule 13 (box_indices values must be within the valid range)
+{box_indices : tensor, image : tensor} |= ∀i ∈ [0, shape(box_indices, 0) - 1] : box_indices[i] ≥ 0 ∧ box_indices[i] < shape(image, 0)
 >>
-Rule 15 (Crop size elements are integers)
-{v_4 : tensor} |= dtype_(v_4) = 3
+Rule 27 (box_indices tensor must be int32)
+{box_indices : tensor} |= dtype_(box_indices) = 3
 >>
-Rule 16 (Image dtype check)
-{v_1: tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6
+Rule 28 (crop_size tensor must be int32)
+{crop_size : tensor} |= dtype_(crop_size) = 3
 >>
-Rule 17 (boxes values are floats)
-{v_2 : tensor} |= dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+Rule 29 (image tensor must be 4-dimensional and have positive dimensions)
+{image : tensor} |= ndim(image) = 4 ∧ shape(image, 1) > 0 ∧ shape(image, 2) > 0
 >>
-Rule 36 (Boxes values should be normalized)
-{v_2 : tensor} |= min(v_2) ≥ 0 ∧ max(v_2) ≤ 1
+Rule 30 (boxes tensor must be 2-dimensional and the second dimension must be 4)
+{boxes : tensor} |= ndim(boxes) = 2 ∧ shape(boxes, 1) = 4
 >>
-Rule 37 (Crop size elements are integers and non-negative)
-{v_4 : tensor} |= dtype_(v_4) = 3 ∧ v_4[0] ≥ 0 ∧ v_4[1] ≥ 0
+Rule 31 (box_indices tensor must be 1-dimensional and match the number of boxes)
+{boxes : tensor, box_indices : tensor} |= ndim(box_indices) = 1 ∧ shape(boxes, 0) = shape(box_indices, 0)
 >>
-Rule 39 (Box indices should be int32 and greater or equal to zero)
-{v_3 : tensor} |= dtype_(v_3) = 3 ∧ min(v_3) >= 0
+Rule 32 (crop_size tensor must be 1-dimensional with size 2 and have positive dimensions)
+{crop_size : tensor} |= ndim(crop_size) = 1 ∧ shape(crop_size, 0) = 2 ∧ crop_size[0] > 0 ∧ crop_size[1] > 0
 >>
-Rule 45 (Image and extrapolation value datatypes are compatible - float16)
-{v_1 : tensor, v_6 : float} |= if dtype_(v_1) = 6 then dtype_(v_1) = dtype_(v_6)
+Rule 40 (box_indices tensor must be 1-dimensional and of type int32)
+{box_indices : tensor} |= ndim(box_indices) = 1 ∧ dtype_(box_indices) = 3
 >>
-Rule 46 (boxes coordinates should be less than or equal to 1.0)
-{v_2: tensor} |= max(v_2) <= 1.0
+Rule 41 (crop_size tensor must be 1-dimensional, size 2, of type int32, and positive dimensions)
+{crop_size : tensor} |= ndim(crop_size) = 1 ∧ shape(crop_size, 0) = 2 ∧ dtype_(crop_size) = 3 ∧ crop_size[0] > 0 ∧ crop_size[1] > 0
 >>
-Rule 47 (boxes coordinates should be greater than or equal to 0.0)
-{v_2: tensor} |= min(v_2) >= 0.0
+Rule 48 (box_indices tensor must be 1-dimensional, of type int32, and within image batch bounds)
+{box_indices : tensor, image : tensor} |= ndim(box_indices) = 1 ∧ dtype_(box_indices) = 3 ∧ ∀i ∈ [0, shape(box_indices, 0) - 1] : box_indices[i] ≥ 0 ∧ box_indices[i] < shape(image, 0)
 >>
-Rule 48 (Box indices should be non-negative integers)
-{v_3 : tensor} |= min(v_3) >= 0 ∧ dtype_(v_3) = 3
+Rule 51 (box_indices and boxes number of boxes should be equal)
+{box_indices: tensor, boxes: tensor} |= shape(box_indices, 0) = shape(boxes, 0)
 >>
-Rule 49 (method should be a string from the specified list)
-{v_5: str} |= v_5 = "bilinear" ∨ v_5 = "nearest"
+Rule 53 (box_indices tensor must be 1-dimensional, of type int32, within image batch bounds, and num boxes match boxes)
+{box_indices : tensor, image : tensor, boxes: tensor} |= ndim(box_indices) = 1 ∧ dtype_(box_indices) = 3 ∧ (∀i ∈ [0, shape(box_indices, 0) - 1] : box_indices[i] ≥ 0 ∧ box_indices[i] < shape(image, 0)) ∧ shape(box_indices, 0) = shape(boxes, 0)
 >>
-Rule 50 (Image depth should be greater than 0)
-{v_1 : tensor} |= shape(v_1, 3) > 0
+Rule 63 (box_indices tensor must be 1-dimensional, of type int32, within image batch bounds, same number of boxes in boxes and box_indices, image 4 dimensional with positive height and width)
+{box_indices : tensor, image : tensor, boxes: tensor} |= ndim(box_indices) = 1 ∧ dtype_(box_indices) = 3 ∧ (∀i ∈ [0, shape(box_indices, 0) - 1] : box_indices[i] ≥ 0 ∧ box_indices[i] < shape(image, 0)) ∧ shape(box_indices, 0) = shape(boxes, 0) ∧ ndim(image) = 4 ∧ shape(image, 1) > 0 ∧ shape(image, 2) > 0
 >>
-Rule 52 (Box indices should be less than batch size)
-{v_1 : tensor, v_3 : tensor} |= max(v_3) < shape(v_1, 0)
+Rule 67 (box_indices tensor is 1D int32, boxes is 2D, num boxes match, image is 4D, H and W positive, and all indices in valid range)
+{box_indices : tensor, image : tensor, boxes: tensor} |= ndim(box_indices) = 1 ∧ dtype_(box_indices) = 3 ∧ shape(box_indices, 0) = shape(boxes, 0) ∧ ndim(image) = 4 ∧ shape(image, 1) > 0 ∧ shape(image, 2) > 0 ∧ (∀i ∈ [0, shape(box_indices, 0) - 1] : box_indices[i] ≥ 0 ∧ box_indices[i] < shape(image, 0))
 >>
-Rule 54 (Image height and width should be greater or equal to crop height and width)
-{v_1 : tensor, v_4 : tensor} |= shape(v_1, 1) >= v_4[0] ∧ shape(v_1, 2) >= v_4[1]
+Rule 71 (box_indices and boxes: 1D, int32, same # of boxes, image 4D and valid indices)
+{box_indices : tensor, image : tensor, boxes: tensor} |= ndim(box_indices) = 1 ∧ dtype_(box_indices) = 3 ∧ shape(box_indices, 0) = shape(boxes, 0) ∧ ndim(image) = 4 ∧ (∀i ∈ [0, shape(box_indices, 0) - 1] : box_indices[i] ≥ 0 ∧ box_indices[i] < shape(image, 0))
 >>
-Rule 56 (Image should be a 4D tensor with at least 1 batch, image height, image width, and channel)
-{v_1 : tensor} |= ndim(v_1) = 4 ∧ shape(v_1, 0) >= 1 ∧ shape(v_1, 1) >= 1 ∧ shape(v_1, 2) >= 1 ∧ shape(v_1, 3) >= 1
+Rule 75 (box_indices requirements: 1D int32, boxes/image relationship, and index validity)
+{box_indices : tensor, image : tensor, boxes: tensor} |= ndim(box_indices) = 1 ∧ dtype_(box_indices) = 3 ∧ shape(box_indices, 0) = shape(boxes, 0) ∧ (∀i ∈ [0, shape(box_indices, 0) - 1] : box_indices[i] ≥ 0 ∧ box_indices[i] < shape(image, 0))
 >>
-Rule 57 (crop_size must have length 2 with crop_height and crop_width)
-{v_4 : tensor} |= shape(v_4, 0) = 2
+Rule 79 (box_indices must be int32 1D, num_boxes matches, indices within valid range of the image, image needs to be 4D)
+{box_indices : tensor, image : tensor, boxes : tensor} |= ndim(box_indices) = 1 ∧ dtype_(box_indices) = 3 ∧ shape(box_indices, 0) = shape(boxes, 0) ∧ (∀i ∈ [0, shape(box_indices, 0) - 1] : box_indices[i] ≥ 0 ∧ box_indices[i] < shape(image, 0)) ∧ ndim(image) = 4
 >>
-Rule 60 (Image height and width should be positive integers)
-{v_1: tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ dtype_(v_1) = 3
+Rule 83 (box_indices: 1D, int32, same # of boxes in image and boxes, and image requirements: 4D and valid indices)
+{box_indices : tensor, image : tensor, boxes : tensor} |= ndim(box_indices) = 1 ∧ dtype_(box_indices) = 3 ∧ shape(box_indices, 0) = shape(boxes, 0) ∧ ndim(image) = 4 ∧ (∀i ∈ [0, shape(box_indices, 0) - 1] : box_indices[i] ≥ 0 ∧ box_indices[i] < shape(image, 0))
 >>
-Rule 61 (Boxes' 4 values (y1, x1, y2, x2) should be within the range [0, 1])
-{v_2: tensor} |= min(v_2) >= 0 ∧ max(v_2) <= 1
+Rule 87 (box_indices and image compatible: 1D int32, #boxes match, image 4D, values inside range)
+{box_indices : tensor, image : tensor, boxes : tensor} |= ndim(box_indices) = 1 ∧ dtype_(box_indices) = 3 ∧ shape(box_indices, 0) = shape(boxes, 0) ∧ ndim(image) = 4 ∧ (∀i ∈ [0, shape(box_indices, 0) - 1] : (box_indices[i] ≥ 0 ∧ box_indices[i] < shape(image, 0)))
 >>
-Rule 62 (Crop size's crop_height and crop_width values must be positive)
-{v_4: tensor} |= v_4[0] > 0 ∧ v_4[1] > 0
+Rule 99 (box_indices relation with image & boxes. Correct type, valid # boxes, and all indices in valid range of the image)
+{box_indices : tensor, image : tensor, boxes : tensor} |= ndim(box_indices) = 1 ∧ dtype_(box_indices) = 3 ∧ shape(box_indices, 0) = shape(boxes, 0) ∧ (∀i ∈ [0, shape(box_indices, 0) - 1] : (box_indices[i] ≥ 0 ∧ box_indices[i] < shape(image, 0)))
 >>
-Rule 63 (Box indices' values must be within the valid range [0, batch_size))
-{v_1: tensor, v_3: tensor} |= min(v_3) >= 0 ∧ max(v_3) < shape(v_1, 0)
+Rule 103 (image is 4D, box_indices type and relation to image & boxes)
+{box_indices : tensor, image : tensor, boxes : tensor} |= ndim(image) = 4 ∧ ndim(box_indices) = 1 ∧ dtype_(box_indices) = 3 ∧ shape(box_indices, 0) = shape(boxes, 0) ∧ (∀i ∈ [0, shape(box_indices, 0) - 1] : (box_indices[i] ≥ 0 ∧ box_indices[i] < shape(image, 0)))
 >>
-Rule 64 (The number of boxes must match the number of box indices)
-{v_2: tensor, v_3: tensor} |= shape(v_2, 0) = shape(v_3, 0)
->>
-Rule 65 (Image data type should be a number between 1 and 8 to check valid datatype)
-{v_1: tensor} |= 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 8
->>
-Rule 66 (boxes should be a 2D tensor with shape[num_boxes, 4] and at least one box must be there.)
-{v_2: tensor} |= ndim(v_2) = 2 ∧ shape(v_2, 1) = 4 ∧ shape(v_2, 0) >= 1
->>
-Rule 67 (crop size tensor must be 1D tensor with 2 elements and positive integers)
-{v_4: tensor} |= ndim(v_4) = 1 ∧ shape(v_4, 0) = 2 ∧ v_4[0] > 0 ∧ v_4[1] > 0
->>
-Rule 68 (box_indices must be less than the batch size of the image and data type must be int32.)
-{v_1: tensor, v_3: tensor} |= max(v_3) < shape(v_1, 0) ∧ dtype_(v_3) = 3
->>
-Rule 70 (Image height, width, and depth must be positive)
-{v_1: tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
->>
-Rule 72 (Crop size must be a 1D tensor with 2 positive integer elements)
-{v_4: tensor} |= ndim(v_4) = 1 ∧ shape(v_4, 0) = 2 ∧ v_4[0] > 0 ∧ v_4[1] > 0 ∧ dtype_(v_4) = 3
->>
-Rule 73 (If method is bilinear, then image datatype must be float)
-{v_1: tensor, v_5: str} |= if v_5 = "bilinear" then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
->>
-Rule 74 (Box indices must be within the valid range [0, batch_size) and be int32)
-{v_1: tensor, v_3: tensor} |= min(v_3) >= 0 ∧ max(v_3) < shape(v_1, 0) ∧ dtype_(v_3) = 3
+Rule 119 (check box_indices, image and boxes)
+{box_indices : tensor, image : tensor, boxes : tensor} |= ndim(image) = 4 ∧ ndim(box_indices) = 1 ∧ dtype_(box_indices) = 3 ∧ shape(box_indices, 0) = shape(boxes, 0) ∧ (∀i ∈ [0, shape(box_indices, 0) - 1] : box_indices[i] ≥ 0 ∧ box_indices[i] < shape(image, 0))

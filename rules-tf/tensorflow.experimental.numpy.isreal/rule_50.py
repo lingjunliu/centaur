@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If dtype is complex, the maximum value must be complex (Rule 50)
+# If the dtype is float then at least one element should be smaller or larger than 0 (Rule 50)
 
 rule_50 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or(Select(v["arg1_range"], 1) == complex64, Select(v["arg1_range"], 1) == complex128), False)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or(Select(v["arg1_range"], 1) == complex64, Select(v["arg1_range"], 1) == complex128), False))
+    s.add(Not(If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), Or(Select(v["arg1_range"], 0) < 0, Select(v["arg1_range"], 1) > 0), True)) if n else
+          If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), Or(Select(v["arg1_range"], 0) < 0, Select(v["arg1_range"], 1) > 0), True))
 )
 
 def rule_50_func(arg1, solver=None, neg=False):

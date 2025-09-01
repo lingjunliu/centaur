@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Input tensor must be quantized, meaning the dtype must be in the range [1,5] (Rule 21)
+# check if input is qint16, quint16 (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5)) if n else
-          And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5))
+    s.add(Not(And(And(And(And(v["arg1_dtype"] != 6, v["arg1_dtype"] != 8), v["arg1_dtype"] != 9), v["arg1_dtype"] != 10), v["arg1_dtype"] != 7)) if n else
+          And(And(And(And(v["arg1_dtype"] != 6, v["arg1_dtype"] != 8), v["arg1_dtype"] != 9), v["arg1_dtype"] != 10), v["arg1_dtype"] != 7))
 )
 
 def rule_21_func(arg1, solver=None, neg=False):

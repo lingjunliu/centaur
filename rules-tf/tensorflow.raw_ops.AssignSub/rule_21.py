@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if ref is a tensor, then the shape of value should be broadcastable to the shape of ref (Rule 21)
+# if ref has uint16, value must have the same type (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), True, False)) if n else
-          If(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), True, False))
+    s.add(Not(If(v["arg1_dtype"] == 16, v["arg2_dtype"] == 16, True)) if n else
+          If(v["arg1_dtype"] == 16, v["arg2_dtype"] == 16, True))
 )
 
 def rule_21_func(arg1, arg2, solver=None, neg=False):
@@ -25,17 +25,17 @@ def rule_21_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_ndim = Int('arg2_ndim')
+        arg1_dtype = Int('arg1_dtype')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 21
-        rule_21(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
+        rule_21(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_21(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_21(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

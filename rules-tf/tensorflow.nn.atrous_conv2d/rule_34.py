@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# filters height and width cannot be greater than value height and width (Rule 34)
+# If Value's channel dimension is 0, filter's output channel must also be 0 (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg2_shape"], 0) <= Select(v["arg1_shape"], 1), Select(v["arg2_shape"], 1) <= Select(v["arg1_shape"], 2))) if n else
-          And(Select(v["arg2_shape"], 0) <= Select(v["arg1_shape"], 1), Select(v["arg2_shape"], 1) <= Select(v["arg1_shape"], 2)))
+    s.add(Not(If((Select(v["arg1_shape"], 3) == 0), (Select(v["arg2_shape"], 3) == 0), True)) if n else
+          If((Select(v["arg1_shape"], 3) == 0), (Select(v["arg2_shape"], 3) == 0), True))
 )
 
 def rule_34_func(arg1, arg2, solver=None, neg=False):

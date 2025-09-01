@@ -1,90 +1,99 @@
 >>
-Rule 2 (The length of perm should be equal to the rank of input tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then shape(v_2, 0) = ndim(v_1)
+Rule 1 (perm must be a vector (list) of integers.)
+{v_1 : tensor, v_2 : list(int)} |= v_2.len = ndim(v_1)
 >>
-Rule 3 (conjugate is a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 2 (If conjugate is true, the input tensor must have complex dtype.)
+{v_1 : tensor, v_3 : bool} |= if v_3 then (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11)
 >>
-Rule 4 (Data type should be complex if conjugate is True)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 3 (perm values should be within the range of the input tensor dimensions.)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1)
 >>
-Rule 5 (Dimensions of the input tensor should be greater than 0)
+Rule 5 (The length of perm list should not be zero.)
+{v_2 : list(int)} |= v_2.len > 0
+>>
+Rule 10 (If perm is not none, its length must match tensor dimension)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then v_2.len = ndim(v_1)
+>>
+Rule 11 (Tensor should have at least one dimension)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 6 (Input tensor dimensions should not be too large)
-{v_1 : tensor} |= ndim(v_1) < 10
+Rule 15 (If perm is not none, its elements should be unique)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j]
 >>
-Rule 7 (perm must have non-negative values)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, i) ≥ 0
+Rule 16 (Permutation list should not be excessively long for performance reasons)
+{v_2 : list(int)} |= v_2.len < 100
 >>
-Rule 8 (Permutation values must be less than the number of dimensions of the input tensor)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, i) < ndim(v_1)
+Rule 20 (If perm is not None then the product of tensor shape should not be zero)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
 >>
-Rule 9 (If perm is not given (empty tensor), ndim of input should be greater than 1)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) = 0 then ndim(v_1) > 1
+Rule 26 (Each dimension should have a shape greater than zero)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 10 (If perm is given (non-empty tensor), ndim of input and perm should be related.)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) > 0 then shape(v_2, 0) = ndim(v_1)
+Rule 27 (perm values should be within the range of the input tensor dimensions, if perm is provided)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1))
 >>
-Rule 11 (perm should be a vector if provided)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ndim(v_1) = 1
+Rule 33 (If the perm is of size greater than 1 then elements should be unique)
+{v_2 : list(int)} |= if v_2.len > 1 then (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j])
 >>
-Rule 18 (Permutation values must be less than the number of dimensions of the input tensor if perm is given)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < ndim(v_1)
+Rule 34 (Tensor should have a valid dtype)
+{v_1: tensor} |= dtype_(v_1) ≥ 0 ∧ dtype_(v_1) ≤ 12
 >>
-Rule 23 (if conjugate is True, the datatype must be complex)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 35 (perm values should be a valid permutation of the input tensor dimensions)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1) ∧ (∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j]))
 >>
-Rule 24 (If perm is empty, the input tensor must have at least 2 dimensions)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) = 0 then ndim(v_1) ≥ 2
+Rule 37 (If perm length is 1, its value should be within valid range)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len = 1 then v_2[0] ≥ (0 - ndim(v_1)) ∧ v_2[0] < ndim(v_1)
 >>
-Rule 26 (If conjugate is False, the datatype must not be complex)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10)
+Rule 39 (perm values should form a valid permutation of input dimensions, accounting for potential default)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then (v_2.len = ndim(v_1) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1) ∧ (∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j])))
 >>
-Rule 27 (If perm is given, it should not have duplicate values.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: ∀j ∈ [i + 1, ndim(v_1) - 1] : i ≠ j ∧ v_1[i] ≠ v_1[j]
+Rule 40 (if conjugate is set to true, the data type should be complex 64 or complex 128)
+{v_1 : tensor, v_3 : bool} |= if v_3 then dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
 >>
-Rule 28 (If no perm is specified, the dimensions are reversed)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then ∀i ∈ [0, ndim(v_1) - 1]: v_2[i] = ndim(v_1) - 1 - i
+Rule 42 (If perm length is 1, its value should be in the range [-ndim(v_1), ndim(v_1) -1], if tensor is at least one dimension.)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len = 1 then (ndim(v_1) > 0 ∧ v_2[0] ≥ (0 - ndim(v_1)) ∧ v_2[0] < ndim(v_1))
 >>
-Rule 29 (perm is a tensor of integers if perm is given)
-{v_1 : tensor} |= if ndim(v_1) > 0 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
+Rule 52 (If perm is given then, the tensor has dimensions and elements in perm are valid)
+{v_1 : tensor, v_2 : list(int)} |=  if v_2.len > 0 then (ndim(v_1) > 0 ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1) ))
 >>
-Rule 33 (If perm is a valid permutation, then all values are different.)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : i ≠ j ∧ v_1[i] ≠ v_1[j]
+Rule 53 (If perm is specified and its length is greater than one, its elements should be unique valid indices.)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 1 then (ndim(v_1) > 0 ∧  (∀i ∈ [0, v_2.len - 1] : (∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j])))
 >>
-Rule 41 (If perm is a valid permutation, then all values are different within the range 0 to ndim(a) - 1.)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : i ≠ j ∧ v_1[i] ≠ v_1[j] ∧ v_1[i] ≥ 0 ∧ v_1[j] ≥ 0 ∧ v_1[i] < ndim(v_1) ∧ v_1[j] < ndim(v_1)
+Rule 56 (if perm is specified and of length 1, its value should be in the range)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len = 1 then (v_2[0] ≥ (0 - ndim(v_1)) ∧ v_2[0] < ndim(v_1))
 >>
-Rule 43 (If perm is specified, then the size of perm should not exceed the dimensions of a)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then shape(v_2, 0) <= ndim(v_1)
+Rule 60 (Check if tensor dimensions are positive)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
 >>
-Rule 49 (Perm is one dimensional)
-{v_1 : tensor} |= ndim(v_1) <= 1
+Rule 67 (The tensor should not be empty for performing transpose)
+{v_1: tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
 >>
-Rule 51 (If perm is a permutation vector, then values in vector must be a valid dimension)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < ndim(v_1)
+Rule 72 (If perm is given then, the tensor has dimensions and elements in perm are valid)
+{v_1 : tensor, v_2 : list(int)} |=  if v_2.len > 0 then ((∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1) ))
 >>
-Rule 52 (The elements of perm must be distinct if perm is given)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j]
+Rule 74 (Perm has valid index if it exists and conjugate=false)
+{v_1 : tensor, v_2 : list(int), v_3:bool} |= if v_2.len > 0 ∧ v_3 = false then (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1) )
 >>
-Rule 57 (If perm parameter is specified, then perm must have distinct values between 0 and ndim(a) - 1)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j] ∧ v_1[i] ≥ 0 ∧ v_1[i] < ndim(v_1)
+Rule 80 (Perm is a list with elements valid if its length is greater than 1, in order to avoid "transpose expects a vector of size 1. But input(1) is a vector of size 10")
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 1 then (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1) ∧ (∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j]))
 >>
-Rule 58 (if the shape of perm is greater than 0, then each value must be smaller than dimension of input)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) > 0 then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < ndim(v_1)
+Rule 92 (Avoid "transpose expects a vector of size 1. But input(1) is a vector of size 10")
+{v_2 : list(int)} |= v_2.len ≠ 10
 >>
-Rule 60 (When no perm is given, output tensor will be a standard transpose)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) = 0 then ndim(v_1) = ndim(v_1)
+Rule 94 (If perm length is valid, the elements can not be out of order)
+{v_2 : list(int)} |= if v_2.len > 1 then (∀i ∈ [0, v_2.len - 1] : (∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≥ v_2[j]))
 >>
-Rule 67 (If perm is empty, the dimensions are reversed)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) = 0 then ∀i ∈ [0, ndim(v_1) - 1]: v_2[i] = ndim(v_1) - 1 - i
+Rule 95 (For transpose operation we expect shape value of at least one, otherwise nothing is possible)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
 >>
-Rule 68 (If perm is specified and has more than 0 dimension, values must be in range)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : 0 <= v_1[i] ∧ v_1[i] < ndim(v_1)
+Rule 101 (If permuations has redundant elements, we should notify )
+{v_2 : list(int)} |= if v_2.len > 1 then (∀i ∈ [0, v_2.len - 1] : (∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j]))
 >>
-Rule 73 (if perm is a valid permutation, then all values are different and within the range 0 to ndim(a) - 1 if perm is given)
-{v_1 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j]) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < ndim(v_1))
+Rule 103 (The permutation elements for large permuations can't be the same for valid calculation, and no index should be greater or equal than rank.)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 1 then (∀i ∈ [0, v_2.len - 1] : (∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j] ∧ v_2[i] < ndim(v_1)))
 >>
-Rule 75 (If dtype is complex128 or complex64 and conjugate is not specified, then conjugate defaults to false)
-{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_2 = true ∨ v_2 = false
+Rule 107 (When transposition happens with valid setup, the tensor dimension can't be very big)
+{v_1 : tensor} |= ndim(v_1) < 30
+>>
+Rule 112 (Perm length is the same as dimension length, with positive dimension value)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then (v_2.len = ndim(v_1) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ))

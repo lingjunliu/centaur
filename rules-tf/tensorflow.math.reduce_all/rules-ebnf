@@ -1,48 +1,138 @@
 >>
-Rule 1 (input_tensor must be a boolean tensor)
+Rule 2 (input_tensor must be a boolean tensor)
 {v_1 : tensor} |= dtype_(v_1) = 0
 >>
-Rule 6 (The rank of the input tensor should be greater or equal to 1)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
->>
-Rule 7 (keepdims should be boolean constant)
+Rule 3 (keepdims should be a boolean value)
 {v_3 : bool} |= v_3 = true ∨ v_3 = false
 >>
-Rule 8 (If axis is none then reduce to single element)
-{v_1 : tensor, v_2 : int ⊎ list(int)} |= if v_2 = -1 then ndim(v_1) ≥ 0
+Rule 5 (Rank of input tensor must be greater than 0)
+{v_1: tensor} |= ndim(v_1) > 0
 >>
-Rule 13 (axis must be within the valid range when it is an int)
+Rule 8 (axis must be within the valid range of input_tensor's rank to prevent InvalidArgumentError)
 {v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 14 (If axis is a list, all elements must be within the valid range)
+Rule 11 (If axis is None, then all dimensions are reduced, represented by -1)
+{v_1 : tensor, v_2 : int} |= if v_2 = -1 then true else v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+>>
+Rule 13 (Axis should be within the valid range even when negative)
+{v_1: tensor, v_2: int} |= if v_2 < 0 then v_2 ≥ (0 - ndim(v_1)) else v_2 < ndim(v_1)
+>>
+Rule 14 (Axis should not equal the rank of input tensor)
+{v_1 : tensor, v_2 : int} |= v_2 ≠ ndim(v_1)
+>>
+Rule 15 (If axis is None, the keepdims argument doesn't matter)
+{v_1 : int} |= v_1 = -1 ∨ v_1 ≠ -1
+>>
+Rule 16 (Axis should not be smaller than negative rank of input tensor minus 1.)
+{v_1 : tensor, v_2 : int} |= v_2 > (0 - ndim(v_1) - 1)
+>>
+Rule 19 (If axis is None (represented by -1), keepdims should be a boolean. The case where axis is not None then keepdims should still be a boolean.)
+{v_2 : int, v_3 : bool} |= (v_2 = -1 ∨ v_2 ≠ -1) ∧ (v_3 = true ∨ v_3 = false)
+>>
+Rule 22 (Axis value cannot exceed the maximum possible value based on the number of dimensions, given the error message)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then v_2 > -102
+>>
+Rule 23 (if input tensor has rank zero, then the axis must be None)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 = -1
+>>
+Rule 27 (If axis is not None (-1), then the axis should not be greater than or equal to the number of dimensions)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then v_2 < ndim(v_1)
+>>
+Rule 29 (If the axis is a list, all values inside should be within the dimension range)
 {v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)
 >>
-Rule 17 (If axis is None, then -1 is passed)
-{v_2 : int ⊎ list(int)} |= if v_2 = -1 then true
+Rule 30 (The axis should be in the range [-rank(input_tensor), rank(input_tensor)), considering 4 dimensions as a limit from the error message)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 4 then true else if v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) then true else false
 >>
-Rule 18 (If axis is a list, it cannot be empty)
-{v_2 : list(int)} |= v_2.len > 0
->>
-Rule 25 (Input tensor rank must be greater than 0)
-{v_1 : tensor} |= ndim(v_1) > 0
->>
-Rule 27 (Axis values must be unique)
-{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j]
->>
-Rule 35 (If axis is None, then -1 is passed. In that case, the output tensor is a scalar.)
+Rule 31 (If axis is None (represented by -1), the input tensor should have at least one dimension)
 {v_1 : tensor, v_2 : int} |= if v_2 = -1 then ndim(v_1) ≥ 0
 >>
-Rule 38 (axis is -1 or within valid range)
-{v_1 : tensor, v_2 : int} |= (v_2 = -1) ∨ (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1))
+Rule 32 (If input_tensor has 4 dimension, axis cannot be less than -101)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then v_2 ≥ -101
 >>
-Rule 39 (axis is None or list and rank of input >= 1)
-{v_1 : tensor, v_2 : int ⊎ list(int)} |= if v_2 = -1 then ndim(v_1) ≥ 0 else ndim(v_1) > 0
+Rule 34 (For the case when input_tensor has 4 dimensions, the axis cannot be smaller than -101. When the tensor does not have 4 dimensions, the constraint is that axis must be larger than or equal to -ndim(v_1))
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then v_2 ≥ -101 else v_2 ≥ (0 - ndim(v_1))
 >>
-Rule 43 (The number of elements in axis should be less than or equal to the number of dimensions of input tensor)
-{v_1 : tensor, v_2 : list(int)} |= v_2.len ≤ ndim(v_1)
+Rule 35 (If the axis is None (-1), the input_tensor must have non-zero dimensions if keepdims is false)
+{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_2 = -1 then (if v_3 = false then ndim(v_1) > 0)
 >>
-Rule 45 (axis should be within the valid range with consideration of negative indexing.)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1))
+Rule 36 (If input_tensor has 4 dimensions, axis must be greater than or equal to -101 and less than 4)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then v_2 ≥ -101 ∧ v_2 < 4
 >>
-Rule 64 (Values of axis list, if supplied, must be unique and with permissible bounds.)
-{v_1 : tensor, v_2 : list(int)} |= (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j]) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1))
+Rule 37 (If axis is None (-1), then keepdims is either true or false)
+{v_3 : bool, v_2 : int} |= if v_2 = -1 then (v_3 = true ∨ v_3 = false)
+>>
+Rule 39 (If the number of dimensions of the input_tensor is more than 0, axis must be greater or equal to -rank(input_tensor) and smaller than rank(input_tensor))
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+>>
+Rule 44 (if ndim(input_tensor) is 4, the valid range for axis is [-101, 3]. Otherwise the range is [-ndim, ndim))
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then v_2 ≥ -101 ∧ v_2 < 4 else v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+>>
+Rule 45 (if axis is not None, keepdims must be a boolean)
+{v_2 : int, v_3: bool} |= if v_2 ≠ -1 then v_3 = true ∨ v_3 = false
+>>
+Rule 46 (If the number of dimensions of the input tensor is 4, then axis must be an integer between -101 and 3 inclusive, to avoid the specific error message)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then v_2 ≥ -101 ∧ v_2 ≤ 3
+>>
+Rule 47 (If the number of dimensions is greater than zero, the absolute value of the axis must be less than the number of dimensions)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1))
+>>
+Rule 50 (If input_tensor is a 4D tensor, axis must be between -101 and 3, or it must be None which represented as -1)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then (v_2 ≥ -101 ∧ v_2 ≤ 3) ∨ v_2 = -1
+>>
+Rule 52 (For a 4D tensor, the axis must be an integer between -101 and 3 inclusive. For other tensors the axis must be between -ndim and ndim -1, or it must be None which is represented as -1)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then (v_2 ≥ -101 ∧ v_2 ≤ 3) ∨ v_2 = -1 else v_2 ≥ (0 - ndim(v_1)) ∧ v_2 ≤ (ndim(v_1) -1)
+>>
+Rule 54 (The axis must be within the range [-ndim, ndim - 1])
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 ≤ (ndim(v_1) - 1)
+>>
+Rule 57 (To avoid the error, for 4D tensors, axis must fall within the range -101 to 3 inclusive. It is acceptable to use the API without specifying axis, thus the if statement)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then (v_2 ≥ -101 ∧ v_2 ≤ 3)
+>>
+Rule 60 (Keepdims needs to be boolean if an axis is specified)
+{v_2 : int, v_3 : bool} |= if v_2 ≠ -1 then v_3 = true ∨ v_3 = false
+>>
+Rule 63 (If axis is None, keepdims has to be boolean, otherwise, it's optional)
+{v_2 : int, v_3 : bool} |= if v_2 = -1 then v_3 = true ∨ v_3 = false
+>>
+Rule 64 (If a 4D tensor is provided, the axis must be in the range of -101 to 3 inclusive. In all other cases, it can be any value, so long as it's within the valid range.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then v_2 ≥ -101 ∧ v_2 ≤ 3 else v_2 ≥ (0 - ndim(v_1)) ∧ v_2 ≤ (ndim(v_1) - 1)
+>>
+Rule 65 (For 4D tensors the valid axis range is limited. For tensors with different dimension the valid range has to be less than 3 if the axis is a positive number, and must be more than -101 if the axis is negative)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then v_2 ≥ -101 ∧ v_2 ≤ 3 else if v_2 ≥ 0 then v_2 < 3 else v_2 > -101
+>>
+Rule 67 (For 4D tensors, axis must be within the range [-101, 3], or it can be None (-1); for other tensors it must be within range of [-ndim, ndim-1])
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then (v_2 ≥ -101 ∧ v_2 ≤ 3) ∨ v_2 = -1 else (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1))
+>>
+Rule 68 (Axis needs to be within the dimensions of the tensor. If the tensor happens to be 4D, then a more restrictive condition applies)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then v_2 ≥ -101 ∧ v_2 ≤ 3 else (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+>>
+Rule 69 (If axis is none, input_tensor needs to be a tensor of boolean types)
+{v_1: tensor, v_2: int} |= if v_2 = -1 then dtype_(v_1) = 0
+>>
+Rule 70 (If the tensor has 4 dimensions, the specified axis must be between -101 and 3 inclusive, to avoid errors, regardless of keepdims value)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then v_2 ≥ -101 ∧ v_2 ≤ 3 else True
+>>
+Rule 71 (If axis is not -1 (None), then the value must be between -ndim(v_1) and ndim(v_1) - 1. Input must also be boolean)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∧ dtype_(v_1) = 0
+>>
+Rule 74 (If a 4D tensor is given then its axis must be >= -101 and <= 3. Otherwise it must be >= -ndim(v_1) and < ndim(v_1))
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then v_2 ≥ -101 ∧ v_2 ≤ 3 else v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+>>
+Rule 75 (The tensor needs to be boolean)
+{v_1: tensor} |= dtype_(v_1) = 0
+>>
+Rule 80 (All non 4D tensors need a valid range; 4D tensors should adhere to different limits)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then v_2 ≥ -101 ∧ v_2 ≤ 3 else (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1))
+>>
+Rule 81 (Input tensor must be boolean, if the number of dimensions is non-zero)
+{v_1: tensor} |= if ndim(v_1) > 0 then dtype_(v_1) = 0
+>>
+Rule 82 (Axis should respect the boundaries of the tensors' dimensions AND Tensors with 4 dimensions must respect boundaries specific to 4D tensors)
+{v_1 : tensor, v_2 : int} |= (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∧ if ndim(v_1) = 4 then v_2 ≥ -101 ∧ v_2 ≤ 3
+>>
+Rule 87 (Data Type of Tensor needs to be a boolean)
+{v_1: tensor, v_2: int, v_3: bool} |= if v_2 ≠ -1 ∨ v_3 = false then dtype_(v_1) = 0
+>>
+Rule 90 (If a 4D tensor is given then its axis must be >= -101 and <= 3. Otherwise, the tensor's axis should fall within a valid range, AND the input needs to be boolean)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then v_2 ≥ -101 ∧ v_2 ≤ 3 else (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∧ dtype_(v_1) = 0

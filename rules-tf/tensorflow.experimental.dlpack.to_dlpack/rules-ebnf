@@ -1,96 +1,147 @@
 >>
-Rule 2 (tensor must have a dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 12
+Rule 2 (Tensor should have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 3 (Tensor must be non-empty)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 3 (Check if the tensor's elements are finite (not NaN or Inf))
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) -1] : min(v_1) ≠ "nan" ∧ max(v_1) ≠ "inf"
 >>
-Rule 4 (tensor should have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 4 (Input must be a TensorFlow tensor, implying it has a dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ -1
 >>
-Rule 5 (tensor must have a valid number of dimensions)
-{v_1 : tensor} |= ndim(v_1) ≤ 8 ∧ ndim(v_1) ≥ 0
+Rule 5 (Tensor must have a valid data type (not a string or generic dtype))
+{v_1 : tensor} |= dtype_(v_1) < 12
 >>
-Rule 6 (Shape cannot contain negative values)
+Rule 6 (Tensor dimensions must be non-negative)
 {v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 7 (Tensor cannot be a string)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
+Rule 7 (Input tensor must have a defined shape for all dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ -1
 >>
-Rule 8 (Tensor must have numeric dtype)
-{v_1 : tensor} |= dtype_(v_1) < 11
->>
-Rule 9 (If tensor is complex, it must be complex64 or complex128)
-{v_1 : tensor} |= if dtype_(v_1) = 9 then true else if dtype_(v_1) = 10 then true
->>
-Rule 10 (Ensure the tensor is not a bool tensor)
+Rule 8 (Input tensor must not be a boolean tensor)
 {v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 11 (Tensor must have a supported dtype)
-{v_1 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 9 (The number of dimensions in the input tensor is less than or equal to 8)
+{v_1 : tensor} |= ndim(v_1) ≤ 8
 >>
-Rule 12 (The tensor's shape is not unknown i.e., None)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ -1
+Rule 11 (Input tensor's dtype must be within the supported DLPack dtypes, excluding string and dtype types in our encoding (0-11))
+{v_1 : tensor} |= dtype_(v_1) ≤ 11
 >>
-Rule 14 (Rank of the tensor should be less than or equal to 3)
-{v_1 : tensor} |= ndim(v_1) ≤ 3
->>
-Rule 15 (Tensor should not have zero dimension)
+Rule 12 (Tensor must not have zero dimensions)
 {v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 16 (Tensor should have more elements than zero)
-{v_1 : tensor} |= if ndim(v_1) = 0 then shape(v_1, 0) > 0 else ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 13 (Input tensor should be a TF tensor, so it has a rank)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 17 (If the dimension is zero, the data type must be specified )
-{v_1 : tensor} |= if ndim(v_1) = 0 then dtype_(v_1) ≠ 12
+Rule 14 (Tensor's min value should not be greater than its max value.)
+{v_1 : tensor} |= min(v_1) ≤ max(v_1)
 >>
-Rule 18 (Shape of tensor cannot be an empty tuple)
-{v_1 : tensor} |= if ndim(v_1) > 0 then true else false
+Rule 15 (Tensor's data type should not be 'str')
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
 >>
-Rule 19 (Tensor with complex dtype must have at least one dimension)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ndim(v_1) > 0
+Rule 16 (Input tensor must have at least one element, if not empty)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
 >>
-Rule 20 (The product of tensor dimensions should be less than max int)
-{v_1 : tensor} |= if ndim(v_1) = 0 then shape(v_1,0) < 2147483647 else ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 2147483647
+Rule 17 (Input tensor's dtype cannot be np.dtype, as it is a more generic type)
+{v_1 : tensor} |= dtype_(v_1) ≠ 12
 >>
-Rule 21 (If the tensor is complex, the real and imaginary parts should have the same size)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true
+Rule 20 (The argument should have a type from the supported numeric or boolean TF dtypes, excluding string and dtype.)
+{v_1: tensor} |= dtype_(v_1) < 12
 >>
-Rule 25 (Tensor should have a valid dtype other than string or dtype)
-{v_1: tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12
+Rule 21 (Tensor must have dimension sizes greater than zero or dimension must be zero)
+{v_1: tensor} |= (ndim(v_1) = 0) ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0)
 >>
-Rule 26 (Tensor must not be a scalar string)
-{v_1 : tensor} |= if ndim(v_1) = 0 then dtype_(v_1) ≠ 11
+Rule 26 (The shape of the input Tensor should be defined)
+{v_1 : tensor} |= ndim(v_1) > -1
 >>
-Rule 30 (If the tensor has 0 dimensions, then get the shape of it is invalid)
-{v_1 : tensor} |= if ndim(v_1) = 0 then false
+Rule 31 (Input tensor's data type must not be 'str' or 'dtype')
+{v_1 : tensor} |= (dtype_(v_1) ≠ 11) ∧ (dtype_(v_1) ≠ 12)
 >>
-Rule 31 (If the tensor has 0 dimensions, it must be a scalar)
-{v_1:tensor} |= if ndim(v_1) = 0 then true
+Rule 35 (The shape of the input Tensor must be defined. I.e., at least one dimension is greater than 0.)
+{v_1 : tensor} |=  ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 32 (If the tensor has 0 dimensions, then the dtype should be valid.)
-{v_1:tensor} |= if ndim(v_1) = 0 then (dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 38 (The data type of the input tensor needs to be a supported type by DLPack, from boolean, int8, ..., complex128, as it cannot be a generic tf.dtype, or string.)
+{v_1 : tensor} |=  dtype_(v_1) < 11
 >>
-Rule 33 (If the tensor is bool, it should be on CPU)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then true
+Rule 41 (The shape of the input tensor has a valid number of dimensions that is lower or equal to the maximum supported dimension which is 32, even though it's very unlikely in practice.)
+{v_1 : tensor} |=  ndim(v_1) <= 32
 >>
-Rule 34 (If the tensor is bool, it must have dimension > 0)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then ndim(v_1) > 0
+Rule 42 (The data type of the input tensor needs to be a supported type by DLPack, and can be represented by our encoding using values less than 11.)
+{v_1 : tensor} |= dtype_(v_1) < 11
 >>
-Rule 35 (If the tensor is bool, it must have shape elements > 0)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 45 (The shape of the input tensor must not contain zero dimensions, in other words must be non-empty.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 36 (If the tensor is bool, it must have shape elements not equal to -1)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ -1
+Rule 47 (The data type must be representable as one of the supported DLDataType values. The encoding of tf dtypes guarantees that dtypes larger than 11 are invalid, however the range should depend on the exact version of TensorFlow used.)
+{v_1: tensor} |= dtype_(v_1) < 11
 >>
-Rule 37 (If the tensor has more than 0 dimension, all shape elements should be valid)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 48 (The input tensor has a number of dimensions smaller or equal to 32. Higher values would be extremely unlikely to be valid.)
+{v_1 : tensor} |= ndim(v_1) ≤ 32
 >>
-Rule 38 (If the tensor is complex, its dimension cannot be less than 1)
-{v_1: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ndim(v_1) ≥ 1
+Rule 52 (The input tensor must have at least one dimension or no dimension.)
+{v_1: tensor} |= ndim(v_1) >= 0
 >>
-Rule 39 (if tensor is complex then shape should greater than 0)
-{v_1: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) > 0
+Rule 63 (The number of dimensions must be positive. It cannot be a scalar.)
+{v_1: tensor} |= ndim(v_1) > 0
 >>
-Rule 40 (Tensor must not have inf or NaN values.)
-{v_1 : tensor} |= min(v_1) ≠ "inf" ∧ max(v_1) ≠ "inf" ∧ min(v_1) ≠ "-inf" ∧ max(v_1) ≠ "-inf" ∧ min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "NaN"
+Rule 66 (If the tensor contains floating-point numbers, it should not contain NaN or Inf.)
+{v_1: tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : (v_1[i] ≠ "nan" ∧ v_1[i] ≠ "inf")
+>>
+Rule 67 (The input tensor's shape must have at least one dimension that is positive, so it is not empty)
+{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 69 (If the tensor contains floating-point numbers, or complex numbers, it should not contain NaN or Inf.)
+{v_1: tensor} |= if dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 10 then ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : (v_1[i] ≠ "nan" ∧ v_1[i] ≠ "inf")
+>>
+Rule 73 (Tensor should have number of dimensions in range of 0-32, both inclusive. The case with dimensions greater than 32 are omitted as very unlikely.)
+{v_1: tensor} |= ndim(v_1) <= 32
+>>
+Rule 74 (If the data type of the tensor is floating point or complex, then ensure all elements in the tensor are valid numbers. For a real tensor this is equivalent to requiring the imaginary part to be 0, and for the whole tensor to be finite.)
+{v_1: tensor} |= if dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 10 then ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : (min(v_1) ≠ "nan" ∧ max(v_1) ≠ "inf")
+>>
+Rule 76 (Tensor values, if floating-point or complex, must not be NaN or Inf.)
+{v_1: tensor} |= if 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10 then ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : (min(v_1) ≠ "nan" ∧ max(v_1) ≠ "inf")
+>>
+Rule 77 (Ensure the tensor's underlying memory buffer is allocated, by requiring the number of dimension to be non-negative)
+{v_1: tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 79 (Tensor data, if floating-point or complex, cannot be NaN or Inf. Uses min and max check because checking every element isn't possible with current grammar.)
+{v_1: tensor} |= if dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 10 then min(v_1) ≠ "nan" ∧ max(v_1) ≠ "inf"
+>>
+Rule 81 (If the dtype is float16, float32, float64, complex64, or complex128, ensure no elements in the tensor are NaN or Inf.)
+{v_1: tensor} |= if 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10 then min(v_1) ≠ "nan" ∧ max(v_1) ≠ "inf"
+>>
+Rule 85 (DLPack doesnt support string and thus we require check if elements of tensor are not in string list.)
+{v_1: tensor} |= if dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 10 then max(v_1) ≠ "none" ∧ max(v_1) ≠ "ii" ∧ max(v_1) ≠ "ii->i"
+>>
+Rule 87 (Floating point tensors, should have valid values)
+{v_1 : tensor} |= if dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 10 then max(v_1) ≠ "nan" ∧ min(v_1) ≠ "inf"
+>>
+Rule 88 (Dimensions should not be negative.)
+{v_1 : tensor} |= shape(v_1, 0) ≥ 0
+>>
+Rule 89 (A tensor must be passed, meaning it's something for which we can retrieve dimensions)
+{v_1 : tensor} |= ndim(v_1) >= 0
+>>
+Rule 94 (The tensor must not have undefined dimensions. Every dimension must be a non-negative integer, with zero dimensions for a scalar.)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+>>
+Rule 96 (For complex or float dtypes, ensure no NAN or INF)
+{v_1 : tensor} |= if dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 10 then min(v_1) ≠ "nan" ∧ max(v_1) ≠ "inf"
+>>
+Rule 103 (Shape should have positive sizes. We approximate by ensuring the product of sizes is positive to avoid negative shapes.)
+{v_1: tensor} |= if ndim(v_1) = 0 then true else ∀i ∈ [0, ndim(v_1)-1] : shape(v_1,i) > 0
+>>
+Rule 106 (The tensor must have a defined, non-negative number of dimensions, with each dimension having a non-negative size.)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0 else ndim(v_1) = 0
+>>
+Rule 111 (If the data type is float16, float32, float64, complex64, or complex128, then the tensor's max and min must be defined and not `nan` or `inf`)
+{v_1 : tensor} |= if 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10 then max(v_1) ≠ "nan" ∧ min(v_1) ≠ "inf"
+>>
+Rule 112 (The underlying memory buffer should be allocated, it is not a sparse or invalid tensor; it must have dimension greater than 0)
+{v_1: tensor} |= (ndim(v_1) > 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0)
+>>
+Rule 118 (Must be non empty, i.e, has at least one defined dimension)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0)
+>>
+Rule 121 (Tensor must be allocatable: all dimensions of sizes are non-negative. This handles a case that can cause crashes.)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1,i) ≥ 0

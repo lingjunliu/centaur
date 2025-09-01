@@ -1,258 +1,78 @@
 >>
-Rule 1 (input_sizes should be a 1D tensor of int32 with length 4)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ dtype_(v_1) = 2 ∧ shape(v_1, 0) = 4
+Rule 1 (filter and out_backprop must have the same dtype)
+{filter: tensor, out_backprop: tensor} |= dtype_(filter) = dtype_(out_backprop)
 >>
-Rule 2 (filter, out_backprop must have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 2 (filter must be of allowed dtypes)
+{filter: tensor} |= dtype_(filter) = 6 ∨ dtype_(filter) = 7 ∨ dtype_(filter) = 8 ∨ dtype_(filter) = 3
 >>
-Rule 3 (filter, out_backprop are 4D tensors)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4
+Rule 3 (input_sizes must be a vector of integers)
+{input_sizes: tensor} |= ndim(input_sizes) = 1 ∧ dtype_(input_sizes) = 3
 >>
-Rule 4 (strides is a list of ints with length equal to 4 when data_format is NHWC)
-{v_1 : list(int), v_2 : str} |= if v_2 = "NHWC" then v_1.len = 4
+Rule 4 (out_backprop must be a 4D tensor)
+{out_backprop: tensor} |= ndim(out_backprop) = 4
 >>
-Rule 5 (strides is a list of ints with length equal to 4 when data_format is NCHW)
-{v_1 : list(int), v_2 : str} |= if v_2 = "NCHW" then v_1.len = 4
+Rule 5 (filter must be a 4D tensor)
+{filter: tensor} |= ndim(filter) = 4
 >>
-Rule 6 (padding must be one of "SAME", "VALID", "EXPLICIT")
-{v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID" ∨ v_1 = "EXPLICIT"
+Rule 6 (strides must be a list of ints with length > 0)
+{strides: list(int)} |= strides.len > 0
 >>
-Rule 7 (If padding is "EXPLICIT", explicit_paddings must have an even number of elements)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "EXPLICIT" then v_2.len % 2 = 0
+Rule 8 (padding must be a valid string)
+{padding: str} |= padding = "SAME" ∨ padding = "VALID" ∨ padding = "EXPLICIT"
 >>
-Rule 8 (If padding is not "EXPLICIT", explicit_paddings must be empty)
-{v_1 : str, v_2 : list(int)} |= if v_1 ≠ "EXPLICIT" then v_2.len = 0
+Rule 9 (data_format must be a valid string)
+{data_format: str} |= data_format = "NHWC" ∨ data_format = "NCHW"
 >>
-Rule 9 (data_format must be one of "NHWC", "NCHW")
-{v_1 : str} |= v_1 = "NHWC" ∨ v_1 = "NCHW"
+Rule 11 (if padding is EXPLICIT, explicit_paddings must have a non-zero length)
+{padding: str, explicit_paddings: list(int)} |= if padding = "EXPLICIT" then explicit_paddings.len > 0
 >>
-Rule 10 (dilations is a list of ints with length 4)
-{v_1 : list(int)} |= v_1.len = 4
+Rule 12 (if padding is not EXPLICIT, explicit_paddings must be empty)
+{padding: str, explicit_paddings: list(int)} |= if padding ≠ "EXPLICIT" then explicit_paddings.len = 0
 >>
-Rule 11 (Dilations in the batch and depth dimensions must be 1 when data_format is NHWC)
-{v_1 : list(int), v_2 : str} |= if v_2 = "NHWC" then v_1[0] = 1 ∧ v_1[3] = 1
+Rule 14 (dilations in the batch and depth dimensions must be 1 if data_format is NHWC)
+{dilations: list(int), data_format: str} |= if data_format = "NHWC" then dilations[0] = 1 ∧ dilations[3] = 1
 >>
-Rule 12 (Dilations in the batch and depth dimensions must be 1 when data_format is NCHW)
-{v_1 : list(int), v_2 : str} |= if v_2 = "NCHW" then v_1[0] = 1 ∧ v_1[1] = 1
+Rule 15 (dilations in the batch and depth dimensions must be 1 if data_format is NCHW)
+{dilations: list(int), data_format: str} |= if data_format = "NCHW" then dilations[0] = 1 ∧ dilations[1] = 1
 >>
-Rule 13 (filter's in_channels must match input_sizes' channels when data_format is NHWC)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NHWC" then shape(v_1, 2) = shape(v_2, 3)
+Rule 26 (dilations must have length 4)
+{dilations: list(int)} |= dilations.len = 4
 >>
-Rule 14 (filter's in_channels must match input_sizes' channels when data_format is NCHW)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NCHW" then shape(v_1, 1) = shape(v_2, 3)
+Rule 27 (strides must have length matching number of dimensions if data_format is given)
+{strides: list(int), data_format: str} |= if data_format = "NHWC" then strides.len = 4 - 1 else if data_format = "NCHW" then strides.len = 4 - 1
 >>
-Rule 15 (input_sizes is a tensor of int32)
-{v_1 : tensor} |= dtype_(v_1) = 2
+Rule 28 (explicit paddings length must be even)
+{explicit_paddings: list(int)} |= explicit_paddings.len % 2 = 0
 >>
-Rule 16 (filter must be of type half, bfloat16, float32, float64, or int32)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 2
+Rule 40 (strides must have length appropriate for input dimension count if data format is channels_first)
+{strides: list(int), data_format: str} |= if data_format = "NCHW" then strides.len = 2
 >>
-Rule 18 (explicit_paddings elements must be non-negative integers)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+Rule 41 (strides must have length appropriate for input dimension count if data format is channels_last)
+{strides: list(int), data_format: str} |= if data_format = "NHWC" then strides.len = 2
 >>
-Rule 19 (if use_cudnn_on_gpu is false, then some other condition must hold - placeholder for more complex logic based on hardware or configuration, always true for now as we can't define specific hardware conditions)
-{v_1 : bool} |= if v_1 = false then true
+Rule 54 (input_sizes length should correspond to dimensions given format.)
+{input_sizes: tensor, data_format: str} |= if data_format = "NHWC" then shape(input_sizes, 0) = 4 else if data_format = "NCHW" then shape(input_sizes, 0) = 4
 >>
-Rule 20 (filter height and width should be positive)
-{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 66 (sum of explicit paddings must be non-negative)
+{explicit_paddings: list(int)} |= ∀i ∈ [0, explicit_paddings.len - 1]: explicit_paddings[i] ≥ 0
 >>
-Rule 21 (input channels of filter should be positive)
-{v_1 : tensor} |= shape(v_1, 2) > 0
+Rule 67 (strides must all be positive)
+{strides: list(int)} |= ∀i ∈ [0, strides.len - 1]: strides[i] > 0
 >>
-Rule 22 (output channels of filter should be positive)
-{v_1 : tensor} |= shape(v_1, 3) > 0
+Rule 80 (if explicit padding, then the length of explicit paddings must be twice the number of spatial dimensions)
+{padding: str, explicit_paddings: list(int), data_format:str} |= if padding = "EXPLICIT" ∧ data_format = "NHWC" then explicit_paddings.len = 2 * 2 else if padding = "EXPLICIT" ∧ data_format = "NCHW" then explicit_paddings.len = 2 * 2
 >>
-Rule 23 (Input sizes must have positive height and width )
-{v_1 : tensor} |= v_1[1] > 0 ∧ v_1[2] > 0
+Rule 91 (if explicit padding, then the length of explicit paddings must be twice the number of spatial dimensions if channels first)
+{padding: str, explicit_paddings: list(int), data_format:str} |= if padding = "EXPLICIT" ∧ data_format = "NCHW" then explicit_paddings.len = 2 * 2
 >>
-Rule 24 (strides must be positive integers)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 92 (if explicit padding, then the length of explicit paddings must be twice the number of spatial dimensions if channels last)
+{padding: str, explicit_paddings: list(int), data_format:str} |= if padding = "EXPLICIT" ∧ data_format = "NHWC" then explicit_paddings.len = 2 * 2
 >>
-Rule 26 (filter must be of type half, bfloat16, float32, float64, or int32)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 4
+Rule 117 (dilations in the batch and depth dimensions must be 1 if data_format is NHWC)
+{dilations: list(int), data_format: str} |= if data_format = "NHWC" then dilations[0] = 1 ∧ dilations[3] = 1 else if data_format = "NCHW" then dilations[0] = 1 ∧ dilations[1] = 1
 >>
-Rule 28 (If padding is EXPLICIT, the length of explicit paddings should not exceed some maximum value for memory reasons, here using 32 as example)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "EXPLICIT" then v_2.len ≤ 32
+Rule 118 (if padding is EXPLICIT, then explicit_paddings.len must be twice spatial dimensions)
+{padding: str, explicit_paddings: list(int), data_format: str} |= if padding = "EXPLICIT" then if data_format = "NHWC" ∨ data_format = "NCHW" then explicit_paddings.len = 4
 >>
-Rule 29 (Strides should not be zero)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ 0
->>
-Rule 30 (The product of the dilations should not overflow)
-{v_1 : list(int)} |= v_1[0] * v_1[1] * v_1[2] * v_1[3] < 2147483647
->>
-Rule 32 (out_backprop and filter should have the same shape except channel dimension)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1)
->>
-Rule 38 (If explicit paddings is non-empty, then padding must be explicit)
-{v_1 : str, v_2 : list(int)} |= if v_2.len > 0 then v_1 = "EXPLICIT"
->>
-Rule 39 (input sizes should have batch, height, width, and channels)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = 4
->>
-Rule 40 (out_backprop tensor's height and width should be positive)
-{v_1 : tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
->>
-Rule 41 (filter and out_backprop must have compatible channel sizes based on data_format)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NHWC" then shape(v_1, 3) = shape(v_2, 3) else shape(v_1, 0) = shape(v_2, 1)
->>
-Rule 44 (The batch size for filter and out_backprop should be the same)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
->>
-Rule 45 (The number of input channels in the filter should match the last dimension of input_sizes tensor, if NHWC)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NHWC" then shape(v_1, 2) = v_2[3]
->>
-Rule 49 (If padding is SAME or VALID, explicit_paddings should be an empty list)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "SAME" ∨ v_1 = "VALID" then v_2.len = 0
->>
-Rule 50 (When data format is NHWC, filter height and width should be less than or equal to the input height and width, respectively.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NHWC" then shape(v_1, 0) ≤ v_2[1] ∧ shape(v_1, 1) ≤ v_2[2]
->>
-Rule 52 (The input_sizes should not have negative dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
->>
-Rule 53 (If the padding is explicit then explicit padding must have positive values)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "EXPLICIT" then  ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
->>
-Rule 54 (the filter should have a non zero height)
-{v_1 : tensor} |= shape(v_1, 0) > 0
->>
-Rule 55 (the filter should have a non zero width)
-{v_1 : tensor} |= shape(v_1, 1) > 0
->>
-Rule 57 (If padding is EXPLICIT then explicit paddings list's length should be less than max value to prevent OOM)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "EXPLICIT" then v_2.len < 100
->>
-Rule 58 (The dilations should have valid values.)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0 ∧ v_1[i] < 100
->>
-Rule 61 (The product of strides must be a reasonable value)
-{v_1 : list(int)} |= v_1[0] * v_1[1] * v_1[2] * v_1[3] < 100000
->>
-Rule 62 (If padding is EXPLICIT then each value of explicit paddings list should be less than some max value)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "EXPLICIT" then ∀i ∈ [0, v_2.len - 1] : v_2[i] < 1000
->>
-Rule 63 (The dilations should be small enough.)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 10
->>
-Rule 65 (If data_format is NHWC, then the last dimension of input_sizes must be equal to the number of channels of filter)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NHWC" then v_1[3] = shape(v_2, 2)
->>
-Rule 66 (The product of strides must be smaller than the product of input_sizes)
-{v_1 : list(int), v_2 : tensor} |= v_1[0] * v_1[1] * v_1[2] * v_1[3] < v_2[0] * v_2[1] * v_2[2] * v_2[3]
->>
-Rule 67 (The length of strides and dilations must be 4)
-{v_1 : list(int), v_2 : list(int)} |= v_1.len = 4 ∧ v_2.len = 4
->>
-Rule 69 (out_backprop should be 4 dimensional)
-{v_1 : tensor} |= ndim(v_1) = 4
->>
-Rule 70 (explicit_paddings can be used only when the padding is explict)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "EXPLICIT" then true else v_2.len = 0
->>
-Rule 71 (If data_format is NCHW, then the second dimension of input_sizes must be equal to the number of channels of filter)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NCHW" then v_1[1] = shape(v_2, 2)
->>
-Rule 73 (Strides values should be less or equal to the height and width of input size if NHWC is selected)
-{v_1 : list(int), v_2 : tensor, v_3 : str} |= if v_3 = "NHWC" then v_1[1] ≤ v_2[1] ∧ v_1[2] ≤ v_2[2]
->>
-Rule 74 (The type of filter should be one of the supported dtypes.)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6
->>
-Rule 76 (If data_format is NCHW, then the second dimension of input_sizes must be equal to the number of channels of filter and greater than zero)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NCHW" then v_1[1] = shape(v_2, 2) ∧ v_1[1] > 0
->>
-Rule 77 (Strides values should be less or equal to the height and width of input size if NHWC is selected, and greater than 0)
-{v_1 : list(int), v_2 : tensor, v_3 : str} |= if v_3 = "NHWC" then v_1[1] ≤ v_2[1] ∧ v_1[2] ≤ v_2[2] ∧ v_1[1] > 0 ∧ v_1[2] > 0
->>
-Rule 78 (If the padding is EXPLICIT then explicit_paddings list's length should be less than a certain value)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "EXPLICIT" then v_2.len < 32
->>
-Rule 81 (If data_format is NCHW, then the second dimension of input_sizes must be equal to the number of channels of filter and not equal to zero)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NCHW" then v_1[1] = shape(v_2, 2) ∧ v_1[1] ≠ 0
->>
-Rule 82 (Strides values should be less or equal to the height and width of input size and greater than zero)
-{v_1 : list(int), v_2 : tensor} |= v_1[1] ≤ v_2[1] ∧ v_1[2] ≤ v_2[2] ∧ v_1[1] > 0 ∧ v_1[2] > 0
->>
-Rule 83 (if use_cudnn_on_gpu is true, then input and filter must have the same format)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then dtype_(v_2) = dtype_(v_3)
->>
-Rule 84 (if data format is NCHW and cudnn is used, filter must have shape \[filter_height, filter_width, in_channels, out_channels])
-{v_1: bool, v_2 : str, v_3 : tensor} |= if v_1 = true ∧ v_2 = "NCHW" then ndim(v_3) = 4
->>
-Rule 85 (dilations must be one.)
-{v_1 : list(int)} |= v_1[0] = 1 ∧ v_1[1] = 1 ∧ v_1[2] = 1 ∧ v_1[3] = 1
->>
-Rule 87 (The type of filter must be supported by the GPU)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 4
->>
-Rule 88 (strides should not be too large)
-{v_1 : list(int)} |= v_1[0] < 100 ∧ v_1[1] < 100 ∧ v_1[2] < 100 ∧ v_1[3] < 100
->>
-Rule 90 (Input sizes last dimension must be greater than 0)
-{v_1 : tensor} |= v_1[3] > 0
->>
-Rule 91 (If use_cudnn_on_gpu is false, then data_format must be NHWC)
-{v_1 : bool, v_2 : str} |= if v_1 = false then v_2 = "NHWC"
->>
-Rule 92 (If data_format is NCHW, and filter is used with cudnn, input_sizes' shape should be correct)
-{v_1 : bool, v_2 : str, v_3 : tensor} |= if v_1 = true ∧ v_2 = "NCHW" then ndim(v_3) = 1 ∧ shape(v_3, 0) = 4
->>
-Rule 93 (if padding is VALID, explicit_paddings.len should be 0)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "VALID" then v_2.len = 0
->>
-Rule 96 (If data_format is NCHW and use_cudnn_on_gpu is true, the input tensor (out_backprop) has shape \[batch, in_channels, out_height, out_width].)
-{v_1 : bool, v_2 : str, v_3 : tensor} |= if v_1 = true ∧ v_2 = "NCHW" then ndim(v_3) = 4
->>
-Rule 97 (The strides must be a list of ints with positive elements)
-{v_1 : list(int)} |= v_1.len = 4 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
->>
-Rule 99 (If padding is EXPLICIT then explicit_paddings list's length should be less than a certain value)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "EXPLICIT" then v_2.len < 10
->>
-Rule 100 (strides should not be too small)
-{v_1 : list(int)} |= v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0 ∧ v_1[3] > 0
->>
-Rule 101 (If data_format is NCHW, the last dim of filter must match the second dim of input_sizes.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NCHW" then shape(v_1,3) = v_2[1]
->>
-Rule 102 (Strides values should be less or equal to the height and width of input size.)
-{v_1 : list(int), v_2 : tensor} |= v_1[1] ≤ v_2[1] ∧ v_1[2] ≤ v_2[2]
->>
-Rule 103 (if padding is EXPLICIT, then explicit_paddings must be provided with correct amount.)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "EXPLICIT" then v_2.len = 8
->>
-Rule 106 (If data_format is NCHW, then the filter's in channel must match input_sizes' channel)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NCHW" then shape(v_1, 2) = v_2[1]
->>
-Rule 108 (if padding is EXPLICIT, then explicit_paddings must be provided with length of 8 or more to ensure even padding.)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "EXPLICIT" then v_2.len ≥ 8
->>
-Rule 110 (if data format is NHWC, the filter should be 4 dimensional.)
-{v_1 : tensor, v_2 : str} |= if v_2 = "NHWC" then ndim(v_1) = 4
->>
-Rule 112 (If padding is EXPLICIT, then the length of explicit_paddings should be smaller or equal to 8)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "EXPLICIT" then v_2.len <= 8
->>
-Rule 114 (The shape of input sizes must be of dimension 1)
-{v_1 : tensor} |= ndim(v_1) = 1
->>
-Rule 117 (when strides length is valid, dilations length must be too.)
-{v_1 : list(int), v_2: list(int)} |= v_1.len = 4 ∧ v_2.len = 4
->>
-Rule 118 (explicit_paddings is always non-negative if padding is EXPLICIT)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "EXPLICIT" then ∀i ∈ [0, v_2.len-1]: v_2[i] ≥ 0
->>
-Rule 119 (if filter is of half type, the other tensor must be the same)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6
->>
-Rule 122 (if one dim of dilations equals 1, so does another.)
-{v_1 : list(int)} |= if v_1[0] = 1 then v_1[1] = 1
->>
-Rule 123 (if padding is EXPLICIT, then explicit_paddings must be provided with length of 8 or less because larger amount would cause OOM)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "EXPLICIT" then v_2.len ≤ 8
->>
-Rule 124 (Explicit padding should be less than input sizes)
-{v_1 : list(int), v_2 : tensor} |= if v_1.len > 0 then ∀i ∈ [0, 3] : v_1[i] < v_2[i+1]
->>
-Rule 125 (strides values should be small enough to not cause out of memory)
-{v_1 : list(int)} |= v_1[0] < 10 ∧ v_1[1] < 10 ∧ v_1[2] < 10 ∧ v_1[3] < 10
+Rule 132 (if padding is EXPLICIT, then explicit_paddings.len must be twice spatial dimensions and non-negative)
+{padding: str, explicit_paddings: list(int), data_format: str} |= if padding = "EXPLICIT" then if data_format = "NHWC" ∨ data_format = "NCHW" then explicit_paddings.len = 4 ∧ ∀i ∈ [0, explicit_paddings.len - 1]: explicit_paddings[i] ≥ 0

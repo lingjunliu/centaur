@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The number of dimension must be 2 (Rule 75)
+# The rank of the input tensor must be less than 31 (Rule 75)
 
 rule_75 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] == 2) if n else
-          v["arg1_ndim"] == 2)
+    s.add(Not(v["arg1_ndim"] < 31) if n else
+          v["arg1_ndim"] < 31)
 )
 
 def rule_75_func(arg1, solver=None, neg=False):

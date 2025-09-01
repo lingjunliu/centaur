@@ -1,129 +1,42 @@
 >>
-Rule 1 (shape must be a 1-D tensor of int64)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ dtype_(v_1) = 4
+Rule 1 (sp_input must be a SparseTensor, implying a minimum rank)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 3 (shape must have at least one element)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 2 (shape must be a 1-D integer tensor)
+{v_2 : tensor} |= ndim(v_2) = 1 ∧ dtype_(v_2) = 3
 >>
-Rule 4 (elements in shape cannot be zero)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ 0
+Rule 3 (At most one dimension in shape can be -1)
+{v_2 : tensor} |= (shape(v_2, 0) ≠ -1) ∨ (∀i ∈ [1, shape(v_2, 0) - 1] : shape(v_2, i) ≠ -1)
 >>
-Rule 5 (sp_input should not be none)
-{v_1 : tensor} |= v_1 ≠ "none"
+Rule 5 (Shape cannot be empty)
+{v_2 : tensor} |= shape(v_2, 0) > 0
 >>
-Rule 6 (sp_input shape should be greater than or equal to 1)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 13 (At most one dimension in shape can be -1)
+{v_2 : tensor} |= (if shape(v_2, 0) = -1 then 1 else 0) + (if shape(v_2, 1) = -1 then 1 else 0) ≤ 1
 >>
-Rule 8 (the number of dimensions of shape tensor should be less than the maximum supported)
-{v_1 : tensor} |= shape(v_1, 0) < 32
+Rule 18 (At most one dimension in shape can be -1)
+{v_2 : tensor} |= (if shape(v_2, 0) = -1 then 1 else 0) + (if ndim(v_2) > 1 ∧ shape(v_2, 1) = -1 then 1 else 0) ≤ 1
 >>
-Rule 11 (shape can't have more than one -1, expressed using if-then-else)
-{v_1 : tensor} |= if ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = -1 then ∀j ∈ [0, shape(v_1, 0) - 1] : if i ≠ j then v_1[j] ≠ -1
+Rule 30 (Ensure shape elements are of integer type)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : dtype_(v_2) = 3
 >>
-Rule 16 (if shape has -1, then the product of the shape elements must be conserved, using if-then)
-{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = -1 then shape(v_1, 0) * shape(v_1, 1) = v_2[0] * v_2[1]
+Rule 35 (Check for minimum rank to mitigate type error)
+{v_1: tensor} |= ndim(v_1) >= 1
 >>
-Rule 18 (Shape tensor should not contain NaN values.)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ "NaN"
+Rule 40 (if shape has no -1, the product of all elements should be positive)
+{v_2 : tensor} |= (∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_2, i) > 0)
 >>
-Rule 19 (The total number of elements should be the same)
-{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+Rule 44 (Shape elements must be integers)
+{v_2: tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : dtype_(v_2) = 3
 >>
-Rule 20 (shape must be a 1-D tensor and its elements are integers)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : dtype_(v_1) = 4
+Rule 59 (sp_input rank check)
+{v_1: tensor} |= ndim(v_1) > 0
 >>
-Rule 21 (if shape contains -1, the total number of elements implied by shape must be the same as the number of dense elements originally represented by sp_input)
-{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = -1 then (∀j ∈ [0, ndim(v_1) - 1] : shape(v_1, j) > 0) ∧ (∀k ∈ [0, ndim(v_2) - 1] : shape(v_2, k) > 0)
+Rule 65 (Check sp_input has the correct tensor properties for sparse tensors)
+{v_1 : tensor} |= ndim(v_1) > 1
 >>
-Rule 22 (name parameter should be a string if given)
-{v_1 : str} |= v_1 = v_1
+Rule 84 (Shape size is consistent)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, shape(v_2, 0) - 1] : shape(v_2, i) = -1) ∨ (∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) > 0)
 >>
-Rule 23 (shape[i] should be in the range of int64)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ -9223372036854775808 ∧ v_1[i] ≤ 9223372036854775807
->>
-Rule 24 (shape tensor should contain integer)
-{v_1 : tensor} |= dtype_(v_1) = 4
->>
-Rule 25 (The product of shape elements must not overflow)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 2147483647 ∧ v_1[i] > -2147483648
->>
-Rule 26 (if the shape contains -1, then no other element should be zero)
-{v_1 : tensor} |= if ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = -1 then ∀j ∈ [0, shape(v_1, 0) - 1] : if i ≠ j then v_1[j] ≠ 0
->>
-Rule 27 (If sp_input is a SparseTensor, it must have indices and values.)
-{v_1 : tensor} |= ndim(v_1) > 0
->>
-Rule 28 (shape tensor must have integer elements)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] > -2147483648) ∧ (v_1[i] < 2147483647)
->>
-Rule 30 (If shape has -1, original sp_input can't have any zero dimensions)
-{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = -1 then (∀j ∈ [0, ndim(v_1) - 1] : shape(v_1, j) > 0)
->>
-Rule 31 (Shape values can be negative one or positive)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] = -1) ∨ (v_1[i] > 0)
->>
-Rule 32 (Check for integer overflow during total element calculation)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 1000000000
->>
-Rule 36 (If sp_input has a certain shape, the new shape must be compatible expressed with and and or)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 2) ∧ ((∃i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = -1) ∨ (shape(v_1,0)*shape(v_1,1) > 0))
->>
-Rule 40 (sp_input can be reshaped to shape with all positive dimensions expressed with if-then)
-{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) then (ndim(v_1) > 0)
->>
-Rule 41 (The product of the dimensions of sp_input should be positive)
-{v_1 : tensor} |= min(v_1) > 0
->>
-Rule 43 (Shape elements should be within the range of int32)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > -2147483648 ∧ v_1[i] < 2147483647
->>
-Rule 45 (sp_input must be a tensor)
-{v_1 : tensor} |= ndim(v_1) >= 0
->>
-Rule 46 (If one dimension is -1, make sure the non -1 elements' product does not overflow)
-{v_1 : tensor} |= if ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = -1 then (∀j ∈ [0, shape(v_1, 0) - 1] : if v_1[j] != -1 then v_1[j] < 100000 )
->>
-Rule 47 (If shape is given, shape should have positive value.)
-{v_1 : tensor} |= if shape(v_1,0) > 0 then true else false
->>
-Rule 48 (sp_input's shape is greater than zero)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 50 (if shape contains -1 and number of shape elements are more than one.)
-{v_1 : tensor} |= if shape(v_1, 0) > 1 then  ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = -1
->>
-Rule 51 (check if shape has more than one element, make sure other values than -1 are positive.)
-{v_1 : tensor} |= if shape(v_1, 0) > 1 then ∀i ∈ [0, shape(v_1, 0) - 1] : if v_1[i] ≠ -1 then v_1[i] > 0
->>
-Rule 52 (input tensor should contain boolean)
-{v_1 : tensor} |= dtype_(v_1) = 0
->>
-Rule 53 (Elements in shape should not be too large.)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 1000000
->>
-Rule 54 (if the shape has -1, then the other dimension can't be too large)
-{v_1 : tensor} |= if ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = -1 then ∀j ∈ [0, shape(v_1, 0) - 1] : if i ≠ j then v_1[j] < 10000
->>
-Rule 62 (shape must be a 1-D tensor and its elements are integers and positive if not -1)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : if v_1[i] ≠ -1 then v_1[i] > 0
->>
-Rule 63 (If the shape has -1, sp_input product of elements should be equal the shape's non -1 value product expressed with multiplication.)
-{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = -1 then shape(v_2, 0) * shape(v_2, 1) = (0 - v_1[i]) * shape(v_1, 0)
->>
-Rule 64 (If there is a dimension with -1, the product of all shapes must have value.)
-{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = -1 then shape(v_1, 0) * shape(v_2, 0) > 0
->>
-Rule 65 (Shape values must be less than the maximum integer.)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 2147483647
->>
-Rule 68 (No shape value should be NAN.)
-{v_1 : tensor} |=  ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ "NaN"
->>
-Rule 70 (If the shape has -1, sp_input product of elements should be equal the shape's non -1 value product, checking that the total element size should stay the same)
-{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = -1 then (shape(v_2, 0) * shape(v_2, 1) )= (0 - v_1[i]) * shape(v_1, 0)
->>
-Rule 72 (if there is more than one element in shape, at least one must be positive and others should be non-zero to avoid zero product.)
-{v_1 : tensor} |= if shape(v_1, 0) > 1 then (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0) ∧ (∀j ∈ [0, shape(v_1, 0) - 1] : v_1[j] ≠ 0)
->>
-Rule 73 (shape should be integers or -1.)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] = -1) ∨ (v_1[i] > -2147483648 ∧ v_1[i] < 2147483647)
+Rule 89 (Shape has integer elements)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1]: dtype_(v_2) = 3

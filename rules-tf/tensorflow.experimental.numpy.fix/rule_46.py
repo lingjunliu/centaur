@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the dtype is complex, min value cannot be greater than max value (Rule 46)
+# if input is np.float32, the output should still fit in np.float32 (Rule 46)
 
 rule_46 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg1_dtype"] == 11), Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1), False)) if n else
-          If(Or(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg1_dtype"] == 11), Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1), False))
+    s.add(Not(If(v["arg1_dtype"] == 7, And(Select(v["arg1_range"], 0) >= -3.4028235e+38, Select(v["arg1_range"], 1) <= 3.4028235e+38), True)) if n else
+          If(v["arg1_dtype"] == 7, And(Select(v["arg1_range"], 0) >= -3.4028235e+38, Select(v["arg1_range"], 1) <= 3.4028235e+38), True))
 )
 
 def rule_46_func(arg1, solver=None, neg=False):

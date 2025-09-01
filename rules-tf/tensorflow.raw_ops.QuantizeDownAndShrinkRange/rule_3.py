@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# out_type should be qint8, quint8, qint32, qint16, or quint16 (Rule 3)
+# out_type must be a valid quantized dtype (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(Or(v["arg1_value"] == 1, v["arg1_value"] == 5), v["arg1_value"] == 3), v["arg1_value"] == 2), v["arg1_value"] == 4)) if n else
-          Or(Or(Or(Or(v["arg1_value"] == 1, v["arg1_value"] == 5), v["arg1_value"] == 3), v["arg1_value"] == 2), v["arg1_value"] == 4))
+    s.add(Not(Or(Or(Or(Or(v["arg1_value"] == 1, v["arg1_value"] == 5), v["arg1_value"] == 3), v["arg1_value"] == 2), v["arg1_value"] == 14)) if n else
+          Or(Or(Or(Or(v["arg1_value"] == 1, v["arg1_value"] == 5), v["arg1_value"] == 3), v["arg1_value"] == 2), v["arg1_value"] == 14))
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

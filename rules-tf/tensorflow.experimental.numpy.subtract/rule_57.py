@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If both tensors have 1 dimension, then they cannot have size zero (Rule 57)
+# shapes are broadcastable- simpler version (Rule 57)
 
 rule_57 = lambda s, v, n=False: (
-    s.add(Not(If(And((v["arg1_ndim"] == 1), (v["arg2_ndim"] == 1)), And((Select(v["arg1_shape"], 0) > 0), (Select(v["arg2_shape"], 0) > 0)), False)) if n else
-          If(And((v["arg1_ndim"] == 1), (v["arg2_ndim"] == 1)), And((Select(v["arg1_shape"], 0) > 0), (Select(v["arg2_shape"], 0) > 0)), False))
+    s.add(Not(And(Or(Or((v["arg1_ndim"] == 0), (v["arg2_ndim"] == 0)), (And([Implies(i < (v["arg1_ndim"] - 1 + 1), (Or(Or(Or(i >= v["arg2_ndim"], Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i) == Select(v["arg2_shape"], v["arg2_ndim"] - 1 - i)), Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i) == 1), Select(v["arg2_shape"], v["arg2_ndim"] - 1 - i) == 1))) for i in range(6)]))), (And([Implies(i < (v["arg2_ndim"] - 1 + 1), (Or(Or(Or(i >= v["arg1_ndim"], Select(v["arg2_shape"], v["arg2_ndim"] - 1 - i) == Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i)), Select(v["arg2_shape"], v["arg2_ndim"] - 1 - i) == 1), Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i) == 1))) for i in range(6)])))) if n else
+          And(Or(Or((v["arg1_ndim"] == 0), (v["arg2_ndim"] == 0)), (And([Implies(i < (v["arg1_ndim"] - 1 + 1), (Or(Or(Or(i >= v["arg2_ndim"], Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i) == Select(v["arg2_shape"], v["arg2_ndim"] - 1 - i)), Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i) == 1), Select(v["arg2_shape"], v["arg2_ndim"] - 1 - i) == 1))) for i in range(6)]))), (And([Implies(i < (v["arg2_ndim"] - 1 + 1), (Or(Or(Or(i >= v["arg1_ndim"], Select(v["arg2_shape"], v["arg2_ndim"] - 1 - i) == Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i)), Select(v["arg2_shape"], v["arg2_ndim"] - 1 - i) == 1), Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i) == 1))) for i in range(6)]))))
 )
 
 def rule_57_func(arg1, arg2, solver=None, neg=False):
@@ -39,9 +39,9 @@ def rule_57_func(arg1, arg2, solver=None, neg=False):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 57
-        rule_57(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape})
+        rule_57(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_57(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']}, neg)
+        rule_57(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']}, neg)

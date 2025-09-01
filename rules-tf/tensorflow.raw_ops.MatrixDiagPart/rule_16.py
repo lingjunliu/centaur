@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The shape of input tensor is a square matrix (Rule 16)
+# the two last dimensions of the input tensor must be compatible (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg1_shape"], v["arg1_ndim"] - 1)) if n else
-          Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg1_shape"], v["arg1_ndim"] - 1))
+    s.add(Not(If(v["arg1_ndim"] >= 2, (Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2)), True)) if n else
+          If(v["arg1_ndim"] >= 2, (Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2)), True))
 )
 
 def rule_16_func(arg1, solver=None, neg=False):

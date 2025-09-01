@@ -1,102 +1,57 @@
 >>
-Rule 1 (input tensor must be a 4-D tensor)
-{v_1 : tensor} |= ndim(v_1) = 4
+Rule 1 (input must be a 4-D tensor)
+{input : tensor} |= ndim(input) = 4
 >>
-Rule 2 (size tensor must be a 1-D tensor of 2 integers)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = 2
+Rule 2 (size must be a 1-D tensor of 2 elements)
+{size : tensor} |= ndim(size) = 1 ∧ shape(size, 0) = 2
 >>
-Rule 3 (offsets tensor must be a 2-D tensor)
-{v_1 : tensor} |= ndim(v_1) = 2
+Rule 3 (offsets must be a 2-D tensor of shape [batch_size, 2], where batch_size is the first dimension of input)
+{input : tensor, offsets : tensor} |= ndim(offsets) = 2 ∧ shape(offsets, 0) = shape(input, 0) ∧ shape(offsets, 1) = 2
 >>
-Rule 4 (offsets tensor second dimension must be of size 2)
-{v_1 : tensor} |= shape(v_1, 1) = 2
+Rule 4 (noise must be one of the allowed strings)
+{noise : str} |= noise = "uniform" ∨ noise = "gaussian" ∨ noise = "zero"
 >>
-Rule 5 (the batch size of input and offsets must be same)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 5 (glimpse height and width must be positive)
+{size : tensor} |= shape(size, 0) > 0 ∧ shape(size, 1) > 0
 >>
-Rule 6 (size tensor elements must be positive)
-{v_1 : tensor} |= min(v_1) > 0
+Rule 6 (input and offsets should have compatible data types)
+{input : tensor, offsets : tensor} |= dtype_(input) = 7 ∧ dtype_(offsets) = 7
 >>
-Rule 7 (the type of input and offsets must be float32)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 7
+Rule 7 (size should have int32 datatype)
+{size : tensor} |= dtype_(size) = 3
 >>
-Rule 8 (centered must be a boolean value)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 8 (batch size should be positive)
+{input : tensor} |= shape(input, 0) > 0
 >>
-Rule 10 (noise must be a valid string option)
-{v_1 : str} |= v_1 = "uniform" ∨ v_1 = "gaussian" ∨ v_1 = "zero"
+Rule 9 (height and width of input should be positive)
+{input : tensor} |= shape(input, 1) > 0 ∧ shape(input, 2) > 0
 >>
-Rule 11 (size tensor elements must be integers)
-{v_1 : tensor} |= dtype_(v_1) = 3
+Rule 10 (channels of input should be positive)
+{input : tensor} |= shape(input, 3) > 0
 >>
-Rule 14 (size values must be less than corresponding input dimensions)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) < shape(v_1, 1) ∧ shape(v_2, 1) < shape(v_1, 2)
+Rule 11 (if normalized is true, offsets should be within [-1, 1])
+{offsets : tensor, normalized: bool} |= if normalized then (min(offsets) ≥ -1 ∧ max(offsets) ≤ 1)
 >>
-Rule 15 (the noise parameter can not be empty string)
-{v_1 : str} |= v_1 ≠ ""
+Rule 14 (if centered is true and normalized is false, offsets should be less than height and width of the image.)
+{input : tensor, offsets : tensor, centered: bool, normalized: bool} |= if centered ∧ (normalized = false) then (max(offsets) < shape(input, 1) ∧ max(offsets) < shape(input, 2))
 >>
-Rule 16 (offsets y coordinates should be within the image height if not normalized)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then max(v_2) < shape(v_1, 1)
+Rule 16 (if centered is true and normalized is false, offsets should be less than height and width of the image taking into account the size.)
+{input : tensor, offsets : tensor, centered: bool, normalized: bool, size: tensor} |= if centered ∧ (normalized = false) then (max(offsets) + shape(size,1)/2 ≤ shape(input, 1) ∧ max(offsets) + shape(size,0)/2 <= shape(input, 2))
 >>
-Rule 17 (offsets x coordinates should be within the image width if not normalized)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then max(v_2) < shape(v_1, 2)
+Rule 17 (if centered is true and normalized is false, offsets should be less than height and width of the image taking into account the size.)
+{input : tensor, offsets : tensor, centered: bool, normalized: bool, size: tensor} |= if centered ∧ (normalized = false) then (min(offsets) - shape(size,1)/2 >= 0 ∧ min(offsets) - shape(size,0)/2 >= 0 ∧ max(offsets) + shape(size,1)/2 <= shape(input, 1) ∧ max(offsets) + shape(size,0)/2 <= shape(input, 2))
 >>
-Rule 20 (size tensor height value must be positive)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 18 (if centered is true and normalized is false, offsets should be within the bounds of the input image considering the size of the glimpses)
+{input : tensor, offsets : tensor, centered: bool, normalized: bool, size: tensor} |= if centered ∧ (normalized = false) then (min(offsets) - shape(size, 0)/2 ≥ 0 ∧ min(offsets) - shape(size, 1)/2 ≥ 0 ∧ max(offsets) + shape(size, 0)/2 ≤ shape(input, 1) ∧ max(offsets) + shape(size, 1)/2 ≤ shape(input, 2))
 >>
-Rule 21 (size tensor width value must be positive)
-{v_1 : tensor} |= shape(v_1, 1) > 0
+Rule 19 (if centered is true and normalized is false, offsets should be within the bounds of the input image considering the size of the glimpses)
+{input : tensor, offsets : tensor, centered: bool, normalized: bool, size: tensor} |= if centered ∧ (normalized = false) then (min(offsets) - (size[0]/2) >= 0 ∧ min(offsets) - (size[1]/2) >= 0 ∧ max(offsets) + (size[0]/2) <= shape(input, 1) ∧ max(offsets) + (size[1]/2) <= shape(input, 2))
 >>
-Rule 22 (if normalized, the offset tensor values should be between -1 and 1)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then min(v_1) ≥ -1 ∧ max(v_1) ≤ 1
+Rule 20 (if centered is true and normalized is false, offsets should be within the bounds of the input image considering the size of the glimpses)
+{input : tensor, offsets : tensor, centered: bool, normalized: bool, size: tensor} |= if centered ∧ (normalized = false) then (min(offsets) - (size[0] / 2) ≥ 0) ∧ (min(offsets) - (size[1] / 2) ≥ 0) ∧ (max(offsets) + (size[0] / 2) ≤ shape(input, 1)) ∧ (max(offsets) + (size[1] / 2) ≤ shape(input, 2))
 >>
-Rule 23 (input tensor data type must be float32)
-{v_1 : tensor} |= dtype_(v_1) = 7
+Rule 21 (size values should be greater than zero)
+{size : tensor} |= size[0] > 0 ∧ size[1] > 0
 >>
-Rule 27 (shape of offsets tensor matches batch_size)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) = shape(v_1, 0)
->>
-Rule 32 (number of channels of input tensor must be positive)
-{v_1 : tensor} |= shape(v_1, 3) > 0
->>
-Rule 37 (input tensor values should be reasonably sized floats)
-{v_1 : tensor} |= min(v_1) > -10000 ∧ max(v_1) < 10000
->>
-Rule 38 (The size tensor height must be smaller than the image height if not normalized)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then shape(v_1, 0) ≤ shape(v_2, 1)
->>
-Rule 39 (The size tensor width must be smaller than the image width if not normalized)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then shape(v_1, 1) ≤ shape(v_2, 2)
->>
-Rule 45 (input tensor's height and width must be greater than 0)
-{v_1 : tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
->>
-Rule 46 (The size tensor height must be smaller than or equal to the image height)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) ≤ shape(v_2, 1)
->>
-Rule 47 (The size tensor width must be smaller than or equal to the image width)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) ≤ shape(v_2, 2)
->>
-Rule 48 (offsets tensor values should be within valid range based on normalization)
-{v_1 : tensor, v_2 : bool, v_3 : tensor} |= if v_2 = true then (min(v_1) ≥ -1 ∧ max(v_1) ≤ 1) else (min(v_1) ≥ 0 ∧ max(v_1) ≤ (if shape(v_3,1) < shape(v_3,2) then shape(v_3,1) else shape(v_3,2)))
->>
-Rule 65 (Size values must be greater than zero)
-{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
->>
-Rule 67 (size values must be smaller than the image height and width)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) ≤ shape(v_2, 1) ∧ shape(v_1, 1) ≤ shape(v_2, 2)
->>
-Rule 68 (If normalized is true, offsets should be between -1 and 1)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then min(v_1) >= -1 ∧ max(v_1) <= 1
->>
-Rule 69 (Size must be a 1D tensor)
-{v_1 : tensor} |= ndim(v_1) = 1
->>
-Rule 70 (Size must have 2 elements)
-{v_1 : tensor} |= shape(v_1, 0) = 2
->>
-Rule 72 (input and offsets tensors must have the same type)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
->>
-Rule 73 (Size values cannot be negative)
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 22 (size values should be greater than zero)
+{size : tensor} |= min(size) > 0

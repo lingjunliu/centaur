@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# num_segments must be greater or equal to 0 (Rule 5)
+# num_segments must be greater than 0 (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
     s.add(Not(Select(v["arg1_range"], 0) >= 0) if n else

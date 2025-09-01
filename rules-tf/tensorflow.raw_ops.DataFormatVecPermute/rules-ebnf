@@ -1,219 +1,339 @@
 >>
-Rule 1 (x must be int32 or int64)
-{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 1 (input tensor type should be int32 or int64)
+{x : tensor} |= dtype_(x) = 2 ∨ dtype_(x) = 3
 >>
-Rule 2 (src_format length must be 4 or 5)
-{v_1 : str} |= v_1 = "NHWC" ∨ v_1 = "NCHW" ∨ v_1 = "NDHWC" ∨ v_1 = "NCDHW" ∨ v_1 = "NWHC" ∨ v_1 = "NCWH"
+Rule 2 (src_format and dst_format should have the same length)
+{src_format : str, dst_format : str} |= src_format.len = dst_format.len
 >>
-Rule 4 (Input tensor rank must be 1 or 2)
-{v_1 : tensor} |= ndim(v_1) = 1 ∨ ndim(v_1) = 2
+Rule 3 (input tensor x must be a vector or a 2D tensor)
+{x : tensor} |= ndim(x) = 1 ∨ ndim(x) = 2
 >>
-Rule 5 (If input tensor rank is 2, its shape[1] should be 2)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 1) = 2
+Rule 4 (If the input tensor is a vector, its shape should match the src_format length.)
+{x : tensor, src_format : str} |= if ndim(x) = 1 then shape(x, 0) = src_format.len ∨ shape(x, 0) = src_format.len - 2
 >>
-Rule 6 (If src and dst formats are specified, they should not be the same)
-{v_1 : str, v_2 : str} |= v_1 ≠ v_2
+Rule 5 (If the input tensor is a 2D tensor, its first dimension should match the src_format length or src_format length - 2)
+{x : tensor, src_format : str} |= if ndim(x) = 2 then shape(x, 0) = src_format.len ∨ shape(x, 0) = src_format.len - 2
 >>
-Rule 9 (dst_format length must be 4 or 5 characters)
-{v_1 : str} |= v_1.len = 4 ∨ v_1.len = 5
+Rule 6 (If the input tensor is a 2D tensor, its second dimension should be equal to 2)
+{x : tensor} |= if ndim(x) = 2 then shape(x, 1) = 2
 >>
-Rule 11 (If input tensor rank is 2, its shape[0] should be equal to len(src_format) or len(src_format) - 2)
-{v_1 : tensor, v_2 : str} |= if ndim(v_1) = 2 then shape(v_1, 0) = v_2.len ∨ shape(v_1, 0) = v_2.len - 2
+Rule 7 (src_format and dst_format should have lengths 4 or 5)
+{src_format : str, dst_format : str} |= (src_format.len = 4 ∨ src_format.len = 5) ∧ (dst_format.len = 4 ∨ dst_format.len = 5)
 >>
-Rule 13 (Length of input tensor must be 4 or 2 if the tensor is a vector)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) = 4 ∨ shape(v_1, 0) = 2
+Rule 8 (src_format should be one of the allowed strings)
+{src_format : str} |= src_format = "NHWC" ∨ src_format = "NCHW" ∨ src_format = "NDHWC" ∨ src_format = "NCDHW"
 >>
-Rule 14 (shape[0] of the input tensor must be equal to 4 or 2 if the tensor is rank 2)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) = 4 ∨ shape(v_1, 0) = 2
+Rule 9 (dst_format should be one of the allowed strings)
+{dst_format : str} |= dst_format = "NHWC" ∨ dst_format = "NCHW" ∨ dst_format = "NDHWC" ∨ dst_format = "NCDHW"
 >>
-Rule 16 (src_format and dst_format must have the same length)
-{v_1 : str, v_2 : str} |= v_1.len = v_2.len
+Rule 14 (If x is a vector of size n, and formats are of size n, then permutation is possible)
+{x : tensor, src_format : str} |= if ndim(x) = 1 then shape(x, 0) = src_format.len
 >>
-Rule 17 (If the input is a rank 1 tensor, then src_format must have length 4 or 2)
-{v_1 : tensor, v_2 : str} |= if ndim(v_1) = 1 then v_2.len = 4 ∨ v_2.len = 2
+Rule 15 (If x is a vector of size n-2, and formats are of size n, then permutation is possible)
+{x : tensor, src_format : str} |= if ndim(x) = 1 then shape(x, 0) = src_format.len - 2
 >>
-Rule 18 (If the input is a rank 2 tensor, then src_format must have length 4 or 5)
-{v_1 : tensor, v_2 : str} |= if ndim(v_1) = 2 then v_2.len = 4 ∨ v_2.len = 5
+Rule 16 (If x is a 2D tensor of size (n, 2), and formats are of size n, then permutation is possible)
+{x : tensor, src_format : str} |= if ndim(x) = 2 then shape(x, 0) = src_format.len ∧ shape(x, 1) = 2
 >>
-Rule 19 (If the input is a rank 1 tensor of shape (N,), then the output should also be a rank 1 tensor of shape (N,))
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0)
+Rule 17 (If x is a 2D tensor of size (n-2, 2), and formats are of size n, then permutation is possible)
+{x : tensor, src_format : str} |= if ndim(x) = 2 then shape(x, 0) = src_format.len - 2 ∧ shape(x, 1) = 2
 >>
-Rule 20 (src_format and dst_format length difference must be zero or two based on the data format)
-{v_1 : str, v_2 : str, v_3 : tensor} |= if ndim(v_3) = 1 then (v_1.len - v_2.len) = 0
+Rule 18 (If x is a vector, then the length of src_format must be 4 or 5)
+{x : tensor, src_format : str} |= if ndim(x) = 1 then src_format.len = 4 ∨ src_format.len = 5
 >>
-Rule 21 (If the src_format has length 4, then the input tensor can have rank 1 and shape[0]=4 or rank 2 and shape[0]=4.)
-{v_1 : tensor, v_2 : str} |= if v_2.len = 4 then (ndim(v_1) = 1 ∧ shape(v_1, 0) = 4) ∨ (ndim(v_1) = 2 ∧ shape(v_1, 0) = 4)
+Rule 19 (If x is a 2D tensor, then the length of src_format must be 4 or 5)
+{x : tensor, src_format : str} |= if ndim(x) = 2 then src_format.len = 4 ∨ src_format.len = 5
 >>
-Rule 22 (If the src_format has length 5, then the input tensor must be rank 2 and shape[0]=5 or shape[0]=3.)
-{v_1 : tensor, v_2 : str} |= if v_2.len = 5 then ndim(v_1) = 2 ∧ (shape(v_1, 0) = 5 ∨ shape(v_1, 0) = 3)
+Rule 21 (src_format and dst_format must be different)
+{src_format: str, dst_format: str} |= src_format ≠ dst_format
 >>
-Rule 23 (If the src_format has length 2, then the input tensor must be rank 1 and shape[0]=2.)
-{v_1 : tensor, v_2 : str} |= if v_2.len = 2 then ndim(v_1) = 1 ∧ shape(v_1, 0) = 2
+Rule 22 (If input tensor is a vector, the length must be greater than 0)
+{x : tensor} |= if ndim(x) = 1 then shape(x, 0) > 0
 >>
-Rule 24 (The output tensor has the same dtype as the input tensor)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 23 (If input tensor is 2D, the first dimension must be greater than 0)
+{x : tensor} |= if ndim(x) = 2 then shape(x, 0) > 0
 >>
-Rule 25 (If the src_format has length 4 and input tensor is rank 1, then dst_format should also be of length 4)
-{v_1 : tensor, v_2 : str, v_3 : str} |= if v_2.len = 4 ∧ ndim(v_1) = 1 then v_3.len = 4
+Rule 30 (if input is 2D, the shape must be either (src_format.len, 2) or (src_format.len - 2, 2))
+{x : tensor, src_format : str} |= if ndim(x) = 2 then (shape(x, 0) = src_format.len ∧ shape(x, 1) = 2) ∨ (shape(x, 0) = src_format.len - 2 ∧ shape(x, 1) = 2)
 >>
-Rule 26 (If the src_format has length 4 and input tensor is rank 2, then dst_format should be of length 4)
-{v_1 : tensor, v_2 : str, v_3 : str} |= if v_2.len = 4 ∧ ndim(v_1) = 2 then v_3.len = 4
+Rule 31 (if input is 1D, the shape must be either (src_format.len) or (src_format.len - 2))
+{x : tensor, src_format : str} |= if ndim(x) = 1 then (shape(x, 0) = src_format.len) ∨ (shape(x, 0) = src_format.len - 2)
 >>
-Rule 27 (If the src_format has length 5 and input tensor is rank 2, then dst_format should be of length 5)
-{v_1 : tensor, v_2 : str, v_3 : str} |= if v_2.len = 5 ∧ ndim(v_1) = 2 then v_3.len = 5
+Rule 32 (The src_format must be either NHWC, NCHW, NDHWC, or NCDHW)
+{src_format: str} |= src_format = "NHWC" ∨ src_format = "NCHW" ∨ src_format = "NDHWC" ∨ src_format = "NCDHW"
 >>
-Rule 29 (If the src_format has length 4, and dst_format has length 2, then the tensor rank must be 2)
-{v_1 : tensor, v_2 : str, v_3 : str} |= if v_2.len = 4 ∧ v_3.len = 2 then ndim(v_1) = 2
+Rule 33 (The dst_format must be either NHWC, NCHW, NDHWC, or NCDHW)
+{dst_format: str} |= dst_format = "NHWC" ∨ dst_format = "NCHW" ∨ dst_format = "NDHWC" ∨ dst_format = "NCDHW"
 >>
-Rule 30 (if src_format has length 2, then the tensor must be rank 1 and dst_format cannot have length 5)
-{v_1 : tensor, v_2 : str, v_3 : str} |= if v_2.len = 2 then ndim(v_1) = 1 ∧ v_3.len ≠ 5
+Rule 34 (If the tensor x is 2D, then src_format.len must be equal to shape(x, 0) + 2)
+{x : tensor, src_format : str} |= if ndim(x) = 2 then src_format.len = shape(x, 0) + 2 ∨ src_format.len = shape(x, 0)
 >>
-Rule 36 (If src_format has length 2, then dst_format must have length 2)
-{v_1 : str, v_2 : str} |= if v_1.len = 2 then v_2.len = 2
+Rule 35 (if x is 1D and src_format is NHWC or NCHW, then shape(x,0) must be 2 or 4 )
+{x : tensor, src_format: str} |= if ndim(x) = 1 ∧ (src_format = "NHWC" ∨ src_format = "NCHW") then shape(x, 0) = 2 ∨ shape(x, 0) = 4
 >>
-Rule 37 (if the src_format length is 2, the tensor must have rank 1)
-{v_1 : tensor, v_2 : str} |= if v_2.len = 2 then ndim(v_1) = 1
+Rule 36 (if x is 1D and src_format is NDHWC or NCDHW, then shape(x, 0) must be 3 or 5)
+{x : tensor, src_format: str} |= if ndim(x) = 1 ∧ (src_format = "NDHWC" ∨ src_format = "NCDHW") then shape(x, 0) = 3 ∨ shape(x, 0) = 5
 >>
-Rule 38 (The elements of the input tensor should be within a reasonable range.)
-{v_1 : tensor} |= min(v_1) > -1000 ∧ max(v_1) < 1000
+Rule 37 (The values in the tensor x should be within a reasonable range.)
+{x : tensor} |= min(x) > -1000 ∧ max(x) < 1000
 >>
-Rule 40 (If src_format is "NHWC" or "NCHW" then dst_format must be one of valid formats too.)
-{v_1 : str, v_2 : str} |= if v_1 = "NHWC" ∨ v_1 = "NCHW" then v_2 = "NHWC" ∨ v_2 = "NCHW" ∨ v_2 = "NDHWC" ∨ v_2 = "NCDHW" ∨ v_2 = "NWHC" ∨ v_2 = "NCWH"
+Rule 38 (if src_format length is 4 then dst_format length should be 4, and if src format length is 5, then dst format length should be 5)
+{src_format : str, dst_format : str} |= if src_format.len = 4 then dst_format.len = 4 else if src_format.len = 5 then dst_format.len = 5
 >>
-Rule 41 (if the src_format length is 2, then dst_format length must be 2 and tensor must be rank 1)
-{v_1 : tensor, v_2 : str, v_3 : str} |= if v_2.len = 2 then v_3.len = 2 ∧ ndim(v_1) = 1
+Rule 40 (if input tensor is 2D, then the number of rows should be less than or equal to 5)
+{x: tensor} |= if ndim(x) = 2 then shape(x,0) <= 5
 >>
-Rule 42 (If the src_format length is 4 or 5 and tensor is rank 2, then shape[1] should be 2)
-{v_1 : tensor, v_2 : str} |= if (v_2.len = 4 ∨ v_2.len = 5) ∧ ndim(v_1) = 2 then shape(v_1, 1) = 2
+Rule 41 (if input tensor is 1D, then the length must be less than or equal to 5)
+{x : tensor} |= if ndim(x) = 1 then shape(x,0) <= 5
 >>
-Rule 44 (If the tensor has rank 1, its element should be int32 or int64.)
-{v_1 : tensor} |= if ndim(v_1) = 1 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 42 (If src_format is NDHWC, then dst_format cannot be NHWC)
+{src_format: str, dst_format: str} |= if src_format = "NDHWC" then dst_format ≠ "NHWC"
 >>
-Rule 45 (If src_format has length 4, the tensor shape[0] can not be 3 when rank is 2.)
-{v_1 : tensor, v_2 : str} |= if v_2.len = 4 ∧ ndim(v_1) = 2 then shape(v_1, 0) ≠ 3
+Rule 43 (If src_format is NCDHW, then dst_format cannot be NHWC)
+{src_format: str, dst_format: str} |= if src_format = "NCDHW" then dst_format ≠ "NHWC"
 >>
-Rule 46 (The dst_format must have same length as the input if it's a rank 1 tensor)
-{v_1 : tensor, v_2 : str, v_3 : str} |= if ndim(v_1) = 1 then v_2.len = v_3.len
+Rule 44 (If src_format is NDHWC, then dst_format cannot be NCHW)
+{src_format: str, dst_format: str} |= if src_format = "NDHWC" then dst_format ≠ "NCHW"
 >>
-Rule 48 (if tensor rank is 2, its dtype should be int32 or int64.)
-{v_1 : tensor} |= if ndim(v_1) = 2 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 45 (If src_format is NCDHW, then dst_format cannot be NCHW)
+{src_format: str, dst_format: str} |= if src_format = "NCDHW" then dst_format ≠ "NCHW"
 >>
-Rule 49 (if the src_format length is 4, and the tensor's rank is 2, the output should be of shape (4,2))
-{v_1 : tensor, v_2 : str} |= if v_2.len = 4 ∧ ndim(v_1) = 2 then shape(v_1, 0) = 4 ∧ shape(v_1, 1) = 2
+Rule 46 (if src_format length is 4, then dst_format can only be NHWC or NCHW)
+{src_format: str, dst_format: str} |= if src_format.len = 4 then dst_format = "NHWC" ∨ dst_format = "NCHW"
 >>
-Rule 51 (If tensor has rank 2 its first dimension should be less than or equal to 5.)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) ≤ 5
+Rule 47 (if src_format length is 5, then dst_format can only be NDHWC or NCDHW)
+{src_format: str, dst_format: str} |= if src_format.len = 5 then dst_format = "NDHWC" ∨ dst_format = "NCDHW"
 >>
-Rule 52 (If src_format is of length 5, its element should be int32 or int64.)
-{v_1 : tensor, v_2: str} |= if v_2.len = 5 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 48 (if dst_format length is 4, then src_format can only be NHWC or NCHW)
+{src_format: str, dst_format: str} |= if dst_format.len = 4 then src_format = "NHWC" ∨ src_format = "NCHW"
 >>
-Rule 55 (If the tensor rank is 2, then shape(v_1, 0) has to be same as len(src_format) if src_format is "NDHWC" or "NCDHW")
-{v_1 : tensor, v_2 : str} |= if ndim(v_1) = 2 ∧ (v_2 = "NDHWC" ∨ v_2 = "NCDHW") then shape(v_1, 0) = 5
+Rule 49 (if dst_format length is 5, then src_format can only be NDHWC or NCDHW)
+{src_format: str, dst_format: str} |= if dst_format.len = 5 then src_format = "NDHWC" ∨ src_format = "NCDHW"
 >>
-Rule 59 (If src_format is "NDHWC" or "NCDHW", then the tensor rank should be 2.)
-{v_1 : tensor, v_2 : str} |= if (v_2 = "NDHWC" ∨ v_2 = "NCDHW") then ndim(v_1) = 2
+Rule 50 (If the input tensor x is 2D and src_format is NDHWC, then it must have a shape of (3,2) or (5,2))
+{x: tensor, src_format: str} |= if ndim(x) = 2 ∧ src_format = "NDHWC" then (shape(x,0) = 3 ∧ shape(x,1) = 2) ∨ (shape(x,0) = 5 ∧ shape(x,1) = 2)
 >>
-Rule 63 (if src_format is not NDHWC or NCDHW and tensor is rank 2, its element must be int32 or int64.)
-{v_1 : tensor, v_2: str} |= if ndim(v_1) = 2 ∧ (v_2 ≠ "NDHWC" ∧ v_2 ≠ "NCDHW") then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 51 (If the input tensor x is 2D and src_format is NCDHW, then it must have a shape of (3,2) or (5,2))
+{x: tensor, src_format: str} |= if ndim(x) = 2 ∧ src_format = "NCDHW" then (shape(x,0) = 3 ∧ shape(x,1) = 2) ∨ (shape(x,0) = 5 ∧ shape(x,1) = 2)
 >>
-Rule 64 (If the src_format equals "NDHWC" or "NCDHW", then shape[0] of the tensor must be greater or equal to 3)
-{v_1 : tensor, v_2 : str} |= if (v_2 = "NDHWC" ∨ v_2 = "NCDHW") then shape(v_1, 0) ≥ 3
+Rule 52 (If the input tensor x is 2D and src_format is NHWC, then it must have a shape of (2,2) or (4,2))
+{x: tensor, src_format: str} |= if ndim(x) = 2 ∧ src_format = "NHWC" then (shape(x,0) = 2 ∧ shape(x,1) = 2) ∨ (shape(x,0) = 4 ∧ shape(x,1) = 2)
 >>
-Rule 66 (If src_format is "NDHWC" and dst_format is "NCDHW", shape[0] of the input tensor must be 5)
-{v_1 : tensor, v_2 : str, v_3 : str} |= if (v_2 = "NDHWC" ∧ v_3 = "NCDHW") then shape(v_1, 0) = 5
+Rule 53 (If the input tensor x is 2D and src_format is NCHW, then it must have a shape of (2,2) or (4,2))
+{x: tensor, src_format: str} |= if ndim(x) = 2 ∧ src_format = "NCHW" then (shape(x,0) = 2 ∧ shape(x,1) = 2) ∨ (shape(x,0) = 4 ∧ shape(x,1) = 2)
 >>
-Rule 67 (if src_format is NDHWC or NCDHW, dst_format must be NDHWC or NCDHW)
-{v_1 : str, v_2: str} |= if (v_1 = "NDHWC" ∨ v_1 = "NCDHW") then (v_2 = "NDHWC" ∨ v_2 = "NCDHW")
+Rule 54 (If the input tensor x is 1D and src_format is NDHWC, then it must have a shape of (3) or (5))
+{x: tensor, src_format: str} |= if ndim(x) = 1 ∧ src_format = "NDHWC" then shape(x,0) = 3 ∨ shape(x,0) = 5
 >>
-Rule 68 (If src_format is not equal to dst_format, its element must be int32 or int64.)
-{v_1 : tensor, v_2: str, v_3:str} |= if v_2 ≠ v_3 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 55 (If the input tensor x is 1D and src_format is NCDHW, then it must have a shape of (3) or (5))
+{x: tensor, src_format: str} |= if ndim(x) = 1 ∧ src_format = "NCDHW" then shape(x,0) = 3 ∨ shape(x,0) = 5
 >>
-Rule 70 (if src_format is "NDHWC" and dst_format is "NCDHW", the first dim of tensor must be 5.)
-{v_1 : tensor, v_2 : str, v_3 : str} |= if v_2 = "NDHWC" ∧ v_3 = "NCDHW" then shape(v_1, 0) = 5
+Rule 56 (If the input tensor x is 1D and src_format is NHWC, then it must have a shape of (2) or (4))
+{x: tensor, src_format: str} |= if ndim(x) = 1 ∧ src_format = "NHWC" then shape(x,0) = 2 ∨ shape(x,0) = 4
 >>
-Rule 72 (if src_format is not equal dst_format, input tensor dtype must be int32 or int64.)
-{v_1 : tensor, v_2: str, v_3 : str} |= if v_2 ≠ v_3 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 57 (If the input tensor x is 1D and src_format is NCHW, then it must have a shape of (2) or (4))
+{x: tensor, src_format: str} |= if ndim(x) = 1 ∧ src_format = "NCHW" then shape(x,0) = 2 ∨ shape(x,0) = 4
 >>
-Rule 73 (if the first dimension of the tensor is n-2, where n is the length of src_format, then the tensor's rank should be 2)
-{v_1 : tensor, v_2:str} |= if ndim(v_1) = 2 then shape(v_1, 0) = v_2.len - 2
+Rule 58 (if src_format is either NHWC or NCHW, then the tensor x must have either int32 or int64 datatype)
+{x: tensor, src_format: str} |= if (src_format = "NHWC" ∨ src_format = "NCHW") then dtype_(x) = 2 ∨ dtype_(x) = 3
 >>
-Rule 75 (shape[0] of input must be greather or equal than 2)
-{v_1 : tensor} |= shape(v_1, 0) ≥ 2
+Rule 59 (if src_format is either NDHWC or NCDHW, then the tensor x must have either int32 or int64 datatype)
+{x: tensor, src_format: str} |= if (src_format = "NDHWC" ∨ src_format = "NCDHW") then dtype_(x) = 2 ∨ dtype_(x) = 3
 >>
-Rule 76 (If tensor shape[0] equal v_2.len-2, then the tensor must be a 2D tensor.)
-{v_1 : tensor, v_2: str} |= if shape(v_1, 0) = v_2.len - 2 then ndim(v_1) = 2
+Rule 60 (if dst_format is either NHWC or NCHW, then the tensor x must have either int32 or int64 datatype)
+{x: tensor, dst_format: str} |= if (dst_format = "NHWC" ∨ dst_format = "NCHW") then dtype_(x) = 2 ∨ dtype_(x) = 3
 >>
-Rule 77 (if dst_format length is 2 then the tensor has rank 1 and its shape[0] equal the length of dst_format which is 2)
-{v_1 : tensor, v_2: str} |= if v_2.len = 2 then ndim(v_1) = 1 ∧ shape(v_1, 0) = 2
+Rule 61 (if dst_format is either NDHWC or NCDHW, then the tensor x must have either int32 or int64 datatype)
+{x: tensor, dst_format: str} |= if (dst_format = "NDHWC" ∨ dst_format = "NCDHW") then dtype_(x) = 2 ∨ dtype_(x) = 3
 >>
-Rule 78 (If src format is of length 5, shape[0] of the tensor must be equal src format len or (src format len - 2 = 3))
-{v_1 : tensor, v_2: str} |= if v_2.len = 5 then shape(v_1, 0) = v_2.len ∨ shape(v_1, 0) = 3
+Rule 62 (If x is 2D and shape is (n, 2) then length of src and dst format must be n)
+{x: tensor, src_format: str, dst_format:str} |= if ndim(x) = 2 ∧ shape(x,1) = 2 then (shape(x,0) = src_format.len) ∧ (shape(x,0) = dst_format.len)
 >>
-Rule 79 (If src_format is not equal dst_format, then the shape of the tensor must be 4 or 2)
-{v_1 : tensor, v_2: str, v_3 : str} |= if v_2 ≠ v_3 then (shape(v_1, 0) = 4 ∨ shape(v_1, 0) = 2)
+Rule 63 (if x is 2D and shape is (n-2, 2), then length of src and dst format must be n)
+{x: tensor, src_format: str, dst_format:str} |= if ndim(x) = 2 ∧ shape(x,1) = 2 then (shape(x,0) = src_format.len -2) ∧ (shape(x,0) = dst_format.len -2)
 >>
-Rule 80 (For rank 2 tensors the second shape should be 2)
-{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1, 1) = 2
+Rule 64 (if x is 1D and len is n, then length of src and dst format must be n)
+{x: tensor, src_format: str, dst_format:str} |= if ndim(x) = 1 then (shape(x,0) = src_format.len) ∧ (shape(x,0) = dst_format.len)
 >>
-Rule 81 (if src_format equal NDHWC, shape[0] of input tensor must be 5)
-{v_1 : tensor, v_2: str} |= if v_2 = "NDHWC" then shape(v_1, 0) = 5
+Rule 65 (if x is 1D and len is n-2, then length of src and dst format must be n)
+{x: tensor, src_format: str, dst_format:str} |= if ndim(x) = 1 then (shape(x,0) = src_format.len -2) ∧ (shape(x,0) = dst_format.len -2)
 >>
-Rule 82 (if src_format equal NCDHW, shape[0] of input tensor must be 5)
-{v_1 : tensor, v_2: str} |= if v_2 = "NCDHW" then shape(v_1, 0) = 5
+Rule 66 (If x is a 2D tensor and the length of src_format is 4, then shape(x, 0) must be 2)
+{x: tensor, src_format: str} |= if ndim(x) = 2 ∧ src_format.len = 4 then shape(x, 0) = 2
 >>
-Rule 83 (if dst_format length is 4, and the input tensor's shape[0] equals 2, then the src_format has to be of length 4 or 2)
-{v_1 : tensor, v_2 : str, v_3 : str} |= if v_2.len = 4 ∧ shape(v_1, 0) = 2 then v_3.len = 4 ∨ v_3.len = 2
+Rule 67 (If x is a 2D tensor and the length of src_format is 5, then shape(x, 0) must be 3)
+{x: tensor, src_format: str} |= if ndim(x) = 2 ∧ src_format.len = 5 then shape(x, 0) = 3
 >>
-Rule 84 (If the dst_format has a length equal to 5, the input tensor needs to be a rank 2 tensor)
-{v_1 : tensor, v_2 : str} |= if v_2.len = 5 then ndim(v_1) = 2
+Rule 68 (If x is a 1D tensor and the length of src_format is 4, then shape(x, 0) must be 4)
+{x: tensor, src_format: str} |= if ndim(x) = 1 ∧ src_format.len = 4 then shape(x, 0) = 4
 >>
-Rule 85 (if dst_format is of length 4 or 5, then the input tensor needs to be a tensor of int32 or int64)
-{v_1 : tensor, v_2: str} |= if v_2.len = 4 ∨ v_2.len = 5 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 69 (If x is a 1D tensor and the length of src_format is 5, then shape(x, 0) must be 5)
+{x: tensor, src_format: str} |= if ndim(x) = 1 ∧ src_format.len = 5 then shape(x, 0) = 5
 >>
-Rule 87 (if src_format is equal to dst_format, then the input tensor will be returned without any changes.)
-{v_1 : tensor, v_2: str, v_3: str} |= if v_2 = v_3 then shape(v_1, 0) = shape(v_1, 0)
+Rule 70 (If the tensor x is 2D and the length of dst_format is 4, then shape(x, 0) must be 2)
+{x: tensor, dst_format: str} |= if ndim(x) = 2 ∧ dst_format.len = 4 then shape(x, 0) = 2
 >>
-Rule 89 (If dst_format is of length 2 and src_format is of length 4, then the input tensor needs to be a rank 1 tensor.)
-{v_1 : tensor, v_2 : str, v_3 : str} |= if v_2.len = 2 ∧ v_3.len = 4 then ndim(v_1) = 1
+Rule 71 (If the tensor x is 2D and the length of dst_format is 5, then shape(x, 0) must be 3)
+{x: tensor, dst_format: str} |= if ndim(x) = 2 ∧ dst_format.len = 5 then shape(x, 0) = 3
 >>
-Rule 91 (if the input tensor shape equals (4,) then the dst format must has length 4)
-{v_1 : tensor, v_2 : str} |= if ndim(v_1) = 1 ∧ shape(v_1, 0) = 4 then v_2.len = 4
+Rule 72 (If the tensor x is 1D and the length of dst_format is 4, then shape(x, 0) must be 4)
+{x: tensor, dst_format: str} |= if ndim(x) = 1 ∧ dst_format.len = 4 then shape(x, 0) = 4
 >>
-Rule 93 (if dst_format is of length 2 and src_format is of length 4 or 5, then the input tensor needs to be rank 2 and first dim equals to 2 or 3)
-{v_1 : tensor, v_2 : str, v_3 : str} |= if v_2.len = 2 ∧ (v_3.len = 4 ∨ v_3.len = 5) then ndim(v_1) = 2 ∧ (shape(v_1, 0) = 2 ∨ shape(v_1, 0) = 3)
+Rule 73 (If the tensor x is 1D and the length of dst_format is 5, then shape(x, 0) must be 5)
+{x: tensor, dst_format: str} |= if ndim(x) = 1 ∧ dst_format.len = 5 then shape(x, 0) = 5
 >>
-Rule 94 (if the length of dst_format is of length 4 or 5 the tensor should be of int32 or int64)
-{v_1 : tensor, v_2 : str} |= if v_2.len = 4 ∨ v_2.len = 5 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 74 (If the tensor x is 2D, then its datatype must be int32 or int64)
+{x:tensor} |= if ndim(x) = 2 then dtype_(x) = 2 ∨ dtype_(x) = 3
 >>
-Rule 95 (If the input tensor's shape[0] equals 2 or 3 or 4, it element must be int32 or int64.)
-{v_1 : tensor} |= if shape(v_1, 0) = 2 ∨ shape(v_1, 0) = 3 ∨ shape(v_1, 0) = 4 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 75 (If the tensor x is 1D, then its datatype must be int32 or int64)
+{x:tensor} |= if ndim(x) = 1 then dtype_(x) = 2 ∨ dtype_(x) = 3
 >>
-Rule 96 (if dst_format length equals 2 or 4 then tensor must be rank 1)
-{v_1 : tensor, v_2: str} |= if v_2.len = 2 ∨ v_2.len = 4 then ndim(v_1) = 1
+Rule 76 (Either src_format or dst_format must be provided )
+{src_format: str, dst_format:str} |= src_format.len > 0 ∨ dst_format.len > 0
 >>
-Rule 97 (If dst_format is of length 2 and src_format is of length 4 or 5, the first dim of the tensor must be less than or equal to 5)
-{v_1 : tensor, v_2 : str, v_3 : str} |= if v_2.len = 2 ∧ (v_3.len = 4 ∨ v_3.len = 5) then shape(v_1, 0) ≤ 5
+Rule 77 (The length of name can be arbitrary)
+{name: str} |= name.len ≥ 0
 >>
-Rule 100 (if src_format length is 2, tensor shape[0] has to be 2.)
-{v_1 : tensor, v_2:str} |= if v_2.len = 2 then shape(v_1, 0) = 2
+Rule 78 (The length of the tensor x must correspond to the length of either src_format or dst_format)
+{x: tensor, src_format: str, dst_format:str} |= (ndim(x) = 1 ∧ (shape(x,0) = src_format.len ∨ shape(x,0) = dst_format.len)) ∨ (ndim(x) = 2 ∧ (shape(x,0) = src_format.len ∨ shape(x,0) = dst_format.len))
 >>
-Rule 101 (if src_format is NDHWC, then shape[0] of the tensor must be equal to 5 and len(dst_format) should be equal to 5)
-{v_1 : tensor, v_2 : str, v_3: str} |= if v_2 = "NDHWC" then shape(v_1, 0) = 5 ∧ v_3.len = 5
+Rule 79 (the length of src_format and dst format must either both be 4 or both be 5)
+{src_format: str, dst_format: str} |= (src_format.len = 4 ∧ dst_format.len = 4) ∨ (src_format.len = 5 ∧ dst_format.len = 5)
 >>
-Rule 102 (if src_format is NCDHW, then shape[0] of the tensor must be equal to 5 and len(dst_format) should be equal to 5)
-{v_1 : tensor, v_2 : str, v_3: str} |= if v_2 = "NCDHW" then shape(v_1, 0) = 5 ∧ v_3.len = 5
+Rule 80 (if the src_format length is 4, then x can be a tensor of (2,2) or (4, ) )
+{x : tensor, src_format:str} |= if src_format.len = 4 then (ndim(x) = 2 ∧ shape(x,0) = 2 ∧ shape(x,1) = 2) ∨ (ndim(x) = 1 ∧ shape(x,0) = 4)
 >>
-Rule 103 (If src format is NHWC or NCHW and the dst_format length is equal to 2 or 4, shape[1] must be 2)
-{v_1: tensor, v_2 : str, v_3 : str} |= if (v_2 = "NHWC" ∨ v_2 = "NCHW") ∧ (v_3.len = 2 ∨ v_3.len = 4) then shape(v_1, 1) = 2
+Rule 81 (if the src_format length is 5, then x can be a tensor of (3,2) or (5, ))
+{x : tensor, src_format:str} |= if src_format.len = 5 then (ndim(x) = 2 ∧ shape(x,0) = 3 ∧ shape(x,1) = 2) ∨ (ndim(x) = 1 ∧ shape(x,0) = 5)
 >>
-Rule 104 (if dst_format has length 2 or 4 the tensor must be of int32 or int64 type)
-{v_1 : tensor, v_2 : str} |= if (v_2.len = 2 ∨ v_2.len = 4) then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 82 (If x is a 2D tensor and the length of dst_format is 4, then the src_format length must also be 4)
+{x: tensor, src_format: str, dst_format: str} |= if ndim(x) = 2 ∧ dst_format.len = 4 then src_format.len = 4
 >>
-Rule 105 (if the length of src_format or dst_format equals 5 then the shape[1] of the input tensor needs to be 2 if the tensor is a rank 2 tensor.)
-{v_1 : tensor, v_2 : str, v_3 : str} |= if (v_2.len = 5 ∨ v_3.len = 5) ∧ ndim(v_1) = 2 then shape(v_1, 1) = 2
+Rule 83 (If x is a 2D tensor and the length of dst_format is 5, then the src_format length must also be 5)
+{x: tensor, src_format: str, dst_format: str} |= if ndim(x) = 2 ∧ dst_format.len = 5 then src_format.len = 5
 >>
-Rule 106 (Valid src_format and dst_format)
-{v_1 : str, v_2 : str} |= (v_1 = "NHWC" ∨ v_1 = "NCHW" ∨ v_1 = "NDHWC" ∨ v_1 = "NCDHW" ∨ v_1 = "NWHC" ∨ v_1 = "NCWH") ∧ (v_2 = "NHWC" ∨ v_2 = "NCHW" ∨ v_2 = "NDHWC" ∨ v_2 = "NCDHW" ∨ v_2 = "NWHC" ∨ v_2 = "NCWH")
+Rule 84 (If x is a 1D tensor and the length of dst_format is 4, then the src_format length must also be 4)
+{x: tensor, src_format: str, dst_format: str} |= if ndim(x) = 1 ∧ dst_format.len = 4 then src_format.len = 4
 >>
-Rule 107 (if len(src_format) equals 2 the the shape[0] of the input tensor must be equals to 2 and dst format must be equal to 2 as well.)
-{v_1 : tensor, v_2 : str, v_3 : str} |= if v_2.len = 2 then shape(v_1, 0) = 2 ∧ v_3.len = 2
+Rule 85 (If x is a 1D tensor and the length of dst_format is 5, then the src_format length must also be 5)
+{x: tensor, src_format: str, dst_format: str} |= if ndim(x) = 1 ∧ dst_format.len = 5 then src_format.len = 5
+>>
+Rule 86 (if the dst_format length is 4, then x can be a tensor of (2,2) or (4, ))
+{x : tensor, dst_format:str} |= if dst_format.len = 4 then (ndim(x) = 2 ∧ shape(x,0) = 2 ∧ shape(x,1) = 2) ∨ (ndim(x) = 1 ∧ shape(x,0) = 4)
+>>
+Rule 87 (if the dst_format length is 5, then x can be a tensor of (3,2) or (5, ))
+{x : tensor, dst_format:str} |= if dst_format.len = 5 then (ndim(x) = 2 ∧ shape(x,0) = 3 ∧ shape(x,1) = 2) ∨ (ndim(x) = 1 ∧ shape(x,0) = 5)
+>>
+Rule 88 (If src_format is provided, its length must be either 4 or 5.)
+{src_format: str} |= src_format.len = 4 ∨ src_format.len = 5
+>>
+Rule 89 (If dst_format is provided, its length must be either 4 or 5.)
+{dst_format: str} |= dst_format.len = 4 ∨ dst_format.len = 5
+>>
+Rule 90 (It is not possible to provide src_format if the tensor is of shape (2,2))
+{x: tensor, src_format: str} |= if ndim(x) = 2 ∧ shape(x, 0) = 2 ∧ shape(x, 1) = 2 then src_format.len = 0
+>>
+Rule 91 (It is not possible to provide dst_format if the tensor is of shape (2,2))
+{x: tensor, dst_format: str} |= if ndim(x) = 2 ∧ shape(x, 0) = 2 ∧ shape(x, 1) = 2 then dst_format.len = 0
+>>
+Rule 92 (It is not possible to provide src_format if the tensor is of shape (3,2))
+{x: tensor, src_format: str} |= if ndim(x) = 2 ∧ shape(x, 0) = 3 ∧ shape(x, 1) = 2 then src_format.len = 0
+>>
+Rule 93 (It is not possible to provide dst_format if the tensor is of shape (3,2))
+{x: tensor, dst_format: str} |= if ndim(x) = 2 ∧ shape(x, 0) = 3 ∧ shape(x, 1) = 2 then dst_format.len = 0
+>>
+Rule 94 (If x is a 1D tensor, then it is not possible to provide the name argument)
+{x: tensor, name: str} |= if ndim(x) = 1 then name.len = 0
+>>
+Rule 95 (If x is a 2D tensor, then it is not possible to provide the name argument)
+{x: tensor, name: str} |= if ndim(x) = 2 then name.len = 0
+>>
+Rule 96 (When src_format has a value, the value must be a string in the predefined list.)
+{src_format:str} |= if src_format.len > 0 then (src_format = "NHWC" ∨ src_format = "NCHW" ∨ src_format = "NDHWC" ∨ src_format = "NCDHW")
+>>
+Rule 97 (When dst_format has a value, the value must be a string in the predefined list.)
+{dst_format:str} |= if dst_format.len > 0 then (dst_format = "NHWC" ∨ dst_format = "NCHW" ∨ dst_format = "NDHWC" ∨ dst_format = "NCDHW")
+>>
+Rule 98 (If x is 2D, either src_format or dst_format MUST NOT be provided.)
+{x : tensor, src_format: str, dst_format:str} |= if ndim(x) = 2 then (src_format.len = 0 ∨ dst_format.len = 0)
+>>
+Rule 99 (If x is 1D, either src_format or dst_format MUST NOT be provided.)
+{x : tensor, src_format: str, dst_format:str} |= if ndim(x) = 1 then (src_format.len = 0 ∨ dst_format.len = 0)
+>>
+Rule 100 (If both src_format and dst_format are NOT provided, then x must be a 2D tensor)
+{x : tensor, src_format: str, dst_format:str} |= if src_format.len = 0 ∧ dst_format.len = 0 then ndim(x) = 2
+>>
+Rule 101 (If both src_format and dst format are NOT provided, then x must have shape (n, 2))
+{x : tensor, src_format: str, dst_format:str} |= if src_format.len = 0 ∧ dst_format.len = 0 then shape(x, 1) = 2
+>>
+Rule 102 (If both src_format and dst_format are NOT provided, then first dimension shape of x must be either 4 or 5 or 2 or 3)
+{x : tensor, src_format: str, dst_format:str} |= if src_format.len = 0 ∧ dst_format.len = 0 then (shape(x, 0) = 4 ∨ shape(x, 0) = 5 ∨ shape(x, 0) = 2 ∨ shape(x, 0) = 3)
+>>
+Rule 103 (The src_format string can only take specific values)
+{src_format: str} |= src_format = "" ∨ src_format = "NHWC" ∨ src_format = "NCHW" ∨ src_format = "NDHWC" ∨ src_format = "NCDHW"
+>>
+Rule 104 (The dst_format string can only take specific values)
+{dst_format: str} |= dst_format = "" ∨ dst_format = "NHWC" ∨ dst_format = "NCHW" ∨ dst_format = "NDHWC" ∨ dst_format = "NCDHW"
+>>
+Rule 105 (If the tensor x's dimension is 2 and its shape is (n, 2), then dst_format and src_format length must both be either n or 0)
+{x: tensor, src_format:str, dst_format:str} |= if ndim(x) = 2 ∧ shape(x,1) = 2 then ((src_format.len = shape(x, 0) ∨ src_format.len = 0) ∧ (dst_format.len = shape(x, 0) ∨ dst_format.len = 0))
+>>
+Rule 106 (If the tensor x's dimension is 1 and (shape(x,0)+2) equals dst_format length, then src_format length must be equal to dst_format length)
+{x: tensor, src_format:str, dst_format:str} |= if ndim(x) = 1 ∧ shape(x,0)+2 = dst_format.len then src_format.len = dst_format.len
+>>
+Rule 107 (If the tensor x's dimension is 1 and (shape(x,0)+2) equals src_format length, then dst_format length must be equal to src_format length)
+{x: tensor, src_format:str, dst_format:str} |= if ndim(x) = 1 ∧ shape(x,0)+2 = src_format.len then dst_format.len = src_format.len
+>>
+Rule 108 (If the src_format is not provided, dst_format is NHWC, and tensor x's dimension is 1, then x's shape(0) must be 4)
+{x: tensor, src_format:str, dst_format:str} |= if src_format.len = 0 ∧ dst_format = "NHWC" ∧ ndim(x) = 1 then shape(x, 0) = 4
+>>
+Rule 109 (If the src_format is not provided, dst_format is NCHW, and tensor x's dimension is 1, then x's shape(0) must be 4)
+{x: tensor, src_format:str, dst_format:str} |= if src_format.len = 0 ∧ dst_format = "NCHW" ∧ ndim(x) = 1 then shape(x, 0) = 4
+>>
+Rule 110 (If the dst_format is not provided, dst_format is NDHWC, and tensor x's dimension is 1, then x's shape(0) must be 5)
+{x: tensor, src_format:str, dst_format:str} |= if src_format.len = 0 ∧ dst_format = "NDHWC" ∧ ndim(x) = 1 then shape(x, 0) = 5
+>>
+Rule 111 (If the src_format is not provided, dst_format is NCDHW, and tensor x's dimension is 1, then x's shape(0) must be 5)
+{x: tensor, src_format:str, dst_format:str} |= if src_format.len = 0 ∧ dst_format = "NCDHW" ∧ ndim(x) = 1 then shape(x, 0) = 5
+>>
+Rule 112 (If dst_format is not provided, src_format is NHWC, and tensor x's dimension is 1, then x's shape(0) must be 4)
+{x: tensor, src_format:str, dst_format:str} |= if dst_format.len = 0 ∧ src_format = "NHWC" ∧ ndim(x) = 1 then shape(x, 0) = 4
+>>
+Rule 113 (If dst_format is not provided, src_format is NCHW, and tensor x's dimension is 1, then x's shape(0) must be 4)
+{x: tensor, src_format:str, dst_format:str} |= if dst_format.len = 0 ∧ src_format = "NCHW" ∧ ndim(x) = 1 then shape(x, 0) = 4
+>>
+Rule 114 (If dst_format is not provided, src_format is NDHWC, and tensor x's dimension is 2, then x's shape(0) must be 3)
+{x: tensor, src_format:str, dst_format:str} |= if dst_format.len = 0 ∧ src_format = "NDHWC" ∧ ndim(x) = 2 then shape(x, 0) = 3 ∧ shape(x, 1) = 2
+>>
+Rule 115 (If dst_format is not provided, src_format is NCDHW, and tensor x's dimension is 2, then x's shape(0) must be 3)
+{x: tensor, src_format:str, dst_format:str} |= if dst_format.len = 0 ∧ src_format = "NCDHW" ∧ ndim(x) = 2 then shape(x, 0) = 3 ∧ shape(x, 1) = 2
+>>
+Rule 116 (If dst_format is not provided, src_format is NHWC, and tensor x's dimension is 2, then x's shape(0) must be 2)
+{x: tensor, src_format:str, dst_format:str} |= if dst_format.len = 0 ∧ src_format = "NHWC" ∧ ndim(x) = 2 then shape(x, 0) = 2 ∧ shape(x, 1) = 2
+>>
+Rule 117 (If dst_format is not provided, src_format is NCHW, and tensor x's dimension is 2, then x's shape(0) must be 2)
+{x: tensor, src_format:str, dst_format:str} |= if dst_format.len = 0 ∧ src_format = "NCHW" ∧ ndim(x) = 2 then shape(x, 0) = 2 ∧ shape(x, 1) = 2
+>>
+Rule 118 (If dst_format is not provided, src_format is NDHWC, and tensor x's dimension is 1, then x's shape(0) must be 3 or 5)
+{x: tensor, src_format:str, dst_format:str} |= if dst_format.len = 0 ∧ src_format = "NDHWC" ∧ ndim(x) = 1 then (shape(x, 0) = 3 ∨ shape(x, 0) = 5)
+>>
+Rule 119 (If dst_format is not provided, src_format is NCDHW, and tensor x's dimension is 1, then x's shape(0) must be 3 or 5)
+{x: tensor, src_format:str, dst_format:str} |= if dst_format.len = 0 ∧ src_format = "NCDHW" ∧ ndim(x) = 1 then (shape(x, 0) = 3 ∨ shape(x, 0) = 5)
+>>
+Rule 120 (If dst_format is not provided, src_format is NHWC, and tensor x's dimension is 1, then x's shape(0) must be 2 or 4)
+{x: tensor, src_format:str, dst_format:str} |= if dst_format.len = 0 ∧ src_format = "NHWC" ∧ ndim(x) = 1 then (shape(x, 0) = 2 ∨ shape(x, 0) = 4)
+>>
+Rule 121 (If dst_format is not provided, src_format is NCHW, and tensor x's dimension is 1, then x's shape(0) must be 2 or 4)
+{x: tensor, src_format:str, dst_format:str} |= if dst_format.len = 0 ∧ src_format = "NCHW" ∧ ndim(x) = 1 then (shape(x, 0) = 2 ∨ shape(x, 0) = 4)
+>>
+Rule 122 (If dst_format is not provided, src_format is NDHWC, and tensor x's dimension is 2, then x must be int32 or int64)
+{x: tensor, src_format:str, dst_format:str} |= if dst_format.len = 0 ∧ src_format = "NDHWC" ∧ ndim(x) = 2 then dtype_(x) = 2 ∨ dtype_(x) = 3
+>>
+Rule 123 (If dst_format is not provided, src_format is NCDHW, and tensor x's dimension is 2, then x must be int32 or int64)
+{x: tensor, src_format:str, dst_format:str} |= if dst_format.len = 0 ∧ src_format = "NCDHW" ∧ ndim(x) = 2 then dtype_(x) = 2 ∨ dtype_(x) = 3
+>>
+Rule 124 (If dst_format is not provided, src_format is NHWC, and tensor x's dimension is 2, then x must be int32 or int64)
+{x: tensor, src_format:str, dst_format:str} |= if dst_format.len = 0 ∧ src_format = "NHWC" ∧ ndim(x) = 2 then dtype_(x) = 2 ∨ dtype_(x) = 3
+>>
+Rule 125 (If dst_format is not provided, src_format is NCHW, and tensor x's dimension is 2, then x must be int32 or int64)
+{x: tensor, src_format:str, dst_format:str} |= if dst_format.len = 0 ∧ src_format = "NCHW" ∧ ndim(x) = 2 then dtype_(x) = 2 ∨ dtype_(x) = 3

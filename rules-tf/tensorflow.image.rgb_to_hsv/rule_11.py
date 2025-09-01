@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# images tensor has non-zero shape (Rule 11)
+# If the images tensor is not empty, it must have a last dimension of size 3 (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]))
+    s.add(Not(Or((v["arg1_ndim"] == 0), (Or([And(d < (v["arg1_ndim"] - 1 + 1), And(d == v["arg1_ndim"] - 1, Select(v["arg1_shape"], d) == 3)) for d in range(6)])))) if n else
+          Or((v["arg1_ndim"] == 0), (Or([And(d < (v["arg1_ndim"] - 1 + 1), And(d == v["arg1_ndim"] - 1, Select(v["arg1_shape"], d) == 3)) for d in range(6)]))))
 )
 
 def rule_11_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_11_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 11
-        rule_11(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_11(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_11(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_11(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

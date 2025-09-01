@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# n cannot be negative (Rule 21)
+# If timeout_ms is specified, it should be a valid integer (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] >= 0) if n else
-          v["arg1_value"] >= 0)
+    s.add(Not(v["arg1_value"] > -2147483648) if n else
+          v["arg1_value"] > -2147483648)
 )
 
 def rule_21_func(arg1, solver=None, neg=False):

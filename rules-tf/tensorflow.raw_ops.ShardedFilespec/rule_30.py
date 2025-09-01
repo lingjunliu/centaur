@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# num_shards must be a power of 2 (Rule 30)
+# number of shards has to be a reasonable amount (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(Or([And(i < (30 + 1), v["arg1_value"] == (2 * i)) for i in range(6)])) if n else
-          Or([And(i < (30 + 1), v["arg1_value"] == (2 * i)) for i in range(6)]))
+    s.add(Not(And(1 <= v["arg1_value"], v["arg1_value"] < 10000)) if n else
+          And(1 <= v["arg1_value"], v["arg1_value"] < 10000))
 )
 
 def rule_30_func(arg1, solver=None, neg=False):

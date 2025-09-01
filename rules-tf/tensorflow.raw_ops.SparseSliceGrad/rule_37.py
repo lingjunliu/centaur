@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The dtypes of backprop_val_grad tensor and the output tensor of the SparseSliceGrad operation should match (but the return type is not explicitly listed, so it's hard to constrain that specifically (Rule 37)
+# backprop_val_grad's dtype must be in the allowed list (Rule 37)
 
 rule_37 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == v["arg1_dtype"]) if n else
-          v["arg1_dtype"] == v["arg1_dtype"])
+    s.add(Not(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 3)) if n else
+          Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 3))
 )
 
 def rule_37_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# rhs must be a valid type and match matrix (Rule 2)
+# rhs must have the same type as matrix (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_dtype"] == v["arg1_dtype"]) if n else
-          v["arg2_dtype"] == v["arg1_dtype"])
+    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
+          v["arg1_dtype"] == v["arg2_dtype"])
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

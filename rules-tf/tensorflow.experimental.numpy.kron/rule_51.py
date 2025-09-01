@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If tensor one is boolean, tensor two must also be boolean (Rule 51)
+# Both input dtypes must be real numbers or both must be complex numbers. (Rule 51)
 
 rule_51 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0, False)) if n else
-          If(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0, False))
+    s.add(Not(Or((And((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 8)), (And(v["arg2_dtype"] >= 1, v["arg2_dtype"] <= 8)))), (And((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)))))) if n else
+          Or((And((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 8)), (And(v["arg2_dtype"] >= 1, v["arg2_dtype"] <= 8)))), (And((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10))))))
 )
 
 def rule_51_func(arg1, arg2, solver=None, neg=False):

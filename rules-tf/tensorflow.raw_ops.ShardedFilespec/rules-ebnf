@@ -1,105 +1,156 @@
 >>
 Rule 1 (num_shards must be greater than 0)
-{v_1 : int} |= v_1 > 0
+{num_shards : int} |= num_shards > 0
 >>
-Rule 2 (basename must be a non-empty string)
-{v_1 : str} |= v_1 ≠ ""
+Rule 2 (basename must not be an empty string)
+{basename : str} |= basename ≠ ""
 >>
-Rule 3 (basename must not contain any special characters)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9")
+Rule 7 (num_shards must be a non-negative integer)
+{num_shards : int} |= num_shards ≥ 0
 >>
-Rule 4 (basename can be no longer than 255 characters)
-{v_1 : str} |= v_1.len ≤ 255
+Rule 9 (num_shards cannot be too large to avoid integer overflow)
+{num_shards : int} |= num_shards < 2147483647
 >>
-Rule 5 (num_shards must be a positive integer and less than 10000.)
-{v_1 : int} |= v_1 > 0 ∧ v_1 < 10000
+Rule 10 (num_shards cannot be too large to avoid denial of service)
+{num_shards : int} |= num_shards < 65536
 >>
-Rule 6 (basename should not start with a number.)
-{v_1 : str} |= if v_1.len > 0 then (v_1[0] < "0" ∨ v_1[0] > "9")
+Rule 12 (The length of basename string should be less than a maximum value)
+{basename : str} |= basename.len < 256
 >>
-Rule 7 (The basename string cannot contain a forward slash ('/'))
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ "/"
+Rule 13 (The number of shards should not be zero.)
+{num_shards : int} |= num_shards ≠ 0
 >>
-Rule 8 (The basename string must not contain backslashes ('\\'))
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ "\\"
+Rule 16 (num_shards must be small enough to be representable as int32)
+{num_shards : int} |= num_shards ≤ 2147483647
 >>
-Rule 9 (The num_shards must be less than or equal to the maximum number of shards supported by the file system (e.g., 65535 for ext4))
-{v_1 : int} |= v_1 ≤ 65535
+Rule 17 (basename string length should be less than some reasonable limit)
+{basename : str} |= basename.len < 1024
 >>
-Rule 10 (basename should not be "." or "..")
-{v_1 : str} |= v_1 ≠ "." ∧ v_1 ≠ ".."
+Rule 18 (num_shards must be greater than or equal to 1)
+{num_shards : int} |= num_shards ≥ 1
 >>
-Rule 11 (If basename contains "*", then num_shards must be 1.)
-{v_1 : str, v_2 : int} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "*" then v_2 = 1
+Rule 23 (basename cannot contain wildcard characters such as '*' or '?')
+{basename : str} |= ∀i ∈ [0, basename.len - 1] : basename[i] ≠ "*" ∧ basename[i] ≠ "?"
 >>
-Rule 12 (If basename contains "?", then num_shards must be 1.)
-{v_1 : str, v_2 : int} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "?" then v_2 = 1
+Rule 24 (The number of shards must be within a reasonable range to prevent excessive resource consumption)
+{num_shards : int} |= 1 ≤ num_shards ∧ num_shards ≤ 100000
 >>
-Rule 13 (If basename contains "[", then num_shards must be 1.)
-{v_1 : str, v_2 : int} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "[" then v_2 = 1
+Rule 25 (basename string length must be within the valid range)
+{basename : str} |= basename.len > 0 ∧ basename.len < 2048
 >>
-Rule 14 (basename should not end with "/")
-{v_1 : str} |= if v_1.len > 0 then v_1[v_1.len - 1] ≠ "/"
+Rule 27 (basename must contain at least one character before sharding it)
+{basename : str} |= basename.len ≥ 1
 >>
-Rule 16 (If num_shards is greater than 1, basename must not end with a number.)
-{v_1 : str, v_2 : int} |= if v_2 > 1 ∧ v_1.len > 0 then (v_1[v_1.len - 1] < "0" ∨ v_1[v_1.len - 1] > "9")
+Rule 28 (num_shards must be a positive integer, and not too large to avoid resource exhaustion)
+{num_shards : int} |= 0 < num_shards ∧ num_shards < 10000
 >>
-Rule 19 (basename should not contain consecutive slashes "//")
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 2] : if v_1[i] = "/" then v_1[i+1] ≠ "/"
+Rule 30 (number of shards has to be a reasonable amount)
+{num_shards : int} |= 1 <= num_shards ∧ num_shards < 10000
 >>
-Rule 20 (The basename string should not contain control characters (ASCII 0-31))
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < " " ∨ v_1[i] > "~"
+Rule 31 (basename should not be empty and be a valid path.)
+{basename : str} |= basename.len > 0 ∧ ∀i ∈ [0, basename.len - 1] : basename[i] ≠ "\\0"
 >>
-Rule 21 (num_shards must be a power of 2)
-{v_1 : int} |= ∃i ∈ [0, 31] : v_1 = 2 * i
+Rule 34 (The number of shards must be a valid positive integer to prevent infinite loops.)
+{num_shards : int} |= num_shards > 0 ∧ num_shards < 65536
 >>
-Rule 27 (num_shards must be a power of 2)
-{v_1 : int} |= ∃i ∈ [0, 30] : v_1 = 2 * i ∨ (v_1 = 2 * i)
+Rule 37 (Basename should be a valid, non-empty UTF-8 string and not contain illegal path characters like ':')
+{basename : str} |= basename.len > 0 ∧ (∀i ∈ [0, basename.len - 1] : basename[i] ≠ ":")
 >>
-Rule 28 (num_shards must be a power of 2)
-{v_1 : int} |= ∃i ∈ [0, 30] : v_1 = 2 * i
+Rule 38 (Number of shards has to be positive and less than the maximum allowed number of shards to avoid DoS.)
+{num_shards : int} |= num_shards > 0 ∧ num_shards < 16384
 >>
-Rule 30 (num_shards must be a power of 2)
-{v_1 : int} |= ∃i ∈ [0, 30] : v_1 = (2 * i)
+Rule 39 (Basename should be a non-empty string and should consist of valid UTF-8 characters.)
+{basename : str} |= basename.len > 0 ∧ ∀i ∈ [0, basename.len - 1] : (basename[i] ≠ "/") ∧ (basename[i] ≠ "\\") ∧ (basename[i] ≠ ":") ∧ (basename[i] ≠ "*") ∧ (basename[i] ≠ "?") ∧ (basename[i] ≠ "\"") ∧ (basename[i] ≠ "<") ∧ (basename[i] ≠ ">") ∧ (basename[i] ≠ "|")
 >>
-Rule 31 (num_shards must be a power of 2 or zero)
-{v_1 : int} |= (v_1 = 0) ∨ (∃i ∈ [0, 30] : v_1 = 2 * i)
+Rule 40 (Number of shards must be a positive integer less than a reasonable maximum to avoid memory issues)
+{num_shards : int} |= num_shards > 0 ∧ num_shards < 1024
 >>
-Rule 32 (If basename is a URL, then num_shards must be 1.)
-{v_1 : str, v_2 : int} |= if (v_1[0] = "h" ∧ v_1[1] = "t" ∧ v_1[2] = "t" ∧ v_1[3] = "p") ∨ (v_1[0] = "f" ∧ v_1[1] = "t" ∧ v_1[2] = "p") then v_2 = 1
+Rule 41 (Basename must be a non-empty, reasonably sized string, and not contain invalid characters. )
+{basename : str} |= basename.len > 0 ∧ basename.len < 1024 ∧ (∀i ∈ [0, basename.len - 1] : (basename[i] ≠ "/") ∧ (basename[i] ≠ "\\") ∧ (basename[i] ≠ ":") ∧ (basename[i] ≠ "*") ∧ (basename[i] ≠ "?") ∧ (basename[i] ≠ "\""))
 >>
-Rule 33 (If basename is a URL, then num_shards must be 1.)
-{v_1 : str, v_2 : int} |= if (v_1.len > 4) ∧ ((v_1[0] = "h" ∧ v_1[1] = "t" ∧ v_1[2] = "t" ∧ v_1[3] = "p") ∨ (v_1[0] = "f" ∧ v_1[1] = "t" ∧ v_1[2] = "p")) then v_2 = 1
+Rule 43 (Basename must be a valid UTF-8 string and not contain any control characters.)
+{basename : str} |= basename.len > 0 ∧ ∀i ∈ [0, basename.len - 1] : basename[i] > " " ∧ basename[i] < ""
 >>
-Rule 34 (If basename is a URL (http or ftp), then num_shards must be 1.)
-{v_1 : str, v_2 : int} |= if (v_1.len > 4) ∧ ((v_1[0] = "h" ∧ v_1[1] = "t" ∧ v_1[2] = "t" ∧ v_1[3] = "p") ∨ (v_1[0] = "f" ∧ v_1[1] = "t" ∧ v_1[2] = "p" ∧ v_1[3] = ":")) then v_2 = 1
+Rule 44 (The number of shards should be a positive integer and less than the maximum value, so that the files can be properly addressed.)
+{num_shards : int} |= (num_shards > 0) ∧ (num_shards < 2147483647)
 >>
-Rule 35 (If basename is a URL (http or ftp), then num_shards must be 1.)
-{v_1 : str, v_2 : int} |= if (v_1.len > 4) ∧ ((v_1[0] = "h" ∧ v_1[1] = "t" ∧ v_1[2] = "t" ∧ v_1[3] = "p") ∨ (v_1[0] = "f" ∧ v_1[1] = "t" ∧ v_1[2] = "p" ∧ v_1[3] = "s")) then v_2 = 1
+Rule 45 (The basename should be a non-empty string and also it is required not having the null character, which may be a problem for the os system)
+{basename : str} |= (basename.len > 0) ∧ (∀i ∈ [0, basename.len - 1] : basename[i] ≠ "\\0")
 >>
-Rule 36 (If basename is a URL (http or ftp), then num_shards must be 1.)
-{v_1 : str, v_2 : int} |= if (v_1.len > 4) ∧ ((v_1[0] = "h" ∧ v_1[1] = "t" ∧ v_1[2] = "t" ∧ v_1[3] = "p") ∨ (v_1[0] = "f" ∧ v_1[1] = "t" ∧ v_1[2] = "p" )) then v_2 = 1
+Rule 46 (num_shards should be a reasonable number and positive)
+{num_shards : int} |= (num_shards > 0) ∧ (num_shards < 1000000)
 >>
-Rule 38 (num_shards must be less than or equal to 100)
-{v_1 : int} |= v_1 ≤ 100
+Rule 47 (basename must exist and must contain only valid characters )
+{basename : str} |= (basename.len > 0) ∧ (∀i ∈ [0, basename.len - 1] : basename[i] ≠ "/" ∧ basename[i] ≠ "*" ∧ basename[i] ≠ "?" ∧ basename[i] ≠ ":" ∧ basename[i] ≠ "<" ∧ basename[i] ≠ ">" ∧ basename[i] ≠ "|")
 >>
-Rule 39 (If num_shards is 1, basename must exist)
-{v_1 : str, v_2 : int} |= if v_2 = 1 then v_1 ≠ ""
+Rule 49 (The basename can not contain invalid characters for a valid filename)
+{basename : str} |= ∀i ∈ [0, basename.len - 1] : basename[i] ≠ "/" ∧ basename[i] ≠ ":" ∧ basename[i] ≠ "*" ∧ basename[i] ≠ "?" ∧ basename[i] ≠ "<" ∧ basename[i] ≠ ">" ∧ basename[i] ≠ "|" ∧ basename[i] ≠ "\0"
 >>
-Rule 40 (If num_shards is 0, basename should be empty)
-{v_1 : str, v_2 : int} |= if v_2 = 0 then v_1 = ""
+Rule 50 (num_shards must be at least 1 and less than some maximum for memory constraints)
+{num_shards : int} |= num_shards ≥ 1 ∧ num_shards < 100000
 >>
-Rule 42 (If basename contains Windows reserved characters (<, >, :, ", /, \, |, ?, *), then num_shards must be 1)
-{v_1 : str, v_2 : int} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "<" ∨ v_1[i] = ">" ∨ v_1[i] = ":" ∨ v_1[i] = "\"" ∨ v_1[i] = "/" ∨ v_1[i] = "\\" ∨ v_1[i] = "|" ∨ v_1[i] = "?" ∨ v_1[i] = "*" then v_2 = 1
+Rule 51 (basename should be non-empty and not contain any characters that would make it an invalid path component.)
+{basename : str} |= basename.len > 0 ∧ (∀i ∈ [0, basename.len - 1] : basename[i] ≠ "/" ∧ basename[i] ≠ "\\" ∧ basename[i] ≠ ":" ∧ basename[i] ≠ "*" ∧ basename[i] ≠ "?" ∧ basename[i] ≠ "<" ∧ basename[i] ≠ ">" ∧ basename[i] ≠ "|")
 >>
-Rule 43 (If basename contains Windows reserved characters (<, >, :, ", /, \, |, ?, *), then num_shards must be 1)
-{v_1 : str, v_2 : int} |= if ∃i ∈ [0, v_1.len - 1] : (v_1[i] = "<") ∨ (v_1[i] = ">") ∨ (v_1[i] = ":") ∨ (v_1[i] = "\"") ∨ (v_1[i] = "/") ∨ (v_1[i] = "\\") ∨ (v_1[i] = "|") ∨ (v_1[i] = "?") ∨ (v_1[i] = "*") then v_2 = 1
+Rule 52 (The number of shards must be a positive integer that is less than the maximum value of an int32)
+{num_shards : int} |= num_shards > 0 ∧ num_shards < 2147483647
 >>
-Rule 45 (If the basename contains any Unicode character outside the Basic Multilingual Plane (BMP), num_shards must be 1.)
-{v_1 : str, v_2 : int} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] > "𐀀" then v_2 = 1
+Rule 53 (The basename should be a valid, non-empty UTF-8 string and not contain any characters that are invalid in filenames across different operating systems.)
+{basename : str} |= basename.len > 0 ∧ (∀i ∈ [0, basename.len - 1] : basename[i] ≠ "/" ∧ basename[i] ≠ "\\" ∧ basename[i] ≠ ":" ∧ basename[i] ≠ "*" ∧ basename[i] ≠ "?" ∧ basename[i] ≠ "<" ∧ basename[i] ≠ ">" ∧ basename[i] ≠ "|" ∧ basename[i] ≠ "\0" ∧ basename[i] ≠ "\n" ∧ basename[i] ≠ "\r")
 >>
-Rule 46 (If the basename contains any Unicode character outside the Basic Multilingual Plane (BMP), num_shards must be 1.)
-{v_1 : str, v_2 : int} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] > "🟦" then v_2 = 1
+Rule 54 (Number of shards must be a positive value, but not excessively large to avoid resource exhaustion and potential DoS vulnerabilities.)
+{num_shards : int} |= num_shards > 0 ∧ num_shards ≤ 65535
 >>
-Rule 47 (If the basename contains any Unicode character outside the Basic Multilingual Plane (BMP), num_shards must be 1.)
-{v_1 : str, v_2 : int} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] > "𿿽" then v_2 = 1
+Rule 55 (The basename should be a non-empty string, must be a valid path without restricted characters such as control characters and shell metacharacters for preventing command injection.)
+{basename : str} |= basename.len > 0 ∧ (∀i ∈ [0, basename.len - 1] : basename[i] > " " ∧ basename[i] < "") ∧ (∀i ∈ [0, basename.len - 1] : basename[i] ≠ "`" ∧ basename[i] ≠ "$" ∧ basename[i] ≠ "!" ∧ basename[i] ≠ "&" ∧ basename[i] ≠ "*" ∧ basename[i] ≠ "?" ∧ basename[i] ≠ "\\" ∧ basename[i] ≠ "<" ∧ basename[i] ≠ ">" ∧ basename[i] ≠ "|" ∧ basename[i] ≠ ";" ∧ basename[i] ≠ "'" ∧ basename[i] ≠ "\"")
+>>
+Rule 57 (The basename needs to be at least one character long and be less than the OS Max path Length and not contain shell injection characters to prevent possible file system attacks)
+{basename : str} |= basename.len > 0 ∧ basename.len < 260 ∧ ∀i ∈ [0, basename.len - 1] : basename[i] ≠ "`" ∧ basename[i] ≠ "$" ∧ basename[i] ≠ "!" ∧ basename[i] ≠ "&" ∧ basename[i] ≠ "*" ∧ basename[i] ≠ "?" ∧ basename[i] ≠ "\\" ∧ basename[i] ≠ "<" ∧ basename[i] ≠ ">" ∧ basename[i] ≠ "|" ∧ basename[i] ≠ ";" ∧ basename[i] ≠ "'" ∧ basename[i] ≠ "\"" ∧ basename[i] ≠ "\n" ∧ basename[i] ≠ "\r" ∧ basename[i] ≠ "\0"
+>>
+Rule 58 (The number of shards must be a positive value greater than zero and reasonable)
+{num_shards : int} |= 1 ≤ num_shards ∧ num_shards < 65536
+>>
+Rule 61 (Basename should be a reasonably sized, non-empty UTF-8 string and not contain any characters that are reserved or have special meaning in a glob pattern)
+{basename : str} |= basename.len > 0 ∧ basename.len < 1024 ∧ (∀i ∈ [0, basename.len - 1] : basename[i] ≠ "*" ∧ basename[i] ≠ "?" ∧ basename[i] ≠ "[" ∧ basename[i] ≠ "]")
+>>
+Rule 63 (The basename must be a valid file path string without shell-escaped metacharacters or control characters)
+{basename : str} |= basename.len > 0 ∧ (∀i ∈ [0, basename.len - 1] : (basename[i] ≠ "`" ∧ basename[i] ≠ "$" ∧ basename[i] ≠ "!" ∧ basename[i] ≠ "&" ∧ basename[i] ≠ "*" ∧ basename[i] ≠ "?" ∧ basename[i] ≠ "\\" ∧ basename[i] ≠ "<" ∧ basename[i] ≠ ">" ∧ basename[i] ≠ "|" ∧ basename[i] ≠ ";" ∧ basename[i] ≠ "'" ∧ basename[i] ≠ "\"" ∧ basename[i] ≠ "\0" ∧ basename[i] ≠ "\n" ∧ basename[i] ≠ "\r"))
+>>
+Rule 64 (The number of shards must be a positive integer, less than the maximum value representable by an int32, and power of 2)
+{num_shards : int} |= (num_shards > 0) ∧ (num_shards < 2147483647) ∧ (∃i ∈ [0, 31] : num_shards = 2 * i)
+>>
+Rule 65 (The basename should be a valid non-empty path string consisting of allowed filename characters and less than a pre-defined maximum length.)
+{basename : str} |= (basename.len > 0) ∧ (basename.len < 1024) ∧ (∀i ∈ [0, basename.len - 1] : basename[i] ≠ "/" ∧ basename[i] ≠ "\\" ∧ basename[i] ≠ ":" ∧ basename[i] ≠ "*" ∧ basename[i] ≠ "?" ∧ basename[i] ≠ "<" ∧ basename[i] ≠ ">" ∧ basename[i] ≠ "|" ∧ basename[i] ≠ "\0" ∧ basename[i] ≠ "\n" ∧ basename[i] ≠ "\r")
+>>
+Rule 66 (The number of shards must be a positive integer that is a power of 2 for efficient addressing and less than a reasonable limit to avoid performance issues.)
+{num_shards : int} |= (num_shards > 0) ∧ (∃i ∈ [0, 30] : num_shards = (2 * i) ∨ num_shards = 1) ∧ (num_shards < 16384)
+>>
+Rule 67 (The basename must be a non-empty string, should be a valid path component name on most filesystems, and shouldn't contain any wildcard characters.)
+{basename : str} |= (basename.len > 0) ∧ (∀i ∈ [0, basename.len - 1] : basename[i] ≠ "/" ∧ basename[i] ≠ "\\" ∧ basename[i] ≠ ":" ∧ basename[i] ≠ "*" ∧ basename[i] ≠ "?" ∧ basename[i] ≠ "<" ∧ basename[i] ≠ ">" ∧ basename[i] ≠ "|" ∧ basename[i] ≠ "\0")
+>>
+Rule 68 (Number of shards should be a positive integer that is not excessively large and causes address space or memory exhaustion problems and avoid DoS )
+{num_shards : int} |= (num_shards > 0) ∧ (num_shards < 16384)
+>>
+Rule 70 (Number of shards must be positive, representable with int32, and power of 2, to have a valid addressing scheme.)
+{num_shards : int} |= (num_shards > 0) ∧ (num_shards < 2147483647) ∧ (∃i ∈ [0, 30] : num_shards = (2 * i) ∨ num_shards = 1)
+>>
+Rule 75 (The basename must be a non-empty string consisting of valid path characters and must be an absolute path to prevent name collision with relative paths)
+{basename : str} |= (basename.len > 0) ∧ (∀i ∈ [0, basename.len - 1] : basename[i] ≠ "/" ∧ basename[i] ≠ "\\" ∧ basename[i] ≠ ":" ∧ basename[i] ≠ "*" ∧ basename[i] ≠ "?" ∧ basename[i] ≠ "<" ∧ basename[i] ≠ ">" ∧ basename[i] ≠ "|" ∧ basename[i] ≠ "\0") ∧ (∀i ∈ [0, basename.len - 1] : basename[i] = "/")
+>>
+Rule 77 (The basename must be a valid string with valid path characters)
+{basename : str} |= basename.len > 0 ∧ (∀i ∈ [0, basename.len - 1] : (basename[i] ≠ "/" ∧ basename[i] ≠ "\\" ∧ basename[i] ≠ ":" ∧ basename[i] ≠ "*" ∧ basename[i] ≠ "?" ∧ basename[i] ≠ "<" ∧ basename[i] ≠ ">" ∧ basename[i] ≠ "|" ∧ basename[i] ≠ "\0" ∧ basename[i] ≠ "\n" ∧ basename[i] ≠ "\r" ∧ basename[i] ≠ "`" ∧ basename[i] ≠ "$" ∧ basename[i] ≠ "!" ∧ basename[i] ≠ "&" ∧ basename[i] ≠ "'" ∧ basename[i] ≠ "\""))
+>>
+Rule 83 (The basename path should not contain any wildcard characters to avoid confusing the sharded file specification globbing logic, and should be not be empty string)
+{basename : str} |= basename.len > 0 ∧ (∀i ∈ [0, basename.len - 1] : (basename[i] ≠ "*" ∧ basename[i] ≠ "?" ∧ basename[i] ≠ "[" ∧ basename[i] ≠ "]"))
+>>
+Rule 85 (The basename must be a non-empty string containing only valid file name characters)
+{basename : str} |= basename.len > 0 ∧ (∀i ∈ [0, basename.len - 1] : basename[i] ≠ "/" ∧ basename[i] ≠ "\\" ∧ basename[i] ≠ ":" ∧ basename[i] ≠ "*" ∧ basename[i] ≠ "?" ∧ basename[i] ≠ "<" ∧ basename[i] ≠ ">" ∧ basename[i] ≠ "|" ∧ basename[i] ≠ "\0")
+>>
+Rule 86 (The number of shards must be a positive integer within a reasonable bound)
+{num_shards : int} |= num_shards > 0 ∧ num_shards ≤ 100000
+>>
+Rule 87 (The basename should be non-empty and it should not contain Windows or Unix reserved characters. It is also required to avoid format string vulnerabilities)
+{basename : str} |= basename.len > 0 ∧ (∀i ∈ [0, basename.len - 1] : basename[i] ≠ "%") ∧ (∀i ∈ [0, basename.len - 1] : basename[i] ≠ "/" ∧ basename[i] ≠ "\\" ∧ basename[i] ≠ ":" ∧ basename[i] ≠ "*" ∧ basename[i] ≠ "?" ∧ basename[i] ≠ "<" ∧ basename[i] ≠ ">" ∧ basename[i] ≠ "|")
+>>
+Rule 89 (Basename must be a string and contain valid character range to prevent file system vulnerabilities such as path traversal.)
+{basename : str} |= basename.len > 0 ∧ (∀i ∈ [0, basename.len - 1] : basename[i] > " " ∧ basename[i] < "}")

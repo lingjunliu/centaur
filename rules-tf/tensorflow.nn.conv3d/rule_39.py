@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# dilations[2], dilations[3], and dilations[4] must be the same (Rule 39)
+# strides[0], strides[4] should be 1 and other strides should be positive (Rule 39)
 
 rule_39 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_values"], 2) == Select(v["arg1_values"], 3), Select(v["arg1_values"], 3) == Select(v["arg1_values"], 4))) if n else
-          And(Select(v["arg1_values"], 2) == Select(v["arg1_values"], 3), Select(v["arg1_values"], 3) == Select(v["arg1_values"], 4)))
+    s.add(Not(And(And(And(And(And(v["arg1_length"] == 5, Select(v["arg1_values"], 0) == 1), Select(v["arg1_values"], 4) == 1), Select(v["arg1_values"], 1) > 0), Select(v["arg1_values"], 2) > 0), Select(v["arg1_values"], 3) > 0)) if n else
+          And(And(And(And(And(v["arg1_length"] == 5, Select(v["arg1_values"], 0) == 1), Select(v["arg1_values"], 4) == 1), Select(v["arg1_values"], 1) > 0), Select(v["arg1_values"], 2) > 0), Select(v["arg1_values"], 3) > 0))
 )
 
 def rule_39_func(arg1, solver=None, neg=False):
@@ -22,16 +22,18 @@ def rule_39_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_length = Int('arg1_length')
         arg1_values = Array('arg1_values', IntSort(), IntSort())
 
         # Value assignments
+        solver.add(arg1_length == len(arg1))
         for i in range(len(arg1)):
             arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 39
-        rule_39(solver, {'arg1_values': arg1_values})
+        rule_39(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_39(solver, {'arg1_values': arg1['values']}, neg)
+        rule_39(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length']}, neg)

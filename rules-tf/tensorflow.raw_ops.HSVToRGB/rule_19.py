@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the tensor is 1D, the values must be between 0 and 1 (Rule 19)
+# If the image tensor has one dimension, then its values must be between 0 and 1. (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 1, And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 1), False)) if n else
-          If(v["arg1_ndim"] == 1, And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 1), False))
+    s.add(Not(If(v["arg1_ndim"] == 1, (And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 1)), True)) if n else
+          If(v["arg1_ndim"] == 1, (And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 1)), True))
 )
 
 def rule_19_func(arg1, solver=None, neg=False):

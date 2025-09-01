@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Length of bucket_batch_sizes should be equal to the length of bucket_boundaries plus one (Rule 1)
+# bucket_batch_sizes length should be equal to bucket_boundaries length plus one (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
     s.add(Not(v["arg2_length"] == v["arg1_length"] + 1) if n else

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If max < 0, then min should be less than 0 and greater than a small constant (Rule 29)
+# If min is a very small number then max must be greater than min (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] < 0, And(v["arg1_value"] < 0, v["arg1_value"] > -1000), False)) if n else
-          If(v["arg2_value"] < 0, And(v["arg1_value"] < 0, v["arg1_value"] > -1000), False))
+    s.add(Not(If(v["arg1_value"] < -100000000000000000000, v["arg2_value"] > v["arg1_value"], True)) if n else
+          If(v["arg1_value"] < -100000000000000000000, v["arg2_value"] > v["arg1_value"], True))
 )
 
 def rule_29_func(arg1, arg2, solver=None, neg=False):

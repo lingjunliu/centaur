@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the tensor has a floating-point type, the min value cannot be greater than the max value (Rule 13)
+# If input tensor is uint8 then ensure values can be represented as int64 after the fix operation (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(If(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1), False)) if n else
-          If(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1), False))
+    s.add(Not(If(v["arg1_dtype"] == 5, Select(v["arg1_range"], 1) <= 9223372036854775807, True)) if n else
+          If(v["arg1_dtype"] == 5, Select(v["arg1_range"], 1) <= 9223372036854775807, True))
 )
 
 def rule_13_func(arg1, solver=None, neg=False):

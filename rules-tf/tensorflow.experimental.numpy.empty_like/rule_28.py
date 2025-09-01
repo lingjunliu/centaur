@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# check that the element type of the tensor is complex64 or complex128 if dimension is 3 (Rule 28)
+# The dtype parameter should be a valid dtype. (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 3, Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), False)) if n else
-          If(v["arg1_ndim"] == 3, Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), False))
+    s.add(Not(Or((And(v["arg1_value"] >= 0, v["arg1_value"] <= 11)), v["arg1_value"] == 12)) if n else
+          Or((And(v["arg1_value"] >= 0, v["arg1_value"] <= 11)), v["arg1_value"] == 12))
 )
 
 def rule_28_func(arg1, solver=None, neg=False):
@@ -17,22 +17,20 @@ def rule_28_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_dtype = Int('arg1_dtype')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
 
         # Constraints for rule 28
-        rule_28(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim})
+        rule_28(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_28(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_28(solver, {'arg1_value': arg1['value']}, neg)

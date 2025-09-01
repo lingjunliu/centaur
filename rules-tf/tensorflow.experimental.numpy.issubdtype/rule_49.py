@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If arg1 is complex128, then arg2 must be complex128 or dtype (Rule 49)
+# Ensure the two arguments are both dtypes and within range (Rule 49)
 
 rule_49 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 10, Or(v["arg2_value"] == 10, v["arg2_value"] == 12), False)) if n else
-          If(v["arg1_value"] == 10, Or(v["arg2_value"] == 10, v["arg2_value"] == 12), False))
+    s.add(Not(And((And(v["arg1_value"] >= 0, v["arg1_value"] <= 12)), (And(v["arg2_value"] >= 0, v["arg2_value"] <= 12)))) if n else
+          And((And(v["arg1_value"] >= 0, v["arg1_value"] <= 12)), (And(v["arg2_value"] >= 0, v["arg2_value"] <= 12))))
 )
 
 def rule_49_func(arg1, arg2, solver=None, neg=False):

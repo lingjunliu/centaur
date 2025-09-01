@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# value tensor's number of channels must be positive (Rule 20)
+# filters tensor must have positive filter_height (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 3) > 0) if n else
-          Select(v["arg1_shape"], 3) > 0)
+    s.add(Not(Select(v["arg1_shape"], 0) > 0) if n else
+          Select(v["arg1_shape"], 0) > 0)
 )
 
 def rule_20_func(arg1, solver=None, neg=False):

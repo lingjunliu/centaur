@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# xlogy: if x is float64, then y must be float64, expressed with and (Rule 16)
+# Both tensors should have compatible dtypes i.e., floating-point or complex types (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] == 8, Or(v["arg2_dtype"] == 8, (And(v["arg1_dtype"] != 8, True))))) if n else
-          And(v["arg1_dtype"] == 8, Or(v["arg2_dtype"] == 8, (And(v["arg1_dtype"] != 8, True)))))
+    s.add(Not(And((Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 6)), (Or(Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), v["arg2_dtype"] == 6)))) if n else
+          And((Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 6)), (Or(Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), v["arg2_dtype"] == 6))))
 )
 
 def rule_16_func(arg1, arg2, solver=None, neg=False):

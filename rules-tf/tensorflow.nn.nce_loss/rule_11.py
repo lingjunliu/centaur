@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# first dimension of labels and inputs should be the same, batch_size (Rule 11)
+# dimension of weights should match the dimension of inputs (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)) if n else
-          Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0))
+    s.add(Not(Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 1)) if n else
+          Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 1))
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

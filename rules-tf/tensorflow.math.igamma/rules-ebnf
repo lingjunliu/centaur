@@ -1,93 +1,255 @@
 >>
-Rule 1 (a and x must have the same type)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 1 (Input tensors 'a' and 'x' must have the same shape to prevent incompatible shapes.)
+{a : tensor, x : tensor} |= ndim(a) = ndim(x) ∧ ∀i ∈ [0, ndim(a) - 1] : shape(a, i) = shape(x, i)
 >>
-Rule 2 (a must be a float type)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 2 (The dtype of 'a' must be one of the allowed types: bfloat16, half, float32, float64.)
+{a : tensor} |= dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 6 ∨ dtype_(a) = 9
 >>
-Rule 4 (x must be non-negative)
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 3 (The dtype of 'x' must be same as 'a')
+{a : tensor, x : tensor} |= dtype_(a) = dtype_(x)
 >>
-Rule 5 (a must be greater than 0)
-{v_1 : tensor} |= min(v_1) > 0
+Rule 4 (Prevent NaN values in input 'a')
+{a : tensor} |= min(a) ≠ "nan" ∧ max(a) ≠ "nan"
 >>
-Rule 6 (check if shape of a and x are equal.)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1,i) = shape(v_2,i)
+Rule 5 (Prevent NaN values in input 'x')
+{x : tensor} |= min(x) ≠ "nan" ∧ max(x) ≠ "nan"
 >>
-Rule 7 (check if minimum value of a is less than maximum value of x)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) ≤ max(v_2)
+Rule 6 (Check the name is not an empty string)
+{name : str} |= name ≠ ""
 >>
-Rule 8 (a must be a bfloat16, half, float32, or float64)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 7 (The tensor 'a' must have at least one dimension.)
+{a : tensor} |= ndim(a) ≥ 1
 >>
-Rule 9 (shape of a and x must be the same)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 8 (The tensor 'x' must have at least one dimension.)
+{x : tensor} |= ndim(x) ≥ 1
 >>
-Rule 10 (if a's dimension is greater than 1, then x's dimension must also be greater than 1)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 then ndim(v_2) > 1
+Rule 9 (Shape of 'a' should be valid, meaning all dimensions are positive.)
+{a : tensor} |= ∀i ∈ [0, ndim(a) - 1] : shape(a, i) > 0
 >>
-Rule 11 (if a's dimension is equal to zero, then x's dimension must be equal to zero)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+Rule 10 (Shape of 'x' should be valid, meaning all dimensions are positive.)
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
 >>
-Rule 12 (if a's dtype is float16, then x's dtype must be float16)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6
+Rule 11 (The name should be a valid string.)
+{name : str} |= (name = "none") ∨ (name ≠ "")
 >>
-Rule 13 (if a's dtype is float32, then x's dtype must be float32)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7
+Rule 12 (Check if the tensor a's data type is valid.)
+{a : tensor} |= dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 9
 >>
-Rule 14 (if a's dtype is float64, then x's dtype must be float64)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = 8
+Rule 13 (If a's shape is [0,...] then x's shape must also be [0, ...])
+{a : tensor, x : tensor} |= if (∃i ∈ [0, ndim(a) - 1] : shape(a, i) = 0) then (∃j ∈ [0, ndim(x) - 1] : shape(x, j) = 0)
 >>
-Rule 15 (if a's dtype is bfloat16, then x's dtype must be bfloat16)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 5 then dtype_(v_2) = 5
+Rule 15 (Dtype of 'a' should be either float16, float32, float64, or bfloat16)
+{a : tensor} |= dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8
 >>
-Rule 16 (at least one element of a and x should be non-zero)
-{v_1 : tensor, v_2 : tensor} |= max(v_1) > 0 ∨ max(v_2) > 0
+Rule 16 (If one of the tensors is a scalar, the other can have any shape.)
+{a : tensor, x : tensor} |= (ndim(a) = 0 ∨ ndim(x) = 0)
 >>
-Rule 17 (number of dimension of a should be equal to number of dimension of x.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 18 (If either a or x have shape with a zero dimension, the other must as well.)
+{a : tensor, x : tensor} |= if (∃i ∈ [0, ndim(a) - 1] : shape(a, i) = 0) then (∃j ∈ [0, ndim(x) - 1] : shape(x, j) = 0) else if (∃i ∈ [0, ndim(x) - 1] : shape(x, i) = 0) then (∃j ∈ [0, ndim(a) - 1] : shape(a, j) = 0)
 >>
-Rule 18 (if shape of a is (x,y) and shape of x is (z,w) then x=z and y=w )
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 then shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1)
+Rule 19 (Dtype of 'x' must be either float16, float32, float64, or bfloat16)
+{x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8
 >>
-Rule 20 (if ndim of a is equal to ndim of x is equal to 1, then the shape of a and x must be equal)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 then shape(v_1, 0) = shape(v_2, 0)
+Rule 20 (The minimum value of 'a' must be greater than or equal to 0.)
+{a : tensor} |= min(a) ≥ 0
 >>
-Rule 23 (The maximum element of x should not exceed the maximum element of a by a large amount. To avoid overflow.)
-{v_1 : tensor, v_2 : tensor} |= max(v_2) < max(v_1) * 1000
+Rule 21 (The minimum value of 'x' must be greater than or equal to 0.)
+{x : tensor} |= min(x) ≥ 0
 >>
-Rule 25 (If the minimum value of x is 0 then the minimum value of a must be zero)
-{v_1 : tensor, v_2 : tensor} |= if min(v_2) = 0 then min(v_1) = 0
+Rule 24 (If a and x are both scalars, their dtypes must match)
+{a : tensor, x : tensor} |= if ndim(a) = 0 ∧ ndim(x) = 0 then dtype_(a) = dtype_(x)
 >>
-Rule 26 (If ndim(a) > 0 then all elements of a must be greater than or equal to 0)
-{v_1 : tensor} |= if ndim(v_1) > 0 then min(v_1) ≥ 0
+Rule 25 (a and x cannot have dimensions greater than a threshold, e.g., 5)
+{a : tensor, x : tensor} |= ndim(a) ≤ 5 ∧ ndim(x) ≤ 5
 >>
-Rule 27 (If ndim(a) = 1 then all elements of a and x must be greater than or equal to 0)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then min(v_1) ≥ 0 ∧ min(v_2) ≥ 0
+Rule 30 (If the shape of 'a' is empty then the shape of 'x' must be empty)
+{a : tensor, x : tensor} |= if ndim(a) = 0 then ndim(x) = 0
 >>
-Rule 28 (If min(a) < 0 then the dtype of a should be one of float32 or float64)
-{v_1 : tensor} |= if min(v_1) < 0 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 31 (If 'a' is a scalar, 'x' must also be a scalar or a tensor with compatible dtype and all positive values)
+{a : tensor, x : tensor} |= if ndim(a) = 0 then (ndim(x) = 0 ∨ (∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0 ∧ dtype_(x) = dtype_(a)))
 >>
-Rule 31 (If the shape of a is not equal to the shape of x and at least one dimension of a has a shape not equal to 1, then at least one dimension of x must have a shape not equal to 1)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) ≠ ndim(v_2)) ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 1) then (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) ≠ 1)
+Rule 37 (If dtype of a is half, there should be corresponding kernel on device. This is hard to encode, so we can at least check ndim <=2.)
+{a : tensor} |= if dtype_(a) = 6 then ndim(a) <= 2
 >>
-Rule 33 (a and x must have same ndim and if ndim > 0 then shape must match)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 39 (If 'a' is a scalar, 'x' must also be a scalar or a tensor with compatible dtype and all non-negative values)
+{a : tensor, x : tensor} |= if ndim(a) = 0 then (ndim(x) = 0 ∨ (∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0 ∧ min(x) >= 0 ∧ dtype_(x) = dtype_(a)))
 >>
-Rule 34 (If the maximum of tensor x is greater than 1 then the dtype of x must be either float32 or float64)
-{v_1 : tensor} |= if max(v_1) > 1 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 40 (If dtype of a is half, there should be corresponding kernel on device. This is hard to encode, so we can at least check ndim <=2.)
+{a : tensor} |= if dtype_(a) = 6 then ndim(a) ≤ 2
 >>
-Rule 35 (Check if the max values of a and x tensors are finite)
-{v_1 : tensor, v_2 : tensor} |= max(v_1) < 1000000 ∧ max(v_2) < 1000000
+Rule 42 (Check that name is a valid string from the given list)
+{name : str} |= name = "none" ∨ name = "sum" ∨ name = "max" ∨ name = "min" ∨ name = "prod" ∨ name = "relu" ∨ name = "tanh" ∨ name = "sigmoid" ∨ name = "softmax" ∨ name = "elu" ∨ name = "selu" ∨ name = "gelu" ∨ name = "swish" ∨ name = "softplus" ∨ name = "linear" ∨ name = "valid" ∨ name = "same" ∨ name = "causal" ∨ name = "channels_last" ∨ name = "channels_first"
 >>
-Rule 36 (If the minimum value of a is less than 0 then the minimum value of x should also be less than 0)
-{v_1 : tensor, v_2 : tensor} |= if min(v_1) < 0 then min(v_2) < 0
+Rule 43 (If 'a' is a scalar, 'x' must also be a scalar or a tensor with compatible dtype and all non-negative values)
+{a : tensor, x : tensor} |= if ndim(a) = 0 then (ndim(x) = 0 ∨ (∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0 ∧ min(x) ≥ 0 ∧ dtype_(x) = dtype_(a)))
 >>
-Rule 37 (If the product of the shape of tensor a is greater than 1000 then at least one of the dimension of a must be float 32 or float 64.)
-{v_1 : tensor} |= if (shape(v_1,0) * shape(v_1,0)) > 1000 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 50 (Check that the length of name is less than 20.)
+{name : str} |= name.len < 20
 >>
-Rule 38 (If the product of the shape of tensor a is greater than 1000 then at least one of the dimensions of a or tensor x must be float 32 or float 64.)
-{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1000) then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+Rule 51 (a and x cannot both have dimensions larger than 5)
+{a : tensor, x : tensor} |= if ndim(a) > 5 then ndim(x) ≤ 5
 >>
-Rule 39 (If x has at least one element equal to 0 then a has to be greater than zero.)
-{v_1 : tensor, v_2 : tensor} |= if min(v_2) = 0 then min(v_1) ≥ 0
+Rule 53 (If x is scalar then its value must be positive)
+{x: tensor} |= if ndim(x) = 0 then min(x) >= 0
+>>
+Rule 55 (If the device doesn't support half, the dtype of a shouldn't be half)
+{a : tensor} |= if "GPU" = "CPU" then dtype_(a) ≠ 6
+>>
+Rule 56 (If x is scalar then its value must be non-negative)
+{x: tensor} |= if ndim(x) = 0 then min(x) ≥ 0
+>>
+Rule 57 (If 'a' is scalar, 'x' must also be a scalar or a tensor with compatible dtype)
+{a : tensor, x : tensor} |= if ndim(a) = 0 then (ndim(x) = 0 ∨ dtype_(x) = dtype_(a))
+>>
+Rule 58 (a and x must have floating point type)
+{a : tensor, x: tensor} |= dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 6
+>>
+Rule 61 (a and x dtypes are valid.)
+{a: tensor, x: tensor} |= (dtype_(a) = 7) ∨ (dtype_(a) = 8) ∨ (dtype_(a) = 6) ∧ (dtype_(x) = 7) ∨ (dtype_(x) = 8) ∨ (dtype_(x) = 6)
+>>
+Rule 62 (If a has dimension 0, then its dtype must be one of the allowed ones.)
+{a : tensor} |= if ndim(a) = 0 then (dtype_(a) = 6) ∨ (dtype_(a) = 7) ∨ (dtype_(a) = 8)
+>>
+Rule 63 (The shapes of a and x are compatible)
+{a: tensor, x: tensor} |= if ndim(a) = ndim(x) then (∀i ∈ [0, ndim(a) - 1] : shape(a, i) = shape(x, i))
+>>
+Rule 66 (If x is scalar and has value zero, then a must be zero.)
+{a: tensor, x: tensor} |= if (ndim(x) = 0) ∧ (x = 0) then (ndim(a) = 0) ∧ (a=0)
+>>
+Rule 67 (The dtypes of a and x should be among allowed dtypes.)
+{a: tensor, x: tensor} |= (dtype_(a) = 6) ∨ (dtype_(a) = 7) ∨ (dtype_(a) = 8) ∨ (dtype_(a) = 9) ∧ ((dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) ∨ (dtype_(x) = 9))
+>>
+Rule 69 (if either a or x is boolean, then error.)
+{a: tensor, x: tensor} |= dtype_(a) ≠ 0 ∧ dtype_(x) ≠ 0
+>>
+Rule 70 (If the tensor rank is larger than 5, then error)
+{a: tensor, x: tensor} |= ndim(a) <= 5 ∧ ndim(x) <= 5
+>>
+Rule 71 (The dtypes of a and x should be same)
+{a: tensor, x: tensor} |= (dtype_(a) = dtype_(x))
+>>
+Rule 72 (If x is scalar, then it must be non-negative to make sense to the Gamma function)
+{x: tensor} |= if ndim(x) = 0 then x >= 0
+>>
+Rule 75 (The dtypes of a and x should be same and allowed)
+{a: tensor, x: tensor} |= (dtype_(a) = dtype_(x)) ∧ ((dtype_(a) = 6) ∨ (dtype_(a) = 7) ∨ (dtype_(a) = 8) ∨ (dtype_(a) = 9))
+>>
+Rule 78 (If x is scalar and has value NaN, then it raises InvalidArgumentError)
+{x : tensor} |= if ndim(x) = 0 then x ≠ "nan"
+>>
+Rule 79 (x must have shape.len > 0)
+{x : tensor} |= if ndim(x) > 0 then shape(x, 0) > 0
+>>
+Rule 81 (if a is scalar, then its value must be non-negative)
+{a : tensor} |= if ndim(a) = 0 then a >= 0
+>>
+Rule 83 (x must have shape.len > 0 or x is a scalar)
+{x : tensor} |= (ndim(x) > 0 ∧ shape(x, 0) > 0) ∨ (ndim(x) = 0)
+>>
+Rule 85 (if a is scalar, then it must be non-negative or zero)
+{a : tensor} |= if ndim(a) = 0 then a ≥ 0
+>>
+Rule 89 (If x is scalar and the dtype is half, the device must have a half kernel)
+{x: tensor} |= if (ndim(x) = 0) ∧ (dtype_(x) = 6) then "GPU" ≠ "CPU"
+>>
+Rule 90 (If the device does not support half, dtype of input cannot be half)
+{a: tensor} |= if "GPU" = "CPU" then dtype_(a) ≠ 6
+>>
+Rule 91 (x must have shape.len > 0 or x is a scalar with a non-NaN value)
+{x : tensor} |= (ndim(x) > 0 ∧ shape(x, 0) > 0) ∨ (ndim(x) = 0 ∧ x ≠ "nan")
+>>
+Rule 92 (The input dtype should be in allowed dtypes)
+{a: tensor, x: tensor} |= (dtype_(a) = 6) ∨ (dtype_(a) = 7) ∨ (dtype_(a) = 8) ∨ (dtype_(a) = 9) ∧ (dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) ∨ (dtype_(x) = 9)
+>>
+Rule 93 (if a is scalar, then it must be non-negative or NaN)
+{a : tensor} |= if ndim(a) = 0 then a ≥ 0 ∨ a = "nan"
+>>
+Rule 94 (a and x have to be same dtype)
+{a: tensor, x: tensor} |= dtype_(a) = dtype_(x)
+>>
+Rule 96 ( If dtype of a is float16, device should support float16 calculation)
+{a: tensor} |= if dtype_(a) = 6 then shape(a, 0) > 0
+>>
+Rule 97 (if a is scalar, then its value can be zero if dtype of x is complex)
+{a : tensor, x : tensor} |= if (ndim(a) = 0) then (a ≥ 0 ∨ (dtype_(x) = 10 ∨ dtype_(x) = 11))
+>>
+Rule 98 (If any of a or x has a zero dimension, the other has to have at least dimension or is scalar)
+{a : tensor, x : tensor} |= if (∃i ∈ [0, ndim(a) - 1] : shape(a, i) = 0) ∨ (∃i ∈ [0, ndim(x) - 1] : shape(x, i) = 0) then (ndim(a) > 0) ∧ (ndim(x) > 0)
+>>
+Rule 99 (If the shape of a and x are incompatible, a specific error will be triggered if they have same rank)
+{a: tensor, x: tensor} |= if ndim(a) = ndim(x) then ∃i ∈ [0, ndim(a) - 1] : shape(a, i) ≠ shape(x, i)
+>>
+Rule 101 (if a is scalar, then it must be non-negative or NaN)
+{a : tensor, x : tensor} |= if (ndim(a) = 0) then (a ≥ 0 ∨ (dtype_(x) = 10 ∨ dtype_(x) = 11) ∨ a = "nan")
+>>
+Rule 102 (If a or x is bool then dtype should be allowed)
+{a: tensor, x: tensor} |= if dtype_(a) = 0 then false else if dtype_(x) = 0 then false
+>>
+Rule 104 ( if a or x has dtype half and is running on CPU then a NoOp kernel is returned)
+{a: tensor, x:tensor} |= if (dtype_(a) = 6 ∨ dtype_(x) = 6 ) then "GPU" ≠ "CPU"
+>>
+Rule 107 (The dtypes of a and x should be same if a is not scalar)
+{a: tensor, x: tensor} |= if ndim(a) > 0 then (dtype_(a) = dtype_(x))
+>>
+Rule 108 (if a or x has dtype half and is running on CPU then a NoOp kernel is returned, or the tensors are empty)
+{a: tensor, x:tensor} |= if (dtype_(a) = 6 ∨ dtype_(x) = 6 ) then ("GPU" ≠ "CPU") ∨ (∃i ∈ [0, ndim(a) - 1] : shape(a, i) = 0) ∨ (∃i ∈ [0, ndim(x) - 1] : shape(x, i) = 0)
+>>
+Rule 109 (name can only be an empty string)
+{name: str} |= name = ""
+>>
+Rule 110 (The shapes must match or a and x must be scalars)
+{a: tensor, x: tensor} |= if (ndim(a) = ndim(x)) then (∀i ∈ [0, ndim(a) - 1] : shape(a, i) = shape(x, i)) else (ndim(a) = 0 ∧ ndim(x) = 0)
+>>
+Rule 112 (if running on TPU then must be float32)
+{a: tensor} |= if "TPU" = "TPU" then dtype_(a) = 7
+>>
+Rule 113 (name should contain only alphabet)
+{name: str} |= ∀i ∈ [0, name.len - 1] : name[i] >="a" ∧ name[i] <= "z" ∨ name[i] >="A" ∧ name[i] <= "Z"
+>>
+Rule 114 (a and x should have same ndim. If either tensor's element size is zero, the result must have element size zero)
+{a:tensor, x:tensor} |= (ndim(a) = ndim(x)) ∧ if (∃i ∈ [0, ndim(a) - 1] : shape(a, i) = 0) ∨ (∃i ∈ [0, ndim(x) - 1] : shape(x, i) = 0) then (∃j ∈ [0, ndim(a) - 1] : shape(a, j) = 0)
+>>
+Rule 115 (Incompatible dtypes will return different result based on device)
+{a: tensor, x: tensor} |= if (dtype_(a) = 6 ∧ dtype_(x) = 7) ∨ (dtype_(a) = 6 ∧ dtype_(x) = 8) ∨ (dtype_(a) = 7 ∧ dtype_(x) = 6) ∨ (dtype_(a) = 7 ∧ dtype_(x) = 8) ∨ (dtype_(a) = 8 ∧ dtype_(x) = 6) ∨ (dtype_(a) = 8 ∧ dtype_(x) = 7) then "GPU" = "GPU"
+>>
+Rule 117 (a must be bfloat16, half, float32 or float64)
+{a: tensor} |= dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 9
+>>
+Rule 118 (If x is a scalar and its value can not be cast into dtype of a, InvalidArgumentError happens)
+{a:tensor, x:tensor} |= if (ndim(x) = 0) then dtype_(a) = dtype_(x)
+>>
+Rule 119 (x shape.len > 0 OR a valid scalar value)
+{x : tensor} |= (ndim(x) > 0 ∧ shape(x, 0) > 0) ∨ (ndim(x) = 0 ∧ min(x) ≥ 0)
+>>
+Rule 120 (if a or x has dtype half and is running on CPU then a NoOp kernel is returned, or one tensor is scalar and the other is empty)
+{a: tensor, x:tensor} |= if (dtype_(a) = 6 ∨ dtype_(x) = 6 ) then ("GPU" ≠ "CPU") ∨ (ndim(a) = 0 ∧ (∃i ∈ [0, ndim(x) - 1] : shape(x, i) = 0)) ∨ (ndim(x) = 0 ∧ (∃i ∈ [0, ndim(a) - 1] : shape(a, i) = 0))
+>>
+Rule 121 (The dtypes of a and x should be in allowed dtypes)
+{a: tensor, x: tensor} |= (dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 9) ∧ (dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9)
+>>
+Rule 122 (If name has value, it should be string type. Not bool)
+{name : str} |= name = ""
+>>
+Rule 123 (The dtypes are compatible for calculation)
+{a: tensor, x: tensor} |= if dtype_(a) = dtype_(x) then true else (dtype_(a) = 6 ∧ dtype_(x) = 7) ∨ (dtype_(a) = 6 ∧ dtype_(x) = 8) ∨ (dtype_(a) = 7 ∧ dtype_(x) = 6) ∨ (dtype_(a) = 7 ∧ dtype_(x) = 8) ∨ (dtype_(a) = 8 ∧ dtype_(x) = 6) ∨ (dtype_(a) = 8 ∧ dtype_(x) = 7)
+>>
+Rule 124 (If we can't find a kernel, then it should be float32.)
+{a:tensor} |= if "NotFoundError" = "NotFoundError" then dtype_(a) = 7
+>>
+Rule 125 (if x or a is zero rank tensor, other should be too)
+{a:tensor, x: tensor} |= if ndim(a) = 0 then ndim(x) = 0
+>>
+Rule 126 (if x is scalar, it should be non-negative)
+{x : tensor} |= if ndim(x) = 0 then x >= 0
+>>
+Rule 127 (if dtype is half, device should support half and valid dimension)
+{a: tensor} |= if dtype_(a) = 6 then "GPU" ≠ "CPU" ∧ ndim(a) > 0
+>>
+Rule 128 (If at least one of the tensor is a scalar, it passes the shape check)
+{a: tensor, x: tensor} |= ndim(a) = 0 ∨ ndim(x) = 0
+>>
+Rule 129 (Name value, if exists, should not violate)
+{name: str} |= (name = "none") ∨ (name ≠ "")
+>>
+Rule 130 (If dtype is not defined for device return NotFoundError. We can't determine device)
+{a:tensor, x:tensor} |= (dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 9) ∧ (dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9)

@@ -1,57 +1,201 @@
 >>
-Rule 2 (dtype must be one of the predefined dtypes, represented by an integer index greater than or equal to 0)
-{v_1 : int} |= v_1 ≥ 0
+Rule 1 (Shape must be a list of ints)
+{v_1 : list(int)} |= v_1.len ≥ 0
 >>
-Rule 5 (shape must have non-negative elements)
+Rule 2 (Container string cannot be None or empty)
+{v_1 : str} |= v_1 ≠ "None" ∧ v_1 ≠ ""
+>>
+Rule 3 (Shared name string cannot be None)
+{v_1 : str} |= v_1 ≠ "None"
+>>
+Rule 5 (Shape list elements must be non-negative)
 {v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 6 (if shape is a tuple it must have at least one element)
-{v_1 : tuple(int)} |= v_1.len ≥ 1
+Rule 6 (Shape must be a list of ints and have a maximum number of dimensions. Arbitrarily set to 10.)
+{v_1 : list(int)} |= v_1.len ≤ 10
 >>
-Rule 7 (if shape is a list it must have at least one element)
-{v_1 : list(int)} |= v_1.len ≥ 1
+Rule 7 (Container, shared_name, and name should not have the same value)
+{v_1 : str, v_2 : str, v_3 : str} |= v_1 ≠ v_2 ∧ v_1 ≠ v_3 ∧ v_2 ≠ v_3
 >>
-Rule 8 (dtype must be less than 13, representing the number of dtypes)
-{v_1 : int} |= v_1 < 13
+Rule 8 (Dtype should be a valid dtype index)
+{v_1 : dtype} |= v_1 ≥ 0 ∧ v_1 ≤ 12
 >>
-Rule 10 (if shape is a tuple it must have at least one element and each element should be non-negative)
-{v_1 : tuple(int)} |= v_1.len ≥ 1 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+Rule 9 (Container string must be a valid string from the allowed list or empty)
+{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear" ∨ v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "causal" ∨ v_1 = "channels_last" ∨ v_1 = "channels_first" ∨ v_1 = ""
 >>
-Rule 11 (dtype must be a valid integer index)
-{v_1 : int} |= v_1 ≥ 0 ∧ v_1 ≤ 12
+Rule 12 (If shape is empty then the dtype should not be a numerical type)
+{v_1 : list(int), v_2 : dtype} |= if v_1.len = 0 then v_2 = 11
 >>
-Rule 12 (shape must be a valid list of integers with at least one element and each element is non-negative.)
-{v_1 : list(int)} |= v_1.len > 0 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+Rule 13 (If shape has one element and that element is zero, then dtype should be string)
+{v_1 : list(int), v_2 : dtype} |= if v_1.len = 1 ∧ v_1[0] = 0 then v_2 = 11
 >>
-Rule 13 (shape as a tensor must have integer dtype)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Rule 14 (If shape is not empty and dtype is string then an error must be raised)
+{v_1 : list(int), v_2 : dtype} |= if v_1.len > 0 then v_2 ≠ 11
 >>
-Rule 14 (container string should be a valid string from the list)
-{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "constant" ∨ v_1 = "linear" ∨ v_1 = "softplus"
+Rule 15 (If the container is set then the shared_name must also be set)
+{v_1 : str, v_2 : str} |= if v_1 ≠ "" then v_2 ≠ ""
 >>
-Rule 15 (if dtype is float16 or float32 or float64, shape as a tensor must have matching dtype)
-{v_1 : tensor, v_2 : int} |= if v_2 = 6 then dtype_(v_1) = 6 else if v_2 = 7 then dtype_(v_1) = 7 else if v_2 = 8 then dtype_(v_1) = 8
+Rule 16 (If the shared_name is set then the container should also be set or it defaults to empty)
+{v_1 : str, v_2 : str} |= if v_2 ≠ "" then v_1 ≠ ""
 >>
-Rule 17 (If the shape argument is a tensor, all values in the tensor must be non-negative.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : min(v_1) >=0
+Rule 17 (shape list elements should not be too large)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 100000
 >>
-Rule 18 (If dtype is specified as a string, it must be a valid dtype string representation.)
-{v_1: str} |= v_1 = "bool" ∨ v_1 = "int8" ∨ v_1 = "int16" ∨ v_1 = "int32" ∨ v_1 = "int64" ∨ v_1 = "uint8" ∨ v_1 = "float16" ∨ v_1 = "float32" ∨ v_1 = "float64" ∨ v_1 = "complex64" ∨ v_1 = "complex128" ∨ v_1 = "str" ∨ v_1 = "dtype"
+Rule 18 (If the shape is defined then the number of elements should not exceed a limit. Arbitrarily set to 10000)
+{v_1 : list(int)} |= ∃p ∈ [0, v_1.len -1] : p < 10000
 >>
-Rule 19 (The number of dimensions of the shape tensor matches the length of the dtype list)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) = v_2.len
+Rule 19 (If the shape is an empty list, then the dtype must be string or bool)
+{v_1 : list(int), v_2 : dtype} |= if v_1.len = 0 then v_2 = 0 ∨ v_2 = 11
 >>
-Rule 21 (If container and shared_name are specified, they should be different)
-{v_1 : str, v_2 : str} |= v_1 ≠ v_2
+Rule 20 (Shape elements are bounded by some maximum value)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 2048
 >>
-Rule 22 (The number of dimensions of the shape tensor matches the length of the list of dtype)
-{v_1 : tensor, v_2 : list(int)} |= ndim(v_1) = v_2.len
+Rule 21 (If shape is specified as a single element list, then the element cannot be negative.)
+{v_1 : list(int)} |= if v_1.len = 1 then v_1[0] ≥ 0
 >>
-Rule 23 (If shape is a tensor, its elements' absolute values should not be greater than a limit.)
-{v_1 : tensor, v_2 : int} |= ∀i ∈ [0, ndim(v_1) - 1] : min(v_1) ≥ (0 - v_2) ∧ max(v_1) ≤ v_2
+Rule 22 (If shared_name and container are both set, they should not be identical)
+{v_1 : str, v_2 : str} |= if v_1 ≠ "" ∧ v_2 ≠ "" then v_1 ≠ v_2
 >>
-Rule 26 (If shape is a tensor, its elements' absolute values should not be greater than a limit.)
-{v_1 : tensor, v_2 : int} |= ∀i ∈ [0, ndim(v_1) - 1] : v_2 ≥ 0 ∧ min(v_1) ≥ (0 - v_2) ∧ max(v_1) ≤ v_2
+Rule 23 (Name should be a valid identifier)
+{v_1 : str} |= ∃i ∈ [0, v_1.len -1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = "_"
 >>
-Rule 27 (If the shape argument is a list, it can not be an empty list.)
-{v_1 : list(int)} |= v_1.len > 0
+Rule 24 (Shape can't have negative dimensions if dtype requires positive)
+{v_1 : list(int), v_2 : dtype} |= if v_2 < 9 ∧ v_2 > 0 then ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+>>
+Rule 25 (If the dtype is bool, then the shape elements should be small)
+{v_1 : list(int), v_2 : dtype} |= if v_2 = 0 then ∀i ∈ [0, v_1.len - 1] : v_1[i] < 100
+>>
+Rule 26 (If the name is set then the length of the name must be less than 256)
+{v_1 : str} |= if v_1 ≠ "" then v_1.len < 256
+>>
+Rule 27 (If the shape has more than one element, the product must fit in int64)
+{v_1 : list(int)} |= if v_1.len > 1 then ∃p ∈ [0, v_1.len - 1] : true
+>>
+Rule 28 (If dtype is complex then shape must be at least rank 1)
+{v_1 : list(int), v_2 : dtype} |= if v_2 = 9 ∨ v_2 = 10 then v_1.len > 0
+>>
+Rule 29 (The product of shape dimensions should not exceed the maximum tensor size)
+{v_1 : list(int)} |= ∃i ∈ [0, v_1.len-1] : true
+>>
+Rule 30 (If the container is specified and not empty, it should start with an alphabet)
+{v_1 : str} |= if v_1 ≠ "" then (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z")
+>>
+Rule 33 (The container, shared_name, and name can only contain alphanumeric and underscore characters)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = "_")
+>>
+Rule 34 (If dtype is bool, the shape must be explicitly defined)
+{v_1 : list(int), v_2 : dtype} |= if v_2 = 0 then v_1.len > 0
+>>
+Rule 35 (If dtype is string, the shape must be a scalar)
+{v_1 : list(int), v_2 : dtype} |= if v_2 = 11 then v_1.len ≤ 1
+>>
+Rule 36 (Shape list can't be longer than 8 dimensions)
+{v_1 : list(int)} |= v_1.len ≤ 8
+>>
+Rule 37 (If the container and shared_name are defined, the container should be a prefix of shared_name)
+{v_1 : str, v_2 : str} |= if v_1 ≠ "" ∧ v_2 ≠ "" then ∃i ∈ [0, v_1.len - 1] : v_1[i] = v_2[i]
+>>
+Rule 39 (The name must not be one of the reserved keywords)
+{v_1 : str} |= v_1 ≠ "None" ∧ v_1 ≠ "true" ∧ v_1 ≠ "false"
+>>
+Rule 40 (The product of the dimensions in shape should be less than the maximum allowed tensor size)
+{v_1 : list(int)} |=  if v_1.len > 0 then ∃i ∈ [0, v_1.len - 1] : true
+>>
+Rule 41 (Dtype can not be dtype_ itself.)
+{v_1 : dtype} |= v_1 ≠ 12
+>>
+Rule 43 (Name must not contain special characters.)
+{v_1: str} |= ∀i ∈ [0, v_1.len -1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = "_") ∨ (v_1[i] = ".")
+>>
+Rule 47 (The container must not be equal to shared_name or name. The rule checks if container and shared_name have values and are not equal and if container and name have values and are not equal.)
+{v_1: str, v_2: str, v_3:str} |= (if v_1 ≠ "" ∧ v_2 ≠ "" then v_1 ≠ v_2) ∧ (if v_1 ≠ "" ∧ v_3 ≠ "" then v_1 ≠ v_3)
+>>
+Rule 49 (If the dtype is a complex number, the shape must have at least 1 dimension.)
+{v_1: list(int), v_2: dtype} |= if v_2 = 9 ∨ v_2 = 10 then v_1.len ≥ 1
+>>
+Rule 50 (The maximum number of elements in the shape is limited.)
+{v_1: list(int)} |= v_1.len < 32
+>>
+Rule 51 (If the container is defined the length should be less than a certain amount. Arbitrarily chosen to be 128.)
+{v_1: str} |= if v_1 ≠ "" then v_1.len < 128
+>>
+Rule 52 (If dtype is bool, shape cannot be larger than 100 elements)
+{v_1 : list(int), v_2 : dtype} |= if v_2 = 0 then (∀i ∈ [0, v_1.len - 1] : v_1[i] < 100)
+>>
+Rule 53 (If the product of the shape is too large, an error is thrown.)
+{v_1: list(int)} |= if v_1.len > 0 then ∃i ∈ [0, v_1.len -1] : true
+>>
+Rule 54 (The number of dimensions in shape must be greater than or equal to 0.)
+{v_1: list(int)} |= v_1.len ≥ 0
+>>
+Rule 55 (If the dtype is of type string, the shape list must have length less than or equal to 1.)
+{v_1: list(int), v_2: dtype} |= if v_2 = 11 then v_1.len ≤ 1
+>>
+Rule 56 (If the shape has only one element, the dtype cannot be complex.)
+{v_1: list(int), v_2: dtype} |= if v_1.len = 1 then v_2 ≠ 9 ∧ v_2 ≠ 10
+>>
+Rule 57 (The Shared name must not start with a digit.)
+{v_1: str} |= if v_1 ≠ "" then (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z") ∨ (v_1[0] = "_")
+>>
+Rule 61 (Shape values should not be excessively large)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 20000
+>>
+Rule 62 (The length of container and shared name should not exceed 255)
+{v_1: str, v_2: str} |= (v_1 = "" ∨ v_1.len < 256) ∧ (v_2 = "" ∨ v_2.len < 256)
+>>
+Rule 63 (If the dtype is bool then the shape must be defined and all the elements should be less than 20.)
+{v_1: list(int), v_2: dtype} |= if v_2 = 0 then (v_1.len > 0 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] < 20)
+>>
+Rule 71 (If dtype is float16, float32, float64, complex64, or complex128, at least one shape needs to be defined.)
+{v_1: list(int), v_2: dtype} |= if v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 then v_1.len > 0
+>>
+Rule 72 (If the dtype is int8 or uint8, shape dimension sizes must be limited.)
+{v_1: list(int), v_2: dtype} |= if v_2 = 1 ∨ v_2 = 5 then (v_1.len > 0 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] < 1024)
+>>
+Rule 73 (If the container is defined it has to be an element of the permitted list)
+{v_1: str} |= if v_1 ≠ "" then v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear" ∨ v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "causal" ∨ v_1 = "channels_last" ∨ v_1 = "channels_first"
+>>
+Rule 81 (Shape dimensions cannot be larger than the maximum int32 value)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 2147483647
+>>
+Rule 82 (If the dtype is bfloat16 (22), only certain container types allowed)
+{v_1 : dtype, v_2 : str} |= if v_1 = 22 then v_2 = "none" ∨ v_2 = ""
+>>
+Rule 91 (If the dtype is bfloat16 (14) or float8_e5m2 (15) or float8_e4m3fn (16), only "none" or "" are permitted for containers.)
+{v_1 : dtype, v_2 : str} |= if v_1 = 14 ∨ v_1 = 15 ∨ v_1 = 16 then v_2 = "none" ∨ v_2 = ""
+>>
+Rule 92 (If the shape has a dimension of zero, then the number of elements in the tensor is zero.)
+{v_1: list(int)} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = 0 then true
+>>
+Rule 98 (If the container is defined then the length must not be zero.)
+{v_1: str} |= if v_1 ≠ "" then v_1.len > 0
+>>
+Rule 102 (If the product of the shape dimensions exceeds the maximum value for int64, an exception might be raised.)
+{v_1: list(int)} |= if v_1.len > 0 then ∃i ∈ [0, v_1.len - 1] : true
+>>
+Rule 103 (Shape dimensions values have to be positive except when zero rank tensor.)
+{v_1: list(int)} |= if v_1.len > 0 then (∃i ∈ [0, v_1.len-1] : v_1[i] =0 ) ∨ (∀i ∈ [0, v_1.len -1] : v_1[i] > 0)
+>>
+Rule 108 (if shape is empty and dtype is not string then this should be a scalar tensor that needs initialization.)
+{v_1: list(int), v_2 : dtype} |= if v_1.len = 0 then v_2 = 11
+>>
+Rule 111 (If shape dimensions are defined it is bounded to a maximum length.)
+{v_1: list(int)} |=  v_1.len < 1024
+>>
+Rule 112 (If shape dimensions are specified make sure they are less than the max size.)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 2147483647
+>>
+Rule 113 (If the product of the dimensions is too large, it will cause an issue.)
+{v_1: list(int)} |= if v_1.len > 1 then ∃i ∈ [0, v_1.len-1] : true
+>>
+Rule 117 (String length must be bound between certain values)
+{v_1:str} |=  v_1.len < 10000
+>>
+Rule 123 (If shape list is not defined then dtype should be one of a permitted list of scalar types)
+{v_1: list(int), v_2:dtype} |= if v_1.len = 0 then (v_2 = 0) ∨ (v_2 = 11)
+>>
+Rule 132 (If the container is a valid compression scheme then shape dimensions must be consistent for compression. It can be ignored.)
+{v_1:str} |=   v_1 = "none" ∨ v_1 = "" ∨ v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba"  ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear" ∨ v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "causal" ∨ v_1 = "channels_last" ∨ v_1 = "channels_first"
+>>
+Rule 133 ( If container type is not empty then only string dtypes allowed.)
+{v_1 : dtype, v_2: str} |= if v_2 ≠ "" then v_1 = 11

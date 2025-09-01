@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# lower and upper bounds should be floats and lower should be less than upper (Rule 40)
+# lower and upper bounds are not NaN (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < v["arg2_value"]) if n else
-          v["arg1_value"] < v["arg2_value"])
+    s.add(Not(And(v["arg1_value"] == v["arg1_value"], v["arg2_value"] == v["arg2_value"])) if n else
+          And(v["arg1_value"] == v["arg1_value"], v["arg2_value"] == v["arg2_value"]))
 )
 
 def rule_40_func(arg1, arg2, solver=None, neg=False):

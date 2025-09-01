@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# axis must be within the valid range when it is an int (Rule 13)
+# Axis should be within the valid range even when negative (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"])) if n else
-          And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"]))
+    s.add(Not(If(v["arg2_value"] < 0, v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"])) if n else
+          If(v["arg2_value"] < 0, v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"]))
 )
 
 def rule_13_func(arg1, arg2, solver=None, neg=False):

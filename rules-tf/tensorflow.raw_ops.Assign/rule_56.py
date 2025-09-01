@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# validate_shape and use_locking must be boolean (Rule 56)
+# If validate_shape is false, use_locking doesn't apply. Locking is used to protect shape changes during assignment. (Rule 56)
 
 rule_56 = lambda s, v, n=False: (
-    s.add(Not(And((Or(v["arg1_value"] == True, v["arg1_value"] == False)), (Or(v["arg2_value"] == True, v["arg2_value"] == False)))) if n else
-          And((Or(v["arg1_value"] == True, v["arg1_value"] == False)), (Or(v["arg2_value"] == True, v["arg2_value"] == False))))
+    s.add(Not(If(v["arg1_value"] == False, True, Or(v["arg2_value"] == True, v["arg2_value"] == False))) if n else
+          If(v["arg1_value"] == False, True, Or(v["arg2_value"] == True, v["arg2_value"] == False)))
 )
 
 def rule_56_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Strides must satisfy length and first/last element requirements (Rule 47)
+# Check all list elements in strides are not zero (Rule 47)
 
 rule_47 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_length"] == 4, Select(v["arg1_values"], 0) == 1), Select(v["arg1_values"], 3) == 1)) if n else
-          And(And(v["arg1_length"] == 4, Select(v["arg1_values"], 0) == 1), Select(v["arg1_values"], 3) == 1))
+    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) != 0) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) != 0) for i in range(6)]))
 )
 
 def rule_47_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Two tensors must have compatible dtypes, represented as an integer index (Rule 3)
+# Check if shape of a tensor at specific dimension is greater than a constant (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
-          v["arg1_dtype"] == v["arg2_dtype"])
+    s.add(Not(Select(v["arg1_shape"], 0) > v["arg2_value"]) if n else
+          Select(v["arg1_shape"], 0) > v["arg2_value"])
 )
 
 def rule_3_func(arg1, arg2, solver=None, neg=False):
@@ -20,22 +20,23 @@ def rule_3_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 3
-        rule_3(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_3(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_3(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_3(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)

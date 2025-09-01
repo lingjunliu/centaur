@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# max_output_size_per_class and max_total_size must be positive integers (Rule 36)
+# score_threshold must be less than or equal to the maximum score in scores (Rule 36)
 
 rule_36 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] > 0, v["arg2_value"] > 0)) if n else
-          And(v["arg1_value"] > 0, v["arg2_value"] > 0))
+    s.add(Not(v["arg1_value"] <= Select(v["arg2_range"], 1)) if n else
+          v["arg1_value"] <= Select(v["arg2_range"], 1))
 )
 
 def rule_36_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,25 @@ def rule_36_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, (float, np.floating)):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_value = Int('arg2_value')
+        arg1_value = Real('arg1_value')
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_value == arg1)
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 36
-        rule_36(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_36(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_36(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_36(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range']}, neg)

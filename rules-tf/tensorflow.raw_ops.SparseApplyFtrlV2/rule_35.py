@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# var and l1 should have same dtype (Rule 35)
+# If indices is int32, then var, accum, linear, grad, lr, l1, l2, l2_shrinkage, lr_power must be int32, float32 or complex64. (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
-          v["arg1_dtype"] == v["arg2_dtype"])
+    s.add(Not(If(v["arg1_dtype"] == 3, Or(Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 7), v["arg2_dtype"] == 9), True)) if n else
+          If(v["arg1_dtype"] == 3, Or(Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 7), v["arg2_dtype"] == 9), True))
 )
 
 def rule_35_func(arg1, arg2, solver=None, neg=False):

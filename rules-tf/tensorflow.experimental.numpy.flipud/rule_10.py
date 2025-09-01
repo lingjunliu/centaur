@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The number of dimensions must not be greater than 10 (Rule 10)
+# If the input is a scalar, it's considered as a tensor of rank 0 and thus, should not be allowed (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] <= 10) if n else
-          v["arg1_ndim"] <= 10)
+    s.add(Not(v["arg1_ndim"] > 0) if n else
+          v["arg1_ndim"] > 0)
 )
 
 def rule_10_func(arg1, solver=None, neg=False):

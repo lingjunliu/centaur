@@ -5,32 +5,48 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# var must be a float32, float64, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, or uint64. (Rule 8)
+# if use_locking is true, then var and accum shapes must be the same (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 3), v["arg1_dtype"] == 6), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 10)) if n else
-          Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 3), v["arg1_dtype"] == 6), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 10))
+    s.add(Not(If(v["arg1_value"] == True, (And(v["arg2_ndim"] == v["arg3_ndim"], And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) == Select(v["arg3_shape"], i)) for i in range(6)]))), True)) if n else
+          If(v["arg1_value"] == True, (And(v["arg2_ndim"] == v["arg3_ndim"], And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) == Select(v["arg3_shape"], i)) for i in range(6)]))), True))
 )
 
-def rule_8_func(arg1, solver=None, neg=False):
+def rule_8_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, bool):
+            return False
+        if not isinstance(arg2, np.ndarray):
+            return False
+        if not isinstance(arg3, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_value = Bool('arg1_value')
+        arg2_ndim = Int('arg2_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg3_ndim = Int('arg3_ndim')
+        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg3_ndim == arg3.ndim)
+        for i in range(arg3.ndim):
+            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
 
         # Constraints for rule 8
-        rule_8(solver, {'arg1_dtype': arg1_dtype})
+        rule_8(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_shape': arg3_shape, 'arg3_ndim': arg3_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_8(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_8(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_shape': arg3['shape'], 'arg3_ndim': arg3['ndim']}, neg)

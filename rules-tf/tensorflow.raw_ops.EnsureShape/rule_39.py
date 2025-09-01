@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If any dimension is negative in shape list, it's an invalid shape (Rule 39)
+# If shape is a list and has a length of one, the element should be at least -1 (Rule 39)
 
 rule_39 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) >= -1) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) >= -1) for i in range(6)]))
+    s.add(Not(If(v["arg1_length"] == 1, Select(v["arg1_values"], 0) >= -1, True)) if n else
+          If(v["arg1_length"] == 1, Select(v["arg1_values"], 0) >= -1, True))
 )
 
 def rule_39_func(arg1, solver=None, neg=False):

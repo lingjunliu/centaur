@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If narrow_range is set to true, then the minimum value representable is - (maximum representable value - 1 (Rule 35)
+# input and output tensors must have compatible data types (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, v["arg2_value"] > 1, False)) if n else
-          If(v["arg1_value"] == True, v["arg2_value"] > 1, False))
+    s.add(Not(If(v["arg2_value"] == True, Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8))) if n else
+          If(v["arg2_value"] == True, Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)))
 )
 
 def rule_35_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_35_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_value = Int('arg2_value')
+        arg1_dtype = Int('arg1_dtype')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 35
-        rule_35(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_35(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_35(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_35(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

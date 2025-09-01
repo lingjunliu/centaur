@@ -1,60 +1,129 @@
 >>
-Rule 3 (input tensor must be of a supported type)
-{x : tensor} |= dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 4 ∨ dtype_(x) = 3 ∨ dtype_(x) = 6 ∨ dtype_(x) = 2 ∨ dtype_(x) = 1 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10
+Rule 1 (x must have allowed data type)
+{x : tensor} |= dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 5 ∨ dtype_(x) = 3 ∨ dtype_(x) = 2 ∨ dtype_(x) = 1 ∨ dtype_(x) = 10 ∨ dtype_(x) = 4 ∨ dtype_(x) = 6
 >>
-Rule 5 (exclusive is either true or false)
-{exclusive : bool} |= exclusive = true ∨ exclusive = false
->>
-Rule 6 (reverse is either true or false)
-{reverse : bool} |= reverse = true ∨ reverse = false
->>
-Rule 7 (axis must be greater than or equal to negative rank of x)
-{x : tensor, axis : int} |= axis ≥ (0 - ndim(x))
->>
-Rule 8 (axis must be less than rank of x)
-{x : tensor, axis : int} |= axis < ndim(x)
->>
-Rule 9 (input tensor must be of a supported type - simplified for grammar compliance)
-{x : tensor} |= dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 3
->>
-Rule 12 (axis must be greater than or equal to negative rank of x)
+Rule 2 (axis must be within the valid range)
 {x : tensor, axis : int} |= axis ≥ (0 - ndim(x)) ∧ axis < ndim(x)
 >>
-Rule 14 (combined rule for exclusive and reverse being boolean)
-{exclusive : bool, reverse : bool} |= (exclusive = true ∨ exclusive = false) ∧ (reverse = true ∨ reverse = false)
+Rule 3 (exclusive should be a boolean)
+{exclusive : bool} |= exclusive = true ∨ exclusive = false
 >>
-Rule 17 (data type of input tensor x)
-{x : tensor} |= dtype_(x) = 1 ∨ dtype_(x) = 2 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 5 ∨ dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10
+Rule 4 (reverse should be a boolean)
+{reverse : bool} |= reverse = true ∨ reverse = false
 >>
-Rule 20 (if axis is not none, it must be an integer greater than or equal to 0)
-{axis : int} |= axis ≥ 0
+Rule 7 (x must have allowed data type - alternative)
+{x : tensor} |= dtype_(x) = 9 ∨ dtype_(x) = 11 ∨ dtype_(x) = 0 ∨ dtype_(x) = 12
 >>
-Rule 23 (x must be a tensor with one of the allowed dtypes)
-{x : tensor} |= dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 6 ∨ dtype_(x) = 2 ∨ dtype_(x) = 1 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10
+Rule 8 (axis should not be too negative compared to the tensor rank)
+{x : tensor, axis : int} |= axis > (0 - ndim(x) - 100)
 >>
-Rule 26 (axis must be an integer and within the valid range)
-{x : tensor, axis : int} |= (0 - ndim(x)) ≤ axis ∧ axis < ndim(x)
+Rule 9 (If axis is specified, its absolute value must be less than rank of x)
+{x : tensor, axis : int} |= if axis < 0 then (0 - axis) <= ndim(x) else axis < ndim(x)
 >>
-Rule 33 (exclusive and reverse cannot both be true)
-{exclusive : bool, reverse : bool} |= (exclusive = false) ∨ (reverse = false)
+Rule 10 (x's dtype should be in the allowed list)
+{x : tensor} |= dtype_(x) ≠ 0 ∧ dtype_(x) ≠ 12 ∧ dtype_(x) ≠ 11
 >>
-Rule 35 (The absolute value of axis should be less than ndim(x))
-{x : tensor, axis : int} |= if axis < 0 then (0 - axis) ≤ ndim(x) else axis < ndim(x)
+Rule 11 (axis value should not be extremely small to cause underflow issues)
+{x : tensor, axis : int} |= axis ≥ (0 - 10 * ndim(x))
 >>
-Rule 41 (If x has at least one dimension, then axis must exist)
-{x : tensor, axis : int} |= if ndim(x) > 0 then axis = axis else false = false
->>
-Rule 44 (tensor x must have at least one dimension)
+Rule 13 (If rank of x is 0, then axis is invalid, just check the rank)
 {x : tensor} |= ndim(x) > 0
 >>
-Rule 57 (exclusive and reverse should not both be true - using compare_expr)
-{exclusive : bool, reverse : bool} |= exclusive ≠ true ∨ reverse ≠ true
+Rule 14 (x's dtype should be in the allowed list, combination check)
+{x : tensor} |= dtype_(x) = 3 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 4
 >>
-Rule 60 (exclusive and reverse should not both be true using arith_expr)
-{exclusive : bool, reverse : bool} |= (exclusive * reverse) = 0
+Rule 16 (x's dtype should be in the allowed list, another combination check)
+{x : tensor} |= dtype_(x) = 5 ∨ dtype_(x) = 6 ∨ dtype_(x) = 1 ∨ dtype_(x) = 9
 >>
-Rule 62 (If the tensor has more than 0 dimensions)
-{x: tensor} |= ndim(x) > 0
+Rule 17 (axis value should not be extremely large compared to tensor rank)
+{x : tensor, axis : int} |= axis < (10 * ndim(x))
 >>
-Rule 71 (If axis is given, it should be an int and within dimension bound)
-{x : tensor, axis : int} |= if ndim(x) > 0 then axis ≥ (0 - ndim(x)) ∧ axis < ndim(x) else if ndim(x) = 0 then true = true else false = false
+Rule 19 (x's dtype should be in the allowed list, final combination check)
+{x : tensor} |= dtype_(x) = 2 ∨ dtype_(x) = 10
+>>
+Rule 20 (axis should not cause underflow issues, alternative check)
+{x : tensor, axis : int} |= (0 - axis) < 10 * ndim(x)
+>>
+Rule 23 (If rank of x is 0, then axis is invalid, alternative to rule 13)
+{x : tensor} |= ndim(x) > -1
+>>
+Rule 25 (The rank of x should not be excessively high)
+{x : tensor} |= ndim(x) < 100
+>>
+Rule 26 (If axis equals rank of x then that's invalid)
+{x : tensor, axis : int} |= axis ≠ ndim(x)
+>>
+Rule 27 (If axis is negative it cannot be less than negative rank(x))
+{x : tensor, axis : int} |= if axis < 0 then axis ≥ (0 - ndim(x))
+>>
+Rule 29 (If tensor x has rank 0, then it's ok, no axis is needed)
+{x : tensor} |= if ndim(x) = 0 then true
+>>
+Rule 30 (Dtype of x should not be bool.)
+{x : tensor} |= dtype_(x) ≠ 0
+>>
+Rule 31 (Check if axis is within the valid range when rank(x) is not zero.)
+{x : tensor, axis : int} |= if ndim(x) ≠ 0 then (axis ≥ (0 - ndim(x)) ∧ axis < ndim(x))
+>>
+Rule 33 (tensor rank should be a non-negative number)
+{x : tensor} |= ndim(x) ≥ 0
+>>
+Rule 34 (final check for valid values of axis when rank of x is not 0)
+{x : tensor, axis : int} |= if ndim(x) ≠ 0 then axis > (0 - ndim(x) -1) ∧ axis < ndim(x)
+>>
+Rule 35 (if x dtype is complex, then axis must be valid)
+{x : tensor, axis : int} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then axis ≥ (0 - ndim(x)) ∧ axis < ndim(x)
+>>
+Rule 36 (If axis is negative, then the absolute value of axis must be within the rank of x)
+{x : tensor, axis : int} |= if axis < 0 then (0 - axis) ≤ ndim(x)
+>>
+Rule 37 (Name should not be empty string)
+{name : str} |= name ≠ ""
+>>
+Rule 38 (x must have allowed data type)
+{x : tensor} |= dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 5 ∨ dtype_(x) = 3 ∨ dtype_(x) = 2 ∨ dtype_(x) = 1 ∨ dtype_(x) = 10 ∨ dtype_(x) = 4 ∨ dtype_(x) = 6 ∨ dtype_(x) = 9
+>>
+Rule 43 (Axis cannot be so negative)
+{x : tensor, axis : int} |= axis > (0 - 10 * ndim(x))
+>>
+Rule 48 (axis must be within the allowed range considering ndim(x) and not too extreme)
+{x : tensor, axis : int} |= axis ≥ (0 - ndim(x)) ∧ axis < ndim(x) ∧ axis > (0 - 5*ndim(x)) ∧ axis < (5 * ndim(x))
+>>
+Rule 50 (rank of x must be reasonable)
+{x: tensor} |= ndim(x) < 50
+>>
+Rule 51 (If axis is extremely negative then invalidate expression)
+{x:tensor, axis: int} |= axis > -114
+>>
+Rule 54 (The rank of the input tensor cannot be negative)
+{x : tensor} |= ndim(x) >=0
+>>
+Rule 55 (axis cannot be a very large negative number)
+{x : tensor, axis : int} |= axis > -1000
+>>
+Rule 58 (x's dtype must not be bool)
+{ x : tensor } |= dtype_(x) ≠ 0
+>>
+Rule 60 (If axis is provided and positive, it must be less than 50)
+{x : tensor, axis : int} |= if axis > 0 then axis < 50
+>>
+Rule 61 (If axis is provided and negative, it must not exceed negative 50)
+{x : tensor, axis : int} |= if axis < 0 then axis > -50
+>>
+Rule 63 (If axis is negative then it should not too low a value.)
+{x : tensor, axis : int} |= if axis < 0 then axis > -150
+>>
+Rule 65 (if axis is extremely negative then expression invalidated.)
+{x : tensor, axis : int} |= if axis < -100 then false
+>>
+Rule 66 (If the tensor has a dimension that is zero, that is ok)
+{x: tensor} |= ∃i ∈ [0, ndim(x) - 1] : shape(x,i) = 0 ∨ ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
+>>
+Rule 67 (check that number of dimensions is reasonable)
+{x : tensor} |= ndim(x) < 50
+>>
+Rule 72 (The tensor needs to have reasonable shape values, not super small/negative)
+{x: tensor} |= ∀i ∈ [0, ndim(x) - 1] : if ndim(x) > 0 then shape(x,i) > -1
+>>
+Rule 75 (If the tensor has a dimension that is zero, that is ok)
+{x: tensor} |= ∃i ∈ [0, ndim(x) - 1] : shape(x, i) = 0 ∨ ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the timeout is non-negative, it has to be less than the maximum value of timeout that the system supports (Rule 51)
+# It should not try to timeout for excessive amount of time (Rule 51)
 
 rule_51 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] >= 0, v["arg1_value"] < 10000000, False)) if n else
-          If(v["arg1_value"] >= 0, v["arg1_value"] < 10000000, False))
+    s.add(Not(v["arg1_value"] < 10000000) if n else
+          v["arg1_value"] < 10000000)
 )
 
 def rule_51_func(arg1, solver=None, neg=False):

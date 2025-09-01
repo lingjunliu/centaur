@@ -2,146 +2,188 @@
 Rule 1 (num_true should be greater than or equal to 1)
 {v_1 : int} |= v_1 ≥ 1
 >>
-Rule 3 (seed should be non-negative)
+Rule 3 (seed must be a non-negative integer)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 5 (true_classes tensor must be of type int64)
+Rule 5 (true_classes must be a 2D tensor)
+{v_1 : tensor} |= ndim(v_1) = 2
+>>
+Rule 6 (true_classes must be of type int64)
 {v_1 : tensor} |= dtype_(v_1) = 4
 >>
-Rule 6 (num_true should be less than or equal to the first dimension of true_classes)
+Rule 7 (unique must be a boolean value)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 8 (num_true cannot be greater than the first dimension of true_classes)
 {v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, 0)
 >>
-Rule 7 (seed and seed2 cannot be the same non-zero value)
-{v_1 : int, v_2 : int} |= if v_1 ≠ 0 ∧ v_2 ≠ 0 then v_1 ≠ v_2
+Rule 10 (seed and seed2 must be different if both are non-zero.)
+{v_1 : int, v_2 : int} |= if v_1 ≠ 0 then if v_2 ≠ 0 then v_1 ≠ v_2
 >>
-Rule 8 (num_true and num_sampled should have different values)
-{v_1 : int, v_2 : int} |= v_1 ≠ v_2
+Rule 11 (true_classes's second dimension should be positive)
+{v_1 : tensor} |= shape(v_1, 1) > 0
 >>
-Rule 9 (True classes tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 12 (true_classes's first dimension should be positive)
+{v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 10 (Number of columns in true_classes must equal num_true)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 1) = v_2
+Rule 13 (num_true must be less than or equal to the maximum value of true_classes)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ max(v_1)
 >>
-Rule 11 (If seed is specified, seed2 must be specified too)
+Rule 15 (If unique is true, then num_sampled should be less than or equal to num_true times the batch size)
+{v_1 : bool, v_2 : int, v_3 : tensor} |= if v_1 = true then v_2 ≤ shape(v_3, 0) * shape(v_3, 1)
+>>
+Rule 16 (If seed is zero, then seed2 should also be zero.)
+{v_1 : int, v_2 : int} |= if v_1 = 0 then v_2 = 0
+>>
+Rule 18 (num_true should be less than or equal to the product of the dimensions of true_classes)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, 0) * shape(v_1, 1)
+>>
+Rule 20 (If unique is True, num_sampled must be <= num_true )
+{v_1 : bool, v_2 : int, v_3 : int} |= if v_1 = true then v_2 ≤ v_3
+>>
+Rule 21 (Check seed and seed2 are the same)
 {v_1 : int, v_2 : int} |= if v_1 ≠ 0 then v_2 ≠ 0
 >>
-Rule 13 (If num_true is greater than 1, then the batch size should be greater than 1.)
-{v_1 : int, v_2 : tensor} |= if v_1 > 1 then shape(v_2, 0) > 1
+Rule 22 (True_classes must have at least one element)
+{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
 >>
-Rule 15 (if unique is true, num_sampled must be less or equal than total samples)
-{v_1 : bool, v_2 : int, v_3: int} |= if v_1 = true then v_2 ≤ v_3
->>
-Rule 17 (The batch_size * num_true must have a reasonable limit.)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) * v_2 < 10000
->>
-Rule 19 (num_sampled cannot exceed a maximum value)
-{v_1 : int} |= v_1 < 100000
->>
-Rule 21 (num_true must be less than num_sampled if unique is true)
-{v_1 : int, v_2 : int, v_3 : bool} |= if v_3 = true then v_1 ≤ v_2
->>
-Rule 22 (true_classes should be a matrix if num_true is greater than 1)
-{v_1 : tensor, v_2 : int} |= if v_2 > 1 then ndim(v_1) = 2
->>
-Rule 23 (If unique is set to True, then num_sampled must be less than or equal to the number of classes available)
-{v_1 : bool, v_2 : int, v_3 : tensor} |= if v_1 = true then v_2 ≤ shape(v_3, 0)
->>
-Rule 24 (seed and seed2 combined should not exceed the max value of int32)
-{v_1 : int, v_2 : int} |= v_1 + v_2 < 2147483647
->>
-Rule 25 (num_true should not exceed num_sampled if we don't care about uniqueness)
-{v_1 : int, v_2 : int, v_3 : bool} |= if v_3 = false then v_1 ≤ v_2
->>
-Rule 26 (If batch_size of true_classes is 1, then num_true should be 1.)
-{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) = 1 then v_2 = 1
->>
-Rule 27 (If unique is false, the batch size of true classes must be a positive number)
-{v_1 : bool, v_2 : tensor} |= if v_1 = false then shape(v_2, 0) > 0
->>
-Rule 28 (If seed and seed2 are both zero, then we are using the default random seed)
-{v_1 : int, v_2 : int} |= if v_1 = 0 ∧ v_2 = 0 then true
->>
-Rule 29 (If true_classes has more than 2 dimensions, the trailing dimensions should be 1)
-{v_1 : tensor} |= if ndim(v_1) > 2 then ∀i ∈ [2, ndim(v_1) - 1] : shape(v_1, i) = 1
->>
-Rule 30 (If unique is true and num_true > 1, num_sampled should be significantly larger than num_true to have unique samples.)
-{v_1 : bool, v_2 : int, v_3 : int} |= if v_1 = true ∧ v_2 > 1 then v_3 > v_2 * 5
->>
-Rule 31 (if seed is 0 and seed2 isn't, then seed becomes seed2 implicitly)
-{v_1 : int, v_2 : int} |= if v_1 = 0 ∧ v_2 ≠ 0 then true
->>
-Rule 33 (The product of num_true and num_sampled must be within reasonable limits to prevent memory exhaustion)
-{v_1 : int, v_2 : int} |= v_1 * v_2 < 1000000
->>
-Rule 34 (If seed is specified, the range should also be within the int32 limit)
-{v_1 : int} |= v_1 < 2147483647
->>
-Rule 37 (If true_classes is a scalar, then num_true must be 1)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 = 1
->>
-Rule 38 (If num_sampled is equal to the number of classes, then the unique flag must be false)
-{v_1 : int, v_2 : tensor, v_3: bool} |= if v_1 = shape(v_2, 0) then v_3 = false
->>
-Rule 39 (If the true_classes tensor is empty then both num_true and num_sampled must be equal to 1)
-{v_1 : tensor, v_2 : int, v_3:int} |= if shape(v_1, 0) = 0 then v_2 = 1 ∧ v_3 = 1
->>
-Rule 40 (true_classes can be a scalar only if num_true is 1)
-{v_1 : tensor, v_2: int} |= if ndim(v_1) = 0 then v_2=1
->>
-Rule 41 (If num_true is 1, then true_classes should have at most 2 dimension)
-{v_1 : int, v_2: tensor} |= if v_1 = 1 then ndim(v_2) ≤ 2
->>
-Rule 42 (If unique is true and num_sampled = 1, then num_true must be equal to 1)
-{v_1 : bool, v_2 : int} |= if v_1 = true ∧ v_2 = 1 then true
->>
-Rule 43 (If seed and seed2 are both equal, and not zero, then an error will occur)
-{v_1 : int, v_2 : int} |= if v_1 = v_2 ∧ v_1 ≠ 0 then false
->>
-Rule 45 (The number of true classes cannot be greater than the total number of classes)
-{v_1 : int, v_2 : tensor} |= v_1 ≤ shape(v_2, 0)
->>
-Rule 46 (num_true must be smaller than batch size of true_classes times the number of all true classes )
-{v_1 : int, v_2 : tensor} |= v_1 ≤ shape(v_2, 0) * shape(v_2, 1)
->>
-Rule 48 (If unique is set to True and then the number of sampled candidates must be less than the maximum possible int64 value)
-{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 < 9223372036854775807
->>
-Rule 49 (If unique = False, num_sampled * batch_size should be under int64 limit )
-{v_1 : bool, v_2 : int, v_3 : tensor} |= if v_1 = false then v_2*shape(v_3,0) < 9223372036854775807
->>
-Rule 50 (If seed and seed2 are the same, unique must be set to False to prevent issues)
-{v_1 : int, v_2 : int, v_3 : bool} |= if v_1 = v_2 ∧ v_1 ≠ 0 then v_3 = false
->>
-Rule 51 (if unique = False, and num_true > 1, shape of true_classes must be rank 2)
-{v_1:bool, v_2:int, v_3:tensor} |= if v_1 = false ∧ v_2>1 then ndim(v_3) = 2
->>
-Rule 52 (If unique = True, num_sampled must not exceed the maximum number of unique int64 values)
+Rule 23 (If unique is True, num_sampled must be less than or equal to the number of possible candidates which is limited by int64)
 {v_1 : bool, v_2 : int} |= if v_1 = true then v_2 ≤ 9223372036854775807
 >>
-Rule 53 (If unique = False, and num_sampled > 1, then true_classes must have rank 2 or more)
-{v_1:bool, v_2:int, v_3:tensor} |= if v_1 = false ∧ v_2>1 then ndim(v_3) >= 2
+Rule 24 (If seed2 is non-zero, then seed must be specified too)
+{v_1 : int, v_2 : int} |= if v_2 ≠ 0 then v_1 ≠ 0
 >>
-Rule 54 (If unique = True and the number of samples is close to the number of classes, increase seed values)
-{v_1: bool, v_2: int, v_3: tensor, v_4 : int} |= if v_1 = true ∧ v_2 > shape(v_3,0) / 2 then v_4 > 1000
+Rule 26 (If seed and seed2 are the same, they can only be zero.)
+{v_1 : int, v_2 : int} |= if v_1 = v_2 then v_1 = 0
 >>
-Rule 55 (num_true should be less or equal to shape(true_classes, 1) when ndim(true_classes)=2 )
-{v_1: int, v_2: tensor} |= if ndim(v_2) = 2 then v_1 <= shape(v_2, 1)
+Rule 28 (num_true must be smaller or equal to the number of all possible true classes in dataset represented by true_classes)
+{v_1: int, v_2: tensor} |= v_1 <= shape(v_2, 1)
 >>
-Rule 56 (When unique = False, num_sampled must be in a valid range.)
-{v_1 : bool, v_2 : int} |= if v_1 = false then v_2 > 0
+Rule 31 (The product of num_true and the batch size must be less than or equal to the maximum value representable by int64 to prevent overflow)
+{v_1 : int, v_2 : tensor} |= v_1 * shape(v_2, 0) ≤ 9223372036854775807
 >>
-Rule 57 (if unique = False, product of num_sampled * num_true * batch_size should be under int64 limit to avoid overflow )
-{v_1 : bool, v_2 : int, v_3 : int, v_4: tensor} |= if v_1 = false then v_2*v_3*shape(v_4,0) < 9223372036854775807
+Rule 32 (num_sampled must be smaller than or equal to the maximum value representable by int64)
+{v_1: int} |= v_1 <= 9223372036854775807
 >>
-Rule 58 (num_sampled should not be close to the maximum possible value, to avoid overflow during calculation of expected counts.)
-{v_1 : int} |= v_1 < 2000000000
+Rule 34 (if unique is True, num_sampled should be less than the total number of possible candidates. Assume it's limited by max int64)
+{v_1: bool, v_2: int} |= if v_1 = true then v_2 <= 9223372036854775807
 >>
-Rule 59 (If unique = true, then (num_sampled * num_true) should be smaller than some limit, say 10000, to avoid memory issues)
-{v_1 : bool, v_2 : int, v_3: int} |= if v_1 = true then v_2 * v_3 < 10000
+Rule 35 (The dimensions of true_classes must not exceed the maximum value representable by int)
+{v_1 : tensor} |= shape(v_1, 0) <= 2147483647 ∧ shape(v_1, 1) <= 2147483647
 >>
-Rule 60 (If the product of num_sampled and num_true is zero, then the sampling will not work.)
-{v_1 : int, v_2 : int} |= v_1 * v_2 ≠ 0
+Rule 41 (if unique is True, num_sampled *should* be less than the total number of possible candidates, which is theoretically limited by the number of elements in the true_classes tensor or total unique class labels.)
+{v_1: bool, v_2: int, v_3 : tensor} |= if v_1 = true then v_2 <= shape(v_3, 0) * shape(v_3, 1)
 >>
-Rule 61 (If true_classes has more than 2 dimensions and num_true is greater than one, then error should occur, since the logic is only designed for matrix)
-{v_1: tensor, v_2: int} |= if ndim(v_1) > 2 ∧ v_2 > 1 then false
+Rule 43 (If the product of num_true and the first dimension of true_classes exceeds the limit, constraints on num_true)
+{v_1: int, v_2: tensor} |= v_1 <= 9223372036854775807 / shape(v_2, 0)
+>>
+Rule 46 (num_true * shape(true_classes, 0) should be in range of int64. Represent only one factor smaller)
+{v_1 : int, v_2 : tensor} |= v_1 <= 9223372036854775807 / shape(v_2, 0)
+>>
+Rule 47 (if unique is True, number of sampled must be smaller than all elements)
+{v_1 : bool, v_2: int, v_3 : tensor} |= if v_1 = true then v_2 <= shape(v_3, 0) * shape(v_3, 1)
+>>
+Rule 49 (The number of sampled must not be negative)
+{v_1: int} |= v_1 >= 0
+>>
+Rule 52 (If seed and seed2 are both non zero, and are different, num_true must be equal to num_sampled)
+{v_1 : int, v_2: int, v_3: int, v_4: int} |= if v_1 != 0 ∧ v_2 != 0 ∧ v_1 != v_2 then v_3 = v_4
+>>
+Rule 54 (True classes dimension 0 and 1 must be valid and not exceed int32 limit.)
+{v_1: tensor} |= shape(v_1, 0) < 2147483647 ∧ shape(v_1, 1) < 2147483647
+>>
+Rule 55 (Check seed2 is not larger than MAX_INT)
+{v_1 : int} |= v_1 < 2147483647
+>>
+Rule 58 (If seed is specified, ensure seed2 is within the valid range.)
+{v_1 : int, v_2 : int} |= if v_1 != 0 then v_2 < 2147483647
+>>
+Rule 59 (True classes dimension 1 must be valid. Must be larger than 0. )
+{v_1: tensor} |= shape(v_1, 1) > 0
+>>
+Rule 61 (num_true must be a positive value)
+{v_1: int} |= v_1 > 0
+>>
+Rule 63 (num_true is not zero)
+{v_1 : int} |= v_1 ≠ 0
+>>
+Rule 66 (num_true is less than or equal to product of true_classes' shape)
+{v_1: int, v_2: tensor} |= v_1 <= shape(v_2, 0) * shape(v_2, 1)
+>>
+Rule 67 (If unique is True then num_sampled must be smaller than or equal to  num_true * shape(true_classes,0).)
+{v_1: bool, v_2: int, v_3: int, v_4: tensor} |= if v_1 = true then v_2 <= v_3 * shape(v_4,0)
+>>
+Rule 69 (If unique is True then num_sampled must be smaller than or equal to the number of unique classes)
+{v_1: bool, v_2: int, v_3: tensor} |= if v_1 = true then v_2 <= max(v_3)
+>>
+Rule 70 (num_true must be representable as an int32)
+{v_1: int} |= v_1 < 2147483647
+>>
+Rule 73 (num_true must be a valid int32.)
+{v_1: int} |= v_1 < 2147483647 ∧ v_1 > -2147483648
+>>
+Rule 76 (If seed and seed2 are equal then both must be zero)
+{v_1: int, v_2: int} |= if v_1 = v_2 then v_1 = 0
+>>
+Rule 80 (If seed is zero, then seed2 should be equal to zero)
+{v_1: int, v_2: int} |= if v_1 = 0 then v_2 = 0
+>>
+Rule 81 (Ensure that seed and seed2 are different to guarantee different random number sequence)
+{v_1: int, v_2: int} |= if v_1 ≠ 0 ∧ v_2 ≠ 0 then v_1 ≠ v_2
+>>
+Rule 82 (shape dimensions of true_classes are positive integers)
+{v_1: tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+>>
+Rule 83 (True classes has more elements than num_true)
+{v_1 : int, v_2 : tensor} |= v_1 <= shape(v_2, 1)
+>>
+Rule 86 (If unique is true, then num_sampled should be less than num_true)
+{v_1 : bool, v_2 : int, v_3 : int} |= if v_1 = true then v_2 <= v_3
+>>
+Rule 89 (If seed is not zero, then seed2 must be less than max int.)
+{v_1 : int, v_2 : int} |= if v_1 ≠ 0 then v_2 < 2147483647
+>>
+Rule 90 (The shape of the true_classes tensor must be smaller or equal to 2^31-1 for int32)
+{v_1 : tensor} |= shape(v_1, 0) < 2147483647 ∧ shape(v_1, 1) < 2147483647
+>>
+Rule 91 (If seed and seed2 are not zero, then seed should not be same as seed2)
+{v_1 : int, v_2 : int} |= if v_1 ≠ 0 ∧ v_2 ≠ 0 then v_1 ≠ v_2
+>>
+Rule 95 (If unique is True, num_sampled cannot be larger than num_true * batch size)
+{v_1: bool, v_2: int, v_3: int, v_4 : tensor} |= if v_1 = true then v_2 <= v_3 * shape(v_4, 0)
+>>
+Rule 96 (If seed is non-zero, seed2 cannot be the same with seed)
+{v_1 : int, v_2: int} |= if v_1 ≠ 0 then v_1 ≠ v_2
+>>
+Rule 98 (if unique is true, ensure num_sampled is not bigger than largest signed int number)
+{v_1: bool, v_2 :int } |= if v_1 = true then v_2 < 2147483647
+>>
+Rule 99 (If unique is True, then num_sampled cannot be larger than number of elements in true_classes)
+{v_1: bool, v_2: int, v_3: tensor} |= if v_1 = true then v_2 <= shape(v_3, 0) * shape(v_3, 1)
+>>
+Rule 103 (if unique is true, ensure that num_sampled does not exceed the product of the batch size and number of true classes, and that num_sampled is non-negative)
+{v_1 : bool, v_2 : int, v_3 : int, v_4 : tensor} |= if v_1 = true then v_2 <= shape(v_4,0) * v_3 ∧ v_2 >= 0
+>>
+Rule 105 (true_classes first dimension must be less than or equal to max int32)
+{v_1: tensor} |= shape(v_1, 0) < 2147483647
+>>
+Rule 108 (Ensure that num_true is non-negative. Though documentation says >=1, zero is a valid integer)
+{v_1: int} |= v_1 ≥ 0
+>>
+Rule 111 (If seed and seed2 are equal, seed should not be non-zero )
+{v_1 : int, v_2: int} |= if v_1 = v_2 then v_1 = 0
+>>
+Rule 112 (If unique is True the number sampled cannot be greater than max of true_classes )
+{v_1 : bool, v_2 : int, v_3 : tensor} |= if v_1 = true then v_2 <= max(v_3)
+>>
+Rule 115 (if unique is set and there is only one element in the batch the num_sampled should be 1)
+{v_1: bool, v_2: int, v_3: tensor} |= if v_1 = true ∧ shape(v_3, 0) = 1 then v_2 = 1
+>>
+Rule 116 (true_classes cannot have any NaN value )
+{v_1:tensor} |= min(v_1) = min(v_1) ∧ max(v_1) = max(v_1)
+>>
+Rule 124 (num_sampled cannot be less than 1.)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 125 (If unique, enforce num_sampled*log(num_sampled) to be smaller than largest possible value)
+{v_1 : bool, v_2 : int } |= if v_1 = true then v_2 < 2147483647

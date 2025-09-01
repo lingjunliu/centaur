@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The inputs should not be strings. (Rule 46)
+# If x1 is of float type, then x2 should not be of type bool (Rule 46)
 
 rule_46 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] != 11, v["arg2_dtype"] != 11)) if n else
-          And(v["arg1_dtype"] != 11, v["arg2_dtype"] != 11))
+    s.add(Not(If(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), v["arg2_dtype"] != 0, True)) if n else
+          If(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), v["arg2_dtype"] != 0, True))
 )
 
 def rule_46_func(arg1, arg2, solver=None, neg=False):

@@ -5,37 +5,33 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If dtype is specified then the output values must be that datatype (Rule 45)
+# Shape 1 of Serialized sparse cannot be larger than int max. (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] > -1, v["arg2_dtype"] == v["arg1_value"], False)) if n else
-          If(v["arg1_value"] > -1, v["arg2_dtype"] == v["arg1_value"], False))
+    s.add(Not(Select(v["arg1_shape"], 1) <= 2147483647) if n else
+          Select(v["arg1_shape"], 1) <= 2147483647)
 )
 
-def rule_45_func(arg1, arg2, solver=None, neg=False):
+def rule_45_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
-            return False
-        if not isinstance(arg2, np.ndarray):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 45
-        rule_45(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype})
+        rule_45(solver, {'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_45(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_45(solver, {'arg1_shape': arg1['shape']}, neg)

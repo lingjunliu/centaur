@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Input tensor x must be float32 or float64 (Rule 2)
+# q must be of type float32 or float64 (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)) if n else

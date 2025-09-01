@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if x is a matrix, axis cannot exceed 1 (Rule 44)
+# The axis parameter must be an integer and within the valid range to avoid InvalidArgumentError related to axis. Also, handles -1, 1 (Rule 44)
 
 rule_44 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 2, And(v["arg2_value"] <= 1, v["arg2_value"] >= -2), False)) if n else
-          If(v["arg1_ndim"] == 2, And(v["arg2_value"] <= 1, v["arg2_value"] >= -2), False))
+    s.add(Not(If(v["arg1_ndim"] == 0, v["arg2_value"] == 0, And((If(v["arg2_value"] < 0, v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"])), If(v["arg1_ndim"] == 2, v["arg2_value"] != -113, True)))) if n else
+          If(v["arg1_ndim"] == 0, v["arg2_value"] == 0, And((If(v["arg2_value"] < 0, v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"])), If(v["arg1_ndim"] == 2, v["arg2_value"] != -113, True))))
 )
 
 def rule_44_func(arg1, arg2, solver=None, neg=False):

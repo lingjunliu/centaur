@@ -8,8 +8,8 @@ from z3 import *
 # num_bits should be between 2 and 8 inclusive (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= 2, v["arg1_value"] <= 8)) if n else
-          And(v["arg1_value"] >= 2, v["arg1_value"] <= 8))
+    s.add(Not(And(2 <= v["arg1_value"], v["arg1_value"] <= 8)) if n else
+          And(2 <= v["arg1_value"], v["arg1_value"] <= 8))
 )
 
 def rule_1_func(arg1, solver=None, neg=False):

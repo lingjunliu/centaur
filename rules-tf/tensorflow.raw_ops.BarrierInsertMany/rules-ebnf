@@ -1,129 +1,312 @@
 >>
 Rule 1 (The length of keys must match the first dimension of values)
-{keys : tensor, values : tensor} |= shape(keys, 0) = shape(values, 0)
+{keys : tensor, values : tensor} |= ndim(keys) = 1 ∧ ndim(values) ≥ 1 ∧ shape(keys, 0) = shape(values, 0)
 >>
-Rule 2 (component_index must be a non-negative integer)
+Rule 2 (Component index must be non-negative)
 {component_index : int} |= component_index ≥ 0
 >>
-Rule 3 (handle should be a string tensor)
-{handle : tensor} |= dtype_(handle) = 12
->>
-Rule 4 (keys should be a string tensor)
-{keys : tensor} |= dtype_(keys) = 12
->>
-Rule 5 (values tensor should have at least one dimension if keys exist)
-{keys : tensor, values : tensor} |= if shape(keys, 0) > 0 then ndim(values) ≥ 1
->>
-Rule 6 (Keys length should be greater than zero)
-{keys : tensor} |= shape(keys, 0) > 0
->>
-Rule 7 (Values tensor's datatype cannot be dtype.)
-{values : tensor} |= dtype_(values) ≠ 12
->>
-Rule 8 (The component_index should be less than a maximum allowed value)
-{component_index : int} |= component_index < 1024
->>
-Rule 9 (if keys is not empty, then values should also have data)
-{keys : tensor, values : tensor} |= if shape(keys, 0) > 0 then min(values) ≠ max(values)
->>
-Rule 10 (handle should not be empty)
-{handle : tensor} |= shape(handle, 0) > 0
->>
-Rule 11 (keys should contain valid string data.)
-{keys : tensor} |= ∀i ∈ [0, shape(keys, 0) - 1] : keys[i] ≠ ""
->>
-Rule 12 (component_index cannot exceed the size of any value in values tensor if values has a certain small size)
-{values : tensor, component_index : int} |= if shape(values,0) < 10 then component_index < 256
->>
-Rule 13 (values tensor should be of a valid datatype)
-{values : tensor} |= dtype_(values) ≠ 13
->>
-Rule 14 (component_index must be smaller than a reasonable limit given the number of keys)
-{component_index : int, keys : tensor} |= if shape(keys, 0) < 100 then component_index < 500 else component_index < 1000
->>
-Rule 15 (The handle tensor should be a scalar string)
+Rule 3 (Handle must be a non-empty string tensor)
 {handle : tensor} |= ndim(handle) = 0
 >>
-Rule 16 (If component_index is zero then the keys cannot be all the same empty string)
-{component_index : int, keys: tensor} |= if component_index = 0 then ∃i ∈ [0, shape(keys, 0) -1] : keys[i] ≠ ""
+Rule 5 (Values tensor must have at least one dimension)
+{values : tensor} |= ndim(values) ≥ 1
 >>
-Rule 17 (If keys is empty, then values should also be empty.)
-{keys : tensor, values : tensor} |= if shape(keys, 0) = 0 then ∃i ∈ [0, ndim(values)-1] : shape(values, i) = 0
+Rule 6 (Keys tensor should not be empty)
+{keys : tensor} |= shape(keys, 0) > 0
 >>
-Rule 19 (Keys should have atmost rank 1)
-{keys : tensor} |= ndim(keys) ≤ 1
+Rule 7 (Values tensor should not be empty)
+{values : tensor} |= (∃i ∈ [0, ndim(values) - 1] : shape(values, i) > 0)
 >>
-Rule 21 (component_index should be less than the maximum int32 value)
-{component_index : int} |= component_index < 2147483647
+Rule 8 (Component index should be smaller than a maximum allowed value, e.g., 10)
+{component_index : int} |= component_index < 10
 >>
-Rule 22 (if the values tensor is of type string, then the component index cannot be too large)
-{values : tensor, component_index: int} |= if dtype_(values) = 12 then component_index < 100
+Rule 10 (First dimension of values should be less than or equal to a max value, e.g., 1024)
+{values : tensor} |= shape(values, 0) ≤ 1024
 >>
-Rule 23 (shape of handle should be zero)
-{handle : tensor} |= shape(handle, 0) = 0
+Rule 11 (The length of keys must match the first dimension of values and be less than 1000)
+{keys : tensor, values : tensor} |= ndim(keys) = 1 ∧ ndim(values) ≥ 1 ∧ shape(keys, 0) = shape(values, 0) ∧ shape(keys, 0) < 1000
 >>
-Rule 25 (The length of keys should not be greater than a limit)
-{keys: tensor} |= shape(keys,0) < 10000
+Rule 12 (Component index must be non-negative and less than 256)
+{component_index : int} |= component_index ≥ 0 ∧ component_index < 256
 >>
-Rule 26 (If values is a boolean tensor, ensure component index is small)
-{values: tensor, component_index: int} |= if dtype_(values) = 0 then component_index < 10
+Rule 14 (Keys tensor should not be empty, but less than 100 elements)
+{keys : tensor} |= shape(keys, 0) > 0 ∧ shape(keys, 0) < 100
 >>
-Rule 27 (Keys should contain only valid string values from a predefined set)
-{keys : tensor} |= ∀i ∈ [0, shape(keys, 0) - 1] : keys[i] = "ii" ∨ keys[i] = "ii->i" ∨ keys[i] = "i,j->ij" ∨ keys[i] = "bij,bjk->bik" ∨ keys[i] = "...ij->...ji" ∨ keys[i] = "bn,anm,bm->ba" ∨ keys[i] = "none" ∨ keys[i] = "mean" ∨ keys[i] = "sum" ∨ keys[i] = "max" ∨ keys[i] = "min" ∨ keys[i] = "prod" ∨ keys[i] = "relu" ∨ keys[i] = "tanh" ∨ keys[i] = "sigmoid" ∨ keys[i] = "softmax" ∨ keys[i] = "elu" ∨ keys[i] = "selu" ∨ keys[i] = "gelu" ∨ keys[i] = "swish" ∨ keys[i] = "constant" ∨ keys[i] = "linear" ∨ keys[i] = "softplus"
+Rule 15 (The component index should be a multiple of 4.)
+{component_index : int} |= component_index % 4 = 0
 >>
-Rule 28 (The handle tensor has to have a particular shape of [1])
-{handle: tensor} |= ndim(handle) = 1 ∧ shape(handle, 0) = 1
+Rule 16 (Dtype of keys should be string (index 11))
+{keys : tensor} |= dtype_(keys) = 11
 >>
-Rule 29 (The length of handle's string value has to be greater than zero.)
-{handle : tensor} |= min(handle) ≠ ""
+Rule 17 (Keys and Values tensors cannot have the same shape along the first axis if ndim(values) > 1)
+{keys : tensor, values : tensor} |= if ndim(values) > 1 then shape(keys, 0) ≠ shape(values, 0)
 >>
-Rule 30 (If any key is a specific string, then the corresponding value must be a float tensor)
-{keys : tensor, values : tensor} |= ∀i ∈ [0, shape(keys, 0) - 1] : if keys[i] = "linear" then dtype_(values) = 7
+Rule 24 (If keys has more than 10 elements then values should have more than one dimension)
+{keys : tensor, values : tensor} |= if shape(keys, 0) > 10 then ndim(values) > 1
 >>
-Rule 31 (If component_index is 0, then keys must contain valid string entries according to API definition)
-{keys: tensor, component_index: int} |= if component_index = 0 then ∀i ∈ [0, shape(keys, 0) - 1] : keys[i] = "ii" ∨ keys[i] = "ii->i" ∨ keys[i] = "i,j->ij" ∨ keys[i] = "bij,bjk->bik" ∨ keys[i] = "...ij->...ji" ∨ keys[i] = "bn,anm,bm->ba" ∨ keys[i] = "none" ∨ keys[i] = "mean" ∨ keys[i] = "sum" ∨ keys[i] = "max" ∨ keys[i] = "min" ∨ keys[i] = "prod" ∨ keys[i] = "relu" ∨ keys[i] = "tanh" ∨ keys[i] = "sigmoid" ∨ keys[i] = "softmax" ∨ keys[i] = "elu" ∨ keys[i] = "selu" ∨ keys[i] = "gelu" ∨ keys[i] = "swish" ∨ keys[i] = "constant" ∨ keys[i] = "linear" ∨ keys[i] = "softplus"
+Rule 25 (If values has a float dtype, component index must be greater than 0)
+{values : tensor, component_index : int} |= if dtype_(values) = 6 ∨ dtype_(values) = 7 ∨ dtype_(values) = 8 then component_index > 0
 >>
-Rule 32 (If values has more than one dimension then component index cannot be greater than 0)
-{values : tensor, component_index : int} |= if ndim(values) > 1 then component_index ≤ 0
+Rule 26 (The shape of keys tensor must match the shape of values tensor when values is 1D and component_index is 0)
+{keys : tensor, values : tensor, component_index : int} |= if ndim(values) = 1 ∧ component_index = 0 then ∀i ∈ [0, ndim(keys) - 1] : shape(keys, i) = shape(values, i)
 >>
-Rule 33 (keys should be not all empty)
-{keys: tensor} |= ∃i ∈ [0, shape(keys, 0) - 1]: keys[i] ≠ ""
+Rule 27 (The component index should not be greater than the number of elements in keys if the keys is a very long vector, specifically length 1000)
+{keys : tensor, component_index : int} |= if shape(keys,0) = 1000 then component_index <= 1000
 >>
-Rule 34 (If values tensor has bool type then component index value must be less than 2)
-{values: tensor, component_index : int} |= if dtype_(values) = 0 then component_index < 2
+Rule 29 (If component_index is large then the ndim(values) should be 3)
+{values : tensor, component_index : int} |= if component_index > 100 then ndim(values) = 3
 >>
-Rule 35 (Values should not have dtype as handle)
-{values: tensor, handle: tensor} |= dtype_(values) ≠ dtype_(handle)
+Rule 30 (handle should have dtype string.)
+{handle : tensor} |= dtype_(handle) = 11
 >>
-Rule 36 (Keys can't have dtype as bool, int8, int16, int32, int64, uint8, float16, float32, float64, complex64, complex128, dtype)
-{keys: tensor} |=  dtype_(keys) ≠ 0 ∧ dtype_(keys) ≠ 1 ∧ dtype_(keys) ≠ 2 ∧ dtype_(keys) ≠ 3 ∧ dtype_(keys) ≠ 4 ∧ dtype_(keys) ≠ 5 ∧ dtype_(keys) ≠ 6 ∧ dtype_(keys) ≠ 7 ∧ dtype_(keys) ≠ 8 ∧ dtype_(keys) ≠ 9 ∧ dtype_(keys) ≠ 10 ∧ dtype_(keys) ≠ 13
+Rule 31 (If values is a boolean tensor, then component_index must be zero)
+{values : tensor, component_index : int} |= if dtype_(values) = 0 then component_index = 0
 >>
-Rule 37 (If values is complex type then component index should not be greater than 50)
-{values: tensor, component_index: int} |= if dtype_(values) = 9 ∨ dtype_(values) = 10 then component_index < 50
+Rule 32 (If the shape of keys is a large number, e.g. 500, then the shape of values' first dimension should be greater than 10)
+{keys: tensor, values: tensor} |= if shape(keys,0) > 500 then shape(values,0) > 10
 >>
-Rule 38 (If handle is empty string, keys and values tensors must be empty along their first dimension)
-{handle: tensor, keys: tensor, values: tensor} |= if min(handle) = "" then shape(keys, 0) = 0 ∧ shape(values, 0) = 0
+Rule 34 (The component index should not be greater than the number of elements in keys if the keys is a very long vector, specifically length 1000)
+{keys : tensor, component_index : int} |= if shape(keys,0) = 1000 then component_index ≤ 1000
 >>
-Rule 39 (If values tensor has ndim=0 then component index value must be 0)
-{values: tensor, component_index : int} |= if ndim(values) = 0 then component_index = 0
+Rule 39 (If handle is a 1D tensor then its size must be 1)
+{handle : tensor} |= if ndim(handle) = 1 then shape(handle, 0) = 1
 >>
-Rule 40 (if the shape of keys is zero then the shape of handle should be [1])
-{keys: tensor, handle: tensor} |= if shape(keys, 0) = 0 then ndim(handle) = 1 ∧ shape(handle,0) = 1
+Rule 40 (If values is an integer tensor then its minimum value should be greater than -1000)
+{values : tensor} |= if dtype_(values) ≥ 1 ∧ dtype_(values) ≤ 5 then min(values) ≥ -1000
 >>
-Rule 41 (values tensor should not be of type list)
-{values: tensor} |= dtype_(values) ≠ 11
+Rule 41 (If handle's shape is not zero, the shape of the values should be greater than zero)
+{handle: tensor, values: tensor} |= if ndim(handle) ≠ 0 then shape(values,0) > 0
 >>
-Rule 42 (If keys contain specific stirng value then values tensor must have a dtype of float32)
-{keys: tensor, values: tensor} |= ∀i ∈ [0, shape(keys, 0) - 1]: if keys[i] = "mean" ∨ keys[i] = "sum" ∨ keys[i] = "max" ∨ keys[i] = "min" ∨ keys[i] = "prod" then dtype_(values) = 7
+Rule 42 (If keys has shape 1 then handle can be "default_handle")
+{keys : tensor, handle : tensor} |= if shape(keys, 0) = 1 then handle = "default_handle"
 >>
-Rule 43 (If values is an int8 tensor, then component_index must be less than 128)
-{values: tensor, component_index: int} |= if dtype_(values) = 1 then component_index < 128
+Rule 43 (If component_index is even then values's dtype can't be bool)
+{values : tensor, component_index : int} |= if component_index % 2 = 0 then dtype_(values) ≠ 0
 >>
-Rule 44 (If keys are 'none' then values must be float or int tensor.)
-{keys: tensor, values: tensor} |= ∀i ∈ [0, shape(keys, 0) - 1]: if keys[i] = "none" then dtype_(values) = 7 ∨ dtype_(values) = 3
+Rule 44 (If values is complex, then component_index must be a multiple of 2)
+{values : tensor, component_index : int} |= if dtype_(values) = 9 ∨ dtype_(values) = 10 then component_index % 2 = 0
 >>
-Rule 45 (If keys contain activation functions, then values must be float type)
-{keys: tensor, values: tensor} |= ∀i ∈ [0, shape(keys, 0) - 1]: if keys[i] = "relu" ∨ keys[i] = "tanh" ∨ keys[i] = "sigmoid" ∨ keys[i] = "softmax" ∨ keys[i] = "elu" ∨ keys[i] = "selu" ∨ keys[i] = "gelu" ∨ keys[i] = "swish" then dtype_(values) = 7
+Rule 45 (If keys is a vector of length greater than 10 and less than 20, then component index must be less than 5)
+{keys: tensor, component_index: int} |= if shape(keys, 0) > 10 ∧ shape(keys, 0) < 20 then component_index < 5
 >>
-Rule 46 (If handle is an empty tensor, the keys and values should also be empty along their zeroth dimensions.)
-{handle: tensor, keys: tensor, values: tensor} |= if ndim(handle) = 0 ∧ shape(handle, 0) = 0 then shape(keys, 0) = 0 ∧ shape(values, 0) = 0
+Rule 46 (The component index must be less or equal to than the number of axes of Values)
+{values : tensor, component_index : int} |= component_index ≤ ndim(values)
+>>
+Rule 47 (If handle has dtype string then the keys tensor should contain the string 'key')
+{keys : tensor, handle : tensor} |= if dtype_(handle) = 11 then ∃i ∈ [0, shape(keys, 0) - 1] : keys[i] = "key"
+>>
+Rule 48 (The product of the dimensions of the values tensor should be less than 10000, if its not bool type)
+{values : tensor} |= if dtype_(values) ≠ 0 then ∀i ∈ [0, ndim(values) - 1] : shape(values, i) < 10000
+>>
+Rule 49 (if the product of shape of keys is greater than 100 then max(values) should also be greater than 100)
+{keys: tensor, values: tensor} |= if ∀i ∈ [0, ndim(keys) - 1] : shape(keys, i) > 100 then max(values) > 100
+>>
+Rule 50 (If component_index is less than 10, then shape of the key must be greater than 10)
+{keys : tensor, component_index : int} |= if component_index < 10 then shape(keys,0) > 10
+>>
+Rule 51 (The number of dimensions of the values tensor cannot be greater than 5, if the component index is zero)
+{values: tensor, component_index : int} |= if component_index = 0 then ndim(values) ≤ 5
+>>
+Rule 53 (if the length of the handle is greater than 0, then component_index can't be a multiple of the values' first dim)
+{handle: tensor, values: tensor, component_index:int} |= if shape(handle,0) > 0 then component_index % shape(values,0) ≠ 0
+>>
+Rule 54 (Values should not have dimension 0)
+{values : tensor} |= ∀i ∈ [0, ndim(values) - 1] : shape(values, i) ≠ 0
+>>
+Rule 61 (If the dtype of keys is string, the handle must be string with length less than 20)
+{keys: tensor, handle: tensor} |= if dtype_(keys) = 11 then dtype_(handle) = 11 ∧ shape(handle, 0) < 20
+>>
+Rule 62 (If handle has shape greater than 0, then keys and values should have the same dtype)
+{handle: tensor, keys: tensor, values: tensor} |= if shape(handle, 0) > 0 then dtype_(keys) = dtype_(values)
+>>
+Rule 63 (If the keys is string, then the max value of component index should be less than 1024)
+{keys : tensor, component_index : int} |= if dtype_(keys) = 11 then component_index < 1024
+>>
+Rule 64 (Shape of values should be divisible by 2, if the component_index is also divisible by 2)
+{values: tensor, component_index: int} |= if component_index % 2 = 0 then shape(values,0) % 2 = 0
+>>
+Rule 65 (Handle must be string with length > 2)
+{handle: tensor} |= dtype_(handle) = 11 ∧ shape(handle, 0) > 2
+>>
+Rule 66 (If values tensor is of type bool, then its shape should be equal to the component index)
+{values: tensor, component_index: int} |= if dtype_(values) = 0 then shape(values, 0) = component_index
+>>
+Rule 67 (If Keys is more than 100, Handle must also have dimension more than 0)
+{keys: tensor, handle: tensor} |= if shape(keys, 0) > 100 then ndim(handle) > 0
+>>
+Rule 68 (If Keys tensor is integer then max value of keys tensor must be lesser than 10000)
+{keys: tensor} |= if dtype_(keys) < 11 then max(keys) < 10000
+>>
+Rule 69 (If component_index is greater than 10 then the dtype of values should not be an int )
+{values: tensor, component_index : int} |= if component_index > 10 then dtype_(values) > 5
+>>
+Rule 77 (If shape of handle is greater than 0, then values should have minimum value greater than 0)
+{handle : tensor, values : tensor} |= if shape(handle,0) > 0 then min(values) > 0
+>>
+Rule 78 (The product of the dimensions of the values tensor should be less than 10000, if its not bool type and component index is greater than zero)
+{values : tensor, component_index : int} |= if dtype_(values) ≠ 0 ∧ component_index > 0 then ∀i ∈ [0, ndim(values) - 1] : shape(values, i) < 10000
+>>
+Rule 79 (if the product of shape of keys is greater than 100 then max(values) should also be greater than 100 and component index is less than 10)
+{keys: tensor, values: tensor, component_index: int} |= if (∀i ∈ [0, ndim(keys) - 1] : shape(keys, i) > 100) ∧ component_index < 10 then max(values) > 100
+>>
+Rule 80 (Handle must be string with length > 2, and keys must be one dimensional)
+{handle: tensor, keys: tensor} |= dtype_(handle) = 11 ∧ shape(handle, 0) > 2 ∧ ndim(keys) = 1
+>>
+Rule 81 (If values tensor is of type bool, then its shape should be equal to the component index and its value must be true)
+{values: tensor, component_index: int} |= if dtype_(values) = 0 then shape(values, 0) = component_index ∧ min(values) = true
+>>
+Rule 82 (If Keys is more than 100, Handle must also have dimension more than 0 and must have string "hello")
+{keys: tensor, handle: tensor} |= if shape(keys, 0) > 100 then ndim(handle) > 0 ∧ handle = "hello"
+>>
+Rule 83 (If Keys tensor is integer then max value of keys tensor must be lesser than 10000 and component index must be even)
+{keys: tensor, component_index:int} |= if dtype_(keys) < 11 ∧ component_index % 2 = 0 then max(keys) < 10000
+>>
+Rule 84 (If component_index is greater than 10 then the dtype of values should not be an int and handle's length should not be zero)
+{values: tensor, component_index : int, handle : tensor} |= if component_index > 10 then dtype_(values) > 5 ∧ shape(handle,0) ≠ 0
+>>
+Rule 85 (If the keys is string, then the max value of component index should be less than 1024 and it should be greater than -1024)
+{keys : tensor, component_index : int} |= if dtype_(keys) = 11 then component_index < 1024 ∧ component_index > -1024
+>>
+Rule 86 (Shape of values should be divisible by 2, if the component_index is also divisible by 2 and shape of values is not zero)
+{values: tensor, component_index: int} |= if (component_index % 2 = 0) ∧ (shape(values,0) ≠ 0) then shape(values,0) % 2 = 0
+>>
+Rule 87 (Handle must be string with length > 2, and keys must be one dimensional and it must not be empty)
+{handle: tensor, keys: tensor} |= dtype_(handle) = 11 ∧ shape(handle, 0) > 2 ∧ ndim(keys) = 1 ∧ shape(keys,0) > 0
+>>
+Rule 88 (If values tensor is of type bool, then its shape should be equal to the component index and its value must be true and it can not be the default dtype)
+{values: tensor, component_index: int} |= if dtype_(values) = 0 then shape(values, 0) = component_index ∧ min(values) = true ∧ dtype_(values) ≠ 12
+>>
+Rule 89 (If Keys is more than 100, Handle must also have dimension more than 0 and must have string "hello" and must have length of string > 5)
+{keys: tensor, handle: tensor} |= if shape(keys, 0) > 100 then ndim(handle) > 0 ∧ handle = "hello" ∧ shape(handle, 0) > 5
+>>
+Rule 90 (If Keys tensor is integer then max value of keys tensor must be lesser than 10000 and component index must be even and must not be zero)
+{keys: tensor, component_index:int} |= if (dtype_(keys) < 11) ∧ (component_index % 2 = 0) ∧ (component_index ≠ 0) then max(keys) < 10000
+>>
+Rule 91 (If component_index is greater than 10 then the dtype of values should not be an int and handle's length should not be zero and its name should be handle_tensor)
+{values: tensor, component_index : int, handle : tensor} |= if component_index > 10 then dtype_(values) > 5 ∧ shape(handle,0) ≠ 0 ∧ handle = "handle_tensor"
+>>
+Rule 92 (If the keys is string, then the max value of component index should be less than 1024 and it should be greater than -1024 and values should have length greater than component_index)
+{keys : tensor, component_index : int, values : tensor} |= if dtype_(keys) = 11 then component_index < 1024 ∧ component_index > -1024 ∧ shape(values, 0) > component_index
+>>
+Rule 93 (Shape of values should be divisible by 2, if the component_index is also divisible by 2 and shape of values is not zero and keys shape should also be even)
+{values: tensor, component_index: int, keys: tensor} |= if (component_index % 2 = 0) ∧ (shape(values,0) ≠ 0) then shape(values,0) % 2 = 0 ∧ shape(keys,0) % 2 = 0
+>>
+Rule 94 (Handle must be string with length > 2, and keys must be one dimensional and it must not be empty and value tensor should also be more than 2 dimensions)
+{handle: tensor, keys: tensor, values: tensor} |= dtype_(handle) = 11 ∧ shape(handle, 0) > 2 ∧ ndim(keys) = 1 ∧ shape(keys,0) > 0 ∧ ndim(values) > 2
+>>
+Rule 95 (If values tensor is of type bool, then its shape should be equal to the component index and its value must be true and it can not be the default dtype and component_index must not be a very large number)
+{values: tensor, component_index: int} |= if dtype_(values) = 0 then shape(values, 0) = component_index ∧ min(values) = true ∧ dtype_(values) ≠ 12 ∧ component_index < 500
+>>
+Rule 96 (If Keys is more than 100, Handle must also have dimension more than 0 and must have string "hello" and must have length of string > 5 and component_index must not be negative)
+{keys: tensor, handle: tensor, component_index : int} |= if shape(keys, 0) > 100 then ndim(handle) > 0 ∧ handle = "hello" ∧ shape(handle, 0) > 5 ∧ component_index ≥ 0
+>>
+Rule 97 (If Keys tensor is integer then max value of keys tensor must be lesser than 10000 and component index must be even and must not be zero and max of handle must be more than 5)
+{keys: tensor, component_index:int, handle : tensor} |= if (dtype_(keys) < 11) ∧ (component_index % 2 = 0) ∧ (component_index ≠ 0) then max(keys) < 10000 ∧ max(handle) > 5
+>>
+Rule 98 (If component_index is greater than 10 then the dtype of values should not be an int and handle's length should not be zero and its name should be handle_tensor and value's max shape must be less than 100)
+{values: tensor, component_index : int, handle : tensor} |= if component_index > 10 then dtype_(values) > 5 ∧ shape(handle,0) ≠ 0 ∧ handle = "handle_tensor" ∧ max(values) < 100
+>>
+Rule 99 (If the keys is string, then the max value of component index should be less than 1024 and it should be greater than -1024 and values should have length greater than component_index and ndim of handle should be 0 or 1)
+{keys : tensor, component_index : int, values : tensor, handle : tensor} |= if dtype_(keys) = 11 then component_index < 1024 ∧ component_index > -1024 ∧ shape(values, 0) > component_index ∧ (ndim(handle) = 0 ∨ ndim(handle) = 1)
+>>
+Rule 100 (Shape of values should be divisible by 2, if the component_index is also divisible by 2 and shape of values is not zero and keys shape should also be even and dtype of handle must be equal to string)
+{values: tensor, component_index: int, keys: tensor, handle : tensor} |= if (component_index % 2 = 0) ∧ (shape(values,0) ≠ 0) then shape(values,0) % 2 = 0 ∧ shape(keys,0) % 2 = 0 ∧ dtype_(handle) = 11
+>>
+Rule 101 (Handle must be string with length > 2, and keys must be one dimensional and it must not be empty and value tensor should also be more than 2 dimensions and the dtype of keys must be string)
+{handle: tensor, keys: tensor, values: tensor} |= dtype_(handle) = 11 ∧ shape(handle, 0) > 2 ∧ ndim(keys) = 1 ∧ shape(keys,0) > 0 ∧ ndim(values) > 2 ∧ dtype_(keys) = 11
+>>
+Rule 102 (If values tensor is of type bool, then its shape should be equal to the component index and its value must be true and it can not be the default dtype and component_index must not be a very large number and min of keys and max of keys should be greater or less than 10)
+{values: tensor, component_index: int, keys: tensor} |= if dtype_(values) = 0 then shape(values, 0) = component_index ∧ min(values) = true ∧ dtype_(values) ≠ 12 ∧ component_index < 500 ∧ min(keys) > 10 ∨ max(keys) < 10
+>>
+Rule 103 (If Keys is more than 100, Handle must also have dimension more than 0 and must have string "hello" and must have length of string > 5 and component_index must not be negative and length of handle should be greater than 3)
+{keys: tensor, handle: tensor, component_index : int} |= if shape(keys, 0) > 100 then ndim(handle) > 0 ∧ handle = "hello" ∧ shape(handle, 0) > 5 ∧ component_index ≥ 0 ∧ shape(handle,0) > 3
+>>
+Rule 104 (If Keys tensor is integer then max value of keys tensor must be lesser than 10000 and component index must be even and must not be zero and max of handle must be more than 5 and min of values must not be more than 1000)
+{keys: tensor, component_index:int, handle : tensor, values : tensor} |= if (dtype_(keys) < 11) ∧ (component_index % 2 = 0) ∧ (component_index ≠ 0) then max(keys) < 10000 ∧ max(handle) > 5 ∧ min(values) < 1000
+>>
+Rule 105 (If component_index is greater than 10 then the dtype of values should not be an int and handle's length should not be zero and its name should be handle_tensor and value's max shape must be less than 100 and length of keys must be more than 50)
+{values: tensor, component_index : int, handle : tensor, keys : tensor} |= if component_index > 10 then dtype_(values) > 5 ∧ shape(handle,0) ≠ 0 ∧ handle = "handle_tensor" ∧ max(values) < 100 ∧ shape(keys,0) > 50
+>>
+Rule 106 (If the keys is string, then the max value of component index should be less than 1024 and it should be greater than -1024 and values should have length greater than component_index and ndim of handle should be 0 or 1 and component index must be more than 1)
+{keys : tensor, component_index : int, values : tensor, handle : tensor} |= if dtype_(keys) = 11 then component_index < 1024 ∧ component_index > -1024 ∧ shape(values, 0) > component_index ∧ (ndim(handle) = 0 ∨ ndim(handle) = 1) ∧ component_index > 1
+>>
+Rule 107 (Shape of values should be divisible by 2, if the component_index is also divisible by 2 and shape of values is not zero and keys shape should also be even and dtype of handle must be equal to string and its shape must be more than 10)
+{values: tensor, component_index: int, keys: tensor, handle : tensor} |= if (component_index % 2 = 0) ∧ (shape(values,0) ≠ 0) then shape(values,0) % 2 = 0 ∧ shape(keys,0) % 2 = 0 ∧ dtype_(handle) = 11 ∧ shape(handle, 0) > 10
+>>
+Rule 108 (Handle must be string with length > 2, and keys must be one dimensional and it must not be empty and value tensor should also be more than 2 dimensions and the dtype of keys must be string and the values tensor must not have zero dimensions)
+{handle: tensor, keys: tensor, values: tensor} |= dtype_(handle) = 11 ∧ shape(handle, 0) > 2 ∧ ndim(keys) = 1 ∧ shape(keys,0) > 0 ∧ ndim(values) > 2 ∧ dtype_(keys) = 11 ∧ ∀i ∈ [0, ndim(values) - 1] : shape(values, i) ≠ 0
+>>
+Rule 109 (If values tensor is of type bool, then its shape should be equal to the component index and its value must be true and it can not be the default dtype and component_index must not be a very large number and min of keys and max of keys should be greater or less than 10 and the sum of dimesnsions of values should not exceed 1000)
+{values: tensor, component_index: int, keys: tensor} |= if dtype_(values) = 0 then shape(values, 0) = component_index ∧ min(values) = true ∧ dtype_(values) ≠ 12 ∧ component_index < 500 ∧ (min(keys) > 10 ∨ max(keys) < 10) ∧ ∀i ∈ [0, ndim(values) - 1] : shape(values, i) < 1000
+>>
+Rule 110 (If Keys is more than 100, Handle must also have dimension more than 0 and must have string "hello" and must have length of string > 5 and component_index must not be negative and length of handle should be greater than 3 and min of values must not be a negative value)
+{keys: tensor, handle: tensor, component_index : int, values : tensor} |= if shape(keys, 0) > 100 then ndim(handle) > 0 ∧ handle = "hello" ∧ shape(handle, 0) > 5 ∧ component_index ≥ 0 ∧ shape(handle,0) > 3 ∧ min(values) ≥ 0
+>>
+Rule 111 (If Keys tensor is integer then max value of keys tensor must be lesser than 10000 and component index must be even and must not be zero and max of handle must be more than 5 and min of values must not be more than 1000 and values must have greater number of axis than keys)
+{keys: tensor, component_index:int, handle : tensor, values : tensor} |= if (dtype_(keys) < 11) ∧ (component_index % 2 = 0) ∧ (component_index ≠ 0) then max(keys) < 10000 ∧ max(handle) > 5 ∧ min(values) < 1000 ∧ ndim(values) > ndim(keys)
+>>
+Rule 112 (If component_index is greater than 10 then the dtype of values should not be an int and handle's length should not be zero and its name should be handle_tensor and value's max shape must be less than 100 and length of keys must be more than 50 and max of handle must be greater than min of Keys)
+{values: tensor, component_index : int, handle : tensor, keys : tensor} |= if component_index > 10 then dtype_(values) > 5 ∧ shape(handle,0) ≠ 0 ∧ handle = "handle_tensor" ∧ max(values) < 100 ∧ shape(keys,0) > 50 ∧ max(handle) > min(keys)
+>>
+Rule 113 (If the keys is string, then the max value of component index should be less than 1024 and it should be greater than -1024 and values should have length greater than component_index and ndim of handle should be 0 or 1 and component index must be more than 1 and dtype of values should not be default)
+{keys : tensor, component_index : int, values : tensor, handle : tensor} |= if dtype_(keys) = 11 then component_index < 1024 ∧ component_index > -1024 ∧ shape(values, 0) > component_index ∧ (ndim(handle) = 0 ∨ ndim(handle) = 1) ∧ component_index > 1 ∧ dtype_(values) ≠ 12
+>>
+Rule 114 (Shape of values should be divisible by 2, if the component_index is also divisible by 2 and shape of values is not zero and keys shape should also be even and dtype of handle must be equal to string and its shape must be more than 10 and max of values must be smaller than max of handle)
+{values: tensor, component_index: int, keys: tensor, handle : tensor} |= if (component_index % 2 = 0) ∧ (shape(values,0) ≠ 0) then shape(values,0) % 2 = 0 ∧ shape(keys,0) % 2 = 0 ∧ dtype_(handle) = 11 ∧ shape(handle, 0) > 10 ∧ max(values) < max(handle)
+>>
+Rule 115 (Handle must be string with length > 2, and keys must be one dimensional and it must not be empty and value tensor should also be more than 2 dimensions and the dtype of keys must be string and the values tensor must not have zero dimensions and the min of keys should be greater than zero )
+{handle: tensor, keys: tensor, values: tensor} |= dtype_(handle) = 11 ∧ shape(handle, 0) > 2 ∧ ndim(keys) = 1 ∧ shape(keys,0) > 0 ∧ ndim(values) > 2 ∧ dtype_(keys) = 11 ∧ ∀i ∈ [0, ndim(values) - 1] : shape(values, i) ≠ 0 ∧ min(keys) > 0
+>>
+Rule 116 (If values tensor is of type bool, then its shape should be equal to the component index and its value must be true and it can not be the default dtype and component_index must not be a very large number and min of keys and max of keys should be greater or less than 10 and the sum of dimesnsions of values should not exceed 1000 and component_index should be less than 10)
+{values: tensor, component_index: int, keys: tensor} |= if dtype_(values) = 0 then shape(values, 0) = component_index ∧ min(values) = true ∧ dtype_(values) ≠ 12 ∧ component_index < 500 ∧ (min(keys) > 10 ∨ max(keys) < 10) ∧ ∀i ∈ [0, ndim(values) - 1] : shape(values, i) < 1000 ∧ component_index < 10
+>>
+Rule 117 (If Keys is more than 100, Handle must also have dimension more than 0 and must have string "hello" and must have length of string > 5 and component_index must not be negative and length of handle should be greater than 3 and min of values must not be a negative value and its shape should not exceed 1000)
+{keys: tensor, handle: tensor, component_index : int, values : tensor} |= if shape(keys, 0) > 100 then ndim(handle) > 0 ∧ handle = "hello" ∧ shape(handle, 0) > 5 ∧ component_index ≥ 0 ∧ shape(handle,0) > 3 ∧ min(values) ≥ 0 ∧ shape(values,0) < 1000
+>>
+Rule 118 (If Keys tensor is integer then max value of keys tensor must be lesser than 10000 and component index must be even and must not be zero and max of handle must be more than 5 and min of values must not be more than 1000 and values must have greater number of axis than keys and values and keys' dtypes should not match)
+{keys: tensor, component_index:int, handle : tensor, values : tensor} |= if (dtype_(keys) < 11) ∧ (component_index % 2 = 0) ∧ (component_index ≠ 0) then max(keys) < 10000 ∧ max(handle) > 5 ∧ min(values) < 1000 ∧ ndim(values) > ndim(keys) ∧ dtype_(values) ≠ dtype_(keys)
+>>
+Rule 119 (If component_index is greater than 10 then the dtype of values should not be an int and handle's length should not be zero and its name should be handle_tensor and value's max shape must be less than 100 and length of keys must be more than 50 and max of handle must be greater than min of Keys and handle should start with string test_)
+{values: tensor, component_index : int, handle : tensor, keys : tensor} |= if component_index > 10 then dtype_(values) > 5 ∧ shape(handle,0) ≠ 0 ∧ handle = "handle_tensor" ∧ max(values) < 100 ∧ shape(keys,0) > 50 ∧ max(handle) > min(keys) ∧ handle = "test_"
+>>
+Rule 120 (If the keys is string, then the max value of component index should be less than 1024 and it should be greater than -1024 and values should have length greater than component_index and ndim of handle should be 0 or 1 and component index must be more than 1 and dtype of values should not be default and if the name of the op is "op_test")
+{keys : tensor, component_index : int, values : tensor, handle : tensor, name : str} |= if dtype_(keys) = 11 then component_index < 1024 ∧ component_index > -1024 ∧ shape(values, 0) > component_index ∧ (ndim(handle) = 0 ∨ ndim(handle) = 1) ∧ component_index > 1 ∧ dtype_(values) ≠ 12 ∧ name = "op_test"
+>>
+Rule 121 (Shape of values should be divisible by 2, if the component_index is also divisible by 2 and shape of values is not zero and keys shape should also be even and dtype of handle must be equal to string and its shape must be more than 10 and max of values must be smaller than max of handle and the dtype of values should be integer)
+{values: tensor, component_index: int, keys: tensor, handle : tensor} |= if (component_index % 2 = 0) ∧ (shape(values,0) ≠ 0) then shape(values,0) % 2 = 0 ∧ shape(keys,0) % 2 = 0 ∧ dtype_(handle) = 11 ∧ shape(handle, 0) > 10 ∧ max(values) < max(handle) ∧ dtype_(values) < 6
+>>
+Rule 122 (Handle must be string with length > 2, and keys must be one dimensional and it must not be empty and value tensor should also be more than 2 dimensions and the dtype of keys must be string and the values tensor must not have zero dimensions and the min of keys should be greater than zero and name should not be "test".)
+{handle: tensor, keys: tensor, values: tensor, name: str} |= dtype_(handle) = 11 ∧ shape(handle, 0) > 2 ∧ ndim(keys) = 1 ∧ shape(keys,0) > 0 ∧ ndim(values) > 2 ∧ dtype_(keys) = 11 ∧ ∀i ∈ [0, ndim(values) - 1] : shape(values, i) ≠ 0 ∧ min(keys) > 0 ∧ name ≠ "test"
+>>
+Rule 123 (If values tensor is of type bool, then its shape should be equal to the component index and its value must be true and it can not be the default dtype and component_index must not be a very large number and min of keys and max of keys should be greater or less than 10 and the sum of dimesnsions of values should not exceed 1000 and component_index should be less than 10 and it name must start with test)
+{values: tensor, component_index: int, keys: tensor, name : str} |= if dtype_(values) = 0 then shape(values, 0) = component_index ∧ min(values) = true ∧ dtype_(values) ≠ 12 ∧ component_index < 500 ∧ (min(keys) > 10 ∨ max(keys) < 10) ∧ ∀i ∈ [0, ndim(values) - 1] : shape(values, i) < 1000 ∧ component_index < 10 ∧ name = "test"
+>>
+Rule 124 (If Keys is more than 100, Handle must also have dimension more than 0 and must have string "hello" and must have length of string > 5 and component_index must not be negative and length of handle should be greater than 3 and min of values must not be a negative value and its shape should not exceed 1000 and if the name length is greater than 0)
+{keys: tensor, handle: tensor, component_index : int, values : tensor, name : str} |= if shape(keys, 0) > 100 then ndim(handle) > 0 ∧ handle = "hello" ∧ shape(handle, 0) > 5 ∧ component_index ≥ 0 ∧ shape(handle,0) > 3 ∧ min(values) ≥ 0 ∧ shape(values,0) < 1000 ∧ shape(name, 0) > 0
+>>
+Rule 125 (If Keys tensor is integer then max value of keys tensor must be lesser than 10000 and component index must be even and must not be zero and max of handle must be more than 5 and min of values must not be more than 1000 and values must have greater number of axis than keys and values and keys' dtypes should not match and its name should not be same)
+{keys: tensor, component_index:int, handle : tensor, values : tensor, name: str} |= if (dtype_(keys) < 11) ∧ (component_index % 2 = 0) ∧ (component_index ≠ 0) then max(keys) < 10000 ∧ max(handle) > 5 ∧ min(values) < 1000 ∧ ndim(values) > ndim(keys) ∧ dtype_(values) ≠ dtype_(keys) ∧ name ≠ name
+>>
+Rule 126 (If component_index is greater than 10 then the dtype of values should not be an int and handle's length should not be zero and its name should be handle_tensor and value's max shape must be less than 100 and length of keys must be more than 50 and max of handle must be greater than min of Keys and handle should start with string test_ and all values must be divisible by 5)
+{values: tensor, component_index : int, handle : tensor, keys : tensor} |= if component_index > 10 then dtype_(values) > 5 ∧ shape(handle,0) ≠ 0 ∧ handle = "handle_tensor" ∧ max(values) < 100 ∧ shape(keys,0) > 50 ∧ max(handle) > min(keys) ∧ handle = "test_" ∧ ∀i ∈ [0, ndim(values) - 1] : values[i] % 5 = 0
+>>
+Rule 127 (If the keys is string, then the max value of component index should be less than 1024 and it should be greater than -1024 and values should have length greater than component_index and ndim of handle should be 0 or 1 and component index must be more than 1 and dtype of values should not be default and if the name of the op is "op_test" and the handle string starts with "handle")
+{keys : tensor, component_index : int, values : tensor, handle : tensor, name : str} |= if dtype_(keys) = 11 then component_index < 1024 ∧ component_index > -1024 ∧ shape(values, 0) > component_index ∧ (ndim(handle) = 0 ∨ ndim(handle) = 1) ∧ component_index > 1 ∧ dtype_(values) ≠ 12 ∧ name = "op_test" ∧ handle = "handle"
+>>
+Rule 128 (Shape of values should be divisible by 2, if the component_index is also divisible by 2 and shape of values is not zero and keys shape should also be even and dtype of handle must be equal to string and its shape must be more than 10 and max of values must be smaller than max of handle and the dtype of values should be integer and the length of name must be less than 10)
+{values: tensor, component_index: int, keys: tensor, handle : tensor, name : str} |= if (component_index % 2 = 0) ∧ (shape(values,0) ≠ 0) then shape(values,0) % 2 = 0 ∧ shape(keys,0) % 2 = 0 ∧ dtype_(handle) = 11 ∧ shape(handle, 0) > 10 ∧ max(values) < max(handle) ∧ dtype_(values) < 6 ∧ shape(name, 0) < 10
+>>
+Rule 129 (Handle must be string with length > 2, and keys must be one dimensional and it must not be empty and value tensor should also be more than 2 dimensions and the dtype of keys must be string and the values tensor must not have zero dimensions and the min of keys should be greater than zero and name should not be "test" and component index must be positive and values's max must not be zero)
+{handle: tensor, keys: tensor, values: tensor, name: str, component_index: int} |= dtype_(handle) = 11 ∧ shape(handle, 0) > 2 ∧ ndim(keys) = 1 ∧ shape(keys,0) > 0 ∧ ndim(values) > 2 ∧ dtype_(keys) = 11 ∧ ∀i ∈ [0, ndim(values) - 1] : shape(values, i) ≠ 0 ∧ min(keys) > 0 ∧ name ≠ "test" ∧ component_index > 0 ∧ max(values) ≠ 0
+>>
+Rule 130 (If values tensor is of type bool, then its shape should be equal to the component index and its value must be true and it can not be the default dtype and component_index must not be a very large number and min of keys and max of keys should be greater or less than 10 and the sum of dimesnsions of values should not exceed 1000 and component_index should be less than 10 and it name must start with test and max of handle shoudl be larger than 0)
+{values: tensor, component_index: int, keys: tensor, name : str, handle : tensor} |= if dtype_(values) = 0 then shape(values, 0) = component_index ∧ min(values) = true ∧ dtype_(values) ≠ 12 ∧ component_index < 500 ∧ (min(keys) > 10 ∨ max(keys) < 10) ∧ ∀i ∈ [0, ndim(values) - 1] : shape(values, i) < 1000 ∧ component_index < 10 ∧ name = "test" ∧ max(handle) > 0
+>>
+Rule 131 (If Keys is more than 100, Handle must also have dimension more than 0 and must have string "hello" and must have length of string > 5 and component_index must not be negative and length of handle should be greater than 3 and min of values must not be a negative value and its shape should not exceed 1000 and if the name length is greater than 0 and key and values must have same ndim)
+{keys: tensor, handle: tensor, component_index : int, values : tensor, name : str} |= if shape(keys, 0) > 100 then ndim(handle) > 0 ∧ handle = "hello" ∧ shape(handle, 0) > 5 ∧ component_index ≥ 0 ∧ shape(handle,0) > 3 ∧ min(values) ≥ 0 ∧ shape(values,0) < 1000 ∧ shape(name, 0) > 0 ∧ ndim(keys) = ndim(values)
+>>
+Rule 132 (If Keys tensor is integer then max value of keys tensor must be lesser than 10000 and component index must be even and must not be zero and max of handle must be more than 5 and min of values must not be more than 1000 and values must have greater number of axis than keys and values and keys' dtypes should not match and its name should not be same and dtypes of handle and value must not match)
+{keys: tensor, component_index:int, handle : tensor, values : tensor, name: str} |= if (dtype_(keys) < 11) ∧ (component_index % 2 = 0) ∧ (component_index ≠ 0) then max(keys) < 10000 ∧ max(handle) > 5 ∧ min(values) < 1000 ∧ ndim(values) > ndim(keys) ∧ dtype_(values) ≠ dtype_(keys) ∧ name ≠ name ∧ dtype_(handle) ≠ dtype_(values)
+>>
+Rule 133 (If component_index is greater than 10 then the dtype of values should not be an int and handle's length should not be zero and its name should be handle_tensor and value's max shape must be less than 100 and length of keys must be more than 50 and max of handle must be greater than min of Keys and handle should start with string test_ and all values must be divisible by 5 and handle's shape must be divisible by 2)
+{values: tensor, component_index : int, handle : tensor, keys : tensor} |= if component_index > 10 then dtype_(values) > 5 ∧ shape(handle,0) ≠ 0 ∧ handle = "handle_tensor" ∧ max(values) < 100 ∧ shape(keys,0) > 50 ∧ max(handle) > min(keys) ∧ handle = "test_" ∧ ∀i ∈ [0, ndim(values) - 1] : values[i] % 5 = 0 ∧ shape(handle,0) % 2 = 0

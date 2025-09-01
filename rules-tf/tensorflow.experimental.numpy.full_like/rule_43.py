@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Tensor's shape cannot have negative values (Rule 43)
+# dtype should be a valid dtype, checking the index is within range. (Rule 43)
 
 rule_43 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) >= 0) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) >= 0) for i in range(6)]))
+    s.add(Not(And(0 <= v["arg1_value"], v["arg1_value"] <= 12)) if n else
+          And(0 <= v["arg1_value"], v["arg1_value"] <= 12))
 )
 
 def rule_43_func(arg1, solver=None, neg=False):
@@ -17,23 +17,20 @@ def rule_43_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
 
         # Constraints for rule 43
-        rule_43(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_43(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_43(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_43(solver, {'arg1_value': arg1['value']}, neg)

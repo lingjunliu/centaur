@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If a boolean tensor is provided, the number of true elements must be greater than 0 (Rule 14)
+# order must have distinct names (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 0, (Or(Select(v["arg1_range"], 0) == False, Select(v["arg1_range"], 1) == True)), False)) if n else
-          If(v["arg1_dtype"] == 0, (Or(Select(v["arg1_range"], 0) == False, Select(v["arg1_range"], 1) == True)), False))
+    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), And([Implies(j < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) != Select(v["arg1_values"], j)) for j in range(6)])) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_length"] - 1 + 1), And([Implies(j < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) != Select(v["arg1_values"], j)) for j in range(6)])) for i in range(6)]))
 )
 
 def rule_14_func(arg1, solver=None, neg=False):
@@ -17,23 +17,23 @@ def rule_14_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, list) and all(isinstance(e, str) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_length = Int('arg1_length')
+        arg1_values = Array('arg1_values', IntSort(), StringSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_length == len(arg1))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 14
-        rule_14(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
+        rule_14(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_14(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)
+        rule_14(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length']}, neg)

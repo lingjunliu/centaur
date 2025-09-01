@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# input tensor rank must be a positive integer (Rule 18)
+# if the input is a scalar, the result is a Tensor (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] > -1) if n else
-          v["arg1_ndim"] > -1)
+    s.add(Not(If(v["arg1_ndim"] == 0, True, True)) if n else
+          If(v["arg1_ndim"] == 0, True, True))
 )
 
 def rule_18_func(arg1, solver=None, neg=False):

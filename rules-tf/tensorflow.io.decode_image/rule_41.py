@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if expand_animations=False and it is GIF image, then ndim of output tensor should be 3. (Rule 41)
+# if channels are explicitly given, the dtype should allow that many channels (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_value"] == False, v["arg2_dtype"] == 11), v["arg2_ndim"] == 3, False)) if n else
-          If(And(v["arg1_value"] == False, v["arg2_dtype"] == 11), v["arg2_ndim"] == 3, False))
+    s.add(Not(If(v["arg1_value"] > 0, v["arg2_value"] != 0, True)) if n else
+          If(v["arg1_value"] > 0, v["arg2_value"] != 0, True))
 )
 
 def rule_41_func(arg1, arg2, solver=None, neg=False):
@@ -18,26 +18,24 @@ def rule_41_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_ndim = Int('arg2_ndim')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_value = Int('arg1_value')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_ndim == arg2.ndim)
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg1_value == int(arg1))
+        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
 
         # Constraints for rule 41
-        rule_41(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype, 'arg2_ndim': arg2_ndim})
+        rule_41(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_41(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_41(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

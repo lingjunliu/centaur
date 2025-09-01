@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Shape cannot be an empty tuple if a dtype other than np.dtype is provided (Rule 62)
+# If the dtype is bool, the shape must contain at least one element and shape elements must be 1 (Rule 62)
 
 rule_62 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_length"] == 0, v["arg2_value"] == 12, False)) if n else
-          If(v["arg1_length"] == 0, v["arg2_value"] == 12, False))
+    s.add(Not(If(v["arg2_value"] == 0, And(v["arg1_length"] > 0, (And([Implies(v_3 < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], v_3) == 1) for v_3 in range(6)]))), True)) if n else
+          If(v["arg2_value"] == 0, And(v["arg1_length"] > 0, (And([Implies(v_3 < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], v_3) == 1) for v_3 in range(6)]))), True))
 )
 
 def rule_62_func(arg1, arg2, solver=None, neg=False):
@@ -18,7 +18,7 @@ def rule_62_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
         if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
             return False
@@ -26,16 +26,19 @@ def rule_62_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_length = Int('arg1_length')
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
         arg2_value = Int('arg2_value')
 
         # Value assignments
         solver.add(arg1_length == len(arg1))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
         solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
 
         # Constraints for rule 62
-        rule_62(solver, {'arg1_length': arg1_length, 'arg2_value': arg2_value})
+        rule_62(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_62(solver, {'arg1_length': arg1['length'], 'arg2_value': arg2['value']}, neg)
+        rule_62(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length'], 'arg2_value': arg2['value']}, neg)

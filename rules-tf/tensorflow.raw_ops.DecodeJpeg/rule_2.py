@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# ratio should be one of the allowed values: 1, 2, 4, or 8 (Rule 2)
+# ratio should be one of the accepted values (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(Or(Or(Or(v["arg1_value"] == 1, v["arg1_value"] == 2), v["arg1_value"] == 4), v["arg1_value"] == 8)) if n else

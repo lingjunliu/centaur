@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# features must be a 2D Tensor with shape[1] > 1 (Rule 77)
+# If the last dimension of the features is less or equal to 0, the operation is not valid (Rule 77)
 
 rule_77 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 1) > 1)) if n else
-          And(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 1) > 1))
+    s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0) if n else
+          Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0)
 )
 
 def rule_77_func(arg1, solver=None, neg=False):

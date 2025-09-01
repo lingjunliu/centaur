@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Input tensor must be a complex type (Rule 1)
+# The input tensor must be of a complex dtype to have an imaginary part (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)) if n else
-          Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10))
+    s.add(Not(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11)) if n else
+          Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11))
 )
 
 def rule_1_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check the value of int should not be in the list [1, 2, 3] (Rule 38)
+# Limit size of n. When large, allocation can lead to OOM. (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_value"] != 1, v["arg1_value"] != 2), v["arg1_value"] != 3)) if n else
-          And(And(v["arg1_value"] != 1, v["arg1_value"] != 2), v["arg1_value"] != 3))
+    s.add(Not(v["arg1_value"] < 1000000) if n else
+          v["arg1_value"] < 1000000)
 )
 
 def rule_38_func(arg1, solver=None, neg=False):

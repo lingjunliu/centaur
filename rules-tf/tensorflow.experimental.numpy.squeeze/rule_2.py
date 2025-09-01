@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Axis argument should be within the range of the tensor dimensions (Rule 2)
+# Axis must be less than the number of dimensions (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"])) if n else
-          And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"]))
+    s.add(Not(v["arg2_value"] < v["arg1_ndim"]) if n else
+          v["arg2_value"] < v["arg1_ndim"])
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

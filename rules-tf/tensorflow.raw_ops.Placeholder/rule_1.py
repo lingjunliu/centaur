@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# dtype must be a valid type index (Rule 1)
+# dtype should be a valid type represented by an integer index (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(And(1 <= v["arg1_value"], v["arg1_value"] <= 13)) if n else
-          And(1 <= v["arg1_value"], v["arg1_value"] <= 13))
+    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] <= 12)) if n else
+          And(v["arg1_value"] >= 0, v["arg1_value"] <= 12))
 )
 
 def rule_1_func(arg1, solver=None, neg=False):

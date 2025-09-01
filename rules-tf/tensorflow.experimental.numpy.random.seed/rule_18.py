@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# s cannot be a string (Rule 18)
+# s as list is not allowed (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
     s.add(Not(False) if n else
@@ -17,7 +17,7 @@ def rule_18_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, str):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations

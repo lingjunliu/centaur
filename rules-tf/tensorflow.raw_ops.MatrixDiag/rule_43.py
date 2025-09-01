@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# When diagonal is a matrix, its shape must result in a valid square matrix when MatrixDiag is applied (Rule 43)
+# The output tensors last two dimensions must be equal when diagonal rank is greater than one (Rule 43)
 
 rule_43 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 2, And(Select(v["arg1_shape"], 0) > 0, Select(v["arg1_shape"], 1) > 0), False)) if n else
-          If(v["arg1_ndim"] == 2, And(Select(v["arg1_shape"], 0) > 0, Select(v["arg1_shape"], 1) > 0), False))
+    s.add(Not(If(v["arg1_ndim"] > 1, Select(v["arg1_shape"], v["arg1_ndim"]) == Select(v["arg1_shape"], v["arg1_ndim"] - 1), True)) if n else
+          If(v["arg1_ndim"] > 1, Select(v["arg1_shape"], v["arg1_ndim"]) == Select(v["arg1_shape"], v["arg1_ndim"] - 1), True))
 )
 
 def rule_43_func(arg1, solver=None, neg=False):

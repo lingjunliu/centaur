@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# dimension tensor must be of allowed data types (Rule 2)
+# dimension tensor must be of a supported type (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(Or(Or(v["arg1_dtype"] == 2, v["arg1_dtype"] == 3), v["arg1_dtype"] == 4)) if n else

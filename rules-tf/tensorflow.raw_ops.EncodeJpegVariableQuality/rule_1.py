@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# image should be a 3-D tensor (Rule 1)
+# images must be at least 3-dimensional (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] == 3) if n else
-          v["arg1_ndim"] == 3)
+    s.add(Not(v["arg1_ndim"] >= 3) if n else
+          v["arg1_ndim"] >= 3)
 )
 
 def rule_1_func(arg1, solver=None, neg=False):

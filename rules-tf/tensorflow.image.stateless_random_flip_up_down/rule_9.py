@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if seed dtype is int32, ensure it's used in XLA context (Rule 9)
+# image must have either 3 or 4 dimensions (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 2, True, False)) if n else
-          If(v["arg1_dtype"] == 2, True, False))
+    s.add(Not(Or(v["arg1_ndim"] == 3, v["arg1_ndim"] == 4)) if n else
+          Or(v["arg1_ndim"] == 3, v["arg1_ndim"] == 4))
 )
 
 def rule_9_func(arg1, solver=None, neg=False):
@@ -22,15 +22,15 @@ def rule_9_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_ndim = Int('arg1_ndim')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
 
         # Constraints for rule 9
-        rule_9(solver, {'arg1_dtype': arg1_dtype})
+        rule_9(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_9(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_9(solver, {'arg1_ndim': arg1['ndim']}, neg)

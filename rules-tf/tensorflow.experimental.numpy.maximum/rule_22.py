@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If one of the tensors has more than one dimension, both tensors have to have the same number of dimensions. (Rule 22)
+# If one of the tensors is a scalar, then ndim of the other tensor must be >= 0 (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_ndim"] > 1, v["arg2_ndim"] > 1), v["arg1_ndim"] == v["arg2_ndim"], False)) if n else
-          If(Or(v["arg1_ndim"] > 1, v["arg2_ndim"] > 1), v["arg1_ndim"] == v["arg2_ndim"], False))
+    s.add(Not(If(v["arg1_ndim"] == 0, v["arg2_ndim"] >= 0, If(v["arg2_ndim"] == 0, v["arg1_ndim"] >= 0, True))) if n else
+          If(v["arg1_ndim"] == 0, v["arg2_ndim"] >= 0, If(v["arg2_ndim"] == 0, v["arg1_ndim"] >= 0, True)))
 )
 
 def rule_22_func(arg1, arg2, solver=None, neg=False):

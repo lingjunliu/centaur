@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If multiples contains only 1s, the output has the same shape as the input (Rule 26)
+# if input has unknown rank the rank of multiple should not exceed max rank value (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(If(And([Implies(i < (Select(v["arg2_shape"], 0) - 1 + 1), Select(v["arg2_shape"], i) == 1) for i in range(6)]), v["arg1_ndim"] == v["arg1_ndim"], False)) if n else
-          If(And([Implies(i < (Select(v["arg2_shape"], 0) - 1 + 1), Select(v["arg2_shape"], i) == 1) for i in range(6)]), v["arg1_ndim"] == v["arg1_ndim"], False))
+    s.add(Not(If(v["arg1_ndim"] == -1, Select(v["arg2_shape"], 0) < 6, True)) if n else
+          If(v["arg1_ndim"] == -1, Select(v["arg2_shape"], 0) < 6, True))
 )
 
 def rule_26_func(arg1, arg2, solver=None, neg=False):

@@ -1,120 +1,174 @@
 >>
-Rule 1 (Input tensors should have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 1 (input tensors must have integer dtype)
+{v_1 : tensor, v_2 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 ∧ 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5
 >>
-Rule 2 (The shapes of the input tensors should be broadcastable)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))
+Rule 2 (input tensors must have positive values)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) > 0 ∧ min(v_2) > 0
 >>
-Rule 3 (Input tensors should have integer dtype)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Rule 3 (x1 and x2 must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 4 (Input tensors should have positive values)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1,0) -1] : v_1[i] ≥ 0
+Rule 4 (input tensors must be non-negative)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) ≥ 0 ∧ min(v_2) ≥ 0
 >>
-Rule 5 (If one of the input is zero, the result should be the other input)
-{v_1 : tensor, v_2 : tensor} |= if v_1[0] = 0 then v_2[0] = 0
+Rule 5 (input tensors must have integer dtype)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) > 0 then dtype_(v_1) < 6 else false ∧ if dtype_(v_2) > 0 then dtype_(v_2) < 6 else false
 >>
-Rule 6 (Input tensors are scalars)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0
->>
-Rule 7 (The result of the GCD function should be less than or equal to both inputs)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : gcd_result[i] ≤ v_1[i] ∧ gcd_result[i] ≤ v_2[i]
->>
-Rule 8 (Input tensors must have at least one element)
-{v_1 : tensor} |= shape(v_1,0) > 0
->>
-Rule 9 (Input tensors must be non-negative integers)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ ∀j ∈ [0, shape(v_2, 0) - 1] : v_2[j] ≥ 0
->>
-Rule 10 (At least one input should be non-zero)
-{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0) ∨ (∃j ∈ [0, shape(v_2, 0) - 1] : v_2[j] > 0)
->>
-Rule 11 (If either input is 0, the GCD is the other input)
-{v_1 : tensor, v_2 : tensor} |= if v_1[0] = 0 then shape(v_2, 0) = shape(v_2,0) else if v_2[0] = 0 then shape(v_1, 0) = shape(v_1,0)
->>
-Rule 12 (GCD of two numbers is always less than or equal to the minimum of the two numbers)
-{v_1 : tensor, v_2 : tensor} |=  min(v_1) ≥ 1 ∧ min(v_2) ≥ 1
->>
-Rule 13 (Both input tensors should have the same shape)
+Rule 6 (input tensors should have the same shape)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 15 (If any element of the input tensor is negative, that element in the result tensor should be negative)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : if v_1[i] < 0 then false
+Rule 7 (The dimension of input tensors should be greater or equal to 0)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0
 >>
-Rule 18 (The output has same shape as input tensors)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1,0) = shape(v_2,0)
->>
-Rule 20 (If any element of the input tensor is negative, that element in the result tensor cannot be larger than the other input)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : if v_1[i] < 0 then v_1[i] ≤ v_2[i]
->>
-Rule 21 (GCD result should be less than or equal to the inputs.)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_2[i] ≥ 0
->>
-Rule 22 (GCD result must be non-negative)
-{v_1 : tensor, v_2 : tensor} |=  ∀i ∈ [0, shape(v_1,0) - 1] : shape(v_1, i) ≥ 0 ∧ shape(v_2, i) ≥ 0
->>
-Rule 24 (Input tensors must have dimension greater than 0)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
->>
-Rule 25 (If one input is zero, then gcd equals the other input)
-{v_1 : tensor, v_2 : tensor} |= if v_1[0] = 0 then gcd = v_2[0] else if v_2[0] = 0 then gcd = v_1[0]
->>
-Rule 26 (The GCD result should divide both inputs without remainder)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] % gcd = 0 ∧ v_2[i] % gcd = 0
->>
-Rule 27 (if two inputs are the same, GCD should be the same as the inputs)
-{v_1 : tensor, v_2 : tensor} |= if v_1[0] = v_2[0] then gcd = v_1[0]
->>
-Rule 28 (at least one of the tensors should not be empty)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) > 0 ∨ shape(v_2, 0) > 0
->>
-Rule 29 (If one of the inputs is a scalar zero, the result is the other input)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∧ v_1 = 0 then shape(v_2, 0) = shape(v_2, 0) else if ndim(v_2) = 0 ∧ v_2 = 0 then shape(v_1, 0) = shape(v_1, 0)
->>
-Rule 31 (At least one element of the input tensors must be non-zero)
-{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ 0 ∨ ∃j ∈ [0, shape(v_2, 0) - 1] :  v_2[j] ≠ 0
->>
-Rule 32 (If the shapes of the two tensors are different, they must be broadcastable.)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) ≠ shape(v_2, 0) then ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))
->>
-Rule 33 (Input tensors should be integers)
+Rule 8 (The elements of input tensors should be integers.)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∧ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5
 >>
-Rule 34 (The GCD of two non-negative numbers should also be non-negative)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] ≥ 0 ∧ v_2[i] ≥ 0) ∨ gcd >= 0
+Rule 9 (If one of the tensors is zero, the gcd is the other tensor)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) = 0 then true else if min(v_2) = 0 then true
 >>
-Rule 36 (GCD output cannot exceed the minimum of the two inputs)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : gcd <= v_1[i] ∧ gcd <= v_2[i]
+Rule 10 (Input tensors must have compatible shapes for broadcasting)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2)] : (if ndim(v_1) - i - 1 ≥ 0 then shape(v_1, ndim(v_1) - i - 1) else 1) = (if ndim(v_2) - i - 1 ≥ 0 then shape(v_2, ndim(v_2) - i - 1) else 1) ∨ (if ndim(v_1) - i - 1 ≥ 0 then shape(v_1, ndim(v_1) - i - 1) else 1) = 1 ∨ (if ndim(v_2) - i - 1 ≥ 0 then shape(v_2, ndim(v_2) - i - 1) else 1) = 1
 >>
-Rule 37 (If v1 is 0, then GCD(v1,v2) == v2.)
-{v_1 : tensor, v_2 : tensor} |= if v_1[0] = 0 then gcd = v_2[0]
+Rule 13 (If any element in v_1 is zero, then any element in v_2 must be non-negative)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then min(v_2) ≥ 0
 >>
-Rule 38 (The shapes of the two input tensors should be the same or broadcastable)
-{v_1 : tensor, v_2 : tensor} |= (shape(v_1, 0) = shape(v_2, 0)) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)))
+Rule 15 (Input tensors should have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 39 (If the shape of one of the input tensor is 1, the result would have the shape of other tensor)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1,0) = 1 then shape(gcd, 0) = shape(v_2,0) else if shape(v_2, 0) = 1 then shape(gcd, 0) = shape(v_1, 0) else shape(gcd, 0) = shape(v_1,0)
+Rule 17 (Dimensions of tensors should be non-zero or all the values are zero.)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0) ∨ min(v_1) = 0 ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) ≠ 0) ∨ min(v_2) = 0
 >>
-Rule 40 (The output should be smaller or equal to both inputs when inputs are positive)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : if v_1[i] ≥ 0 ∧ v_2[i] ≥ 0 then gcd <= v_1[i] ∧ gcd <= v_2[i]
+Rule 18 (Input tensors should have the same number of dimensions if neither tensor is empty)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0) then true else ndim(v_1) = ndim(v_2)
 >>
-Rule 41 (If both inputs are zero the result is zero)
-{v_1 : tensor, v_2 : tensor} |= if v_1[0] = 0 ∧ v_2[0] = 0 then gcd = 0
+Rule 19 (If all elements in v_1 are zero, then all elements in v_2 must be zero)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) = 0 ∧ max(v_1) = 0 then min(v_2) = 0 ∧ max(v_2) = 0
 >>
-Rule 45 (If either input is one, then the gcd equals one)
-{v_1 : tensor, v_2 : tensor} |= if v_1[0] = 1 ∨ v_2[0] = 1 then gcd = 1
+Rule 20 (If tensors are not empty, then their data types are integers.)
+{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) ≠ 0) then dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∧ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5
 >>
-Rule 46 (If either of the input values is negative, the result value should be same as the GCD of their absolute values)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : if v_1[i] < 0 ∨ v_2[i] < 0 then gcd = 1
+Rule 21 (The minimum value of both tensors must be >= 0 or they must both be the same)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) ≥ 0 ∧ min(v_2) ≥ 0 ∨ min(v_1) = min(v_2)
 >>
-Rule 48 (If inputs are equal to 1, GCD is 1)
-{v_1 : tensor, v_2 : tensor} |= if v_1[0] = 1 ∧ v_2[0] = 1 then gcd = 1
+Rule 22 (Tensors must have integer dtypes, or both must be floats)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7)
 >>
-Rule 51 (if one of the input value divides other input value then result will be smaller input value)
-{v_1 : tensor, v_2 : tensor} |= if v_1[0] % v_2[0] = 0 then gcd = v_2[0] else if v_2[0] % v_1[0] = 0 then gcd = v_1[0]
+Rule 23 (gcd result will be zero only if at least one operand is zero)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) = 0 ∧ max(v_1) = 0 then true else if min(v_2) = 0 ∧ max(v_2) = 0 then true else false
 >>
-Rule 53 (if one value is multiple of the other, GCD is smaller)
-{v_1 : tensor, v_2 : tensor} |= if v_1[0] % v_2[0] = 0 then min(v_1, v_2) = v_2[0] else if v_2[0] % v_1[0] = 0 then min(v_1, v_2) = v_1[0]
+Rule 24 (if both tensors are the same, then the gcd is equal to the tensor)
+{v_1 : tensor, v_2 : tensor} |= if ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) then true else false
 >>
-Rule 54 (Inputs should be positive, output also must be positive)
-{v_1 : tensor, v_2 : tensor} |= (v_1[0] ≥ 0) ∧ (v_2[0] ≥ 0)
+Rule 25 (Tensors have integer types or complex types.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) ∨ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 26 (If at least one of the tensors contains a zero value, all shape dimensions of the other tensor must be greater than zero.)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) ≤ 0 ∧ max(v_1) ≥ 0 then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0 else if min(v_2) ≤ 0 ∧ max(v_2) ≥ 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 27 (if the first tensor is a scalar and the second one is not, the second one must be one-dimensional)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) ≠ 0 then ndim(v_2) = 1
+>>
+Rule 28 (If both tensors contain all positive values then their minimum values must be greater than zero.)
+{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) then min(v_1) > 0 ∧ min(v_2) > 0
+>>
+Rule 29 (Input Tensors have same data type and its int or float)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = dtype_(v_2)) ∧ ((dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∨ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8))
+>>
+Rule 30 (If any element of either tensor is negative, the shape must be 0.)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) < 0 ∨ min(v_2) < 0 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0)
+>>
+Rule 31 (If one of the input tensors is a scalar zero, then the gcd is the absolute value of the other tensor.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∧ min(v_1) = 0 ∧ max(v_1) = 0 then true else if ndim(v_2) = 0 ∧ min(v_2) = 0 ∧ max(v_2) = 0 then true
+>>
+Rule 32 (GCD is only defined for integer types)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
+>>
+Rule 33 (If shapes aren't compatible for broadcasting, at least one dimension must be zero)
+{v_1 : tensor, v_2 : tensor} |= if ∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2)] : (if ndim(v_1) - i - 1 ≥ 0 then shape(v_1, ndim(v_1) - i - 1) else 1) = (if ndim(v_2) - i - 1 ≥ 0 then shape(v_2, ndim(v_2) - i - 1) else 1) ∨ (if ndim(v_1) - i - 1 ≥ 0 then shape(v_1, ndim(v_1) - i - 1) else 1) = 1 ∨ (if ndim(v_2) - i - 1 ≥ 0 then shape(v_2, ndim(v_2) - i - 1) else 1) = 1 then true else (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0)
+>>
+Rule 34 (If one input tensor contains only zeros, the other must be non-negative.)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) = 0 ∧ max(v_1) = 0 then min(v_2) ≥ 0
+>>
+Rule 35 (The number of dimensions must match, unless one tensor is a scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∨ ndim(v_2) = 0 then true else ndim(v_1) = ndim(v_2)
+>>
+Rule 36 (If a tensor contains negative values it must be 0-dimensional)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) < 0 then ndim(v_1) = 0 else if min(v_2) < 0 then ndim(v_2) = 0
+>>
+Rule 37 (If tensor v_1 is scalar then tensor v_2 should have positive value.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then min(v_2) > 0
+>>
+Rule 38 (If all elements of tensor v_2 is 1 then tensor v_1 should not be empty.)
+{v_1 : tensor, v_2 : tensor} |= if min(v_2) = 1 ∧ max(v_2) = 1 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 39 (If one tensor is empty the other should be empty or scalar)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0) ∨ ndim(v_2) = 0 else if (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0) then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ ndim(v_1) = 0
+>>
+Rule 40 (If one of the tensors is all zeros, then the other must be non-negative and have integer type.)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) = 0 ∧ max(v_1) = 0 then min(v_2) ≥ 0 ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) else if min(v_2) = 0 ∧ max(v_2) = 0 then min(v_1) ≥ 0 ∧ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5)
+>>
+Rule 41 (If dimensions are not compatible for broadcasting then minimum dimensions should be greater than 0)
+{v_1 : tensor, v_2 : tensor} |= if ∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2)] : (if ndim(v_1) - i - 1 ≥ 0 then shape(v_1, ndim(v_1) - i - 1) else 1) = (if ndim(v_2) - i - 1 ≥ 0 then shape(v_2, ndim(v_2) - i - 1) else 1) ∨ (if ndim(v_1) - i - 1 ≥ 0 then shape(v_1, ndim(v_1) - i - 1) else 1) = 1 ∨ (if ndim(v_2) - i - 1 ≥ 0 then shape(v_2, ndim(v_2) - i - 1) else 1) = 1 then true else min(v_1) > 0 ∧ min(v_2) > 0
+>>
+Rule 44 (If dimensions are not compatible for broadcasting, at least one dimension must be zero, and both min values >= 0)
+{v_1 : tensor, v_2 : tensor} |= if ∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2)] : (if ndim(v_1) - i - 1 ≥ 0 then shape(v_1, ndim(v_1) - i - 1) else 1) = (if ndim(v_2) - i - 1 ≥ 0 then shape(v_2, ndim(v_2) - i - 1) else 1) ∨ (if ndim(v_1) - i - 1 ≥ 0 then shape(v_1, ndim(v_1) - i - 1) else 1) = 1 ∨ (if ndim(v_2) - i - 1 ≥ 0 then shape(v_2, ndim(v_2) - i - 1) else 1) = 1 then true else (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0) ∧ min(v_1) >= 0 ∧ min(v_2) >= 0
+>>
+Rule 49 (If all elements in the first tensor are the same as all elements in the second tensor then its gcd should be equal to that element)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) = max(v_1) ∧ min(v_2) = max(v_2) ∧ min(v_1) = min(v_2) then true else false
+>>
+Rule 50 (gcd function is only defined for tensors that has int or complex types)
+{v_1 : tensor, v_2 : tensor} |= ((dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)) ∨ ((dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10))
+>>
+Rule 51 (Both input tensors should have the same number of dimensions and same data type)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ dtype_(v_1) = dtype_(v_2)
+>>
+Rule 52 (If all values in both tensors are the same, and it's an integer value, then result is that value)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) = max(v_1) ∧ min(v_2) = max(v_2) ∧ min(v_1) = min(v_2) ∧ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then true else false
+>>
+Rule 54 (The shapes of the input tensors must be broadcastable together)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) else ndim(v_2)] : (if ndim(v_1) - i - 1 ≥ 0 then shape(v_1, ndim(v_1) - i - 1) else 1) = (if ndim(v_2) - i - 1 ≥ 0 then shape(v_2, ndim(v_2) - i - 1) else 1) ∨ (if ndim(v_1) - i - 1 ≥ 0 then shape(v_1, ndim(v_1) - i - 1) else 1) = 1 ∨ (if ndim(v_2) - i - 1 ≥ 0 then shape(v_2, ndim(v_2) - i - 1) else 1) = 1
+>>
+Rule 55 (GCD is only defined for non-negative integers. So min value should be >= 0 and dtype should be compatible)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) ≥ 0 ∧ min(v_2) ≥ 0 ∧ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
+>>
+Rule 56 (The input tensors' shapes must be broadcastable or have at least one dimension equals to zero)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) else ndim(v_2)] : (if ndim(v_1) - i - 1 ≥ 0 then shape(v_1, ndim(v_1) - i - 1) else 1) = (if ndim(v_2) - i - 1 ≥ 0 then shape(v_2, ndim(v_2) - i - 1) else 1) ∨ (if ndim(v_1) - i - 1 ≥ 0 then shape(v_1, ndim(v_1) - i - 1) else 1) = 1 ∨ (if ndim(v_2) - i - 1 ≥ 0 then shape(v_2, ndim(v_2) - i - 1) else 1) = 1) ∨ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0)
+>>
+Rule 57 (If the two tensors have the same shape and the first one is 1, then the second must be 1 as well)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))) ∧ (min(v_1) = 1 ∧ max(v_1) = 1) then min(v_2) = 1 ∧ max(v_2) = 1
+>>
+Rule 58 (if both tensors are zero the result should also be zero)
+{v_1 : tensor, v_2 : tensor} |= if (min(v_1) = 0 ∧ max(v_1) = 0) ∧ (min(v_2) = 0 ∧ max(v_2) = 0) then true
+>>
+Rule 60 (The tensors should be non empty and broadcastable)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) ∧ (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) else ndim(v_2)] : (if ndim(v_1) - i - 1 ≥ 0 then shape(v_1, ndim(v_1) - i - 1) else 1) = (if ndim(v_2) - i - 1 ≥ 0 then shape(v_2, ndim(v_2) - i - 1) else 1) ∨ (if ndim(v_1) - i - 1 ≥ 0 then shape(v_1, ndim(v_1) - i - 1) else 1) = 1 ∨ (if ndim(v_2) - i - 1 ≥ 0 then shape(v_2, ndim(v_2) - i - 1) else 1) = 1)
+>>
+Rule 61 (If one tensor is scalar zero, then all elements in other tensor must be positive or zero.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∧ min(v_1) = 0 ∧ max(v_1) = 0 then min(v_2) ≥ 0 else if ndim(v_2) = 0 ∧ min(v_2) = 0 ∧ max(v_2) = 0 then min(v_1) ≥ 0
+>>
+Rule 63 (If the two tensors have same data type and both are greater than zero, then their dimension should be equal)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = dtype_(v_2)) ∧ (min(v_1) > 0) ∧ (min(v_2) > 0) then ndim(v_1) = ndim(v_2)
+>>
+Rule 64 (If one of the tensors contains a zero element, the other tensor elements have to be non-negative)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 0 then min(v_2) >= 0 else if ∃i ∈ [0, ndim(v_2)-1] : shape(v_2, i) = 0 then min(v_1) >= 0
+>>
+Rule 65 (Tensors must be of integer type and the first value should be non-zero to compute GCD accurately)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) ∧ (min(v_1) ≠ 0) ∧ (min(v_2) ≠ 0)
+>>
+Rule 66 (If two tensors do not have same number of dimensions, then elements in those tensors must equal to 1)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then min(v_1) = max(v_1) ∧ max(v_1) = 1 ∧ min(v_2) = max(v_2) ∧ max(v_2) = 1
+>>
+Rule 67 (if both the input tensors are scalar then their value should be non negative)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then (min(v_1) ≥ 0) ∧ (min(v_2) ≥ 0)
+>>
+Rule 69 (If there's one of the tensors that's zero, the result should have int type as well)
+{v_1 : tensor, v_2 : tensor} |= if (min(v_1) = 0 ∧ max(v_1) = 0) ∨ (min(v_2) = 0 ∧ max(v_2) = 0) then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
+>>
+Rule 70 (If both tensors have value of 1, then the result would have a value of 1.)
+{v_1 : tensor, v_2 : tensor} |= if (min(v_1) = 1 ∧ max(v_1) = 1) ∧ (min(v_2) = 1 ∧ max(v_2) = 1) then true else false
+>>
+Rule 73 (if both the tensors have the same shape and contains 1 and only 1 zero element, then their data type should be int between 1 to 5)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∧ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0) ∧ (min(v_1) = 0 ∨ min(v_2) = 0) then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
+>>
+Rule 76 (If both the tensors have the same dimensions and the first element in v_1 and v_2 are same as their max values. Then they are equal.)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = ndim(v_2)) ∧ (v_1[0] = max(v_1)) ∧ (v_2[0] = max(v_2)) then v_1[0] = v_2[0]

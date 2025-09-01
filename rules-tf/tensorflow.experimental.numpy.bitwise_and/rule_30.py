@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Both tensors can't be boolean at the same time. (Rule 30)
+# Input tensors must both be integer or both be boolean type (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 0, v["arg2_dtype"] != 0, If(v["arg2_dtype"] == 0, v["arg1_dtype"] != 0, False))) if n else
-          If(v["arg1_dtype"] == 0, v["arg2_dtype"] != 0, If(v["arg2_dtype"] == 0, v["arg1_dtype"] != 0, False)))
+    s.add(Not(Or((And((v["arg1_dtype"] == 0), (v["arg2_dtype"] == 0))), (And((And((1 <= v["arg1_dtype"]), (v["arg1_dtype"] <= 5))), (And((1 <= v["arg2_dtype"]), (v["arg2_dtype"] <= 5))))))) if n else
+          Or((And((v["arg1_dtype"] == 0), (v["arg2_dtype"] == 0))), (And((And((1 <= v["arg1_dtype"]), (v["arg1_dtype"] <= 5))), (And((1 <= v["arg2_dtype"]), (v["arg2_dtype"] <= 5)))))))
 )
 
 def rule_30_func(arg1, arg2, solver=None, neg=False):

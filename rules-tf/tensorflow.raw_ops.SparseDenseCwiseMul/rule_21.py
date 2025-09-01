@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# sp_indices values must be within valid range of dimensions in sp_shape (Rule 21)
+# sp_indices and sp_shape dimension consistency (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (Select(v["arg1_shape"], 0) - 1 + 1), (And([Implies(j < (Select(v["arg1_shape"], 1) - 1 + 1), And(PRIMVAR >= 0, PRIMVAR < Select(v["arg2_shape"], j))) for j in range(6)]))) for i in range(6)])) if n else
-          And([Implies(i < (Select(v["arg1_shape"], 0) - 1 + 1), (And([Implies(j < (Select(v["arg1_shape"], 1) - 1 + 1), And(PRIMVAR >= 0, PRIMVAR < Select(v["arg2_shape"], j))) for j in range(6)]))) for i in range(6)]))
+    s.add(Not(Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0)) if n else
+          Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0))
 )
 
 def rule_21_func(arg1, arg2, solver=None, neg=False):

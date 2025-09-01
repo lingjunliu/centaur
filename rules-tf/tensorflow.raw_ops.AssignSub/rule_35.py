@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The value's shape must be broadcastable to ref's shape given their data types match (Rule 35)
+# if ref is uint32, value must have the same type (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
-          v["arg1_dtype"] == v["arg2_dtype"])
+    s.add(Not(If(v["arg1_dtype"] == 17, v["arg2_dtype"] == 17, True)) if n else
+          If(v["arg1_dtype"] == 17, v["arg2_dtype"] == 17, True))
 )
 
 def rule_35_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# When axis is specified, it must be an integer (Rule 22)
+# Ensure that the axis is not larger than a max_allowed value. Note, the error message indicates a value of -101 might be problematic, so create a rule to reduce the likelyhood of that value (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_ndim"] > 0, (And(v["arg1_value"] >= (0 - v["arg2_ndim"]), v["arg1_value"] < v["arg2_ndim"])), v["arg1_value"] >= 0)) if n else
-          If(v["arg2_ndim"] > 0, (And(v["arg1_value"] >= (0 - v["arg2_ndim"]), v["arg1_value"] < v["arg2_ndim"])), v["arg1_value"] >= 0))
+    s.add(Not(And(v["arg2_value"] > -1000, v["arg2_value"] < 1000)) if n else
+          And(v["arg2_value"] > -1000, v["arg2_value"] < 1000))
 )
 
 def rule_22_func(arg1, arg2, solver=None, neg=False):
@@ -18,22 +18,22 @@ def rule_22_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)) or isinstance(arg1, (float, np.floating))):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg2_ndim = Int('arg2_ndim')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 22
-        rule_22(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim})
+        rule_22(solver, {'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_22(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_22(solver, {'arg2_value': arg2['value']}, neg)

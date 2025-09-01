@@ -1,165 +1,192 @@
 >>
-Rule 1 (images tensor must be of type int8, uint8, int16, uint16, int32, int64, bfloat16, half, float32, or float64)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
+Rule 1 (images tensor must be of a supported type)
+{images : tensor} |= dtype_(images) = 1 ∨ dtype_(images) = 6 ∨ dtype_(images) = 2 ∨ dtype_(images) = 7 ∨ dtype_(images) = 3 ∨ dtype_(images) = 8 ∨ dtype_(images) = 4 ∨ dtype_(images) = 5
 >>
-Rule 2 (size tensor must be 1-dimensional)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 2 (size tensor must be of type int32)
+{size : tensor} |= dtype_(size) = 3
 >>
-Rule 3 (size tensor's elements must be greater than zero)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 3 (scale tensor must be of type float32)
+{scale : tensor} |= dtype_(scale) = 7
 >>
-Rule 4 (translation tensor must have the same shape as scale tensor)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 4 (translation tensor must be of type float32)
+{translation : tensor} |= dtype_(translation) = 7
 >>
-Rule 5 (scale tensor must be of type float32)
-{v_1 : tensor} |= dtype_(v_1) = 8
+Rule 5 (kernel_type must be one of allowed strings)
+{kernel_type : str} |= kernel_type = "lanczos3" ∨ kernel_type = "triangle" ∨ kernel_type = "cubic"
 >>
-Rule 7 (images tensor ndim must be larger than 0)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 6 (antialias must be a boolean)
+{antialias : bool} |= antialias = true ∨ antialias = false
 >>
-Rule 8 (size tensor elements should be of type int32)
-{v_1 : tensor} |= dtype_(v_1) = 3
+Rule 7 (size tensor must have rank 1)
+{size : tensor} |= ndim(size) = 1
 >>
-Rule 9 (images tensor shape must be greater than or equal to the size tensor shape.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ ndim(v_2)
+Rule 8 (scale tensor must have rank 0)
+{scale : tensor} |= ndim(scale) = 0
 >>
-Rule 12 (the shape of size tensor must be equal to rank of image tensor)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) = ndim(v_1)
+Rule 9 (translation tensor must have rank 1)
+{translation : tensor} |= ndim(translation) = 1 ∧ shape(translation, 0) = 2
 >>
-Rule 13 (kernel_type must be a valid string)
-{v_1 : str} |= v_1 = "lanczos3" ∨ v_1 = "triangle" ∨ v_1 = "cubic"
+Rule 10 (size must have a non-negative value)
+{size : tensor} |= min(size) >= 0
 >>
-Rule 14 (antialias parameter must be a boolean value)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 11 (images tensor must have at least 3 dimensions)
+{images : tensor} |= ndim(images) ≥ 3
 >>
-Rule 16 (the size of translation equals the last dimension of image)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) = shape(v_1, ndim(v_1) -1)
+Rule 12 (size tensor must have shape [2])
+{size : tensor} |= shape(size, 0) = 2
 >>
-Rule 17 (If antialias is true, then images' dtype should be at least float16)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) ≥ 7
+Rule 13 (translation tensor must have shape [2])
+{translation : tensor} |= shape(translation, 0) = 2
 >>
-Rule 18 (size tensor must have positive elements)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
+Rule 15 (if antialias is true, images must be a supported dtype)
+{antialias : bool, images : tensor} |= if antialias = true then (dtype_(images) = 8 ∨ dtype_(images) = 7)
 >>
-Rule 19 (scale must be a scalar tensor)
-{v_1 : tensor} |= ndim(v_1) = 0
+Rule 21 (images cannot have a shape dimension equal to 0)
+{images : tensor} |= ∀i ∈ [0, ndim(images) - 1] : shape(images, i) ≠ 0
 >>
-Rule 21 (size tensor has the same rank as images)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2,0) = ndim(v_1)
+Rule 22 (scale must be greater than 0)
+{scale : tensor} |= min(scale) > 0
 >>
-Rule 23 (translation elements should be float.)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : dtype_(v_1) = 8
+Rule 23 (images tensor height and width should be greater than 0)
+{images : tensor} |= shape(images, ndim(images) - 2) > 0 ∧ shape(images, ndim(images) - 3) > 0
 >>
-Rule 24 (images tensor rank should be same with size's first dimension value.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = v_2[0]
+Rule 24 (size tensor elements should be greater than 0)
+{size : tensor} |= ∀i ∈ [0, 1] : shape(size, i) > 0
 >>
-Rule 27 (If the antialias is set to false, the images shape must be equal size shape)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then (∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = shape(v_2, i))
+Rule 25 (translation tensor elements must be finite)
+{translation : tensor} |= ∀i ∈ [0, shape(translation, 0) - 1] : min(translation) < 10000000 ∧ max(translation) > -10000000
 >>
-Rule 28 (The elements in size tensor should not be negative.)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
+Rule 26 (if images is int8, antialias must be false)
+{images : tensor, antialias : bool} |= if dtype_(images) = 1 then antialias = false
 >>
-Rule 30 (translation tensor should have shape[0]=2)
-{v_1 : tensor} |= shape(v_1, 0) = 2
+Rule 27 (images should be a 3D or 4D tensor)
+{images : tensor} |= ndim(images) = 3 ∨ ndim(images) = 4
 >>
-Rule 31 (if image dtype is bfloat16/half, antialias must be false)
-{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then v_2 = false
+Rule 28 (if images is uint8, antialias should be false)
+{images : tensor, antialias : bool} |= if dtype_(images) = 5 then antialias = false
 >>
-Rule 35 (if image's dtype is less or equal int64, antialias must be false.)
-{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) ≤ 4 then v_2 = false
+Rule 29 (if images is int16, antialias must be false)
+{images : tensor, antialias : bool} |= if dtype_(images) = 2 then antialias = false
 >>
-Rule 36 (if antialias is true, images must be float32/float64)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
+Rule 30 (if images is uint16, antialias must be false)
+{images : tensor, antialias : bool} |= if dtype_(images) = 7 then antialias = false
 >>
-Rule 39 (translation tensor should have shape[0]==ndim(images))
-{v_1 : tensor} |= shape(v_1,0) = 2
+Rule 31 (scale must be finite)
+{scale : tensor} |= min(scale) < 10000000 ∧ max(scale) > -10000000
 >>
-Rule 40 (If images is int8/uint8, antialias should be false.)
-{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 then v_2 = false
+Rule 32 (translation values must be finite)
+{translation : tensor} |= ∀i ∈ [0, 1] : translation[i] < 10000000 ∧ translation[i] > -10000000
 >>
-Rule 42 (The second dimension of the translation matrix must be 1.)
-{v_1 : tensor} |= shape(v_1, 1) = 1
+Rule 33 (images is not complex)
+{images: tensor} |= dtype_(images) ≠ 9 ∧ dtype_(images) ≠ 10
 >>
-Rule 44 (if images has 3 dimensions, size must have 3 elements)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 then shape(v_2, 0) = 3
+Rule 34 (if antialias is true, kernel type must be a supported type)
+{antialias : bool, kernel_type : str} |= if antialias = true then kernel_type = "lanczos3"
 >>
-Rule 45 (If images' type is uint16, antialias must be false.)
-{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 6 then v_2 = false
+Rule 35 (if images has 3 dimensions, the last dimension of size must equal to the number of channels of images)
+{images : tensor, size : tensor} |= if ndim(images) = 3 then shape(size, 1) = shape(images, 2)
 >>
-Rule 46 (size elements have to be positive number)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) -1] : v_1[i] > 0
+Rule 36 (if images has 4 dimensions, the last dimension of size must equal to the number of channels of images)
+{images : tensor, size : tensor} |= if ndim(images) = 4 then shape(size, 1) = shape(images, 3)
 >>
-Rule 48 (images rank should be equal to size rank)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = shape(v_2, 0)
+Rule 37 (if images is bfloat16, antialias must be false)
+{images : tensor, antialias : bool} |= if dtype_(images) = 6 then antialias = false
 >>
-Rule 49 (if image type is smaller than float16 antialias must be false)
-{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) < 7 then v_2 = false
+Rule 39 (if images is float32, antialias must be false)
+{images : tensor, antialias : bool} |= if dtype_(images) = 8 then antialias = false
 >>
-Rule 51 (If images' dtype is int8 or uint8 or int16 or uint16 or int32 or int64, antialias must be false.)
-{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then v_2 = false
+Rule 40 (if images is float64, antialias must be false)
+{images : tensor, antialias : bool} |= if dtype_(images) = 9 then antialias = false
 >>
-Rule 54 (if images' rank is 4, then size.len == 4)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 4 then shape(v_2, 0) = 4
+Rule 41 (If kernel_type is triangle, antialias must be false)
+{kernel_type : str, antialias : bool} |= if kernel_type = "triangle" then antialias = false
 >>
-Rule 55 (antialias should only be true if image has floating point type)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) > 6
+Rule 42 (If kernel_type is cubic, antialias must be false)
+{kernel_type : str, antialias : bool} |= if kernel_type = "cubic" then antialias = false
 >>
-Rule 56 (The images tensor cannot have dimension zero)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) -1 ] : shape(v_1, i) > 0
+Rule 43 (size tensor elements must be equal or less than maximum allowed value)
+{size : tensor} |= max(size) < 2147483647
 >>
-Rule 57 (size should be a 1D tensor whose elements' number equals images ndim)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 1 ∧ shape(v_2, 0) = ndim(v_1)
+Rule 44 (translation values must be equal or less than maximum allowed value)
+{translation : tensor} |= max(translation) < 3.4028235e+38 ∧ min(translation) > -3.4028235e+38
 >>
-Rule 60 (If the image has type float16, antialias must be false)
-{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 7 then v_2 = false
+Rule 45 (scale value must be equal or less than maximum allowed value)
+{scale : tensor} |= max(scale) < 3.4028235e+38 ∧ min(scale) > -3.4028235e+38
 >>
-Rule 62 (The shape of the scale tensor must be scalar float32)
-{v_1 : tensor} |= ndim(v_1) = 0 ∧ dtype_(v_1) = 8
+Rule 46 (if images is int32, antialias must be false)
+{images : tensor, antialias : bool} |= if dtype_(images) = 3 then antialias = false
 >>
-Rule 66 (If images is complex64/complex128, antialias must be false)
-{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then v_2 = false
+Rule 47 (if images is int64, antialias must be false)
+{images : tensor, antialias : bool} |= if dtype_(images) = 4 then antialias = false
 >>
-Rule 68 (If images is complex64/complex128/bfloat16/half, antialias must be false)
-{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 6 then v_2 = false
+Rule 48 (If kernel_type is not in the approved list, then the default value is used, but this can only happen with antialias = False)
+{kernel_type: str, antialias: bool} |= if kernel_type ≠ "lanczos3" ∧ kernel_type ≠ "triangle" ∧ kernel_type ≠ "cubic" then antialias = false
 >>
-Rule 71 (if image is of type complex64, then antialias should be false)
-{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 10 then v_2 = false
+Rule 49 (size tensor elements must be non-negative)
+{size : tensor} |= ∀i ∈ [0, 1] : size[i] ≥ 0
 >>
-Rule 72 (Images and size tensors must have same rank)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 50 (scale value must be a positive finite number)
+{scale : tensor} |= min(scale) > 0 ∧ min(scale) < 3.4028235e+38
 >>
-Rule 75 (The size should be 1D tensor of int32)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ dtype_(v_1) = 3
+Rule 52 (if images is uint8, antialias must be false)
+{images : tensor, antialias: bool} |= if dtype_(images) = 5 then antialias = false
 >>
-Rule 79 (Translation values are float)
-{v_1 : tensor} |= ∀i ∈ [0, 1] : dtype_(v_1) = 8
+Rule 53 (If images is int8, antialias should be false)
+{images : tensor, antialias: bool} |= if dtype_(images) = 1 then antialias = false
 >>
-Rule 80 (images should have shape greater than or equal to size's value.)
-{v_1 : tensor, v_2 : tensor} |=  ∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, i) ≥ v_2[i]
+Rule 54 (if images is int16, antialias must be false)
+{images : tensor, antialias: bool} |= if dtype_(images) = 2 then antialias = false
 >>
-Rule 81 (If Images's dtype is smaller or equal to int64 and antialias is True, it's invalid)
-{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) < 5 then v_2 = false
+Rule 55 (if images is int32, antialias must be false)
+{images : tensor, antialias: bool} |= if dtype_(images) = 3 then antialias = false
 >>
-Rule 85 (translation should have shape 2 and dtype float32)
-{v_1 : tensor} |= shape(v_1, 0) = 2 ∧ dtype_(v_1) = 8
+Rule 56 (if images is int64, antialias must be false)
+{images : tensor, antialias: bool} |= if dtype_(images) = 4 then antialias = false
 >>
-Rule 88 (Translation values are float32)
-{v_1 : tensor} |=  dtype_(v_1) = 8
+Rule 58 (if images is float16, antialias must be true)
+{images : tensor, antialias: bool} |= if dtype_(images) = 7 then antialias = true
 >>
-Rule 97 (If image is int8, antialias has to be false)
-{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 1 then v_2 = false
+Rule 59 (if images is float32, antialias must be false)
+{images : tensor, antialias: bool} |= if dtype_(images) = 8 then antialias = false
 >>
-Rule 98 (Images can not be empty)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 60 (if images is float64, antialias must be false)
+{images : tensor, antialias: bool} |= if dtype_(images) = 9 then antialias = false
 >>
-Rule 105 (If images is uint8, antialias must be false)
-{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 5 then v_2 = false
+Rule 61 (if images is bfloat16, antialias must be false)
+{images : tensor, antialias: bool} |= if dtype_(images) = 6 then antialias = false
 >>
-Rule 107 (If image is int16, antialias is false)
-{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 2 then v_2 = false
+Rule 66 (images and scale tensors must be of the same floating point dtype)
+{images : tensor, scale: tensor} |= (dtype_(images) = 6 ∧ dtype_(scale) = 7) ∨ (dtype_(images) = 8 ∧ dtype_(scale) = 7) ∨ (dtype_(images) = 9 ∧ dtype_(scale) = 7)
 >>
-Rule 108 (size has only non negative values)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1,0) - 1] : v_1[i] ≥ 0
+Rule 67 (translation values must not be NaN)
+{translation : tensor} |= ∀i ∈ [0, 1] : translation[i] ≠ "NaN"
 >>
-Rule 110 (Images should have valid dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0
+Rule 68 (scale value must not be NaN)
+{scale : tensor} |= min(scale) ≠ "NaN" ∧ max(scale) ≠ "NaN"
+>>
+Rule 69 (if antialias is set to true, then images should be a floating point tensor.)
+{images : tensor, antialias : bool} |= if antialias = true then (dtype_(images) = 6 ∨ dtype_(images) = 7 ∨ dtype_(images) = 8 ∨ dtype_(images) = 9)
+>>
+Rule 70 (scale value must be finite and positive)
+{scale : tensor} |= ∀i ∈ [0, 0] : scale > 0 ∧ scale < 3.4028235e+38
+>>
+Rule 71 (translation values must be finite numbers)
+{translation : tensor} |= ∀i ∈ [0, 1] : translation[i] < 3.4028235e+38 ∧ translation[i] > -3.4028235e+38
+>>
+Rule 72 (scale value must be a non-zero finite number)
+{scale : tensor} |= min(scale) ≠ 0 ∧ min(scale) < 3.4028235e+38 ∧ max(scale) > -3.4028235e+38
+>>
+Rule 73 (kernel_type must be a valid option)
+{kernel_type: str} |= kernel_type = "lanczos3" ∨ kernel_type = "triangle" ∨ kernel_type = "cubic"
+>>
+Rule 74 (if images tensor is an integer type then antialias must be false)
+{images : tensor, antialias : bool} |= if (dtype_(images) = 1 ∨ dtype_(images) = 2 ∨ dtype_(images) = 3 ∨ dtype_(images) = 4 ∨ dtype_(images) = 5) then antialias = false
+>>
+Rule 75 (images and translation tensors should be the same floating point dtype)
+{images : tensor, translation : tensor} |= (dtype_(images) = 6 ∧ dtype_(translation) = 7) ∨ (dtype_(images) = 8 ∧ dtype_(translation) = 7) ∨ (dtype_(images) = 9 ∧ dtype_(translation) = 7)
+>>
+Rule 76 (size values must be less than or equal to the corresponding images shape dimensions)
+{images : tensor, size : tensor} |= shape(size, 0) <= shape(images, ndim(images) - 2) ∧ shape(size, 1) <= shape(images, ndim(images) - 3)
+>>
+Rule 77 (images must be either 3D or 4D tensor)
+{images: tensor} |= ndim(images) = 3 ∨ ndim(images) = 4

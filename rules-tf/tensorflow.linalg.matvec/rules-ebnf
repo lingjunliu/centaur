@@ -1,54 +1,123 @@
 >>
-Rule 1 (a must have rank >= 2)
-{v_1 : tensor} |= ndim(v_1) ≥ 2
+Rule 1 (a and b must be of the same type)
+{a : tensor, b : tensor} |= dtype_(a) = dtype_(b)
 >>
-Rule 2 (a and b must have the same type and it must be one of float16, float32, float64, int32, complex64, complex128 (represented by indices 6, 7, 8, 3, 9, 10 respectively))
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 2 (a must be a tensor of rank greater than 1)
+{a : tensor} |= ndim(a) > 1
 >>
-Rule 3 (last dimension of a must match last dimension of b)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 1)
+Rule 4 (shape(a)[-1] == shape(b)[-1])
+{a : tensor, b : tensor} |= shape(a, ndim(a) - 1) = shape(b, ndim(b) - 1)
 >>
-Rule 5 (a_is_sparse and b_is_sparse are only valid for bfloat16 or float32 and rank 2/1)
-{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4 : bool} |= if v_3 ∨ v_4 then (dtype_(v_1) = 7 ∧ ndim(v_1) = 2 ∧ ndim(v_2) = 1)
+Rule 5 (if a_is_sparse is True, a must be rank-2 tensor)
+{a : tensor, a_is_sparse : bool} |= if a_is_sparse then ndim(a) = 2
 >>
-Rule 6 (b must have rank > 0)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 6 (if b_is_sparse is True, b must be rank-1 tensor)
+{b : tensor, b_is_sparse : bool} |= if b_is_sparse then ndim(b) = 1
 >>
-Rule 7 (transpose_a and adjoint_a cannot both be true)
-{v_1 : bool, v_2 : bool} |= (v_1 = false) ∨ (v_2 = false)
+Rule 7 (if a_is_sparse, the dtype of a must be float16 or float32)
+{a : tensor, a_is_sparse : bool} |= if a_is_sparse then dtype_(a) = "float16" ∨ dtype_(a) = "float32"
 >>
-Rule 8 (transpose_a and adjoint_a cannot both be true)
-{v_1 : bool, v_2 : bool} |= if v_1 then v_2 = false
+Rule 8 (if b_is_sparse, the dtype of b must be float16 or float32)
+{b : tensor, b_is_sparse : bool} |= if b_is_sparse then dtype_(b) = "float16" ∨ dtype_(b) = "float32"
 >>
-Rule 9 (a_is_sparse and b_is_sparse are boolean values)
-{v_1 : bool, v_2 : bool} |= (v_1 = true ∨ v_1 = false) ∧ (v_2 = true ∨ v_2 = false)
+Rule 9 (a must be a float16, float32, float64, int32, complex64, or complex128)
+{a : tensor} |= dtype_(a) = "float16" ∨ dtype_(a) = "float32" ∨ dtype_(a) = "float64" ∨ dtype_(a) = "int32" ∨ dtype_(a) = "complex64" ∨ dtype_(a) = "complex128"
 >>
-Rule 10 (If a_is_sparse is true, then a's dtype must be float32)
-{v_1 : tensor, v_2 : bool} |= if v_2 then dtype_(v_1) = 7
+Rule 10 (b must be a float16, float32, float64, int32, complex64, or complex128)
+{b : tensor} |= dtype_(b) = "float16" ∨ dtype_(b) = "float32" ∨ dtype_(b) = "float64" ∨ dtype_(b) = "int32" ∨ dtype_(b) = "complex64" ∨ dtype_(b) = "complex128"
 >>
-Rule 12 (If b_is_sparse is true, then b's dtype must be float32 or bfloat16)
-{v_1 : tensor, v_2 : bool} |= if v_2 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 6)
+Rule 11 (transpose_a and adjoint_a cannot both be True)
+{transpose_a : bool, adjoint_a : bool} |= if transpose_a then adjoint_a = false
 >>
-Rule 13 (If a_is_sparse is true, then a must be rank 2)
-{v_1 : tensor, v_2 : bool} |= if v_2 then ndim(v_1) = 2
+Rule 12 (If a is sparse, the rank of a must be at least 2)
+{a : tensor, a_is_sparse : bool} |= if a_is_sparse then ndim(a) ≥ 2
 >>
-Rule 14 (If b_is_sparse is true, then b must be rank 1)
-{v_1 : tensor, v_2 : bool} |= if v_2 then ndim(v_1) = 1
+Rule 13 (If b is sparse, the rank of b must be at least 1)
+{b : tensor, b_is_sparse : bool} |= if b_is_sparse then ndim(b) ≥ 1
 >>
-Rule 15 (If b_is_sparse is true, then b must be rank 1 and a must be rank 2)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then ndim(v_1) = 2 ∧ ndim(v_2) = 1
+Rule 15 (Shape of a must be greater than 1 if transpose_a is true.)
+{a : tensor, transpose_a : bool} |= if transpose_a then ndim(a) > 1
 >>
-Rule 17 (If a_is_sparse is true, then a and b must have datatypes bfloat16 or float32)
-{v_1 : tensor, v_2 : bool} |= if v_2 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7)
+Rule 16 (Shape of a must be greater than 1 if adjoint_a is true.)
+{a : tensor, adjoint_a : bool} |= if adjoint_a then ndim(a) > 1
 >>
-Rule 18 (If b_is_sparse is true, then b must be rank 1, a must be rank 2 and a and b must have datatypes bfloat16 or float32)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then ndim(v_1) = 2 ∧ ndim(v_2) = 1 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7)
+Rule 18 (If a_is_sparse or b_is_sparse is True, then transpose_a and adjoint_a must be false)
+{a_is_sparse : bool, b_is_sparse : bool, transpose_a : bool, adjoint_a : bool} |= if a_is_sparse ∨ b_is_sparse then transpose_a = false ∧ adjoint_a = false
 >>
-Rule 23 (Simplified shape compatibility for broadcasting)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 1 then shape(v_1, ndim(v_1) -2) = 1 ∨ shape(v_2, ndim(v_2) -1) = 1 ∨ shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 1)
+Rule 22 (if a is sparse, the dtype of a must be bfloat16 or float32)
+{a : tensor, a_is_sparse : bool} |= if a_is_sparse then dtype_(a) = "float32"
 >>
-Rule 24 (If b_is_sparse is true, then transpose_a and adjoint_a must be false)
-{v_1 : bool, v_2 : bool, v_3 : bool} |= if v_3 then v_1 = false ∧ v_2 = false
+Rule 23 (if b is sparse, the dtype of b must be bfloat16 or float32)
+{b : tensor, b_is_sparse : bool} |= if b_is_sparse then dtype_(b) = "float32"
 >>
-Rule 26 (If a_is_sparse is true, then transpose_a must be false)
-{v_1 : bool, v_2 : bool} |= if v_2 then v_1 = false
+Rule 25 (If transpose_a is true, the last two dimensions of a must be swapped before multiplication)
+{a : tensor, transpose_a : bool} |= if transpose_a then shape(a, ndim(a)-2) = shape(b, ndim(b)-1) else shape(a, ndim(a)-1) = shape(b, ndim(b)-1)
+>>
+Rule 26 (Value for attr 'T' of bool is not in the list of allowed values)
+{a : tensor} |= dtype_(a) ≠ "bool"
+>>
+Rule 27 (If transpose_a is true, the shape of a must be valid.)
+{a : tensor, b: tensor, transpose_a : bool} |= if transpose_a then shape(a, ndim(a) - 2) = shape(b, ndim(b) - 1)
+>>
+Rule 29 (if adjoint_a is true, a must have a complex or float dtype)
+{a : tensor, adjoint_a : bool} |= if adjoint_a then (dtype_(a) = "float16" ∨ dtype_(a) = "float32" ∨ dtype_(a) = "float64" ∨ dtype_(a) = "complex64" ∨ dtype_(a) = "complex128")
+>>
+Rule 31 (If a is a sparse matrix then ndim(a) must be 2)
+{a: tensor, a_is_sparse : bool} |= if a_is_sparse then ndim(a) = 2
+>>
+Rule 32 (The type of input a must be numeric)
+{a : tensor} |= dtype_(a) ≠ "bool" ∧ dtype_(a) ≠ "str" ∧ dtype_(a) ≠ "dtype"
+>>
+Rule 33 (if a_is_sparse is true then a is not a matrix)
+{a : tensor, a_is_sparse : bool} |= if a_is_sparse then ndim(a) > 1
+>>
+Rule 35 (cannot compute _MklBatchMatMulV2 when a is a complex128 and a_is_sparse or b_is_sparse is true)
+{a : tensor, a_is_sparse : bool, b_is_sparse : bool} |= if dtype_(a) = "complex128" then if a_is_sparse then false else if b_is_sparse then false
+>>
+Rule 37 (a cannot be DT_UINT8)
+{a: tensor} |= dtype_(a) ≠ "uint8"
+>>
+Rule 38 (If using SparseMatMul a should be a matrix.)
+{a : tensor, a_is_sparse: bool} |= if a_is_sparse then ndim(a) = 2
+>>
+Rule 39 (The type of tensor a must be allowed for BatchMatMulV2)
+{a: tensor} |= dtype_(a) = "float16" ∨ dtype_(a) = "float32" ∨ dtype_(a) = "float64" ∨ dtype_(a) = "int16" ∨ dtype_(a) = "int32" ∨ dtype_(a) = "int64" ∨ dtype_(a) = "uint8" ∨ dtype_(a) = "uint16" ∨ dtype_(a) = "uint32" ∨ dtype_(a) = "uint64" ∨ dtype_(a) = "complex64" ∨ dtype_(a) = "complex128" ∨ dtype_(a) = "bfloat16"
+>>
+Rule 40 (The type of tensor b must be allowed for BatchMatMulV2)
+{b: tensor} |= dtype_(b) = "float16" ∨ dtype_(b) = "float32" ∨ dtype_(b) = "float64" ∨ dtype_(b) = "int16" ∨ dtype_(b) = "int32" ∨ dtype_(b) = "int64" ∨ dtype_(b) = "uint8" ∨ dtype_(b) = "uint16" ∨ dtype_(b) = "uint32" ∨ dtype_(b) = "uint64" ∨ dtype_(b) = "complex64" ∨ dtype_(b) = "complex128" ∨ dtype_(b) = "bfloat16"
+>>
+Rule 41 (If a_is_sparse is set to true, a's data type must be bfloat16 or float32)
+{a: tensor, a_is_sparse : bool} |= if a_is_sparse then dtype_(a) = "bfloat16" ∨ dtype_(a) = "float32"
+>>
+Rule 42 (If b_is_sparse is true, b's data type must be bfloat16 or float32)
+{b: tensor, b_is_sparse : bool} |= if b_is_sparse then dtype_(b) = "bfloat16" ∨ dtype_(b) = "float32"
+>>
+Rule 44 (The types of a and b must be numeric or variant)
+{a: tensor, b: tensor} |= (dtype_(a) ≠ "bool") ∧ (dtype_(b) ≠ "bool") ∧ (dtype_(a) ≠ "str") ∧ (dtype_(b) ≠ "str") ∧ (dtype_(a) ≠ "dtype") ∧ (dtype_(b) ≠ "dtype")
+>>
+Rule 46 (a tensor cannot have dtype str when using BatchMatMulV2)
+{a: tensor} |= dtype_(a) ≠ "str"
+>>
+Rule 47 (a tensor cannot have dtype dtype when using BatchMatMulV2)
+{a: tensor} |= dtype_(a) ≠ "dtype"
+>>
+Rule 48 (a tensor cannot have dtype dtype when using BatchMatMulV2)
+{b: tensor} |= dtype_(b) ≠ "dtype"
+>>
+Rule 49 (b tensor cannot have dtype str when using BatchMatMulV2)
+{b: tensor} |= dtype_(b) ≠ "str"
+>>
+Rule 50 (b tensor cannot have dtype dtype when using BatchMatMulV2)
+{a: tensor} |= dtype_(a) ≠ "bfloat16" ∨ dtype_(a) ≠ "half" ∨ dtype_(a) ≠ "float" ∨ dtype_(a) ≠ "double" ∨ dtype_(a) ≠ "int16" ∨ dtype_(a) ≠ "int32" ∨ dtype_(a) ≠ "int64" ∨ dtype_(a) ≠ "uint8" ∨ dtype_(a) ≠ "uint16" ∨ dtype_(a) ≠ "uint32" ∨ dtype_(a) ≠ "uint64" ∨ dtype_(a) ≠ "complex64" ∨ dtype_(a) ≠ "complex128"
+>>
+Rule 51 (a tensor cannot have dtype dtype when using BatchMatMulV2)
+{a: tensor} |= dtype_(a) ≠ "bfloat16" ∧ dtype_(a) ≠ "half" ∧ dtype_(a) ≠ "float" ∧ dtype_(a) ≠ "double" ∧ dtype_(a) ≠ "int16" ∧ dtype_(a) ≠ "int32" ∧ dtype_(a) ≠ "int64" ∧ dtype_(a) ≠ "uint8" ∧ dtype_(a) ≠ "uint16" ∧ dtype_(a) ≠ "uint32" ∧ dtype_(a) ≠ "uint64" ∧ dtype_(a) ≠ "complex64" ∧ dtype_(a) ≠ "complex128"
+>>
+Rule 52 (b tensor cannot have dtype dtype when using BatchMatMulV2)
+{b: tensor} |= dtype_(b) ≠ "bfloat16" ∧ dtype_(b) ≠ "half" ∧ dtype_(b) ≠ "float" ∧ dtype_(b) ≠ "double" ∧ dtype_(b) ≠ "int16" ∧ dtype_(b) ≠ "int32" ∧ dtype_(b) ≠ "int64" ∧ dtype_(b) ≠ "uint8" ∧ dtype_(b) ≠ "uint16" ∧ dtype_(b) ≠ "uint32" ∧ dtype_(b) ≠ "uint64" ∧ dtype_(b) ≠ "complex64" ∧ dtype_(b) ≠ "complex128" ∧ dtype_(b) ≠ "bool" ∧ dtype_(b) ≠ "str" ∧ dtype_(b) ≠ "dtype"
+>>
+Rule 54 (tensor a cannot have dtype dtype when using BatchMatMulV2)
+{a: tensor} |= if dtype_(a) = "bfloat16" ∨ dtype_(a) = "half" ∨ dtype_(a) = "float" ∨ dtype_(a) = "double" ∨ dtype_(a) = "int16" ∨ dtype_(a) = "int32" ∨ dtype_(a) = "int64" ∨ dtype_(a) = "uint8" ∨ dtype_(a) = "uint16" ∨ dtype_(a) = "uint32" ∨ dtype_(a) = "uint64" ∨ dtype_(a) = "complex64" ∨ dtype_(a) = "complex128" then false
+>>
+Rule 60 (If the first input cannot be uint8 then the first input should not be uint8)
+{a : tensor, a_is_sparse : bool, b_is_sparse : bool} |= if dtype_(a) = "uint8" then a_is_sparse = false ∧ b_is_sparse= false

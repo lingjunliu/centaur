@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check if tensor's dtype is complex (Rule 29)
+# if x is complex, then the imaginary part should not be zero. (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)) if n else
-          Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10))
+    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), True, True)) if n else
+          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), True, True))
 )
 
 def rule_29_func(arg1, solver=None, neg=False):

@@ -1,72 +1,96 @@
 >>
-Rule 1 (indices must be an integer tensor (int32 or int64))
-{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Rule 1 (indices must be int32 or int64)
+{indices : tensor} |= dtype_(indices) = 2 ∨ dtype_(indices) = 4
 >>
-Rule 2 (updates must have the same type as tensor)
-{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3)
+Rule 2 (updates and tensor must have the same dtype)
+{tensor : tensor, updates : tensor} |= dtype_(tensor) = dtype_(updates)
 >>
-Rule 3 (indices's shape[-1] must be less than or equal to the rank of tensor)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) > 0 ∧ shape(v_2, ndim(v_2) - 1) ≤ ndim(v_1)
+Rule 3 (indices shape[-1] must be less than or equal to tensor rank)
+{tensor : tensor, indices : tensor} |= shape(indices, ndim(indices) - 1) ≤ ndim(tensor)
 >>
-Rule 4 (bad_indices_policy must be a valid string)
-{v_4 : str} |= v_4 = "" ∨ v_4 = "DEFAULT" ∨ v_4 = "ERROR" ∨ v_4 = "IGNORE"
+Rule 4 (updates shape must be indices.shape[:-1] + tensor.shape[indices.shape[-1]:])
+{tensor : tensor, indices : tensor, updates : tensor} |= ndim(updates) = ndim(indices) - 1 + (ndim(tensor) - shape(indices, ndim(indices) - 1))
 >>
-Rule 5 (rank of updates should be greater than 0)
-{v_3 : tensor} |= ndim(v_3) > 0
+Rule 5 (bad_indices_policy must be a valid string value)
+{bad_indices_policy : str} |= bad_indices_policy = "" ∨ bad_indices_policy = "DEFAULT" ∨ bad_indices_policy = "ERROR" ∨ bad_indices_policy = "IGNORE"
 >>
-Rule 6 (indices must have at least one dimension)
-{v_2 : tensor} |= ndim(v_2) > 0
+Rule 6 (Tensor rank should be positive)
+{tensor : tensor} |= ndim(tensor) > 0
 >>
-Rule 7 (tensor should have dimension larger than 0)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 7 (Indices should not be empty)
+{indices : tensor} |= ∀i ∈ [0, ndim(indices) - 1] : shape(indices, i) > 0
 >>
-Rule 8 (If bad_indices_policy is "ERROR", the op does not support GPU)
-{v_4 : str} |= if v_4 = "ERROR" then false
+Rule 8 (Updates should not be empty)
+{updates : tensor} |= ∀i ∈ [0, ndim(updates) - 1] : shape(updates, i) > 0
 >>
-Rule 10 (updates cannot have a dimension of size 0)
-{v_3 : tensor} |= ∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) > 0
+Rule 9 (If indices is rank 1, updates should be rank 0 and have the same type)
+{tensor : tensor, indices : tensor, updates : tensor} |= if ndim(indices) = 1 then ndim(updates) = 0 ∧ dtype_(tensor) = dtype_(updates)
 >>
-Rule 11 (The updates tensor rank must be greater or equal than index tensor rank minus 1)
-{v_2 : tensor, v_3 : tensor} |= ndim(v_3) ≥ ndim(v_2) - 1
+Rule 20 (Shape of updates should match the expected shape)
+{indices : tensor, updates : tensor} |=  (ndim(indices) > 0) ∧ (∀i ∈ [0, ndim(indices) - 1] : if i < ndim(indices) - 1 then shape(updates, i) = shape(indices, i))
 >>
-Rule 12 (indices values should not be negative)
-{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : ∀j ∈ [0, shape(v_2, 1) - 1] : v_2[i] ≥ 0
+Rule 24 (updates shape must conform to indices shape and tensor shape)
+{indices : tensor, updates : tensor} |= if ndim(indices) > 0 then ∀i ∈ [0, ndim(indices) - 2] : shape(updates, i) = shape(indices, i)
 >>
-Rule 13 (tensor must be a valid tensor)
-{v_1 : tensor} |= dtype_(v_1) ≠ 12
+Rule 30 (If bad indices policy is ERROR, then the op must be running on CPU)
+{bad_indices_policy: str} |= if bad_indices_policy = "ERROR" then false
 >>
-Rule 14 (tensor and indices shape must be compatible)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) > 0 ∧ ndim(v_1) ≥ shape(v_2, ndim(v_2) - 1)
+Rule 34 (Shape of updates must align with indices and tensor)
+{tensor : tensor, indices : tensor, updates : tensor} |= if ndim(indices) > 1 then (∀i ∈ [0, ndim(indices) - 2] : shape(updates, i) = shape(indices, i)) ∧ (ndim(updates) = ndim(indices) - 1 + (ndim(tensor) - shape(indices, ndim(indices) -1 ))) else (ndim(indices) = 1 ∧ ndim(updates) = 0)
 >>
-Rule 15 (if indices is a scalar, it should not be negative)
-{v_2 : tensor} |= if ndim(v_2) = 0 then v_2 ≥ 0
+Rule 36 (If tensor is bool, then indices must be int32 or int64.)
+{tensor : tensor, indices : tensor} |= if dtype_(tensor) = 0 then dtype_(indices) = 2 ∨ dtype_(indices) = 4
 >>
-Rule 16 (If indices's last dimension equals tensor's rank, updates's rank should be at least 1)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 0 ∧ shape(v_2, ndim(v_2) - 1) = ndim(v_1) then ndim(v_3) ≥ 1
+Rule 37 (Indices should not be empty in the case of scalar updates)
+{indices : tensor, updates : tensor} |= if ndim(updates) = 0 then (∀i ∈ [0, ndim(indices) - 1] : shape(indices, i) > 0)
 >>
-Rule 17 (If indices's last dimension is less than tensor's rank, the updates's shape should be compatible)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 0 ∧ shape(v_2, ndim(v_2) - 1) < ndim(v_1) then ∀i ∈ [shape(v_2, ndim(v_2) - 1), ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, ndim(v_2)-1 + (i - shape(v_2, ndim(v_2) - 1)))
+Rule 44 (Indices should be non-empty if updates is a scalar and indices is not empty)
+{indices : tensor, updates : tensor} |= if ndim(updates) = 0 ∧ ndim(indices) > 0 then (∀i ∈ [0, ndim(indices) - 1] : shape(indices, i) > 0)
 >>
-Rule 18 (indices shape's first dimension should not be zero if the tensor is not a scalar.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then shape(v_2, 0) > 0
+Rule 45 (If bad_indices_policy is ERROR, then the op must be used with a supported device)
+{bad_indices_policy : str} |= if bad_indices_policy = "ERROR" then false
 >>
-Rule 20 (updates shape should match expected shape based on indices)
-{v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_2)-1]: shape(v_2, i) = shape(v_3, i))
+Rule 55 (The rank of indices can't be greater than 6)
+{indices : tensor} |= ndim(indices) <= 6
 >>
-Rule 21 (If indices is empty, updates should also be empty, unless tensor is a scalar)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 0 then (if ndim(v_1) > 0 then ndim(v_3) = 0)
+Rule 61 (The last dimension of indices must be <= the rank of the tensor)
+{tensor : tensor, indices : tensor} |= shape(indices, ndim(indices) - 1) <= ndim(tensor)
 >>
-Rule 22 (The shape of updates matches indices and tensor only if indices.shape[-1] < tensor.ndim)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 0 ∧ shape(v_2, ndim(v_2) - 1) < ndim(v_1) then shape(v_2, 0) = shape(v_3,0)
+Rule 62 (If bad_indices_policy is ERROR, then the op must be used with a supported device)
+{bad_indices_policy : str} |= bad_indices_policy ≠ "ERROR"
 >>
-Rule 23 (If indices.shape[-1] equals to tensor.ndim, the last dimension of updates is redundant.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 0 ∧ shape(v_2, ndim(v_2) - 1) = ndim(v_1) then shape(v_3, ndim(v_3)-1) > 0
+Rule 71 (The rank of updates must be non-negative.)
+{updates : tensor} |= ndim(updates) ≥ 0
 >>
-Rule 24 (If indices.shape[-1] is less than tensor.ndim, the shape of the updates tensor must be congruent.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 0 ∧ shape(v_2, ndim(v_2) - 1) < ndim(v_1) then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)
+Rule 84 (if bad indices policy is ERROR, then the tensor cannot be bool)
+{bad_indices_policy : str, tensor : tensor} |= if bad_indices_policy = "ERROR" then dtype_(tensor) ≠ 0
 >>
-Rule 25 (If indices.shape[-1] is less than tensor.ndim, updates.ndim should equal indices.ndim -1 + (tensor.ndim - indices.shape[-1]) )
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 0 ∧ shape(v_2, ndim(v_2) - 1) < ndim(v_1) then ndim(v_3) = ndim(v_2) - 1 + (ndim(v_1) - shape(v_2, ndim(v_2) - 1))
+Rule 85 (the last dimension of indices must be positive.)
+{indices : tensor} |= if ndim(indices) > 0 then shape(indices, ndim(indices) - 1) > 0
 >>
-Rule 33 (If indices is not empty and has valid shape, the maximum value of each index should be less than shape of v_1 )
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ shape(v_2, ndim(v_2)-1) > 0 then ∀j ∈ [0, shape(v_2, ndim(v_2)-1) - 1] : max(v_2) < shape(v_1, j)
+Rule 92 (If the tensor is complex, then the indices must be int32)
+{tensor : tensor, indices : tensor} |= if dtype_(tensor) = 9 ∨ dtype_(tensor) = 10 then dtype_(indices) = 2
+>>
+Rule 98 (If the tensor is complex, then the indices must be int32 or int64.)
+{tensor : tensor, indices : tensor} |= if dtype_(tensor) = 9 ∨ dtype_(tensor) = 10 then dtype_(indices) = 2 ∨ dtype_(indices) = 4
+>>
+Rule 99 (If the updates is a scalar, indices last dimension shape must be equal to the tensor rank if tensor is scalar)
+{tensor : tensor, indices : tensor, updates : tensor} |= if ndim(updates) = 0 ∧ ndim(tensor) = 0 then shape(indices, ndim(indices) - 1) = ndim(tensor) + 1
+>>
+Rule 105 (If the tensor is complex, then the indices must be int32 or int64, AND if bad_indices_policy is ERROR, the indices must be int32 or int64)
+{tensor : tensor, indices : tensor, bad_indices_policy : str} |= if (dtype_(tensor) = 9 ∨ dtype_(tensor) = 10) ∨ bad_indices_policy = "ERROR" then dtype_(indices) = 2 ∨ dtype_(indices) = 4
+>>
+Rule 112 (If the updates is a scalar, indices last dimension shape must be equal to the tensor rank if tensor is scalar)
+{tensor : tensor, indices : tensor, updates : tensor} |= if ndim(updates) = 0 ∧ ndim(tensor) = 0 then shape(indices, ndim(indices) - 1) = 1
+>>
+Rule 118 (If bad_indices_policy is ERROR and tensor is of unsupported dtype, then the updates dtype must be supported)
+{tensor : tensor, updates : tensor, bad_indices_policy : str} |= if bad_indices_policy = "ERROR" ∧ dtype_(tensor) = 0 then dtype_(updates) ≠ 0
+>>
+Rule 125 (Tensor cannot be Bool dtype when bad_indices_policy = ERROR)
+{tensor : tensor, bad_indices_policy : str} |= if bad_indices_policy = "ERROR" then dtype_(tensor) ≠ 0
+>>
+Rule 126 (updates and indices shapes must align)
+{tensor : tensor, indices : tensor, updates:tensor} |= if ndim(indices) > 0 then ndim(updates) = ndim(indices) - 1 + ndim(tensor) - shape(indices, ndim(indices) - 1)
+>>
+Rule 133 (if tensor is of unsupported dtype and bad_indices_policy is IGNORE, there might still be errors thrown.)
+{tensor: tensor, bad_indices_policy:str} |= if (dtype_(tensor) ≠ 7 ∧ dtype_(tensor) ≠ 8 ∧ dtype_(tensor) ≠ 9 ∧ dtype_(tensor) ≠ 10) ∧ bad_indices_policy = "IGNORE" then true

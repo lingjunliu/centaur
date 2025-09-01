@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# limit should be greater than the initial value of ref. (Rule 16)
+# if ref is int64, limit should also be representable by int64 (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_value"] > Select(v["arg1_range"], 0)) if n else
-          v["arg2_value"] > Select(v["arg1_range"], 0))
+    s.add(Not(If(v["arg1_dtype"] == 3, v["arg2_value"] < 9223372036854775807, True)) if n else
+          If(v["arg1_dtype"] == 3, v["arg2_value"] < 9223372036854775807, True))
 )
 
 def rule_16_func(arg1, arg2, solver=None, neg=False):
@@ -25,18 +25,17 @@ def rule_16_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
         arg2_value = Int('arg2_value')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 16
-        rule_16(solver, {'arg1_range': arg1_range, 'arg2_value': arg2_value})
+        rule_16(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_16(solver, {'arg1_range': arg1['range'], 'arg2_value': arg2['value']}, neg)
+        rule_16(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

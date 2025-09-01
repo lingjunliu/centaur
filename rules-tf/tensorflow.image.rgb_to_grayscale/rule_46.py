@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the tensor has one dimension, then the size of this dimension needs to be larger than 0 (Rule 46)
+# images tensor should be valid or raise an appropriate error. (Rule 46)
 
 rule_46 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) > 0, False)) if n else
-          If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) > 0, False))
+    s.add(Not(And(And((Or(Or(Or(Or(Or(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 3)), (v["arg1_dtype"] == 4)), (v["arg1_dtype"] == 5)), (v["arg1_dtype"] == 7)), (v["arg1_dtype"] == 8))), (And(v["arg1_ndim"] > 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])))), If(v["arg1_ndim"] > 1, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 3, If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) == 3, False)))) if n else
+          And(And((Or(Or(Or(Or(Or(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 3)), (v["arg1_dtype"] == 4)), (v["arg1_dtype"] == 5)), (v["arg1_dtype"] == 7)), (v["arg1_dtype"] == 8))), (And(v["arg1_ndim"] > 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])))), If(v["arg1_ndim"] > 1, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 3, If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) == 3, False))))
 )
 
 def rule_46_func(arg1, solver=None, neg=False):
@@ -24,16 +24,18 @@ def rule_46_func(arg1, solver=None, neg=False):
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 46
-        rule_46(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_46(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_46(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_46(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype']}, neg)

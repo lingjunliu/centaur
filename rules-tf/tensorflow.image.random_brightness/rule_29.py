@@ -5,35 +5,42 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if the image has a float dtype, the values should be between 0 and 1 (Rule 29)
+# Image must have a valid dtype, max_delta must be non-negative, and seed must be a non-negative integer (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 1), False)) if n else
-          If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 1), False))
+    s.add(Not(And(And((Or((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5)), (And(v["arg1_dtype"] >= 7, v["arg1_dtype"] <= 9)))), (v["arg2_value"] >= 0)), (v["arg3_value"] >= 0))) if n else
+          And(And((Or((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5)), (And(v["arg1_dtype"] >= 7, v["arg1_dtype"] <= 9)))), (v["arg2_value"] >= 0)), (v["arg3_value"] >= 0)))
 )
 
-def rule_29_func(arg1, solver=None, neg=False):
+def rule_29_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
+        if not isinstance(arg2, (float, np.floating)):
+            return False
+        if not (isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool)):
+            return False
 
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg2_value = Real('arg2_value')
+        arg3_value = Int('arg3_value')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg2_value == arg2)
+        solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 29
-        rule_29(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
+        rule_29(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_29(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)
+        rule_29(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)

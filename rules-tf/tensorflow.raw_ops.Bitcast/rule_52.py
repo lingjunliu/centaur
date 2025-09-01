@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input is qint16, the output cant be anything larger than a int32, or a float32. (Rule 52)
+# If the input and output have the same size, and input is not complex, neither can output be (Rule 52)
 
 rule_52 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 17, Or(v["arg2_value"] < 4, v["arg2_value"] < 8), False)) if n else
-          If(v["arg1_dtype"] == 17, Or(v["arg2_value"] < 4, v["arg2_value"] < 8), False))
+    s.add(Not(If((v["arg1_dtype"] * 8 == v["arg2_value"] * 8), If((v["arg1_dtype"] < 9), (v["arg2_value"] < 9), True), True)) if n else
+          If((v["arg1_dtype"] * 8 == v["arg2_value"] * 8), If((v["arg1_dtype"] < 9), (v["arg2_value"] < 9), True), True))
 )
 
 def rule_52_func(arg1, arg2, solver=None, neg=False):

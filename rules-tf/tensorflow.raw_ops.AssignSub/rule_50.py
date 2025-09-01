@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if ref is of type half then the value should also be of type half. (Rule 50)
+# if ref has bfloat16 then value must have the same type or can be casted (Rule 50)
 
 rule_50 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 16, v["arg2_dtype"] == 16, False)) if n else
-          If(v["arg1_dtype"] == 16, v["arg2_dtype"] == 16, False))
+    s.add(Not(If(v["arg1_dtype"] == 11, Or(v["arg2_dtype"] == 11, v["arg2_dtype"] == 7), True)) if n else
+          If(v["arg1_dtype"] == 11, Or(v["arg2_dtype"] == 11, v["arg2_dtype"] == 7), True))
 )
 
 def rule_50_func(arg1, arg2, solver=None, neg=False):

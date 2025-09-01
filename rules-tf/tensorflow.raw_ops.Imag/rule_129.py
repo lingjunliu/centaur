@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the specified dtype is float64, input must be complex128 (Rule 129)
+# If Tout is 0, output dtype depends on the input dtype. If Tout is provided then the input and output dtypes are the same (Rule 129)
 
 rule_129 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg2_value"] == 9), v["arg1_dtype"] == 11, False)) if n else
-          If((v["arg2_value"] == 9), v["arg1_dtype"] == 11, False))
+    s.add(Not(If(v["arg2_value"] == 0, (If(v["arg1_dtype"] == 10, v["arg1_dtype"] == 8, If(v["arg1_dtype"] == 11, v["arg1_dtype"] == 9, True))), v["arg1_dtype"] == v["arg2_value"])) if n else
+          If(v["arg2_value"] == 0, (If(v["arg1_dtype"] == 10, v["arg1_dtype"] == 8, If(v["arg1_dtype"] == 11, v["arg1_dtype"] == 9, True))), v["arg1_dtype"] == v["arg2_value"]))
 )
 
 def rule_129_func(arg1, arg2, solver=None, neg=False):

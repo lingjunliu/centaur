@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# images tensor values should be in [0, 1] (Rule 55)
+# The input tensor 'images' is well-defined only if its values are in [0, 1] (Rule 55)
 
 rule_55 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 1)) if n else
-          And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 1))
+    s.add(Not(If(And((Select(v["arg1_range"], 0) >= 0), (Select(v["arg1_range"], 1) <= 1)), True, False)) if n else
+          If(And((Select(v["arg1_range"], 0) >= 0), (Select(v["arg1_range"], 1) <= 1)), True, False))
 )
 
 def rule_55_func(arg1, solver=None, neg=False):

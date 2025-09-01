@@ -1,69 +1,57 @@
 >>
-Rule 1 (features tensor must be of specific data types)
+Rule 1 (features tensor must be of allowed data types: half, bfloat16, float32, float64 to avoid InvalidArgumentError)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 12
+>>
+Rule 2 (features tensor must be a tensor to use elu function)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 4 (name should not be empty)
+{v_2 : str} |= v_2 ≠ ""
+>>
+Rule 5 (features tensor must be of allowed data types: half, bfloat16, float32, float64 to avoid InvalidArgumentError)
 {v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 2 (features tensor must have a valid number of dimensions)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 7 (name should be a non-empty string)
+{v_2 : str} |= v_2 = "none" ∨ v_2 = "sum" ∨ v_2 = "max" ∨ v_2 = "min" ∨ v_2 = "prod" ∨ v_2 = "relu" ∨ v_2 = "tanh" ∨ v_2 = "sigmoid" ∨ v_2 = "softmax" ∨ v_2 = "elu" ∨ v_2 = "selu" ∨ v_2 = "gelu" ∨ v_2 = "swish" ∨ v_2 = "softplus" ∨ v_2 = "linear" ∨ v_2 = "valid" ∨ v_2 = "same" ∨ v_2 = "causal" ∨ v_2 = "channels_last" ∨ v_2 = "channels_first" ∨ v_2 ≠ ""
 >>
-Rule 3 (features tensor cannot have dimensions of size zero)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+Rule 10 (features tensor must have positive shape)
+{v_1 : tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 4 (if features tensor is of half type, its minimum value must be greater than a threshold)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > -100
+Rule 13 (features tensor's datatype can not be bool)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 5 (if features tensor is of bfloat16 type, its maximum value must be less than a threshold)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then max(v_1) < 100
+Rule 16 (features tensor must have dimension greater than zero)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 6 (if features tensor is of float64 type, its minimum value must be greater than -1)
-{v_1 : tensor} |= if dtype_(v_1) = 8 then min(v_1) > -1
+Rule 19 (features tensor must have a supported datatype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12
 >>
-Rule 7 (if features tensor is of float16 type, the shape along a specific dimension must be greater than zero)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 6 then v_2 ≥ 0 ∧ v_2 < ndim(v_1) ∧ shape(v_1, v_2) > 0
+Rule 23 (features tensor must be of allowed data types)
+{v_1 : tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)
 >>
-Rule 8 (if features tensor has more than one dimension, the size of the first dimension must be a positive integer)
-{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 0) > 0
+Rule 24 (name should be a string with allowed characters)
+{v_2 : str} |= ∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ "a" ∧ v_2[i] ≤ "z") ∨ (v_2[i] ≥ "A" ∧ v_2[i] ≤ "Z") ∨ (v_2[i] ≥ "0" ∧ v_2[i] ≤ "9") ∨ v_2[i] = "_"
 >>
-Rule 9 (if features tensor is of float32 type, the maximum value must be less than 1000)
-{v_1 : tensor} |= if dtype_(v_1) = 8 then max(v_1) < 1000
+Rule 28 (name is a valid string)
+{v_2 : str} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : ((v_2[i] ≥ "a" ∧ v_2[i] ≤ "z") ∨ (v_2[i] ≥ "A" ∧ v_2[i] ≤ "Z") ∨ (v_2[i] ≥ "0" ∧ v_2[i] ≤ "9") ∨ (v_2[i] = "_"))
 >>
-Rule 10 (features tensor shape must be within reasonable bounds to prevent overflow errors)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483647
+Rule 32 (name, if provided, must be a string composed of alphanumeric characters and underscores.)
+{v_2 : str} |= if v_2.len > 0 then (∀i ∈ [0, v_2.len - 1] : ((v_2[i] ≥ "a" ∧ v_2[i] ≤ "z") ∨ (v_2[i] ≥ "A" ∧ v_2[i] ≤ "Z") ∨ (v_2[i] ≥ "0" ∧ v_2[i] ≤ "9") ∨ (v_2[i] = "_")))
 >>
-Rule 11 (features tensor must have non-zero elements or be empty.)
-{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (min(v_1) ≠ 0 ∨ max(v_1) ≠ 0)
+Rule 34 (The name must match allowed patterns for graph node names.)
+{v_2 : str} |= if v_2.len > 0 then (∀i ∈ [0, v_2.len - 1] : ((v_2[i] ≥ "a" ∧ v_2[i] ≤ "z") ∨ (v_2[i] ≥ "A" ∧ v_2[i] ≤ "Z") ∨ (v_2[i] ≥ "0" ∧ v_2[i] ≤ "9") ∨ (v_2[i] = "_" ) ∨ (v_2[i] = ".")))
 >>
-Rule 12 (if the feature tensor is of type float32 or float64, its minimum value must be less than or equal to its maximum value)
-{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) ≤ max(v_1)
+Rule 36 (name should be a valid string comprised of alphanumeric or underscore characters)
+{v_2 : str} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : ( (v_2[i] ≥ "a" ∧ v_2[i] ≤ "z") ∨ (v_2[i] ≥ "A" ∧ v_2[i] ≤ "Z") ∨ (v_2[i] ≥ "0" ∧ v_2[i] ≤ "9") ∨ (v_2[i] = "_"))
 >>
-Rule 13 (If the feature tensor is of floating point type and has only one element, it must not be NaN or infinite)
-{v_1 : tensor} |= if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (ndim(v_1) = 0 ∨ (ndim(v_1) = 1 ∧ shape(v_1, 0) = 1)) then min(v_1) = min(v_1) ∧ max(v_1) = max(v_1)
+Rule 38 (Name, if provided, should adhere to pattern)
+{v_2 : str} |= (v_2.len = 0) ∨ (∃ i ∈ [0, v_2.len -1] : ((v_2[i] ≥ "a" ∧ v_2[i] ≤ "z") ∨ (v_2[i] ≥ "A" ∧ v_2[i] ≤ "Z") ∨ (v_2[i] ≥ "0" ∧ v_2[i] ≤ "9") ∨ (v_2[i] = "_") ∨ (v_2[i] = ".")))
 >>
-Rule 14 (features tensor should not have very large values to avoid overflow)
-{v_1 : tensor} |= max(v_1) < 1e10
+Rule 40 (Name string can contain allowed characters)
+{v_2 : str} |= (v_2.len = 0) ∨ (∀ i ∈ [0, v_2.len - 1] : ((v_2[i] ≥ "a" ∧ v_2[i] ≤ "z") ∨ (v_2[i] ≥ "A" ∧ v_2[i] ≤ "Z") ∨ (v_2[i] ≥ "0" ∧ v_2[i] ≤ "9") ∨ (v_2[i] = "_") ∨ (v_2[i] = ".")))
 >>
-Rule 15 (features tensor should not have very small values to prevent underflow)
-{v_1 : tensor} |= min(v_1) > -1e10
+Rule 41 (name string must contain alphanumeric characters, underscores, and periods or be absent)
+{v_2 : str} |= (v_2.len = 0) ∨ (∀i ∈ [0, v_2.len - 1] : (v_2[i] = "_") ∨ (v_2[i] = ".") ∨ (v_2[i] ≥ "a" ∧ v_2[i] ≤ "z") ∨ (v_2[i] ≥ "A" ∧ v_2[i] ≤ "Z") ∨ (v_2[i] ≥ "0" ∧ v_2[i] ≤ "9"))
 >>
-Rule 17 (The features tensor must be finite.)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 18 (features tensor dimensions should not be too large to avoid memory issues)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 100000
->>
-Rule 22 (If features tensor is of bfloat16, float32, or float64, then the number of elements should not exceed a certain limit. Prod can only take TENSORVAR)
-{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (shape(v_1, 0) * shape(v_1, 1) < 1000000)
->>
-Rule 23 (If features tensor is of bfloat16, float32, or float64, and has more than 2 dimensions, then the product of the first two dimensions should not exceed a certain limit)
-{v_1 : tensor} |= if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6) ∧ (ndim(v_1) > 2) then (shape(v_1, 0) * shape(v_1, 1) < 1000000)
->>
-Rule 24 (The size of any dimension of features tensor must be positive)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 26 (if the feature tensor has a shape defined, ensure the number of dimensions does not exceed 5)
-{v_1 : tensor} |= ndim(v_1) ≤ 5
->>
-Rule 27 (Features tensor rank must be less than or equal to 6)
-{v_1 : tensor} |= ndim(v_1) ≤ 6
->>
-Rule 28 (if features tensor has shape [1], its value must be between -1 and 1)
-{v_1 : tensor} |= if ndim(v_1) = 1 ∧ shape(v_1, 0) = 1 then -1 ≤ min(v_1) ∧ max(v_1) ≤ 1
+Rule 43 (If a name is specified, ensure it is a valid string)
+{v_2 : str} |= (v_2.len = 0) ∨ (∀i ∈ [0, v_2.len - 1] : ((v_2[i] = "_") ∨ (v_2[i] = ".") ∨ (v_2[i] ≥ "a" ∧ v_2[i] ≤ "z") ∨ (v_2[i] ≥ "A" ∧ v_2[i] ≤ "Z") ∨ (v_2[i] ≥ "0" ∧ v_2[i] ≤ "9")))

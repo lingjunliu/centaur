@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# updates.shape = indices.shape + ref.shape[1:] (Rule 4)
+# updates tensor's shape must be compatible with indices and ref tensors (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(Or((v["arg2_ndim"] == v["arg1_ndim"] + v["arg3_ndim"] - 1), (v["arg2_ndim"] == 0))) if n else
-          Or((v["arg2_ndim"] == v["arg1_ndim"] + v["arg3_ndim"] - 1), (v["arg2_ndim"] == 0)))
+    s.add(Not(Or(v["arg3_ndim"] == v["arg2_ndim"] + v["arg1_ndim"] - 1, v["arg3_ndim"] == 0)) if n else
+          Or(v["arg3_ndim"] == v["arg2_ndim"] + v["arg1_ndim"] - 1, v["arg3_ndim"] == 0))
 )
 
 def rule_4_func(arg1, arg2, arg3, solver=None, neg=False):

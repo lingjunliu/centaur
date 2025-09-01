@@ -1,48 +1,165 @@
 >>
-Rule 3 (segment_ids's shape must be a prefix of data's shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≤ ndim(v_1) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 1 (data tensor must be of a supported type)
+{data : tensor} |= dtype_(data) = 7 ∨ dtype_(data) = 8 ∨ dtype_(data) = 3 ∨ dtype_(data) = 6 ∨ dtype_(data) = 2 ∨ dtype_(data) = 1 ∨ dtype_(data) = 4 ∨ dtype_(data) = 9 ∨ dtype_(data) = 0 ∨ dtype_(data) = 5
 >>
-Rule 5 (num_segments must be non-negative)
-{v_3 : tensor} |= min(v_3) ≥ 0
+Rule 2 (segment_ids tensor must be of a supported type)
+{segment_ids : tensor} |= dtype_(segment_ids) = 3 ∨ dtype_(segment_ids) = 4
 >>
-Rule 6 (segment_ids values must be non-negative)
-{v_2 : tensor} |= min(v_2) ≥ 0
+Rule 3 (num_segments tensor must be of a supported type)
+{num_segments : tensor} |= dtype_(num_segments) = 3 ∨ dtype_(num_segments) = 4
 >>
-Rule 7 (segment_ids values must be less than num_segments on CPU - approximated)
-{v_2 : tensor, v_3 : tensor} |= max(v_2) < max(v_3)
+Rule 4 (num_segments must be greater than zero)
+{num_segments : tensor} |= min(num_segments) > 0
 >>
-Rule 8 (data tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 5 (segment_ids values must be non-negative)
+{segment_ids : tensor} |= min(segment_ids) ≥ 0
 >>
-Rule 9 (data tensor must have a valid dtype)
-{v_1 : tensor} |= (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 5)
+Rule 6 (The shape of segment_ids must be a prefix of the shape of data)
+{data : tensor, segment_ids : tensor} |= ∀i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = shape(data, i)
 >>
-Rule 10 (segment_ids tensor must have a valid dtype)
-{v_2 : tensor} |= (dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4)
+Rule 7 (num_segments has to be a scalar)
+{num_segments : tensor} |= ndim(num_segments) = 0
 >>
-Rule 12 (num_segments tensor must have a valid dtype)
-{v_3 : tensor} |= (dtype_(v_3) = 3) ∨ (dtype_(v_3) = 4)
+Rule 12 (If segment_ids is empty, then data is empty)
+{data : tensor, segment_ids : tensor} |= if (∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0) then (∃i ∈ [0, ndim(data) - 1] : shape(data, i) = 0)
 >>
-Rule 20 (data and segment_ids must have compatible sizes)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ ndim(v_2)
+Rule 13 (segment_ids values should be less than num_segments)
+{segment_ids : tensor, num_segments : tensor} |= ∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] < num_segments
 >>
-Rule 21 (if num_segments is 0, data cannot have elements.)
-{v_1 : tensor, v_3 : tensor} |= if min(v_3) = 0 then shape(v_1, 0) = 0
+Rule 14 (num_segments must be greater than or equal to the maximum value in segment_ids plus one, or segment_ids must be empty)
+{segment_ids : tensor, num_segments : tensor} |= (∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0) ∨ max(segment_ids) < num_segments
 >>
-Rule 22 (num_segments must be scalar.)
-{v_3 : tensor} |= ndim(v_3) = 0
+Rule 16 (If data is of type bfloat16, then the hardware supports bfloat16)
+{data : tensor} |= if dtype_(data) = 6 then true
 >>
-Rule 29 (Segment_ids should not have negative IDs)
-{v_2 : tensor} |= min(v_2) >= 0
+Rule 17 (If segment_ids is empty, then data is empty)
+{data : tensor, segment_ids : tensor} |= if ∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0 then ∃i ∈ [0, ndim(data) - 1] : shape(data, i) = 0
 >>
-Rule 34 (The rank of segment_ids should be less or equal to the rank of data)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) <= ndim(v_1)
+Rule 18 (segment_ids values should be less than num_segments if segment_ids is not empty)
+{segment_ids : tensor, num_segments : tensor} |= if ∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0 then true else ∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] < num_segments
 >>
-Rule 39 (shapes of data and segment_ids should be compatible)
-{v_1 : tensor, v_2 : tensor} |=  ∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 19 (num_segments must be greater than or equal to the maximum value in segment_ids plus one, or segment_ids must be empty)
+{segment_ids : tensor, num_segments : tensor} |= if ∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0 then true else max(segment_ids) < num_segments
 >>
-Rule 49 (Data should have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) >= 1
+Rule 23 (num_segments must be greater than or equal to the maximum value in segment_ids plus one, or segment_ids must be greater than or equal to 0)
+{segment_ids : tensor, num_segments : tensor} |= if ∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0 then num_segments ≥ 0 else max(segment_ids) < num_segments
 >>
-Rule 54 (shapes of data and segment_ids should be compatible)
-{v_1 : tensor, v_2 : tensor} |=  ∀i ∈ [0, if ndim(v_2) < 1 then 0 else ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 24 (Data must be of supported type)
+{data : tensor} |= dtype_(data) = 7 ∨ dtype_(data) = 8 ∨ dtype_(data) = 3 ∨ dtype_(data) = 6 ∨ dtype_(data) = 2 ∨ dtype_(data) = 1 ∨ dtype_(data) = 4
+>>
+Rule 26 (If segment_ids is not empty, segment_ids values should be non-negative)
+{segment_ids : tensor} |= if ∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0 then true else min(segment_ids) ≥ 0
+>>
+Rule 28 (The shape of segment_ids must be a prefix of the shape of data)
+{data : tensor, segment_ids : tensor} |= ∀i ∈ [0, if ndim(segment_ids) < ndim(data) then ndim(segment_ids) else ndim(data) - 1] : shape(segment_ids, i) = shape(data, i)
+>>
+Rule 34 (If segment_ids is not empty, data must be of a supported type)
+{data : tensor, segment_ids : tensor} |= if ∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0 then true else (dtype_(data) = 7 ∨ dtype_(data) = 8 ∨ dtype_(data) = 3 ∨ dtype_(data) = 6 ∨ dtype_(data) = 2 ∨ dtype_(data) = 1 ∨ dtype_(data) = 4)
+>>
+Rule 35 (If segment_ids is not empty, segment_ids must be of a supported type)
+{segment_ids : tensor} |= if ∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0 then true else (dtype_(segment_ids) = 3 ∨ dtype_(segment_ids) = 4)
+>>
+Rule 36 (If num_segments exists, it must be of a supported type)
+{num_segments : tensor} |= (dtype_(num_segments) = 3 ∨ dtype_(num_segments) = 4)
+>>
+Rule 37 (The shape of segment_ids must be a prefix of the shape of data, unless segment_ids is empty)
+{data : tensor, segment_ids : tensor} |= if ∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0 then true else ∀i ∈ [0, if ndim(segment_ids) < ndim(data) then ndim(segment_ids) else ndim(data) - 1] : shape(segment_ids, i) = shape(data, i)
+>>
+Rule 43 (segment_ids values must be non-negative or segment_ids is empty)
+{segment_ids : tensor} |= (∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0) ∨ min(segment_ids) ≥ 0
+>>
+Rule 44 (Shape of segment_ids must be a prefix of data, or segment_ids is empty)
+{data: tensor, segment_ids: tensor} |= (∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0) ∨ (∀i ∈ [0, if ndim(segment_ids) < ndim(data) then ndim(segment_ids) else ndim(data) - 1] : shape(segment_ids, i) = shape(data, i))
+>>
+Rule 49 (Shape of segment_ids must be a prefix of data)
+{data: tensor, segment_ids: tensor} |= ∀i ∈ [0, if ndim(segment_ids) < ndim(data) then ndim(segment_ids) else ndim(data) - 1] : shape(segment_ids, i) = shape(data, i)
+>>
+Rule 50 (num_segments must be a non-negative scalar value)
+{num_segments : tensor} |= ndim(num_segments) = 0 ∧ min(num_segments) ≥ 0
+>>
+Rule 51 (If num_segments is 0, data must be empty)
+{data : tensor, num_segments : tensor} |= if min(num_segments) = 0 then (∃i ∈ [0, ndim(data) - 1] : shape(data, i) = 0)
+>>
+Rule 53 (If segment_ids is not empty, values must be less than num_segments and num_segments must be greater than or equal to 0)
+{segment_ids : tensor, num_segments : tensor} |= if (∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0) then true else (∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] < num_segments) ∧ min(num_segments) ≥ 0
+>>
+Rule 54 (If segment_ids is not empty, then the first dimension of segment_ids must not exceed a certain bound)
+{data: tensor, segment_ids: tensor} |= if (∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0) then true else shape(segment_ids,0) <= shape(data,0)
+>>
+Rule 56 (If num_segments is zero then segment_ids can also be empty)
+{segment_ids : tensor, num_segments : tensor} |= if min(num_segments) = 0 then (∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0)
+>>
+Rule 57 (If segment_ids is not empty, values must be less than num_segments and num_segments must be greater than or equal to 0)
+{segment_ids : tensor, num_segments : tensor} |= if (∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0) then true else ((∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] < num_segments) ∧ min(num_segments) ≥ 0)
+>>
+Rule 58 (If segment_ids is not empty, then the first dimension of segment_ids must not exceed a certain bound)
+{data: tensor, segment_ids: tensor} |= if (∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0) then true else shape(segment_ids,0) ≤ shape(data,0)
+>>
+Rule 59 (If num_segments is not zero then it must be a scalar)
+{num_segments: tensor} |= if min(num_segments) = 0 then true else ndim(num_segments) = 0
+>>
+Rule 60 (num_segments must be greater than 0 if segment_ids is not empty.)
+{num_segments : tensor, segment_ids : tensor} |= if (∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0) then true else min(num_segments) > 0
+>>
+Rule 61 (If segment_ids is not empty, then the maximum value of segment_ids must be less than num_segments.)
+{num_segments : tensor, segment_ids : tensor} |= if (∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0) then true else max(segment_ids) < min(num_segments)
+>>
+Rule 62 (If num_segments > 0, the segment_ids values must be non-negative)
+{num_segments: tensor, segment_ids: tensor} |= if min(num_segments) > 0 then min(segment_ids) >= 0
+>>
+Rule 64 (If number of segments is of type int32, it should be greater than or equal to zero.)
+{num_segments: tensor} |= if dtype_(num_segments) = 3 then min(num_segments) >= 0
+>>
+Rule 76 (If the number of segments is 0, then the data can be empty, or the segment_ids must be empty)
+{data: tensor, num_segments: tensor, segment_ids: tensor} |= if min(num_segments) = 0 then (∃i ∈ [0, ndim(data) - 1] : shape(data, i) = 0) ∨ (∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0)
+>>
+Rule 77 (num_segments must be greater than or equal to 0)
+{num_segments : tensor} |= min(num_segments) ≥ 0
+>>
+Rule 83 (If segment_ids has any shape, data should also have some shape.)
+{data: tensor, segment_ids: tensor} |= if (∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0) then true else  (∃i ∈ [0, ndim(data) - 1] : shape(data, i) = 0)
+>>
+Rule 84 (If the number of segments is not zero, the number of segments must be a scalar if segment_ids is not empty)
+{num_segments: tensor, segment_ids: tensor} |= if min(num_segments) = 0 then true else if (∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0) then true else ndim(num_segments) = 0
+>>
+Rule 89 (If number of segments is 0, segment_ids must also be empty)
+{num_segments: tensor, segment_ids: tensor} |= if min(num_segments) = 0 then ∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0
+>>
+Rule 92 (If segment_ids has a shape, the first dimension of the segment_ids must be smaller or equal to the shape of the data if the data is not empty.)
+{data: tensor, segment_ids: tensor} |= if (∃i ∈ [0, ndim(data) - 1] : shape(data, i) = 0) then true else if (∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0) then true else shape(segment_ids,0) ≤ shape(data,0)
+>>
+Rule 93 (Number of segments needs to be a scalar)
+{num_segments: tensor} |= ndim(num_segments) = 0
+>>
+Rule 97 (If segment_ids has a shape, the first dimension of the segment_ids must be smaller or equal to the shape of the data if the data is not empty, or data is empty.)
+{data: tensor, segment_ids: tensor} |= if (∃i ∈ [0, ndim(data) - 1] : shape(data, i) = 0) then true else (∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0) ∨ shape(segment_ids,0) ≤ shape(data,0)
+>>
+Rule 99 (Data tensor must be of one of the supported types)
+{data: tensor} |= (dtype_(data) = 7 ∨ dtype_(data) = 8 ∨ dtype_(data) = 3 ∨ dtype_(data) = 6 ∨ dtype_(data) = 2 ∨ dtype_(data) = 1 ∨ dtype_(data) = 4)
+>>
+Rule 104 (data and segment_ids must have valid data types)
+{data: tensor, segment_ids: tensor} |= (dtype_(data) = 7 ∨ dtype_(data) = 8 ∨ dtype_(data) = 3 ∨ dtype_(data) = 6 ∨ dtype_(data) = 2 ∨ dtype_(data) = 1 ∨ dtype_(data) = 4) ∧ (dtype_(segment_ids) = 3 ∨ dtype_(segment_ids) = 4)
+>>
+Rule 107 (The shape of segment_ids must be less than or equal to the shape of the data if it not an empty tensor and the data is also not an empty tensor)
+{data: tensor, segment_ids: tensor} |= (∃i ∈ [0, ndim(data) - 1] : shape(data, i) = 0) ∨ (∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0) ∨ shape(segment_ids,0) ≤ shape(data,0)
+>>
+Rule 109 (If segment_ids has only one value, then it is smaller than the maximum possible segment id)
+{segment_ids : tensor, num_segments : tensor} |= if shape(segment_ids, 0) = 1 then min(segment_ids) < min(num_segments)
+>>
+Rule 112 (If segment_ids has a shape, and data also has a shape, then the shape of segment_ids' first dim is not bigger than data's first dim)
+{data: tensor, segment_ids: tensor} |= if (∃i ∈ [0, ndim(data) - 1] : shape(data, i) = 0) ∨ (∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0) then true else shape(segment_ids,0) ≤ shape(data,0)
+>>
+Rule 119 (data and num_segments should have the same dtype)
+{data: tensor, num_segments: tensor} |= if min(num_segments) = 0 then true else dtype_(data) = dtype_(num_segments)
+>>
+Rule 124 (data and segment_ids must have compatible dtypes)
+{data: tensor, segment_ids: tensor} |= if (dtype_(data) = 7 ∨ dtype_(data) = 8 ∨ dtype_(data) = 3 ∨ dtype_(data) = 6 ∨ dtype_(data) = 2 ∨ dtype_(data) = 1 ∨ dtype_(data) = 4) then (dtype_(segment_ids) = 3 ∨ dtype_(segment_ids) = 4)
+>>
+Rule 129 (If segment_ids is not empty, the max segment ID is less than number of segments)
+{segment_ids : tensor, num_segments : tensor} |= if ∃i ∈ [0, ndim(segment_ids) - 1] : shape(segment_ids, i) = 0 then true else max(segment_ids) < min(num_segments)
+>>
+Rule 134 (num_segments is greater or equal to 0)
+{num_segments: tensor} |= min(num_segments) ≥ 0
+>>
+Rule 135 (If data has a shape and its dtype is float32 or float64, then number of segments has type int32 or int64)
+{data: tensor, num_segments: tensor} |= if (dtype_(data) = 7 ∨ dtype_(data) = 8) then (dtype_(num_segments) = 3 ∨ dtype_(num_segments) = 4)

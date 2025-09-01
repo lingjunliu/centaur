@@ -5,37 +5,35 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# delta must be within bounds when image is of integer type (Rule 21)
+# Image tensor dimensions must be greater than 0 (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(Or(Or((v["arg2_dtype"] == 1), (v["arg2_dtype"] == 2)), (v["arg2_dtype"] == 3)), (v["arg2_dtype"] == 4)), (v["arg2_dtype"] == 5)), And(v["arg1_value"] >= -1, v["arg1_value"] <= 1), False)) if n else
-          If(Or(Or(Or(Or((v["arg2_dtype"] == 1), (v["arg2_dtype"] == 2)), (v["arg2_dtype"] == 3)), (v["arg2_dtype"] == 4)), (v["arg2_dtype"] == 5)), And(v["arg1_value"] >= -1, v["arg1_value"] <= 1), False))
+    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], i) > 0, v["arg1_ndim"] >= 3)) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], i) > 0, v["arg1_ndim"] >= 3)) for i in range(6)]))
 )
 
-def rule_21_func(arg1, arg2, solver=None, neg=False):
+def rule_21_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
-            return False
-        if not isinstance(arg2, np.ndarray):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 21
-        rule_21(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype})
+        rule_21(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_21(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_21(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

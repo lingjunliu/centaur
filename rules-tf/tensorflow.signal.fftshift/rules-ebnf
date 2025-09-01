@@ -1,105 +1,84 @@
 >>
-Rule 1 (input tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 3 (x should have positive dimensions)
+{x : tensor} |= ndim(x) > 0
 >>
-Rule 4 (if axes is provided as an integer, it must be non-negative)
-{v_2 : int} |= v_2 ≥ 0
+Rule 5 (axes can be an integer or tuple of integer when not None)
+{x : tensor, axes : tuple(int)} |= axes.len > 0
 >>
-Rule 5 (if axes is provided as an integer, it must be less than the number of dimensions of the input tensor)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) > v_2
+Rule 8 (input tensor x cannot be empty)
+{x : tensor} |= shape(x, 0) > 0
 >>
-Rule 7 (Input tensor's dimension can't be zero.)
-{v_1 : tensor} |= ndim(v_1) ≠ 0
+Rule 9 (axes should be within the valid range of dimensions of x, handling negative indices)
+{x : tensor, axes : tuple(int)} |= ∀i ∈ [0, axes.len - 1] : (axes[i] + ndim(x)) ≥ 0 ∧ (axes[i] + ndim(x)) < ndim(x) + ndim(x)
 >>
-Rule 8 (Check if shape of input tensor is positive.)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+Rule 10 (axes should be an integer when it is not a tuple, handling negative indices)
+{x : tensor, axes : int} |= (axes + ndim(x)) ≥ 0 ∧ (axes + ndim(x)) < ndim(x) + ndim(x)
 >>
-Rule 11 (If axes is a tuple, its length must be less than or equal to the number of dimensions of the input tensor)
-{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) ≥ shape(v_2, ".len")
+Rule 12 (axes should be within the valid range of dimensions of x, handling negative indices)
+{x : tensor, axes : tuple(int)} |= ∀i ∈ [0, axes.len - 1] : (axes[i] + ndim(x)) ≥ 0 ∧ (axes[i] + ndim(x)) < ndim(x)
 >>
-Rule 15 (If axes is a tuple, the values must be valid dimension indices)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1)
+Rule 13 (axes should be an integer when it is not a tuple, handling negative indices)
+{x : tensor, axes : int} |= (axes + ndim(x)) ≥ 0 ∧ (axes + ndim(x)) < ndim(x)
 >>
-Rule 16 (If axes is an integer, it must be a valid dimension index)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 ∧ v_2 < ndim(v_1)
+Rule 14 (If axes is a tuple, all elements must be unique)
+{axes : tuple(int)} |= ∀i ∈ [0, axes.len - 1] : ∀j ∈ [i + 1, axes.len - 1] : axes[i] ≠ axes[j]
 >>
-Rule 22 (Input tensor's dtype must be in a valid numerical range)
-{v_1 : tensor} |= dtype_(v_1) > 0 ∧ dtype_(v_1) < 11
+Rule 15 (axes should be within the valid range of dimensions of x, handling negative indices)
+{x : tensor, axes : tuple(int)} |= ∀i ∈ [0, axes.len - 1] : (axes[i] + ndim(x)) ≥ 0 ∧ axes[i] < ndim(x)
 >>
-Rule 23 (If axes is a tuple, its length must be less than the number of dimensions)
-{v_1 : tensor, v_2 : tuple(int)} |= shape(v_2, ".len") < ndim(v_1)
+Rule 16 (axes should be an integer when it is not a tuple, handling negative indices)
+{x : tensor, axes : int} |= (axes + ndim(x)) ≥ 0 ∧ axes < ndim(x)
 >>
-Rule 25 (Axes values should be less than the total number of dimensions)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, shape(v_2, ".len") - 1] :  v_2[i] < ndim(v_1)
+Rule 20 (x.dtype must be numerical)
+{x : tensor} |= dtype_(x) = 1 ∨ dtype_(x) = 2 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 5 ∨ dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10 ∨ dtype_(x) = 11
 >>
-Rule 31 (If axes is a tuple, its length should be less or equal the total number of dimension.)
-{v_1: tensor, v_2: tuple(int)} |= shape(v_2, ".len") <= ndim(v_1)
+Rule 21 (axes.dtype must be integer if axes is a tensor)
+{axes : tensor} |= dtype_(axes) = 1 ∨ dtype_(axes) = 2 ∨ dtype_(axes) = 3 ∨ dtype_(axes) = 4 ∨ dtype_(axes) = 5
 >>
-Rule 32 (If axes is a tuple, values should be in valid index range)
-{v_1 : tensor, v_2 : tuple(int)} |=  ∀i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)
+Rule 22 (axes values should be less than the corresponding shape of x)
+{x : tensor, axes : tuple(int)} |= ∀i ∈ [0, axes.len - 1] : if axes[i] < 0 then axes[i] + ndim(x) < shape(x, i) else axes[i] < shape(x, i)
 >>
-Rule 33 (If axes is an integer, it values should be in valid index range)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 24 (axes values should be valid dimensions of x)
+{x : tensor, axes : tuple(int)} |= ∀i ∈ [0, axes.len - 1] : if axes[i] < 0 then axes[i] + ndim(x) ≥ 0 else axes[i] < ndim(x)
 >>
-Rule 34 (If axes is a tuple, its length should be less or equal the total number of dimension.)
-{v_1: tensor, v_2: tuple(int)} |= shape(v_2, ".len") ≤ ndim(v_1)
+Rule 25 (axes values cannot exceed the number of dimensions of x)
+{x : tensor, axes : tuple(int)} |= axes.len ≤ ndim(x)
 >>
-Rule 41 (Axes should be within valid range)
-{v_1: tensor, v_2: int ⊎ tuple(int)} |= if v_2 = int then v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) else ∀i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)
+Rule 27 (axes values should be valid dimensions of x)
+{x : tensor, axes : tuple(int)} |= ∀i ∈ [0, axes.len - 1] : (axes[i] < 0 ∧ axes[i] ≥ (0 - ndim(x))) ∨ (axes[i] ≥ 0 ∧ axes[i] < ndim(x))
 >>
-Rule 42 (The dtype of input tensor should be numerical)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12
+Rule 28 (axes values should be less than the shape of corresponding dimension, considering negative indexing)
+{x : tensor, axes : tuple(int)} |= ∀i ∈ [0, axes.len - 1] : (axes[i] < 0 ∧ axes[i] + shape(x,i) >= 0) ∨ (axes[i] >= 0 ∧ axes[i] < shape(x,i))
 >>
-Rule 44 (The dtype of input tensor should be numerical or complex)
-{v_1 : tensor} |= (dtype_(v_1) > 0 ∧ dtype_(v_1) < 9) ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 29 (axes values should not result in out-of-bounds access)
+{x : tensor, axes : tuple(int)} |= ∀i ∈ [0, axes.len - 1] : (axes[i] + ndim(x) >= 0)
 >>
-Rule 45 (Axes should be within valid range when it is a tuple.)
-{v_1: tensor, v_2: tuple(int)} |= ∀i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)
+Rule 31 (axes values should be less than the shape of corresponding dimension, considering negative indexing and ensure the axis exists for x)
+{x : tensor, axes : tuple(int)} |= ∀i ∈ [0, axes.len - 1] : (axes[i] < 0 ∧ axes[i] + ndim(x) >= 0 ∧ i < ndim(x)) ∨ (axes[i] >= 0 ∧ axes[i] < ndim(x) ∧ i < ndim(x))
 >>
-Rule 47 (If axes is int, it must be in valid dimension range)
-{v_1: tensor, v_2: int} |= v_2 < ndim(v_1) ∧ v_2 >= (0-ndim(v_1))
+Rule 50 (axes should have a valid shape.)
+{axes : tensor} |= ndim(axes) <= 1
 >>
-Rule 50 (Input tensor can't be string)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
+Rule 51 (If axes is a tensor, then axes elements are valid indices for x)
+{x : tensor, axes : tensor} |= ∀i ∈ [0, shape(axes, 0) - 1]: (axes[i] >= (0 - ndim(x))) ∧ (axes[i] < ndim(x))
 >>
-Rule 51 (If axes is a tuple, values should be unique)
-{v_2: tuple(int)} |= ∀i ∈ [0, shape(v_2, ".len") - 1] : ∀j ∈ [i+1, shape(v_2, ".len") -1] : v_2[i] ≠ v_2[j]
+Rule 52 (If axes is a tensor, then axes elements are valid indices for x and dtype of axes is int)
+{x : tensor, axes : tensor} |= ∀i ∈ [0, shape(axes, 0) - 1]: (axes[i] >= (0 - ndim(x))) ∧ (axes[i] < ndim(x)) ∧ (dtype_(axes) = 1 ∨ dtype_(axes) = 2 ∨ dtype_(axes) = 3 ∨ dtype_(axes) = 4 ∨ dtype_(axes) = 5)
 >>
-Rule 53 (Input axes should not be none when tensor dimension is more than 0)
-{v_1:tensor, v_2: int ⊎ tuple(int)} |= if ndim(v_1) > 0 then v_2 ≠ "none"
+Rule 53 (if axes is a tensor, its shape must be compatible.)
+{x : tensor, axes : tensor} |= ndim(axes) = 1 ∧ shape(axes, 0) <= ndim(x)
 >>
-Rule 57 (axes values has to be valid and non-repeating)
-{v_1: tensor, v_2: tuple(int)} |=  ∀i ∈ [0, shape(v_2, ".len") - 1] : (v_2[i] >= (0-ndim(v_1)) ∧ v_2[i] < ndim(v_1)) ∧ (∀j ∈ [i+1, shape(v_2, ".len") -1] : v_2[i] ≠ v_2[j])
+Rule 55 (axes cannot be None if x has non-zero shape)
+{x : tensor, axes : int ⊎ tuple(int)} |= if (∃i ∈ [0, ndim(x) - 1] : shape(x, i) = 0) then true else axes ≠ None
 >>
-Rule 60 (The dtype of input tensor can not be a boolean value)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 56 (axes must be a tuple of unique integers)
+{axes : tuple(int)} |= ∀i ∈ [0, axes.len - 1] : ∀j ∈ [i+1, axes.len -1] : axes[i] ≠ axes[j]
 >>
-Rule 62 (If axes is a tuple, values should be valid.)
-{v_1: tensor, v_2: tuple(int)} |=  ∀i ∈ [0, shape(v_2, ".len") - 1] : (v_2[i] >= (0-ndim(v_1)) ∧ v_2[i] < ndim(v_1))
+Rule 58 (axes as tuple elements must be integers and valid)
+{x : tensor, axes : tuple(int)} |= ∀i ∈ [0, axes.len - 1]: (axes[i] >= (0 - ndim(x)) ∧ axes[i] < ndim(x))
 >>
-Rule 64 (The number of axes should be no more than 3)
-{v_2 : tuple(int)} |= shape(v_2, ".len") <= 3
+Rule 59 (x.len should be an even number to avoid Nyquist Component Errors)
+{x : tensor} |= if ndim(x) > 0 then (shape(x, 0) % 2) = 0
 >>
-Rule 66 (input tensor should have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
->>
-Rule 67 (if axes is a tuple, it must have at least one element)
-{v_2 : tuple(int)} |= v_2.len ≥ 1
->>
-Rule 73 (axes should be within the dimensions of the input tensor)
-{v_1 : tensor, v_2 : int ⊎ tuple(int)} |= if v_2 = 0 then true else if v_2 > 0 then v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) else if v_2 < 0 then v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) else ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)
->>
-Rule 78 (input tensor should have at least one dimension if axes is not None)
-{v_1 : tensor, v_2 : int ⊎ tuple(int)} |= if v_2 = 0 then true else ndim(v_1) ≥ 1
->>
-Rule 82 (name should be a string and not empty)
-{v_3 : str} |= v_3 ≠ ""
->>
-Rule 85 (if axes is a tuple, it must have valid dimension integers)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)
->>
-Rule 107 (If axes is a tuple, all elements must be integers)
-{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : true
->>
-Rule 109 (axes cannot have duplicate values if axes is a tuple)
-{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i + 1, v_2.len - 1] : v_2[i] ≠ v_2[j]
+Rule 60 (x.len should be an even number to avoid Nyquist Component Errors)
+{x : tensor} |= if ndim(x) > 0 ∧ shape(x, 0) > 0 then (shape(x, 0) % 2) = 0

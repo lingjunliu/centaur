@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Input tensor must have positive values (Rule 5)
+# Input tensor type should be bfloat16, half, float32, or float64 (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_range"], 0) > 0) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_range"], 0) > 0) for i in range(6)]))
+    s.add(Not(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9)) if n else
+          Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9))
 )
 
 def rule_5_func(arg1, solver=None, neg=False):
@@ -22,18 +22,15 @@ def rule_5_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 5
-        rule_5(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
+        rule_5(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_5(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_5(solver, {'arg1_dtype': arg1['dtype']}, neg)

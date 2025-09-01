@@ -5,16 +5,17 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# clip_value_min and clip_value_max should be the same type (Rule 8)
+# If clip_value_max is scalar, its value should be greater than or equal to the minimum of clip_value_min (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
-          v["arg1_dtype"] == v["arg2_dtype"])
+    s.add(Not(If(v["arg3_ndim"] == 0, Select(v["arg3_range"], 1) >= Select(v["arg2_range"], 0), True)) if n else
+          If(v["arg3_ndim"] == 0, Select(v["arg3_range"], 1) >= Select(v["arg2_range"], 0), True))
 )
 
-def rule_8_func(arg1, arg2, solver=None, neg=False):
+def rule_8_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
@@ -22,20 +23,26 @@ def rule_8_func(arg1, arg2, solver=None, neg=False):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
+        if not isinstance(arg3, np.ndarray):
+            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg3_ndim = Int('arg3_ndim')
+        arg3_range = Array('arg3_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg3_ndim == arg3.ndim)
+        arg3_range = Store(arg3_range, 0, int(np.min(arg3)))
+        arg3_range = Store(arg3_range, 1, int(np.max(arg3)))
 
         # Constraints for rule 8
-        rule_8(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_8(solver, {'arg2_range': arg2_range, 'arg3_range': arg3_range, 'arg3_ndim': arg3_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_8(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_8(solver, {'arg2_range': arg2['range'], 'arg3_range': arg3['range'], 'arg3_ndim': arg3['ndim']}, neg)

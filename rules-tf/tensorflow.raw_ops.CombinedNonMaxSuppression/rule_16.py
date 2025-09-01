@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# boxes tensor must be of type float32 (Rule 16)
+# pad_per_class is a boolean value (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == 7) if n else
-          v["arg1_dtype"] == 7)
+    s.add(Not(Or(v["arg1_value"] == True, v["arg1_value"] == False)) if n else
+          Or(v["arg1_value"] == True, v["arg1_value"] == False))
 )
 
 def rule_16_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_16_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_value = Bool('arg1_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 16
-        rule_16(solver, {'arg1_dtype': arg1_dtype})
+        rule_16(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_16(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_16(solver, {'arg1_value': arg1['value']}, neg)

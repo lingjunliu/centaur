@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If value has float type, bias should also have float type (Rule 29)
+# If value's dtype is qint8, quint8, qint32, qint16, quint16, then bias's dtype must also be one of them (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), False)) if n else
-          If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), False))
+    s.add(Not(If(Or(Or(v["arg1_dtype"] == 12, v["arg1_dtype"] == 13), v["arg1_dtype"] == 14), Or(Or(v["arg2_dtype"] == 12, v["arg2_dtype"] == 13), v["arg2_dtype"] == 14), True)) if n else
+          If(Or(Or(v["arg1_dtype"] == 12, v["arg1_dtype"] == 13), v["arg1_dtype"] == 14), Or(Or(v["arg2_dtype"] == 12, v["arg2_dtype"] == 13), v["arg2_dtype"] == 14), True))
 )
 
 def rule_29_func(arg1, arg2, solver=None, neg=False):

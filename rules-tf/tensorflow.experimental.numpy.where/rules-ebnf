@@ -1,99 +1,129 @@
 >>
-Rule 2 (if the condition is a bool tensor, then its elements must be either true or false)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then ∀i ∈ [0, shape(v_1,0) - 1] : (v_1[i] = true ∨ v_1[i] = false)
+Rule 2 (if x is None, then y must not be None, and vice versa)
+{v_1 : tensor, v_2 : tensor} |= (v_1 = true ∧ v_2 = false) ∨ (v_1 = false ∧ v_2 = true)
 >>
-Rule 3 (if condition is an integer or float tensor, all elements must be nonzero)
-{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then ∀i ∈ [0, shape(v_1,0) - 1] : v_1[i] ≠ 0
+Rule 3 (if condition is true, x must be provided, else y must be provided)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if min(v_1) = 1 ∧ max(v_1) = 1 then v_2 ≠ true else v_3 ≠ true
 >>
-Rule 4 (shape of x must equal the shape of y, if both are not None)
-{v_1 : tensor, v_2 : tensor} |= if v_1 ≠ 0 ∧ v_2 ≠ 0 then ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 4 (If condition, x, and y are all provided, then the shapes of x and y must be broadcastable to the shape of condition)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) ∧ ndim(v_1) ≥ ndim(v_3) then ndim(v_1) - 1 else if ndim(v_2) ≥ ndim(v_1) ∧ ndim(v_2) ≥ ndim(v_3) then ndim(v_2) - 1 else ndim(v_3) - 1] : (ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)) ∧ (ndim(v_1) - i - 1 < 0 ∨ ndim(v_3) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_3, ndim(v_3) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_3, ndim(v_3) - i - 1))
 >>
-Rule 6 (x or y being a list of booleans)
-{v_1 : list(bool)} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] = true ∨ v_1[i] = false)
+Rule 5 (The shapes of x and y must be compatible for element-wise operations if both are provided)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
 >>
-Rule 7 (x is None and y is not None, or x is not None and y is None, then raise ValueError)
-{v_1 : tensor ⊎ int ⊎ float ⊎ bool, v_2 : tensor ⊎ int ⊎ float ⊎ bool} |= ((v_1 = 0 ∧ v_2 ≠ 0) ∨ (v_1 ≠ 0 ∧ v_2 = 0)) = false
->>
-Rule 13 (If condition is a tensor, the output tensors x and y have the same shape.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 then ndim(v_2) = ndim(v_3) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i))
->>
-Rule 14 (x is None and y is not None, or x is not None and y is None, then raise ValueError)
-{v_1 : tensor ⊎ int ⊎ float ⊎ bool, v_2 : tensor ⊎ int ⊎ float ⊎ bool} |= if (v_1 = 0 ∧ v_2 ≠ 0) ∨ (v_1 ≠ 0 ∧ v_2 = 0) then false
->>
-Rule 17 (If x and y are both None, the result is the indices of condition that are True.)
-{v_1 : tensor ⊎ int ⊎ float ⊎ bool, v_2 : tensor ⊎ int ⊎ float ⊎ bool} |= if v_1 = 0 ∧ v_2 = 0 then ∀i ∈ [0, shape(v_1,0) - 1] : v_1[i] = true
->>
-Rule 18 (If only condition is given, it must be a boolean tensor.)
+Rule 6 (Condition tensor must be boolean type)
 {v_1 : tensor} |= dtype_(v_1) = 0
 >>
-Rule 19 (If only condition is given, its dimensions must be positive)
+Rule 7 (If condition tensor is not boolean, it should be castable to boolean)
+{v_1 : tensor} |= if dtype_(v_1) ≠ 0 then min(v_1) = 0 ∨ max(v_1) = 1
+>>
+Rule 8 (if only the condition tensor is provided, it must not be empty)
 {v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 21 (if x and y are both tensors of integers, their dtypes must be equal)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5) ∧ (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 5) then dtype_(v_1) = dtype_(v_2)
+Rule 10 (If x and y tensors are provided, they should have the same dtype)
+{v_2 : tensor, v_3 : tensor} |= dtype_(v_2) = dtype_(v_3)
 >>
-Rule 22 (if x and y are both tensors of floats, their dtypes must be equal)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 8) ∧ (dtype_(v_2) ≥ 6 ∧ dtype_(v_2) ≤ 8) then dtype_(v_1) = dtype_(v_2)
+Rule 11 (If condition tensor is a scalar, x and y must have compatible shapes for broadcasting)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 0 ∧ (ndim(v_2) = 0 ∨ (ndim(v_2) > 0 ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 1)))
 >>
-Rule 23 (If x and y are both None, the condition must be a boolean tensor. Not really enforceable given current spec)
-{v_1 : tensor ⊎ int ⊎ float ⊎ bool, v_2 : tensor ⊎ int ⊎ float ⊎ bool, v_3 : tensor} |= if v_1 = 0 ∧ v_2 = 0 then dtype_(v_3) = 0
+Rule 12 (If condition tensor has a shape and x, y are scalars, then the output will have the shape of condition)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 0
 >>
-Rule 24 (If only condition is given, it must be a tensor.)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 13 (x and y tensors have the same shape and data type if provided)
+{v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i) ∧ dtype_(v_2) = dtype_(v_3)
 >>
-Rule 25 (If one of x, y is given its type must be that of a tensor)
-{v_1 : tensor ⊎ int ⊎ float ⊎ bool, v_2 : tensor} |= if v_1 ≠ 0 then ndim(v_2) ≥ 0
+Rule 14 (If only condition and x are given, shapes of condition and x should be same.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 28 (If x and y are provided, they must have the same dtype.)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 15 (if only condition and y are given, shapes of condition and y should be same.)
+{v_1 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)
 >>
-Rule 30 (Condition has non-negative dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 17 (If x and y have different shapes, condition must have same shape as the broadcasted shape of x and y)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) ≠ ndim(v_3) ∨ (∃i ∈ [0, if ndim(v_2) ≥ ndim(v_3) then ndim(v_2) - 1 else ndim(v_3) - 1] : shape(v_2, i) ≠ shape(v_3, i)) then ndim(v_1) = (if ndim(v_2) ≥ ndim(v_3) then ndim(v_2) else ndim(v_3)) ∧ (∀i ∈ [0, if ndim(v_2) ≥ ndim(v_3) then ndim(v_2) - 1 else ndim(v_3) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = shape(v_3, i) )
 >>
-Rule 31 (if dtype of tensor is string it must match string list)
-{v_1: tensor} |= if dtype_(v_1) = 11 then (v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "constant" ∨ v_1 = "linear" ∨ v_1 = "softplus")
+Rule 19 (If condition, x and y are given as tensors, output will be broadcasted shape of x and y)
+{v_2 : tensor, v_3 : tensor} |= ndim(v_2) > 0 ∧ ndim(v_3) > 0 ∧ ∀i ∈ [0, if ndim(v_2) ≥ ndim(v_3) then ndim(v_2) - 1 else ndim(v_3) - 1] : (ndim(v_2) - i - 1 < 0 ∨ ndim(v_3) - i - 1 < 0 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_3, ndim(v_3) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = shape(v_3, ndim(v_3) - i - 1))
 >>
-Rule 32 (Raises ValueError if exactly one of x or y is not None.)
-{v_1 : tensor ⊎ int ⊎ float ⊎ bool, v_2 : tensor ⊎ int ⊎ float ⊎ bool} |= (v_1 = 0) = (v_2 = 0)
+Rule 22 (If condition is given and x is not none, y should be none.)
+{v_2 : tensor, v_3 : tensor} |= v_2 = true ∧ v_3 = false
 >>
-Rule 33 (If x and y are provided, and the condition, x, and y are not broadcastable to the same shape then an error occurs. This is hard to represent.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0
+Rule 23 (If condition is given and y is not none, x should be none.)
+{v_2 : tensor, v_3 : tensor} |= v_2 = false ∧ v_3 = true
 >>
-Rule 34 (If x and y are provided, they must have compatible data types.)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 8) ∧ (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 8) then true else if (dtype_(v_1) ≥ 9 ∧ dtype_(v_1) ≤ 10) ∧ (dtype_(v_2) ≥ 9 ∧ dtype_(v_2) ≤ 10) then true else dtype_(v_1) = dtype_(v_2)
+Rule 24 (if x or y has dimensions greater than zero, it should not have dimension with size zero)
+{v_2 : tensor} |= if ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
 >>
-Rule 35 (If condition is not a boolean tensor, it is interpreted as if it were boolean by checking for non-zero elements, so they must have numerical dtypes)
-{v_1 : tensor} |= dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 8
+Rule 25 (if x or y has dimensions greater than zero, it should not have dimension with size zero)
+{v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) ∧ if ndim(v_3) > 0 then (∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) > 0)
 >>
-Rule 36 (if x and y are present, their shapes must be the same)
-{v_1 : tensor, v_2 : tensor} |=  ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 26 (If condition is scalar, and only x is provided, it must be a scalar as well.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
 >>
-Rule 37 (If only x is given it should not be none)
-{v_1 : tensor ⊎ int ⊎ float ⊎ bool} |= v_1 ≠ 0
+Rule 27 (If condition is scalar, and only y is provided, it must be a scalar as well.)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then ndim(v_3) = 0
 >>
-Rule 39 (If x and y are provided, and the condition, x, and y are not broadcastable to the same shape then an error occurs. This is hard to represent.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3)
+Rule 28 (if condition has dimensions > 0, x and y must be either scalars or have compatible dimensions for broadcasting with condition)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 then (ndim(v_2) = 0 ∧ ndim(v_3) = 0) ∨ (ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = shape(v_3, i) ∨ shape(v_2, i) = 1 ∨ shape(v_3, i) = 1 ))
 >>
-Rule 44 (if x is None, dtype of y can be anything)
-{v_1 : tensor ⊎ int ⊎ float ⊎ bool, v_2 : tensor} |= if v_1 = 0 then true else dtype_(v_2) ≥ 0 ∧ dtype_(v_2) ≤ 12
+Rule 29 (If condition, x and y are given, all the dtypes should be same)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_2) = dtype_(v_3)
 >>
-Rule 47 (If x and y are provided, they must have compatible data types.)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 8) ∧ (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 8) then dtype_(v_1) = dtype_(v_2) else if (dtype_(v_1) ≥ 9 ∧ dtype_(v_1) ≤ 10) ∧ (dtype_(v_2) ≥ 9 ∧ dtype_(v_2) ≤ 10) then dtype_(v_1) = dtype_(v_2)
+Rule 30 (If condition is not a bool, then x and y must have the same shape)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) ≠ 0 then ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)
 >>
-Rule 48 (If condition is not a boolean tensor, it is interpreted as if it were boolean by checking for non-zero elements, so they must have numerical dtypes)
-{v_1 : tensor} |= (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 8) ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 31 (If condition is given then one of x and y must be not none while other should be none)
+{v_2 : tensor, v_3 : tensor} |= (v_2 = true ∧ v_3 = false) ∨ (v_2 = false ∧ v_3 = true)
 >>
-Rule 49 (If x and y are provided and are both not None then the shape of condition should equal that of x and y)
-{v_1 : tensor, v_2 : tensor, v_3: tensor} |= if v_2 != 0 ∧ v_3 != 0 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 32 (If condition has dimensions > 0, the output must have the same dimensions)
+{v_1 : tensor} |= if ndim(v_1) > 0 then True else True
 >>
-Rule 51 (If x and y are provided, and the condition, x, and y are not broadcastable to the same shape then an error occurs. This is hard to represent, simplifying to require that condition has at least one dimension)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 34 (If condition has dimensions > 0, the output must have the same dimensions)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0 else True
 >>
-Rule 53 (If condition is not a boolean tensor, it is interpreted as if it were boolean by checking for non-zero elements, so they must have numerical dtypes)
-{v_1 : tensor} |= (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 8) ∨ dtype_(v_1) = 0
+Rule 35 (If condition, x, and y are not none, then output will have same dimension as them)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_2) = ndim(v_3)
 >>
-Rule 54 (If x and y are provided and are both not None then the shape of condition should equal that of x and y. If condition and x and y have ndim 1, then shape(condition) = shape(x) = shape(y). This rule focuses just on condition and x.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 then shape(v_1, 0) = shape(v_2, 0)
+Rule 36 (if x and y have different dtypes, it should be upcasted properly. For now, assuming x or y is float 16/32/64, then other should be upcasted.)
+{v_2 : tensor, v_3 : tensor} |= if dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 then True else if dtype_(v_3) = 6 ∨ dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 then True else False
 >>
-Rule 55 (if x and y are provided, the shapes of x and y should equal even if ndim is not 1)
-{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 37 (if x and y have different dtypes, it should be upcasted properly. For now, assuming x or y is complex64/128, then other should be upcasted.)
+{v_2 : tensor, v_3 : tensor} |= if dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 then True else if dtype_(v_3) = 9 ∨ dtype_(v_3) = 10 then True else False
+>>
+Rule 38 (If x is None, y is given)
+{v_1 : tensor, v_3 : tensor} |= ndim(v_1) = 0 ∧ ndim(v_3) > 0
+>>
+Rule 40 (If x is None, y is given, dtype of output will be same as y)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then dtype_(v_3) = dtype_(v_3)
+>>
+Rule 41 (If x is None, y is given, dtype of output will be same as y)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then if ndim(v_3) > 0 then True else if ndim(v_3) = 0 then True else False else True
+>>
+Rule 42 (If x is None, y is given, dtype of output will be same as y)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then dtype_(v_3) = dtype_(v_3) else if 0 = 0 then dtype_(v_3) = dtype_(v_3) else false
+>>
+Rule 43 (x and y should not be both none)
+{v_2 : tensor, v_3 : tensor} |= (v_2 = true) ∨ (v_3 = true)
+>>
+Rule 44 (if x or y has string as a type, then output type should also be string)
+{v_2 : tensor, v_3 : tensor} |= if dtype_(v_2) = 11 ∨ dtype_(v_3) = 11 then dtype_(v_2) = 11 ∧ dtype_(v_3) = 11 else True
+>>
+Rule 45 (if x or y has string as a type, then output type should also be string)
+{v_2 : tensor, v_3 : tensor} |= if dtype_(v_2) = 11 ∨ dtype_(v_3) = 11 then dtype_(v_2) = 11 ∨ dtype_(v_3) = 11 else True
+>>
+Rule 46 (condition tensor can be upcasted to bool)
+{v_1 : tensor} |= if dtype_(v_1) ≠ 0 then min(v_1) = 0 ∧ max(v_1) = 1 else True
+>>
+Rule 48 (If only condition is given and it is not bool, all values should be either 0 or 1)
+{v_1 : tensor} |= if dtype_(v_1) ≠ 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 ∨ (min(v_1) = 0 ∧ max(v_1) = 1) else True
+>>
+Rule 49 (if x is None, the condition tensor and y tensor must have the same dimensions)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_3) > 0 then ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i) else True
+>>
+Rule 50 (if x is None, the condition tensor and y tensor must be broadcastable)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_3) > 0 then ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_3) then ndim(v_1) - 1 else ndim(v_3) - 1] : (ndim(v_1) - i - 1 < 0 ∨ ndim(v_3) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_3, ndim(v_3) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_3, ndim(v_3) - i - 1)) else True
+>>
+Rule 51 (if y is None, the condition tensor and x tensor must be broadcastable)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)) else True
+>>
+Rule 52 (If condition is not bool and x and y are present, x and y need the same dimensions to be able to perform where)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) ≠ 0 then ndim(v_2) = ndim(v_3) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)) else True

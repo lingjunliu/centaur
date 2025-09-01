@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If max_to_keep is zero, save_interval must also be zero. (Rule 58)
+# max_to_keep and checkpoint_interval should not both be zero (Rule 58)
 
 rule_58 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 0, v["arg2_value"] == 0, False)) if n else
-          If(v["arg1_value"] == 0, v["arg2_value"] == 0, False))
+    s.add(Not(If(v["arg1_value"] == 0, v["arg2_value"] != 0, True)) if n else
+          If(v["arg1_value"] == 0, v["arg2_value"] != 0, True))
 )
 
 def rule_58_func(arg1, arg2, solver=None, neg=False):

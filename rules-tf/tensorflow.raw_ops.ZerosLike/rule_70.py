@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if dimension is 2, then max value must be smaller than product of two dimensions (Rule 70)
+# the tensor must have less than 20000000 elements to avoid OOM (Rule 70)
 
 rule_70 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 2, Select(v["arg1_range"], 1) < Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1), False)) if n else
-          If(v["arg1_ndim"] == 2, Select(v["arg1_range"], 1) < Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1), False))
+    s.add(Not(If((And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), Or(Select(v["arg1_range"], 0) < 20000000, Select(v["arg1_range"], 1) < 20000000), True)) if n else
+          If((And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), Or(Select(v["arg1_range"], 0) < 20000000, Select(v["arg1_range"], 1) < 20000000), True))
 )
 
 def rule_70_func(arg1, solver=None, neg=False):

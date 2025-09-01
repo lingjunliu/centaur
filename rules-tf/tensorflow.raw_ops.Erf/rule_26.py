@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input is float64, output should also be float64 (Rule 26)
+# If x is float64, then dtype of x is 8 (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 8, v["arg1_dtype"] == 8, False)) if n else
-          If(v["arg1_dtype"] == 8, v["arg1_dtype"] == 8, False))
+    s.add(Not(If(v["arg1_dtype"] == 8, True, False)) if n else
+          If(v["arg1_dtype"] == 8, True, False))
 )
 
 def rule_26_func(arg1, solver=None, neg=False):

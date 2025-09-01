@@ -1,57 +1,81 @@
 >>
-Rule 1 (The number of elements to generate must be a non-negative integer)
-{v_1 : int} |= v_1 ≥ 0
->>
-Rule 5 (The 'start' and 'stop' tensors must have compatible dtypes)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
->>
-Rule 9 (If endpoint is true, the last number in sequence is exactly stop)
-{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 0
->>
-Rule 10 (The number of samples should be greater than or equal to 2 if endpoint is true)
-{v_1 : int, v_2 : bool} |= if v_2 = true then v_1 ≥ 2 else v_1 >= 1
->>
-Rule 13 (The 'num' parameter should be greater than 0)
+Rule 2 (num must be a positive integer)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 14 (The dtype cannot be boolean)
-{v_1 : dtype} |= v_1 ≠ 0
+Rule 3 (start and stop must have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 15 (If start is a tensor and dtype is specified, start's dtype must be compatible with the specified dtype)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5 then dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Rule 4 (axis must be a non-negative integer)
+{v_1 : int} |= v_1 ≥ 0
 >>
-Rule 17 (If num is 1, start and stop should be equal when endpoint is true.)
-{v_1 : int, v_2 : bool, v_3: int ⊎ float, v_4: int ⊎ float} |= if v_1 = 1 ∧ v_2 = true then v_3 = v_4
+Rule 10 (axis must be less than the rank of start and stop tensors)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= v_3 < ndim(v_1) ∧ v_3 < ndim(v_2)
 >>
-Rule 18 (If start and stop are tensors, their shapes must be compatible.)
+Rule 11 (dtype must be a valid dtype represented by an integer)
+{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 12
+>>
+Rule 18 (start and stop tensors must have compatible shapes)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 21 (If dtype is specified, and start/stop are scalar values, then dtype must be numerical)
-{v_1 : dtype} |= v_1 ≠ 0 ∧ v_1 ≠ 12
+Rule 19 (axis must be less than the rank of start and stop tensors)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
 >>
-Rule 22 (If endpoint is false, and num is 1, no array generated)
-{v_1 : bool, v_2 : int} |= if v_1 = false then v_2 > 1
+Rule 20 (The data type must be a valid dtype)
+{v_1 : dtype} |= v_1 ≥ 1 ∧ v_1 ≤ 13
 >>
-Rule 23 (Start and Stop should be different if num > 1)
-{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int} |= if v_3 > 1 then v_1 ≠ v_2
+Rule 24 (axis must be a non-negative integer and less than the number of dimensions)
+{v_1 : int, v_2 : tensor} |= v_1 ≥ 0 ∧ v_1 < ndim(v_2)
 >>
-Rule 25 (If start is a tensor and dtype is complex, start must be complex)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 10 ∨ v_2 = 11 then dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+Rule 27 (start and stop tensors must have compatible shapes, considering the axis)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 < ndim(v_1) ∧ v_3 < ndim(v_2) then true else false
 >>
-Rule 27 (If start and stop are scalar values and dtype is specified, the dtype should be a numerical one (not bool/string))
-{v_1: dtype} |= v_1 ≠ 0 ∧ v_1 ≠ 12
+Rule 28 (start and stop tensors are compatible)
+{v_1: tensor, v_2: tensor} |= shape(v_1) = shape(v_2)
 >>
-Rule 32 (If start is complex, the stop must be complex too)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
+Rule 37 (start and stop tensors must have compatible shapes, considering the axis)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 < ndim(v_1) ∧ v_3 < ndim(v_2) then shape(v_1) = shape(v_2)
 >>
-Rule 38 (If the dtype is integral and start is float, start must be representable as an integer without loss of precision)
-{v_1 : float, v_2 : dtype} |= if v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5 then v_1 % 1 = 0
+Rule 38 (If the dtype is not specified, it should be inferred from start and stop tensors.)
+{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= if v_3 = 0 then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 41 (If the dtype is integral and start is float, start must be representable as an integer without loss of precision)
-{v_1 : float, v_2 : dtype} |= if v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5 then (v_1 % 1) = 0
+Rule 40 (start and stop need to have the same shape)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1) = shape(v_2)
 >>
-Rule 46 (If num is 0, start and stop should be of equal value if endpoint is False)
-{v_1 : bool, v_2 : int ⊎ float, v_3 : int ⊎ float, v_4: int} |= if v_4 = 0 ∧ v_1 = false then v_2 = v_3
+Rule 47 (If dtype is specified, it should be a valid dtype enum, if not specified infer it.)
+{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= if v_3 ≠ 0 then v_3 ≥ 1 ∧ v_3 ≤ 13 else dtype_(v_1) = dtype_(v_2)
 >>
-Rule 52 (The dtype should be compatible with start and stop if they are tensors.)
-{v_1: tensor, v_2: tensor, v_3:dtype} |= if (v_3 = 1 ∨ v_3 = 2 ∨ v_3 = 3 ∨ v_3 = 4 ∨ v_3 = 5) then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) else if (v_3 = 6 ∨ v_3 = 7 ∨ v_3 = 8) then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+Rule 48 (If num is provided then start and stop must be scalars or 1D tensors with the same size)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 > 0 then (ndim(v_1) ≤ 1) ∧ (ndim(v_2) ≤ 1) ∧ shape(v_1) = shape(v_2)
+>>
+Rule 49 (num must be an integer greater or equal to 2 if endpoint is True)
+{v_1: int, v_2: bool} |= if v_2 = true then v_1 ≥ 2
+>>
+Rule 70 (If start or stop are empty, then num must be 0.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if (ndim(v_1) = 0) ∨ (ndim(v_2) = 0) then v_3 = 0
+>>
+Rule 80 (If start or stop are empty tensors, num must be equal to 0)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then v_3 = 0
+>>
+Rule 90 (if start and stop are both tensors with the same number of elements then the shape must match)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then shape(v_1) = shape(v_2)
+>>
+Rule 100 (If num equals 0, start and stop dimensions must be equal to 0)
+{v_1: tensor, v_2: tensor, v_3: int} |= if v_3 = 0 then ndim(v_1) = 0 ∧ ndim(v_2) = 0
+>>
+Rule 110 (Start and stop cannot be strings)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) ≠ 12 ∧ dtype_(v_2) ≠ 12
+>>
+Rule 117 (if num > 1, then start and stop data type must be float or complex)
+{v_1 : tensor, v_2 : tensor, v_3: int} |= if v_3 > 1 then dtype_(v_1) ≥ 7 ∧ dtype_(v_1) ≤ 11 ∧ dtype_(v_2) ≥ 7 ∧ dtype_(v_2) ≤ 11
+>>
+Rule 120 (The start and stop arguments must be numerical or boolean, not strings)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 12 ∧ dtype_(v_2) ≠ 12
+>>
+Rule 128 (Check the type)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_2) ≠ 11
+>>
+Rule 129 (The data type must be a valid dtype, not a string.)
+{v_1 : dtype} |= v_1 ≠ 12
+>>
+Rule 130 (Data type should not be a boolean)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0

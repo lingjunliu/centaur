@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Assert cardinality value is always same if is cache previously (Rule 45)
+# Unknown dataset requires cardinality to be unknown (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == True, True, v["arg1_value"] > 0)) if n else
-          If(v["arg2_value"] == True, True, v["arg1_value"] > 0))
+    s.add(Not(If(v["arg2_value"], v["arg1_value"] == -1, True)) if n else
+          If(v["arg2_value"], v["arg1_value"] == -1, True))
 )
 
 def rule_45_func(arg1, arg2, solver=None, neg=False):

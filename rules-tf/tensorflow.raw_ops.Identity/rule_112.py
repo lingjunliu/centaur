@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If tensor is of type float, then its range cannot have 0 as the center (Rule 112)
+# if the tensor contains float 64, the value has to be of reasonable magnitude (Rule 112)
 
 rule_112 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_dtype"] > 5, v["arg1_dtype"] < 9), Select(v["arg1_range"], 0) + Select(v["arg1_range"], 1) != 0, False)) if n else
-          If(And(v["arg1_dtype"] > 5, v["arg1_dtype"] < 9), Select(v["arg1_range"], 0) + Select(v["arg1_range"], 1) != 0, False))
+    s.add(Not(If(v["arg1_dtype"] == 8, And(Select(v["arg1_range"], 0) > -1e+10, Select(v["arg1_range"], 1) < 1e+10), True)) if n else
+          If(v["arg1_dtype"] == 8, And(Select(v["arg1_range"], 0) > -1e+10, Select(v["arg1_range"], 1) < 1e+10), True))
 )
 
 def rule_112_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_112_func(arg1, solver=None, neg=False):
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 112
-        rule_112(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_112(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_112(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_112(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)

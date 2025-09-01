@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# xlogy enforces matching types when either input is a complex number (Rule 18)
+# The datatype of the input tensors must be in the allowed datatypes, or the code will throw an error. (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), v["arg1_dtype"] == v["arg2_dtype"], False)) if n else
-          If(Or(Or(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), v["arg1_dtype"] == v["arg2_dtype"], False))
+    s.add(Not(And((Or(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 12)), (Or(Or(Or(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), v["arg2_dtype"] == 12)))) if n else
+          And((Or(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 12)), (Or(Or(Or(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), v["arg2_dtype"] == 12))))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):

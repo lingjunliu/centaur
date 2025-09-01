@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# At least one input must be non-integer (Rule 27)
+# if v2 is int16, then v1 must also be int16. (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg2_dtype"] == 0), v["arg2_dtype"] == 6), v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)) if n else
-          Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg2_dtype"] == 0), v["arg2_dtype"] == 6), v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10))
+    s.add(Not(If(v["arg2_dtype"] == 2, v["arg1_dtype"] == 2, True)) if n else
+          If(v["arg2_dtype"] == 2, v["arg1_dtype"] == 2, True))
 )
 
 def rule_27_func(arg1, arg2, solver=None, neg=False):

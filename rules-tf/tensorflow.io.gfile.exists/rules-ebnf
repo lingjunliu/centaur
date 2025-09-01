@@ -1,33 +1,114 @@
 >>
-Rule 2 (path parameter cannot be an empty string)
-{v_1 : str} |= v_1 ≠ ""
+Rule 2 (path cannot be an empty string)
+{path : str} |= path ≠ ""
 >>
-Rule 4 (path parameter starts with a valid scheme)
-{v_1 : str} |= v_1 = "gs://" ∨ v_1 = "file://" ∨ ∀i ∈ [0, 7] : v_1[i] ≠ "/"
+Rule 4 (path starts with a valid URI scheme)
+{path : str} |= path = "file://" ∨ path = "gs://" ∨ path = "/tmp"
 >>
-Rule 5 (path parameter contains only valid characters)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = "/" ∨ v_1[i] = "." ∨ v_1[i] = "_" ∨ v_1[i] = "-" ∨ v_1[i] = ":"
+Rule 5 (path cannot be a relative path without a scheme)
+{path : str} |= if path[0] ≠ "/" then (path = "file://" ∨ path = "gs://")
 >>
-Rule 6 (path parameter should not be too long)
-{v_1 : str} |= v_1.len < 256
+Rule 7 (path is a valid URI)
+{path : str} |= (path = "file://" + path) ∨ (path = "gs://" + path) ∨ (path = path)
 >>
-Rule 7 (path parameter can be a relative or absolute path)
-{v_1 : str} |= v_1[0] = "/" ∨ (v_1[0] ≠ "/" ∧ v_1[0] ≠ "g" ∧ v_1[1] ≠ "s" ∧ v_1[2] ≠ ":" ∧ v_1[0] ≠ "f" ∧ v_1[1] ≠ "i" ∧ v_1[2] ≠ "l" ∧ v_1[3] ≠ "e" ∧ v_1[4] ≠ ":")
+Rule 8 (path is a valid URI, if it contains '://', it must be a valid URI)
+{path: str} |= if (∃i ∈ [0, path.len - 3] : path[i] = ":" ∧ path[i+1] = "/" ∧ path[i+2] = "/") then (path = "file://" + path) ∨ (path = "gs://" + path)
 >>
-Rule 8 (path parameter should contain a valid bucket name for gs:// scheme)
-{v_1 : str} |= if v_1[0] = "g" ∧ v_1[1] = "s" ∧ v_1[2] = ":" ∧ v_1[3] = "/" ∧ v_1[4] = "/" then v_1.len > 5
+Rule 9 (path is a valid URI, if it contains '://', it must start with file:// or gs://)
+{path: str} |= if (∃i ∈ [0, path.len - 3] : path[i] = ":" ∧ path[i+1] = "/" ∧ path[i+2] = "/") then (path[0] = "f" ∧ path[1] = "i" ∧ path[2] = "l" ∧ path[3] = "e" ∧ path[4] = ":" ∧ path[5] = "/" ∧ path[6] = "/") ∨ (path[0] = "g" ∧ path[1] = "s" ∧ path[2] = ":" ∧ path[3] = "/" ∧ path[4] = "/")
 >>
-Rule 9 (path parameter should contain a valid path after gs:// or file://)
-{v_1 : str} |= if v_1[0] = "g" ∧ v_1[1] = "s" ∧ v_1[2] = ":" ∧ v_1[3] = "/" ∧ v_1[4] = "/" then v_1.len > 5 ∧ v_1[5] ≠ "/" else if v_1[0] = "f" ∧ v_1[1] = "i" ∧ v_1[2] = "l" ∧ v_1[3] = "e" ∧ v_1[4] = ":" ∧ v_1[5] = "/" ∧ v_1[6] = "/" ∧ v_1[7] = "/" then v_1.len > 8
+Rule 11 (path must not contain invalid characters such as '*', '?', '[', ']')
+{path : str} |= (∀i ∈ [0, path.len - 1] : path[i] ≠ "*" ∧ path[i] ≠ "?" ∧ path[i] ≠ "[" ∧ path[i] ≠ "]")
 >>
-Rule 11 (The path parameter should not contain consecutive slashes after the scheme)
-{v_1 : str} |= if v_1[0] = "g" ∧ v_1[1] = "s" ∧ v_1[2] = ":" ∧ v_1[3] = "/" ∧ v_1[4] = "/" then (∀i ∈ [5, v_1.len - 2] : if v_1[i] = "/" then v_1[i+1] ≠ "/") else if v_1[0] = "f" ∧ v_1[1] = "i" ∧ v_1[2] = "l" ∧ v_1[3] = "e" ∧ v_1[4] = ":" ∧ v_1[5] = "/" ∧ v_1[6] = "/" ∧ v_1[7] = "/" then (∀i ∈ [8, v_1.len - 2] : if v_1[i] = "/" then v_1[i+1] ≠ "/")
+Rule 13 (path must not contain invalid characters such as '*', '?', '[', ']')
+{path : str} |= if (∃i ∈ [0, path.len - 1] : path[i] = "*" ∨ path[i] = "?" ∨ path[i] = "[" ∨ path[i] = "]") then false
 >>
-Rule 14 (The path parameter should not contain consecutive slashes after the scheme)
-{v_1 : str} |= if v_1[0] = "g" ∧ v_1[1] = "s" ∧ v_1[2] = ":" ∧ v_1[3] = "/" ∧ v_1[4] = "/" then ∃i ∈ [5, v_1.len - 2] : (v_1[i] = "/" ∧ v_1[i+1] = "/") = false else if v_1[0] = "f" ∧ v_1[1] = "i" ∧ v_1[2] = "l" ∧ v_1[3] = "e" ∧ v_1[4] = ":" ∧ v_1[5] = "/" ∧ v_1[6] = "/" ∧ v_1[7] = "/" then ∃i ∈ [8, v_1.len - 2] : (v_1[i] = "/" ∧ v_1[i+1] = "/") = false
+Rule 16 (path must not contain invalid characters such as '*', '?', '[', ']')
+{path : str} |= if (∃i ∈ [0, path.len - 1] : (path[i] = "*") ∨ (path[i] = "?") ∨ (path[i] = "[")) then false else if (∃i ∈ [0, path.len - 1] : path[i] = "]") then false
 >>
-Rule 15 (The path parameter should not contain consecutive slashes after the scheme)
-{v_1 : str} |= if v_1[0] = "g" ∧ v_1[1] = "s" ∧ v_1[2] = ":" ∧ v_1[3] = "/" ∧ v_1[4] = "/" then (∃i ∈ [5, v_1.len - 2] : (v_1[i] = "/" ∧ v_1[i+1] = "/")) = false else if v_1[0] = "f" ∧ v_1[1] = "i" ∧ v_1[2] = "l" ∧ v_1[3] = "e" ∧ v_1[4] = ":" ∧ v_1[5] = "/" ∧ v_1[6] = "/" ∧ v_1[7] = "/" then (∃i ∈ [8, v_1.len - 2] : (v_1[i] = "/" ∧ v_1[i+1] = "/")) = false
+Rule 17 (path must not contain invalid characters such as '*', '?', '[', ']')
+{path : str} |= if (∃i ∈ [0, path.len - 1] : (path[i] = "*") ∨ (path[i] = "?") ∨ (path[i] = "[") ∨ (path[i] = "]")) then false
 >>
-Rule 21 (The path parameter should not contain consecutive slashes after the scheme)
-{v_1 : str} |= if (v_1[0] = "g" ∧ v_1[1] = "s" ∧ v_1[2] = ":" ∧ v_1[3] = "/" ∧ v_1[4] = "/") then (∀i ∈ [5, v_1.len - 2] : if v_1[i] = "/" then v_1[i+1] ≠ "/") ∧ true else if (v_1[0] = "f" ∧ v_1[1] = "i" ∧ v_1[2] = "l" ∧ v_1[3] = "e" ∧ v_1[4] = ":" ∧ v_1[5] = "/" ∧ v_1[6] = "/" ∧ v_1[7] = "/") then (∀i ∈ [8, v_1.len - 2] : if v_1[i] = "/" then v_1[i+1] ≠ "/") ∧ true
+Rule 18 (path must not contain invalid characters such as '*', '?', '[', ']')
+{path : str} |= if (∃i ∈ [0, path.len - 1] : (path[i] = "*") ∨ (path[i] = "?") ∨ (path[i] = "[" ∨ path[i] = "]")) then false
+>>
+Rule 21 (Path cannot be None)
+{path: str} |= path ≠ none
+>>
+Rule 22 (Path cannot be None or Null)
+{path: str} |= path ≠ "None" ∧ path ≠ "Null"
+>>
+Rule 23 (Path cannot be None or Null or be a keyword)
+{path: str} |= path ≠ "None" ∧ path ≠ "Null" ∧ path ≠ "true" ∧ path ≠ "false"
+>>
+Rule 24 (Path cannot be None or Null or be a boolean keyword)
+{path: str} |= path ≠ "None" ∧ path ≠ "Null" ∧ path ≠ "true" ∧ path ≠ "false" ∧ path ≠ true ∧ path ≠ false
+>>
+Rule 25 (Path cannot be None or Null or be a boolean keyword)
+{path: str} |= path ≠ "None" ∧ path ≠ "Null" ∧ path ≠ "true" ∧ path ≠ "false" ∧ path ≠ "True" ∧ path ≠ "False"
+>>
+Rule 27 (Path should be a valid string sequence)
+{path: str} |= ∃i ∈ [0, path.len -1] : path[i] = path[i]
+>>
+Rule 28 (Path should be a non-empty string sequence)
+{path: str} |= path.len > 0
+>>
+Rule 30 (path must have length of less than 256.)
+{path : str} |= path.len < 256
+>>
+Rule 31 (path length should be within a reasonable limit to avoid errors.)
+{path : str} |= path.len < 1024
+>>
+Rule 32 (Path must be a valid absolute or relative path)
+{path: str} |= (path[0] = "/") ∨ (∃i ∈ [0, path.len - 2] : path[i] = ":" ∧ path[i+1] = "/" ∧ path[i+2] = "/")
+>>
+Rule 33 (Path must be a valid absolute or relative path)
+{path: str} |= (path[0] = "/") ∨ (∃i ∈ [0, path.len - 3] : path[i] = ":" ∧ path[i+1] = "/" ∧ path[i+2] = "/")
+>>
+Rule 34 (Path must be a valid absolute or relative path)
+{path: str} |= (path[0] = "/") ∨ (∃i ∈ [0, path.len - 1] : path[i] = ":" ∧ path[i+1] = "/" ∧ (i+2) < path.len ∧ path[i+2] = "/")
+>>
+Rule 35 (Path must be a valid absolute or relative path or a valid windows path)
+{path: str} |= (path[0] = "/") ∨ (∃i ∈ [0, path.len - 3] : path[i] = ":" ∧ path[i+1] = "/" ∧ path[i+2] = "/") ∨ (∃i ∈ [1, path.len - 1] : path[1] = ":" ∧ path[2] = "\\")
+>>
+Rule 36 (Path must be a valid absolute or relative path)
+{path: str} |= (path[0] = "/") ∨ (∃i ∈ [0, path.len - 1] : path[i] = ":" ∧ path[i+1] = "/" ∧ (i+2) < path.len ∧ path[i+2] = "/") ∨ (∃i ∈ [0, path.len - 1] : (path[i] ≥ "A" ∧ path[i] ≤ "Z") ∧ path[i+1] = ":" ∧ path[i+2] = "\\")
+>>
+Rule 37 (Path must be a valid absolute or relative path)
+{path: str} |= (path[0] = "/") ∨ (∃i ∈ [0, path.len - 1] : path[i] = ":" ∧ path[i+1] = "/" ∧ (i+2) < path.len ∧ path[i+2] = "/") ∨ (∃i ∈ [0, path.len - 2] : ((path[i] ≥ "A" ∧ path[i] ≤ "Z") ∨ (path[i] ≥ "a" ∧ path[i] ≤ "z")) ∧ path[i+1] = ":" ∧ path[i+2] = "\\")
+>>
+Rule 38 (Path must be a valid absolute or relative path)
+{path: str} |= (path[0] = "/") ∨ (∃i ∈ [0, path.len - 3] : path[i] = ":" ∧ path[i+1] = "/" ∧ path[i+2] = "/") ∨ (∃i ∈ [1, path.len - 2] : ((path[0] ≥ "A" ∧ path[0] ≤ "Z") ∨ (path[0] ≥ "a" ∧ path[0] ≤ "z")) ∧ path[1] = ":" ∧ path[2] = "\\")
+>>
+Rule 39 (Path must be a valid absolute or relative path)
+{path: str} |= (path[0] = "/") ∨ (∃i ∈ [0, path.len - 3] : path[i] = ":" ∧ path[i+1] = "/" ∧ path[i+2] = "/") ∨ (∃i ∈ [1, path.len - 2] : ((path[i-1] ≥ "A" ∧ path[i-1] ≤ "Z") ∨ (path[i-1] ≥ "a" ∧ path[i-1] ≤ "z")) ∧ path[i] = ":" ∧ path[i+1] = "\\")
+>>
+Rule 40 (Path must be a valid absolute or relative path, considering Windows)
+{path: str} |= (path[0] = "/") ∨ (∃i ∈ [0, path.len - 3] : path[i] = ":" ∧ path[i+1] = "/" ∧ path[i+2] = "/") ∨ (path.len >= 3 ∧ ((path[0] ≥ "A" ∧ path[0] ≤ "Z") ∨ (path[0] ≥ "a" ∧ path[0] ≤ "z")) ∧ path[1] = ":" ∧ path[2] = "\\")
+>>
+Rule 42 (If path includes drive letter, then there must be a valid root)
+{path: str} |= if (∃i ∈ [0, path.len -2] : ((path[i] ≥ "A" ∧ path[i] ≤ "Z") ∨ (path[i] ≥ "a" ∧ path[i] ≤ "z")) ∧ path[i+1] = ":") then (path[0] ≥ "A" ∧ path[0] ≤ "Z") ∨ (path[0] ≥ "a" ∧ path[0] ≤ "z")
+>>
+Rule 43 (If path includes Windows drive letter, it must be at the beginning)
+{path: str} |= if (∃i ∈ [0, path.len - 1] : path[i] = ":" ∧ path[i+1] = "\\") then (((path[0] ≥ "A" ∧ path[0] ≤ "Z") ∨ (path[0] ≥ "a" ∧ path[0] ≤ "z")) ∧ path[1] = ":" ∧ path[2] = "\\")
+>>
+Rule 44 (If path includes Windows drive letter, it must be at the beginning and followed by colon and backslash)
+{path: str} |= if (∃i ∈ [0, path.len - 1] : path[i] = ":" ∧ path[i+1] = "\\") then ((path[0] ≥ "A" ∧ path[0] ≤ "Z") ∨ (path[0] ≥ "a" ∧ path[0] ≤ "z")) ∧ path[1] = ":" ∧ path[2] = "\\"
+>>
+Rule 45 (If path includes Windows drive letter, it must be at the beginning and followed by colon and backslash)
+{path: str} |= if (∃i ∈ [0, path.len - 2] : path[i] = ":" ∧ path[i+1] = "\\") then (((path[0] ≥ "A" ∧ path[0] ≤ "Z") ∨ (path[0] ≥ "a" ∧ path[0] ≤ "z")) ∧ path[1] = ":" ∧ path[2] = "\\")
+>>
+Rule 46 (If path includes Windows drive letter, it must be at the beginning and followed by colon and backslash)
+{path: str} |= if (∃i ∈ [1, path.len - 1] : path[i] = ":" ∧ path[i+1] = "\\") then (((path[0] ≥ "A" ∧ path[0] ≤ "Z") ∨ (path[0] ≥ "a" ∧ path[0] ≤ "z")) ∧ path[1] = ":" ∧ path[2] = "\\")
+>>
+Rule 47 (Path must not have illegal characters for Windows file names.)
+{path: str} |= (∀i ∈ [0, path.len - 1] : path[i] ≠ "<" ∧ path[i] ≠ ">" ∧ path[i] ≠ ":" ∧ path[i] ≠ "\"" ∧ path[i] ≠ "/" ∧ path[i] ≠ "\\" ∧ path[i] ≠ "|" ∧ path[i] ≠ "?" ∧ path[i] ≠ "*")
+>>
+Rule 49 (Path must not have illegal characters for Windows file names.)
+{path: str} |= ∀i ∈ [0, path.len - 1] : ((path[i] ≠ "<") ∧ (path[i] ≠ ">") ∧ (path[i] ≠ "\"") ∧ (path[i] ≠ "|") ∧ (path[i] ≠ "?") ∧ (path[i] ≠ "*"))
+>>
+Rule 50 (Path must not have illegal characters for Windows file names.)
+{path: str} |= (∀i ∈ [0, path.len - 1] : (path[i] ≠ "<") ∧ (path[i] ≠ ">") ∧ (path[i] ≠ "\"") ∧ (path[i] ≠ "|") ∧ (path[i] ≠ "?") ∧ (path[i] ≠ "*") ∧ (path[i] ≠ ":"))
+>>
+Rule 53 (Path must not be a reserved device name.)
+{path: str} |= path ≠ "CON" ∧ path ≠ "PRN" ∧ path ≠ "AUX" ∧ path ≠ "NUL" ∧ (∀i ∈ [1,9] : path ≠ ("COM"+i)) ∧ (∀i ∈ [1,9] : path ≠ ("LPT"+i))

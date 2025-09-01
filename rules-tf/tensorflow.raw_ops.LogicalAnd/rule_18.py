@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If both input tensors have more than zero dimensions, their shapes should be equal for all dimensions (Rule 18)
+# x and y should have the same shape if not scalar (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])), False)) if n else
-          If(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])), False))
+    s.add(Not(If(And(v["arg1_ndim"] != 0, v["arg2_ndim"] != 0), (And(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))), True)) if n else
+          If(And(v["arg1_ndim"] != 0, v["arg2_ndim"] != 0), (And(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))), True))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):

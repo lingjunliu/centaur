@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If one type is string, it is invalid. (Rule 4)
+# type1 and type2 cannot be unions (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_value"] == 12), False, If((v["arg2_value"] == 12), False, False))) if n else
-          If((v["arg1_value"] == 12), False, If((v["arg2_value"] == 12), False, False)))
+    s.add(Not(And(And(And(v["arg1_value"] != 9, v["arg1_value"] != 10), v["arg2_value"] != 9), v["arg2_value"] != 10)) if n else
+          And(And(And(v["arg1_value"] != 9, v["arg1_value"] != 10), v["arg2_value"] != 9), v["arg2_value"] != 10))
 )
 
 def rule_4_func(arg1, arg2, solver=None, neg=False):

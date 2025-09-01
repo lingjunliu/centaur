@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# image's dtype must be float if max_delta is greater than 1 (Rule 17)
+# image dtype must be either floating point or integer and max_delta must be non-negative (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] > 1, Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), False)) if n else
-          If(v["arg2_value"] > 1, Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), False))
+    s.add(Not(And(Or((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5)), (And(v["arg1_dtype"] >= 7, v["arg1_dtype"] <= 9))), v["arg2_value"] >= 0)) if n else
+          And(Or((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5)), (And(v["arg1_dtype"] >= 7, v["arg1_dtype"] <= 9))), v["arg2_value"] >= 0))
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):

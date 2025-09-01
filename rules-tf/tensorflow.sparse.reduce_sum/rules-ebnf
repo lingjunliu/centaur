@@ -1,18 +1,93 @@
 >>
-Rule 6 (sp_input should have a numeric dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
+Rule 1 (SparseTensor input should have numeric type)
+{sp_input : tensor} |= if dtype_(sp_input) = 0 then false
 >>
-Rule 11 (axis value is a valid dimension for sp_input)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 2 (Axis should be a non-empty list of integers or a single integer)
+{axis : list(int)} |= axis.len > 0
 >>
-Rule 13 (dtype of sp_input is int or float)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 4 (Keepdims should be a boolean value)
+{keepdims: bool} |= keepdims = true ∨ keepdims = false
 >>
-Rule 21 (sp_input has a numeric dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12
+Rule 5 (axis elements should be non-negative.)
+{axis : list(int), sp_input : tensor} |= ∀i ∈ [0, axis.len - 1] : axis[i] ≥ 0 ∧ axis[i] < ndim(sp_input)
 >>
-Rule 37 (If the sp_input has dimensions, the dimensions are positive)
-{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 6 (Output_is_sparse should be a boolean.)
+{output_is_sparse : bool} |= output_is_sparse = true ∨ output_is_sparse = false
 >>
-Rule 42 (If the sp_input has dimensions, shape values must be integers)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 10 (output_is_sparse and keepdims interaction)
+{output_is_sparse : bool, keepdims : bool} |= if output_is_sparse then keepdims = false
+>>
+Rule 15 (If axis is None, keepdims should default to False)
+{axis : list(int), keepdims : bool} |= if axis.len = 0 then keepdims = false
+>>
+Rule 16 (If output_is_sparse is True, axis must be provided)
+{output_is_sparse : bool, axis : list(int)} |= if output_is_sparse then axis.len > 0
+>>
+Rule 17 (Elements of axis must be integers)
+{axis : list(int)} |= ∀i ∈ [0, axis.len - 1] : true
+>>
+Rule 18 (If axis is a list, keepdims is considered)
+{axis : list(int), keepdims : bool} |= if axis.len > 0 then true else keepdims = false
+>>
+Rule 19 (Axis should be a list of unique integers)
+{axis : list(int)} |= ∀i ∈ [0, axis.len - 1] : ∀j ∈ [i + 1, axis.len - 1] : axis[i] ≠ axis[j]
+>>
+Rule 20 (If output_is_sparse is True, the gradient cannot be computed)
+{output_is_sparse : bool} |= if output_is_sparse then false
+>>
+Rule 22 (sp_input's dtype should be one of numeric types to allow sum reduction)
+{sp_input : tensor} |= dtype_(sp_input) ≠ 11
+>>
+Rule 26 (Axis elements should be within the valid range of dimensions)
+{axis : list(int), sp_input : tensor} |= ∀i ∈ [0, axis.len - 1] : (axis[i] + ndim(sp_input)) ≥ 0 ∧ axis[i] < ndim(sp_input)
+>>
+Rule 28 (If axis is None, the result is a scalar)
+{axis : list(int)} |= if axis.len = 0 then true
+>>
+Rule 37 (If output_is_sparse is true, then sp_input must have dense_shape attribute.)
+{output_is_sparse : bool, sp_input: tensor} |= if output_is_sparse then ∃i ∈ [0, ndim(sp_input) - 1] : shape(sp_input, i) > 0
+>>
+Rule 40 (Axis values must be within the allowed tensor dimensions)
+{axis : list(int), sp_input: tensor} |= ∀i ∈ [0, axis.len - 1] : (axis[i] + ndim(sp_input)) ≥ 0 ∧ axis[i] < ndim(sp_input)
+>>
+Rule 41 (If output_is_sparse is true, then sp_input must have dense_shape attribute.)
+{output_is_sparse : bool, sp_input: tensor} |= if output_is_sparse then ndim(sp_input) > 0
+>>
+Rule 44 (If output_is_sparse is true, a gradient is not defined and training models will fail)
+{output_is_sparse: bool} |= if output_is_sparse then false
+>>
+Rule 45 (If output_is_sparse is true, the sparse tensor must have a dense_shape)
+{output_is_sparse: bool, sp_input : tensor} |= if output_is_sparse then ∃i ∈ [0, ndim(sp_input)-1] : shape(sp_input, i) > 0
+>>
+Rule 47 (The number of axis should be less than the number of dimension of sp_input)
+{axis : list(int), sp_input : tensor} |= axis.len <= ndim(sp_input)
+>>
+Rule 55 (If output_is_sparse is true, the sparse tensor must have a dense_shape attribute.)
+{output_is_sparse: bool, sp_input : tensor} |= if output_is_sparse then ∃i ∈ [0, ndim(sp_input) - 1] : shape(sp_input, i) > 0
+>>
+Rule 56 (If output_is_sparse is true, the sparse tensor must have a dense_shape attribute.)
+{output_is_sparse: bool, sp_input : tensor} |= if output_is_sparse then ndim(sp_input) > 0
+>>
+Rule 57 (If output_is_sparse is true, then dense_shape should be defined)
+{output_is_sparse: bool, sp_input: tensor} |= if output_is_sparse then ∃i ∈ [0, ndim(sp_input) - 1] : shape(sp_input, i) > 0
+>>
+Rule 60 (If output_is_sparse is true, the sparse tensor must have a dense_shape attribute.)
+{output_is_sparse: bool, sp_input: tensor} |= if output_is_sparse then ndim(sp_input) > 0
+>>
+Rule 68 (If sp_input doesn't have dense_shape, then output_is_sparse must be false)
+{sp_input: tensor, output_is_sparse: bool} |= if (∃i ∈ [0, ndim(sp_input) - 1] : shape(sp_input, i) > 0) then true else output_is_sparse = false
+>>
+Rule 69 (sp_input needs dense_shape when output_is_sparse)
+{sp_input: tensor, output_is_sparse: bool} |= if output_is_sparse then ∃i ∈ [0, ndim(sp_input) - 1] : shape(sp_input, i) > 0
+>>
+Rule 71 (If sp_input has at least one dimension, and output_is_sparse is true, then sp_input must have dense_shape)
+{sp_input: tensor, output_is_sparse: bool} |= if ndim(sp_input) > 0 ∧ output_is_sparse then ∃i ∈ [0, ndim(sp_input) - 1] : shape(sp_input, i) > 0
+>>
+Rule 74 (If the user sets output_is_sparse to True, dense_shape must be a valid attribute of the input sparse tensor)
+{output_is_sparse : bool, sp_input : tensor} |= if output_is_sparse then ∃i ∈ [0, ndim(sp_input) - 1] : shape(sp_input, i) > 0
+>>
+Rule 76 (If output_is_sparse is true, then the dense shape attribute must be explicitly defined)
+{sp_input: tensor, output_is_sparse: bool} |= if output_is_sparse then ndim(sp_input) > 0
+>>
+Rule 80 (If sp_input does not have attribute 'dense_shape', output_is_sparse must be false to prevent AttributeError)
+{sp_input : tensor, output_is_sparse : bool} |= if (∃i ∈ [0, ndim(sp_input)-1] : shape(sp_input, i) > 0) then true else output_is_sparse = false

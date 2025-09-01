@@ -1,141 +1,153 @@
 >>
 Rule 1 (tags and values must have the same shape)
-{tags : tensor, values : tensor} |= shape(tags) = shape(values)
+{tags : tensor, values : tensor} |= ndim(tags) = ndim(values) ∧ ∀i ∈ [0, ndim(tags) - 1] : shape(tags, i) = shape(values, i)
 >>
-Rule 2 (values tensor's dtype must be in the allowed list: float32, float64, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64 which corresponds to indices 7, 8, 3, 5, 2, 1, 4)
-{values : tensor} |= dtype_(values) = 7 ∨ dtype_(values) = 8 ∨ dtype_(values) = 3 ∨ dtype_(values) = 5 ∨ dtype_(values) = 2 ∨ dtype_(values) = 1 ∨ dtype_(values) = 4
+Rule 2 (values' dtype must be in the allowed list)
+{values : tensor} |= dtype_(values) = 6 ∨ dtype_(values) = 7 ∨ dtype_(values) = 2 ∨ dtype_(values) = 5 ∨ dtype_(values) = 1 ∨ dtype_(values) = 0 ∨ dtype_(values) = 4 ∨ dtype_(values) = 13 ∨ dtype_(values) = 14 ∨ dtype_(values) = 15 ∨ dtype_(values) = 16 ∨ dtype_(values) = 17
 >>
-Rule 3 (tags tensor must be a string tensor)
+Rule 3 (tags must be a string tensor)
 {tags : tensor} |= dtype_(tags) = 11
 >>
-Rule 4 (tags tensor must be 1-dimensional)
-{tags : tensor} |= ndim(tags) = 1
+Rule 4 (tags must be a scalar string tensor)
+{tags : tensor} |= ndim(tags) = 0 ∧ dtype_(tags) = 11
 >>
-Rule 5 (values tensor must be at least 0-dimensional)
-{values : tensor} |= ndim(values) ≥ 0
+Rule 5 (values must be a scalar tensor)
+{values : tensor} |= ndim(values) = 0
 >>
-Rule 6 (values tensor should be of type float)
-{values : tensor} |= dtype_(values) = 7 ∨ dtype_(values) = 8
->>
-Rule 7 (values tensor should be of type int)
-{values : tensor} |= dtype_(values) = 3 ∨ dtype_(values) = 2 ∨ dtype_(values) = 4 ∨ dtype_(values) = 1
->>
-Rule 8 (The number of elements in tags should be greater than zero)
+Rule 6 (If tags is a tensor, the number of elements must be greater than 0)
 {tags : tensor} |= shape(tags, 0) > 0
 >>
-Rule 9 (If values is float32, its min value must be less than its max value)
-{values : tensor} |= if dtype_(values) = 7 then min(values) < max(values)
+Rule 7 (tags must have a valid string value if it's a constant)
+{tags : tensor} |= if ndim(tags) = 0 then true else ∀i ∈ [0, shape(tags,0) - 1] : tags[i] = "ii" ∨ tags[i] = "ii->i" ∨ tags[i] = "i,j->ij" ∨ tags[i] = "bij,bjk->bik" ∨ tags[i] = "...ij->...ji" ∨ tags[i] = "bn,anm,bm->ba" ∨ tags[i] = "none" ∨ tags[i] = "sum" ∨ tags[i] = "max" ∨ tags[i] = "min" ∨ tags[i] = "prod" ∨ tags[i] = "relu" ∨ tags[i] = "tanh" ∨ tags[i] = "sigmoid" ∨ tags[i] = "softmax" ∨ tags[i] = "elu" ∨ tags[i] = "selu" ∨ tags[i] = "gelu" ∨ tags[i] = "swish" ∨ tags[i] = "softplus" ∨ tags[i] = "linear" ∨ tags[i] = "valid" ∨ tags[i] = "same" ∨ tags[i] = "causal" ∨ tags[i] = "channels_last" ∨ tags[i] = "channels_first"
 >>
-Rule 10 (If values is float64, its min value must be less than its max value)
-{values : tensor} |= if dtype_(values) = 8 then min(values) < max(values)
+Rule 8 (values' dtype must be a bfloat16, uint16, half, uint32, uint64 if tf version >=2.13)
+{values : tensor} |= if ∃v_1 ∈ [213, 1000] : v_1 > 212 then dtype_(values) = 13 ∨ dtype_(values) = 14 ∨ dtype_(values) = 15 ∨ dtype_(values) = 16 ∨ dtype_(values) = 17
 >>
-Rule 12 (If values is int32, its min value must be less than its max value)
-{values : tensor} |= if dtype_(values) = 3 then min(values) < max(values)
+Rule 9 (if values' dtype is bfloat16, uint16, half, uint32, uint64, then tf version >=2.13)
+{values : tensor} |= if dtype_(values) = 13 ∨ dtype_(values) = 14 ∨ dtype_(values) = 15 ∨ dtype_(values) = 16 ∨ dtype_(values) = 17 then ∃v_1 ∈ [213, 1000] : v_1 > 212
 >>
-Rule 13 (If values is uint8, its min value must be less than its max value)
-{values : tensor} |= if dtype_(values) = 5 then min(values) < max(values)
+Rule 10 (values can not be complex type)
+{values : tensor} |= dtype_(values) ≠ 9 ∧ dtype_(values) ≠ 10
 >>
-Rule 14 (If values is int16, its min value must be less than its max value)
-{values : tensor} |= if dtype_(values) = 2 then min(values) < max(values)
+Rule 11 (if values is a tensor of bfloat16 type, then tags should also be string tensor)
+{values : tensor, tags : tensor} |= if dtype_(values) = 13 then dtype_(tags) = 11
 >>
-Rule 15 (If values is int8, its min value must be less than its max value)
-{values : tensor} |= if dtype_(values) = 1 then min(values) < max(values)
+Rule 12 (If tags is a tensor, all its values must be valid string from the given list)
+{tags : tensor} |= if ndim(tags) > 0 then ∀i ∈ [0, shape(tags, 0) - 1] : tags[i] = "ii" ∨ tags[i] = "ii->i" ∨ tags[i] = "i,j->ij" ∨ tags[i] = "bij,bjk->bik" ∨ tags[i] = "...ij->...ji" ∨ tags[i] = "bn,anm,bm->ba" ∨ tags[i] = "none" ∨ tags[i] = "sum" ∨ tags[i] = "max" ∨ tags[i] = "min" ∨ tags[i] = "prod" ∨ tags[i] = "relu" ∨ tags[i] = "tanh" ∨ tags[i] = "sigmoid" ∨ tags[i] = "softmax" ∨ tags[i] = "elu" ∨ tags[i] = "selu" ∨ tags[i] = "gelu" ∨ tags[i] = "swish" ∨ tags[i] = "softplus" ∨ tags[i] = "linear" ∨ tags[i] = "valid" ∨ tags[i] = "same" ∨ tags[i] = "causal" ∨ tags[i] = "channels_last" ∨ tags[i] = "channels_first"
 >>
-Rule 16 (If values is int64, its min value must be less than its max value)
-{values : tensor} |= if dtype_(values) = 4 then min(values) < max(values)
->>
-Rule 17 (values can not be a string)
-{values : tensor} |= dtype_(values) ≠ 11
->>
-Rule 18 (tags tensor must contain only non-empty strings)
-{tags : tensor} |= ∀i ∈ [0, shape(tags, 0) - 1] : shape(tags, i) > 0
->>
-Rule 19 (If tags and values are both 1-dimensional, their sizes must be equal)
-{tags : tensor, values : tensor} |= if ndim(tags) = 1 ∧ ndim(values) = 1 then shape(tags, 0) = shape(values, 0)
->>
-Rule 20 (values must be a scalar value, if tags contains only one element.)
-{tags : tensor, values : tensor} |= if shape(tags, 0) = 1 then ndim(values) = 0
->>
-Rule 31 (If shape of tags is (N,), then shape of values should be (N,) or ())
-{tags : tensor, values : tensor} |= (ndim(tags) = 1 ∧ (ndim(values) = 1 ∨ ndim(values) = 0)) ∧ if ndim(tags) = 1 ∧ ndim(values) = 1 then shape(tags, 0) = shape(values, 0)
->>
-Rule 33 (tag can not be an empty tensor)
-{tags : tensor} |= ndim(tags) > -1
->>
-Rule 34 (If tags tensor is not 1-dimensional, values must be a scalar)
-{tags : tensor, values: tensor} |= if ndim(tags) ≠ 1 then ndim(values) = 0
->>
-Rule 35 (If tags is 1-D, each element of tag should not be empty)
-{tags : tensor} |= if ndim(tags) = 1 then ∀i ∈ [0, shape(tags, 0) - 1] : shape(tags, i) > 0
->>
-Rule 38 (tags can not be an empty tensor (ndim < 0))
+Rule 13 (If tags is not a tensor, throw error)
 {tags : tensor} |= ndim(tags) ≥ 0
 >>
-Rule 42 (tags must have dtype string)
-{tags: tensor} |= dtype_(tags) = 11
+Rule 14 (tags and values must be tensors)
+{tags : tensor, values : tensor} |= ndim(tags) ≥ 0 ∧ ndim(values) ≥ 0
 >>
-Rule 43 (If the tags is 1D, the shape of its element should be larger than zero)
-{tags: tensor} |= if ndim(tags) = 1 then ∀i ∈ [0, shape(tags, 0) - 1] : shape(tags, i) > 0
+Rule 15 (tags must be a string tensor, and values must be a float32, float64, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64 tensor)
+{tags : tensor, values : tensor} |= dtype_(tags) = 11 ∧ (dtype_(values) = 6 ∨ dtype_(values) = 7 ∨ dtype_(values) = 2 ∨ dtype_(values) = 5 ∨ dtype_(values) = 1 ∨ dtype_(values) = 0 ∨ dtype_(values) = 4 ∨ dtype_(values) = 13 ∨ dtype_(values) = 14 ∨ dtype_(values) = 15 ∨ dtype_(values) = 16 ∨ dtype_(values) = 17)
 >>
-Rule 44 (If values is 0-dimensional, tags must be 1-dimensional with one element.)
-{tags : tensor, values : tensor} |= if ndim(values) = 0 then ndim(tags) = 1 ∧ shape(tags, 0) = 1
+Rule 16 (If values is a tensor of int8, int16, int32, int64, uint8, uint16, uint32, uint64, then tags should also be string tensor)
+{values : tensor, tags : tensor} |= if dtype_(values) = 0 ∨ dtype_(values) = 1 ∨ dtype_(values) = 2 ∨ dtype_(values) = 4 ∨ dtype_(values) = 5 ∨ dtype_(values) = 14 ∨ dtype_(values) = 16 ∨ dtype_(values) = 17 then dtype_(tags) = 11
 >>
-Rule 45 (tags and values should either be of the same 1D shape or values should be scalar.)
-{tags : tensor, values : tensor} |= (ndim(tags) = 1 ∧ ndim(values) = 1 ∧ shape(tags, 0) = shape(values, 0)) ∨ (ndim(values) = 0)
+Rule 17 (If values is a tensor of float16, float32, float64, bfloat16, half, then tags should also be string tensor)
+{values : tensor, tags : tensor} |= if dtype_(values) = 6 ∨ dtype_(values) = 7 ∨ dtype_(values) = 8 ∨ dtype_(values) = 13 ∨ dtype_(values) = 15 then dtype_(tags) = 11
 >>
-Rule 47 (if values' dtype is float32, the min value should not be larger than the max value)
-{values : tensor} |= if dtype_(values) = 7 then min(values) ≤ max(values)
+Rule 18 (tags and values should have the same number of elements)
+{tags : tensor, values : tensor} |= if ndim(tags) = 0 then if ndim(values) = 0 then true else false else if ndim(values) = 0 then false else ∀i ∈ [0, ndim(tags) - 1] : shape(tags, i) = shape(values, i)
 >>
-Rule 48 (if values' dtype is float64, the min value should not be larger than the max value)
-{values : tensor} |= if dtype_(values) = 8 then min(values) ≤ max(values)
+Rule 19 (tags should be a string tensor with shape equal to shape of values tensor)
+{tags : tensor, values : tensor} |= dtype_(tags) = 11 ∧ ndim(tags) = ndim(values) ∧ ∀i ∈ [0, ndim(tags) - 1] : shape(tags, i) = shape(values, i)
 >>
-Rule 49 (tags is 1D and consists of only non-empty strings)
-{tags : tensor} |= ndim(tags) = 1 ∧ ∀i ∈ [0, shape(tags, 0) - 1] : shape(tags, i) > 0
+Rule 20 (If values is a tensor of uint16, uint32, uint64 type, then tags should also be string tensor)
+{values : tensor, tags : tensor} |= if dtype_(values) = 14 ∨ dtype_(values) = 16 ∨ dtype_(values) = 17 then dtype_(tags) = 11
 >>
-Rule 52 (If the values tensor is an integer type, the minimum value should not be greater than the maximum value.)
-{values : tensor} |= if dtype_(values) = 3 ∨ dtype_(values) = 5 ∨ dtype_(values) = 2 ∨ dtype_(values) = 1 ∨ dtype_(values) = 4 then min(values) ≤ max(values)
+Rule 21 (If values' shape and tags' shape are not equal, at least one of them must be scalar)
+{tags : tensor, values : tensor} |= if ndim(tags) = ndim(values) ∧ ∀i ∈ [0, ndim(tags) - 1] : shape(tags, i) = shape(values, i) then true else ndim(tags) = 0 ∨ ndim(values) = 0
 >>
-Rule 54 (If the tags is of dimension larger than 1D, the values must be a scalar)
-{tags: tensor, values: tensor} |= if ndim(tags) > 1 then ndim(values) = 0
+Rule 22 (If tags is scalar, values should be scalar)
+{tags : tensor, values : tensor} |= if ndim(tags) = 0 then ndim(values) = 0
 >>
-Rule 55 (If tags is of shape (N, ), then the values should either be of shape (N, ) or ())
-{tags: tensor, values: tensor} |= if ndim(tags) = 1 then (ndim(values) = 1 ∧ shape(tags, 0) = shape(values, 0) ) ∨ ndim(values) = 0
+Rule 23 (If values is scalar, tags should be scalar)
+{tags : tensor, values : tensor} |= if ndim(values) = 0 then ndim(tags) = 0
 >>
-Rule 59 (If tag is a scalar, values must also be a scalar)
-{tags : tensor, values: tensor} |= if ndim(tags) = 0 then ndim(values) = 0
+Rule 24 (If values is not scalar, tags should not be scalar)
+{tags : tensor, values : tensor} |= if ndim(values) > 0 then ndim(tags) > 0
 >>
-Rule 60 (If values has dimension more than 1, tags cannot have dimension 0)
-{tags: tensor, values: tensor} |= if ndim(values) > 0 then ndim(tags) > 0
+Rule 25 (Shape of tags should be less than or equal to 1)
+{tags: tensor} |= ndim(tags) ≤ 1
 >>
-Rule 68 (Values with dtype int32 must have min less or equal than max)
-{values : tensor} |= if dtype_(values) = 3 then min(values) ≤ max(values)
+Rule 26 (If tags isn't a scalar, shape of values should be less than or equal to 1)
+{tags : tensor, values : tensor} |= if ndim(tags) ≠ 0 then ndim(values) ≤ 1
 >>
-Rule 69 (If tags has shape (), values must also have shape())
-{tags: tensor, values: tensor} |= if ndim(tags) = 0 then ndim(values) = 0
+Rule 27 (If values isn't a scalar, the number of tag should be equal to the number of values)
+{tags: tensor, values: tensor} |= if ndim(values) ≠ 0 then shape(tags, 0) = shape(values, 0)
 >>
-Rule 75 (If tags is a 1D array, values is either scalar or a 1D array with same shape)
-{tags: tensor, values: tensor} |= if ndim(tags) = 1 then (ndim(values) = 1 ∧ shape(tags, 0) = shape(values, 0)) ∨ ndim(values) = 0
+Rule 28 (If tags isn't a scalar, tags and values must have the same number of elements)
+{tags: tensor, values: tensor} |= if ndim(tags) ≠ 0 then shape(tags, 0) = shape(values, 0)
 >>
-Rule 78 (values with type int32, int16, int8, int64, uint8 must satisfy: min <= max)
-{values : tensor} |= if dtype_(values) = 3 ∨ dtype_(values) = 2 ∨ dtype_(values) = 1 ∨ dtype_(values) = 4 ∨ dtype_(values) = 5 then min(values) ≤ max(values)
+Rule 29 (if tags and values are not scalar then tags and values should have the same shape and size)
+{tags: tensor, values: tensor} |= if ndim(tags) > 0 ∧ ndim(values) > 0 then (ndim(tags) = ndim(values) ∧  ∀i ∈ [0, ndim(tags) - 1] : shape(tags, i) = shape(values, i))
 >>
-Rule 79 (If values is 1D, the shape of tags and value should coincide)
-{tags: tensor, values: tensor} |= if ndim(values) = 1 then ndim(tags) = 1 ∧ shape(tags, 0) = shape(values, 0)
+Rule 30 (If values is not a scalar, the number of values should be greater than 0)
+{values: tensor} |= if ndim(values) ≠ 0 then shape(values, 0) > 0
 >>
-Rule 84 (If tags is not 1D array, values is required to be a scalar value)
-{tags: tensor, values: tensor} |= if ndim(tags) ≠ 1 then ndim(values) = 0
+Rule 31 (tags and values should have same number of dimensions or tags should be scalar.)
+{tags: tensor, values: tensor} |= (ndim(tags) = ndim(values)) ∨ (ndim(tags) = 0)
 >>
-Rule 89 (if values tensor is multi dimensional, tags tensor cannot have size zero.)
-{tags: tensor, values: tensor} |= if ndim(values) > 0 then ndim(tags) ≠ 0
+Rule 33 (if tags is not scalar, values can not be a scalar)
+{tags: tensor} |= if ndim(tags) ≠ 0 then true
 >>
-Rule 95 (if tags has a shape of at least (1,), values is required to have at least a dimension)
-{tags: tensor, values: tensor} |= if ndim(tags) > 0 then ndim(values) ≥ 0
+Rule 34 (If tags is not scalar, values must not be a scalar)
+{tags: tensor, values: tensor} |= if ndim(tags) ≠ 0 then ndim(values) ≠ 0
 >>
-Rule 115 (If either tag or values is a 0D tensor, then tag must contain one element.)
-{tags: tensor, values: tensor} |= if ndim(tags) = 0 ∨ ndim(values) = 0 then (ndim(tags) = 0 ∧ ndim(values) = 0) ∨ (ndim(tags) = 1 ∧ shape(tags, 0) = 1)
+Rule 35 (If shape of tags is not scalar then shape of values must be equal to shape of tags)
+{tags: tensor, values: tensor} |= if ndim(tags) = 0 then true else (ndim(tags) = ndim(values) ∧  ∀i ∈ [0, ndim(tags) - 1] : shape(tags, i) = shape(values, i))
 >>
-Rule 119 (If tags has at least one dimension, then it must have non-zero element size at each of them)
-{tags : tensor} |= if ndim(tags) > 0 then ∀i ∈ [0, ndim(tags) - 1] : shape(tags, i) > 0
+Rule 36 (The number of dimensions of values should be less or equal than 1)
+{values : tensor} |= ndim(values) ≤ 1
 >>
-Rule 124 (If both tags and values are tensors, the number of dimensions should match)
-{tags : tensor, values : tensor} |= ndim(tags) = ndim(values)
+Rule 37 (If the number of dimensions of values isn't 0, then the number of dimensions of tags should be less than or equal to 1)
+{tags : tensor, values : tensor} |= if ndim(values) ≠ 0 then ndim(tags) ≤ 1
+>>
+Rule 38 (Shape of values should be less or equal to shape of tags if tags is a tensor)
+{tags : tensor, values : tensor} |= if ndim(tags) ≠ 0 then if ndim(values) > ndim(tags) then false
+>>
+Rule 39 (The shape of tags and values must be less or equal to 1, and must have the same shape.)
+{tags : tensor, values : tensor} |= (ndim(tags) ≤ 1 ∧ ndim(values) ≤ 1) ∧ (if ndim(tags) = ndim(values) then if ndim(tags) = 1 then shape(tags, 0) = shape(values, 0) else false)
+>>
+Rule 40 (If the number of dimensions of tags isn't 0, then values must have at least one value.)
+{tags: tensor, values: tensor} |= if ndim(tags) ≠ 0 then shape(values,0) ≥ 1
+>>
+Rule 41 (if values has one dimension then shape of values must have positive value)
+{values: tensor} |= if ndim(values) = 1 then shape(values,0) > 0
+>>
+Rule 42 (If the number of dimensions of tags is 1 then shape of tags must have positive value)
+{tags: tensor} |= if ndim(tags) = 1 then shape(tags,0) > 0
+>>
+Rule 43 (if values has one dimension then dtype of tags must be string)
+{values: tensor, tags: tensor} |= if ndim(values) = 1 then dtype_(tags) = 11
+>>
+Rule 44 (If shape of values is one dimension, elements of tags should be valid string from the given list)
+{tags: tensor} |= if ndim(tags) = 1 then ∀i ∈ [0, shape(tags, 0) - 1] : tags[i] = "ii" ∨ tags[i] = "ii->i" ∨ tags[i] = "i,j->ij" ∨ tags[i] = "bij,bjk->bik" ∨ tags[i] = "...ij->...ji" ∨ tags[i] = "bn,anm,bm->ba" ∨ tags[i] = "none" ∨ tags[i] = "sum" ∨ tags[i] = "max" ∨ tags[i] = "min" ∨ tags[i] = "prod" ∨ tags[i] = "relu" ∨ tags[i] = "tanh" ∨ tags[i] = "sigmoid" ∨ tags[i] = "softmax" ∨ tags[i] = "elu" ∨ tags[i] = "selu" ∨ tags[i] = "gelu" ∨ tags[i] = "swish" ∨ tags[i] = "softplus" ∨ tags[i] = "linear" ∨ tags[i] = "valid" ∨ tags[i] = "same" ∨ tags[i] = "causal" ∨ tags[i] = "channels_last" ∨ tags[i] = "channels_first"
+>>
+Rule 47 (If the dtype of the values tensor is a valid dtype, then the dtype of tags must be string)
+{values: tensor, tags: tensor} |= (dtype_(values) = 6 ∨ dtype_(values) = 7 ∨ dtype_(values) = 2 ∨ dtype_(values) = 5 ∨ dtype_(values) = 1 ∨ dtype_(values) = 0 ∨ dtype_(values) = 4 ∨ dtype_(values) = 13 ∨ dtype_(values) = 14 ∨ dtype_(values) = 15 ∨ dtype_(values) = 16 ∨ dtype_(values) = 17) ∧ (dtype_(tags) = 11)
+>>
+Rule 48 (If values is a tensor with valid dtype then tags is also a tensor and the ndim is <= 1.)
+{tags: tensor, values: tensor} |= (dtype_(values) = 6 ∨ dtype_(values) = 7 ∨ dtype_(values) = 2 ∨ dtype_(values) = 5 ∨ dtype_(values) = 1 ∨ dtype_(values) = 0 ∨ dtype_(values) = 4 ∨ dtype_(values) = 13 ∨ dtype_(values) = 14 ∨ dtype_(values) = 15 ∨ dtype_(values) = 16 ∨ dtype_(values) = 17) ∧ ndim(tags) ≤ 1
+>>
+Rule 49 (values should be a tensor with a valid dtype and tags should be tensor with dtype string)
+{tags: tensor, values: tensor} |= (dtype_(values) = 6 ∨ dtype_(values) = 7 ∨ dtype_(values) = 2 ∨ dtype_(values) = 5 ∨ dtype_(values) = 1 ∨ dtype_(values) = 0 ∨ dtype_(values) = 4 ∨ dtype_(values) = 13 ∨ dtype_(values) = 14 ∨ dtype_(values) = 15 ∨ dtype_(values) = 16 ∨ dtype_(values) = 17) ∧ (dtype_(tags) = 11)
+>>
+Rule 50 (If the shape of values is one dimension and dtype is a valid type then tags must be a string tensor)
+{values: tensor, tags: tensor} |= (if ndim(values) = 1 ∧ (dtype_(values) = 6 ∨ dtype_(values) = 7 ∨ dtype_(values) = 2 ∨ dtype_(values) = 5 ∨ dtype_(values) = 1 ∨ dtype_(values) = 0 ∨ dtype_(values) = 4 ∨ dtype_(values) = 13 ∨ dtype_(values) = 14 ∨ dtype_(values) = 15 ∨ dtype_(values) = 16 ∨ dtype_(values) = 17) then dtype_(tags) = 11)
+>>
+Rule 51 (tags should be a string tensor. If tags has one dimension and has value then tags elements should be in a valid string)
+{tags: tensor} |= dtype_(tags) = 11 ∧ (if ndim(tags) = 1 ∧ shape(tags,0) > 0 then ∀i ∈ [0, shape(tags, 0) - 1] : tags[i] = "ii" ∨ tags[i] = "ii->i" ∨ tags[i] = "i,j->ij" ∨ tags[i] = "bij,bjk->bik" ∨ tags[i] = "...ij->...ji" ∨ tags[i] = "bn,anm,bm->ba" ∨ tags[i] = "none" ∨ tags[i] = "sum" ∨ tags[i] = "max" ∨ tags[i] = "min" ∨ tags[i] = "prod" ∨ tags[i] = "relu" ∨ tags[i] = "tanh" ∨ tags[i] = "sigmoid" ∨ tags[i] = "softmax" ∨ tags[i] = "elu" ∨ tags[i] = "selu" ∨ tags[i] = "gelu" ∨ tags[i] = "swish" ∨ tags[i] = "softplus" ∨ tags[i] = "linear" ∨ tags[i] = "valid" ∨ tags[i] = "same" ∨ tags[i] = "causal" ∨ tags[i] = "channels_last" ∨ tags[i] = "channels_first")
+>>
+Rule 52 (values' shape must be the same as tags' shape.)
+{values : tensor, tags : tensor} |= if ndim(tags) = ndim(values) then ∀i ∈ [0, if ndim(tags)>0 then ndim(tags) -1 else 0] : shape(tags, i) = shape(values, i) else false
+>>
+Rule 53 (If the shape of values is not the same as tags shape, then either value is scalar or tags is scalar)
+{values : tensor, tags : tensor} |= if (ndim(tags) = ndim(values) ∧ ∀i ∈ [0, if ndim(tags)>0 then ndim(tags) -1 else 0] : shape(tags, i) = shape(values, i)) then true else (ndim(values) = 0 ∨ ndim(tags) = 0)
+>>
+Rule 54 (If the shape of values is not the same as tags shape, and tags is not scalar, then values must be a scalar)
+{values : tensor, tags : tensor} |= if (ndim(tags) = ndim(values) ∧ ∀i ∈ [0, if ndim(tags)>0 then ndim(tags) -1 else 0] : shape(tags, i) = shape(values, i)) then true else (ndim(tags)≠0 ∧ ndim(values) = 0)

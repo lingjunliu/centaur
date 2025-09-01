@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# exponential_avg_factor must be between 0 and 1 (Rule 9)
+# epsilon must be greater than or equal to 0 (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] <= 1)) if n else
-          And(v["arg1_value"] >= 0, v["arg1_value"] <= 1))
+    s.add(Not(v["arg1_value"] >= 0) if n else
+          v["arg1_value"] >= 0)
 )
 
 def rule_9_func(arg1, solver=None, neg=False):

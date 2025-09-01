@@ -1,123 +1,138 @@
 >>
 Rule 1 (num_buckets must be greater than or equal to 1)
-{v_2 : int} |= v_2 ≥ 1
+{v_1 : int} |= v_1 ≥ 1
 >>
-Rule 2 (input must be a tensor of strings)
-{v_1 : tensor} |= dtype_(v_1) = 12
->>
-Rule 3 (input must be a tensor)
+Rule 2 (input tensor must have a non-empty shape)
 {v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 4 (number of buckets should not be too large)
-{v_2 : int} |= v_2 < 100000
+Rule 3 (input tensor must have a string dtype)
+{v_1 : tensor} |= dtype_(v_1) = 12
 >>
-Rule 8 (input tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 4 (num_buckets is a positive integer)
+{v_1 : int} |= v_1 > 0
 >>
-Rule 10 (input tensor's dimension cannot exceed a certain limit)
-{v_1 : tensor} |= ndim(v_1) < 5
+Rule 5 (the shape of the input tensor must have at least one element)
+{v_1 : tensor} |= shape(v_1, 0) ≥ 0
 >>
-Rule 11 (input and number of buckets are related)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) ≤ v_2 * 100
+Rule 6 (input tensor's rank must be less than or equal to a reasonable maximum)
+{v_1 : tensor} |= ndim(v_1) ≤ 5
 >>
-Rule 12 (input must be a string tensor and buckets a positive integer)
-{v_1 : tensor, v_2 : int} |= dtype_(v_1) = 12 ∧ v_2 > 0
->>
-Rule 13 (combined condition on num_buckets and tensor dimensions)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) = 1 ∨ v_2 < 100
->>
-Rule 14 (String tensor must not be empty if number of buckets is 1)
-{v_1 : tensor, v_2 : int} |= if v_2 = 1 then shape(v_1, 0) > 0
->>
-Rule 17 (If the number of buckets is small, tensor can't be huge)
-{v_1 : tensor, v_2 : int} |= if v_2 < 10 then shape(v_1, 0) < 1000
->>
-Rule 18 (The input tensor should be a vector)
-{v_1: tensor} |= ndim(v_1) = 1
->>
-Rule 19 (If num_buckets is 1, all strings will hash to the same bucket)
-{v_2 : int} |= if v_2 = 1 then true
->>
-Rule 20 (Check if the input tensor is not an empty tensor)
-{v_1 : tensor} |= shape(v_1, 0) > 0
->>
-Rule 22 (If the input is a scalar string, num_buckets must be greater than 1)
+Rule 8 (If the input tensor is a scalar, num_buckets must be greater than 1)
 {v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 > 1
 >>
-Rule 23 (Combining input tensor shape and number of buckets)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) * 2 < v_2 * 100
+Rule 9 (The number of elements in the input tensor must be less than a maximum value)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≤ 1000)
 >>
-Rule 24 (If the input tensor has a large dimension then the number of buckets should be large)
-{v_1: tensor, v_2: int} |= if ndim(v_1) > 3 then v_2 > 50
+Rule 10 (The input tensor must not have dimensions with size 0)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0)
 >>
-Rule 25 (buckets related to input dimension 0)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 > shape(v_1, 0) / 2 else v_2 > 0
+Rule 13 (The input tensor cannot be a tuple)
+{v_1 : tensor} |= dtype_(v_1) ≠ 7
 >>
-Rule 26 (if input tensor is 2D, number of buckets has a relation with product of the dimensions)
-{v_1: tensor, v_2: int} |= if ndim(v_1) = 2 then v_2 > shape(v_1,0) * shape(v_1,1) / 10
+Rule 14 (The product of the dimensions of the input tensor should not exceed a maximum value)
+{v_1 : tensor} |= if ndim(v_1) = 0 then 1 ≤ 1000000 else ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≤ 1000000
 >>
-Rule 27 (Input tensor should not have dimension higher than 5)
-{v_1: tensor} |= ndim(v_1) <= 5
+Rule 15 (num_buckets should not be excessively large)
+{v_1 : int} |= v_1 < 10000000
 >>
-Rule 28 (Checking if shape of the input tensor is reasonable given the number of buckets)
-{v_1: tensor, v_2: int} |= shape(v_1,0) < v_2 * 1000
+Rule 16 (The shape of the input tensor cannot have negative dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 29 (Number of buckets cannot exceed maximum integer value)
-{v_2: int} |= v_2 < 2147483647
+Rule 17 (If input is scalar string, num_buckets should be large enough to avoid collisions)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 > 10
 >>
-Rule 30 (Input tensor must be of string type)
-{v_1: tensor} |= dtype_(v_1) = 12
+Rule 18 (If num_buckets is close to the maximum integer value, the shape of the input should be small)
+{v_1 : tensor, v_2 : int} |= if v_2 > 2147483640 then ndim(v_1) ≤ 1
 >>
-Rule 31 (The product of all dimensions of the input tensor must be less than some limit)
-{v_1: tensor} |= if ndim(v_1) = 0 then true else if ndim(v_1) = 1 then shape(v_1, 0) < 100000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 100000
+Rule 19 (num_buckets must be representable as int64)
+{v_1 : int} |= v_1 ≤ 9223372036854775807
 >>
-Rule 32 (Number of buckets should be a power of 2 for better hashing)
-{v_2: int} |= (v_2 > 0) ∧ ((v_2 ∧ (v_2 - 1)) = 0 ∨ v_2 = 1)
+Rule 20 (If input tensor is empty, num_buckets doesn't matter)
+{v_1 : tensor, v_2 : int} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then true else v_2 ≥ 1
 >>
-Rule 33 (if the input is a scalar string, then the number of buckets must be at least 2)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 ≥ 2
+Rule 21 (if input tensor is empty, the number of buckets can be 1)
+{v_1 : tensor, v_2 : int} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then v_2 = 1
 >>
-Rule 35 (if number of buckets is prime, better distribution)
-{v_2 : int} |= if v_2 = 2 then true else if v_2 = 3 then true else if v_2 = 5 then true else if v_2 = 7 then true else if v_2 = 11 then true
+Rule 22 (If the input tensor has a dimension of size 1, num_buckets should not be too high)
+{v_1 : tensor, v_2 : int} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1) then v_2 < 10000
 >>
-Rule 36 (The total number of strings in input tensor must be greater or equal than number of buckets)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) >= v_2
+Rule 23 (num_buckets should be a power of 2 to optimize hashing)
+{v_1 : int} |= ∃i ∈ [0, 31] : v_1 = 2 * i
 >>
-Rule 40 (If the number of buckets is small, the input should not be a very long string)
-{v_1 : tensor, v_2 : int} |= if v_2 < 5 then shape(v_1, 0) < 100
+Rule 24 (num_buckets should be a multiple of the input tensor's size to ensure even distribution)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 % shape(v_1, 0) = 0
 >>
-Rule 44 (Number of buckets has to be a small number for scalar input.)
-{v_1 : tensor, v_2: int} |= if ndim(v_1) = 0 then v_2 < 100
+Rule 25 (The number of bytes in the input tensor must be reasonable to avoid OOM)
+{v_1 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000000)
 >>
-Rule 47 (number of buckets must not be zero)
-{v_2 : int} |= v_2 ≠ 0
+Rule 26 (The number of dimensions of the input tensor and the number of bits of num_buckets should not be too large together, as it might cause integer overflow)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) + (v_2 * v_2) < 1000
 >>
-Rule 49 (If the input tensor is of dimension 0, the number of buckets has to be smaller than some constant)
-{v_1 : tensor, v_2: int} |= if ndim(v_1) = 0 then v_2 < 1000
+Rule 27 (If input is scalar, num_buckets should be prime)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then (v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 5 ∨ v_2 = 7 ∨ v_2 = 11 ∨ v_2 = 13 ∨ v_2 = 17 ∨ v_2 = 19 ∨ v_2 = 23 ∨ v_2 = 29)
 >>
-Rule 50 (If the number of strings in input is less than 10 and the number of buckets is too large ( > 1000), then something must be wrong.)
-{v_1 : tensor, v_2: int} |= if shape(v_1, 0) < 10 then v_2 < 1000
+Rule 28 (The product of shape dimensions should be less than int64 max)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) < 9223372036854775807
 >>
-Rule 52 (Number of buckets has to be an integer which is greater or equal than 1)
-{v_2: int} |= v_2 ≥ 1
+Rule 29 (num_buckets should be significantly smaller than the number of possible strings)
+{v_1 : int} |= v_1 < 1000000000
 >>
-Rule 53 (If the input tensor is a scalar, number of buckets can't be 1.)
-{v_1: tensor, v_2: int} |= if ndim(v_1) = 0 then v_2 > 1
+Rule 30 (num_buckets should be less than the maximum value of int64)
+{v_1 : int} |= v_1 < 2147483647
 >>
-Rule 54 (Number of buckets should be smaller than the square root of the maximum value of int64)
-{v_2: int} |= v_2 < 46340
+Rule 31 (If the input tensor is very large, num_buckets must be larger to reduce collisions)
+{v_1 : tensor, v_2 : int} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1000) then v_2 > 1000
 >>
-Rule 55 (If the number of strings are more than 1000, number of buckets should be larger than 10)
-{v_1: tensor, v_2: int} |= if shape(v_1, 0) > 1000 then v_2 > 10
+Rule 32 (If input tensor contains empty strings, num_buckets doesn't matter)
+{v_1 : tensor, v_2 : int} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ v_1[i] = "") then true else v_2 ≥ 1
 >>
-Rule 56 (If input tensor is empty then number of buckets is 1)
-{v_1 : tensor, v_2 : int} |= if shape(v_1,0) = 0 then v_2 = 1
+Rule 33 (The total number of elements in the input tensor times log(num_buckets) should not exceed a certain limit to avoid memory issues)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 100000000) ∧ v_2 < 10000
 >>
-Rule 57 (If input is a vector, then num_buckets can not be greater than 100000)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 < 100000
+Rule 41 (The length of each string in the input tensor must be less than a limit)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : if shape(v_1, i) > 0 then (if v_1[i] = "ii" ∨ v_1[i] = "ii->i" ∨ v_1[i] = "i,j->ij" ∨ v_1[i] = "bij,bjk->bik" ∨ v_1[i] = "...ij->...ji" ∨ v_1[i] = "bn,anm,bm->ba" ∨ v_1[i] = "none" ∨ v_1[i] = "sum" ∨ v_1[i] = "max" ∨ v_1[i] = "min" ∨ v_1[i] = "prod" ∨ v_1[i] = "relu" ∨ v_1[i] = "tanh" ∨ v_1[i] = "sigmoid" ∨ v_1[i] = "softmax" ∨ v_1[i] = "elu" ∨ v_1[i] = "selu" ∨ v_1[i] = "gelu" ∨ v_1[i] = "swish" ∨ v_1[i] = "softplus" ∨ v_1[i] = "linear" ∨ v_1[i] = "valid" ∨ v_1[i] = "same" ∨ v_1[i] = "causal" ∨ v_1[i] = "channels_last" ∨ v_1[i] = "channels_first" then true else false)
 >>
-Rule 60 (Number of buckets should be always a positive number)
-{v_2: int} |= v_2 > 0
+Rule 42 (The length of each string in the input tensor must be a valid string from the allowed list or less than a limit)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : if shape(v_1, i) > 0 then (v_1[i] = "ii" ∨ v_1[i] = "ii->i" ∨ v_1[i] = "i,j->ij" ∨ v_1[i] = "bij,bjk->bik" ∨ v_1[i] = "...ij->...ji" ∨ v_1[i] = "bn,anm,bm->ba" ∨ v_1[i] = "none" ∨ v_1[i] = "sum" ∨ v_1[i] = "max" ∨ v_1[i] = "min" ∨ v_1[i] = "prod" ∨ v_1[i] = "relu" ∨ v_1[i] = "tanh" ∨ v_1[i] = "sigmoid" ∨ v_1[i] = "softmax" ∨ v_1[i] = "elu" ∨ v_1[i] = "selu" ∨ v_1[i] = "gelu" ∨ v_1[i] = "swish" ∨ v_1[i] = "softplus" ∨ v_1[i] = "linear" ∨ v_1[i] = "valid" ∨ v_1[i] = "same" ∨ v_1[i] = "causal" ∨ v_1[i] = "channels_last" ∨ v_1[i] = "channels_first")
 >>
-Rule 61 (Number of buckets can't be negative.)
-{v_2: int} |= v_2 >= 0
+Rule 43 (If a single string is passed in, ensure the number of buckets is not 1)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 0 then v_2 ≠ 1
+>>
+Rule 44 (if the input is a string tensor of shape [1], number of buckets must be more than 1)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 ∧ shape(v_1, 0) = 1 then v_2 > 1
+>>
+Rule 45 (The number of buckets should be greater than the maximum length of a string)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : v_2 > shape(v_1, i))
+>>
+Rule 46 (If input tensor is empty string, number of buckets must be more than zero)
+{v_1 : tensor, v_2 : int} |= if v_1 = "" then v_2 > 0
+>>
+Rule 47 (if the tensor is a scalar, the only valid strings are from the allowed list)
+{v_1 : tensor} |= if ndim(v_1) = 0 then (v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear" ∨ v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "causal" ∨ v_1 = "channels_last" ∨ v_1 = "channels_first")
+>>
+Rule 49 (The product of the dimensions of the output tensor does not overflow)
+{v_1: tensor, v_2: int} |= (shape(v_1, 0) * v_2) < 9223372036854775807
+>>
+Rule 51 (Output tensor contains values less than num_buckets)
+{v_1 : int} |=  v_1 < 9223372036854775807
+>>
+Rule 54 (If input tensor is rank 1, then the length of each element should be less than 256)
+{v_1 : tensor} |= if ndim(v_1) = 1 then ∀i ∈ [0, shape(v_1, 0) - 1] : 0 ≤ 255
+>>
+Rule 55 (The first dimension of the input tensor should be less than the number of buckets)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then shape(v_1, 0) ≤ v_2
+>>
+Rule 56 (if the tensor is a scalar string, the number of buckets should not be too small to prevent collisions)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 0 then v_2 > 5
+>>
+Rule 58 (Number of buckets must be a multiple of the number of elements in the input)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then true else v_2 % shape(v_1, 0) = 0
+>>
+Rule 59 (If input is 1D then num_buckets should be greater than or equal to the length of the first dimension)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 ≥ shape(v_1, 0)
+>>
+Rule 60 (if the tensor is a matrix, number of buckets should be greater than the product of the dimensions to reduce collisions)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then v_2 > shape(v_1, 0) * shape(v_1, 1)
+>>
+Rule 61 (If number of buckets is very large, the shape of the input tensor must be small)
+{v_1 : tensor, v_2 : int} |= if v_2 > 100000 then ndim(v_1) ≤ 2

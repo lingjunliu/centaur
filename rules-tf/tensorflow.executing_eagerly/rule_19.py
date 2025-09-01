@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Dummy rule with a float and an inequality (Rule 19)
+# The boolean return value is not a dtype (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != 0.0) if n else
-          v["arg1_value"] != 0.0)
+    s.add(Not(And(And(And(And(And(And(And(And(And(And(And(v["arg1_value"] != 1, v["arg1_value"] != 2), v["arg1_value"] != 3), v["arg1_value"] != 4), v["arg1_value"] != 5), v["arg1_value"] != 6), v["arg1_value"] != 7), v["arg1_value"] != 8), v["arg1_value"] != 9), v["arg1_value"] != 10), v["arg1_value"] != 11), v["arg1_value"] != 13)) if n else
+          And(And(And(And(And(And(And(And(And(And(And(v["arg1_value"] != 1, v["arg1_value"] != 2), v["arg1_value"] != 3), v["arg1_value"] != 4), v["arg1_value"] != 5), v["arg1_value"] != 6), v["arg1_value"] != 7), v["arg1_value"] != 8), v["arg1_value"] != 9), v["arg1_value"] != 10), v["arg1_value"] != 11), v["arg1_value"] != 13))
 )
 
 def rule_19_func(arg1, solver=None, neg=False):
@@ -17,12 +17,12 @@ def rule_19_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
+        if not isinstance(arg1, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
+        arg1_value = Bool('arg1_value')
 
         # Value assignments
         solver.add(arg1_value == arg1)

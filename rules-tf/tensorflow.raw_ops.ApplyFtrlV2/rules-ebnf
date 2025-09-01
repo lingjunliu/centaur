@@ -1,237 +1,96 @@
 >>
-Rule 1 (var, accum, linear, and grad should have the same dtype)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3) ∧ dtype_(v_1) = dtype_(v_4)
+Rule 1 (var, accum, linear, grad, lr, l1, l2, l2_shrinkage, lr_power must have the same dtype)
+{var : tensor, accum : tensor, linear : tensor, grad : tensor, lr : tensor, l1 : tensor, l2 : tensor, l2_shrinkage : tensor, lr_power : tensor} |= dtype_(var) = dtype_(accum) ∧ dtype_(var) = dtype_(linear) ∧ dtype_(var) = dtype_(grad) ∧ dtype_(var) = dtype_(lr) ∧ dtype_(var) = dtype_(l1) ∧ dtype_(var) = dtype_(l2) ∧ dtype_(var) = dtype_(l2_shrinkage) ∧ dtype_(var) = dtype_(lr_power)
 >>
-Rule 2 (lr, l1, l2, l2_shrinkage, and lr_power should be scalar tensors)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 0 ∧ ndim(v_4) = 0 ∧ ndim(v_5) = 0
+Rule 2 (lr, l1, l2, l2_shrinkage, lr_power must be scalar tensors)
+{lr : tensor, l1 : tensor, l2 : tensor, l2_shrinkage : tensor, lr_power : tensor} |= ndim(lr) = 0 ∧ ndim(l1) = 0 ∧ ndim(l2) = 0 ∧ ndim(l2_shrinkage) = 0 ∧ ndim(lr_power) = 0
 >>
-Rule 3 (var, accum and linear should have the same shape)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)
+Rule 3 (use_locking is a boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 4 (grad should have the same shape as var)
-{v_1 : tensor, v_4 : tensor} |= ndim(v_1) = ndim(v_4) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_4, i)
+Rule 6 (var must be a float32, float64, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64)
+{var : tensor} |= dtype_(var) = 6 ∨ dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 2 ∨ dtype_(var) = 5 ∨ dtype_(var) = 1 ∨ dtype_(var) = 9 ∨ dtype_(var) = 4 ∨ dtype_(var) = 12 ∨ dtype_(var) = 13
 >>
-Rule 5 (if use_locking is true then multiply_linear_by_lr should also be true)
-{v_1 : bool, v_2 : bool} |= if v_1 = true then v_2 = true
+Rule 7 (accum, linear, and grad should have the same shape as var)
+{var : tensor, accum : tensor, linear : tensor, grad : tensor} |= ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(accum, i) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(linear, i) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(grad, i)
 >>
-Rule 6 (lr value must be positive)
-{v_1 : tensor} |= min(v_1) > 0
+Rule 8 (shape of lr, l1, l2, l2_shrinkage, lr_power must be one)
+{lr : tensor, l1 : tensor, l2 : tensor, l2_shrinkage : tensor, lr_power : tensor} |= shape(lr, 0) = 1 ∨ ndim(lr) = 0 ∧ shape(l1, 0) = 1 ∨ ndim(l1) = 0 ∧ shape(l2, 0) = 1 ∨ ndim(l2) = 0 ∧ shape(l2_shrinkage, 0) = 1 ∨ ndim(l2_shrinkage) = 0 ∧ shape(lr_power, 0) = 1 ∨ ndim(lr_power) = 0
 >>
-Rule 7 (l1 and l2 regularization terms should be non-negative)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) ≥ 0 ∧ min(v_2) ≥ 0
+Rule 13 (use_locking can only be true or false)
+{use_locking : bool} |= use_locking = true ∨ use_locking = false
 >>
-Rule 8 (shape of lr_power and lr should be same)
-{v_1 : tensor, v_5 : tensor} |= ndim(v_1) = ndim(v_5) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_5, i)
+Rule 14 (multiply_linear_by_lr can only be true or false)
+{multiply_linear_by_lr : bool} |= multiply_linear_by_lr = true ∨ multiply_linear_by_lr = false
 >>
-Rule 9 (l2_shrinkage must be less than 1)
-{v_1 : tensor} |= max(v_1) ≤ 1
+Rule 15 (All dimensions of var should be greater than zero)
+{var : tensor} |= ∀i ∈ [0, ndim(var) - 1] : shape(var, i) > 0
 >>
-Rule 10 (lr_power should be in range [0,1])
-{v_1 : tensor} |= min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
+Rule 16 (lr, l1, l2, l2_shrinkage and lr_power must be positive)
+{lr : tensor, l1 : tensor, l2 : tensor, l2_shrinkage : tensor, lr_power : tensor} |= min(lr) > 0 ∧ min(l1) ≥ 0 ∧ min(l2) ≥ 0 ∧ min(l2_shrinkage) ≥ 0 ∧ min(lr_power) > 0
 >>
-Rule 11 (var must be a floating point or integer or complex type)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+Rule 17 (accum, linear and grad must have the same dtype as var)
+{var : tensor, accum : tensor, linear : tensor, grad : tensor} |= dtype_(var) = dtype_(accum) ∧ dtype_(var) = dtype_(linear) ∧ dtype_(var) = dtype_(grad)
 >>
-Rule 12 (l2_shrinkage must be non-negative)
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 18 (lr, l1, l2, l2_shrinkage and lr_power must be scalar tensors with the same dtype)
+{var : tensor, lr : tensor, l1 : tensor, l2 : tensor, l2_shrinkage : tensor, lr_power : tensor} |= ndim(lr) = 0 ∧ ndim(l1) = 0 ∧ ndim(l2) = 0 ∧ ndim(l2_shrinkage) = 0 ∧ ndim(lr_power) = 0 ∧ dtype_(lr) = dtype_(var) ∧ dtype_(l1) = dtype_(var) ∧ dtype_(l2) = dtype_(var) ∧ dtype_(l2_shrinkage) = dtype_(var) ∧ dtype_(lr_power) = dtype_(var)
 >>
-Rule 13 (var, accum, linear, grad, lr, l1, l2, l2_shrinkage, lr_power have same shape)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor, v_6 : tensor, v_7 : tensor, v_8 : tensor, v_9 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ndim(v_1) = ndim(v_4) ∧ ndim(v_1) = ndim(v_5) ∧ ndim(v_1) = ndim(v_6) ∧ ndim(v_1) = ndim(v_7) ∧ ndim(v_1) = ndim(v_8) ∧ ndim(v_1) = ndim(v_9) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_4, i) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_5, i) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_6, i) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_7, i) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_8, i) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_9, i)
+Rule 19 (var must be one of the allowed dtypes)
+{var : tensor} |= dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 3 ∨ dtype_(var) = 6 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 10 ∨ dtype_(var) = 5
 >>
-Rule 14 (If lr_power is zero, values should not go to inf)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if max(v_1) = 0 then min(v_2) > 0 ∧ min(v_3) > 0
+Rule 21 (lr, l1, l2, l2_shrinkage and lr_power should be non-negative)
+{lr : tensor, l1 : tensor, l2 : tensor, l2_shrinkage : tensor, lr_power : tensor} |= min(lr) ≥ 0 ∧ min(l1) ≥ 0 ∧ min(l2) ≥ 0 ∧ min(l2_shrinkage) ≥ 0 ∧ min(lr_power) ≥ 0
 >>
-Rule 15 (lr should not be too large)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= max(v_1) ≤ max(v_2) + max(v_3) * max(v_4)
+Rule 28 (accum, linear, and grad should have the same shape as var)
+{var : tensor, accum : tensor, linear : tensor, grad : tensor} |= ndim(var) = ndim(accum) ∧ ndim(var) = ndim(linear) ∧ ndim(var) = ndim(grad) ∧  ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(accum, i) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(linear, i) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(grad, i)
 >>
-Rule 16 (if multiply_linear_by_lr is true, lr must be one)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then max(v_2) = 1 ∧ min(v_2) = 1
+Rule 35 (var must be one of the allowed dtypes - simplified version)
+{var : tensor} |= dtype_(var) = 1 ∨ dtype_(var) = 2 ∨ dtype_(var) = 3 ∨ dtype_(var) = 4 ∨ dtype_(var) = 5 ∨ dtype_(var) = 6 ∨ dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 9 ∨ dtype_(var) = 10 ∨ dtype_(var) = 12 ∨ dtype_(var) = 13
 >>
-Rule 17 (var cannot contain NaN values)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0 ∧ max(v_1) < 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+Rule 36 (accum, linear, and grad should have the same shape as var, covering the case where number of dimensions may be different)
+{var : tensor, accum : tensor, linear : tensor, grad : tensor} |= if ndim(var) = ndim(accum) ∧ ndim(var) = ndim(linear) ∧ ndim(var) = ndim(grad) then ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(accum, i) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(linear, i) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(grad, i) = shape(var, i) else false
 >>
-Rule 18 (l1, l2, l2_shrinkage have compatible shapes)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)
+Rule 37 (lr, l1, l2, l2_shrinkage and lr_power should be non-negative, with default zero handling)
+{lr : tensor, l1 : tensor, l2 : tensor, l2_shrinkage : tensor, lr_power : tensor} |= if ndim(lr) = 0 then true else min(lr) ≥ 0 ∧ if ndim(l1) = 0 then true else min(l1) ≥ 0 ∧ if ndim(l2) = 0 then true else min(l2) ≥ 0 ∧ if ndim(l2_shrinkage) = 0 then true else min(l2_shrinkage) ≥ 0 ∧ if ndim(lr_power) = 0 then true else min(lr_power) ≥ 0
 >>
-Rule 20 (If multiply_linear_by_lr is true then lr must be scalar)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then ndim(v_2) = 0
+Rule 44 (accum, linear, and grad should have the same shape as var, covering the case where number of dimensions may be different and shapes match)
+{var : tensor, accum : tensor, linear : tensor, grad : tensor} |= ndim(var) = ndim(accum) ∧ ndim(var) = ndim(linear) ∧ ndim(var) = ndim(grad) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(accum, i) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(linear, i) ∧ ∀i ∈ [0, ndim(grad) - 1] : shape(var, i) = shape(grad, i)
 >>
-Rule 21 (if use_locking is true, accum, var access are protected by a lock)
-{v_1 : bool} |= if v_1 = true then true
+Rule 45 (Irrespective of the number of dimension l1,l2,lr,l2_shrinkage and lr_power are greater than or equal to zero)
+{l1 : tensor, l2 : tensor, lr : tensor, l2_shrinkage : tensor, lr_power : tensor} |= min(l1) >= 0 ∧ min(l2) >=0 ∧ min(lr) >= 0 ∧ min(l2_shrinkage) >= 0 ∧ min(lr_power) >= 0
 >>
-Rule 22 (l1 regularization should not be too large)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= max(v_1) ≤ max(v_2) + max(v_3)
+Rule 52 (accum, linear, and grad should have the same shape as var, shapes must exist)
+{var : tensor, accum : tensor, linear : tensor, grad : tensor} |= ndim(var) = ndim(accum) ∧ ndim(var) = ndim(linear) ∧ ndim(var) = ndim(grad) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(accum, i) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(linear, i) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(grad, i) = shape(var, i)
 >>
-Rule 23 (If lr power is 1, then accumulated value should not be too low)
-{v_1: tensor, v_2: tensor} |= if max(v_1) = 1 then min(v_2) > 0
+Rule 53 (Irrespective of the number of dimension l1,l2,lr,l2_shrinkage and lr_power are greater than or equal to zero or default to zero if scalar)
+{l1 : tensor, l2 : tensor, lr : tensor, l2_shrinkage : tensor, lr_power : tensor} |= min(l1) ≥ 0 ∧ min(l2) ≥ 0 ∧ min(lr) ≥ 0 ∧ min(l2_shrinkage) ≥ 0 ∧ min(lr_power) ≥ 0
 >>
-Rule 24 (accum and grad must have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 56 (Name should be a valid string from the list of available string values)
+{name : str} |= name = "ii" ∨ name = "ii->i" ∨ name = "i,j->ij" ∨ name = "bij,bjk->bik" ∨ name = "...ij->...ji" ∨ name = "bn,anm,bm->ba" ∨ name = "none" ∨ name = "sum" ∨ name = "max" ∨ name = "min" ∨ name = "prod" ∨ name = "relu" ∨ name = "tanh" ∨ name = "sigmoid" ∨ name = "softmax" ∨ name = "elu" ∨ name = "selu" ∨ name = "gelu" ∨ name = "swish" ∨ name = "softplus" ∨ name = "linear" ∨ name = "valid" ∨ name = "same" ∨ name = "causal" ∨ name = "channels_last" ∨ name =  "channels_first"
 >>
-Rule 25 (If multiply_linear_by_lr is true, then grad must have the same value as var)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then max(v_2) = max(v_3) ∧ min(v_2) = min(v_3)
+Rule 80 (If name is provided, it should be a valid string value and lr_power should be a positive number)
+{name : str, lr_power : tensor} |= (name = "ii" ∨ name = "ii->i" ∨ name = "i,j->ij" ∨ name = "bij,bjk->bik" ∨ name = "...ij->...ji" ∨ name = "bn,anm,bm->ba" ∨ name = "none" ∨ name = "sum" ∨ name = "max" ∨ name = "min" ∨ name = "prod" ∨ name = "relu" ∨ name = "tanh" ∨ name = "sigmoid" ∨ name = "softmax" ∨ name = "elu" ∨ name = "selu" ∨ name = "gelu" ∨ name = "swish" ∨ name = "softplus" ∨ name = "linear" ∨ name = "valid" ∨ name = "same" ∨ name = "causal" ∨ name = "channels_last" ∨ name =  "channels_first") ∧ min(lr_power) > 0
 >>
-Rule 27 (var, accum, linear must have the same dtype as lr)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= dtype_(v_1) = dtype_(v_4) ∧ dtype_(v_2) = dtype_(v_4) ∧ dtype_(v_3) = dtype_(v_4)
+Rule 81 (If var is complex, accum, linear and grad must also be complex.)
+{var : tensor, accum : tensor, linear : tensor, grad : tensor} |= if (dtype_(var) = 9 ∨ dtype_(var) = 10) then (dtype_(accum) = 9 ∨ dtype_(accum) = 10) ∧ (dtype_(linear) = 9 ∨ dtype_(linear) = 10) ∧ (dtype_(grad) = 9 ∨ dtype_(grad) = 10)
 >>
-Rule 28 (If lr_power is close to zero, ensure accum is non-zero to avoid division by zero)
-{v_1 : tensor, v_2 : tensor} |= if max(v_1) < 0.0001 then min(v_2) > 0.0001
+Rule 82 (If var is integer based, lr should be smaller than 1)
+{var : tensor, lr: tensor} |= if (dtype_(var) = 1 ∨ dtype_(var) = 2 ∨ dtype_(var) = 3 ∨ dtype_(var) = 4 ∨ dtype_(var) = 5) then min(lr) < 1
 >>
-Rule 29 (l2_shrinkage should not be greater than 1)
-{v_1 : tensor} |= max(v_1) <= 1
+Rule 90 (If the dtype is float16,32,64,128, lr_power must be between -1 and 1)
+{var : tensor, lr_power : tensor} |= if dtype_(var) = 6 ∨ dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 10 then min(lr_power) ≥ -1 ∧ max(lr_power) ≤ 1
 >>
-Rule 31 (If multiply_linear_by_lr is true, then l1 and l2 must be zero)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then max(v_2) = 0 ∧ min(v_2) = 0 ∧ max(v_3) = 0 ∧ min(v_3) = 0
+Rule 91 (Check that the shapes of all tensors are not zero)
+{var : tensor, accum : tensor, linear : tensor, grad : tensor, lr : tensor, l1 : tensor, l2 : tensor, l2_shrinkage : tensor, lr_power : tensor} |= (if ndim(var) > 0 then ∀i ∈ [0, ndim(var) - 1] : shape(var, i) > 0) ∧ (if ndim(accum) > 0 then ∀i ∈ [0, ndim(accum) - 1] : shape(accum, i) > 0) ∧ (if ndim(linear) > 0 then ∀i ∈ [0, ndim(linear) - 1] : shape(linear, i) > 0) ∧ (if ndim(grad) > 0 then ∀i ∈ [0, ndim(grad) - 1] : shape(grad, i) > 0) ∧ (if ndim(lr) > 0 then ∀i ∈ [0, ndim(lr) - 1] : shape(lr, i) > 0) ∧ (if ndim(l1) > 0 then ∀i ∈ [0, ndim(l1) - 1] : shape(l1, i) > 0) ∧ (if ndim(l2) > 0 then ∀i ∈ [0, ndim(l2) - 1] : shape(l2, i) > 0) ∧ (if ndim(l2_shrinkage) > 0 then ∀i ∈ [0, ndim(l2_shrinkage) - 1] : shape(l2_shrinkage, i) > 0) ∧ (if ndim(lr_power) > 0 then ∀i ∈ [0, ndim(lr_power) - 1] : shape(lr_power, i) > 0)
 >>
-Rule 32 (lr and l1 have the same shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 92 (Name should be empty)
+{name: str} |= name = ""
 >>
-Rule 35 (l2_shrinkage value should be close to 0)
-{v_1 : tensor} |= max(v_1) < 0.1
+Rule 100 (If the dtype is float16,32,64,128, lr_power must be between -1 and 0)
+{var : tensor, lr_power : tensor} |= if dtype_(var) = 6 ∨ dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 10 then min(lr_power) ≥ -1 ∧ max(lr_power) ≤ 0
 >>
-Rule 37 (If lr_power is zero, then l1 must be zero)
-{v_1 : tensor, v_2 : tensor} |= if max(v_1) = 0 ∧ min(v_1) = 0 then max(v_2) = 0 ∧ min(v_2) = 0
+Rule 102 (Name string length should be less than 20)
+{name: str} |= name.len < 20
 >>
-Rule 38 (var dtype must be one of the allowed types)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 0
->>
-Rule 40 (l1 and l2 regularization strength have small value compared to var)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= max(v_2) < max(v_1) * 0.1 ∧ max(v_3) < max(v_1) * 0.1
->>
-Rule 42 (var dtype must be one of the allowed types)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 10
->>
-Rule 43 (If lr value is too small, then accum should be small as well)
-{v_1: tensor, v_2: tensor} |= if max(v_1) < 0.0001 then max(v_2) < 10
->>
-Rule 44 (l1 value should be non-negative)
-{v_1: tensor} |= min(v_1) >= 0
->>
-Rule 45 (If l1 value is non zero, then lr must be small)
-{v_1 : tensor, v_2 : tensor} |= if max(v_1) > 0 then max(v_2) < 1
->>
-Rule 46 (l2 should be close to zero if l2_shrinkage is non zero)
-{v_1: tensor, v_2: tensor} |= if max(v_2) > 0 then max(v_1) < 0.1
->>
-Rule 49 (If l1 is very small, then var cannot be too large)
-{v_1: tensor, v_2: tensor} |= if max(v_1) < 0.0001 then max(v_2) < 1000
->>
-Rule 52 (Difference between max and min for lr, l1, l2, l2_shrinkage must be small)
-{v_1: tensor} |= max(v_1) - min(v_1) < 0.1
->>
-Rule 53 (If multiply_linear_by_lr is false then lr cannot be 1)
-{v_1: bool, v_2: tensor} |= if v_1 = false then max(v_2) ≠ 1 ∨ min(v_2) ≠ 1
->>
-Rule 54 (If multiply_linear_by_lr is false then l2_shrinkage should be small)
-{v_1: bool, v_2: tensor} |= if v_1 = false then max(v_2) < 0.1
->>
-Rule 55 (if lr is scalar, all other tensors should also be scalar)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor, v_6 : tensor, v_7 : tensor, v_8 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0 ∧ ndim(v_3) = 0 ∧ ndim(v_4) = 0 ∧ ndim(v_5) = 0 ∧ ndim(v_6) = 0 ∧ ndim(v_7) = 0 ∧ ndim(v_8) = 0
->>
-Rule 56 (if lr_power is very large, lr should be very small)
-{v_1 : tensor, v_2 : tensor} |= if max(v_1) > 100 then max(v_2) < 0.001
->>
-Rule 58 (For integer types l1 should be integer)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 3 then dtype_(v_2) = 3
->>
-Rule 59 (multiply_linear_by_lr should be false)
-{v_1: bool} |= v_1 = false
->>
-Rule 60 (if l2 shrinkage is zero l2 does not matter)
-{v_1: tensor} |= if max(v_1) = 0 ∧ min(v_1) = 0 then true
->>
-Rule 63 (If lr is small then all parameters should have small values)
-{v_1: tensor, v_2: tensor, v_3: tensor, v_4: tensor, v_5: tensor} |= if max(v_1) < 0.001 then max(v_2) < 10 ∧ max(v_3) < 10 ∧ max(v_4) < 10 ∧ max(v_5) < 10
->>
-Rule 64 (If l2 is small, then l2_shrinkage can be large)
-{v_1: tensor, v_2: tensor} |= if max(v_1) < 0.001 then max(v_2) < 1
->>
-Rule 67 (If l1 is greater than 0, then all other parameters must be smaller than 1)
-{v_1: tensor, v_2: tensor, v_3: tensor, v_4: tensor} |= if max(v_1) > 0 then max(v_2) < 1 ∧ max(v_3) < 1 ∧ max(v_4) < 1
->>
-Rule 68 (If multiply_linear_by_lr is set, then l1 should be close to 0)
-{v_1: bool, v_2: tensor} |= if v_1 = true then max(v_2) < 0.001
->>
-Rule 70 (If l1 is greater than 0, then lr_power and l2_shrinkage must be smaller than 1)
-{v_1: tensor, v_2: tensor, v_3: tensor} |= if max(v_1) > 0 then max(v_2) < 1 ∧ max(v_3) < 1
->>
-Rule 73 (If multiply_linear_by_lr is set, lr cannot be smaller than 0)
-{v_1: bool, v_2: tensor} |= if v_1=true then min(v_2) >=0
->>
-Rule 74 (If multiply_linear_by_lr is false, all parameters can not be same)
-{v_1: bool, v_2: tensor, v_3: tensor, v_4: tensor, v_5: tensor} |= if v_1=false then max(v_2) != max(v_3) ∨ max(v_3) != max(v_4) ∨ max(v_4) != max(v_5)
->>
-Rule 76 (If multiply_linear_by_lr is set, accum shouldn't be too small)
-{v_1: bool, v_2: tensor} |= if v_1 = true then min(v_2) > 0.0001
->>
-Rule 77 (if all the values of variable tensor is greater than zero then all values of accumulate tensor must be greater than zero)
-{v_1 : tensor, v_2: tensor} |= if min(v_1) > 0 then min(v_2) > 0
->>
-Rule 78 (If use_locking is enabled the shape of var must be positive)
-{v_1: bool, v_2: tensor} |= if v_1 = true then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
->>
-Rule 79 (if l2 and l2 shrinkage are zero then variable can't be small)
-{v_1: tensor, v_2: tensor, v_3: tensor} |= if max(v_1) = 0 ∧ max(v_2) = 0 then max(v_3) > 0.01
->>
-Rule 80 (If lr_power is greater than 0, then var should not be too small)
-{v_1 : tensor, v_2 : tensor} |= if max(v_1) > 0 then max(v_2) > 0.0001
->>
-Rule 86 (If multiply_linear_by_lr is set, then grad must be scalar)
-{v_1: bool, v_2: tensor} |= if v_1 = true then ndim(v_2) = 0
->>
-Rule 87 (l1 , l2 and lr power tensors must be of float or integer type)
-{v_1: tensor, v_2: tensor, v_3: tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 6 ∨ dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 6
->>
-Rule 88 (If use_locking is enabled var, linear and accumulate should have same dtype)
-{v_1: bool, v_2: tensor, v_3: tensor, v_4: tensor} |= if v_1 = true then dtype_(v_2) = dtype_(v_3) ∧ dtype_(v_3) = dtype_(v_4)
->>
-Rule 89 (Shape of lr_power tensor and l2 tensor must be same if their dtypes are equal)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = dtype_(v_2) then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
->>
-Rule 94 (Multiply linear by lr must be bool type)
-{v_1: bool} |= v_1 = true ∨ v_1 = false
->>
-Rule 95 (If multiply_linear_by_lr is set and accum values are small then linear should also have small values)
-{v_1: bool, v_2: tensor, v_3: tensor} |= if v_1 = true ∧ max(v_2) < 0.01 then max(v_3) < 0.01
->>
-Rule 97 (If lr_power is zero then all lr power values should be same)
-{v_1: tensor} |= min(v_1) = max(v_1)
->>
-Rule 98 (use_locking is enabled only for the float and int type)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 6
->>
-Rule 99 (gradient should not have nan values)
-{v_1: tensor} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0 ∧ max(v_1) < 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
->>
-Rule 102 (If lr is small, then var, linear should not contain large values)
-{v_1: tensor, v_2: tensor, v_3: tensor} |= if max(v_1) < 0.001 then max(v_2) < 1000 ∧ max(v_3) < 1000
->>
-Rule 103 (use_locking and multiply_linear_by_lr cannot be both true)
-{v_1: bool, v_2: bool} |= if v_1 = true then v_2 = false
->>
-Rule 104 (lr , l1, l2 should not have NAN values)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0 ∧ max(v_1) < 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
->>
-Rule 106 (var shape must be greater than lr ,l1 and l2 shape)
-{v_1: tensor, v_2: tensor, v_3: tensor, v_4: tensor} |= if ndim(v_1) > ndim(v_2) ∧ ndim(v_1) > ndim(v_3) ∧ ndim(v_1) > ndim(v_4) then true
->>
-Rule 107 (If lr values are small then linear should also have small values)
-{v_1: tensor, v_2: tensor} |= if max(v_1) < 0.01 then max(v_2) < 10
->>
-Rule 108 (l1 and l2 should be scalar values)
-{v_1: tensor, v_2: tensor} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0
->>
-Rule 109 (If multiply linear by lr is set then grad must have small value)
-{v_1: bool, v_2: tensor} |= if v_1=true then max(v_2) < 1
->>
-Rule 111 (var, linear, accum, grad, l1, l2 should not contain infinity values)
-{v_1: tensor} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0 ∧ max(v_1) < 100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
->>
-Rule 112 (If lr_power is a very small value then linear and l1 can not be smaller than var)
-{v_1: tensor, v_2: tensor, v_3: tensor} |= if max(v_1) < 0.001 then max(v_2) > min(v_3) ∧ max(v_3) > min(v_3)
->>
-Rule 113 (If var is int, and l1 is also then l1 should have small value compared to var)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 3 ∧ dtype_(v_2) = 3 then max(v_2) < max(v_1) * 0.01
->>
-Rule 114 (Linear tensor must have a range of values)
-{v_1: tensor} |= max(v_1) != min(v_1)
+Rule 111 (Check that the shapes of var, accum, linear and grad tensors are not zero if their number of dimensions is greater than 0)
+{var : tensor, accum : tensor, linear : tensor, grad : tensor} |= (if ndim(var) > 0 then ∀i ∈ [0, ndim(var) - 1] : shape(var, i) > 0) ∧ (if ndim(accum) > 0 then ∀i ∈ [0, ndim(accum) - 1] : shape(accum, i) > 0) ∧ (if ndim(linear) > 0 then ∀i ∈ [0, ndim(linear) - 1] : shape(linear, i) > 0) ∧ (if ndim(grad) > 0 then ∀i ∈ [0, ndim(grad) - 1] : shape(grad, i) > 0)

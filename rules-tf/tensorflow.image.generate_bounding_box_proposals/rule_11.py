@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# scores and bbox_deltas must have the same number of images (Rule 11)
+# The number of anchors in bbox_deltas should match the number of anchors in scores (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)) if n else
-          Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0))
+    s.add(Not(Select(v["arg2_shape"], 3) == Select(v["arg1_shape"], 3) * 4) if n else
+          Select(v["arg2_shape"], 3) == Select(v["arg1_shape"], 3) * 4)
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

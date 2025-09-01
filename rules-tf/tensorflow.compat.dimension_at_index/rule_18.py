@@ -5,37 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if tensor rank is greater than 1, then index must be non-negative (Rule 18)
+# tensor's ndim should be defined or greater than equal to zero (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 1, v["arg2_value"] >= 0, False)) if n else
-          If(v["arg1_ndim"] > 1, v["arg2_value"] >= 0, False))
+    s.add(Not(v["arg1_ndim"] >= -1) if n else
+          v["arg1_ndim"] >= -1)
 )
 
-def rule_18_func(arg1, arg2, solver=None, neg=False):
+def rule_18_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
-            return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg2_value = Int('arg2_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 18
-        rule_18(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_18(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_18(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)
+        rule_18(solver, {'arg1_ndim': arg1['ndim']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The number of dimensions of the tensor must be between 2 and 4 (Rule 58)
+# Tensor has at least 2 dimensions (Rule 58)
 
 rule_58 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] >= 2, v["arg1_ndim"] <= 4)) if n else
-          And(v["arg1_ndim"] >= 2, v["arg1_ndim"] <= 4))
+    s.add(Not(v["arg1_ndim"] >= 2) if n else
+          v["arg1_ndim"] >= 2)
 )
 
 def rule_58_func(arg1, solver=None, neg=False):

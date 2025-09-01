@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the LinearOperator is square then solve and determinants should be attempted unless L or D is singular (Rule 37)
+# If the base_operator is a vector, u and v must also be vectors (Rule 37)
 
 rule_37 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_shape"], 0) == Select(v["arg1_shape"], 1), If(v["arg3_value"] == True, And(Select(v["arg1_range"], 0) > 0, Select(v["arg2_range"], 0) > 0), False), False)) if n else
-          If(Select(v["arg1_shape"], 0) == Select(v["arg1_shape"], 1), If(v["arg3_value"] == True, And(Select(v["arg1_range"], 0) > 0, Select(v["arg2_range"], 0) > 0), False), False))
+    s.add(Not(Or(v["arg1_ndim"] == 1, (And(v["arg2_ndim"] > 1, v["arg3_ndim"] > 1)))) if n else
+          Or(v["arg1_ndim"] == 1, (And(v["arg2_ndim"] > 1, v["arg3_ndim"] > 1))))
 )
 
 def rule_37_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -23,29 +23,24 @@ def rule_37_func(arg1, arg2, arg3, solver=None, neg=False):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
-        if not isinstance(arg3, bool):
+        if not isinstance(arg3, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
-        arg3_value = Bool('arg3_value')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_ndim = Int('arg2_ndim')
+        arg3_ndim = Int('arg3_ndim')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
-        solver.add(arg3_value == arg3)
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg3_ndim == arg3.ndim)
 
         # Constraints for rule 37
-        rule_37(solver, {'arg1_range': arg1_range, 'arg1_shape': arg1_shape, 'arg2_range': arg2_range, 'arg3_value': arg3_value})
+        rule_37(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg3_ndim': arg3_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_37(solver, {'arg1_range': arg1['range'], 'arg1_shape': arg1['shape'], 'arg2_range': arg2['range'], 'arg3_value': arg3['value']}, neg)
+        rule_37(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg3_ndim': arg3['ndim']}, neg)

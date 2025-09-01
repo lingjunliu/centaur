@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input dtype is bfloat16, then num_bits must be <=15, if half, then num_bits must be <=15, if float32 then num_bits must be <=31 and if float64 then num_bits must be <= 63. (Rule 52)
+# input_max's value range should be appropriate for the input's dtype (Rule 52)
 
 rule_52 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, Select(v["arg2_range"], 1) <= 15, If(v["arg1_dtype"] == 7, Select(v["arg2_range"], 1) <= 15, If(v["arg1_dtype"] == 8, Select(v["arg2_range"], 1) <= 31, False)))) if n else
-          If(v["arg1_dtype"] == 6, Select(v["arg2_range"], 1) <= 15, If(v["arg1_dtype"] == 7, Select(v["arg2_range"], 1) <= 15, If(v["arg1_dtype"] == 8, Select(v["arg2_range"], 1) <= 31, False))))
+    s.add(Not(If(v["arg1_dtype"] == 6, And(Select(v["arg2_range"], 0) >= (0 - 65504), Select(v["arg2_range"], 1) <= 65504), If(v["arg1_dtype"] == 7, And(Select(v["arg2_range"], 0) >= (0 - 3.4028235e+38), Select(v["arg2_range"], 1) <= 3.4028235e+38), And(Select(v["arg2_range"], 0) >= (0 - 1.7976931348623157e+308), Select(v["arg2_range"], 1) <= 1.7976931348623157e+308)))) if n else
+          If(v["arg1_dtype"] == 6, And(Select(v["arg2_range"], 0) >= (0 - 65504), Select(v["arg2_range"], 1) <= 65504), If(v["arg1_dtype"] == 7, And(Select(v["arg2_range"], 0) >= (0 - 3.4028235e+38), Select(v["arg2_range"], 1) <= 3.4028235e+38), And(Select(v["arg2_range"], 0) >= (0 - 1.7976931348623157e+308), Select(v["arg2_range"], 1) <= 1.7976931348623157e+308))))
 )
 
 def rule_52_func(arg1, arg2, solver=None, neg=False):

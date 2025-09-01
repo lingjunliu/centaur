@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Number of bits should be less than the maximum value representable by a float32 (Rule 66)
+# The number of bits must be a positive integer less then 32. (Rule 66)
 
 rule_66 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 340282346638528859811704183484516925440) if n else
-          v["arg1_value"] < 340282346638528859811704183484516925440)
+    s.add(Not(And(v["arg1_value"] > 0, v["arg1_value"] < 32)) if n else
+          And(v["arg1_value"] > 0, v["arg1_value"] < 32))
 )
 
 def rule_66_func(arg1, solver=None, neg=False):

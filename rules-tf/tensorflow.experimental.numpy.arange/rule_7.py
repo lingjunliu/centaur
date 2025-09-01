@@ -5,22 +5,19 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# start and stop must be different if step is not specified (Rule 7)
+# step should not be zero as a primvar (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != v["arg2_value"]) if n else
-          v["arg1_value"] != v["arg2_value"])
+    s.add(Not(v["arg1_value"] != 0) if n else
+          v["arg1_value"] != 0)
 )
 
-def rule_7_func(arg1, arg2, solver=None, neg=False):
+def rule_7_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)) or isinstance(arg1, (float, np.floating))):
-            return False
-        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)) or isinstance(arg2, (float, np.floating))):
+        if not (isinstance(arg1, (float, np.floating)) or (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool))):
             return False
 
         # Variable declarations
@@ -29,9 +26,9 @@ def rule_7_func(arg1, arg2, solver=None, neg=False):
         # Value assignments
 
         # Constraints for rule 7
-        rule_7(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_7(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_7(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_7(solver, {'arg1_value': arg1['value']}, neg)

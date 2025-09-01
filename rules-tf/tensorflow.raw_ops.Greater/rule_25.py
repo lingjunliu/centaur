@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If one tensor is scalar, the other cannot be a zero-sized tensor (Rule 25)
+# If x has shape [a], y must be scalar or [a] (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 0, Or([And(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) != 0) for i in range(6)]), If(v["arg2_ndim"] == 0, Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) != 0) for i in range(6)]), False))) if n else
-          If(v["arg1_ndim"] == 0, Or([And(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) != 0) for i in range(6)]), If(v["arg2_ndim"] == 0, Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) != 0) for i in range(6)]), False)))
+    s.add(Not(If(v["arg1_ndim"] == 1, (Or(v["arg2_ndim"] == 0, (And(v["arg2_ndim"] == 1, Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0))))), True)) if n else
+          If(v["arg1_ndim"] == 1, (Or(v["arg2_ndim"] == 0, (And(v["arg2_ndim"] == 1, Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0))))), True))
 )
 
 def rule_25_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if shape of image last dimension is 1, the shape of other dimensions should be greater than 2 (Rule 16)
+# image dtype must be an integer or float (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_shape"], 2) == 1, And(Select(v["arg1_shape"], 0) > 2, Select(v["arg1_shape"], 1) > 2), False)) if n else
-          If(Select(v["arg1_shape"], 2) == 1, And(Select(v["arg1_shape"], 0) > 2, Select(v["arg1_shape"], 1) > 2), False))
+    s.add(Not(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 6)) if n else
+          Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 6))
 )
 
 def rule_16_func(arg1, solver=None, neg=False):
@@ -22,16 +22,15 @@ def rule_16_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 16
-        rule_16(solver, {'arg1_shape': arg1_shape})
+        rule_16(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_16(solver, {'arg1_shape': arg1['shape']}, neg)
+        rule_16(solver, {'arg1_dtype': arg1['dtype']}, neg)

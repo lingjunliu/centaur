@@ -1,57 +1,294 @@
 >>
-Rule 1 (x must be one of the specified types)
-{x : tensor} |= dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 6
+Rule 1 (The data type of the input tensor should be a floating-point type.)
+{x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8
 >>
-Rule 2 (shape of x must be greater than 0)
-{x : tensor} |= ndim(x) > 0
->>
-Rule 3 (check for non-empty tensor x)
+Rule 2 (The tensor must have at least one element.)
 {x : tensor} |= ∃i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
 >>
-Rule 4 (x's dtype should not be complex)
-{x : tensor} |= dtype_(x) ≠ 9 ∧ dtype_(x) ≠ 10
+Rule 3 (If the minimum value is NaN, then at least one element must be NaN.)
+{x : tensor} |= if min(x) = "nan" then ∃i ∈ [0, ndim(x) - 1] : true
 >>
-Rule 5 (If tensor x is of float16 type, its values should fall between the min and max values representable by float16)
-{x : tensor} |= if dtype_(x) = 6 then min(x) ≥ -65504 ∧ max(x) ≤ 65504
+Rule 5 (The tensor cannot have dimensions exceeding 8)
+{x : tensor} |= ndim(x) ≤ 8
 >>
-Rule 6 (The tensor's elements should be a valid number)
-{x : tensor} |= if dtype_(x) = 7 then min(x) > -3.4028235e+38 ∧ max(x) < 3.4028235e+38 else if dtype_(x) = 8 then min(x) > -1.7976931348623157e+308 ∧ max(x) < 1.7976931348623157e+308
+Rule 9 (The rank of the input tensor should be less than or equal to 5.)
+{x : tensor} |= ndim(x) <= 5
 >>
-Rule 7 (If the tensor x is bfloat16, the values must be in the valid range)
-{x : tensor} |= if dtype_(x) = 13 then min(x) >= -3.389531387e+38 ∧ max(x) <= 3.389531387e+38
+Rule 10 (The product of the dimensions of the input tensor should be less than 10000.)
+{x : tensor} |= if ndim(x) = 0 then 1 < 10000 else if ndim(x) = 1 then shape(x,0) < 10000 else if ndim(x) = 2 then shape(x,0) * shape(x,1) < 10000 else if ndim(x) = 3 then shape(x,0) * shape(x,1) * shape(x,2) < 10000 else if ndim(x) = 4 then shape(x,0) * shape(x,1) * shape(x,2) * shape(x,3) < 10000 else if ndim(x) = 5 then shape(x,0) * shape(x,1) * shape(x,2) * shape(x,3) * shape(x,4) < 10000 else false
 >>
-Rule 9 (Check if all elements in the tensor are non-negative)
+Rule 11 (The input tensor cannot have dimensions with size 0.)
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) ≠ 0
+>>
+Rule 12 (If the input tensor is a scalar, it should not be NaN or infinite.)
+{x : tensor} |= if ndim(x) = 0 then (x ≠ "nan" ∧ x ≠ "inf" ∧ x ≠ "-inf")
+>>
+Rule 13 (The maximum absolute value of elements in the tensor is less than 1e10.)
+{x : tensor} |= max(x) < 10000000000 ∨ min(x) > -10000000000
+>>
+Rule 15 (The data type of the input tensor must be either bfloat16, half, float32, or float64, represented as their corresponding index)
+{x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9
+>>
+Rule 19 (If any element in the tensor is infinite, at least one element is not finite.)
+{x: tensor} |= if ∃i ∈ [0, ndim(x) - 1] : x[i] = "inf" ∨ x[i] = "-inf" then ∃j ∈ [0, ndim(x) - 1] : true
+>>
+Rule 21 (If the minimum value of tensor is infinite, then maximum should also be infinite or NaN)
+{x: tensor} |= if min(x) = "inf" ∨ min(x) = "-inf" then max(x) = "inf" ∨ max(x) = "-inf" ∨ max(x) = "nan"
+>>
+Rule 22 (If the input tensor has a NaN value, then result will have at least one non finite)
+{x: tensor} |= if ∃i ∈ [0, ndim(x) - 1] : x[i] = "nan" then true
+>>
+Rule 23 (Check for dtype correctness)
+{x : tensor} |= dtype_(x) = 7 ∨ dtype_(x) = 8
+>>
+Rule 24 (Input tensor should not contain complex numbers, it's only for finite real numbers)
+{x: tensor} |= dtype_(x) ≠ 10 ∧ dtype_(x) ≠ 11
+>>
+Rule 25 (If a tensor dimension is 1, the tensor can act like a scalar along that dimension)
+{x: tensor} |= ∃i ∈ [0, ndim(x) - 1] : shape(x, i) = 1
+>>
+Rule 26 (At least one element of the input tensor must be a valid floating-point number.)
+{x : tensor} |= ∃i ∈ [0, ndim(x) - 1] : (x[i] > -10000000000 ∧ x[i] < 10000000000)
+>>
+Rule 27 (If all elements of the tensor are infinite, all elements should return false.)
+{x : tensor} |= if ∀i ∈ [0, ndim(x) - 1] : x[i] = "inf" ∨ x[i] = "-inf" then true
+>>
+Rule 28 (Input tensor's elements should be represented as float16, float32, float64 or bfloat16.)
+{x: tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9
+>>
+Rule 29 (If the tensor has multiple dimensions, make sure at least one is a valid shape.)
+{x : tensor} |= if ndim(x) > 1 then ∃i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
+>>
+Rule 30 (The input tensor should not be empty (i.e., at least one dimension size must be non-zero).)
+{x : tensor} |= if ndim(x) > 0 then ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
+>>
+Rule 31 (If all the values are finite, the min and max values should be close enough)
+{x: tensor} |= if ∀i ∈ [0, ndim(x)-1] : x[i] ≠ "inf" ∧ x[i] ≠ "-inf" ∧ x[i] ≠ "nan" then max(x) - min(x) < 1000000
+>>
+Rule 32 (Input should not have mixed dtypes, i.e. either only float32 or only float64)
+{x: tensor} |= if ∃i ∈ [0, ndim(x)-1] : dtype_(x) = 7 then ∀j ∈ [0, ndim(x)-1] : dtype_(x) = 7 else if ∃i ∈ [0, ndim(x)-1] : dtype_(x) = 8 then ∀j ∈ [0, ndim(x)-1] : dtype_(x) = 8
+>>
+Rule 33 (Tensor must have at least one dimension)
+{x: tensor} |= ndim(x) > 0
+>>
+Rule 34 (A zero-sized tensor is considered to have finite elements)
+{x : tensor} |= if ∃i ∈ [0, ndim(x) - 1] : shape(x, i) = 0 then true
+>>
+Rule 40 (The tensor must be of rank less than or equal to 4)
+{x : tensor} |= ndim(x) <= 4
+>>
+Rule 41 (Elements close to infinity should be considered infinite.)
+{x: tensor} |= if ∃i ∈ [0, ndim(x)-1] : x[i] > 1e10 then ∃j ∈ [0, ndim(x)-1] : x[j] = "inf" else if ∃i ∈ [0, ndim(x)-1] : x[i] < -1e10 then ∃j ∈ [0, ndim(x)-1] : x[j] = "-inf"
+>>
+Rule 42 (If tensor contains both very large and very small numbers, there can be a chance of instability)
+{x: tensor} |= if max(x) > 10000 ∧ min(x) < -10000 then true
+>>
+Rule 44 (If the number of dimensions of x is zero, the value of the element must be a number.)
+{x: tensor} |= if ndim(x) = 0 then (x > -1e10 ∧ x < 1e10)
+>>
+Rule 45 (If all elements are zero, then all elements are finite)
+{x : tensor} |= if ∀i ∈ [0, ndim(x) - 1] : x[i] = 0 then true
+>>
+Rule 50 (If max is finite then all element are finite)
+{x: tensor} |= if max(x) ≠ "inf" ∧ max(x) ≠ "-inf" ∧ max(x) ≠ "nan" then ∀i ∈ [0, ndim(x)-1] : x[i] ≠ "inf" ∧ x[i] ≠ "-inf" ∧ x[i] ≠ "nan"
+>>
+Rule 51 (If the minimum value is positive infinity, max value should also be positive infinity)
+{x : tensor} |= if min(x) = "inf" then max(x) = "inf"
+>>
+Rule 52 (If the maximum value is negative infinity, minimum value should also be negative infinity)
+{x : tensor} |= if max(x) = "-inf" then min(x) = "-inf"
+>>
+Rule 53 (The tensor must have at least one element)
+{x : tensor} |= ∃i ∈ [0, ndim(x)-1] : shape(x, i) > 0
+>>
+Rule 55 (If the sum of all tensor elements is 0, then it must be finite)
+{x : tensor} |= if ∃i ∈ [0, ndim(x)-1] : x[i] ≠ 0 then true
+>>
+Rule 59 (if any value is infinite, then min value must either negative infinity or positive infinity)
+{x : tensor} |= if ∃i ∈ [0, ndim(x)-1] : (x[i] = "inf" ∨ x[i] = "-inf") then (min(x) = "inf" ∨ min(x) = "-inf")
+>>
+Rule 60 (if all elements are finite and the average is near zero the tensor might need normalization)
+{x : tensor} |= if ∀i ∈ [0, ndim(x) - 1] : x[i] ≠ "inf" ∧ x[i] ≠ "-inf" ∧ x[i] ≠ "nan" then (max(x) + min(x))/2 < 0.001 ∧ (max(x) + min(x))/2 > -0.001
+>>
+Rule 61 (If any value is NaN, the whole tensor is considered unstable.)
+{x: tensor} |= if ∃i ∈ [0, ndim(x)-1] : x[i] = "nan" then true else false
+>>
+Rule 62 (the tensor rank should be no more than 6)
+{x: tensor} |= ndim(x) <= 6
+>>
+Rule 63 (Each element in tensor should be of bfloat16, half, float32, float64 type)
+{x: tensor} |= if ∀i ∈ [0, ndim(x)-1] : (dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9) then true else false
+>>
+Rule 64 (Values should not be extremely small or close to zero)
+{x : tensor} |= if ∃i ∈ [0, ndim(x) - 1] : x[i] < 0.000001 ∧ x[i] > -0.000001 then true else false
+>>
+Rule 65 (Values should not be exponentially large)
+{x: tensor} |= if ∃i ∈ [0, ndim(x) - 1] : (x[i] < 1e-10 ∨ x[i] > 1e10) then true else false
+>>
+Rule 66 (If a value is positive infinite, then there must be at least one positive value)
+{x: tensor} |= if ∃i ∈ [0, ndim(x)-1] : x[i] = "inf" then ∃j ∈ [0, ndim(x)-1] : x[j] > 0
+>>
+Rule 67 (If a value is negative infinite, then there must be at least one negative value)
+{x: tensor} |= if ∃i ∈ [0, ndim(x)-1] : x[i] = "-inf" then ∃j ∈ [0, ndim(x)-1] : x[j] < 0
+>>
+Rule 68 (if all elements are finite and all elements are close to each other)
+{x: tensor} |= if ∀i ∈ [0, ndim(x)-1] : x[i] ≠ "inf" ∧ x[i] ≠ "-inf" ∧ x[i] ≠ "nan" then max(x) - min(x) < 100
+>>
+Rule 69 (Check for allowed dtype (bfloat16))
+{x: tensor} |= dtype_(x) = 6
+>>
+Rule 70 (Check for allowed dtype (half))
+{x: tensor} |= dtype_(x) = 9
+>>
+Rule 71 (The input tensor must have a valid shape: all dimensions must be greater than zero.)
 {x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
 >>
-Rule 10 (If tensor's dtype is float32, then the min value should be greater than smallest float32 value.)
-{x : tensor} |= if dtype_(x) = 7 then min(x) > -3.402823466e+38
+Rule 73 (The input tensor's elements cannot be strings.)
+{x: tensor} |= dtype_(x) ≠ 12
 >>
-Rule 11 (if tensor dtype is float64, then the elements must be in the valid range)
-{x : tensor} |= if dtype_(x) = 8 then min(x) > -1.7976931348623158e+308 ∧ max(x) < 1.7976931348623158e+308
+Rule 74 (The input tensor's dtype must be known.)
+{x: tensor} |= dtype_(x) ≠ 13
 >>
-Rule 14 (Check if the tensor has at least one element)
-{x : tensor} |= (shape(x,0) > 0) ∨ (ndim(x) > 1 ∧ shape(x,1) > 0) ∨ (ndim(x) > 2 ∧ shape(x,2) > 0) ∨ (ndim(x) > 3 ∧ shape(x,3) > 0)
+Rule 76 (If all values are finite, then standard deviation should exist (not be inf/NaN))
+{x: tensor} |= if ∀i ∈ [0, ndim(x)-1] : x[i] ≠ "inf" ∧ x[i] ≠ "-inf" ∧ x[i] ≠ "nan" then true
 >>
-Rule 15 (If the dtype is bfloat16, then elements cannot be NaN or Inf.)
-{x : tensor} |= if dtype_(x) = 13 then min(x) > -3.389531387e+38 ∧ max(x) < 3.389531387e+38
+Rule 77 (If there exists an infinite value, then standard deviation should either be inf or NaN)
+{x: tensor} |= if ∃i ∈ [0, ndim(x)-1] : (x[i] = "inf" ∨ x[i] = "-inf") then true
 >>
-Rule 16 (The maximum absolute value of element must be less than infinity)
-{x : tensor} |= max(x) < 3.4028235e+38 ∨ max(x) < 1.7976931348623157e+308
+Rule 78 (Check shape has at least 1 element)
+{x: tensor} |= ∃i ∈ [0, ndim(x)-1] : shape(x, i) > 0
 >>
-Rule 17 (If the tensor dtype is float64, then the max value should be less than largest float64 value.)
-{x : tensor} |= if dtype_(x) = 8 then max(x) < 1.7976931348623158e+308
+Rule 80 (Tensor must have no dimensions equal to zero, indicating that it is not an invalid or degenerate tensor)
+{x: tensor} |= if ndim(x) > 0 then ∀i ∈ [0, ndim(x) - 1] : shape(x, i) ≠ 0
 >>
-Rule 18 (Elements must be finite and not infinite for float16, float32 and float64 tensors)
-{x : tensor} |= if dtype_(x) = 6 then min(x) ≠ "inf" ∧ max(x) ≠ "inf" else if dtype_(x) = 7 then min(x) ≠ "inf" ∧ max(x) ≠ "inf" else if dtype_(x) = 8 then min(x) ≠ "inf" ∧ max(x) ≠ "inf"
+Rule 85 (Tensor elements can't be too large or too small)
+{x : tensor} |= if ∃i ∈ [0, ndim(x)-1] : (x[i] > 1e10 ∨ x[i] < -1e10) then true else false
 >>
-Rule 19 (Elements must be finite and not NaN for float16, float32 and float64 tensors)
-{x : tensor} |= if dtype_(x) = 6 then min(x) ≠ "nan" ∧ max(x) ≠ "nan" else if dtype_(x) = 7 then min(x) ≠ "nan" ∧ max(x) ≠ "nan" else if dtype_(x) = 8 then min(x) ≠ "nan" ∧ max(x) ≠ "nan"
+Rule 86 (If the tensor has a dimension of size 1, it behaves like a scalar along that dimension, implying it should either be finite or NaN)
+{x: tensor} |= if ∃i ∈ [0, ndim(x)-1] : shape(x, i) = 1 then ∃j ∈ [0, ndim(x)-1] : (x[j] = "nan") ∨ true
 >>
-Rule 20 (for float types the maximum value should be a number that does not overflow)
-{x : tensor} |= if dtype_(x) = 6 then max(x) < 65504 else if dtype_(x) = 7 then max(x) < 3.4028235e+38 else if dtype_(x) = 8 then max(x) < 1.7976931348623157e+308
+Rule 88 (Check for dtype bfloat16 or float32 or float64 or half)
+{x: tensor} |= (dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) ∨ (dtype_(x) = 9)
 >>
-Rule 21 (for float types the minimum value should be a number that does not underflow)
-{x : tensor} |= if dtype_(x) = 6 then min(x) > -65504 else if dtype_(x) = 7 then min(x) > -3.4028235e+38 else if dtype_(x) = 8 then min(x) > -1.7976931348623157e+308
+Rule 89 (The tensor's minimum and maximum values shouldn't be vastly different)
+{x: tensor} |= if ∀i ∈ [0, ndim(x)-1] : x[i] ≠ "inf" ∧ x[i] ≠ "-inf" ∧ x[i] ≠ "nan" then max(x) - min(x) < 10000000
 >>
-Rule 22 (if tensor is of type float, it should not contain infinite values)
-{x : tensor} |= if dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 then ∃i ∈ [0, ndim(x) - 1] : shape(x, i) > 0 ∧ min(x) ≠ "inf" ∧ max(x) ≠ "inf"
+Rule 91 (If any element is NaN, result should at least contain a NaN.)
+{x: tensor} |= if ∃i ∈ [0, ndim(x)-1] : x[i] = "nan" then true
+>>
+Rule 92 (Check if max is positive infinity if min is positive infinity)
+{x: tensor} |= if min(x) = "inf" then max(x) = "inf"
+>>
+Rule 93 (Check if min is negative infinity if max is negative infinity)
+{x: tensor} |= if max(x) = "-inf" then min(x) = "-inf"
+>>
+Rule 94 (if there is at least one dimension in the tensor shape)
+{x : tensor} |= ndim(x) > 0
+>>
+Rule 95 (if all elements are zero, or near zero, it implies all elements are finite)
+{x : tensor} |= if ∀i ∈ [0, ndim(x) - 1] : (x[i] < 0.00001 ∧ x[i] > -0.00001) then true else false
+>>
+Rule 96 (Check that max is always greater than min value in the matrix)
+{x: tensor} |= max(x) ≥ min(x)
+>>
+Rule 98 (Dtype float32 should have values between certain ranges)
+{x: tensor} |= if dtype_(x) = 7 then ∀i ∈ [0, ndim(x)-1] : (x[i] < 3.4028235e+38 ∧ x[i] > -3.4028235e+38)
+>>
+Rule 99 (Dtype float64 should have values between certain ranges)
+{x: tensor} |= if dtype_(x) = 8 then ∀i ∈ [0, ndim(x)-1] : (x[i] < 1.7976931348623157e+308 ∧ x[i] > -1.7976931348623157e+308)
+>>
+Rule 104 (If the range is small (max and min close) relative to values, likely elements are finite)
+{x: tensor} |= if max(x) - min(x) < 100 then true else false
+>>
+Rule 105 (if a tensor element has one of allowed datatypes)
+{x : tensor} |= (dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) ∨ (dtype_(x) = 9)
+>>
+Rule 106 (If at least one element is finite, then min cant be Nan)
+{x: tensor} |= if ∃i ∈ [0, ndim(x)-1] : x[i] ≠ "inf" ∧ x[i] ≠ "-inf" ∧ x[i] ≠ "nan" then min(x) ≠ "nan"
+>>
+Rule 107 (If at least one element is finite, then max cant be Nan)
+{x: tensor} |= if ∃i ∈ [0, ndim(x)-1] : x[i] ≠ "inf" ∧ x[i] ≠ "-inf" ∧ x[i] ≠ "nan" then max(x) ≠ "nan"
+>>
+Rule 108 (If the max of tensor is less than 1000, then it is finite)
+{x: tensor} |= if max(x) < 1000 then true else false
+>>
+Rule 109 (If the min of tensor is greater than -1000, then it is finite)
+{x: tensor} |= if min(x) > -1000 then true else false
+>>
+Rule 111 (tensor should be of dimension at most 5)
+{x: tensor} |= ndim(x) <= 5
+>>
+Rule 113 (if all elements are finite, then max cannot be infinite and min cannot be negative infinite)
+{x: tensor} |= if ∀i ∈ [0, ndim(x)-1] : x[i] ≠ "inf" ∧ x[i] ≠ "-inf" ∧ x[i] ≠ "nan" then (max(x) ≠ "inf" ∧ min(x) ≠ "-inf")
+>>
+Rule 114 (no dimension can be less than or equal to zero)
+{x: tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
+>>
+Rule 116 (If tensor has dimension more than 1, make sure that at least 2 dimension sizes are greater than 0, since if one dimension is zero, the whole tensor is zero)
+{x: tensor} |= if ndim(x) > 1 then ∃i ∈ [0, ndim(x) - 1] : shape(x, i) > 0 ∧ ∃j ∈ [0, ndim(x) - 1] : shape(x, j) > 0 ∧ i ≠ j
+>>
+Rule 118 (If any element in shape is infinite, it will not have finite elements)
+{x : tensor} |= if ∃i ∈ [0, ndim(x)-1] : shape(x,i) = "inf" ∨ shape(x,i) = "-inf" then false
+>>
+Rule 119 (The shape has to be less than or equal to size 100 for better memory management)
+{x: tensor} |= if ndim(x) = 0 then true else if ndim(x) = 1 then shape(x,0) < 100 else if ndim(x) = 2 then shape(x,0) * shape(x,1) < 100 else if ndim(x) = 3 then shape(x,0) * shape(x,1) * shape(x,2) < 100 else if ndim(x) = 4 then shape(x,0) * shape(x,1) * shape(x,2) * shape(x,3) < 100 else if ndim(x) = 5 then shape(x,0) * shape(x,1) * shape(x,2) * shape(x,3) * shape(x,4) < 100
+>>
+Rule 121 (If tensor has a small range for finite elements, then it might not be problematic and finite for most of its elements)
+{x: tensor} |= if ∀i ∈ [0, ndim(x)-1] : x[i] ≠ "inf" ∧ x[i] ≠ "-inf" ∧ x[i] ≠ "nan" then max(x) - min(x) < 1000
+>>
+Rule 123 (Max can be infinite only if min is also infinite)
+{x : tensor} |= if max(x) = "inf" then min(x) = "inf" else if max(x) = "-inf" then min(x) = "-inf"
+>>
+Rule 124 (If all value are same it might be finite)
+{x : tensor} |= if max(x) = min(x) then true else false
+>>
+Rule 127 (If values exist then minimum must be a number)
+{x: tensor} |= if ∃i ∈ [0, ndim(x)-1] : true then min(x) < 10000000000 ∨ min(x) > -10000000000
+>>
+Rule 128 (If values exist then maximum must be a number)
+{x: tensor} |= if ∃i ∈ [0, ndim(x)-1] : true then max(x) < 10000000000 ∨ max(x) > -10000000000
+>>
+Rule 130 (if minimum value is zero, all finite tensor elements should be positive)
+{x: tensor} |= if min(x) = 0 then ∀i ∈ [0, ndim(x)-1] : x[i] ≥ 0
+>>
+Rule 131 (if maximum value is zero, all finite tensor elements should be negative)
+{x: tensor} |= if max(x) = 0 then ∀i ∈ [0, ndim(x)-1] : x[i] ≤ 0
+>>
+Rule 134 (if there are many infinities or Nans, then tensor might have a problem)
+{x : tensor} |= if ∃i ∈ [0, ndim(x)-1] : (x[i] = "inf" ∨ x[i] = "-inf" ∨ x[i] = "nan") then true
+>>
+Rule 135 (If min or max are too far from zero, then some elements are not finite)
+{x: tensor} |= if max(x) > 1e5 ∨ min(x) < -1e5 then true else false
+>>
+Rule 138 (If std dev is close to zero given max and min are closer to each other then tensor may be stable for most elements)
+{x: tensor} |= if (max(x) - min(x)) < 10000 then true else false
+>>
+Rule 139 (Number of dimensions can not be negative.)
+{x: tensor} |= ndim(x) ≥ 0
+>>
+Rule 141 (Number of dimensions cannot be greater than six)
+{x: tensor} |= ndim(x) ≤ 6
+>>
+Rule 144 (If the tensor contains extremely large value the it can be unstable)
+{x: tensor} |= if max(x) > 1e20 then true else false
+>>
+Rule 146 (Number of dimensions in a tensor should exist or its a scalar)
+{x: tensor} |= if ∃i ∈ [0, ndim(x) - 1] : shape(x, i) > 0 then true else if ndim(x) = 0 then true else false
+>>
+Rule 147 (If tensor has more than 2 dimension then the dimension should be not too far from one.)
+{x: tensor} |= if ndim(x) > 2 then ∀i ∈ [0, ndim(x) - 1] : shape(x, i) < 100
+>>
+Rule 148 (There should be a range between min and max for tensor if some finite number exists, or it could be problematic)
+{x: tensor} |= if ∃i ∈ [0, ndim(x)-1] : x[i] ≠ "inf" ∧ x[i] ≠ "-inf" ∧ x[i] ≠ "nan" then (max(x) - min(x) < 1000000)
+>>
+Rule 149 (For elements near to infinity, they could be considered infinite)
+{x: tensor} |= if ∃i ∈ [0, ndim(x)-1] : x[i] > 1e10 then true else if ∃i ∈ [0, ndim(x)-1] : x[i] < -1e10 then true
+>>
+Rule 152 (If maximum is positive infinity and minimum is near finite then infinite numbers exist)
+{x: tensor} |= if max(x) = "inf" ∧ min(x) < 1000000 then true else false
+>>
+Rule 153 (If maximum is negative infinity and maximum is near finite then infinite numbers exist)
+{x: tensor} |= if min(x) = "-inf" ∧ max(x) > -1000000 then true else false
+>>
+Rule 154 (The sum of absolute value of the tensor elements must be greater than some range)
+{x : tensor} |= if ∃i ∈ [0, ndim(x) - 1] : x[i] > 0 ∨ x[i] < 0 then true else false

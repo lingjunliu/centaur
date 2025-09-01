@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# first and last elements of strides must be 1 (Rule 4)
+# strides[0] and strides[4] must be 1 (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
     s.add(Not(And(Select(v["arg1_values"], 0) == 1, Select(v["arg1_values"], 4) == 1)) if n else

@@ -5,38 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If fixed_length is specified, all input strings must have the same length or be shorter (Rule 8)
+# little_endian must be a boolean. Specifically, it has to be either true or false (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (Select(v["arg1_shape"], 0) - 1 + 1), Select(v["arg1_shape"], i) <= v["arg2_value"]) for i in range(6)])) if n else
-          And([Implies(i < (Select(v["arg1_shape"], 0) - 1 + 1), Select(v["arg1_shape"], i) <= v["arg2_value"]) for i in range(6)]))
+    s.add(Not(Or(v["arg1_value"] == True, v["arg1_value"] == False)) if n else
+          Or(v["arg1_value"] == True, v["arg1_value"] == False))
 )
 
-def rule_8_func(arg1, arg2, solver=None, neg=False):
+def rule_8_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
-            return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg1, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_value = Int('arg2_value')
+        arg1_value = Bool('arg1_value')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 8
-        rule_8(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_8(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_8(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_8(solver, {'arg1_value': arg1['value']}, neg)

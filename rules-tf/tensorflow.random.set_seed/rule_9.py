@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# seed must be an integer and greater than min int (Rule 9)
+# seed should not be zero (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] > -2147483648) if n else
-          v["arg1_value"] > -2147483648)
+    s.add(Not(v["arg1_value"] != 0) if n else
+          v["arg1_value"] != 0)
 )
 
 def rule_9_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the tensor is complex type, then both the min and max must be within a specified range. (Rule 41)
+# The maximum representable value for each dtype should be checked to avoid potential overflows. (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11), And(Select(v["arg1_range"], 0) >= -1000, Select(v["arg1_range"], 1) <= 1000), False)) if n else
-          If(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11), And(Select(v["arg1_range"], 0) >= -1000, Select(v["arg1_range"], 1) <= 1000), False))
+    s.add(Not(If(v["arg1_dtype"] == 1, Select(v["arg1_range"], 1) <= 127, If(v["arg1_dtype"] == 2, Select(v["arg1_range"], 1) <= 32767, If(v["arg1_dtype"] == 3, Select(v["arg1_range"], 1) <= 2147483647, If(v["arg1_dtype"] == 4, Select(v["arg1_range"], 1) <= 9223372036854775807, If(v["arg1_dtype"] == 5, Select(v["arg1_range"], 1) <= 255, If(v["arg1_dtype"] == 6, Select(v["arg1_range"], 1) <= 65504, If(v["arg1_dtype"] == 7, Select(v["arg1_range"], 1) <= 3.4028235e+38, If(v["arg1_dtype"] == 8, Select(v["arg1_range"], 1) <= 1.7976931348623157e+308, True))))))))) if n else
+          If(v["arg1_dtype"] == 1, Select(v["arg1_range"], 1) <= 127, If(v["arg1_dtype"] == 2, Select(v["arg1_range"], 1) <= 32767, If(v["arg1_dtype"] == 3, Select(v["arg1_range"], 1) <= 2147483647, If(v["arg1_dtype"] == 4, Select(v["arg1_range"], 1) <= 9223372036854775807, If(v["arg1_dtype"] == 5, Select(v["arg1_range"], 1) <= 255, If(v["arg1_dtype"] == 6, Select(v["arg1_range"], 1) <= 65504, If(v["arg1_dtype"] == 7, Select(v["arg1_range"], 1) <= 3.4028235e+38, If(v["arg1_dtype"] == 8, Select(v["arg1_range"], 1) <= 1.7976931348623157e+308, True)))))))))
 )
 
 def rule_41_func(arg1, solver=None, neg=False):

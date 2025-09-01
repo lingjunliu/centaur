@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If arg1 is string type, arg2 should be any type (Rule 6)
+# Check if the first dtype is bool and second is int (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 11, True, If(v["arg2_value"] == 11, True, False))) if n else
-          If(v["arg1_value"] == 11, True, If(v["arg2_value"] == 11, True, False)))
+    s.add(Not(And((v["arg1_value"] == 0), (And(v["arg2_value"] >= 1, v["arg2_value"] <= 5)))) if n else
+          And((v["arg1_value"] == 0), (And(v["arg2_value"] >= 1, v["arg2_value"] <= 5))))
 )
 
 def rule_6_func(arg1, arg2, solver=None, neg=False):

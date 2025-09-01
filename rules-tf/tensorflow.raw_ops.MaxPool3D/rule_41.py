@@ -5,33 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# ksize values must be greater than 0 (Rule 41)
+# If data_format is NDHWC, ndim of input should be 5 (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (4 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)])) if n else
-          And([Implies(i < (4 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)]))
+    s.add(Not(If(v["arg2_value"] == 24, v["arg1_ndim"] == 5, True)) if n else
+          If(v["arg2_value"] == 24, v["arg1_ndim"] == 5, True))
 )
 
-def rule_41_func(arg1, solver=None, neg=False):
+def rule_41_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, np.ndarray):
+            return False
+        if not isinstance(arg2, str):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg2_value = String('arg2_value')
 
         # Value assignments
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_value == list_of_string_values_tf.index(arg2))
 
         # Constraints for rule 41
-        rule_41(solver, {'arg1_values': arg1_values})
+        rule_41(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_41(solver, {'arg1_values': arg1['values']}, neg)
+        rule_41(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

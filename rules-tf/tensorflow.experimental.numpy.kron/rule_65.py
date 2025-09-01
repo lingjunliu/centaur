@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# At least one of tensor should be less than 3 dimensions (Rule 65)
+# At least one of the input dtypes must be real or at least one must be complex if none are bool, or at least one must be bool (Rule 65)
 
 rule_65 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_ndim"] < 3, v["arg2_ndim"] < 3)) if n else
-          Or(v["arg1_ndim"] < 3, v["arg2_ndim"] < 3))
+    s.add(Not(Or((Or((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 10)), (And(v["arg2_dtype"] >= 1, v["arg2_dtype"] <= 10)))), (Or((v["arg1_dtype"] == 0), (v["arg2_dtype"] == 0))))) if n else
+          Or((Or((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 10)), (And(v["arg2_dtype"] >= 1, v["arg2_dtype"] <= 10)))), (Or((v["arg1_dtype"] == 0), (v["arg2_dtype"] == 0)))))
 )
 
 def rule_65_func(arg1, arg2, solver=None, neg=False):
@@ -25,17 +25,17 @@ def rule_65_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_ndim = Int('arg2_ndim')
+        arg1_dtype = Int('arg1_dtype')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 65
-        rule_65(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
+        rule_65(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_65(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_65(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

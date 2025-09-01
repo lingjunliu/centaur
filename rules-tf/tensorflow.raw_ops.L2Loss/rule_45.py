@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the tensor has more than one dimension, then its minimum value must be less than its maximum value (Rule 45)
+# For the case of 0-dimensional tensor, its value should be in a reasonable range to avoid underflow or overflow (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 1, Select(v["arg1_range"], 0) < Select(v["arg1_range"], 1), False)) if n else
-          If(v["arg1_ndim"] > 1, Select(v["arg1_range"], 0) < Select(v["arg1_range"], 1), False))
+    s.add(Not(If(v["arg1_ndim"] == 0, And(-1000 < Select(v["arg1_range"], 0), Select(v["arg1_range"], 1) < 1000), True)) if n else
+          If(v["arg1_ndim"] == 0, And(-1000 < Select(v["arg1_range"], 0), Select(v["arg1_range"], 1) < 1000), True))
 )
 
 def rule_45_func(arg1, solver=None, neg=False):

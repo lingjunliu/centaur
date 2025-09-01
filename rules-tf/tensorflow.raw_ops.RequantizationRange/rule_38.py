@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# input_min and input_max should be float32, i.e., dtype 7 and not empty (Rule 38)
+# input_min and input_max must be of type float32 (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(And(And(And((v["arg1_dtype"] == 7), (v["arg2_dtype"] == 7)), (v["arg1_ndim"] == 0)), (v["arg2_ndim"] == 0))) if n else
-          And(And(And((v["arg1_dtype"] == 7), (v["arg2_dtype"] == 7)), (v["arg1_ndim"] == 0)), (v["arg2_ndim"] == 0)))
+    s.add(Not(And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7)) if n else
+          And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7))
 )
 
 def rule_38_func(arg1, arg2, solver=None, neg=False):
@@ -25,21 +25,17 @@ def rule_38_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
         arg1_dtype = Int('arg1_dtype')
-        arg2_ndim = Int('arg2_ndim')
         arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_ndim == arg2.ndim)
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 38
-        rule_38(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim, 'arg2_dtype': arg2_dtype, 'arg2_ndim': arg2_ndim})
+        rule_38(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_38(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim'], 'arg2_dtype': arg2['dtype'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_38(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

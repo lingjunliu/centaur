@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check tensor values are within reasonable bounds for float types (Rule 13)
+# If a tensor has a boolean dtype, its values should be either true or false (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), And(Select(v["arg1_range"], 0) > -1e10, Select(v["arg1_range"], 1) < 1e10), False)) if n else
-          If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), And(Select(v["arg1_range"], 0) > -1e10, Select(v["arg1_range"], 1) < 1e10), False))
+    s.add(Not(If(v["arg1_dtype"] == 0, (And(Select(v["arg1_range"], 0) == 0, Select(v["arg1_range"], 1) == 1)), True)) if n else
+          If(v["arg1_dtype"] == 0, (And(Select(v["arg1_range"], 0) == 0, Select(v["arg1_range"], 1) == 1)), True))
 )
 
 def rule_13_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_13_func(arg1, solver=None, neg=False):
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 13
-        rule_13(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_13(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_13(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_13(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)

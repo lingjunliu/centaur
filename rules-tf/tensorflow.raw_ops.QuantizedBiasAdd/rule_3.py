@@ -5,47 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# min_input, max_input, min_bias and max_bias must be float32 (Rule 3)
+# bias tensor must be 1D (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7), v["arg3_dtype"] == 7), v["arg4_dtype"] == 7)) if n else
-          And(And(And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7), v["arg3_dtype"] == 7), v["arg4_dtype"] == 7))
+    s.add(Not(v["arg1_ndim"] == 1) if n else
+          v["arg1_ndim"] == 1)
 )
 
-def rule_3_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
+def rule_3_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
-    arg4 = next(iter(arg4.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
-            return False
-        if not isinstance(arg3, np.ndarray):
-            return False
-        if not isinstance(arg4, np.ndarray):
-            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
-        arg3_dtype = Int('arg3_dtype')
-        arg4_dtype = Int('arg4_dtype')
+        arg1_ndim = Int('arg1_ndim')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
-        solver.add(arg4_dtype == list_of_available_dtypes.index(arg4.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
 
         # Constraints for rule 3
-        rule_3(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype, 'arg4_dtype': arg4_dtype})
+        rule_3(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_3(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype'], 'arg4_dtype': arg4['dtype']}, neg)
+        rule_3(solver, {'arg1_ndim': arg1['ndim']}, neg)

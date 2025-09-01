@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# CategoricalColumn's dtype must be integer or string. (Rule 3)
+# Dtype of the tensor should not be a string, aiming to prevent string conversion errors (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(Or(Or(v["arg1_dtype"] == 12, v["arg1_dtype"] == 1), v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5)) if n else
-          Or(Or(Or(Or(Or(v["arg1_dtype"] == 12, v["arg1_dtype"] == 1), v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5))
+    s.add(Not(v["arg1_dtype"] != 11) if n else
+          v["arg1_dtype"] != 11)
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

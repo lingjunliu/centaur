@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the tensor is of type int8, int16, int32, int64, make sure that it's inside the interval. Otherwise Inv will give wrong result. (Rule 22)
+# if x is a complex type, the real and imaginary parts cannot both be zero (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 3)), (v["arg1_dtype"] == 4)), And(Select(v["arg1_range"], 0) > -1000000000, Select(v["arg1_range"], 1) < 1000000000), False)) if n else
-          If(Or(Or(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 3)), (v["arg1_dtype"] == 4)), And(Select(v["arg1_range"], 0) > -1000000000, Select(v["arg1_range"], 1) < 1000000000), False))
+    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), True, True)) if n else
+          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), True, True))
 )
 
 def rule_22_func(arg1, solver=None, neg=False):
@@ -23,17 +23,14 @@ def rule_22_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 22
-        rule_22(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_22(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_22(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_22(solver, {'arg1_dtype': arg1['dtype']}, neg)

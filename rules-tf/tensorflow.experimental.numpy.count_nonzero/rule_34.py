@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If tensor ndim > 1 then all shapes have the same sizes (Rule 34)
+# If axis is None, the tensor should not be huge. (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 1, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], 0) == Select(v["arg1_shape"], i)) for i in range(6)]), False)) if n else
-          If(v["arg1_ndim"] > 1, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], 0) == Select(v["arg1_shape"], i)) for i in range(6)]), False))
+    s.add(Not((And([Implies(i < (If(v["arg1_ndim"] > 0, v["arg1_ndim"] - 1, 0) + 1), Select(v["arg1_shape"], i) < 50000) for i in range(6)]))) if n else
+          (And([Implies(i < (If(v["arg1_ndim"] > 0, v["arg1_ndim"] - 1, 0) + 1), Select(v["arg1_shape"], i) < 50000) for i in range(6)])))
 )
 
 def rule_34_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_34_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 34
-        rule_34(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_34(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_34(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_34(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

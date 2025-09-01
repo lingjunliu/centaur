@@ -5,16 +5,17 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the string is "tanh", "sigmoid", "relu", "elu", "selu", "gelu", "swish", "softplus", then v_1 must be a tensor and it's dtype should be 7 or 8 (Rule 44)
+# For 'i,j->ij' subscript ndim(v_1 (Rule 44)
 
 rule_44 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(Or(Or(Or(Or(Or(v["arg1_value"] == 13, v["arg1_value"] == 14), v["arg1_value"] == 12), v["arg1_value"] == 16), v["arg1_value"] == 17), v["arg1_value"] == 18), v["arg1_value"] == 19), v["arg1_value"] == 22), (Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8)), False)) if n else
-          If(Or(Or(Or(Or(Or(Or(Or(v["arg1_value"] == 13, v["arg1_value"] == 14), v["arg1_value"] == 12), v["arg1_value"] == 16), v["arg1_value"] == 17), v["arg1_value"] == 18), v["arg1_value"] == 19), v["arg1_value"] == 22), (Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8)), False))
+    s.add(Not(If(v["arg1_value"] == 2, And(v["arg2_ndim"] == 1, v["arg3_ndim"] == 1), True)) if n else
+          If(v["arg1_value"] == 2, And(v["arg2_ndim"] == 1, v["arg3_ndim"] == 1), True))
 )
 
-def rule_44_func(arg1, arg2, solver=None, neg=False):
+def rule_44_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
@@ -22,20 +23,24 @@ def rule_44_func(arg1, arg2, solver=None, neg=False):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
+        if not isinstance(arg3, np.ndarray):
+            return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = String('arg1_value')
-        arg2_dtype = Int('arg2_dtype')
+        arg2_ndim = Int('arg2_ndim')
+        arg3_ndim = Int('arg3_ndim')
 
         # Value assignments
         solver.add(arg1_value == list_of_string_values_tf.index(arg1))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg3_ndim == arg3.ndim)
 
         # Constraints for rule 44
-        rule_44(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype})
+        rule_44(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim, 'arg3_ndim': arg3_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_44(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_44(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim'], 'arg3_ndim': arg3['ndim']}, neg)

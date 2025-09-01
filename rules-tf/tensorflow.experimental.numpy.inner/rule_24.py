@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If one input is complex, the other should also be complex (Rule 24)
+# Data types should be int or float. (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(If((Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11)), (Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11)), If((Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11)), (Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11)), False))) if n else
-          If((Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11)), (Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11)), If((Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11)), (Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11)), False)))
+    s.add(Not(And((Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), (Or(Or(Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 6), v["arg2_dtype"] == 7), v["arg2_dtype"] == 8)))) if n else
+          And((Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), (Or(Or(Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 6), v["arg2_dtype"] == 7), v["arg2_dtype"] == 8))))
 )
 
 def rule_24_func(arg1, arg2, solver=None, neg=False):

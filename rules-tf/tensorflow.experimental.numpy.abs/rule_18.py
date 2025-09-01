@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If tensor is of floating-point type, then its min value must be less than or equal to its max value (Rule 18)
+# If dtype is int, then min must be less than max (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1), False)) if n else
-          If(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1), False))
+    s.add(Not(If(And(v["arg1_dtype"] < 6, v["arg1_dtype"] > 0), Select(v["arg1_range"], 0) < Select(v["arg1_range"], 1), True)) if n else
+          If(And(v["arg1_dtype"] < 6, v["arg1_dtype"] > 0), Select(v["arg1_range"], 0) < Select(v["arg1_range"], 1), True))
 )
 
 def rule_18_func(arg1, solver=None, neg=False):

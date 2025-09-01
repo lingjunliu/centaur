@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# iou_threshold and score_threshold must be the same type (Rule 10)
+# boxes and iou_threshold must have the same dtype, if boxes has float32 dtype, iou_threshold must have float32 dtype (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
-          v["arg1_dtype"] == v["arg2_dtype"])
+    s.add(Not(If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, True))) if n else
+          If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, True)))
 )
 
 def rule_10_func(arg1, arg2, solver=None, neg=False):

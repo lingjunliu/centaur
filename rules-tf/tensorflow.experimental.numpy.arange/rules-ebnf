@@ -1,81 +1,180 @@
 >>
-Rule 1 (step cannot be zero)
-{v_1 : int ⊎ float} |= v_1 ≠ 0
+Rule 1 (step should not be zero)
+{v_3 : tensor} |= min(v_3) ≠ 0 ∧ max(v_3) ≠ 0
 >>
-Rule 2 (start, stop and step should have compatible dtypes when dtype is not provided)
-{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= (v_1 > 0 ∧ v_2 > 0 ∧ v_3 > 0) ∨ (v_1 < 0 ∧ v_2 < 0 ∧ v_3 < 0) ∨ (v_1 = 0 ∧ v_2 = 0 ∧ v_3 = 0)
+Rule 2 (start, stop, and step should have compatible dtypes for arange to work)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_2) = dtype_(v_3)
 >>
-Rule 3 (If step is floating point, start must be smaller than stop to create a valid range)
-{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_3 < 1 then v_1 < v_2
+Rule 3 (start and stop should have compatible dtypes if step is not provided)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 4 (If only start is provided, it should be non-negative)
-{v_1 : int ⊎ float} |= v_1 ≥ 0
+Rule 4 (ensure start, stop, and step are scalar tensors, avoiding boolean ambiguity)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_1) = 0 ∨ (ndim(v_1) = 1 ∧ shape(v_1, 0) = 1)) ∧ (ndim(v_2) = 0 ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) = 1)) ∧ (ndim(v_3) = 0 ∨ (ndim(v_3) = 1 ∧ shape(v_3, 0) = 1))
 >>
-Rule 5 (dtype must be a valid type index)
-{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 12
+Rule 5 (ensure start and stop are scalar tensors if step is not provided, avoiding boolean ambiguity)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∨ (ndim(v_1) = 1 ∧ shape(v_1, 0) = 1)) ∧ (ndim(v_2) = 0 ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) = 1))
 >>
-Rule 6 (Start and Stop must have the same sign)
-{v_1 : int ⊎ float, v_2 : int ⊎ float} |= (v_1 > 0 ∧ v_2 > 0) ∨ (v_1 < 0 ∧ v_2 < 0) ∨ (v_1 = 0 ∧ v_2 = 0)
+Rule 7 (step should not be zero as a primvar)
+{v_3 : float ⊎ int} |= v_3 ≠ 0
 >>
-Rule 7 (start and stop must be different if step is not specified)
-{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≠ v_2
+Rule 8 (ensure start, stop and step tensors are scalar or 0-dimensional, preventing boolean ambiguity)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) ≤ 1 ∧ ndim(v_2) ≤ 1 ∧ ndim(v_3) ≤ 1
 >>
-Rule 12 (If dtype is specified, start, stop and step should have compatible dtypes)
-{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10
+Rule 9 (ensure start and stop tensors are scalar or 0-dimensional if step is not specified)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≤ 1 ∧ ndim(v_2) ≤ 1
 >>
-Rule 13 (Step cannot be too close to zero)
-{v_1 : int ⊎ float} |= v_1 > 0.000001 ∨ v_1 < -0.000001
+Rule 10 (if start, stop or step are boolean tensors, ensure they are scalar)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then ndim(v_1) ≤ 1
 >>
-Rule 14 (If stop is specified and step is positive, start should be less than stop)
-{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_3 > 0 then v_1 < v_2
+Rule 11 (if start, stop or step are boolean tensors, ensure they are scalar)
+{v_2 : tensor} |= if dtype_(v_2) = 0 then ndim(v_2) ≤ 1
 >>
-Rule 15 (if start and stop are both specified, and step is not, start should be smaller than stop)
-{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 < v_2
+Rule 12 (if start, stop or step are boolean tensors, ensure they are scalar)
+{v_3 : tensor} |= if dtype_(v_3) = 0 then ndim(v_3) ≤ 1
 >>
-Rule 17 (If step is provided and is negative, start should be greater than stop)
-{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_3 < 0 then v_1 > v_2
+Rule 13 (step is not a multi-element boolean tensor)
+{v_3 : tensor} |= if dtype_(v_3) = 0 then ndim(v_3) = 0 ∨ (ndim(v_3) = 1 ∧ shape(v_3, 0) = 1)
 >>
-Rule 20 (if dtype is specified as int, start, stop, and step should also be integers or representable as integers without loss of precision)
-{v_1 : dtype, v_2 : int ⊎ float, v_3 : int ⊎ float, v_4 : int ⊎ float} |= if v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 then (v_2 % 1 = 0 ∧ v_3 % 1 = 0 ∧ v_4 % 1 = 0)
+Rule 14 (start is not a multi-element boolean tensor)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then ndim(v_1) = 0 ∨ (ndim(v_1) = 1 ∧ shape(v_1, 0) = 1)
 >>
-Rule 22 (Dtype should be a valid dtype)
-{v_1 : dtype} |= v_1 ≥ 0 ∧ v_1 ≤ 12
+Rule 15 (stop is not a multi-element boolean tensor)
+{v_2 : tensor} |= if dtype_(v_2) = 0 then ndim(v_2) = 0 ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) = 1)
 >>
-Rule 23 (If stop is not specified, start's dtype must be int or float)
-{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+Rule 16 (if any of start, stop, step are boolean, they must be scalar)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≠ 0 ∨ ndim(v_1) ≤ 1) ∧ (dtype_(v_2) ≠ 0 ∨ ndim(v_2) ≤ 1) ∧ (dtype_(v_3) ≠ 0 ∨ ndim(v_3) ≤ 1)
 >>
-Rule 25 (step can not cause overflow)
-{v_1 : int, v_2 : int, v_3 : int} |= if v_3 > 0 then v_2 - v_1 > 0 else if v_3 < 0 then v_2 - v_1 < 0
+Rule 17 (Ensure step's elements are not all zeros)
+{v_3 : tensor} |= ∃i ∈ [0, if ndim(v_3) = 0 then 0 else shape(v_3,0) - 1] : v_3[i] ≠ 0
 >>
-Rule 28 (if dtype is specified, it must be compatible with start's type when only start is given.)
-{v_1 : dtype, v_2 : int ⊎ float} |= if v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 then v_2 % 1 = 0
+Rule 19 (step as primvar must not be zero)
+{v_3 : int ⊎ float} |= v_3 ≠ 0
 >>
-Rule 34 (If step is not specified but stop is, then the stop value must be non-zero)
-{v_1: int ⊎ float} |= v_1 != 0
+Rule 27 (If start is a boolean tensor, its number of elements must be less than or equal to 1)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then (ndim(v_1) = 0 ∨ (ndim(v_1) = 1 ∧ shape(v_1, 0) ≤ 1))
 >>
-Rule 39 (If stop is not specified and dtype is specified, start must be castable to dtype)
-{v_1 : dtype, v_2: int ⊎ float} |= if v_1 = 0 then v_2 = true ∨ v_2 = false
+Rule 28 (If stop is a boolean tensor, its number of elements must be less than or equal to 1)
+{v_2 : tensor} |= if dtype_(v_2) = 0 then (ndim(v_2) = 0 ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) ≤ 1))
 >>
-Rule 41 (If stop is specified and the datatype is bool, then step must be specified)
-{v_1: dtype} |= if v_1 = 0 then true
+Rule 29 (If step is a boolean tensor, its number of elements must be less than or equal to 1)
+{v_3 : tensor} |= if dtype_(v_3) = 0 then (ndim(v_3) = 0 ∨ (ndim(v_3) = 1 ∧ shape(v_3, 0) ≤ 1))
 >>
-Rule 43 (If stop is not specified and dtype is specified, start must be castable to dtype)
-{v_1 : dtype, v_2: int ⊎ float} |= if v_1 = 0 then v_2 = 0 ∨ v_2 = 1
+Rule 30 (step must not be a tensor where all elements are zero)
+{v_3 : tensor} |= ∃i ∈ [0, if ndim(v_3) = 0 then 0 else shape(v_3, 0) - 1] : v_3[i] ≠ 0
 >>
-Rule 45 (If stop is specified and the datatype is bool, then step must be specified with bool datatype)
-{v_1: dtype, v_2: int ⊎ float} |= if v_1 = 0 then v_2 = 0 ∨ v_2 = 1
+Rule 34 (If start is a boolean tensor, it should be scalar or have a single element)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then ndim(v_1) ≤ 1 ∧ (ndim(v_1) = 0 ∨ shape(v_1, 0) ≤ 1)
 >>
-Rule 46 (If start and stop are provided, then if start > stop, step should be negative)
-{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3: int ⊎ float} |= if v_1 > v_2 then v_3 < 0
+Rule 35 (If stop is a boolean tensor, it should be scalar or have a single element)
+{v_2 : tensor} |= if dtype_(v_2) = 0 then ndim(v_2) ≤ 1 ∧ (ndim(v_2) = 0 ∨ shape(v_2, 0) ≤ 1)
 >>
-Rule 48 (if dtype is specified, it must be a valid dtype)
-{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 11 ∨ v_1 = 12
+Rule 36 (If step is a boolean tensor, it should be scalar or have a single element)
+{v_3 : tensor} |= if dtype_(v_3) = 0 then ndim(v_3) ≤ 1 ∧ (ndim(v_3) = 0 ∨ shape(v_3, 0) ≤ 1)
 >>
-Rule 50 (If start and stop are provided, and start > stop, then step must be specified and negative)
-{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > v_2 then v_3 < 0
+Rule 37 (Step cannot be zero when expressed as a tensor)
+{v_3 : tensor} |= if ndim(v_3) = 0 then v_3 ≠ 0 else if ndim(v_3) = 1 then shape(v_3, 0) ≠ 1 ∨ v_3[0] ≠ 0
 >>
-Rule 53 (If stop is specified, the dtype should be the same as start)
-{v_1: int ⊎ float, v_2: dtype, v_3: int ⊎ float} |= if v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5 then v_1 % 1 = 0 ∧ v_3 % 1 = 0
+Rule 38 (If start is boolean, enforce scalar or single element)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then (ndim(v_1) ≤ 1) ∧ (if ndim(v_1) = 1 then shape(v_1, 0) ≤ 1)
 >>
-Rule 58 (If start and stop are provided, and start > stop, then step must be specified and negative.)
-{v_1 : int ⊎ float, v_2 : int ⊎ float} |= if v_1 > v_2 then true
+Rule 39 (If stop is boolean, enforce scalar or single element)
+{v_2 : tensor} |= if dtype_(v_2) = 0 then (ndim(v_2) ≤ 1) ∧ (if ndim(v_2) = 1 then shape(v_2, 0) ≤ 1)
+>>
+Rule 40 (If step is boolean, enforce scalar or single element)
+{v_3 : tensor} |= if dtype_(v_3) = 0 then (ndim(v_3) ≤ 1) ∧ (if ndim(v_3) = 1 then shape(v_3, 0) ≤ 1)
+>>
+Rule 41 (Step must be non-zero to avoid ValueError)
+{v_3 : tensor} |= if ndim(v_3) = 0 then v_3 ≠ 0 else if ndim(v_3) = 1 then shape(v_3, 0) = 1 ∧ v_3[0] ≠ 0
+>>
+Rule 42 (Start cannot be a boolean tensor with multiple values)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then ndim(v_1) < 1 ∨ (ndim(v_1) = 1 ∧ shape(v_1, 0) < 2)
+>>
+Rule 43 (Stop cannot be a boolean tensor with multiple values)
+{v_2 : tensor} |= if dtype_(v_2) = 0 then ndim(v_2) < 1 ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) < 2)
+>>
+Rule 44 (Step cannot be a boolean tensor with multiple values)
+{v_3 : tensor} |= if dtype_(v_3) = 0 then ndim(v_3) < 1 ∨ (ndim(v_3) = 1 ∧ shape(v_3, 0) < 2)
+>>
+Rule 45 (Non-scalar step tensor must not contain only zeros)
+{v_3 : tensor} |= if ndim(v_3) > 0 then ∃i ∈ [0, shape(v_3, 0) - 1] : v_3[i] ≠ 0
+>>
+Rule 46 (Boolean start tensor must be scalar or 1-element)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then ndim(v_1) ≤ 1 ∧ (if ndim(v_1) = 1 then shape(v_1, 0) ≤ 1)
+>>
+Rule 47 (Boolean stop tensor must be scalar or 1-element)
+{v_2 : tensor} |= if dtype_(v_2) = 0 then ndim(v_2) ≤ 1 ∧ (if ndim(v_2) = 1 then shape(v_2, 0) ≤ 1)
+>>
+Rule 48 (Boolean step tensor must be scalar or 1-element)
+{v_3 : tensor} |= if dtype_(v_3) = 0 then ndim(v_3) ≤ 1 ∧ (if ndim(v_3) = 1 then shape(v_3, 0) ≤ 1)
+>>
+Rule 49 (If step is a tensor with more than one element, it cannot contain only zero)
+{v_3 : tensor} |= if ndim(v_3) > 0 ∧ shape(v_3, 0) > 1 then ∃i ∈ [0, shape(v_3, 0) - 1] : v_3[i] ≠ 0
+>>
+Rule 53 (step must be non-zero)
+{v_3 : tensor} |= if ndim(v_3) = 0 then v_3 ≠ 0 else if ndim(v_3) = 1 then (shape(v_3, 0) = 0) ∨ (shape(v_3, 0) > 0 ∧ v_3[0] ≠ 0)
+>>
+Rule 54 (start should not be a multi-valued boolean tensor)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then ndim(v_1) = 0 ∨ (ndim(v_1) = 1 ∧ shape(v_1, 0) ≤ 1)
+>>
+Rule 55 (stop should not be a multi-valued boolean tensor)
+{v_2 : tensor} |= if dtype_(v_2) = 0 then ndim(v_2) = 0 ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) ≤ 1)
+>>
+Rule 56 (step should not be a multi-valued boolean tensor)
+{v_3 : tensor} |= if dtype_(v_3) = 0 then ndim(v_3) = 0 ∨ (ndim(v_3) = 1 ∧ shape(v_3, 0) ≤ 1)
+>>
+Rule 57 (If the step tensor has shape (1,), its first element must be non-zero)
+{v_3 : tensor} |= if ndim(v_3) = 1 then (shape(v_3, 0) = 0) ∨ (shape(v_3, 0) > 0 ∧ v_3[0] ≠ 0)
+>>
+Rule 58 (Start cannot be a boolean tensor containing more than one element)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then (ndim(v_1) = 0) ∨ (ndim(v_1) = 1 ∧ shape(v_1, 0) ≤ 1)
+>>
+Rule 59 (Stop cannot be a boolean tensor containing more than one element)
+{v_2 : tensor} |= if dtype_(v_2) = 0 then (ndim(v_2) = 0) ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) ≤ 1)
+>>
+Rule 60 (Step cannot be a boolean tensor containing more than one element)
+{v_3 : tensor} |= if dtype_(v_3) = 0 then (ndim(v_3) = 0) ∨ (ndim(v_3) = 1 ∧ shape(v_3, 0) ≤ 1)
+>>
+Rule 69 (The step cannot be all zero if its dimension > 0)
+{v_3 : tensor} |= if ndim(v_3) > 0 then ∃i ∈ [0, if ndim(v_3) > 0 then shape(v_3,0)-1 else 0] : v_3[i] ≠ 0
+>>
+Rule 73 (If step tensor has dimension > 0, it cannot be all zeros)
+{v_3 : tensor} |= if ndim(v_3) > 0 then (∀i ∈ [0, if ndim(v_3) > 0 then shape(v_3,0)-1 else 0] : v_3[i] = 0) = false
+>>
+Rule 74 (Boolean tensors should be scalar or single element - Union Rule)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (if dtype_(v_1) = 0 then (ndim(v_1) = 0) ∨ (ndim(v_1) = 1 ∧ shape(v_1, 0) ≤ 1)) ∧ (if dtype_(v_2) = 0 then (ndim(v_2) = 0) ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) ≤ 1)) ∧ (if dtype_(v_3) = 0 then (ndim(v_3) = 0) ∨ (ndim(v_3) = 1 ∧ shape(v_3, 0) ≤ 1))
+>>
+Rule 76 (If start, stop and step are boolean tensors, each must be scalar or have exactly one element)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (if dtype_(v_1) = 0 then (ndim(v_1) ≤ 1) ∧ (if ndim(v_1) = 1 then shape(v_1, 0) ≤ 1)) ∧ (if dtype_(v_2) = 0 then (ndim(v_2) ≤ 1) ∧ (if ndim(v_2) = 1 then shape(v_2, 0) ≤ 1)) ∧ (if dtype_(v_3) = 0 then (ndim(v_3) ≤ 1) ∧ (if ndim(v_3) = 1 then shape(v_3, 0) ≤ 1))
+>>
+Rule 80 (Ensure that boolean tensors are not used with multiple values, i.e., are scalars, or single element tensors)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ((dtype_(v_1) ≠ 0) ∨ (ndim(v_1) ≤ 1 ∧ (if ndim(v_1) = 1 then shape(v_1, 0) ≤ 1))) ∧ ((dtype_(v_2) ≠ 0) ∨ (ndim(v_2) ≤ 1 ∧ (if ndim(v_2) = 1 then shape(v_2, 0) ≤ 1))) ∧ ((dtype_(v_3) ≠ 0) ∨ (ndim(v_3) ≤ 1 ∧ (if ndim(v_3) = 1 then shape(v_3, 0) ≤ 1)))
+>>
+Rule 81 (step must be non zero when its a tensor )
+{v_3 : tensor} |= if ndim(v_3) > 0 then ∃i ∈ [0, if ndim(v_3) < 1 then 0 else shape(v_3, 0) - 1] : v_3[i] ≠ 0
+>>
+Rule 84 (Step must be non-zero if it's a tensor)
+{v_3 : tensor} |= (ndim(v_3) = 0 ∧ v_3 ≠ 0) ∨ (ndim(v_3) > 0 ∧ ∃i ∈ [0, shape(v_3, 0) - 1] : v_3[i] ≠ 0)
+>>
+Rule 88 (The step tensor must have a non-zero element.)
+{v_3 : tensor} |= (ndim(v_3) = 0 ∧ v_3 ≠ 0) ∨ (ndim(v_3) > 0 ∧ ∃i ∈ [0, if ndim(v_3) > 0 then shape(v_3, 0) - 1 else 0] : v_3[i] ≠ 0)
+>>
+Rule 91 (Disallow multi-element boolean tensors)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ((dtype_(v_1) ≠ 0) ∨ (ndim(v_1) < 1 ∨ (ndim(v_1) = 1 ∧ shape(v_1, 0) < 2))) ∧ ((dtype_(v_2) ≠ 0) ∨ (ndim(v_2) < 1 ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) < 2))) ∧ ((dtype_(v_3) ≠ 0) ∨ (ndim(v_3) < 1 ∨ (ndim(v_3) = 1 ∧ shape(v_3, 0) < 2)))
+>>
+Rule 93 (Disallow boolean tensors as inputs with ndim > 1.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (if dtype_(v_1) = 0 then ndim(v_1) < 2) ∧ (if dtype_(v_2) = 0 then ndim(v_2) < 2) ∧ (if dtype_(v_3) = 0 then ndim(v_3) < 2)
+>>
+Rule 94 (Step tensors cannot contain only zeros unless scalar)
+{v_3 : tensor} |= if ndim(v_3) > 0 then ∃i ∈ [0, if ndim(v_3) > 0 then shape(v_3, 0) - 1 else 0] : v_3[i] ≠ 0 else v_3 ≠ 0
+>>
+Rule 95 (Step can't be zero tensor unless its a scalar)
+{v_3 : tensor} |= if ndim(v_3) > 0 then ∃i ∈ [0, if ndim(v_3) < 1 then 0 else shape(v_3, 0) - 1] : v_3[i] ≠ 0 else v_3 ≠ 0
+>>
+Rule 96 (Multi-element boolean tensors not permitted as inputs)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≠ 0 ∨ ndim(v_1) < 2) ∧ (dtype_(v_2) ≠ 0 ∨ ndim(v_2) < 2) ∧ (dtype_(v_3) ≠ 0 ∨ ndim(v_3) < 2)
+>>
+Rule 97 (Step tensors must not be zero unless scalar values)
+{v_3 : tensor} |= ndim(v_3) < 1 ∨ (ndim(v_3) > 0 ∧ ∃i ∈ [0, if ndim(v_3) > 0 then shape(v_3, 0) - 1 else 0] : v_3[i] ≠ 0)
+>>
+Rule 102 (Step is non zero even when is a tensor )
+{v_3 : tensor} |= (ndim(v_3) < 1 ∧ v_3 ≠ 0) ∨ (ndim(v_3) > -1 ∧ ∃i ∈ [0, if ndim(v_3) > 0 then shape(v_3, 0) - 1 else 0] : v_3[i] ≠ 0)

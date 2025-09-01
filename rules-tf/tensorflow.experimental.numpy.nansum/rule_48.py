@@ -5,33 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The shape must be defined. (Rule 48)
+# If the input tensor has a complex dtype, the output dtype must also be complex, if specified (Rule 48)
 
 rule_48 = lambda s, v, n=False: (
-    s.add(Not((Select(v["arg1_shape"], 0) > -1000000000.0)) if n else
-          (Select(v["arg1_shape"], 0) > -1000000000.0))
+    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or(Or(v["arg2_value"] == 0, v["arg2_value"] == 9), v["arg2_value"] == 10), True)) if n else
+          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or(Or(v["arg2_value"] == 0, v["arg2_value"] == 9), v["arg2_value"] == 10), True))
 )
 
-def rule_48_func(arg1, solver=None, neg=False):
+def rule_48_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
+        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
+            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
 
         # Constraints for rule 48
-        rule_48(solver, {'arg1_shape': arg1_shape})
+        rule_48(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_48(solver, {'arg1_shape': arg1['shape']}, neg)
+        rule_48(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input is real, all eigenvalues should be non-negative or occur in complex conjugate pairs, checking for symmetry as a necessary but not sufficient condition. (Rule 25)
+# Input must be a matrix (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(If((Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), True, False)) if n else
-          If((Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), True, False))
+    s.add(Not(v["arg1_ndim"] == 2) if n else
+          v["arg1_ndim"] == 2)
 )
 
 def rule_25_func(arg1, solver=None, neg=False):
@@ -22,15 +22,15 @@ def rule_25_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_ndim = Int('arg1_ndim')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
 
         # Constraints for rule 25
-        rule_25(solver, {'arg1_dtype': arg1_dtype})
+        rule_25(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_25(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_25(solver, {'arg1_ndim': arg1['ndim']}, neg)

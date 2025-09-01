@@ -1,180 +1,135 @@
 >>
-Rule 1 (var, accum, and linear must have the same type)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_2) = dtype_(v_3)
+Rule 1 (var, accum, and linear must have the same dtype)
+{var: tensor, accum: tensor, linear: tensor} |= dtype_(var) = dtype_(accum) ∧ dtype_(var) = dtype_(linear)
 >>
-Rule 2 (grad must have the same type as var)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 2 (grad must have the same dtype as var)
+{var: tensor, grad: tensor} |= dtype_(var) = dtype_(grad)
 >>
-Rule 3 (indices must be an integer type)
-{v_1 : tensor} |= dtype_(v_1) = 2 ∨ dtype_(v_1) = 4
+Rule 3 (lr, l1, l2, and lr_power must have the same dtype as var)
+{var: tensor, lr: tensor, l1: tensor, l2: tensor, lr_power: tensor} |= dtype_(var) = dtype_(lr) ∧ dtype_(var) = dtype_(l1) ∧ dtype_(var) = dtype_(l2) ∧ dtype_(var) = dtype_(lr_power)
 >>
-Rule 4 (lr, l1, l2, lr_power must have the same type as var)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_2) = dtype_(v_3) ∧ dtype_(v_3) = dtype_(v_4) ∧ dtype_(v_4) = dtype_(v_5)
+Rule 4 (lr, l1, l2, and lr_power must be scalar tensors)
+{lr: tensor, l1: tensor, l2: tensor, lr_power: tensor} |= ndim(lr) = 0 ∧ ndim(l1) = 0 ∧ ndim(l2) = 0 ∧ ndim(lr_power) = 0
 >>
-Rule 5 (lr, l1, l2, lr_power must be scalar tensors)
-{v_1 : tensor} |= ndim(v_1) = 0
+Rule 5 (indices must be a vector)
+{indices: tensor} |= ndim(indices) = 1
 >>
-Rule 6 (var and accum must have the same shape)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1) = shape(v_2)
+Rule 6 (indices must be either int32 or int64)
+{indices: tensor} |= dtype_(indices) = 3 ∨ dtype_(indices) = 4
 >>
-Rule 9 (number of indices must be less than or equal to the size of the first dimension of var)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) ≤ shape(v_1, 0)
+Rule 7 (The first dimension of var, accum and linear must be greater than or equal to the maximum value in indices.)
+{var: tensor, indices: tensor} |= ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] < shape(var, 0)
 >>
-Rule 10 (use_locking is a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 8 (use_locking must be a boolean value)
+{use_locking: bool} |= use_locking = true ∨ use_locking = false
 >>
-Rule 11 (var must be one of the allowed types)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 9
+Rule 9 (multiply_linear_by_lr must be a boolean value)
+{multiply_linear_by_lr: bool} |= multiply_linear_by_lr = true ∨ multiply_linear_by_lr = false
 >>
-Rule 12 (indices must be a vector)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 11 (var can have any of the listed dtypes)
+{var: tensor} |= dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1
 >>
-Rule 13 (lr, l1, l2, and lr_power must be non-negative)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= min(v_1) ≥ 0 ∧ min(v_2) ≥ 0 ∧ min(v_3) ≥ 0 ∧ min(v_4) ≥ 0
+Rule 12 (var, accum, linear and grad have the same shape)
+{var: tensor, accum: tensor, linear: tensor, grad: tensor} |= shape(var,0) = shape(accum,0) ∧ shape(var,0) = shape(linear,0) ∧ shape(var,0) = shape(grad,0)
 >>
-Rule 14 (indices values should be less than the shape of var)
-{v_1 : tensor, v_2 : tensor} |= max(v_2) < shape(v_1, 0)
+Rule 24 (indices values must be non-negative)
+{indices: tensor} |= ∀i ∈ [0, shape(indices,0) - 1] : indices[i] ≥ 0
 >>
-Rule 16 (if use_locking is true, multiply_linear_by_lr cannot be true)
-{v_1 : bool, v_2 : bool} |= if v_1 then v_2 = false
+Rule 34 (var can have any of the listed dtypes)
+{var: tensor} |= dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 0 ∨ dtype_(var) = 9 ∨ dtype_(var) = 10 ∨ dtype_(var) = 12
 >>
-Rule 17 (if multiply_linear_by_lr is true, lr must be non-zero)
-{v_1 : bool, v_2 : tensor} |= if v_1 then min(v_2) > 0
+Rule 36 (shape of var and accum should be the same)
+{var: tensor, accum: tensor} |= shape(var,0) = shape(accum,0)
 >>
-Rule 18 (l1 and l2 should have the same sign)
-{v_1 : tensor, v_2 : tensor} |= (min(v_1) ≥ 0 ∧ min(v_2) ≥ 0) ∨ (max(v_1) ≤ 0 ∧ max(v_2) ≤ 0)
+Rule 37 (shape of var and linear should be the same)
+{var: tensor, linear: tensor} |= shape(var,0) = shape(linear,0)
 >>
-Rule 21 (var cannot be a bool tensor)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 38 (shape of var and grad should be the same)
+{var: tensor, grad: tensor} |= shape(var,0) = shape(grad,0)
 >>
-Rule 22 (indices must contain valid indices for var)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0 ∧ v_2[i] < shape(v_1, 0)
+Rule 39 (All tensors (var, accum, linear, grad, lr, l1, l2, lr_power) should have the same type)
+{var: tensor, accum: tensor, linear: tensor, grad: tensor, lr: tensor, l1: tensor, l2: tensor, lr_power: tensor} |= dtype_(var) = dtype_(accum) ∧ dtype_(var) = dtype_(linear) ∧ dtype_(var) = dtype_(grad) ∧ dtype_(var) = dtype_(lr) ∧ dtype_(var) = dtype_(l1) ∧ dtype_(var) = dtype_(l2) ∧ dtype_(var) = dtype_(lr_power)
 >>
-Rule 24 (var must be a floating point or integer or complex type)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2
+Rule 42 (The maximum value in indices must be less than var shape[0])
+{var: tensor, indices: tensor} |=  max(indices) < shape(var, 0)
 >>
-Rule 26 (indices must be int32 or int64)
-{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 45 (var must be a valid dtype)
+{var: tensor} |= dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 0 ∨ dtype_(var) = 9 ∨ dtype_(var) = 10 ∨ dtype_(var) = 12 ∨ dtype_(var) = 6
 >>
-Rule 27 (lr, l1, l2 and lr_power must be a scalar)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 0 ∧ ndim(v_4) = 0
+Rule 46 (lr should be scalar)
+{lr: tensor} |= ndim(lr) = 0
 >>
-Rule 28 (if use_locking is true, then the operation is thread safe)
-{v_1 : bool} |= if v_1 then true
+Rule 47 (l1 should be scalar)
+{l1: tensor} |= ndim(l1) = 0
 >>
-Rule 29 (indices should be within the bounds of the first dimension of var)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : 0 ≤ v_2[i] ∧ v_2[i] < shape(v_1, 0)
+Rule 48 (l2 should be scalar)
+{l2: tensor} |= ndim(l2) = 0
 >>
-Rule 30 (if use_locking is false, then the operation might not be thread safe)
-{v_1 : bool} |= if v_1 = false then true
+Rule 49 (lr_power should be scalar)
+{lr_power: tensor} |= ndim(lr_power) = 0
 >>
-Rule 31 (lr, l1, l2, lr_power should have a floating type, if var has a floating type)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∧ dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∧ dtype_(v_4) = 7 ∨ dtype_(v_4) = 8 ∧ dtype_(v_5) = 7 ∨ dtype_(v_5) = 8
+Rule 51 (Indices should be int32 or int64 tensors with positive values, and less than var.shape[0])
+{var: tensor, indices: tensor} |= (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ (∀i ∈ [0, shape(indices,0) - 1] : indices[i] ≥ 0 ∧ indices[i] < shape(var, 0))
 >>
-Rule 32 (var's dtype should be consistent with other variables)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3) ∧ dtype_(v_1) = dtype_(v_4)
+Rule 54 (var must be a valid dtype - float32, float64, int32, uint8, int16, int8, complex64, int64, half, complex128)
+{var: tensor} |= dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 9 ∨ dtype_(var) = 4 ∨ dtype_(var) = 6 ∨ dtype_(var) = 10
 >>
-Rule 33 (The indices tensor's values must be within the valid range for var's first dimension)
-{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ max(v_2) < shape(v_1, 0)
+Rule 61 (indices should be int32 or int64 tensors, ndim = 1 and all values between 0 and var.shape[0])
+{var: tensor, indices: tensor} |= (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ ndim(indices) = 1 ∧ (∀i ∈ [0, shape(indices,0) - 1] : indices[i] ≥ 0 ∧ indices[i] < shape(var, 0))
 >>
-Rule 34 (lr_power should typically be a small positive value)
-{v_1 : tensor} |= min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
+Rule 66 (var shape should match accum, linear and grad shapes)
+{var: tensor, accum: tensor, linear: tensor, grad: tensor} |= shape(var, 0) = shape(accum, 0) ∧ shape(var, 0) = shape(linear, 0) ∧ shape(var, 0) = shape(grad, 0)
 >>
-Rule 35 (If var is quantized, then accum, linear, grad, lr, l1, l2, lr_power must also be quantized)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor, v_6 : tensor, v_7 : tensor, v_8 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∧ dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5 ∧ dtype_(v_4) = 1 ∨ dtype_(v_4) = 2 ∨ dtype_(v_4) = 3 ∨ dtype_(v_4) = 4 ∨ dtype_(v_4) = 5 ∧ dtype_(v_5) = 1 ∨ dtype_(v_5) = 2 ∨ dtype_(v_5) = 3 ∨ dtype_(v_5) = 4 ∨ dtype_(v_5) = 5 ∧ dtype_(v_6) = 1 ∨ dtype_(v_6) = 2 ∨ dtype_(v_6) = 3 ∨ dtype_(v_6) = 4 ∨ dtype_(v_6) = 5 ∧ dtype_(v_7) = 1 ∨ dtype_(v_7) = 2 ∨ dtype_(v_7) = 3 ∨ dtype_(v_7) = 4 ∨ dtype_(v_7) = 5 ∧ dtype_(v_8) = 1 ∨ dtype_(v_8) = 2 ∨ dtype_(v_8) = 3 ∨ dtype_(v_8) = 4 ∨ dtype_(v_8) = 5
+Rule 74 (Indices ndim should be 1)
+{indices : tensor} |= ndim(indices) = 1
 >>
-Rule 36 (if var has integer type, then lr, l1, l2, lr_power should also have integer type)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor} |= if dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∧ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∧ dtype_(v_4) = 3 ∨ dtype_(v_4) = 4 ∧ dtype_(v_5) = 3 ∨ dtype_(v_5) = 4
+Rule 76 (Indices properties)
+{var: tensor, indices: tensor} |= (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ (∀i ∈ [0, shape(indices,0) - 1] : indices[i] ≥ 0 ∧ indices[i] < shape(var, 0)) ∧ ndim(indices) = 1
 >>
-Rule 37 (if multiply_linear_by_lr is true then lr should be equal or greater than 0)
-{v_1 : bool, v_2 : tensor} |= if v_1 then min(v_2) ≥ 0
+Rule 82 (var and accum should have same shape)
+{var : tensor, accum : tensor} |= ndim(var) = ndim(accum) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(accum, i)
 >>
-Rule 38 (Accum, linear and grad should have compatible shapes with var for element-wise operations)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= shape(v_1) = shape(v_2) ∧ shape(v_1) = shape(v_3) ∧ shape(v_1) = shape(v_4)
+Rule 83 (var and linear should have same shape)
+{var : tensor, linear : tensor} |= ndim(var) = ndim(linear) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(linear, i)
 >>
-Rule 39 (If var has complex type, then lr, l1, l2, lr_power must also have complex type)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∧ dtype_(v_3) = 9 ∨ dtype_(v_3) = 10 ∧ dtype_(v_4) = 9 ∨ dtype_(v_4) = 10 ∧ dtype_(v_5) = 9 ∨ dtype_(v_5) = 10
+Rule 84 (var and grad should have same shape)
+{var : tensor, grad : tensor} |= ndim(var) = ndim(grad) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(grad, i)
 >>
-Rule 41 (If multiply_linear_by_lr is true, then lr can't be zero)
-{v_1 : bool, v_2 : tensor} |= if v_1 then min(v_2) > 0 ∨ max(v_2) < 0
+Rule 89 (Valid dtypes for var, accum, linear, grad, lr, l1, l2, lr_power)
+{var: tensor} |= dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 9 ∨ dtype_(var) = 4 ∨ dtype_(var) = 6 ∨ dtype_(var) = 10 ∨ dtype_(var) = 13
 >>
-Rule 43 (L1 and L2 regularization terms should be non-negative)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) ≥ 0 ∧ min(v_2) ≥ 0
+Rule 98 (var, accum, linear and grad must have same shape)
+{var : tensor, accum : tensor, linear : tensor, grad : tensor} |= ndim(var) = ndim(accum) ∧ ndim(var) = ndim(linear) ∧ ndim(var) = ndim(grad) ∧  (∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(accum, i) ∧ shape(var, i) = shape(linear, i) ∧ shape(var, i) = shape(grad, i))
 >>
-Rule 45 (if var's dtype is not float32 or float64, complex64 or complex128 then lr_power should be 0)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 then min(v_2) = 0 ∧ max(v_2) = 0
+Rule 105 (Shapes must match between var, accum, linear and grad)
+{var: tensor, accum: tensor, linear: tensor, grad: tensor} |= ndim(var) = ndim(accum) ∧ ndim(var) = ndim(linear) ∧ ndim(var) = ndim(grad) ∧  (∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(accum, i) ∧ shape(var, i) = shape(linear, i) ∧ shape(var, i) = shape(grad, i))
 >>
-Rule 46 (The first dimension of var should be greater than 0)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 106 (If multiply_linear_by_lr is true, lr must be a scalar greater than 0)
+{lr: tensor, multiply_linear_by_lr : bool} |= if multiply_linear_by_lr = true then ndim(lr) = 0 ∧ min(lr) > 0
 >>
-Rule 47 (multiply_linear_by_lr can only be true if lr has a floating-point dtype)
-{v_1 : bool, v_2 : tensor} |= if v_1 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+Rule 111 (Valid dtypes for var and related tensors)
+{var: tensor} |= dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 9 ∨ dtype_(var) = 10
 >>
-Rule 48 (If var has a bfloat16 dtype, then lr, l1, l2, and lr_power should have bfloat16 dtype too)
-{v_1: tensor, v_2: tensor, v_3: tensor, v_4: tensor, v_5: tensor} |= if dtype_(v_1) = 11 then dtype_(v_2) = 11 ∧ dtype_(v_3) = 11 ∧ dtype_(v_4) = 11 ∧ dtype_(v_5) = 11
+Rule 114 (l1 should be non-negative)
+{l1 : tensor} |= min(l1) ≥ 0
 >>
-Rule 49 (indices should be a 1D tensor with int32 or int64 dtype)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
+Rule 115 (l2 should be non-negative)
+{l2 : tensor} |= min(l2) ≥ 0
 >>
-Rule 50 (lr, l1, l2, lr_power should have the same dtype and be scalar)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3) ∧ dtype_(v_1) = dtype_(v_4) ∧ ndim(v_1) = 0
+Rule 122 (var, accum, linear and grad must have the same shape)
+{var : tensor, accum : tensor, linear : tensor, grad : tensor} |= ndim(var) = ndim(accum) ∧ ndim(var) = ndim(linear) ∧ ndim(var) = ndim(grad) ∧ (∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(accum, i) ∧ shape(var, i) = shape(linear, i) ∧ shape(var, i) = shape(grad, i))
 >>
-Rule 51 (var, accum, linear, and grad should have a valid dtype for the op)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 11
+Rule 123 (l1 and l2 should be non-negative)
+{l1 : tensor, l2 : tensor} |= min(l1) ≥ 0 ∧ min(l2) ≥ 0
 >>
-Rule 52 (The values in indices should not exceed the maximum value for the indices' dtype)
-{v_1 : tensor} |= if dtype_(v_1) = 3 then max(v_1) < 2147483647 else if dtype_(v_1) = 4 then max(v_1) < 9223372036854775807
+Rule 131 (l1 and l2 should be non-negative scalar tensors)
+{l1 : tensor, l2 : tensor} |= min(l1) ≥ 0 ∧ min(l2) ≥ 0 ∧ ndim(l1) = 0 ∧ ndim(l2) = 0
 >>
-Rule 53 (if the rank of var is greater than 1, then indices should also have corresponding shape information)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 then shape(v_2, 0) ≤ shape(v_1, 0)
+Rule 140 (if multiply_linear_by_lr is true, lr must be positive)
+{lr: tensor, multiply_linear_by_lr: bool} |= if multiply_linear_by_lr = true then min(lr) > 0
 >>
-Rule 55 (if use_locking is enabled, indices must be sorted)
-{v_1 : bool, v_2 : tensor} |= if v_1 then ∀i ∈ [0, shape(v_2, 0) - 2] : v_2[i] ≤ v_2[i+1]
+Rule 149 (If multiply_linear_by_lr is true, then lr must be a scalar and greater than zero)
+{lr : tensor, multiply_linear_by_lr : bool} |= if multiply_linear_by_lr = true then ndim(lr) = 0 ∧ min(lr) > 0
 >>
-Rule 56 (if var is half dtype, the other tensors (accum, linear, grad, lr, l1, l2, lr_power) should have the same dtype)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor, v_6 : tensor, v_7 : tensor} |= if dtype_(v_1) = 16 then dtype_(v_2) = 16 ∧ dtype_(v_3) = 16 ∧ dtype_(v_4) = 16 ∧ dtype_(v_5) = 16 ∧ dtype_(v_6) = 16 ∧ dtype_(v_7) = 16
->>
-Rule 57 (if indices dtype is int32, then max(indices) should be less than or equal to the maximum value of int32)
-{v_1 : tensor} |= if dtype_(v_1) = 3 then max(v_1) ≤ 2147483647
->>
-Rule 58 (If L1 regularization is zero, the L1 regularization part is omitted)
-{v_1 : tensor} |= if min(v_1) = 0 ∧ max(v_1) = 0 then true
->>
-Rule 59 (if indices is int64, then max index value can not be greater than max int64 value )
-{v_1 : tensor} |= if dtype_(v_1) = 4 then max(v_1) ≤ 9223372036854775807
->>
-Rule 60 (If Multiply Linear By Lr is enabled, the learning rate should be within a reasonable range)
-{v_1: bool, v_2: tensor} |= if v_1 then (min(v_2) ≥ 0.000001 ∧ max(v_2) ≤ 1)
->>
-Rule 61 (if var has integer type, then lr_power should be greater than or equal to 0 and less than or equal to 1)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then min(v_2) ≥ 0 ∧ max(v_2) ≤ 1
->>
-Rule 63 (If var has float16 dtype, then lr, l1, l2, and lr_power should have float16 dtype too)
-{v_1: tensor, v_2: tensor, v_3: tensor, v_4: tensor, v_5: tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6 ∧ dtype_(v_3) = 6 ∧ dtype_(v_4) = 6 ∧ dtype_(v_5) = 6
->>
-Rule 65 (The shape of indices tensor can not be greater than var's shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≤ ndim(v_1)
->>
-Rule 66 (l1 must be less or equal than linear)
-{v_1: tensor, v_2: tensor} |= max(v_1) <= min(v_2)
->>
-Rule 67 (if the number of elements pointed by indices is greater than 0, at least on dimension size of var should be greater than 0)
-{v_1: tensor, v_2: tensor} |= if shape(v_2, 0) > 0 then (∃i ∈ [0, ndim(v_1) -1]: shape(v_1, i) > 0)
->>
-Rule 68 (Multiply Linear By Lr should be disabled when any of the L1, L2, learning rate power, or learning rate is negative)
-{v_1 : bool, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5: tensor} |= if (min(v_2) < 0 ∨ min(v_3) < 0 ∨ min(v_4) < 0 ∨ min(v_5) < 0) then v_1 = false
->>
-Rule 69 (if the var has type qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, uint32 or uint64, lr,l1,l2, lr_power must have the same type with var.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5: tensor} |= if (dtype_(v_1) = 12 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 14 ∨ dtype_(v_1) = 11 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18 ∨ dtype_(v_1) = 19) then dtype_(v_2) = dtype_(v_1) ∧ dtype_(v_3) = dtype_(v_1) ∧ dtype_(v_4) = dtype_(v_1) ∧ dtype_(v_5) = dtype_(v_1)
->>
-Rule 70 (if var and accum have integer dtype, then l1, l2 and lr_power must be non-negative.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4: tensor} |= if (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) then min(v_3) >= 0 ∧ min(v_4) >= 0
->>
-Rule 71 (if the var has type int8, int16, then lr,l1,l2, lr_power must have the same type with var.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5: tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ) then dtype_(v_2) = dtype_(v_1) ∧ dtype_(v_3) = dtype_(v_1) ∧ dtype_(v_4) = dtype_(v_1) ∧ dtype_(v_5) = dtype_(v_1)
->>
-Rule 72 (if var has integer dtype, then the number of dimensions should less than or equal to 2)
-{v_1 : tensor} |= if dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then ndim(v_1) <= 2
->>
-Rule 73 (If multiply_linear_by_lr is enabled, the learning rate should be a positive number)
-{v_1: bool, v_2: tensor} |= if v_1 then (min(v_2) > 0)
+Rule 150 (var, accum, linear, grad must all have same number of dimensions)
+{var: tensor, accum: tensor, linear: tensor, grad: tensor} |= ndim(var) = ndim(accum) ∧ ndim(var) = ndim(linear) ∧ ndim(var) = ndim(grad)

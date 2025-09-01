@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If v_1 is an integer type, v_2 must also be an integer or a float. Similarly for floats. (Rule 3)
+# At least one of the tensors should have more than 0 dimensions. (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), Or((And(1 <= v["arg2_dtype"], v["arg2_dtype"] <= 5)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8))), If(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), Or((And(1 <= v["arg2_dtype"], v["arg2_dtype"] <= 8)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8))), False))) if n else
-          If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), Or((And(1 <= v["arg2_dtype"], v["arg2_dtype"] <= 5)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8))), If(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), Or((And(1 <= v["arg2_dtype"], v["arg2_dtype"] <= 8)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8))), False)))
+    s.add(Not(Or(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0)) if n else
+          Or(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0))
 )
 
 def rule_3_func(arg1, arg2, solver=None, neg=False):
@@ -25,17 +25,17 @@ def rule_3_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_ndim = Int('arg2_ndim')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 3
-        rule_3(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_3(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_3(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_3(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)

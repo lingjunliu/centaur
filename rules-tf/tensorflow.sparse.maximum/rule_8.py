@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# sp_a and sp_b must have the same shape (Rule 8)
+# Check that both tensors are not empty (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)) if n else
-          Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0))
+    s.add(Not(And(Select(v["arg1_shape"], 0) > 0, Select(v["arg2_shape"], 0) > 0)) if n else
+          And(Select(v["arg1_shape"], 0) > 0, Select(v["arg2_shape"], 0) > 0))
 )
 
 def rule_8_func(arg1, arg2, solver=None, neg=False):

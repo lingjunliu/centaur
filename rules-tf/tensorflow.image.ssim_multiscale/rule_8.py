@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# k2 must be a float between 0 and 0.4 (Rule 8)
+# k2 should be non-negative and less than 0.4 (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] > 0, v["arg1_value"] < 0.4)) if n else
-          And(v["arg1_value"] > 0, v["arg1_value"] < 0.4))
+    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] < 0.4)) if n else
+          And(v["arg1_value"] >= 0, v["arg1_value"] < 0.4))
 )
 
 def rule_8_func(arg1, solver=None, neg=False):

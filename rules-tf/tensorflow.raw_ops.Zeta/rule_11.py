@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input tensors have the same number of dimensions, ensure the dimensions are within a reasonable range. (Rule 11)
+# x and q must be non-empty tensors (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == v["arg2_ndim"], (If(v["arg1_ndim"] > 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], i) < 2048, Select(v["arg2_shape"], i) < 2048)) for i in range(6)]), False)), False)) if n else
-          If(v["arg1_ndim"] == v["arg2_ndim"], (If(v["arg1_ndim"] > 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], i) < 2048, Select(v["arg2_shape"], i) < 2048)) for i in range(6)]), False)), False))
+    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], i) > 0, And([Implies(i < (v["arg2_ndim"] - 1 + 1), And(And(Select(v["arg2_shape"], i) > 0, v["arg1_ndim"] > 0), v["arg2_ndim"] > 0)) for i in range(6)]))) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], i) > 0, And([Implies(i < (v["arg2_ndim"] - 1 + 1), And(And(Select(v["arg2_shape"], i) > 0, v["arg1_ndim"] > 0), v["arg2_ndim"] > 0)) for i in range(6)]))) for i in range(6)]))
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

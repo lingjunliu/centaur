@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the tensor contains a value greater than zero then count_nonzero should return a value greater than zero (Rule 50)
+# The axis cannot be close to exceeding the maximum limit for integer values, must be below 2147483647 (Rule 50)
 
 rule_50 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_range"], 1) > 0, True, False)) if n else
-          If(Select(v["arg1_range"], 1) > 0, True, False))
+    s.add(Not(And(v["arg1_value"] < 2147483647, v["arg1_value"] > -2147483647)) if n else
+          And(v["arg1_value"] < 2147483647, v["arg1_value"] > -2147483647))
 )
 
 def rule_50_func(arg1, solver=None, neg=False):
@@ -17,21 +17,20 @@ def rule_50_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 50
-        rule_50(solver, {'arg1_range': arg1_range})
+        rule_50(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_50(solver, {'arg1_range': arg1['range']}, neg)
+        rule_50(solver, {'arg1_value': arg1['value']}, neg)

@@ -5,39 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if the shape of segment_ids is 0, the shape of data should also be 0 (Rule 65)
+# num_segments must be non-negative and an integer (Rule 65)
 
 rule_65 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg2_shape"], 0) == 0, Select(v["arg1_shape"], 0) == 0, False)) if n else
-          If(Select(v["arg2_shape"], 0) == 0, Select(v["arg1_shape"], 0) == 0, False))
+    s.add(Not(v["arg1_value"] >= 0) if n else
+          v["arg1_value"] >= 0)
 )
 
-def rule_65_func(arg1, arg2, solver=None, neg=False):
+def rule_65_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
-            return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 65
-        rule_65(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape})
+        rule_65(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_65(solver, {'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape']}, neg)
+        rule_65(solver, {'arg1_value': arg1['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# var can be of type complex128 (Rule 28)
+# If auto-differentiation is enabled then var tensor should be float or complex type (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == 11) if n else
-          v["arg1_dtype"] == 11)
+    s.add(Not(If(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 11), True, True)) if n else
+          If(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 11), True, True))
 )
 
 def rule_28_func(arg1, solver=None, neg=False):

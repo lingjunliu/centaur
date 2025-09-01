@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If one type is int and other is float then promote to float (Rule 12)
+# type1 and type2 cannot both be bool (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(And((And(1 <= v["arg1_value"], v["arg1_value"] <= 5)), (And(6 <= v["arg2_value"], v["arg2_value"] <= 8))), True, If(And((And(1 <= v["arg2_value"], v["arg2_value"] <= 5)), (And(6 <= v["arg1_value"], v["arg1_value"] <= 8))), True, False))) if n else
-          If(And((And(1 <= v["arg1_value"], v["arg1_value"] <= 5)), (And(6 <= v["arg2_value"], v["arg2_value"] <= 8))), True, If(And((And(1 <= v["arg2_value"], v["arg2_value"] <= 5)), (And(6 <= v["arg1_value"], v["arg1_value"] <= 8))), True, False)))
+    s.add(Not(If(v["arg1_value"] == 0, v["arg2_value"] > 0, True)) if n else
+          If(v["arg1_value"] == 0, v["arg2_value"] > 0, True))
 )
 
 def rule_12_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If axis is provided, it must be within the valid range. (Rule 50)
+# If axis is specified, make sure that is greater than negative ndim of tensor (Rule 50)
 
 rule_50 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] >= 0, v["arg2_value"] < v["arg1_ndim"], 0 <= (v["arg1_ndim"] + v["arg2_value"]))) if n else
-          If(v["arg2_value"] >= 0, v["arg2_value"] < v["arg1_ndim"], 0 <= (v["arg1_ndim"] + v["arg2_value"])))
+    s.add(Not(v["arg2_value"] >= (0 - v["arg1_ndim"])) if n else
+          v["arg2_value"] >= (0 - v["arg1_ndim"]))
 )
 
 def rule_50_func(arg1, arg2, solver=None, neg=False):

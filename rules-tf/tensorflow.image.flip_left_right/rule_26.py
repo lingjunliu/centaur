@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If image is 3D and channels are 1, then height and width dimensions must be different (Rule 26)
+# ensure at least 3 dimensions and the last three dims are positive, or enforce 3/4 dimensions, but not simultaneously (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 2) == 1), Select(v["arg1_shape"], 0) != Select(v["arg1_shape"], 1), False)) if n else
-          If(And(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 2) == 1), Select(v["arg1_shape"], 0) != Select(v["arg1_shape"], 1), False))
+    s.add(Not(If(v["arg1_ndim"] >= 3, And(And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0), Select(v["arg1_shape"], v["arg1_ndim"] - 3) > 0), Or(v["arg1_ndim"] == 3, v["arg1_ndim"] == 4))) if n else
+          If(v["arg1_ndim"] >= 3, And(And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0), Select(v["arg1_shape"], v["arg1_ndim"] - 3) > 0), Or(v["arg1_ndim"] == 3, v["arg1_ndim"] == 4)))
 )
 
 def rule_26_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_26_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 26
-        rule_26(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_26(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_26(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_26(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

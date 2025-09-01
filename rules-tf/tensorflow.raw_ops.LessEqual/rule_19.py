@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If ndims differ and one shape has leading 1s, broadcasting is possible (Rule 19)
+# at least one of the tensors should have positive dimensions if not scalar (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] != v["arg2_ndim"], (If(v["arg1_ndim"] > v["arg2_ndim"], Or([And(i < (v["arg1_ndim"] - v["arg2_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 1) for i in range(6)]), Or([And(i < (v["arg2_ndim"] - v["arg1_ndim"] - 1 + 1), Select(v["arg2_shape"], i) == 1) for i in range(6)]))), False)) if n else
-          If(v["arg1_ndim"] != v["arg2_ndim"], (If(v["arg1_ndim"] > v["arg2_ndim"], Or([And(i < (v["arg1_ndim"] - v["arg2_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 1) for i in range(6)]), Or([And(i < (v["arg2_ndim"] - v["arg1_ndim"] - 1 + 1), Select(v["arg2_shape"], i) == 1) for i in range(6)]))), False))
+    s.add(Not(Or((Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0)), (Or([And(i < ((If(v["arg1_ndim"] > v["arg2_ndim"], v["arg1_ndim"], v["arg2_ndim"])) - 1 + 1), Or((If(i < v["arg1_ndim"], Select(v["arg1_shape"], i) > 0, False)), (If(i < v["arg2_ndim"], Select(v["arg2_shape"], i) > 0, False)))) for i in range(6)])))) if n else
+          Or((Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0)), (Or([And(i < ((If(v["arg1_ndim"] > v["arg2_ndim"], v["arg1_ndim"], v["arg2_ndim"])) - 1 + 1), Or((If(i < v["arg1_ndim"], Select(v["arg1_shape"], i) > 0, False)), (If(i < v["arg2_ndim"], Select(v["arg2_shape"], i) > 0, False)))) for i in range(6)]))))
 )
 
 def rule_19_func(arg1, arg2, solver=None, neg=False):

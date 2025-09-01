@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# num_buckets is not too large (Rule 64)
+# num_buckets, if the number is the same as the year, default value should not be negative (Rule 64)
 
 rule_64 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 2000) if n else
-          v["arg1_value"] < 2000)
+    s.add(Not(If(v["arg1_value"] == 2024, v["arg1_value"] > 0, True)) if n else
+          If(v["arg1_value"] == 2024, v["arg1_value"] > 0, True))
 )
 
 def rule_64_func(arg1, solver=None, neg=False):

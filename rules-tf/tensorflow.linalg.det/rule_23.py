@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# when the shape contains at least one dimension of value 1, the determinant result is either 1 or -1 (Rule 23)
+# input tensor's last dimension must not be unknown to avoid errors (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 1) for i in range(6)]), True, False)) if n else
-          If(Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 1) for i in range(6)]), True, False))
+    s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 1) != -1) if n else
+          Select(v["arg1_shape"], v["arg1_ndim"] - 1) != -1)
 )
 
 def rule_23_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_23_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 23
-        rule_23(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_23(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_23(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_23(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

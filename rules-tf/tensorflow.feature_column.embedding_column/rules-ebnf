@@ -1,90 +1,111 @@
 >>
-Rule 1 (Dimension must be greater than 0)
-{v_1 : int} |= v_1 > 0
+Rule 1 (dimension must be greater than 0)
+{dimension : int} |= dimension > 0
 >>
-Rule 2 (Combiner must be one of the allowed strings)
-{v_1 : str} |= v_1 = "mean" ∨ v_1 = "sqrtn" ∨ v_1 = "sum"
+Rule 2 (ckpt_to_load_from and tensor_name_in_ckpt should either both be specified or neither)
+{ckpt_to_load_from : str, tensor_name_in_ckpt : str} |= (ckpt_to_load_from = "" ∧ tensor_name_in_ckpt = "") ∨ (ckpt_to_load_from ≠ "" ∧ tensor_name_in_ckpt ≠ "")
 >>
-Rule 3 (max_norm must be greater than or equal to 0)
-{v_1 : float} |= v_1 ≥ 0
+Rule 3 (combiner must be one of the supported strings)
+{combiner : str} |= combiner = "mean" ∨ combiner = "sqrtn" ∨ combiner = "sum"
 >>
-Rule 4 (trainable must be a boolean value)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 4 (max_norm should be non-negative if specified)
+{max_norm : float} |= max_norm ≥ 0
 >>
-Rule 11 (If ckpt_to_load_from is not None then tensor_name_in_ckpt must also not be None)
-{v_1 : str, v_2 : str} |= if v_1 ≠ "" then v_2 ≠ ""
+Rule 5 (trainable must be a boolean value)
+{trainable : bool} |= trainable = true ∨ trainable = false
 >>
-Rule 12 (If trainable is true, then the dimension must be greater than 0.)
-{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 0
+Rule 6 (use_safe_embedding_lookup must be a boolean value)
+{use_safe_embedding_lookup : bool} |= use_safe_embedding_lookup = true ∨ use_safe_embedding_lookup = false
 >>
-Rule 13 (Combiner must be a valid string)
-{v_1 : str} |= v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "sqrtn"
+Rule 9 (embedding dimension should not be too big)
+{dimension : int} |= dimension < 10000
 >>
-Rule 14 (If max_norm is provided, then dimension must be greater than 0)
-{v_1 : float, v_2 : int} |= if v_1 > 0 then v_2 > 0
+Rule 10 (dimension must be positive)
+{dimension : int} |= dimension ≥ 1
 >>
-Rule 15 (ckpt_to_load_from and tensor_name_in_ckpt should both be empty strings or both non-empty strings)
-{v_1 : str, v_2 : str} |= (v_1 = "" ∧ v_2 = "") ∨ (v_1 ≠ "" ∧ v_2 ≠ "")
+Rule 17 (dimension should be smaller than max_norm if max_norm specified)
+{dimension : int, max_norm : float} |= if max_norm > 0 then dimension ≤ max_norm
 >>
-Rule 16 (if use_safe_embedding_lookup is true, the categorical column must have rank 2)
-{v_1: bool, v_2: tensor} |= if v_1 = true then ndim(v_2) = 2
+Rule 18 (The length of ckpt_to_load_from should be less than 256.)
+{ckpt_to_load_from: str} |= ckpt_to_load_from.len < 256
 >>
-Rule 17 (max_norm must be a positive float or None)
-{v_1: float} |= v_1 > 0
+Rule 19 (The length of tensor_name_in_ckpt should be less than 256.)
+{tensor_name_in_ckpt: str} |= tensor_name_in_ckpt.len < 256
 >>
-Rule 19 (If use_safe_embedding_lookup is True, then ids and weights should be positive)
-{v_1 : bool, v_2 : tensor, v_3: tensor} |= if v_1 = true then min(v_2) >= 0 ∧ min(v_3) >= 0
+Rule 20 (Check categorical_column)
+{categorical_column : list(int)} |= categorical_column.len > 0
 >>
-Rule 20 (If initializer is not None, then trainable must be true)
-{v_1 : tensor, v_2 : bool} |= if ndim(v_1) > 0 then v_2 = true
+Rule 31 (Prevent very large dimension)
+{dimension : int} |= dimension < 2048
 >>
-Rule 21 (If use_safe_embedding_lookup is True and categorical column has rank 2, then min(ids) and min(weights) must be greater than or equal to 0)
-{v_1 : bool, v_2 : tensor, v_3: tensor} |= if v_1 = true ∧ ndim(v_2) = 2 then min(v_2) >= 0 ∧ min(v_3) >= 0
+Rule 42 (combiner must not be empty string)
+{combiner : str} |= combiner.len > 0
 >>
-Rule 22 (If initializer is specified, trainable should default to true)
-{v_1: tensor, v_2: bool} |= if ndim(v_1) > 0 then v_2 = true
+Rule 43 (max_norm must not be negative)
+{max_norm: float} |= max_norm >= 0
 >>
-Rule 23 (If ckpt_to_load_from is empty, tensor_name_in_ckpt should also be empty)
-{v_1 : str, v_2 : str} |= if v_1 = "" then v_2 = ""
+Rule 51 (combiner cannot be none)
+{combiner: str} |= combiner ≠ "none"
 >>
-Rule 27 (If use_safe_embedding_lookup is True and categorical column has rank 2, then min(ids) and min(weights) must be greater than or equal to 0)
-{v_1 : bool, v_2 : tensor, v_3: tensor} |= if v_1 = true ∧ ndim(v_2) = 2 then min(v_2) ≥ 0 ∧ min(v_3) ≥ 0
+Rule 53 (Prevent very small max_norm if specified)
+{max_norm : float} |= if max_norm > 0 then max_norm > 0.000001
 >>
-Rule 31 (If initializer is specified, then dimension must be specified, simplified with checking non-emptiness/dimensionality)
-{v_1: tensor, v_2: int} |= if ndim(v_1) > 0 then v_2 > 0
+Rule 60 (The dimension must be smaller than the square root of the maximum int)
+{dimension: int} |= dimension < 46340
 >>
-Rule 35 (if tensor_name_in_ckpt is specified then ckpt_to_load_from has to be specified)
-{v_1 : str, v_2 : str} |= if v_2 ≠ "" then v_1 ≠ ""
+Rule 70 (Check categorical_column is a list and not none.)
+{categorical_column: list(int)} |= categorical_column.len >= 0
 >>
-Rule 37 (If use_safe_embedding_lookup is True, then the rank of categorical_column must be 2)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then ndim(v_2) = 2
+Rule 72 (combiner can be None string)
+{combiner: str} |= combiner = "none" ∨ combiner = "mean" ∨ combiner = "sqrtn" ∨ combiner = "sum"
 >>
-Rule 38 (The initializer's output tensor's dimension should be consistent with the specified dimension)
-{v_1: tensor, v_2: int} |= if ndim(v_1) > 0 then shape(v_1, 0) = v_2
+Rule 73 (ckpt_to_load_from and tensor_name_in_ckpt cannot be empty simultaneously)
+{ckpt_to_load_from: str, tensor_name_in_ckpt: str} |= if ckpt_to_load_from.len > 0 then tensor_name_in_ckpt.len > 0 else if tensor_name_in_ckpt.len > 0 then ckpt_to_load_from.len > 0
 >>
-Rule 42 (if tensor_name_in_ckpt exists, ckpt_to_load_from must also exist, simplified)
-{v_1:str, v_2: str} |= if v_2 ≠ "" then v_1 ≠ ""
+Rule 80 (combiner is a valid value)
+{combiner: str} |= combiner = "mean" ∨ combiner = "sqrtn" ∨ combiner = "sum" ∨ combiner = "none"
 >>
-Rule 43 (if use_safe_embedding_lookup is true, ids and weights in categorical_column should be non-negative)
-{v_1: bool, v_2: tensor, v_3: tensor} |= if v_1 = true then min(v_2) >= 0 ∧ min(v_3) >= 0
+Rule 81 (dimension must be smaller or equal to 2048)
+{dimension: int} |= dimension <= 2048
 >>
-Rule 47 (The initializer is valid if it can return a tensor.)
-{v_1: tensor} |= ndim(v_1) >= 0
+Rule 82 (max_norm should be larger or equal to dimension)
+{dimension: int, max_norm: float} |= if max_norm > 0 then max_norm >= dimension
 >>
-Rule 48 (initializer, if it exists, should return a tensor with shape related to dimension)
-{v_1: tensor, v_2: int} |= shape(v_1, 0) = v_2
+Rule 92 (Dimension should be positive)
+{dimension: int} |= dimension > 0
 >>
-Rule 50 (If ckpt_to_load_from is present, then tensor_name_in_ckpt must also be present)
-{v_1: str, v_2: str} |= if v_1 ≠ "" then v_2 ≠ ""
+Rule 93 (Prevent very small negative dimension)
+{dimension : int} |= dimension > -1000
 >>
-Rule 51 (If use_safe_embedding_lookup is True, the embedding ids and weights must be non-negative)
-{v_1: bool, v_2: tensor, v_3: tensor} |= if v_1 = true then min(v_2) ≥ 0 ∧ min(v_3) ≥ 0
+Rule 102 (If max_norm is specified then dimension is valid)
+{dimension: int, max_norm: float} |= if max_norm > 0 then dimension > 0
 >>
-Rule 53 (The output shape of initializer must match the requested dimension)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) = v_2
+Rule 103 (dimension size should be reasonable to prevent OOM)
+{dimension: int} |= dimension < 10000
 >>
-Rule 54 (The output shape of initializer must match the requested dimension. Also include a check for minimum dimension of 1)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) = v_2 ∧ v_2 >=1
+Rule 110 (If max_norm is not None, check if dimension is not greater than max_norm)
+{dimension: int, max_norm: float} |= if max_norm > 0 then dimension <= max_norm
 >>
-Rule 55 (If use_safe_embedding_lookup is True, the categorical_column ids are non-negative)
-{v_1: bool, v_2: tensor} |= if v_1 = true then min(v_2) >= 0
+Rule 111 (If ckpt_to_load_from is not None, then tensor_name_in_ckpt must not be empty string)
+{ckpt_to_load_from : str, tensor_name_in_ckpt : str} |= if ckpt_to_load_from ≠ "" then tensor_name_in_ckpt ≠ ""
+>>
+Rule 112 (If tensor_name_in_ckpt is not None, then ckpt_to_load_from must not be empty string)
+{ckpt_to_load_from : str, tensor_name_in_ckpt : str} |= if tensor_name_in_ckpt ≠ "" then ckpt_to_load_from ≠ ""
+>>
+Rule 113 (Check dimension is not a very large negative number)
+{dimension: int} |= dimension > -10000
+>>
+Rule 122 (dimension is a reasonable size.)
+{dimension: int} |= dimension < 5000
+>>
+Rule 123 (max_norm is not too large.)
+{max_norm: float} |= max_norm < 100000
+>>
+Rule 131 (combiner is selected from given candidate list)
+{combiner: str} |= combiner = "mean" ∨ combiner = "sqrtn" ∨ combiner = "sum"
+>>
+Rule 133 (dimension should not be very small)
+{dimension: int} |= dimension > -10
+>>
+Rule 141 (max_norm must be positive.)
+{max_norm: float} |= max_norm > 0 ∨ max_norm = 0

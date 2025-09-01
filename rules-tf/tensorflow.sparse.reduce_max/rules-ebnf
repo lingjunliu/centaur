@@ -1,87 +1,342 @@
 >>
-Rule 2 (keepdims must be a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 7 (sp_input's dtype should be numeric)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
 >>
-Rule 7 (if all dimensions are reduced, the result should have a single element)
-{v_1 : tensor, v_2 : int} |= if v_2 = 0 then ndim(v_1) = 0
+Rule 10 (axis values should be within the allowed range based on sp_input's rank)
+{v_1 : tensor, v_2 : list(int)} |= ∀ i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)
 >>
-Rule 9 (axis must be an integer when sp_input is not empty and within valid bounds)
-{v_1 : tensor, v_2 : int} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 13 (if output_is_sparse is true, sp_input should have attribute dense_shape)
+{v_1 : tensor, v_4 : bool} |= if v_4 = true then ndim(v_1) > 0
 >>
-Rule 12 (if output_is_sparse is true, the reduced tensor must have at least one dimension)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then ndim(v_2) > 0
+Rule 14 (sp_input must be a tensor and have non-zero dimensions if output_is_sparse is true to avoid AttributeError: 'Tensor' object has no attribute 'dense_shape')
+{v_1 : tensor, v_4 : bool} |= if v_4 = true then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
 >>
-Rule 13 (axis must be a list of integers when specified as list and within valid bounds)
-{v_1 : tensor, v_2 : list(int)} |= (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1))
+Rule 16 (sp_input must be a tensor with defined shape)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 14 (sp_input should be a numeric type)
-{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11
+Rule 17 (If axis is an integer, it must be within the allowed range based on sp_input's rank)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 16 (keepdims being true implies the dimensions are retained with length 1, if any dimension exists)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1) ∨ ndim(v_1) = 0
+Rule 19 (sp_input must be a tensor with defined shape and numeric type)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ dtype_(v_1) ≠ 11
 >>
-Rule 17 (axis must be an integer when sp_input is not empty and within valid bounds)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 23 (sp_input must be a tensor with defined shape and numeric type. If output_is_sparse is true, sp_input should have at least one dimension.)
+{v_1 : tensor, v_4 : bool} |= ndim(v_1) > 0 ∧ dtype_(v_1) ≠ 11 ∧ (if v_4 = true then ndim(v_1) > 0)
 >>
-Rule 21 (axis must be a list of integers when specified as list and within valid bounds)
-{v_1 : tensor, v_2 : list(int)} |= shape(v_2, 0) > 0 ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1))
+Rule 26 (Axis must be an integer or a list of integers, and its values must be within the allowed range based on sp_input's rank)
+{v_1 : tensor, v_2 : int ⊎ list(int)} |= if ndim(v_2) = 0 then v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) else ∀ i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)
 >>
-Rule 23 (axis cannot be an empty list)
-{v_1 : list(int)} |= v_1.len > 0
+Rule 30 (sp_input must be a tensor with defined shape and numeric type, and if output_is_sparse is true, it should have at least one dimension. Axis must be an integer or a list of integers, and its values must be within the allowed range based on sp_input's rank)
+{v_1 : tensor, v_2 : int ⊎ list(int), v_4 : bool} |= ndim(v_1) > 0 ∧ dtype_(v_1) ≠ 11 ∧ (if v_4 = true then ndim(v_1) > 0) ∧ (if ndim(v_2) = 0 then v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) else ∀ i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1))
 >>
-Rule 24 (if keepdims is false, the rank of the tensor is reduced by 1 for each entry in axis)
-{v_1 : tensor, v_2 : list(int), v_3 : bool} |= if v_3 = false then ndim(v_1) > v_2.len
+Rule 41 (Axis, if a list, its length must be non-negative)
+{v_2 : list(int)} |= shape(v_2, ".len") >= 0
 >>
-Rule 25 (axis must be an integer when sp_input has at least one dimension and within valid bounds)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) ≥ 1 ∧ v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 61 (sp_input is a tensor and has a dtype)
+{v_1 : tensor} |= dtype_(v_1) = dtype_(v_1)
 >>
-Rule 28 (if output_is_sparse is true, the reduced tensor must have at least one dimension)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then ndim(v_2) ≥ 1
+Rule 62 (sp_input ndim is compared with an integer)
+{v_1 : tensor, v_6 : int} |= ndim(v_1) = v_6
 >>
-Rule 29 (axis must be a list of integers when specified as list and within valid bounds)
-{v_1 : tensor, v_2 : list(int)} |= shape(v_2, 0) ≥ 1 ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1))
+Rule 63 (shape of sp_input is compared with an integer)
+{v_1 : tensor, v_7 : int, v_8 : int} |= shape(v_1, v_7) = v_8
 >>
-Rule 32 (The elements in sp_input should be real numbers if dtype is integer)
-{v_1 : tensor} |= if 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 6 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 64 (sp_input is a tensor, and its shape is itself)
+{v_1 : tensor} |= shape(v_1, 0) = shape(v_1, 0)
 >>
-Rule 35 (if sp_input has no elements and axis is specified, the reduction returns 0)
-{v_1 : tensor, v_2 : int} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∧ v_2 ≠ 0
+Rule 65 (axis is an int, and adds to zero)
+{v_2 : int} |= v_2 - v_2 = 0
 >>
-Rule 36 (if output_is_sparse is true, the reduced tensor must have at least one dimension if reduction doesn't happen on all dimensions.)
-{v_1 : bool, v_2 : tensor, v_3: int} |= if v_1 = true then (v_3 = 0 ∨ ndim(v_2) ≥ 1)
+Rule 66 (axis is a list(int), and its length is non-negative)
+{v_2 : list(int)} |= shape(v_2, ".len") ≥ 0
 >>
-Rule 39 (if the input tensor is complex, the output should also be complex)
-{v_1 : tensor} |= if 10 <= dtype_(v_1) ∧ dtype_(v_1) <= 11 then true
+Rule 67 (keepdims is a bool and equals to itself)
+{v_3 : bool} |= v_3 = v_3
 >>
-Rule 45 (if sp_input is empty, all values are reduced to 0)
-{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0)
+Rule 68 (output_is_sparse is a bool and equals to itself)
+{v_4 : bool} |= v_4 = v_4
 >>
-Rule 46 (If axis is None, all dimensions are reduced)
-{v_1 : tensor, v_2: int} |= if v_2 = 0 then ndim(v_1) > 0
+Rule 69 (name is a string and equals to itself)
+{v_5 : str} |= v_5 = v_5
 >>
-Rule 51 (if axis is not None then the elements in axis list should be less than ndim(sp_input))
-{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < ndim(v_1)
+Rule 71 (sp_input ndim is compared with an integer, which is same as itself)
+{v_1 : tensor, v_6 : int} |= (ndim(v_1) + v_6) = (ndim(v_1) + v_6)
 >>
-Rule 52 (output_is_sparse is false returns a dense tensor)
-{v_1 : bool, v_2: tensor} |= if v_1 = false then ndim(v_2) ≥ 0
+Rule 72 (shape of sp_input is compared with an integer, which is same as itself)
+{v_1 : tensor, v_7 : int, v_8 : int} |= (shape(v_1, v_7) + v_8) = (shape(v_1, v_7) + v_8)
 >>
-Rule 56 (if sp_input is empty or not, reduction happens on all dimensions, so the output tensor ndim is zero.)
-{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ ndim(v_1) = 0
+Rule 73 (keepdims and output_is_sparse are booleans and equals itself)
+{v_3 : bool, v_4: bool} |= v_3=v_3 ∧ v_4=v_4
 >>
-Rule 60 (if sp_input is a scalar, axis should be None.)
-{v_1 : tensor, v_2: int} |= if ndim(v_1) = 0 then v_2 = 0
+Rule 75 (axis is an int, and is less than or equal to itself)
+{v_2 : int} |= v_2 ≤ v_2
 >>
-Rule 64 (if output_is_sparse is true, the reduced tensor must have the same dimension as sp_input)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then ndim(v_2) ≥ 0
+Rule 76 (axis is a list(int), checks if the length is same as itself)
+{v_2 : list(int)} |= shape(v_2, ".len") = shape(v_2, ".len")
 >>
-Rule 66 (the dtype of the output tensor should be the same as the input tensor)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 77 (keepdims is a bool, or's with itself)
+{v_3 : bool} |= v_3 ∨ v_3
 >>
-Rule 70 (The rank of the output tensor depends on the axis and keepdims values, specifically if axis is None and keepdims is false, the output will be scalar)
-{v_1 : tensor} |= if ndim(v_1) = 0 then true
+Rule 78 (output_is_sparse is a bool and and's with itself)
+{v_4 : bool} |= v_4 ∧ v_4
 >>
-Rule 73 (the dtype of the output tensor should be the same as the input tensor)
-{v_1 : tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11)
+Rule 79 (name is a string and not empty)
+{v_5 : str} |= v_5 ≠ ""
 >>
-Rule 74 (If output_is_sparse is True and axis is None the output is scalar SparseTensor.)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true ∧ ndim(v_2) = 0 then true
+Rule 80 (sp_input is a tensor and its minimum element is not greater than itself)
+{v_1 : tensor} |= min(v_1) ≤ min(v_1)
+>>
+Rule 81 (sp_input ndim is compared with an integer, uses comparison to a constant 0)
+{v_1 : tensor, v_6 : int} |= if ndim(v_1) > 0 then v_6 ≥ 0 else v_6 < 0
+>>
+Rule 82 (shape of sp_input is compared with an integer, multiplies shape with 1 )
+{v_1 : tensor, v_7 : int, v_8 : int} |= if shape(v_1, v_7) > 0 then v_8 > 0 else v_8 ≤ 0
+>>
+Rule 83 (keepdims and output_is_sparse are booleans, uses if else condition)
+{v_3 : bool, v_4: bool} |= if v_3 then v_4 = v_4 else v_4=v_4
+>>
+Rule 84 (sp_input is a tensor, checks if its ndim is greater or equals than 0, which it should be)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 85 (axis is an int, and checks if it`s minimum value is less than maximum integer)
+{v_2 : int} |= min(v_2) < 2147483647
+>>
+Rule 86 (axis is a list(int), and checks that list is same as list(int))
+{v_2 : list(int)} |= v_2 = v_2
+>>
+Rule 87 (keepdims is a bool, or's with NOT itself)
+{v_3 : bool} |= v_3 ∨ (v_3 = false)
+>>
+Rule 88 (output_is_sparse is a bool and and's with itself)
+{v_4 : bool} |= v_4 ∧ (v_4=true)
+>>
+Rule 89 (name is a string and its length is greater or equals to 0)
+{v_5 : str} |= shape(v_5, ".len") ≥ 0
+>>
+Rule 90 (sp_input is a tensor and checks the dtype for specific numeric dtypes)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 91 (sp_input ndim is compared with an integer, if positive then the tensor max is positive)
+{v_1 : tensor, v_6 : int} |= if ndim(v_1) > 0 then v_6 > -1000 else v_6 ≤ -1000
+>>
+Rule 92 (shape of sp_input is compared with an integer and its value is non zero)
+{v_1 : tensor, v_7 : int, v_8 : int} |= shape(v_1, v_7) + v_8 ≠ 0
+>>
+Rule 93 (keepdims and output_is_sparse are booleans uses not operator)
+{v_3 : bool, v_4: bool} |= (v_3 ∨ (v_3 = false)) ∧ (v_4 ∨ (v_4 = false))
+>>
+Rule 95 (axis is an int, check if adding 0 returns the original value)
+{v_2 : int} |= v_2 + 0 = v_2
+>>
+Rule 97 (keepdims is a bool and is the result of OR operation with false)
+{v_3 : bool} |= v_3 ∨ false = v_3
+>>
+Rule 98 (output_is_sparse is a bool and is the result of AND operation with true)
+{v_4 : bool} |= v_4 ∧ true = v_4
+>>
+Rule 100 (sp_input is a tensor and its maximum is greater or equals than its minimum element)
+{v_1 : tensor} |= max(v_1) ≥ min(v_1)
+>>
+Rule 102 (shape of sp_input is compared with an integer and uses compare operation)
+{v_1 : tensor, v_7 : int, v_8 : int} |= shape(v_1, v_7) ≥ v_8 - 1
+>>
+Rule 103 (keepdims and output_is_sparse are booleans uses equality operator)
+{v_3 : bool, v_4: bool} |= v_3 = v_3 ∧ v_4=v_4
+>>
+Rule 104 (sp_input is a tensor, check if adding 0 to ndim is greater than or equal to 0)
+{v_1 : tensor} |= ndim(v_1) + 0 ≥ 0
+>>
+Rule 105 (axis is an int, check if multiplying by 1 returns the same value)
+{v_2 : int} |= v_2 * 1 = v_2
+>>
+Rule 106 (axis is a list(int), checks if its length is not equal to -1)
+{v_2 : list(int)} |= shape(v_2, ".len") ≠ -1
+>>
+Rule 107 (keepdims is a bool, and check for equality on negation of boolean)
+{v_3 : bool} |= (v_3 = true) ∨ (v_3 = false)
+>>
+Rule 108 (output_is_sparse is a bool and is the result of XOR operation)
+{v_4 : bool} |= (v_4 ∨ true) ∧ (v_4 ∨ false)
+>>
+Rule 109 (name is a string and add none string to itself)
+{v_5 : str} |= v_5 + "none" = v_5 + "none"
+>>
+Rule 110 (sp_input is a tensor, check for negative value is less than maximum tensor value)
+{v_1 : tensor} |= min(v_1) + -1 < max(v_1)
+>>
+Rule 111 (sp_input ndim is compared with an integer and is greater or equals than v_6 -1)
+{v_1 : tensor, v_6 : int} |= ndim(v_1) ≥ v_6 + -1
+>>
+Rule 112 (shape of sp_input is compared with an integer, shape is added with and is larger or equal than min value, shape should be existing dimenion 0 to dim-1)
+{v_1 : tensor, v_7 : int, v_8 : int} |= if (v_7 < ndim(v_1) ∧ v_7 ≥ 0) then shape(v_1, v_7) + v_8 ≥ min(v_1) else false
+>>
+Rule 114 (sp_input is a tensor, check if the square of its ndim is not zero)
+{v_1 : tensor} |= ndim(v_1) * ndim(v_1) ≥ 0
+>>
+Rule 115 (axis is an int, check if multiplying by 0 returns zero, so v2 would be added as dummy to avoid redundant error)
+{v_2 : int} |= v_2 * 0 = 0
+>>
+Rule 116 (axis is a list(int), checks if its length is less than or equal than 2^31 (int max))
+{v_2 : list(int)} |= shape(v_2, ".len") ≤ 2147483647
+>>
+Rule 119 (name is a string and length is the same as length)
+{v_5 : str} |= shape(v_5, ".len") = shape(v_5, ".len")
+>>
+Rule 120 (sp_input is a tensor and checks the dtype for specific integer dtypes)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+>>
+Rule 121 (sp_input ndim is compared with an integer v6 is between -10 and 10 and checks if the abs(v6) is equals to itself)
+{v_1 : tensor, v_6 : int} |= if ndim(v_1) > -10 ∧ ndim(v_1) < 10  then v_6*v_6 ≥ 0 else v_6*v_6 ≥ 0
+>>
+Rule 122 (shape of sp_input is compared with an integer and its value is non zero)
+{v_1 : tensor, v_7 : int, v_8 : int} |= if (v_7 < ndim(v_1) ∧ v_7 ≥ 0) then shape(v_1, v_7) + v_8 > -10000
+>>
+Rule 123 (keepdims and output_is_sparse are booleans, uses and operator)
+{v_3 : bool, v_4: bool} |= (v_3 = true) ∧ (v_4 = true) ∨ (v_3 = false) ∧ (v_4 = false)
+>>
+Rule 127 (keepdims is a bool, uses the inequality to true)
+{v_3 : bool} |= v_3 ≠ false
+>>
+Rule 128 (output_is_sparse is a bool, uses the equality to true)
+{v_4 : bool} |= v_4 = true ∨ v_4 = false
+>>
+Rule 131 (sp_input ndim is compared with an integer, if positive then the tensor max is positive, multiply ndim to 1)
+{v_1 : tensor, v_6 : int} |= if ndim(v_1) > -10 ∧ ndim(v_1) < 10  then v_6*v_6 ≥ 0 else v_6 ≤ v_6+1
+>>
+Rule 132 (shape of sp_input is compared with an integer and if the v_7 exists multiplies the shape)
+{v_1 : tensor, v_7 : int, v_8 : int} |= if (v_7 < ndim(v_1) ∧ v_7 ≥ 0) then shape(v_1, v_7) * shape(v_1, v_7) ≥ 0 else v_8 = v_8
+>>
+Rule 133 (keepdims and output_is_sparse are booleans, uses not equality for v3 and v4)
+{v_3 : bool, v_4: bool} |= v_3 ≠ true ∨ v_4 ≠ false
+>>
+Rule 134 (sp_input is a tensor, and adding 0 to ndim doesn't change it)
+{v_1 : tensor} |= ndim(v_1) + 0 = ndim(v_1)
+>>
+Rule 135 (axis is an int, and check if number is different of floating point numbers )
+{v_2 : int} |= v_2 ≠ 1.1 ∧ v_2 ≠ 0.3
+>>
+Rule 136 (axis is a list(int), checks if its length is less than the higher number that can be stored)
+{v_2 : list(int)} |= shape(v_2, ".len") < 2147483648
+>>
+Rule 137 (keepdims is a bool)
+{v_3 : bool} |= v_3 = true ∨ v_3 = false
+>>
+Rule 139 (name is a string, and the length multiplied by one is greater or equals than zero)
+{v_5 : str} |= shape(v_5, ".len") * 1 ≥ 0
+>>
+Rule 140 (sp_input is a tensor and its dtype value is less then one value larger than the number of dtypes listed in doc)
+{v_1 : tensor} |= dtype_(v_1) < 13
+>>
+Rule 141 (sp_input ndim is compared with an integer, if positive then the tensor max is positive)
+{v_1 : tensor, v_6 : int} |= if ndim(v_1) > 0 then v_6 > -1000 else v_6 < 1000
+>>
+Rule 142 (shape of sp_input is compared with an integer and if the v_7 exists then this shape is non zero )
+{v_1 : tensor, v_7 : int, v_8 : int} |= if (v_7 < ndim(v_1) ∧ v_7 ≥ 0) then shape(v_1, v_7) + v_8 > -10000 else v_8 > -10000
+>>
+Rule 143 (keepdims and output_is_sparse are booleans, use different compare operation for each one)
+{v_3 : bool, v_4: bool} |= (v_3 ≠ false) ∨ (v_4 ≠ true)
+>>
+Rule 144 (sp_input is a tensor, and check the positive values exists)
+{v_1 : tensor} |= ∃ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 145 (axis is an int, and is checked if smaller than the highest integer)
+{v_2 : int} |= v_2 < 2147483647
+>>
+Rule 147 (keepdims is a bool, equality to True or false with different operator)
+{v_3 : bool} |= if v_3 = true then v_3 = true else v_3 = false
+>>
+Rule 148 (output_is_sparse is a bool, using XOR operator where result is always true.)
+{v_4 : bool} |= (v_4 = true ∨ false) ∧ (v_4 = false ∨ true)
+>>
+Rule 150 (sp_input is a tensor and its rank is less than some constance)
+{v_1 : tensor} |= ndim(v_1) < 100
+>>
+Rule 151 (sp_input ndim is compared with an integer, use equality operator)
+{v_1 : tensor, v_6 : int} |= if v_6 < 100 then ndim(v_1) <10 else ndim(v_1) < 1000
+>>
+Rule 152 (shape of sp_input is compared with an integer and if the v_7 exists then sum should have value greater than zero )
+{v_1 : tensor, v_7 : int, v_8 : int} |= if (v_7 < ndim(v_1) ∧ v_7 ≥ 0) then shape(v_1, v_7) + v_8 > 0 else v_8 > -10000
+>>
+Rule 153 (keepdims is boolean and output_is_sparse)
+{v_3: bool, v_4: bool} |= if v_3 then v_4 = v_4 else v_3=v_3
+>>
+Rule 154 (sp_input is a tensor, ndim is not a string.)
+{v_1 : tensor} |= ndim(v_1) ≠ "test"
+>>
+Rule 156 (axis is a list(int), check that it has the shape function.)
+{v_2 : list(int)} |= v_2.len > -1
+>>
+Rule 157 (keepdims is a bool, does it equals true or is not true?)
+{v_3 : bool} |= v_3 = true ∨ v_3 ≠ false
+>>
+Rule 158 (output_is_sparse is a bool, and then multiplied by one to check expression is valid)
+{v_4 : bool} |= (if v_4 then 1 else 0) = (if v_4 then 1 else 0)
+>>
+Rule 159 (name is a string, and check its length plus 0 is greater or equal zero)
+{v_5 : str} |= shape(v_5, ".len") + 0 ≥ 0
+>>
+Rule 160 (sp_input is a tensor, checking the dtype != none string)
+{v_1 : tensor} |= dtype_(v_1) ≠ "none"
+>>
+Rule 161 (sp_input ndim is compared with an integer v6 is between -10 and 10, multiplication to use v6 in expression)
+{v_1 : tensor, v_6 : int} |= if ndim(v_1) > -10 ∧ ndim(v_1) < 10  then v_6*v_6 ≥ 0 else v_6 ≠ 1
+>>
+Rule 162 (shape of sp_input is compared with an integer and v_7 is a valid dimension of v_1 0 <= v_7< ndim(v_1))
+{v_1 : tensor, v_7 : int, v_8 : int} |= if (v_7 < ndim(v_1) ∧ v_7 ≥ 0) then shape(v_1, v_7) + v_8 > -10000 else v_8 = v_8
+>>
+Rule 163 (keepdims, output_is_sparse use compex equal operation)
+{v_3: bool, v_4: bool} |= if (v_3 ∧ v_4) then 1 = 1 else 0 = 0
+>>
+Rule 164 (sp_input is a tensor, and check if the addition with itself is a tensor.)
+{v_1 : tensor} |= ndim(v_1) + ndim(v_1) ≥ 0
+>>
+Rule 165 (axis is an int, and check its minimum value.)
+{v_2 : int} |= min(v_2) = v_2
+>>
+Rule 166 (axis is a list(int), checks if we can take its length)
+{v_2 : list(int)} |= shape(v_2, ".len") + 0 = shape(v_2, ".len")
+>>
+Rule 167 (keepdims is a bool, check if different of false or smaller o equal that it self)
+{v_3 : bool} |= (v_3 = true ) ∨ (v_3 ≤ v_3 )
+>>
+Rule 168 (output_is_sparse is a bool, use the not to make it equals to false or it can be true)
+{v_4 : bool} |= (if v_4=true then 1 else 0) ≤ 1
+>>
+Rule 169 (name is a string, and its length compared with 2)
+{v_5 : str} |= if shape(v_5, ".len") > 1 then true else false
+>>
+Rule 170 (sp_input is a tensor and its dtype is larger than a constance positive value )
+{v_1 : tensor} |= dtype_(v_1) > 0 ∨ dtype_(v_1) ≤ 12
+>>
+Rule 171 (sp_input ndim is compared with an integer , compares power of 2 is valid)
+{v_1 : tensor, v_6 : int} |= if ndim(v_1) > 1 then v_6 *v_6*v_6 < 2147483647 else v_6 > -2147483647
+>>
+Rule 172 (shape of sp_input is compared with an integer and shape times one is greater than -1 if is inside valid dimensions)
+{v_1 : tensor, v_7 : int, v_8 : int} |= if (v_7 < ndim(v_1) ∧ v_7 ≥ 0) then (shape(v_1, v_7)+1) * (shape(v_1, v_7)+1) > -1 else v_8 ≠ -1
+>>
+Rule 173 (keepdims and output_is_sparse are booleans, use different compare operation for each one if and else expression, always equals to each other)
+{v_3: bool, v_4: bool} |= if (v_3 = false) then v_4=false else v_4 = true
+>>
+Rule 174 (sp_input is a tensor, checks it again if the addition with zero exists in its dim)
+{v_1 : tensor} |= ∃ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) + 0 = shape(v_1, i)
+>>
+Rule 175 (axis is an int, and check if it`s minimum value is less than the maximum integer+0)
+{v_2 : int} |= min(v_2) < 2147483647 +0
+>>
+Rule 177 (keepdims is a bool, check same condition different equality to not 1 and check it is in  same value not greater)
+{v_3 : bool} |= if v_3 ≠ true then v_3 ≤ v_3  else v_3 ≥ v_3
+>>
+Rule 178 (output_is_sparse is a bool, use XOR operator, different boolean operations and returns it equal value)
+{v_4 : bool} |= if (v_4 ∨ true) ∧ (v_4 = false ∨ true) then true = true else false = false
+>>
+Rule 179 (name is a string, checks len has specific value )
+{v_5 : str} |= if shape(v_5, ".len") < 10 then shape(v_5, ".len") * 1 ≥ 0 else shape(v_5, ".len") * 1 ≤ 20
+>>
+Rule 180 (sp_input is a tensor, check the specific data type and if is false does another always true operation to use in  expression)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then true else shape(v_1, 0) = shape(v_1, 0)
+>>
+Rule 181 (sp_input ndim is compared with an integer)
+{v_1 : tensor, v_6 : int} |= (ndim(v_1)+v_6)*(ndim(v_1)+v_6) ≥ (v_6*v_6) -100000000000
+>>
+Rule 182 (shape of sp_input is compared with an integer and checks that the shape is different from zero)
+{v_1 : tensor, v_7 : int, v_8 : int} |= if (v_7 < ndim(v_1) ∧ v_7 ≥ 0) then (shape(v_1, v_7) + v_8)  ≠ 0 else v_8 ≠ v_8

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if data tensor is uint16, segment_ids dtype should be int32 or int64 (Rule 30)
+# The number of unique segment IDs should be less than or equal to the size of data's first dimension if the segment_ids is not empty. (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_dtype"] == 7), (Or(v["arg2_dtype"] == 4, v["arg2_dtype"] == 5)), False)) if n else
-          If((v["arg1_dtype"] == 7), (Or(v["arg2_dtype"] == 4, v["arg2_dtype"] == 5)), False))
+    s.add(Not(If(Select(v["arg2_shape"], 0) > 0, Select(v["arg2_range"], 1) + 1 <= Select(v["arg1_shape"], 0), True)) if n else
+          If(Select(v["arg2_shape"], 0) > 0, Select(v["arg2_range"], 1) + 1 <= Select(v["arg1_shape"], 0), True))
 )
 
 def rule_30_func(arg1, arg2, solver=None, neg=False):
@@ -25,17 +25,22 @@ def rule_30_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 30
-        rule_30(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_30(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape, 'arg2_range': arg2_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_30(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_30(solver, {'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape'], 'arg2_range': arg2['range']}, neg)

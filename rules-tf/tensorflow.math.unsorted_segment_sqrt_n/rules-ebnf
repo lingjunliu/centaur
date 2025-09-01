@@ -1,93 +1,165 @@
 >>
-Rule 1 (data must be a floating point or complex tensor)
-{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10
+Rule 1 (data must be a tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 2 (segment_ids must be an integer tensor)
-{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5
+Rule 2 (segment_ids must be a tensor)
+{v_2 : tensor} |= ndim(v_2) ≥ 1
 >>
-Rule 3 (segment_ids shape must be a prefix of data shape)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : i ≥ ndim(v_1) ∨ shape(v_1, i) = shape(v_2, i)
+Rule 3 (num_segments must be a non-negative integer)
+{v_3 : int} |= v_3 ≥ 0
 >>
-Rule 4 (num_segments must be a positive integer)
-{v_1 : int} |= v_1 > 0
+Rule 4 (segment_ids shape must be a prefix of data shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≤ ndim(v_1) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, i)
 >>
-Rule 5 (segment_ids values must be non-negative)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
+Rule 5 (data's dtype must be float or complex)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
 >>
-Rule 6 (segment_ids values must be less than num_segments)
-{v_1 : tensor, v_2 : int} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < v_2
+Rule 6 (num_segments must be greater than the maximum value in segment_ids)
+{v_2 : tensor, v_3 : int} |= v_3 > max(v_2)
 >>
-Rule 7 (data and segment_ids must have compatible shapes for segmentation)
+Rule 7 (segment_ids values must be non-negative)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0
+>>
+Rule 8 (num_segments must be a positive integer to avoid zero-dimension output)
+{v_3 : int} |= v_3 > 0
+>>
+Rule 9 (check if data tensor is not empty)
+{v_1 : tensor} |= shape(v_1, 0) > 0
+>>
+Rule 11 (segment_ids tensor should have at least one element if data is not empty, using if-then-else)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) > 0 then shape(v_2, 0) > 0
+>>
+Rule 12 (The rank of data must be greater than or equal to the rank of segment_ids)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ ndim(v_2)
 >>
-Rule 8 (num_segments must be greater than any value in segment_ids)
-{v_1 : tensor, v_2 : int} |= max(v_1) < v_2
+Rule 13 (Prevent large allocation by limiting the product of num_segments and the remaining dimensions of data)
+{v_1 : tensor, v_3 : int} |= v_3 * (if ndim(v_1) > 1 then shape(v_1,1) else 1) < 1000000000
 >>
-Rule 9 (data can only be float or complex datatype)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 14 (data tensor cannot have negative dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 10 (segment_ids is an integer tensor)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Rule 15 (segment_ids tensor cannot have negative dimensions)
+{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
 >>
-Rule 11 (num_segments must be a scalar)
-{v_1 : tensor} |= ndim(v_1) = 0
+Rule 16 (limit the size of the segment_ids tensor to prevent memory exhaustion)
+{v_2 : tensor} |= shape(v_2,0) < 1000000
 >>
-Rule 12 (If num_segments is zero, data must be empty)
-{v_1 : tensor, v_2 : int} |= if v_2 = 0 then shape(v_1, 0) = 0
+Rule 17 (Ensure num_segments is not excessively large to prevent OOM)
+{v_3: int} |= v_3 < 1000000
 >>
-Rule 14 (segment_ids rank is less than or equal to data rank)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≤ ndim(v_1)
+Rule 18 (If segment_ids is empty, num_segments should be small to prevent unexpected behavior)
+{v_2 : tensor, v_3 : int} |= if shape(v_2, 0) = 0 then v_3 < 1000
 >>
-Rule 15 (Shape of output tensor dimension 0 is equal to num_segments)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) = v_2
+Rule 19 (If segment_ids is a scalar, data should also be a scalar or a tensor with compatible shape)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 0 then ndim(v_1) ≤ 1
 >>
-Rule 16 (If segment_ids is a scalar, data must be a scalar or have leading dimension of 1)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then ndim(v_1) = 0 ∨ shape(v_1, 0) = 1
+Rule 20 (Check if the segment_ids values are within the valid range [0, num_segments))
+{v_2 : tensor, v_3 : int} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < v_3
 >>
-Rule 17 (If segment_ids is a matrix, the second dimension should be less than or equal to num_segments)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then shape(v_1, 1) ≤ v_2
+Rule 21 (Prevent very large num_segments values relative to data size to avoid OOM)
+{v_1 : tensor, v_3 : int} |= v_3 < 1000 * shape(v_1, 0)
 >>
-Rule 19 (If segment_ids has higher rank, then the leading dimensions of data's shape must match the shape of segment_ids)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 22 (Data tensor should not have excessively large dimensions, preventing Reshape errors)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 10000
 >>
-Rule 20 (num_segments must be greater than or equal to 0)
-{v_1 : int} |= v_1 ≥ 0
+Rule 23 (Segment IDs must have smaller or equal dimensions to the data.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) >= ndim(v_2)
 >>
-Rule 24 (If segment_ids is a scalar, its value must be less than num_segments)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_1 < v_2
+Rule 24 (Shape of segment_ids should not be larger than 1 dimension.)
+{v_2 : tensor} |= ndim(v_2) <= 1
 >>
-Rule 28 (data and segment_ids tensors should have compatible dtypes)
-{v_1 : tensor, v_2 : tensor} |= if 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 then 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5 else if 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10 then 6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 10
+Rule 25 (If num_segments is very small, data size should also be limited to prevent issues on GPU if num_segments is 0)
+{v_1: tensor, v_3: int} |= if v_3 < 10 then shape(v_1, 0) < 1000
 >>
-Rule 29 (If segment_ids is empty, all the entries in the output tensor are zero)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) = 0 then ∀i ∈ [0, shape(v_1, 0) -1] : v_1[i] = 0
+Rule 26 (To prevent "Dimension -3 must be >= 0", add a check to ensure no dimension is smaller than 3 for fill op)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 3
 >>
-Rule 30 (If segment_ids is a scalar, and its value is greater than or equal to num_segments, then all elements in output will be zero)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_2) = 0 ∧ v_2 ≥ v_3 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0
+Rule 27 (To prevent large allocation on OOM error, apply a limit on product of all dimensions )
+{v_1: tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0) ∧ (shape(v_1,0) * (if ndim(v_1)>1 then shape(v_1,1) else 1) * (if ndim(v_1)>2 then shape(v_1,2) else 1)) < 1000000000
 >>
-Rule 31 (If num_segments is provided as a tensor (scalar), its value must be a positive integer)
-{v_1 : tensor} |= ndim(v_1) = 0 ∧ v_1 > 0 ∧ 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5
+Rule 28 (The product of data dimensions must not overflow)
+{v_1: tensor} |= if ndim(v_1) > 0 then (shape(v_1, 0) * (if ndim(v_1) > 1 then shape(v_1, 1) else 1)) < 2147483647
 >>
-Rule 32 (If segment_ids is a matrix and num_segments is smaller than max segment id, output has shape num_segments. Otherwise, it has shape max segment id + 1.)
-{v_1 : tensor, v_2 : int, v_3 : tensor} |= if ndim(v_3) = 2 ∧ v_2 < max(v_3) then shape(v_1, 0) = v_2 else if ndim(v_3) = 2 then shape(v_1, 0) = max(v_3) + 1
+Rule 29 (If data has dimension 0, then segment_ids must be empty)
+{v_1: tensor, v_2: tensor} |= if shape(v_1, 0) = 0 then shape(v_2, 0) = 0
 >>
-Rule 33 (If num_segments is not specified and segment_ids contains IDs greater or equal to zero, then output tensor size is equal to max segment ID + 1. Otherwise it is zero.)
-{v_1 : tensor, v_2 : tensor} |= if min(v_2) >= 0 then shape(v_1,0) = max(v_2) + 1 else shape(v_1,0) = 0
+Rule 30 (If segment_ids is too large and num_segments is too small, error.)
+{v_2: tensor, v_3: int} |= if shape(v_2, 0) > 1000 then v_3 > 10
 >>
-Rule 34 (If num_segments is a tensor and segment_ids contains IDs greater or equal to zero, all elements in segment_ids must be less or equal than num_segments)
-{v_1 : tensor, v_2 : tensor} |= if min(v_2) >= 0 then max(v_2) < v_1
+Rule 31 (The number of elements in segment_ids should not exceed the maximum allowed integer value.)
+{v_2 : tensor} |= shape(v_2, 0) < 2147483647
 >>
-Rule 35 (If segment_ids is a matrix and num_segments is not provided, then first dimension of output tensor must equal the maximum value in segment_ids + 1)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 2 then shape(v_1, 0) = max(v_2) + 1
+Rule 32 (Data tensor must not have negative dimensions to prevent Fill errors)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 36 (If segment_ids is a matrix and num_segments is not provided, all segment_ids elements must be smaller than output dimension 0)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 2 then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < shape(v_1, 0)
+Rule 33 (If data and segment_ids are tensors, make sure their dtypes are compatible)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4)
 >>
-Rule 37 (The rank of the output tensor is same as data tensor if segment_ids is scalar, otherwise is same as data tensor rank - segment_ids rank + 1)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 0 then ndim(v_1) = ndim(v_3) else ndim(v_1) - ndim(v_2) + 1 = ndim(v_3)
+Rule 34 (Data tensor cannot have zero size dimensions with segment_ids not 0)
+{v_1: tensor, v_2: tensor} |= if shape(v_1,0) = 0 then shape(v_2, 0) = 0
 >>
-Rule 38 (If num_segments is provided, it must be greater than or equal to the number of unique segment ids, if segment_ids has non-negative elements.)
-{v_1 : tensor, v_2 : int} |= if min(v_1) >= 0 then max(v_1) < v_2
+Rule 35 (If the data tensor's shape does not start with the segment_ids shape, it should not run. Check ndim.)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) >= ndim(v_2)
 >>
-Rule 39 (If num_segments is a tensor and segment_ids contains negative values, then segment_ids should not influence the output dimension)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if min(v_2) < 0 then shape(v_1,0) = shape(v_3, 0)
+Rule 36 (If the data tensor's shape does not start with the segment_ids shape, check shape values.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) >= ndim(v_2) then ∀i ∈ [0, ndim(v_2)-1]: shape(v_1,i) = shape(v_2,i)
+>>
+Rule 37 (Enforce that product of data shape doesn't exceed a limit)
+{v_1: tensor} |= (shape(v_1,0) * (if ndim(v_1)>1 then shape(v_1,1) else 1) * (if ndim(v_1)>2 then shape(v_1,2) else 1) * (if ndim(v_1)>3 then shape(v_1,3) else 1)) < 2000000000
+>>
+Rule 38 (Limit data tensor size to prevent Reshape issues)
+{v_1 : tensor} |= (if ndim(v_1) > 0 then shape(v_1, 0) else 0) * (if ndim(v_1) > 1 then shape(v_1, 1) else 1) < 20000000
+>>
+Rule 39 (The data type must be float or complex)
+{v_1: tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+>>
+Rule 40 (Data tensor size * num_segments not too large to prevent OOM)
+{v_1 : tensor, v_3 : int} |= (if ndim(v_1)>0 then shape(v_1, 0) else 1) * v_3 < 100000000
+>>
+Rule 41 (segment_ids values should not exceed num_segments)
+{v_2 : tensor, v_3 : int} |= max(v_2) < v_3
+>>
+Rule 42 (Data dtype cannot be bool)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 43 (segment_ids values should be int16, int32, or int64)
+{v_2 : tensor} |= dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+>>
+Rule 46 (num_segments should be compatible with the segment_ids)
+{v_2: tensor, v_3: int} |= max(v_2) < v_3
+>>
+Rule 48 (num_segments should be a reasonable value to prevent OOM)
+{v_3 : int} |= v_3 < 2000000
+>>
+Rule 49 (if segment_ids is empty, then num_segments should be at least 1)
+{v_2: tensor, v_3: int} |= if shape(v_2, 0) = 0 then v_3 ≥ 1
+>>
+Rule 50 (if segment_ids is a scalar 0, then num_segments should be at least 1)
+{v_2: tensor, v_3: int} |= if ndim(v_2) = 0 ∧ v_2[0] = 0 then v_3 ≥ 1
+>>
+Rule 51 (prevent data's dimension size == 0 and segment_ids has large dimension)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) = 0 then shape(v_2,0) = 0
+>>
+Rule 52 (If num_segments is zero, limit data size to prevent GPU issues)
+{v_1 : tensor, v_3 : int} |= if v_3 = 0 then shape(v_1, 0) < 100
+>>
+Rule 53 (If num_segments is very large, segment_ids needs to have enough unique IDs to ensure correct division)
+{v_2: tensor, v_3: int} |= if v_3 > 10000 then max(v_2) > 1000
+>>
+Rule 54 (Check the size of data based on segment_ids and num_segments)
+{v_1: tensor, v_2: tensor, v_3: int} |= (if ndim(v_2) > 0 then shape(v_2, 0) else 0) < 2000000 ∧ v_3 < 2000000 ∧ (if ndim(v_1)>0 then shape(v_1,0) else 0) < 2000000
+>>
+Rule 55 (segment_ids cannot have negative values that could be misinterpreted as large indices on GPU)
+{v_2: tensor} |= min(v_2) ≥ 0
+>>
+Rule 56 (Prevent negative num_segments)
+{v_3: int} |= v_3 >= 0
+>>
+Rule 58 (Prevent negative num_segments value, when segment_ids not exist)
+{v_2: tensor, v_3: int} |= if (shape(v_2, 0) > 0) then (v_3 >= 0) else (v_3 >= 0)
+>>
+Rule 61 (data cannot have dimensions of size zero to avoid division by zero, rewritten using ∀)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+>>
+Rule 65 (Data shape should not have negative values to prevent reshape related errors)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the dtype is bool, the other dtype must be bool. (Rule 24)
+# if v1 is int8, then v2 must also be int8. (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_dtype"] == 0, v["arg1_dtype"] == 0, False)) if n else
-          If(v["arg2_dtype"] == 0, v["arg1_dtype"] == 0, False))
+    s.add(Not(If(v["arg1_dtype"] == 1, v["arg2_dtype"] == 1, True)) if n else
+          If(v["arg1_dtype"] == 1, v["arg2_dtype"] == 1, True))
 )
 
 def rule_24_func(arg1, arg2, solver=None, neg=False):

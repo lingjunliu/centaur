@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if data tensor is int64, segment_ids dtype should be int32 or int64 (Rule 38)
+# If data's dtype is int32 then segment_ids can be int32 or int64 (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_dtype"] == 5), (Or(v["arg2_dtype"] == 4, v["arg2_dtype"] == 5)), False)) if n else
-          If((v["arg1_dtype"] == 5), (Or(v["arg2_dtype"] == 4, v["arg2_dtype"] == 5)), False))
+    s.add(Not(If(v["arg1_dtype"] == 3, Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 5), True)) if n else
+          If(v["arg1_dtype"] == 3, Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 5), True))
 )
 
 def rule_38_func(arg1, arg2, solver=None, neg=False):

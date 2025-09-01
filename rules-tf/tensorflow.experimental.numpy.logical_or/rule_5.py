@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# At least one of the input tensors must be boolean (Rule 5)
+# At least one of the tensors must be a bool type. using comparison with constant. (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
     s.add(Not(Or(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0)) if n else

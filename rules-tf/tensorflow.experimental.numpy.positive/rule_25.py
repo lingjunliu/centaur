@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input is a signed integer, the minimum value should be non-negative (Rule 25)
+# If the tensor dtype is np.dtype, then min and max are the same (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), Select(v["arg1_range"], 0) >= 0, False)) if n else
-          If(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), Select(v["arg1_range"], 0) >= 0, False))
+    s.add(Not(If(v["arg1_dtype"] == 12, Select(v["arg1_range"], 0) == Select(v["arg1_range"], 1), True)) if n else
+          If(v["arg1_dtype"] == 12, Select(v["arg1_range"], 0) == Select(v["arg1_range"], 1), True))
 )
 
 def rule_25_func(arg1, solver=None, neg=False):

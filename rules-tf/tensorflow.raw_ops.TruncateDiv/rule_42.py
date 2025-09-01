@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Shapes must be equal or broadcastable (Rule 42)
+# if one of the shapes is empty then result is also an empty tensor - corrected to check the valid dimensions only (Rule 42)
 
 rule_42 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == v["arg2_ndim"], (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or(Or(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), Select(v["arg1_shape"], i) == 1), Select(v["arg2_shape"], i) == 1)) for i in range(6)])), (Or([And(i < (If(v["arg1_ndim"] > v["arg2_ndim"], v["arg1_ndim"], v["arg2_ndim"]) + 1), Or(Select(v["arg1_shape"], i) == 1, Select(v["arg2_shape"], i) == 1)) for i in range(6)])))) if n else
-          If(v["arg1_ndim"] == v["arg2_ndim"], (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or(Or(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), Select(v["arg1_shape"], i) == 1), Select(v["arg2_shape"], i) == 1)) for i in range(6)])), (Or([And(i < (If(v["arg1_ndim"] > v["arg2_ndim"], v["arg1_ndim"], v["arg2_ndim"]) + 1), Or(Select(v["arg1_shape"], i) == 1, Select(v["arg2_shape"], i) == 1)) for i in range(6)]))))
+    s.add(Not(If((Or([And(i < (If(v["arg1_ndim"] > 0, v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), (If(v["arg1_ndim"] > 0, Select(v["arg1_shape"], i) == 0, Select(v["arg2_shape"], i) == 0))) for i in range(6)])), (And([Implies(j < (If(v["arg1_ndim"] > 0, v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), (If(v["arg1_ndim"] > 0, Select(v["arg1_shape"], j) == 0, Select(v["arg2_shape"], j) == 0))) for j in range(6)])), True)) if n else
+          If((Or([And(i < (If(v["arg1_ndim"] > 0, v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), (If(v["arg1_ndim"] > 0, Select(v["arg1_shape"], i) == 0, Select(v["arg2_shape"], i) == 0))) for i in range(6)])), (And([Implies(j < (If(v["arg1_ndim"] > 0, v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), (If(v["arg1_ndim"] > 0, Select(v["arg1_shape"], j) == 0, Select(v["arg2_shape"], j) == 0))) for j in range(6)])), True))
 )
 
 def rule_42_func(arg1, arg2, solver=None, neg=False):

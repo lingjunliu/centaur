@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# input tensor should not be bool type (Rule 5)
+# x must have a floating-point or bfloat16 dtype represented by its integer code (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 0) if n else
-          v["arg1_dtype"] != 0)
+    s.add(Not(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)) if n else
+          Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8))
 )
 
 def rule_5_func(arg1, solver=None, neg=False):

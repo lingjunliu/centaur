@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If seed is specified, seed2 must be also inside the valid range (Rule 57)
+# The seed2's value shouldn't be too close to seed's value to improve randomness (Rule 57)
 
 rule_57 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_value"] >= -2147483648, v["arg1_value"] <= 2147483647), And(v["arg2_value"] >= -2147483648, v["arg2_value"] <= 2147483647), False)) if n else
-          If(And(v["arg1_value"] >= -2147483648, v["arg1_value"] <= 2147483647), And(v["arg2_value"] >= -2147483648, v["arg2_value"] <= 2147483647), False))
+    s.add(Not(If(v["arg1_value"] > v["arg2_value"], v["arg1_value"] - v["arg2_value"] > 1000, If(v["arg2_value"] > v["arg1_value"], v["arg2_value"] - v["arg1_value"] > 1000, v["arg1_value"] == v["arg2_value"]))) if n else
+          If(v["arg1_value"] > v["arg2_value"], v["arg1_value"] - v["arg2_value"] > 1000, If(v["arg2_value"] > v["arg1_value"], v["arg2_value"] - v["arg1_value"] > 1000, v["arg1_value"] == v["arg2_value"])))
 )
 
 def rule_57_func(arg1, arg2, solver=None, neg=False):

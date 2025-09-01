@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Number of classes should be a valid int (Rule 28)
+# logits dimension size should be reasonable (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(And((Select(v["arg1_shape"], 1) > -2147483648), (Select(v["arg1_shape"], 1) < 2147483647))) if n else
-          And((Select(v["arg1_shape"], 1) > -2147483648), (Select(v["arg1_shape"], 1) < 2147483647)))
+    s.add(Not(Select(v["arg1_shape"], 0) < 1000) if n else
+          Select(v["arg1_shape"], 0) < 1000)
 )
 
 def rule_28_func(arg1, solver=None, neg=False):

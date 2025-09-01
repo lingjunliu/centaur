@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If num_columns is an integer, then it must be less than or equal to the maximum value of int32 (Rule 48)
+# Large num_rows can lead to ResourceExhaustedError (Rule 48)
 
 rule_48 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] <= 2147483647) if n else
-          v["arg1_value"] <= 2147483647)
+    s.add(Not(v["arg1_value"] < 50000) if n else
+          v["arg1_value"] < 50000)
 )
 
 def rule_48_func(arg1, solver=None, neg=False):

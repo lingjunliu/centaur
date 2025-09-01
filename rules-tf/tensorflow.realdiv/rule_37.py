@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if x's dtype is int16 then y's dtype must be int16. (Rule 37)
+# x's dtype must be a valid type for RealDiv operation and must be same as y's dtype and is not bool (Rule 37)
 
 rule_37 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 2, v["arg2_dtype"] == 2, False)) if n else
-          If(v["arg1_dtype"] == 2, v["arg2_dtype"] == 2, False))
+    s.add(Not(And((Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), v["arg1_dtype"] == v["arg2_dtype"])) if n else
+          And((Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), v["arg1_dtype"] == v["arg2_dtype"]))
 )
 
 def rule_37_func(arg1, arg2, solver=None, neg=False):

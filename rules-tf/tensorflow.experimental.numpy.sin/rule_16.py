@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# tensor should have positive elements (Rule 16)
+# The input tensor can't have very small values. (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) >= 0) if n else
-          Select(v["arg1_range"], 0) >= 0)
+    s.add(Not(Select(v["arg1_range"], 0) > -0.0000000001) if n else
+          Select(v["arg1_range"], 0) > -0.0000000001)
 )
 
 def rule_16_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If x and y are 1-D tensors, then the first shape should be less than 10 (Rule 22)
+# if shape of x and y are equal, all elements of output must be true. (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 1), And(Select(v["arg1_shape"], 0) < 10, Select(v["arg2_shape"], 0) < 10), False)) if n else
-          If(And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 1), And(Select(v["arg1_shape"], 0) < 10, Select(v["arg2_shape"], 0) < 10), False))
+    s.add(Not(If((And([Implies(i < (If(v["arg1_ndim"] >= v["arg2_ndim"], v["arg1_ndim"], v["arg2_ndim"]) + 1), (If(v["arg1_ndim"] - i - 1 < 0, False, If(v["arg2_ndim"] - i - 1 < 0, False, Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - i - 1))))) for i in range(6)])), True, True)) if n else
+          If((And([Implies(i < (If(v["arg1_ndim"] >= v["arg2_ndim"], v["arg1_ndim"], v["arg2_ndim"]) + 1), (If(v["arg1_ndim"] - i - 1 < 0, False, If(v["arg2_ndim"] - i - 1 < 0, False, Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - i - 1))))) for i in range(6)])), True, True))
 )
 
 def rule_22_func(arg1, arg2, solver=None, neg=False):

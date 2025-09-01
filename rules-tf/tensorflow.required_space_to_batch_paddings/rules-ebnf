@@ -1,36 +1,36 @@
 >>
-Rule 1 (input_shape and block_shape must have the same number of dimensions.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 1 (input_shape and block_shape must have rank 1)
+{input_shape : tensor, block_shape : tensor} |= ndim(input_shape) = 1 ∧ ndim(block_shape) = 1
 >>
-Rule 2 (base_paddings, if provided, must be a 2D tensor)
-{v_3 : tensor} |= ndim(v_3) = 2
+Rule 2 (input_shape and block_shape must have compatible shapes, meaning the lengths must be equal)
+{input_shape : tensor, block_shape : tensor} |= ndim(input_shape) = 1 ∧ ndim(block_shape) = 1 ∧ shape(input_shape, 0) = shape(block_shape, 0)
 >>
-Rule 4 (The first dimension of base_paddings must match the dimension of the input tensors)
-{v_1 : tensor, v_3 : tensor} |= shape(v_1, 0) = shape(v_3, 0)
+Rule 3 (base_paddings shape check if provided)
+{base_paddings : tensor, input_shape : tensor} |= ndim(base_paddings) = 2 ∧ ndim(input_shape) = 1 ∧ shape(base_paddings, 0) = shape(input_shape, 0) ∧ shape(base_paddings, 1) = 2
 >>
-Rule 5 (All input tensors must have int32 dtype)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = 3 ∧ dtype_(v_2) = 3 ∧ dtype_(v_3) = 3
+Rule 5 (each element of input_shape and block_shape must be positive)
+{input_shape : tensor, block_shape : tensor} |= ndim(input_shape) = 1 ∧ ndim(block_shape) = 1 ∧ ∀i ∈ [0, shape(input_shape, 0) - 1] : shape(input_shape, i) > 0 ∧ shape(block_shape, i) > 0
 >>
-Rule 17 (base_paddings, if provided, must have non-negative values.)
-{v_3 : tensor} |= (shape(v_3, 1) = 2) ∧ min(v_3) ≥ 0
+Rule 7 (input_shape and block_shape should have int32 dtype)
+{input_shape : tensor, block_shape : tensor} |= dtype_(input_shape) = 3 ∧ dtype_(block_shape) = 3
 >>
-Rule 18 (base_paddings, if provided, must have shape Nx2 and non-negative values.)
-{v_3 : tensor} |= (ndim(v_3) = 2 ∧ shape(v_3, 1) = 2) ∧ min(v_3) ≥ 0
+Rule 14 (base_paddings elements must be non-negative)
+{base_paddings : tensor} |= ndim(base_paddings) = 2 ∧ min(base_paddings) ≥ 0
 >>
-Rule 19 (base_paddings, if provided, must be a 2D tensor with shape Nx2 and non-negative values.)
-{v_3 : tensor} |= ndim(v_3) = 2 ∧ shape(v_3, 1) = 2 ∧ min(v_3) ≥ 0
+Rule 16 (elements of block_shape should be greater than 0)
+{block_shape : tensor} |= ndim(block_shape) = 1 ∧ min(block_shape) > 0
 >>
-Rule 20 (base_paddings, if provided, must be a 2D tensor with shape Nx2 and non-negative values.)
-{v_3 : tensor} |= (ndim(v_3) = 2) ∧ (shape(v_3, 1) = 2) ∧ (min(v_3) ≥ 0)
+Rule 18 (If input_shape[i] is 0, then block_shape[i] must be 1)
+{input_shape : tensor, block_shape : tensor} |= ndim(input_shape) = 1 ∧ ndim(block_shape) = 1 ∧ shape(input_shape, 0) = shape(block_shape, 0) ∧ ∀i ∈ [0, shape(input_shape, 0) - 1] : if shape(input_shape, i) = 0 then shape(block_shape, i) = 1
 >>
-Rule 21 (input_shape and block_shape dimensions must be positive)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) > 0 ∧ min(v_2) > 0
+Rule 22 (If any element in input_shape is 0, then all elements in block_shape must be 1)
+{input_shape : tensor, block_shape : tensor} |= ndim(input_shape) = 1 ∧ ndim(block_shape) = 1 ∧ shape(input_shape, 0) = shape(block_shape, 0) ∧ (∀i ∈ [0, shape(input_shape, 0) - 1] : shape(input_shape, i) ≠ 0) ∨ (∀i ∈ [0, shape(block_shape, 0) - 1] : shape(block_shape, i) = 1)
 >>
-Rule 22 (input_shape and block_shape dimensions must be positive)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) > 0 ∧ min(v_2) > 0 ∧ dtype_(v_1) = 3 ∧ dtype_(v_2) = 3
+Rule 25 (if any of input_shape or block_shape element is zero, all elements in both tensors must be zero)
+{input_shape : tensor, block_shape : tensor} |= ndim(input_shape) = 1 ∧ ndim(block_shape) = 1 ∧ shape(input_shape, 0) = shape(block_shape, 0) ∧ ((∃i ∈ [0, shape(input_shape, 0) - 1] : shape(input_shape, i) = 0 ∨ shape(block_shape, i) = 0) ∧ (∀j ∈ [0, shape(block_shape, 0) - 1] : shape(input_shape, j) = 0 ∧ shape(block_shape, j) = 0))
 >>
-Rule 23 (block_shape must divide input_shape)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) % shape(v_2, i)) = 0
+Rule 26 (if any of input_shape or block_shape element is zero, all elements in both tensors must be zero)
+{input_shape : tensor, block_shape : tensor} |= ndim(input_shape) = 1 ∧ ndim(block_shape) = 1 ∧ shape(input_shape, 0) = shape(block_shape, 0) ∧ ((∃i ∈ [0, shape(input_shape, 0) - 1] : shape(input_shape, i) = 0 ∨ shape(block_shape, i) = 0) ∧ (∀j ∈ [0, shape(input_shape, 0) - 1] : shape(input_shape, j) = 0) ∧ (∀k ∈ [0, shape(block_shape, 0) - 1] :  shape(block_shape, k) = 0))
 >>
-Rule 24 (block_shape must divide input_shape if base_paddings is not specified)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) % shape(v_2, i)) = 0)
+Rule 27 (If any element in input_shape or block_shape is zero, all elements must be zero, otherwise, all elements must be positive.)
+{input_shape : tensor, block_shape : tensor} |= ndim(input_shape) = 1 ∧ ndim(block_shape) = 1 ∧ shape(input_shape, 0) = shape(block_shape, 0) ∧ ((∃i ∈ [0, shape(input_shape, 0) - 1] : shape(input_shape, i) = 0 ∨ shape(block_shape, i) = 0) ∧ (∀j ∈ [0, shape(input_shape, 0) - 1] : shape(input_shape, j) = 0) ∧ (∀k ∈ [0, shape(block_shape, 0) - 1] : shape(block_shape, k) = 0)) ∨ ((∀i ∈ [0, shape(input_shape, 0) - 1] : shape(input_shape, i) > 0 ∧ shape(block_shape, i) > 0))

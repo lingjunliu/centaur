@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check if height is greater than width of the image (Rule 41)
+# image height should be less than or equal to a limit (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) >= Select(v["arg1_shape"], 1)) if n else
-          Select(v["arg1_shape"], 0) >= Select(v["arg1_shape"], 1))
+    s.add(Not(Select(v["arg1_shape"], 0) <= 16383) if n else
+          Select(v["arg1_shape"], 0) <= 16383)
 )
 
 def rule_41_func(arg1, solver=None, neg=False):

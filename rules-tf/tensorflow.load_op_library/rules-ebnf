@@ -1,45 +1,105 @@
 >>
-Rule 2 (library_filename should not be an empty string)
+Rule 1 (library_filename must be a non-empty string)
 {v_1 : str} |= v_1 ≠ ""
 >>
-Rule 6 (library_filename should have a valid extension. This example only allows '.so')
-{v_1 : str} |= if v_1.len > 3 then v_1[v_1.len - 3] = "." ∧ v_1[v_1.len - 2] = "s" ∧ v_1[v_1.len - 1] = "o" else false
+Rule 5 (library_filename should have a valid length)
+{v_1 : str} |= v_1.len > 0
 >>
-Rule 7 (library_filename should not be too short)
-{v_1 : str} |= v_1.len > 3
+Rule 6 (library_filename should not contain invalid characters like "*")
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : if v_1[i] = "*" then false
 >>
-Rule 8 (library_filename should not contain null character)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ "\0"
+Rule 7 (library_filename should have a minimum length)
+{v_1 : str} |= v_1.len > 2
 >>
-Rule 9 (library_filename should start with '/')
-{v_1 : str} |= if v_1.len > 0 then v_1[0] = "/" else false
+Rule 8 (library_filename should not be None)
+{v_1 : str} |= v_1 ≠ "none"
 >>
-Rule 12 (library_filename should contain only allowed characters)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = "_" ∨ v_1[i] = "/" ∨ v_1[i] = "."
+Rule 13 (library_filename should be an existing file on the file system)
+{v_1 : str} |= ∃i ∈ [0, 0] : v_1 ≠ ""
 >>
-Rule 15 (If library_filename is a relative path, it starts with "./" or "../")
-{v_1 : str} |= if v_1.len > 1 then (v_1[0] = "." ∧ v_1[1] = "/") ∨ (v_1[0] = "." ∧ v_1[1] = ".")
->>
-Rule 16 (library_filename contains only ASCII characters)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < "\u007f"
->>
-Rule 17 (library_filename should not contain control characters other than newline, tab, carriage return)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ " " ∨ v_1[i] = "\n" ∨ v_1[i] = "\t" ∨ v_1[i] = "\r"
->>
-Rule 19 (library_filename must be under a certain size to prevent denial of service)
-{v_1 : str} |= v_1.len < 1024
->>
-Rule 20 (If library_filename is an absolute path on Windows, it starts with a drive letter followed by a colon)
-{v_1 : str} |= if v_1.len > 1 then (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z" ∧ v_1[1] = ":") ∨ (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z" ∧ v_1[1] = ":")
->>
-Rule 21 (library_filename should not contain consecutive slashes)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 2] : (v_1[i] = "/" ∧ v_1[i+1] = "/") = false
->>
-Rule 24 (library_filename should not contain backslash on Windows)
+Rule 16 (library_filename should not contain escape sequences)
 {v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ "\\"
 >>
-Rule 29 (library_filename should use a supported dynamic library extension (e.g., .so, .dll, .dylib))
-{v_1 : str} |= if v_1.len > 3 then (v_1[v_1.len - 3] = "." ∧ v_1[v_1.len - 2] = "s" ∧ v_1[v_1.len - 1] = "o") ∨ (v_1[v_1.len - 3] = "." ∧ v_1[v_1.len - 2] = "d" ∧ v_1[v_1.len - 1] = "l" ∧ v_1[v_1.len - 4] = "l") ∨ (v_1[v_1.len - 3] = "." ∧ v_1[v_1.len - 2] = "d" ∧ v_1[v_1.len - 1] = "y" ∧ v_1[v_1.len - 4] = "l" ∧ v_1[v_1.len - 5] = "i" ∧ v_1[v_1.len - 6] = "b") else false
+Rule 17 (Library filename should contain only allowed characters)
+{v_1: str} |= ∀i ∈ [0, v_1.len - 1]: (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = "." ∨ v_1[i] = "/" ∨ v_1[i] = "_" ∨ v_1[i] = "-"
 >>
-Rule 46 (library_filename: The file is not too large to prevent resource exhaustion)
-{v_1 : str} |= v_1.len < 4096
+Rule 26 (library_filename should be a relative path or absolute path)
+{v_1 : str} |= v_1[0] = "/" ∨ (v_1[0] = "." ∧ v_1[1] = "/") ∨ (v_1[0] = "." ∧ v_1[1] = "." ∧ v_1[2] = "/")
+>>
+Rule 43 (library_filename contains only alphanumeric characters, underscores, hyphens and dots)
+{v_1: str} |= ∀i ∈ [0, v_1.len - 1]: (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = "." ∨ v_1[i] = "_" ∨ v_1[i] = "-" ∨ v_1[i] = "/"
+>>
+Rule 48 (library_filename contains only alphanumeric characters, underscores, hyphens and dots and path separator)
+{v_1: str} |= ∀i ∈ [0, v_1.len - 1]: (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = "." ∨ v_1[i] = "_" ∨ v_1[i] = "-"  ∨ v_1[i] = "/"
+>>
+Rule 54 (library_filename must have a valid file extension length)
+{v_1: str} |= v_1.len > 2
+>>
+Rule 57 (library_filename is not an empty string)
+{v_1: str} |= v_1 ≠ ""
+>>
+Rule 60 (library_filename has a file extension)
+{v_1: str} |= ∃i ∈ [0, v_1.len -1]: v_1[i] = "."
+>>
+Rule 61 (library_filename exists and is not an empty string)
+{v_1: str} |= v_1 ≠ "" ∧ ∃i ∈ [0, 0] : v_1 ≠ ""
+>>
+Rule 62 (library_filename has at least one character before the extension, if present)
+{v_1 : str} |=  if (∃i ∈ [0, v_1.len -1]: v_1[i] = ".") then (v_1.len > 1)
+>>
+Rule 64 (library_filename is either a relative or absolute path)
+{v_1 : str} |= (v_1[0] = "/" ) ∨  ((v_1[0] = ".") ∧ (v_1.len > 1))
+>>
+Rule 66 (library_filename is either a relative or absolute path if it has more than one character)
+{v_1 : str} |= if v_1.len > 1 then (v_1[0] = "/" ) ∨  ((v_1[0] = ".") ∧ (v_1.len > 1))
+>>
+Rule 69 (library_filename does not start with whitespace characters)
+{v_1: str} |= if v_1.len > 0 then v_1[0] ≠ " "
+>>
+Rule 71 (If library filename contains forward slashes, it starts with one)
+{v_1 : str} |= if (∃i ∈ [0, v_1.len - 1]: v_1[i] = "/") then (v_1[0] = "/")
+>>
+Rule 73 (If the string is longer than one, and the second character is not a slash, then the first character must not be a slash.)
+{v_1: str} |= if v_1.len > 1 then if v_1[1] ≠ "/" then v_1[0] ≠ "/"
+>>
+Rule 75 (The library filename has more than one character or it does not have a forward slash)
+{v_1: str} |= (v_1.len > 1) ∨ (∀i ∈ [0, v_1.len - 1]: v_1[i] ≠ "/")
+>>
+Rule 77 (If the library filename contains more than one forward slash, ensure a single double-slash is not present, to avoid ambiguity)
+{v_1 : str} |= if (∃i ∈ [0, v_1.len - 1]: v_1[i] = "/") then ∀i ∈ [0, v_1.len - 2]: v_1[i] ≠ "/" ∨ v_1[i+1] ≠ "/"
+>>
+Rule 79 (If the library filename contains one or more forward slashes, ensure its length is at least 2)
+{v_1 : str} |= if (∃i ∈ [0, v_1.len - 1]: v_1[i] = "/") then (v_1.len > 1)
+>>
+Rule 83 (If the library filename contains one or more backslashes, only a single backslash is allowed)
+{v_1 : str} |= if (∃i ∈ [0, v_1.len - 1]: v_1[i] = "\\") then (∃i ∈ [0, v_1.len - 1]: v_1[i] = "\\" ∧ (∀j ∈ [i+1, v_1.len - 1]: v_1[j] ≠ "\\"))
+>>
+Rule 85 (If the filename contains a backslash, there must not be another backslash.)
+{v_1 : str} |= if (∃i ∈ [0, v_1.len - 1]: v_1[i] = "\\") then (∀j ∈ [0, v_1.len - 1]: if j ≠ i then v_1[j] ≠ "\\")
+>>
+Rule 87 (The filename is a valid relative path. It cannot contain characters such as ~)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1]: v_1[i] ≠ "~"
+>>
+Rule 89 (The library filename must have more than zero characters)
+{v_1: str} |= v_1.len > 0
+>>
+Rule 90 (The library filename must not consist only of whitespace)
+{v_1: str} |= ∃i ∈ [0, v_1.len - 1]: v_1[i] ≠ " "
+>>
+Rule 102 (The name is not solely comprised of spaces.)
+{v_1 : str} |=  ∃i ∈ [0, v_1.len - 1]: v_1[i] ≠ " "
+>>
+Rule 104 (Must have more than just a leading or trailing space character.)
+{v_1: str} |= if v_1.len > 1 then (v_1[0] ≠ " ") ∧ (v_1[-1] ≠ " ")
+>>
+Rule 106 (Has more than a '.' character, if any.)
+{v_1: str} |= if ∃i ∈ [0, v_1.len - 1]: v_1[i] = "." then v_1.len > 1
+>>
+Rule 108 (The library filename is not just one or more spaces.)
+{v_1 : str} |= v_1 ≠ " " ∧  v_1 ≠ "  "  ∧  v_1 ≠ "   " ∧ v_1 ≠ "    "
+>>
+Rule 112 (If the string has more than 3 characters, it has extension or is not fully extension)
+{v_1 : str} |= (v_1.len < 4) ∨ ( ∃i ∈ [0, v_1.len - 1]: v_1[i] = ".")
+>>
+Rule 114 (Filename must either be empty or have characters other than whitespace.)
+{v_1: str} |= (v_1 = "") ∨ (∃i ∈ [0, v_1.len - 1]: v_1[i] ≠ " ")

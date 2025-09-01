@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check that max value must be positive (Rule 36)
+# If input tensor has zero dimensions then it is a scalar (Rule 36)
 
 rule_36 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 1) > 0) if n else
-          Select(v["arg1_range"], 1) > 0)
+    s.add(Not(If(v["arg1_ndim"] == 0, True, False)) if n else
+          If(v["arg1_ndim"] == 0, True, False))
 )
 
 def rule_36_func(arg1, solver=None, neg=False):
@@ -22,16 +22,15 @@ def rule_36_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_ndim == arg1.ndim)
 
         # Constraints for rule 36
-        rule_36(solver, {'arg1_range': arg1_range})
+        rule_36(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_36(solver, {'arg1_range': arg1['range']}, neg)
+        rule_36(solver, {'arg1_ndim': arg1['ndim']}, neg)

@@ -1,60 +1,72 @@
 >>
-Rule 1 (Input must be a tensor with ndim >= 3)
-{v_1 : tensor} |= ndim(v_1) ≥ 3
+Rule 3 (indices_or_sections must be less than the number of dimensions)
+{v_1 : tensor, v_2 : int} |= v_2 < shape(v_1, 2)
 >>
-Rule 3 (If indices is an integer, the input tensor v_1 must have shape divisible by the index)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) ≥ 3 then shape(v_1, 2) % v_2 = 0
+Rule 6 (ary must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 4 (If indices is a tuple, it must have length at least 1)
-{v_1 : tuple(int)} |= v_1.len ≥ 1
->>
-Rule 5 (If indices is a tuple, each element must divide shape(v_2, 2))
-{v_1 : tuple(int), v_2 : tensor} |= ∀i ∈ [0, v_1.len - 1] : shape(v_2, 2) % v_1[i] = 0
->>
-Rule 18 (If indices is an integer, it must be greater than 0)
+Rule 7 (indices_or_sections must be an integer greater than 0)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 19 (If indices is a tuple, each element must be greater than 0)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 8 (The dimension of ary must be at least 3 for dsplit to be valid)
+{v_1 : tensor} |= ndim(v_1) ≥ 3
 >>
-Rule 20 (if indices is a tuple, then each element should not be greater than shape of the input tensor along the split dimension.)
-{v_1 : tuple(int), v_2 : tensor} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≤ shape(v_2, 2)
+Rule 9 (indices_or_sections must be less than or equal to the size of the third dimension of ary when ary has three dimensions)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 then v_2 ≤ shape(v_1, 2)
 >>
-Rule 27 (The product of the elements in the indices tuple must be equal to shape(v_2, 2))
-{v_1 : tuple(int), v_2 : tensor} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] > 0 ∧ (∀j ∈ [0, v_1.len - 1] : v_1[j] > 0) ∧ (shape(v_2, 2) =  (v_1[0] * v_1[1]))
+Rule 14 (indices_or_sections must be a positive integer)
+{v_2 : int} |= v_2 > 0
 >>
-Rule 29 (If indices is an integer, the input tensor v_1 must have shape divisible by the index, otherwise it returns false)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) ≥ 3 then shape(v_1, 2) % v_2 = 0 else false
+Rule 19 (dtype of ary must be numerical)
+{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 9
 >>
-Rule 30 (If indices is a tuple, each element must divide shape(v_2, 2), otherwise returns false)
-{v_1 : tuple(int), v_2 : tensor} |= if v_1.len > 0 then ∀i ∈ [0, v_1.len - 1] : shape(v_2, 2) % v_1[i] = 0 else false
+Rule 23 (When ary has three dimensions, indices_or_sections must be less than the size of the third dimension of ary.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 then v_2 < shape(v_1, 2)
 >>
-Rule 41 (If indices is a tuple, then the product of its elements must not exceed the shape of the tensor along the split dimension.)
-{v_1 : tuple(int), v_2 : tensor} |= (v_1[0] * v_1[1]) ≤ shape(v_2, 2)
+Rule 25 (If indices_or_sections is an integer, then it must be smaller than the third dimension of the array)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 2 then v_2 ≤ shape(v_1, 2)
 >>
-Rule 42 (If indices is an integer, the input tensor v_1 must have shape divisible by the index)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 2) % v_2 = 0
+Rule 26 (If ary has at least 3 dimensions, indices_or_sections cannot be larger than the specified axis.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) ≥ 3 then v_2 ≤ shape(v_1, 2)
 >>
-Rule 46 (If the indices is a tuple, the length of the tuple must not exceed the third dimension (axis 2) of the input tensor)
-{v_1 : tuple(int), v_2 : tensor} |= v_1.len ≤ shape(v_2, 2)
+Rule 35 (If indices_or_sections is provided as a list, it must contain positive integers)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
 >>
-Rule 59 (Shape of the input tensor should be positive along the split axis)
-{v_1: tensor} |= shape(v_1, 2) > 0
+Rule 40 (If indices_or_sections is provided as a list, the length of the list must be less than the size of the 2nd dimension)
+{v_1 : tensor, v_2 : list(int)} |= v_2.len < shape(v_1, 2)
 >>
-Rule 60 (If indices is an integer then it should divide the length of third axis of the tensor, otherwise should return false)
-{v_1: tensor, v_2: int} |= if shape(v_1, 2) > 0 then (shape(v_1, 2) % v_2) = 0 else false
+Rule 45 (if indices_or_sections is a list, then the sum of elements in indices_or_sections must be less than or equal to the size of the 2nd dimension)
+{v_1 : tensor, v_2 : list(int)} |= ∃i ∈ [0, v_2.len - 1] : shape(v_1, 2) ≥ v_2[i]
 >>
-Rule 66 (if indices is a tuple and the length of indices is equal to 1, then the first element must be less than or equal to the length of third axis of the tensor)
-{v_1: tuple(int), v_2: tensor} |= if v_1.len = 1 then v_1[0] ≤ shape(v_2, 2)
+Rule 55 (If indices_or_sections is a list and ary has three dimensions, then all elements must be smaller than the 3rd dimension of ary)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 3 then ∀i ∈ [0, v_2.len - 1] : v_2[i] < shape(v_1, 2)
 >>
-Rule 67 (if indices is a tuple and the length of indices is greater than 1, then sum of all the elements of indices should be less than the length of third axis of the tensor.)
-{v_1: tuple(int), v_2: tensor} |= if v_1.len > 1 then (v_1[0] + v_1[1]) <= shape(v_2, 2)
+Rule 60 (if indices_or_sections is a list, its elements should be monotonically increasing)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1]
 >>
-Rule 73 (If indices is an integer and input tensor is given, then the third axis of the tensor must be divisible by the provided integer)
-{v_1: tensor, v_2: int} |= (shape(v_1, 2) % v_2) = 0
+Rule 65 (if indices_or_sections is a list and ary has three dimensions, then the length must be less than the size)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 3 then v_2.len < shape(v_1, 2)
 >>
-Rule 74 (If the indices is a tuple, then product of indices elements should be less or equal to the length of third axis of input tensor)
-{v_1: tuple(int), v_2: tensor} |= (v_1[0] * v_1[1]) ≤ shape(v_2, 2)
+Rule 70 (If indices_or_sections is a list, its elements must be less than the third axis and monotonically increasing)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 3 then ∀i ∈ [0, v_2.len - 1] : v_2[i] < shape(v_1, 2) ∧ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1]
 >>
-Rule 75 (If the indices is an integer and is non-positive, it should return false)
-{v_1: int} |= if v_1 ≤ 0 then false
+Rule 75 (If indices_or_sections is a list, its elements must be less than the third axis and monotonically increasing, if ary is 3D)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 3 then (∀i ∈ [0, v_2.len - 1] : v_2[i] < shape(v_1, 2)) ∧ (∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])
+>>
+Rule 90 (if indices_or_sections is a list with ary as a 3D tensor, then the values in list must be monotonically increasing)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 3 then (∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])
+>>
+Rule 110 (If ary is a 3D tensor, and indices_or_sections is a list with at least two elements, the values in the list must be monotonically increasing.)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 3 ∧ v_2.len > 1 then (∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])
+>>
+Rule 114 (if indices_or_sections is a list and ary is 3D, each value in the list should be smaller than the third dimension, and the number of values provided should be less than the size of the third axis.)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 3 then (∀i ∈ [0, v_2.len - 1] : v_2[i] < shape(v_1, 2)) ∧ (v_2.len < shape(v_1,2))
+>>
+Rule 115 (If indices_or_sections is a list and ary is 3D, the values should be strictly increasing.)
+{v_1 : tensor, v_2 : list(int)} |= if (ndim(v_1) = 3) ∧ (v_2.len > 1) then (∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])
+>>
+Rule 120 (if indices_or_sections is a list, then for ary with 3 dimension the values in the list should be monotonically increasing)
+{v_1 : tensor, v_2 : list(int)} |= if (ndim(v_1) = 3 ) then (∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])
+>>
+Rule 124 (if indices_or_sections is a list of integers with ary as 3D tensor, each value should be less than the third dimension)
+{v_1 : tensor, v_2 : list(int)} |= if (ndim(v_1) = 3 ) then (∀i ∈ [0, v_2.len - 1] : v_2[i] < shape(v_1, 2))

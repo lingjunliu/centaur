@@ -1,126 +1,39 @@
 >>
-Rule 1 (key_func must return a scalar int64 tensor)
-{v_1 : tensor} |= ndim(v_1) = 0 ∧ dtype_(v_1) = 4
+Rule 1 (key_func must be specified to use group_by_reducer)
+{v_1 : list(tensor)} |= v_1.len > 0
 >>
-Rule 2 (reducer init_func must return a tensor with a matching dtype to reduce_func's initial state)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 2 (reducer's init_func, reduce_func, and finalize_func must be specified)
+{v_2 : list(tensor)} |= v_2.len = 3
 >>
-Rule 3 (reducer reduce_func must accept a state tensor and an element tensor)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0
+Rule 3 (Number of inputs to key_func should match the output shapes and types of the dataset)
+{v_1 : list(tensor), v_2 : list(tensor)} |= v_1.len = v_2.len
 >>
-Rule 4 (reducer finalize_func must accept the final state tensor and return a tensor of any type)
+Rule 8 (Reducer's init_func output shape dimensions should greater or equal to 0)
 {v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 5 (key_func's output must be within the int64 range)
-{v_1 : tensor} |= min(v_1) ≥ -9223372036854775808 ∧ max(v_1) ≤ 9223372036854775807
->>
-Rule 6 (Shapes should be compatible between reduce_func's state and key_func's output tensor)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
->>
-Rule 7 (number of dimensions of input tensors for key_func should not exceed a threshold)
-{v_1 : tensor} |= ndim(v_1) ≤ 5
->>
-Rule 8 (key_func must have non-negative tensor shapes.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
->>
-Rule 9 (the shapes of the input tensors must be integer values.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
->>
-Rule 10 (init_func, reduce_func and finalize_func must have the same number of input tensors.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_2) = ndim(v_3)
->>
-Rule 11 (reducer init_func's output shape must be the same as reduce_func's first input shape)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
->>
-Rule 13 (Number of elements in key_func input should match the number of output types)
-{v_1 : tuple(tensor), v_2 : tuple(dtype)} |= v_1.len = v_2.len
->>
-Rule 14 (key_func's input tensor should not have string datatype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 12
->>
-Rule 15 (If key_func's output is zero, reducer's finalize_func's output must be zero)
-{v_1 : tensor, v_2 : tensor} |= if min(v_1) = 0 ∧ max(v_1) = 0 then min(v_2) = 0 ∧ max(v_2) = 0
->>
-Rule 16 (The shape of the output tensor of reducer init_func should be positive)
+Rule 9 (key_func input tensors must have positive shape dimensions)
 {v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 21 (Number of dimensions of reduce_func output must be less than 6)
-{v_1 : tensor} |= ndim(v_1) < 6
+Rule 10 (key_func output is a scalar tensor)
+{v_1: tensor} |= ndim(v_1) = 0
 >>
-Rule 23 (The input tensor to finalize_func should not be empty.)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 21 (key_func output must be int64)
+{v_1: tensor} |= dtype_(v_1) = 4
 >>
-Rule 24 (key_func output cannot have NaN values)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_1[i] ≠ "NaN"
+Rule 26 (key_func's elements must be tensors)
+{v_1 : list(tensor)} |= ∀i ∈ [0, v_1.len - 1] : true
 >>
-Rule 25 (key_func output cannot have inf values)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_1[i] ≠ "inf" ∧ v_1[i] ≠ "-inf"
+Rule 27 (reducer's elements must be tensors)
+{v_2 : list(tensor)} |= ∀i ∈ [0, v_2.len - 1] : true
 >>
-Rule 27 (key_func should not output a boolean tensor)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 52 (The output of the key_func must be a scalar tf.int64 tensor)
+{v_1 : tensor} |= ndim(v_1) = 0 ∧ dtype_(v_1) = 4
 >>
-Rule 29 (key_func output cannot be complex)
-{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
->>
-Rule 30 (key_func input dtype must be a valid dtype (0-12))
-{v_1 : tensor} |= dtype_(v_1) ≥ 0 ∧ dtype_(v_1) ≤ 12
->>
-Rule 31 (Reducer's init_func must output same number of tensors as the reduce_func accepts)
-{v_1 : tuple(tensor), v_2 : tuple(tensor)} |= v_1.len = v_2.len
->>
-Rule 33 (If the key_func outputs a specific value, then the finalize_func should produce the same result)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_1[0] = v_3 then v_2[0] = v_3
->>
-Rule 36 (The shape of the key_func's output tensor must be a scalar)
+Rule 63 (The key produced by the key_func should be a scalar)
 {v_1 : tensor} |= ndim(v_1) = 0
 >>
-Rule 37 (Reducer should not be of string type)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
->>
-Rule 41 (If the key_func always output the same value, the shapes of finalize_func and init_func should match)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if min(v_1) = v_3 ∧ max(v_1) = v_3 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
->>
-Rule 42 (Number of input tensors of key_func should be less than 3)
-{v_1 : tuple(tensor)} |= v_1.len < 3
->>
-Rule 44 (The dimensionality of the reducer's input and output should be compatible)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≤ ndim(v_2) + 1
->>
-Rule 45 (The maximum value in finalize_func's output tensor can not be greater than 10000)
-{v_1 : tensor} |= max(v_1) <= 10000
->>
-Rule 46 (The init_func should take a list of integers)
-{v_1 : list(int)} |= v_1.len > 0
->>
-Rule 47 (Key_func outputs a non-negative int64 tensor)
-{v_1 : tensor} |= min(v_1) >= 0 ∧ dtype_(v_1) = 4
->>
-Rule 48 (if there is only one dimension in the input, it must be greater than zero)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 0
->>
-Rule 50 (The output type of key_func should be int64)
+Rule 64 (The key produced by the key_func should be an int64)
 {v_1 : tensor} |= dtype_(v_1) = 4
 >>
-Rule 51 (If the key_func output tensor has a value of -1, the reduce_func must correctly handle this case.)
-{v_1 : tensor} |= min(v_1) ≥ -1
->>
-Rule 52 (The input tensor to finalize_func should be integer values.)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
->>
-Rule 53 (The dimensions of input tensors for key_func should not exceed 6)
-{v_1 : tensor} |= ndim(v_1) <= 6
->>
-Rule 57 (The output shape from finalize_func should match the output shape from reduce_func)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
->>
-Rule 58 (The key_func input shape must match the output shape of the dataset.)
-{v_1 : tensor} |= ndim(v_1) > 0
->>
-Rule 65 (finalize_func output must be of the same type)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then false
->>
-Rule 67 (reduce_func needs at least one input)
-{v_1 : tuple(tensor)} |= v_1.len > 0
->>
-Rule 68 (Output tensors need to have positive values)
-{v_1 : tensor} |= min(v_1) >= 0
+Rule 68 (The key should be int64 and Scalar)
+{v_1: tensor} |= ndim(v_1) = 0 ∧ dtype_(v_1) = 4

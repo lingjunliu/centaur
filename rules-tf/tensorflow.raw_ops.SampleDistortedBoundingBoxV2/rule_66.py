@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The first element of aspect_ratio_range should not be greater than second (Rule 66)
+# The difference between aspect_ratio_range elements should be less than 100 (Rule 66)
 
 rule_66 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_values"], 0) <= Select(v["arg1_values"], 1)) if n else
-          Select(v["arg1_values"], 0) <= Select(v["arg1_values"], 1))
+    s.add(Not(Select(v["arg1_values"], 1) - Select(v["arg1_values"], 0) <= 100) if n else
+          Select(v["arg1_values"], 1) - Select(v["arg1_values"], 0) <= 100)
 )
 
 def rule_66_func(arg1, solver=None, neg=False):

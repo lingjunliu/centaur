@@ -1,96 +1,126 @@
 >>
-Rule 1 (capacity must be greater than or equal to 0)
+Rule 1 (capacity should be non-negative)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 3 (dtypes must be a list with at least one element)
+Rule 6 (capacity should be smaller than memory_limit if both are given)
+{v_1 : int, v_2 : int} |= v_1 ≤ v_2
+>>
+Rule 7 (container should be a valid string)
+{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear" ∨ v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "causal" ∨ v_1 = "channels_last" ∨ v_1 = "channels_first" ∨ v_1 = ""
+>>
+Rule 10 (length of dtypes list is positive)
 {v_1 : list(dtype)} |= v_1.len > 0
 >>
-Rule 4 (shared_name should not be empty string)
-{v_1 : str} |= v_1 ≠ ""
+Rule 11 (container string should not be None)
+{v_1 : str} |= v_1 ≠ "None"
 >>
-Rule 6 (dtypes must be a list of valid dtypes)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] = 0 ∨ v_1[i] = 1 ∨ v_1[i] = 2 ∨ v_1[i] = 3 ∨ v_1[i] = 4 ∨ v_1[i] = 5 ∨ v_1[i] = 6 ∨ v_1[i] = 7 ∨ v_1[i] = 8 ∨ v_1[i] = 9 ∨ v_1[i] = 10 ∨ v_1[i] = 11 ∨ v_1[i] = 12
+Rule 15 (dtypes list contains only valid dtype values)
+{v_1 : list(dtype)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] = 0 ∨ v_1[i] = 1 ∨ v_1[i] = 2 ∨ v_1[i] = 3 ∨ v_1[i] = 4 ∨ v_1[i] = 5 ∨ v_1[i] = 6 ∨ v_1[i] = 7 ∨ v_1[i] = 8 ∨ v_1[i] = 9 ∨ v_1[i] = 10 ∨ v_1[i] = 12
 >>
-Rule 7 (capacity and memory_limit are related. capacity should be greater or equal to memory_limit)
-{v_1 : int, v_2 : int} |= v_1 ≥ v_2
+Rule 16 (If capacity is specified, memory_limit must be greater than or equal to capacity)
+{v_1 : int, v_2 : int} |= if v_1 > 0 then v_2 ≥ v_1
 >>
-Rule 8 (The length of dtypes should not be greater than a limit)
-{v_1 : list(dtype)} |= v_1.len ≤ 10
+Rule 17 (container and shared_name cannot be the same)
+{v_1 : str, v_2 : str} |= v_1 ≠ v_2
 >>
-Rule 9 (memory_limit should not exceed a maximum limit)
-{v_1 : int} |= v_1 ≤ 1000000
+Rule 18 (dtypes must all be of the same type if only one is present)
+{v_1 : list(dtype)} |= if v_1.len = 1 then true else ∀i ∈ [1, v_1.len - 1] : v_1[0] = v_1[i]
 >>
-Rule 11 (shared_name can only contain certain characters)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = "_"
+Rule 19 (If name is specified, it must be a valid identifier)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] > "a" ∧ v_1[i] < "z") ∨ (v_1[i] > "A" ∧ v_1[i] < "Z") ∨ (v_1[i] > "0" ∧ v_1[i] < "9") ∨ v_1[i] = "_"
 >>
-Rule 12 (capacity should be less than memory_limit if memory_limit is not zero)
-{v_1 : int, v_2 : int} |= if v_2 ≠ 0 then v_1 ≤ v_2
+Rule 22 (The dtypes list should not contain duplicate entries)
+{v_1 : list(dtype)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i + 1, v_1.len - 1] : v_1[i] ≠ v_1[j]
 >>
-Rule 13 (If shared_name is provided, the container should also be provided.)
+Rule 23 (If the dtypes list has more than one element, the container must be empty string)
+{v_1 : list(dtype), v_2 : str} |= if v_1.len > 1 then v_2 = ""
+>>
+Rule 25 (If the dtypes list is specified, capacity must be specified)
+{v_1 : list(dtype), v_2 : int} |= if v_1.len > 0 then v_2 ≥ 0
+>>
+Rule 26 (If the dtypes list has more than one element, capacity must be 0)
+{v_1 : list(dtype), v_2 : int} |= if v_1.len > 1 then v_2 = 0
+>>
+Rule 28 (If the container is not empty, dtypes length must be 1)
+{v_1 : str, v_2 : list(dtype)} |= if v_1 ≠ "" then v_2.len = 1
+>>
+Rule 30 (If name is specified, the length should be less than 256)
+{v_1 : str} |= v_1.len < 256
+>>
+Rule 31 (If a container is specified, it should start with an alphanumeric character)
+{v_1 : str} |= if v_1.len > 0 then (v_1[0] > "a" ∧ v_1[0] < "z") ∨ (v_1[0] > "A" ∧ v_1[0] < "Z") ∨ (v_1[0] > "0" ∧ v_1[0] < "9")
+>>
+Rule 34 (The number of dtypes should not exceed some upper limit e.g., 10)
+{v_1 : list(dtype)} |= v_1.len < 10
+>>
+Rule 35 (If container is an empty string, dtypes length can be any number)
+{v_1 : str, v_2 : list(dtype)} |= if v_1 = "" then true else v_2.len ≥ 0
+>>
+Rule 37 (If container and shared_name are not empty, they must be different)
+{v_1 : str, v_2 : str} |= if v_1 ≠ "" ∧ v_2 ≠ "" then v_1 ≠ v_2
+>>
+Rule 38 (capacity and memory_limit should have the same value)
+{v_1 : int, v_2 : int} |= v_1 = v_2
+>>
+Rule 39 (If capacity is specified, memory_limit must also be specified)
+{v_1 : int, v_2 : int} |= if v_1 > 0 then v_2 > 0
+>>
+Rule 40 (If shared_name is specified, container must also be specified)
 {v_1 : str, v_2 : str} |= if v_1 ≠ "" then v_2 ≠ ""
 >>
-Rule 14 (If the container is provided, the shared_name can be equal to container)
-{v_1 : str, v_2 : str} |= if v_1 ≠ "" then true else v_1 = v_2
->>
-Rule 15 (The container name should be selected from available list of strings)
-{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "constant" ∨ v_1 = "linear" ∨ v_1 = "softplus" ∨ v_1 = ""
->>
-Rule 16 (If memory_limit is provided, capacity must be provided too.)
-{v_1 : int, v_2 : int} |= if v_1 ≠ 0 then v_2 ≥ 0
->>
-Rule 17 (If container name is specified, it should only contain alphanumeric or _ characters)
-{v_1 : str} |= if v_1 ≠ "" then ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = "_")
->>
-Rule 18 (dtypes in list should not be duplicated)
-{v_1 : list(dtype)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i+1, v_1.len - 1] : v_1[i] ≠ v_1[j]
->>
-Rule 19 (capacity must be less than 2^31)
-{v_1 : int} |= v_1 < 2147483648
->>
-Rule 22 (if dtypes list contains string dtype, it should be the only dtype)
-{v_1 : list(dtype)} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = 11 then v_1.len = 1
->>
-Rule 23 (Dtypes should be within the defined range)
-{v_1 : list(dtype)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 12
->>
-Rule 24 (If shared name is specified, it must contain at least one character.)
-{v_1 : str} |= if v_1 ≠ "" then v_1.len > 0
->>
-Rule 25 (The length of dtypes list should not exceed the number of supported dtypes.)
-{v_1 : list(dtype)} |= v_1.len <= 13
->>
-Rule 26 (if memory_limit is 0, capacity must also be 0.)
-{v_1 : int, v_2 : int} |= if v_1 = 0 then v_2 = 0
->>
-Rule 27 (if container is "none" then shared_name must be "")
-{v_1 : str, v_2 : str} |= if v_1 = "none" then v_2 = ""
->>
-Rule 28 (if the dtypes list contains more than one element, all elements must be the same type)
-{v_1 : list(dtype)} |= if v_1.len > 1 then ∀i ∈ [1, v_1.len - 1] : v_1[0] = v_1[i]
->>
-Rule 29 (Dtypes list must not be empty if other parameters are provided)
-{v_1 : list(dtype), v_2 : int, v_3 : str} |= if v_2 > 0 ∨ v_3 ≠ "" then v_1.len > 0
->>
-Rule 30 (If shared_name is empty, container must also be either empty or 'none')
-{v_1: str, v_2: str} |= if v_1 = "" then v_2 = "" ∨ v_2 = "none"
->>
-Rule 31 (if the container parameter is specified, then capacity parameter must not be equal to zero)
-{v_1 : str, v_2 : int} |= if v_1 ≠ "" then v_2 > 0
->>
-Rule 32 (if memory_limit is specified, then container parameter must not be empty)
+Rule 42 (If memory_limit is specified, container must also be specified)
 {v_1 : int, v_2 : str} |= if v_1 > 0 then v_2 ≠ ""
 >>
-Rule 33 (shared_name must have the same length as the container, when container is not empty or none)
-{v_1 : str, v_2 : str} |= if v_2 ≠ "" ∧ v_2 ≠ "none" then v_1.len = v_2.len
+Rule 46 (If capacity is specified, dtypes must also be specified)
+{v_1 : int, v_2 : list(dtype)} |= if v_1 > 0 then v_2.len > 0
 >>
-Rule 34 (if container is specified then memory_limit parameter must be greater than zero)
-{v_1 : str, v_2 : int} |= if v_1 ≠ "" ∧ v_1 ≠ "none" then v_2 > 0
+Rule 49 (If dtypes is specified, container must also be specified)
+{v_1 : list(dtype), v_2 : str} |= if v_1.len > 0 then v_2 ≠ ""
 >>
-Rule 35 (If container parameter is specified as none, then memory_limit parameter must be zero)
-{v_1: str, v_2: int} |= if v_1 = "none" then v_2 = 0
+Rule 52 (If the container is specified, dtypes must also be specified)
+{v_1 : str, v_2 : list(dtype)} |= if v_1 ≠ "" then v_2.len > 0
 >>
-Rule 36 (If dtypes contains an element of type 12 (dtype), then the container must be specified)
-{v_1 : list(dtype), v_2 : str} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = 12 then v_2 ≠ "" ∧ v_2 ≠ "none"
+Rule 56 (If the name is specified, all other parameters should be specified)
+{v_1 : str, v_2 : list(dtype), v_3 : int, v_4 : int, v_5 : str} |= if v_1 ≠ "" then v_2.len > 0 ∧ v_3 ≥ 0 ∧ v_4 ≥ 0 ∧ v_5 ≠ ""
 >>
-Rule 37 (If dtypes contains more than one element, container parameter must be specified)
-{v_1 : list(dtype), v_2 : str} |= if v_1.len > 1 then v_2 ≠ "" ∧ v_2 ≠ "none"
+Rule 58 (If any optional parameter is specified, all parameters must be specified)
+{v_1 : list(dtype), v_2 : int, v_3 : int, v_4 : str, v_5 : str, v_6 : str} |= if v_2 > 0 ∨ v_3 > 0 ∨ v_4 ≠ "" ∨ v_5 ≠ "" ∨ v_6 ≠ "" then v_1.len > 0 ∧ v_2 ≥ 0 ∧ v_3 ≥ 0 ∧ v_4 ≠ "" ∧ v_5 ≠ "" ∧ v_6 ≠ ""
+>>
+Rule 59 (If any optional parameter is specified, all other parameters must be specified)
+{v_1 : list(dtype), v_2 : int, v_3 : int, v_4 : str, v_5 : str, v_6 : str} |= if v_2 > 0 ∨ v_3 > 0 ∨ v_4 ≠ "" ∨ v_5 ≠ "" ∨ v_6 ≠ "" then (v_1.len > 0 ∧ v_2 ≥ 0 ∧ v_3 ≥ 0 ∧ v_4 ≠ "" ∧ v_5 ≠ "" ∧ v_6 ≠ "")
+>>
+Rule 60 (If any optional parameter is specified, all parameters must be specified and name must be a string of length 0)
+{v_1 : list(dtype), v_2 : int, v_3 : int, v_4 : str, v_5 : str, v_6 : str} |= if v_2 > 0 ∨ v_3 > 0 ∨ v_4 ≠ "" ∨ v_5 ≠ "" then (v_1.len > 0 ∧ v_2 ≥ 0 ∧ v_3 ≥ 0 ∧ v_4 ≠ "" ∧ v_5 ≠ "" ∧ v_6 = "")
+>>
+Rule 61 (If any optional parameter is specified, all parameters must be specified and name and shared_name must be string of length 0)
+{v_1 : list(dtype), v_2 : int, v_3 : int, v_4 : str, v_5 : str, v_6 : str} |= if v_2 > 0 ∨ v_3 > 0 ∨ v_4 ≠ "" then (v_1.len > 0 ∧ v_2 ≥ 0 ∧ v_3 ≥ 0 ∧ v_4 ≠ "" ∧ v_5 = "" ∧ v_6 = "")
+>>
+Rule 62 (The number of dtypes must be less than or equal to 1 if container or shared_name is specified)
+{v_1 : list(dtype), v_2 : str, v_3 : str} |= if v_2 ≠ "" ∨ v_3 ≠ "" then v_1.len ≤ 1
+>>
+Rule 63 (If the name is specified, container and shared_name must be the same)
+{v_1 : str, v_2 : str, v_3 : str} |= if v_1 ≠ "" then v_2 = v_3
+>>
+Rule 64 (If the name is specified, the capacity and memory_limit should not be zero)
+{v_1 : str, v_2 : int, v_3 : int} |= if v_1 ≠ "" then v_2 > 0 ∧ v_3 > 0
+>>
+Rule 66 (If dtypes is specified and its length is greater than 1, container, shared_name and name must be an empty string)
+{v_1 : list(dtype), v_2 : str, v_3 : str, v_4 : str} |= if v_1.len > 1 then v_2 = "" ∧ v_3 = "" ∧ v_4 = ""
+>>
+Rule 67 (If dtypes is specified and its length is equal to 1, container, shared_name and name can be an empty string or a valid string)
+{v_1 : list(dtype), v_2 : str, v_3 : str, v_4 : str} |= if v_1.len = 1 then (v_2 = "" ∨ v_2 = "ii" ∨ v_2 = "ii->i" ∨ v_2 = "i,j->ij" ∨ v_2 = "bij,bjk->bik" ∨ v_2 = "...ij->...ji" ∨ v_2 = "bn,anm,bm->ba" ∨ v_2 = "none" ∨ v_2 = "sum" ∨ v_2 = "max" ∨ v_2 = "min" ∨ v_2 = "prod" ∨ v_2 = "relu" ∨ v_2 = "tanh" ∨ v_2 = "sigmoid" ∨ v_2 = "softmax" ∨ v_2 = "elu" ∨ v_2 = "selu" ∨ v_2 = "gelu" ∨ v_2 = "swish" ∨ v_2 = "softplus" ∨ v_2 = "linear" ∨ v_2 = "valid" ∨ v_2 = "same" ∨ v_2 = "causal" ∨ v_2 = "channels_last" ∨ v_2 = "channels_first") ∧ (v_3 = "" ∨ v_3 = "ii" ∨ v_3 = "ii->i" ∨ v_3 = "i,j->ij" ∨ v_3 = "bij,bjk->bik" ∨ v_3 = "...ij->...ji" ∨ v_3 = "bn,anm,bm->ba" ∨ v_3 = "none" ∨ v_3 = "sum" ∨ v_3 = "max" ∨ v_3 = "min" ∨ v_3 = "prod" ∨ v_3 = "relu" ∨ v_3 = "tanh" ∨ v_3 = "sigmoid" ∨ v_3 = "softmax" ∨ v_3 = "elu" ∨ v_3 = "selu" ∨ v_3 = "gelu" ∨ v_3 = "swish" ∨ v_3 = "softplus" ∨ v_3 = "linear" ∨ v_3 = "valid" ∨ v_3 = "same" ∨ v_3 = "causal" ∨ v_3 = "channels_last" ∨ v_3 = "channels_first") ∧ (v_4 = "" ∨ v_4 = "ii" ∨ v_4 = "ii->i" ∨ v_4 = "i,j->ij" ∨ v_4 = "bij,bjk->bik" ∨ v_4 = "...ij->...ji" ∨ v_4 = "bn,anm,bm->ba" ∨ v_4 = "none" ∨ v_4 = "sum" ∨ v_4 = "max" ∨ v_4 = "min" ∨ v_4 = "prod" ∨ v_4 = "relu" ∨ v_4 = "tanh" ∨ v_4 = "sigmoid" ∨ v_4 = "softmax" ∨ v_4 = "elu" ∨ v_4 = "selu" ∨ v_4 = "gelu" ∨ v_4 = "swish" ∨ v_4 = "softplus" ∨ v_4 = "linear" ∨ v_4 = "valid" ∨ v_4 = "same" ∨ v_4 = "causal" ∨ v_4 = "channels_last" ∨ v_4 = "channels_first")
+>>
+Rule 68 (If dtypes is specified, then if its length is greater than 1 container, shared_name and name must be an empty string, otherwise not empty or a valid string)
+{v_1 : list(dtype), v_2 : str, v_3 : str, v_4 : str} |= if v_1.len > 0 then if v_1.len > 1 then v_2 = "" ∧ v_3 = "" ∧ v_4 = "" else (v_2 = "" ∨ v_2 = "ii" ∨ v_2 = "ii->i" ∨ v_2 = "i,j->ij" ∨ v_2 = "bij,bjk->bik" ∨ v_2 = "...ij->...ji" ∨ v_2 = "bn,anm,bm->ba" ∨ v_2 = "none" ∨ v_2 = "sum" ∨ v_2 = "max" ∨ v_2 = "min" ∨ v_2 = "prod" ∨ v_2 = "relu" ∨ v_2 = "tanh" ∨ v_2 = "sigmoid" ∨ v_2 = "softmax" ∨ v_2 = "elu" ∨ v_2 = "selu" ∨ v_2 = "gelu" ∨ v_2 = "swish" ∨ v_2 = "softplus" ∨ v_2 = "linear" ∨ v_2 = "valid" ∨ v_2 = "same" ∨ v_2 = "causal" ∨ v_2 = "channels_last" ∨ v_2 = "channels_first") ∧ (v_3 = "" ∨ v_3 = "ii" ∨ v_3 = "ii->i" ∨ v_3 = "i,j->ij" ∨ v_3 = "bij,bjk->bik" ∨ v_3 = "...ij->...ji" ∨ v_3 = "bn,anm,bm->ba" ∨ v_3 = "none" ∨ v_3 = "sum" ∨ v_3 = "max" ∨ v_3 = "min" ∨ v_3 = "prod" ∨ v_3 = "relu" ∨ v_3 = "tanh" ∨ v_3 = "sigmoid" ∨ v_3 = "softmax" ∨ v_3 = "elu" ∨ v_3 = "selu" ∨ v_3 = "gelu" ∨ v_3 = "swish" ∨ v_3 = "softplus" ∨ v_3 = "linear" ∨ v_3 = "valid" ∨ v_3 = "same" ∨ v_3 = "causal" ∨ v_3 = "channels_last" ∨ v_3 = "channels_first") ∧ (v_4 = "" ∨ v_4 = "ii" ∨ v_4 = "ii->i" ∨ v_4 = "i,j->ij" ∨ v_4 = "bij,bjk->bik" ∨ v_4 = "...ij->...ji" ∨ v_4 = "bn,anm,bm->ba" ∨ v_4 = "none" ∨ v_4 = "sum" ∨ v_4 = "max" ∨ v_4 = "min" ∨ v_4 = "prod" ∨ v_4 = "relu" ∨ v_4 = "tanh" ∨ v_4 = "sigmoid" ∨ v_4 = "softmax" ∨ v_4 = "elu" ∨ v_4 = "selu" ∨ v_4 = "gelu" ∨ v_4 = "swish" ∨ v_4 = "softplus" ∨ v_4 = "linear" ∨ v_4 = "valid" ∨ v_4 = "same" ∨ v_4 = "causal" ∨ v_4 = "channels_last" ∨ v_4 = "channels_first")
+>>
+Rule 69 (If dtypes is specified, then each element of the list must be a valid dtype index)
+{v_1 : list(dtype)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 12
+>>
+Rule 70 (The capacity must be less than 2^31)
+{v_1 : int} |= v_1 < 2147483648
+>>
+Rule 72 (If dtypes are not specified, then the capacity and memory_limit must be 0)
+{v_1 : list(dtype), v_2 : int, v_3 : int} |= if v_1.len = 0 then v_2 = 0 ∧ v_3 = 0
+>>
+Rule 73 (If dtypes are not specified, then the container, shared_name and name must be empty)
+{v_1 : list(dtype), v_2 : str, v_3 : str, v_4 : str} |= if v_1.len = 0 then v_2 = "" ∧ v_3 = "" ∧ v_4 = ""

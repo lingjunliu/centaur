@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Tensor shape should not contain negative values. (Rule 58)
+# The total number of elements in the tensor must be less than a maximum value to prevent memory issues. (Rule 58)
 
 rule_58 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) >= 0) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) >= 0) for i in range(6)]))
+    s.add(Not(And((And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), (Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 1048576) for i in range(6)])))) if n else
+          And((And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), (Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 1048576) for i in range(6)]))))
 )
 
 def rule_58_func(arg1, solver=None, neg=False):

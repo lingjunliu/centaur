@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input is a tensor, and it's a float type, then it is real (Rule 30)
+# The input tensor's dtype should be different from string (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 8), True, False)) if n else
-          If(And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 8), True, False))
+    s.add(Not(v["arg1_dtype"] != 12) if n else
+          v["arg1_dtype"] != 12)
 )
 
 def rule_30_func(arg1, solver=None, neg=False):

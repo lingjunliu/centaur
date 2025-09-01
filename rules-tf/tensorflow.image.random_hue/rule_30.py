@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If seed is not none, it must be a positive integer. (Rule 30)
+# seed is a valid integer seed (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] != 6, v["arg1_value"] > 0, False)) if n else
-          If(v["arg1_value"] != 6, v["arg1_value"] > 0, False))
+    s.add(Not(And(v["arg1_value"] > -4294967296, v["arg1_value"] < 4294967296)) if n else
+          And(v["arg1_value"] > -4294967296, v["arg1_value"] < 4294967296))
 )
 
 def rule_30_func(arg1, solver=None, neg=False):
@@ -17,13 +17,15 @@ def rule_30_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)) or isinstance(arg1, str)):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
+        arg1_value = Int('arg1_value')
 
         # Value assignments
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 30
         rule_30(solver, {'arg1_value': arg1_value})

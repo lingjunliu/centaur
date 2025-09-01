@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the var's data type is bfloat16, then lr, rho, and epsilon should also be bfloat16 (Rule 33)
+# If var is int32, then lr, rho and epsilon must also be int32 (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 12, And(And(v["arg2_dtype"] == 12, v["arg3_dtype"] == 12), v["arg4_dtype"] == 12), False)) if n else
-          If(v["arg1_dtype"] == 12, And(And(v["arg2_dtype"] == 12, v["arg3_dtype"] == 12), v["arg4_dtype"] == 12), False))
+    s.add(Not(If(v["arg1_dtype"] == 3, And(And(v["arg2_dtype"] == 3, v["arg3_dtype"] == 3), v["arg4_dtype"] == 3), True)) if n else
+          If(v["arg1_dtype"] == 3, And(And(v["arg2_dtype"] == 3, v["arg3_dtype"] == 3), v["arg4_dtype"] == 3), True))
 )
 
 def rule_33_func(arg1, arg2, arg3, arg4, solver=None, neg=False):

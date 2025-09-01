@@ -1,60 +1,105 @@
 >>
-Rule 1 (lengths should be an integer tensor)
-{v_1 : tensor} |= dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Rule 1 (lengths should have integer dtype to avoid InvalidArgumentError)
+{lengths : tensor} |= dtype_(lengths) = 2 ∨ dtype_(lengths) = 3 ∨ dtype_(lengths) = 4 ∨ dtype_(lengths) = 5
 >>
-Rule 2 (All values in lengths tensor should be less than or equal to maxlen)
-{v_1 : tensor, v_2 : int} |= max(v_1) ≤ v_2
+Rule 2 (lengths values should be non-negative to avoid InvalidArgumentError)
+{lengths : tensor} |= ∀i ∈ [0, shape(lengths,0) - 1] : lengths[i] ≥ 0
 >>
-Rule 5 (lengths tensor must have non-negative values)
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 3 (maxlen should be greater than or equal to 0)
+{maxlen : int} |= maxlen ≥ 0
 >>
-Rule 6 (lengths tensor can't be empty)
-{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 4 (lengths values should be less than or equal to maxlen to avoid ResourceExhaustedError)
+{lengths : tensor, maxlen : int} |= ∀i ∈ [0, shape(lengths,0) - 1] : lengths[i] ≤ maxlen
 >>
-Rule 9 (maxlen must be greater than or equal to 0)
-{v_1 : int} |= v_1 ≥ 0
+Rule 5 (dtype must be a valid TensorFlow DType to avoid TypeError)
+{dtype : dtype} |= dtype = 0 ∨ dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 ∨ dtype = 5 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10 ∨ dtype = 12
 >>
-Rule 10 (dtype must be a valid type, either boolean or integer)
-{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5
+Rule 6 (maxlen should be a scalar integer)
+{maxlen : tensor} |= ndim(maxlen) = 0 ∧ dtype_(maxlen) = 2 ∨ dtype_(maxlen) = 3 ∨ dtype_(maxlen) = 4 ∨ dtype_(maxlen) = 5
 >>
-Rule 13 (If maxlen is not provided, it is the maximum value in lengths)
-{v_1 : tensor, v_2 : int} |= if v_2 = -1 then v_2 = max(v_1)
+Rule 7 (lengths dtype must be in allowed list to avoid InvalidArgumentError or NotFoundError)
+{lengths : tensor} |= dtype_(lengths) = 2 ∨ dtype_(lengths) = 3 ∨ dtype_(lengths) = 4 ∨ dtype_(lengths) = 5 ∨ dtype_(lengths) = 6 ∨ dtype_(lengths) = 7 ∨ dtype_(lengths) = 8
 >>
-Rule 14 (lengths must be a tensor of integers or floats)
-{v_1 : tensor} |= (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)
+Rule 8 (maxlen is a scalar)
+{maxlen : tensor} |= ndim(maxlen) = 0
 >>
-Rule 15 (The shape of lengths must be at least 1-dimensional)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 12 (lengths dtype must be in allowed list to avoid InvalidArgumentError or NotFoundError)
+{lengths : tensor} |= dtype_(lengths) = 2 ∨ dtype_(lengths) = 3 ∨ dtype_(lengths) = 4 ∨ dtype_(lengths) = 5 ∨ dtype_(lengths) = 6 ∨ dtype_(lengths) = 7 ∨ dtype_(lengths) = 8 ∨ dtype_(lengths) = 9 ∨ dtype_(lengths) = 10
 >>
-Rule 16 (maxlen must be a positive integer)
-{v_1 : int} |= v_1 > 0
+Rule 14 (lengths values must be representable by int32)
+{lengths : tensor} |= ∀i ∈ [0, shape(lengths, 0) - 1] : lengths[i] < 2147483647 ∧ lengths[i] > -2147483648
 >>
-Rule 17 (If maxlen is not provided (=-1), it is the maximum value in lengths)
-{v_1 : tensor, v_2 : int} |= if v_2 = -1 then true else max(v_1) ≤ v_2
+Rule 19 (lengths values must be representable by int32 to avoid overflow issues)
+{lengths : tensor} |= ∀i ∈ [0, shape(lengths, 0) - 1] : min(lengths) > -2147483648 ∧ max(lengths) < 2147483647
 >>
-Rule 18 (lengths must be a tensor of integers)
-{v_1 : tensor} |= (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5)
+Rule 20 (Avoid ResourceExhaustedError by limiting element count )
+{lengths : tensor, maxlen : int} |= shape(lengths,0) * maxlen < 20000000
 >>
-Rule 19 (dtype must be a valid boolean or integer type)
-{v_1 : dtype} |= (v_1 = 0) ∨ (v_1 = 1) ∨ (v_1 = 2) ∨ (v_1 = 3) ∨ (v_1 = 4) ∨ (v_1 = 5)
+Rule 24 (lengths values must be non-negative)
+{lengths : tensor} |= ∀i ∈ [0, shape(lengths, 0) - 1] : lengths[i] ≥ 0
 >>
-Rule 25 (All values in lengths must be smaller than maxlen)
-{v_1 : tensor, v_2 : int} |= ∀i ∈ [0, if ndim(v_1) > 0 then shape(v_1,0)-1 else 0] : v_1[i] ≤ v_2
+Rule 25 (Avoid ResourceExhaustedError by limiting element count)
+{lengths : tensor, maxlen : int} |= shape(lengths,0) * maxlen < 100000000
 >>
-Rule 26 (lengths tensor must have a rank greater than 0)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 37 (Lengths tensor must have a valid dtype for Range Op)
+{lengths: tensor} |= dtype_(lengths) = 2 ∨ dtype_(lengths) = 3 ∨ dtype_(lengths) = 4 ∨ dtype_(lengths) = 5
 >>
-Rule 28 (If lengths is a scalar then maxlen must be greater or equal than lengths)
-{v_1 : int, v_2 : int} |= v_1 ≤ v_2
+Rule 38 (Maxlen needs to be a scalar to avoid ValueError)
+{maxlen: tensor} |= ndim(maxlen) = 0
 >>
-Rule 40 (The data type of lengths must be an integer)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6
+Rule 39 (Lengths values should be non-negative to prevent errors in Range)
+{lengths: tensor} |= ∀i ∈ [0, shape(lengths, 0) - 1]: lengths[i] ≥ 0
 >>
-Rule 41 (The values in lengths must be less or equal than maxlen)
-{v_1 : tensor, v_2 : int} |= ∀i ∈ [0, if ndim(v_1) > 0 then shape(v_1, 0) - 1 else 0] : v_1[i] ≤ v_2
+Rule 40 (Limit total number of elements to avoid ResourceExhaustedError)
+{lengths: tensor, maxlen: int} |= shape(lengths, 0) * maxlen < 50000000
 >>
-Rule 43 (The data type of lengths must be an integer)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Rule 41 (Dtype must be valid to avoid errors)
+{dtype: dtype} |= dtype = 0 ∨ dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 ∨ dtype = 5 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10 ∨ dtype = 12
 >>
-Rule 51 (maxlen must be greater than or equal to the maximum value in lengths if maxlen is explicitly provided)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then max(v_1) ≤ v_2
+Rule 45 (Prevent Resource Exhaustion by limiting the total number of elements)
+{lengths : tensor, maxlen : int} |= shape(lengths,0) * maxlen < 50000000
+>>
+Rule 55 (Limit the number of elements for performance reasons)
+{lengths : tensor, maxlen : int} |= shape(lengths, 0) * maxlen < 50000000
+>>
+Rule 83 (lengths should be representable in int32)
+{lengths : tensor} |= min(lengths) > -2147483648 ∧ max(lengths) < 2147483647
+>>
+Rule 87 (Lengths values should be valid based on their dtype)
+{lengths : tensor} |= if dtype_(lengths) = 2 then min(lengths) ≥ -32768 ∧ max(lengths) ≤ 32767 else if dtype_(lengths) = 3 then min(lengths) ≥ -2147483648 ∧ max(lengths) ≤ 2147483647 else if dtype_(lengths) = 4 then min(lengths) ≥ -9223372036854775808 ∧ max(lengths) ≤ 9223372036854775807
+>>
+Rule 93 (Lengths values must be small enough given maxlen.)
+{lengths : tensor, maxlen : int} |= ∀i ∈ [0, shape(lengths, 0) - 1] : lengths[i] ≤ maxlen
+>>
+Rule 97 (The lengths tensor must not have a dtype of uint8, which is not supported by the Range op)
+{lengths : tensor} |= dtype_(lengths) ≠ 6
+>>
+Rule 98 (Lengths needs to only contain values that can be represented by the TIdx)
+{lengths: tensor} |= ∀i ∈ [0, shape(lengths, 0) - 1] : if dtype_(lengths) = 2 then lengths[i] > -32768 ∧ lengths[i] < 32767 else if dtype_(lengths) = 3 then lengths[i] > -2147483648 ∧ lengths[i] < 2147483647 else if dtype_(lengths) = 4 then lengths[i] > -9223372036854775808 ∧ lengths[i] < 9223372036854775807
+>>
+Rule 103 (The lengths tensor's dtype must be one of the allowed types for 'Tidx' to avoid InvalidArgumentError or NotFoundError for the Range op.)
+{lengths: tensor} |= dtype_(lengths) = 2 ∨ dtype_(lengths) = 3 ∨ dtype_(lengths) = 4 ∨ dtype_(lengths) = 5 ∨ dtype_(lengths) = 6 ∨ dtype_(lengths) = 7 ∨ dtype_(lengths) = 8 ∨ dtype_(lengths) = 9 ∨ dtype_(lengths) = 10
+>>
+Rule 106 (Combination of necessary conditions)
+{lengths : tensor, maxlen : tensor, dtype : dtype} |= ndim(maxlen) = 0 ∧ (∀i ∈ [0, shape(lengths, 0) - 1] : lengths[i] ≥ 0) ∧ (dtype_(lengths) = 2 ∨ dtype_(lengths) = 3 ∨ dtype_(lengths) = 4 ∨ dtype_(lengths) = 5 ∨ dtype_(lengths) = 6 ∨ dtype_(lengths) = 7 ∨ dtype_(lengths) = 8 ∨ dtype_(lengths) = 9 ∨ dtype_(lengths) = 10) ∧ (dtype = 0 ∨ dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 ∨ dtype = 5 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10 ∨ dtype = 12) ∧ shape(lengths, 0) * (if maxlen = 0 then 1 else maxlen) < 50000000
+>>
+Rule 107 (Combination of necessary conditions)
+{lengths : tensor, maxlen : tensor, dtype : dtype} |= ndim(maxlen) = 0 ∧ ∀i ∈ [0, shape(lengths, 0) - 1] : lengths[i] ≥ 0 ∧ (dtype_(lengths) = 2 ∨ dtype_(lengths) = 3 ∨ dtype_(lengths) = 4 ∨ dtype_(lengths) = 5) ∧ (dtype = 0 ∨ dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 ∨ dtype = 5 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10 ∨ dtype = 12) ∧ shape(lengths, 0) * (if ndim(maxlen) = 0 then maxlen else 0) < 50000000
+>>
+Rule 108 (Combination of necessary conditions - refined)
+{lengths : tensor, maxlen : tensor, dtype : dtype} |= ndim(maxlen) = 0 ∧ (∀i ∈ [0, shape(lengths, 0) - 1] : lengths[i] ≥ 0) ∧ (dtype_(lengths) = 2 ∨ dtype_(lengths) = 3 ∨ dtype_(lengths) = 4 ∨ dtype_(lengths) = 5) ∧ (dtype = 0 ∨ dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 ∨ dtype = 5 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10 ∨ dtype = 12) ∧ shape(lengths, 0) * (if ndim(maxlen) = 0 then maxlen else 0) < 50000000 ∧ (dtype_(lengths) ≠ 6)
+>>
+Rule 109 (Combination of necessary conditions)
+{lengths : tensor, maxlen : tensor, dtype : dtype} |= ndim(maxlen) = 0 ∧ (∀i ∈ [0, shape(lengths, 0) - 1] : lengths[i] ≥ 0) ∧ (dtype_(lengths) = 2 ∨ dtype_(lengths) = 3 ∨ dtype_(lengths) = 4 ∨ dtype_(lengths) = 5) ∧ (dtype = 0 ∨ dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 ∨ dtype = 5 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10 ∨ dtype = 12) ∧ shape(lengths, 0) * (if ndim(maxlen) = 0 then maxlen else 0) < 50000000 ∧ (dtype_(lengths) ≠ 6) ∧ (∀i ∈ [0, shape(lengths, 0) - 1]: lengths[i] ≤ 2147483647)
+>>
+Rule 110 (Combination of necessary conditions)
+{lengths : tensor, maxlen : tensor, dtype : dtype} |= ndim(maxlen) = 0 ∧ (∀i ∈ [0, shape(lengths, 0) - 1] : lengths[i] ≥ 0) ∧ (dtype_(lengths) = 2 ∨ dtype_(lengths) = 3 ∨ dtype_(lengths) = 4 ∨ dtype_(lengths) = 5) ∧ (dtype = 0 ∨ dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 ∨ dtype = 5 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10 ∨ dtype = 12) ∧ shape(lengths, 0) * (if ndim(maxlen) = 0 then maxlen else 0) < 50000000 ∧ (dtype_(lengths) ≠ 6) ∧ (∀i ∈ [0, shape(lengths, 0) - 1]: lengths[i] ≤ 2147483647)  ∧ (∀i ∈ [0, shape(lengths, 0) - 1] : lengths[i] < 65535)
+>>
+Rule 111 (Umbrella rule)
+{lengths : tensor, maxlen : tensor, dtype : dtype} |= ndim(maxlen) = 0 ∧ (∀i ∈ [0, shape(lengths, 0) - 1] : lengths[i] ≥ 0) ∧ (dtype_(lengths) = 2 ∨ dtype_(lengths) = 3 ∨ dtype_(lengths) = 4 ∨ dtype_(lengths) = 5) ∧ (dtype = 0 ∨ dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 ∨ dtype = 5 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10 ∨ dtype = 12) ∧ shape(lengths, 0) * (if ndim(maxlen) = 0 then maxlen else 0) < 50000000 ∧ (dtype_(lengths) ≠ 6) ∧ (∀i ∈ [0, shape(lengths, 0) - 1]: lengths[i] ≤ 2147483647) ∧ (∀i ∈ [0, shape(lengths, 0) - 1] : lengths[i] < 65535) ∧ (min(lengths) > -2147483648)
+>>
+Rule 112 (The Big Kahuna of Rules)
+{lengths : tensor, maxlen : tensor, dtype : dtype} |= ndim(maxlen) = 0 ∧ (∀i ∈ [0, shape(lengths, 0) - 1] : lengths[i] ≥ 0) ∧ (dtype_(lengths) = 2 ∨ dtype_(lengths) = 3 ∨ dtype_(lengths) = 4 ∨ dtype_(lengths) = 5) ∧ (dtype = 0 ∨ dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 ∨ dtype = 5 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10 ∨ dtype = 12) ∧ shape(lengths, 0) * (if ndim(maxlen) = 0 then maxlen else 0) < 50000000 ∧ (dtype_(lengths) ≠ 6) ∧ (∀i ∈ [0, shape(lengths, 0) - 1]: lengths[i] ≤ 2147483647) ∧ (∀i ∈ [0, shape(lengths, 0) - 1] : lengths[i] < 65535) ∧ (min(lengths) > -2147483648)  ∧ (min(lengths) > -65536)
+>>
+Rule 113 (The Mother of All Rules)
+{lengths : tensor, maxlen : tensor, dtype : dtype} |= ndim(maxlen) = 0 ∧ (∀i ∈ [0, shape(lengths, 0) - 1] : lengths[i] ≥ 0) ∧ (dtype_(lengths) = 2 ∨ dtype_(lengths) = 3 ∨ dtype_(lengths) = 4 ∨ dtype_(lengths) = 5) ∧ (dtype = 0 ∨ dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 ∨ dtype = 5 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10 ∨ dtype = 12) ∧ shape(lengths, 0) * (if ndim(maxlen) = 0 then maxlen else 0) < 50000000 ∧ (dtype_(lengths) ≠ 6) ∧ (∀i ∈ [0, shape(lengths, 0) - 1]: lengths[i] ≤ 2147483647) ∧ (∀i ∈ [0, shape(lengths, 0) - 1] : lengths[i] < 65535) ∧ (min(lengths) > -2147483648) ∧ (min(lengths) > -65536) ∧ (if dtype_(lengths) = 2 then max(lengths) < 32767 else if dtype_(lengths) = 3 then max(lengths) < 2147483647 else if dtype_(lengths) = 4 then max(lengths) < 9223372036854775807)

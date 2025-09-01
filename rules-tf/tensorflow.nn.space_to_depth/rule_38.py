@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The block_size must be a valid positive integer representable as an int32 (Rule 38)
+# block_size must be an integer and greater or equal to 2 (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= 2, v["arg1_value"] <= 2147483647)) if n else
-          And(v["arg1_value"] >= 2, v["arg1_value"] <= 2147483647))
+    s.add(Not(And(v["arg1_value"] >= 2, (v["arg1_value"] - (v["arg1_value"] % 1)) == v["arg1_value"])) if n else
+          And(v["arg1_value"] >= 2, (v["arg1_value"] - (v["arg1_value"] % 1)) == v["arg1_value"]))
 )
 
 def rule_38_func(arg1, solver=None, neg=False):

@@ -1,102 +1,309 @@
 >>
-Rule 1 (labels and predictions must be 1-dimensional tensors)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1
+Rule 1 (labels and predictions must be 1-D tensors if num_classes is not None)
+{labels : tensor, predictions : tensor, num_classes : int} |= num_classes ≠ null ∧ ndim(labels) = 1 ∧ ndim(predictions) = 1
 >>
-Rule 2 (labels and predictions must have the same shape)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 2 (labels should have non-negative values to avoid InvalidArgumentError)
+{labels : tensor} |= min(labels) ≥ 0
 >>
-Rule 3 (num_classes must be a non-negative integer if provided)
-{v_1 : int} |= v_1 ≥ 0
+Rule 3 (predictions should have non-negative values to avoid InvalidArgumentError)
+{predictions : tensor} |= min(predictions) ≥ 0
 >>
-Rule 4 (weights tensor, if provided, must have the same shape as predictions)
-{v_1 : tensor, v_2 : tensor} |= if v_1 ≠ null then shape(v_1, 0) = shape(v_2, 0)
+Rule 4 (labels values should be less than num_classes to avoid InvalidArgumentError)
+{labels : tensor, num_classes : int} |= max(labels) < num_classes
 >>
-Rule 5 (dtype must be a valid dtype value, represented by an integer index)
-{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 11 ∨ v_1 = 12
+Rule 5 (predictions values should be less than num_classes to avoid InvalidArgumentError)
+{predictions : tensor, num_classes : int} |= max(predictions) < num_classes
 >>
-Rule 6 (num_classes must be greater than the max value in labels and predictions if they are not empty)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0 then v_3 > max(v_1) ∧ v_3 > max(v_2)
+Rule 6 (labels and predictions tensors must have the same shape)
+{labels : tensor, predictions : tensor} |= shape(labels, 0) = shape(predictions, 0) ∧ ndim(labels) = ndim(predictions)
 >>
-Rule 7 (labels, predictions and weights should have compatible dtypes)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ null then dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3) else dtype_(v_1) = dtype_(v_2)
+Rule 7 (weights tensor shape should match predictions tensor shape)
+{predictions : tensor, weights : tensor} |= shape(weights, 0) = shape(predictions, 0) ∧ ndim(weights) = ndim(predictions)
 >>
-Rule 8 (num_classes cannot be zero)
-{v_1 : int} |= v_1 ≠ 0
+Rule 8 (if weights tensor is specified, it must not be empty)
+{weights : tensor} |= (∃i ∈ [0, ndim(weights) - 1] : shape(weights, i) > 0)
 >>
-Rule 9 (predictions and labels cannot be null)
-{v_1 : tensor, v_2 : tensor} |= v_1 ≠ null ∧ v_2 ≠ null
+Rule 9 (num_classes must be greater than 0)
+{num_classes : int} |= num_classes > 0
 >>
-Rule 10 (predictions and labels must have integer-based dtypes)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
+Rule 10 (dtype must be int-compatible)
+{dtype : dtype} |= dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 ∨ dtype = 5
 >>
-Rule 11 (if weights is not None, its elements must be non-negative.)
-{v_1 : tensor} |= if v_1 ≠ null then ∀i ∈ [0, shape(v_1,0) - 1] : v_1[i] ≥ 0
+Rule 11 (If weights exist, its first dimension needs to match labels)
+{labels : tensor, weights : tensor} |= ndim(labels) > 0 ∧ ndim(weights) > 0 ∧ shape(labels, 0) = shape(weights, 0)
 >>
-Rule 12 (If num_classes is provided, then the values in labels and predictions must be less than num_classes)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 ≠ null then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < v_3 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < v_3
+Rule 12 (labels and predictions must have the same number of dimensions)
+{labels : tensor, predictions : tensor} |= ndim(labels) = ndim(predictions)
 >>
-Rule 13 (predictions and weights should have the same dtype if weights is given)
-{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ null then dtype_(v_1) = dtype_(v_2)
+Rule 13 (If num_classes is specified, the labels and predictions should have values less than num_classes)
+{labels : tensor, predictions : tensor, num_classes : int} |= (max(labels) < num_classes) ∧ (max(predictions) < num_classes)
 >>
-Rule 14 (num_classes should be a positive integer)
-{v_1 : int} |= v_1 > 0
+Rule 14 (labels values must be less than or equal to the maximum possible integer if num_classes is not specified)
+{labels : tensor} |= max(labels) ≤ 9223372036854775807
 >>
-Rule 15 (if weights is given, its dimension must be 1)
-{v_1 : tensor} |= if v_1 ≠ null then ndim(v_1) = 1
+Rule 15 (predictions values must be less than or equal to the maximum possible integer if num_classes is not specified)
+{predictions : tensor} |= max(predictions) ≤ 9223372036854775807
 >>
-Rule 16 (The dtype cannot be boolean)
-{v_1 : dtype} |= v_1 ≠ 0
+Rule 16 (If labels has values out of bound, the absolute value must be smaller than the max number of a int64.)
+{labels : tensor, num_classes : int} |= if max(labels) ≥ num_classes then max(labels) < 9223372036854775807
 >>
-Rule 17 (The values of the labels and predictions must be non-negative.)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0
+Rule 17 (If predictions has values out of bound, the absolute value must be smaller than the max number of a int64.)
+{predictions : tensor, num_classes : int} |= if max(predictions) ≥ num_classes then max(predictions) < 9223372036854775807
 >>
-Rule 18 (If num_classes is equal to the max value in labels and predictions plus one, then num_classes is auto-calculated.)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 ≠ null then v_3 ≠ max(v_1) + 1 ∨ v_3 ≠ max(v_2) + 1
+Rule 18 (Dtype must be one of the allowed types)
+{dtype : dtype} |= dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 ∨ dtype = 5 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10 ∨ dtype = 11 ∨ dtype = 12
 >>
-Rule 19 (If weights are given then the weights dtype cannot be bool or string)
-{v_1 : tensor} |= if v_1 ≠ null then dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 11
+Rule 19 (if labels' min value is smaller than 0, then max value should be less than the max value of int64)
+{labels : tensor} |= if min(labels) < 0 then max(labels) < 9223372036854775807
 >>
-Rule 20 (if num_classes is None, the confusion matrix will be of shape [max(labels)+1,max(predictions)+1])
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = null then shape(v_1, 0) = shape(v_2, 0)
+Rule 20 (if predictions' min value is smaller than 0, then max value should be less than the max value of int64)
+{predictions : tensor} |= if min(predictions) < 0 then max(predictions) < 9223372036854775807
 >>
-Rule 21 (num_classes must be greater than or equal to 2)
-{v_1 : int} |= v_1 ≥ 2
+Rule 21 (labels values should be within a valid range based on dtype.)
+{labels : tensor, dtype : dtype} |= if dtype = 1 then min(labels) ≥ -128 ∧ max(labels) ≤ 127 else if dtype = 2 then min(labels) ≥ -32768 ∧ max(labels) ≤ 32767 else if dtype = 3 then min(labels) ≥ -2147483648 ∧ max(labels) ≤ 2147483647 else if dtype = 4 then min(labels) ≥ -9223372036854775808 ∧ max(labels) ≤ 9223372036854775807 else if dtype = 5 then min(labels) ≥ 0 ∧ max(labels) ≤ 255
 >>
-Rule 23 (If the maximum value in labels is greater than or equal to num_classes, it will result in wrong indices.)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ null then max(v_1) < v_2
+Rule 22 (predictions values should be within a valid range based on dtype.)
+{predictions : tensor, dtype : dtype} |= if dtype = 1 then min(predictions) ≥ -128 ∧ max(predictions) ≤ 127 else if dtype = 2 then min(predictions) ≥ -32768 ∧ max(predictions) ≤ 32767 else if dtype = 3 then min(predictions) ≥ -2147483648 ∧ max(predictions) ≤ 2147483647 else if dtype = 4 then min(predictions) ≥ -9223372036854775808 ∧ max(predictions) ≤ 9223372036854775807 else if dtype = 5 then min(predictions) ≥ 0 ∧ max(predictions) ≤ 255
 >>
-Rule 24 (If predictions has float values then labels should has same dtype)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) = dtype_(v_1)
+Rule 23 (If num_classes is not None, num_classes should be smaller than the maximum value of the labels tensor)
+{labels : tensor, num_classes : int} |= if num_classes ≠ null then num_classes ≤ max(labels) + 1
 >>
-Rule 25 (If predictions has complex values then labels should has same dtype)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = dtype_(v_1)
+Rule 24 (If num_classes is not None, num_classes should be smaller than the maximum value of the predictions tensor)
+{predictions : tensor, num_classes : int} |= if num_classes ≠ null then num_classes ≤ max(predictions) + 1
 >>
-Rule 26 (If labels has float values then the dtype of confusion_matrix can be float)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8
+Rule 25 (labels and predictions should have the same dimensions when both are not 1-D)
+{labels: tensor, predictions: tensor} |= if ndim(labels) ≠ 1 ∧ ndim(predictions) ≠ 1 then ndim(labels) = ndim(predictions)
 >>
-Rule 27 (If labels has complex values then the dtype of confusion_matrix can be complex)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_2 = 9 ∨ v_2 = 10
+Rule 26 (If labels or predictions contains negative values, the absolute value should be smaller than the max int64)
+{labels: tensor, predictions: tensor} |= if min(labels) < 0 ∨ min(predictions) < 0 then max(labels) < 9223372036854775807 ∧ max(predictions) < 9223372036854775807
 >>
-Rule 28 (If weights are given then the weights dtype can be int or float)
-{v_1 : tensor} |= if v_1 ≠ null then dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 27 (If labels or predictions contains out-of-bound values and num_classes is specified, the difference between max(labels/predictions) and num_classes must be smaller than max int64)
+{labels: tensor, predictions: tensor, num_classes: int} |= if (max(labels) >= num_classes ∨ max(predictions) >= num_classes) ∧ num_classes ≠ null then (max(labels) - num_classes) < 9223372036854775807 ∧ (max(predictions) - num_classes) < 9223372036854775807
 >>
-Rule 29 (If the labels tensor has a dtype other than int or float then an error is thrown)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 11
+Rule 28 (Shape of labels and predictions tensors should be equal for all dimensions, even if they're greater than 1-D)
+{labels: tensor, predictions: tensor} |= if ndim(labels) > 1 ∧ ndim(predictions) > 1 then ∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(predictions, i)
 >>
-Rule 31 (if the dtype is not provided, the dtype will be int64)
-{v_1 : dtype} |= if v_1 = null then v_1 = 4
+Rule 29 (labels must not be empty if num_classes is provided)
+{labels : tensor, num_classes : int} |= if num_classes ≠ null then (∃i ∈ [0, ndim(labels) - 1] : shape(labels, i) > 0)
 >>
-Rule 32 (If labels has integer values then the dtype of confusion_matrix can be integer)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+Rule 30 (predictions must not be empty if num_classes is provided)
+{predictions : tensor, num_classes : int} |= if num_classes ≠ null then (∃i ∈ [0, ndim(predictions) - 1] : shape(predictions, i) > 0)
 >>
-Rule 34 (If the weights are given, then the weights dtype can be complex only if labels have complex dtypes)
-{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ null then if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10
+Rule 31 (Labels and predictions must have compatible shapes to avoid ValueError)
+{labels : tensor, predictions : tensor} |= (ndim(labels) = ndim(predictions)) ∧ (∀i ∈ [0, ndim(labels) -1]: shape(labels, i) = shape(predictions, i)) ∨ (ndim(labels) = 1 ∧ ndim(predictions) = 1)
 >>
-Rule 36 (If the weights are given, then if the labels are int type then weights can not be complex )
-{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ null then if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10
+Rule 32 (Weights, if provided, must have compatible shapes to predictions)
+{weights: tensor, predictions: tensor} |= ndim(weights) = ndim(predictions) ∧ (∀i ∈ [0, ndim(weights) -1]: shape(weights, i) = shape(predictions, i))
 >>
-Rule 39 (if num_classes is null and max(labels) or max(predictions) is very large, the output shape can explode, which is an anti-pattern.)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = null then if max(v_1) > 1000 ∨ max(v_2) > 1000 then false
+Rule 33 (Ensure labels shape is 1-D or matches the prediction shape, otherwise raise ValueError)
+{labels : tensor, predictions : tensor} |= (ndim(labels) = 1) ∨ (ndim(labels) = ndim(predictions) ∧ ∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(predictions, i))
 >>
-Rule 40 (if weights are given and the labels have float type then weights can be either integer or float)
-{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ null then if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) = 1 ∨  dtype_(v_2) = 2 ∨  dtype_(v_2) = 3 ∨  dtype_(v_2) = 4 ∨  dtype_(v_2) = 5 ∨  dtype_(v_2) = 6 ∨  dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+Rule 34 (If labels contains negative value, limit it to min value for int64 to avoid overflow, otherwise it is not a concern.)
+{labels : tensor} |= if min(labels) < 0 then min(labels) >= -9223372036854775808
+>>
+Rule 35 (If predictions contains negative value, limit it to min value for int64 to avoid overflow, otherwise it is not a concern.)
+{predictions : tensor} |= if min(predictions) < 0 then min(predictions) >= -9223372036854775808
+>>
+Rule 36 (If num_classes is None, then both labels and predictions cannot have negative values)
+{labels: tensor, predictions: tensor, num_classes: int} |= if num_classes = null then min(labels) >= 0 ∧ min(predictions) >= 0
+>>
+Rule 37 (The shape of labels and predictions should be compatible or one dimensional)
+{labels : tensor, predictions: tensor} |= (ndim(labels) = 1 ∧ ndim(predictions) = 1) ∨ (ndim(labels) = ndim(predictions) ∧ ∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(predictions, i))
+>>
+Rule 38 (Ensure the max label value is less than the maximum allowed value for its datatype)
+{labels : tensor, dtype : dtype} |= if dtype = 1 then max(labels) <= 127 else if dtype = 2 then max(labels) <= 32767 else if dtype = 3 then max(labels) <= 2147483647 else if dtype = 4 then true else if dtype = 5 then max(labels) <= 255
+>>
+Rule 39 (Ensure the max prediction value is less than the maximum allowed value for its datatype)
+{predictions : tensor, dtype : dtype} |= if dtype = 1 then max(predictions) <= 127 else if dtype = 2 then max(predictions) <= 32767 else if dtype = 3 then max(predictions) <= 2147483647 else if dtype = 4 then true else if dtype = 5 then max(predictions) <= 255
+>>
+Rule 40 (Either labels and predictions are 1D, or weights must have the same shape if defined.)
+{labels: tensor, predictions: tensor, weights: tensor} |= (ndim(labels) = 1 ∧ ndim(predictions) = 1) ∨ (weights ≠ null ∧ (ndim(labels) = ndim(weights)) ∧ (∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(weights, i)))
+>>
+Rule 41 (If num_classes is provided, it needs to be a positive integer value and larger than max label or max prediction)
+{labels: tensor, predictions: tensor, num_classes: int} |= if num_classes ≠ null then num_classes > 0 ∧ num_classes > max(labels) ∧ num_classes > max(predictions)
+>>
+Rule 42 (If labels and predictions are both not 1-D, they should have the same shape.)
+{labels: tensor, predictions: tensor} |= if ndim(labels) ≠ 1 ∧ ndim(predictions) ≠ 1 then (ndim(labels) = ndim(predictions) ∧ ∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(predictions, i))
+>>
+Rule 43 (labels must be a 1D Tensor or have compatible shape with predictions)
+{labels : tensor, predictions : tensor} |= ndim(labels) = 1 ∨ (ndim(labels) = ndim(predictions) ∧ ∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(predictions, i))
+>>
+Rule 44 (predictions must be a 1D Tensor or have compatible shape with labels)
+{labels : tensor, predictions : tensor} |= ndim(predictions) = 1 ∨ (ndim(labels) = ndim(predictions) ∧ ∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(predictions, i))
+>>
+Rule 45 (The maximum value of labels should be limited to avoid integer overflow during computation)
+{labels : tensor, num_classes : int} |= if num_classes = null then max(labels) < 2147483647
+>>
+Rule 46 (When the labels tensor's values are negative, limit to int64 minimum)
+{labels: tensor} |= if min(labels) < 0 then min(labels) ≥ -9223372036854775808
+>>
+Rule 47 (When the predictions tensor's values are negative, limit to int64 minimum)
+{predictions: tensor} |= if min(predictions) < 0 then min(predictions) ≥ -9223372036854775808
+>>
+Rule 48 (If num_classes is not provided, the maximum value of labels and predictions should be smaller than max int32 to prevent possible overflows when confusion_matrix tensor created)
+{labels: tensor, predictions: tensor, num_classes: int} |= if num_classes = null then max(labels) < 2147483647 ∧ max(predictions) < 2147483647
+>>
+Rule 49 (When using weights, the shape must match predictions and be a 1-D Tensor.)
+{weights: tensor, predictions: tensor} |= ndim(predictions) = 1 ∧ ndim(weights) = 1 ∧ shape(weights, 0) = shape(predictions, 0)
+>>
+Rule 50 (If labels has values larger than int32, and dtype isn't int64, there could be errors)
+{labels: tensor, dtype: dtype} |= if max(labels) > 2147483647 then dtype = 4
+>>
+Rule 51 (If the labels or predictions values are out of the valid range due to integer overflow, then the dtype must be int64)
+{labels: tensor, predictions: tensor, dtype: dtype} |= if min(labels) < -2147483648 ∨ max(labels) > 2147483647 ∨ min(predictions) < -2147483648 ∨ max(predictions) > 2147483647 then dtype = 4
+>>
+Rule 52 (Either labels and predictions are 1D with the same length, or if using num_classes then make sure their values are smaller than num_classes)
+{labels: tensor, predictions: tensor, num_classes: int} |= (ndim(labels) = 1 ∧ ndim(predictions) = 1 ∧ shape(labels, 0) = shape(predictions, 0)) ∨ (num_classes ≠ null ∧ max(labels) < num_classes ∧ max(predictions) < num_classes)
+>>
+Rule 53 (if labels contains values exceeding 2147483647 and dtype is smaller than int64, an overflow occurs.)
+{labels : tensor, dtype: dtype} |= if max(labels) > 2147483647 then dtype = 4
+>>
+Rule 54 (if predictions contains values exceeding 2147483647 and dtype is smaller than int64, an overflow occurs.)
+{predictions : tensor, dtype: dtype} |= if max(predictions) > 2147483647 then dtype = 4
+>>
+Rule 55 (if any value in either labels or predictions is negative, they should be cast as int64 to fit)
+{labels: tensor, predictions: tensor, dtype: dtype} |= if (min(labels) < 0) ∨ (min(predictions) < 0) then dtype=4
+>>
+Rule 56 (If labels' or predictions' dtype is not int64, their values must be within int32 range.)
+{labels: tensor, predictions: tensor, dtype: dtype} |= if dtype ≠ 4 then max(labels) <= 2147483647 ∧ min(labels) >= -2147483648 ∧ max(predictions) <= 2147483647 ∧ min(predictions) >= -2147483648
+>>
+Rule 57 (if labels' or predictions' contains a value exceeding the maximum possible, the error is ignored if dtype is floating point)
+{labels: tensor, predictions: tensor, dtype : dtype} |= if max(labels) > 2147483647 ∨ max(predictions) > 2147483647 then dtype = 7 ∨ dtype = 8 ∨ dtype = 9
+>>
+Rule 58 (If labels has negative values then the dtype must be large enough to hold the minimum value or there will be an overflow)
+{labels : tensor, dtype : dtype} |= if min(labels) < 0 then dtype = 4
+>>
+Rule 59 (if predictions has negative values then the dtype must be large enough to hold the minimum value or there will be an overflow)
+{predictions : tensor, dtype : dtype} |= if min(predictions) < 0 then dtype = 4
+>>
+Rule 60 (the shape of weights must match the shape of predictions or ValueError)
+{predictions : tensor, weights : tensor} |= ndim(weights) = ndim(predictions) ∧ (∀i ∈ [0, ndim(weights) - 1] : shape(weights, i) = shape(predictions, i))
+>>
+Rule 61 (If the max value in labels or predictions is greater or equal to num_classes, and there are negative values, then set the dtype to int64.)
+{labels: tensor, predictions: tensor, num_classes: int, dtype: dtype} |= if (max(labels) ≥ num_classes ∨ max(predictions) ≥ num_classes) ∧ (min(labels) < 0 ∨ min(predictions) < 0) then dtype = 4
+>>
+Rule 62 (Ensure that if labels or predictions are not 1D, then the shape of labels must equal shape of predictions)
+{labels: tensor, predictions: tensor} |= if ndim(labels) ≠ 1 ∨ ndim(predictions) ≠ 1 then (ndim(labels) = ndim(predictions) ∧ ∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(predictions, i))
+>>
+Rule 63 (Weights must be 1D and the shape should be equal to 1D labels and predictions)
+{labels: tensor, predictions: tensor, weights: tensor} |= (ndim(labels) = 1 ∧ ndim(predictions) = 1 ∧ ndim(weights) = 1 ∧ (shape(labels, 0) = shape(predictions, 0) ∧ shape(labels, 0) = shape(weights, 0)))
+>>
+Rule 64 (The maximum of the labels should be smaller than 2^31 - 1 for types lower than int64)
+{labels: tensor, dtype: dtype} |= if dtype ≠ 4 then max(labels) < 2147483647
+>>
+Rule 65 (The maximum of the predictions should be smaller than 2^31 - 1 for types lower than int64)
+{predictions: tensor, dtype: dtype} |= if dtype ≠ 4 then max(predictions) < 2147483647
+>>
+Rule 66 (If num_classes is not None, then max(labels) and max(predictions) < num_classes - otherwise, there can be an out of bound error.)
+{labels: tensor, predictions: tensor, num_classes: int} |= if num_classes ≠ null then max(labels) < num_classes ∧ max(predictions) < num_classes
+>>
+Rule 67 (If the labels tensor contains negative values, its min value must be within range.)
+{labels: tensor} |= if min(labels) < 0 then min(labels) >= -9223372036854775808
+>>
+Rule 68 (If the predictions tensor contains negative values, its min value must be within range.)
+{predictions: tensor} |= if min(predictions) < 0 then min(predictions) >= -9223372036854775808
+>>
+Rule 69 (if the weights are used their shape must be equal to labels, and they need to be one dimensional)
+{labels: tensor, weights : tensor} |= ndim(labels) = 1 ∧ ndim(weights) = 1 ∧ shape(labels, 0) = shape(weights, 0)
+>>
+Rule 70 (If weights shape does not match prediction, throw value error, so shape(weights) = shape(predictions))
+{predictions: tensor, weights: tensor} |= (ndim(weights) = ndim(predictions)) ∧ (∀i ∈ [0, ndim(predictions) - 1] : shape(weights, i) = shape(predictions, i))
+>>
+Rule 71 (If weights is specified, then its values must be positive, otherwise, there could be unexpected behaviours.)
+{weights: tensor} |= min(weights) >= 0
+>>
+Rule 72 (Ensure that the labels are less than num_classes, handling overflow using datatype)
+{labels: tensor, num_classes: int, dtype: dtype} |= if num_classes ≠ null then if dtype = 4 then true else max(labels) < num_classes
+>>
+Rule 73 (Ensure that the predictions are less than num_classes, handling overflow using datatype)
+{predictions: tensor, num_classes: int, dtype: dtype} |= if num_classes ≠ null then if dtype = 4 then true else max(predictions) < num_classes
+>>
+Rule 74 (Make sure labels is in range unless num_classes provided, then make sure labels < num_classes.)
+{labels : tensor, num_classes: int} |= if num_classes = null then max(labels) < 9223372036854775807 else max(labels) < num_classes
+>>
+Rule 75 (Make sure predictions is in range unless num_classes provided, then make sure predictions < num_classes.)
+{predictions : tensor, num_classes: int} |= if num_classes = null then max(predictions) < 9223372036854775807 else max(predictions) < num_classes
+>>
+Rule 76 (Ensure that if labels or predictions have negative value and if max is greater than 2^31, then their dtype should be int64)
+{labels: tensor, predictions: tensor, dtype: dtype} |= if (min(labels) < 0 ∨ min(predictions) < 0) ∧ (max(labels) > 2147483647 ∨ max(predictions) > 2147483647) then dtype = 4
+>>
+Rule 77 (The number of dimensions for labels, predictions and weights needs to match if weights is specified.)
+{labels: tensor, predictions: tensor, weights: tensor} |= if weights ≠ null then ndim(labels) = ndim(predictions) ∧ ndim(predictions) = ndim(weights)
+>>
+Rule 78 (The shapes of labels, predictions, and weights tensors should match if specified)
+{labels: tensor, predictions: tensor, weights: tensor} |= if weights ≠ null then  ∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(predictions, i) ∧ shape(predictions, i) = shape(weights, i)
+>>
+Rule 81 (If weights is specified, then its values must be positive, otherwise, there could be unexpected behaviours.)
+{weights: tensor} |= min(weights) ≥ 0
+>>
+Rule 87 (Dtype of predictions and weights tensor must align if dtype of confusion matrix is float)
+{predictions: tensor, weights: tensor, dtype: dtype} |= if dtype ≥ 6 ∧ dtype ≤ 9 then dtype_(predictions) = dtype_(weights)
+>>
+Rule 89 (If labels has a value which is out of bound then the datatype must be int64)
+{labels: tensor, num_classes: int, dtype: dtype} |= if (num_classes ≠ null) ∧ (max(labels) ≥ num_classes) then dtype = 4
+>>
+Rule 90 (If predictions has a value which is out of bound then the datatype must be int64)
+{predictions: tensor, num_classes: int, dtype: dtype} |= if (num_classes ≠ null) ∧ (max(predictions) ≥ num_classes) then dtype = 4
+>>
+Rule 92 (If weights are included, all tensors need to have the same dimensions)
+{labels: tensor, predictions: tensor, weights: tensor} |= if weights ≠ null then ndim(labels) = ndim(predictions) ∧ ndim(labels) = ndim(weights)
+>>
+Rule 93 (If weights are included, all tensors need to have the same shapes)
+{labels: tensor, predictions: tensor, weights: tensor} |= if weights ≠ null then (∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(predictions, i) ∧ shape(predictions, i) = shape(weights, i))
+>>
+Rule 95 (If labels has a value which is out of bound then the datatype must be int64)
+{labels: tensor, num_classes: int, dtype: dtype} |= if (num_classes ≠ null) ∧ (max(labels) ≥ num_classes) then dtype = 4 else if min(labels) < 0 then dtype = 4
+>>
+Rule 96 (If predictions has a value which is out of bound then the datatype must be int64)
+{predictions: tensor, num_classes: int, dtype: dtype} |= if (num_classes ≠ null) ∧ (max(predictions) ≥ num_classes) then dtype = 4 else if min(predictions) < 0 then dtype = 4
+>>
+Rule 97 (If max labels value overflows int32, and no num_classes is provided, switch to int64)
+{labels : tensor, dtype: dtype, num_classes : int} |= if (num_classes = null) ∧ (max(labels) > 2147483647) then dtype = 4
+>>
+Rule 98 (If max prediction value overflows int32, and no num_classes is provided, switch to int64)
+{predictions : tensor, dtype: dtype, num_classes : int} |= if (num_classes = null) ∧ (max(predictions) > 2147483647) then dtype = 4
+>>
+Rule 99 (If weights are included, all tensors need to have the same number of dimensions and same shape)
+{labels: tensor, predictions: tensor, weights: tensor} |= if weights ≠ null then (ndim(labels) = ndim(predictions) ∧ ndim(labels) = ndim(weights) ∧ (∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(predictions, i) ∧ shape(predictions, i) = shape(weights, i)))
+>>
+Rule 100 (If the confusion matrix dtype is float the weights tensor must have the same dtype as predictions tensor)
+{predictions: tensor, weights: tensor, dtype: dtype} |= if dtype ≥ 6 ∧ dtype ≤ 9 then dtype_(weights) = dtype_(predictions)
+>>
+Rule 101 (If the labels have a value that would result in integer overflow based on dtype, switch to int64.)
+{labels: tensor, dtype: dtype, num_classes: int} |= if (max(labels) > 2147483647 ∨ min(labels) < -2147483648) ∧ (num_classes = null) then dtype = 4
+>>
+Rule 102 (If the predictions have a value that would result in integer overflow based on dtype, switch to int64.)
+{predictions: tensor, dtype: dtype, num_classes: int} |= if (max(predictions) > 2147483647 ∨ min(predictions) < -2147483648) ∧ (num_classes = null) then dtype = 4
+>>
+Rule 103 (If weights are included, all tensors need to have matching dimensions and shapes to prevent value errors related to dimension mismatches)
+{labels: tensor, predictions: tensor, weights: tensor} |= if weights ≠ null then (ndim(labels) = ndim(predictions) ∧ ndim(predictions) = ndim(weights) ∧ (∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(predictions, i) ∧ shape(predictions, i) = shape(weights, i)))
+>>
+Rule 104 (Weights tensor must have same dtype as labels/predictions if the resulting matrix is floating point to avoid implicit casts)
+{labels: tensor, predictions:tensor, weights: tensor, dtype:dtype} |= if (dtype ≥ 6 ∧ dtype ≤ 9) then dtype_(labels) = dtype_(weights) ∧ dtype_(predictions) = dtype_(weights)
+>>
+Rule 106 (If the labels have a value that would result in an integer overflow based on the dtype when no num_classes is provided, switch to int64.)
+{labels: tensor, dtype: dtype, num_classes: int} |= if (num_classes = null) ∧ (max(labels) > 2147483647 ∨ min(labels) < -2147483648) then dtype = 4
+>>
+Rule 107 (If the predictions have a value that would result in an integer overflow based on the dtype when no num_classes is provided, switch to int64.)
+{predictions: tensor, dtype: dtype, num_classes: int} |= if (num_classes = null) ∧ (max(predictions) > 2147483647 ∨ min(predictions) < -2147483648) then dtype = 4
+>>
+Rule 108 (If weights are included, labels and predictions tensors need to have the same shapes to prevent value errors related to dimension mismatches)
+{labels: tensor, predictions: tensor, weights: tensor} |= if weights ≠ null then (∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(predictions, i))
+>>
+Rule 109 (Weights tensor must have the same dtype as labels and prediction to avoid type errors.)
+{labels: tensor, predictions:tensor, weights: tensor, dtype:dtype} |= if (dtype >= 6 ∧ dtype <= 9) then dtype_(labels) = dtype_(weights) ∧ dtype_(predictions) = dtype_(weights)
+>>
+Rule 113 (If the confusion matrix dtype is floating point then the data type for predictions and the labels tensor should also be a floating point)
+{labels: tensor, predictions:tensor, dtype:dtype} |= if (dtype >= 6 ∧ dtype <= 9) then (dtype_(labels) >= 6 ∧ dtype_(labels) <= 9) ∧ (dtype_(predictions) >= 6 ∧ dtype_(predictions) <= 9)
+>>
+Rule 116 (If weights are used, ensure labels, predictions and weights tensors have equal rank, the shape of all of them is same, if not then throw ValueError)
+{labels: tensor, predictions: tensor, weights: tensor} |= if weights ≠ null then (ndim(labels) = ndim(predictions) ∧  (∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(predictions, i)) ∧ ndim(labels) = ndim(weights) ∧ (∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(weights, i)))
+>>
+Rule 117 (If Confusion matrix dtype is floating, then labels, predictions, weights dtypes need to also be floating point)
+{labels: tensor, predictions:tensor, weights: tensor, dtype:dtype} |= if (dtype ≥ 6 ∧ dtype ≤ 9) then (dtype_(labels) >= 6 ∧ dtype_(labels) <= 9) ∧ (dtype_(predictions) >= 6 ∧ dtype_(predictions) <= 9) ∧ (dtype_(weights) >= 6 ∧ dtype_(weights) <= 9)
+>>
+Rule 120 (Enforce identical shapes and ranks across labels, predictions, and weights tensors when weights is specified to prevent ValueErrors related to broadcasting and shape incompatibilities)
+{labels: tensor, predictions: tensor, weights: tensor} |= if weights ≠ null then (ndim(labels) = ndim(predictions)) ∧ (ndim(predictions) = ndim(weights)) ∧ (∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(predictions, i)) ∧ (∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(weights, i))
+>>
+Rule 121 (To avoid errors during computation dtypes of labels, predictions, and weights all must have the same dtype if the resulting confusion matrix has a floating point dtype.)
+{labels: tensor, predictions:tensor, weights: tensor, dtype:dtype} |= if (dtype ≥ 6 ∧ dtype ≤ 9) then dtype_(labels) = dtype_(predictions) ∧ dtype_(labels) = dtype_(weights)

@@ -5,37 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If dtype is specified, the returned tensor's dtype_ must match (Rule 21)
+# shape should be a valid list or tuple (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] == v["arg2_dtype"]) if n else
-          v["arg1_value"] == v["arg2_dtype"])
+    s.add(Not(v["arg1_length"] < 1024) if n else
+          v["arg1_length"] < 1024)
 )
 
-def rule_21_func(arg1, arg2, solver=None, neg=False):
+def rule_21_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
-            return False
-        if not isinstance(arg2, np.ndarray):
+        if not ((isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)) or (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1))):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_length = Int('arg1_length')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg1_length == len(arg1))
 
         # Constraints for rule 21
-        rule_21(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype})
+        rule_21(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_21(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_21(solver, {'arg1_length': arg1['length']}, neg)

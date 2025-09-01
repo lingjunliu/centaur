@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# backprop_val_grad must be a tensor with at least one dimension (Rule 1)
+# backprop_val_grad should be a 1D tensor (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] >= 1) if n else
-          v["arg1_ndim"] >= 1)
+    s.add(Not(v["arg1_ndim"] == 1) if n else
+          v["arg1_ndim"] == 1)
 )
 
 def rule_1_func(arg1, solver=None, neg=False):

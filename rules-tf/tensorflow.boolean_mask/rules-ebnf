@@ -1,96 +1,81 @@
 >>
-Rule 1 (mask's dimension must be less than or equal to tensor's dimension)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≤ ndim(v_1)
->>
-Rule 2 (axis plus mask's dimension must be less than or equal to tensor's dimension)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= ndim(v_2) + v_3 ≤ ndim(v_1)
->>
-Rule 3 (mask must be a boolean tensor)
+Rule 1 (mask must be a boolean tensor)
 {v_2 : tensor} |= dtype_(v_2) = 0
 >>
-Rule 4 (axis must be a non-negative integer)
-{v_3 : int} |= v_3 ≥ 0
+Rule 2 (K <= N, where K is dim(mask) and N is dim(tensor))
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≤ ndim(v_1)
 >>
-Rule 5 (if axis is specified, mask's shape must match the first axis + dim(mask) dimensions of tensor's shape)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 > 0 then (∀i ∈ [0, v_3 + ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i - v_3))
+Rule 3 (K must be known statically, which is handled by type checking, but we can at least check it's positive)
+{v_2 : tensor} |= ndim(v_2) > 0
 >>
-Rule 6 (mask's shape must match the first K dimensions of tensor's shape, where K is mask's dimension)
+Rule 4 (axis + dim(mask) <= dim(tensor))
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_3) = 0 ∧ v_3 ≥ 0 ∧ v_3 + ndim(v_2) ≤ ndim(v_1)
+>>
+Rule 5 (mask's shape must match the first K dimensions of tensor's shape)
 {v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 7 (axis must be less than the dimension of the tensor)
-{v_1 : tensor, v_3 : int} |= v_3 < ndim(v_1)
+Rule 6 (mask's shape must match the first axis + dim(mask) dimensions of tensor's shape when axis is present)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_3) = 0 ∧ v_3 ≥ 0 ∧ ∀i ∈ [0, v_3 + ndim(v_2) - 1] : i < v_3 ∨ shape(v_1, i) = shape(v_2, i - v_3)
 >>
-Rule 9 (mask cannot be empty)
-{v_2 : tensor} |= ∃i ∈ [0, ndim(v_2)-1]: shape(v_2, i) > 0
+Rule 7 (axis must be a scalar tensor)
+{v_3 : tensor} |= ndim(v_3) = 0
 >>
-Rule 11 (dimension of the mask and the axis together are less than the dimension of tensor)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= v_3 + ndim(v_2) ≤ ndim(v_1)
+Rule 8 (axis must be an integer tensor)
+{v_3 : tensor} |= 1 ≤ dtype_(v_3) ∧ dtype_(v_3) ≤ 5
 >>
-Rule 13 (If axis is used, it should be less than or equal to the tensor's ndim -1)
-{v_1 : tensor, v_3 : int} |= v_3 ≤ ndim(v_1) - 1
+Rule 10 (if axis is specified, it should be less than the number of dimensions of the tensor)
+{v_1 : tensor, v_3 : tensor} |= ndim(v_3) = 0 ∧ v_3 < ndim(v_1)
 >>
-Rule 14 (Shape of tensor and mask must be positive)
-{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2)-1]: shape(v_2, i) > 0)
+Rule 12 (axis must be a 0-dimensional tensor containing a non-negative integer)
+{v_3 : tensor} |= ndim(v_3) = 0 ∧ (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5) ∧ v_3 ≥ 0
 >>
-Rule 15 (If axis is used then axis + mask's ndim must be greater than 0)
-{v_2 : tensor, v_3 : int} |= v_3 + ndim(v_2) > 0
+Rule 13 (axis must be a 0-dimensional tensor and its value should be a valid axis for tensor v_1)
+{v_1 : tensor, v_3 : tensor} |= ndim(v_3) = 0 ∧ (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5) ∧ v_3 ≥ 0 ∧ v_3 < ndim(v_1)
 >>
-Rule 16 (If axis is greater than 0, then mask's dimension must be greater than 0)
-{v_2 : tensor, v_3 : int} |= if v_3 > 0 then ndim(v_2) > 0
+Rule 16 (Axis, if specified, must be a 0-D integer tensor)
+{v_3 : tensor} |= ndim(v_3) = 0 ∧ (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5)
 >>
-Rule 17 (If the mask is a scalar, then the tensor must be a 1D tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then ndim(v_1) = 1
+Rule 18 (If axis is specified and not a scalar, raise TypeError)
+{v_3 : tensor} |= if ndim(v_3) ≠ 0 then false
 >>
-Rule 18 (The axis must be less or equal to the difference between the dimensions of tensor and mask)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= v_3 ≤ ndim(v_1) - ndim(v_2)
+Rule 19 (If axis is specified and not an integer tensor, raise TypeError)
+{v_3 : tensor} |= if (dtype_(v_3) ≠ 1 ∧ dtype_(v_3) ≠ 2 ∧ dtype_(v_3) ≠ 3 ∧ dtype_(v_3) ≠ 4 ∧ dtype_(v_3) ≠ 5) ∧ ndim(v_3) = 0 then false
 >>
-Rule 19 (If axis is used, the first dimension of tensor must match the length of mask when axis equals 0)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = 0 then shape(v_1, 0) = shape(v_2, 0)
+Rule 21 (if axis is specified, then it should be a tensor with dimension 0 and integer type, and its value must be within valid bounds)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 ∧ (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5) then v_3 ≥ 0 ∧ v_3 < ndim(v_1)
 >>
-Rule 21 (Mask should not have dimensions larger than tensor)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1]: shape(v_2, i) ≤ shape(v_1, i)
+Rule 22 (Axis must be a scalar int32 tensor that represents valid dimension of input tensor)
+{v_1 : tensor, v_3 : tensor} |= ndim(v_3) = 0 ∧ dtype_(v_3) = 3 ∧ v_3 ≥ 0 ∧ v_3 < ndim(v_1)
 >>
-Rule 22 (if axis is used, it can not be larger than the dimension of tensor)
-{v_1 : tensor, v_3 : int} |= if v_3 > 0 then v_3 < ndim(v_1)
+Rule 23 (If axis tensor is not a single element, raise a TypeError)
+{v_3 : tensor} |= if ndim(v_3) = 0 then true else false
 >>
-Rule 23 (if the mask is scalar, the axis can not be larger than zero)
-{v_2 : tensor, v_3 : int} |= if ndim(v_2) = 0 then v_3 ≤ 0
+Rule 28 (If axis is provided it must be a 0-D tensor with a value that can be converted to a valid axis of input tensor)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 ∧ (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5) then v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
 >>
-Rule 24 (if axis is used and greater than 0, then mask's shape[0] should match the shape[axis] of the tensor)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 > 0 then shape(v_2, 0) = shape(v_1, v_3)
+Rule 33 (if axis exists, validate the dimensions)
+{v_3 : tensor} |= if 1 ≤ dtype_(v_3) ∧ dtype_(v_3) ≤ 5 ∧ ndim(v_3) = 0 then true else if ndim(v_3) = 0 then true else false
 >>
-Rule 25 (if axis is used, axis + mask's dimension must be greater than or equal to zero)
-{v_2 : tensor, v_3 : int} |= v_3 + ndim(v_2) ≥ 0
+Rule 35 (The axis is an int tensor with a dimension 0 if it is provided)
+{v_3: tensor} |= if ndim(v_3) = 0 then (1 ≤ dtype_(v_3) ∧ dtype_(v_3) ≤ 5) else if v_3 = false then true else false
 >>
-Rule 26 (If mask's ndim is greater than 1, the mask's shape from dim 1 must match the tensor's shape from axis+1)
-{v_1 : tensor, v_2 : tensor, v_3: int} |= if ndim(v_2) > 1 then ∀i ∈ [1, ndim(v_2) - 1]: shape(v_2, i) = shape(v_1, v_3 + i)
+Rule 37 (If all conditions are met for the axis parameter, then result is true)
+{v_1 : tensor, v_3 : tensor} |= if (ndim(v_3) = 0) ∧ (dtype_(v_3) ≥ 1 ∧ dtype_(v_3) ≤ 5) ∧ (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) then true
 >>
-Rule 27 (mask dimension must be known statically, implying it is a constant)
-{v_2 : tensor} |= ndim(v_2) ≥ 0
+Rule 38 (When axis is specified, the shape of the mask must conform to the shape of the tensor from the axis.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 ∧ (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5) then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, v_3 + i) = shape(v_2, i))
 >>
-Rule 28 (If mask is 1D, then its length must match the shape of the tensor along the specified axis.)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_2) = 1 then shape(v_2, 0) = shape(v_1, v_3)
+Rule 39 (When axis is specified, it must be less than or equal to the difference of tensor and mask dimensions.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 ∧ (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5) then v_3 ≤ (ndim(v_1) - ndim(v_2))
 >>
-Rule 30 (If the mask is a boolean tensor, the max value must be 0 or 1)
-{v_2 : tensor} |= if dtype_(v_2) = 0 then (max(v_2) = 0 ∨ max(v_2) = 1)
+Rule 40 (Validating axis and mask shape conforms to tensor shape, and dim(mask) <= dim(tensor)-axis)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 ∧ (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5) then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, v_3 + i) = shape(v_2, i)) ∧ (ndim(v_2) ≤ (ndim(v_1) - v_3))
 >>
-Rule 31 (if the mask is not bool, it must be convertible to bool)
-{v_2 : tensor} |= dtype_(v_2) ≠ 0 ∧ ∃i ∈ [1, 11]: dtype_(v_2) = i
+Rule 41 (If axis is valid, K+axis <= N is satisified, N = ndim(v_1) and K = ndim(v_2).)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 ∧ (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5) then (ndim(v_2) + v_3) ≤ ndim(v_1)
 >>
-Rule 32 (Axis must be less than the dimension of the tensor plus mask's dimension)
-{v_1: tensor, v_2: tensor, v_3: int} |= v_3 ≤ ndim(v_1) + ndim(v_2)
+Rule 45 (if axis is specified, then mask rank plus axis must be less or equal to tensor rank)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 ∧ (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5) then v_3 + ndim(v_2) ≤ ndim(v_1)
 >>
-Rule 34 (If axis is specified and not zero, it must be less than or equal to the tensor's dimension minus one)
-{v_1 : tensor, v_3 : int} |= if v_3 ≠ 0 then v_3 ≤ ndim(v_1) - 1
->>
-Rule 35 (if axis is specified and equals to zero, mask must be 1D tensor.)
-{v_2:tensor, v_3:int} |= if v_3 = 0 then ndim(v_2) = 1
->>
-Rule 36 (Tensor cannot have more than 64 dimensions.)
-{v_1: tensor} |= ndim(v_1) ≤ 64
->>
-Rule 37 (the mask cannot have negative dimensions)
-{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1]: shape(v_2, i) ≥ 0
->>
-Rule 38 (The axis must be less than the number of dimension of the tensor)
-{v_1 : tensor, v_3: int} |= v_3 < ndim(v_1)
+Rule 46 (If the axis is valid, then shape of mask confirms to shape of the tensor from the axis and K+axis <= N)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 ∧ (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5) then (v_3 + ndim(v_2) ≤ ndim(v_1)) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, v_3 + i) = shape(v_2, i))

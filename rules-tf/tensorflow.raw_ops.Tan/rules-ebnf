@@ -1,54 +1,72 @@
 >>
-Rule 1 (Input tensor must have a supported dtype: bfloat16, half, float32, float64, complex64, complex128)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12
+Rule 4 (x must be a tensor and name can be optional)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 2 (The input tensor should have positive shape dimensions)
-{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 3 (If input tensor has complex dtype, the imaginary part should not be nan or inf)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ∃i ∈ [0, shape(v_1, 0) - 1] : min(v_1) > -1000000000 ∧ max(v_1) < 1000000000
->>
-Rule 4 (Tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
->>
-Rule 5 (If tensor dtype is complex, then the real part must also be a float-compatible type)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
->>
-Rule 6 (When tensor is complex, shape dimensions must be greater than 0.)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0
->>
-Rule 7 (If the tensor is complex, the shape must be well defined, meaning no dimension can be 0.)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 8 (If dtype is bfloat16 or half, the shape must be at least 1)
-{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 then ndim(v_1) ≥ 1
->>
-Rule 10 (The product of the tensor dimensions should be less than a certain value to avoid memory issues)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 100000000
->>
-Rule 11 (If the tensor has float type then ensure its value is finite)
-{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) > -1000000000 ∧ max(v_1) < 1000000000
->>
-Rule 12 (If dtype is float, then ensure that the values are within reasonable bounds to avoid overflow)
-{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) > -10000 ∧ max(v_1) < 10000
->>
-Rule 13 (Tensor dtype is one of the allowed types.)
+Rule 5 (x must be a bfloat16, half, float32, float64, complex64, or complex128 which corresponds to indices 6, 7, 8, 9, 10)
 {v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 14 (If tensor's dtype is complex128, the shape is at least 1)
-{v_1 : tensor} |= if dtype_(v_1) = 10 then ndim(v_1) ≥ 1
+Rule 11 (The returned tensor has the same type as the input tensor.)
+{v_1 : tensor} |= dtype_(v_1) = dtype_(v_1)
 >>
-Rule 16 (The real and imaginary parts of a complex tensor should have similar magnitudes)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) > (0 - max(v_1) / 1000000) ∧ max(v_1) < (max(v_1) * 1000000)
+Rule 18 (If name is provided, and not empty, it must be a string)
+{v_1 : str} |= v_1 = "" ∨ true
 >>
-Rule 17 (If the tensor's dtype is complex64, the shape is at least 1)
-{v_1 : tensor} |= if dtype_(v_1) = 9 then ndim(v_1) ≥ 1
+Rule 20 (If name is provided, it must be a valid string)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear" ∨ v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "causal" ∨ v_1 = "channels_last" ∨ v_1 = "channels_first" ∨ v_1 = ""
 >>
-Rule 18 (If dtype is bfloat16, half, float32, float64, complex64, complex128, then shape must not be an empty tuple)
-{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ndim(v_1) > 0
+Rule 22 (If name is provided, it must be a valid string, and not one of the reserved keywords)
+{v_1 : str} |= v_1 ≠ "ii" ∧ v_1 ≠ "ii->i" ∧ v_1 ≠ "i,j->ij" ∧ v_1 ≠ "bij,bjk->bik" ∧ v_1 ≠ "...ij->...ji" ∧ v_1 ≠ "bn,anm,bm->ba" ∧ v_1 ≠ "none" ∧ v_1 ≠ "sum" ∧ v_1 ≠ "max" ∧ v_1 ≠ "min" ∧ v_1 ≠ "prod" ∧ v_1 ≠ "relu" ∧ v_1 ≠ "tanh" ∧ v_1 ≠ "sigmoid" ∧ v_1 ≠ "softmax" ∧ v_1 ≠ "elu" ∧ v_1 ≠ "selu" ∧ v_1 ≠ "gelu" ∧ v_1 ≠ "swish" ∧ v_1 ≠ "softplus" ∧ v_1 ≠ "linear" ∧ v_1 ≠ "valid" ∧ v_1 ≠ "same" ∧ v_1 ≠ "causal" ∧ v_1 ≠ "channels_last" ∧ v_1 ≠ "channels_first"
 >>
-Rule 19 (For complex tensors, the absolute value of both real and imaginary parts should be less than a certain threshold)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then max(v_1) < 1000000
+Rule 23 (x must be a bfloat16, half, float32, float64, complex64, or complex128, and have at least one dimension)
+{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ ndim(v_1) ≥ 0
 >>
-Rule 20 (Check for NaN values in float or complex tensors)
-{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) = min(v_1)
+Rule 24 (x must be a bfloat16, half, float32, float64, complex64, or complex128)
+{v_1 : tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)
+>>
+Rule 27 (x must be a bfloat16, half, float32, float64, complex64, or complex128 and all dimensions should be greater than 0)
+{v_1 : tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 35 (If name is provided, it must be a valid string or an empty string)
+{v_1 : str} |= v_1 = "" ∨ (v_1 ≠ "ii" ∧ v_1 ≠ "ii->i" ∧ v_1 ≠ "i,j->ij" ∧ v_1 ≠ "bij,bjk->bik" ∧ v_1 ≠ "...ij->...ji" ∧ v_1 ≠ "bn,anm,bm->ba" ∧ v_1 ≠ "none" ∧ v_1 ≠ "sum" ∧ v_1 ≠ "max" ∧ v_1 ≠ "min" ∧ v_1 ≠ "prod" ∧ v_1 ≠ "relu" ∧ v_1 ≠ "tanh" ∧ v_1 ≠ "sigmoid" ∧ v_1 ≠ "softmax" ∧ v_1 ≠ "elu" ∧ v_1 ≠ "selu" ∧ v_1 ≠ "gelu" ∧ v_1 ≠ "swish" ∧ v_1 ≠ "softplus" ∧ v_1 ≠ "linear" ∧ v_1 ≠ "valid" ∧ v_1 ≠ "same" ∧ v_1 ≠ "causal" ∧ v_1 ≠ "channels_last" ∧ v_1 ≠ "channels_first")
+>>
+Rule 38 (x must be a bfloat16, half, float32, float64, complex64, or complex128 and must not be empty)
+{v_1 : tensor} |= ((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 40 (The dimensions of x should not exceed 8)
+{v_1 : tensor} |= ndim(v_1) ≤ 8
+>>
+Rule 41 (x must be a bfloat16, half, float32, float64, complex64, or complex128, and not have dimensions exceeding 8)
+{v_1 : tensor} |= ((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)) ∧ (ndim(v_1) ≤ 8)
+>>
+Rule 47 (The output tensor should have the same dtype as the input tensor.)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 57 (If name is specified, check if its length is less than 256)
+{v_1 : str} |= v_1.len < 256
+>>
+Rule 61 (If a name is provided, check that is not none or an empty string)
+{v_1 : str} |= v_1 ≠ "none" ∧ v_1 ≠ ""
+>>
+Rule 63 (x should be a non-empty tensor.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 65 (If name parameter is present, its length should not exceed 255 characters)
+{v_1 : str} |= v_1.len ≤ 255
+>>
+Rule 67 (If name is present and is not none then it should be a valid string)
+{v_1 : str} |= if v_1 = "none" then true else v_1 ≠ "ii" ∧ v_1 ≠ "ii->i" ∧ v_1 ≠ "i,j->ij" ∧ v_1 ≠ "bij,bjk->bik" ∧ v_1 ≠ "...ij->...ji" ∧ v_1 ≠ "bn,anm,bm->ba" ∧ v_1 ≠ "sum" ∧ v_1 ≠ "max" ∧ v_1 ≠ "min" ∧ v_1 ≠ "prod" ∧ v_1 ≠ "relu" ∧ v_1 ≠ "tanh" ∧ v_1 ≠ "sigmoid" ∧ v_1 ≠ "softmax" ∧ v_1 ≠ "elu" ∧ v_1 ≠ "selu" ∧ v_1 ≠ "gelu" ∧ v_1 ≠ "swish" ∧ v_1 ≠ "softplus" ∧ v_1 ≠ "linear" ∧ v_1 ≠ "valid" ∧ v_1 ≠ "same" ∧ v_1 ≠ "causal" ∧ v_1 ≠ "channels_last" ∧ v_1 ≠ "channels_first"
+>>
+Rule 69 (If a name is provided, check if it's a valid string)
+{v_1 : str} |= (v_1 = "") ∨ (v_1 ≠ "ii" ∧ v_1 ≠ "ii->i" ∧ v_1 ≠ "i,j->ij" ∧ v_1 ≠ "bij,bjk->bik" ∧ v_1 ≠ "...ij->...ji" ∧ v_1 ≠ "bn,anm,bm->ba" ∧ v_1 ≠ "none" ∧ v_1 ≠ "sum" ∧ v_1 ≠ "max" ∧ v_1 ≠ "min" ∧ v_1 ≠ "prod" ∧ v_1 ≠ "relu" ∧ v_1 ≠ "tanh" ∧ v_1 ≠ "sigmoid" ∧ v_1 ≠ "softmax" ∧ v_1 ≠ "elu" ∧ v_1 ≠ "selu" ∧ v_1 ≠ "gelu" ∧ v_1 ≠ "swish" ∧ v_1 ≠ "softplus" ∧ v_1 ≠ "linear" ∧ v_1 ≠ "valid" ∧ v_1 ≠ "same" ∧ v_1 ≠ "causal" ∧ v_1 ≠ "channels_last" ∧ v_1 ≠ "channels_first")
+>>
+Rule 71 (Check that the name does not start with a digit)
+{v_1 : str} |= ∃i ∈ [0, 9] : v_1 ≠  i
+>>
+Rule 75 (If the input tensor is complex, then the imaginary part must be zero.)
+{v_1 : tensor} |= if (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
+>>
+Rule 79 (The number of elements in the tensor must be less than 2^32)
+{v_1 : tensor} |= (shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) * shape(v_1, 5) * shape(v_1, 6) * shape(v_1, 7) < 4294967296)
+>>
+Rule 81 (Check if it is a valid scalar tensor or not)
+{v_1 : tensor} |= ndim(v_1) = 0 ∨ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0

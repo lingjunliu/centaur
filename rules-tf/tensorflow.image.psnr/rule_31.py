@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if data in tensors are between 0 and 255, and max_val is not provided, the datatype can be int8 to uint8 (Rule 31)
+# input tensors must have the same number of dimensions (Rule 31)
 
 rule_31 = lambda s, v, n=False: (
-    s.add(Not(If((And(And(And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 255), Select(v["arg2_range"], 0) >= 0), Select(v["arg2_range"], 1) <= 255)), And((Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6)), (Or(Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5), v["arg2_dtype"] == 6))), False)) if n else
-          If((And(And(And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 255), Select(v["arg2_range"], 0) >= 0), Select(v["arg2_range"], 1) <= 255)), And((Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6)), (Or(Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5), v["arg2_dtype"] == 6))), False))
+    s.add(Not(v["arg1_ndim"] == v["arg2_ndim"]) if n else
+          v["arg1_ndim"] == v["arg2_ndim"])
 )
 
 def rule_31_func(arg1, arg2, solver=None, neg=False):
@@ -25,23 +25,17 @@ def rule_31_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_dtype = Int('arg2_dtype')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg2_ndim = Int('arg2_ndim')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 31
-        rule_31(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype, 'arg2_range': arg2_range, 'arg2_dtype': arg2_dtype})
+        rule_31(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_31(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype'], 'arg2_range': arg2['range'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_31(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)

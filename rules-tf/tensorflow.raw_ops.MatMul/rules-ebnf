@@ -1,15 +1,21 @@
 >>
-Rule 2 (a and b must be two-dimensional matrices if transpose_a and transpose_b are false)
-{a : tensor, b : tensor, transpose_a : bool, transpose_b : bool} |= if transpose_a = false ∧ transpose_b = false then ndim(a) = 2 ∧ ndim(b) = 2
+Rule 1 (Input tensors 'a' and 'b' must have the same dtype)
+{a : tensor, b : tensor} |= dtype_(a) = dtype_(b)
 >>
-Rule 3 (Inner dimension of 'a' must match the outer dimension of 'b' after transpose, if transpose_a and transpose_b are booleans.)
-{a : tensor, b : tensor, transpose_a : bool, transpose_b : bool} |= if transpose_a = false ∧ transpose_b = false then shape(a, 1) = shape(b, 0) else if transpose_a = true ∧ transpose_b = false then shape(a, 0) = shape(b, 0) else if transpose_a = false ∧ transpose_b = true then shape(a, 1) = shape(b, 1) else shape(a, 0) = shape(b, 1)
+Rule 2 (Input tensor 'a' must have a supported dtype)
+{a : tensor} |= dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 4 ∨ dtype_(a) = 5 ∨ dtype_(a) = 9 ∨ dtype_(a) = 10 ∨ dtype_(a) = 11 ∨ dtype_(a) = 12 ∨ dtype_(a) = 13
 >>
-Rule 5 (transpose_a must be a boolean)
+Rule 3 (Input tensors 'a' and 'b' must be two-dimensional matrices)
+{a : tensor, b : tensor} |= ndim(a) = 2 ∧ ndim(b) = 2
+>>
+Rule 4 (transpose_a must be a boolean)
 {transpose_a : bool} |= transpose_a = true ∨ transpose_a = false
 >>
-Rule 6 (transpose_b must be a boolean)
+Rule 5 (transpose_b must be a boolean)
 {transpose_b : bool} |= transpose_b = true ∨ transpose_b = false
+>>
+Rule 6 (The inner dimension of 'a' must match the outer dimension of 'b' after transposition)
+{a : tensor, b : tensor, transpose_a : bool, transpose_b : bool} |= if transpose_a then (if transpose_b then shape(a, 0) = shape(b, 0) else shape(a, 0) = shape(b, 1)) else (if transpose_b then shape(a, 1) = shape(b, 0) else shape(a, 1) = shape(b, 1))
 >>
 Rule 7 (grad_a must be a boolean)
 {grad_a : bool} |= grad_a = true ∨ grad_a = false
@@ -17,188 +23,50 @@ Rule 7 (grad_a must be a boolean)
 Rule 8 (grad_b must be a boolean)
 {grad_b : bool} |= grad_b = true ∨ grad_b = false
 >>
-Rule 9 (ndim of a and b should be greater than or equal to 1)
-{a : tensor, b : tensor} |= ndim(a) ≥ 1 ∧ ndim(b) ≥ 1
+Rule 12 (a must have a valid dtype from the allowed list)
+{a : tensor} |= dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 4 ∨ dtype_(a) = 5 ∨ dtype_(a) = 9 ∨ dtype_(a) = 10
 >>
-Rule 10 (If transpose_a is true, a must be at least a 2D tensor)
-{a : tensor, transpose_a : bool} |= if transpose_a = true then ndim(a) ≥ 2
+Rule 16 (If transpose_a is true, the first dimension of 'a' must match the second dimension of 'b' when transpose_b is true)
+{a : tensor, b : tensor, transpose_a : bool, transpose_b : bool} |= if transpose_a ∧ transpose_b then shape(a, 0) = shape(b, 1)
 >>
-Rule 11 (If transpose_b is true, b must be at least a 2D tensor)
-{b : tensor, transpose_b : bool} |= if transpose_b = true then ndim(b) ≥ 2
+Rule 22 (If transpose_a is false and transpose_b is false, the second dimension of 'a' must equal the first dimension of 'b')
+{a : tensor, b : tensor, transpose_a : bool, transpose_b : bool} |= if transpose_a = false ∧ transpose_b = false then shape(a, 1) = shape(b, 0)
 >>
-Rule 12 (a and b must have the same type)
-{a : tensor, b : tensor} |= dtype_(a) = dtype_(b)
+Rule 23 (If transpose_a is false and transpose_b is true, the second dimension of 'a' must equal the second dimension of 'b')
+{a : tensor, b : tensor, transpose_a : bool, transpose_b : bool} |= if transpose_a = false ∧ transpose_b = true then shape(a, 1) = shape(b, 1)
 >>
-Rule 15 (a's dtype must be in allowed dtypes)
-{a : tensor} |= dtype_(a) = 0 ∨ dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 3 ∨ dtype_(a) = 4 ∨ dtype_(a) = 5
+Rule 24 (If transpose_a is true and transpose_b is false, the first dimension of 'a' must equal the first dimension of 'b')
+{a : tensor, b : tensor, transpose_a : bool, transpose_b : bool} |= if transpose_a = true ∧ transpose_b = false then shape(a, 0) = shape(b, 0)
 >>
-Rule 24 (Shape of a must be positive)
-{a: tensor} |= ∀i ∈ [0, ndim(a) - 1] : shape(a, i) > 0
+Rule 25 (If transpose_a is true and transpose_b is true, the first dimension of 'a' must equal the second dimension of 'b')
+{a : tensor, b : tensor, transpose_a : bool, transpose_b : bool} |= if transpose_a = true ∧ transpose_b = true then shape(a, 0) = shape(b, 1)
 >>
-Rule 25 (Shape of b must be positive)
-{b: tensor} |= ∀i ∈ [0, ndim(b) - 1] : shape(b, i) > 0
+Rule 26 (Input tensors must be rank 2.)
+{a: tensor, b: tensor} |= ndim(a) = 2 ∧ ndim(b) = 2
 >>
-Rule 26 (If transpose_a is true, the rank of a cannot be zero)
-{a : tensor, transpose_a : bool} |= if transpose_a = true then ndim(a) > 0
+Rule 36 (dtype of 'a' and 'b' must be the same and one of the allowed types)
+{a : tensor, b : tensor} |= dtype_(a) = dtype_(b) ∧ (dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 4 ∨ dtype_(a) = 5 ∨ dtype_(a) = 9 ∨ dtype_(a) = 10 ∨ dtype_(a) = 11 ∨ dtype_(a) = 12 ∨ dtype_(a) = 13)
 >>
-Rule 27 (If transpose_b is true, the rank of b cannot be zero)
-{b : tensor, transpose_b : bool} |= if transpose_b = true then ndim(b) > 0
+Rule 41 (Shape matching considering transpose_a and transpose_b)
+{a : tensor, b : tensor, transpose_a : bool, transpose_b : bool} |= (transpose_a = false ∧ transpose_b = false ∧ shape(a, 1) = shape(b, 0)) ∨ (transpose_a = false ∧ transpose_b = true ∧ shape(a, 1) = shape(b, 1)) ∨ (transpose_a = true ∧ transpose_b = false ∧ shape(a, 0) = shape(b, 0)) ∨ (transpose_a = true ∧ transpose_b = true ∧ shape(a, 0) = shape(b, 1))
 >>
-Rule 30 (a and b must have compatible data types)
-{a : tensor, b : tensor} |= (dtype_(a) = 0 ∧ dtype_(b) = 0) ∨ (dtype_(a) = 6 ∧ dtype_(b) = 6) ∨ (dtype_(a) = 7 ∧ dtype_(b) = 7) ∨ (dtype_(a) = 8 ∧ dtype_(b) = 8) ∨ (dtype_(a) = 3 ∧ dtype_(b) = 3) ∨ (dtype_(a) = 4 ∧ dtype_(b) = 4) ∨ (dtype_(a) = 5 ∧ dtype_(b) = 5)
+Rule 48 (Shape requirements of a and b)
+{a : tensor, b : tensor, transpose_a : bool, transpose_b : bool} |= ndim(a) = 2 ∧ ndim(b) = 2 ∧ dtype_(a) = dtype_(b) ∧ (dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 4 ∨ dtype_(a) = 5 ∨ dtype_(a) = 9 ∨ dtype_(a) = 10 ∨ dtype_(a) = 11 ∨ dtype_(a) = 12 ∨ dtype_(a) = 13) ∧ ((transpose_a = false ∧ transpose_b = false ∧ shape(a, 1) = shape(b, 0)) ∨ (transpose_a = false ∧ transpose_b = true ∧ shape(a, 1) = shape(b, 1)) ∨ (transpose_a = true ∧ transpose_b = false ∧ shape(a, 0) = shape(b, 0)) ∨ (transpose_a = true ∧ transpose_b = true ∧ shape(a, 0) = shape(b, 1)))
 >>
-Rule 31 (If ndim(a) == 1 and ndim(b) == 1, MatMul corresponds to dot product, the size must match)
-{a : tensor, b : tensor} |= if ndim(a) = 1 ∧ ndim(b) = 1 then shape(a, 0) = shape(b, 0)
+Rule 49 (Tensors a and b must satisfy shape and dtype constraints)
+{a : tensor, b : tensor, transpose_a : bool, transpose_b : bool} |= ndim(a) = 2 ∧ ndim(b) = 2 ∧ dtype_(a) = dtype_(b) ∧ (dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 4 ∨ dtype_(a) = 5 ∨ dtype_(a) = 9 ∨ dtype_(a) = 10 ∨ dtype_(a) = 11 ∨ dtype_(a) = 12 ∨ dtype_(a) = 13) ∧ ((transpose_a = false ∧ transpose_b = false ∧ shape(a, 1) = shape(b, 0)) ∨ (transpose_a = false ∧ transpose_b = true ∧ shape(a, 1) = shape(b, 1)) ∨ (transpose_a = true ∧ transpose_b = false ∧ shape(a, 0) = shape(b, 0)) ∨ (transpose_a = true ∧ transpose_b = true ∧ shape(a, 0) = shape(b, 1))) ∧ (transpose_a = true ∨ transpose_a = false) ∧ (transpose_b = true ∨ transpose_b = false)
 >>
-Rule 33 (If transpose_a is false and transpose_b is false and ndim(a) == 2 and ndim(b) ==2, last dim of a must match first dim of b.)
-{a : tensor, b : tensor, transpose_a: bool, transpose_b: bool} |= if transpose_a = false ∧ transpose_b = false ∧ ndim(a) = 2 ∧ ndim(b) = 2 then shape(a, 1) = shape(b, 0)
+Rule 50 (Shape and dtype requirements for MatMul inputs)
+{a : tensor, b : tensor, transpose_a : bool, transpose_b : bool, grad_a : bool, grad_b : bool} |= ndim(a) = 2 ∧ ndim(b) = 2 ∧ dtype_(a) = dtype_(b) ∧ (dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 4 ∨ dtype_(a) = 5 ∨ dtype_(a) = 9 ∨ dtype_(a) = 10 ∨ dtype_(a) = 11 ∨ dtype_(a) = 12 ∨ dtype_(a) = 13) ∧ ((transpose_a = false ∧ transpose_b = false ∧ shape(a, 1) = shape(b, 0)) ∨ (transpose_a = false ∧ transpose_b = true ∧ shape(a, 1) = shape(b, 1)) ∨ (transpose_a = true ∧ transpose_b = false ∧ shape(a, 0) = shape(b, 0)) ∨ (transpose_a = true ∧ transpose_b = true ∧ shape(a, 0) = shape(b, 1))) ∧ (grad_a = true ∨ grad_a = false) ∧ (grad_b = true ∨ grad_b = false)
 >>
-Rule 34 (If transpose_a is false and transpose_b is false, ndim(a) and ndim(b) must both be greater than 0, if ndim(a) and ndim(b) are at least 2, then last dimension of a must be consistent with first dimension of b.)
-{a : tensor, b : tensor, transpose_a: bool, transpose_b: bool} |= if transpose_a = false ∧ transpose_b = false then ndim(a) > 0 ∧ ndim(b) > 0 ∧ (if ndim(a) ≥ 2 ∧ ndim(b) ≥ 2 then shape(a, ndim(a) - 1) = shape(b, 0))
->>
-Rule 35 (transpose_a and transpose_b can not be both true if a and b are vectors)
-{a : tensor, b : tensor, transpose_a: bool, transpose_b: bool} |= if transpose_a = true ∧ transpose_b = true then ndim(a) > 1 ∨ ndim(b) > 1
->>
-Rule 36 (If transpose_a is true and transpose_b is false and ndim(a) == 2 and ndim(b) ==2, first dim of a must match first dim of b.)
-{a : tensor, b : tensor, transpose_a: bool, transpose_b: bool} |= if transpose_a = true ∧ transpose_b = false ∧ ndim(a) = 2 ∧ ndim(b) = 2 then shape(a, 0) = shape(b, 0)
->>
-Rule 37 (If transpose_a is false and transpose_b is true and ndim(a) == 2 and ndim(b) ==2, last dim of a must match last dim of b.)
-{a : tensor, b : tensor, transpose_a: bool, transpose_b: bool} |= if transpose_a = false ∧ transpose_b = true ∧ ndim(a) = 2 ∧ ndim(b) = 2 then shape(a, 1) = shape(b, 1)
->>
-Rule 38 (If transpose_a is true and transpose_b is true and ndim(a) == 2 and ndim(b) ==2, first dim of a must match last dim of b.)
-{a : tensor, b : tensor, transpose_a: bool, transpose_b: bool} |= if transpose_a = true ∧ transpose_b = true ∧ ndim(a) = 2 ∧ ndim(b) = 2 then shape(a, 0) = shape(b, 1)
->>
-Rule 39 (if a or b is a scalar, then the other must be a matrix or vector.)
-{a : tensor, b : tensor} |= (ndim(a) = 0 ∧ (ndim(b) = 1 ∨ ndim(b) = 2)) ∨ (ndim(b) = 0 ∧ (ndim(a) = 1 ∨ ndim(a) = 2)) ∨ (ndim(a) > 0 ∧ ndim(b) > 0)
->>
-Rule 41 (Data type of input tensors must be valid)
-{a: tensor} |= dtype_(a) = 1 ∨ dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 3 ∨ dtype_(a) = 4 ∨ dtype_(a) = 5 ∨ dtype_(a) = 9 ∨ dtype_(a) = 10
->>
-Rule 42 (If ndim(a) = 1 and ndim(b) > 1, last dim of b must match first and only dim of a.)
-{a: tensor, b: tensor} |= if ndim(a) = 1 ∧ ndim(b) > 1 then shape(a,0) = shape(b, ndim(b) - 1)
->>
-Rule 43 (If ndim(b) = 1 and ndim(a) > 1, first dim of b must match last dim of a.)
-{a: tensor, b: tensor} |= if ndim(b) = 1 ∧ ndim(a) > 1 then shape(b,0) = shape(a, ndim(a) - 1)
->>
-Rule 45 (if transpose_a = true or transpose_b = true, then ndim(a) must be positive and ndim(b) must be positive.)
-{a : tensor, b : tensor, transpose_a: bool, transpose_b: bool} |= if transpose_a = true ∨ transpose_b = true then ndim(a) > 0 ∧ ndim(b) > 0
->>
-Rule 49 (if transpose_a = true, then ndim(a) must be at least 2)
-{a : tensor, transpose_a: bool} |= if transpose_a = true then ndim(a) ≥ 2
->>
-Rule 50 (if transpose_b = true, then ndim(b) must be at least 2)
-{b : tensor, transpose_b: bool} |= if transpose_b = true then ndim(b) ≥ 2
->>
-Rule 51 (if either tensor is transposed, their dtypes must be float16, float32, float64, complex64, or complex128)
-{a : tensor, transpose_a : bool, transpose_b : bool} |= if transpose_a = true ∨ transpose_b = true then dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 9 ∨ dtype_(a) = 10
->>
-Rule 53 (if a and b are matrices, and a is transposed and b is not, then first dim of a = first dim of b.)
-{a: tensor, b: tensor, transpose_a: bool, transpose_b: bool} |= if transpose_a = true ∧ transpose_b = false ∧ ndim(a) = 2 ∧ ndim(b) = 2 then shape(a, 0) = shape(b, 0)
->>
-Rule 54 (If a and b are matrices, and b is transposed and a is not, then last dim of a = last dim of b.)
-{a: tensor, b: tensor, transpose_a: bool, transpose_b: bool} |= if transpose_a = false ∧ transpose_b = true ∧ ndim(a) = 2 ∧ ndim(b) = 2 then shape(a, 1) = shape(b, 1)
->>
-Rule 55 (If a and b are matrices, and both are transposed, then first dim of a = last dim of b.)
-{a: tensor, b: tensor, transpose_a: bool, transpose_b: bool} |= if transpose_a = true ∧ transpose_b = true ∧ ndim(a) = 2 ∧ ndim(b) = 2 then shape(a, 0) = shape(b, 1)
->>
-Rule 56 (If a is a vector and b is a matrix and transpose_b is false, then shape(a,0) = shape(b,0))
-{a: tensor, b: tensor, transpose_b: bool} |= if ndim(a) = 1 ∧ ndim(b) = 2 ∧ transpose_b = false then shape(a, 0) = shape(b, 0)
->>
-Rule 57 (If a is a vector and b is a matrix and transpose_b is true, then shape(a,0) = shape(b,1))
-{a: tensor, b: tensor, transpose_b: bool} |= if ndim(a) = 1 ∧ ndim(b) = 2 ∧ transpose_b = true then shape(a, 0) = shape(b, 1)
->>
-Rule 58 (Check compatible dtypes)
+Rule 55 (a and b must have compatible data types)
 {a: tensor, b: tensor} |= dtype_(a) = dtype_(b)
 >>
-Rule 59 (If a is a matrix and b is a vector, then last dim of a = shape of b.)
-{a: tensor, b: tensor} |= if ndim(a) = 2 ∧ ndim(b) = 1 then shape(a, 1) = shape(b, 0)
+Rule 56 (a and b must have supported data types)
+{a: tensor} |= dtype_(a) = 1 ∨ dtype_(a) = 2 ∨ dtype_(a) = 3 ∨ dtype_(a) = 4 ∨ dtype_(a) = 5 ∨ dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 9 ∨ dtype_(a) = 10 ∨ dtype_(a) = 11 ∨ dtype_(a) = 12 ∨ dtype_(a) = 13
 >>
-Rule 60 (If b is a matrix and a is a vector, then first dim of b = shape of a.)
-{a: tensor, b: tensor} |= if ndim(b) = 2 ∧ ndim(a) = 1 then shape(b, 0) = shape(a, 0)
+Rule 60 (transpose_a and transpose_b are boolean)
+{transpose_a: bool, transpose_b: bool} |= (transpose_a = true ∨ transpose_a = false) ∧ (transpose_b = true ∨ transpose_b = false)
 >>
-Rule 61 (If both matrices are vectors of different lengths then not allowed.)
-{a: tensor, b: tensor} |= if ndim(a) = 1 ∧ ndim(b) = 1 then shape(a, 0) = shape(b, 0)
->>
-Rule 62 (If a and b are matrices and transpose_a is false and transpose_b is false, then shape(a,1) = shape(b,0).)
-{a: tensor, b: tensor, transpose_a: bool, transpose_b: bool} |= if ndim(a) = 2 ∧ ndim(b) = 2 ∧ transpose_a = false ∧ transpose_b = false then shape(a, 1) = shape(b, 0)
->>
-Rule 63 (If a and b are matrices and transpose_a is true and transpose_b is false, then shape(a,0) = shape(b,0).)
-{a: tensor, b: tensor, transpose_a: bool, transpose_b: bool} |= if ndim(a) = 2 ∧ ndim(b) = 2 ∧ transpose_a = true ∧ transpose_b = false then shape(a, 0) = shape(b, 0)
->>
-Rule 64 (If a and b are matrices and transpose_a is false and transpose_b is true, then shape(a,1) = shape(b,1).)
-{a: tensor, b: tensor, transpose_a: bool, transpose_b: bool} |= if ndim(a) = 2 ∧ ndim(b) = 2 ∧ transpose_a = false ∧ transpose_b = true then shape(a, 1) = shape(b, 1)
->>
-Rule 65 (If a and b are matrices and transpose_a is true and transpose_b is true, then shape(a,0) = shape(b,1).)
-{a: tensor, b: tensor, transpose_a: bool, transpose_b: bool} |= if ndim(a) = 2 ∧ ndim(b) = 2 ∧ transpose_a = true ∧ transpose_b = true then shape(a, 0) = shape(b, 1)
->>
-Rule 66 (A and B must have the same dtype if neither is transposed)
-{a: tensor, b: tensor, transpose_a : bool, transpose_b: bool} |= if transpose_a = false ∧ transpose_b = false then dtype_(a) = dtype_(b)
->>
-Rule 67 (A and B must have dimensions >= 1)
-{a: tensor, b: tensor} |= ndim(a) ≥ 1 ∧ ndim(b) ≥ 1
->>
-Rule 68 (If A is vector, the B must be one or two dimensional.)
-{a: tensor, b: tensor} |= if ndim(a) = 1 then ndim(b) = 1 ∨ ndim(b) = 2
->>
-Rule 69 (if A is matrix, the B cannot be scalar.)
-{a: tensor, b: tensor} |= if ndim(a) = 2 then ndim(b) ≠ 0
->>
-Rule 70 (if B is matrix, the A cannot be scalar.)
-{a: tensor, b: tensor} |= if ndim(b) = 2 then ndim(a) ≠ 0
->>
-Rule 71 (if B is a matrix, the first and second to last dimension sizes must be >0)
-{b: tensor} |= if ndim(b) = 2 then shape(b, 0) > 0 ∧ shape(b, 1) > 0
->>
-Rule 72 (if A is a matrix, the first and second to last dimension sizes must be >0)
-{a: tensor} |= if ndim(a) = 2 then shape(a, 0) > 0 ∧ shape(a, 1) > 0
->>
-Rule 77 (If A or B is a complex type, then the other must also be a complex type)
-{a: tensor, b: tensor} |= if dtype_(a) = 9 ∨ dtype_(a) = 10 then dtype_(b) = 9 ∨ dtype_(b) = 10 else if dtype_(b) = 9 ∨ dtype_(b) = 10 then dtype_(a) = 9 ∨ dtype_(a) = 10
->>
-Rule 78 (if a is not transposed, the dtype must be one of the required)
-{a: tensor, transpose_a : bool} |= if transpose_a = false then dtype_(a) = 1 ∨ dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 3 ∨ dtype_(a) = 4 ∨ dtype_(a) = 5 ∨ dtype_(a) = 9 ∨ dtype_(a) = 10
->>
-Rule 82 (If b is not transposed, the dtype must be one of the required)
-{b: tensor, transpose_b : bool} |= if transpose_b = false then dtype_(b) = 1 ∨ dtype_(b) = 6 ∨ dtype_(b) = 7 ∨ dtype_(b) = 8 ∨ dtype_(b) = 3 ∨ dtype_(b) = 4 ∨ dtype_(b) = 5 ∨ dtype_(b) = 9 ∨ dtype_(b) = 10
->>
-Rule 83 (if A or B is a transposed, and they have a numeric type, it must be a float or a complex)
-{a: tensor, b: tensor, transpose_a: bool, transpose_b: bool} |= if (transpose_a = true ∨ transpose_b = true) ∧ (dtype_(a) < 9 ∧ dtype_(b) < 9) then (dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8) ∧ (dtype_(b) = 6 ∨ dtype_(b) = 7 ∨ dtype_(b) = 8)
->>
-Rule 86 (If either matrix is transposed then their dtypes must be either float, half or complex.)
-{a: tensor, b: tensor, transpose_a: bool, transpose_b: bool} |= if transpose_a = true ∨ transpose_b = true then dtype_(a) = 1 ∨ dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 9 ∨ dtype_(a) = 10
->>
-Rule 87 (If either is transposed the other must be at least a vector.)
-{a: tensor, b: tensor, transpose_a: bool, transpose_b: bool} |= if (transpose_a = true ∨ transpose_b = true) then ndim(a) ≥ 1 ∧ ndim(b) ≥ 1
->>
-Rule 89 (If a is transposed, and it is a float or half tensor then b can be int, otherwise, b can not be an integer if a is transposed)
-{a: tensor, b: tensor, transpose_a: bool} |= if transpose_a = true ∧ (dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8) then true else if transpose_a = true ∧ (dtype_(a) = 9 ∨ dtype_(a) = 10) then true else if transpose_a = true then dtype_(b) > 5
->>
-Rule 90 (If b is transposed, and it is a float or half tensor then a can be int, otherwise, a can not be an integer if a is transposed)
-{a: tensor, b: tensor, transpose_b: bool} |= if transpose_b = true ∧ (dtype_(b) = 6 ∨ dtype_(b) = 7 ∨ dtype_(b) = 8) then true else if transpose_b = true ∧ (dtype_(b) = 9 ∨ dtype_(b) = 10) then true else if transpose_b = true then dtype_(a) > 5
->>
-Rule 98 (The number of dimensions must be less than or equal to 2.)
-{a : tensor, b : tensor} |= ndim(a) ≤ 2 ∧ ndim(b) ≤ 2
->>
-Rule 102 (if A and B are matrices and transpose_a is false and transpose_b is false, then the inner dimension shape must be equal )
-{a : tensor, b : tensor, transpose_a: bool, transpose_b: bool} |= if (ndim(a) = 2) ∧ (ndim(b) = 2) ∧ (transpose_a = false) ∧ (transpose_b = false) then shape(a, 1) = shape(b, 0)
->>
-Rule 104 (If a is transposed, and it is a float or half tensor then b can be any numerical dtype, otherwise, b can not be an integer if a is transposed)
-{a: tensor, b: tensor, transpose_a: bool} |= if transpose_a = true ∧ (dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 9 ∨ dtype_(a) = 10) then true else if transpose_a = true then dtype_(b) > 5
->>
-Rule 105 (If b is transposed, and it is a float or half tensor then a can be any numerical dtype, otherwise, a can not be an integer if b is transposed)
-{a: tensor, b: tensor, transpose_b: bool} |= if transpose_b = true ∧ (dtype_(b) = 6 ∨ dtype_(b) = 7 ∨ dtype_(b) = 8 ∨ dtype_(b) = 9 ∨ dtype_(b) = 10) then true else if transpose_b = true then dtype_(a) > 5
->>
-Rule 107 (the dtypes must be the same if neither is transposed and both have same dimensionality)
-{a : tensor, b : tensor, transpose_a: bool, transpose_b: bool} |= if (transpose_a = false) ∧ (transpose_b = false) ∧ (ndim(a) = ndim(b)) then dtype_(a) = dtype_(b)
->>
-Rule 108 (If either matrix is transposed, then A and B cannot both have integer dtypes.)
-{a: tensor, b: tensor, transpose_a: bool, transpose_b: bool} |= if (transpose_a = true ∨ transpose_b = true) then (dtype_(a) < 6 ∨ dtype_(b) < 6)
->>
-Rule 109 (If a is transposed, and it is a float or complex tensor then b can be any numerical dtype, otherwise, b must be a float or complex tensor too if a is transposed)
-{a: tensor, b: tensor, transpose_a: bool} |= if transpose_a = true ∧ (dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 9 ∨ dtype_(a) = 10) then true else if transpose_a = true then dtype_(b) = 6 ∨ dtype_(b) = 7 ∨ dtype_(b) = 8 ∨ dtype_(b) = 9 ∨ dtype_(b) = 10
->>
-Rule 110 (If b is transposed, and it is a float or complex tensor then a can be any numerical dtype, otherwise, a must be a float or complex tensor too if b is transposed)
-{a: tensor, b: tensor, transpose_b: bool} |= if transpose_b = true ∧ (dtype_(b) = 6 ∨ dtype_(b) = 7 ∨ dtype_(b) = 8 ∨ dtype_(b) = 9 ∨ dtype_(b) = 10) then true else if transpose_b = true then dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 9 ∨ dtype_(a) = 10
->>
-Rule 111 (If either matrix is transposed then their dtypes must be either float or complex.)
-{a: tensor, b: tensor, transpose_a: bool, transpose_b: bool} |= if transpose_a = true ∨ transpose_b = true then dtype_(a) = 1 ∨ dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 9 ∨ dtype_(a) = 10 ∨ dtype_(b) = 1 ∨ dtype_(b) = 6 ∨ dtype_(b) = 7 ∨ dtype_(b) = 8 ∨ dtype_(b) = 9 ∨ dtype_(b) = 10
+Rule 61 (grad_a and grad_b are boolean)
+{grad_a: bool, grad_b: bool} |= (grad_a = true ∨ grad_a = false) ∧ (grad_b = true ∨ grad_b = false)

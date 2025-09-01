@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check if min value is bigger than max (Rule 94)
+# Ultimate limit, trying to find the sweet spot (Rule 94)
 
 rule_94 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) > Select(v["arg1_range"], 1)) if n else
-          Select(v["arg1_range"], 0) > Select(v["arg1_range"], 1))
+    s.add(Not(v["arg1_value"] < 35000) if n else
+          v["arg1_value"] < 35000)
 )
 
 def rule_94_func(arg1, solver=None, neg=False):
@@ -17,21 +17,20 @@ def rule_94_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 94
-        rule_94(solver, {'arg1_range': arg1_range})
+        rule_94(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_94(solver, {'arg1_range': arg1['range']}, neg)
+        rule_94(solver, {'arg1_value': arg1['value']}, neg)

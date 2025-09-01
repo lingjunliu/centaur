@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# iou_threshold must be a float between 0 and 1 inclusive (Rule 37)
+# iou_threshold must be less than or equal to 1.0 (Rule 37)
 
 rule_37 = lambda s, v, n=False: (
-    s.add(Not(And(0.0 <= v["arg1_value"], v["arg1_value"] <= 1.0)) if n else
-          And(0.0 <= v["arg1_value"], v["arg1_value"] <= 1.0))
+    s.add(Not(v["arg1_value"] <= 1.0) if n else
+          v["arg1_value"] <= 1.0)
 )
 
 def rule_37_func(arg1, solver=None, neg=False):

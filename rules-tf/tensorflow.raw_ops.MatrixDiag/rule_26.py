@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If diagonal has 2 dimensions and its shape is [M, N], then M and N should be less than or equal to 4096 (Rule 26)
+# diagonal's shape[ndim-1] must be greater than zero (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 2, And(Select(v["arg1_shape"], 0) <= 4096, Select(v["arg1_shape"], 1) <= 4096), False)) if n else
-          If(v["arg1_ndim"] == 2, And(Select(v["arg1_shape"], 0) <= 4096, Select(v["arg1_shape"], 1) <= 4096), False))
+    s.add(Not(If(v["arg1_ndim"] > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0, True)) if n else
+          If(v["arg1_ndim"] > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0, True))
 )
 
 def rule_26_func(arg1, solver=None, neg=False):

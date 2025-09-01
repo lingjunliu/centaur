@@ -1,87 +1,99 @@
 >>
-Rule 1 (Input tensor's elements should be within the domain of arctanh, i.e., [-1, 1])
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≥ -1 ∧ v_1[j] ≤ 1
+Rule 1 (tensor must have a floating-point or complex dtype: 6–10)
+{v_1: tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10
 >>
-Rule 2 (Check if the input tensor is not empty)
-{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 2 (tensor must have at least one dimension)
+{v_1: tensor} |= ndim(v_1) > 0
 >>
-Rule 3 (Check if the input tensor has a valid data type for arctanh calculation (float or complex))
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 3 (tensor min value should be less than 1)
+{v_1: tensor} |= min(v_1) < 1
 >>
-Rule 4 (Check element-wise condition within a tensor)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : if v_1[j] > 0 then v_1[j] < 1 else v_1[j] > -1
+Rule 4 (tensor max value should be greater than -1)
+{v_1: tensor} |= max(v_1) > -1
 >>
-Rule 5 (Shape equality check between tensor and tuple)
-{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : if v_2[i] > 0 then shape(v_1, i) = v_2[i]
+Rule 7 (check if all elements of tensor are between -1 and 1 for 1D tensor)
+{v_1 : tensor} |= if ndim(v_1) = 1 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ -1 ∧ v_1[i] ≤ 1
 >>
-Rule 6 (Comparison between tensor max value and a floating-point value)
-{v_1 : tensor, v_2 : float} |= max(v_1) < v_2
+Rule 8 (check if all elements of tensor are between -1 and 1 for 2D tensor)
+{v_1 : tensor} |= if ndim(v_1) = 2 then ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [0, shape(v_1, 1) - 1] : v_1[i * shape(v_1, 1) + j] ≥ -1 ∧ v_1[i * shape(v_1, 1) + j] ≤ 1
 >>
-Rule 7 (Comparison between tensor min value and a floating-point value)
-{v_1 : tensor, v_2 : float} |= min(v_1) > v_2
+Rule 10 (check if all elements of tensor are between -1 and 1)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : if ndim(v_1) = 1 then v_1[i] ≥ -1 ∧ v_1[i] ≤ 1 else (∀j ∈ [0, shape(v_1, 1) - 1] : if ndim(v_1) = 2 then v_1[i * shape(v_1, 1) + j] ≥ -1 ∧ v_1[i * shape(v_1, 1) + j] ≤ 1)
 >>
-Rule 9 (Ensure tensor has specific dimensions)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) = v_2
+Rule 11 (tensor's data type must be either float or complex)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 10 (Ensure all elements are non-negative, relevant if taking arctanh of squared values)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≥ 0
+Rule 12 (The absolute value of all elements of the tensor should be less than or equal to 1)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : if ndim(v_1) = 1 then (v_1[i] ≥ -1 ∧ v_1[i] ≤ 1) else (∀j ∈ [0, shape(v_1, 1) - 1] : if ndim(v_1) = 2 then (v_1[i * shape(v_1, 1) + j] ≥ -1 ∧ v_1[i * shape(v_1, 1) + j] ≤ 1))
 >>
-Rule 11 (Check if the input tensor contains NaN values - using alternative formulation)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] = v_1[j]
+Rule 13 (The maximum absolute value of the elements in tensor should be <=1)
+{v_1 : tensor} |= max(v_1) ≤ 1 ∧ min(v_1) ≥ -1
 >>
-Rule 12 (Check that all elements in the tensor are not complex)
-{v_1: tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then false
+Rule 14 (if the input tensor is a scalar, its absolute value must be less than or equal to 1)
+{v_1 : tensor} |= if ndim(v_1) = 0 then (v_1 ≥ -1 ∧ v_1 ≤ 1)
 >>
-Rule 13 (Check that the dtype is float before arctanh)
-{v_1: tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then true else false
+Rule 15 (check if all elements of tensor are between -1 and 1, combined rule for all dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : if ndim(v_1) = 1 then (v_1[i] ≥ -1 ∧ v_1[i] ≤ 1) else (∀j_0 ∈ [0, shape(v_1, 1) - 1] : if ndim(v_1) = 2 then (v_1[i * shape(v_1, 1) + j_0] ≥ -1 ∧ v_1[i * shape(v_1, 1) + j_0] ≤ 1) else (∀j_1 ∈ [0, shape(v_1, 2) - 1]: if ndim(v_1) = 3 then (v_1[i * shape(v_1, 1) * shape(v_1,2) + j_0*shape(v_1,2) + j_1] >= -1 ∧ v_1[i * shape(v_1, 1) * shape(v_1,2) + j_0*shape(v_1,2) + j_1] <= 1)))
 >>
-Rule 14 (If any element is outside the domain, return false - short circuiting behavior)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : (v_1[j] < -1) ∨ (v_1[j] > 1)
+Rule 16 (combined rule for all dimensions using recursion, checking -1 <= x <= 1)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : (if ndim(v_1) = 1 then (v_1[i] ≥ -1 ∧ v_1[i] ≤ 1) else (if ndim(v_1) > 1 then (∀j ∈ [0, shape(v_1, 1)-1] : (v_1[i] >= -1 ∧ v_1[i] <=1))))
 >>
-Rule 15 (Check if the shape of the tensor is a valid input for arctanh, at least 1 dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 17 (Check if the maximum absolute value is less than 1 and datatype is float or complex)
+{v_1: tensor} |= (max(v_1) ≤ 1 ∧ min(v_1) ≥ -1) ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
 >>
-Rule 16 (Check if the tensor is of float16, float32, float64, complex64 or complex128.)
-{v_1 : tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)
+Rule 18 (dtype must be a float or complex type and all elements must be within [-1,1])
+{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : if ndim(v_1) = 1 then (v_1[i] ≥ -1 ∧ v_1[i] ≤ 1) else (∀j_0 ∈ [0, shape(v_1, 1) - 1] : if ndim(v_1) = 2 then (v_1[i * shape(v_1, 1) + j_0] ≥ -1 ∧ v_1[i * shape(v_1, 1) + j_0] ≤ 1)))
 >>
-Rule 17 (Check that the absolute value of each element in the tensor is less than or equal to 1)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : if v_1[j] < 0 then -1 * v_1[j] ≤ 1 else v_1[j] ≤ 1
+Rule 19 (elements of the tensor must be in range (-1,1))
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1,0) - 1] : (if ndim(v_1) = 1 then (v_1[i] > -1 ∧ v_1[i] < 1) else (∀j ∈ [0, shape(v_1,1) - 1] : if ndim(v_1) = 2 then (v_1[i*shape(v_1,1) + j] > -1 ∧ v_1[i*shape(v_1,1) + j] < 1)))
 >>
-Rule 18 (If dtype is complex64/128, check real and imaginary parts are within [-1, 1])
-{v_1 : tensor} |= if (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) then (∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≥ -1 ∧ v_1[j] ≤ 1)
+Rule 20 (The tensor must be non-empty and the absolute value of all elements should be less than 1)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, shape(v_1,0) - 1] : (if ndim(v_1) = 1 then (v_1[i] > -1 ∧ v_1[i] < 1) else (∀j ∈ [0, shape(v_1,1) - 1] : if ndim(v_1) = 2 then (v_1[i*shape(v_1,1) + j] > -1 ∧ v_1[i*shape(v_1,1) + j] < 1))))
 >>
-Rule 19 (Check if all elements in the tensor are real numbers when the dtype is float)
-{v_1 : tensor} |= if (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) then (∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] = v_1[j])
+Rule 21 (If the tensor is non-empty, its dtype must be float or complex and elements must be in (-1, 1))
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ ((dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (∀i ∈ [0, shape(v_1,0) - 1] : (if ndim(v_1) = 1 then (v_1[i] > -1 ∧ v_1[i] < 1) else (∀j ∈ [0, shape(v_1,1) - 1] : if ndim(v_1) = 2 then (v_1[i*shape(v_1,1) + j] > -1 ∧ v_1[i*shape(v_1,1) + j] < 1)))))
 >>
-Rule 21 (Check if the tensor has inf values. arctanh(-1) and arctanh(1) are defined but approach infinity - Alternative expression)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (v_1[j] ≤ 1000000000000.0 ∧ v_1[j] ≥ -1000000000000.0)
+Rule 23 (If the tensor is non-empty, elements must be in (-1, 1) and have a float/complex dtype)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∨ ((dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (∀i ∈ [0, shape(v_1,0) - 1] : (if ndim(v_1) = 1 then (v_1[i] > -1 ∧ v_1[i] < 1) else (∀j ∈ [0, shape(v_1,1) - 1] : if ndim(v_1) = 2 then (v_1[i*shape(v_1,1) + j] > -1 ∧ v_1[i*shape(v_1,1) + j] < 1)))))
 >>
-Rule 22 (If dtype is complex, require both real and imaginary parts to be within [-1,1])
-{v_1 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : (v_1[j] ≥ -1 ∧ v_1[j] ≤ 1)
+Rule 24 (If the tensor is non-empty, elements must be in (-1, 1) exclusive and the dtype should be float/complex)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∨ ((dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 10) ∧ (∀i ∈ [0, shape(v_1,0) - 1] : (if ndim(v_1) = 1 then (-1 < v_1[i] ∧ v_1[i] < 1) else (∀j ∈ [0, shape(v_1,1) - 1] : if ndim(v_1) = 2 then (-1 < v_1[i*shape(v_1,1) + j] ∧ v_1[i*shape(v_1,1) + j] < 1)))))
 >>
-Rule 23 (If the input is empty the condition is trivially satisfied.)
-{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then true else (∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : (v_1[j] ≥ -1 ∧ v_1[j] ≤ 1))
+Rule 25 (For a valid arctanh operation, tensor should be non-empty with dtype as float/complex, and all elements should lie strictly between -1 and 1)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 10) ∧ (∀i ∈ [0, shape(v_1,0) - 1] : (if ndim(v_1) = 1 then (-1 < v_1[i] ∧ v_1[i] < 1) else (∀j ∈ [0, shape(v_1,1) - 1] : if ndim(v_1) = 2 then (-1 < v_1[i*shape(v_1,1) + j] ∧ v_1[i*shape(v_1,1) + j] < 1) else (∀k ∈ [0, shape(v_1,2) - 1] : if ndim(v_1) = 3 then (-1 < v_1[i*shape(v_1,1)*shape(v_1,2) + j*shape(v_1,2) + k] ∧ v_1[i*shape(v_1,1)*shape(v_1,2) + j*shape(v_1,2) + k] < 1)))))
 >>
-Rule 24 (Check if tensor contains only finite values)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : (v_1[j] ≠ 1000000000000.0) ∧ (v_1[j] ≠ -1000000000000.0)
+Rule 26 (For non-empty tensors with dtype as float/complex, all elements must be strictly between -1 and 1, using min/max)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 10) ∧ (min(v_1) > -1 ∧ max(v_1) < 1)
 >>
-Rule 25 (Check the data type)
-{v_1 : tensor} |= if (dtype_(v_1) = 6) then true else if (dtype_(v_1) = 7) then true else if (dtype_(v_1) = 8) then true else if (dtype_(v_1) = 9) then true else if (dtype_(v_1) = 10) then true else false
+Rule 27 (The tensor must be non-empty. All elements must be within the range (-1, 1). The dtype must be a float or complex type)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 10) ∧ (min(v_1) > -1 ∧ max(v_1) < 1)
 >>
-Rule 26 (If data type is complex, both the real and imaginary components must individually fall within the range of -1 to 1)
-{v_1 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : (v_1[j] ≥ -1 ∧ v_1[j] ≤ 1))
+Rule 28 (For non-empty tensors with float/complex dtype, ensure -1 < min(tensor) and max(tensor) < 1)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ ((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)) ∧ (min(v_1) > -1 ∧ max(v_1) < 1)
 >>
-Rule 27 (Ensure all input values are within the open interval (-1, 1) for arctanh to be well-behaved)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : (v_1[j] > -1) ∧ (v_1[j] < 1)
+Rule 29 (Non-empty tensor with float/complex dtype and max absolute value < 1)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 10) ∧ (max(v_1) < 1 ∧ min(v_1) > -1)
 >>
-Rule 28 (The absolute value of all elements must be less than 1.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : if v_1[j] < 0 then -1 * v_1[j] < 1 else v_1[j] < 1
+Rule 30 (The tensor should be non-empty, possess a float/complex dtype, and have its elements strictly bounded by -1 and 1)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10) ∧ (min(v_1) > -1 ∧ max(v_1) < 1)
 >>
-Rule 30 (Alternative formulation - Check for existence of inf)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : (v_1[j] = 1000000000000.0) ∨ (v_1[j] = -1000000000000.0)
+Rule 31 (Non-empty tensor, float/complex dtype, and all elements have absolute value less than 1)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10) ∧ (∀i ∈ [0, shape(v_1,0) - 1] : if ndim(v_1) = 1 then (v_1[i] > -1 ∧ v_1[i] < 1) else (∀j ∈ [0, shape(v_1,1) - 1] : if ndim(v_1) = 2 then (v_1[i*shape(v_1,1) + j] > -1 ∧ v_1[i*shape(v_1,1) + j] < 1)))
 >>
-Rule 32 (Alternative formulation - Check the existence of NaN values)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≠ v_1[j]
+Rule 32 (If the tensor is non-empty, has a float/complex dtype, then -1 < min value <= max value < 1)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10) ∧ (-1 < min(v_1) ∧ min(v_1) ≤ max(v_1) ∧ max(v_1) < 1)
 >>
-Rule 33 (Check that the input is a tensor of floating-point numbers where absolute value is less than 1.)
-{v_1 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : if v_1[j] < 0 then -1 * v_1[j] < 1 else v_1[j] < 1)
+Rule 33 (For arctanh, tensor: non-empty, float/complex dtype, and -1 < min(values) <= max(values) < 1)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ ((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)) ∧ (-1 < min(v_1) ∧ max(v_1) < 1)
+>>
+Rule 35 (Arctanh condition: Non-empty, float/complex, and -1 < all tensor elements < 1)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ ((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)) ∧ (∀i ∈ [0, shape(v_1,0) - 1] : if ndim(v_1) = 1 then (-1 < v_1[i] ∧ v_1[i] < 1) else (∀j ∈ [0, shape(v_1,1) - 1] : if ndim(v_1) = 2 then (-1 < v_1[i*shape(v_1,1) + j] ∧ v_1[i*shape(v_1,1) + j] < 1) else (∀k ∈ [0, shape(v_1,2) - 1] : if ndim(v_1) = 3 then (-1 < v_1[i * shape(v_1,1) * shape(v_1,2) + j * shape(v_1,2) + k] ∧ v_1[i * shape(v_1,1) * shape(v_1,2) + j * shape(v_1,2) + k] < 1))))
+>>
+Rule 36 (Arctanh constraint: The tensor should be non-empty, have elements with absolute values strictly less than 1 and dtype should be float or complex)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10) ∧ (∀i ∈ [0, shape(v_1,0) - 1] : if ndim(v_1) = 1 then (-1 < v_1[i] ∧ v_1[i] < 1) else (∀j ∈ [0, shape(v_1,1) - 1] : if ndim(v_1) = 2 then (-1 < v_1[i*shape(v_1,1) + j] ∧ v_1[i*shape(v_1,1) + j] < 1)))
+>>
+Rule 39 (For non-scalar tensors, float/complex dtype, -1 < min < max < 1; For scalar tensors, -1 < v_1 < 1)
+{v_1 : tensor} |= if ndim(v_1) = 0 then (-1 < v_1 ∧ v_1 < 1) else ((∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ ((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)) ∧ (-1 < min(v_1) ∧ max(v_1) < 1))
+>>
+Rule 40 (Arctanh: If the tensor is scalar, -1 < v_1 < 1. Otherwise, non-empty, dtype is float/complex, and -1 < min < max < 1)
+{v_1 : tensor} |= if ndim(v_1) = 0 then (-1 < v_1 ∧ v_1 < 1) else ((∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ ((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)) ∧ (min(v_1) > -1 ∧ max(v_1) < 1))

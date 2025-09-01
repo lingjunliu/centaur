@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input tensor is complex, its dimension must be greater than 1 (Rule 18)
+# If the input tensor's dtype is complex, ndim must be 1 (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg1_ndim"] > 1, False)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg1_ndim"] > 1, False))
+    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg1_ndim"] == 1, True)) if n else
+          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg1_ndim"] == 1, True))
 )
 
 def rule_18_func(arg1, solver=None, neg=False):
@@ -30,9 +30,9 @@ def rule_18_func(arg1, solver=None, neg=False):
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 18
-        rule_18(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim})
+        rule_18(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_18(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_18(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If number of unique elements is greater than 1000, force out_idx to int64 (Rule 40)
+# out_idx must be int32 or int64 dtype and respects dtype of x (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_range"], 1) > 1000, v["arg2_value"] == 3, False)) if n else
-          If(Select(v["arg1_range"], 1) > 1000, v["arg2_value"] == 3, False))
+    s.add(Not(And((Or(v["arg2_value"] == 3, v["arg2_value"] == 4)), (If(v["arg1_dtype"] == 0, v["arg2_value"] == 3, True)))) if n else
+          And((Or(v["arg2_value"] == 3, v["arg2_value"] == 4)), (If(v["arg1_dtype"] == 0, v["arg2_value"] == 3, True))))
 )
 
 def rule_40_func(arg1, arg2, solver=None, neg=False):
@@ -25,18 +25,17 @@ def rule_40_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
         arg2_value = Int('arg2_value')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
 
         # Constraints for rule 40
-        rule_40(solver, {'arg1_range': arg1_range, 'arg2_value': arg2_value})
+        rule_40(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_40(solver, {'arg1_range': arg1['range'], 'arg2_value': arg2['value']}, neg)
+        rule_40(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

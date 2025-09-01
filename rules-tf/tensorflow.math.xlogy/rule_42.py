@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# xlogy output dtype must match inputs. (Rule 42)
+# All conditions must be met to ensure compatibility: Both tensors must have a floating-point or complex dtype, their dtypes must match, and their shapes must be either identical or broadcastable. Broadcasting mandates that either the dimensions are equal or one is 1, with the lower-dimensional tensor padded with leading 1s (Rule 42)
 
 rule_42 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(Or((And(v["arg1_dtype"] == 6, v["arg2_dtype"] == 6)), (And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7))), (And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8))), (And(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9))), (And(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10)))) if n else
-          Or(Or(Or(Or((And(v["arg1_dtype"] == 6, v["arg2_dtype"] == 6)), (And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7))), (And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8))), (And(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9))), (And(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10))))
+    s.add(Not(And(And(And((Or(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 12)), (Or(Or(Or(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), v["arg2_dtype"] == 12))), (v["arg1_dtype"] == v["arg2_dtype"])), (And(Or((And(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))), (And([Implies(i < (If(v["arg1_ndim"] > v["arg2_ndim"], v["arg1_ndim"], v["arg2_ndim"] - 1) + 1), (If(And(i < v["arg1_ndim"], i < v["arg2_ndim"]), (Or(Or(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), Select(v["arg1_shape"], i) == 1), Select(v["arg2_shape"], i) == 1)), True))) for i in range(6)]))), (If(v["arg1_ndim"] < v["arg2_ndim"], And([Implies(i < (v["arg2_ndim"] - v["arg1_ndim"] - 1 + 1), Select(v["arg2_shape"], i) == 1) for i in range(6)]), If(v["arg2_ndim"] < v["arg1_ndim"], And([Implies(i < (v["arg1_ndim"] - v["arg2_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 1) for i in range(6)]), True))))))) if n else
+          And(And(And((Or(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 12)), (Or(Or(Or(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), v["arg2_dtype"] == 12))), (v["arg1_dtype"] == v["arg2_dtype"])), (And(Or((And(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))), (And([Implies(i < (If(v["arg1_ndim"] > v["arg2_ndim"], v["arg1_ndim"], v["arg2_ndim"] - 1) + 1), (If(And(i < v["arg1_ndim"], i < v["arg2_ndim"]), (Or(Or(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), Select(v["arg1_shape"], i) == 1), Select(v["arg2_shape"], i) == 1)), True))) for i in range(6)]))), (If(v["arg1_ndim"] < v["arg2_ndim"], And([Implies(i < (v["arg2_ndim"] - v["arg1_ndim"] - 1 + 1), Select(v["arg2_shape"], i) == 1) for i in range(6)]), If(v["arg2_ndim"] < v["arg1_ndim"], And([Implies(i < (v["arg1_ndim"] - v["arg2_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 1) for i in range(6)]), True)))))))
 )
 
 def rule_42_func(arg1, arg2, solver=None, neg=False):
@@ -25,17 +25,27 @@ def rule_42_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg1_dtype = Int('arg1_dtype')
+        arg2_ndim = Int('arg2_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
         arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 42
-        rule_42(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_42(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_42(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_42(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']}, neg)

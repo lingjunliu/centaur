@@ -5,16 +5,17 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if transpose_a is true, then a must have at least 2 dimensions (Rule 67)
+# If transpose_b or adjoint_b are specified then b must be rank >=2 (Rule 67)
 
 rule_67 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"], v["arg1_ndim"] >= 2, False)) if n else
-          If(v["arg2_value"], v["arg1_ndim"] >= 2, False))
+    s.add(Not(If(Or(v["arg2_value"], v["arg3_value"]), v["arg1_ndim"] >= 2, True)) if n else
+          If(Or(v["arg2_value"], v["arg3_value"]), v["arg1_ndim"] >= 2, True))
 )
 
-def rule_67_func(arg1, arg2, solver=None, neg=False):
+def rule_67_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
@@ -22,20 +23,24 @@ def rule_67_func(arg1, arg2, solver=None, neg=False):
             return False
         if not isinstance(arg2, bool):
             return False
+        if not isinstance(arg3, bool):
+            return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
         arg2_value = Bool('arg2_value')
+        arg3_value = Bool('arg3_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
         solver.add(arg2_value == arg2)
+        solver.add(arg3_value == arg3)
 
         # Constraints for rule 67
-        rule_67(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_67(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_67(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)
+        rule_67(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)

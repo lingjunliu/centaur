@@ -1,72 +1,303 @@
 >>
-Rule 1 (condition must be a boolean tensor)
-{v_1 : tensor} |= dtype_(v_1) = 0
->>
-Rule 2 (t and e must have the same dtype)
+Rule 1 (t and e tensors should have the same data type)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 3 (t and e must have the same shape)
+Rule 2 (condition tensor must be of boolean type)
+{v_1 : tensor} |= dtype_(v_1) = 0
+>>
+Rule 3 (t and e tensors should have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 4 (condition tensor's shape must match t and e tensors' shapes)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)
+>>
+Rule 5 (condition tensor must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+>>
+Rule 6 (t and e tensors must have at least one dimension)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1
+>>
+Rule 7 (number of dimensions of t and e are equal, and shape is positive)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+>>
+Rule 9 (if shape of condition tensor is empty, then t and e have same shape and dimension)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)
+>>
+Rule 10 (if t is int32, then condition should be bool, and e should be int32)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_2) = 3 then dtype_(v_1) = 0 ∧ dtype_(v_3) = 3
+>>
+Rule 11 (The shapes of t and e are the same if the condition is a scalar)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then shape(v_2, 0) = shape(v_3, 0) ∧ ndim(v_2) = ndim(v_3)
+>>
+Rule 12 (If the condition is a scalar, then t and e must have the same rank and each dimension size greater than 0)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = ndim(v_3) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) ∧ (∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) > 0)
+>>
+Rule 14 (If condition's rank is greater than 0, then its shape should be positive for each dimension)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 15 (Shapes of t and e must be identical elementwise)
 {v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 6 (condition tensor's ndim must be equal to t's ndim)
+Rule 16 (If the condition is not a scalar, its shape must be broadcastable to that of t)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ 0 then  ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) -1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)
+>>
+Rule 17 (if t has a certain data type, then condition must be bool and e must have that same data type)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_2) = 7 then dtype_(v_1) = 0 ∧ dtype_(v_3) = 7
+>>
+Rule 19 (If condition is scalar, t and e must have same number of dimensions)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = ndim(v_3)
+>>
+Rule 20 (if shape of the condition is 1, all other shapes must be 1)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) > 0) ∧ (shape(v_1, 0) = 1) then (ndim(v_2) > 0) ∧ (shape(v_2, 0) = 1) ∧ (ndim(v_3) > 0) ∧ (shape(v_3, 0) = 1)
+>>
+Rule 21 (If condition is scalar, t and e must have same shape)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)
+>>
+Rule 22 (If t is int64, then condition should be bool, and e should be int64)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_2) = 4 then dtype_(v_1) = 0 ∧ dtype_(v_3) = 4
+>>
+Rule 23 (if t has 3 dimensions, then condition and e must have 3 dimensions)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 3 then ndim(v_1) = 3 ∧ ndim(v_3) = 3
+>>
+Rule 24 (at least one of the tensors must have more than zero dimensions)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) > 0 ∨ ndim(v_2) > 0 ∨ ndim(v_3) > 0
+>>
+Rule 25 (if condition has a shape dimension of one, t and e must have matching shape dimensions at the same index)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) > 0) ∧ (shape(v_1, 0) = 1) then shape(v_2, 0) = shape(v_3, 0)
+>>
+Rule 26 (if condition is not a scalar, number of elements must be the same)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) ≠ 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i))
+>>
+Rule 27 (shapes of t and e can be broadcast to each other)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)))
+>>
+Rule 28 (If t is complex64, then e also complex64 and condition is bool)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_2) = 9 then dtype_(v_1) = 0 ∧ dtype_(v_3) = 9
+>>
+Rule 29 (if t has more than 1 dimension, then the size of each dimension should be positive)
+{v_1 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 31 (If the condition tensor is not scalar then all tensors must have same number of dimensions)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) ≠ 0 then ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3)
+>>
+Rule 32 (if t and e are of type float64, then the condition must be of type bool)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_2) = 8 then dtype_(v_1) = 0 ∧ dtype_(v_3) = 8
+>>
+Rule 33 (if condition's shape is a tuple with more than one elements then the tensor shape should be equal to tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 1 then v_2.len = ndim(v_1) ∧ (∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i])
+>>
+Rule 34 (If any dimension of condition is zero, all dimensions of t and e are also zero)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) > 0) ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then (ndim(v_2) > 0) ∧ (∃j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) = 0) ∧ (ndim(v_3) > 0) ∧ (∃k ∈ [0, ndim(v_3) - 1] : shape(v_3, k) = 0)
+>>
+Rule 35 (Number of elements must match each other)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_1, 0) * shape(v_1, 1) = shape(v_2, 0) * shape(v_2, 1) ∧ shape(v_1, 0) * shape(v_1, 1) = shape(v_3, 0) * shape(v_3, 1)
+>>
+Rule 36 (If condition has more than zero dimension, product of dimensions must equal to t and e)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) * shape(v_1, 1) = shape(v_2, 0) * shape(v_2, 1) ∧ shape(v_1, 0) * shape(v_1, 1) = shape(v_3, 0) * shape(v_3, 1)
+>>
+Rule 37 (If number of dimensions of t is greater than 2, it must be equal to condition and e)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 2 then ndim(v_1) = ndim(v_2) ∧ ndim(v_3) = ndim(v_2)
+>>
+Rule 38 (If any shape dimension of t is zero, all corresponding shape dimensions of condition and e are also zero)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_2) > 0) ∧ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0) then (ndim(v_1) > 0) ∧ (shape(v_1, i) = 0) ∧ (ndim(v_3) > 0) ∧ (shape(v_3, i) = 0)
+>>
+Rule 40 (if tensor t's dimension 0 is greater than 5, then tensor e's dimensions 0 must be same)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) > 0) ∧ (shape(v_1, 0) > 5) then (ndim(v_2) > 0) ∧ (shape(v_1, 0) = shape(v_2, 0))
+>>
+Rule 41 (if tensor t has the shape of 1 then tensor e must be too.)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) = 1 then shape(v_2, 0) = 1
+>>
+Rule 42 (If t and e are not bool, condition must not be bool)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_2) ≠ 0 then dtype_(v_1) ≠ 0 ∧ dtype_(v_3) ≠ 0
+>>
+Rule 43 (if t is complex128, then condition should be bool, and e should be complex128)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_2) = 10 then dtype_(v_1) = 0 ∧ dtype_(v_3) = 10
+>>
+Rule 44 (If the condition is a scalar, then t and e must have the same number of elements)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then shape(v_2, 0) * shape(v_2, 1) = shape(v_3, 0) * shape(v_3, 1)
+>>
+Rule 45 (dimension size of t and e should be more than 3)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 3 ∧ ndim(v_2) > 3
+>>
+Rule 46 (If t has a shape with two elements, then e must have too)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 then ndim(v_2) > 0 ∧ shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0
+>>
+Rule 47 (if the condition has rank 1, then the first dimension of t and e tensors must be the same.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 1 then shape(v_2, 0) = shape(v_3, 0)
+>>
+Rule 48 (condition, t and e must have at least same rank)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0 ∧ ndim(v_3) ≥ 0
+>>
+Rule 49 (if t's dimension is 1 and condition has a shape dimension of one, e should have dimension 1 and its first shape equal to t)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_2) = 1) ∧ (ndim(v_1) > 0) ∧ (shape(v_1, 0) = 1) then (ndim(v_3) = 1) ∧ (shape(v_2, 0) = shape(v_3, 0))
+>>
+Rule 51 (The number of dimensions should be at least 1 for condition, t and e)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1 ∧ ndim(v_3) ≥ 1
+>>
+Rule 52 (if all shapes are the same, then dimension should match too)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_2, 0) = shape(v_3, 0) then ndim(v_1) = ndim(v_2) ∧ ndim(v_2) = ndim(v_3)
+>>
+Rule 53 (The shape of condition should be either scalar or same as t and e)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_1) = ndim(v_2) ∧ ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_2, i) = shape(v_3, i))
+>>
+Rule 54 (if tensor t is bool, then e should be bool and condition should be bool )
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_2) = 0 then dtype_(v_1) = 0 ∧ dtype_(v_3) = 0
+>>
+Rule 55 (If t is a scalar then e should be a scalar and condition should be bool or scalar too)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 0 then ndim(v_3) = 0 ∧ (dtype_(v_1) = 0 ∨ ndim(v_1) = 0)
+>>
+Rule 57 (If condition has 2 dimensions, then t and e should have too)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 2 then ndim(v_2) = 2 ∧ ndim(v_3) = 2
+>>
+Rule 58 (if t's datatype is string, e's datatype must be string)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 11 then dtype_(v_2) = 11
+>>
+Rule 59 (the product of the condition's shape must be smaller than the product of t's shape )
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) * shape(v_1, 1) ≤ shape(v_2, 0) * shape(v_2, 1)
+>>
+Rule 60 (For a N-dimensional tensor, each dimension must be within a range)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : 0 ≤ shape(v_1, i) ∧ shape(v_1, i) ≤ 1000
+>>
+Rule 61 (At least one of the shape dimension must be bigger than one for each tensor)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1 ∨ ∃j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) > 1 ∨ ∃k ∈ [0, ndim(v_3) - 1] : shape(v_3, k) > 1
+>>
+Rule 62 (If t is uint8, then e is uint8 and condition is bool)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_2) = 5 then dtype_(v_1) = 0 ∧ dtype_(v_3) = 5
+>>
+Rule 63 (Check dtype of condition if t is of int or float or bool)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 0 then dtype_(v_2) = 0
+>>
+Rule 64 (Check shape(v1) should be greater than shape(v2))
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) > 0) ∧ (ndim(v_2) > 0) ∧ (shape(v_1, 0) ≥ shape(v_2, 0))
+>>
+Rule 65 (dimension of t must be less than or equal to 5.)
+{v_1 : tensor} |= ndim(v_1) ≤ 5
+>>
+Rule 66 (If the condition tensor has more dimensions than the e or t tensor, then the shapes must match the last dimensions)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > ndim(v_2) then shape(v_1, ndim(v_1)-1) = shape(v_2, ndim(v_2)-1)
+>>
+Rule 67 (if one of dimension in condition is 1, other tensors must have at least one dimension.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) > 0) ∧ (shape(v_1, 0) = 1) then ndim(v_2) > 0 ∧ ndim(v_3) > 0
+>>
+Rule 68 (shape of condition has to be equal or broadcastable to the shape of e and t)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i) ∨ shape(v_1, i) = 1))
+>>
+Rule 69 (If condition shape equals t shape then condition dtype is bool and e dtype equals t dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if shape(v_1, 0) = shape(v_2, 0) then dtype_(v_1) = 0 ∧ dtype_(v_3) = dtype_(v_2)
+>>
+Rule 70 (The number of element in the condition tensor should less or equal to the number of element in t tensor )
+{v_1 : tensor, v_2 : tensor} |= (shape(v_1, 0) * shape(v_1, 1)) ≤ (shape(v_2, 0) * shape(v_2, 1))
+>>
+Rule 71 (if the condition is of type bool, then t and e should have compatible datatypes with each other)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 0 then (dtype_(v_2) = dtype_(v_3))
+>>
+Rule 72 (If t is string, then e must be string and condition should be bool)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_2) = 11 then dtype_(v_1) = 0 ∧ dtype_(v_3) = 11
+>>
+Rule 73 (If condition has more than 2 dimensions, then t and e should have equal dimensions and same shape as condition)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 2 then (ndim(v_2) = ndim(v_1)) ∧ (ndim(v_3) = ndim(v_1)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i))
+>>
+Rule 74 (t and e should have same number of elements if condition is of type bool)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 0 then (shape(v_2, 0) * shape(v_2, 1)) = (shape(v_3, 0) * shape(v_3, 1))
+>>
+Rule 75 (if t is tensor and t's dimension is greater than 0 then t's shape should be more than zero)
+{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) > 0
+>>
+Rule 76 (If condition has a single element, the other tensors should be single element tensors as well)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0 ∧ ndim(v_3) = 0
+>>
+Rule 77 (If condition has zero element, t and e should have zero element)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) > 0) ∧ (shape(v_1, 0) = 0) then (ndim(v_2) > 0) ∧ (shape(v_2, 0) = 0) ∧ (ndim(v_3) > 0) ∧ (shape(v_3, 0) = 0)
+>>
+Rule 78 ( if e is complex128 or complex64 then t should be bool and condition should be bool or same as dtype of e)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_3) = 10) ∨ (dtype_(v_3) = 9) then (dtype_(v_2) = 0) ∧ ((dtype_(v_1) = 0) ∨ (dtype_(v_1) = dtype_(v_3)))
+>>
+Rule 79 (If t has a dimension of 1, then e and condition need dimension of 1)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_2) > 0) ∧ (shape(v_2, 0) = 1) then (ndim(v_1) > 0) ∧ (shape(v_1, 0) = 1) ∧ (ndim(v_3) > 0) ∧ (shape(v_3, 0) = 1)
+>>
+Rule 80 (If t and e are not scalar, condition must not be scalar either)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) ≠ 0 then ndim(v_1) ≠ 0 ∧ ndim(v_3) ≠ 0
+>>
+Rule 81 (If the condition has more than one dimension, all shape values must be consistent with t and e, if t and e have shape)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 1 then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i)) ∧ (∀i ∈ [0, ndim(v_3) - 1] : shape(v_1, i) = shape(v_3, i))
+>>
+Rule 82 (If the tensors have 4 or fewer dimensions then the condition must have an equal or fewer number of dimensions )
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) <= 4 ∧ ndim(v_3) <=4 then ndim(v_1) <= ndim(v_2)
+>>
+Rule 83 (if tensors have the same dimensions, shape(t) have to be same shape(e))
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 85 (check if t shape multiplied to its dimensions is greater than or equal to shape of condition multiplied to its dimensions)
+{v_1 : tensor, v_2 : tensor} |= (shape(v_1, 0) * ndim(v_1)) ≥ (shape(v_2, 0) * ndim(v_2))
+>>
+Rule 87 (If condition's dtype is bool, t and e should have same dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = dtype_(v_3)
+>>
+Rule 88 (If condition, t and e all have same dimensions, shape should be consistent on each dimension )
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = ndim(v_2) ∧ ndim(v_2) = ndim(v_3) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_2, i) = shape(v_3, i))
+>>
+Rule 89 (if the condition has one element on dim 0, the t and e should be the same )
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) > 0) ∧ (shape(v_1, 0) = 1) then shape(v_2, 0) = shape(v_1, 0)
+>>
+Rule 90 (if the t has more than one element, e should also have more than 1 element.)
+{v_1 : tensor, v_2 : tensor} |= if (shape(v_1, 0) * shape(v_1, 1)) > 1 then (shape(v_2, 0) * shape(v_2, 1)) > 1
+>>
+Rule 91 (if at least one shape of t is 1, then shape of e should have shape)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) > 0) ∧ (shape(v_1, 0) = 1) then (ndim(v_2) > 0) ∧ (shape(v_2, 0) = 1)
+>>
+Rule 92 (if the number of dimensions is less than 2 for the condition tensor the product of the dimensions of t and e must be equal)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) < 2 then (shape(v_2, 0) * shape(v_2, 1)) = (shape(v_3, 0) * shape(v_3, 1))
+>>
+Rule 93 (if shape of t is less than 2, then condition must be bool and shape of e is less than 2)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) < 2 then (dtype_(v_1) = 0) ∧ (ndim(v_3) < 2)
+>>
+Rule 94 (If condition has one dim and shape[0] is greater than 1, at least one dimension of t should be 1)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 1) ∧ (shape(v_1, 0) > 1) then ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 1
+>>
+Rule 95 (All of the tensors must be of the same size)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2)) = (shape(v_2, 0) * shape(v_2, 1) * shape(v_2, 2)) ∧ (shape(v_2, 0) * shape(v_2, 1) * shape(v_2, 2)) = (shape(v_3, 0) * shape(v_3, 1) * shape(v_3, 2))
+>>
+Rule 96 (When dimension of the condition tensor is more than 0 and less than or equal to 2, shape of tensors t and e have to same.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_1) <= 2 then (shape(v_2, 0) = shape(v_3, 0)) ∧ (shape(v_2, 1) = shape(v_3, 1))
+>>
+Rule 97 (If any of the tensors has only one element, check the data type should be same for all tensors.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (shape(v_1, 0) * shape(v_1, 1) = 1) ∨ (shape(v_2, 0) * shape(v_2, 1) = 1) ∨ (shape(v_3, 0) * shape(v_3, 1) = 1) then dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_2) = dtype_(v_3)
+>>
+Rule 98 (If shape[0] is less then then any value in tensors must be same)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) < 1 then min(v_1) = max(v_2)
+>>
+Rule 99 (If condition is scalar, the shapes of t and e should be same across all dimensions)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, if ndim(v_2) ≥ ndim(v_3) then ndim(v_2) -1 else ndim(v_3) - 1] : shape(v_2, i) = shape(v_3, i)
+>>
+Rule 100 (If at least one of the dimension of t,e and c is scalar, the element type should be less than 13)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) = 0) ∨ (ndim(v_2) = 0) ∨ (ndim(v_3) = 0) then (dtype_(v_1) < 13) ∧ (dtype_(v_2) < 13) ∧ (dtype_(v_3) < 13)
+>>
+Rule 101 (if the condition is of type string, t and e must be of type string)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 11 then dtype_(v_2) = 11 ∧ dtype_(v_3) = 11
+>>
+Rule 102 (if the number of dimensions of t and e is not zero the dtypes for tensors should be within the range )
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) !=0 ) ∧ (ndim(v_2) != 0) then (1 <= dtype_(v_1)) ∧ (dtype_(v_1) <= 11) ∧ (1 <= dtype_(v_2)) ∧ (dtype_(v_2) <= 11)
+>>
+Rule 103 (The total number of elements in condition must be less than or equal to the maximum value for integer)
+{v_1 : tensor} |= (shape(v_1, 0) * shape(v_1, 1)) ≤ 2147483647
+>>
+Rule 104 (if t has dimension 1 and condition has one element, t and e should be same at dimension zero )
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_2) = 1) ∧ (ndim(v_1) = 0) then shape(v_2, 0) = shape(v_3, 0)
+>>
+Rule 105 (The tensors must all have a shape with the values >= 1)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ((ndim(v_1) > 0) ∧ (shape(v_1,0) >= 1)) ∧ ((ndim(v_2) > 0) ∧ (shape(v_2,0) >= 1)) ∧ ((ndim(v_3) > 0) ∧ (shape(v_3,0) >= 1))
+>>
+Rule 106 (If both t and e have more than 0 dimensions, check that they have similar number of elements, which should be greater than or equal to that of the condition.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_2) > 0) ∧ (ndim(v_3) > 0) then (shape(v_2, 0) * shape(v_2, 1)) ≥ (shape(v_1, 0) * shape(v_1, 1)) ∧ (shape(v_3, 0) * shape(v_3, 1)) ≥ (shape(v_1, 0) * shape(v_1, 1))
+>>
+Rule 107 (The element type of any of the tensor must not be a tuple)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≠ 7) ∧ (dtype_(v_2) ≠ 7) ∧ (dtype_(v_3) ≠ 7)
+>>
+Rule 108 (if shape of both t and e are more than 1, shape must be equal)
+{v_1 : tensor, v_2 : tensor} |= if (shape(v_1, 0) > 1) ∧ (shape(v_2, 0) > 1) then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 109 (If tensors are of same shape and dimension then the shape multiplied by dimensions value cannot be more than 2^31)
+{v_1 : tensor} |= (shape(v_1, 0) * ndim(v_1)) <= 2147483647
+>>
+Rule 110 (The rank of condition and t must be same)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
->>
-Rule 13 (condition tensor's shape must be broadcastable to t's shape: all trailing dimensions of condition that do not correspond to t dimensions must be 1)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > ndim(v_2) then (∀i ∈ [ndim(v_2), ndim(v_1) - 1] : shape(v_1, i) = 1)
->>
-Rule 14 (if condition has fewer dimensions than t, the leading dimensions must match)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
->>
-Rule 15 (if t has fewer dimensions than condition, the leading dimensions must match)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) < ndim(v_1) then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i))
->>
-Rule 17 (If condition is a scalar, t and e must have the same shape)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
->>
-Rule 18 (If condition is a scalar, t and e must have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then dtype_(v_1) = dtype_(v_2)
->>
-Rule 20 (If condition is a scalar, t and e must have the same shape)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, i))
->>
-Rule 21 (if t and e are scalars, the result is a scalar)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_2) = 0 ∧ ndim(v_3) = 0) then ndim(v_1) = 0
->>
-Rule 23 (If condition is a scalar, t and e must have the same shape)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_2, i))
->>
-Rule 25 (If condition is a scalar and t is not, the result has the same shape as t)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 0 ∧ ndim(v_2) ≠ 0) then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i))
->>
-Rule 26 (if condition is not a scalar and t and e have the same shape, the result also has the same shape)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) ≠ 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, i)) then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, i))
->>
-Rule 38 (If the condition is scalar, the result has the same dtype as t)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 0) then dtype_(v_2) = dtype_(v_1)
->>
-Rule 46 (If condition is not a scalar, the dtypes of t and e must match)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) ≠ 0) then dtype_(v_1) = dtype_(v_2)
->>
-Rule 50 (If the condition is a scalar, the dtypes of t and e must match)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 0) then dtype_(v_2) = dtype_(v_2)
->>
-Rule 52 (If the dtypes of t and e are the same, then the output will also have the same dtype)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_2) = dtype_(v_3)) then dtype_(v_1) = dtype_(v_2)
->>
-Rule 54 (If condition is scalar, then output has same shape as t or e)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 0) then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_2, i))
->>
-Rule 66 (Condition must be a boolean tensor or a scalar)
-{v_1 : tensor} |= dtype_(v_1) = 0 ∨ ndim(v_1) = 0
->>
-Rule 70 (If condition is a scalar, dtypes of t and e must match)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 0) then dtype_(v_1) = dtype_(v_2)
->>
-Rule 74 (If the dimensions don't match, the dimension of condition must be less than or equal to the dimensions of the other tensors)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) <= ndim(v_2)
->>
-Rule 82 (if condition and t/e are scalar, then output is also scalar)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) = 0) ∧ (ndim(v_2) = 0) ∧ (ndim(v_3) = 0) then ndim(v_1) = 0
->>
-Rule 86 (If t and e are both scalar, output must be scalar)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_2) = 0) ∧ (ndim(v_3) = 0) then ndim(v_1) = 0

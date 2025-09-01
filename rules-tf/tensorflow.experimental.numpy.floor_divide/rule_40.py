@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if either of the tensor is complex, it must be of type complex128 (Rule 40)
+# If one tensor is complex and the other is not, then the non-complex one must be a float (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10, If(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10, False))) if n else
-          If(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10, If(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10, False)))
+    s.add(Not(If(And((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), ((Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)) == False)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8)), If(And((Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), ((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)) == False)), (And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)), True))) if n else
+          If(And((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), ((Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)) == False)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8)), If(And((Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), ((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)) == False)), (And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)), True)))
 )
 
 def rule_40_func(arg1, arg2, solver=None, neg=False):

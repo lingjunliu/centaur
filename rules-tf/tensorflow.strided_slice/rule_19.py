@@ -5,32 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# ellipsis_mask can have at most one non-zero bit (Rule 19)
+# The length of strides must not exceed the rank of input tensor (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] > 0, (And(v["arg1_value"], (v["arg1_value"] - 1) == 0)), False)) if n else
-          If(v["arg1_value"] > 0, (And(v["arg1_value"], (v["arg1_value"] - 1) == 0)), False))
+    s.add(Not(v["arg2_ndim"] <= v["arg1_ndim"]) if n else
+          v["arg2_ndim"] <= v["arg1_ndim"])
 )
 
-def rule_19_func(arg1, solver=None, neg=False):
+def rule_19_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, np.ndarray):
+            return False
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_ndim = Int('arg2_ndim')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 19
-        rule_19(solver, {'arg1_value': arg1_value})
+        rule_19(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_19(solver, {'arg1_value': arg1['value']}, neg)
+        rule_19(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)

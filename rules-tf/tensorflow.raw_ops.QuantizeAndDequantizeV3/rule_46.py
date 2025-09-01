@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# num_bits should not be greater than 31 because int32 is used (Rule 46)
+# num_bits should have 32 bits (Rule 46)
 
 rule_46 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 1) <= 31) if n else
-          Select(v["arg1_range"], 1) <= 31)
+    s.add(Not(And(Select(v["arg1_range"], 0) <= 32, Select(v["arg1_range"], 1) <= 32)) if n else
+          And(Select(v["arg1_range"], 0) <= 32, Select(v["arg1_range"], 1) <= 32))
 )
 
 def rule_46_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# int16 input tensors are allowed. (Rule 33)
+# The sum of the element in the input tensor should be valid (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == 2) if n else
-          v["arg1_dtype"] == 2)
+    s.add(Not(If(v["arg1_dtype"] == 1, True, If(v["arg1_dtype"] == 2, True, If(v["arg1_dtype"] == 3, True, If(v["arg1_dtype"] == 4, True, True))))) if n else
+          If(v["arg1_dtype"] == 1, True, If(v["arg1_dtype"] == 2, True, If(v["arg1_dtype"] == 3, True, If(v["arg1_dtype"] == 4, True, True)))))
 )
 
 def rule_33_func(arg1, solver=None, neg=False):

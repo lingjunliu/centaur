@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if start and stop are complex, dtype must be complex if specified (Rule 12)
+# dtype must be specified if start and stop have different dtypes (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(Or((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10))), Or(Or(v["arg3_value"] == 9, v["arg3_value"] == 10), v["arg3_value"] == 0), False)) if n else
-          If(Or((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10))), Or(Or(v["arg3_value"] == 9, v["arg3_value"] == 10), v["arg3_value"] == 0), False))
+    s.add(Not(If(v["arg1_dtype"] != v["arg2_dtype"], v["arg3_value"] != 11, True)) if n else
+          If(v["arg1_dtype"] != v["arg2_dtype"], v["arg3_value"] != 11, True))
 )
 
 def rule_12_func(arg1, arg2, arg3, solver=None, neg=False):

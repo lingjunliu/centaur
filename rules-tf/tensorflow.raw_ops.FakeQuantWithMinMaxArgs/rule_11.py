@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If min is greater than 0 and less than max, then min_adj = 0 (Rule 11)
+# if min is greater than 0 and max is greater than 0 then max_adj is greater than 0 (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(And(0 < v["arg1_value"], v["arg1_value"] < v["arg2_value"]), True, False)) if n else
-          If(And(0 < v["arg1_value"], v["arg1_value"] < v["arg2_value"]), True, False))
+    s.add(Not(If(And(v["arg1_value"] > 0, v["arg2_value"] > 0), v["arg2_value"] - v["arg1_value"] > 0, True)) if n else
+          If(And(v["arg1_value"] > 0, v["arg2_value"] > 0), v["arg2_value"] - v["arg1_value"] > 0, True))
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

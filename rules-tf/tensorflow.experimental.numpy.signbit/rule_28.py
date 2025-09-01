@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check if a list contains at least one element that meets a certain condition (Rule 28)
+# If dtype is float, the tensor value should between 0 and 1 (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)])) if n else
-          Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)]))
+    s.add(Not(If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 1), True)) if n else
+          If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 1), True))
 )
 
 def rule_28_func(arg1, solver=None, neg=False):
@@ -17,23 +17,23 @@ def rule_28_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 28
-        rule_28(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length})
+        rule_28(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_28(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length']}, neg)
+        rule_28(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)

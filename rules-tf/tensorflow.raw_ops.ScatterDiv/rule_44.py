@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if ref is quint8, updates must be quint8 (Rule 44)
+# updates' ndim should be greater or equal to indices' ndim (Rule 44)
 
 rule_44 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 12, v["arg2_dtype"] == 12, False)) if n else
-          If(v["arg1_dtype"] == 12, v["arg2_dtype"] == 12, False))
+    s.add(Not(v["arg2_ndim"] >= v["arg1_ndim"]) if n else
+          v["arg2_ndim"] >= v["arg1_ndim"])
 )
 
 def rule_44_func(arg1, arg2, solver=None, neg=False):
@@ -25,17 +25,17 @@ def rule_44_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_ndim = Int('arg2_ndim')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 44
-        rule_44(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_44(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_44(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_44(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)

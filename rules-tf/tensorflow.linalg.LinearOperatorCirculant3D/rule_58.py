@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The real part of H has to be positive if it is a positive definite matrix (Rule 58)
+# is_square must be true, spectrum must have at least 3 dimensions and positive shape dimensions (Rule 58)
 
 rule_58 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"], Select(v["arg2_range"], 0) > 0, False)) if n else
-          If(v["arg1_value"], Select(v["arg2_range"], 0) > 0, False))
+    s.add(Not(And(And(v["arg1_value"] == True, v["arg2_ndim"] >= 3), And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) > 0) for i in range(6)]))) if n else
+          And(And(v["arg1_value"] == True, v["arg2_ndim"] >= 3), And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) > 0) for i in range(6)])))
 )
 
 def rule_58_func(arg1, arg2, solver=None, neg=False):
@@ -26,17 +26,19 @@ def rule_58_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_value = Bool('arg1_value')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg2_ndim = Int('arg2_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_value == arg1)
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 58
-        rule_58(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range})
+        rule_58(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_58(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range']}, neg)
+        rule_58(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']}, neg)

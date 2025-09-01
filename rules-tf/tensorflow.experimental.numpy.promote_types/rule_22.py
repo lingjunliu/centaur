@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If one type is float, the other cannot be string (Rule 22)
+# If one is dtype, the other should also be a valid data type (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If((And(6 <= v["arg1_value"], v["arg1_value"] <= 8)), v["arg2_value"] != 12, If((And(6 <= v["arg2_value"], v["arg2_value"] <= 8)), v["arg1_value"] != 12, False))) if n else
-          If((And(6 <= v["arg1_value"], v["arg1_value"] <= 8)), v["arg2_value"] != 12, If((And(6 <= v["arg2_value"], v["arg2_value"] <= 8)), v["arg1_value"] != 12, False)))
+    s.add(Not(Or(Or((And(And(v["arg1_value"] == 13, v["arg2_value"] >= 0), v["arg2_value"] < 13)), (And(And(v["arg2_value"] == 13, v["arg1_value"] >= 0), v["arg1_value"] < 13))), (And(v["arg1_value"] < 13, v["arg2_value"] < 13)))) if n else
+          Or(Or((And(And(v["arg1_value"] == 13, v["arg2_value"] >= 0), v["arg2_value"] < 13)), (And(And(v["arg2_value"] == 13, v["arg1_value"] >= 0), v["arg1_value"] < 13))), (And(v["arg1_value"] < 13, v["arg2_value"] < 13))))
 )
 
 def rule_22_func(arg1, arg2, solver=None, neg=False):

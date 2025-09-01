@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if matrix's dtype is complex64 or complex128, then its ndim must be less or equal than 4. (Rule 20)
+# If the given tensor is a tensor with one of the correct dtypes, it must have at least two dimensions (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg1_ndim"] <= 4, False)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg1_ndim"] <= 4, False))
+    s.add(Not(If((Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 6)), v["arg1_ndim"] >= 2, True)) if n else
+          If((Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 6)), v["arg1_ndim"] >= 2, True))
 )
 
 def rule_20_func(arg1, solver=None, neg=False):
@@ -30,9 +30,9 @@ def rule_20_func(arg1, solver=None, neg=False):
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 20
-        rule_20(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim})
+        rule_20(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_20(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_20(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype']}, neg)

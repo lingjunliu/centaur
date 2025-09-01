@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input is float32, output should also be float32 (Rule 25)
+# If x is float32, then dtype of x is 7 (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 7, v["arg1_dtype"] == 7, False)) if n else
-          If(v["arg1_dtype"] == 7, v["arg1_dtype"] == 7, False))
+    s.add(Not(If(v["arg1_dtype"] == 7, True, False)) if n else
+          If(v["arg1_dtype"] == 7, True, False))
 )
 
 def rule_25_func(arg1, solver=None, neg=False):

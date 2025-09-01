@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# input tensor must have a floating-point or complex dtype to avoid integer overflow issue (Rule 14)
+# Values in input tensor shouldn't lead to overflow after applying log1p function (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(Or((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)), (And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10)))) if n else
-          Or((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)), (And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10))))
+    s.add(Not(Select(v["arg1_range"], 1) < 10e+30) if n else
+          Select(v["arg1_range"], 1) < 10e+30)
 )
 
 def rule_14_func(arg1, solver=None, neg=False):
@@ -22,15 +22,16 @@ def rule_14_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 14
-        rule_14(solver, {'arg1_dtype': arg1_dtype})
+        rule_14(solver, {'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_14(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_14(solver, {'arg1_range': arg1['range']}, neg)

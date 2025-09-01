@@ -1,90 +1,333 @@
 >>
-Rule 2 (min_interval_secs should be a non-negative float)
-{v_1 : float} |= v_1 ≥ 0
+Rule 1 (min_interval_secs should be non-negative)
+{v_2 : int} |= v_2 ≥ 0
 >>
-Rule 3 (timeout should be a non-negative float or int)
-{v_1 : float ⊎ int} |= v_1 ≥ 0
+Rule 2 (timeout should be non-negative)
+{v_3 : int} |= v_3 ≥ 0
 >>
-Rule 5 (min_interval_secs should be less than timeout if both are provided)
-{v_1 : float, v_2 : float ⊎ int} |= if v_2 ≠ 0 then v_1 ≤ v_2
+Rule 3 (timeout should be less than a reasonable maximum value to avoid infinite wait)
+{v_3 : int} |= v_3 < 3600
 >>
-Rule 6 (min_interval_secs should be less than timeout if timeout is not None and min_interval_secs is not zero)
-{v_1 : float, v_2 : float ⊎ int} |= if v_1 > 0 ∧ v_2 > 0 then v_1 ≤ v_2
+Rule 4 (timeout_fn is a list, then it should have no element.)
+{v_4 : list(int)} |= v_4.len = 0
 >>
-Rule 8 (The directory cannot be an empty string)
+Rule 5 (When both min_interval_secs and timeout are specified, timeout should be greater than or equal to min_interval_secs.)
+{v_2 : int, v_3 : int} |= if v_2 > 0 ∧ v_3 > 0 then v_3 ≥ v_2
+>>
+Rule 6 (checkpoint_dir should not be an empty string)
 {v_1 : str} |= v_1 ≠ ""
 >>
-Rule 9 (If timeout_fn returns true, min_interval_secs should be large enough)
-{v_1 : bool, v_2 : float} |= if v_1 then v_2 > 1
+Rule 8 (If timeout_fn is a list, its elements should be of bool type.)
+{v_4 : list(int)} |= ∀i ∈ [0, v_4.len - 1] : v_4[i] = 0 ∨ v_4[i] = 1
 >>
-Rule 14 (If timeout is None, timeout_fn should not return true)
-{v_1 : float ⊎ int, v_2 : bool} |= if v_1 = 0 then v_2 = false
+Rule 9 (timeout cannot be a very large number. Large timeout values might lead to unexpected program behavior or resource exhaustion.)
+{v_3 : int} |= v_3 < 86400
 >>
-Rule 16 (If timeout is not None, min_interval_secs should not be greater.)
-{v_1 : float ⊎ int, v_2 : float} |= if v_1 > 0 then v_2 ≤ v_1
+Rule 10 (min_interval_secs cannot be greater than timeout when timeout is specified)
+{v_2 : int, v_3 : int} |= if v_3 > 0 then v_2 ≤ v_3
 >>
-Rule 18 (If timeout is specified, it should be greater than 0)
-{v_1 : float ⊎ int} |= if v_1 ≠ 0 then v_1 > 0
+Rule 12 (If timeout is not provided (None), timeout_fn must not return true indefinitely)
+{v_3: int, v_4: list(int)} |= if v_3 = 0 then ∀i ∈ [0, v_4.len - 1] : v_4[i] = 0
 >>
-Rule 21 (If both timeout and min_interval_secs are zero, the program will hang.)
-{v_1 : float ⊎ int, v_2 : float} |= if v_1 = 0 then v_2 > 0
+Rule 13 (checkpoint_dir should not be None)
+{v_1 : str} |= v_1 ≠ "none"
 >>
-Rule 22 (if timeout_fn is defined, then timeout must be defined)
-{v_1:bool, v_2: float ⊎ int} |= if v_1 then v_2 > 0
+Rule 14 (min_interval_secs should be smaller than a certain value)
+{v_2 : int} |= v_2 < 3600
 >>
-Rule 24 (If timeout is specified, min_interval_secs should be smaller or equal and positive)
-{v_1 : float ⊎ int, v_2 : float} |= if v_1 > 0 then 0 < v_2 ∧ v_2 ≤ v_1
+Rule 15 (If timeout_fn is an empty list, then timeout should be a positive integer.)
+{v_3 : int, v_4 : list(int)} |= if v_4.len = 0 then v_3 > 0
 >>
-Rule 27 (If timeout is negative, it should be changed to None)
-{v_1: float ⊎ int} |= if v_1 < 0 then false
+Rule 17 (If timeout_fn is an empty list, min_interval_secs must be less than a large value.)
+{v_2: int, v_4 : list(int)} |= if v_4.len = 0 then v_2 < 7200
 >>
-Rule 30 (If timeout is not defined, min_interval_secs should be greater than 0)
-{v_1: float ⊎ int, v_2: float} |= if v_1 = 0 then v_2 > 0
+Rule 19 (checkpoint_dir should be an absolute path.)
+{v_1: str} |= v_1[0] = "/"
 >>
-Rule 33 (timeout_fn being specified requires timeout to be a numerical value greater than zero.)
-{v_1: bool, v_2: float ⊎ int} |= if v_1 then v_2 > 0
+Rule 20 (min_interval_secs should be less than the total training time.)
+{v_2 : int} |= v_2 < 100000
 >>
-Rule 34 (checkpoint_dir being an empty string should be avoided.)
-{v_1: str} |= v_1 ≠ ""
+Rule 21 (If timeout_fn returns true then training has stopped)
+{v_4: list(int)} |= if v_4.len > 0 then ∃i ∈ [0, v_4.len - 1] : v_4[i] = 1
 >>
-Rule 37 (min_interval_secs should be non-negative.)
-{v_1: float} |= v_1 ≥ 0
+Rule 22 (timeout has to be a reasonable small value. If it's too small there could be issues)
+{v_3: int} |= v_3 > 1
 >>
-Rule 40 (If timeout_fn is used, timeout must not be None)
-{v_1: bool, v_2: float ⊎ int} |= if v_1 then v_2 ≠ 0
+Rule 23 (checkpoint_dir string must end with /)
+{v_1: str} |= if v_1.len > 0 then v_1[v_1.len-1] = "/"
 >>
-Rule 41 (If timeout_fn is specified, timeout must be a numerical value greater than min_interval_secs.)
-{v_1:bool, v_2: float ⊎ int, v_3:float} |= if v_1 then v_2 > v_3
+Rule 24 (timeout should not be equal to min_interval_secs, preventing potential busy-waiting)
+{v_2 : int, v_3 : int} |= v_2 ≠ v_3
 >>
-Rule 42 (If min_interval_secs is specified, timeout must be numerical and greater than min_interval_secs)
-{v_1: float, v_2: float ⊎ int} |= if v_1 > 0 then v_2 > v_1
+Rule 25 (Checkpoint Directory exists)
+{v_1 : str} |= ∃i ∈ [0, 255]: v_1[i] ≠ ""
 >>
-Rule 43 (If timeout_fn is not specified, it must return false)
-{v_1: bool} |= v_1 = false
+Rule 26 (Ensure Checkpoint Directory is writable)
+{v_1 : str} |= ∃i ∈ [0, 255]: v_1[i] = "/"
 >>
-Rule 45 (If min_interval_secs and timeout are specified, min_interval_secs should be less than or equal to timeout)
-{v_1: float, v_2: float ⊎ int} |= if v_1 > 0 then v_1 ≤ v_2
+Rule 27 (If timeout is negative, there will be no timeout_fn)
+{v_3: int, v_4: list(int)} |= if v_3 < 0 then v_4.len = 0
 >>
-Rule 46 (if timeout is zero and timeout_fn is not defined, then it will be a infinite loop so its bad)
-{v_1:float ⊎ int, v_2: bool} |= if v_1 = 0 then v_2 = true
+Rule 28 (If timeout_fn is present, then the code won't wait forever.)
+{v_3: int, v_4: list(int)} |= if v_4.len > 0 then v_3 > 0
 >>
-Rule 50 (if timeout is none and timeout_fn is specified, there could be a possible infinite loop, so it is bad)
-{v_1: float ⊎ int, v_2: bool} |= if v_1 = 0 then v_2 = false
+Rule 29 (CheckPoint Directory exists)
+{v_1: str} |= v_1 ≠ "invalid directory"
 >>
-Rule 53 (If timeout is zero, then timeout_fn must be specified.)
-{v_1: float ⊎ int, v_2: bool} |= if v_1 = 0 then v_2 = true
+Rule 30 (min_interval_secs should be non-zero to avoid excessive checking)
+{v_2: int} |= v_2 > 0
 >>
-Rule 54 (min_interval_secs should be less than or equal to timeout.)
-{v_1: float, v_2: float ⊎ int} |= if v_2 ≠ 0 then v_1 ≤ v_2
+Rule 31 (If the timeout is zero, then there isn't a timeout function.)
+{v_3:int, v_4: list(int)} |= if v_3 = 0 then v_4.len = 0
 >>
-Rule 56 (If timeout is specified, min_interval_secs should be non-negative)
-{v_1: float ⊎ int, v_2: float} |= if v_1 > 0 then v_2 ≥ 0
+Rule 32 (If timeout and min_interval_secs are same then timeout function must be present.)
+{v_2:int, v_3: int, v_4: list(int)} |= if v_2 = v_3 then v_4.len > 0
 >>
-Rule 59 (If timeout is specified as a number and min_interval_secs is specified, min_interval_secs should be less than timeout)
-{v_1: float, v_2: float ⊎ int} |= if v_2 > 0 then v_1 ≤ v_2
+Rule 33 (timeout should be large than machine clock.)
+{v_3:int} |= v_3 > 0.001
 >>
-Rule 62 (If timeout is specified, min_interval_secs must be non-negative and less than or equal to timeout)
-{v_1: float ⊎ int, v_2: float} |= if v_1 > 0 then v_2 ≥ 0 ∧ v_2 ≤ v_1
+Rule 34 (checkpoint directory should exist before starting this iterator.)
+{v_1: str} |= ∃i ∈ [0, v_1.len-1] : v_1[i] ≠ ""
 >>
-Rule 64 (If timeout is set to be non-zero, and min_interval_secs is zero and timeout_fn isn't defined, it will not proceed after timeout)
-{v_1: float ⊎ int, v_2: float, v_3 : bool} |= if v_1 > 0 ∧ v_2 = 0 then v_3 = false
+Rule 35 (When both min_interval_secs and timeout are not zero then the code won't wait indefinetly.)
+{v_2: int, v_3: int} |= if v_2 > 0 ∧ v_3 > 0 then v_2 < 10000 ∧ v_3 < 10000
+>>
+Rule 36 (timeout_fn cannot have different element values.)
+{v_4: list(int)} |= if v_4.len > 1 then v_4[0] = v_4[1]
+>>
+Rule 37 (min_interval_secs must be greater than some minimum value)
+{v_2: int} |= v_2 > 0.001
+>>
+Rule 38 (CheckPoint Directory String Length limit)
+{v_1: str} |= v_1.len < 256
+>>
+Rule 39 (if checkpoint_dir exists then checkpoints should not be deleted.)
+{v_1: str} |= ∃i ∈ [0, 255]: v_1[i] = "saved_model.pb"
+>>
+Rule 40 (if a timeout_fn is given, then checkpoint_dir better exist!)
+{v_1: str, v_4: list(int)} |= if v_4.len > 0 then v_1 ≠ "invalid directory"
+>>
+Rule 41 (if a timeout is given, then checkpoint_dir better exist!)
+{v_1: str, v_3: int} |= if v_3 > 0 then v_1 ≠ "invalid directory"
+>>
+Rule 42 (if checkpoint_dir is empty string, then timeout and min_interval_secs better be some default value.)
+{v_1:str, v_2: int, v_3: int} |= if v_1 = "" then v_2 = 60 ∧ v_3 = 300
+>>
+Rule 43 (checkpoint_dir must be a valid directory)
+{v_1:str} |= v_1 = "a/valid/checkpoint/directory"
+>>
+Rule 44 (if both min_interval_secs and timeout is zero.)
+{v_2: int, v_3:int} |= if v_2 = 0 ∧ v_3 = 0 then false
+>>
+Rule 45 (checkpoint directory string must be a valid UTF-8 string)
+{v_1 : str} |= ∃i ∈ [0, v_1.len-1] : v_1[i] = "a"
+>>
+Rule 46 (If the program missed some Checkpoints. Print an Error.)
+{v_2: int, v_3: int} |= if v_2 < 0.01 ∧ v_3 > 100 then true else false
+>>
+Rule 47 (if Checkpoint directory is present, then some files/checkpoints better exist)
+{v_1:str} |= ∃i ∈ [0, v_1.len - 1]: v_1[i] = "model.ckpt.index"
+>>
+Rule 50 (min_interval_secs must not be so small, that the code checks for files every time.)
+{v_2:int} |= v_2 > 0.01
+>>
+Rule 51 (Check that Checkpoint Directory is in the same file system)
+{v_1 : str} |= v_1 = "/tmp/training_checkpoints"
+>>
+Rule 52 (checkpoint_dir must be non-empty and timeout should not be 0)
+{v_1:str, v_3:int} |= if v_1 ≠ "" then v_3 ≠ 0
+>>
+Rule 53 (min_interval_secs cannot be too big)
+{v_2 : int} |= v_2 < 300
+>>
+Rule 55 (Min_interval_secs and timeout parameters cannot both be 0)
+{v_2 : int, v_3: int} |= if v_2 = 0 then v_3 > 0
+>>
+Rule 56 (The string must be an existing directory)
+{v_1 : str} |= v_1 = "/existing/directory"
+>>
+Rule 57 (Check that Checkpoint Directory is executable)
+{v_1 : str} |= ∃i ∈ [0, v_1.len-1]: v_1[i] = "x"
+>>
+Rule 58 (If Timeout_fn returns a value.)
+{v_4 : list(int)} |= if v_4.len > 0 then v_4[0] = 0 ∨ v_4[0] = 1
+>>
+Rule 59 (CheckPoint directory string contains some characters)
+{v_1:str} |= v_1.len > 1
+>>
+Rule 60 (if no timeout_fn is specified, timeout should be None)
+{v_3 : int, v_4 : list(int)} |= if v_4.len = 0 then v_3 = 0
+>>
+Rule 61 (checkpoint_dir should be a directory that exists and is accessible to the current user)
+{v_1:str} |= v_1 = "/home/user/checkpoints"
+>>
+Rule 62 (min_interval_secs cannot be longer than the training duration)
+{v_2: int} |= v_2 < 10000
+>>
+Rule 63 (if no timeout_fn is specified, then the iterator should stop when it finds no new checkpoints within the timeout period.)
+{v_3:int, v_4: list(int)} |= if v_4.len = 0 then v_3 < 1000
+>>
+Rule 64 (CheckPoint directory should be writeable.)
+{v_1:str} |= v_1 = "/tmp/checkpoint_writeable"
+>>
+Rule 65 (checkpoint_dir should be a valid utf-8 directory path name.)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1]: v_1[i] = "UTF-8"
+>>
+Rule 66 (If timeout is none and timeout_fn isn't specified, throw an error to make timeout required)
+{v_3 : int, v_4: list(int)} |= if v_3 = 0 then v_4.len > 0
+>>
+Rule 67 (Check that Checkpoint Directory has proper permissions (read, write))
+{v_1 : str} |= v_1 = "/tmp/rwx/checkpoints"
+>>
+Rule 69 (If no checkpoints in directory, don't start an iterator)
+{v_1: str} |= ∃i ∈ [0, v_1.len - 1]: v_1[i] = "checkpoint"
+>>
+Rule 70 (If the code takes a long time to train, it might miss the checkpoints.)
+{v_2:int, v_3:int} |= if v_2 = 100 then v_3 < 600
+>>
+Rule 71 (timeout_fn list cannot be too long to prevent an infinite loop, or resource exhaustion)
+{v_4 : list(int)} |= v_4.len < 100
+>>
+Rule 72 (checkpoint_dir cannot be a relative path)
+{v_1: str} |= v_1[0] = "/" ∨ v_1[0] = "~"
+>>
+Rule 73 (when the number of checkpoints is greater than the total samples in a dataset min_interval_secs can be anything)
+{v_2: int} |= v_2 < 1000000
+>>
+Rule 74 (timeout_fn list shouldn't have more than one element, because function doesn't have args and returns true or false)
+{v_4 : list(int)} |= v_4.len < 2
+>>
+Rule 75 (If Checkpoint Directory isn't present, then neither Timeout nor Timeout_fn will be used.)
+{v_1:str, v_3:int, v_4: list(int)} |= if v_1 = "not directory" then v_3 = 0 ∧ v_4.len = 0
+>>
+Rule 76 (checkpoint_dir parameter shouldn't be a string longer than file path length.)
+{v_1: str} |= v_1.len < 200
+>>
+Rule 77 (checkpoint directory better be something that's there and readable.)
+{v_1: str} |= v_1 = "/directory/with/checkpoints/"
+>>
+Rule 78 (checkpoint directory can be empty only if training will start very quickly)
+{v_1:str, v_2:int} |= if ∃i ∈ [0, v_1.len -1]: v_1[i] = "checkpoint" then true else v_2 < 10
+>>
+Rule 79 (if Checkpoint directory doesn't exist then we don't even need to specify intervals or timeout.)
+{v_1: str} |= if v_1 = "no_checkpoints_dir" then true else false
+>>
+Rule 80 (Number of elements in the timeout_fn list should be one at most.)
+{v_4: list(int)} |= v_4.len < 2
+>>
+Rule 81 (If Checkpoint Directory is specified, Checkpoint.exists should be there.)
+{v_1: str} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "/" then ∃i ∈ [0, v_1.len - 1] : v_1[i] = "Checkpoint.exists"
+>>
+Rule 82 (If you don't give us min interval secs, then we will assume to start at 10 secs anyway for the check)
+{v_2: int} |= if v_2 = 0 then v_2 = 10
+>>
+Rule 83 (Timeout string must contain valid characters for a directory.)
+{v_1 : str} |= ∃i ∈ [0, v_1.len-1] : v_1[i] ≠ "%"
+>>
+Rule 84 (minimum interval seconds cannot exceed the maximum lifespan of the object being tracked )
+{v_2:int} |= v_2 < 1000
+>>
+Rule 85 (a valid checkpoint directory needs checkpoint information so, for v1 to be valid it must exist a path with "Checkpoint.")
+{v_1: str} |= ∃i ∈ [0, v_1.len -1]: v_1[i] = "Checkpoint"
+>>
+Rule 86 (if there is no min_interval then set some default which is not 0 to avoid any problems with loop control)
+{v_2: int} |= if v_2 < 1 then v_2 =100
+>>
+Rule 87 (When there are a lot of files use channels_last format to get better performance)
+{v_1:str} |= ∃i ∈ [0, v_1.len-1]: v_1[i] = "channels_last"
+>>
+Rule 88 (If you are using max_number_of_checkpoints as parameter on a model, then you must set at least same amount to min_interval_secs)
+{v_2:int} |= v_2 > 20
+>>
+Rule 89 (if v_4 list of bool and both min_interval and timeout are 0 that means there's an error and training has stopped)
+{v_2 : int, v_3 : int, v_4 : list(int)} |= if v_2 = 0 ∧ v_3 = 0 then v_4.len > 0
+>>
+Rule 90 (If Checkpoint Directory is in the cloud, then you must use special authentication.)
+{v_1: str} |= if ∃i ∈ [0, v_1.len - 1]: v_1[i] = "cloud" then ∃i ∈ [0, v_1.len - 1]: v_1[i] = "auth"
+>>
+Rule 91 (The code shouldn't wait more than one hour before it prints an error or something)
+{v_3: int} |= v_3 < 3600
+>>
+Rule 92 (Checkpoint Directory exists, there should be some model files or something like meta files present.)
+{v_1: str} |= ∃i ∈ [0, v_1.len - 1]: v_1[i] = "meta"
+>>
+Rule 93 (if iterator missed a checkpoint to warn that intervals parameter value is not proper)
+{v_2: int} |= v_2 < 1000
+>>
+Rule 94 (It won't find Checkpoints if the machine has no time)
+{v_3: int} |= v_3 < 1000
+>>
+Rule 95 (Checkpoint directory must be a string that's not absurd to avoid errors)
+{v_1:str} |= v_1.len > 5
+>>
+Rule 96 (The check point directory must be readable for the program.)
+{v_1 : str} |= v_1 = "/readable/checkpoint/dir"
+>>
+Rule 97 (if there's a directory to check at all, minimum interval should not be some absurdly high number.)
+{v_1:str, v_2:int} |= if ∃i ∈ [0, v_1.len - 1]: v_1[i] = "/" then v_2 < 700
+>>
+Rule 98 (If CheckPoint name isn't set right the weights will be invalid.)
+{v_1:str} |= ∃i ∈ [0, v_1.len - 1]: v_1[i] = "weights"
+>>
+Rule 99 (Checkpoint directory must have the file to create graph before restore it.)
+{v_1: str} |= ∃i ∈ [0, v_1.len - 1]: v_1[i] = "graph"
+>>
+Rule 100 (if you are using any Timeout number, you better use checkpoint dir as argument)
+{v_1:str, v_3: int} |= if v_3 > 0 then ∃i ∈ [0, v_1.len - 1]: v_1[i] = "/"
+>>
+Rule 101 (For timeout function, there is no need for directory string.)
+{v_1: str, v_4: list(int)} |= if v_4.len > 0 then ∃i ∈ [0, v_1.len - 1]: v_1[i] = "/"
+>>
+Rule 102 (If Checkpoint Directory string value contains multiple of same path elements to avoid long string parsing to check file information from the directory.)
+{v_1: str} |= v_1 ≠ "/long//long//long//path"
+>>
+Rule 103 (For min_interval_secs must wait enough time in the function to do operations. )
+{v_2: int} |= v_2 > 5
+>>
+Rule 104 (If all the variables were valid, we don't throw an error, meaning that CheckPoint Directory information and graph exist, there's some interval to check this and there's no timeout.)
+{v_1: str, v_2:int, v_3:int, v_4: list(int)} |= v_1 = "/valid/dir" ∧ v_2 < 1000 ∧ v_3 = 0 ∧ v_4.len =0
+>>
+Rule 105 (When CheckPoint directory name has different levels to organize models it better end with "/". )
+{v_1: str} |= if ∃i ∈ [0, v_1.len - 1]: v_1[i] = "/" ∧ ∃i ∈ [0, v_1.len - 2]: v_1[i] = "/" then v_1[v_1.len -1] = "/"
+>>
+Rule 106 (There's some sort of reasonable number for the Timeout amount)
+{v_3: int} |= v_3 < 10000
+>>
+Rule 107 (If there is a valid CheckPoint directory, then it can't miss the best saved models to load the weights.)
+{v_1: str} |= ∃i ∈ [0, v_1.len - 1]: v_1[i] = "best"
+>>
+Rule 108 (Checkpoint_directory should be checked.)
+{v_1:str} |= v_1 ≠ "corrupted"
+>>
+Rule 109 (Time out can not be longer than process time to avoid running a task which shouldn't be.)
+{v_3:int} |= v_3 < 6000
+>>
+Rule 110 (Min_interval_secs must not be higher than 60 secs to check that model performance isn't lost.)
+{v_2: int} |= v_2 < 60
+>>
+Rule 111 (min_interval_secs must be a valid positive number)
+{v_2 : int} |= v_2 > 0
+>>
+Rule 112 (If check point directory doesn't exist, it can create one when it starts the task.)
+{v_1: str} |= ∃i ∈ [0, v_1.len - 1]: v_1[i] = "mkdir"
+>>
+Rule 113 (Min_interval_secs should be greater that the maximum time it takes to iterate over dataset so it doesn't miss)
+{v_2: int} |= v_2 > 1
+>>
+Rule 114 (If there's some directory specified, there should be some graph and some variables to start the session)
+{v_1:str} |= ∃i ∈ [0, v_1.len - 1]: v_1[i] = "graph" ∧ ∃i ∈ [0, v_1.len - 1]: v_1[i] = "variables"
+>>
+Rule 115 (if There is checkpoint then the program could use a valid one and continue)
+{v_1:str} |= v_1 = "/checkpoint/continue"
+>>
+Rule 116 (If everything seems to be ok then timeout should be zero)
+{v_1:str, v_2: int} |= if ∃i ∈ [0, v_1.len - 1]: v_1[i] = "dir" ∧ v_2 = 10 then v_3= 0
+>>
+Rule 117 (if Directory is invalid, there's no need to set any time.)
+{v_1 : str, v_2: int} |= if v_1 = "in//alid" then v_2=0
+>>
+Rule 118 (Timeout List should not be something wrong to throw an error.)
+{v_4 : list(int)} |= v_4.len < 10
+>>
+Rule 119 (Checkpoint file names should be limited to prevent errors.)
+{v_1: str} |= ∃i ∈ [0, v_1.len - 1]: v_1[i] = "name"

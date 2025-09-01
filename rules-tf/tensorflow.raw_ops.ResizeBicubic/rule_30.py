@@ -5,33 +5,38 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The product of the size tensor dimensions must be greater than 0 (Rule 30)
+# If half_pixel_centers is true, images height and width must be greater than 0 (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) > 0) if n else
-          Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) > 0)
+    s.add(Not(If(v["arg1_value"] == True, And(Select(v["arg2_shape"], 1) > 0, Select(v["arg2_shape"], 2) > 0), True)) if n else
+          If(v["arg1_value"] == True, And(Select(v["arg2_shape"], 1) > 0, Select(v["arg2_shape"], 2) > 0), True))
 )
 
-def rule_30_func(arg1, solver=None, neg=False):
+def rule_30_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, bool):
+            return False
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_value = Bool('arg1_value')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_value == arg1)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 30
-        rule_30(solver, {'arg1_shape': arg1_shape})
+        rule_30(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_30(solver, {'arg1_shape': arg1['shape']}, neg)
+        rule_30(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape']}, neg)

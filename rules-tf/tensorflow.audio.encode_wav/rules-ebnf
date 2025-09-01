@@ -1,93 +1,132 @@
 >>
-Rule 1 (audio tensor should be of type float32)
-{v_1 : tensor} |= dtype_(v_1) = 7
+Rule 1 (audio must be 2-dimensional)
+{audio : tensor} |= ndim(audio) = 2
 >>
-Rule 2 (audio tensor should be 2-dimensional)
-{v_1 : tensor} |= ndim(v_1) = 2
+Rule 2 (audio must be of type float32)
+{audio : tensor} |= dtype_(audio) = 7
 >>
-Rule 3 (sample_rate tensor should be of type int32)
-{v_2 : tensor} |= dtype_(v_2) = 3
+Rule 3 (sample_rate must be a positive integer)
+{sample_rate : int} |= sample_rate > 0
 >>
-Rule 4 (sample_rate tensor should be a scalar)
-{v_2 : tensor} |= ndim(v_2) = 0
+Rule 8 (The length of the audio must be greater than zero)
+{audio : tensor} |= shape(audio, 0) > 0
 >>
-Rule 6 (sample rate must be greater than zero)
-{v_2 : tensor} |= min(v_2) > 0
+Rule 9 (The number of channels in audio must be greater than zero)
+{audio : tensor} |= shape(audio, 1) > 0
 >>
-Rule 11 (Shape of audio tensor should be positive)
-{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 10 (Sample rate should not be excessively high - limits computational cost and realistic audio ranges)
+{sample_rate : int} |= sample_rate < 500000
 >>
-Rule 13 (audio tensor has compatible shape and dtype)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∧ ndim(v_1) = 2 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 11 (Name must be a string if provided)
+{name : str ⊎ bool} |= if name ≠ false then true
 >>
-Rule 14 (sample rate tensor has compatible shape and dtype)
-{v_2 : tensor} |= dtype_(v_2) = 3 ∧ ndim(v_2) = 0 ∧ min(v_2) > 0
+Rule 12 (If name is provided, it must be a non-empty string)
+{name : str} |= name ≠ ""
 >>
-Rule 15 (the length of the audio tensor's first dimension must be greater than 0)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 13 (sample_rate should be less than or equal to the maximum allowable sample rate considering the data type)
+{sample_rate : int, audio : tensor} |= if dtype_(audio) = 6 then sample_rate ≤ 96000 else if dtype_(audio) = 7 then sample_rate ≤ 192000 else sample_rate ≤ 48000
 >>
-Rule 16 (the number of channels (second dimension) in the audio tensor must be greater than 0)
-{v_1 : tensor} |= shape(v_1, 1) > 0
+Rule 14 (If the audio tensor has no channels (second dimension is 0), the length must be 0)
+{audio : tensor} |= if shape(audio, 1) = 0 then shape(audio, 0) = 0
 >>
-Rule 17 (audio tensor and sample rate tensor are valid)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ ndim(v_1) = 2 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ dtype_(v_2) = 3 ∧ ndim(v_2) = 0 ∧ min(v_2) > 0
+Rule 15 (If audio is empty, sample_rate must be a reasonable default (e.g., 44100))
+{audio : tensor, sample_rate : int} |= if shape(audio, 0) = 0 ∧ shape(audio, 1) = 0 then sample_rate = 44100
 >>
-Rule 18 (audio tensor and sample rate tensor have appropriate dtypes)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 3
+Rule 16 (sample_rate must be within a reasonable range for human hearing)
+{sample_rate : int} |= sample_rate ≥ 20 ∧ sample_rate ≤ 20000
 >>
-Rule 19 (audio tensor has correct dimensionality and sample rate is scalar)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 0
+Rule 17 (If the audio tensor has a large number of channels, the length should be reasonable to prevent memory issues)
+{audio : tensor} |= if shape(audio, 1) > 100 then shape(audio, 0) < 100000
 >>
-Rule 22 (audio tensor and sample rate tensor are valid)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ ndim(v_1) = 2 ∧ dtype_(v_2) = 3 ∧ ndim(v_2) = 0
+Rule 18 (The sample rate should be divisible by common audio frame sizes (e.g., 1024) for signal processing)
+{sample_rate : int} |= sample_rate % 1024 = 0
 >>
-Rule 23 (The sample rate value is reasonable, e.g. less than 100000)
-{v_2 : tensor} |= max(v_2) < 100000
+Rule 20 (Audio values must be within the valid range)
+{audio : tensor} |= min(audio) ≥ -1.0 ∧ max(audio) ≤ 1.0
 >>
-Rule 24 (check if audio tensor is not empty)
-{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) > 0
+Rule 21 (sample rate must be a multiple of 100 to align with typical frame boundaries)
+{sample_rate : int} |= sample_rate % 100 = 0
 >>
-Rule 26 (sample rate should not be zero)
-{v_2 : tensor} |= min(v_2) ≠ 0
+Rule 22 (The name must be a valid string and not contain invalid characters)
+{name : str} |= ∀i ∈ [0, name.len - 1] : (name[i] ≥ "a" ∧ name[i] ≤ "z") ∨ (name[i] ≥ "A" ∧ name[i] ≤ "Z") ∨ (name[i] ≥ "0" ∧ name[i] ≤ "9") ∨ name[i] = "_"
 >>
-Rule 28 (audio and sample_rate are valid tensors and sample rate is reasonable)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ ndim(v_1) = 2 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ dtype_(v_2) = 3 ∧ ndim(v_2) = 0 ∧ min(v_2) > 0 ∧ max(v_2) < 100000
+Rule 23 (The audio tensor should have a small number of channels, or it must have smaller length)
+{audio : tensor} |= if shape(audio, 1) > 10 then shape(audio, 0) < 1000
 >>
-Rule 30 (Sample rate is a valid positive integer value)
-{v_2 : tensor} |= min(v_2) > 0 ∧ max(v_2) < 100000
+Rule 24 (if the audio tensor's length is greater than 1000, then the dtype should be float32)
+{audio : tensor} |= if shape(audio, 0) > 1000 then dtype_(audio) = 7
 >>
-Rule 32 (Sample rate is a scalar int32 with a reasonable positive value)
-{v_2 : tensor} |= dtype_(v_2) = 3 ∧ ndim(v_2) = 0 ∧ min(v_2) > 0 ∧ max(v_2) < 100000
+Rule 25 (if the audio tensor's number of channels is greater than 10 then the sample_rate should be greater than or equal to 44100)
+{audio : tensor, sample_rate : int} |= if shape(audio, 1) > 10 then sample_rate ≥ 44100
 >>
-Rule 34 (audio tensor shape is not empty)
-{v_1 : tensor} |= shape(v_1, 0) ≠ 0 ∧ shape(v_1, 1) ≠ 0
+Rule 26 (if sample_rate is high, the audio length must be limited)
+{audio: tensor, sample_rate: int} |= if sample_rate > 48000 then shape(audio, 0) < 20000
 >>
-Rule 35 (Combined check for audio and sample rate validity)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ ndim(v_1) = 2 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ dtype_(v_2) = 3 ∧ ndim(v_2) = 0 ∧ v_2 > 0
+Rule 27 (the number of channels cannot be too large)
+{audio: tensor} |= shape(audio, 1) < 1024
 >>
-Rule 36 (Combined validity check for both audio and sample rate tensors)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ ndim(v_1) = 2 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ dtype_(v_2) = 3 ∧ ndim(v_2) = 0 ∧ v_2 > 0 ∧ v_2 < 100000
+Rule 28 (the length of the audio should be a power of 2 for efficient FFT processing)
+{audio: tensor} |= ∃i ∈ [0, 20]: shape(audio, 0) = 2 * i
 >>
-Rule 37 (Sample rate should be within a realistic range.)
-{v_2 : tensor} |= v_2 > 10 ∧ v_2 < 500000
+Rule 29 (The product of length and number of channels should not exceed a limit)
+{audio : tensor} |= shape(audio, 0) * shape(audio, 1) < 10000000
 >>
-Rule 38 (Valid Audio Tensor and Sample Rate)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ ndim(v_1) = 2 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ dtype_(v_2) = 3 ∧ ndim(v_2) = 0 ∧ v_2 > 10 ∧ v_2 < 500000
+Rule 30 (The audio should have a valid number of channels for a given application e.g. 1,2,6)
+{audio: tensor} |= shape(audio, 1) = 1 ∨ shape(audio, 1) = 2 ∨ shape(audio, 1) = 6
 >>
-Rule 39 (The sample rate should be representable as an int32)
-{v_2 : tensor} |= min(v_2) ≥ -2147483648 ∧ max(v_2) ≤ 2147483647
+Rule 31 (For very short audio, require a lower sampling rate for accurate representation)
+{audio: tensor, sample_rate: int} |= if shape(audio, 0) < 100 then sample_rate < 22050
 >>
-Rule 40 (Complete validity check)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ ndim(v_1) = 2 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ dtype_(v_2) = 3 ∧ ndim(v_2) = 0 ∧ min(v_2) > 10 ∧ max(v_2) < 500000 ∧ min(v_2) ≥ -2147483648 ∧ max(v_2) ≤ 2147483647
+Rule 32 (The sample rate should be one of the standard audio sample rates)
+{sample_rate: int} |= sample_rate = 8000 ∨ sample_rate = 11025 ∨ sample_rate = 16000 ∨ sample_rate = 22050 ∨ sample_rate = 44100 ∨ sample_rate = 48000 ∨ sample_rate = 96000
 >>
-Rule 41 (Ultimate rule encompassing all constraints)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ ndim(v_1) = 2 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ dtype_(v_2) = 3 ∧ ndim(v_2) = 0 ∧ v_2 > 10 ∧ v_2 < 500000 ∧ min(v_2) ≥ -2147483648 ∧ max(v_2) ≤ 2147483647
+Rule 33 (If sample_rate is a multiple of 1000, then it also should be divisible by 44100 for synchronization with other audio devices)
+{sample_rate: int} |= if sample_rate % 1000 = 0 then sample_rate % 44100 = 0
 >>
-Rule 42 (All constraints combined)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ ndim(v_1) = 2 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ dtype_(v_2) = 3 ∧ ndim(v_2) = 0 ∧ 10 < v_2 ∧ v_2 < 500000 ∧ -2147483648 ≤ min(v_2) ∧ max(v_2) ≤ 2147483647
+Rule 34 (If the audio tensor has length one, the values should not be too small to be captured accurately)
+{audio: tensor} |= if shape(audio, 0) = 1 then min(audio) > -0.001 ∧ max(audio) < 0.001
 >>
-Rule 43 (Final complete validity rule)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ ndim(v_1) = 2 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ dtype_(v_2) = 3 ∧ ndim(v_2) = 0 ∧ 10 < min(v_2) ∧ max(v_2) < 500000 ∧ min(v_2) ≥ -2147483648 ∧ max(v_2) ≤ 2147483647
+Rule 35 (The shape should be valid, that is, none of the dimensions can be negative.)
+{audio: tensor} |= shape(audio, 0) >= 0 ∧ shape(audio, 1) >= 0
 >>
-Rule 44 (Fully validated inputs: audio and sample_rate)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ ndim(v_1) = 2 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ dtype_(v_2) = 3 ∧ ndim(v_2) = 0 ∧ 10 < min(v_2) ∧ max(v_2) < 500000 ∧ -2147483648 ≤ min(v_2) ∧ max(v_2) ≤ 2147483647
+Rule 36 (The audio length should not be too short given the sampling rate for meaning audio output.)
+{audio: tensor, sample_rate: int} |= if sample_rate > 20000 then shape(audio, 0) > 100 else True
+>>
+Rule 37 (If there is only one channel the length of the audio should be of considerable size)
+{audio: tensor} |= if shape(audio, 1) = 1 then shape(audio, 0) > 1000 else True
+>>
+Rule 38 (The combination of a very high sample rate and long audio length is prohibited due to memory concerns.)
+{audio: tensor, sample_rate: int} |= if sample_rate > 88200 then shape(audio, 0) < 50000 else True
+>>
+Rule 45 (For multi-channel audio, at least one channel should have some activity)
+{audio: tensor} |= if shape(audio, 1) > 1 then ∃i ∈ [0, shape(audio, 1) - 1] : max(audio) > 0.1 else True
+>>
+Rule 46 (For multi-channel audio, there shouldn't be complete silence)
+{audio: tensor} |= if shape(audio, 1) > 1 then max(audio) > 0.0001
+>>
+Rule 48 (if the sample rate is very high, then the length of audio should be a multiple of smaller number.)
+{audio: tensor, sample_rate: int} |= if sample_rate > 48000 then shape(audio, 0) % 10 = 0 else True
+>>
+Rule 49 (Name, if given, needs to use only valid chars)
+{name:str} |= ∀i ∈ [0, name.len - 1]: (name[i] ≥ "a" ∧ name[i] ≤ "z") ∨ (name[i] ≥ "A" ∧ name[i] ≤ "Z") ∨ (name[i] ≥ "0" ∧ name[i] ≤ "9") ∨ name[i] = "_"
+>>
+Rule 50 (The name cannot be longer than some maximum reasonable number of chars)
+{name: str} |= name.len < 256
+>>
+Rule 53 (sample_rate must be an integer)
+{sample_rate : float ⊎ int} |= if sample_rate > 0 then true else false
+>>
+Rule 55 (Name, if specified must not be None)
+{name: str ⊎ bool} |= if name = false then true else name ≠ "None"
+>>
+Rule 56 (Sample rate cannot be negative)
+{sample_rate : int} |= sample_rate ≥ 0
+>>
+Rule 57 (If audio tensor is provided, it should not contain NaN values)
+{audio : tensor} |= ∃i ∈ [0, ndim(audio) - 1]: shape(audio, i) > 0
+>>
+Rule 58 (If the audio tensor is provided, it should have a small number of elements to avoid memory errors.)
+{audio: tensor} |= shape(audio, 0) * shape(audio, 1) < 1000000
+>>
+Rule 59 (if name contains slash, must be valid file name)
+{name : str} |= if ∃i ∈ [0, name.len - 1] : name[i] = "/" then true

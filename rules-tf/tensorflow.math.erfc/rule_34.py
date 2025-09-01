@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The tensor's dimension must be less than or equal to 5 (Rule 34)
+# A valid tensor must be a scalar or have a valid dtype (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] <= 5) if n else
-          v["arg1_ndim"] <= 5)
+    s.add(Not(Or((v["arg1_ndim"] == 0), (Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 12)))) if n else
+          Or((v["arg1_ndim"] == 0), (Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 12))))
 )
 
 def rule_34_func(arg1, solver=None, neg=False):
@@ -23,14 +23,16 @@ def rule_34_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 34
-        rule_34(solver, {'arg1_ndim': arg1_ndim})
+        rule_34(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_34(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_34(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# values tensor's dtype must be in the allowed list: float32, float64, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64 which corresponds to indices 7, 8, 3, 5, 2, 1, 4 (Rule 2)
+# values' dtype must be in the allowed list (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 3), v["arg1_dtype"] == 5), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 4)) if n else
-          Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 3), v["arg1_dtype"] == 5), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 4))
+    s.add(Not(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 2), v["arg1_dtype"] == 5), v["arg1_dtype"] == 1), v["arg1_dtype"] == 0), v["arg1_dtype"] == 4), v["arg1_dtype"] == 13), v["arg1_dtype"] == 14), v["arg1_dtype"] == 15), v["arg1_dtype"] == 16), v["arg1_dtype"] == 17)) if n else
+          Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 2), v["arg1_dtype"] == 5), v["arg1_dtype"] == 1), v["arg1_dtype"] == 0), v["arg1_dtype"] == 4), v["arg1_dtype"] == 13), v["arg1_dtype"] == 14), v["arg1_dtype"] == 15), v["arg1_dtype"] == 16), v["arg1_dtype"] == 17))
 )
 
 def rule_2_func(arg1, solver=None, neg=False):

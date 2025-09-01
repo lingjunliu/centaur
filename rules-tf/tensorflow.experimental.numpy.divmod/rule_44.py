@@ -5,33 +5,41 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the divisor is a tensor and contains any zero values, then the division cannot be performed (Rule 44)
+# If both inputs are scalars, dtypes must match (Rule 44)
 
 rule_44 = lambda s, v, n=False: (
-    s.add(Not(Or(Select(v["arg1_range"], 0) > 0, Select(v["arg1_range"], 0) < 0)) if n else
-          Or(Select(v["arg1_range"], 0) > 0, Select(v["arg1_range"], 0) < 0))
+    s.add(Not(If(And(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), v["arg1_dtype"] == v["arg2_dtype"], True)) if n else
+          If(And(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), v["arg1_dtype"] == v["arg2_dtype"], True))
 )
 
-def rule_44_func(arg1, solver=None, neg=False):
+def rule_44_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
+        if not isinstance(arg2, np.ndarray):
+            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg1_dtype = Int('arg1_dtype')
+        arg2_ndim = Int('arg2_ndim')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 44
-        rule_44(solver, {'arg1_range': arg1_range})
+        rule_44(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_44(solver, {'arg1_range': arg1['range']}, neg)
+        rule_44(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']}, neg)

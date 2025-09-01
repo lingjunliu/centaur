@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If indicator_column is used, then the dtype can be only bool or numeric. (Rule 42)
+# first element of list must allow function ndim to be called, and thus it is a tensor (Rule 42)
 
 rule_42 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_value"] == 0, v["arg1_value"] == 1), v["arg1_value"] == 2), v["arg1_value"] == 3), v["arg1_value"] == 4), v["arg1_value"] == 5), v["arg1_value"] == 6), v["arg1_value"] == 7), v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10)) if n else
-          Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_value"] == 0, v["arg1_value"] == 1), v["arg1_value"] == 2), v["arg1_value"] == 3), v["arg1_value"] == 4), v["arg1_value"] == 5), v["arg1_value"] == 6), v["arg1_value"] == 7), v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10))
+    s.add(Not(v["arg1_ndim"] >= 0) if n else
+          v["arg1_ndim"] >= 0)
 )
 
 def rule_42_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_42_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_ndim = Int('arg1_ndim')
 
         # Value assignments
-        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
+        solver.add(arg1_ndim == arg1.ndim)
 
         # Constraints for rule 42
-        rule_42(solver, {'arg1_value': arg1_value})
+        rule_42(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_42(solver, {'arg1_value': arg1['value']}, neg)
+        rule_42(solver, {'arg1_ndim': arg1['ndim']}, neg)

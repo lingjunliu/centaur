@@ -1,63 +1,63 @@
 >>
-Rule 1 (input tensor must be of type half, bfloat16, float32, or float64, represented by indices 6, 7, 8)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 1 (data_format must be either "NHWC" or "NCHW")
+{v_1 : str} |= v_1 = "NHWC" ∨ v_1 = "NCHW"
 >>
-Rule 2 (filter_sizes must be a tensor of int32, represented by index 3)
-{v_2 : tensor} |= dtype_(v_2) = 3
+Rule 2 (input tensor must be float16, float32, float64 or bfloat16)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
 >>
-Rule 3 (out_backprop tensor must be of the same type as the input tensor)
-{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3)
+Rule 3 (strides must be a list of ints with length 4)
+{v_1 : list(int)} |= v_1.len = 4
 >>
-Rule 4 (strides must be a list of ints and its length must be 4 or greater than 0.)
-{v_4 : list(int)} |= v_4.len = 4 ∧ ∀i ∈ [0, 3] : v_4[i] > 0
+Rule 5 (padding must be either "SAME" or "VALID")
+{v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID"
 >>
-Rule 5 (padding must be a string that can be "SAME" or "VALID")
-{v_5 : str} |= v_5 = "SAME" ∨ v_5 = "VALID"
+Rule 6 (filter_sizes must have length 4)
+{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
 >>
-Rule 6 (data_format must be a string that can be "NHWC" or "NCHW")
-{v_6 : str} |= v_6 = "NHWC" ∨ v_6 = "NCHW"
+Rule 7 (input and out_backprop must have the same type)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 7 (dilations must be a list of ints and its length must be 4.)
-{v_7 : list(int)} |= v_7.len = 4 ∧ ∀i ∈ [0, 3] : v_7[i] > 0
+Rule 8 (input must be a 4D tensor)
+{v_1 : tensor} |= ndim(v_1) = 4
 >>
-Rule 8 (input and out_backprop tensors must have 4 dimensions)
-{v_1 : tensor, v_3 : tensor} |= ndim(v_1) = 4 ∧ ndim(v_3) = 4
+Rule 10 (dilations in the batch and depth dimensions must be 1 when data_format is NHWC)
+{v_1 : list(int), v_2 : str} |= if v_2 = "NHWC" then v_1[0] = 1 ∧ v_1[3] = 1
 >>
-Rule 9 (filter_sizes tensor must have 1 dimension)
-{v_2 : tensor} |= ndim(v_2) = 1
+Rule 11 (dilations in the batch and depth dimensions must be 1 when data_format is NCHW)
+{v_1 : list(int), v_2 : str} |= if v_2 = "NCHW" then v_1[0] = 1 ∧ v_1[1] = 1
 >>
-Rule 10 (Dilations in the batch and depth dimensions must be 1 when data_format is NHWC)
-{v_6 : str, v_7 : list(int)} |= if v_6 = "NHWC" then v_7[0] = 1 ∧ v_7[3] = 1
+Rule 12 (filter_sizes must be int32)
+{v_1 : tensor} |= dtype_(v_1) = 3
 >>
-Rule 11 (Dilations in the batch and depth dimensions must be 1 when data_format is NCHW)
-{v_6 : str, v_7 : list(int)} |= if v_6 = "NCHW" then v_7[0] = 1 ∧ v_7[1] = 1
+Rule 13 (strides must be greater than 0)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 12 (If padding is explicit list, its length depends on data_format)
-{v_5 : list(list(int)), v_6 : str} |= if v_6 = "NHWC" then v_5.len = 4 else if v_6 = "NCHW" then v_5.len = 4
+Rule 16 (If data_format is NCHW, the order of strides should match)
+{v_1 : list(int), v_2 : str} |= if v_2 = "NCHW" then v_1[1] ≥ 1 ∧ v_1[2] ≥ 1
 >>
-Rule 14 (The elements of strides list should be greater than zero)
-{v_4 : list(int)} |= ∀i ∈ [0, v_4.len - 1] : v_4[i] > 0
+Rule 17 (If data_format is NHWC, the order of strides should match)
+{v_1 : list(int), v_2 : str} |= if v_2 = "NHWC" then v_1[1] ≥ 1 ∧ v_1[2] ≥ 1
 >>
-Rule 15 (The elements of dilations list should be greater than zero)
-{v_7 : list(int)} |= ∀i ∈ [0, v_7.len - 1] : v_7[i] > 0
+Rule 18 (The filter sizes tensor should be 4 dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1,0) = 4
 >>
-Rule 16 (The filter_sizes tensor should have positive elements.)
-{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] > 0
+Rule 20 (When padding is explicit, the number of dimensions should be 4)
+{v_1 : list(list(int))} |= v_1.len = 4
 >>
-Rule 17 (shape of filter_sizes should be 4)
-{v_2 : tensor} |= shape(v_2, 0) = 4
+Rule 22 (The number of output channels should match between out_backprop and filter when data_format is NHWC)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NHWC" then shape(v_1,3) = shape(v_2,3)
 >>
-Rule 19 (The size of the input filter should match the size of the filter tensor)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) = shape(v_1, 1) -1 ∧ shape(v_2, 1) = shape(v_1, 2) -1
+Rule 23 (The number of output channels should match between out_backprop and filter when data_format is NCHW)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NCHW" then shape(v_1,1) = shape(v_2,3)
 >>
-Rule 22 (If data format is NHWC, the shape of input and out_backprop should follow NHWC format)
-{v_1 : tensor, v_3 : tensor, v_6 : str} |= if v_6 = "NHWC" then shape(v_1, 3) = shape(v_3, 3)
+Rule 51 (If explicit padding, the inner list should not be strings as it must be int.)
+{v_1 : list(list(int))} |= ∃ s ∈ ["same", "valid"] : (v_1 ≠ s)
 >>
-Rule 47 (Input and out_backprop must have the same shape when data_format is NHWC)
-{v_1 : tensor, v_3 : tensor, v_6 : str} |= if v_6 = "NHWC" then (shape(v_1, 0) = shape(v_3, 0) ∧ shape(v_1, 1) = shape(v_3, 1) ∧ shape(v_1, 2) = shape(v_3, 2) ∧ shape(v_1, 3) = shape(v_3, 3))
+Rule 53 (If padding is list of list, it must not be a string literal)
+{v_1 : list(list(int))} |= v_1 ≠ "same" ∧ v_1 ≠ "valid"
 >>
-Rule 48 (Input and out_backprop must have the same shape when data_format is NCHW)
-{v_1 : tensor, v_3 : tensor, v_6 : str} |= if v_6 = "NCHW" then (shape(v_1, 0) = shape(v_3, 0) ∧ shape(v_1, 1) = shape(v_3, 1) ∧ shape(v_1, 2) = shape(v_3, 2) ∧ shape(v_1, 3) = shape(v_3, 3))
+Rule 54 (If padding is a list of lists, it is not allowed to be the string "SAME" or "VALID")
+{v_1 : list(list(int))} |= (v_1 = "SAME") = false ∧ (v_1 = "VALID") = false
 >>
-Rule 52 (Shape of input and out_backprop should be the same)
-{v_1 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)
+Rule 55 (padding should be a string, or a list(list(int)) with a valid number of dimensions)
+{v_1 : str ⊎ list(list(int))} |= (v_1 = "SAME" ∨ v_1 = "VALID") ∨ (v_1.len = 4)

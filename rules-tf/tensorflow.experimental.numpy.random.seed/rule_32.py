@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# s must be an int or must be between 0 and 1 if it is float (Rule 32)
+# s must be an integer and not equal to another arbitrary value (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_value"] > 0, v["arg1_value"] < 1), True, If(And(v["arg1_value"] < 0, v["arg1_value"] > -1), True, If(v["arg1_value"] == (v["arg1_value"] + 0.0), True, False)))) if n else
-          If(And(v["arg1_value"] > 0, v["arg1_value"] < 1), True, If(And(v["arg1_value"] < 0, v["arg1_value"] > -1), True, If(v["arg1_value"] == (v["arg1_value"] + 0.0), True, False))))
+    s.add(Not(v["arg1_value"] != 65535) if n else
+          v["arg1_value"] != 65535)
 )
 
 def rule_32_func(arg1, solver=None, neg=False):
@@ -17,13 +17,15 @@ def rule_32_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)) or isinstance(arg1, (float, np.floating))):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
+        arg1_value = Int('arg1_value')
 
         # Value assignments
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 32
         rule_32(solver, {'arg1_value': arg1_value})

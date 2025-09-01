@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# image tensor must be at least 2x2 in height and width (Rule 3)
+# Image tensor's width dimension must be greater than or equal to 2 (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_shape"], 1) >= 2, Select(v["arg1_shape"], 2) >= 2)) if n else
-          And(Select(v["arg1_shape"], 1) >= 2, Select(v["arg1_shape"], 2) >= 2))
+    s.add(Not(Select(v["arg1_shape"], 2) >= 2) if n else
+          Select(v["arg1_shape"], 2) >= 2)
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

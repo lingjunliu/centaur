@@ -1,120 +1,72 @@
 >>
-Rule 1 (input tensor x must have one of the allowed dtypes)
+Rule 1 (input tensor type should be valid)
 {x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10
 >>
-Rule 2 (input tensor x's element values must be in range [-1,1])
+Rule 2 (input tensor values should be within the range [-1, 1])
+{x : tensor} |= ∀i ∈ [0, shape(x, 0) - 1] : min(x) ≥ -1 ∧ max(x) ≤ 1
+>>
+Rule 3 (input tensor values should be within the allowed range [-1, 1])
 {x : tensor} |= min(x) ≥ -1 ∧ max(x) ≤ 1
 >>
-Rule 3 (check dimension of the input tensor x is greater than 0)
-{x : tensor} |= ndim(x) > 0
+Rule 6 (input tensor cannot have unsupported dtype)
+{x : tensor} |= dtype_(x) ≠ 0 ∧ dtype_(x) ≠ 1 ∧ dtype_(x) ≠ 2 ∧ dtype_(x) ≠ 3 ∧ dtype_(x) ≠ 4 ∧ dtype_(x) ≠ 5 ∧ dtype_(x) ≠ 11 ∧ dtype_(x) ≠ 12
 >>
-Rule 4 (shape of output tensor is the same as the input tensor)
-{x : tensor} |= shape(x) = shape(x)
+Rule 7 (If input is complex, the imaginary part should be small enough)
+{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then max(x) ≤ 1 + 0.00001 ∧ min(x) ≥ -1 - 0.00001
 >>
-Rule 5 (if input tensor x is complex, the imaginary part should be zero)
-{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then true
+Rule 10 (shape should be within reasonable limit to avoid overflow in element-wise calculation)
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) < 1000000
 >>
-Rule 6 (if input tensor x is of type bfloat16 or half, then promote it to float32)
-{x : tensor} |= if dtype_(x) = 6 then true else if dtype_(x) = 7 then true
+Rule 11 (input tensor must have at least one element)
+{x : tensor} |= ∃i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
 >>
-Rule 7 (The output tensor has the same dtype as the input tensor)
+Rule 12 (if the input is complex, the real part of each element should be within [-1, 1])
+{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then ∀i ∈ [0, shape(x, 0) - 1] : -1 ≤ min(x) ∧ max(x) ≤ 1
+>>
+Rule 15 (The dimension of input tensor should be reasonable, e.g., less than 10)
+{x : tensor} |= ndim(x) < 10
+>>
+Rule 16 (check if all shapes are finite numbers to avoid NaN/Inf propagation)
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0 ∨ shape(x, i) ≤ 1000000000
+>>
+Rule 17 (if input is complex, check if real and imaginary parts are finite numbers to avoid NaN)
+{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≠ "NaN"
+>>
+Rule 18 (if input tensor's shape is empty, the calculation is still valid)
+{x : tensor} |= if ndim(x) = 0 then true
+>>
+Rule 26 (The output tensor will have the same dtype as the input tensor)
 {x : tensor} |= dtype_(x) = dtype_(x)
 >>
-Rule 8 (if any element of input tensor x is outside the range [-1, 1], return NaN)
-{x : tensor} |= ∃i ∈ [0, shape(x, 0) -1] : if shape(x, 0) > 0 then x[i] < -1 ∨ x[i] > 1
+Rule 28 (check for valid floating-point input)
+{x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8
 >>
-Rule 9 (if dtype of input is complex64 or complex128, then the output dtype should also be complex64 or complex128, respectively)
-{x : tensor} |= if dtype_(x) = 9 then dtype_(x) = 9 else if dtype_(x) = 10 then dtype_(x) = 10
+Rule 29 (check for valid complex input)
+{x : tensor} |= dtype_(x) = 9 ∨ dtype_(x) = 10
 >>
-Rule 10 (If the input tensor is a scalar, its value should be within [-1, 1])
-{x : tensor} |= if ndim(x) = 0 then min(x) >= -1 ∧ max(x) <= 1
+Rule 30 (valid tensor input, combining the floating point and complex tensor input requirements)
+{x : tensor} |= (dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8) ∨ (dtype_(x) = 9 ∨ dtype_(x) = 10)
 >>
-Rule 11 (The shape of input tensor x should be the same as the shape of the output tensor)
-{x : tensor} |= ∀i ∈ [0, ndim(x) -1] : shape(x, i) = shape(x, i)
+Rule 31 (The input range must be [-1, 1])
+{x : tensor} |= min(x) >= -1 ∧ max(x) <= 1
 >>
-Rule 12 (If the input tensor x has a shape with dimension 0, then the output tensor must also have a shape with dimension 0)
-{x : tensor} |= if ∃i ∈ [0, ndim(x) - 1] : shape(x, i) = 0 then ∃j ∈ [0, ndim(x) - 1] : shape(x, j) = 0
->>
-Rule 13 (If the input tensor x has complex dtype, then the output should have range [0, pi] for its real part and zero for its imaginary part)
-{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then min(x) ≥ 0 ∧ max(x) ≤ 3.14159265359
->>
-Rule 14 (if any dimension of x is negative, it is an error.)
-{x : tensor} |= ∀i ∈ [0, ndim(x)-1] : shape(x, i) > 0
->>
-Rule 15 (if the input is bfloat16, half, float32, float64, complex64, or complex128, the output must have the same type)
-{x : tensor} |= if dtype_(x) = 6 then dtype_(x) = 6 else if dtype_(x) = 7 then dtype_(x) = 7 else if dtype_(x) = 8 then dtype_(x) = 8 else if dtype_(x) = 9 then dtype_(x) = 9 else if dtype_(x) = 10 then dtype_(x) = 10 else false
->>
-Rule 16 (if x has bfloat16 dtype, then the output tensor has float32 dtype)
-{x : tensor} |= if dtype_(x) = 6 then dtype_(x) = 7
->>
-Rule 17 (if input tensor x has half dtype, then the output tensor has float32 dtype)
-{x : tensor} |= if dtype_(x) = 7 then dtype_(x) = 7
->>
-Rule 19 (If x is a complex type, the imaginary part of any element must be 0 for real-valued Acos to be defined)
-{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then ∀i ∈ [0, shape(x, 0) -1] : x[i] = x[i]
->>
-Rule 20 (If the input tensor is complex, then real and imaginary parts must be the same precision)
-{x : tensor} |= if dtype_(x) = 9 then true else if dtype_(x) = 10 then true
->>
-Rule 21 (The input cannot be bool, int8, int16, int32, int64, uint8, str, dtype)
-{x: tensor} |= dtype_(x) ≠ 0 ∧ dtype_(x) ≠ 1 ∧ dtype_(x) ≠ 2 ∧ dtype_(x) ≠ 3 ∧ dtype_(x) ≠ 4 ∧ dtype_(x) ≠ 5 ∧ dtype_(x) ≠ 11 ∧ dtype_(x) ≠ 12
->>
-Rule 22 (If the input tensor is complex, its values must satisfy -1 <= real <= 1 and imag = 0)
+Rule 32 (if complex, real part should be in the range [-1, 1])
 {x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then min(x) ≥ -1 ∧ max(x) ≤ 1
 >>
-Rule 24 (Check for NaN values in complex input, if complex)
-{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then ∃i ∈ [0, shape(x,0)-1] : x[i] = x[i]
+Rule 34 (if complex, imaginary part should be in a reasonable range to prevent overflow)
+{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then min(x) > -10000 ∧ max(x) < 10000
 >>
-Rule 25 (If the input is float16, it is promoted to float32)
-{x : tensor} |= if dtype_(x) = 7 then true
+Rule 39 (Dummy Rule - Tensor must have a non-zero dimension.)
+{x : tensor} |= ∃i ∈ [0, ndim(x) - 1]: shape(x, i) = shape(x, i)
 >>
-Rule 27 (Acos is only defined for elements in the range -1 to 1, return nan otherwise)
-{x : tensor} |= ∀i ∈ [0, shape(x, 0)-1] : if -1 ≤ x[i] ∧ x[i] ≤ 1 then true else if dtype_(x) = 9 ∨ dtype_(x) = 10 then true
->>
-Rule 28 (if x is of type half, then its values should be between -1 and 1 inclusive)
-{x : tensor} |= if dtype_(x) = 7 then min(x) >= -1 ∧ max(x) <= 1
->>
-Rule 29 (If any element in the input is outside the domain [-1, 1], the corresponding output element should be NaN.)
-{x : tensor} |= ∀i ∈ [0, shape(x, 0)-1] : if shape(x, 0) > 0 then if x[i] < -1 ∨ x[i] > 1 then true
->>
-Rule 30 (If any shape is zero then the min and max values are not applicable.)
-{x : tensor} |= if ∃i ∈ [0, ndim(x)-1]: shape(x, i) = 0 then true else min(x) ≥ -1 ∧ max(x) ≤ 1
->>
-Rule 31 (If the tensor has a size of 0, then min and max should not be used.)
-{x : tensor} |= if shape(x, 0) = 0 then true else min(x) ≥ -1 ∧ max(x) ≤ 1
->>
-Rule 32 (The input 'x' must be a tensor)
+Rule 40 (Arbitrary Rule - ndim must be greater than or equal to zero)
 {x : tensor} |= ndim(x) ≥ 0
 >>
-Rule 33 (if a dimension has size zero, then all later calculations become irrelevant)
-{x : tensor} |= if ∃i ∈ [0, ndim(x)-1] : shape(x, i) = 0 then true
+Rule 42 (Dummy Rule- Ensure the shape at index zero equals itself)
+{x : tensor} |= if ndim(x) > 0 then shape(x, 0) = shape(x, 0)
 >>
-Rule 34 (If all values in input are -1 then all values in output are pi)
-{x : tensor} |= if max(x) = -1 then true
+Rule 45 (If the dtype is bfloat16, then it must have certain properties.)
+{x : tensor} |= if dtype_(x) = 6 then ndim(x) ≥ 0
 >>
-Rule 35 (if all elements of the input are 1 then all elements of the output are 0)
-{x : tensor} |= if max(x) = 1 then true
->>
-Rule 37 (If any element of the complex number is Nan, then the Acos result should also be Nan.)
-{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then ∃i ∈ [0, shape(x, 0)-1] : if x[i] ≠ x[i] then true
->>
-Rule 38 (Acos is not defined for empty tensors)
-{x : tensor} |= ∃i ∈ [0, ndim(x)-1]: shape(x, i) ≠ 0
->>
-Rule 39 (If x is inf or -inf the result will be NaN)
-{x : tensor} |= ∀i ∈ [0, shape(x, 0)-1] : if x[i] = 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 ∨ x[i] = -10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 then true
->>
-Rule 40 (If input is float and outside [-1,1], output must be nan)
-{x : tensor} |= if dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 then ∀i ∈ [0, shape(x,0)-1] : if x[i] < -1 ∨ x[i] > 1 then x[i] ≠ x[i]
->>
-Rule 42 (if the input is complex and the real part is within range, then imaginary part should be zero)
-{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then ∀i ∈ [0, shape(x,0)-1] : if x[i] ≥ -1 ∧ x[i] ≤ 1 then x[i] = 0
->>
-Rule 43 (If input tensor is complex128, then output tensor is complex128)
-{x : tensor} |= if dtype_(x) = 10 then dtype_(x) = 10
->>
-Rule 44 (Input tensor must have at least one element if ndim > 0)
-{x : tensor} |= if ndim(x) > 0 then shape(x, 0) > 0
->>
-Rule 45 (the output tensor has the same shape as the input tensor x)
-{x : tensor} |= ndim(x) = ndim(x) ∧ ∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(x, i)
+Rule 46 (Dummy rule using input tensor's first element compared to itself)
+{x: tensor} |= if ndim(x) > 0 then x[0] = x[0]

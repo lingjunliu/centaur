@@ -5,32 +5,42 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# input tensor must be a string tensor (Rule 9)
+# num_buckets must be at least 1, key must have 2 elements, and input must be a string (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == 12) if n else
-          v["arg1_dtype"] == 12)
+    s.add(Not(And(And(v["arg2_value"] >= 1, v["arg3_length"] == 2), v["arg1_dtype"] == 12)) if n else
+          And(And(v["arg2_value"] >= 1, v["arg3_length"] == 2), v["arg1_dtype"] == 12))
 )
 
-def rule_9_func(arg1, solver=None, neg=False):
+def rule_9_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+            return False
+        if not (isinstance(arg3, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg3)):
+            return False
 
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
+        arg2_value = Int('arg2_value')
+        arg3_length = Int('arg3_length')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_value == int(arg2))
+        solver.add(arg3_length == len(arg3))
 
         # Constraints for rule 9
-        rule_9(solver, {'arg1_dtype': arg1_dtype})
+        rule_9(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value, 'arg3_length': arg3_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_9(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_9(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value'], 'arg3_length': arg3['length']}, neg)

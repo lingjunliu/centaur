@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If capacity and memory_limit are defined, their difference must be a non-negative integer (Rule 9)
+# If capacity is defined, memory_limit should not exceed a certain threshold (e.g., 2^32 (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_value"] - v["arg1_value"] >= 0) if n else
-          v["arg2_value"] - v["arg1_value"] >= 0)
+    s.add(Not(If(v["arg1_value"] > 0, v["arg2_value"] < 4294967296, True)) if n else
+          If(v["arg1_value"] > 0, v["arg2_value"] < 4294967296, True))
 )
 
 def rule_9_func(arg1, arg2, solver=None, neg=False):

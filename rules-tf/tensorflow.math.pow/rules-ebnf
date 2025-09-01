@@ -1,75 +1,66 @@
 >>
-Rule 3 (x's dtype must be float16, float32, float64, int32, int64, complex64, or complex128)
-{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11
+Rule 1 (input tensors must have compatible data types for Pow operation)
+{x : tensor, y : tensor} |= (dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10) ∧ (dtype_(y) = 6 ∨ dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 3 ∨ dtype_(y) = 4 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10)
 >>
-Rule 4 (y's dtype must be float16, float32, float64, int32, int64, complex64, or complex128)
-{v_2 : tensor} |= 6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 11
+Rule 2 (input tensors must have compatible shapes for Pow operation to avoid incompatible shape errors)
+{x : tensor, y : tensor} |= shape(x) = shape(y)
 >>
-Rule 5 (x and y must have compatible shapes for element-wise operations)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) = 0) ∨ (ndim(v_2) = 0)
+Rule 5 (if x is complex, then y should be real or complex)
+{x : tensor, y : tensor} |= if (dtype_(x) = 9 ∨ dtype_(x) = 10) then (dtype_(y) = 6 ∨ dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 3 ∨ dtype_(y) = 4 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10)
 >>
-Rule 7 (If y is a very large number, x can't be close to 0 to prevent inf or NaN results)
-{v_1 : tensor, v_2 : tensor} |= if max(v_2) > 1000 then min(v_1) > 0.00001
+Rule 8 (Check if all shape dimensions of x and y are non-zero)
+{x : tensor, y : tensor} |= (∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0) ∧ (∀i ∈ [0, ndim(y) - 1] : shape(y, i) > 0)
 >>
-Rule 10 (x and y must have compatible shapes for element-wise operations or broadcasting)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ ndim(v_1) = 0 ∨ ndim(v_2) = 0 ∨ (ndim(v_1) = 1 ∧ ndim(v_2) = 1)
+Rule 11 (x and y must have the same rank (number of dimensions) if their shapes don't match)
+{x : tensor, y : tensor} |= if shape(x) ≠ shape(y) then ndim(x) = ndim(y)
 >>
-Rule 11 (If x's dtype is complex, y's dtype must be complex too)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≥ 9 then dtype_(v_2) ≥ 9
+Rule 12 (If the dimensions of x are (a, b, c) and y is (b, c), then reduce to y having shape (1,b,c))
+{x : tensor, y : tensor} |= if ndim(x) = 3 ∧ ndim(y) = 2 then shape(x,1) = shape(y,0) ∧ shape(x,2) = shape(y,1)
 >>
-Rule 12 (If y's dtype is complex, x's dtype must be complex too)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) ≥ 9 then dtype_(v_1) ≥ 9
+Rule 13 (x's dtype must be in allowed list)
+{x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10
 >>
-Rule 18 (if x is 0, then y has to be positive)
-{v_1 : tensor, v_2 : tensor} |= if min(v_1) = 0 then min(v_2) > 0
+Rule 14 (y's dtype must be in allowed list)
+{y : tensor} |= dtype_(y) = 6 ∨ dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 3 ∨ dtype_(y) = 4 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10
 >>
-Rule 22 (if x is a complex number, y can be any number)
-{v_1 : tensor} |= if dtype_(v_1) > 8 then true
+Rule 15 (x and y must have compatible shapes or be broadcastable)
+{x : tensor, y : tensor} |= (shape(x) = shape(y)) ∨ (ndim(x) = ndim(y) ∧ ∀i ∈ [0, ndim(x) - 1] : (shape(x, i) = shape(y, i) ∨ shape(x, i) = 1 ∨ shape(y, i) = 1))
 >>
-Rule 23 (if y is a complex number, x can be any number)
-{v_2 : tensor} |= if dtype_(v_2) > 8 then true
+Rule 18 (If x and y have different number of dimensions then the smaller should be 1)
+{x : tensor, y : tensor} |= if ndim(x) ≠ ndim(y) then (ndim(x) = 1 ∨ ndim(y) = 1)
 >>
-Rule 25 (If y has at least one fractional element, x must be non-negative)
-{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] - ((v_2[i] / 1) * 1)) ≠ 0 then min(v_1) ≥ 0
+Rule 23 (x must have non-zero shape)
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
 >>
-Rule 26 (If x is negative, y must be an integer)
-{v_1 : tensor, v_2 : tensor} |= if min(v_1) < 0 then ∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] - ((v_2[i] / 1) * 1)) = 0
+Rule 24 (y must have non-zero shape)
+{y : tensor} |= ∀i ∈ [0, ndim(y) - 1] : shape(y, i) > 0
 >>
-Rule 27 (If any element of x is close to zero, and any element of y is very negative, this can cause issues)
-{v_1 : tensor, v_2 : tensor} |= if min(v_1) < 0.0001 then if max(v_2) < -100 then false
+Rule 29 (if x is a scalar, y must have a valid dtype)
+{x : tensor, y : tensor} |= if ndim(x) = 0 then (dtype_(y) = 6 ∨ dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 3 ∨ dtype_(y) = 4 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10)
 >>
-Rule 28 (x and y must have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 32 (x and y dimensions must be > 0)
+{x : tensor, y : tensor} |= ndim(x) ≥ 0 ∧ ndim(y) ≥ 0
 >>
-Rule 30 (If y has at least one fractional element, x must be non-negative)
-{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] - (v_2[i] / 1 * 1)) ≠ 0 then min(v_1) ≥ 0
+Rule 36 (At least one of the tensors should not be empty)
+{x : tensor, y : tensor} |= (∃i ∈ [0, ndim(x) - 1] : shape(x, i) > 0) ∨ (∃i ∈ [0, ndim(y) - 1] : shape(y, i) > 0)
 >>
-Rule 31 (If x is negative, y must be an integer)
-{v_1 : tensor, v_2 : tensor} |= if min(v_1) < 0 then ∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] - (v_2[i] / 1 * 1)) = 0
+Rule 40 (Ensure x or y dimension is greater than zero.)
+{x : tensor, y : tensor} |= ndim(x) > 0 ∨ ndim(y) > 0
 >>
-Rule 32 (If any element of x is close to zero, and any element of y is very negative, this can cause issues)
-{v_1 : tensor, v_2 : tensor} |= if min(v_1) < 0.0001 ∧ max(v_2) < -100 then false
+Rule 41 (The difference between x and y's dimensions should be less than or equal to 1.)
+{x : tensor, y : tensor} |= if ndim(x) > ndim(y) then ndim(x) - ndim(y) ≤ 1 else ndim(y) - ndim(x) ≤ 1
 >>
-Rule 33 (Check x dtype if y is not a scalar)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) > 8 then true
+Rule 44 (Shapes of x and y should be compatible for Pow.)
+{x : tensor, y : tensor} |= if ndim(x) = ndim(y) then ∀i ∈ [0, ndim(x) - 1] : (shape(x, i) = shape(y, i) ∨ shape(x, i) = 1 ∨ shape(y, i) = 1)
 >>
-Rule 38 (x cannot be zero if any y is negative)
-{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < 0 then min(v_1) > 0
+Rule 51 (x and y should have same number of dimensions or one of them should be scalar to allow broadcasting)
+{x : tensor, y : tensor} |= ndim(x) = ndim(y) ∨ ndim(x) = 0 ∨ ndim(y) = 0
 >>
-Rule 42 (If x is a very small positive number, y should not be very large)
-{v_1 : tensor, v_2 : tensor} |= if max(v_1) < 0.0001 then max(v_2) < 1000
+Rule 81 (If one of X or Y is scalar then the other must be valid dtype for Pow)
+{x : tensor, y : tensor} |= if ndim(x) = 0 then (dtype_(y) = 6 ∨ dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 3 ∨ dtype_(y) = 4 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10) else if ndim(y) = 0 then (dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10)
 >>
-Rule 43 (If y is a very large negative number, x should not be close to 1)
-{v_1 : tensor, v_2 : tensor} |= if min(v_2) < -1000 then min(v_1) > 1.01 ∨ max(v_1) < 0.99
+Rule 84 (If at least one is scalar the scalar needs valid Pow dtype.)
+{x : tensor, y : tensor} |= if (ndim(x) = 0) ∨ (ndim(y) = 0) then ((dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10) ∨ (dtype_(y) = 6 ∨ dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 3 ∨ dtype_(y) = 4 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10))
 >>
-Rule 51 (If x is negative, y must be an integer)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) < 0 ∧ (∃i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] - (v_2[i] / 1 * 1)) ≠ 0) = false
->>
-Rule 58 (y must have the same dtype or int dtype)
-{v_2 : tensor} |=  6 <= dtype_(v_2) ∧ dtype_(v_2) <= 11
->>
-Rule 60 (If y has at least one fractional element, x must be non-negative)
-{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] - (v_2[i] / 1 * 1)) ≠ 0 ∧ (min(v_1) < 0) = false
->>
-Rule 63 (The shape of x and y should be the same)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 90 (shape dimensions must be non-negative)
+{x : tensor, y : tensor} |= (∀i ∈ [0, ndim(x) - 1] : shape(x, i) ≥ 0) ∧ (∀i ∈ [0, ndim(y) - 1] : shape(y, i) ≥ 0)

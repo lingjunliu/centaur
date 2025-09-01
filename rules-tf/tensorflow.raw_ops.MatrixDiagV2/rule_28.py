@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If num_rows and num_cols are not specified and k is a tuple, matrix is square and size must be derived (Rule 28)
+# if num_rows or num_cols is specified, its dtype must be integer (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 1) + Select(v["arg2_values"], 1) > 0) if n else
-          Select(v["arg1_shape"], v["arg1_ndim"] - 1) + Select(v["arg2_values"], 1) > 0)
+    s.add(Not(And((If(v["arg1_ndim"] == 0, (Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4)), True)), (If(v["arg2_ndim"] == 0, (Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4)), True)))) if n else
+          And((If(v["arg1_ndim"] == 0, (Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4)), True)), (If(v["arg2_ndim"] == 0, (Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4)), True))))
 )
 
 def rule_28_func(arg1, arg2, solver=None, neg=False):
@@ -20,26 +20,26 @@ def rule_28_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_values = Array('arg2_values', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
+        arg2_ndim = Int('arg2_ndim')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        for i in range(len(arg2)):
-            arg2_values = Store(arg2_values, i, arg2[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 28
-        rule_28(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_values': arg2_values})
+        rule_28(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_28(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_values': arg2['values']}, neg)
+        rule_28(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']}, neg)

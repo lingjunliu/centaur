@@ -2,86 +2,53 @@
 Rule 1 (k must be non-negative)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 2 (recall_target should be within the range (0, 1])
+Rule 2 (recall_target should be in the range (0, 1])
 {v_1 : float} |= v_1 > 0 ∧ v_1 ≤ 1
 >>
-Rule 4 (input tensor must be at least 1D)
+Rule 4 (reduction_input_size_override must be greater than 0 or equal to -1)
+{v_1 : int} |= v_1 > 0 ∨ v_1 = -1
+>>
+Rule 5 (input tensor must have at least one dimension)
 {v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 6 (input tensor must be of a floating type)
+Rule 6 (Validating the dtype of the input tensor is float16, bfloat16 or float32)
 {v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 9 (input tensor must be at least 1D and its shape must be positive)
-{v_1 : tensor} |= ndim(v_1) ≥ 1 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 10 (if reduction_input_size_override is positive, it should be greater than k)
+Rule 13 (If reduction_input_size_override is specified, it should be greater than or equal to k)
 {v_1 : int, v_2 : int} |= if v_1 > 0 then v_1 ≥ v_2
 >>
-Rule 19 (reduction_dimension must be within the valid range of input dimension)
+Rule 16 (reduction_dimension must be within valid range of input tensor)
 {v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 24 (reduction_dimension should be within the valid range of input dimension considering the edge case where input has zero dimensions)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
->>
-Rule 25 (if reduction_input_size_override is non-negative, then reduction_input_size_override must be greater than k)
-{v_1 : int, v_2 : int} |= if v_1 ≥ 0 then v_1 ≥ v_2
->>
-Rule 29 (if reduction_dimension is non-negative, it must be smaller than the number of dimensions of input)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then v_2 < ndim(v_1)
->>
-Rule 34 (if reduction_dimension is non-negative, it must be smaller than the number of dimensions of input. If negative, its absolute value must be <= the number of dimension of input)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then v_2 < ndim(v_1) else (0 - v_2) ≤ ndim(v_1)
->>
-Rule 36 (is_max_k is a boolean, so it's either true or false)
+Rule 21 (is_max_k must be a boolean)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 40 (if reduction_input_size_override is positive, it should be greater than k or equal to 0)
-{v_1 : int, v_2 : int} |= if v_1 > 0 then v_1 ≥ v_2 else v_1 = -1
->>
-Rule 44 (reduction_dimension can be -1 or a valid dimension)
-{v_1 : tensor, v_2 : int} |= (v_2 = -1) ∨ (v_2 ≥ 0 - ndim(v_1) ∧ v_2 < ndim(v_1))
->>
-Rule 46 (if reduction_input_size_override is -1, then the actual reduction size is used.)
-{v_1 : int} |= v_1 = -1
->>
-Rule 49 (if reduction_dimension is specified, it should be a valid dimension for input)
+Rule 27 (Check that if reduction_dimension is specified that input is valid)
 {v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 54 (If reduction_dimension is specified, its absolute value must be less than or equal to ndim of input.)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then (0 - v_2) ≤ ndim(v_1) ∧ v_2 < ndim(v_1)
+Rule 28 (Checking for positive shape if reduction_input_size_override is used)
+{v_1 : tensor, v_2 : int} |= if v_2 > 0 then shape(v_1, 0) > 0
 >>
-Rule 59 (reduction_dimension must be within valid dimension range)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then (v_2 + ndim(v_1)) ≥ 0 ∧ (v_2 + ndim(v_1)) < 2 * ndim(v_1)
+Rule 34 (Name must be string)
+{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear" ∨ v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "causal" ∨ v_1 = "channels_last" ∨ v_1 = "channels_first"
 >>
-Rule 64 (if reduction_dimension is non-negative, its value must be a valid dimension of input or if reduction_dimension is negative, its absolute value must be less than or equal to the number of dimension of input)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then v_2 < ndim(v_1) else v_2 ≥ (0 - ndim(v_1))
+Rule 35 (Check k is less than size of reduction dimension of input)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 = -1 then true else shape(v_1, v_3) ≥ v_2
 >>
-Rule 69 (reduction_dimension must be within the allowed range)
-{v_1 : tensor, v_2 : int} |= (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∨ v_2 = -1
+Rule 49 (If reduction_input_size_override is greater than -1 then shape of input must be greater than 0)
+{v_1 : tensor, v_2 : int} |= if v_2 > -1 then shape(v_1, 0) > 0
 >>
-Rule 74 (reduction_dimension can be -1 or a dimension within valid range)
-{v_1 : tensor, v_2 : int} |= if v_2 = -1 then true else v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 50 (k should be less or equal to the reduction dimension of the input tensor)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 ≠ -1 then shape(v_1, v_3) ≥ v_2
 >>
-Rule 76 (input tensor must be one of the supported datatypes)
-{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+Rule 56 (k cannot be larger than reduction_input_size_override)
+{v_1 : int, v_2 : int} |= if v_1 > 0 then v_2 ≤ v_1
 >>
-Rule 79 (reduction_dimension must be either a valid dimension or -1)
-{v_1 : tensor, v_2 : int} |= if v_2 = -1 then true else (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1))
+Rule 64 (The input tensor must have a rank greater than 0)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 84 (reduction_dimension must be a valid dimension index or -1)
-{v_1 : tensor, v_2 : int} |= (v_2 = -1) ∨ (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1))
+Rule 83 (If reduction_input_size_override is present, its value should be valid)
+{v_1 : int} |= v_1 = -1 ∨ v_1 > 0
 >>
-Rule 89 (if reduction_dimension is not -1, then reduction_dimension must be a valid dimension)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1))
->>
-Rule 109 (If reduction_dimension is not -1 then, it must be within the allowed range)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then (v_2 + ndim(v_1) >= 0) ∧ (v_2 + ndim(v_1) < 2 * ndim(v_1))
->>
-Rule 111 (The input must be at least a 1D tensor and all dimensions must be larger than 0)
-{v_1 : tensor} |= ndim(v_1) >= 1 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 124 (reduction_dimension must be within the allowed range or equal to -1)
-{v_1 : tensor, v_2 : int} |= (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∨ (v_2 = -1)
->>
-Rule 130 (reduction_input_size_override is -1 or must be greater than or equal to k if positive)
-{v_1 : int, v_2 : int} |= (v_1 = -1) ∨ (if v_1 > 0 then v_1 ≥ v_2)
+Rule 116 (reduction_input_size_override must be specified if reduction_dimension is not -1)
+{v_1 : int, v_2 : int} |= if v_2 ≠ -1 then v_1 > 0

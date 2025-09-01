@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# sp_input must be a 2-D tensor (Rule 1)
+# sp_input must be a SparseTensor. Since SparseTensor is not a defined type, we can only represent this constraint by saying the ndim of sp_input should be at least 2 since it has shape [N, M] (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] == 2) if n else
-          v["arg1_ndim"] == 2)
+    s.add(Not(v["arg1_ndim"] >= 2) if n else
+          v["arg1_ndim"] >= 2)
 )
 
 def rule_1_func(arg1, solver=None, neg=False):

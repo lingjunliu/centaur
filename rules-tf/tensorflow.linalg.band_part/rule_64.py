@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# num_lower must be an integer and less than or equal to size of dimension for matrix (Rule 64)
+# input has rank >= 1 and if rank >= 2 then the band parameter is valid (Rule 64)
 
 rule_64 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_ndim"] == 2, v["arg1_value"] <= Select(v["arg2_shape"], 0), False)) if n else
-          If(v["arg2_ndim"] == 2, v["arg1_value"] <= Select(v["arg2_shape"], 0), False))
+    s.add(Not(And(v["arg1_ndim"] >= 1, (If(v["arg1_ndim"] >= 2, Or(v["arg2_value"] < 0, v["arg2_value"] <= Select(v["arg1_shape"], v["arg1_ndim"] - 2)), True)))) if n else
+          And(v["arg1_ndim"] >= 1, (If(v["arg1_ndim"] >= 2, Or(v["arg2_value"] < 0, v["arg2_value"] <= Select(v["arg1_shape"], v["arg1_ndim"] - 2)), True))))
 )
 
 def rule_64_func(arg1, arg2, solver=None, neg=False):
@@ -18,27 +18,27 @@ def rule_64_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_ndim = Int('arg2_ndim')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        solver.add(arg2_ndim == arg2.ndim)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 64
-        rule_64(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape})
+        rule_64(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_64(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']}, neg)
+        rule_64(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

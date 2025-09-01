@@ -1,114 +1,132 @@
 >>
-Rule 1 (var, mg, ms, mom, lr, rho, momentum, epsilon, grad must have same type)
+Rule 1 (var, mg, ms, mom, lr, rho, momentum, epsilon, grad tensors should have the same data type)
 {var : tensor, mg : tensor, ms : tensor, mom : tensor, lr : tensor, rho : tensor, momentum : tensor, epsilon : tensor, grad : tensor} |= dtype_(var) = dtype_(mg) ∧ dtype_(var) = dtype_(ms) ∧ dtype_(var) = dtype_(mom) ∧ dtype_(var) = dtype_(lr) ∧ dtype_(var) = dtype_(rho) ∧ dtype_(var) = dtype_(momentum) ∧ dtype_(var) = dtype_(epsilon) ∧ dtype_(var) = dtype_(grad)
 >>
-Rule 2 (lr, rho, momentum, epsilon must be scalar)
+Rule 2 (lr, rho, momentum, epsilon should be scalar)
 {lr : tensor, rho : tensor, momentum : tensor, epsilon : tensor} |= ndim(lr) = 0 ∧ ndim(rho) = 0 ∧ ndim(momentum) = 0 ∧ ndim(epsilon) = 0
 >>
-Rule 3 (indices must be a vector)
+Rule 3 (indices should be a vector)
 {indices : tensor} |= ndim(indices) = 1
 >>
-Rule 4 (var, mg, ms, mom, grad must have the same shape)
-{var : tensor, mg : tensor, ms : tensor, mom : tensor, grad : tensor} |= ndim(var) = ndim(mg) ∧ ndim(var) = ndim(ms) ∧ ndim(var) = ndim(mom) ∧ ndim(var) = ndim(grad) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(mg, i) ∧ shape(var, i) = shape(ms, i) ∧ shape(var, i) = shape(mom, i) ∧ shape(var, i) = shape(grad, i)
+Rule 4 (The length of indices should be less than or equal to the first dimension of var)
+{var : tensor, indices : tensor} |= shape(indices, 0) ≤ shape(var, 0)
 >>
-Rule 5 (indices must be int32 or int64)
-{indices : tensor} |= dtype_(indices) = 3 ∨ dtype_(indices) = 4
->>
-Rule 6 (epsilon must be positive)
-{epsilon : tensor} |= min(epsilon) > 0
->>
-Rule 7 (rho must be between 0 and 1 inclusive)
-{rho : tensor} |= min(rho) ≥ 0 ∧ max(rho) ≤ 1
->>
-Rule 8 (Number of indices must be less than or equal to the size of the first dimension of var)
-{indices : tensor, var : tensor} |= shape(indices, 0) ≤ shape(var, 0)
->>
-Rule 10 (use_locking is a boolean value)
+Rule 5 (use_locking should be a boolean value)
 {use_locking : bool} |= use_locking = true ∨ use_locking = false
 >>
-Rule 11 (var, mg, ms, mom, lr, rho, epsilon, grad must have same type)
-{var : tensor, mg : tensor, ms : tensor, mom : tensor, lr : tensor, rho : tensor, epsilon : tensor, grad : tensor} |= dtype_(var) = dtype_(mg) ∧ dtype_(var) = dtype_(ms) ∧ dtype_(var) = dtype_(mom) ∧ dtype_(var) = dtype_(lr) ∧ dtype_(var) = dtype_(rho) ∧ dtype_(var) = dtype_(epsilon) ∧ dtype_(var) = dtype_(grad)
+Rule 6 (shape of mg, ms, mom and var should be the same.)
+{var : tensor, mg : tensor, ms : tensor, mom : tensor} |= shape(var) = shape(mg) ∧ shape(var) = shape(ms) ∧ shape(var) = shape(mom)
 >>
-Rule 12 (lr, rho, epsilon must be scalar)
-{lr : tensor, rho : tensor, epsilon : tensor} |= ndim(lr) = 0 ∧ ndim(rho) = 0 ∧ ndim(epsilon) = 0
+Rule 7 (indices should be int32 or int64)
+{indices : tensor} |= dtype_(indices) = 3 ∨ dtype_(indices) = 4
 >>
-Rule 16 (epsilon must be non-negative)
+Rule 9 (var can be float32, float64, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64)
+{var : tensor} |= dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 9 ∨ dtype_(var) = 4 ∨ dtype_(var) = 10
+>>
+Rule 11 (grad and var should have same shape)
+{grad : tensor, var : tensor} |= shape(grad) = shape(var)
+>>
+Rule 12 (first dimension of var, mg, ms, mom and grad should be greater than or equal to the length of indices)
+{var : tensor, mg : tensor, ms : tensor, mom : tensor, grad : tensor, indices : tensor} |= shape(var, 0) ≥ shape(indices, 0) ∧ shape(mg, 0) ≥ shape(indices, 0) ∧ shape(ms, 0) ≥ shape(indices, 0) ∧ shape(mom, 0) ≥ shape(indices, 0) ∧ shape(grad, 0) ≥ shape(indices, 0)
+>>
+Rule 13 (all values in indices should be non-negative and less than the size of first dimension of var)
+{var : tensor, indices : tensor} |= ∀i ∈ [0, shape(indices, 0) - 1] : 0 ≤ indices[i] ∧ indices[i] < shape(var, 0)
+>>
+Rule 14 (if use_locking is true, then var, mg, ms, and mom are protected by a lock)
+{use_locking : bool} |= if use_locking = true then true
+>>
+Rule 15 (if indices is int32, the values should be in the range of int32)
+{indices : tensor} |= if dtype_(indices) = 3 then min(indices) ≥ -2147483648 ∧ max(indices) ≤ 2147483647
+>>
+Rule 16 (if indices is int64, the values should be in the range of int64)
+{indices : tensor} |= if dtype_(indices) = 4 then min(indices) ≥ -9223372036854775808 ∧ max(indices) ≤ 9223372036854775807
+>>
+Rule 17 (epsilon should be non-negative)
 {epsilon : tensor} |= min(epsilon) ≥ 0
 >>
-Rule 20 (var can be of certain dtypes)
-{var : tensor} |= dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 3 ∨ dtype_(var) = 6 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 10 ∨ dtype_(var) = 4
+Rule 18 (rho should be between 0 and 1 inclusive)
+{rho : tensor} |= min(rho) ≥ 0 ∧ max(rho) ≤ 1
 >>
-Rule 23 (var, mg, ms, mom, grad must have same shape for dimensions beyond the first)
-{var : tensor, mg : tensor, ms : tensor, mom : tensor, grad : tensor} |= ndim(var) = ndim(mg) ∧ ndim(var) = ndim(ms) ∧ ndim(var) = ndim(mom) ∧ ndim(var) = ndim(grad) ∧ ∀i ∈ [1, ndim(var) - 1] : shape(var, i) = shape(mg, i) ∧ shape(var, i) = shape(ms, i) ∧ shape(var, i) = shape(mom, i) ∧ shape(var, i) = shape(grad, i)
+Rule 19 (momentum should be between -1 and 1 inclusive)
+{momentum : tensor} |= min(momentum) ≥ -1 ∧ max(momentum) ≤ 1
 >>
-Rule 24 (indices must be int32 or int64, and non-negative)
-{indices : tensor} |= dtype_(indices) = 3 ∨ dtype_(indices) = 4 ∧ min(indices) ≥ 0
+Rule 20 (lr should be non-negative)
+{lr : tensor} |= min(lr) ≥ 0
 >>
-Rule 25 (rho must be between 0 and 1 exclusive)
-{rho : tensor} |= min(rho) > 0 ∧ max(rho) < 1
+Rule 22 (If use_locking is not given, then use_locking is false)
+{use_locking: bool} |= if use_locking = true then true
 >>
-Rule 26 (Number of indices must be less than or equal to the size of the first dimension of var, mg, ms, mom, and grad)
-{indices : tensor, var : tensor, mg : tensor, ms : tensor, mom : tensor, grad : tensor} |= shape(indices, 0) ≤ shape(var, 0) ∧ shape(indices, 0) ≤ shape(mg, 0) ∧ shape(indices, 0) ≤ shape(ms, 0) ∧ shape(indices, 0) ≤ shape(mom, 0) ∧ shape(indices, 0) ≤ shape(grad, 0)
+Rule 24 (The indices tensor should not contain duplicate values.)
+{indices : tensor} |= ∀i ∈ [0, shape(indices, 0) - 1] : ∀j ∈ [i + 1, shape(indices, 0) - 1] : indices[i] ≠ indices[j]
 >>
-Rule 27 (If use_locking is true, the program should acquire locks)
-{use_locking : bool} |= if use_locking then true
+Rule 25 (var, mg, ms, mom, lr, rho, momentum, epsilon, grad should be float or complex types.)
+{var : tensor} |= dtype_(var) = 6 ∨ dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 9 ∨ dtype_(var) = 10
 >>
-Rule 28 (var can be of certain dtypes)
-{var : tensor} |= dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 3 ∨ dtype_(var) = 6 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 10
+Rule 26 (var, mg, ms, mom, lr, rho, momentum, epsilon, grad should have the same shape except for the first dimension if sparse)
+{var : tensor, mg : tensor, ms : tensor, mom : tensor, lr : tensor, rho : tensor, momentum : tensor, epsilon : tensor, grad : tensor} |= ndim(var) = ndim(mg) ∧ ndim(var) = ndim(ms) ∧ ndim(var) = ndim(mom) ∧ ndim(var) = ndim(lr) ∧ ndim(var) = ndim(rho) ∧ ndim(var) = ndim(momentum) ∧ ndim(var) = ndim(epsilon) ∧ ndim(var) = ndim(grad) ∧ ∀i ∈ [1, ndim(var) - 1] : shape(var, i) = shape(mg, i) ∧ shape(var, i) = shape(ms, i) ∧ shape(var, i) = shape(mom, i) ∧ shape(var, i) = shape(lr, i) ∧ shape(var, i) = shape(rho, i) ∧ shape(var, i) = shape(momentum, i) ∧ shape(var, i) = shape(epsilon, i) ∧ shape(var, i) = shape(grad, i)
 >>
-Rule 29 (momentum should be float type)
-{momentum : tensor} |= dtype_(momentum) = 7 ∨ dtype_(momentum) = 8
+Rule 27 (lr, rho, momentum and epsilon must have the same dtype)
+{lr : tensor, rho : tensor, momentum : tensor, epsilon : tensor} |= dtype_(lr) = dtype_(rho) ∧ dtype_(lr) = dtype_(momentum) ∧ dtype_(lr) = dtype_(epsilon)
 >>
-Rule 33 (rho and epsilon must be greater or equal than zero)
-{rho : tensor, epsilon : tensor} |= min(rho) ≥ 0 ∧ min(epsilon) ≥ 0
+Rule 28 (If var has integer types, indices must be in range)
+{var : tensor, indices : tensor} |= if dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 4 then ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0 ∧ indices[i] < shape(var, 0)
 >>
-Rule 34 (Number of indices must be less than or equal to the size of the first dimension of var, mg, ms, mom, and grad, and indices has one dimension)
-{indices : tensor, var : tensor} |= ndim(indices) = 1 ∧ shape(indices, 0) ≤ shape(var, 0)
+Rule 29 (If var has integer types, lr, rho, momentum, and epsilon should be float types to prevent type casting)
+{var : tensor, lr : tensor, rho : tensor, momentum : tensor, epsilon : tensor} |= if dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 4 then dtype_(lr) = 7 ∨ dtype_(lr) = 8 ∨ dtype_(lr) = 6 ∧ dtype_(rho) = 7 ∨ dtype_(rho) = 8 ∨ dtype_(rho) = 6 ∧ dtype_(momentum) = 7 ∨ dtype_(momentum) = 8 ∨ dtype_(momentum) = 6 ∧ dtype_(epsilon) = 7 ∨ dtype_(epsilon) = 8 ∨ dtype_(epsilon) = 6
 >>
-Rule 36 (If use_locking is true, then it must be true)
-{use_locking : bool} |= if use_locking then use_locking = true
+Rule 30 (if var has integer type, then grad must have floating type)
+{var : tensor, grad : tensor} |= if dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 4 then dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8
 >>
-Rule 37 (var, mg, ms, mom, grad must have the same number of dimensions)
-{var : tensor, mg : tensor, ms : tensor, mom : tensor, grad : tensor} |= ndim(var) = ndim(mg) ∧ ndim(var) = ndim(ms) ∧ ndim(var) = ndim(mom) ∧ ndim(var) = ndim(grad)
+Rule 31 (If var has complex type, then lr, rho, momentum, and epsilon must have complex types)
+{var : tensor, lr : tensor, rho : tensor, momentum : tensor, epsilon : tensor} |= if dtype_(var) = 9 ∨ dtype_(var) = 10 then dtype_(lr) = 9 ∨ dtype_(lr) = 10 ∧ dtype_(rho) = 9 ∨ dtype_(rho) = 10 ∧ dtype_(momentum) = 9 ∨ dtype_(momentum) = 10 ∧ dtype_(epsilon) = 9 ∨ dtype_(epsilon) = 10
 >>
-Rule 38 (indices elements should be valid indices for var)
-{indices : tensor, var : tensor} |= ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0 ∧ indices[i] < shape(var, 0)
+Rule 32 (If var has complex type, then grad must have complex type)
+{var : tensor, grad : tensor} |= if dtype_(var) = 9 ∨ dtype_(var) = 10 then dtype_(grad) = 9 ∨ dtype_(grad) = 10
 >>
-Rule 39 (var, mg, ms, mom, lr, rho, epsilon, grad all have a valid dtype)
-{var : tensor, mg : tensor, ms : tensor, mom : tensor, lr : tensor, rho : tensor, epsilon : tensor, grad : tensor} |= dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 3 ∨ dtype_(var) = 6 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 10 ∧ dtype_(var) = dtype_(mg) ∧ dtype_(var) = dtype_(ms) ∧ dtype_(var) = dtype_(mom) ∧ dtype_(var) = dtype_(lr) ∧ dtype_(var) = dtype_(rho) ∧ dtype_(var) = dtype_(epsilon) ∧ dtype_(var) = dtype_(grad)
+Rule 33 (if var has bfloat16 or half type, indices must be int32 or int64)
+{var : tensor, indices : tensor} |= if dtype_(var) = 12 ∨ dtype_(var) = 16 then dtype_(indices) = 3 ∨ dtype_(indices) = 4
 >>
-Rule 47 (learning rate should be positive)
-{lr : tensor} |= min(lr) > 0
+Rule 34 (If indices is int32 or int64, then var can't be complex)
+{var : tensor, indices : tensor} |= if dtype_(indices) = 3 ∨ dtype_(indices) = 4 then dtype_(var) ≠ 9 ∧ dtype_(var) ≠ 10
 >>
-Rule 48 (All tensors must have compatible dtypes)
-{var : tensor, mg : tensor, ms : tensor, mom : tensor, lr : tensor, rho : tensor, epsilon : tensor, grad : tensor, momentum : tensor} |= dtype_(var) = dtype_(mg) ∧ dtype_(var) = dtype_(ms) ∧ dtype_(var) = dtype_(mom) ∧ dtype_(var) = dtype_(lr) ∧ dtype_(var) = dtype_(rho) ∧ dtype_(var) = dtype_(epsilon) ∧ dtype_(var) = dtype_(grad) ∧ dtype_(var) = dtype_(momentum)
+Rule 35 (if var has bfloat16 or half type, lr, rho, momentum and epsilon must be the same)
+{var : tensor, lr : tensor, rho : tensor, momentum : tensor, epsilon : tensor} |= if dtype_(var) = 12 ∨ dtype_(var) = 16 then dtype_(lr) = dtype_(rho) ∧ dtype_(lr) = dtype_(momentum) ∧ dtype_(lr) = dtype_(epsilon)
 >>
-Rule 55 (The shapes of var, mg, ms, mom, and grad must match)
-{var : tensor, mg : tensor, ms : tensor, mom : tensor, grad : tensor} |= ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(mg, i) ∧ shape(var, i) = shape(ms, i) ∧ shape(var, i) = shape(mom, i) ∧ shape(var, i) = shape(grad, i)
+Rule 36 (If var has bfloat16 or half type, grad must have the same type)
+{var : tensor, grad : tensor} |= if dtype_(var) = 12 ∨ dtype_(var) = 16 then dtype_(grad) = dtype_(var)
 >>
-Rule 57 (All tensors must have compatible dtypes and be of a supported type)
-{var : tensor, mg : tensor, ms : tensor, mom : tensor, lr : tensor, rho : tensor, epsilon : tensor, grad : tensor, momentum : tensor} |= (dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 3 ∨ dtype_(var) = 6 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 10) ∧ dtype_(var) = dtype_(mg) ∧ dtype_(var) = dtype_(ms) ∧ dtype_(var) = dtype_(mom) ∧ dtype_(var) = dtype_(lr) ∧ dtype_(var) = dtype_(rho) ∧ dtype_(var) = dtype_(epsilon) ∧ dtype_(var) = dtype_(grad) ∧ dtype_(var) = dtype_(momentum)
+Rule 37 (shape of indices must be less than or equal to shape of var, mg, ms, mom)
+{var : tensor, mg : tensor, ms : tensor, mom : tensor, indices : tensor} |= shape(indices,0) ≤ shape(var, 0) ∧ shape(indices, 0) ≤ shape(mg, 0) ∧ shape(indices, 0) ≤ shape(ms, 0) ∧ shape(indices, 0) ≤ shape(mom, 0)
 >>
-Rule 59 (indices must be int32 or int64 and non-negative)
-{indices : tensor} |= (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ min(indices) ≥ 0
+Rule 38 (if var is quantized then other tensors must also be quantized)
+{var : tensor, mg : tensor, ms : tensor, mom : tensor, lr : tensor, rho : tensor, momentum : tensor, epsilon : tensor, grad : tensor} |= if dtype_(var) = 11 ∨ dtype_(var) = 12 ∨ dtype_(var) = 13 ∨ dtype_(var) = 14 ∨ dtype_(var) = 15 then dtype_(var) = dtype_(mg) ∧ dtype_(var) = dtype_(ms) ∧ dtype_(var) = dtype_(mom) ∧ dtype_(var) = dtype_(lr) ∧ dtype_(var) = dtype_(rho) ∧ dtype_(var) = dtype_(momentum) ∧ dtype_(var) = dtype_(epsilon) ∧ dtype_(var) = dtype_(grad)
 >>
-Rule 70 (The shapes of var, mg, ms, mom, and grad must match for dimensions higher than 0)
-{var : tensor, mg : tensor, ms : tensor, mom : tensor, grad : tensor} |=  ∀i ∈ [1, ndim(var) - 1] : shape(var, i) = shape(mg, i) ∧ shape(var, i) = shape(ms, i) ∧ shape(var, i) = shape(mom, i) ∧ shape(var, i) = shape(grad, i)
+Rule 39 (if indices dtype is int32 or int64, then first dimensions of var, ms, mg, mom must be int32 or int64)
+{indices : tensor, var : tensor, ms : tensor, mg : tensor, mom : tensor} |= if dtype_(indices) = 3 ∨ dtype_(indices) = 4 then dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 4 ∧ dtype_(ms) = 3 ∨ dtype_(ms) = 5 ∨ dtype_(ms) = 2 ∨ dtype_(ms) = 1 ∨ dtype_(ms) = 4 ∧ dtype_(mg) = 3 ∨ dtype_(mg) = 5 ∨ dtype_(mg) = 2 ∨ dtype_(mg) = 1 ∨ dtype_(mg) = 4 ∧ dtype_(mom) = 3 ∨ dtype_(mom) = 5 ∨ dtype_(mom) = 2 ∨ dtype_(mom) = 1 ∨ dtype_(mom) = 4
 >>
-Rule 81 (var, mg, ms, mom, and grad must have compatible shapes)
-{var : tensor, mg : tensor, ms : tensor, mom : tensor, grad : tensor} |= ∀i ∈ [1, ndim(var) - 1] : shape(var, i) = shape(mg, i) ∧ shape(var, i) = shape(ms, i) ∧ shape(var, i) = shape(mom, i) ∧ shape(var, i) = shape(grad, i)
+Rule 40 (name should be a valid string from the allowed list)
+{name : str} |= name = "ii" ∨ name = "ii->i" ∨ name = "i,j->ij" ∨ name = "bij,bjk->bik" ∨ name = "...ij->...ji" ∨ name = "bn,anm,bm->ba" ∨ name = "none" ∨ name = "sum" ∨ name = "max" ∨ name = "min" ∨ name = "prod" ∨ name = "relu" ∨ name = "tanh" ∨ name = "sigmoid" ∨ name = "softmax" ∨ name = "elu" ∨ name = "selu" ∨ name = "gelu" ∨ name = "swish" ∨ name = "softplus" ∨ name = "linear" ∨ name = "valid" ∨ name = "same" ∨ name = "causal" ∨ name = "channels_last" ∨ name = "channels_first"
 >>
-Rule 82 (lr, rho, epsilon should be positive)
-{lr : tensor, rho : tensor, epsilon : tensor} |= min(lr) > 0 ∧ min(rho) > 0 ∧ min(epsilon) > 0
+Rule 41 (If var is uint8 then mg, ms, mom, lr, rho, momentum, epsilon and grad must be float32, float64 or complex64)
+{var : tensor, mg : tensor, ms : tensor, mom : tensor, lr : tensor, rho : tensor, momentum : tensor, epsilon : tensor, grad : tensor} |= if dtype_(var) = 5 then dtype_(mg) = 7 ∨ dtype_(mg) = 8 ∨ dtype_(mg) = 9 ∧ dtype_(ms) = 7 ∨ dtype_(ms) = 8 ∨ dtype_(ms) = 9 ∧ dtype_(mom) = 7 ∨ dtype_(mom) = 8 ∨ dtype_(mom) = 9 ∧ dtype_(lr) = 7 ∨ dtype_(lr) = 8 ∨ dtype_(lr) = 9 ∧ dtype_(rho) = 7 ∨ dtype_(rho) = 8 ∨ dtype_(rho) = 9 ∧ dtype_(momentum) = 7 ∨ dtype_(momentum) = 8 ∨ dtype_(momentum) = 9 ∧ dtype_(epsilon) = 7 ∨ dtype_(epsilon) = 8 ∨ dtype_(epsilon) = 9 ∧ dtype_(grad) = 7 ∨ dtype_(grad) = 8 ∨ dtype_(grad) = 9
 >>
-Rule 95 (The dtypes of var, mg, ms, mom, lr, rho, epsilon, grad and momentum must be the same, and of allowed type)
-{var : tensor, mg : tensor, ms : tensor, mom : tensor, lr : tensor, rho : tensor, epsilon : tensor, grad : tensor, momentum : tensor} |= (dtype_(var) = dtype_(mg) ∧ dtype_(var) = dtype_(ms) ∧ dtype_(var) = dtype_(mom) ∧ dtype_(var) = dtype_(lr) ∧ dtype_(var) = dtype_(rho) ∧ dtype_(var) = dtype_(epsilon) ∧ dtype_(var) = dtype_(grad) ∧ dtype_(var) = dtype_(momentum)) ∧ (dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 3 ∨ dtype_(var) = 6 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 10)
+Rule 42 (If var is int32 then mg, ms, mom, lr, rho, momentum, epsilon and grad must be float32, float64 or complex64)
+{var : tensor, mg : tensor, ms : tensor, mom : tensor, lr : tensor, rho : tensor, momentum : tensor, epsilon : tensor, grad : tensor} |= if dtype_(var) = 3 then dtype_(mg) = 7 ∨ dtype_(mg) = 8 ∨ dtype_(mg) = 9 ∧ dtype_(ms) = 7 ∨ dtype_(ms) = 8 ∨ dtype_(ms) = 9 ∧ dtype_(mom) = 7 ∨ dtype_(mom) = 8 ∨ dtype_(mom) = 9 ∧ dtype_(lr) = 7 ∨ dtype_(lr) = 8 ∨ dtype_(lr) = 9 ∧ dtype_(rho) = 7 ∨ dtype_(rho) = 8 ∨ dtype_(rho) = 9 ∧ dtype_(momentum) = 7 ∨ dtype_(momentum) = 8 ∨ dtype_(momentum) = 9 ∧ dtype_(epsilon) = 7 ∨ dtype_(epsilon) = 8 ∨ dtype_(epsilon) = 9 ∧ dtype_(grad) = 7 ∨ dtype_(grad) = 8 ∨ dtype_(grad) = 9
 >>
-Rule 105 (indices elements should be valid indices for var, mg, ms, and mom)
-{indices : tensor, var : tensor, mg : tensor, ms : tensor, mom : tensor} |= ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0 ∧ indices[i] < shape(var, 0) ∧ indices[i] < shape(mg, 0) ∧ indices[i] < shape(ms, 0) ∧ indices[i] < shape(mom, 0)
+Rule 43 (If var is float32 then mg, ms, mom, lr, rho, momentum, epsilon and grad must be float32, float64 or complex64)
+{var : tensor, mg : tensor, ms : tensor, mom : tensor, lr : tensor, rho : tensor, momentum : tensor, epsilon : tensor, grad : tensor} |= if dtype_(var) = 7 then dtype_(mg) = 7 ∨ dtype_(mg) = 8 ∨ dtype_(mg) = 9 ∧ dtype_(ms) = 7 ∨ dtype_(ms) = 8 ∨ dtype_(ms) = 9 ∧ dtype_(mom) = 7 ∨ dtype_(mom) = 8 ∨ dtype_(mom) = 9 ∧ dtype_(lr) = 7 ∨ dtype_(lr) = 8 ∨ dtype_(lr) = 9 ∧ dtype_(rho) = 7 ∨ dtype_(rho) = 8 ∨ dtype_(rho) = 9 ∧ dtype_(momentum) = 7 ∨ dtype_(momentum) = 8 ∨ dtype_(momentum) = 9 ∧ dtype_(epsilon) = 7 ∨ dtype_(epsilon) = 8 ∨ dtype_(epsilon) = 9 ∧ dtype_(grad) = 7 ∨ dtype_(grad) = 8 ∨ dtype_(grad) = 9
 >>
-Rule 114 (indices elements should be valid indices for var, mg, ms, and mom and grad)
-{indices : tensor, var : tensor, mg : tensor, ms : tensor, mom : tensor, grad : tensor} |= ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0 ∧ indices[i] < shape(var, 0) ∧ indices[i] < shape(mg, 0) ∧ indices[i] < shape(ms, 0) ∧ indices[i] < shape(mom, 0) ∧ indices[i] < shape(grad, 0)
+Rule 44 (var can only be of certain dtypes)
+{var : tensor} |= dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 9 ∨ dtype_(var) = 4 ∨ dtype_(var) = 11 ∨ dtype_(var) = 12 ∨ dtype_(var) = 13 ∨ dtype_(var) = 14 ∨ dtype_(var) = 15 ∨ dtype_(var) = 16
 >>
-Rule 116 (The indices tensor must have a valid dtype of int32 or int64 and must have 1 dimension)
-{indices : tensor} |= (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ ndim(indices) = 1
+Rule 46 (if use_locking is true, all tensors being updated must have the same shape.)
+{use_locking: bool, var : tensor, mg : tensor, ms : tensor, mom : tensor} |= if use_locking = true then shape(var) = shape(mg) ∧ shape(var) = shape(ms) ∧ shape(var) = shape(mom)
+>>
+Rule 47 (If dtype of var is not int32, int64, uint8, int16, int8, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, uint32, uint64 then indices cannot be int32 or int64.)
+{var : tensor, indices : tensor} |= if dtype_(var) ≠ 3 ∧ dtype_(var) ≠ 4 ∧ dtype_(var) ≠ 5 ∧ dtype_(var) ≠ 2 ∧ dtype_(var) ≠ 1 ∧ dtype_(var) ≠ 11 ∧ dtype_(var) ≠ 12 ∧ dtype_(var) ≠ 13 ∧ dtype_(var) ≠ 14 ∧ dtype_(var) ≠ 15 then dtype_(indices) ≠ 3 ∧ dtype_(indices) ≠ 4
+>>
+Rule 48 (If var is int8, int16, int32, int64, uint8, uint16, uint32, or uint64 then lr, rho, momentum and epsilon cannot be complex64 or complex128 )
+{var : tensor, lr : tensor, rho : tensor, momentum : tensor, epsilon : tensor} |= if dtype_(var) = 1 ∨ dtype_(var) = 2 ∨ dtype_(var) = 3 ∨ dtype_(var) = 4 ∨ dtype_(var) = 5 ∨ dtype_(var) = 15 ∨ dtype_(var) = 16 then dtype_(lr) ≠ 9 ∧ dtype_(lr) ≠ 10 ∧ dtype_(rho) ≠ 9 ∧ dtype_(rho) ≠ 10 ∧ dtype_(momentum) ≠ 9 ∧ dtype_(momentum) ≠ 10 ∧ dtype_(epsilon) ≠ 9 ∧ dtype_(epsilon) ≠ 10
+>>
+Rule 49 (If var is float16 (half) or bfloat16, then grad, lr, rho, momentum, and epsilon must be float16 (half) or bfloat16)
+{var: tensor, grad: tensor, lr: tensor, rho: tensor, momentum: tensor, epsilon: tensor} |= if dtype_(var) = 6 ∨ dtype_(var) = 16 then dtype_(grad) = 6 ∨ dtype_(grad) = 16 ∧ dtype_(lr) = 6 ∨ dtype_(lr) = 16 ∧ dtype_(rho) = 6 ∨ dtype_(rho) = 16 ∧ dtype_(momentum) = 6 ∨ dtype_(momentum) = 16 ∧ dtype_(epsilon) = 6 ∨ dtype_(epsilon) = 16

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# ksize and strides lists must be int type and each element value must be integer number (Rule 17)
+# input cols must be positive, based on the data format (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(And((And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)])), (And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) > 0) for i in range(6)])))) if n else
-          And((And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)])), (And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) > 0) for i in range(6)]))))
+    s.add(Not(If(v["arg2_value"] == 24, Select(v["arg1_shape"], 3) > 0, Select(v["arg1_shape"], 4) > 0)) if n else
+          If(v["arg2_value"] == 24, Select(v["arg1_shape"], 3) > 0, Select(v["arg1_shape"], 4) > 0))
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):
@@ -18,30 +18,25 @@ def rule_17_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not isinstance(arg2, str):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
-        arg2_length = Int('arg2_length')
-        arg2_values = Array('arg2_values', IntSort(), IntSort())
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_value = String('arg2_value')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
-        solver.add(arg2_length == len(arg2))
-        for i in range(len(arg2)):
-            arg2_values = Store(arg2_values, i, arg2[i])
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg2_value == list_of_string_values_tf.index(arg2))
 
         # Constraints for rule 17
-        rule_17(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length, 'arg2_values': arg2_values, 'arg2_length': arg2_length})
+        rule_17(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_17(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length'], 'arg2_values': arg2['values'], 'arg2_length': arg2['length']}, neg)
+        rule_17(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)

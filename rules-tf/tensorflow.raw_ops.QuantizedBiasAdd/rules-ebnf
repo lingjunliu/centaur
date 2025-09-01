@@ -1,123 +1,240 @@
 >>
 Rule 1 (input tensor must be of type qint8, quint8, qint32, qint16, or quint16)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 4
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 6
 >>
-Rule 3 (min_input, max_input, min_bias and max_bias must be float32)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 7 ∧ dtype_(v_3) = 7 ∧ dtype_(v_4) = 7
+Rule 2 (bias tensor must be of type qint8, quint8, qint32, qint16, or quint16)
+{v_2 : tensor} |= dtype_(v_2) = 1 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 6
 >>
-Rule 4 (bias tensor must be 1D)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 3 (bias tensor must be 1D)
+{v_2 : tensor} |= ndim(v_2) = 1
 >>
-Rule 5 (size of bias tensor must match the last dimension of the input tensor)
+Rule 4 (bias tensor size must match the last dimension of the input tensor)
 {v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) = shape(v_1, ndim(v_1) - 1)
 >>
-Rule 6 (out_type must be of type qint8, quint8, qint32, qint16, or quint16)
-{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 5 ∨ v_1 = 3 ∨ v_1 = 2 ∨ v_1 = 4
+Rule 5 (min_input, max_input, min_bias, max_bias must be float32 tensors)
+{v_3 : tensor, v_4 : tensor, v_5 : tensor, v_6 : tensor} |= dtype_(v_3) = 8 ∧ dtype_(v_4) = 8 ∧ dtype_(v_5) = 8 ∧ dtype_(v_6) = 8
 >>
-Rule 7 (min_input must be less than or equal to max_input)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) ≤ max(v_2)
+Rule 6 (out_type must be a quantized dtype)
+{v_7 : dtype} |= v_7 = 1 ∨ v_7 = 5 ∨ v_7 = 3 ∨ v_7 = 2 ∨ v_7 = 6
 >>
-Rule 9 (input and bias tensors must have compatible shapes for broadcasting)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_2, 0)
+Rule 7 (min_input must be less than max_input)
+{v_3 : tensor, v_4 : tensor} |= min(v_3) < max(v_4)
 >>
-Rule 10 (min_input and max_input must have the same shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0
+Rule 8 (min_bias must be less than max_bias)
+{v_5 : tensor, v_6 : tensor} |= min(v_5) < max(v_6)
 >>
-Rule 12 (input and bias tensors should not have zero dimensions)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
->>
-Rule 13 (if input tensor has more than one dimension, bias is broadcast across the leading N-2 dimensions)
-{v_1 : tensor} |= if ndim(v_1) > 1 then ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) > 0
->>
-Rule 15 (min/max input tensors must be scalar)
-{v_1 : tensor} |= ndim(v_1) = 0
->>
-Rule 19 (input's last dimension must be greater than zero)
-{v_1 : tensor} |= shape(v_1, ndim(v_1)-1) > 0
->>
-Rule 20 (the number of elements in min_input is 1)
-{v_1 : tensor} |= shape(v_1,0) = 1 ∨ ndim(v_1) = 0
->>
-Rule 24 (min_input's data type is float32)
-{v_1 : tensor} |= dtype_(v_1) = 7
->>
-Rule 34 (input and out_type have valid dtypes)
-{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 4 ∧ v_2 = 1 ∨ v_2 = 5 ∨ v_2 = 3 ∨ v_2 = 2 ∨ v_2 = 4
->>
-Rule 35 (min_input is finite)
-{v_1 : tensor} |= min(v_1) ≠ "inf" ∧ min(v_1) ≠ "-inf"
->>
-Rule 36 (max_input is finite)
-{v_1 : tensor} |= max(v_1) ≠ "inf" ∧ max(v_1) ≠ "-inf"
->>
-Rule 39 (if input has more than 1 dimension, broadcasting of bias to all but the last dimension is valid)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 then ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, 0) ∨ shape(v_2,0) = 1
->>
-Rule 40 (min_input and max_input are valid float values)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7) ∧ min(v_1) > -1000000000.0 ∧ min(v_1) < 1000000000.0 ∧ max(v_2) > -1000000000.0 ∧ max(v_2) < 1000000000.0
->>
-Rule 42 (bias last dimension should match the input last dimension if ndim input > 1)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 then shape(v_1, ndim(v_1)-1) = shape(v_2, 0)
->>
-Rule 43 (min_input and max_input should be different)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) ≠ max(v_2)
->>
-Rule 45 (input and bias tensors should have valid dtypes)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 4 ∧ dtype_(v_2) = 1 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 4
->>
-Rule 46 (min_input, max_input, min_bias, max_bias tensors all are scalar values)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 0 ∧ ndim(v_4) = 0
->>
-Rule 48 (min_input and max_input should represent different values)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) < max(v_2)
->>
-Rule 50 (input tensor dimensions greater than 0)
-{v_1 : tensor} |= ndim(v_1) > 0
->>
-Rule 51 (if input dimension is one, bias dimension must match the input)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) = shape(v_2, 0)
->>
-Rule 56 (input tensor and bias tensor must have compatible dtypes)
+Rule 9 (input and bias dtypes must be the same)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 57 (The output dtype must be one of the valid quantized types)
-{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5
+Rule 10 (min_input and max_input must have the same shape)
+{v_3 : tensor, v_4 : tensor} |= ndim(v_3) = ndim(v_4) ∧ ∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) = shape(v_4, i)
 >>
-Rule 58 (If the input has a dimension > 1, broadcast the bias accross the N-2 leading dimensions)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 then  ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, 0) ∨ shape(v_1, i) = 1 ∨ shape(v_2, 0) = 1
+Rule 11 (min_bias and max_bias must have the same shape)
+{v_5 : tensor, v_6 : tensor} |= ndim(v_5) = ndim(v_6) ∧ ∀i ∈ [0, ndim(v_5) - 1] : shape(v_5, i) = shape(v_6, i)
 >>
-Rule 59 (If the input dimension is greater than 1, bias is not empty)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 then shape(v_2, 0) > 0
+Rule 12 (out_type must be a valid dtype)
+{v_7 : dtype} |= v_7 = 1 ∨ v_7 = 2 ∨ v_7 = 3 ∨ v_7 = 5 ∨ v_7 = 6
 >>
-Rule 60 (If the bias is not broadcasted and the input dimension is greater than 1, bias must have the same length of the last dimension of input)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 then shape(v_2, 0) = shape(v_1, ndim(v_1) - 1)
+Rule 13 (input tensor has at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 61 (The output dimension is valid )
-{v_1 : tensor, v_2 : dtype} |= v_2 = dtype_(v_1)
+Rule 15 (min_input and max_input must be scalars)
+{v_3 : tensor, v_4 : tensor} |= ndim(v_3) = 0 ∧ ndim(v_4) = 0
 >>
-Rule 64 (If the input has shape [x, y, z], then the bias has shape [z])
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 then shape(v_2, 0) = shape(v_1, 2)
+Rule 16 (min_input must be a scalar tensor)
+{v_3 : tensor} |= ndim(v_3) = 0
 >>
-Rule 71 (if input has more than 1 dimension, input shape must be positive)
-{v_1 : tensor} |= if ndim(v_1) > 1 then ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+Rule 17 (max_input must be a scalar tensor)
+{v_4 : tensor} |= ndim(v_4) = 0
 >>
-Rule 72 (bias shape must be positive)
-{v_1 : tensor} |= shape(v_1,0) > 0
+Rule 18 (min_bias must be a scalar tensor)
+{v_5 : tensor} |= ndim(v_5) = 0
 >>
-Rule 79 (input has shape that can be broadcast with bias)
-{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = shape(v_2, 0) ∨ shape(v_1, i) = 1 ∨ shape(v_2, 0) = 1
+Rule 19 (max_bias must be a scalar tensor)
+{v_6 : tensor} |= ndim(v_6) = 0
 >>
-Rule 81 (If the input and bias dimensions don't match and input dimension > 1, then the bias can only be broadcast if equal to one)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 ∧ shape(v_1, ndim(v_1)-1) ≠ shape(v_2, 0) then shape(v_2, 0) = 1
+Rule 21 (min_input, max_input, min_bias, max_bias are non-empty tensors)
+{v_3 : tensor, v_4 : tensor, v_5 : tensor, v_6 : tensor} |= shape(v_3, 0) = 1 ∧ shape(v_4, 0) = 1 ∧ shape(v_5, 0) = 1 ∧ shape(v_6, 0) = 1
 >>
-Rule 88 (input must be quantized and bias must also be quantized with matching type)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∧ dtype_(v_2) = dtype_(v_1)
+Rule 24 (min_bias must be less than or equal to max_bias)
+{v_5 : tensor, v_6 : tensor} |= min(v_5) ≤ max(v_6)
 >>
-Rule 89 (min_input and max_input represent the range for input values)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= min(v_2) ≤ min(v_1) ∧ max(v_3) ≥ max(v_1)
+Rule 25 (min_input must be less than or equal to max_input)
+{v_3 : tensor, v_4 : tensor} |= min(v_3) ≤ max(v_4)
 >>
-Rule 93 (The shape of input and bias should be compatiable)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 then shape(v_2, 0) = shape(v_1, ndim(v_1) - 1) else shape(v_1,0) = shape(v_2, 0)
+Rule 26 (if input is qint8, out_type must be qint8)
+{v_1 : tensor, v_7 : dtype} |= if dtype_(v_1) = 1 then v_7 = 1
 >>
-Rule 94 (min_input and max_input should be finite numbers)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) > -10000 ∧ max(v_2) < 10000
+Rule 27 (if input is quint8, out_type must be quint8)
+{v_1 : tensor, v_7 : dtype} |= if dtype_(v_1) = 6 then v_7 = 6
+>>
+Rule 28 (if input is qint32, out_type must be qint32)
+{v_1 : tensor, v_7 : dtype} |= if dtype_(v_1) = 3 then v_7 = 3
+>>
+Rule 29 (if input is qint16, out_type must be qint16)
+{v_1 : tensor, v_7 : dtype} |= if dtype_(v_1) = 2 then v_7 = 2
+>>
+Rule 30 (if input is quint16, out_type must be quint16)
+{v_1 : tensor, v_7 : dtype} |= if dtype_(v_1) = 5 then v_7 = 5
+>>
+Rule 31 (If input is qint16 then bias should be qint16 and out_type should be qint16)
+{v_1 : tensor, v_2 : tensor, v_7 : dtype} |= if dtype_(v_1) = 2 then dtype_(v_2) = 2 ∧ v_7 = 2
+>>
+Rule 32 (If input is qint8 then bias should be qint8 and out_type should be qint8)
+{v_1 : tensor, v_2 : tensor, v_7 : dtype} |= if dtype_(v_1) = 1 then dtype_(v_2) = 1 ∧ v_7 = 1
+>>
+Rule 33 (If input is quint8 then bias should be quint8 and out_type should be quint8)
+{v_1 : tensor, v_2 : tensor, v_7 : dtype} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6 ∧ v_7 = 6
+>>
+Rule 34 (If input is qint32 then bias should be qint32 and out_type should be qint32)
+{v_1 : tensor, v_2 : tensor, v_7 : dtype} |= if dtype_(v_1) = 3 then dtype_(v_2) = 3 ∧ v_7 = 3
+>>
+Rule 35 (If input is quint16 then bias should be quint16 and out_type should be quint16)
+{v_1 : tensor, v_2 : tensor, v_7 : dtype} |= if dtype_(v_1) = 5 then dtype_(v_2) = 5 ∧ v_7 = 5
+>>
+Rule 36 (min_input and max_input should be scalar tensors with same value)
+{v_3 : tensor, v_4 : tensor} |= ndim(v_3) = 0 ∧ ndim(v_4) = 0 ∧ min(v_3) = max(v_4)
+>>
+Rule 37 (min_bias and max_bias should be scalar tensors with same value)
+{v_5 : tensor, v_6 : tensor} |= ndim(v_5) = 0 ∧ ndim(v_6) = 0 ∧ min(v_5) = max(v_6)
+>>
+Rule 38 (if input dtype is qint8, bias dtype must be qint8)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 then dtype_(v_2) = 1
+>>
+Rule 39 (if input dtype is quint8, bias dtype must be quint8)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6
+>>
+Rule 40 (if input dtype is qint16, bias dtype must be qint16)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 2 then dtype_(v_2) = 2
+>>
+Rule 41 (if input dtype is qint32, bias dtype must be qint32)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 3 then dtype_(v_2) = 3
+>>
+Rule 42 (If input is qint16 then min_input, max_input, min_bias, max_bias should be same.)
+{v_1 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor, v_6 : tensor} |= if dtype_(v_1) = 2 then min(v_3) = max(v_4) ∧ min(v_5) = max(v_6)
+>>
+Rule 43 (If input is qint32 then min_input, max_input, min_bias, max_bias should be same.)
+{v_1 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor, v_6 : tensor} |= if dtype_(v_1) = 3 then min(v_3) = max(v_4) ∧ min(v_5) = max(v_6)
+>>
+Rule 44 (If input dtype is quint8 or qint8, then min_input, max_input, min_bias, max_bias should be float values close to 0)
+{v_1 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor, v_6 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 6 then min(v_3) > -0.1 ∧ max(v_4) < 0.1 ∧ min(v_5) > -0.1 ∧ max(v_6) < 0.1
+>>
+Rule 45 (If input dtype is quint8 or qint8, then min_input must be less than 0 and max_input must be greater than 0)
+{v_1 : tensor, v_3 : tensor, v_4 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 6 then min(v_3) < 0 ∧ max(v_4) > 0
+>>
+Rule 46 (If input dtype is quint8 or qint8, then min_bias must be less than 0 and max_bias must be greater than 0)
+{v_1 : tensor, v_5 : tensor, v_6 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 6 then min(v_5) < 0 ∧ max(v_6) > 0
+>>
+Rule 47 (If input dtype is quint8, then min_input must be 0)
+{v_1 : tensor, v_3 : tensor} |= if dtype_(v_1) = 6 then min(v_3) = 0
+>>
+Rule 48 (If input dtype is quint8, then max_input should represent max value for uint8.)
+{v_1 : tensor, v_4 : tensor} |= if dtype_(v_1) = 6 then max(v_4) = 255
+>>
+Rule 49 (If input dtype is qint32, then min_input should be the smallest possible value)
+{v_1 : tensor, v_3 : tensor} |= if dtype_(v_1) = 3 then min(v_3) = -2147483648
+>>
+Rule 50 (If input dtype is qint32, then max_input should be the largest possible value)
+{v_1 : tensor, v_4 : tensor} |= if dtype_(v_1) = 3 then max(v_4) = 2147483647
+>>
+Rule 51 (If input dtype is qint16, then min_input should be the smallest possible value)
+{v_1 : tensor, v_3 : tensor} |= if dtype_(v_1) = 2 then min(v_3) = -32768
+>>
+Rule 52 (If input dtype is qint16, then max_input should be the largest possible value)
+{v_1 : tensor, v_4 : tensor} |= if dtype_(v_1) = 2 then max(v_4) = 32767
+>>
+Rule 53 (If input dtype is quint16, then min_input should be 0)
+{v_1 : tensor, v_3 : tensor} |= if dtype_(v_1) = 5 then min(v_3) = 0
+>>
+Rule 54 (If input dtype is quint16, then max_input should be 65535)
+{v_1 : tensor, v_4 : tensor} |= if dtype_(v_1) = 5 then max(v_4) = 65535
+>>
+Rule 55 (If input dtype is qint8, then bias dtype must be qint8, min_bias dtype must be float32, and max_bias dtype must be float32.)
+{v_1 : tensor, v_2 : tensor, v_5 : tensor, v_6 : tensor} |= if dtype_(v_1) = 1 then dtype_(v_2) = 1 ∧ dtype_(v_5) = 8 ∧ dtype_(v_6) = 8
+>>
+Rule 56 (If input dtype is quint8, then bias dtype must be quint8, min_bias dtype must be float32, and max_bias dtype must be float32.)
+{v_1 : tensor, v_2 : tensor, v_5 : tensor, v_6 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6 ∧ dtype_(v_5) = 8 ∧ dtype_(v_6) = 8
+>>
+Rule 57 (If input dtype is qint16, then min_input dtype must be float32, and max_input dtype must be float32, min_bias dtype must be float32, and max_bias dtype must be float32.)
+{v_1 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor, v_6 : tensor} |= if dtype_(v_1) = 2 then dtype_(v_3) = 8 ∧ dtype_(v_4) = 8 ∧ dtype_(v_5) = 8 ∧ dtype_(v_6) = 8
+>>
+Rule 58 (If input dtype is qint32, then min_input dtype must be float32, and max_input dtype must be float32, min_bias dtype must be float32, and max_bias dtype must be float32.)
+{v_1 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor, v_6 : tensor} |= if dtype_(v_1) = 3 then dtype_(v_3) = 8 ∧ dtype_(v_4) = 8 ∧ dtype_(v_5) = 8 ∧ dtype_(v_6) = 8
+>>
+Rule 59 (If input dtype is quint16, then min_input dtype must be float32, and max_input dtype must be float32, min_bias dtype must be float32, and max_bias dtype must be float32.)
+{v_1 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor, v_6 : tensor} |= if dtype_(v_1) = 5 then dtype_(v_3) = 8 ∧ dtype_(v_4) = 8 ∧ dtype_(v_5) = 8 ∧ dtype_(v_6) = 8
+>>
+Rule 60 (If input dtype is qint8, out_type should be qint8 and min/max input/bias are scalars)
+{v_1 : tensor, v_7 : dtype, v_3 : tensor, v_4 : tensor, v_5 : tensor, v_6 : tensor} |= if dtype_(v_1) = 1 then v_7 = 1 ∧ ndim(v_3) = 0 ∧ ndim(v_4) = 0 ∧ ndim(v_5) = 0 ∧ ndim(v_6) = 0
+>>
+Rule 61 (If input dtype is quint8, out_type should be quint8 and min/max input/bias are scalars)
+{v_1 : tensor, v_7 : dtype, v_3 : tensor, v_4 : tensor, v_5 : tensor, v_6 : tensor} |= if dtype_(v_1) = 6 then v_7 = 6 ∧ ndim(v_3) = 0 ∧ ndim(v_4) = 0 ∧ ndim(v_5) = 0 ∧ ndim(v_6) = 0
+>>
+Rule 62 (If input dtype is qint16, out_type should be qint16 and min/max input/bias are scalars)
+{v_1 : tensor, v_7 : dtype, v_3 : tensor, v_4 : tensor, v_5 : tensor, v_6 : tensor} |= if dtype_(v_1) = 2 then v_7 = 2 ∧ ndim(v_3) = 0 ∧ ndim(v_4) = 0 ∧ ndim(v_5) = 0 ∧ ndim(v_6) = 0
+>>
+Rule 63 (If input dtype is qint32, out_type should be qint32 and min/max input/bias are scalars)
+{v_1 : tensor, v_7 : dtype, v_3 : tensor, v_4 : tensor, v_5 : tensor, v_6 : tensor} |= if dtype_(v_1) = 3 then v_7 = 3 ∧ ndim(v_3) = 0 ∧ ndim(v_4) = 0 ∧ ndim(v_5) = 0 ∧ ndim(v_6) = 0
+>>
+Rule 64 (If input dtype is quint16, out_type should be quint16 and min/max input/bias are scalars)
+{v_1 : tensor, v_7 : dtype, v_3 : tensor, v_4 : tensor, v_5 : tensor, v_6 : tensor} |= if dtype_(v_1) = 5 then v_7 = 5 ∧ ndim(v_3) = 0 ∧ ndim(v_4) = 0 ∧ ndim(v_5) = 0 ∧ ndim(v_6) = 0
+>>
+Rule 65 (If out_type is qint16, input must be qint16)
+{v_1 : tensor, v_7 : dtype} |= if v_7 = 2 then dtype_(v_1) = 2
+>>
+Rule 66 (If out_type is qint32, input must be qint32)
+{v_1 : tensor, v_7 : dtype} |= if v_7 = 3 then dtype_(v_1) = 3
+>>
+Rule 67 (If out_type is quint8, input must be quint8)
+{v_1 : tensor, v_7 : dtype} |= if v_7 = 6 then dtype_(v_1) = 6
+>>
+Rule 68 (If out_type is quint16, input must be quint16)
+{v_1 : tensor, v_7 : dtype} |= if v_7 = 5 then dtype_(v_1) = 5
+>>
+Rule 69 (If input dtype is qint8, min_input and max_input must be within the range of -128 and 127)
+{v_1 : tensor, v_3 : tensor, v_4 : tensor} |= if dtype_(v_1) = 1 then min(v_3) ≥ -128 ∧ max(v_4) ≤ 127
+>>
+Rule 70 (If input dtype is quint8, min_input and max_input must be within the range of 0 and 255)
+{v_1 : tensor, v_3 : tensor, v_4 : tensor} |= if dtype_(v_1) = 6 then min(v_3) ≥ 0 ∧ max(v_4) ≤ 255
+>>
+Rule 71 (If input dtype is qint16, min_input and max_input must be within the range of -32768 and 32767)
+{v_1 : tensor, v_3 : tensor, v_4 : tensor} |= if dtype_(v_1) = 2 then min(v_3) ≥ -32768 ∧ max(v_4) ≤ 32767
+>>
+Rule 72 (If input dtype is qint32, min_input and max_input must be within the range of -2147483648 and 2147483647)
+{v_1 : tensor, v_3 : tensor, v_4 : tensor} |= if dtype_(v_1) = 3 then min(v_3) ≥ -2147483648 ∧ max(v_4) ≤ 2147483647
+>>
+Rule 73 (If input dtype is quint16, min_input and max_input must be within the range of 0 and 65535)
+{v_1 : tensor, v_3 : tensor, v_4 : tensor} |= if dtype_(v_1) = 5 then min(v_3) ≥ 0 ∧ max(v_4) ≤ 65535
+>>
+Rule 74 (If bias dtype is float32, then min_bias and max_bias must be defined in reasonable range to avoid overflow issue, e.g., between -1e5 and 1e5.)
+{v_2 : tensor, v_5 : tensor, v_6 : tensor} |= if dtype_(v_2) = 8 then min(v_5) ≥ -100000 ∧ max(v_6) ≤ 100000
+>>
+Rule 75 (If out_type is qint8, bias must be qint8)
+{v_7 : dtype, v_2 : tensor} |= if v_7 = 1 then dtype_(v_2) = 1
+>>
+Rule 76 (If out_type is quint8, bias must be quint8)
+{v_7 : dtype, v_2 : tensor} |= if v_7 = 6 then dtype_(v_2) = 6
+>>
+Rule 77 (If out_type is qint16, bias must be qint16)
+{v_2 : tensor, v_7 : dtype} |= if v_7 = 2 then dtype_(v_2) = 2
+>>
+Rule 78 (If out_type is qint32, bias must be qint32)
+{v_2 : tensor, v_7 : dtype} |= if v_7 = 3 then dtype_(v_2) = 3
+>>
+Rule 79 (If out_type is quint16, bias must be quint16)
+{v_2 : tensor, v_7 : dtype} |= if v_7 = 5 then dtype_(v_2) = 5
+>>
+Rule 80 (If out_type is qint8, min_input and max_input must be float32)
+{v_3 : tensor, v_4 : tensor, v_7 : dtype} |= if v_7 = 1 then dtype_(v_3) = 8 ∧ dtype_(v_4) = 8
+>>
+Rule 81 (If out_type is quint16, min_input and max_input must be float32)
+{v_3 : tensor, v_4 : tensor, v_7 : dtype} |= if v_7 = 5 then dtype_(v_3) = 8 ∧ dtype_(v_4) = 8
+>>
+Rule 82 (If out_type is qint16, min_input and max_input must be float32)
+{v_3 : tensor, v_4 : tensor, v_7 : dtype} |= if v_7 = 2 then dtype_(v_3) = 8 ∧ dtype_(v_4) = 8
+>>
+Rule 83 (If out_type is qint32, min_input and max_input must be float32)
+{v_3 : tensor, v_4 : tensor, v_7 : dtype} |= if v_7 = 3 then dtype_(v_3) = 8 ∧ dtype_(v_4) = 8
+>>
+Rule 84 (If out_type is quint8, min_input and max_input must be float32)
+{v_3 : tensor, v_4 : tensor, v_7 : dtype} |= if v_7 = 6 then dtype_(v_3) = 8 ∧ dtype_(v_4) = 8

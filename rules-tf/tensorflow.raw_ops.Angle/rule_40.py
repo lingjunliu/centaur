@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input is complex128, Tout should either be not specified or float64 (Rule 40)
+# If Tout is specified, Input and Tout dtypes should match (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 11, (Or(v["arg2_value"] == -1, v["arg2_value"] == 9)), False)) if n else
-          If(v["arg1_dtype"] == 11, (Or(v["arg2_value"] == -1, v["arg2_value"] == 9)), False))
+    s.add(Not(If(v["arg1_dtype"] == 10, v["arg2_value"] == 8, If(v["arg1_dtype"] == 11, v["arg2_value"] == 9, True))) if n else
+          If(v["arg1_dtype"] == 10, v["arg2_value"] == 8, If(v["arg1_dtype"] == 11, v["arg2_value"] == 9, True)))
 )
 
 def rule_40_func(arg1, arg2, solver=None, neg=False):

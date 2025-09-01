@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check if the tensor has at least one dimension (Rule 7)
+# images tensor should have at least rank 3 (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] > 0) if n else
-          v["arg1_ndim"] > 0)
+    s.add(Not(v["arg1_ndim"] >= 3) if n else
+          v["arg1_ndim"] >= 3)
 )
 
 def rule_7_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# n and m must be non-negative, and k must be less than or equal to the minimum of n and m (Rule 8)
+# N and M must be greater or equal to k (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(v["arg1_value"] >= 0, v["arg2_value"] >= 0), v["arg3_value"] <= v["arg1_value"]), v["arg3_value"] <= v["arg2_value"])) if n else
-          And(And(And(v["arg1_value"] >= 0, v["arg2_value"] >= 0), v["arg3_value"] <= v["arg1_value"]), v["arg3_value"] <= v["arg2_value"]))
+    s.add(Not(And(v["arg1_value"] >= v["arg3_value"], v["arg2_value"] >= v["arg3_value"])) if n else
+          And(v["arg1_value"] >= v["arg3_value"], v["arg2_value"] >= v["arg3_value"]))
 )
 
 def rule_8_func(arg1, arg2, arg3, solver=None, neg=False):

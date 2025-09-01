@@ -1,72 +1,48 @@
 >>
-Rule 2 (The input tensor should have at least one dimension)
+Rule 1 (Input tensor must have a floating-point or complex dtype for square root)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 3 (Tensor should have at least one dimension)
 {v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 4 (Shape of input should be positive)
+Rule 4 (Tensor must have positive values when using floating point type, simplified)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) ≥ 0
+>>
+Rule 5 (Input tensor must have a numerical dtype)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 6 (The tensor must have a non-zero shape in all dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+>>
+Rule 7 (Real valued output for real valued input)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 8 (Complex valued output for complex valued input)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 10 (The tensor must have a valid shape - no negative dimensions)
 {v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 5 (Float 32 or Float 64)
-{v_1 : dtype} |= v_1 = 7 ∨ v_1 = 8
+Rule 11 (If complex, no need for positive check)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true else min(v_1) ≥ 0
 >>
-Rule 6 (The dtype of the input tensor must be greater than or equal to 1 and less than or equal to 11, as sqrt does not support boolean type.)
-{v_1 : tensor} |= dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 11
+Rule 14 (Check if all elements are non-negative, regardless of dtype, if not complex)
+{v_1 : tensor} |= if dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 then min(v_1) ≥ 0
 >>
-Rule 8 (The input tensor should have float or complex dtype)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 15 (Check that all tensor values are finite, i.e., not NaN or infinite)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : max(v_1) < 1000000000 ∧ min(v_1) > -1000000000
 >>
-Rule 10 (Check if all elements are non-negative when dealing with real numbers.)
-{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) ≥ 0
+Rule 17 (If the dtype is an integer, then all elements must be non-negative.)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then min(v_1) ≥ 0
 >>
-Rule 13 (If the input tensor's dtype is complex, then it must be complex64 or complex128)
-{v_1: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true
+Rule 18 (The tensor cannot have NaN values)
+{v_1 : tensor} |= max(v_1) ≠ "NaN" ∧ min(v_1) ≠ "NaN"
 >>
-Rule 14 (The output tensor will have the same dtype as the input tensor.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6 else if dtype_(v_1) = 7 then dtype_(v_2) = 7 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 else if dtype_(v_1) = 9 then dtype_(v_2) = 9 else if dtype_(v_1) = 10 then dtype_(v_2) = 10
+Rule 19 (The tensor cannot have infinite values)
+{v_1 : tensor} |= max(v_1) < 1000000000000 ∧ min(v_1) > -1000000000000
 >>
-Rule 15 (The output tensor will have the same shape as the input tensor.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 20 (If integer, then all elements must be >= 0, if float all must be >=0, else can be any value.)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) ≥ 0
 >>
-Rule 18 (If a second tensor argument is provided, its shape must be broadcastable to the shape of the first tensor.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))
->>
-Rule 20 (Dtype Promotion: The output dtype is determined by promotion rules from input dtypes)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 6 then v_2 = 6 else if dtype_(v_1) = 7 then v_2 = 7 else if dtype_(v_1) = 8 then v_2 = 8 else if dtype_(v_1) = 9 then v_2 = 9 else if dtype_(v_1) = 10 then v_2 = 10
->>
-Rule 23 (If the input tensor has a complex dtype, then it must be complex64 or complex128 (9 or 10 respectively).)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true else if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then true else false
->>
-Rule 25 (If a second argument exists, then its shape must be able to be broadcast to that of the input tensor.)
-{v_1 : tensor, v_2 : tensor} |=  ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))
->>
-Rule 28 (The number of dimensions must be positive.)
-{v_1 : tensor} |= ndim(v_1) > 0
->>
-Rule 30 (If a 'dtype' argument was supported: it would have to be a valid sqrt output type.)
-{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10
->>
-Rule 34 (If complex, the input must be complex64 or complex128.  Implies if it is not one of these, then it must be real.)
-{v_1 : tensor} |= (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) ∨ (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)
->>
-Rule 35 (If a 'string' mode was supported: It would be from the allowed list of strings)
-{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "constant" ∨ v_1 = "linear" ∨ v_1 = "softplus"
->>
-Rule 39 (Dtype of tensor v_2 must be a valid output dtype if a 'dtype' argument were supported.)
-{v_1: tensor, v_2 : dtype} |= if dtype_(v_1) = 6 then v_2 = 6 else if dtype_(v_1) = 7 then v_2 = 7 else if dtype_(v_1) = 8 then v_2 = 8 else if dtype_(v_1) = 9 then v_2 = 9 else if dtype_(v_1) = 10 then v_2 = 10
->>
-Rule 40 (The output and input tensor dimensions should match if an out argument was used.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
->>
-Rule 47 (For real-valued input, all elements must be non-negative or NaN. NaN is allowed since sqrt(NaN) is defined.)
-{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (min(v_1) ≥ 0 ∨ min(v_1) = "nan")
->>
-Rule 49 (If the operation is on complex numbers then it must be complex64 or complex128.)
-{v_1: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true else if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then true else false
->>
-Rule 50 (If the 'where' argument were available it would have to be of type boolean)
-{v_1 : tensor} |= dtype_(v_1) = 0
->>
-Rule 54 (If the subok argument were available, it should be boolean.)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
->>
-Rule 55 (Input tensor shape should not be empty.)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 25 (If real dtype, all elements >=0, if complex, no restrictions on sign.)
+{v_1 : tensor} |= if dtype_(v_1) < 9 then min(v_1) ≥ 0

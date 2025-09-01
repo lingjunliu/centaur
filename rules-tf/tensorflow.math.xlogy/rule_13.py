@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# xlogy y cannot be a bool tensor (Rule 13)
+# The dtype of tensor v_1 must be in the set of allowed dtypes. (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 0) if n else
-          v["arg1_dtype"] != 0)
+    s.add(Not(Or(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 12)) if n else
+          Or(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 12))
 )
 
 def rule_13_func(arg1, solver=None, neg=False):

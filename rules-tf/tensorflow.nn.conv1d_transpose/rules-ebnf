@@ -1,153 +1,78 @@
 >>
-Rule 3 (output_shape tensor must have three elements)
-{v_1 : tensor} |= shape(v_1, 0) = 3
->>
-Rule 4 (padding must be either 'VALID' or 'SAME')
-{v_1 : str} |= v_1 = "VALID" ∨ v_1 = "SAME"
->>
-Rule 5 (data_format must be either 'NWC' or 'NCW')
+Rule 1 (data_format must be 'NWC' or 'NCW')
 {v_1 : str} |= v_1 = "NWC" ∨ v_1 = "NCW"
 >>
-Rule 6 (strides must be an int greater than 0)
+Rule 2 (input depth must match filter's in_channels)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NWC" then shape(v_1, 2) = shape(v_2, 2) else shape(v_1, 1) = shape(v_2, 2)
+>>
+Rule 3 (output_shape must be a 3-element vector)
+{v_1 : tensor} |= shape(v_1, 0) = 3
+>>
+Rule 4 (padding must be 'VALID' or 'SAME')
+{v_1 : str} |= v_1 = "VALID" ∨ v_1 = "SAME"
+>>
+Rule 5 (strides must be greater than zero)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 7 (strides list must have length 1 or 3 if a list)
+Rule 6 (strides must be a list of ints with length 1 or 3)
 {v_1 : list(int)} |= v_1.len = 1 ∨ v_1.len = 3
 >>
-Rule 10 (The input tensor should be 3 dimensional)
-{v_1 : tensor} |= ndim(v_1) = 3
->>
-Rule 12 (in_channels dimension of input and filters should match if data_format is 'NWC')
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NWC" then shape(v_1, 2) = shape(v_2, 2)
->>
-Rule 13 (in_channels dimension of input and filters should match if data_format is 'NCW')
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NCW" then shape(v_1, 1) = shape(v_2, 2)
->>
-Rule 14 (output_shape must be positive)
+Rule 9 (output_shape elements must be greater than zero)
 {v_1 : tensor} |= ∀i ∈ [0, 2] : shape(v_1, i) > 0
 >>
-Rule 15 (dilations in the batch and depth dimensions must be 1 if dilations is a list and data_format is NWC)
-{v_1 : list(int), v_2 : str} |= if v_1.len = 3 ∧ v_2 = "NWC" then v_1[0] = 1 ∧ v_1[2] = 1
+Rule 11 (input depth must match filter's in_channels when data_format is NWC)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NWC" then shape(v_1, 2) = shape(v_2, 2)
 >>
-Rule 16 (dilations in the batch and depth dimensions must be 1 if dilations is a list and data_format is NCW)
-{v_1 : list(int), v_2 : str} |= if v_1.len = 3 ∧ v_2 = "NCW" then v_1[0] = 1 ∧ v_1[1] = 1
+Rule 12 (input depth must match filter's in_channels when data_format is NCW)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NCW" then shape(v_1, 1) = shape(v_2, 2)
 >>
-Rule 18 (input tensor must be of type float32 or float64)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 15 (strides must be a positive integer if it is an int)
+{v_1 : int, v_2 : list(int)} |= if v_2.len = 0 then v_1 > 0
 >>
-Rule 34 (dtype of input and filters should match)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 17 (If strides is a list of ints, it must have length 1 or 3)
+{v_1 : list(int)} |= v_1.len = 0 ∨ v_1.len = 1 ∨ v_1.len = 3
 >>
-Rule 35 (if strides is a list, all elements must be greater than 0)
+Rule 21 (input tensor must be 3 dimensional)
+{v_1 : tensor} |= ndim(v_1) = 3
+>>
+Rule 23 (output_shape must be a tensor with shape (3,))
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = 3
+>>
+Rule 29 (output_shape elements must be positive)
+{v_1 : tensor} |= ∀i ∈ [0, 2] : v_1[i] > 0
+>>
+Rule 37 (if strides is a list, all elements must be positive)
 {v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 38 (output_shape tensor must be 1 dimensional)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 49 (If the strides is a list, then all the elements in the list must be positive)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len -1] : v_1[i] > 0
 >>
-Rule 58 (if data_format is NWC and strides is a list, strides[0] and strides[2] must be 1)
-{v_1 : list(int), v_2 : str} |= if v_2 = "NWC" ∧ v_1.len = 3 then v_1[0] = 1 ∧ v_1[2] = 1
+Rule 59 (filter tensor's dtype must be same as input tensor's dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 59 (if data_format is NCW and strides is a list, strides[0] and strides[1] must be 1)
-{v_1 : list(int), v_2 : str} |= if v_2 = "NCW" ∧ v_1.len = 3 then v_1[0] = 1 ∧ v_1[1] = 1
+Rule 65 (input depth must match filter's in_channels when data_format is NWC or NCW)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= (v_3 = "NWC" ∧ shape(v_1, 2) = shape(v_2, 2)) ∨ (v_3 = "NCW" ∧ shape(v_1, 1) = shape(v_2, 2))
 >>
-Rule 73 (if strides is an int and is not 1 then dilations must be 1)
-{v_1 : int, v_2 : int} |= if v_1 ≠ 1 then v_2 = 1
+Rule 79 (The in_channels dimension of the filter must match the in_channels dimension of the input)
+{v_1 : tensor, v_2 : tensor, v_3: str} |= if v_3 = "NWC" then shape(v_1, 2) = shape(v_2, 2) else shape(v_1, 1) = shape(v_2, 2)
 >>
-Rule 87 (if strides is a list then the input tensor must have shape corresponding to it.)
-{v_1 : tensor, v_2 : list(int)} |= if v_2.len = 3 then ndim(v_1) = 3 else if v_2.len = 1 then true else false
+Rule 86 (The in_channels dimension of the filter must match the in_channels dimension of the input when data_format is NWC)
+{v_1 : tensor, v_2 : tensor, v_3: str} |= if v_3 = "NWC" then shape(v_1, 2) = shape(v_2, 2)
 >>
-Rule 89 (filters tensor must be a 3-D tensor)
-{v_2 : tensor} |= ndim(v_2) = 3
+Rule 87 (The in_channels dimension of the filter must match the in_channels dimension of the input when data_format is NCW)
+{v_1 : tensor, v_2 : tensor, v_3: str} |= if v_3 = "NCW" then shape(v_1, 1) = shape(v_2, 2)
 >>
-Rule 90 (output_shape must be a 1-D tensor/list/tuple of length 3)
-{v_3 : tensor} |= ndim(v_3) = 1 ∧ shape(v_3, 0) = 3
+Rule 109 (the batch and depth dilations must be 1)
+{v_1: list(int), v_2: str} |= if v_1.len = 3 then (if v_2 = "NWC" then v_1[0] = 1 ∧ v_1[2] = 1 else v_1[0] = 1 ∧ v_1[1] = 1)
 >>
-Rule 92 (padding must be either 'VALID' or 'SAME')
-{v_5 : str} |= v_5 = "VALID" ∨ v_5 = "SAME"
+Rule 118 (If dilations and strides are both lists, their lengths must be equal)
+{v_1: list(int), v_2: list(int)} |= if v_1.len > 0 ∧ v_2.len > 0 then v_1.len = v_2.len
 >>
-Rule 93 (data_format must be either 'NWC' or 'NCW')
-{v_6 : str} |= v_6 = "NWC" ∨ v_6 = "NCW"
+Rule 119 (batch and depth dilations must be 1 when data format is NWC and list length is 3)
+{v_1: list(int), v_2: str} |= if v_1.len = 3 ∧ v_2 = "NWC" then v_1[0] = 1 ∧ v_1[2] = 1
 >>
-Rule 96 (filters' in_channels dimension must match input's in_channels dimension when data_format is 'NWC')
-{v_1 : tensor, v_2 : tensor, v_6 : str} |= if v_6 = "NWC" then shape(v_1, 2) = shape(v_2, 2)
+Rule 125 (If dilations and strides are both lists, their lengths must be equal, otherwise, at least one of them has length 0)
+{v_1: list(int), v_2: list(int)} |= if v_1.len > 0 ∧ v_2.len > 0 then v_1.len = v_2.len else v_1.len = 0 ∨ v_2.len = 0
 >>
-Rule 97 (filters' in_channels dimension must match input's in_channels dimension when data_format is 'NCW')
-{v_1 : tensor, v_2 : tensor, v_6 : str} |= if v_6 = "NCW" then shape(v_1, 1) = shape(v_2, 2)
->>
-Rule 98 (strides value constraints)
-{v_4 : int} |= v_4 ≥ 1
->>
-Rule 99 (dilations value constraints)
-{v_7 : int} |= v_7 ≥ 1
->>
-Rule 100 (elements of output_shape must be positive)
-{v_3 : tensor} |= ∀i ∈ [0, 2] : shape(v_3, i) > 0
->>
-Rule 101 (check whether the length of strides equals 1 or 3 when it is a list or tuple)
-{v_4 : list(int) ⊎ tuple(int)} |= if ndim(v_4) = 1 then shape(v_4, 0) = 1 ∨ shape(v_4, 0) = 3
->>
-Rule 102 (check whether the length of dilations equals 1 or 3 when it is a list or tuple)
-{v_7 : list(int) ⊎ tuple(int)} |= if ndim(v_7) = 1 then shape(v_7, 0) = 1 ∨ shape(v_7, 0) = 3
->>
-Rule 105 (output_shape must be a 1-D tensor/list/tuple of length 3 and all elements should be positive)
-{v_3 : tensor} |= ndim(v_3) = 1 ∧ shape(v_3, 0) = 3 ∧ ∀i ∈ [0, 2] : shape(v_3, i) > 0
->>
-Rule 108 (filters' in_channels dimension must match input's in_channels dimension when data_format is 'NWC')
-{v_1 : tensor, v_2 : tensor, v_6 : str} |= if v_6 = "NWC" then shape(v_1, 2) = shape(v_2, 2) else if v_6 = "NCW" then shape(v_1, 1) = shape(v_2, 2) else false
->>
-Rule 110 (If strides is a list/tuple, all elements must be greater than 0)
-{v_4 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, shape(v_4, 0) - 1] : v_4[i] > 0
->>
-Rule 111 (If dilations is a list/tuple, all elements must be greater than 0)
-{v_7 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, shape(v_7, 0) - 1] : v_7[i] > 0
->>
-Rule 117 (filters' in_channels dimension must match input's in_channels dimension when data_format is 'NWC' or 'NCW')
-{v_1 : tensor, v_2 : tensor, v_6 : str} |= (v_6 = "NWC" ∧ shape(v_1, 2) = shape(v_2, 2)) ∨ (v_6 = "NCW" ∧ shape(v_1, 1) = shape(v_2, 2))
->>
-Rule 118 (The data type of input tensor must be float)
-{v_1: tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
->>
-Rule 119 (The data type of filter tensor must be float)
-{v_2: tensor} |= dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
->>
-Rule 120 (If strides is an int, it should be greater than 0)
-{v_4 : int} |= v_4 > 0
->>
-Rule 121 (If dilations is an int, it should be greater than 0)
-{v_7 : int} |= v_7 > 0
->>
-Rule 124 (filters' in_channels dimension must match input's in_channels dimension based on data_format)
-{v_1 : tensor, v_2 : tensor, v_6 : str} |= if v_6 = "NWC" then shape(v_1, 2) = shape(v_2, 2) else shape(v_1, 1) = shape(v_2, 2)
->>
-Rule 133 (input and filter tensors must be 3 dimensional)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 3 ∧ ndim(v_2) = 3
->>
-Rule 138 (If strides is a list/tuple, all elements must be greater than 0)
-{v_4 : list(int) ⊎ tuple(int)} |= shape(v_4, 0) = 1 ∨ shape(v_4, 0) = 3 ∧ ∀i ∈ [0, shape(v_4, 0) - 1] : v_4[i] > 0
->>
-Rule 139 (If dilations is a list/tuple, all elements must be greater than 0)
-{v_7 : list(int) ⊎ tuple(int)} |= shape(v_7, 0) = 1 ∨ shape(v_7, 0) = 3 ∧ ∀i ∈ [0, shape(v_7, 0) - 1] : v_7[i] > 0
->>
-Rule 143 (Dilations must be 1 if it is an integer value)
-{v_7 : int} |= v_7 = 1
->>
-Rule 146 (input and filter tensors must have the same data type and it has to be float32 or float64)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
->>
-Rule 148 (If strides is a list/tuple of length 1 or 3, all elements must be greater than 0)
-{v_4 : list(int) ⊎ tuple(int)} |= (shape(v_4, 0) = 1 ∨ shape(v_4, 0) = 3) ∧ ∀i ∈ [0, shape(v_4, 0) - 1] : v_4[i] > 0
->>
-Rule 149 (If dilations is a list/tuple of length 1 or 3, all elements must be greater than 0)
-{v_7 : list(int) ⊎ tuple(int)} |= (shape(v_7, 0) = 1 ∨ shape(v_7, 0) = 3) ∧ ∀i ∈ [0, shape(v_7, 0) - 1] : v_7[i] > 0
->>
-Rule 162 (Dilations in the batch and depth dimensions must be 1 when data_format is NWC and dilation is list or tuple)
-{v_7 : list(int) ⊎ tuple(int), v_6 : str} |= if v_6 = "NWC" ∧ (shape(v_7,0) = 3) then v_7[0] = 1 ∧ v_7[2] = 1 else if v_6 = "NWC" ∧ (shape(v_7,0) = 1) then true
->>
-Rule 163 (Dilations in the batch and depth dimensions must be 1 when data_format is NCW and dilation is list or tuple)
-{v_7 : list(int) ⊎ tuple(int), v_6 : str} |= if v_6 = "NCW" ∧ (shape(v_7,0) = 3) then v_7[0] = 1 ∧ v_7[1] = 1 else if v_6 = "NCW" ∧ (shape(v_7,0) = 1) then true
->>
-Rule 172 (If strides is a list or tuple then the length must be 1 or 3)
-{v_4 : list(int) ⊎ tuple(int)} |= shape(v_4, 0) = 1 ∨ shape(v_4, 0) = 3
->>
-Rule 173 (If dilations is a list or tuple then the length must be 1 or 3)
-{v_7 : list(int) ⊎ tuple(int)} |= shape(v_7, 0) = 1 ∨ shape(v_7, 0) = 3
+Rule 127 (batch and depth dilations must be 1 when data format is NCW and list length is 3)
+{v_1: list(int), v_2: str} |= if v_1.len = 3 ∧ v_2 = "NCW" then v_1[0] = 1 ∧ v_1[1] = 1

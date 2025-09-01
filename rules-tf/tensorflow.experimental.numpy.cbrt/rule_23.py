@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input tensor is an integer type, its values should not result in overflow after cbrt (Rule 23)
+# If input tensor dtype is int, absolute value of numbers shouldn't be too big (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), And(Select(v["arg1_range"], 0) > -1000000.0, Select(v["arg1_range"], 1) < 1000000.0), False)) if n else
-          If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), And(Select(v["arg1_range"], 0) > -1000000.0, Select(v["arg1_range"], 1) < 1000000.0), False))
+    s.add(Not(If(v["arg1_dtype"] == 1, And(Select(v["arg1_range"], 0) >= -8, Select(v["arg1_range"], 1) <= 7), If(v["arg1_dtype"] == 2, And(Select(v["arg1_range"], 0) >= -128, Select(v["arg1_range"], 1) <= 127), If(v["arg1_dtype"] == 3, And(Select(v["arg1_range"], 0) >= -32768, Select(v["arg1_range"], 1) <= 32767), If(v["arg1_dtype"] == 4, And(Select(v["arg1_range"], 0) >= -2147483648, Select(v["arg1_range"], 1) <= 2147483647), True))))) if n else
+          If(v["arg1_dtype"] == 1, And(Select(v["arg1_range"], 0) >= -8, Select(v["arg1_range"], 1) <= 7), If(v["arg1_dtype"] == 2, And(Select(v["arg1_range"], 0) >= -128, Select(v["arg1_range"], 1) <= 127), If(v["arg1_dtype"] == 3, And(Select(v["arg1_range"], 0) >= -32768, Select(v["arg1_range"], 1) <= 32767), If(v["arg1_dtype"] == 4, And(Select(v["arg1_range"], 0) >= -2147483648, Select(v["arg1_range"], 1) <= 2147483647), True)))))
 )
 
 def rule_23_func(arg1, solver=None, neg=False):

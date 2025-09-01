@@ -5,20 +5,17 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If var is int32, accum, lr, l1, l2, grad all have dtype int32 (Rule 52)
+# If var's dtype is qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, uint32, uint64, complex64, complex128, half,  and use_locking is True the accum shape must match the shape of var (Rule 52)
 
 rule_52 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 3, And(And(And(And(v["arg2_dtype"] == 3, v["arg3_dtype"] == 3), v["arg4_dtype"] == 3), v["arg5_dtype"] == 3), v["arg6_dtype"] == 3), False)) if n else
-          If(v["arg1_dtype"] == 3, And(And(And(And(v["arg2_dtype"] == 3, v["arg3_dtype"] == 3), v["arg4_dtype"] == 3), v["arg5_dtype"] == 3), v["arg6_dtype"] == 3), False))
+    s.add(Not(If(And((Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 12), v["arg1_dtype"] == 13), v["arg1_dtype"] == 11), v["arg1_dtype"] == 14), v["arg1_dtype"] == 15), v["arg1_dtype"] == 16), v["arg1_dtype"] == 17), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 6)), v["arg3_value"] == True), (And(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))), True)) if n else
+          If(And((Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 12), v["arg1_dtype"] == 13), v["arg1_dtype"] == 11), v["arg1_dtype"] == 14), v["arg1_dtype"] == 15), v["arg1_dtype"] == 16), v["arg1_dtype"] == 17), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 6)), v["arg3_value"] == True), (And(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))), True))
 )
 
-def rule_52_func(arg1, arg2, arg3, arg4, arg5, arg6, solver=None, neg=False):
+def rule_52_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
     arg3 = next(iter(arg3.values()))
-    arg4 = next(iter(arg4.values()))
-    arg5 = next(iter(arg5.values()))
-    arg6 = next(iter(arg6.values()))
 
     # Invariant learning phase
     if not solver:
@@ -26,36 +23,32 @@ def rule_52_func(arg1, arg2, arg3, arg4, arg5, arg6, solver=None, neg=False):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
-        if not isinstance(arg3, np.ndarray):
-            return False
-        if not isinstance(arg4, np.ndarray):
-            return False
-        if not isinstance(arg5, np.ndarray):
-            return False
-        if not isinstance(arg6, np.ndarray):
+        if not isinstance(arg3, bool):
             return False
 
         # Variable declarations
         solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
-        arg3_dtype = Int('arg3_dtype')
-        arg4_dtype = Int('arg4_dtype')
-        arg5_dtype = Int('arg5_dtype')
-        arg6_dtype = Int('arg6_dtype')
+        arg2_ndim = Int('arg2_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg3_value = Bool('arg3_value')
 
         # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
-        solver.add(arg4_dtype == list_of_available_dtypes.index(arg4.dtype))
-        solver.add(arg5_dtype == list_of_available_dtypes.index(arg5.dtype))
-        solver.add(arg6_dtype == list_of_available_dtypes.index(arg6.dtype))
+        solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg3_value == arg3)
 
         # Constraints for rule 52
-        rule_52(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype, 'arg4_dtype': arg4_dtype, 'arg5_dtype': arg5_dtype, 'arg6_dtype': arg6_dtype})
+        rule_52(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_52(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype'], 'arg4_dtype': arg4['dtype'], 'arg5_dtype': arg5['dtype'], 'arg6_dtype': arg6['dtype']}, neg)
+        rule_52(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_value': arg3['value']}, neg)

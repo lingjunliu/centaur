@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Tensor elements are not complex (Rule 41)
+# Large float64 tensors with large values take lots of space (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10)) if n else
-          And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10))
+    s.add(Not(If(v["arg1_dtype"] == 8, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) < 10000000, True)) if n else
+          If(v["arg1_dtype"] == 8, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) < 10000000, True))
 )
 
 def rule_41_func(arg1, solver=None, neg=False):
@@ -22,15 +22,18 @@ def rule_41_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 41
-        rule_41(solver, {'arg1_dtype': arg1_dtype})
+        rule_41(solver, {'arg1_shape': arg1_shape, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_41(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_41(solver, {'arg1_shape': arg1['shape'], 'arg1_dtype': arg1['dtype']}, neg)

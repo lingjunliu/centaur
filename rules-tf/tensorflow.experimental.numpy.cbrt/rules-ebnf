@@ -1,90 +1,126 @@
 >>
-Rule 1 (Input tensor must be of numeric type)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12
+Rule 1 (Input tensor must have a floating-point or complex dtype for cbrt)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 2 (The maximum value of input tensor should not be positive infinity)
-{v_1 : tensor} |= max(v_1) < 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
+Rule 2 (The shape of the input tensor must be valid, i.e., each dimension's size should be non-negative)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 3 (The minimum value of input tensor should not be negative infinity)
-{v_1 : tensor} |= min(v_1) > -100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
+Rule 3 (input tensor is not empty)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 4 (Input tensor should not be empty)
-{v_1 : tensor} |= shape(v_1) ≠ (0)
+Rule 4 (The input tensor's dimension should be within a reasonable range)
+{v_1 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_1) ≤ 5
 >>
-Rule 5 (Input tensor dimension must be greater than 0)
+Rule 5 (If input tensor has integer dtype, it must be within a certain range to avoid overflow issues during cbrt computation)
+{v_1 : tensor} |= if dtype_(v_1) = 1 then min(v_1) ≥ -8 ∧ max(v_1) ≤ 7 else if dtype_(v_1) = 2 then min(v_1) ≥ -512 ∧ max(v_1) ≤ 511 else if dtype_(v_1) = 3 then min(v_1) ≥ -2097152 ∧ max(v_1) ≤ 2097151 else if dtype_(v_1) = 4 then min(v_1) ≥ -9223372036854775808 ∧ max(v_1) ≤ 9223372036854775807
+>>
+Rule 6 (If input tensor is complex, its real and imaginary parts should be finite)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) > -1000000000000.0 ∧ max(v_1) < 1000000000000.0
+>>
+Rule 7 (input tensor should not have NaN or Inf values)
+{v_1 : tensor} |= min(v_1) > -1000000000000.0 ∧ max(v_1) < 1000000000000.0
+>>
+Rule 8 (If the dtype is complex, then the imaginary part should be small)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then max(v_1) < 1000 ∧ min(v_1) > -1000
+>>
+Rule 9 (Input tensor's values should be within representable range of the dtype.)
+{v_1 : tensor} |= if dtype_(v_1) = 7 then min(v_1) > -3.4e38 ∧ max(v_1) < 3.4e38 else if dtype_(v_1) = 8 then min(v_1) > -1.7e308 ∧ max(v_1) < 1.7e308
+>>
+Rule 10 (If input tensor contains only positive values, it must be float or complex.)
+{v_1 : tensor} |= if min(v_1) ≥ 0 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 11 (If the input tensor contains very large negative numbers, it must be float or complex for better precision.)
+{v_1 : tensor} |= if min(v_1) < -1000000 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 12 (The shape of the input tensor must not be empty.)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 6 (Shape of input tensor dimension should be a positive integer)
-{v_1 : tensor, v_2 : int} |= shape(v_1, v_2) > 0 ∧ shape(v_1, v_2) < 100000
+Rule 13 (The number of dimensions of the input tensor should not exceed 6)
+{v_1 : tensor} |= ndim(v_1) ≤ 6
 >>
-Rule 7 (Check if the data type of the input tensor is complex)
-{v_1 : tensor} |= if dtype_(v_1) = 9 then true else if dtype_(v_1) = 10 then true else false
+Rule 14 (The tensor dtype should be one of the supported numerical dtypes)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 8 (Input tensor should be of float or integer type)
-{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+Rule 16 (If input tensor's dtype is int, the range of the values shouldn't be too big.)
+{v_1 : tensor} |= if dtype_(v_1) = 1 then min(v_1) ≥ -10 ∧ max(v_1) ≤ 10 else if dtype_(v_1) = 2 then min(v_1) ≥ -100 ∧ max(v_1) ≤ 100 else if dtype_(v_1) = 3 then min(v_1) ≥ -1000 ∧ max(v_1) ≤ 1000 else if dtype_(v_1) = 4 then min(v_1) ≥ -1000000 ∧ max(v_1) ≤ 1000000
 >>
-Rule 9 (Check that input tensor's dimension is less than or equal to 5)
-{v_1 : tensor} |= ndim(v_1) ≤ 5
+Rule 17 (If input tensor's dtype is int, the range of the values shouldn't be too big.)
+{v_1 : tensor} |= if dtype_(v_1) = 1 then min(v_1) ≥ -8 ∧ max(v_1) ≤ 7 else if dtype_(v_1) = 2 then min(v_1) ≥ -128 ∧ max(v_1) ≤ 127 else if dtype_(v_1) = 3 then min(v_1) ≥ -32768 ∧ max(v_1) ≤ 32767 else if dtype_(v_1) = 4 then min(v_1) ≥ -2147483648 ∧ max(v_1) ≤ 2147483647
 >>
-Rule 10 (Minimum value of tensor should be less than maximum value)
-{v_1 : tensor} |= min(v_1) ≤ max(v_1)
+Rule 19 (If any of the dimensions of the input tensor are 0, the input tensor cannot have very large or small numbers, otherwise cbrt can return NaN.)
+{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then min(v_1) > -1000 ∧ max(v_1) < 1000
 >>
-Rule 11 (Input tensor should not contain NaN values)
-{v_1 : tensor} |= ∃i ∈ [min(v_1), max(v_1)] : i = i
+Rule 20 (The input tensor should not have any extremely large or small values.)
+{v_1 : tensor} |= min(v_1) > -1e+15 ∧ max(v_1) < 1e+15
 >>
-Rule 13 (Input tensor values should not be infinite)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) > -10000000000.0 ∧ max(v_1) < 10000000000.0
+Rule 21 (if tensor dimension size is 1, the values shouldn't cause NaN issues)
+{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1 then min(v_1) > -10000000 ∧ max(v_1) < 10000000
 >>
-Rule 14 (Input tensor values should not be NaN)
-{v_1 : tensor} |= ∃x ∈ [min(v_1), max(v_1)] : x = x
+Rule 23 (If input tensor dtype is int, absolute value of numbers shouldn't be too big)
+{v_1: tensor} |= if dtype_(v_1) = 1 then min(v_1) ≥ -8 ∧ max(v_1) ≤ 7 else if dtype_(v_1) = 2 then min(v_1) ≥ -128 ∧ max(v_1) ≤ 127 else if dtype_(v_1) = 3 then min(v_1) ≥ -32768 ∧ max(v_1) ≤ 32767 else if dtype_(v_1) = 4 then min(v_1) ≥ -2147483648 ∧ max(v_1) ≤ 2147483647
 >>
-Rule 16 (The input tensor should have at least one element)
+Rule 24 (Input tensor values should not be extremely close to zero if the dtype is low precision floating point to avoid underflow)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then (min(v_1) < -1e-5 ∨ max(v_1) > 1e-5)
+>>
+Rule 25 (The input tensor must have finite values if using float16, or risk incorrect results due to precision)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then (min(v_1) > -65500 ∧ max(v_1) < 65500)
+>>
+Rule 26 (The input tensor should have at least one element if it is of complex type)
+{v_1: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 28 (Input tensor values should be within the representable range to prevent overflow for lower precision integer types)
+{v_1 : tensor} |= if dtype_(v_1) = 1 then min(v_1) ≥ -127 ∧ max(v_1) ≤ 127 else if dtype_(v_1) = 2 then min(v_1) ≥ -32768 ∧ max(v_1) ≤ 32767 else if dtype_(v_1) = 3 then min(v_1) ≥ -2147483648 ∧ max(v_1) ≤ 2147483647
+>>
+Rule 30 (If input dtype is float16, prevent overflow)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then (min(v_1) ≥ -6.7e+4 ∧ max(v_1) ≤ 6.7e+4)
+>>
+Rule 31 (Input tensor values must avoid overflow based on their maximum allowed value based on the dtype)
+{v_1: tensor} |= if dtype_(v_1) = 1 then max(v_1) <= 127 else if dtype_(v_1) = 2 then max(v_1) <= 32767 else if dtype_(v_1) = 3 then max(v_1) <= 2147483647 else if dtype_(v_1) = 6 then max(v_1) <= 65500
+>>
+Rule 32 (Check for signed integer type)
+{v_1: tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+>>
+Rule 33 (Check for unsigned integer type)
+{v_1: tensor} |= dtype_(v_1) = 5
+>>
+Rule 34 (If input dtype is unsigned int, negative input values are invalid.)
+{v_1: tensor} |= if dtype_(v_1) = 5 then min(v_1) >= 0
+>>
+Rule 35 (Input tensor should have reasonable value range for uint8 datatype to prevent potential errors)
+{v_1: tensor} |= if dtype_(v_1) = 5 then max(v_1) <= 255
+>>
+Rule 36 (For very large tensor size, use higher precision floating point or complex numbers to prevent potential accuracy issue.)
+{v_1: tensor} |= if shape(v_1, 0) > 1000000 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 37 (Input tensor must not contain complex infinity values.)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then max(v_1) < 1e300
+>>
+Rule 38 (Input tensor cannot contain complex NaN values.)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) > -1e+300
+>>
+Rule 39 (If the tensor is float16, then the maximum absolute value should be less than 65000 to avoid inf/nan results)
+{v_1: tensor} |= if dtype_(v_1) = 6 then max(v_1) < 65000 ∧ min(v_1) > -65000
+>>
+Rule 40 (Input tensor must have positive shape in all dimensions)
 {v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 17 (The input tensor's shape should not have dimensions exceeding a maximum value)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 10000
+Rule 41 (if the tensor has a dimension of size one, then the min and max values should not be too far apart)
+{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1 then max(v_1) - min(v_1) < 10000
 >>
-Rule 18 (Input tensor must be a real number type)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 43 (If dtype is bfloat16, values must be in a suitable range.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) >= -3.389531e+38 ∧ max(v_1) <= 3.389531e+38
 >>
-Rule 19 (Input tensor must not be a bool type)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 44 (If dtype is bfloat16, values must be in a suitable range.)
+{v_1 : tensor} |= if dtype_(v_1) = 7 then min(v_1) >= -3.39e+38 ∧ max(v_1) <= 3.39e+38
 >>
-Rule 20 (If the input tensor is complex, it must be complex64 or complex128)
-{v_1 : tensor} |= if dtype_(v_1) = 9 then true else if dtype_(v_1) = 10 then true else if dtype_(v_1) < 9 then false else false
+Rule 45 (Input tensor's shape cannot contain the value zero when using coplex data types for calculation)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) ≠ 0
 >>
-Rule 21 (If the input tensor is an integer type, it should not be bool)
-{v_1 : tensor} |= if 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 then dtype_(v_1) ≠ 0
+Rule 46 (If input dtype is float16, values must not be subnormal, as cbrt(subnormal) is slow)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then (min(v_1) >= 5.96e-08 ∨ max(v_1) <= -5.96e-08)
 >>
-Rule 22 (Input tensor values should be within a reasonable range)
-{v_1 : tensor} |= min(v_1) > -10000000.0 ∧ max(v_1) < 10000000.0
+Rule 47 (If input dtype is float16, values must not be subnormal, as cbrt(subnormal) is slow)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then (min(v_1) ≥ 5.96e-08 ∨ max(v_1) ≤ -5.96e-08)
 >>
-Rule 23 (If the input tensor is an integer type, its values should not result in overflow after cbrt)
-{v_1 : tensor} |= if 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 then min(v_1) > -1000000.0 ∧ max(v_1) < 1000000.0
->>
-Rule 24 (If the input tensor is a complex type, its real and imaginary parts should be within a reasonable range)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) > -10000000.0 ∧ max(v_1) < 10000000.0
->>
-Rule 25 (The input tensor values should not cause numerical instability after cbrt)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) > -1e+30 ∧ max(v_1) < 1e+30
->>
-Rule 26 (Input tensor should have finite values)
-{v_1 : tensor} |= ∀i ∈ [min(v_1), max(v_1)] : if i = 0 then true else (i / i) = 1
->>
-Rule 27 (Input tensor should have non-zero dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
->>
-Rule 28 (Input tensor should have reasonable dimension)
-{v_1 : tensor} |= ndim(v_1) < 6
->>
-Rule 29 (Input tensor's values must be such that cbrt does not result in imaginary numbers if the input dtype is real)
-{v_1 : tensor} |= if dtype_(v_1) < 9 then true else if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true else false
->>
-Rule 31 (If input tensor is complex, the value should have real and imaginary part)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ∃x ∈ [min(v_1), max(v_1)] : x = x
->>
-Rule 32 (Input tensor is a valid type)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
->>
-Rule 33 (Input tensor should not have very large dimension shapes)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 1000000
+Rule 49 (If input dtype is complex64, values must be within reasonable bounds.)
+{v_1 : tensor} |= if dtype_(v_1) = 9 then min(v_1) ≥ -1e+10 ∧ max(v_1) ≤ 1e+10

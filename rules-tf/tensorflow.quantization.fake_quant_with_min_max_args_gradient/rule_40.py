@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The values of num_bits must be representable with the chosen dtype of inputs (Rule 40)
+# num_bits should be a small positive integer (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] > 0, v["arg1_value"] < 64)) if n else
-          And(v["arg1_value"] > 0, v["arg1_value"] < 64))
+    s.add(Not(And(v["arg1_value"] > 0, v["arg1_value"] < 128)) if n else
+          And(v["arg1_value"] > 0, v["arg1_value"] < 128))
 )
 
 def rule_40_func(arg1, solver=None, neg=False):

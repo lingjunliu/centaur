@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Spectogram values balance given high sampl rate and higher mel (Rule 70)
+# Sanity Check to prevent extremely small values which results in math errors (Rule 70)
 
 rule_70 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] > 22000, v["arg1_value"] < 2000, False)) if n else
-          If(v["arg2_value"] > 22000, v["arg1_value"] < 2000, False))
+    s.add(Not(And(v["arg1_value"] > 0.0001, v["arg2_value"] > 0.0001)) if n else
+          And(v["arg1_value"] > 0.0001, v["arg2_value"] > 0.0001))
 )
 
 def rule_70_func(arg1, arg2, solver=None, neg=False):
@@ -18,17 +18,19 @@ def rule_70_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, (float, np.floating)):
             return False
-        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)) or isinstance(arg2, (float, np.floating))):
+        if not isinstance(arg2, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_value = Real('arg1_value')
+        arg2_value = Real('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 70
         rule_70(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})

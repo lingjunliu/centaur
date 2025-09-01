@@ -1,177 +1,123 @@
 >>
-Rule 1 (x and y must have the same dtype)
-{x : tensor, y : tensor} |= dtype_(x) = dtype_(y)
+Rule 1 (x and y must have the same type)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 2 (x must be one of the allowed dtypes)
-{x : tensor} |= dtype_(x) = 2 ∨ dtype_(x) = 3 ∨ dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8
+Rule 2 (x must be one of the allowed types: int32, int64, bfloat16, half, float32, float64)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
 >>
-Rule 3 (x and y must be tensors)
-{x : tensor, y : tensor} |= ndim(x) ≥ 0 ∧ ndim(y) ≥ 0
+Rule 3 (x and y must have compatible shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 9 (x must be a tensor with more than 0 dimensions)
-{x : tensor} |= ndim(x) > 0
+Rule 4 (x and y must have the same shape if not broadcasting)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)))
 >>
-Rule 10 (x and y must have the same rank (number of dimensions))
-{x : tensor, y : tensor} |= ndim(x) = ndim(y)
+Rule 5 (x's ndim must be greater than zero)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 11 (If x's dtype is int32, then y's dtype should also be int32)
-{x : tensor, y : tensor} |= if dtype_(x) = 2 then dtype_(y) = 2
+Rule 6 (y's ndim must be greater than zero)
+{v_2 : tensor} |= ndim(v_2) > 0
 >>
-Rule 12 (If x's dtype is float32, then y's dtype should also be float32)
-{x : tensor, y : tensor} |= if dtype_(x) = 7 then dtype_(y) = 7
+Rule 7 (x must be int32 when using CPU device)
+{v_1 : tensor} |= (shape(v_1,0) > 0) ∧ dtype_(v_1) = 3
 >>
-Rule 13 (If x is a scalar, y must be a scalar)
-{x : tensor, y : tensor} |= if ndim(x) = 0 then ndim(y) = 0
+Rule 9 (Avoid bool type tensors for x)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 14 (The number of elements in x and y must be the same if they are both 1D tensors)
-{x : tensor, y : tensor} |= if ndim(x) = 1 ∧ ndim(y) = 1 then shape(x, 0) = shape(y, 0)
+Rule 18 (x shape[0] and y shape[0] must not be zero if ndim > 0)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) > 0 ∧ if ndim(v_2) > 0 then shape(v_2, 0) > 0
 >>
-Rule 15 (x's shape must be greater than 1 in all dimensions.)
-{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 1
+Rule 19 (x and y must have the same type and be one of the allowed types)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9)
 >>
-Rule 16 (y's minimum value should be greater than 0)
-{y : tensor} |= min(y) > 0
+Rule 20 (x and y shapes must be compatible, and both ndims must be greater than 0)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))) ∧ ndim(v_1) > 0 ∧ ndim(v_2) > 0
 >>
-Rule 17 (if the rank of x is 2, then the rank of y must be 0 or 1 or 2)
-{x : tensor, y : tensor} |= if ndim(x) = 2 then ndim(y) = 0 ∨ ndim(y) = 1 ∨ ndim(y) = 2
+Rule 22 (Ensure tensor dimensions are valid, avoid 0)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 18 (If dtype of x is int64, then dtype of y must be int64)
-{x : tensor, y : tensor} |= if dtype_(x) = 4 then dtype_(y) = 4
+Rule 24 (x and y shapes must be compatible, and both ndims must be greater than 0 and shapes must be greater than 0)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))) ∧ ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
 >>
-Rule 19 (if ndim of x is 3 and shape(x,0)=a, shape(x,1)=b, shape(x,2)=c. ndim of y is 1 and shape(y,0)=c.)
-{x : tensor, y : tensor} |= if ndim(x) = 3 ∧ ndim(y) = 1 then shape(x, 2) = shape(y, 0)
+Rule 25 (x must have supported dtype for XLA_CPU_JIT or XLA_GPU_JIT device)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 9
 >>
-Rule 20 (if x is a matrix, then y must have fewer dimensions than x)
-{x : tensor, y : tensor} |= if ndim(x) = 2 then ndim(y) < ndim(x)
+Rule 26 (x must have supported dtype for GPU device)
+{v_1 : tensor} |= dtype_(v_1) = 3
 >>
-Rule 21 (if x's shape at dimension 0 is greater than 10, then y's shape at dimension 0 should be greater than 5)
-{x : tensor, y : tensor} |= if ndim(x) > 0 ∧ shape(x, 0) > 10 ∧ ndim(y) > 0 then shape(y, 0) > 5
+Rule 29 (x and y shapes must be broadcastable, and shapes must be positive)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
 >>
-Rule 22 (If x's dtype is float16, then y's dtype must be float16.)
-{x : tensor, y : tensor} |= if dtype_(x) = 6 then dtype_(y) = 6
+Rule 30 (x must have supported dtype for XLA_CPU_JIT or XLA_GPU_JIT device if on those devices)
+{v_1 : tensor} |= if (true) then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 9)
 >>
-Rule 23 (If the number of dimensions of x is 2, then all values in y should be greater than zero)
-{x : tensor, y : tensor} |= if ndim(x) = 2 then min(y) > 0
+Rule 32 (x and y shapes must be broadcastable, and shapes must be positive and ndims must be positive)
+{v_1 : tensor, v_2 : tensor} |=  ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
 >>
-Rule 24 (x's data type must be an integer or float.)
-{x : tensor} |= dtype_(x) = 2 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8
+Rule 33 (y must have supported dtype if on CPU device, to avoid device errors)
+{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9
 >>
-Rule 25 (If x is a vector, then all elements of y must be equal)
-{x : tensor, y : tensor} |= if ndim(x) = 1 then (∀i ∈ [1, shape(y,0)-1] : y[0] = y[i])
+Rule 39 (x and y must have broadcastable shapes)
+{v_1 : tensor, v_2 : tensor} |=  ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)))
 >>
-Rule 26 (If the minimum value of x is 0, then the maximum value of y must be greater than 0)
-{x : tensor, y : tensor} |= if min(x) = 0 then max(y) > 0
+Rule 41 (shapes of x and y must be positive to avoid zero-size tensors)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : if ndim(v_1) > 0 then shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : if ndim(v_2) > 0 then shape(v_2, i) > 0)
 >>
-Rule 27 (If x is a 3D tensor, then y must also be a 3D tensor)
-{x : tensor, y : tensor} |= if ndim(x) = 3 then ndim(y) = 3
+Rule 45 (x and y must have broadcastable shapes and positive dimensions)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) < 1) ∨ (ndim(v_2) < 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))) ∧ (∀i ∈ [0, ndim(v_1) - 1] : if ndim(v_1) > 0 then shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : if ndim(v_2) > 0 then shape(v_2, i) > 0)
 >>
-Rule 28 (If the maximum of x is 100, then the minimum of y must be greater than 10.)
-{x : tensor, y : tensor} |= if max(x) = 100 then min(y) > 10
+Rule 46 (x and y must have a compatible and allowed dtype, and cannot be bool)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9) ∧ dtype_(v_1) ≠ 0
 >>
-Rule 29 (If x's shape at index 0 equals y's shape at index 1, then the rule holds.)
-{x : tensor, y : tensor} |= if ndim(x) > 0 ∧ ndim(y) > 1 then shape(x, 0) = shape(y, 1)
+Rule 47 (x and y must have broadcastable shapes)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) < 1) ∨ (ndim(v_2) < 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)))
 >>
-Rule 32 (y must have a number of dimensions less than or equal to that of x)
-{x : tensor, y : tensor} |= ndim(y) ≤ ndim(x)
+Rule 48 (If running on CPU, must have int32 or int64 dtype. If running on other device, must have valid dtype)
+{v_1 : tensor} |= if (true) then (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) else (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9)
 >>
-Rule 34 (If the rank of x is 4 and the rank of y is 1 then the last dimension of x must equal the first dimension of y)
-{x : tensor, y : tensor} |= if ndim(x) = 4 ∧ ndim(y) = 1 then shape(x, 3) = shape(y, 0)
+Rule 52 (If running on CPU or XLA, x must have int32, int64 or float type, or other device)
+{v_1 : tensor} |= if (true) then (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) else (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9)
 >>
-Rule 35 (If x is a scalar, then y can be any valid tensor type, but must have the same dtype)
-{x : tensor, y : tensor} |= if ndim(x) = 0 then dtype_(x) = dtype_(y)
+Rule 53 (Shapes must be greater than zero to avoid zero sized tensors causing division by zero errors)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : if ndim(v_1) > 0 then shape(v_1, i) > 0)
 >>
-Rule 36 (The shape of x must be non-zero in every dimension)
-{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) ≠ 0
+Rule 56 (If running on CPU, x must have int32 or int64 dtype, to prevent device errors)
+{v_1 : tensor} |= if (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) then (true) else (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9)
 >>
-Rule 37 (If x's dtype is int32, y's values must be between -2147483648 and 2147483647)
-{x : tensor, y : tensor} |= if dtype_(x) = 2 then min(y) ≥ -2147483648 ∧ max(y) ≤ 2147483647
+Rule 59 (if using half, must use xla_gpu_jit or xla_cpu_jit)
+{v_1 : tensor} |= if dtype_(v_1) = 7 then (true) else (true)
 >>
-Rule 38 (If x and y are both 2D, then x's shape at dim 0 must equal y's shape at dim 0)
-{x : tensor, y : tensor} |= if ndim(x) = 2 ∧ ndim(y) = 2 then shape(x, 0) = shape(y, 0)
+Rule 62 (if using half, must use xla_gpu_jit or xla_cpu_jit to avoid device errors)
+{v_1 : tensor} |= if dtype_(v_1) = 7 then true
 >>
-Rule 39 (If the number of dimensions of x is 3, then all values in y should be greater than or equal to the minimum value allowed for the data type of X)
-{x : tensor, y : tensor} |= if ndim(x) = 3 then min(y) ≥ min(x)
+Rule 65 (x and y must have broadcastable shapes to ensure valid operations and non-zero sized tensors)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) < 1) ∨ (ndim(v_2) < 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))) ∧ (∀i ∈ [0, ndim(v_1) - 1] : if ndim(v_1) > 0 then shape(v_1, i) > 0)
 >>
-Rule 40 (If x's shape at index 0 is odd, then y's shape at index 0 must be odd)
-{x : tensor, y : tensor} |= if ndim(x) > 0 ∧ shape(x, 0) % 2 = 1 ∧ ndim(y) > 0 then shape(y, 0) % 2 = 1
+Rule 70 (x and y must have positive dimensions to avoid errors)
+{v_1 : tensor, v_2: tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ if ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
 >>
-Rule 41 (If x is 1D and y is 0D, then x[0] must be divisible by y)
-{x : tensor, y : tensor} |= if ndim(x) = 1 ∧ ndim(y) = 0 then x[0] % y = 0
+Rule 72 (x and y must have broadcastable shapes and must have at least one dim to avoid errors)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) < 1) ∨ (ndim(v_2) < 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))) ∧ ndim(v_1) > 0 ∧ ndim(v_2) > 0
 >>
-Rule 42 (If x is a tensor of int32, then y should be greater than or equal to zero.)
-{x : tensor, y : tensor} |= if dtype_(x) = 2 then min(y) ≥ 0
+Rule 78 (x and y must have broadcastable shapes to ensure valid operations and must have at least one dimension to avoid errors.)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) < 1) ∨ (ndim(v_2) < 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))) ∧ (ndim(v_1) > 0) ∧ (ndim(v_2) > 0)
 >>
-Rule 43 (If y is a tensor of float32, then x's max value must be less than 100)
-{x : tensor, y : tensor} |= if dtype_(y) = 7 then max(x) < 100
+Rule 79 (All dimension sizes must be positive, to prevent weird behavior)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
 >>
-Rule 44 (If x is 2D and y is 1D and shape(x, 1) = shape(y, 0), then y can be broadcasted to x column-wise.)
-{x : tensor, y : tensor} |= if ndim(x) = 2 ∧ ndim(y) = 1 ∧ shape(x, 1) = shape(y, 0) then true
+Rule 82 (all dimensions have positive size to prevent empty tensors.)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 45 (If x is int32, then y must be positive)
-{x : tensor, y : tensor} |= if dtype_(x) = 2 then min(y) >= 0
+Rule 84 (x and y must have broadcastable shapes and must have at least one dimension and non-zero dimension size)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) < 1) ∨ (ndim(v_2) < 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))) ∧ (ndim(v_1) > 0) ∧ (ndim(v_2) > 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
 >>
-Rule 46 (If x is float32, then y must be non-zero)
-{x : tensor, y : tensor} |= if dtype_(x) = 7 then min(y) != 0 ∧ max(y) !=0
+Rule 85 (x and y must have a compatible and allowed dtype, and be at least one dimension and have a positive dimension size to prevent errors.)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9) ∧ (ndim(v_1) > 0) ∧ (ndim(v_2) > 0)  ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
 >>
-Rule 47 (If x is a 4D tensor, then y must have at least one dimension)
-{x : tensor, y : tensor} |= if ndim(x) = 4 then ndim(y) >= 1
+Rule 89 (All dimensions must be larger than zero for x and y)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ if ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
 >>
-Rule 48 (If x is a 3D tensor with shape (a,b,c), y should have shape (c,))
-{x : tensor, y : tensor} |= if ndim(x) = 3 ∧ ndim(y) = 1 then shape(x,2) = shape(y,0)
+Rule 90 (x and y must have at least one dimension)
+{v_1 : tensor, v_2: tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
 >>
-Rule 49 (If x is int64, then each element of y is either -1, 0, or 1.)
-{x : tensor, y : tensor} |= if dtype_(x) = 4 then ∀i ∈ [0, shape(y,0)-1] : y[i] = -1 ∨ y[i] = 0 ∨ y[i] = 1
->>
-Rule 50 (if x is bfloat16, y must be also bfloat16)
-{x : tensor, y : tensor} |= if dtype_(x) = 3 then dtype_(y) = 3
->>
-Rule 52 (If x has more than 1 dimension then y must have at least one element)
-{x : tensor, y : tensor} |= if ndim(x) > 1 then shape(y,0) > 0
->>
-Rule 53 (If x has a float64 dtype then y has to be a positive number)
-{x : tensor, y : tensor} |= if dtype_(x) = 8 then min(y) > 0
->>
-Rule 54 (if ndim of x is greater than 2 then the shape of the last two dimensions of x cannot be the same)
-{x : tensor} |= if ndim(x) > 2 then shape(x, ndim(x)-1) ≠ shape(x, ndim(x)-2)
->>
-Rule 55 (If x is a matrix and y is a scalar, then the absolute value of y must be less than the minimum value in absolute value of x)
-{x : tensor, y : tensor} |= if ndim(x) = 2 ∧ ndim(y) = 0 then max(x) > 0 ∧ min(x) < 0 ∧ y > min(x) ∧ y < max(x)
->>
-Rule 59 (If x is float32 then all values in y should be integers)
-{x : tensor, y : tensor} |= if dtype_(x) = 7 then ∀i ∈ [0, shape(y,0)-1] : y[i] % 1 = 0
->>
-Rule 60 (If x is a matrix and y is a scalar, then y must be between the min and max of x)
-{x : tensor, y : tensor} |= if ndim(x) = 2 ∧ ndim(y) = 0 then min(x) ≤ y ∧ y ≤ max(x)
->>
-Rule 61 (If x has more than 1 dimension, the product of y shape should be less than x )
-{x : tensor, y : tensor} |= if ndim(x) > 1 then shape(y,0) < shape(x,0)
->>
-Rule 62 (If x has a float64 dtype then y must be non-negative)
-{x : tensor, y : tensor} |= if dtype_(x) = 8 then min(y) >= 0
->>
-Rule 65 (If x has more than 1 dimension, the product of shapes of y should be less than product of shapes of x)
-{x : tensor, y : tensor} |= if ndim(x) > 1 then (∃i ∈ [0, ndim(x)-1] : shape(y,0) < shape(x, i))
->>
-Rule 66 (If x has a float64 dtype then y must be representable as float64 without loss)
-{x : tensor, y : tensor} |= if dtype_(x) = 8 then true
->>
-Rule 67 (If x has greater than 2 dimensions, then dimensions 0 and 1 can't be equal.)
-{x : tensor} |= if ndim(x) > 2 then shape(x, 0) ≠ shape(x, 1)
->>
-Rule 68 (If x is float32 then all values in y should be within the range of float32)
-{x : tensor, y : tensor} |= if dtype_(x) = 7 then min(y) >= -3.4028235e38 ∧ max(y) <= 3.4028235e38
->>
-Rule 69 (If x is Int32, all values of y must be within range of int32)
-{x : tensor, y : tensor} |= if dtype_(x) = 2 then min(y) >= -2147483648 ∧ max(y) <= 2147483647
->>
-Rule 70 (If x's dtype is float32 and x has a shape of (a, b), then y's shape must be either (a, b) or (b,))
-{x : tensor, y : tensor} |= if dtype_(x) = 7 ∧ ndim(x) = 2 then (ndim(y) = 2 ∧ shape(y, 0) = shape(x, 0) ∧ shape(y, 1) = shape(x, 1)) ∨ (ndim(y) = 1 ∧ shape(y, 0) = shape(x, 1))
->>
-Rule 71 (If x is an int64 tensor, then y should contain only prime numbers)
-{x : tensor, y : tensor} |= if dtype_(x) = 4 then ∀i ∈ [0, shape(y,0)-1] : y[i] > 1 ∧ (∀j ∈ [2, y[i] -1] : y[i] % j ≠ 0)
->>
-Rule 73 (if x is a 2d tensor and every element of x has the same value, then y must be a scalar.)
-{x : tensor, y : tensor} |= if ndim(x) = 2 ∧ min(x) = max(x) then ndim(y) = 0
->>
-Rule 74 (If x is a tensor, then the maximum value of x should be less than or equal to the maximum possible value for its dtype)
-{x: tensor} |= if dtype_(x) = 2 then max(x) <= 2147483647 else if dtype_(x) = 4 then max(x) <= 9223372036854775807 else if dtype_(x) = 7 then max(x) <= 3.4028235e38 else if dtype_(x) = 8 then max(x) <= 1.7976931348623157e+308
+Rule 94 (x and y must have broadcastable shapes and be at least one dimensional, and dimension size > 0, to ensure valid operations)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) < 1) ∨ (ndim(v_2) < 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))) ∧ ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0

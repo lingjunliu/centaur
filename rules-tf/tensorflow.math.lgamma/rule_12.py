@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check that the max of tensor is not a negative number (Rule 12)
+# Check if input tensor contains only positive numbers (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 1) >= 0) if n else
-          Select(v["arg1_range"], 1) >= 0)
+    s.add(Not(Select(v["arg1_range"], 0) > 0) if n else
+          Select(v["arg1_range"], 0) > 0)
 )
 
 def rule_12_func(arg1, solver=None, neg=False):

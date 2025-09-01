@@ -1,48 +1,105 @@
 >>
-Rule 2 (num_segments should be non-negative)
-{v_3 : int} |= v_3 ≥ 0
+Rule 1 (segment_ids must be int32 or int64 to avoid InvalidArgumentError)
+{segment_ids : tensor} |= dtype_(segment_ids) = 3 ∨ dtype_(segment_ids) = 4
 >>
-Rule 3 (segment_ids rank should be a prefix of inputs rank)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≤ ndim(v_1)
+Rule 2 (num_segments must be non-negative)
+{num_segments : int} |= num_segments ≥ 0
 >>
-Rule 5 (num_segments must be larger than any segment id)
-{v_2 : tensor, v_3 : int} |= max(v_2) < v_3
+Rule 3 (num_segments must be larger than any segment id)
+{segment_ids : tensor, num_segments : int} |= ∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] < num_segments
 >>
-Rule 7 (inputs tensor should not be empty)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 5 (segment_ids rank must be a prefix of inputs rank)
+{inputs : tensor, segment_ids : tensor} |= ndim(segment_ids) ≤ ndim(inputs)
 >>
-Rule 8 (segment_ids tensor should not be empty)
-{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+Rule 8 (num_segments must be larger than any segment id, take max segment id from the input)
+{segment_ids : tensor, num_segments : int} |= max(segment_ids) < num_segments
 >>
-Rule 9 (inputs and segment_ids tensor should have compatible shapes for prefix checking)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then true else ∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 15 (segment_ids.shape[0] must be equal to inputs.shape[0] to avoid dimension mismatch)
+{inputs : tensor, segment_ids : tensor} |= shape(segment_ids, 0) = shape(inputs, 0)
 >>
-Rule 10 (num_segments should fit into int32)
-{v_3 : int} |= v_3 < 2147483647
+Rule 18 (num_segments must be larger than any segment id, take max segment id from the input and segment_ids must be non-empty)
+{segment_ids : tensor, num_segments : int} |= (ndim(segment_ids) > 0) ∧ (max(segment_ids) < num_segments)
 >>
-Rule 11 (segment_ids should have int32 or int64 type)
-{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Rule 20 (if segment_ids is a scalar, inputs must be a vector to avoid dimension mismatch)
+{inputs : tensor, segment_ids : tensor} |= if ndim(segment_ids) = 0 then ndim(inputs) = 1
 >>
-Rule 14 (inputs must be a tensor of strings)
-{v_1 : tensor} |= dtype_(v_1) = 12
+Rule 23 (num_segments must be larger than any segment id, take max segment id from the input and segment_ids must be non-empty to avoid errors when max() is called on empty tensor)
+{segment_ids : tensor, num_segments : int} |= (ndim(segment_ids) > 0) ∧ (∃i ∈ [0, ndim(segment_ids)-1] : true) ∧ (max(segment_ids) < num_segments)
 >>
-Rule 47 (The prefix shape defined by segment_ids must match the input shape)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 25 (inputs must be a string tensor)
+{inputs : tensor} |= dtype_(inputs) = 12
 >>
-Rule 48 (if num_segments is greater than zero, then segment_ids must have at least one element)
-{v_2 : tensor, v_3 : int} |= if v_3 > 0 then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+Rule 28 (num_segments must be larger than any segment id, take max segment id from the input and segment_ids must be non-empty to avoid errors when max() is called on empty tensor)
+{segment_ids : tensor, num_segments : int} |= (ndim(segment_ids) > 0) ∧ (min(segment_ids) ≥ 0) ∧ (max(segment_ids) < num_segments)
 >>
-Rule 58 (The maximum segment id must be less than or equal to the number of segments minus one)
-{v_2 : tensor, v_3 : int} |= max(v_2) ≤ v_3 -1
+Rule 30 (inputs.shape[i] must be equal to segment_ids.shape[i] for all i < ndim(segment_ids))
+{inputs : tensor, segment_ids : tensor} |= ∀i ∈ [0, ndim(segment_ids)-1] : shape(inputs, i) = shape(segment_ids, i)
 >>
-Rule 67 (segment_ids values must be non-negative)
-{v_2 : tensor} |= min(v_2) >= 0
+Rule 35 (if inputs is a matrix, then segment_ids should have length equal to number of rows in inputs)
+{inputs : tensor, segment_ids : tensor} |= if ndim(inputs) = 2 then shape(segment_ids, 0) = shape(inputs, 0)
 >>
-Rule 77 (segment_ids values must be non-negative)
-{v_2 : tensor} |= min(v_2) ≥ 0
+Rule 40 (if inputs is a matrix, then segment_ids should have length equal to number of rows in inputs, and must be a vector to be valid segment_ids)
+{inputs : tensor, segment_ids : tensor} |= if ndim(inputs) = 2 then ndim(segment_ids) = 1 ∧ shape(segment_ids, 0) = shape(inputs, 0)
 >>
-Rule 78 (num_segments should be greater than zero if there are any elements in segment ids)
-{v_2:tensor, v_3:int} |= if shape(v_2, 0) > 0 then v_3 > 0
+Rule 44 (if segment_ids is a scalar, inputs must be a vector to avoid dimension mismatch, and segment_ids ndim must be less or equal than inputs)
+{inputs : tensor, segment_ids : tensor} |= if ndim(segment_ids) = 0 then ndim(inputs) = 1 else ndim(segment_ids) <= ndim(inputs)
 >>
-Rule 79 (The shape of segment_ids should be valid.)
-{v_2 : tensor} |= ndim(v_2) ≥ 1
+Rule 45 (if inputs is a matrix, then segment_ids should have length equal to number of rows in inputs, and must be a vector to be valid segment_ids. Also, input should have string dtype)
+{inputs : tensor, segment_ids : tensor} |= if ndim(inputs) = 2 then ndim(segment_ids) = 1 ∧ shape(segment_ids, 0) = shape(inputs, 0) ∧ dtype_(inputs) = 12 else dtype_(inputs) = 12
+>>
+Rule 49 (if segment_ids is a scalar, inputs must be a vector to avoid dimension mismatch and segment_ids has smaller dimension than inputs, if not scalar)
+{inputs : tensor, segment_ids : tensor} |= if ndim(segment_ids) = 0 then ndim(inputs) = 1 else ndim(segment_ids) ≤ ndim(inputs)
+>>
+Rule 50 (if inputs is a matrix, then segment_ids should have length equal to number of rows in inputs, and must be a vector to be valid segment_ids, if input is not a scalar)
+{inputs : tensor, segment_ids : tensor} |= if ndim(inputs) = 2 then (ndim(segment_ids) = 1 ∧ shape(segment_ids, 0) = shape(inputs, 0))
+>>
+Rule 54 (if segment_ids is a scalar, inputs must be a vector to avoid dimension mismatch and segment_ids has smaller dimension than inputs, if not scalar, and dtype must be string)
+{inputs : tensor, segment_ids : tensor} |= (dtype_(inputs) = 12) ∧ (if ndim(segment_ids) = 0 then ndim(inputs) = 1 else ndim(segment_ids) ≤ ndim(inputs))
+>>
+Rule 65 (The length of the first dimension of inputs must match the length of segment_ids)
+{inputs : tensor, segment_ids : tensor} |= shape(inputs, 0) = shape(segment_ids, 0)
+>>
+Rule 68 (segment_ids' values must be less than num_segments, and must be a vector)
+{segment_ids : tensor, num_segments : int} |= (∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] < num_segments) ∧ (ndim(segment_ids) = 1)
+>>
+Rule 69 (The length of the first dimension of inputs must match the length of segment_ids and inputs ndim must be at least 1)
+{inputs : tensor, segment_ids : tensor} |= (shape(inputs, 0) = shape(segment_ids, 0)) ∧ (ndim(inputs) ≥ 1)
+>>
+Rule 74 (inputs and segment_ids should have compatible shapes)
+{inputs : tensor, segment_ids : tensor} |= ndim(segment_ids) ≤ ndim(inputs) ∧ (if ndim(segment_ids) > 0 then shape(inputs, 0) = shape(segment_ids, 0))
+>>
+Rule 79 (if segment_ids is a matrix, then inputs should have same shape)
+{inputs : tensor, segment_ids : tensor} |= if ndim(segment_ids) = 2 then (shape(inputs, 0) = shape(segment_ids, 0) ∧ shape(inputs, 1) = shape(segment_ids,1))
+>>
+Rule 84 (if segment_ids has second dim, then inputs must have second dim and match the size of segment_ids)
+{inputs : tensor, segment_ids : tensor} |= if ndim(segment_ids) = 2 then shape(inputs, 1) = shape(segment_ids, 1)
+>>
+Rule 85 (inputs must be rank 1 or greater)
+{inputs : tensor} |= ndim(inputs) ≥ 1
+>>
+Rule 89 (Inputs must be string type)
+{inputs: tensor} |= dtype_(inputs) = 12
+>>
+Rule 90 (Segment_ids must have dimension no greater than inputs)
+{inputs: tensor, segment_ids: tensor} |= ndim(segment_ids) <= ndim(inputs)
+>>
+Rule 93 (segment_ids's maximum must be less than num_segments and minimum 0 or more)
+{segment_ids : tensor, num_segments : int} |= min(segment_ids) >= 0 ∧ max(segment_ids) < num_segments
+>>
+Rule 94 (Inputs should have dimension >= segment ids dimension)
+{inputs: tensor, segment_ids: tensor} |= ndim(inputs) >= ndim(segment_ids)
+>>
+Rule 95 (If segment_ids isn't scalar the the first dimension of inputs and segment_ids must match, also Input dtype must be string)
+{inputs : tensor, segment_ids : tensor} |= (if ndim(segment_ids) > 0 then shape(inputs, 0) = shape(segment_ids, 0)) ∧ dtype_(inputs) = 12
+>>
+Rule 98 (The first dimension of inputs and segment_ids must have the same length. The length must be positive)
+{inputs : tensor, segment_ids : tensor} |= shape(inputs, 0) = shape(segment_ids, 0) ∧ shape(inputs, 0) > 0
+>>
+Rule 100 (if inputs and segment_ids are both matrices, their shapes must match. Checks for incompatible shapes)
+{inputs: tensor, segment_ids: tensor} |= if (ndim(inputs) = 2) ∧ (ndim(segment_ids) = 2) then (shape(inputs,0) = shape(segment_ids, 0)) ∧ (shape(inputs, 1) = shape(segment_ids, 1))
+>>
+Rule 105 (Segment IDs must be less then the Number of Segments when the number of segments is greater then zero)
+{segment_ids: tensor, num_segments: int} |= if num_segments > 0 then max(segment_ids) < num_segments
+>>
+Rule 110 (If inputs dimension is N, then segment_ids dimension has to be less then or equal to N. Prevents segment dimesion out of bounds.)
+{inputs : tensor, segment_ids : tensor} |= ndim(segment_ids) <= ndim(inputs)

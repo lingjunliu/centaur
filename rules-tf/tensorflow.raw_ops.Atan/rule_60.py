@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the shape of v_1 has more than one value enforce all dimensions are less than or equal to 64 and product of dimension size less than 10000 (Rule 60)
+# Must be a valid shape (Rule 60)
 
 rule_60 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 1, And((And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) <= 64) for i in range(6)])), Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) < 10000), False)) if n else
-          If(v["arg1_ndim"] > 1, And((And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) <= 64) for i in range(6)])), Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) < 10000), False))
+    s.add(Not(Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) >= 0) for i in range(6)])) if n else
+          Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) >= 0) for i in range(6)]))
 )
 
 def rule_60_func(arg1, solver=None, neg=False):

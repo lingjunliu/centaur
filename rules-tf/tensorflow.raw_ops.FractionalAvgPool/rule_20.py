@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# product of pooling ratios should be greater than 1 (Rule 20)
+# pooling_ratio's third element must be greater than or equal to 1.0 (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_values"], 0) * Select(v["arg1_values"], 1) * Select(v["arg1_values"], 2) * Select(v["arg1_values"], 3) > 1.0) if n else
-          Select(v["arg1_values"], 0) * Select(v["arg1_values"], 1) * Select(v["arg1_values"], 2) * Select(v["arg1_values"], 3) > 1.0)
+    s.add(Not(Select(v["arg1_values"], 2) >= 1.0) if n else
+          Select(v["arg1_values"], 2) >= 1.0)
 )
 
 def rule_20_func(arg1, solver=None, neg=False):

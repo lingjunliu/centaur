@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If incompatible_shape_error is true, x and y must have the same shape (Rule 11)
+# If incompatible_shape_error is true, then shape of x and y need to be compatible (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg3_value"] == True, (And(v["arg1_ndim"] == v["arg2_ndim"], (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])))), False)) if n else
-          If(v["arg3_value"] == True, (And(v["arg1_ndim"] == v["arg2_ndim"], (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])))), False))
+    s.add(Not(If(v["arg3_value"] == True, (And([Implies(i < (If(v["arg1_ndim"] > v["arg2_ndim"], v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), (If(v["arg1_ndim"] - i - 1 < 0, True, If(v["arg2_ndim"] - i - 1 < 0, True, Or(Or(Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == 1, Select(v["arg2_shape"], v["arg2_ndim"] - i - 1) == 1), Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - i - 1)))))) for i in range(6)])), True)) if n else
+          If(v["arg3_value"] == True, (And([Implies(i < (If(v["arg1_ndim"] > v["arg2_ndim"], v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), (If(v["arg1_ndim"] - i - 1 < 0, True, If(v["arg2_ndim"] - i - 1 < 0, True, Or(Or(Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == 1, Select(v["arg2_shape"], v["arg2_ndim"] - i - 1) == 1), Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - i - 1)))))) for i in range(6)])), True))
 )
 
 def rule_11_func(arg1, arg2, arg3, solver=None, neg=False):

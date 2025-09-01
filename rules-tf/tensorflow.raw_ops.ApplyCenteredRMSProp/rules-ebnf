@@ -1,99 +1,117 @@
 >>
-Rule 1 (var, mg, ms, mom, lr, rho, momentum, epsilon, grad must have the same type)
+Rule 1 (var, mg, ms, mom, lr, rho, momentum, epsilon, and grad must have the same type)
 {var : tensor, mg : tensor, ms : tensor, mom : tensor, lr : tensor, rho : tensor, momentum : tensor, epsilon : tensor, grad : tensor} |= dtype_(var) = dtype_(mg) ∧ dtype_(var) = dtype_(ms) ∧ dtype_(var) = dtype_(mom) ∧ dtype_(var) = dtype_(lr) ∧ dtype_(var) = dtype_(rho) ∧ dtype_(var) = dtype_(momentum) ∧ dtype_(var) = dtype_(epsilon) ∧ dtype_(var) = dtype_(grad)
 >>
-Rule 2 (lr, rho, momentum, epsilon must be scalar tensors)
+Rule 2 (lr, rho, momentum and epsilon must be scalar tensors)
 {lr : tensor, rho : tensor, momentum : tensor, epsilon : tensor} |= ndim(lr) = 0 ∧ ndim(rho) = 0 ∧ ndim(momentum) = 0 ∧ ndim(epsilon) = 0
 >>
-Rule 3 (var, mg, ms, mom and grad must have the same shape)
-{var : tensor, mg : tensor, ms : tensor, mom : tensor, grad : tensor} |= ndim(var) = ndim(mg) ∧ ndim(var) = ndim(ms) ∧ ndim(var) = ndim(mom) ∧ ndim(var) = ndim(grad) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(mg, i) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(ms, i) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(mom, i) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(grad, i)
->>
-Rule 4 (use_locking should be a boolean)
+Rule 3 (use_locking must be a boolean value)
 {use_locking : bool} |= use_locking = true ∨ use_locking = false
 >>
-Rule 5 (learning rate should be greater than zero)
-{lr : tensor} |= lr > 0
+Rule 4 (var, mg, ms, mom, and grad should have same shape.)
+{var : tensor, mg : tensor, ms : tensor, mom : tensor, grad : tensor} |= ndim(var) = ndim(mg) ∧ ndim(var) = ndim(ms) ∧ ndim(var) = ndim(mom) ∧ ndim(var) = ndim(grad) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(mg, i) ∧ shape(var, i) = shape(ms, i) ∧ shape(var, i) = shape(mom, i) ∧ shape(var, i) = shape(grad, i)
 >>
-Rule 6 (epsilon should be greater or equal to zero)
-{epsilon : tensor} |= epsilon ≥ 0
+Rule 6 (var must be one of the allowed dtypes)
+{var : tensor} |= dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 3 ∨ dtype_(var) = 6 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 10 ∨ dtype_(var) = 4
 >>
-Rule 7 (decay rate should be between zero and one)
-{rho : tensor} |= rho ≥ 0 ∧ rho ≤ 1
+Rule 7 (epsilon should be non-negative)
+{epsilon : tensor} |= min(epsilon) ≥ 0
 >>
-Rule 8 (momentum scale should be between zero and one)
-{momentum : tensor} |= momentum ≥ 0 ∧ momentum ≤ 1
+Rule 8 (If use_locking is true, var, mg, ms, and mom tensors are protected by a lock)
+{use_locking : bool} |= if use_locking = true then true
 >>
-Rule 9 (var must be one of the allowed dtypes.)
-{var : tensor} |= dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 10 ∨ dtype_(var) = 4 ∨ dtype_(var) = 13 ∨ dtype_(var) = 6 ∨ dtype_(var) = 16 ∨ dtype_(var) = 11
+Rule 9 (rho should be between 0 and 1)
+{rho : tensor} |= min(rho) ≥ 0 ∧ max(rho) ≤ 1
 >>
-Rule 13 (var must be one of the allowed dtypes: float32, float64, int32, uint8, int16, int8, complex64, int64, bfloat16, complex128, half, uint32, uint64.)
-{var : tensor} |= dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 9 ∨ dtype_(var) = 4 ∨ dtype_(var) = 6 ∨ dtype_(var) = 10 ∨ dtype_(var) = 16
+Rule 10 (momentum should be between -1 and 1)
+{momentum : tensor} |= min(momentum) ≥ -1 ∧ max(momentum) ≤ 1
 >>
-Rule 15 (lr, rho, momentum and epsilon must have the same dtype as var)
-{var : tensor, lr : tensor, rho : tensor, momentum : tensor, epsilon : tensor} |= dtype_(var) = dtype_(lr) ∧ dtype_(var) = dtype_(rho) ∧ dtype_(var) = dtype_(momentum) ∧ dtype_(var) = dtype_(epsilon)
+Rule 11 (if use_locking is false, behavior may exhibit less contention)
+{use_locking : bool} |= if use_locking = false then true
 >>
-Rule 17 (mg, ms, mom, grad tensors have the same shape as var tensor)
-{var : tensor, mg : tensor, ms : tensor, mom : tensor, grad : tensor} |= ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(mg, i) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(ms, i) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(mom, i) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(grad, i)
+Rule 14 (lr, rho, momentum, and epsilon must be of float type)
+{lr : tensor, rho : tensor, momentum : tensor, epsilon : tensor} |= dtype_(lr) = 7 ∨ dtype_(lr) = 8 ∨ dtype_(lr) = 6 ∧ dtype_(rho) = 7 ∨ dtype_(rho) = 8 ∨ dtype_(rho) = 6 ∧ dtype_(momentum) = 7 ∨ dtype_(momentum) = 8 ∨ dtype_(momentum) = 6 ∧ dtype_(epsilon) = 7 ∨ dtype_(epsilon) = 8 ∨ dtype_(epsilon) = 6
 >>
-Rule 18 (var, mg, ms, mom and grad must have compatible shapes for element-wise subtraction.)
-{var : tensor, mom : tensor} |= ndim(var) = ndim(mom) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(mom, i)
+Rule 16 (var must have a real or complex dtype)
+{var : tensor} |= (dtype_(var) ≥ 1 ∧ dtype_(var) ≤ 9) ∨ dtype_(var) = 10 ∨ dtype_(var) = 11
 >>
-Rule 22 (var, mg, ms, mom, and grad all have the same dtype)
+Rule 17 (mg must have the same dtype as var)
+{var : tensor, mg : tensor} |= dtype_(var) = dtype_(mg)
+>>
+Rule 18 (ms must have the same dtype as var)
+{var : tensor, ms : tensor} |= dtype_(var) = dtype_(ms)
+>>
+Rule 19 (mom must have the same dtype as var)
+{var : tensor, mom : tensor} |= dtype_(var) = dtype_(mom)
+>>
+Rule 20 (grad must have the same dtype as var)
+{var : tensor, grad : tensor} |= dtype_(var) = dtype_(grad)
+>>
+Rule 21 (var, mg, ms, mom, and grad must have the same dtype)
 {var : tensor, mg : tensor, ms : tensor, mom : tensor, grad : tensor} |= dtype_(var) = dtype_(mg) ∧ dtype_(var) = dtype_(ms) ∧ dtype_(var) = dtype_(mom) ∧ dtype_(var) = dtype_(grad)
 >>
-Rule 23 (The product of dimensions of lr, rho, momentum, epsilon should be 1 because they are scalar)
-{lr : tensor} |= if ndim(lr) = 0 then true else if ndim(lr) > 0 then ∀i ∈ [0, ndim(lr) - 1] : shape(lr, i) = 1 else false
+Rule 22 (var, mg, ms, mom, lr, rho, momentum and epsilon must have same shape)
+{var : tensor, mg : tensor, ms : tensor, mom : tensor, lr : tensor, rho : tensor, momentum : tensor, epsilon : tensor} |= ndim(var) = ndim(mg) ∧ ndim(var) = ndim(ms) ∧ ndim(var) = ndim(mom) ∧ ndim(lr) = 0 ∧ ndim(rho) = 0 ∧ ndim(momentum) = 0 ∧ ndim(epsilon) = 0
 >>
-Rule 24 (var and grad must have the same shape.)
-{var : tensor, grad : tensor} |= ndim(var) = ndim(grad) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(grad, i)
+Rule 24 (Epsilon should be a small positive number)
+{epsilon : tensor} |= min(epsilon) > 0
 >>
-Rule 28 (lr, rho, momentum and epsilon must all have the same dtype)
-{lr : tensor, rho : tensor, momentum : tensor, epsilon : tensor} |= dtype_(lr) = dtype_(rho) ∧ dtype_(lr) = dtype_(momentum) ∧ dtype_(lr) = dtype_(epsilon)
+Rule 27 (lr should be a non-negative scalar)
+{lr : tensor} |= min(lr) ≥ 0
 >>
-Rule 29 (mg, ms, mom, grad must have same number of dimensions as var)
-{var : tensor, mg : tensor, ms : tensor, mom : tensor, grad : tensor} |= ndim(var) = ndim(mg) ∧ ndim(var) = ndim(ms) ∧ ndim(var) = ndim(mom) ∧ ndim(var) = ndim(grad)
+Rule 28 (rho should be a non-negative scalar)
+{rho : tensor} |= min(rho) ≥ 0
 >>
-Rule 31 (DType of lr, rho, momentum, and epsilon must be float16, float32, or float64.)
-{lr : tensor} |= dtype_(lr) = 6 ∨ dtype_(lr) = 7 ∨ dtype_(lr) = 8
+Rule 31 (var must have a valid dtype for the op)
+{var : tensor} |= (dtype_(var) = 7) ∨ (dtype_(var) = 8) ∨ (dtype_(var) = 3) ∨ (dtype_(var) = 6) ∨ (dtype_(var) = 2) ∨ (dtype_(var) = 1) ∨ (dtype_(var) = 10) ∨ (dtype_(var) = 4)
 >>
-Rule 32 (If the dtype of lr, rho, momentum, or epsilon is float16, then the other tensors must be also.)
-{var : tensor, lr : tensor} |= if dtype_(lr) = 6 then dtype_(var) = 6
+Rule 32 (mg, ms, mom, and grad must have a valid dtype for the op)
+{mg : tensor, ms : tensor, mom : tensor, grad : tensor} |= (dtype_(mg) = 7) ∨ (dtype_(mg) = 8) ∨ (dtype_(mg) = 3) ∨ (dtype_(mg) = 6) ∨ (dtype_(mg) = 2) ∨ (dtype_(mg) = 1) ∨ (dtype_(mg) = 10) ∨ (dtype_(mg) = 4) ∧ (dtype_(ms) = 7) ∨ (dtype_(ms) = 8) ∨ (dtype_(ms) = 3) ∨ (dtype_(ms) = 6) ∨ (dtype_(ms) = 2) ∨ (dtype_(ms) = 1) ∨ (dtype_(ms) = 10) ∨ (dtype_(ms) = 4) ∧ (dtype_(mom) = 7) ∨ (dtype_(mom) = 8) ∨ (dtype_(mom) = 3) ∨ (dtype_(mom) = 6) ∨ (dtype_(mom) = 2) ∨ (dtype_(mom) = 1) ∨ (dtype_(mom) = 10) ∨ (dtype_(mom) = 4) ∧ (dtype_(grad) = 7) ∨ (dtype_(grad) = 8) ∨ (dtype_(grad) = 3) ∨ (dtype_(grad) = 6) ∨ (dtype_(grad) = 2) ∨ (dtype_(grad) = 1) ∨ (dtype_(grad) = 10) ∨ (dtype_(grad) = 4)
 >>
-Rule 33 (If the dtype of lr, rho, momentum, or epsilon is float32, then the other tensors must be also.)
-{var : tensor, lr : tensor} |= if dtype_(lr) = 7 then dtype_(var) = 7
+Rule 35 (momentum should be a non-negative scalar)
+{momentum : tensor} |= min(momentum) >= 0
 >>
-Rule 34 (If the dtype of lr, rho, momentum, or epsilon is float64, then the other tensors must be also.)
-{var : tensor, lr : tensor} |= if dtype_(lr) = 8 then dtype_(var) = 8
+Rule 36 (rho should be between 0 and 1)
+{rho : tensor} |= max(rho) <= 1
 >>
-Rule 37 (var, mg, ms, mom, grad all tensors must have same shape and dtype)
-{var : tensor, mg : tensor, ms : tensor, mom : tensor, grad : tensor} |= ndim(var) = ndim(mg) ∧ ndim(var) = ndim(ms) ∧ ndim(var) = ndim(mom) ∧ ndim(var) = ndim(grad) ∧ dtype_(var) = dtype_(mg) ∧ dtype_(var) = dtype_(ms) ∧ dtype_(var) = dtype_(mom) ∧ dtype_(var) = dtype_(grad) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(mg, i) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(ms, i) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(mom, i) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(grad, i)
+Rule 37 (lr must be of the same type as var)
+{var : tensor, lr : tensor} |= dtype_(var) = dtype_(lr)
 >>
-Rule 38 (If the dtype of lr is float16, then the dtypes of var, mg, ms, mom and grad must be float16.)
-{var : tensor, lr : tensor, mg : tensor, ms : tensor, mom : tensor, grad : tensor} |= if dtype_(lr) = 6 then dtype_(var) = 6 ∧ dtype_(mg) = 6 ∧ dtype_(ms) = 6 ∧ dtype_(mom) = 6 ∧ dtype_(grad) = 6
+Rule 38 (momentum must be of the same type as var)
+{var : tensor, momentum : tensor} |= dtype_(var) = dtype_(momentum)
 >>
-Rule 39 (If the dtype of lr is float32, then the dtypes of var, mg, ms, mom and grad must be float32.)
-{var : tensor, lr : tensor, mg : tensor, ms : tensor, mom : tensor, grad : tensor} |= if dtype_(lr) = 7 then dtype_(var) = 7 ∧ dtype_(mg) = 7 ∧ dtype_(ms) = 7 ∧ dtype_(mom) = 7 ∧ dtype_(grad) = 7
+Rule 39 (rho must be of the same type as var)
+{var : tensor, rho : tensor} |= dtype_(var) = dtype_(rho)
 >>
-Rule 40 (If the dtype of lr is float64, then the dtypes of var, mg, ms, mom and grad must be float64.)
-{var : tensor, lr : tensor, mg : tensor, ms : tensor, mom : tensor, grad : tensor} |= if dtype_(lr) = 8 then dtype_(var) = 8 ∧ dtype_(mg) = 8 ∧ dtype_(ms) = 8 ∧ dtype_(mom) = 8 ∧ dtype_(grad) = 8
+Rule 40 (epsilon must be of the same type as var)
+{var : tensor, epsilon : tensor} |= dtype_(var) = dtype_(epsilon)
 >>
-Rule 42 (if var is complex64 or complex128, then lr, rho, momentum and epsilon must be the same)
-{var : tensor, lr : tensor, rho : tensor, momentum : tensor, epsilon : tensor} |= if dtype_(var) = 9 ∨ dtype_(var) = 10 then dtype_(lr) = dtype_(var) ∧ dtype_(rho) = dtype_(var) ∧ dtype_(momentum) = dtype_(var) ∧ dtype_(epsilon) = dtype_(var)
+Rule 41 (mg must have a valid dtype)
+{mg : tensor} |= (dtype_(mg) = 7) ∨ (dtype_(mg) = 8) ∨ (dtype_(mg) = 3) ∨ (dtype_(mg) = 6) ∨ (dtype_(mg) = 2) ∨ (dtype_(mg) = 1) ∨ (dtype_(mg) = 10) ∨ (dtype_(mg) = 4)
 >>
-Rule 43 (If var is complex64 or complex128, then mg, ms, mom and grad must be the same dtype as var)
-{var : tensor, mg : tensor, ms : tensor, mom : tensor, grad : tensor} |= if dtype_(var) = 9 ∨ dtype_(var) = 10 then dtype_(mg) = dtype_(var) ∧ dtype_(ms) = dtype_(var) ∧ dtype_(mom) = dtype_(var) ∧ dtype_(grad) = dtype_(var)
+Rule 42 (ms must have a valid dtype)
+{ms : tensor} |= (dtype_(ms) = 7) ∨ (dtype_(ms) = 8) ∨ (dtype_(ms) = 3) ∨ (dtype_(ms) = 6) ∨ (dtype_(ms) = 2) ∨ (dtype_(ms) = 1) ∨ (dtype_(ms) = 10) ∨ (dtype_(ms) = 4)
 >>
-Rule 48 (If var has integer type, lr, rho, momentum and epsilon must have the same integer type)
-{var : tensor, lr : tensor, rho : tensor, momentum : tensor, epsilon : tensor} |= if dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 4 then dtype_(lr) = dtype_(var) ∧ dtype_(rho) = dtype_(var) ∧ dtype_(momentum) = dtype_(var) ∧ dtype_(epsilon) = dtype_(var)
+Rule 43 (mom must have a valid dtype)
+{mom : tensor} |= (dtype_(mom) = 7) ∨ (dtype_(mom) = 8) ∨ (dtype_(mom) = 3) ∨ (dtype_(mom) = 6) ∨ (dtype_(mom) = 2) ∨ (dtype_(mom) = 1) ∨ (dtype_(mom) = 10) ∨ (dtype_(mom) = 4)
 >>
-Rule 49 (If var has integer type, then mg, ms, mom, grad must have the same integer type)
-{var : tensor, mg : tensor, ms : tensor, mom : tensor, grad : tensor} |= if dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 4 then dtype_(mg) = dtype_(var) ∧ dtype_(ms) = dtype_(var) ∧ dtype_(mom) = dtype_(var) ∧ dtype_(grad) = dtype_(var)
+Rule 44 (grad must have a valid dtype)
+{grad : tensor} |= (dtype_(grad) = 7) ∨ (dtype_(grad) = 8) ∨ (dtype_(grad) = 3) ∨ (dtype_(grad) = 6) ∨ (dtype_(grad) = 2) ∨ (dtype_(grad) = 1) ∨ (dtype_(grad) = 10) ∨ (dtype_(grad) = 4)
 >>
-Rule 52 (if lr, rho, momentum or epsilon is float type, then var, mg, ms, mom, grad must also be float type)
-{var : tensor, lr : tensor} |= if dtype_(lr) = 6 ∨ dtype_(lr) = 7 ∨ dtype_(lr) = 8 then dtype_(var) = dtype_(lr)
+Rule 45 (var, mg, ms, mom, lr, rho, momentum, epsilon, and grad must have a real or complex dtype, and have same type)
+{var : tensor, mg : tensor, ms : tensor, mom : tensor, lr : tensor, rho : tensor, momentum : tensor, epsilon : tensor, grad : tensor} |= (dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 3 ∨ dtype_(var) = 6 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 10 ∨ dtype_(var) = 4) ∧ dtype_(var) = dtype_(mg) ∧ dtype_(var) = dtype_(ms) ∧ dtype_(var) = dtype_(mom) ∧ dtype_(var) = dtype_(lr) ∧ dtype_(var) = dtype_(rho) ∧ dtype_(var) = dtype_(momentum) ∧ dtype_(var) = dtype_(epsilon) ∧ dtype_(var) = dtype_(grad)
 >>
-Rule 53 (If lr is one of float type, then mg, ms, mom, grad should also have same float type)
-{lr : tensor, mg : tensor, ms : tensor, mom : tensor, grad : tensor} |= if dtype_(lr) = 6 ∨ dtype_(lr) = 7 ∨ dtype_(lr) = 8 then dtype_(mg) = dtype_(lr) ∧ dtype_(ms) = dtype_(lr) ∧ dtype_(mom) = dtype_(lr) ∧ dtype_(grad) = dtype_(lr)
+Rule 46 (lr should be less than or equal to 1)
+{lr : tensor} |= max(lr) <= 1
 >>
-Rule 55 (lr, rho, momentum, and epsilon must be float tensors if var is also a float tensor)
-{var: tensor, lr: tensor, rho: tensor, momentum: tensor, epsilon: tensor} |= if dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 6 then dtype_(lr) = 7 ∨ dtype_(lr) = 8 ∨ dtype_(lr) = 6 ∧ dtype_(rho) = 7 ∨ dtype_(rho) = 8 ∨ dtype_(rho) = 6 ∧ dtype_(momentum) = 7 ∨ dtype_(momentum) = 8 ∨ dtype_(momentum) = 6 ∧ dtype_(epsilon) = 7 ∨ dtype_(epsilon) = 8 ∨ dtype_(epsilon) = 6
+Rule 47 (lr should be between 0 and 1)
+{lr : tensor} |= min(lr) >= 0 ∧ max(lr) <= 1
+>>
+Rule 49 (mg, ms, mom, and grad must have a valid dtype for the op)
+{mg : tensor, ms : tensor, mom : tensor, grad : tensor} |= ((dtype_(mg) = 7) ∨ (dtype_(mg) = 8) ∨ (dtype_(mg) = 3) ∨ (dtype_(mg) = 6) ∨ (dtype_(mg) = 2) ∨ (dtype_(mg) = 1) ∨ (dtype_(mg) = 10) ∨ (dtype_(mg) = 4)) ∧ ((dtype_(ms) = 7) ∨ (dtype_(ms) = 8) ∨ (dtype_(ms) = 3) ∨ (dtype_(ms) = 6) ∨ (dtype_(ms) = 2) ∨ (dtype_(ms) = 1) ∨ (dtype_(ms) = 10) ∨ (dtype_(ms) = 4)) ∧ ((dtype_(mom) = 7) ∨ (dtype_(mom) = 8) ∨ (dtype_(mom) = 3) ∨ (dtype_(mom) = 6) ∨ (dtype_(mom) = 2) ∨ (dtype_(mom) = 1) ∨ (dtype_(mom) = 10) ∨ (dtype_(mom) = 4)) ∧ ((dtype_(grad) = 7) ∨ (dtype_(grad) = 8) ∨ (dtype_(grad) = 3) ∨ (dtype_(grad) = 6) ∨ (dtype_(grad) = 2) ∨ (dtype_(grad) = 1) ∨ (dtype_(grad) = 10) ∨ (dtype_(grad) = 4))
+>>
+Rule 57 (mg, ms, mom, grad, lr, rho, momentum, and epsilon all should have same dtype)
+{mg : tensor, ms : tensor, mom : tensor, lr : tensor, rho : tensor, momentum : tensor, epsilon : tensor, grad : tensor} |= dtype_(mg) = dtype_(ms) ∧ dtype_(mg) = dtype_(mom) ∧ dtype_(mg) = dtype_(lr) ∧ dtype_(mg) = dtype_(rho) ∧ dtype_(mg) = dtype_(momentum) ∧ dtype_(mg) = dtype_(epsilon) ∧ dtype_(mg) = dtype_(grad)
+>>
+Rule 58 (var, mg, ms, mom, lr, rho, momentum, epsilon, and grad must have the same type and be a valid dtype)
+{var : tensor, mg : tensor, ms : tensor, mom : tensor, lr : tensor, rho : tensor, momentum : tensor, epsilon : tensor, grad : tensor} |= ((dtype_(var) = 7) ∨ (dtype_(var) = 8) ∨ (dtype_(var) = 3) ∨ (dtype_(var) = 6) ∨ (dtype_(var) = 2) ∨ (dtype_(var) = 1) ∨ (dtype_(var) = 10) ∨ (dtype_(var) = 4)) ∧ dtype_(var) = dtype_(mg) ∧ dtype_(var) = dtype_(ms) ∧ dtype_(var) = dtype_(mom) ∧ dtype_(var) = dtype_(lr) ∧ dtype_(var) = dtype_(rho) ∧ dtype_(var) = dtype_(momentum) ∧ dtype_(var) = dtype_(epsilon) ∧ dtype_(var) = dtype_(grad)

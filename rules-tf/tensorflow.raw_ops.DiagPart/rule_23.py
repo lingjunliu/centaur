@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input tensor has dimension 1, it should have more than one element (Rule 23)
+# For input tensors with at least two dimensions, the dimensions of the first half must be equal to the dimensions of the second half (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) > 1, False)) if n else
-          If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) > 1, False))
+    s.add(Not(If(v["arg1_ndim"] >= 2, And([Implies(i < ((v["arg1_ndim"] / 2) - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg1_shape"], i + (v["arg1_ndim"] / 2))) for i in range(6)]), True)) if n else
+          If(v["arg1_ndim"] >= 2, And([Implies(i < ((v["arg1_ndim"] / 2) - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg1_shape"], i + (v["arg1_ndim"] / 2))) for i in range(6)]), True))
 )
 
 def rule_23_func(arg1, solver=None, neg=False):

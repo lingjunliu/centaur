@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Input tensors must have compatible data types for the remainder operation, v_1's dtype is int (Rule 21)
+# x1 and x2 should have compatible dtypes, if one is bool, the other should also be (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), (Or((And(1 <= v["arg2_dtype"], v["arg2_dtype"] <= 5)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8)))), False)) if n else
-          If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), (Or((And(1 <= v["arg2_dtype"], v["arg2_dtype"] <= 5)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8)))), False))
+    s.add(Not(If((v["arg1_dtype"] == 0), (v["arg2_dtype"] == 0), True)) if n else
+          If((v["arg1_dtype"] == 0), (v["arg2_dtype"] == 0), True))
 )
 
 def rule_21_func(arg1, arg2, solver=None, neg=False):

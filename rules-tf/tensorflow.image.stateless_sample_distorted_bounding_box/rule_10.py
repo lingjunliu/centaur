@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# aspect_ratio_range's elements should be greater than 0 (Rule 10)
+# aspect_ratio_range[0] must be less than or equal to aspect_ratio_range[1] (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_values"], 0) > 0, Select(v["arg1_values"], 1) > 0)) if n else
-          And(Select(v["arg1_values"], 0) > 0, Select(v["arg1_values"], 1) > 0))
+    s.add(Not(Select(v["arg1_values"], 0) <= Select(v["arg1_values"], 1)) if n else
+          Select(v["arg1_values"], 0) <= Select(v["arg1_values"], 1))
 )
 
 def rule_10_func(arg1, solver=None, neg=False):

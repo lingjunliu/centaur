@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# reserve_space_1, reserve_space_2 and reserve_space_3 have shape[0]>0 (Rule 51)
+# All reserve_space tensors must have the same shape (Rule 51)
 
 rule_51 = lambda s, v, n=False: (
-    s.add(Not(And(And(Select(v["arg1_shape"], 0) > 0, Select(v["arg2_shape"], 0) > 0), Select(v["arg3_shape"], 0) > 0)) if n else
-          And(And(Select(v["arg1_shape"], 0) > 0, Select(v["arg2_shape"], 0) > 0), Select(v["arg3_shape"], 0) > 0))
+    s.add(Not(And(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), Select(v["arg1_shape"], 0) == Select(v["arg3_shape"], 0))) if n else
+          And(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), Select(v["arg1_shape"], 0) == Select(v["arg3_shape"], 0)))
 )
 
 def rule_51_func(arg1, arg2, arg3, solver=None, neg=False):

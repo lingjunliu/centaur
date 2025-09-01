@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The tensor's dtype cannot be string (encoded as 11 (Rule 9)
+# Input tensor should not have string dtype (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
     s.add(Not(v["arg1_dtype"] != 11) if n else

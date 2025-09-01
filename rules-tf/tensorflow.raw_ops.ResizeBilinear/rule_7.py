@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# images height should be greater than 0 (Rule 7)
+# images tensor's height should be positive (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
     s.add(Not(Select(v["arg1_shape"], 1) > 0) if n else

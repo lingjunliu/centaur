@@ -1,69 +1,108 @@
 >>
-Rule 3 (Dataset elements must have a rank greater than 0)
+Rule 1 (Input tensor must have at least one dimension for unbatching)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 4 (Dataset elements must have a shape with the first dimension greater than 0 to unbatch)
+Rule 2 (The size of the first dimension of the input tensor must be greater than zero for unbatching)
 {v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 5 (The tensor must have at least one dimension to be unbatched)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
->>
-Rule 7 (The tensor's dtype must be numerical to be unbatched)
-{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11
->>
-Rule 8 (The tensor's shape must be known)
-{v_1 : tensor} |= shape(v_1, 0) ≠ -1
->>
-Rule 9 (The rank of the tensor must be less than a maximum value, e.g., 8)
-{v_1 : tensor} |= ndim(v_1) < 8
->>
-Rule 10 (Dataset elements must have a first dimension.)
-{v_1 : tensor} |= ∃i ∈ [0, 0] : shape(v_1, i) > 0
->>
-Rule 11 (Dataset element shape should not contain unknown dimensions other than the first)
-{v_1 : tensor} |= ∀i ∈ [1, ndim(v_1) -1]: shape(v_1, i) ≠ -1
->>
-Rule 12 (Dataset elements should have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
->>
-Rule 14 (The rank of the tensor must be known and positive)
-{v_1 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_1) ≠ -1
->>
-Rule 15 (Elements should be unbatched along axis 0)
-{v_1 : tensor} |= shape(v_1, 0) > 1
->>
-Rule 18 (The dataset cannot be empty)
+Rule 4 (The shape of the input tensor must be defined)
 {v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 19 (All shape dimensions must be positive.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 5 (Data type of the tensor must be supported)
+{v_1 : tensor} |= dtype_(v_1) ≠ "none"
 >>
-Rule 20 (Dataset element must not be a scalar with a defined shape)
-{v_1 : tensor} |= if ndim(v_1) = 0 then shape(v_1, 0) = 0
+Rule 7 (Shape cannot be negative)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 21 (Dataset elements should be tensors)
-{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 11
+Rule 8 (Input tensor must have a defined shape at the first dimension)
+{v_1 : tensor} |= shape(v_1, 0) ≠ -1
 >>
-Rule 22 (Dataset elements should have a known dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 12
+Rule 10 (Check that the unbatched dimension is not a dynamic dimension (-1).)
+{v_1: tensor} |= shape(v_1, 0) > 0
 >>
-Rule 23 (Dataset elements must have batch dimension greater than or equal to one)
-{v_1 : tensor} |= shape(v_1,0) ≥ 1
+Rule 11 (If the tensor only has one element in its first dimension, it can't be unbatched.)
+{v_1 : tensor} |= shape(v_1, 0) > 1 ∨ ndim(v_1) > 1
 >>
-Rule 24 (Batch size should be a valid number)
-{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 0) < 1000000
+Rule 13 (Input tensor cannot have all dimensions of size 1)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 1
 >>
-Rule 25 (Unbatched dataset rank should be one less than batched dataset if rank known.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ -1 then ndim(v_2) = ndim(v_1) - 1
+Rule 14 (Input tensor should not be a scalar after removing dimensions of size 1)
+{v_1: tensor} |= ndim(v_1) > 0 ∧ (∃i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 1)
 >>
-Rule 26 (Check that the dataset first element can be converted to tensor)
-{v_1 : dtype} |= if v_1 = 0 then true else false
+Rule 16 (Input tensor can be unbatched if it is not a scalar and has at least one dimension greater than 1)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1)
 >>
-Rule 27 (The transformed dataset must have more elements)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) > shape(v_1, 0)
+Rule 17 (The first dimension which is to be unbatched should not be unknown)
+{v_1 : tensor} |= shape(v_1, 0) ≠ 0
 >>
-Rule 28 (Check if the batch size is one, then unbatching is not meaningfull)
-{v_1 : tensor} |= if shape(v_1, 0) = 1 then false
+Rule 18 (The input tensor has at least one element)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
 >>
-Rule 29 (All dimensions after the first must be fully defined.)
-{v_1: tensor} |= ∀i ∈ [1, ndim(v_1)-1] : if ndim(v_1) > 1 then shape(v_1, i) > 0
+Rule 21 (The first dimension should not be unknown and tensor rank must be greater than 0.)
+{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ ndim(v_1) > 0
+>>
+Rule 24 (Check if unbatch can infer inner dimensions)
+{v_1 : tensor} |= ∃i ∈ [1, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 25 (Check that tensor has a known number of dimensions greater than 0 and the first dimension is also known)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ shape(v_1, 0) > 0
+>>
+Rule 26 (If the number of dimension is 1, then the dimension size should be > 1)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 1
+>>
+Rule 27 (The tensor must be unbatchable)
+{v_1 : tensor} |= ndim(v_1) > 1 ∨ shape(v_1, 0) > 1
+>>
+Rule 28 (Tensor must have a valid shape)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ -1
+>>
+Rule 32 (The tensor should not have an unknown shape at first dim AND rank should be > 0)
+{v_1 : tensor} |= shape(v_1, 0) ≠ -1 ∧ ndim(v_1) > 0
+>>
+Rule 37 (Need to have at least two dimensions or more or the first dimension has size > 1, or else, this does not make sense.)
+{v_1 : tensor} |= (ndim(v_1) > 1) ∨ (shape(v_1, 0) > 1)
+>>
+Rule 40 (The tensor is batched, and you can unbatch it.)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ shape(v_1, 0) > 1
+>>
+Rule 45 (Can unbatch tensors with at least one dimension and has a size greater than 1 in the first dimension or has a rank more than 1)
+{v_1 : tensor} |= (ndim(v_1) > 0) ∧ ((shape(v_1, 0) > 1) ∨ (ndim(v_1) > 1))
+>>
+Rule 46 (It should be batched already to unbatch.)
+{v_1 : tensor} |= shape(v_1, 0) > 1
+>>
+Rule 55 (If unbatching, it should be a tensor with rank > 0 AND its first dimension can't be equal to None.)
+{v_1 : tensor} |= (ndim(v_1) > 0) ∧ (shape(v_1, 0) ≠ -1)
+>>
+Rule 57 (Can’t unbatch it if it is a scalar or has a dynamic shape.)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ shape(v_1, 0) ≠ -1
+>>
+Rule 61 (If rank is 1, then shape should be positive. If rank > 1, then can be scalar.)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 0
+>>
+Rule 63 (If not a scalar, and shape not defined then can't use.)
+{v_1 : tensor} |= (ndim(v_1) > 0) ∧ (shape(v_1,0) ≠ -1)
+>>
+Rule 65 (Must have at least one dimension or defined batch size. Unbatch should return a function.)
+{v_1 : tensor} |= (ndim(v_1) > 0) ∨ (shape(v_1, 0) > 0)
+>>
+Rule 66 (0-th dimension needs to be defined in size, to unbatch it, not dynamic )
+{v_1 : tensor} |= (ndim(v_1) > 0) ∧ shape(v_1, 0) ≠ -1
+>>
+Rule 78 (It has to be more than just one element from first dimension and the shape has to be known)
+{v_1 : tensor} |= (shape(v_1, 0) > 1) ∧ (ndim(v_1) > 0)
+>>
+Rule 80 (If it’s rank one needs size > 1, not a scalar)
+{v_1 : tensor} |= if (ndim(v_1) = 1) then (shape(v_1, 0) > 1)
+>>
+Rule 83 (Valid unbatching condition is a batched tensor with size > 1)
+{v_1 : tensor} |= (ndim(v_1) > 0) ∧ (shape(v_1, 0) > 1)
+>>
+Rule 87 (It has to be a batched tensor of shape more than 1 or it should at least have one other dimension for unbatch it and get a result.)
+{v_1 : tensor} |= ((ndim(v_1) > 1) ∨ (shape(v_1, 0) > 1))
+>>
+Rule 89 (If more than 1 element, the batch is defined. If just one element, then it should have more than 1 dimensions)
+{v_1 : tensor} |= (shape(v_1, 0) > 1) ∨ (ndim(v_1) > 1)
+>>
+Rule 91 (To unbatch, you need something to unbatch, not scalar and defined shape first)
+{v_1 : tensor} |= (ndim(v_1) > 0) ∧ (shape(v_1, 0) > 0)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If Tout is float32, then x must be complex64 (Rule 18)
+# If Tout is float64 then x must be complex128 (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == 7, v["arg1_dtype"] == 10, False)) if n else
-          If(v["arg2_value"] == 7, v["arg1_dtype"] == 10, False))
+    s.add(Not(If(v["arg2_value"] == 9, v["arg1_dtype"] == 11, True)) if n else
+          If(v["arg2_value"] == 9, v["arg1_dtype"] == 11, True))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):

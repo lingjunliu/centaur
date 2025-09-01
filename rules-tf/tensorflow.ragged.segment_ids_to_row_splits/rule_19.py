@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# segment_ids dtype must be int32 or int64 if out_type is specified and not the same as segment_ids (Rule 19)
+# If the dtype of segment_ids is not defined, then out_type defaults to tf.int64 (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg2_value"] != 0, v["arg1_dtype"] != v["arg2_value"]), Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4), False)) if n else
-          If(And(v["arg2_value"] != 0, v["arg1_dtype"] != v["arg2_value"]), Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4), False))
+    s.add(Not(If(v["arg1_dtype"] == 0, v["arg2_value"] == 4, True)) if n else
+          If(v["arg1_dtype"] == 0, v["arg2_value"] == 4, True))
 )
 
 def rule_19_func(arg1, arg2, solver=None, neg=False):

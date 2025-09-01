@@ -1,93 +1,264 @@
 >>
-Rule 2 (If repeats is a tuple or list, its length must match the number of dimensions of the input tensor.)
-{v_1 : tensor, v_2 : tuple(int) ⊎ list(int)} |= ndim(v_1) = v_2.len
+Rule 1 (The number of repetitions must be greater than 0 for each dimension)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
 >>
-Rule 6 (The repeats parameter must be a non-negative integer.)
-{v_1 : int} |= v_1 ≥ 0
+Rule 2 (The tuple representing repetitions must have a length.)
+{v_2 : tuple(int)} |= v_2.len > 0
 >>
-Rule 7 (The repeats parameter, when a tuple or list, should have a length less than or equal to 32.)
-{v_1 : tuple(int) ⊎ list(int)} |= v_1.len ≤ 32
+Rule 3 (The input tensor must have a positive number of dimensions)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 8 (The dimension of the tensor after tile should be less than or equal to 32.)
-{v_1 : tensor, v_2 : tuple(int) ⊎ list(int)} |= ndim(v_1) + v_2.len ≤ 32
+Rule 4 (The repetition tuple's length must be compatible with the input tensor's dimensions. It cannot be larger than the tensor's rank.)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ ndim(v_1)
 >>
-Rule 9 (If repeats is a tuple or list of integers, and the number of dimensions of v_1 is smaller than repeats length, the leading dimensions of repeats are considered 1.)
-{v_1 : tensor, v_2 : tuple(int) ⊎ list(int)} |= if ndim(v_1) < v_2.len then true
+Rule 5 (If the length of reps is less than the rank of a, a's shape is padded by leading ones. Thus resulting shape is the max of a.ndim and len(reps))
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, 0) > 0 ∨ v_2.len = 0
 >>
-Rule 11 (If repeats is a tuple or list, the tiled tensor will have shape [v1.shape[i] * repeats[i]] for each dimension i.)
-{v_1 : tensor, v_2 : tuple(int) ⊎ list(int)} |= if ndim(v_1) = v_2.len then true else false
+Rule 6 (If reps is an empty tuple, the output shape is the same as the input shape.)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 0 then ndim(v_1) = ndim(v_1)
 >>
-Rule 12 (The repeats argument should be broadcastable to the input array shape)
-{v_1: tensor, v_2: tuple(int) ⊎ list(int)} |= if ndim(v_1) < v_2.len then true
+Rule 7 (The elements in the reps tuple must be non-negative integers)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
 >>
-Rule 14 (If repeats is a tuple or list, its length should not exceed the number of dimensions of the input tensor.)
-{v_1 : tensor, v_2 : tuple(int) ⊎ list(int)} |= v_2.len ≤ ndim(v_1)
+Rule 8 (The input tensor must have a shape with positive dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 15 (If repeats is a tuple, the resulting tensor's shape along each dimension i is v_1.shape[i] * v_2[i] )
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) * v_2[i] ≥ 0
+Rule 9 (If the repetition factor for a given dimension is 1, the size of that dimension remains unchanged)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if v_2.len < ndim(v_1) then v_2.len -1 else ndim(v_1) - 1] : if v_2[i] = 1 then shape(v_1, i) = shape(v_1, i)
 >>
-Rule 16 (If repeats is a list, the resulting tensor's shape along each dimension i is v_1.shape[i] * v_2[i] )
-{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) * v_2[i] ≥ 0
+Rule 10 (The product of elements in `reps` should not cause integer overflow when computing the output tensor's shape.)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 1000 ∧ shape(v_1, 0) < 1000
 >>
-Rule 17 (The product of repeats should not cause integer overflow.)
-{v_1 : tuple(int) ⊎ list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 2147483647
+Rule 11 (If len(reps) < a.ndim, the tiling is considered along the trailing a.ndim - len(reps) axes)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len < ndim(v_1) then true
 >>
-Rule 21 (The product of repeats and the corresponding dimension in the input tensor must be a valid integer.)
-{v_1 : tensor, v_2 : tuple(int) ⊎ list(int)} |= ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) * v_2[i] < 2147483647
+Rule 12 (When len(reps) > a.ndim the a is promoted to the higher rank by prepending new axes.)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > ndim(v_1) then true
 >>
-Rule 22 (The rank of the tiled array is max(rank(a), len(repeats))).)
-{v_1 : tensor, v_2 : tuple(int) ⊎ list(int)} |= if ndim(v_1) > v_2.len then ndim(v_1) ≥ v_2.len else v_2.len ≥ ndim(v_1)
+Rule 13 (The shape of the output tensor will be a concatenation of a.shape and reps when reps is a sequence)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if v_2.len < ndim(v_1) then v_2.len -1 else ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ v_2[i] > 0
 >>
-Rule 23 (The repeats array can be shorter than a.shape.  If this is the case, it is prepended with 1’s to the front to match the length of a.shape.)
-{v_1 : tensor, v_2 : tuple(int) ⊎ list(int)} |= if ndim(v_1) > v_2.len then true
+Rule 14 (The length of reps should be a valid integer)
+{v_2 : tuple(int)} |= v_2.len ≥ 0
 >>
-Rule 24 (If the length of repeats is less than the number of dimensions of input, the repeats will be virtually prepended with 1's.)
-{v_1 : tensor, v_2 : tuple(int) ⊎ list(int)} |= if v_2.len < ndim(v_1) then true
+Rule 15 (The input tensor 'a' should exist)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 25 (The length of repeats cannot be greater than the maximum number of dimensions)
-{v_1 : tuple(int) ⊎ list(int)} |= v_1.len <= 32
+Rule 16 (If the number of dimensions in `a` is less than length of reps, dimensions of `a` are implicitly prepended with size one)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) < v_2.len then ∀i ∈ [0, v_2.len - ndim(v_1) - 1]: shape(v_1,i) =1 ∨ shape(v_1,i) >0
 >>
-Rule 26 (Each element of repeats when specified as a list or tuple has to be a non-negative integer.)
-{v_1 : tuple(int) ⊎ list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+Rule 17 (The data type of tensor 'a' should be valid)
+{v_1 : tensor} |= dtype_(v_1) ≥ 0 ∧ dtype_(v_1) ≤ 12
 >>
-Rule 27 (If the length of `repeats` does not match `a.ndim`, then `repeats` is tiled to match the number of dimensions of `a`.)
-{v_1 : tensor, v_2 : tuple(int) ⊎ list(int)} |= if v_2.len ≠ ndim(v_1) then true
+Rule 18 (The reps cannot be a list of boolean values, it should be integer)
+{v_2: tuple(int)} |= ∀i ∈ [0, v_2.len -1] : v_2[i] > 0 ∨ v_2[i] = 0
 >>
-Rule 28 (Each dimension of the tiled array is the result of multiplying a dimension of `a` by an element of `repeats`.)
-{v_1 : tensor, v_2 : tuple(int) ⊎ list(int)} |= if ndim(v_1) = v_2.len then ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) * v_2[i] ≥ 0
+Rule 19 (The shape of the resulting tensor cannot exceed the maximum limit)
+{v_1 : tensor, v_2 : tuple(int)} |= (shape(v_1, 0) * v_2[0]) < 10000 ∨ v_2.len = 0
 >>
-Rule 29 (If any element of repeats is negative, the result should be invalid.)
-{v_1 : tuple(int) ⊎ list(int)} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+Rule 20 (If a dimension of reps is 0, the output tensor for that dimension is also 0)
+{v_1 : tensor, v_2 : tuple(int)} |= ∃i ∈ [0, v_2.len -1] : if v_2[i] = 0 then shape(v_1, i) = 0
 >>
-Rule 32 (The size of resulting tensor must be non-negative)
-{v_1: tensor, v_2: tuple(int) ⊎ list(int)} |= if ndim(v_1) = v_2.len then ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) * v_2[i] ≥ 0
+Rule 21 (The output tensor's shape is derived from the product of input tensor's shape and reps)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if ndim(v_1) > v_2.len then v_2.len - 1 else ndim(v_1) - 1] : shape(v_1, i) * v_2[i] > 0 ∨ v_2.len =0
 >>
-Rule 36 (When repeats is a tuple or a list, its length must match the number of dimensions of the tensor. If it is shorter, it will be virtually padded with ones)
-{v_1 : tensor, v_2 : tuple(int) ⊎ list(int)} |= if v_2.len ≤ ndim(v_1) then true
+Rule 22 (The dtype of the output tensor is the same as the dtype of input tensor)
+{v_1 : tensor} |= dtype_(v_1) = dtype_(v_1)
 >>
-Rule 40 (If repeats is longer than the input array's dimensions, the input array is considered to be of dimension repeats.length)
-{v_1: tensor, v_2 : tuple(int) ⊎ list(int)} |= if ndim(v_1) < v_2.len then true
+Rule 25 (If the input tensor has zero dimensions then the number of repetition dimensions must be zero)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 0 then v_2.len = 0
 >>
-Rule 42 (if input is scalar then repeats must also be a scalar, and the result is 1D)
+Rule 32 (The dimensions of the output are the product of the input dimensions and the reps)
+{v_1 : tensor, v_2 : tuple(int)} |=  ∀i ∈ [0, if v_2.len < ndim(v_1) then v_2.len -1 else ndim(v_1) - 1] :  shape(v_1, i) * v_2[i] > 0
+>>
+Rule 33 (The repetition tuple cannot contain negative values.)
+{v_2 : tuple(int)} |=  ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+>>
+Rule 34 (The rank of input tensor and the length of repetition cannot exceed the maximum allowed rank)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) ≤ 32 ∧ v_2.len ≤ 32
+>>
+Rule 35 (The data type of input must be a valid tensor data type)
+{v_1 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 36 (The product of the input tensor's shape and reps elements must be within the maximum size.)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then shape(v_1, 0) * v_2[0] < 2000000000
+>>
+Rule 37 (When the length of `reps` is greater than the number of dimensions of `a`, the leading dimensions of the result are determined by `reps`.)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > ndim(v_1) then ∀i ∈ [0, v_2.len - ndim(v_1) -1] : v_2[i] > 0
+>>
+Rule 38 (The values of the reps tuple should be a reasonable value)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 10000
+>>
+Rule 40 (The data type of input tensor `a` must be a valid data type in the defined set.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12
+>>
+Rule 41 (If the input tensor is empty then the output tensor will also be empty)
 {v_1 : tensor} |= if ndim(v_1) = 0 then true
 >>
-Rule 44 (If the length of repeats is not equal to the number of dimensions of the input tensor, it means the leading dimensions should be regarded as 1)
-{v_1 : tensor, v_2: tuple(int) ⊎ list(int)} |= if v_2.len ≠ ndim(v_1) then true
+Rule 42 (The rank of the output tensor is max(a.ndim, len(reps)))
+{v_1 : tensor, v_2 : tuple(int)} |=  ndim(v_1) ≥ 0 ∧ v_2.len ≥ 0
 >>
-Rule 47 (The resulting dimension size for each dimension must be positive)
-{v_1 : tensor, v_2 : tuple(int) ⊎ list(int)} |= if ndim(v_1) = v_2.len then ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) * v_2[i] > 0
+Rule 43 (The values in the tuple `reps` are only used if the rank of `a` is positive)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) > 0 then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
 >>
-Rule 48 (The product of shape and repeat values must not cause overflow)
-{v_1 : tensor, v_2 : tuple(int) ⊎ list(int)} |= if ndim(v_1) = v_2.len then ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) * v_2[i] < 2147483647
+Rule 44 (The number of elements in a and the repetition tuple must be greater than 0.)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, 0) > 0 ∨ v_2.len > 0
 >>
-Rule 49 (The number of dimensions of the input tensor must be less than or equal to 32)
-{v_1 : tensor} |= ndim(v_1) <= 32
+Rule 46 (The output tensor shape should not exceed the maximum allowed elements)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then shape(v_1, 0) * v_2[0] < 2147483647 else shape(v_1, 0) < 2147483647
 >>
-Rule 52 (If the length of repeats doesn't match the rank of `a`, the result's rank is `max(rank(a), len(repeats))`.)
-{v_1: tensor, v_2: tuple(int) ⊎ list(int)} |= if ndim(v_1) ≠ v_2.len then if ndim(v_1) > v_2.len then ndim(v_1) ≥ v_2.len else v_2.len ≥ ndim(v_1)
+Rule 48 (The values inside tuple reps should be small enough to avoid dimension overflow.)
+{v_2 : tuple(int)} |=  ∀i ∈ [0, v_2.len - 1] : v_2[i] < 1000000
 >>
-Rule 54 (If `repeats` has some values less than 0, then the tile is invalid)
-{v_1: tuple(int) ⊎ list(int)} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+Rule 49 (The number of dimension of input tensor should be less than max limit)
+{v_1 : tensor} |=  ndim(v_1) < 32
 >>
-Rule 55 (The dimension of the output array will be `max(ndim(a), len(repeats))`)
-{v_1: tensor, v_2: tuple(int) ⊎ list(int)} |= if ndim(v_1) > v_2.len then ndim(v_1) ≥ v_2.len else v_2.len ≥ ndim(v_1)
+Rule 51 (The output tensor shape should not exceed the maximum allowed elements - check on the first dim)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, 0) * v_2[0] < 2147483647
+>>
+Rule 53 (The values inside tuple reps should be small enough to avoid dimension overflow - single element check.)
+{v_2 : tuple(int)} |=  ∃i ∈ [0, v_2.len - 1] : v_2[i] < 1000000
+>>
+Rule 54 (The number of dimension of input tensor should be non negative)
+{v_1 : tensor} |=  ndim(v_1) ≥ 0
+>>
+Rule 55 (Input tensor cannot be empty)
+{v_1 : tensor} |=  ndim(v_1) > 0
+>>
+Rule 56 (The product of the input tensor's shape and reps elements must be within the maximum size - check all dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if v_2.len < ndim(v_1) then v_2.len - 1 else ndim(v_1) - 1] : shape(v_1, i) * v_2[i] < 2147483647
+>>
+Rule 57 (The shape of `a` is padded by leading ones to be of rank reps.len)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > ndim(v_1) then  ndim(v_1) = v_2.len
+>>
+Rule 58 (The values inside tuple reps should not be too large)
+{v_2 : tuple(int)} |= ∃i ∈ [0, v_2.len - 1] : v_2[i] < 100000
+>>
+Rule 59 (If input tensor's number of dimension is greater than 0 then elements in the tuple reps must be positive)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) > 0 then  ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+>>
+Rule 60 (The number of dimension of input tensor must be within the limit)
+{v_1 : tensor} |=  ndim(v_1) ≤ 64
+>>
+Rule 62 (The elements of reps should be integers between 0 and maximum representable integer value.)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < 2147483647
+>>
+Rule 64 (If input is a tensor, then repetition should not be none.)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) > 0 then v_2.len > 0
+>>
+Rule 66 (If the product of the dimensions and repetitions exceeds limits, prevent creation of huge tensors.)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then shape(v_1, 0) * v_2[0] < 100000000
+>>
+Rule 69 (If reps length is greater than number of dimension of a then rep.len dictates output shape)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > ndim(v_1) then ndim(v_1) ≥ 0
+>>
+Rule 70 (Repetitions must be a tuple of integers with at least one element)
+{v_2 : tuple(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+>>
+Rule 71 (Prevent repetitions value with zero if input is not a scalar)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) ≠ 0 then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≠ 0
+>>
+Rule 74 (The shape of tensor a must be greater than or equal to 0.)
+{v_1 : tensor} |= shape(v_1, 0) ≥ 0
+>>
+Rule 75 (The output shape for each dimension must be positive)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if v_2.len < ndim(v_1) then v_2.len - 1 else ndim(v_1) - 1] : shape(v_1, i) * v_2[i] > 0
+>>
+Rule 77 (Elements of repetition must be int type)
+{v_2 : tuple(int)} |=  ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < 2147483647
+>>
+Rule 80 (Elements of repetition should be int or convertible to it)
+{v_2 : tuple(int)} |=  ∀i ∈ [0, v_2.len - 1] : v_2[i] > -2147483648 ∧ v_2[i] < 2147483647
+>>
+Rule 82 (Prevent large allocation of memory by limiting the dimensions of the output)
+{v_1 : tensor, v_2 : tuple(int)} |=  ∀i ∈ [0, if v_2.len < ndim(v_1) then v_2.len - 1 else ndim(v_1) - 1] : shape(v_1, i) * v_2[i] < 100000000
+>>
+Rule 83 (The input tensor should not contain NaN values)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) -1] : min(v_1) ≠ "NaN"
+>>
+Rule 85 (Elements of repetition should be integers or convertible to integers, and not too small to cause dimension limits)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > -1000000 ∧ v_2[i] < 2147483647
+>>
+Rule 87 (Prevent OOM by checking total number of element after tiling)
+{v_1 : tensor, v_2 : tuple(int)} |= ∃i ∈ [0, if v_2.len < ndim(v_1) then v_2.len - 1 else ndim(v_1) - 1] : shape(v_1, i) * v_2[i] < 200000000
+>>
+Rule 89 (The minimum and maximum of the elements in the input tensor should be reasonable)
+{v_1 : tensor} |= min(v_1) > -1000000000 ∧ max(v_1) < 1000000000
+>>
+Rule 92 (Maximum dimension size should not cross limit)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if v_2.len < ndim(v_1) then v_2.len - 1 else ndim(v_1) - 1] : shape(v_1, i) * v_2[i] < 536870912
+>>
+Rule 93 (Input tensor must not be None)
+{v_1 : tensor} |= ndim(v_1) > -1
+>>
+Rule 95 (Elements of repetition must be 32-bit integers, check first one)
+{v_2 : tuple(int)} |=  v_2[0] > -2147483648 ∧ v_2[0] < 2147483647
+>>
+Rule 97 (The result of multiplication must be less than maximum for each dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= ∃i ∈ [0, if v_2.len < ndim(v_1) then v_2.len - 1 else ndim(v_1) - 1] : shape(v_1, i) * v_2[i] < 2147483647
+>>
+Rule 100 (Element of the repetition tuple must be non negative)
+{v_2 : tuple(int)} |=  ∀i ∈ [0, v_2.len - 1] : v_2[i] > -1
+>>
+Rule 101 (If input tensor is zero dimension, then repetition tuple should have length zero)
+{v_1 : tensor, v_2 : tuple(int)} |= if shape(v_1, 0) = 0 then v_2.len = 0
+>>
+Rule 102 (Limiting each dimension of the output)
+{v_1 : tensor, v_2 : tuple(int)} |= ∃i ∈ [0, if v_2.len < ndim(v_1) then v_2.len - 1 else ndim(v_1) - 1] : shape(v_1, i) * v_2[i] < 2000000000
+>>
+Rule 103 (The input tensor should have a valid data type)
+{v_1 : tensor} |= dtype_(v_1) ≥ 0 ∧ dtype_(v_1) ≤ 10
+>>
+Rule 104 (Repetition tuple should not have none)
+{v_2 : tuple(int)} |= v_2.len > -1
+>>
+Rule 105 (Elements inside tuple rep must be non zero)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≠ 0
+>>
+Rule 107 (The resulting tensor’s number of elements should not exceed the maximum value allowed.)
+{v_1 : tensor, v_2 : tuple(int)} |= ∃i ∈ [0, if v_2.len < ndim(v_1) then v_2.len - 1 else ndim(v_1) - 1] : shape(v_1, i) * v_2[i] < 1073741824
+>>
+Rule 109 (Length of repetition should be reasonable)
+{v_2 : tuple(int)} |= v_2.len < 100
+>>
+Rule 110 (Elements should not be very large)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 1000000
+>>
+Rule 112 (Multiplication value along each dimension must be under some range)
+{v_1 : tensor, v_2 : tuple(int)} |=  ∀i ∈ [0, if v_2.len < ndim(v_1) then v_2.len - 1 else ndim(v_1) - 1] : shape(v_1, i) * v_2[i] < 2000000000
+>>
+Rule 114 (The repetition tuple should have integer elements)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > -2147483648 ∧ v_2[i] < 2147483647
+>>
+Rule 116 (The rank of tensor `a` is less than or equal to reps.len)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) > v_2.len then true
+>>
+Rule 118 (The dimensions of the input tensor should be valid)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > -1
+>>
+Rule 125 (Rep value must be non-negative)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > -1
+>>
+Rule 130 (Rep value must be a positive integer and check just the first one)
+{v_2 : tuple(int)} |=  v_2[0] > -1 ∧ v_2[0] < 2147483647
+>>
+Rule 133 (All the dimensions must be defined for input tensor)
+{v_1 : tensor} |=  ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > -1
+>>
+Rule 137 (Prevent overflow issues)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if v_2.len < ndim(v_1) then v_2.len - 1 else ndim(v_1) - 1] : shape(v_1, i) * v_2[i] < 1500000000
+>>
+Rule 140 (Rep value should be valid positive integer for the second element in tuple)
+{v_2 : tuple(int)} |= if v_2.len > 1 then v_2[1] > -1 ∧ v_2[1] < 2147483647
+>>
+Rule 142 (The element of multiplication of each dimension should be in limit of max value)
+{v_1 : tensor, v_2 : tuple(int)} |= ∃i ∈ [0, if v_2.len < ndim(v_1) then v_2.len - 1 else ndim(v_1) - 1] : shape(v_1, i) * v_2[i] < 1800000000
+>>
+Rule 143 (Shape of input must be valid)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > -1
+>>
+Rule 145 (All rep value should be valid. Check just first one to improve performance)
+{v_2 : tuple(int)} |= v_2[0] > -1 ∧ v_2[0] < 2147483647
+>>
+Rule 147 (All Dimensions should not explode)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if v_2.len < ndim(v_1) then v_2.len - 1 else ndim(v_1) - 1] : shape(v_1, i) * v_2[i] < 2000000000

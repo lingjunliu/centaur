@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if axis is -1, then features must have dimension more than 0 (Rule 64)
+# If axis is negative, its absolute value should be less or equal to rank of features and it should be between -1 and 0 (Rule 64)
 
 rule_64 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == -1, v["arg1_ndim"] > 0, False)) if n else
-          If(v["arg2_value"] == -1, v["arg1_ndim"] > 0, False))
+    s.add(Not(If(v["arg2_value"] < 0, And((0 - v["arg1_ndim"]) <= v["arg2_value"], v["arg2_value"] < 0), True)) if n else
+          If(v["arg2_value"] < 0, And((0 - v["arg1_ndim"]) <= v["arg2_value"], v["arg2_value"] < 0), True))
 )
 
 def rule_64_func(arg1, arg2, solver=None, neg=False):

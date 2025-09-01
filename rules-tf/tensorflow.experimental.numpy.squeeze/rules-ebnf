@@ -1,129 +1,225 @@
 >>
-Rule 1 (Input tensor must have positive number of dimensions)
+Rule 1 (Tensor must have a dimension greater than 0)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 2 (Axis argument should be within the range of the tensor dimensions)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 2 (Axis must be less than the number of dimensions)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
 >>
-Rule 3 (Axis argument must result in a dimension of size 1 when specified)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then shape(v_1, v_2) = 1 else shape(v_1, ndim(v_1) + v_2) = 1
+Rule 3 (Axis must be non-negative)
+{v_2 : int} |= v_2 ≥ 0
 >>
-Rule 4 (Axis argument when specified as a tuple should only contain integer values)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)
+Rule 4 (Shape along the axis must be equal to one)
+{v_1 : tensor, v_2 : int} |= shape(v_1, v_2) = 1
 >>
-Rule 5 (Axis argument when specified as a tuple must correspond to dimensions of size 1)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : if v_2[i] ≥ 0 then shape(v_1, v_2[i]) = 1 else shape(v_1, ndim(v_1) + v_2[i]) = 1
+Rule 10 (axis should be greater or equal to negative ndim(v_1))
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1))
 >>
-Rule 7 (The number of axes to squeeze must be less than the total number of dimensions)
-{v_1 : tensor, v_2 : tuple(int)} |= v_2.len < ndim(v_1)
+Rule 13 (If axis is None, at least one dimension must be 1)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1
 >>
-Rule 8 (Input tensor cannot have zero dimensions)
-{v_1 : tensor} |= ndim(v_1) ≠ 0
+Rule 17 (If axis is a list, each element must be an integer.)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : true
 >>
-Rule 9 (If all axes have size 1, then no axis parameter should be given)
-{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1) ∨ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 1)
+Rule 18 (If axis is provided as a list, the number of dimensions specified should be less than or equal to the rank of the tensor)
+{v_1 : tensor, v_2 : list(int)} |= v_2.len ≤ ndim(v_1)
 >>
-Rule 10 (When axis is None and there are no dimensions of size 1, the shape should remain unchanged)
-{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 1) ∨ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1)
+Rule 19 (If the axis is a tuple, ensure it contains only integers)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : true
 >>
-Rule 11 (Axis argument should not exceed the number of dimensions in magnitude)
-{v_1 : tensor, v_2 : int} |= 0 - ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) -1
->>
-Rule 12 (The number of axes to squeeze must be less than or equal to the total number of dimensions)
+Rule 20 (If the axis is a tuple, the number of dimensions specified must be less than or equal to the rank of the tensor.)
 {v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ ndim(v_1)
 >>
-Rule 13 (Input tensor cannot have negative dimensions)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 21 (If the axis is a list, and the tensor has dimension one, then its length has to be less than two)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 1 then v_2.len < 2
 >>
-Rule 14 (If all axes have size 1, then specifying an axis that does not exist is forbidden)
-{v_1 : tensor, v_2 : int} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1) ∨ (v_2 ≥ 0 - ndim(v_1) ∧ v_2 < ndim(v_1))
+Rule 22 (If the axis is a tuple, and the tensor has dimension one, then its length has to be less than two)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then v_2.len < 2
 >>
-Rule 16 (When axis is a tuple, all values in tuple should be unique)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i+1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+Rule 23 (If axis is provided as a list, each element must be less than the number of dimensions of the tensor)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < ndim(v_1)
 >>
-Rule 17 (If axis is specified and the dimension along that axis is not 1, then squeeze has no effect)
-{v_1 : tensor, v_2 : int} |= shape(v_1, if v_2 ≥ 0 then v_2 else ndim(v_1) + v_2) = 1
+Rule 24 (If axis is provided as a tuple, each element must be less than the number of dimensions of the tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < ndim(v_1)
 >>
-Rule 19 (The shape of the squeezed tensor has fewer dimensions than the input tensor, if an axis is squeezed)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ shape(v_1, if v_2 ≥ 0 then v_2 else ndim(v_1) + v_2) = 1
+Rule 26 (If axis is not provided and tensor has only one dimension, then no dimensions can be squeezed.)
+{v_1 : tensor} |= if ndim(v_1) = 1 then false
 >>
-Rule 20 (If the axis is specified, all specified dimensions must be of size 1)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : shape(v_1, if v_2[i] ≥ 0 then v_2[i] else ndim(v_1) + v_2[i]) = 1
+Rule 27 (If any axis is specified in the list, corresponding dimension must be one)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : shape(v_1, v_2[i]) = 1
 >>
-Rule 22 (If axis is None and all dimensions are 1, then the result is a scalar with shape ())
-{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1) ∨ ndim(v_1) = 0
+Rule 28 (If any axis is specified in the tuple, corresponding dimension must be one)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : shape(v_1, v_2[i]) = 1
 >>
-Rule 23 (axis values when specified as tuple must be in ascending order)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 2] : v_1[i] < v_1[i+1]
+Rule 30 (Axis can't be larger than the maximum possible value for int)
+{v_2 : int} |= v_2 < 2147483647
 >>
-Rule 24 (Axis values when specified as a tuple must not lead to squeezing the same dimension more than once)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : (if v_2[i] ≥ 0 then v_2[i] else ndim(v_1) + v_2[i]) ≠ (if v_2[j] ≥ 0 then v_2[j] else ndim(v_1) + v_2[j])
+Rule 31 (If axis is None and there are no dimensions equal to 1, then the tensor must remain unchanged)
+{v_1 : tensor} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 1) then true else false
 >>
-Rule 27 (If any of the axis provided as tuple are out of bounds, then throw an error)
-{v_1 : tensor, v_2 : tuple(int)} |= ∃i ∈ [0, v_2.len - 1] : v_2[i] < (0 - ndim(v_1)) ∨ v_2[i] ≥ ndim(v_1)
+Rule 32 (If axis is provided as list, then all axes in list must be in valid range.)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ (0 - ndim(v_1))) ∧ (v_2[i] < ndim(v_1))
 >>
-Rule 28 (When axis is a tuple, axis value must not be equal to None)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ "none"
+Rule 33 (If axis is provided as tuple, then all axes in tuple must be in valid range.)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ (0 - ndim(v_1))) ∧ (v_2[i] < ndim(v_1))
 >>
-Rule 29 (Tensor must be compatible with the provided dtype)
-{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
+Rule 34 (If axis is int, it should be in valid range.)
+{v_1 : tensor, v_2 : int} |= (v_2 ≥ (0 - ndim(v_1))) ∧ (v_2 < ndim(v_1))
 >>
-Rule 31 (If input tensor is a scalar, axis argument is not applicable)
-{v_1 : tensor} |= ndim(v_1) ≠ 0 ∨ ∃i ∈ [0, ndim(v_1)-1] : shape(v_1,i) ≠ 1
+Rule 38 (If the provided axis is a tuple, then the values must be unique)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j]
 >>
-Rule 32 (If axis argument is provided, it must be an integer or a tuple of integers)
-{v_1 : int ⊎ tuple(int)} |= v_1 ≥ 0
+Rule 39 (The axis can only be None if the dimensions of the input are greater than or equal to 1)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 33 (If any value is repeated in axis tuple, then it is ambiguous for squeezing)
-{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i+1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+Rule 40 (Shape along the specified axis should be less than or equals to the number of dimensions in input tensor)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ ndim(v_1)
 >>
-Rule 34 (If axis is specified, then tensor dimension along that axis should be one)
-{v_1: tensor, v_2: int} |= shape(v_1, if v_2 ≥ 0 then v_2 else ndim(v_1) + v_2) = 1
+Rule 41 (If the provided axis is a list, then the values must be unique)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j]
 >>
-Rule 35 (if squeeze occurs then the output tensor ndim should be less than the input)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1,i) = 1
+Rule 42 (If any axis is specified as an integer, it should be within the tensor dimensions.)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 36 (Input tensor cannot have a dimension size less than zero)
+Rule 43 (If axis is a list, values inside list must be positive or zero.)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+>>
+Rule 44 (If axis is a tuple, values inside tuple must be positive or zero.)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+>>
+Rule 45 (Number of dimensions of input tensor must be less than 32)
+{v_1 : tensor} |= ndim(v_1) < 32
+>>
+Rule 49 (If axis is specified as list then the value should be specified at least once)
+{v_2 : list(int)} |= v_2.len > 0
+>>
+Rule 50 (If axis is specified as tuple then the value should be specified at least once)
+{v_2 : tuple(int)} |= v_2.len > 0
+>>
+Rule 56 (If no axis is specified then the tensor must have at least one dimension equal to 1, and should have dimensions greater or equal to one)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1) ∧ (ndim(v_1) ≥ 1)
+>>
+Rule 57 (If axis is provided as an integer, then the axis must be within the bounds of the tensor dimensions and shape at the axis must equal 1)
+{v_1 : tensor, v_2 : int} |= (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∧ shape(v_1, v_2) = 1
+>>
+Rule 58 (If axis is a list, all values in the list should be in range.)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)
+>>
+Rule 59 (If axis is a tuple, all values in tuple should be in range)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)
+>>
+Rule 60 (If the axis parameter is a list then length should be less than 32)
+{v_2 : list(int)} |= v_2.len < 32
+>>
+Rule 61 (If axis is None, then tensor must have at least one dimension equal to one and tensor must be greater than 0)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1) ∧ (ndim(v_1) > 0)
+>>
+Rule 62 (If axis is list and the shape of tensor at specified axis is not 1 throw an error, and all values should not exceed number of dimensions)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : shape(v_1, v_2[i]) = 1 ∧ v_2[i] < ndim(v_1)
+>>
+Rule 63 (If axis is tuple and the shape of tensor at specified axis is not 1 throw an error, and all values should not exceed number of dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : shape(v_1, v_2[i]) = 1 ∧ v_2[i] < ndim(v_1)
+>>
+Rule 64 (If axis is an integer, the axis must be less than the number of dimensions and shape must equal 1)
+{v_1 : tensor, v_2 : int} |= (v_2 < ndim(v_1)) ∧ (shape(v_1, v_2) = 1)
+>>
+Rule 65 (If the tensor only has one dimension, then the axis parameter must be None)
+{v_1 : tensor} |= if ndim(v_1) = 1 then true
+>>
+Rule 69 (If axis is not specified as None, each value must be smaller than the rank of the tensor v_1 and at specified dimension shape should be 1)
+{v_1 : tensor, v_2 : int} |= (v_2 < ndim(v_1)) ∧ shape(v_1, v_2) = 1
+>>
+Rule 73 (If axis is an integer, then it should be within the number of the dimensions, and all other conditions should apply.)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ (v_2 < ndim(v_1))
+>>
+Rule 76 (If a tuple of axis is provided then the length of this tuple must be less than 32.)
+{v_2 : tuple(int)} |= v_2.len < 32
+>>
+Rule 77 (Axis values should not repeat, to prevent undefined behaviour)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i + 1, v_2.len - 1] : v_2[i] ≠ v_2[j]
+>>
+Rule 84 (Axis should not be none, the provided axis values should be greater or equal to 0 and smaller than ndim of the tensor)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 ∧ v_2 < ndim(v_1)
+>>
+Rule 85 (axis is specified in list v_2 and values must be positive or zero, and they can't repeat.)
+{v_2 : list(int)} |= (v_2.len > 0) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0) ∧ (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i + 1, v_2.len - 1] : v_2[i] ≠ v_2[j])
+>>
+Rule 86 (axis is specified in a tuple v_2 and values must be positive or zero and they can't repeat)
+{v_2 : tuple(int)} |= (v_2.len > 0) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0) ∧ (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i + 1, v_2.len - 1] : v_2[i] ≠ v_2[j])
+>>
+Rule 92 (Axis parameter has shape equal to one if it does not, then its invalid)
+{v_1 : tensor} |= shape(v_1,0) = 1
+>>
+Rule 94 (If an axis is provided, it must be valid for tensor dimensions v_1 and the dimension at that axis must have a shape of 1)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ (v_2 < ndim(v_1)) ∧ shape(v_1, v_2) = 1
+>>
+Rule 95 (If a list is specified, every element must follow rule 2 conditions, and they must be unique.)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ (0 - ndim(v_1))) ∧ (v_2[i] < ndim(v_1)) ∧ (shape(v_1, v_2[i]) = 1) ∧ ∀j ∈ [i + 1, v_2.len - 1] : v_2[i] ≠ v_2[j]
+>>
+Rule 96 (If a tuple is specified every element must follow rule 2 conditions, and they must be unique)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ (0 - ndim(v_1))) ∧ (v_2[i] < ndim(v_1)) ∧ (shape(v_1, v_2[i]) = 1) ∧ ∀j ∈ [i + 1, v_2.len - 1] : v_2[i] ≠ v_2[j]
+>>
+Rule 97 (If one axis has shape of one then, it should be the floating point types.)
+{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1) then (6 <= dtype_(v_1) ∧ dtype_(v_1) <=8)
+>>
+Rule 98 (If no axis is specified, there has to be at least one dimension with a shape of 1 and must have dimension greater or equal to one)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1) ∧ ndim(v_1) ≥ 1
+>>
+Rule 99 (If the specified axis is a valid integer, then at that axis shape must equal 1.)
+{v_1 : tensor, v_2 : int} |= (shape(v_1, v_2) = 1)
+>>
+Rule 100 (Shape dimensions must be greater than 0.)
 {v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 37 (If any axis is specified and is out of range, it must throw an error)
-{v_1 : tensor, v_2: int} |= v_2 ≥ 0 - ndim(v_1) ∧ v_2 < ndim(v_1)
+Rule 109 (The input tensor should not be empty, or the parameters should be compatible)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 41 (If input tensor is a scalar, axis should not be provided)
-{v_1 : tensor} |= ndim(v_1) = 0 ∨ (ndim(v_1) > 0)
+Rule 115 (Check if dimension equal to 1, shape must greater or equal to zero)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0)
 >>
-Rule 42 (If the specified axis is not of size 1, then the shape should remain unchanged)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then shape(v_1, v_2) ≠ 1 else shape(v_1, ndim(v_1) + v_2) ≠ 1
+Rule 116 (The value at dimension when is 1 then it should be int compatible dtypes between 1-5)
+{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1) then (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5)
 >>
-Rule 44 (If axis is specified as None, only dimensions of size one are removed)
-{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 1) ∨ (∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 1)
+Rule 118 (If the tensor is greater than dimension 1 and there is a dimension equal to one then squeeze it otherwise throw error.)
+{v_1 : tensor} |= if ndim(v_1) > 1 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1)
 >>
-Rule 47 (If the specified axis is not of size 1, then squeeze does nothing)
-{v_1 : tensor, v_2 : int} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, if v_2 ≥ 0 then v_2 else ndim(v_1) + v_2) ≠ 1
+Rule 119 (If an axis is mentioned then check it exists in v_1 shape (as a valid dimension id) and has a length equal to 1, check integer value is correct.)
+{v_1 : tensor, v_2 : int} |= (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∧ (shape(v_1, v_2) = 1)
 >>
-Rule 50 (If dimensions are squeezed along the axis, then total size should be less than the original)
-{v_1: tensor, v_2: int} |= shape(v_1, if v_2 ≥ 0 then v_2 else ndim(v_1)+ v_2) = 1
+Rule 120 (If a list/tuple is given as the axis, every dimension needs to have length 1 and be valid.)
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ (0 - ndim(v_1))) ∧ (v_2[i] < ndim(v_1)) ∧ (shape(v_1, v_2[i]) = 1)
 >>
-Rule 51 (When axis is provided, it must be of type int or tuple(int))
-{v_1: int ⊎ tuple(int)} |= v_1 ≥ -1
+Rule 121 (Axis must exist between valid dtypes when a shape is specified one to eleven)
+{v_1 : tensor} |= if (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 11) then true
 >>
-Rule 52 (Tensor's shape must be defined along a valid axis)
-{v_1: tensor, v_2: int} |= v_2 > (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 123 (Each value in the provided axes through the list should meet all the requirements so the axis is properly squeezed.)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ (0 - ndim(v_1)) ∧ (v_2[i] < ndim(v_1))) ∧ (shape(v_1, v_2[i]) = 1)
 >>
-Rule 53 (Shape of a tensor along a squeezed axis must be of size 1)
-{v_1: tensor, v_2: int} |= if v_2 ≥ 0 then shape(v_1, v_2) = 1 else shape(v_1, ndim(v_1) + v_2) = 1
+Rule 124 (Each value in the provided axes through the tuple should meet all requirements.)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ (0 - ndim(v_1)) ∧ (v_2[i] < ndim(v_1))) ∧ (shape(v_1, v_2[i]) = 1)
 >>
-Rule 54 (Tuple of axis values should only consist of valid axis)
-{v_1: tensor, v_2: tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)
+Rule 126 (Shape must be greater or equals to zero shape should have tensors and value must be one)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0) ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1)
 >>
-Rule 56 (If axis is not specified, then result ndim is less than or equal to input ndim)
-{v_1: tensor} |= ndim(v_1) ≥ 0
+Rule 130 (Provided axis through v_2 of type list or tuple, can't contain axes that are not valid, and should squeeze if possible and not greater than one )
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ (0 - ndim(v_1)) ∧ (v_2[i] < ndim(v_1))) ∧ (shape(v_1, v_2[i]) = 1)
 >>
-Rule 57 (If axis is provided, it has to be within the range of tensor axes)
-{v_1: tensor, v_2: int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 131 (It should have value between 1 to 5.)
+{v_1 : tensor} |= if (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5) then true
 >>
-Rule 58 (Each value of tuple(axis) has to correspond to an axis of size 1)
-{v_1: tensor, v_2: tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : shape(v_1, if v_2[i] ≥ 0 then v_2[i] else ndim(v_1) + v_2[i]) = 1
+Rule 133 (If axis are not none and tensor has a dimension shape equal to 1 and if less than negative or greater than positive the value to that condition value.)
+{v_1 : tensor, v_2 : int} |= (v_2 < ndim(v_1)) ∧ v_2 ≥ (0 - ndim(v_1))
 >>
-Rule 59 (The values in the axis tuple has to be of integer type)
-{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ -1
+Rule 134 (The value specified by axis should only be unique and positive)
+{v_2 : list(int) ⊎ tuple(int)} |= (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i + 1, v_2.len - 1] : v_2[i] ≠ v_2[j]) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0)
+>>
+Rule 135 (Must correspond to existing shape at particular point specified through tuple or list if v_2 has list or tuple it must then contain dimension having size 1.)
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : shape(v_1, v_2[i]) = 1
+>>
+Rule 136 (In axis and tensor shape to axis are valid and shape should not be greather than one.)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1) ∧ shape(v_1, v_2) = 1
+>>
+Rule 139 (If dimension value to one it should be an integer.)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ shape(v_1, v_2) = 1
+>>
+Rule 140 (Axes should correspond to the correct dtypes if that's the case then return dtype between 1 - 11)
+{v_1 : tensor} |= 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 11

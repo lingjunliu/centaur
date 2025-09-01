@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If compute_uv is False, full_matrices is ignored (Rule 3)
+# full_matrices must be a boolean (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"], True, False)) if n else
-          If(v["arg1_value"], True, False))
+    s.add(Not(Or(v["arg1_value"] == True, v["arg1_value"] == False)) if n else
+          Or(v["arg1_value"] == True, v["arg1_value"] == False))
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

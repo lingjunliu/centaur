@@ -1,171 +1,114 @@
 >>
-Rule 1 (value and filters must have the same data type)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 1 (value tensor rank must be at least 4)
+{v_1 : tensor} |= ndim(v_1) ≥ 4
 >>
-Rule 2 (rate must be a positive integer)
-{v_1 : int} |= v_1 > 0
+Rule 2 (filters tensor rank must be 4)
+{v_2 : tensor} |= ndim(v_2) = 4
 >>
-Rule 3 (value and filters must be 4-dimensional tensors)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4
+Rule 3 (rate must be a positive integer)
+{v_3 : int} |= v_3 > 0
 >>
-Rule 4 (The in_channels dimension of filters must match that of value)
+Rule 4 (padding must be either VALID or SAME)
+{v_4 : str} |= v_4 = "VALID" ∨ v_4 = "SAME"
+>>
+Rule 5 (filters' in_channels dimension must match value's in_channels dimension)
 {v_1 : tensor, v_2 : tensor} |= shape(v_1, 3) = shape(v_2, 2)
 >>
-Rule 5 (padding must be either 'VALID' or 'SAME')
-{v_1 : str} |= v_1 = "VALID" ∨ v_1 = "SAME"
+Rule 6 (value tensor's dtype must match filters tensor's dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 6 (batch size of output and value must be the same)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 7 (The number of input channels must be divisible by the corresponding number of output filters)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 3) % shape(v_2, 3) = 0
 >>
-Rule 7 (Rate should be less than or equal to input height and width dimensions of the tensor)
-{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, 1) ∧ v_2 ≤ shape(v_1, 2)
+Rule 9 (Filters tensor's rank must be 4 and at least one dimension must be positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ (shape(v_1, 0) > 0 ∨ shape(v_1, 1) > 0 ∨ shape(v_1, 2) > 0 ∨ shape(v_1, 3) > 0)
 >>
-Rule 8 (filter height and width must be positive)
-{v_1 : tensor} |= shape(v_1,0) > 0 ∧ shape(v_1,1) > 0
+Rule 10 (The rate must be greater than or equal to 1)
+{v_1 : int} |= v_1 ≥ 1
 >>
-Rule 9 (the number of output channels should be positive)
-{v_1 : tensor} |= shape(v_1,3) > 0
->>
-Rule 10 (value should be float type)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
->>
-Rule 21 (if padding is VALID, then the output height and width should be greater than zero)
-{v_1 : tensor, v_2 : int, v_3 : str} |= if v_3 = "VALID" then shape(v_1, 1) - v_2 * (shape(v_1, 0) - 1) > 0 ∧ shape(v_1, 2) - v_2 * (shape(v_1, 1) - 1) > 0
->>
-Rule 22 (value and filters must have compatible shapes, accounting for rate)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_2, 0) + (shape(v_2, 0) - 1) * (v_3 - 1) ≤ shape(v_1, 1) ∧ shape(v_2, 1) + (shape(v_2, 1) - 1) * (v_3 - 1) ≤ shape(v_1, 2)
->>
-Rule 24 (Rate should be a small value, e.g., less than 10 to prevent large holes)
-{v_1 : int} |= v_1 < 10
->>
-Rule 25 (The number of input channels must be greater than zero)
-{v_1 : tensor} |= shape(v_1, 3) > 0
->>
-Rule 26 (Filters in_channels must be greater than 0)
+Rule 11 (Filters tensor's in_channels dimension must be positive)
 {v_1 : tensor} |= shape(v_1, 2) > 0
 >>
-Rule 27 (value batch size must be greater than 0)
+Rule 12 (Value tensor's rank should not be less than 2)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
+>>
+Rule 13 (padding must be a valid string)
+{v_1 : str} |= v_1 = "valid" ∨ v_1 = "same"
+>>
+Rule 14 (Filters' out_channels dimension must be positive)
+{v_1 : tensor} |= shape(v_1, 3) > 0
+>>
+Rule 15 (Filters' height dimension must be positive)
 {v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 29 (filters height and width can not be zero)
-{v_1 : tensor} |= shape(v_1, 0) ≠ 0 ∧ shape(v_1, 1) ≠ 0
+Rule 16 (Filters' width dimension must be positive)
+{v_1 : tensor} |= shape(v_1, 1) > 0
 >>
-Rule 30 (value height and width can not be zero)
-{v_1 : tensor} |= shape(v_1, 1) ≠ 0 ∧ shape(v_1, 2) ≠ 0
->>
-Rule 31 (rate must be an integer representable by int32)
-{v_1 : int} |= v_1 ≥ -2147483648 ∧ v_1 ≤ 2147483647
->>
-Rule 32 (value and filter height and width must be greater or equal to rate)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 1) ≥ v_2 ∧ shape(v_1, 2) ≥ v_2
->>
-Rule 33 (If rate is greater than 1, value height and width must be divisible by rate)
-{v_1 : tensor, v_2 : int} |= if v_2 > 1 then shape(v_1, 1) % v_2 = 0 ∧ shape(v_1, 2) % v_2 = 0
->>
-Rule 34 (filters height and width cannot be greater than value height and width)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) ≤ shape(v_1, 1) ∧ shape(v_2, 1) ≤ shape(v_1, 2)
->>
-Rule 35 (If rate is one, performs regular 2-D convolution and filter must be valid)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = 1 then shape(v_1, 3) = shape(v_2, 2)
->>
-Rule 36 (filters must have positive in_channels and out_channels)
-{v_1 : tensor} |= shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
->>
-Rule 38 (Filters height and width can not be negative)
-{v_1 : tensor} |= shape(v_1, 0) ≥ 0 ∧ shape(v_1, 1) ≥ 0
->>
-Rule 39 (value height and width can not be negative)
-{v_1 : tensor} |= shape(v_1, 1) ≥ 0 ∧ shape(v_1, 2) ≥ 0
->>
-Rule 40 (rate is a small number to avoid extensive zero-padding.)
-{v_1 : int} |= v_1 < 20
->>
-Rule 41 (The number of output channels should not be zero)
-{v_1 : tensor} |= shape(v_1,3) ≠ 0
->>
-Rule 42 (Filter's height and width must not be larger than the input with rate accounted)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_2, 0) ≤ shape(v_1, 1) + (shape(v_2, 0) - 1)*(v_3 -1) ∧ shape(v_2, 1) ≤ shape(v_1, 2) + (shape(v_2, 1) - 1)*(v_3-1)
->>
-Rule 44 (value and filters must have at least one channel)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 3) > 0 ∧ shape(v_2, 3) > 0
->>
-Rule 45 (Rate must be less than or equal to filter height and width to allow effective convolution.)
-{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, 0) ∧ v_2 ≤ shape(v_1, 1)
->>
-Rule 46 (The batch size of value and filters must be consistent with the operation, or batch size must equal to 1 for broadcast)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∨ shape(v_1, 0) = 1 ∨ shape(v_2, 0) = 1
->>
-Rule 47 (value's height and width should not be very small given a large rate)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 1) > v_2 ∧ shape(v_1, 2) > v_2
->>
-Rule 48 (value's channel size should not be too large given a small filter size)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 3) ≤ shape(v_2, 2) * 100
->>
-Rule 49 (filter's height and width should not be too large)
-{v_1 : tensor} |= shape(v_1, 0) < 100 ∧ shape(v_1, 1) < 100
->>
-Rule 50 (rate should be a reasonable value)
-{v_1 : int} |= v_1 < 50
->>
-Rule 51 (Value should have reasonable height and width dimensions)
-{v_1 : tensor} |= shape(v_1, 1) < 2048 ∧ shape(v_1, 2) < 2048
->>
-Rule 53 (If padding equals valid, then value's height/width should not be less than filter's height/width)
-{v_1 : tensor, v_2 : tensor, v_3 : str, v_4 : int} |= if v_3 = "VALID" then shape(v_1, 1) ≥ shape(v_2, 0) + (shape(v_2, 0) - 1) * (v_4 - 1) ∧ shape(v_1, 2) ≥ shape(v_2, 1) + (shape(v_2, 1) - 1) * (v_4 - 1)
->>
-Rule 56 (Tensor height and width should be positive)
-{v_1 : tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
->>
-Rule 57 (filter height and width should be positive)
-{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
->>
-Rule 59 (If padding is 'SAME', rate should be less than or equals height/width to allow valid calculations )
-{v_1 : tensor, v_2 : int, v_3 : str} |= if v_3 = "SAME" then v_2 <= shape(v_1, 1) ∧ v_2 <= shape(v_1, 2)
->>
-Rule 63 (If padding type is valid the value's height/width must be greater than rate)
-{v_1 : tensor, v_2 : int, v_3 : str} |= if v_3 = "VALID" then shape(v_1, 1) > v_2 ∧ shape(v_1, 2) > v_2
->>
-Rule 64 (filters height and width should be smaller than the input, considering the hole)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_2, 0) ≤ shape(v_1, 1) + (shape(v_2, 0) - 1)*(v_3 - 1) ∧ shape(v_2, 1) ≤ shape(v_1, 2) + (shape(v_2, 1) - 1)*(v_3-1)
->>
-Rule 65 (Filters must be 4 dimensional.)
-{v_1 : tensor} |= ndim(v_1) = 4
->>
-Rule 67 (When using dilated convolution rate must be greater than 1.)
-{v_1 : int} |= v_1 > 1
->>
-Rule 68 (Rate should be less than 64 to avoid memory issues)
-{v_1 : int} |= v_1 < 64
->>
-Rule 69 (Value should be valid with all the required dimensions greater than 0)
+Rule 17 (filters tensor has valid shape)
 {v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
 >>
-Rule 71 (Filter's height and width can not be very small)
-{v_1 : tensor} |= shape(v_1, 0) > 1 ∧ shape(v_1, 1) > 1
+Rule 18 (If the number of input channels is zero then the number of output filters should also be zero)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 3) = 0 then shape(v_2, 3) = 0
 >>
-Rule 72 (Filter's shape must be valid given the dilation rate)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) > (v_2 - 1) ∧ shape(v_1, 1) > (v_2-1)
+Rule 19 (Value and filter tensors must have compatible dtypes)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 7
 >>
-Rule 73 (if padding is VALID and rate is bigger than 1, then height and width must be large enough for filter to be applied)
-{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : str} |= if v_4 = "VALID" ∧ v_3 > 1 then shape(v_1, 1) ≥ shape(v_2, 0) ∧ shape(v_1, 2) ≥ shape(v_2, 1)
+Rule 21 (If the value tensor is empty, then the filter tensor can also be empty)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then ∃j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) = 0
 >>
-Rule 74 (If the rate is too big the memory is exhausted.)
-{v_1 : int} |= v_1 < 128
+Rule 23 (Value tensor should have positive shape)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 75 (Filters should not have too many output channels)
-{v_1 : tensor} |= shape(v_1, 3) < 1024
+Rule 25 (If the value tensor is empty, the filters tensor should not be required to match the number of channels)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then true else shape(v_1, 3) % shape(v_2, 3) = 0
 >>
-Rule 76 (Tensor and Filter should be tensors with dimension 4 and the last shape can not be a very large number)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ shape(v_1, 3) < 4096 ∧ shape(v_2, 3) < 4096
+Rule 26 (Filters tensor has valid shape dimensions.)
+{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
 >>
-Rule 77 (Input height and width should have a valid minimum size related to filters and rate)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_1, 1) ≥ shape(v_2, 0) + (shape(v_2, 0) - 1) * (v_3 - 1) ∧ shape(v_1, 2) ≥ shape(v_2, 1) + (shape(v_2, 1) - 1) * (v_3 - 1)
+Rule 27 (If value's channel is zero, filter's output channel can be arbitrary.)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 3) = 0 then true else shape(v_1, 3) % shape(v_2, 3) = 0
 >>
-Rule 78 (Value channel size can not be smaller than filters in channel size)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 3) ≥ shape(v_2, 2)
+Rule 28 (filters tensor has valid rank)
+{v_1 : tensor} |= ndim(v_1) = 4
 >>
-Rule 79 (filter dimension can not be 1x1 if rate is greater than 1 to avoid useless calculations.)
-{v_1 : tensor, v_2 : int} |= if v_2 > 1 then shape(v_1, 0) > 1 ∧ shape(v_1, 1) > 1
+Rule 29 (If value tensor's channel is 0, then filter tensor's shape can be arbitrary)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 3) = 0 then true else shape(v_1, 3) % shape(v_2, 2) = 0
 >>
-Rule 80 (value height and width should not be very small)
-{v_1 : tensor} |= shape(v_1, 1) > 8 ∧ shape(v_1, 2) > 8
+Rule 31 (value tensor has valid channel count)
+{v_1 : tensor, v_2 : tensor} |= (shape(v_1, 3) > 0) ∨ (shape(v_1, 3) = 0 ∧ shape(v_2, 2) = 0)
+>>
+Rule 32 (Filters' height dimension must be greater than zero)
+{ v_1 : tensor } |= shape(v_1,0) > 0
+>>
+Rule 33 (Filters width dimension must be greater than zero)
+{ v_1 : tensor } |= shape(v_1,1) > 0
+>>
+Rule 34 (If Value's channel dimension is 0, filter's output channel must also be 0)
+{v_1: tensor, v_2: tensor} |= if (shape(v_1,3) = 0) then (shape(v_2,3) = 0)
+>>
+Rule 35 (Filters' out_channels dimension is positive)
+{v_1 : tensor} |= shape(v_1,3) > 0
+>>
+Rule 37 (The input channels is divisible by the corresponding number of output filters)
+{v_1 : tensor, v_2 : tensor} |= (shape(v_1,3) = 0) ∨ ((shape(v_1,3) > 0) ∧ ((shape(v_2,2) > 0) ∧ (shape(v_1,3) % shape(v_2,2) = 0)))
+>>
+Rule 38 (if value's channel is 0, then filter's in_channel and out_channel can be arbitrary)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 3) = 0 then true else shape(v_1, 3) % shape(v_2, 2) = 0 ∧ shape(v_2, 3) > 0
+>>
+Rule 39 (filters tensor shape is valid)
+{ v_1 : tensor } |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+>>
+Rule 40 (The output filters must divide the input channels if the input channels are greater than zero)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 3) > 0 then (shape(v_1, 3) % shape(v_2, 2) = 0)
+>>
+Rule 42 (If value has channel count zero, then filter's channel dimension can be arbitrary)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 3) = 0 then true else shape(v_2, 2) > 0
+>>
+Rule 43 (value has valid dimensions)
+{v_1 : tensor} |= shape(v_1,0) > 0 ∧ shape(v_1,1) > 0 ∧ shape(v_1,2) > 0 ∧ shape(v_1,3) > 0
+>>
+Rule 44 (filter width is not negative)
+{v_1: tensor} |= shape(v_1, 1) > 0
+>>
+Rule 45 (filters tensor width is positive)
+{ v_1 : tensor } |= shape(v_1, 1) > 0

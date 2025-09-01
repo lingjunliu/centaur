@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The dtype argument should not be None if input dtype is not numeric. (Rule 10)
+# input and dtype should be compatible. Dtype should not be string (11 (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(Or((v["arg1_dtype"] == 12), (v["arg2_value"] != 12))) if n else
-          Or((v["arg1_dtype"] == 12), (v["arg2_value"] != 12)))
+    s.add(Not(Or((v["arg1_dtype"] == 11), (v["arg2_value"] != 11))) if n else
+          Or((v["arg1_dtype"] == 11), (v["arg2_value"] != 11)))
 )
 
 def rule_10_func(arg1, arg2, solver=None, neg=False):

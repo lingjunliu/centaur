@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if the output dtype is float, the input must also be float (Rule 41)
+# If dtype is specified as int64, the input must be an integer or boolean. (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg2_value"] == 7, v["arg2_value"] == 8), Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), False)) if n else
-          If(Or(v["arg2_value"] == 7, v["arg2_value"] == 8), Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), False))
+    s.add(Not(If(v["arg2_value"] == 4, Or(Or(Or(Or(Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 1), v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), True)) if n else
+          If(v["arg2_value"] == 4, Or(Or(Or(Or(Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 1), v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), True))
 )
 
 def rule_41_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if the maximum value is greater than 5, min value must be greater than -5 (Rule 55)
+# Check for values to be reasonably small (Rule 55)
 
 rule_55 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_range"], 1) > 5, Select(v["arg1_range"], 0) > -5, False)) if n else
-          If(Select(v["arg1_range"], 1) > 5, Select(v["arg1_range"], 0) > -5, False))
+    s.add(Not(And(Select(v["arg1_range"], 1) < 1000, Select(v["arg1_range"], 0) > -1000)) if n else
+          And(Select(v["arg1_range"], 1) < 1000, Select(v["arg1_range"], 0) > -1000))
 )
 
 def rule_55_func(arg1, solver=None, neg=False):

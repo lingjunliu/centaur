@@ -1,21 +1,132 @@
 >>
-Rule 1 (Input tensor must have a floating-point or complex dtype for log10 operation)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 9
+Rule 1 (input tensor must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 7 (Input tensor values must be non-negative for real-valued log10)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true else (min(v_1) ≥ 0)
+Rule 2 (input tensor must have a valid shape along a specific axis)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 ∧ v_2 < ndim(v_1)
 >>
-Rule 8 (If the input tensor contains negative values, its dtype should be complex.)
-{v_1 : tensor} |= if min(v_1) < 0 then (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 3 (the data type of the input tensor must be a floating-point type)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10
 >>
-Rule 9 (If the input tensor has any zero value, it's dtype must be complex)
-{v_1 : tensor} |= if min(v_1) = 0 then (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 4 (input tensor must have positive values)
+{v_1 : tensor} |= min(v_1) > 0
 >>
-Rule 10 (If the input tensor contains values less or equal to zero, its dtype should be complex)
-{v_1 : tensor} |= if min(v_1) ≤ 0 then (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 5 (input tensor must not contain NaN values)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) -1]: shape(v_1, i) > 0
 >>
-Rule 11 (The input tensor must have positive values only if the dtype is float or int)
-{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) > 0
+Rule 6 (shape of the input tensor should not be zero)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
 >>
-Rule 12 (The minimum value of input tensor must be greater than zero if the dtype is int or float.)
-{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) > 0
+Rule 7 (data type of tensor must not be boolean)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 8 (input tensor must not contain infinite values)
+{v_1 : tensor} |= max(v_1) < 10000000000.0
+>>
+Rule 9 (The input tensor must be a real tensor, not complex)
+{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 11 (All elements of the input tensor must be greater than zero)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] > 0
+>>
+Rule 12 (check if all the element of the input tensor is not equal to zero)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) -1] : v_1[j] ≠ 0
+>>
+Rule 13 (input tensor must not contain complex numbers as dtype doesn't support complex types)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+>>
+Rule 15 (The minimum element of the input tensor should be a small positive number.)
+{v_1 : tensor} |= min(v_1) ≥ 0.0000000001
+>>
+Rule 16 (The data type of the input tensor must be float32 or float64)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 17 (Input tensor should be of float16, float32, or float64)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 18 (Input Tensor should not contain negative values.)
+{v_1 : tensor} |= max(v_1) ≥ 0
+>>
+Rule 19 (Input Tensor should contain no value that cause overflow)
+{v_1 : tensor} |= max(v_1) < 1e+38
+>>
+Rule 21 (Check that the input tensor is finite. No inf/NaN values)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≠ "inf" ∧ v_1[j] ≠ "NaN"
+>>
+Rule 22 (The maximum value in the input tensor shouldn't result in overflow.)
+{v_1 : tensor} |= max(v_1) < 1.0e+37
+>>
+Rule 23 (Input tensor cannot have zero dimension)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 24 (The minimum value of input tensor should be far from zero.)
+{v_1 : tensor} |= min(v_1) > 1e-8
+>>
+Rule 27 (Input tensor can't be inf)
+{v_1 : tensor} |= max(v_1) < 1e38
+>>
+Rule 28 (Input tensor can't be negative infinity)
+{v_1 : tensor} |= min(v_1) > -1e38
+>>
+Rule 29 (The sum of values in the input tensor shouldn't result in overflow.)
+{v_1 : tensor} |= if ndim(v_1) = 0 then v_1 < 1e38
+>>
+Rule 31 (The output of the log10 does not result in -inf)
+{v_1 : tensor} |= max(v_1) > 0
+>>
+Rule 32 (Input tensor can't have NaN value)
+{v_1 : tensor} |= max(v_1) = max(v_1)
+>>
+Rule 33 (Input tensor can't have any inf or -inf value)
+{v_1 : tensor} |= (min(v_1) ≠ "inf") ∧ (max(v_1) ≠ "-inf")
+>>
+Rule 34 (The shape of input tensor should not be empty.)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0)
+>>
+Rule 35 (Input tensor dtype should be at least float16.)
+{v_1 : tensor} |= dtype_(v_1) ≥ 6
+>>
+Rule 36 (All values of tensor must be positive.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) -1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] > 0
+>>
+Rule 38 (The total number of elements should be greater than zero.)
+{v_1 : tensor} |= if ndim(v_1) = 0 then v_1 > 0 else ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+>>
+Rule 40 (The tensor should be a real tensor)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 43 (minimum of the input tensor must be positive, close to zero if not.)
+{v_1 : tensor} |= (min(v_1) > 0) ∨ (min(v_1) > -0.00001 ∧ min(v_1) < 0)
+>>
+Rule 44 (Minimum value should not be much smaller than 0)
+{v_1 : tensor} |= min(v_1) > -1
+>>
+Rule 45 (If input contains zeros, then log10(input) returns -inf.)
+{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : v_1[j] = 0 then true
+>>
+Rule 47 (If a single element is zero log10 results -inf)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] > 0)
+>>
+Rule 49 (No value in input must be NaN)
+{v_1 : tensor} |= (max(v_1) = max(v_1))
+>>
+Rule 50 (Tensor shouldn't have inf)
+{v_1 : tensor} |= max(v_1) < 100000000000000000000000000000000000000
+>>
+Rule 52 (The minimum of the tensor is not too small, close to zero. Because if not it will result into -inf.)
+{v_1 : tensor} |= min(v_1) > 1e-10
+>>
+Rule 53 (Check that tensor is not empty or minimum value is zero)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (min(v_1) ≠ 0)
+>>
+Rule 54 (Input tensor must contain only positive numbers, that are not infinite and not NaN)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : v_1[j] > 0 ∧ v_1[j] ≠ "inf" ∧ v_1[j] = v_1[j]
+>>
+Rule 55 (The input tensor doesn't consist of NaN or inf values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≠ "inf") ∧ (∃i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] = v_1[j])
+>>
+Rule 56 (Input tensor doesn't have all elements equals to one to avoid log10(1)=0 resulting zero in output tensor.)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≠ 1
+>>
+Rule 57 (Minimum value of the input tensor must be greater than or equal to the smallest positive normal number for the given dtype to prevent underflow)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) ≥ 5.960464477539063e-08 else if dtype_(v_1) = 7 then min(v_1) ≥ 1.175494351e-38 else if dtype_(v_1) = 8 then min(v_1) ≥ 2.2250738585072014e-308 else false

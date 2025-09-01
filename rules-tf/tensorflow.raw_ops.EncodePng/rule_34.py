@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The compression must be a valid integer, if specified. (Rule 34)
+# if compression is not specified, use the default, otherwise, it should be between 0 and 9 (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] != -1, And(v["arg1_value"] >= 0, v["arg1_value"] <= 9), False)) if n else
-          If(v["arg1_value"] != -1, And(v["arg1_value"] >= 0, v["arg1_value"] <= 9), False))
+    s.add(Not(If(v["arg1_value"] == -1, True, (And(v["arg1_value"] >= 0, v["arg1_value"] <= 9)))) if n else
+          If(v["arg1_value"] == -1, True, (And(v["arg1_value"] >= 0, v["arg1_value"] <= 9))))
 )
 
 def rule_34_func(arg1, solver=None, neg=False):

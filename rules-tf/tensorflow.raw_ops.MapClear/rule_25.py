@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If capacity is defined, then memory_limit should also be defined. (Rule 25)
+# capacity and memory_limit relationship (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] > -1, v["arg2_value"] > -1, False)) if n else
-          If(v["arg1_value"] > -1, v["arg2_value"] > -1, False))
+    s.add(Not(If(v["arg1_value"] >= 0, v["arg2_value"] >= v["arg1_value"], True)) if n else
+          If(v["arg1_value"] >= 0, v["arg2_value"] >= v["arg1_value"], True))
 )
 
 def rule_25_func(arg1, arg2, solver=None, neg=False):

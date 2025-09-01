@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The seed and seed2 values should be within a specific range (Rule 23)
+# if seed is provided and seed2 is not, then seed2 should be the same to provide reproducible shuffling for multiple runs (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(v["arg1_value"] > -2147483648, v["arg1_value"] < 2147483647), v["arg2_value"] > -2147483648), v["arg2_value"] < 2147483647)) if n else
-          And(And(And(v["arg1_value"] > -2147483648, v["arg1_value"] < 2147483647), v["arg2_value"] > -2147483648), v["arg2_value"] < 2147483647))
+    s.add(Not(If(And(v["arg1_value"] != 0, v["arg2_value"] == 0), True, True)) if n else
+          If(And(v["arg1_value"] != 0, v["arg2_value"] == 0), True, True))
 )
 
 def rule_23_func(arg1, arg2, solver=None, neg=False):

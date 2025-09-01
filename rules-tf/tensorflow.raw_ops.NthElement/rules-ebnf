@@ -1,90 +1,129 @@
 >>
-Rule 1 (input tensor must be of valid type)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 14 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 17
->>
-Rule 2 (n should be non-negative)
-{v_2 : int} |= v_2 ≥ 0
->>
-Rule 3 (n should be less than last dimension of input)
-{v_1 : tensor, v_2 : int} |= v_2 < shape(v_1, ndim(v_1) - 1)
->>
-Rule 4 (input tensor should have dimension greater than or equal to 1)
+Rule 1 (input tensor must have dimension greater than or equal to 1)
 {v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 5 (reverse should be a boolean)
+Rule 2 (n must be non-negative)
+{v_2 : tensor} |= v_2 ≥ 0
+>>
+Rule 3 (n must be less than the size of the last dimension of input)
+{v_1 : tensor, v_2 : tensor} |= v_2 < shape(v_1, ndim(v_1) - 1)
+>>
+Rule 4 (If reverse is true, n must be less than the size of the last dimension of input)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then v_2 < shape(v_1, ndim(v_1) - 1)
+>>
+Rule 5 (Input tensor type must be one of the allowed types)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 0
+>>
+Rule 6 (n's dtype must be int32)
+{v_2 : tensor} |= dtype_(v_2) = 3
+>>
+Rule 7 (n is a scalar)
+{v_2 : tensor} |= ndim(v_2) = 0
+>>
+Rule 8 (input tensor must have last dimension at least n+1)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 1) ≥ v_2 + 1
+>>
+Rule 9 (input's dtype should be same as output's dtype)
+{v_1 : tensor} |= dtype_(v_1) = dtype_(v_1)
+>>
+Rule 10 (reverse is a boolean)
 {v_3 : bool} |= v_3 = true ∨ v_3 = false
 >>
-Rule 9 (n should be non-negative and less than the size of the last dimension if input tensor is not empty)
-{v_1 : tensor, v_2 : int} |= if shape(v_1, ndim(v_1) - 1) > 0 then v_2 ≥ 0 ∧ v_2 < shape(v_1, ndim(v_1) - 1)
+Rule 12 (If input is rank 1, n must be less than shape of input)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then v_2 < shape(v_1, 0)
 >>
-Rule 12 (n should be an integer and smaller than int32 max)
-{v_2 : int} |= v_2 < 2147483647
+Rule 15 (If reverse is true, n must be less than or equal to the size of the last dimension of input minus one)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then v_2 ≤ shape(v_1, ndim(v_1) - 1) - 1
 >>
-Rule 15 (The size of the last dimension should be at least n+1)
-{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) ≥ v_2 + 1
+Rule 16 (input must be of type int32, int64, float32, or float64)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 19 (If the input is a vector, n must be less than the size of the vector)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 < shape(v_1, 0)
+Rule 18 (If reverse is true, n must be less than or equal to the size of the last dimension of input minus one)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then v_2 ≤ shape(v_1, ndim(v_1) - 1) - 1
 >>
-Rule 20 (if reverse is used, n should be a valid index)
-{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_3 = true then v_2 ≥ 0 ∧ v_2 < shape(v_1, ndim(v_1) - 1)
+Rule 19 (n must be an int32 tensor with value in range [0, input.shape[-1]))
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_2) = 3 ∧ v_2 ≥ 0 ∧ v_2 < shape(v_1, ndim(v_1)-1)
 >>
-Rule 25 (The last dimension size of input tensor should be greater than 0)
+Rule 20 (If reverse is true, n must be a valid index of last dimension)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then 0 ≤ v_2 ∧ v_2 < shape(v_1, ndim(v_1)-1)
+>>
+Rule 23 (If reverse is false and input is not a vector, n must be less than shape of the last dimension)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if (v_3 = false) ∧ (ndim(v_1) ≠ 1) then v_2 < shape(v_1, ndim(v_1)-1)
+>>
+Rule 24 (If input is not a vector, last dimension must be at least n + 1)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ 1 then shape(v_1, ndim(v_1) - 1) ≥ v_2 + 1
+>>
+Rule 25 (If reverse is set to true and the input is not a vector, n must be less than or equal to shape of the last dimension minus 1)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if (v_3 = true) ∧ (ndim(v_1) ≠ 1) then v_2 ≤ shape(v_1, ndim(v_1)-1) - 1
+>>
+Rule 26 (Input data type cannot be bool or string)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 28 (if reverse is false and input is a vector, then n must be less than the input shape)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if (v_3 = false) ∧ (ndim(v_1) = 1) then v_2 < shape(v_1, 0)
+>>
+Rule 29 (If reverse is set to true and the input is a vector, then n must be less than the input shape)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if (v_3 = true) ∧ (ndim(v_1) = 1) then v_2 < shape(v_1, 0)
+>>
+Rule 30 (If reverse is true, n should be within valid range [0, shape(input, -1)))
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then 0 ≤ v_2 ∧ v_2 < shape(v_1, ndim(v_1) - 1)
+>>
+Rule 31 (If input is a matrix, n must be less than the width)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then v_2 < shape(v_1, 1)
+>>
+Rule 32 (If input tensor is a matrix and reverse is set to True, n must be less than the width)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if (ndim(v_1) = 2) ∧ (v_3 = true) then v_2 < shape(v_1, 1)
+>>
+Rule 33 (n must be non-negative and less than input's last dimension shape)
+{v_1 : tensor, v_2 : tensor} |= 0 ≤ v_2 ∧ v_2 < shape(v_1, ndim(v_1) - 1)
+>>
+Rule 34 (n plus one should be less than or equal to input's last dimension shape)
+{v_1 : tensor, v_2 : tensor} |= v_2 + 1 ≤ shape(v_1, ndim(v_1) - 1)
+>>
+Rule 35 (If reverse is set to True, n plus one should be less than or equal to input's last dimension shape)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then v_2 + 1 ≤ shape(v_1, ndim(v_1) - 1)
+>>
+Rule 36 (The last dimension of the input tensor must have size greater than zero)
 {v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0
 >>
-Rule 27 (input tensor must be of rank >=1)
-{v_1 : tensor} |= ndim(v_1) >= 1
+Rule 37 (If input tensor is not a vector, then the last dimension of the input must be greater than n.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 then shape(v_1, ndim(v_1) - 1) > v_2
 >>
-Rule 29 (n should be less than or equal to int32 max)
-{v_2 : int} |= v_2 <= 2147483647
+Rule 39 (The input tensor should have valid data type, only allow listed data type.)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 5
 >>
-Rule 30 (input shape must satisfy the nth element condition)
-{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) > v_2
+Rule 41 (If reverse=False, the valid range of n is [0, shape(input, -1)))
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then v_2 ≥ 0 ∧ v_2 < shape(v_1, ndim(v_1) - 1)
 >>
-Rule 32 (check if input dtype is supported)
-{v_1: tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 14 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 17
+Rule 42 (If reverse is True, the valid range of n is [0, shape(input, -1) - 1])
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then v_2 ≥ 0 ∧ v_2 ≤ shape(v_1, ndim(v_1) - 1) - 1
 >>
-Rule 38 (n should be within the valid range [0, last dimension of input tensor))
-{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 ∧ v_2 < shape(v_1, ndim(v_1) - 1)
+Rule 43 (Either reverse is False and n < shape(input, -1) or reverse is True and n < shape(input, -1)-1)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= (v_3 = false ∧ v_2 < shape(v_1, ndim(v_1) - 1)) ∨ (v_3 = true ∧ v_2 < shape(v_1, ndim(v_1) - 1) - 1)
 >>
-Rule 42 (the last dimension size must be greater or equal to n plus 1)
-{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) >= v_2 + 1
+Rule 44 (input tensor should be of type float32, float64, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 5
 >>
-Rule 43 (The n should be smaller than the size of input, or report some reasonable error.)
-{v_1 : tensor, v_2 : int} |= v_2 < shape(v_1, ndim(v_1)-1)
+Rule 46 (shape(input, -1) must be greater than n)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 1) > v_2
 >>
-Rule 49 (The n is an integer between 0 to the size of last dimension of tensor)
-{v_1 : tensor, v_2 : int} |= 0 <= v_2 ∧ v_2 < shape(v_1, ndim(v_1)-1)
+Rule 47 (If reverse is true, then shape(input, -1)-1 must be greater than or equal to n)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then shape(v_1, ndim(v_1) - 1) - 1 ≥ v_2
 >>
-Rule 53 (If the last dimension size is d, then 0 <= n < d)
-{v_1 : tensor, v_2 : int} |= 0 <= v_2 ∧ v_2 < shape(v_1, ndim(v_1) - 1)
+Rule 48 (If the input is a vector (rank-1), n should be less than the input shape along the first dimension. Otherwise, the n should be valid with input and reverse.)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if ndim(v_1) = 1 then v_2 < shape(v_1, 0) else if v_3 then v_2 ≤ shape(v_1, ndim(v_1) - 1) - 1 else v_2 < shape(v_1, ndim(v_1) - 1)
 >>
-Rule 59 (The value of n should be an integer with 32 bits)
-{v_2 : int} |= -2147483648 <= v_2 ∧ v_2 <= 2147483647
+Rule 49 (If reverse is False and if input tensor is not vector, the last dimension of the input must be greater than n and n must be non negative. Otherwise if reverse is True and if input tensor is not a vector, the last dimension of the input must be greater than n + 1 and n must be non negative)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if (v_3 = false) ∧ (ndim(v_1) > 1) then shape(v_1, ndim(v_1) - 1) > v_2 ∧ v_2 ≥ 0 else if (v_3 = true) ∧ (ndim(v_1) > 1) then shape(v_1, ndim(v_1) - 1) > v_2 + 1 ∧ v_2 ≥ 0
 >>
-Rule 60 (If the input tensor is of rank 1, then the range of valid n is restricted)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then 0 <= v_2 ∧ v_2 < shape(v_1, 0)
+Rule 50 (Combined constraints on n based on input dimensions and reverse setting.)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if ndim(v_1) = 1 then v_2 ≥ 0 ∧ v_2 < shape(v_1, 0) else if v_3 then v_2 ≥ 0 ∧ v_2 ≤ shape(v_1, ndim(v_1) - 1) - 1 else v_2 ≥ 0 ∧ v_2 < shape(v_1, ndim(v_1) - 1)
 >>
-Rule 69 (if the rank is 1, then the last dimension is 0)
-{v_1: tensor} |= if ndim(v_1) = 1 then true
+Rule 51 (The nth element must be within the bounds of the available elements on the last dimension and reverse cannot be none)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= (v_3 = true ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ v_2 < shape(v_1, ndim(v_1) - 1)) ∨ (v_3 = false ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ v_2 < shape(v_1, ndim(v_1) - 1))
 >>
-Rule 73 (For a tensor of shape S and integer n, then S[-1] >= n+1)
-{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1)-1) >= v_2 + 1
+Rule 53 (If reverse is set to False and if the input is a matrix, then n must be less than the width of the matrix)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if (ndim(v_1) = 2) ∧ (v_3 = false) then v_2 < shape(v_1, 1)
 >>
-Rule 78 (For a tensor of shape S and integer n, then the size of last dim must be greater than n)
-{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1)-1) > v_2
->>
-Rule 79 (If reverse is used, n must be a valid integer, such as positive. But doesn't change code)
-{v_2 : int, v_3 : bool} |= if v_3 = true then v_2 >= 0
->>
-Rule 92 (The n should be a valid int value.)
-{v_2 : int} |= v_2 < 2147483647 ∧ v_2 > -2147483648
->>
-Rule 93 (The value of n should be a non-negative integer.)
-{v_2 : int} |= v_2 >= 0
->>
-Rule 98 (The value of n must be a non-negative integer and less than int max)
-{v_2 : int} |= v_2 >= 0 ∧ v_2 < 2147483647
->>
-Rule 123 (n should locate inside the bound. if reverse is true, locate from largest end)
-{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_3 = true then 0 <= v_2 ∧ v_2 < shape(v_1, ndim(v_1)-1) else 0 <= v_2 ∧ v_2 < shape(v_1, ndim(v_1)-1)
+Rule 54 (If reverse is set to True and if the input is a matrix, then n must be less than or equal to (width of the matrix - 1))
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if (ndim(v_1) = 2) ∧ (v_3 = true) then v_2 ≤ shape(v_1, 1) - 1

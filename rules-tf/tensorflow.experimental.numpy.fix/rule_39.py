@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the tensor's dtype is complex, the min value's real part must be less than the max value's real part (Rule 39)
+# If input is an integer type, values should be within int64 range (Rule 39)
 
 rule_39 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1), False)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1), False))
+    s.add(Not(If(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), And(Select(v["arg1_range"], 0) >= -9223372036854775808, Select(v["arg1_range"], 1) <= 9223372036854775807), True)) if n else
+          If(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), And(Select(v["arg1_range"], 0) >= -9223372036854775808, Select(v["arg1_range"], 1) <= 9223372036854775807), True))
 )
 
 def rule_39_func(arg1, solver=None, neg=False):

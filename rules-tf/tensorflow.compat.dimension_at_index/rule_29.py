@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if dimension exists, the index plus one must be less than maximum (Rule 29)
+# index must be less than the number of dimensions in the tensor's shape if ndim is defined (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > v["arg2_value"], v["arg2_value"] + 1 < 2147483647, False)) if n else
-          If(v["arg1_ndim"] > v["arg2_value"], v["arg2_value"] + 1 < 2147483647, False))
+    s.add(Not(If(v["arg1_ndim"] > -1, v["arg2_value"] < v["arg1_ndim"], True)) if n else
+          If(v["arg1_ndim"] > -1, v["arg2_value"] < v["arg1_ndim"], True))
 )
 
 def rule_29_func(arg1, arg2, solver=None, neg=False):

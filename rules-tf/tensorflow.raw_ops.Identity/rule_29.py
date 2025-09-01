@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the tensor is a float type, then max must be less than 100 (Rule 29)
+# if input is float16, min value should be greater than its minimum value (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 8), Select(v["arg1_range"], 1) < 100, False)) if n else
-          If(And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 8), Select(v["arg1_range"], 1) < 100, False))
+    s.add(Not(If(v["arg1_dtype"] == 6, Select(v["arg1_range"], 0) > -65504, True)) if n else
+          If(v["arg1_dtype"] == 6, Select(v["arg1_range"], 0) > -65504, True))
 )
 
 def rule_29_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_29_func(arg1, solver=None, neg=False):
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 29
-        rule_29(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_29(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_29(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_29(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)

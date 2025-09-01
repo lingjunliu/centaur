@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# x must be a tensor with floating-point dtype and non-negative elements (Rule 20)
+# If the tensor is float32 or float64 type, it should have non-negative values (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(And((Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), Select(v["arg1_range"], 0) >= 0)) if n else
-          And((Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), Select(v["arg1_range"], 0) >= 0))
+    s.add(Not(If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), Select(v["arg1_range"], 0) >= 0, True)) if n else
+          If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), Select(v["arg1_range"], 0) >= 0, True))
 )
 
 def rule_20_func(arg1, solver=None, neg=False):

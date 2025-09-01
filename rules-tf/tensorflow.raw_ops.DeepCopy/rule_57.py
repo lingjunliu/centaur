@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input tensor is complex64 then it should be a non-quantized tensor (Rule 57)
+# If the tensor has dimensions, then the product of shape values must fit into int64 if all shape values are 1. (Rule 57)
 
 rule_57 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 9, True, False)) if n else
-          If(v["arg1_dtype"] == 9, True, False))
+    s.add(Not(If(v["arg1_ndim"] > 0, (If(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 1) for i in range(6)]), v["arg1_ndim"] <= 63, True)), True)) if n else
+          If(v["arg1_ndim"] > 0, (If(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 1) for i in range(6)]), v["arg1_ndim"] <= 63, True)), True))
 )
 
 def rule_57_func(arg1, solver=None, neg=False):
@@ -22,15 +22,18 @@ def rule_57_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 57
-        rule_57(solver, {'arg1_dtype': arg1_dtype})
+        rule_57(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_57(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_57(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

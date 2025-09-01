@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If x is bfloat16 then y must also be bfloat16 (Rule 11)
+# If x is float32 or float64, then y must be also. (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, v["arg2_dtype"] == 6, False)) if n else
-          If(v["arg1_dtype"] == 6, v["arg2_dtype"] == 6, False))
+    s.add(Not(If((Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), v["arg2_dtype"] == v["arg1_dtype"], True)) if n else
+          If((Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), v["arg2_dtype"] == v["arg1_dtype"], True))
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

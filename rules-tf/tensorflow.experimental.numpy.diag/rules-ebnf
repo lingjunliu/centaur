@@ -2,65 +2,170 @@
 Rule 1 (Input tensor must be 1 or 2 dimensional)
 {v_1 : tensor} |= ndim(v_1) = 1 ∨ ndim(v_1) = 2
 >>
-Rule 2 (If input tensor is 2D, it can be converted to 1D)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) = shape(v_1, 1)
+Rule 3 (If the input tensor is 1D, k must be less than the size of the tensor)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 < shape(v_1, 0)
 >>
-Rule 4 (The input tensor's data type should be valid)
-{v_1 : tensor} |= dtype_(v_1) ≠ 12
+Rule 4 (If the input tensor is 1D, k must be greater than or equal to the negative size of the tensor)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 ≥ (0 - shape(v_1, 0))
 >>
-Rule 5 (If input is 2D, the offset should not be greater than the difference between dimensions)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then v_2 ≥ (0 - shape(v_1, 0)) ∧ v_2 ≤ shape(v_1, 1)
+Rule 5 (If the input tensor is 2D, k must be less than the number of columns)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then v_2 < shape(v_1, 1)
 >>
-Rule 6 (If input is 1D, the output must be a square matrix)
-{v_1 : tensor} |= if ndim(v_1) = 1 then ∃i ∈ [0, shape(v_1, 0) - 1] : true
+Rule 6 (If the input tensor is 2D, k must be greater than or equal to the negative number of columns)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then v_2 ≥ (0 - shape(v_1, 1))
 >>
-Rule 7 (If input is 2D, the resulting 1D array's length must be equal to one of the dimensions)
-{v_1 : tensor} |= if ndim(v_1) = 2 then (shape(v_1, 0) = shape(v_1, 1))
+Rule 7 (Shape of input tensor should have positive elements)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 8 (If offset is non-zero, the result must be padded accordingly.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 ∧ v_2 ≠ 0 then true
+Rule 9 (k must be an integer number)
+{v_2 : int} |= v_2 = (v_2 / 1) * 1
 >>
-Rule 10 (The input tensor should have at least one element)
-{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) > 0
+Rule 16 (k must be in a reasonable range relative to the tensor dimensions)
+{v_1 : tensor, v_2 : int} |= (ndim(v_1) = 1 ∧ (v_2 ≥ (0 - shape(v_1, 0)) ∧ v_2 < shape(v_1, 0))) ∨ (ndim(v_1) = 2 ∧ (v_2 ≥ (0 - shape(v_1, 1)) ∧ v_2 < shape(v_1, 1)))
 >>
-Rule 11 (If the input is 1D, its length must be non-negative.)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) ≥ 0
+Rule 19 (If the tensor is 1D, the absolute value of k must be less than the shape)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then (v_2 > (0 - shape(v_1, 0)) ∧ v_2 < shape(v_1, 0))
 >>
-Rule 12 (If input is 2D, both dimensions must be non-negative.)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) ≥ 0 ∧ shape(v_1, 1) ≥ 0
+Rule 21 (The dimension of tensor should be no more than two.)
+{v_1: tensor} |= ndim(v_1) ≤ 2
 >>
-Rule 18 (The offset value cannot cause out-of-bounds access with 2D inputs.)
-{v_1: tensor, v_2: int} |= if ndim(v_1) = 2 then (shape(v_1, 0) + v_2) > 0 ∧ (shape(v_1, 1) - v_2) > 0
+Rule 22 (The tensor's data type should be a numerical type)
+{v_1: tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 19 (If offset is positive with a 2D input, shape[0] should be greater or equal than offset)
-{v_1: tensor, v_2: int} |= if ndim(v_1) = 2 ∧ v_2 > 0 then shape(v_1, 0) ≥ v_2
+Rule 24 (k should be non-zero if input is a matrix)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then v_2 ≠ 0
 >>
-Rule 20 (If offset is negative with a 2D input, shape[1] should be greater or equal than the absolute value of offset)
-{v_1: tensor, v_2: int} |= if ndim(v_1) = 2 ∧ v_2 < 0 then shape(v_1, 1) ≥ (0 - v_2)
+Rule 29 (When input is 1D, k's absolute value should not exceed the length of the array)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 ≥ (0 - shape(v_1, 0)) ∧ v_2 < shape(v_1, 0)
 >>
-Rule 21 (For 1D input, offset is meaningless)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 = 0
+Rule 32 (If input is 2D, the number of rows and columns can't be zero)
+{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
 >>
-Rule 22 (If the input is 2D and the offset is zero, the output dimension must match the input dimensions)
+Rule 35 (if the input tensor is not empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+>>
+Rule 39 (If input is 1D, k's range has to be within the shape)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then (v_2 ≥ (0 - shape(v_1, 0)) ∧ v_2 < shape(v_1, 0))
+>>
+Rule 41 (If the tensor is a vector, its size should be greater than 0)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 0
+>>
+Rule 46 (If input is 2D and k is non-negative, k has to be smaller than matrix dimensions.)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 2 ∧ v_2 ≥ 0 then (v_2 < shape(v_1, 0) ∨ v_2 < shape(v_1, 1))
+>>
+Rule 47 (If input is 2D and k is negative, abs(k) has to be smaller than matrix dimensions.)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 2 ∧ v_2 < 0 then ((0 - v_2) < shape(v_1, 0) ∨ (0 - v_2) < shape(v_1, 1))
+>>
+Rule 50 (If input is 2D and k is non-negative, k has to be smaller than the difference between two shapes.)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 2 ∧ v_2 ≥ 0 then v_2 < shape(v_1, 0) - shape(v_1, 1)
+>>
+Rule 51 (If input is 2D and k is negative, abs(k) has to be smaller than the difference between two shapes.)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 2 ∧ v_2 < 0 then (0 - v_2) < shape(v_1, 0) - shape(v_1, 1)
+>>
+Rule 52 (For any tensor, the multiplication of all shape values has to be smaller than MAX_INT)
+{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 54 (if ndim is 2 then shape has to exist)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+>>
+Rule 56 (If k is zero, the shape of dim 0 has to be the same as shape of dim 1)
 {v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 ∧ v_2 = 0 then shape(v_1, 0) = shape(v_1, 1)
 >>
-Rule 25 (Input Dtype must be numerical. )
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+Rule 59 (If the input is 2D, the number of columns and rows should be greater than k)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then shape(v_1, 0) > v_2 ∧ shape(v_1, 1) > v_2
 >>
-Rule 26 (If input is complex, offset should be zero)
-{v_1: tensor, v_2: int} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then v_2 = 0
+Rule 60 (if tensor is 2d, k must be smaller than at least one of the shape dimensions)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then shape(v_1, 0) > v_2 ∨ shape(v_1, 1) > v_2
 >>
-Rule 27 (If the input is a bool tensor, it must be 1D or 2D)
-{v_1: tensor} |= if dtype_(v_1) = 0 then ndim(v_1) = 1 ∨ ndim(v_1) = 2
+Rule 61 (The value of K should be between -100 and 100)
+{v_2 : int} |= v_2 > -100 ∧ v_2 < 100
 >>
-Rule 28 (The size of the first dimension must be less than 2^31)
-{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) < 2147483648
+Rule 62 (if input is 1D, k must be a valid offset to index the array)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 > (0 - shape(v_1, 0)) ∧ v_2 < shape(v_1, 0)
 >>
-Rule 29 (If input is a string tensor, it must be 1D or 2D)
-{v_1: tensor} |= if dtype_(v_1) = 12 then ndim(v_1) = 1 ∨ ndim(v_1) = 2
+Rule 65 (Input dimensions must be positive)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 30 (if input is a dtype tensor, it must be 0-dimensional.)
-{v_1: tensor} |= if dtype_(v_1) = 13 then ndim(v_1) = 0
+Rule 67 (The tensor is 1 or 2 dimensional)
+{v_1: tensor} |= ndim(v_1) = 1 ∨ ndim(v_1) = 2
 >>
-Rule 31 (For 2D input and offset of 0, dimensions must be equal)
-{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) = shape(v_1, 1)
+Rule 70 (if 2D then k needs to be bounded. Specifically k < rows and k < cols)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 2 then shape(v_1, 0) > v_2 ∧ shape(v_1, 1) > v_2
+>>
+Rule 71 (If 1D then k can't be too large in negative range)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 1 then (0 - shape(v_1, 0)) <= v_2
+>>
+Rule 72 (If 1D then k can't be too large)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 1 then v_2 < shape(v_1, 0)
+>>
+Rule 75 (If input is 1D, then k must be within the bounds of the tensor)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 1 then (v_2 < shape(v_1, 0) ∧ v_2 >= (0 - shape(v_1, 0)))
+>>
+Rule 76 (k should not cause out of bounds access)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 2 then v_2 < shape(v_1, 0) ∧ v_2 < shape(v_1, 1) ∧ v_2 > (0 - shape(v_1, 0)) ∧ v_2 > (0 - shape(v_1, 1))
+>>
+Rule 79 (If input is 2D and k = 0, shape should be square matrix)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 2 ∧ v_2 = 0 then shape(v_1, 0) = shape(v_1, 1)
+>>
+Rule 80 (If input is 1D, k's value must be a valid index)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 1 then v_2 >= (0 - shape(v_1, 0)) ∧ v_2 < shape(v_1, 0)
+>>
+Rule 84 (if the tensor has two dimensions, k must be within range)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then v_2 >= (0 - shape(v_1, 0)) ∧ v_2 < shape(v_1, 1)
+>>
+Rule 86 (K must not be zero when ndim == 2 unless the shape is square)
+{v_1: tensor, v_2 : int} |= if ndim(v_1) = 2 ∧ v_2 = 0 then shape(v_1, 0) = shape(v_1, 1)
+>>
+Rule 87 (K must be an int, not a float)
+{v_2: int} |= v_2 / 1 = v_2
+>>
+Rule 89 (If ndim(v) is 2, k must be less than shape(v, 0))
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then v_2 < shape(v_1, 0)
+>>
+Rule 91 (If ndim(v) is 2, k must be greater than negative shape(v, 0))
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then v_2 > (0 - shape(v_1, 0))
+>>
+Rule 92 (If ndim(v) is 2, k must be greater than negative shape(v, 1))
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then v_2 > (0 - shape(v_1, 1))
+>>
+Rule 94 (If the input is 2D, K has to be less than rows AND columns, positive)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 2 then v_2 < shape(v_1, 0) ∧ v_2 < shape(v_1, 1)
+>>
+Rule 96 (If it is a matrix, at least one dimension has to be non zero.)
+{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 0 ∨ shape(v_1, 1) > 0
+>>
+Rule 97 (If 1D, value K has to be greater than negative shape dim 0)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 1 then v_2 >= (0 - shape(v_1, 0))
+>>
+Rule 109 (Value K has to be inside the boundaries of the dimension 0, or raise error)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 1 then v_2 < shape(v_1, 0) ∧ v_2 >= (0 - shape(v_1, 0))
+>>
+Rule 115 (If 2D, check if K's value is inside of shape of dimension 1, (aka # of cols). K cannot be out of the boundaries, aka offset.)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 2 then v_2 < shape(v_1, 1) ∧ v_2 > (0 - shape(v_1, 1))
+>>
+Rule 116 (K should not be too negative if the tensor is a vector.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then (0 - shape(v_1, 0)) <= v_2
+>>
+Rule 120 (if input shape has two dimensions, K must be a valid dimension)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then v_2 > (0 - shape(v_1, 0)) ∧ v_2 < shape(v_1, 1)
+>>
+Rule 130 (If Matrix)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then shape(v_1, 0) > v_2 ∧ shape(v_1, 1) > v_2 ∧ v_2 >= 0
+>>
+Rule 132 (If it's not specified, we cannot infer a range or we could cause an out of range error. if not specified default K to 0)
+{v_2 : int} |= v_2 = 0
+>>
+Rule 135 (value K should be 0.)
+{v_2: int} |= v_2 = 0
+>>
+Rule 136 (If K is specified, and it's greater than or equal to zero, the offset cannot cause an out of bound error)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 ∧ v_2 > 0 then shape(v_1, 0) > v_2 ∧ shape(v_1, 1) > v_2
+>>
+Rule 140 (K Needs to be a valid and small number)
+{v_2: int} |= v_2 < 1000 ∧ v_2 > -1000
+>>
+Rule 146 (If we have Matrix K has to be in a valid area, K needs to be less than any of the dimensions on that matrix)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then v_2 < shape(v_1, 0) ∧ v_2 < shape(v_1, 1)
+>>
+Rule 152 (The values have to be integers.)
+{v_1: tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5

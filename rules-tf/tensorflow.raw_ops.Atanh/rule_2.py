@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The input tensor must have a minimum value of -1 (Rule 2)
+# input tensor values should be in the range [-1, 1] (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) >= -1) if n else
-          Select(v["arg1_range"], 0) >= -1)
+    s.add(Not(And(Select(v["arg1_range"], 0) >= -1, Select(v["arg1_range"], 1) <= 1)) if n else
+          And(Select(v["arg1_range"], 0) >= -1, Select(v["arg1_range"], 1) <= 1))
 )
 
 def rule_2_func(arg1, solver=None, neg=False):

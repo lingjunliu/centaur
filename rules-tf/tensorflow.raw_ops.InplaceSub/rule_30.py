@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# x and v must have same rank and same shape from dim 1 onwards (Rule 30)
+# If x has more than 2 dimensions, then the last dimensions of x and v should match. (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(idx < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], idx) == Select(v["arg2_shape"], idx)) for idx in range(6)]))) if n else
-          And(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(idx < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], idx) == Select(v["arg2_shape"], idx)) for idx in range(6)])))
+    s.add(Not(If(v["arg1_ndim"] > 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - 1), True)) if n else
+          If(v["arg1_ndim"] > 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - 1), True))
 )
 
 def rule_30_func(arg1, arg2, solver=None, neg=False):

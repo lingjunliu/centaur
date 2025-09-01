@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# ksize must have length 1, 2, or 4 (Rule 2)
+# Kernel size must have length 1, 2, or 4 (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(Or(Or(v["arg1_length"] == 1, v["arg1_length"] == 2), v["arg1_length"] == 4)) if n else

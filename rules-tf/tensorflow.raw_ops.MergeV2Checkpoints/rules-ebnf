@@ -1,99 +1,150 @@
 >>
-Rule 1 (checkpoint_prefixes must be a non-empty list of strings)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : dtype_(v_1) = 12) ∧ shape(v_1, 0) > 0
+Rule 1 (checkpoint_prefixes and destination_prefix must be different)
+{v_1 : tensor, v_2 : tensor} |= v_1 ≠ v_2
 >>
-Rule 2 (destination_prefix must be a string)
-{v_2 : tensor} |= ndim(v_2) = 0 ∧ dtype_(v_2) = 12
->>
-Rule 3 (delete_old_dirs must be a boolean)
-{v_3 : bool} |= v_3 = true ∨ v_3 = false
->>
-Rule 4 (allow_missing_files must be a boolean)
-{v_4 : bool} |= v_4 = true ∨ v_4 = false
->>
-Rule 11 (At least one checkpoint_prefix should exist)
+Rule 2 (checkpoint_prefixes must be non-empty list)
 {v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 23 (If allow_missing_files is false, all checkpoint prefixes must point to existing files)
-{v_1: tensor, v_4: bool} |= if v_4 = false then (∀i ∈ [0, shape(v_1, 0) - 1] : true)
+Rule 3 (destination_prefix must be a string tensor)
+{v_1 : tensor} |= ndim(v_1) = 0
 >>
-Rule 24 (If allow_missing_files is true, at least one file should exists among all prefixes)
-{v_1: tensor, v_4: bool} |= if v_4 = true then (∃i ∈ [0, shape(v_1, 0) - 1] : true)
+Rule 4 (delete_old_dirs must be a boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 29 (If delete_old_dirs is true, checkpoint_prefixes should exists)
-{v_1 : tensor, v_3 : bool} |= if v_3 = true then shape(v_1, 0) > 0
+Rule 6 (The number of checkpoint prefixes must be greater than 1)
+{v_1 : tensor} |= shape(v_1, 0) > 1
 >>
-Rule 30 (destination_prefix should be a valid string)
-{v_2 : tensor} |= dtype_(v_2) = 12
+Rule 8 (checkpoint prefixes must have the same string data type)
+{v_1 : tensor} |= dtype_(v_1) = 12
 >>
-Rule 36 (If checkpoint prefixes have the same value with destination prefixes)
-{v_1: tensor, v_2: tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = v_2
+Rule 10 (If allow_missing_files is false, then the number of existing checkpoints should match the number of checkpoint prefixes)
+{v_1 : tensor, v_2 : bool} |= if v_2 = false then shape(v_1,0) > 0
 >>
-Rule 41 (The number of checkpoint prefixes should be reasonable)
-{v_1 : tensor} |= shape(v_1, 0) < 1000
+Rule 11 (delete_old_dirs and allow_missing_files cannot both be false)
+{v_1 : bool, v_2 : bool} |= if v_1 = false then v_2 = true
 >>
-Rule 47 (checkpoint_prefixes tensor should not have large number of elements)
-{v_1 : tensor} |= shape(v_1, 0) < 2048
+Rule 13 (If allow_missing_files is true, the number of checkpoint prefixes must be greater than 0)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then shape(v_1, 0) > 0
 >>
-Rule 53 (If allow_missing_files is True then number of prefixes should be greater than 0)
-{v_1 : tensor, v_4 : bool} |= if v_4 = true then shape(v_1, 0) > 0
+Rule 14 (checkpoint_prefixes and destination_prefix should have compatible shapes for merging)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 0
 >>
-Rule 61 (The number of checkpoint prefixes should be non-negative)
-{v_1 : tensor} |= shape(v_1, 0) ≥ 0
+Rule 15 (If name exists, destination_prefix cannot be empty)
+{v_1: tensor, v_2: str} |= if v_2 ≠ "" then shape(v_1,0) > 0
 >>
-Rule 63 (If allow_missing_files is false, the prefixes must exist)
-{v_1 : tensor, v_4 : bool} |= if v_4 = false then shape(v_1, 0) > 0
+Rule 17 (Name must be a string and not too long)
+{v_1 : str} |= v_1.len < 256
 >>
-Rule 64 (If delete_old_dirs is true, then there must be some prefixes)
-{v_1: tensor, v_3: bool} |= if v_3 = true then shape(v_1, 0) > 0
+Rule 21 (If allow_missing_files is false and checkpoint_prefixes is empty, it's invalid)
+{v_1 : tensor, v_2 : bool} |= if v_2 = false then shape(v_1, 0) > 0
 >>
-Rule 66 (The prefixes should not be the same as destination when delete_old_dirs)
-{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 = true then (∀i ∈ [0, shape(v_1, 0) - 1]: v_1[i] ≠ v_2)
+Rule 22 (The destination_prefix should be a valid filename)
+{v_1 : tensor} |= v_1 ≠ ""
 >>
-Rule 68 (The destination prefix should not be too long)
-{v_2 : tensor} |= shape(v_2,0) < 2048
+Rule 24 (Name cannot be an empty string)
+{v_1 : str} |= v_1 ≠ ""
 >>
-Rule 71 (The destination prefix length should be greater than equal zero)
-{v_2: tensor} |= shape(v_2, 0) ≥ 0
+Rule 25 (If the number of prefixes is 1 and allow_missing_files = false, it is equivalent to a rename, which is likely undesired)
+{v_1 : tensor, v_2 : bool} |= if v_2 = false then shape(v_1, 0) ≠ 1
 >>
-Rule 73 (checkpoint_prefixes must be a list of strings)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : dtype_(v_1) = 12)
+Rule 28 (If a name is supplied, destination_prefix must be supplied)
+{v_1 : str, v_2 : tensor} |= if v_1 ≠ "" then shape(v_2, 0) > 0
 >>
-Rule 77 (checkpoint_prefixes should not be too many.)
-{v_1 : tensor} |= shape(v_1,0) < 100
+Rule 31 (The destination_prefix cannot be one of the checkpoint_prefixes)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ v_2
 >>
-Rule 78 (If delete_old_dirs is True and prefixes exists, the directory should not be root.)
-{v_1: tensor, v_3: bool} |= if v_3 = true then (∀i ∈ [0, shape(v_1, 0) - 1]: v_1[i] ≠ "/")
+Rule 32 (Name must not be None/Null)
+{v_1: str} |= v_1 ≠ "none"
 >>
-Rule 80 (The prefixes must not contain null strings)
-{v_1 : tensor} |= (∀i ∈ [0, shape(v_1, 0) - 1]: v_1[i] ≠ "")
+Rule 33 (if allow_missing_files is true, there must be at least one prefix to try)
+{v_1 : tensor, v_2: bool} |= if v_2 = true then shape(v_1,0) > 0
 >>
-Rule 81 (If allow_missing_files is false, the number of prefixes must not be negative.)
-{v_1 : tensor, v_4 : bool} |= if v_4 = false then shape(v_1, 0) ≥ 0
+Rule 35 (If delete_old_dirs is true, then checkpoint_prefixes can not be empty)
+{v_1: tensor, v_2: bool} |= if v_2 = true then shape(v_1, 0) > 0
 >>
-Rule 82 (If delete_old_dirs is true, and prefixes are empty, it's invalid.)
-{v_1: tensor, v_3: bool} |= if v_3 = true then (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ "")
+Rule 39 (If the prefixes are the same as the destination, delete_old_dirs should be false)
+{v_1 : tensor, v_2: tensor, v_3: bool} |= if v_3 = true then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ v_2
 >>
-Rule 85 (checkpoint_prefixes must be a list of strings and not empty)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : dtype_(v_1) = 12) ∧ shape(v_1,0) > 0
+Rule 40 (If the name is specified, it must follow valid naming conventions)
+{v_1:str} |= ∃i ∈ [0, v_1.len -1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9")
 >>
-Rule 88 (destination_prefix must be a string and its shape must be less than 2048)
-{v_2 : tensor} |= ndim(v_2) = 0 ∧ dtype_(v_2) = 12 ∧ shape(v_2,0) < 2048
+Rule 41 (If the prefixes are the same as the destination, delete_old_dirs should be false)
+{v_1 : tensor, v_2: tensor, v_3: bool} |= if v_3 = true then ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ v_2
 >>
-Rule 90 (If delete_old_dirs is True and prefixes exists, and allow_missing_files is False ,the directory should not be root.)
-{v_1: tensor, v_3: bool, v_4: bool} |= if v_3 = true ∧ v_4 = false then (∀i ∈ [0, shape(v_1, 0) - 1]: v_1[i] ≠ "/")
+Rule 42 (If the name is specified, it must follow valid naming conventions)
+{v_1:str} |= v_1 = "" ∨ ∃i ∈ [0, v_1.len -1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9")
 >>
-Rule 91 (checkpoint_prefixes must be a list of strings, not empty, and shape less than 100)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : dtype_(v_1) = 12) ∧ shape(v_1,0) > 0 ∧ shape(v_1,0) < 100
+Rule 43 (If allow_missing_files and delete_old_dirs are both false, then at least one file must exist)
+{v_1: tensor, v_2: bool, v_3: bool} |= if v_2 = false ∧ v_3 = false then shape(v_1, 0) > 0
 >>
-Rule 102 (checkpoint_prefixes must not be the same with each other. )
-{v_1: tensor} |= (∀i ∈ [0, shape(v_1, 0) - 1]: (∀j ∈ [i+1, shape(v_1, 0) - 1]: v_1[i] ≠ v_1[j]))
+Rule 44 (If the number of checkpoint_prefixes is greater than 1, allow_missing_files should be false)
+{v_1: tensor, v_2: bool} |= if shape(v_1, 0) > 1 then v_2 = false
 >>
-Rule 104 (destination_prefix must be a string and shape less than 2048)
-{v_2 : tensor} |= ndim(v_2) = 0 ∧ dtype_(v_2) = 12 ∧ shape(v_2, 0) < 2048
+Rule 45 (checkpoint_prefixes and destination_prefix should be different lengths)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) ≠ shape(v_2, 0)
 >>
-Rule 120 (If destination_prefix is empty, allow_missing_files must be true. "Empty" means shape = 0)
-{v_2: tensor, v_4: bool} |= if shape(v_2, 0) = 0 then v_4 = true
+Rule 47 (If the name is specified, it must follow valid naming conventions)
+{v_1:str} |= v_1 = "" ∨ (∃i ∈ [0, v_1.len -1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9"))
 >>
-Rule 121 (checkpoint_prefixes must be a list of strings, not empty, shape less than 100, and elements should not be empty strings)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : dtype_(v_1) = 12 ∧ v_1[i] ≠ "") ∧ shape(v_1,0) > 0 ∧ shape(v_1,0) < 100
+Rule 54 (The checkpoint_prefixes must not contain an empty string)
+{v_1: tensor} |= ∀i ∈ [0, shape(v_1,0) -1] : v_1[i] ≠ ""
+>>
+Rule 55 (The destination_prefix must not be an empty string)
+{v_1: tensor} |= shape(v_1,0) > 0
+>>
+Rule 58 (If the number of checkpoint prefixes is zero, allow missing files has to be true.)
+{v_1 : tensor, v_2: bool} |= if shape(v_1, 0) = 0 then v_2 = true
+>>
+Rule 59 (If destination_prefix is empty, then allow_missing_files must be true)
+{v_1: tensor, v_2: bool} |= if shape(v_1, 0) = 0 then v_2 = true
+>>
+Rule 60 (checkpoint_prefixes must be a 1-D tensor.)
+{v_1 : tensor} |= ndim(v_1) = 1
+>>
+Rule 61 (The prefixes cannot be equal to the destination prefix)
+{v_1 : tensor, v_2: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ v_2[0]
+>>
+Rule 74 (checkpoint_prefixes and destination_prefix must have same dtype of string)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 75 (If a name is provided, then it should not be an empty string)
+{v_1:str} |= v_1 ≠ ""
+>>
+Rule 76 (checkpoint_prefixes and destination_prefix must have a shape)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1,0) ≥ 0 ∧ shape(v_2, 0) ≥ 0
+>>
+Rule 80 (if the number of prefixes is 1, then destination_prefix and checkpoint prefix must be the same)
+{v_1 : tensor, v_2: tensor} |= if shape(v_1, 0) = 1 then v_1[0] = v_2[0]
+>>
+Rule 84 (If name exists, destination_prefix must have valid length)
+{v_1: str, v_2: tensor} |= if v_1 ≠ "" then shape(v_2, 0) > 0
+>>
+Rule 88 (If allow_missing_files is enabled, allow at least one prefix to exist )
+{v_1: tensor, v_2 : bool} |= if v_2 = true then shape(v_1,0) > 0
+>>
+Rule 94 (If destination_prefix has a value, then allow_missing_files must be false)
+{v_1: tensor, v_2: bool} |= if shape(v_1, 0) > 0 then v_2 = false
+>>
+Rule 100 (The name must be not be an empty string)
+{v_1: str} |= v_1 ≠ ""
+>>
+Rule 103 (if name exists, it is at least one character long)
+{v_1 : str} |= v_1.len > 0
+>>
+Rule 105 (checkpoint_prefixes tensor is not an empty tensor)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 110 (checkpoint_prefixes must be a 1-D tensor of strings)
+{v_1: tensor} |= dtype_(v_1) = 12 ∧ ndim(v_1) = 1
+>>
+Rule 115 (If the checkpoint_prefixes is not empty, then allow_missing_files must be false)
+{v_1 : tensor, v_2: bool} |= if shape(v_1, 0) > 0 then v_2 = false
+>>
+Rule 120 (Destination prefix is string type)
+{v_1: tensor} |= dtype_(v_1) = 12
+>>
+Rule 125 (If allow missing files is enabled, then delete_old_dirs has to be disabled)
+{v_1: bool, v_2: bool} |= if v_1 = true then v_2 = false
+>>
+Rule 145 (If allow_missing_files and delete_old_dirs are both false, at least checkpoint_prefixes must exist)
+{v_1: tensor, v_2 : bool, v_3 : bool} |= if v_2 = false ∧ v_3 = false then shape(v_1, 0) > 0

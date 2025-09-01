@@ -1,87 +1,168 @@
 >>
-Rule 1 (window_shape must be a tuple of integers with length greater than or equal to 1)
-{v_1 : tuple(int)} |= v_1.len ≥ 1
+Rule 1 (dilation_rate length check)
+{v_1 : list(int)} |= shape(v_1, 0) = 1 ∨ shape(v_1, 0) = 2 ∨ shape(v_1, 0) = 3
 >>
-Rule 2 (pooling_type must be either "AVG" or "MAX")
+Rule 3 (dilation_rate values must be positive)
+{v_1 : list(int)} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
+>>
+Rule 4 (input tensor rank check for N=1, data_format="NWC" or "NCW")
+{v_1 : tensor, v_2 : str} |= if v_2 = "NWC" ∨ v_2 = "NCW" then ndim(v_1) = 3
+>>
+Rule 5 (input tensor rank check for N=2, data_format="NHWC" or "NCHW")
+{v_1 : tensor, v_2 : str} |= if v_2 = "NHWC" ∨ v_2 = "NCHW" then ndim(v_1) = 4
+>>
+Rule 6 (input tensor rank check for N=3, data_format="NDHWC" or "NCDHW")
+{v_1 : tensor, v_2 : str} |= if v_2 = "NDHWC" ∨ v_2 = "NCDHW" then ndim(v_1) = 5
+>>
+Rule 7 (pooling_type must be "AVG" or "MAX")
 {v_1 : str} |= v_1 = "AVG" ∨ v_1 = "MAX"
 >>
-Rule 4 (padding must be either "SAME" or "VALID")
+Rule 10 (padding must be "SAME" or "VALID")
 {v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID"
 >>
-Rule 5 (data_format must be a valid string and start with NC or not)
-{v_1 : str} |= v_1 = "NWC" ∨ v_1 = "NCW" ∨ v_1 = "NHWC" ∨ v_1 = "NCHW" ∨ v_1 = "NDHWC" ∨ v_1 = "NCDHW"
+Rule 11 (if any dilation_rate > 1, all strides must be 1)
+{v_1 : list(int), v_2 : list(int)} |= (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 1) ∨ (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = 1)
 >>
-Rule 9 (window shape values must be greater than or equal to 1)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 1
+Rule 12 (dilation_rate length check when N=1)
+{v_1 : list(int), v_2 : tensor} |= if ndim(v_2) = 3 then shape(v_1, 0) = 1
 >>
-Rule 12 (Input tensor must have rank N+2)
+Rule 13 (dilation_rate length check when N=2)
+{v_1 : list(int), v_2 : tensor} |= if ndim(v_2) = 4 then shape(v_1, 0) = 1 ∨ shape(v_1, 0) = 2
+>>
+Rule 14 (dilation_rate length check when N=3)
+{v_1 : list(int), v_2 : tensor} |= if ndim(v_2) = 5 then shape(v_1, 0) = 1 ∨ shape(v_1, 0) = 2 ∨ shape(v_1, 0) = 3
+>>
+Rule 15 (window_shape is not empty)
+{v_1 : list(int)} |= shape(v_1, 0) > 0
+>>
+Rule 17 (input tensor rank should be N+2)
 {v_1 : tensor, v_2 : int} |= ndim(v_1) = v_2 + 2
 >>
-Rule 13 (Data format must be a valid string)
-{v_1 : str} |= v_1 = "NWC" ∨ v_1 = "NCW" ∨ v_1 = "NHWC" ∨ v_1 = "NCHW" ∨ v_1 = "NDHWC" ∨ v_1 = "NCDHW" ∨ v_1 = "None"
+Rule 18 (data_format check for N=1)
+{v_1 : str, v_2 : tensor} |= if ndim(v_2) = 3 then v_1 = "NWC" ∨ v_1 = "NCW" ∨ v_1 = "channels_last" ∨ v_1 = "channels_first"
 >>
-Rule 16 (Length of window shape, strides, and dilations must be the same, N)
-{v_1 : tuple(int), v_2 : tuple(int), v_3 : tuple(int)} |= v_1.len = v_2.len ∧ v_2.len = v_3.len
+Rule 19 (data_format check for N=2)
+{v_1 : str, v_2 : tensor} |= if ndim(v_2) = 4 then v_1 = "NHWC" ∨ v_1 = "NCHW" ∨ v_1 = "channels_last" ∨ v_1 = "channels_first"
 >>
-Rule 17 (If data format is None or doesn't start with NC, input spatial dimensions must match window_shape, strides, and dilations)
-{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) - 2 = v_2.len
+Rule 20 (data_format check for N=3)
+{v_1 : str, v_2 : tensor} |= if ndim(v_2) = 5 then v_1 = "NDHWC" ∨ v_1 = "NCDHW" ∨ v_1 = "channels_last" ∨ v_1 = "channels_first"
 >>
-Rule 18 (Strides should not be zero)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ 0
+Rule 21 (Ensure strides values are positive integers)
+{v_1 : list(int)} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 1
 >>
-Rule 20 (Window shape elements must be greater than 0)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 23 (dilation_rate length check when N=1 and list is not empty)
+{v_1 : list(int), v_2 : tensor} |= if ndim(v_2) = 3 ∧ shape(v_1,0) > 0 then shape(v_1, 0) = 1
 >>
-Rule 21 (Check if the dimensions of the input are valid)
-{v_1 : tensor} |= ndim(v_1) ≥ 3
+Rule 24 (dilation_rate length check when N=2 and list is not empty)
+{v_1 : list(int), v_2 : tensor} |= if ndim(v_2) = 4 ∧ shape(v_1,0) > 0 then shape(v_1, 0) = 1 ∨ shape(v_1, 0) = 2
 >>
-Rule 22 (If any stride is greater than 1, then all dilation rates must be 1)
-{v_1 : tuple(int), v_2 : tuple(int)} |= if (∃i ∈ [0, v_1.len - 1] : v_1[i] > 1) then (∀j ∈ [0, v_2.len - 1] : v_2[j] = 1)
+Rule 25 (dilation_rate length check when N=3 and list is not empty)
+{v_1 : list(int), v_2 : tensor} |= if ndim(v_2) = 5 ∧ shape(v_1,0) > 0 then shape(v_1, 0) = 1 ∨ shape(v_1, 0) = 2 ∨ shape(v_1, 0) = 3
 >>
-Rule 24 (window_shape and strides must have the same length)
-{v_1 : tuple(int), v_2 : tuple(int)} |= v_1.len = v_2.len
+Rule 26 (window_shape length check when N=1, N=2, N=3)
+{v_1 : list(int)} |= if shape(v_1, 0) > 0 then shape(v_1, 0) = 1 ∨ shape(v_1, 0) = 2 ∨ shape(v_1, 0) = 3
 >>
-Rule 27 (Pooling type has limited choice)
-{v_1 : str} |= v_1 = "AVG" ∨ v_1 = "MAX" ∨ v_1 = "mean" ∨ v_1 = "max"
+Rule 28 (dilation_rate values must be >= 1)
+{v_1 : list(int)} |= if shape(v_1, 0) > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 1
 >>
-Rule 28 (Padding has limited choice)
-{v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID" ∨ v_1 = "valid" ∨ v_1 = "same"
+Rule 35 (Ensure data_format is valid if specified)
+{v_1 : str} |= v_1 = "channels_last" ∨ v_1 = "channels_first" ∨ v_1 = "NWC" ∨ v_1 = "NCW" ∨ v_1 = "NHWC" ∨ v_1 = "NCHW" ∨ v_1 = "NDHWC" ∨ v_1 = "NCDHW" ∨ v_1 = ""
 >>
-Rule 29 (Rank of input tensor must be greater than 2)
-{v_1 : tensor} |= ndim(v_1) > 2
+Rule 36 (Input tensor rank must be 3, 4 or 5)
+{v_1 : tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4 ∨ ndim(v_1) = 5
 >>
-Rule 30 (data_format can be None, 'NWC', 'NCW', 'NHWC', 'NCHW', 'NDHWC', 'NCDHW')
-{v_1 : str} |= v_1 = "NWC" ∨ v_1 = "NCW" ∨ v_1 = "NHWC" ∨ v_1 = "NCHW" ∨ v_1 = "NDHWC" ∨ v_1 = "NCDHW" ∨ v_1 = "none"
+Rule 37 (Check: If strides > 1, then dilation_rate must be 1)
+{v_1 : list(int), v_2 : list(int)} |= if (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 1) then (∀j ∈ [0, shape(v_2, 0) - 1] : v_2[j] = 1)
 >>
-Rule 32 (If the data format starts with "NC", the number of spatial dimensions must be N)
-{v_1 : str, v_2 : tuple(int)} |= if v_1 = "NCW" ∨ v_1 = "NCHW" ∨ v_1 = "NCDHW" then v_2.len ≥ 1
+Rule 39 (Check for Shape (0, 58, 94, 19) must have rank 5 - if any dimension is 0, rank must not be 5)
+{v_1 : tensor} |= if (shape(v_1, 0) = 0 ∨ shape(v_1, 1) = 0 ∨ shape(v_1, 2) = 0 ∨ shape(v_1, 3) = 0) then ndim(v_1) ≠ 5
 >>
-Rule 38 (The length of window_shape, strides, and dilations must be consistent)
-{v_1 : tuple(int), v_2 : tuple(int), v_3 : tuple(int)} |= v_1.len = v_2.len ∧ v_1.len = v_3.len
+Rule 41 (dilation_rate length check is always consistent with tensor N)
+{v_1: list(int), v_2: tensor} |= if shape(v_1, 0) > 0 then (if ndim(v_2) = 3 then shape(v_1, 0) = ndim(v_2) - 2 else if ndim(v_2) = 4 then shape(v_1, 0) = ndim(v_2) - 2 else if ndim(v_2) = 5 then shape(v_1, 0) = ndim(v_2) - 2)
 >>
-Rule 41 (If data_format starts with NC then input spatial dimensions should be N)
-{v_1 : tensor, v_2 : str, v_3 : tuple(int)} |= if v_2 = "NCW" ∨ v_2 = "NCHW" ∨ v_2 = "NCDHW" then ndim(v_1) - 2 = v_3.len
+Rule 44 (Check for Shape (0, 58, 94, 19) must have rank other than 5 if shape[0] is 0)
+{v_1 : tensor} |= if shape(v_1, 0) = 0 then ndim(v_1) ≠ 5
 >>
-Rule 42 (If data_format does not start with NC then input spatial dimensions should be N)
-{v_1 : tensor, v_2 : str, v_3 : tuple(int)} |= if v_2 = "NWC" ∨ v_2 = "NHWC" ∨ v_2 = "NDHWC" ∨ v_2 = "none" then ndim(v_1) - 2 = v_3.len
+Rule 45 (Check for Shape (83, 17, 17, 55, 38, 2) must have rank 6)
+{v_1 : tensor} |= if shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ shape(v_1, 4) > 0 ∧ shape(v_1, 5) > 0 then ndim(v_1) = 6
 >>
-Rule 46 (If strides is greater than 1 then corresponding dilation rate must be 1, and vice versa)
-{v_1 : tuple(int), v_2 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : if v_1[i] > 1 then v_2[i] = 1 ∧ ∀i ∈ [0, v_2.len - 1] : if v_2[i] > 1 then v_1[i] = 1
+Rule 47 (Check: If strides > 1, then dilation_rate must be 1, check from dilation)
+{v_1 : list(int), v_2 : list(int)} |= if (∃j ∈ [0, shape(v_2, 0) - 1] : v_2[j] > 1) then (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 1)
 >>
-Rule 51 (The input tensor must have the expected number of dimensions based on data format and window shape)
-{v_1 : tensor, v_2 : str, v_3 : tuple(int)} |= if v_2 = "NCW" ∨ v_2 = "NCHW" ∨ v_2 = "NCDHW" then ndim(v_1) = v_3.len + 2 else if v_2 = "NWC" ∨ v_2 = "NHWC" ∨ v_2 = "NDHWC" ∨ v_2 = "none" then ndim(v_1) = v_3.len + 2 else false
+Rule 50 (All values of dilation_rate must be positive)
+{v_1 : list(int)} |= if shape(v_1, 0) > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
 >>
-Rule 57 (Window shape must be a tuple and non-empty)
-{v_1 : tuple(int)} |= v_1.len > 0
+Rule 56 (Check for Shape (0, 58, 94, 19) must have rank 4 if shape[0] is 0)
+{v_1 : tensor} |= if shape(v_1, 0) = 0 then ndim(v_1) = 4
 >>
-Rule 69 (Strides must be a tuple)
-{v_1 : tuple(int)} |= v_1.len ≥ 0
+Rule 57 (Check for Shape (83, 17, 17, 55, 38, 2) must have rank 6)
+{v_1 : tensor} |= ndim(v_1) = 6
 >>
-Rule 71 (if strides and dilations are defined, window_shape length should be equal to input's spatial dimension count)
-{v_1 : tensor, v_2 : tuple(int), v_3 : str} |= if v_3 = "NWC" ∨ v_3 = "NHWC" ∨ v_3 = "NDHWC" ∨ v_3 = "none" then v_2.len = ndim(v_1) - 2 else v_2.len = ndim(v_1) - 2
+Rule 67 (Check that len(dilation_rate) is consistent with N dimensions)
+{v_1 : list(int), v_2 : tensor} |= if ndim(v_2) = 3 then shape(v_1, 0) = 1 else if ndim(v_2) = 4 then shape(v_1, 0) = 2 else if ndim(v_2) = 5 then shape(v_1, 0) = 3
 >>
-Rule 72 (if strides and dilations are defined, and data_format starts with NC, window_shape length should be equal to input's spatial dimension count)
-{v_1 : tensor, v_2 : tuple(int), v_3 : str} |= if v_3 = "NCW" ∨ v_3 = "NCHW" ∨ v_3 = "NCDHW" then v_2.len = ndim(v_1) - 2 else v_2.len = ndim(v_1) - 2
+Rule 73 (If shape[0] is 0 and there are other dimensions available, the rank of the tensor can not be equal to 5)
+{v_1 : tensor} |= if shape(v_1, 0) = 0 ∧ ndim(v_1) > 0 then ndim(v_1) ≠ 5
 >>
-Rule 87 (Window shape elements must be integer)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : true
+Rule 74 (Check shape of length six requires ndim to be equal to 6)
+{v_1: tensor} |= if shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ shape(v_1, 4) > 0 ∧ shape(v_1, 5) > 0 then ndim(v_1) = 6
+>>
+Rule 79 (Check that len(dilation_rate) is consistent with N dimensions)
+{v_1 : list(int), v_2 : tensor} |= if shape(v_1, 0) > 0 then (if ndim(v_2) = 3 then shape(v_1, 0) = 1 else if ndim(v_2) = 4 then shape(v_1, 0) = ndim(v_2) - 2 else if ndim(v_2) = 5 then shape(v_1, 0) = ndim(v_2) - 2)
+>>
+Rule 80 (Check that input tensor should be 3, 4 or 5)
+{v_1: tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4 ∨ ndim(v_1) = 5
+>>
+Rule 81 (Shape(0, 58, 94, 19) needs to have rank 4)
+{v_1: tensor} |= if shape(v_1, 0) = 0 then ndim(v_1) = 4
+>>
+Rule 86 (All values of a list(int) type must be greater than 0)
+{v_1: list(int)} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
+>>
+Rule 87 (The dimension size has to match with the data_format)
+{v_1: tensor, v_2: str} |= if v_2 = "NWC" ∨ v_2 = "NCW" then ndim(v_1) = 3 else if v_2 = "NHWC" ∨ v_2 = "NCHW" then ndim(v_1) = 4 else if v_2 = "NDHWC" ∨ v_2 = "NCDHW" then ndim(v_1) = 5
+>>
+Rule 88 (When the first dimension of a tensor is 0, and its rank is 4, ensure consistent dimensions with other axis if data_format doesn't start with NC)
+{v_1: tensor, v_2 : str} |= if shape(v_1, 0) = 0 ∧ ndim(v_1) = 4 ∧ (v_2 = "channels_last" ∨ v_2 = "NHWC" ∨ v_2 = "") then shape(v_1, 0) < shape(v_1,1) ∧ shape(v_1, 0) < shape(v_1, 2) ∧ shape(v_1, 0) < shape(v_1, 3)
+>>
+Rule 94 (If shape[0] is 0 and rank greater than 0, and data format doesn't start with NC, check that dimensions shape[1], shape[2], shape[3] exist for rank 4 tensors.)
+{v_1: tensor, v_2 : str} |= if shape(v_1, 0) = 0 ∧ ndim(v_1) = 4 ∧ (v_2 = "channels_last" ∨ v_2 = "NHWC" ∨ v_2 = "") then (∃y ∈ [0,1] : shape(v_1, y) > 0) ∧ (∃z ∈ [0,2] : shape(v_1, z) > 0) ∧ (∃k ∈ [0,3] : shape(v_1, k) > 0)
+>>
+Rule 97 (All dilation rates have to be positive, if the list is valid)
+{v_1 : list(int), v_2: tensor} |= if ndim(v_2) = 3 ∨ ndim(v_2) = 4 ∨ ndim(v_2) = 5 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
+>>
+Rule 100 (If shape[0] is 0 and rank greater than 0, and data format doesn't start with NC, check the dimensions)
+{v_1: tensor, v_2 : str} |= if shape(v_1, 0) = 0 ∧ ndim(v_1) = 4 ∧ (v_2 = "channels_last" ∨ v_2 = "NHWC" ∨ v_2 = "") then (shape(v_1, 1) > 0) ∧ (shape(v_1, 2) > 0) ∧ (shape(v_1, 3) > 0)
+>>
+Rule 101 (Check shape of length six requires ndim to be equal to 6)
+{v_1: tensor} |= if ndim(v_1) = 6 then (shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ shape(v_1, 4) > 0 ∧ shape(v_1, 5) > 0)
+>>
+Rule 103 (All dilation rates have to be positive when there are valid number of shapes as indicated by dimension counts)
+{v_1 : list(int), v_2: tensor} |= if ndim(v_2) = 3 ∨ ndim(v_2) = 4 ∨ ndim(v_2) = 5 then (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0)
+>>
+Rule 106 (If shape is 0, other dimensions are invalid. shape[0] != 0)
+{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) ≠ 0
+>>
+Rule 108 (Check shape of length six requires ndim to be equal to 6)
+{v_1: tensor} |= if ndim(v_1) = 6 then (∃i ∈ [0,0] : shape(v_1, i) > 0) ∧ (∃i ∈ [0,1] : shape(v_1, i) > 0) ∧ (∃i ∈ [0,2] : shape(v_1, i) > 0) ∧ (∃i ∈ [0,3] : shape(v_1, i) > 0) ∧ (∃i ∈ [0,4] : shape(v_1, i) > 0) ∧ (∃i ∈ [0,5] : shape(v_1, i) > 0)
+>>
+Rule 109 (If strides > 1, then dilation_rate must be 1, check from dilation list size is valid)
+{v_1 : list(int), v_2 : list(int), v_3 : tensor} |= if (∃j ∈ [0, shape(v_2, 0) - 1] : v_2[j] > 1) ∧ (ndim(v_3) = 3 ∨ ndim(v_3) = 4 ∨ ndim(v_3) = 5) then (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 1)
+>>
+Rule 110 (All dilation rates have to be positive when there are valid number of shapes as indicated by dimension counts; only check valid dimensioned matrices)
+{v_1 : list(int), v_2: tensor} |= if (ndim(v_2) = 3 ∨ ndim(v_2) = 4 ∨ ndim(v_2) = 5) ∧ (shape(v_1, 0) = 1 ∨ shape(v_1, 0) = 2 ∨ shape(v_1, 0) = 3) then (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0)
+>>
+Rule 113 (If shape[0] is 0 and rank is 4 with channels_last format, other dimensions are valid or not equal with shape 0)
+{v_1: tensor, v_2 : str} |= if shape(v_1, 0) = 0 ∧ ndim(v_1) = 4 ∧ (v_2 = "channels_last" ∨ v_2 = "NHWC" ∨ v_2 = "") then (shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0)
+>>
+Rule 116 (All dilation rates have to be positive when there are valid number of shapes and tensor length is correct 3, 4, 5)
+{v_1 : list(int), v_2: tensor} |= if ((ndim(v_2) = 3 ∨ ndim(v_2) = 4 ∨ ndim(v_2) = 5) ∧ (shape(v_1, 0) > 0)) then (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0)
+>>
+Rule 117 (Check that len(dilation_rate) is consistent with N dimensions given rank of tensor 3, 4, 5, and v1's shape count is non-negative)
+{v_1 : list(int), v_2 : tensor} |= if (ndim(v_2) > 2 ∧ ndim(v_2) < 6 ) then (shape(v_1, 0) = ndim(v_2) - 2)
+>>
+Rule 118 (Check that input tensor should be 3, 4 or 5)
+{v_1: tensor} |= (ndim(v_1) = 3) ∨ (ndim(v_1) = 4) ∨ (ndim(v_1) = 5)
+>>
+Rule 119 (If there is any dimension, we assume tensor is not empty)
+{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) > 0

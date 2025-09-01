@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input is int16 or int32 or int64 and the output is bool the shape is different. (Rule 58)
+# If size changes, the last dimension changes accordingly, but it doesn't apply if dtypes are bool or string (Rule 58)
 
 rule_58 = lambda s, v, n=False: (
-    s.add(Not(If(And((Or(Or(v["arg1_dtype"] == 2, v["arg1_dtype"] == 3), v["arg1_dtype"] == 4)), v["arg2_value"] == 0), Or(Or(Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 4), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 8), False)) if n else
-          If(And((Or(Or(v["arg1_dtype"] == 2, v["arg1_dtype"] == 3), v["arg1_dtype"] == 4)), v["arg2_value"] == 0), Or(Or(Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 4), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 8), False))
+    s.add(Not(If((v["arg1_dtype"] * 8) > (v["arg2_value"] * 8), Select(v["arg1_shape"], v["arg1_ndim"] - 1) * ((v["arg1_dtype"] * 8) / (v["arg2_value"] * 8)) == Select(v["arg1_shape"], v["arg1_ndim"] - 1), If(((v["arg2_value"] * 8) > (v["arg1_dtype"] * 8)), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == ((v["arg2_value"] * 8) / (v["arg1_dtype"] * 8)), If(Or(Or(Or((v["arg1_dtype"] == 0), (v["arg2_value"] == 0)), (v["arg1_dtype"] == 11)), (v["arg2_value"] == 11)), True, True)))) if n else
+          If((v["arg1_dtype"] * 8) > (v["arg2_value"] * 8), Select(v["arg1_shape"], v["arg1_ndim"] - 1) * ((v["arg1_dtype"] * 8) / (v["arg2_value"] * 8)) == Select(v["arg1_shape"], v["arg1_ndim"] - 1), If(((v["arg2_value"] * 8) > (v["arg1_dtype"] * 8)), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == ((v["arg2_value"] * 8) / (v["arg1_dtype"] * 8)), If(Or(Or(Or((v["arg1_dtype"] == 0), (v["arg2_value"] == 0)), (v["arg1_dtype"] == 11)), (v["arg2_value"] == 11)), True, True))))
 )
 
 def rule_58_func(arg1, arg2, solver=None, neg=False):
@@ -38,9 +38,9 @@ def rule_58_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
 
         # Constraints for rule 58
-        rule_58(solver, {'arg1_shape': arg1_shape, 'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_58(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_58(solver, {'arg1_shape': arg1['shape'], 'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)
+        rule_58(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

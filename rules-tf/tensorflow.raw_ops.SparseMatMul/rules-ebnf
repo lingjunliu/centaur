@@ -1,54 +1,177 @@
 >>
-Rule 1 (Input tensors 'a' and 'b' must be two-dimensional matrices)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2
+Rule 1 (a and b must have the same dtype, and it should be float32 or bfloat16)
+{a : tensor, b : tensor} |= (dtype_(a) = 7 ∧ dtype_(b) = 7) ∨ (dtype_(a) = 6 ∧ dtype_(b) = 6)
 >>
-Rule 2 (The inner dimension of 'a' must match the outer dimension of 'b')
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = shape(v_2, 0)
+Rule 2 (a and b must be two-dimensional matrices)
+{a : tensor, b : tensor} |= ndim(a) = 2 ∧ ndim(b) = 2
 >>
-Rule 3 (transpose_a must be a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 3 (if transpose_a is true, then transpose a)
+{a : tensor, transpose_a : bool} |= if transpose_a then shape(a, 0) = shape(a, 1)
 >>
-Rule 7 (If a_is_sparse is true, then at least one of 'a' or 'b' must be sparse.)
-{v_1 : bool, v_2 : bool, v_3 : bool} |= if v_1 = true then v_2 = true ∨ v_3 = true
+Rule 4 (if transpose_b is true, then transpose b)
+{b : tensor, transpose_b : bool} |= if transpose_b then shape(b, 0) = shape(b, 1)
 >>
-Rule 8 (if transpose_a is true, the shape of 'a' is transposed before multiplication)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then shape(v_1, 0) = shape(v_1, 1)
+Rule 6 (a_is_sparse and b_is_sparse are boolean values)
+{a_is_sparse : bool, b_is_sparse : bool} |= a_is_sparse = true ∨ a_is_sparse = false ∧ b_is_sparse = true ∨ b_is_sparse = false
 >>
-Rule 14 (If transpose_a is true, the outer dimension of transposed 'a' must match the outer dimension of 'b')
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then shape(v_1, 0) = shape(v_2, 0)
+Rule 8 (a can only be float32 or bfloat16)
+{a : tensor} |= dtype_(a) = 7 ∨ dtype_(a) = 6
 >>
-Rule 15 (If transpose_b is true, the inner dimension of 'a' must match the outer dimension of transposed 'b')
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then shape(v_1, 1) = shape(v_2, 1)
+Rule 9 (b can only be float32 or bfloat16)
+{b : tensor} |= dtype_(b) = 7 ∨ dtype_(b) = 6
 >>
-Rule 18 (Data type of tensor 'a' must be either float32 (7) or bfloat16 (6))
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 6
+Rule 13 (a_is_sparse is a boolean value)
+{a_is_sparse : bool} |= a_is_sparse = true ∨ a_is_sparse = false
 >>
-Rule 23 (The inner dimension of 'a' must match the outer dimension of 'b', if neither is transposed.)
-{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4 : bool} |= if v_3 = false ∧ v_4 = false then shape(v_1, 1) = shape(v_2, 0)
+Rule 14 (b_is_sparse is a boolean value)
+{b_is_sparse : bool} |= b_is_sparse = true ∨ b_is_sparse = false
 >>
-Rule 26 (If transpose_a is true, the outer dimension of the transposed 'a' matches the outer dimension of 'b' if transpose_b is false.)
-{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4: bool} |= if v_3 = true ∧ v_4 = false then shape(v_1, 0) = shape(v_2, 0)
+Rule 15 (transpose_a is a boolean value)
+{transpose_a : bool} |= transpose_a = true ∨ transpose_a = false
 >>
-Rule 27 (If transpose_b is true, the inner dimension of 'a' matches the outer dimension of the transposed 'b'.)
-{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4: bool} |= if v_4 = true ∧ v_3 = false then shape(v_1, 1) = shape(v_2, 1)
+Rule 16 (transpose_b is a boolean value)
+{transpose_b : bool} |= transpose_b = true ∨ transpose_b = false
 >>
-Rule 32 (If transpose_a is true and transpose_b is false, outer dimension of A should match outer dimension of B.)
-{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4 : bool} |= if v_3 = true ∧ v_4 = false then shape(v_1, 0) = shape(v_2, 0)
+Rule 19 (if a_is_sparse is true, then the proportion of zero values in a must be large)
+{a : tensor, a_is_sparse : bool} |= if a_is_sparse then true
 >>
-Rule 33 (If transpose_a is false and transpose_b is true, inner dimension of A should match inner dimension of B.)
-{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4 : bool} |= if v_3 = false ∧ v_4 = true then shape(v_1, 1) = shape(v_2, 1)
+Rule 20 (if b_is_sparse is true, then the proportion of zero values in b must be large)
+{b : tensor, b_is_sparse : bool} |= if b_is_sparse then true
 >>
-Rule 34 (If transpose_a and transpose_b are true, outer dimension of A should match inner dimension of B.)
-{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4 : bool} |= if v_3 = true ∧ v_4 = true then shape(v_1, 0) = shape(v_2, 1)
+Rule 21 (if a is transposed, its dimensions must be swappable)
+{a: tensor, transpose_a: bool} |= if transpose_a then shape(a, 0) > 0 ∧ shape(a, 1) > 0
 >>
-Rule 40 (If transpose_a is true, the condition of inner and outer dimension must be met)
-{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4 : bool} |= if v_3 = true ∧ v_4 = false then shape(v_1, 0) = shape(v_2, 0) else if v_3 = true ∧ v_4 = true then shape(v_1, 0) = shape(v_2, 1)
+Rule 22 (if b is transposed, its dimensions must be swappable)
+{b: tensor, transpose_b: bool} |= if transpose_b then shape(b, 0) > 0 ∧ shape(b, 1) > 0
 >>
-Rule 51 (Output tensor must be of type float32)
-{v_1 : tensor} |= dtype_(v_1) = 7
+Rule 23 (name has non-zero length if provided)
+{name: str} |= name = "" ∨ name ≠ ""
 >>
-Rule 58 (Data type of a and b tensors must be the same.)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 24 (a and b must be two-dimensional matrices with non-zero shape)
+{a : tensor, b : tensor} |= ndim(a) = 2 ∧ ndim(b) = 2 ∧ shape(a, 0) > 0 ∧ shape(a, 1) > 0 ∧ shape(b, 0) > 0 ∧ shape(b, 1) > 0
 >>
-Rule 90 (The dtype of a and b should be either float32 or bfloat16.)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 6) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 6)
+Rule 25 (If a_is_sparse and b_is_sparse are both true, at least one should have > 30% zero values)
+{a : tensor, b : tensor, a_is_sparse : bool, b_is_sparse : bool} |= if a_is_sparse ∧ b_is_sparse then true
+>>
+Rule 26 (if a_is_sparse is true, a's shape should not contain 0)
+{a : tensor, a_is_sparse : bool} |= if a_is_sparse then ∀i ∈ [0, ndim(a) -1] : shape(a, i) > 0
+>>
+Rule 27 (if b_is_sparse is true, b's shape should not contain 0)
+{b : tensor, b_is_sparse : bool} |= if b_is_sparse then ∀i ∈ [0, ndim(b) -1] : shape(b, i) > 0
+>>
+Rule 28 (If transpose_a is true, then a's shape[0] and shape[1] must be positive)
+{a : tensor, transpose_a : bool} |= if transpose_a then shape(a, 0) > 0 ∧ shape(a, 1) > 0
+>>
+Rule 29 (If transpose_b is true, then b's shape[0] and shape[1] must be positive)
+{b : tensor, transpose_b : bool} |= if transpose_b then shape(b, 0) > 0 ∧ shape(b, 1) > 0
+>>
+Rule 30 (If a_is_sparse or b_is_sparse are true, then shapes cannot be dynamic)
+{a : tensor, b: tensor, a_is_sparse: bool, b_is_sparse:bool} |= if a_is_sparse ∨ b_is_sparse then true
+>>
+Rule 33 (Either a or b must be potentially sparse)
+{a_is_sparse: bool, b_is_sparse: bool} |= a_is_sparse = true ∨ b_is_sparse = true
+>>
+Rule 34 (The data type of 'a' must be either float32 or bfloat16)
+{a: tensor} |= dtype_(a) = 7 ∨ dtype_(a) = 6
+>>
+Rule 35 (The data type of 'b' must be either float32 or bfloat16)
+{b: tensor} |= dtype_(b) = 7 ∨ dtype_(b) = 6
+>>
+Rule 37 (If a_is_sparse and b_is_sparse, at least one matrix must have > 30% zeros - simplified)
+{a_is_sparse : bool, b_is_sparse : bool} |= if a_is_sparse ∧ b_is_sparse then true
+>>
+Rule 44 (Either input tensors should have a bfloat16 or float32 type)
+{a: tensor, b: tensor} |= (dtype_(a) = 6 ∧ dtype_(b) = 6) ∨ (dtype_(a) = 7 ∧ dtype_(b) = 7)
+>>
+Rule 45 (a and b are two-dimensional matrices)
+{a: tensor, b: tensor} |= ndim(a) = 2 ∧ ndim(b) = 2
+>>
+Rule 47 (Transpose_a is a boolean)
+{transpose_a: bool} |= transpose_a = true ∨ transpose_a = false
+>>
+Rule 48 (Transpose_b is a boolean)
+{transpose_b: bool} |= transpose_b = true ∨ transpose_b = false
+>>
+Rule 49 (A is sparse implies sparsity should be beneficial (heuristic))
+{a: tensor, a_is_sparse: bool} |= if a_is_sparse then true
+>>
+Rule 50 (B is sparse implies sparsity should be beneficial (heuristic))
+{b: tensor, b_is_sparse: bool} |= if b_is_sparse then true
+>>
+Rule 51 (a and b must be two-dimensional and have positive dimensions)
+{a: tensor, b: tensor} |= ndim(a) = 2 ∧ ndim(b) = 2 ∧ shape(a, 0) > 0 ∧ shape(a, 1) > 0 ∧ shape(b, 0) > 0 ∧ shape(b, 1) > 0
+>>
+Rule 52 (If a_is_sparse, then at least one dimension of a should be large)
+{a : tensor, a_is_sparse : bool} |= if a_is_sparse then shape(a, 0) > 100 ∨ shape(a, 1) > 100
+>>
+Rule 53 (If b_is_sparse, then at least one dimension of b should be large)
+{b : tensor, b_is_sparse : bool} |= if b_is_sparse then shape(b, 0) > 100 ∨ shape(b, 1) > 100
+>>
+Rule 62 (DType can only be float32 or bfloat16)
+{a: tensor, b: tensor} |= (dtype_(a) = 7 ∨ dtype_(a) = 6) ∧ (dtype_(b) = 7 ∨ dtype_(b) = 6)
+>>
+Rule 63 (Matrices must have positive dimension sizes)
+{a: tensor, b: tensor} |= shape(a, 0) > 0 ∧ shape(a, 1) > 0 ∧ shape(b, 0) > 0 ∧ shape(b, 1) > 0
+>>
+Rule 65 (Shapes should be 2 dimensional.)
+{a:tensor, b: tensor} |= ndim(a) = 2 ∧ ndim(b) = 2
+>>
+Rule 67 (A is a matrix.)
+{a: tensor} |= ndim(a) = 2
+>>
+Rule 68 (B is a matrix.)
+{b: tensor} |= ndim(b) = 2
+>>
+Rule 69 (a and b have a valid dtype)
+{a: tensor, b: tensor} |= (dtype_(a) = 6 ∨ dtype_(a) = 7) ∧ (dtype_(b) = 6 ∨ dtype_(b) = 7)
+>>
+Rule 70 (If a_is_sparse, then ndim(a) == 2)
+{a: tensor, a_is_sparse: bool} |= if a_is_sparse then ndim(a) = 2
+>>
+Rule 71 (If b_is_sparse, then ndim(b) == 2)
+{b: tensor, b_is_sparse: bool} |= if b_is_sparse then ndim(b) = 2
+>>
+Rule 72 (if a_is_sparse is true, then the product of a's dimensions must be greater than 1000)
+{a: tensor, a_is_sparse: bool} |= if a_is_sparse then shape(a, 0) * shape(a, 1) > 1000
+>>
+Rule 73 (if b_is_sparse is true, then the product of b's dimensions must be greater than 1000)
+{b: tensor, b_is_sparse: bool} |= if b_is_sparse then shape(b, 0) * shape(b, 1) > 1000
+>>
+Rule 76 (a_is_sparse and b_is_sparse are valid booleans.)
+{a_is_sparse: bool, b_is_sparse: bool} |= a_is_sparse = true ∨ a_is_sparse = false ∧ b_is_sparse = true ∨ b_is_sparse = false
+>>
+Rule 77 (Transpose_a and Transpose_b can only be boolean values)
+{transpose_a: bool, transpose_b: bool} |= (transpose_a = true ∨ transpose_a = false) ∧ (transpose_b = true ∨ transpose_b = false)
+>>
+Rule 87 (A dtype must be bfloat16 or float32)
+{a: tensor} |= dtype_(a) = 6 ∨ dtype_(a) = 7
+>>
+Rule 88 (B dtype must be bfloat16 or float32)
+{b: tensor} |= dtype_(b) = 6 ∨ dtype_(b) = 7
+>>
+Rule 92 (A must be a 2D Tensor of type bfloat16 or float32)
+{a : tensor} |= ndim(a) = 2 ∧ (dtype_(a) = 6 ∨ dtype_(a) = 7)
+>>
+Rule 93 (B must be a 2D Tensor of type bfloat16 or float32)
+{b : tensor} |= ndim(b) = 2 ∧ (dtype_(b) = 6 ∨ dtype_(b) = 7)
+>>
+Rule 95 (If both are not sparse then operation might as well be dense)
+{a_is_sparse : bool, b_is_sparse : bool} |= if (a_is_sparse = false) ∧ (b_is_sparse = false) then false
+>>
+Rule 96 (A's dtype is in {bfloat16, float32})
+{a : tensor} |= dtype_(a) = 6 ∨ dtype_(a) = 7
+>>
+Rule 99 (If a dense-dense multiplication, then don't use sparse matmul unless small)
+{a_is_sparse : bool, b_is_sparse : bool, a : tensor, b: tensor} |= if (a_is_sparse = false) ∧ (b_is_sparse = false) then (shape(a,0) * shape(a,1) < 1000) ∨ (shape(b,0) * shape(b,1) < 1000)
+>>
+Rule 101 (Dtype of B must be bfloat16 or float32)
+{b : tensor} |= dtype_(b) = 6 ∨ dtype_(b) = 7
+>>
+Rule 104 (Transpose flags must be valid boolean values)
+{transpose_a : bool, transpose_b : bool} |= (transpose_a = true ∨ transpose_a = false) ∧ (transpose_b = true ∨ transpose_b = false)
+>>
+Rule 110 (a_is_sparse and b_is_sparse must be valid booleans)
+{a_is_sparse: bool, b_is_sparse: bool} |= (a_is_sparse = true ∨ a_is_sparse = false) ∧ (b_is_sparse = true ∨ b_is_sparse = false)
+>>
+Rule 114 (All shape dimensions are positive and not zero)
+{a: tensor, b:tensor} |= shape(a, 0) > 0 ∧ shape(a, 1) > 0 ∧ shape(b, 0) > 0 ∧ shape(b, 1) > 0

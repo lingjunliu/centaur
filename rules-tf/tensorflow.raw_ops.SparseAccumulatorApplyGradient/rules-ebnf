@@ -1,123 +1,171 @@
 >>
-Rule 1 (handle must be a string)
-{v_1 : tensor} |= dtype_(v_1) = 11
+Rule 1 (local_step must be a scalar (rank 0 tensor))
+{local_step : tensor} |= ndim(local_step) = 0
 >>
-Rule 2 (local_step must be a scalar int64)
-{v_1 : tensor} |= dtype_(v_1) = 4 ∧ ndim(v_1) = 0
+Rule 2 (gradient_indices must be a vector (rank 1 tensor))
+{gradient_indices : tensor} |= ndim(gradient_indices) = 1
 >>
-Rule 3 (gradient_indices must be a vector of int64)
-{v_1 : tensor} |= dtype_(v_1) = 4 ∧ ndim(v_1) = 1
+Rule 3 (gradient_shape must be a vector (rank 1 tensor))
+{gradient_shape : tensor} |= ndim(gradient_shape) = 1
 >>
-Rule 4 (gradient_values must be a tensor of specific dtypes)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18 ∨ dtype_(v_1) = 23 ∨ dtype_(v_1) = 19 ∨ dtype_(v_1) = 20 ∨ dtype_(v_1) = 21 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 22 ∨ dtype_(v_1) = 24
+Rule 4 (local_step must be of type int64)
+{local_step : tensor} |= dtype_(local_step) = 4
 >>
-Rule 5 (gradient_indices and gradient_values must have the same first dimension)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 5 (gradient_indices must be of type int64)
+{gradient_indices : tensor} |= dtype_(gradient_indices) = 4
 >>
-Rule 7 (has_known_shape must be a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 6 (gradient_shape must be of type int64)
+{gradient_shape : tensor} |= dtype_(gradient_shape) = 4
 >>
-Rule 8 (Check if gradient_shape elements are non-negative when has_known_shape is true)
-{v_1 : tensor, v_2 : bool} |= if v_2 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
+Rule 7 (The first dimension of gradient_indices and gradient_values should match)
+{gradient_indices : tensor, gradient_values : tensor} |= shape(gradient_indices, 0) = shape(gradient_values, 0)
 >>
-Rule 9 (handle must be a string tensor, not empty)
-{v_1 : tensor} |= dtype_(v_1) = 11 ∧ shape(v_1, 0) > 0
+Rule 8 (has_known_shape is a boolean)
+{has_known_shape : bool} |= has_known_shape = true ∨ has_known_shape = false
 >>
-Rule 10 (local_step must be a scalar int64 and non-negative)
-{v_1 : tensor} |= dtype_(v_1) = 4 ∧ ndim(v_1) = 0 ∧ v_1 ≥ 0
+Rule 9 (if has_known_shape is true, then the product of gradient_shape must be greater than 0)
+{gradient_shape : tensor, has_known_shape : bool} |= if has_known_shape then ∀i ∈ [0, shape(gradient_shape,0) - 1] : shape(gradient_shape, i) > 0
 >>
-Rule 11 (gradient_indices must be a vector of int64 and non-negative values)
-{v_1 : tensor} |= dtype_(v_1) = 4 ∧ ndim(v_1) = 1 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
+Rule 10 (gradient_values must be one of the allowed dtypes)
+{gradient_values : tensor} |= dtype_(gradient_values) = 7 ∨ dtype_(gradient_values) = 8 ∨ dtype_(gradient_values) = 3 ∨ dtype_(gradient_values) = 5 ∨ dtype_(gradient_values) = 2 ∨ dtype_(gradient_values) = 1 ∨ dtype_(gradient_values) = 9 ∨ dtype_(gradient_values) = 4 ∨ dtype_(gradient_values) = 10
 >>
-Rule 16 (If has_known_shape is true, gradient_shape must have at least one element)
-{v_1 : tensor, v_2 : bool} |= if v_2 then shape(v_1,0) > 0
+Rule 11 (handle must be a scalar string tensor)
+{handle : tensor} |= ndim(handle) = 0 ∧ dtype_(handle) = 11
 >>
-Rule 17 (If has_known_shape is true, all dimensions in gradient_shape must be greater than zero.)
-{v_1 : tensor, v_2 : bool} |= if v_2 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
+Rule 12 (All elements in gradient_shape must be non-negative)
+{gradient_shape : tensor} |= ∀i ∈ [0, shape(gradient_shape, 0) - 1] : shape(gradient_shape, i) ≥ 0
 >>
-Rule 19 (local_step must be a scalar int64 and non-negative)
-{v_1 : tensor} |= dtype_(v_1) = 4 ∧ ndim(v_1) = 0 ∧ min(v_1) ≥ 0
+Rule 14 (If has_known_shape is false, the length of gradient_shape should be greater than 0)
+{gradient_shape : tensor, has_known_shape : bool} |= if (has_known_shape = false) then shape(gradient_shape, 0) > 0
 >>
-Rule 21 (gradient_values and gradient_shape should have same rank)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 15 (If has_known_shape is false and gradient_shape is not empty, all elements in gradient_shape should be positive)
+{gradient_shape : tensor, has_known_shape : bool} |= if (has_known_shape = false) ∧ (shape(gradient_shape, 0) > 0) then ∀i ∈ [0, shape(gradient_shape, 0) - 1] : shape(gradient_shape, i) > 0
 >>
-Rule 22 (If has_known_shape is true, gradient_shape must have at least one element and non-negative dimensions)
-{v_1 : tensor, v_2 : bool} |= if v_2 then shape(v_1,0) > 0 ∧  ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
+Rule 17 (If has_known_shape is true, the shape of gradient_values must be consistent with gradient_indices)
+{gradient_values : tensor, gradient_indices : tensor, has_known_shape : bool} |= if (has_known_shape = true) then shape(gradient_values,0) = shape(gradient_indices,0)
 >>
-Rule 23 (local_step should be a scalar)
-{v_1: tensor} |= ndim(v_1) = 0
+Rule 18 (If has_known_shape is true, then the length of gradient shape should equal the rank of the underlying dense tensor.)
+{gradient_shape : tensor, gradient_values : tensor, has_known_shape : bool} |= if (has_known_shape = true) then shape(gradient_shape, 0) = ndim(gradient_values)
 >>
-Rule 27 (gradient_values and gradient_shape should have same number of dimensions if has_known_shape is true)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then ndim(v_1) = ndim(v_2)
+Rule 19 (If has_known_shape is false and gradient_shape is provided then gradient_shape must match ndim of gradient_values)
+{gradient_shape : tensor, gradient_values : tensor, has_known_shape : bool} |= if (has_known_shape = false) ∧ (shape(gradient_shape, 0) > 0) then shape(gradient_shape, 0) = ndim(gradient_values)
 >>
-Rule 29 (If has_known_shape is true, the product of gradient_shape must be greater than 0 or gradient_values is empty.)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then (∃i ∈ [0, shape(v_1, 0) - 1]: v_1[i] > 0) ∨ shape(v_2, 0) = 0
+Rule 20 (If gradient_values is complex type, then other accumulator's gradient_values must be complex type.)
+{gradient_values : tensor} |= if (dtype_(gradient_values) = 9) ∨ (dtype_(gradient_values) = 10) then true
 >>
-Rule 30 (local_step's value should not be too large.)
-{v_1: tensor} |= min(v_1) < 1000000000
+Rule 21 (gradient_indices must be int64 if gradient_values is a quantized type)
+{gradient_indices : tensor, gradient_values : tensor} |= if dtype_(gradient_values) = 13 ∨ dtype_(gradient_values) = 14 ∨ dtype_(gradient_values) = 15 then dtype_(gradient_indices) = 4
 >>
-Rule 37 (if gradient_values is complex, gradient_shape should be at least rank 1)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ndim(v_1) ≥ 1
+Rule 22 (If has_known_shape is true and gradient_shape is a scalar, the gradient_values must be scalar)
+{gradient_shape : tensor, gradient_values : tensor, has_known_shape : bool} |= if (has_known_shape = true) ∧ (ndim(gradient_shape) = 0) then ndim(gradient_values) = 0
 >>
-Rule 44 (if gradient_values is complex, gradient_shape should be at least rank 1 or gradient_shape should be empty)
-{v_1 : tensor, v_2: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ndim(v_2) ≥ 1 ∨ shape(v_2, 0) = 0
+Rule 23 (If gradient_values is bfloat16 then gradient_indices must be int64)
+{gradient_indices : tensor, gradient_values : tensor} |= if dtype_(gradient_values) = 12 then dtype_(gradient_indices) = 4
 >>
-Rule 58 (Check element size consistency: gradient_values' size equals the product of gradient_shape when has_known_shape is true)
-{v_1 : tensor, v_2: tensor, v_3: bool} |= if v_3 then shape(v_1, 0) = (if shape(v_2, 0) > 0 then 1 else 0)
+Rule 24 (If gradient_values is of type half, then gradient_indices must be int64)
+{gradient_indices : tensor, gradient_values : tensor} |= if dtype_(gradient_values) = 16 then dtype_(gradient_indices) = 4
 >>
-Rule 64 (gradient_values cannot be empty if has_known_shape is true and all elements in gradient_shape are positive)
-{v_1 : tensor, v_2: tensor, v_3: bool} |= if v_3 ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] > 0) then shape(v_1, 0) > 0
+Rule 25 (gradient_shape must be positive and less or equal to maximum allowed value)
+{gradient_shape : tensor} |= ∀i ∈ [0, shape(gradient_shape, 0) - 1] : 0 < shape(gradient_shape, i) ∧ shape(gradient_shape, i) ≤ 2147483647
 >>
-Rule 65 (local_step is not negative)
-{v_1 : tensor} |= min(v_1) >= 0
+Rule 26 (If the dtype of gradient_values is qint8, quint8 or qint32, then gradient_indices must be int32)
+{gradient_values : tensor, gradient_indices : tensor} |= if (dtype_(gradient_values) = 13) ∨ (dtype_(gradient_values) = 14) ∨ (dtype_(gradient_values) = 15) then dtype_(gradient_indices) = 3
 >>
-Rule 70 (If has_known_shape is true, then gradient_shape must have at least 1 dimension)
-{v_1: tensor, v_2: bool} |= if v_2 then ndim(v_1) > 0
+Rule 27 (local_step value should be greater than 0)
+{local_step : tensor} |= min(local_step) > 0
 >>
-Rule 77 (gradient_shape's dtype should be int64)
-{v_1 : tensor} |= dtype_(v_1) = 4
+Rule 28 (gradient_indices should be within the bounds of gradient_shape)
+{gradient_indices : tensor, gradient_shape : tensor, has_known_shape: bool} |= if (has_known_shape = true) then ∀i ∈ [0, shape(gradient_indices, 0) - 1] : gradient_indices[i] ≥ 0 ∧ gradient_indices[i] < shape(gradient_shape,0)
 >>
-Rule 79 (gradient_shape rank must be 1)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 29 (If gradient_values is uint32 or uint64, then gradient_indices must be int64)
+{gradient_indices : tensor, gradient_values : tensor} |= if (dtype_(gradient_values) = 17) ∨ (dtype_(gradient_values) = 18) then dtype_(gradient_indices) = 4
 >>
-Rule 84 (If has_known_shape is true, and gradient_shape has elements, at least one dimension should be larger than 1)
-{v_1: tensor, v_2: bool} |= if v_2 ∧ shape(v_1, 0) > 0 then (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 1)
+Rule 30 (If gradient_shape is provided, its elements should be within the maximum allowed value for int64)
+{gradient_shape : tensor} |= ∀i ∈ [0, shape(gradient_shape, 0) - 1] : shape(gradient_shape, i) < 9223372036854775807
 >>
-Rule 91 (If has_known_shape is true, and at least one element exist in gradient_shape, then the product of gradient_shape equals number of elements in gradient_values.)
-{v_1 : tensor, v_2: tensor, v_3: bool} |= if v_3 ∧ shape(v_2,0) > 0 then shape(v_1, 0) = 1
+Rule 31 (If gradient_values is uint16, then gradient_indices must be int32 or int64)
+{gradient_indices : tensor, gradient_values : tensor} |= if dtype_(gradient_values) = 15 then (dtype_(gradient_indices) = 3 ∨ dtype_(gradient_indices) = 4)
 >>
-Rule 92 (If all elements in gradient_shape are equal to 1 and has_known_shape is true, then the gradient is dense)
-{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = 1) then shape(v_1,0) = 1
+Rule 32 (If gradient_values is qint16 or quint16, then gradient_indices must be int32)
+{gradient_indices : tensor, gradient_values : tensor} |= if (dtype_(gradient_values) = 14) ∨ (dtype_(gradient_values) = 15) then dtype_(gradient_indices) = 3
 >>
-Rule 93 (If at least one element in gradient_shape is larger than 1, has_known_shape is true, the gradient is sparse)
-{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 ∧ (∃i ∈ [0, shape(v_2, 0) - 1] : v_2[i] > 1) then shape(v_1,0) > 0
+Rule 33 (If gradient_values is qint8, quint8 or qint32, then gradient_indices must be in range of int32)
+{gradient_indices : tensor, gradient_values : tensor} |= if (dtype_(gradient_values) = 13) ∨ (dtype_(gradient_values) = 14) ∨ (dtype_(gradient_values) = 15) then min(gradient_indices) ≥ -2147483648 ∧ max(gradient_indices) ≤ 2147483647
 >>
-Rule 98 (Check the size of gradient shape, gradient_shape must not be larger than 8)
-{v_1: tensor} |= shape(v_1, 0) <= 8
+Rule 34 (The handle tensor must be a scalar)
+{handle : tensor} |= ndim(handle) = 0
 >>
-Rule 106 (If local_step is large, it will be considered invalid.)
-{v_1: tensor} |= min(v_1) < 2000000000
+Rule 35 (if has_known_shape is false and the rank of the gradient values is more than 1 then the gradient_shape must have the same number of elements as the shape of gradient_values.)
+{gradient_shape : tensor, gradient_values : tensor, has_known_shape : bool} |= if (has_known_shape = false) ∧ (ndim(gradient_values) > 1) then shape(gradient_shape, 0) = ndim(gradient_values)
 >>
-Rule 107 (If elements in gradient_shape are too large, there will be overflow.)
-{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 100000
+Rule 36 (If handle is defined, it should be of type string)
+{handle : tensor} |= dtype_(handle) = 11
 >>
-Rule 112 (If has_known_shape is true, and gradient_shape has elements, the product of gradient_shape equals number of elements in gradient value, otherwise, shape(gradient_values,0)=0 is satisfied)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 ∧ shape(v_2, 0) > 0 then shape(v_1, 0) = 1 else shape(v_1, 0) = 0
+Rule 37 (If gradient_values' dtype is uint8 then gradient_indices' dtype must be int32 or int64)
+{gradient_values : tensor, gradient_indices : tensor} |= if (dtype_(gradient_values) = 5) then (dtype_(gradient_indices) = 3 ∨ dtype_(gradient_indices) = 4)
 >>
-Rule 114 (If local_step is larger than int32 max, it will be truncated when casting.)
-{v_1: tensor} |= min(v_1) < 2147483647
+Rule 38 (If gradient_shape exists, then the product of gradient_shape must be equal the total number of elements in gradient_values.)
+{gradient_values : tensor, gradient_shape : tensor, has_known_shape : bool} |= if (has_known_shape = true) then (∃i ∈ [0, ndim(gradient_values) - 1] : shape(gradient_values, i) = shape(gradient_shape, i))
 >>
-Rule 119 (Check the size of gradient shape, gradient_shape must have at least one element)
-{v_1: tensor} |= shape(v_1, 0) > 0
+Rule 39 (The number of elements in gradient_shape should not exceed 8)
+{gradient_shape : tensor} |= shape(gradient_shape, 0) ≤ 8
 >>
-Rule 120 (gradient_values cannot be empty if has_known_shape is true and gradient_shape's first element is not zero)
-{v_1 : tensor, v_2: tensor, v_3: bool} |= if v_3 ∧ (shape(v_2,0) > 0) then shape(v_1, 0) > 0
+Rule 40 (If has_known_shape is false, gradient indices' elements must be less than 2^63)
+{gradient_indices : tensor, has_known_shape : bool} |= if (has_known_shape = false) then ∀i ∈ [0, shape(gradient_indices, 0) - 1] : gradient_indices[i] < 9223372036854775807
 >>
-Rule 121 (Check if the gradient_shape contains only positive values)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
+Rule 41 (If gradient_values is a quantized dtype and has_known_shape is false, then gradient_indices' elements must be less than 2^31 - 1)
+{gradient_indices : tensor, gradient_values : tensor, has_known_shape : bool} |= if ((dtype_(gradient_values) = 13) ∨ (dtype_(gradient_values) = 14) ∨ (dtype_(gradient_values) = 15)) ∧ (has_known_shape = false) then ∀i ∈ [0, shape(gradient_indices, 0) - 1] : gradient_indices[i] < 2147483647
 >>
-Rule 126 (Check the size of gradient shape, gradient_shape must be a vector)
-{v_1: tensor} |= ndim(v_1) = 1
+Rule 42 (If gradient_values is of type uint32 or uint64, gradient_indices elements must be less than 2^63 - 1)
+{gradient_indices : tensor, gradient_values : tensor} |= if ((dtype_(gradient_values) = 17) ∨ (dtype_(gradient_values) = 18)) then ∀i ∈ [0, shape(gradient_indices, 0) - 1] : gradient_indices[i] < 9223372036854775807
 >>
-Rule 128 (If has_known_shape is true and elements in gradient_shape are large then overflow)
-{v_1: tensor, v_2: bool} |= if v_2 then (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 100000)
+Rule 43 (local_step cannot be negative)
+{local_step : tensor} |= min(local_step) ≥ 0
+>>
+Rule 44 (If gradient_values' dtype is uint8 then gradient_indices' elements must be less than 256)
+{gradient_values : tensor, gradient_indices : tensor} |= if (dtype_(gradient_values) = 5) then ∀i ∈ [0, shape(gradient_indices, 0) - 1] : gradient_indices[i] < 256
+>>
+Rule 45 (gradient_shape's dtype must be int64 if has_known_shape is true)
+{gradient_shape : tensor, has_known_shape : bool} |= if (has_known_shape = true) then dtype_(gradient_shape) = 4
+>>
+Rule 46 (If has_known_shape is true and gradient_values is not empty, then gradient_indices must not be empty)
+{gradient_indices : tensor, gradient_values : tensor, has_known_shape : bool} |= if (has_known_shape = true) ∧ (shape(gradient_values, 0) > 0) then shape(gradient_indices, 0) > 0
+>>
+Rule 47 (if dtype of gradient_values is float16 then gradient indices must be int32 or int64)
+{gradient_values : tensor, gradient_indices : tensor} |= if (dtype_(gradient_values) = 6) then (dtype_(gradient_indices) = 3 ∨ dtype_(gradient_indices) = 4)
+>>
+Rule 48 (If the length of gradient_shape is greater than 0, its elements should be greater than or equal to 1)
+{gradient_shape : tensor} |= if shape(gradient_shape, 0) > 0 then ∀i ∈ [0, shape(gradient_shape, 0) - 1] : shape(gradient_shape, i) ≥ 1
+>>
+Rule 49 (If gradient_values is of type uint16, then gradient_indices elements must be less than 65536)
+{gradient_values : tensor, gradient_indices : tensor} |= if (dtype_(gradient_values) = 15) then ∀i ∈ [0, shape(gradient_indices, 0) - 1] : gradient_indices[i] < 65536
+>>
+Rule 50 (If the dtype of gradient_values is int8 or uint8, then gradient_indices must be int32 or int64)
+{gradient_indices : tensor, gradient_values : tensor} |= if (dtype_(gradient_values) = 1 ∨ dtype_(gradient_values) = 5) then (dtype_(gradient_indices) = 3 ∨ dtype_(gradient_indices) = 4)
+>>
+Rule 51 (If gradient_shape is not a vector and has_known_shape is true then it is invalid)
+{gradient_shape : tensor, has_known_shape : bool} |= if (has_known_shape = true) then ndim(gradient_shape) = 1
+>>
+Rule 52 (If local_step is defined, its elements should be non-negative)
+{local_step : tensor} |= ∀i ∈ [0, shape(local_step, 0) - 1] : local_step[i] ≥ 0
+>>
+Rule 53 (If the dtype of gradient_values is int16 or uint16, then gradient_indices must be int32 or int64)
+{gradient_values : tensor, gradient_indices : tensor} |= if (dtype_(gradient_values) = 2 ∨ dtype_(gradient_values) = 15) then (dtype_(gradient_indices) = 3 ∨ dtype_(gradient_indices) = 4)
+>>
+Rule 54 (The gradient indices must be non-negative)
+{gradient_indices : tensor} |= ∀i ∈ [0, shape(gradient_indices, 0) - 1] : gradient_indices[i] ≥ 0
+>>
+Rule 55 (If has_known_shape is false and gradient_values is not complex, then the gradient_indices should be less than 2^31-1)
+{gradient_values : tensor, gradient_indices : tensor, has_known_shape : bool} |= if (has_known_shape = false) ∧ (dtype_(gradient_values) ≠ 9) ∧ (dtype_(gradient_values) ≠ 10) then ∀i ∈ [0, shape(gradient_indices, 0) - 1] : gradient_indices[i] < 2147483647
+>>
+Rule 56 (If has_known_shape is false and gradient_values is complex, then gradient_indices' elements must be less than 2^63-1)
+{gradient_indices : tensor, gradient_values : tensor, has_known_shape : bool} |= if (has_known_shape = false) ∧ ((dtype_(gradient_values) = 9) ∨ (dtype_(gradient_values) = 10)) then ∀i ∈ [0, shape(gradient_indices, 0) - 1] : gradient_indices[i] < 9223372036854775807
+>>
+Rule 57 (If gradient_values is of type int32, then gradient_indices must be int32 or int64)
+{gradient_values : tensor, gradient_indices : tensor} |= if (dtype_(gradient_values) = 3) then (dtype_(gradient_indices) = 3 ∨ dtype_(gradient_indices) = 4)
+>>
+Rule 58 (handle must not be an empty string)
+{handle : tensor} |= handle ≠ ""
+>>
+Rule 59 (If gradient_values is of type int16, then gradient_indices elements must be less than 32768)
+{gradient_values : tensor, gradient_indices : tensor} |= if (dtype_(gradient_values) = 2) then ∀i ∈ [0, shape(gradient_indices, 0) - 1] : gradient_indices[i] < 32768

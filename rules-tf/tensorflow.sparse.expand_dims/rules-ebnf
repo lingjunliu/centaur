@@ -1,156 +1,120 @@
 >>
-Rule 1 (axis must be within the valid range based on input rank)
-{v_1 : tensor, v_2 : int} |= -1 - ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1)
+Rule 1 (axis should be within the allowed range based on the rank of the input tensor)
+{sp_input : tensor, axis : int} |= -1 - ndim(sp_input) ≤ axis ∧ axis ≤ ndim(sp_input)
 >>
-Rule 2 (SparseTensor input)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 12 (The shape must be accessible and not cause Attribute Error)
+{sp_input : tensor} |= ndim(sp_input) ≥ 0
 >>
-Rule 4 (Input tensor's rank is limited)
-{v_1 : tensor} |= ndim(v_1) ≤ 5
+Rule 13 (axis should be a valid integer for list access)
+{axis : int} |= axis ≥ -100 ∧ axis ≤ 100
 >>
-Rule 10 (Rank must be a reasonable number)
-{v_1: tensor} |= ndim(v_1) < 10
+Rule 18 (axis must be a valid integer when ndim is zero)
+{sp_input : tensor, axis : int} |= if ndim(sp_input) = 0 then axis = 0 ∨ axis = -1
 >>
-Rule 11 (axis within valid range using addition instead of negation)
-{v_1 : tensor, v_2 : int} |= v_2 + ndim(v_1) ≥ -1 ∧ v_2 ≤ ndim(v_1)
+Rule 19 (axis should be of a reasonable size)
+{axis: int} |= axis > -100 ∧ axis < 100
 >>
-Rule 13 (Sparse tensor must have at least one dimension to expand)
-{v_1: tensor} |= ndim(v_1) >= 1
+Rule 20 (The shape must be accessible, check for a valid shape call)
+{sp_input : tensor} |= shape(sp_input, 0) ≥ 0 ∨ ndim(sp_input) = 0
 >>
-Rule 16 (Check tensor dimensions)
-{v_1 : tensor} |= shape(v_1, 0) > 0 ∨ ndim(v_1) = 0
+Rule 22 (shape of input tensor must be a valid tuple)
+{sp_input : tensor} |= ∀i ∈ [0, ndim(sp_input) - 1] : shape(sp_input, i) ≥ 0
 >>
-Rule 17 (axis and tensor rank relation)
-{v_1 : tensor, v_2 : int} |= v_2 + 1 + ndim(v_1) ≥ 0 ∧ v_2 - ndim(v_1) <= 0
+Rule 24 (axis must be a valid dimension index for sp_input)
+{sp_input : tensor, axis : int} |= if ndim(sp_input) > 0 then (-1 - ndim(sp_input)) ≤ axis ∧ axis ≤ ndim(sp_input) else axis = 0 ∨ axis = -1
 >>
-Rule 18 (Negative axis bound check)
-{v_1: int} |= v_1 > -6
+Rule 26 (The attribute dense_shape must exist)
+{sp_input : tensor} |= ndim(sp_input) ≥ -1
 >>
-Rule 19 (Positive axis bound check)
-{v_1: int} |= v_1 < 6
+Rule 27 (Check if accessing dense_shape throws an error)
+{sp_input: tensor} |= if ndim(sp_input) ≥ 0 then true else false
 >>
-Rule 20 (Tensor must not have zero dimensions except for axis)
-{v_1 : tensor, v_2 : int} |= if v_2 < 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) else (∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_2 then shape(v_1, i) > 0)
+Rule 28 (Check if tensor has dense_shape attribute)
+{sp_input : tensor} |= if shape(sp_input, 0) ≥ 0 then true else false
 >>
-Rule 22 (If axis is non-negative, it must be less than or equal to rank(input))
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then v_2 ≤ ndim(v_1)
+Rule 30 (Check that shape can be accessed without throwing an exception)
+{sp_input : tensor} |= if ndim(sp_input) ≥ 0 then true else false
 >>
-Rule 23 (The axis should be an integer)
-{v_1 : int ⊎ float} |= v_1 = v_1
+Rule 34 (Check the tensor supports shape)
+{sp_input : tensor} |= ∃i ∈ [0, 0] : shape(sp_input, i) ≥ -1000000000
 >>
-Rule 25 (Tensor must have less than 6 dimensions)
-{v_1 : tensor} |= ndim(v_1) < 6
+Rule 35 (Check if the input tensor is a valid SparseTensor)
+{sp_input : tensor} |= ∃i ∈ [0,0] : shape(sp_input, i) ≥ -1000000000 ∧ shape(sp_input, i) ≤ 1000000000
 >>
-Rule 26 (If axis is negative, it must not exceed negative rank of input - 1)
-{v_1 : tensor, v_2 : int} |= if v_2 < 0 then v_2 ≥ (0 - ndim(v_1) - 1)
+Rule 37 (The input must support shape access)
+{sp_input : tensor} |= (∃i ∈ [0, 0] : true) ∧ shape(sp_input, 0) ≠ shape(sp_input, 0)
 >>
-Rule 27 (Axis within valid range)
-{v_1 : tensor, v_2 : int} |= (v_2 ≥ (0 - ndim(v_1) - 1)) ∧ (v_2 ≤ ndim(v_1))
+Rule 38 (Check the tensor shape call doesn't fail)
+{sp_input : tensor} |= (shape(sp_input, 0) + 1) > shape(sp_input, 0)
 >>
-Rule 28 (Tensor rank cannot be too high)
-{v_1 : tensor} |= ndim(v_1) < 7
+Rule 39 (Test that the tensor's shape attribute is accessible and does not raise an AttributeError)
+{sp_input: tensor} |= ndim(sp_input) >= -1
 >>
-Rule 29 (if the tensor is a scalar, axis must be 0 or -1)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then (v_2 = 0 ∨ v_2 = -1)
+Rule 41 (Shape can be called without error)
+{sp_input : tensor} |= if ndim(sp_input) > -1 then true else false
 >>
-Rule 30 (rank of tensor plus absolute value of axis must be reasonable)
-{v_1: tensor, v_2: int} |= ndim(v_1) + (if v_2 < 0 then (0-v_2) else v_2) < 10
+Rule 43 (The input tensor must allow the first dimension of its shape to be accessed)
+{sp_input : tensor} |= ∃i ∈ [0, 0] : shape(sp_input, i) > -1000000000 ∧ shape(sp_input, i) < 1000000000
 >>
-Rule 32 (If axis is provided, it is within the valid range)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1) - 1) ∧ v_2 ≤ ndim(v_1)
+Rule 44 (Test that the tensor's shape attribute is accessible and of a valid type by testing it against itself)
+{sp_input : tensor} |= shape(sp_input, 0) = shape(sp_input, 0) ∨ ndim(sp_input) = -1
 >>
-Rule 33 (Axis must be of type int)
-{v_1 : tensor, v_2 : int ⊎ float} |= if ndim(v_1) > 0 then v_2 = (v_2 * 1) / 1 else false
+Rule 45 (The input tensor should allow basic shape access.)
+{sp_input : tensor} |= if ndim(sp_input) < 0 then false else shape(sp_input,0) > -1000000000 ∨ shape(sp_input,0) < 1000000000
 >>
-Rule 36 (rank of tensor plus axis relation should be valid)
-{v_1 : tensor, v_2 : int} |= v_2 + ndim(v_1) ≥ -1
+Rule 46 (Checking for valid shape access, attempting to handle the AttributeError)
+{sp_input : tensor} |= (shape(sp_input, 0) + 0) = shape(sp_input, 0) ∨ ndim(sp_input) < 0
 >>
-Rule 37 (rank of tensor plus axis relation should be valid)
-{v_1 : tensor, v_2 : int} |= v_2 - ndim(v_1) <= 0
+Rule 47 (Check input shape access.)
+{sp_input : tensor} |= (ndim(sp_input) ≥ 0) ∨ false
 >>
-Rule 38 (If axis is not -1 then tensor has at least one dim)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then ndim(v_1) ≥ 1
+Rule 48 (Input validation, ensure the tensor supports shape)
+{sp_input : tensor} |= ∃i ∈ [0, 0] : shape(sp_input, i) ≠ 100000000
 >>
-Rule 39 (Axis must be a valid int)
-{v_1 : int ⊎ float} |= if v_1 = (v_1 * 1) / 1 then true else false
+Rule 49 (Tensor must possess a shape and rank that can be determined, checking for AttributeError related to dense_shape access)
+{sp_input : tensor} |= ndim(sp_input) ≥ -1000000
 >>
-Rule 40 (Tensor must be less than 10 dimensions)
-{v_1 : tensor} |= ndim(v_1) < 10
+Rule 50 (Check for accessibility of dense_shape by using ndim)
+{sp_input: tensor} |= (ndim(sp_input) + 1) > ndim(sp_input)
 >>
-Rule 42 (Axis with and without tensor condition)
-{v_1 : tensor, v_2: int} |= if ndim(v_1) > 0 then (v_2 > -10 ∧ v_2 < 10) else false
+Rule 51 (The input must be a tensor with a valid dense shape or allow access to shape without error)
+{sp_input : tensor} |= shape(sp_input, 0) = shape(sp_input,0) ∨ ndim(sp_input) = -1000
 >>
-Rule 44 (Axis with and without tensor dimension check)
-{v_1 : tensor, v_2: int} |= if ndim(v_1) > 0 then (v_2 + ndim(v_1) >= -1 ∧ v_2 <= ndim(v_1) )
+Rule 52 (Check tensor ndim without causing error)
+{sp_input : tensor} |= (ndim(sp_input) < 1000000000) ∨ (ndim(sp_input) > -1000000000)
 >>
-Rule 48 (Axis must be a valid integer given SparseTensor)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ -1 - ndim(v_1) ∧ v_2 ≤ ndim(v_1)
+Rule 53 (Guard against AttributeError by checking for a reasonable ndim)
+{sp_input : tensor} |= if ndim(sp_input) < -1000000 then false
 >>
-Rule 50 (If the tensor rank is zero, axis must be -1 or 0)
-{v_1: tensor, v_2: int} |= if ndim(v_1) = 0 then (v_2 = -1 ∨ v_2 = 0)
+Rule 55 (sp_input must allow rank (ndim) to be determined)
+{sp_input : tensor} |= (ndim(sp_input) > -100000) ∨ (ndim(sp_input) < 100000)
 >>
-Rule 51 (Check Tensor cannot have negative shape)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 56 (The tensor must allow ndim to be called)
+{sp_input : tensor} |= if shape(sp_input,0) < 0 then false
 >>
-Rule 52 (Axis should be reasonable)
-{v_1 : int} |= v_1 > -10 ∧ v_1 < 10
+Rule 57 (Guard against shape AttributeError by checking if shape is a large number or ndim accessible)
+{sp_input : tensor} |= shape(sp_input, 0) < 100000000 ∨ ndim(sp_input) > -1000
 >>
-Rule 53 (Axis needs to be a valid number and the ndim need to be a valid number.)
-{v_1: tensor, v_2: int} |= (v_2 < 20 ∧ v_2 > -20) ∧ ndim(v_1) < 20
+Rule 58 (To prevent AttributeError, ensure ndim can be called on the input tensor)
+{sp_input : tensor} |= (ndim(sp_input) * 2) = ndim(sp_input) * 2 ∨ (ndim(sp_input) = 0)
 >>
-Rule 54 (Check for valid tensor size)
-{v_1: tensor} |= shape(v_1, 0) < 1000
+Rule 59 (To prevent shape AttributeError, check if rank of sp_input is accessible and reasonable.)
+{sp_input : tensor} |= ndim(sp_input) > -100000 ∧ ndim(sp_input) < 100000
 >>
-Rule 55 (Axis must be reasonable in relation to dimension)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 5 then false else if v_2 > 5 then false
+Rule 60 (Check tensor ndim does not cause Attribute Error)
+{sp_input : tensor} |= ndim(sp_input) ≠ 100000000
 >>
-Rule 57 (If tensor is 1D axis must be 0, -1, 1)
-{v_1: tensor, v_2: int} |= if ndim(v_1) = 1 then (v_2 = 0 ∨ v_2 = -1 ∨ v_2=1)
+Rule 61 (The tensor has a dense_shape property that is accessible)
+{sp_input : tensor} |= ndim(sp_input) > -1000000000 ∨ ndim(sp_input) < 1000000000
 >>
-Rule 58 (Axis has to have int type and it is positive or negative )
-{v_1: int} |= v_1 > 0 ∨ v_1 < 0
+Rule 62 (Prevent AttributeError from accessing shape by checking if a dimension exists)
+{sp_input : tensor} |= ∃i ∈ [0, 0] : shape(sp_input, i) ≥ -100000 ∧ shape(sp_input,i) ≤ 100000
 >>
-Rule 59 (Check that axis is within acceptable dimension range of tensor)
-{v_1: tensor, v_2: int} |= v_2 ≥ (0-ndim(v_1)-1) ∧ v_2 ≤ ndim(v_1)
+Rule 65 (The tensor must allow ndim access or will cause Attribute Error)
+{sp_input: tensor} |= (shape(sp_input, 0) + 1) ≠ shape(sp_input, 0)
 >>
-Rule 62 (if tensor is scalar, axis is -1 or 0.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then (v_2 = -1 ∨ v_2 = 0)
+Rule 66 (sp_input is a tensor that supports shape access)
+{sp_input : tensor} |= ∃i ∈ [0, 0] : shape(sp_input, i) = shape(sp_input, i) ∨ ndim(sp_input) = 1
 >>
-Rule 63 ( Check for valid axis with tensor type)
-{v_1: tensor, v_2: int} |=  v_2 ≥ (0 - ndim(v_1) - 1) ∧ v_2 ≤ ndim(v_1)
->>
-Rule 64 (Check int)
-{v_1 : int} |= v_1 > -20 ∧ v_1 < 20
->>
-Rule 65 (axis with ndim constraint to ensure rank >0 )
-{v_1: tensor, v_2: int} |= if ndim(v_1) > 0 then v_2 + ndim(v_1) ≥ -1
->>
-Rule 66 (Tensor rank greater than zero)
-{v_1: tensor} |= ndim(v_1) ≥ 0
->>
-Rule 68 (Axis with ndim limitation)
-{v_1: tensor, v_2: int} |= if ndim(v_1) > 0 then v_2 - ndim(v_1) <= 10
->>
-Rule 69 (Ensure tensors ndim is not too large)
-{v_1 : tensor} |= ndim(v_1) < 20
->>
-Rule 70 (Tensor must have non zero positive dimension)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 71 (Ensure tensor dimensions are small values)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000
->>
-Rule 72 (Rank with axis is under certain value)
-{v_1: tensor, v_2: int} |= if ndim(v_1) > 0 then (v_2 + ndim(v_1)) < 20
->>
-Rule 73 (Tensor needs to be SparseTensor with dimension 3)
-{v_1: tensor} |= ndim(v_1) = 3
->>
-Rule 74 (Negative axis range)
-{v_1: int} |= v_1 > -5
->>
-Rule 75 (Positive Axis Range)
-{v_1: int} |= v_1 < 5
->>
-Rule 76 (SparseTensor's shape must be of type integer)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = (shape(v_1,i)*1)/1
+Rule 67 (Guard against shape access errors)
+{sp_input : tensor} |= if ndim(sp_input) > -1000 then true else false

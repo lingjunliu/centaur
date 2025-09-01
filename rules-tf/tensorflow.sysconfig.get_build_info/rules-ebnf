@@ -1,51 +1,90 @@
 >>
-Rule 1 (Check if CUDA build is boolean)
+Rule 1 (is_cuda_build should be a boolean)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 8 (CUDA version string should not be empty)
-{v_1 : str} |= v_1 ≠ ""
+Rule 9 (Check if msvcp_dll_names list contains only strings)
+{v_1 : list(str)} |= ∀i ∈ [0, v_1.len - 1] : true
 >>
-Rule 14 (CUDA version string should contain only digits and dots)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = "."
+Rule 10 (Check cuda version format is valid)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] = "."
 >>
-Rule 16 (msvcp_dll_names string should end with .dll)
-{v_1 : str} |= v_1.len > 4 ∧ v_1[v_1.len - 4] = "." ∧ v_1[v_1.len - 3] = "d" ∧ v_1[v_1.len - 2] = "l" ∧ v_1[v_1.len - 1] = "l"
+Rule 12 (is_cuda_build and is_rocm_build cannot be both true)
+{v_1 : bool, v_2 : bool} |= if v_1 = true then v_2 = false
 >>
-Rule 20 (cuda_version and cudnn_version should have the same format, if both exist)
-{v_1 : str, v_2 : str} |= if v_1 ≠ "" ∧ v_2 ≠ "" then (∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = ".") ∧ (∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ "0" ∧ v_2[i] ≤ "9") ∨ v_2[i] = ".")
+Rule 14 (Check if cuda_version contains digits)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] ≥ "0" ∧ v_1[i] ≤ "9"
 >>
-Rule 21 (Check that if CUDA is built, then the CUDA version is not an empty string)
+Rule 16 (If CUDA is built, then cuda_version must be present)
 {v_1 : bool, v_2 : str} |= if v_1 = true then v_2 ≠ ""
 >>
-Rule 23 (msvcp_dll_names may contain multiple dll separated by comma if multiple, check format)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : if v_1[i] = "," then v_1[i-4] = "." ∧ v_1[i-3] = "d" ∧ v_1[i-2] = "l" ∧ v_1[i-1] = "l"
+Rule 19 (msvcp_dll_names must have at least one element if not empty.)
+{v_1 : list(str)} |= if v_1.len > 0 then true else v_1.len = 0
 >>
-Rule 24 (Check that msvcp_dll_names, nvcuda_dll_name, cudart_dll_name, cudnn_dll_name all end in .dll)
-{v_1 : str, v_2 : str, v_3 : str, v_4 : str} |= (if v_1 ≠ "" then v_1.len > 4 ∧ v_1[v_1.len - 4] = "." ∧ v_1[v_1.len - 3] = "d" ∧ v_1[v_1.len - 2] = "l" ∧ v_1[v_1.len - 1] = "l") ∧ (if v_2 ≠ "" then v_2.len > 4 ∧ v_2[v_2.len - 4] = "." ∧ v_2[v_2.len - 3] = "d" ∧ v_2[v_2.len - 2] = "l" ∧ v_2[v_2.len - 1] = "l") ∧ (if v_3 ≠ "" then v_3.len > 4 ∧ v_3[v_3.len - 4] = "." ∧ v_3[v_3.len - 3] = "d" ∧ v_3[v_3.len - 2] = "l" ∧ v_3[v_3.len - 1] = "l") ∧ (if v_4 ≠ "" then v_4.len > 4 ∧ v_4[v_4.len - 4] = "." ∧ v_4[v_4.len - 3] = "d" ∧ v_4[v_4.len - 2] = "l" ∧ v_4[v_4.len - 1] = "l")
+Rule 21 (cuda and cudnn version should be greater or equal to a minimum value. Assume 11.0 for cuda and 8.0 for cudnn.)
+{v_1 : str, v_2 : str} |= (if v_1 ≠ "" then (∃i ∈ [0, v_1.len - 1] : v_1[i] ≥ "1" ∧ v_1[i] ≤ "9")) ∧ (if v_2 ≠ "" then (∃i ∈ [0, v_2.len - 1] : v_2[i] ≥ "8" ∧ v_2[i] ≤ "9"))
 >>
-Rule 25 (cuda_version and cudnn_version should have the same format, if both exist and not empty)
-{v_1 : str, v_2 : str} |= if v_1 ≠ "" ∧ v_2 ≠ "" then (∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = ".") = (∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ "0" ∧ v_2[i] ≤ "9") ∨ v_2[i] = ".")
+Rule 22 (If ROCM is built, then cuda_version and cudnn_version should be empty)
+{v_1 : bool, v_2 : str, v_3 : str} |= if v_1 = true then v_2 = "" ∧ v_3 = ""
 >>
-Rule 26 (If is_cuda_build is false then CUDA version should be empty)
-{v_1 : bool, v_2 : str} |= if v_1 = false then v_2 = ""
+Rule 26 (If CUDA is built, then at least one of the dll names should be present)
+{v_1 : bool, v_2 : str, v_3 : str, v_4 : str} |= if v_1 = true then v_2 ≠ "" ∨ v_3 ≠ "" ∨ v_4 ≠ ""
 >>
-Rule 28 (msvcp_dll_names should contain .dll if not empty)
-{v_1 : str} |= if v_1 ≠ "" then v_1.len > 4 ∧ v_1[v_1.len - 4] = "." ∧ v_1[v_1.len - 3] = "d" ∧ v_1[v_1.len - 2] = "l" ∧ v_1[v_1.len - 1] = "l"
+Rule 31 (If CUDA is built, then at least one of the dll names should be present and non-empty)
+{v_1 : bool, v_2 : str, v_3 : str, v_4 : str} |= if v_1 = true then (v_2 ≠ "") ∨ (v_3 ≠ "") ∨ (v_4 ≠ "")
 >>
-Rule 32 (If CUDA version is empty then is_cuda_build is false)
-{v_1 : str, v_2 : bool} |= if v_1 = "" then v_2 = false
+Rule 35 (If is_rocm_build is true, the other variables should satisfy certain conditions.)
+{v_1: bool, v_2: str, v_3: str, v_5: str, v_6: str, v_7: str, v_8: str} |= if v_1 = true then v_2="" ∧ v_3="" ∧ v_5 = "" ∧ v_6 = "" ∧ v_7 = "" ∧ v_8 = ""
 >>
-Rule 34 (If msvcp_dll_names contains multiple dlls, then they are separated by commas)
-{v_1 : str} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "," then ∀i ∈ [0, v_1.len - 1] : if v_1[i] = "," then v_1[i-4] = "." ∧ v_1[i-3] = "d" ∧ v_1[i-2] = "l" ∧ v_1[i-1] = "l"
+Rule 46 (If CUDA is built, then nvcuda_dll_name is not none)
+{v_1: bool, v_2: str} |= if v_1 = true then v_2 ≠ "none"
 >>
-Rule 36 (If CUDA is not built, CUDA version must be empty and all CUDA dlls should be empty.)
-{v_1 : bool, v_2 : str, v_3 : str, v_4 : str, v_5 : str} |= if v_1 = false then v_2 = "" ∧ v_3 = "" ∧ v_4 = "" ∧ v_5 = ""
+Rule 50 (If CUDA is built, then nvcuda_dll_name must be a valid dll name)
+{v_1: bool, v_2: str} |= if v_1 = true then ∃i ∈ [0, v_2.len - 1] : true
 >>
-Rule 37 (If CUDA version is empty then is_cuda_build is false, and conversely)
-{v_1 : str, v_2 : bool} |= (v_1 = "" ∧ v_2 = false) ∨ (v_1 ≠ "" ∧ v_2 = true)
+Rule 54 (If CUDA is built, then nvcuda_dll_name is a valid dll name (ends with .dll))
+{v_1: bool, v_2: str} |= if v_1 = true then (v_2.len > 3 ∧ v_2[v_2.len - 1] = "l" ∧ v_2[v_2.len - 2] = "l" ∧ v_2[v_2.len - 3] = "d" ∧ v_2[v_2.len - 4] = ".")
 >>
-Rule 40 (CUDA version and CUDA dlls should be empty if CUDA is not built, else any populated CUDA dll must conform to the .dll format)
-{v_1 : bool, v_2 : str, v_3 : str, v_4 : str, v_5 : str} |= if v_1 = false then v_2 = "" ∧ v_3 = "" ∧ v_4 = "" ∧ v_5 = "" else (if v_3 ≠ "" then v_3.len > 4 ∧ v_3[v_3.len - 4] = "." ∧ v_3[v_3.len - 3] = "d" ∧ v_3[v_3.len - 2] = "l" ∧ v_3[v_3.len - 1] = "l") ∧ (if v_4 ≠ "" then v_4.len > 4 ∧ v_4[v_4.len - 4] = "." ∧ v_4[v_4.len - 3] = "d" ∧ v_4[v_4.len - 2] = "l" ∧ v_4[v_4.len - 1] = "l") ∧ (if v_5 ≠ "" then v_5.len > 4 ∧ v_5[v_5.len - 4] = "." ∧ v_5[v_5.len - 3] = "d" ∧ v_5[v_5.len - 2] = "l" ∧ v_5[v_5.len - 1] = "l")
+Rule 58 (If CUDA is built, then nvcuda_dll_name must be a valid dll name)
+{v_1: bool, v_2: str} |= if v_1 = true then (v_2.len > 3 ∧ v_2[v_2.len - 1] = "l" ∧ v_2[v_2.len - 2] = "l" ∧ v_2[v_2.len - 3] = "d")
 >>
-Rule 41 (Check that cuda version and cudnn version contain only dots and numbers)
-{v_1 : str, v_2 : str} |= (if v_1 ≠ "" then ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = ".") ∧ (if v_2 ≠ "" then ∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ "0" ∧ v_2[i] ≤ "9") ∨ v_2[i] = ".")
+Rule 62 (If CUDA is built, then nvcuda_dll_name must end with .dll)
+{v_1: bool, v_2: str} |= if v_1 = true then if v_2.len > 3 then v_2[v_2.len - 1] = "l" ∧ v_2[v_2.len - 2] = "l" ∧ v_2[v_2.len - 3] = "d"
+>>
+Rule 63 (If CUDA is built, then cudart_dll_name must end with .dll)
+{v_1: bool, v_2: str} |= if v_1 = true then if  v_2.len > 3 then v_2[v_2.len - 1] = "l" ∧ v_2[v_2.len - 2] = "l" ∧ v_2[v_2.len - 3] = "d"
+>>
+Rule 66 (If CUDA is built, then nvcuda_dll_name must end with .dll)
+{v_1: bool, v_2: str} |= if v_1 = true then if v_2.len > 3 then v_2[v_2.len - 1] = "l" ∧ v_2[v_2.len - 2] = "l" ∧ v_2[v_2.len - 3] = "d" else v_2 = ""
+>>
+Rule 67 (If CUDA is built, then cudart_dll_name must end with .dll)
+{v_1: bool, v_2: str} |= if v_1 = true then if  v_2.len > 3 then v_2[v_2.len - 1] = "l" ∧ v_2[v_2.len - 2] = "l" ∧ v_2[v_2.len - 3] = "d" else v_2 = ""
+>>
+Rule 68 (If CUDA is built, then cudnn_dll_name must end with .dll)
+{v_1: bool, v_2: str} |= if v_1 = true then if v_2.len > 3 then v_2[v_2.len - 1] = "l" ∧ v_2[v_2.len - 2] = "l" ∧ v_2[v_2.len - 3] = "d" else  v_2 = ""
+>>
+Rule 73 (If is_cuda_build and is_rocm_build are both false, then cuda_version and cudnn_version should be empty strings)
+{v_1:bool, v_2:bool, v_3:str, v_4:str} |= if v_1 = false ∧ v_2 = false then v_3="" ∧ v_4=""
+>>
+Rule 75 (If CUDA is built, then nvcuda_dll_name must end with .dll)
+{v_1: bool, v_2: str} |= if v_1 = true then (if v_2.len > 3 then v_2[v_2.len - 1] = "l" ∧ v_2[v_2.len - 2] = "l" ∧ v_2[v_2.len - 3] = "d" else false)
+>>
+Rule 80 (If CUDA is built, then nvcuda_dll_name must end with .dll, combining checks)
+{v_1: bool, v_2: str} |= if v_1 = true then (v_2.len > 3 ∧ v_2[v_2.len - 1] = "l" ∧ v_2[v_2.len - 2] = "l" ∧ v_2[v_2.len - 3] = "d") ∨ v_2.len = 0
+>>
+Rule 85 (If CUDA is built, then the dll name must conform to dll standards)
+{v_1: bool, v_2: str, v_3: str, v_4: str} |= if v_1 = true then if v_2.len > 3 then v_2[v_2.len - 1] = "l" ∧ v_2[v_2.len - 2] = "l" ∧ v_2[v_2.len - 3] = "d" else false ∧ if v_3.len > 3 then v_3[v_3.len - 1] = "l" ∧ v_3[v_3.len - 2] = "l" ∧ v_3[v_3.len - 3] = "d" else false ∧ if v_4.len > 3 then v_4[v_4.len - 1] = "l" ∧ v_4[v_4.len - 2] = "l" ∧ v_4[v_4.len - 3] = "d" else false
+>>
+Rule 88 (If CUDA is built, then nvcuda_dll_name must end with .dll or is empty)
+{v_1: bool, v_2: str} |= if v_1 = true then (if v_2.len > 3 then v_2[v_2.len - 1] = "l" ∧ v_2[v_2.len - 2] = "l" ∧ v_2[v_2.len - 3] = "d" else v_2.len = 0)
+>>
+Rule 98 (If CUDA is built, then nvcuda_dll_name must end with .dll or is empty)
+{v_1: bool, v_2: str} |= if v_1 = true then (if v_2.len > 3 then v_2[v_2.len - 1] = "l" ∧ v_2[v_2.len - 2] = "l" ∧ v_2[v_2.len - 3] = "d")
+>>
+Rule 103 (If CUDA is built, then the dll name must conform to dll standards combining everything using or clause)
+{v_1: bool, v_2: str, v_3: str, v_4: str} |= if v_1 = true then (v_2.len = 0) ∨ (v_2.len > 3 ∧ v_2[v_2.len - 1] = "l" ∧ v_2[v_2.len - 2] = "l" ∧ v_2[v_2.len - 3] = "d") ∨ (v_3.len = 0) ∨ (v_3.len > 3 ∧ v_3[v_3.len - 1] = "l" ∧ v_3[v_3.len - 2] = "l" ∧ v_3[v_3.len - 3] = "d") ∨ (v_4.len = 0) ∨ (v_4.len > 3 ∧ v_4[v_4.len - 1] = "l" ∧ v_4[v_4.len - 2] = "l" ∧ v_4[v_4.len - 3] = "d")
+>>
+Rule 109 (If CUDA is built, then the dll name must conform to dll standards combining everything using or clause with explicit empty check and len>3 check)
+{v_1: bool, v_2: str, v_3: str, v_4: str} |= if v_1 = true then (v_2 = "") ∨ (v_2.len > 3 ∧ v_2[v_2.len - 1] = "l" ∧ v_2[v_2.len - 2] = "l" ∧ v_2[v_2.len - 3] = "d") ∨ (v_3 = "") ∨ (v_3.len > 3 ∧ v_3[v_3.len - 1] = "l" ∧ v_3[v_3.len - 2] = "l" ∧ v_3[v_3.len - 3] = "d") ∨ (v_4 = "") ∨ (v_4.len > 3 ∧ v_4[v_4.len - 1] = "l" ∧ v_4[v_4.len - 2] = "l" ∧ v_4[v_4.len - 3] = "d")
+>>
+Rule 112 (If CUDA is built, then at least one dll's name end must end with .dll, or all must be "")
+{v_1: bool, v_2: str, v_3: str, v_4: str} |= if v_1 = true then (v_2="" ∧ v_3="" ∧ v_4="") ∨ ((v_2.len > 3 ∧ v_2[v_2.len - 1] = "l" ∧ v_2[v_2.len - 2] = "l" ∧ v_2[v_2.len - 3] = "d")∨(v_3.len > 3 ∧ v_3[v_3.len - 1] = "l" ∧ v_3[v_3.len - 2] = "l" ∧ v_3[v_3.len - 3] = "d")∨(v_4.len > 3 ∧ v_4[v_4.len - 1] = "l" ∧ v_4[v_4.len - 2] = "l" ∧ v_4[v_4.len - 3] = "d"))

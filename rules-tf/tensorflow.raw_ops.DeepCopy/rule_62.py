@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if the input tensor has a dimension equal to zero, then its minimum and maximum elements don't matter. (Rule 62)
+# The shape of the tensor can't be larger than representable with int64 values (Rule 62)
 
 rule_62 = lambda s, v, n=False: (
-    s.add(Not(If(Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)]), True, False)) if n else
-          If(Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)]), True, False))
+    s.add(Not(If(v["arg1_ndim"] > 0, (And([Implies(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], i) >= 0, Select(v["arg1_shape"], i) <= 2147483647)) for i in range(6)])), True)) if n else
+          If(v["arg1_ndim"] > 0, (And([Implies(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], i) >= 0, Select(v["arg1_shape"], i) <= 2147483647)) for i in range(6)])), True))
 )
 
 def rule_62_func(arg1, solver=None, neg=False):

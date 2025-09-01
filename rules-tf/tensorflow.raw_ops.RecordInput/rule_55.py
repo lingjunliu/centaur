@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# file_random_seed should be a large value to ensure good randomness (Rule 55)
+# file_parallelism should be a power of 2 (Rule 55)
 
 rule_55 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] > 1000) if n else
-          v["arg1_value"] > 1000)
+    s.add(Not(Or([And(i < (10 + 1), v["arg1_value"] == 2 * i) for i in range(6)])) if n else
+          Or([And(i < (10 + 1), v["arg1_value"] == 2 * i) for i in range(6)]))
 )
 
 def rule_55_func(arg1, solver=None, neg=False):

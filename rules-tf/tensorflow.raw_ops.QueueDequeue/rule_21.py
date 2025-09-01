@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If timeout_ms is not -1, it should be greater than 10 (Rule 21)
+# If timeout_ms is a positive integer, it should be less than max int (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] != -1, v["arg1_value"] > 10, False)) if n else
-          If(v["arg1_value"] != -1, v["arg1_value"] > 10, False))
+    s.add(Not(If(v["arg1_value"] > 0, v["arg1_value"] < 2147483647, True)) if n else
+          If(v["arg1_value"] > 0, v["arg1_value"] < 2147483647, True))
 )
 
 def rule_21_func(arg1, solver=None, neg=False):

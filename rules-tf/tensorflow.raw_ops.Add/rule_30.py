@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If both the tensor have a dimension of at least 1 then for each dimension i the shapes should either be equal or one of them should be one. (Rule 30)
+# When broadcasting, the smaller tensor's dimensions are implicitly padded with leading 1s to match the larger tensor's rank. (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(If(And(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), v["arg1_ndim"] == v["arg2_ndim"]), And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or(Or(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), Select(v["arg1_shape"], i) == 1), Select(v["arg2_shape"], i) == 1)) for i in range(6)]), False)) if n else
-          If(And(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), v["arg1_ndim"] == v["arg2_ndim"]), And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or(Or(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), Select(v["arg1_shape"], i) == 1), Select(v["arg2_shape"], i) == 1)) for i in range(6)]), False))
+    s.add(Not(If(v["arg1_ndim"] < v["arg2_ndim"], And([Implies(i < (v["arg2_ndim"] - v["arg1_ndim"] - 1 + 1), And(Or(Select(v["arg1_shape"], i) == 1, v["arg1_ndim"] + i < v["arg2_ndim"]), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - 1))) for i in range(6)]), If(v["arg2_ndim"] < v["arg1_ndim"], And([Implies(i < (v["arg1_ndim"] - v["arg2_ndim"] - 1 + 1), And(Or(Select(v["arg2_shape"], i) == 1, v["arg2_ndim"] + i < v["arg1_ndim"]), Select(v["arg2_shape"], v["arg2_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 1))) for i in range(6)]), True))) if n else
+          If(v["arg1_ndim"] < v["arg2_ndim"], And([Implies(i < (v["arg2_ndim"] - v["arg1_ndim"] - 1 + 1), And(Or(Select(v["arg1_shape"], i) == 1, v["arg1_ndim"] + i < v["arg2_ndim"]), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - 1))) for i in range(6)]), If(v["arg2_ndim"] < v["arg1_ndim"], And([Implies(i < (v["arg1_ndim"] - v["arg2_ndim"] - 1 + 1), And(Or(Select(v["arg2_shape"], i) == 1, v["arg2_ndim"] + i < v["arg1_ndim"]), Select(v["arg2_shape"], v["arg2_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 1))) for i in range(6)]), True)))
 )
 
 def rule_30_func(arg1, arg2, solver=None, neg=False):

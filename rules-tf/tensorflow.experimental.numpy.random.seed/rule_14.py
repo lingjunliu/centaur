@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If s is an integer, it should not be too close to the boundaries of a signed 32 bit integer (Rule 14)
+# s should not be greater than a certain limit which can cause issues with random number generation (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] > -2147483640, v["arg1_value"] < 2147483640)) if n else
-          And(v["arg1_value"] > -2147483640, v["arg1_value"] < 2147483640))
+    s.add(Not(v["arg1_value"] < 4294967295) if n else
+          v["arg1_value"] < 4294967295)
 )
 
 def rule_14_func(arg1, solver=None, neg=False):

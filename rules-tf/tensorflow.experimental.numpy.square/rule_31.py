@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# For int dtypes, min must be representable after squaring (Rule 31)
+# Input tensor must have elements which are representable after squaring (Rule 31)
 
 rule_31 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 1, Select(v["arg1_range"], 0) > -10, If(v["arg1_dtype"] == 2, Select(v["arg1_range"], 0) > -181, If(v["arg1_dtype"] == 3, Select(v["arg1_range"], 0) > -46340, False)))) if n else
-          If(v["arg1_dtype"] == 1, Select(v["arg1_range"], 0) > -10, If(v["arg1_dtype"] == 2, Select(v["arg1_range"], 0) > -181, If(v["arg1_dtype"] == 3, Select(v["arg1_range"], 0) > -46340, False))))
+    s.add(Not(If(v["arg1_dtype"] == 1, And(Select(v["arg1_range"], 0) > -3162, Select(v["arg1_range"], 1) < 3162), If(v["arg1_dtype"] == 2, And(Select(v["arg1_range"], 0) > -181, Select(v["arg1_range"], 1) < 181), If(v["arg1_dtype"] == 6, And(Select(v["arg1_range"], 0) > -56, Select(v["arg1_range"], 1) < 56), True)))) if n else
+          If(v["arg1_dtype"] == 1, And(Select(v["arg1_range"], 0) > -3162, Select(v["arg1_range"], 1) < 3162), If(v["arg1_dtype"] == 2, And(Select(v["arg1_range"], 0) > -181, Select(v["arg1_range"], 1) < 181), If(v["arg1_dtype"] == 6, And(Select(v["arg1_range"], 0) > -56, Select(v["arg1_range"], 1) < 56), True))))
 )
 
 def rule_31_func(arg1, solver=None, neg=False):

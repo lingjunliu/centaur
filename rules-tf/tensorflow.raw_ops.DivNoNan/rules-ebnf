@@ -1,168 +1,141 @@
 >>
-Rule 3 (shape of x and y tensors must be equal for element-wise division, handling broadcasting is implicit.)
-{x : tensor, y : tensor} |= shape(x) = shape(y)
->>
-Rule 6 (x ndim must be greater than or equal to 0)
-{x : tensor} |= ndim(x) ≥ 0
->>
-Rule 7 (y ndim must be greater than or equal to 0)
-{y : tensor} |= ndim(y) ≥ 0
->>
-Rule 10 (x and y must have the same data type index)
+Rule 1 (x and y should have the same dtype)
 {x : tensor, y : tensor} |= dtype_(x) = dtype_(y)
 >>
-Rule 11 (x must be one of the allowed dtypes (half, float32, bfloat16, float64, complex64, complex128))
-{x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 13 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10
+Rule 2 (dtype of x must be a valid type for DivNoNan)
+{x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10 ∨ dtype_(x) = 7
 >>
-Rule 13 (If x is a complex number, y should also be a complex number.)
-{x : tensor, y : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then dtype_(y) = 9 ∨ dtype_(y) = 10
+Rule 3 (Shape of x and y tensors are same)
+{x : tensor, y : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(y, i)
 >>
-Rule 14 (If x is a float number, y should also be a float number.)
-{x : tensor, y : tensor} |= if dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 13 then dtype_(y) = 6 ∨ dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 13
+Rule 4 (if y element is 0, x element must be 0)
+{x : tensor, y : tensor} |= ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x,i)-1]: if y[j] = 0 then x[j] = 0
 >>
-Rule 17 (The dtype of tensor x can not be bool)
-{x : tensor} |= dtype_(x) ≠ 0
+Rule 6 (y's dtype should be half, float32, bfloat16, float64, complex64, complex128.)
+{y : tensor} |= dtype_(y) = 6 ∨ dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10 ∨ dtype_(y) = 7
 >>
-Rule 18 (The dtype of tensor y can not be bool)
-{y : tensor} |= dtype_(y) ≠ 0
->>
-Rule 25 (x and y must have same ndim)
+Rule 7 (Number of dimensions of x and y should be same.)
 {x : tensor, y : tensor} |= ndim(x) = ndim(y)
 >>
-Rule 26 (shape of x must be greater than 0 in all dimensions.)
-{x: tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
+Rule 8 (If any element in y is zero, the corresponding element in x must also be zero)
+{x : tensor, y : tensor} |= ∀i ∈ [0, ndim(x) - 1] : ∃j ∈ [0, shape(x, i) - 1] : if y[j] = 0 then x[j] = 0
 >>
-Rule 27 (shape of y must be greater than 0 in all dimensions.)
-{y: tensor} |= ∀i ∈ [0, ndim(y) - 1] : shape(y, i) > 0
+Rule 9 (The shape of x and y should be broadcastable)
+{x : tensor, y : tensor} |= ndim(x) ≥ ndim(y) ∨ ndim(y) ≥ ndim(x)
 >>
-Rule 29 (If x is a complex number, y must also be a complex number and has same dtype.)
-{x : tensor, y : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then dtype_(y) = dtype_(x)
+Rule 11 (If shape of y is [1], then it should return the same value of x when y equals 0)
+{x : tensor, y : tensor} |= if ndim(y) = 1 ∧ shape(y,0) = 1 then if y[0] = 0 then x[0] = x[0]
 >>
-Rule 30 (If x is a float number, y must also be a float number and has same dtype.)
-{x : tensor, y : tensor} |= if dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 13 then dtype_(y) = dtype_(x)
+Rule 12 (If ndim of x is 0, then ndim of y must be 0)
+{x : tensor, y : tensor} |= if ndim(x) = 0 then ndim(y) = 0
 >>
-Rule 31 (x tensor must have a valid dtype index.)
-{x : tensor} |= 0 ≤ dtype_(x) ∧ dtype_(x) ≤ 13
->>
-Rule 32 (y tensor must have a valid dtype index.)
-{y : tensor} |= 0 ≤ dtype_(y) ∧ dtype_(y) ≤ 13
->>
-Rule 34 (minimum value of tensor y must be valid.)
-{y: tensor} |= min(y) ≠ "none"
->>
-Rule 35 (minimum value of tensor x must be valid.)
-{x: tensor} |= min(x) ≠ "none"
->>
-Rule 41 (If x has a zero dimension, then y must also have at least one dimension with zero.)
-{x : tensor, y : tensor} |= if ∃i ∈ [0, ndim(x) - 1] : shape(x, i) = 0 then ∃j ∈ [0, ndim(y) - 1] : shape(y, j) = 0
->>
-Rule 42 (If y has a zero dimension, then x must also have at least one dimension with zero.)
-{x : tensor, y : tensor} |= if ∃j ∈ [0, ndim(y) - 1] : shape(y, j) = 0 then ∃i ∈ [0, ndim(x) - 1] : shape(x, i) = 0
->>
-Rule 43 (The data type of tensor x must be a float or complex type)
-{x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10 ∨ dtype_(x) = 13
->>
-Rule 49 (Tensor x ndim must be greater than or equal to Tensor y ndim)
-{x : tensor, y : tensor} |= ndim(x) ≥ ndim(y)
->>
-Rule 50 (Tensor y ndim must be greater than or equal to Tensor x ndim)
-{x : tensor, y : tensor} |= ndim(y) ≥ ndim(x)
->>
-Rule 57 (If x is complex64, then y also must be complex64)
-{x: tensor, y: tensor} |= if dtype_(x) = 9 then dtype_(y) = 9
->>
-Rule 60 (If x has a zero dimension, then y must also have at least one dimension with zero, and if x has no dimension then y also has no dimension)
-{x : tensor, y : tensor} |= (if ndim(x) = 0 then ndim(y) = 0 else if ∃i ∈ [0, ndim(x) - 1] : shape(x, i) = 0 then ∃j ∈ [0, ndim(y) - 1] : shape(y, j) = 0)
->>
-Rule 63 (If x is complex128, then y also must be complex128)
-{x: tensor, y: tensor} |= if dtype_(x) = 10 then dtype_(y) = 10
->>
-Rule 64 (If x is bfloat16, then y also must be bfloat16)
-{x: tensor, y: tensor} |= if dtype_(x) = 13 then dtype_(y) = 13
->>
-Rule 67 (If x has a zero dimension, then y must also have at least one dimension with zero, and if x has no dimension then y also has no dimension)
-{x : tensor, y : tensor} |= if ndim(x) = 0 then ndim(y) = 0 else if ∃i ∈ [0, ndim(x) - 1] : shape(x, i) = 0 then ∃j ∈ [0, ndim(y) - 1] : shape(y, j) = 0
->>
-Rule 70 (If ndim of x is 0, then ndim of y must be zero.)
-{x: tensor, y: tensor} |= if ndim(x) = 0 then ndim(y) = 0
->>
-Rule 71 (If shape of any dimension of x is 0, then shape of that corresponding dimension of y must be 0.)
-{x: tensor, y: tensor} |= ∀i ∈ [0, ndim(x) - 1]: if shape(x, i) = 0 then shape(y, i) = 0
->>
-Rule 76 (if ndim(x) equals 1, shape(x,0) >0)
-{x: tensor} |= if ndim(x) = 1 then shape(x, 0) > 0
->>
-Rule 77 (if ndim(y) equals 1, shape(y,0) >0)
-{y: tensor} |= if ndim(y) = 1 then shape(y, 0) > 0
->>
-Rule 84 (The shape of x and y should be the same.)
-{x: tensor, y: tensor} |= shape(x) = shape(y)
->>
-Rule 85 (Maximum element in tensor x must be valid.)
-{x: tensor} |= max(x) ≠ "none"
->>
-Rule 89 (if minimum value of x is negative, then it's dtype_ must be 6,7,8,9,10 or 13 )
-{x: tensor} |= if min(x) < 0 then dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10 ∨ dtype_(x) = 13
->>
-Rule 90 (if minimum value of y is negative, then it's dtype_ must be 6,7,8,9,10 or 13 )
-{y: tensor} |= if min(y) < 0 then dtype_(y) = 6 ∨ dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10 ∨ dtype_(y) = 13
->>
-Rule 91 (If max value of x equals 0, then minimum value of x must be 0 also)
-{x: tensor} |= if max(x) = 0 then min(x) = 0
->>
-Rule 92 (If max value of y equals 0, then minimum value of y must be 0 also)
-{y: tensor} |= if max(y) = 0 then min(y) = 0
->>
-Rule 96 (If the shape of tensor x is a tuple, then all elements must be positive.)
+Rule 13 (If ndim(x) is greater than 0, for all dimensions, shape of x should be greater than 0.)
 {x : tensor} |= if ndim(x) > 0 then ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
 >>
-Rule 97 (If the shape of tensor y is a tuple, then all elements must be positive.)
-{y : tensor} |= if ndim(y) > 0 then ∀i ∈ [0, ndim(y) - 1] : shape(y, i) > 0
+Rule 14 (If y is a scalar and zero, then all elements in x should be zero for the result to be zero)
+{x : tensor, y : tensor} |= if ndim(y) = 0 ∧ y = 0 then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1] : x[j] = 0
 >>
-Rule 105 (The product of x's shape should be greater or equal to the product of y's shape)
-{x: tensor, y: tensor} |= if ndim(x) > 0 ∧ ndim(y) > 0 then max(x) * ndim(x) ≥ max(y) * ndim(y)
+Rule 15 (If y is zero and x is not zero, then the result is zero)
+{x : tensor, y : tensor} |= if y = 0 then if x ≠ 0 then true
 >>
-Rule 106 (The sum of x's shape should be the same as the sum of y's shape.)
-{x: tensor, y:tensor} |= if ndim(x) > 0 ∧ ndim(y) > 0 then (∀i ∈ [0, ndim(x) - 1] : shape(x, i)) = (∀j ∈ [0, ndim(y) - 1] : shape(y, j))
+Rule 16 (The type of x and y must be float16, float32, float64, complex64, or complex128.)
+{x : tensor, y : tensor} |= (dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10) ∧ (dtype_(y) = 6 ∨ dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10)
 >>
-Rule 110 (The data types of tensor x and y should be within allowed range)
-{x: tensor, y:tensor} |= (6 ≤ dtype_(x) ∧ dtype_(x) ≤ 13) ∧ (6 ≤ dtype_(y) ∧ dtype_(y) ≤ 13)
+Rule 17 (x cannot be a boolean tensor)
+{x : tensor} |= dtype_(x) ≠ 0
 >>
-Rule 111 (If x has a negative value, tensor x's minimum must be less than 0.)
-{x: tensor} |= if ∃i ∈ [0, ndim(x) - 1] : shape(x, i) < 0 then min(x) < 0
+Rule 18 (y cannot be a boolean tensor)
+{y : tensor} |= dtype_(y) ≠ 0
 >>
-Rule 112 (If y has a negative value, tensor y's minimum must be less than 0.)
-{y: tensor} |= if ∃i ∈ [0, ndim(y) - 1] : shape(y, i) < 0 then min(y) < 0
+Rule 19 (If any of x or y is complex, both must be complex)
+{x : tensor, y : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then dtype_(y) = 9 ∨ dtype_(y) = 10 else if dtype_(y) = 9 ∨ dtype_(y) = 10 then dtype_(x) = 9 ∨ dtype_(x) = 10
 >>
-Rule 113 (if ndim(x) and ndim(y) is not 0, the minimum of x and y must not be none.)
-{x: tensor, y:tensor} |= if ndim(x) ≠ 0 ∧ ndim(y) ≠ 0 then min(x) ≠ "none" ∧ min(y) ≠ "none"
+Rule 21 (If x or y has bfloat16, the other one should have bfloat16)
+{x : tensor, y : tensor} |= if dtype_(x) = 7 then dtype_(y) = 7 else if dtype_(y) = 7 then dtype_(x) = 7
 >>
-Rule 117 (if max(x) is less than 0, then every element of x must be less or equal 0)
-{x: tensor} |= if max(x) < 0 then ∀i ∈ [0, ndim(x) - 1] : shape(x, i) ≤ 0
+Rule 22 (if x's dtype is float16, y's dtype can be float16, float32, float64, complex64, or complex128)
+{x : tensor, y : tensor} |= if dtype_(x) = 6 then (dtype_(y) = 6 ∨ dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10)
 >>
-Rule 118 (if max(y) is less than 0, then every element of y must be less or equal 0)
-{y: tensor} |= if max(y) < 0 then ∀i ∈ [0, ndim(y) - 1] : shape(y, i) ≤ 0
+Rule 23 (If y's dtype is float16, x's dtype can be float16, float32, float64, complex64, or complex128)
+{x : tensor, y : tensor} |= if dtype_(y) = 6 then (dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10)
 >>
-Rule 119 (if the dtype of x is half (6), then y also must be half)
-{x: tensor, y:tensor} |= if dtype_(x) = 6 then dtype_(y) = 6
+Rule 24 (Either x or y should not have bfloat16)
+{x : tensor, y : tensor} |= if dtype_(x) = 7 then dtype_(y) ≠ 7 else if dtype_(y) = 7 then dtype_(x) ≠ 7
 >>
-Rule 120 (if the dtype of x is float32 (7), then y also must be float32)
-{x: tensor, y:tensor} |= if dtype_(x) = 7 then dtype_(y) = 7
+Rule 25 (If broadcasting is needed and a dimension is 1, the other tensor's dimension should be valid (greater than 0).)
+{x : tensor, y : tensor} |= ∀i ∈ [0, if ndim(x) ≥ ndim(y) then ndim(x) - 1 else ndim(y) - 1] : if shape(x, i) = 1 then shape(y, i) > 0 else if shape(y, i) = 1 then shape(x, i) > 0
 >>
-Rule 124 (If dtype of x is half (6) then dtype of y should also be half (6))
-{x: tensor, y: tensor} |= if dtype_(x) = 6 then dtype_(y) = 6
+Rule 26 (If one of x or y is complex64, then other one must be float32, complex64, complex128)
+{x : tensor, y : tensor} |= if dtype_(x) = 9 then (dtype_(y) = 7 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10) else if dtype_(y) = 9 then (dtype_(x) = 7 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10)
 >>
-Rule 125 (If dtype of x is float32 (7) then dtype of y should also be float32 (7))
-{x: tensor, y: tensor} |= if dtype_(x) = 7 then dtype_(y) = 7
+Rule 27 (If one of x or y is complex128, then other one must be float64, complex64, complex128)
+{x : tensor, y : tensor} |= if dtype_(x) = 10 then (dtype_(y) = 8 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10) else if dtype_(y) = 10 then (dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10)
 >>
-Rule 140 (If ndim of x is greater than zero, then shape of x cannot be none.)
-{x: tensor} |= if ndim(x) > 0 then shape(x) ≠ "none"
+Rule 28 (x's dtype can't be int)
+{x : tensor} |= dtype_(x) ≠ 1 ∧ dtype_(x) ≠ 2 ∧ dtype_(x) ≠ 3 ∧ dtype_(x) ≠ 4 ∧ dtype_(x) ≠ 5
 >>
-Rule 141 (If ndim of y is greater than zero, then shape of y cannot be none.)
-{y: tensor} |= if ndim(y) > 0 then shape(y) ≠ "none"
+Rule 29 (y's dtype can't be int)
+{y : tensor} |= dtype_(y) ≠ 1 ∧ dtype_(y) ≠ 2 ∧ dtype_(y) ≠ 3 ∧ dtype_(y) ≠ 4 ∧ dtype_(y) ≠ 5
 >>
-Rule 145 (The shape of x and y cannot be none)
-{x: tensor, y: tensor} |= shape(x) ≠ "none" ∧ shape(y) ≠ "none"
+Rule 30 (If the denominator is zero, the numerator must also be zero.)
+{x : tensor, y : tensor} |= ∀i ∈ [0, ndim(x) - 1]: ∀j ∈ [0, shape(x, i) - 1]: if y[j] = 0 then x[j] = 0
 >>
-Rule 146 (If dtype_ of x is complex64 then dtype_ of y should be complex64)
-{x: tensor, y:tensor} |= if dtype_(x) = 9 then dtype_(y) = 9
+Rule 31 (If x's dtype is float32, y's dtype can be float32, float64, complex64, or complex128)
+{x : tensor, y : tensor} |= if dtype_(x) = 7 then (dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10)
+>>
+Rule 32 (If y's dtype is float32, x's dtype can be float32, float64, complex64, or complex128)
+{x : tensor, y : tensor} |= if dtype_(y) = 7 then (dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10)
+>>
+Rule 33 (If x's dtype is float64, y's dtype can be float64, complex64, or complex128)
+{x : tensor, y : tensor} |= if dtype_(x) = 8 then (dtype_(y) = 8 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10)
+>>
+Rule 34 (If y's dtype is float64, x's dtype can be float64, complex64, or complex128)
+{x : tensor, y : tensor} |= if dtype_(y) = 8 then (dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10)
+>>
+Rule 35 (If x's dtype is complex64, y's dtype can be complex64, or complex128)
+{x : tensor, y : tensor} |= if dtype_(x) = 9 then (dtype_(y) = 9 ∨ dtype_(y) = 10)
+>>
+Rule 36 (If y's dtype is complex64, x's dtype can be complex64, or complex128)
+{x : tensor, y : tensor} |= if dtype_(y) = 9 then (dtype_(x) = 9 ∨ dtype_(x) = 10)
+>>
+Rule 37 (If x's dtype is complex128, y's dtype must be complex128)
+{x : tensor, y : tensor} |= if dtype_(x) = 10 then dtype_(y) = 10
+>>
+Rule 38 (If y's dtype is complex128, x's dtype must be complex128)
+{x : tensor, y : tensor} |= if dtype_(y) = 10 then dtype_(x) = 10
+>>
+Rule 39 (If x is bfloat16, y must be bfloat16)
+{x : tensor, y : tensor} |= if dtype_(x) = 7 then dtype_(y) = 7
+>>
+Rule 40 (If y is bfloat16, x must be bfloat16)
+{x : tensor, y : tensor} |= if dtype_(y) = 7 then dtype_(x) = 7
+>>
+Rule 41 (x's dtype must be same as output dtype)
+{x : tensor} |= dtype_(x) = dtype_(x)
+>>
+Rule 42 (If x's dtype is float16, y's dtype must be float16)
+{x : tensor, y : tensor} |= if dtype_(x) = 6 then dtype_(y) = 6
+>>
+Rule 43 (If y's dtype is float16, x's dtype must be float16)
+{x : tensor, y : tensor} |= if dtype_(y) = 6 then dtype_(x) = 6
+>>
+Rule 44 (if ndim(x) > ndim(y) and can be broadcasted then for i in range(ndim(y)) shape(x, ndim(x)-ndim(y)+i) = shape(y, i))
+{x : tensor, y : tensor} |= if ndim(x) > ndim(y) then ∀i ∈ [0, ndim(y) - 1] : shape(x, ndim(x) - ndim(y) + i) = shape(y, i) ∨ shape(y, i) = 1 ∨ shape(x, ndim(x) - ndim(y) + i) = 1
+>>
+Rule 45 (if ndim(y) > ndim(x) and can be broadcasted then for i in range(ndim(x)) shape(y, ndim(y)-ndim(x)+i) = shape(x, i))
+{x : tensor, y : tensor} |= if ndim(y) > ndim(x) then ∀i ∈ [0, ndim(x) - 1] : shape(y, ndim(y) - ndim(x) + i) = shape(x, i) ∨ shape(x, i) = 1 ∨ shape(y, ndim(y) - ndim(x) + i) = 1
+>>
+Rule 46 (Result dtype must be one of the following: half, float32, bfloat16, float64, complex64, complex128)
+{x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10
+>>
+Rule 49 (If x is float64, y must be float64)
+{x : tensor, y : tensor} |= if dtype_(x) = 8 then dtype_(y) = 8
+>>
+Rule 50 (If x is complex64, y must be complex64)
+{x : tensor, y : tensor} |= if dtype_(x) = 9 then dtype_(y) = 9
+>>
+Rule 63 (x must have at least one dimension)
+{x : tensor} |= ndim(x) ≥ 0
+>>
+Rule 64 (y must have at least one dimension)
+{y : tensor} |= ndim(y) ≥ 0

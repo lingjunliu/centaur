@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Maximum value of a tensor must be greater than or equal to 0 (Rule 3)
+# The ndim of the input tensor must be greater than 0 (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 1) >= 0) if n else
-          Select(v["arg1_range"], 1) >= 0)
+    s.add(Not(v["arg1_ndim"] > 0) if n else
+          v["arg1_ndim"] > 0)
 )
 
 def rule_3_func(arg1, solver=None, neg=False):
@@ -22,16 +22,15 @@ def rule_3_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_ndim == arg1.ndim)
 
         # Constraints for rule 3
-        rule_3(solver, {'arg1_range': arg1_range})
+        rule_3(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_3(solver, {'arg1_range': arg1['range']}, neg)
+        rule_3(solver, {'arg1_ndim': arg1['ndim']}, neg)

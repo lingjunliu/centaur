@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The length of the shape tensor should be within a reasonable limit (Rule 5)
+# dims should not be empty (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) <= 10) if n else
-          Select(v["arg1_shape"], 0) <= 10)
+    s.add(Not(Select(v["arg1_shape"], 0) > 0) if n else
+          Select(v["arg1_shape"], 0) > 0)
 )
 
 def rule_5_func(arg1, solver=None, neg=False):

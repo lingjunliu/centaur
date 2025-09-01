@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If dtype of v_1 is less than 5, then dtype of v_2 must be greater than 8 (Rule 25)
+# if v1 is of type float, v2 should also be of type float, otherwise the results can be unexpected due to implicit casting (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] < 5, v["arg2_dtype"] > 8, False)) if n else
-          If(v["arg1_dtype"] < 5, v["arg2_dtype"] > 8, False))
+    s.add(Not(If((Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), (Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8)), True)) if n else
+          If((Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), (Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8)), True))
 )
 
 def rule_25_func(arg1, arg2, solver=None, neg=False):

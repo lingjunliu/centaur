@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# tensor's ndim should be greater than or equal to 1 and less than or equal to 4 (Rule 22)
+# tensor cannot have dimensions exceeding 8 (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] >= 1, v["arg1_ndim"] <= 4)) if n else
-          And(v["arg1_ndim"] >= 1, v["arg1_ndim"] <= 4))
+    s.add(Not(v["arg1_ndim"] <= 8) if n else
+          v["arg1_ndim"] <= 8)
 )
 
 def rule_22_func(arg1, solver=None, neg=False):

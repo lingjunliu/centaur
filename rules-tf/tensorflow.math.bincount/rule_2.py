@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# axis must be 0 or -1 or None, represented by -2 (Rule 2)
+# Unsupported value for argument axis. Only 0 and -1 are currently supported (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(v["arg1_value"] == 0, v["arg1_value"] == -1), v["arg1_value"] == -2)) if n else
-          Or(Or(v["arg1_value"] == 0, v["arg1_value"] == -1), v["arg1_value"] == -2))
+    s.add(Not(Or(v["arg1_value"] == 0, v["arg1_value"] == -1)) if n else
+          Or(v["arg1_value"] == 0, v["arg1_value"] == -1))
 )
 
 def rule_2_func(arg1, solver=None, neg=False):

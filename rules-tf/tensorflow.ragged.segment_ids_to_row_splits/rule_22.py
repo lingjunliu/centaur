@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# out_type must be int64 when segment_ids does not have dtype (Rule 22)
+# If segment_ids has dtype, out_type must be of same kind (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 0, v["arg2_value"] == 4, False)) if n else
-          If(v["arg1_dtype"] == 0, v["arg2_value"] == 4, False))
+    s.add(Not(If(v["arg1_dtype"] != 0, (If(v["arg1_dtype"] <= 5, v["arg2_value"] <= 5, v["arg2_value"] > 5)), True)) if n else
+          If(v["arg1_dtype"] != 0, (If(v["arg1_dtype"] <= 5, v["arg2_value"] <= 5, v["arg2_value"] > 5)), True))
 )
 
 def rule_22_func(arg1, arg2, solver=None, neg=False):

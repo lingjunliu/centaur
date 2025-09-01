@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Output tensor dtype is float64 if input dtype is int32 or lower (Rule 2)
+# Input tensor's elements must be real numbers (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 3, v["arg1_dtype"] == 8, False)) if n else
-          If(v["arg1_dtype"] == 3, v["arg1_dtype"] == 8, False))
+    s.add(Not(And(v["arg1_dtype"] != 10, v["arg1_dtype"] != 11)) if n else
+          And(v["arg1_dtype"] != 10, v["arg1_dtype"] != 11))
 )
 
 def rule_2_func(arg1, solver=None, neg=False):

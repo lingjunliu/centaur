@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# boxes coordinates must be in the range of 0 to 1 (Rule 62)
+# The datatype of pad_per_class must be bool (Rule 62)
 
 rule_62 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3) - 1 + 1), And(0 <= Select(v["arg1_range"], 0), Select(v["arg1_range"], 1) <= 1)) for i in range(6)])) if n else
-          And([Implies(i < (Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3) - 1 + 1), And(0 <= Select(v["arg1_range"], 0), Select(v["arg1_range"], 1) <= 1)) for i in range(6)]))
+    s.add(Not(Or(v["arg1_value"] == True, v["arg1_value"] == False)) if n else
+          Or(v["arg1_value"] == True, v["arg1_value"] == False))
 )
 
 def rule_62_func(arg1, solver=None, neg=False):
@@ -17,24 +17,20 @@ def rule_62_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_value = Bool('arg1_value')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 62
-        rule_62(solver, {'arg1_range': arg1_range, 'arg1_shape': arg1_shape})
+        rule_62(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_62(solver, {'arg1_range': arg1['range'], 'arg1_shape': arg1['shape']}, neg)
+        rule_62(solver, {'arg1_value': arg1['value']}, neg)

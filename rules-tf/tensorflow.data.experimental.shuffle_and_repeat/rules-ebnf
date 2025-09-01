@@ -1,96 +1,132 @@
 >>
-Rule 1 (buffer_size should be greater than 0)
-{v_1 : int} |= v_1 > 0
+Rule 1 (buffer_size should be a positive integer)
+{v_1 : tensor} |= v_1 > 0
 >>
-Rule 2 (count should be greater than -2)
-{v_1 : int} |= v_1 > -2
+Rule 2 (count should be non-negative)
+{v_2 : tensor} |= v_2 ≥ 0
 >>
-Rule 3 (seed should be a non-negative integer)
-{v_1 : int} |= v_1 ≥ 0
+Rule 3 (seed must be a non-negative integer)
+{v_3 : tensor} |= v_3 ≥ 0
 >>
-Rule 5 (If count is not None or -1, it should be a positive integer)
-{v_1 : int} |= if v_1 ≠ -1 then v_1 > 0
+Rule 4 (buffer_size must be greater than 1 for shuffling to have effect)
+{v_1 : tensor} |= v_1 > 1
 >>
-Rule 7 (count can be -1 or greater than 0)
-{v_1 : int} |= v_1 = -1 ∨ v_1 > 0
+Rule 6 (If count is provided, it must be an integer greater than or equal to -1)
+{v_2 : tensor} |= v_2 ≥ -1
 >>
-Rule 9 (If count is not -1, the buffer_size should be smaller than the dataset size.)
-{v_1 : int, v_2 : int} |= if v_2 ≠ -1 then v_1 ≤ v_2
+Rule 9 (buffer_size and count cannot both be zero)
+{v_1 : tensor, v_2 : tensor} |= (v_1 > 0) ∨ (v_2 ≠ 0)
 >>
-Rule 12 (If the count is not -1, then buffer_size should not be zero.)
-{v_1 : int, v_2 : int} |= if v_2 ≠ -1 then v_1 ≠ 0
+Rule 11 (The product of buffer_size and count should not exceed a maximum limit)
+{v_1 : tensor, v_2 : tensor} |= v_1 * v_2 < 2147483647 ∨ v_2 = -1
 >>
-Rule 16 (If buffer_size is 0, then the count must be 1)
-{v_1 : int, v_2 : int} |= if v_1 = 0 then v_2 = 1
+Rule 12 (buffer_size must not be zero)
+{v_1 : tensor} |= v_1 ≠ 0
 >>
-Rule 17 (If seed is zero, the count must be -1 or 1)
-{v_1 : int, v_2 : int} |= if v_1 = 0 then v_2 = -1 ∨ v_2 = 1
+Rule 13 (If count is -1, buffer_size must be greater than 0)
+{v_1 : tensor, v_2 : tensor} |= if v_2 = -1 then v_1 > 0
 >>
-Rule 20 (If count is specified and greater than 0, buffer_size should be less than or equal to count times the buffer size.)
-{v_1 : int, v_2: int} |= if v_2 > 0 then v_1 ≤ v_2 * v_1
+Rule 14 (buffer_size and count must both be positive or count is -1)
+{v_1 : tensor, v_2 : tensor} |= (v_1 > 0 ∧ v_2 > 0) ∨ (v_2 = -1 ∧ v_1 > 0)
 >>
-Rule 24 (If buffer_size is greater than 0 and count is -1, perfect shuffling is enabled.)
-{v_1 : int, v_2 : int} |= if v_1 > 0 then if v_2 = -1 then true
+Rule 16 (buffer_size must not be negative)
+{v_1 : tensor} |= v_1 ≥ 0
 >>
-Rule 25 (buffer size cannot be a very large number)
-{v_1 : int} |= v_1 < 100000000
+Rule 17 (If buffer_size is 0, count must be 1 or the dataset is empty )
+{v_1 : tensor, v_2 : tensor} |= if v_1 = 0 then v_2 = 1
 >>
-Rule 28 (The buffer_size should be less than or equal to the size of the dataset)
-{v_1 : int, v_2 : tensor} |= v_1 ≤ shape(v_2,0)
+Rule 18 (count cannot be a very large number to avoid overflow)
+{v_2 : tensor} |= v_2 < 1000000000 ∨ v_2 = -1
 >>
-Rule 32 (The buffer_size should be less than the maximum value an int can hold)
-{v_1 : int} |= v_1 < 2147483647
+Rule 19 (count cannot be zero if buffer_size is not zero)
+{v_1 : tensor, v_2 : tensor} |= if v_1 ≠ 0 then v_2 ≠ 0
 >>
-Rule 33 (if count is -1, then seed should have a default value.)
-{v_1 : int, v_2 : int} |= if v_1 = -1 then v_2 = 0 ∨ v_2 > 0
+Rule 20 (If count is not -1, it must be a positive integer)
+{v_2 : tensor} |= if v_2 ≠ -1 then v_2 > 0
 >>
-Rule 36 (buffer_size must not be equal to count when count is 1)
-{v_1 : int, v_2 : int} |= if v_2 = 1 then v_1 ≠ 1
+Rule 21 (If buffer_size equals the dataset size, then count must be a positive integer)
+{v_1 : tensor, v_2 : tensor} |= if v_1 = shape(v_1,0) then v_2 > 0 ∨ v_2=-1
 >>
-Rule 37 (If the seed is provided, buffer_size must be larger than zero)
-{v_1 : int, v_2 : int} |= if v_2 > 0 then v_1 > 0
+Rule 22 (buffer_size should be less than or equal to the size of the dataset)
+{v_1 : tensor} |= v_1 ≤ shape(v_1, 0)
 >>
-Rule 40 (When count is greater than 1 the buffer size should also be greater than 1)
-{v_1 : int, v_2 : int} |= if v_2 > 1 then v_1 > 1
+Rule 24 (If buffer_size is greater than the dataset size, then count cannot be zero)
+{v_1 : tensor, v_2 : tensor} |= if v_1 > shape(v_1, 0) then v_2 ≠ 0
 >>
-Rule 41 (If buffer size is equal to the size of the dataset, count can be any positive number or -1)
-{v_1 : int, v_2 : tensor, v_3:int} |= if v_1=shape(v_2,0) then v_3 > 0 ∨ v_3 = -1
+Rule 26 (if the dataset size is unknown, then buffer_size must be greater than 0)
+{v_1 : tensor} |= if shape(v_1, 0) = 0 then v_1 > 0
 >>
-Rule 44 (buffer_size must be less or equal than 2^32)
-{v_1 : int} |= v_1 <= 4294967296
+Rule 27 (If count is -1 and the dataset size is unknown, the user should be warned that the dataset will be infinite)
+{v_2 : tensor} |= if v_2 = -1 then true
 >>
-Rule 45 (Seed must be in the range of int64)
-{v_1 : int} |= -9223372036854775808 <= v_1 ∧ v_1 <= 9223372036854775807
+Rule 28 (buffer_size must be greater than zero or equal to the dataset size)
+{v_1 : tensor} |= v_1 > 0 ∨ v_1 = shape(v_1, 0)
 >>
-Rule 48 (The product of buffer_size and count should not overflow)
-{v_1 : int, v_2 : int} |= if v_2 > 0 then v_1 < 2147483647 / v_2
+Rule 29 (If the buffer_size is equal to dataset size then shuffle is not needed)
+{v_1 : tensor} |= if v_1 = shape(v_1, 0) then true
 >>
-Rule 52 (If buffer_size is provided then seed must be also provided)
-{v_1 : int, v_2 : int} |= if v_1 > 0 then v_2 ≥ 0
+Rule 30 (Either buffer_size is greater than zero, or count is -1, or dataest is empty)
+{v_1 : tensor, v_2 : tensor} |= (v_1 > 0) ∨ (v_2 = -1) ∨ (shape(v_1, 0) = 0)
 >>
-Rule 56 (If dataset is finite and count is -1, the count should be changed to a positive integer)
-{v_1 : int, v_2: tensor} |= if shape(v_2, 0) > 0 then true else if v_1 = -1 then false
+Rule 31 (count is -1 or positive integer, and seed is non negative integer )
+{v_2 : tensor, v_3 : tensor} |= (v_2 ≥ 1 ∨ v_2 = -1) ∧ v_3 ≥ 0
 >>
-Rule 60 (If the dataset size is known, buffer_size should not exceed the dataset size)
-{v_1 : int, v_2 : tensor} |= if shape(v_2, 0) > 0 then v_1 ≤ shape(v_2, 0)
+Rule 32 (If buffer_size is not equal to the full dataset size, perfect shuffling is not guaranteed)
+{v_1 : tensor} |= if v_1 ≠ shape(v_1, 0) then true
 >>
-Rule 64 (When the count is set to -1, the seed must be greater or equal than 0)
-{v_1 : int, v_2 : int} |= if v_1 = -1 then v_2 ≥ 0
+Rule 33 (buffer_size should be smaller than maximum int value)
+{v_1 : tensor} |= v_1 < 2147483647
 >>
-Rule 65 (When the buffer size is smaller than the dataset size, the count must be specified.)
-{v_1 : int, v_2 : tensor, v_3: int} |= if v_1 < shape(v_2,0) then v_3 > 0 ∨ v_3 = -1
+Rule 35 (If the dataset is empty, count has to be 1, and buffer_size should be 0.)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) = 0 then v_2 = 1 ∧ v_1 = 0
 >>
-Rule 68 (buffer size should be smaller than the maximum int32 value)
-{v_1 : int} |= v_1 < 2147483648
+Rule 37 (If the dataset is empty, then buffer_size should be 0, and count should either be 1 or -1)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) = 0 then (v_1 = 0) ∧ (v_2 = 1 ∨ v_2 = -1)
 >>
-Rule 72 (count must not be zero.)
-{v_1 : int} |= v_1 ≠ 0
+Rule 39 (if dataset is empty, then buffer size has to be 0 and count has to be 1)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1,0) = 0 then v_1 = 0 ∧ v_2 = 1
 >>
-Rule 77 (perfect shuffling condition)
-{v_1 : int, v_2 : int, v_3 : tensor} |= if v_1 > 0 ∧ v_2 = -1 then v_1 = shape(v_3, 0)
+Rule 40 (buffer_size should be less than or equal to the dataset size, or it should be zero)
+{v_1 : tensor} |= v_1 ≤ shape(v_1, 0) ∨ v_1 = 0
 >>
-Rule 80 (The seed should be non-negative, unless the count is indefinite (-1).)
-{v_1 : int, v_2 : int} |= if v_2 = -1 then true else v_1 ≥ 0
+Rule 41 (When buffer_size is 0, the dataset isn't shuffled)
+{v_1 : tensor} |= if v_1 = 0 then true
 >>
-Rule 81 (If dataset is infinite the count must be -1)
-{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) = 0 then v_2 = -1
+Rule 47 (If the dataset is known and small, the buffer size should match)
+{v_1 : tensor} |= if shape(v_1, 0) > 0 ∧ shape(v_1, 0) < 1000 then v_1 = shape(v_1, 0)
+>>
+Rule 50 (If count is greater than zero then the buffer size must be valid to fill in at least a sample element.)
+{v_1 : tensor, v_2 : tensor} |= if v_2 > 0 then v_1 > 0
+>>
+Rule 51 (If the dataset is not finite, then count must be -1)
+{v_2 : tensor} |= if shape(v_1, 0) = 0 then v_2 = -1
+>>
+Rule 53 (buffer_size has to be smaller than or equal to max int32)
+{v_1 : tensor} |= v_1 ≤ 2147483647
+>>
+Rule 54 (Count has to be -1 or a valid positive integer for repeat.)
+{v_2 : tensor} |= v_2 = -1 ∨ v_2 > 0
+>>
+Rule 55 (buffer_size must be smaller or equal to dataset's size if it is finite and known.)
+{v_1 : tensor} |= if shape(v_1, 0) > 0 then v_1 <= shape(v_1, 0)
+>>
+Rule 57 (if count is a very large positive integer then buffer_size cannot be too large to avoid overflow)
+{v_1 : tensor, v_2 : tensor} |= if v_2 > 100000 then v_1 < 100000
+>>
+Rule 59 (buffer_size, count, seed must be non-negative with the special case of count which could be -1)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= v_1 ≥ 0 ∧ (v_2 = -1 ∨ v_2 ≥ 0) ∧ v_3 ≥ 0
+>>
+Rule 63 (seed must be a positive tensor)
+{v_3 : tensor} |= v_3 > 0
+>>
+Rule 68 (If count is specified, it should be a single element tensor)
+{v_2 : tensor} |= ndim(v_2) = 0
+>>
+Rule 69 (If seed is provided, buffer_size should also be specified for deterministic results.)
+{v_1 : tensor, v_3 : tensor} |= if v_3 > 0 then v_1 > 0
+>>
+Rule 70 (If seed is not None, it must be an integer tensor of size zero.)
+{v_3 : tensor} |= ndim(v_3) = 0 ∨ v_3="none"
+>>
+Rule 71 (If dataset size is unknown, buffer_size can be anything.)
+{v_1 : tensor} |= if shape(v_1, 0) = 0 then true

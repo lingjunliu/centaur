@@ -5,32 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# axis is an integer greater or equal to -1  (Rule 11)
+# logits must be a non-empty tensor and axis should be less than the number of dimensions or greater than or equal to the negative number of dimensions. (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] >= -1) if n else
-          v["arg1_value"] >= -1)
+    s.add(Not(And(And(v["arg1_ndim"] > 0, v["arg2_value"] < v["arg1_ndim"]), v["arg2_value"] >= (0 - v["arg1_ndim"]))) if n else
+          And(And(v["arg1_ndim"] > 0, v["arg2_value"] < v["arg1_ndim"]), v["arg2_value"] >= (0 - v["arg1_ndim"])))
 )
 
-def rule_11_func(arg1, solver=None, neg=False):
+def rule_11_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, np.ndarray):
+            return False
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 11
-        rule_11(solver, {'arg1_value': arg1_value})
+        rule_11(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_11(solver, {'arg1_value': arg1['value']}, neg)
+        rule_11(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

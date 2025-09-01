@@ -1,207 +1,138 @@
 >>
-Rule 1 (grads tensor must be of float32 type)
-{v_1 : tensor} |= dtype_(v_1) = 8
+Rule 1 (grads tensor must have 4 dimensions)
+{grads : tensor} |= ndim(grads) = 4
 >>
-Rule 2 (boxes tensor must have shape [num_boxes, 4])
-{v_1 : tensor} |= ndim(v_1) = 2 ∧ shape(v_1, 1) = 4
+Rule 2 (boxes tensor must have 2 dimensions)
+{boxes : tensor} |= ndim(boxes) = 2
 >>
-Rule 3 (box_ind tensor must be of int32 type)
-{v_1 : tensor} |= dtype_(v_1) = 3
+Rule 3 (boxes tensor's second dimension must be 4)
+{boxes : tensor} |= shape(boxes, 1) = 4
 >>
-Rule 4 (box_ind tensor must be a 1-D tensor)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 4 (box_ind tensor must have 1 dimension)
+{box_ind : tensor} |= ndim(box_ind) = 1
 >>
-Rule 6 (image_size tensor must be a 1-D tensor of length 4)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = 4
+Rule 5 (image_size tensor must have 1 dimension)
+{image_size : tensor} |= ndim(image_size) = 1
 >>
-Rule 7 (image_size height and width must be positive)
-{v_1 : tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+Rule 6 (image_size tensor's length must be 4)
+{image_size : tensor} |= shape(image_size, 0) = 4
 >>
-Rule 8 (grads tensor must be a 4-D tensor)
-{v_1 : tensor} |= ndim(v_1) = 4
+Rule 7 (box_ind tensor's shape must match the first dimension of boxes tensor)
+{box_ind : tensor, boxes: tensor} |= shape(box_ind, 0) = shape(boxes, 0)
 >>
-Rule 9 (T must be of float32, float16, or float64)
-{v_1 : dtype} |= v_1 = 8 ∨ v_1 = 6 ∨ v_1 = 9
+Rule 8 (grads tensor must be float32)
+{grads: tensor} |= dtype_(grads) = 7
 >>
-Rule 10 (method must be 'bilinear' or 'nearest')
-{v_1 : str} |= v_1 = "bilinear" ∨ v_1 = "nearest"
+Rule 9 (boxes tensor must be float32)
+{boxes: tensor} |= dtype_(boxes) = 7
 >>
-Rule 11 (num_boxes dimension of grads and boxes must match)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 10 (box_ind tensor must be int32)
+{box_ind: tensor} |= dtype_(box_ind) = 3
 >>
-Rule 13 (batch dimension of image_size must be greater than or equal to any value in box_ind)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0 ∧ v_2[i] < shape(v_1, 0)
+Rule 11 (image_size tensor must be int32)
+{image_size: tensor} |= dtype_(image_size) = 3
 >>
-Rule 14 (crop_height dimension of grads must be positive)
-{v_1 : tensor} |= shape(v_1, 1) > 0
+Rule 12 (T dtype must be float32, float16, or float64)
+{T : dtype} |= T = 7 ∨ T = 6 ∨ T = 8
 >>
-Rule 15 (crop_width dimension of grads must be positive)
-{v_1 : tensor} |= shape(v_1, 2) > 0
+Rule 13 (method must be "bilinear" or "nearest")
+{method : str} |= method = "bilinear" ∨ method = "nearest"
 >>
-Rule 27 (depth dimension of grads must be positive)
-{v_1 : tensor} |= shape(v_1, 3) > 0
+Rule 14 (image_size[1] and image_size[2] must be positive)
+{image_size: tensor} |= image_size[1] > 0 ∧ image_size[2] > 0
 >>
-Rule 28 (T must match the return tensor type)
-{v_1 : dtype, v_2 : tensor} |= dtype_(v_2) = v_1
+Rule 15 (elements in box_ind should be non-negative)
+{box_ind: tensor, image_size: tensor} |= ∀i ∈ [0, shape(box_ind, 0) - 1] : 0 ≤ box_ind[i] ∧ box_ind[i] < image_size[0]
 >>
-Rule 29 (box_ind values must be non-negative)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
+Rule 16 (The number of boxes must be greater than 0)
+{boxes: tensor} |= shape(boxes, 0) > 0
 >>
-Rule 31 (box_ind values must be within the valid range defined by image_size)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < shape(v_2, 0)
+Rule 17 (The image_size must be a valid shape, meaning that the batch size, height, width and channels must be greater than 0)
+{image_size: tensor} |= image_size[0] > 0 ∧ image_size[1] > 0 ∧ image_size[2] > 0 ∧ image_size[3] > 0
 >>
-Rule 32 (grads depth matches the last dimension of image_size)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 3) = shape(v_2, 3)
+Rule 18 (If T is float16, then grads must be float16)
+{T: dtype, grads: tensor} |= if T = 6 then dtype_(grads) = 6
 >>
-Rule 37 (boxes tensor must be float type)
-{v_1: tensor} |= dtype_(v_1) = 8
+Rule 19 (If T is float64, then grads must be float64)
+{T: dtype, grads: tensor} |= if T = 8 then dtype_(grads) = 8
 >>
-Rule 38 (image_size values must be positive)
-{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+Rule 20 (Valid image_size rank)
+{image_size: tensor} |= ndim(image_size) = 1
 >>
-Rule 39 (grads tensor must have depth > 0)
-{v_1: tensor} |= shape(v_1, 3) > 0
+Rule 21 (grads' shape[0] must match boxes' shape[0] and box_ind's shape[0])
+{grads: tensor, boxes: tensor, box_ind: tensor} |= shape(grads, 0) = shape(boxes, 0) ∧ shape(grads, 0) = shape(box_ind, 0)
 >>
-Rule 43 (Check the range of image_size)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1,0) -1 ] : v_1[i] > 0
+Rule 22 (grads' shape[3] must match image_size's shape[3])
+{grads: tensor, image_size: tensor} |= shape(grads, 3) = image_size[3]
 >>
-Rule 45 (T must be one of float32, float16, or float64)
-{v_1 : dtype} |= v_1 = 7 ∨ v_1 = 6 ∨ v_1 = 8
+Rule 23 (method can only be bilinear now)
+{method: str} |= method = "bilinear"
 >>
-Rule 47 (box_ind must be less than image_size[0])
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < shape(v_2, 0)
+Rule 24 (T must be one of the allowed dtypes)
+{T: dtype} |= T = 7 ∨ T = 6 ∨ T = 8
 >>
-Rule 48 (grads should be a tensor with at least 1 dimension)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 25 (image_size[0] should be greater than 0)
+{image_size: tensor} |= image_size[0] > 0
 >>
-Rule 51 (image_size values must be positive integers)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
+Rule 26 (The second dimension of grads should be greater than 0)
+{grads: tensor} |= shape(grads, 1) > 0
 >>
-Rule 53 (box_ind values must be non-negative integers)
-{v_1: tensor} |=  ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
+Rule 27 (The third dimension of grads should be greater than 0)
+{grads: tensor} |= shape(grads, 2) > 0
 >>
-Rule 56 (boxes tensor must be 2 dimensional)
-{v_1 : tensor} |= ndim(v_1) = 2
+Rule 28 (T is float32 implies grads is float32)
+{T: dtype, grads: tensor} |= if T = 7 then dtype_(grads) = 7
 >>
-Rule 59 (image_size tensor must have 4 elements)
-{v_1 : tensor} |= shape(v_1, 0) = 4
+Rule 29 (If method is nearest, it is an invalid value)
+{method: str} |= method ≠ "nearest"
 >>
-Rule 60 (boxes second dimension must be of size 4)
-{v_1 : tensor} |= shape(v_1, 1) = 4
+Rule 31 (The last dimension of image_size should be greater than 0)
+{image_size: tensor} |= image_size[3] > 0
 >>
-Rule 61 (grads tensor dtype should be float32)
-{v_1: tensor} |= dtype_(v_1) = 7
+Rule 36 (grads' crop_height and crop_width must be greater than 0)
+{grads: tensor} |= shape(grads, 1) > 0 ∧ shape(grads, 2) > 0
 >>
-Rule 63 (box_ind tensor dtype should be int32)
-{v_1: tensor} |= dtype_(v_1) = 3
+Rule 48 (Boxes values should be generally in range [0,1], allow for extrapolation)
+{boxes: tensor} |= min(boxes) ≥ -0.1 ∧ max(boxes) ≤ 1.1
 >>
-Rule 65 (image_size tensor elements should be greater than zero)
-{v_1: tensor} |=  ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
+Rule 59 (grads must have non-zero depth)
+{grads: tensor} |= shape(grads, 3) > 0
 >>
-Rule 66 (num_boxes should be greater than zero)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0
+Rule 61 (boxes tensor must have shape[0] greater or equal to 1)
+{boxes: tensor} |= shape(boxes, 0) ≥ 1
 >>
-Rule 67 (method should have a limited length)
-{v_1 : str} |= v_1.len < 20
+Rule 62 (box_ind tensor must have shape[0] greater or equal to 1)
+{box_ind: tensor} |= shape(box_ind, 0) ≥ 1
 >>
-Rule 70 (grads tensor has a valid crop_height and crop_width)
-{v_1: tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+Rule 64 (grads tensor's shape[1] * shape[2] * shape[3] * size of float32 must be less than available memory)
+{grads: tensor} |= shape(grads, 1) * shape(grads, 2) * shape(grads, 3) < 1000000
 >>
-Rule 71 (T matches grads dtype)
-{v_1: dtype, v_2: tensor} |= if v_1 = 7 then dtype_(v_2) = 7 else if v_1 = 6 then dtype_(v_2) = 6 else dtype_(v_2) = 8
+Rule 65 (The product of crop_height and crop_width in grads should be less than 10000)
+{grads: tensor} |= shape(grads, 1) * shape(grads, 2) < 10000
 >>
-Rule 72 (box_ind elements are non negative)
-{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
+Rule 67 (image_size's depth must be greater than 0)
+{image_size : tensor} |= image_size[3] > 0
 >>
-Rule 73 (num_boxes from grads matches num_boxes in boxes and box_ind)
-{v_1: tensor, v_2: tensor, v_3: tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) = shape(v_3, 0)
+Rule 69 (image_size[0] which is batch must be smaller than 100)
+{image_size : tensor} |= image_size[0] < 100
 >>
-Rule 74 (image_size[0] is greater than the max of box_ind)
-{v_1: tensor, v_2: tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < shape(v_1, 0)
+Rule 70 (image_size[0] which is batch must be greater than 0)
+{image_size : tensor} |= image_size[0] > 0
 >>
-Rule 75 (grads crop_height should be greater than 0)
-{v_1: tensor} |= shape(v_1, 1) > 0
+Rule 72 (T can't be bool or string)
+{T: dtype} |= T ≠ 0 ∧ T ≠ 11
 >>
-Rule 76 (grads crop_width should be greater than 0)
-{v_1: tensor} |= shape(v_1, 2) > 0
+Rule 73 (If T is float16, then boxes must be float16)
+{T: dtype, boxes: tensor} |= if T = 6 then dtype_(boxes) = 6
 >>
-Rule 77 (image size is one dimensional)
-{v_1: tensor} |= ndim(v_1) = 1
+Rule 74 (If T is float64, then boxes must be float64)
+{T: dtype, boxes: tensor} |= if T = 8 then dtype_(boxes) = 8
 >>
-Rule 78 (boxes is two dimensional)
-{v_1: tensor} |= ndim(v_1) = 2
+Rule 75 (If T is float32, then boxes must be float32)
+{T: dtype, boxes: tensor} |= if T = 7 then dtype_(boxes) = 7
 >>
-Rule 80 (grads is four dimensional)
-{v_1: tensor} |= ndim(v_1) = 4
+Rule 76 (box_ind values must be non-negative)
+{box_ind: tensor} |= min(box_ind) >= 0
 >>
-Rule 81 (box_ind elements are in valid range)
-{v_1: tensor, v_2: tensor} |=  ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < shape(v_2, 0) ∧ v_1[i] ≥ 0
->>
-Rule 82 (T is one of the allowed dtypes)
-{v_1: dtype} |= v_1 = 7 ∨ v_1 = 6 ∨ v_1 = 8
->>
-Rule 85 (number of box_ind elements should match first dimension of boxes)
-{v_1: tensor, v_2: tensor} |= shape(v_1, 0) = shape(v_2, 0)
->>
-Rule 88 (grads depth must match image_size depth)
-{v_1: tensor, v_2: tensor} |= shape(v_1, 3) = shape(v_2, 3)
->>
-Rule 89 (grads must have positive crop_height, crop_width and depth)
-{v_1 : tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
->>
-Rule 90 (grads tensor is not empty)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 93 (box_ind is less than batch size of image_size)
-{v_1: tensor, v_2: tensor} |=  ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < shape(v_2, 0)
->>
-Rule 103 (box_ind values must exist in image_size batch dimension)
-{v_1 : tensor, v_2 : tensor} |=  ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < shape(v_2, 0) ∧ v_1[i] ≥ 0
->>
-Rule 107 (shape of image_size should be 4)
-{v_1: tensor} |= shape(v_1, 0) = 4
->>
-Rule 110 (all tensors should have more than 0 dimensions)
-{v_1: tensor} |= ndim(v_1) > 0
->>
-Rule 115 (Method must be a valid value)
-{v_1: str} |= v_1 = "bilinear" ∨ v_1 = "nearest"
->>
-Rule 119 (boxes must have second dimension of 4)
-{v_1: tensor} |= shape(v_1, 1) = 4
->>
-Rule 122 (all tensors must have dimensions greater or equal to 1)
-{v_1:tensor} |= ndim(v_1) ≥ 1
->>
-Rule 127 (Boxes must have second dimension as 4)
-{v_1:tensor} |= shape(v_1, 1) = 4
->>
-Rule 128 (Boxes must be 2 dimensional)
-{v_1:tensor} |= ndim(v_1) = 2
->>
-Rule 131 (boxes tensor must be float32)
-{v_1 : tensor} |= dtype_(v_1) = 7
->>
-Rule 136 (gradients must be 4 dimensional)
-{v_1:tensor} |= ndim(v_1) = 4
->>
-Rule 137 (box_ind must be 1 dimensional)
-{v_1:tensor} |= ndim(v_1) = 1
->>
-Rule 139 (gradients crop_height, crop_width, depth must be positive)
-{v_1: tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
->>
-Rule 146 (Num boxes must be a positive value)
-{v_1: tensor} |= shape(v_1, 0) > 0
->>
-Rule 151 (number of boxes in grads tensor should be greater than 0)
-{v_1:tensor} |= shape(v_1, 0) > 0
->>
-Rule 160 (image_size shape[0] should be valid)
-{v_1:tensor} |= 0 < shape(v_1, 0)
->>
-Rule 161 (num_boxes has to be a positive number)
-{v_1 : tensor} |= shape(v_1, 0) > 0
->>
-Rule 163 (grads should be 4 dimensional and boxes should be 2 dimensional)
-{v_1:tensor, v_2:tensor} |= ndim(v_1) = 4 ∧ ndim(v_2) = 2
+Rule 78 (grads and boxes must have float type)
+{grads: tensor, boxes:tensor} |= dtype_(grads) = 7 ∧ dtype_(boxes) = 7

@@ -1,111 +1,123 @@
 >>
-Rule 1 (channels must be 0, 1, 3, or 4)
-{v_1 : int} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 3 ∨ v_1 = 4
+Rule 1 (dtype must be uint8 or uint16)
+{dtype : dtype} |= dtype = 5 ∨ dtype = 2
 >>
-Rule 2 (dtype must be uint8 or uint16)
-{v_1 : dtype} |= v_1 = 5 ∨ v_1 = 2
+Rule 2 (channels should be one of 0, 1, 3, or 4)
+{channels : int} |= channels = 0 ∨ channels = 1 ∨ channels = 3 ∨ channels = 4
 >>
-Rule 3 (contents must be a non-empty string)
-{v_1 : str} |= v_1 ≠ ""
+Rule 3 (contents should not be an empty string)
+{contents : str} |= contents ≠ ""
 >>
-Rule 4 (channels and dtype interaction: if channels is 1, dtype can be either uint8 or uint16)
-{v_1 : int, v_2 : dtype} |= if v_1 = 1 then v_2 = 5 ∨ v_2 = 2
+Rule 4 (channels must be a non-negative integer)
+{channels : int} |= channels ≥ 0
 >>
-Rule 5 (contents tensor ndim is 0)
-{v_1 : tensor} |= ndim(v_1) = 0
+Rule 8 (Combination of channels and dtype values should be valid)
+{channels : int, dtype : dtype} |= (channels = 0 ∨ channels = 1 ∨ channels = 3 ∨ channels = 4) ∧ (dtype = 5 ∨ dtype = 2)
 >>
-Rule 6 (If channels is not 0, it must be positive)
-{v_1 : int} |= if v_1 ≠ 0 then v_1 > 0
+Rule 9 (If channels is not 0, then dtype must be specified)
+{channels : int, dtype : dtype} |= if channels ≠ 0 then dtype = 5 ∨ dtype = 2
 >>
-Rule 8 (contents tensor datatype should be string (index 11))
-{v_1 : tensor} |= dtype_(v_1) = 11
+Rule 11 (dtype must be a valid dtype value)
+{dtype : dtype} |= dtype = 0 ∨ dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 ∨ dtype = 5 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10 ∨ dtype = 11 ∨ dtype = 12
 >>
-Rule 9 (If dtype is uint16, the values in contents should be decodable to uint16)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then max(v_1) ≤ 65535
+Rule 12 (contents must be a string with length greater than 0)
+{contents : str} |= contents.len > 0
 >>
-Rule 10 (If channels is zero, the shape of the output tensor depends on the encoded image data. This is hard to represent fully but we can say the ndim must be greater than 0)
-{v_1 : int, v_2 : tensor} |= if v_1 = 0 then ndim(v_2) > 0
+Rule 13 (If dtype is uint8, then channels must be 0, 1, 3, or 4)
+{dtype : dtype, channels : int} |= if dtype = 5 then channels = 0 ∨ channels = 1 ∨ channels = 3 ∨ channels = 4
 >>
-Rule 11 (contents tensor's minimum value must be non-negative)
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 14 (If dtype is uint16, then channels must be 0, 1, 3, or 4)
+{dtype : dtype, channels : int} |= if dtype = 2 then channels = 0 ∨ channels = 1 ∨ channels = 3 ∨ channels = 4
 >>
-Rule 13 (If channels = 1, the resulting tensor should have ndim >= 2)
-{v_1: int, v_2: tensor} |= if v_1 = 1 then ndim(v_2) ≥ 2
+Rule 15 (If channels is 0, then dtype should be either uint8 or uint16.)
+{channels : int, dtype : dtype} |= if channels = 0 then dtype = 5 ∨ dtype = 2
 >>
-Rule 14 (channels must be non-negative)
-{v_1 : int} |= v_1 ≥ 0
+Rule 20 (If channels are 1, 3, or 4, then dtype should be either uint8 or uint16)
+{channels : int, dtype : dtype} |= if channels = 1 ∨ channels = 3 ∨ channels = 4 then dtype = 5 ∨ dtype = 2
 >>
-Rule 16 (The dtype of the returned tensor should match the dtype parameter)
-{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
+Rule 21 (If a dtype is given, it must be a valid tf.dtype)
+{dtype : dtype} |= dtype = 12
 >>
-Rule 17 (If channels is 3, the output tensor's last dimension should be 3 if ndim >= 1)
-{v_1 : int, v_2 : tensor} |= if v_1 = 3 ∧ ndim(v_2) ≥ 1 then shape(v_2, ndim(v_2) - 1) = 3
+Rule 22 (contents must be a PNG-encoded string with at least one byte)
+{contents : str} |= contents.len ≥ 1
 >>
-Rule 18 (If channels = 4, the output tensor's last dimension should be 4 if ndim >= 1)
-{v_1 : int, v_2 : tensor} |= if v_1 = 4 ∧ ndim(v_2) ≥ 1 then shape(v_2, ndim(v_2) - 1) = 4
+Rule 24 (Contents must start with 'PNG')
+{contents : str} |= if contents.len > 2 then contents[0] = "P" ∧ contents[1] = "N" ∧ contents[2] = "G"
 >>
-Rule 19 (If dtype is uint8, the values in contents should be decodable to uint8)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 5 then max(v_1) ≤ 255
+Rule 25 (name must be shorter than 256 characters)
+{name : str} |= name.len < 256
 >>
-Rule 20 (Contents tensor is a scalar)
-{v_1: tensor} |= ndim(v_1) = 0
+Rule 27 (If dtype is specified as tf.uint8 or tf.uint16, then contents must be a valid png)
+{dtype: dtype, contents: str} |= if dtype = 5 ∨ dtype = 2 then contents.len > 0
 >>
-Rule 21 (If channels is greater than 0, output tensor should have channel dimension. If channels is 0, we cannot say much about output tensor dimension)
-{v_1 : int, v_2 : tensor} |= if v_1 > 0 then ndim(v_2) > 0
+Rule 28 (Dtype must be a valid dtype, as specified by the enumerated values)
+{dtype: dtype} |= dtype = 0 ∨ dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 ∨ dtype = 5 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10 ∨ dtype = 11 ∨ dtype = 12
 >>
-Rule 22 (If channels is 1,3 or 4, output should be ndim >=3, and last dim should be 1,3,4 accordingly)
-{v_1 : int, v_2 : tensor} |= if v_1 = 1 ∨ v_1 = 3 ∨ v_1 = 4 then ndim(v_2) ≥ 3 ∧ shape(v_2, ndim(v_2)-1) = v_1
+Rule 29 (If a dtype is given and valid, contents must have corresponding image format)
+{dtype: dtype, contents: str} |= if dtype = 5 then contents[0] = "P" ∧ contents[1] = "N" ∧ contents[2] = "G" else if dtype = 2 then contents[0] = "P" ∧ contents[1] = "N" ∧ contents[2] = "G"
 >>
-Rule 24 (channels and the decoded image shape are related. It is hard to specify completely without knowing image internals, but if channels is 1, 3, or 4, then the output tensor must have at least two dimensions.)
-{v_1 : int, v_2 : tensor} |= if v_1 = 1 ∨ v_1 = 3 ∨ v_1 = 4 then ndim(v_2) ≥ 2
+Rule 30 (contents must be a string of length greater than zero)
+{contents: str} |= contents.len > 0
 >>
-Rule 25 (If dtype is uint8 (5) then max value of contents (v_1) should be less than or equal to 255)
-{v_1: tensor, v_2: dtype} |= if v_2 = 5 then max(v_1) ≤ 255
+Rule 31 (If channels is 0, the length of contents must be greater than zero)
+{channels : int, contents : str} |= if channels = 0 then contents.len > 0
 >>
-Rule 26 (If dtype is uint16 (2) then max value of contents (v_1) should be less than or equal to 65535)
-{v_1: tensor, v_2: dtype} |= if v_2 = 2 then max(v_1) ≤ 65535
+Rule 32 (If name is given then name.len must be less than 256 )
+{name : str} |= if name = "" then true else name.len < 256
 >>
-Rule 30 (If the channels argument is not 0, then the output tensor has a compatible shape where the last dimension matches channels if ndim >= 1)
-{v_1 : int, v_2 : tensor} |= if v_1 ≠ 0 ∧ ndim(v_2) ≥ 1 then shape(v_2, ndim(v_2) - 1) = v_1
+Rule 33 (If channels is specified then it must be a non-negative integer)
+{channels: int} |= channels >= 0
 >>
-Rule 31 (If dtype is specified, output dtype should be equal to it)
-{v_1 : dtype, v_2 : tensor} |= dtype_(v_2) = v_1
+Rule 34 (If name is specified, the first character must be a letter)
+{name: str} |= if name.len > 0 then ("a" ≤ name[0] ∧ name[0] ≤ "z") ∨ ("A" ≤ name[0] ∧ name[0] ≤ "Z")
 >>
-Rule 32 (If dtype is not specified, output dtype defaults to uint8)
-{v_1 : tensor} |= dtype_(v_1) = 5
+Rule 35 (If dtype is specified then it must be a valid dtype)
+{dtype: dtype} |= dtype = 12 ∨ dtype = 5 ∨ dtype = 2
 >>
-Rule 33 (If channels is 0, output tensor ndim >= 2)
-{v_1 : int, v_2 : tensor} |= if v_1 = 0 then ndim(v_2) ≥ 2
+Rule 36 (If name is the empty string, then the operation is unnamed )
+{name: str} |= if name = "" then true else name ≠ ""
 >>
-Rule 34 (The shape of the output tensor must be greater than (0, 0), representing (height, width))
-{v_1 : tensor} |= ndim(v_1) >= 2 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 37 (If channels is specified it should be less than 256)
+{channels: int} |= channels < 256
 >>
-Rule 35 (If the dtype is uint16 and channels is 1, then the image is likely grayscale and values must be <= 65535)
-{v_1 : dtype, v_2 : int, v_3 : tensor} |= if v_1 = 2 ∧ v_2 = 1 then max(v_3) ≤ 65535
+Rule 38 (If dtype is specified then name also has to be specified)
+{dtype: dtype, name: str} |= if dtype = 12 ∨ dtype = 5 ∨ dtype = 2 then name ≠ ""
 >>
-Rule 36 (If channels = 0, the number of channels in the encoded image should be decodable, meaning it's not a broken image.)
-{v_1 : int, v_2 : tensor} |= if v_1 = 0 then min(v_2) ≥ 0
+Rule 39 (if contents is non-empty then channels has to be a valid value: 0, 1, 3, 4)
+{contents: str, channels: int} |= if contents.len > 0 then channels = 0 ∨ channels = 1 ∨ channels = 3 ∨ channels = 4
 >>
-Rule 37 (If the dtype is uint8 and channels is 1, then the image is likely grayscale and the max value is <=255)
-{v_1 : dtype, v_2 : int, v_3 : tensor} |= if v_1 = 5 ∧ v_2 = 1 then max(v_3) ≤ 255
+Rule 40 (If channels = 0, then dtype must be tf.uint8 or tf.uint16)
+{channels: int, dtype: dtype} |= if channels = 0 then (dtype = 5 ∨ dtype = 2)
 >>
-Rule 38 (Output tensor has valid number of dimensions for image processing)
-{v_1 : tensor} |= ndim(v_1) = 2 ∨ ndim(v_1) = 3
+Rule 42 (If no dtype is specified then the contents must have data)
+{dtype : dtype, contents : str} |= if dtype = 0 then contents.len > 0 else if dtype = 1 then contents.len > 0 else if dtype = 2 then contents.len > 0 else if dtype = 3 then contents.len > 0 else if dtype = 4 then contents.len > 0 else if dtype = 5 then contents.len > 0 else if dtype = 6 then contents.len > 0 else if dtype = 7 then contents.len > 0 else if dtype = 8 then contents.len > 0 else if dtype = 9 then contents.len > 0 else if dtype = 10 then contents.len > 0 else if dtype = 11 then contents.len > 0 else if dtype = 12 then contents.len > 0
 >>
-Rule 40 (contents tensor represents an image that can be successfully decoded to a tensor with some shape)
-{v_1 : tensor} |= ∃height ∈ [1, 1024] : ∃width ∈ [1, 1024] : shape(v_1, 0) = height ∧ shape(v_1, 1) = width
+Rule 45 (Dtype has to be one of the allowed types regardless of content)
+{dtype:dtype} |= dtype=0 ∨ dtype=1 ∨ dtype=2 ∨ dtype=3 ∨ dtype=4 ∨ dtype=5 ∨ dtype=6 ∨ dtype=7 ∨ dtype=8 ∨ dtype=9 ∨ dtype=10 ∨ dtype=11 ∨ dtype=12
 >>
-Rule 41 (If channels is 1, 3, or 4, the output tensor's last dimension must match channels if the tensor's ndim >= 1)
-{v_1 : int, v_2 : tensor} |= if (v_1 = 1 ∨ v_1 = 3 ∨ v_1 = 4) ∧ ndim(v_2) ≥ 1 then shape(v_2, ndim(v_2) - 1) = v_1
+Rule 46 (If dtype is 5 then contents must start with a valid png header)
+{dtype : dtype, contents : str} |= if dtype = 5 then contents[0] = "x" ∧ contents[1] = "8" ∧ contents[2] = "9" ∧ contents[3] = "P" ∧ contents[4] = "N" ∧ contents[5] = "G" ∧ contents[6] = "\r" ∧ contents[7] = "\n" ∧ contents[8] = 26 ∧ contents[9] = "\n"
 >>
-Rule 42 (Contents must be a string tensor with zero dimensions.)
-{v_1 : tensor} |= ndim(v_1) = 0 ∧ dtype_(v_1) = 11
+Rule 47 (If dtype is 2 then contents must start with a valid png header)
+{dtype : dtype, contents : str} |= if dtype = 2 then contents[0] = "x" ∧ contents[1] = "8" ∧ contents[2] = "9" ∧ contents[3] = "P" ∧ contents[4] = "N" ∧ contents[5] = "G" ∧ contents[6] = "\r" ∧ contents[7] = "\n" ∧ contents[8] = 26 ∧ contents[9] = "\n"
 >>
-Rule 43 (The default dtype is uint8, which is index 5.)
-{v_1: tensor, v_2: int} |= if v_2 = 0 then dtype_(v_1) = 5
+Rule 48 (If channels is not specified then name must also not be specified)
+{channels : int, name : str} |= if channels = 0 then true else if channels = 1 then true else if channels = 3 then true else if channels = 4 then true else if name = "" then true else false
 >>
-Rule 44 (If dtype is specified as uint8 or uint16, the output tensor should be of the specified dtype)
-{v_1 : dtype, v_2 : tensor} |= (v_1 = 5 ∨ v_1 = 2) ∧ dtype_(v_2) = v_1
+Rule 51 (If a name is specified, contents must be valid)
+{name: str, contents:str} |= if name ≠ "" then contents.len > 0
 >>
-Rule 45 (contents tensor can't have negative values)
-{v_1 : tensor} |= min(v_1) >= 0
+Rule 52 (If a name is specified, and the content is not empty, then channels needs to be 0,1,3,4.)
+{name: str, contents:str, channels : int} |= if name ≠ "" ∧ contents.len > 0 then (channels=0 ∨ channels=1 ∨ channels =3 ∨ channels=4)
+>>
+Rule 53 (If name is specified and contents is not empty then dtype needs to be 2 or 5)
+{name: str, contents:str, dtype : dtype} |= if name ≠ "" ∧ contents.len > 0 then (dtype=5 ∨ dtype =2 )
+>>
+Rule 54 (If name, channels and dtype is specified then contents has to be a png and channels must also be valid.)
+{name: str, contents:str, dtype : dtype, channels : int} |= if name ≠ "" ∧ contents.len > 0 ∧ (dtype=5 ∨ dtype =2 ) then (channels=0 ∨ channels=1 ∨ channels =3 ∨ channels=4)
+>>
+Rule 55 (If a name is specified and content is valid, and channels is not 0 then, dtype can only be 2 or 5)
+{name: str, contents:str, dtype : dtype, channels : int} |= if name ≠ "" ∧ contents.len > 0 ∧ channels ≠ 0 then (dtype=5 ∨ dtype =2 )
+>>
+Rule 56 (channels, name and content are provided, then datatype has to be specified)
+{name: str, contents:str, dtype : dtype, channels : int} |= if name ≠ "" ∧ contents.len > 0 ∧ (channels=0 ∨ channels=1 ∨ channels =3 ∨ channels=4) then (dtype=5 ∨ dtype =2 ∨ dtype = 12)

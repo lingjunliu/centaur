@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If stddevs is scalar and other not, all other's dimensions must be 1 or stddevs.shape's dimensions (Rule 27)
+# means, stddevs, minvals, and maxvals must be float16, float32, or float64 to avoid dtype errors related to double (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_ndim"] == 0, And(And((If(v["arg1_ndim"] > 0, (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 1) for i in range(6)])), False)), (If(v["arg3_ndim"] > 0, (And([Implies(i < (v["arg3_ndim"] - 1 + 1), Select(v["arg3_shape"], i) == 1) for i in range(6)])), False))), (If(v["arg4_ndim"] > 0, (And([Implies(i < (v["arg4_ndim"] - 1 + 1), Select(v["arg4_shape"], i) == 1) for i in range(6)])), False))), False)) if n else
-          If(v["arg2_ndim"] == 0, And(And((If(v["arg1_ndim"] > 0, (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 1) for i in range(6)])), False)), (If(v["arg3_ndim"] > 0, (And([Implies(i < (v["arg3_ndim"] - 1 + 1), Select(v["arg3_shape"], i) == 1) for i in range(6)])), False))), (If(v["arg4_ndim"] > 0, (And([Implies(i < (v["arg4_ndim"] - 1 + 1), Select(v["arg4_shape"], i) == 1) for i in range(6)])), False))), False))
+    s.add(Not(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg2_dtype"] == 6), v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg3_dtype"] == 6), v["arg3_dtype"] == 7), v["arg3_dtype"] == 8), v["arg4_dtype"] == 6), v["arg4_dtype"] == 7), v["arg4_dtype"] == 8)) if n else
+          Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg2_dtype"] == 6), v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg3_dtype"] == 6), v["arg3_dtype"] == 7), v["arg3_dtype"] == 8), v["arg4_dtype"] == 6), v["arg4_dtype"] == 7), v["arg4_dtype"] == 8))
 )
 
 def rule_27_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
@@ -31,30 +31,21 @@ def rule_27_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_ndim = Int('arg2_ndim')
-        arg3_ndim = Int('arg3_ndim')
-        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
-        arg4_ndim = Int('arg4_ndim')
-        arg4_shape = Array('arg4_shape', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
+        arg2_dtype = Int('arg2_dtype')
+        arg3_dtype = Int('arg3_dtype')
+        arg4_dtype = Int('arg4_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_ndim == arg2.ndim)
-        solver.add(arg3_ndim == arg3.ndim)
-        for i in range(arg3.ndim):
-            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
-        solver.add(arg4_ndim == arg4.ndim)
-        for i in range(arg4.ndim):
-            arg4_shape = Store(arg4_shape, i, arg4.shape[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
+        solver.add(arg4_dtype == list_of_available_dtypes.index(arg4.dtype))
 
         # Constraints for rule 27
-        rule_27(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg3_ndim': arg3_ndim, 'arg3_shape': arg3_shape, 'arg4_ndim': arg4_ndim, 'arg4_shape': arg4_shape})
+        rule_27(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype, 'arg4_dtype': arg4_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_27(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_ndim': arg3['ndim'], 'arg3_shape': arg3['shape'], 'arg4_ndim': arg4['ndim'], 'arg4_shape': arg4['shape']}, neg)
+        rule_27(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype'], 'arg4_dtype': arg4['dtype']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The number of dimensions of the resulting tensor should be non-negative (Rule 2)
+# The number of dimensions in both tensors must be at least 1 (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] + v["arg2_ndim"] - 2 >= 0) if n else
-          v["arg1_ndim"] + v["arg2_ndim"] - 2 >= 0)
+    s.add(Not(And(v["arg1_ndim"] >= 1, v["arg2_ndim"] >= 1)) if n else
+          And(v["arg1_ndim"] >= 1, v["arg2_ndim"] >= 1))
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

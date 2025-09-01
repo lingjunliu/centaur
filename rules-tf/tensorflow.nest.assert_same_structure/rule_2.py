@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# nest1 and nest2 are both lists and have the same length (Rule 2)
+# Disable type checking to allow different sequence types to be structurally equivalent if expand_composites is false (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_length"] == v["arg2_length"]) if n else
-          v["arg1_length"] == v["arg2_length"])
+    s.add(Not(If(v["arg2_value"], v["arg1_value"] == False, True)) if n else
+          If(v["arg2_value"], v["arg1_value"] == False, True))
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_2_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, bool):
             return False
-        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg2_length = Int('arg2_length')
+        arg1_value = Bool('arg1_value')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        solver.add(arg2_length == len(arg2))
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 2
-        rule_2(solver, {'arg1_length': arg1_length, 'arg2_length': arg2_length})
+        rule_2(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_2(solver, {'arg1_length': arg1['length'], 'arg2_length': arg2['length']}, neg)
+        rule_2(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

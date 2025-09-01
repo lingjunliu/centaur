@@ -5,40 +5,35 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if use_image_if_no_bounding_boxes is true and bounding boxes are not supplied then image_size shape should be 3. (Rule 77)
+# min_object_covered must be a scalar tensor between 0 and 1 (Rule 77)
 
 rule_77 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_value"] == True, Select(v["arg2_shape"], 1) == 0), And(v["arg2_ndim"] == 1, Select(v["arg2_shape"], 0) == 3), False)) if n else
-          If(And(v["arg1_value"] == True, Select(v["arg2_shape"], 1) == 0), And(v["arg2_ndim"] == 1, Select(v["arg2_shape"], 0) == 3), False))
+    s.add(Not(And(And(v["arg1_ndim"] == 0, Select(v["arg1_range"], 0) >= 0), Select(v["arg1_range"], 1) <= 1)) if n else
+          And(And(v["arg1_ndim"] == 0, Select(v["arg1_range"], 0) >= 0), Select(v["arg1_range"], 1) <= 1))
 )
 
-def rule_77_func(arg1, arg2, solver=None, neg=False):
+def rule_77_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
-            return False
-        if not isinstance(arg2, np.ndarray):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_ndim = Int('arg2_ndim')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_ndim == arg2.ndim)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg1_ndim == arg1.ndim)
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 77
-        rule_77(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape})
+        rule_77(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_77(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']}, neg)
+        rule_77(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)

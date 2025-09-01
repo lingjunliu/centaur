@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# x must be in the range [-4, 4 (Rule 2)
+# x values should be in range [-4, 4 (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(And(Select(v["arg1_range"], 0) >= -4, Select(v["arg1_range"], 1) < 4)) if n else

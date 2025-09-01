@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If one tensor is a scalar, the other must be comparable (Rule 4)
+# At least one input tensor must be a tensor (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 0, True, If(v["arg2_ndim"] == 0, True, False))) if n else
-          If(v["arg1_ndim"] == 0, True, If(v["arg2_ndim"] == 0, True, False)))
+    s.add(Not(Or(v["arg1_ndim"] >= 0, v["arg2_ndim"] >= 0)) if n else
+          Or(v["arg1_ndim"] >= 0, v["arg2_ndim"] >= 0))
 )
 
 def rule_4_func(arg1, arg2, solver=None, neg=False):

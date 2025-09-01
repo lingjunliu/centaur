@@ -2,20 +2,335 @@
 Rule 1 (num_true must be greater than or equal to 1)
 {v_1 : int} |= v_1 ≥ 1
 >>
-Rule 4 (seed must be a non-negative integer)
+Rule 4 (true_classes must be a 2D tensor)
+{v_1 : tensor} |= ndim(v_1) = 2
+>>
+Rule 5 (seed should be non-negative)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 6 (unique must be a boolean value)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
->>
-Rule 7 (true_classes tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
->>
-Rule 10 (num_true must be less than or equal to range_max)
+Rule 7 (num_true must be less than or equal to range_max)
 {v_1 : int, v_2 : int} |= v_1 ≤ v_2
 >>
-Rule 13 (If seed is non-zero, then seed2 can be any non-negative int)
-{v_1 : int, v_2 : int} |= if v_1 ≠ 0 then v_2 ≥ 0
+Rule 9 (product of num_true and num_sampled must be less than range_max)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 * v_2 ≤ v_3
 >>
-Rule 16 (num_true and num_sampled cannot both be 1 if unique is true)
-{v_1 : int, v_2 : int, v_3 : bool} |= if v_3 = true then (v_1 = 1) ∧ (v_2 = 1) = false
+Rule 10 (true_classes' dtype must be int64)
+{v_1 : tensor} |= dtype_(v_1) = 4
+>>
+Rule 11 (num_true cannot be zero)
+{v_1 : int} |= v_1 ≠ 0
+>>
+Rule 20 (true_classes' dimension 0 cannot be zero)
+{v_1 : tensor} |= shape(v_1, 0) > 0
+>>
+Rule 21 (true_classes' dimension 1 must be equal to num_true)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 1) = v_2
+>>
+Rule 22 (range_max must be large enough to contain all true_classes values)
+{v_1 : tensor, v_2 : int} |= max(v_1) < v_2
+>>
+Rule 24 (seed or seed2 should be within reasonable bounds)
+{v_1 : int, v_2 : int} |= v_1 < 2147483647 ∧ v_2 < 2147483647
+>>
+Rule 27 (Name is a string literal and cannot be one of reserved keywords)
+{v_1 : str} |= v_1 ≠ "true" ∧ v_1 ≠ "false"
+>>
+Rule 29 (the shape of true_classes cannot exceed a large number)
+{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) < 1000000
+>>
+Rule 30 (If unique is true, then num_sampled must be strictly less than range_max)
+{v_1 : bool, v_2 : int, v_3 : int} |= if v_1 = true then v_2 < v_3
+>>
+Rule 31 (If range_max is 1, num_sampled can only be 1 if unique is set to false)
+{v_1 : int, v_2 : int, v_3 : bool} |= if v_1 = 1 then (v_3 = false ∧ v_2 = 1)
+>>
+Rule 32 (Name is a string literal and cannot be empty)
+{v_1 : str} |= v_1 ≠ ""
+>>
+Rule 33 (If num_true is close to range_max unique sampling might result in errors, avoid large values)
+{v_1 : int, v_2 : int} |= v_1 < (v_2 / 2) ∨ v_2 < 1000
+>>
+Rule 34 (seed must be positive if seed2 is provided)
+{v_1: int, v_2: int} |= if v_2 > 0 then v_1 > 0
+>>
+Rule 35 (If seed is zero, seed2 must also be zero or undefined behaviour can arise.)
+{v_1 : int, v_2 : int} |= if v_1 = 0 then v_2 = 0
+>>
+Rule 36 (If range_max is large compared to the data type of true_classes it may result in overflow)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 4 then v_2 < 9223372036854775807
+>>
+Rule 37 (num_true must be smaller than or equal to the first dimension of the true_classes tensor)
+{v_1 : int, v_2 : tensor} |= v_1 ≤ shape(v_2, 0)
+>>
+Rule 38 (The second dimension of true_classes must be greater than zero.)
+{v_1 : tensor} |= shape(v_1, 1) > 0
+>>
+Rule 39 (If num_sampled is very large it can affect performance)
+{v_1 : int} |= v_1 < 1000000
+>>
+Rule 40 (If num_true is 1, range_max should be significantly larger to ensure good sampling)
+{v_1 : int, v_2 : int} |= if v_1 = 1 then v_2 > 100
+>>
+Rule 41 (If range_max is very large, num_sampled should not be too large to avoid memory issues.)
+{v_1 : int, v_2 : int} |= if v_2 > 1000000 then v_1 < 1000
+>>
+Rule 43 (Check if unique is only enabled when num_sampled is far smaller than range_max.)
+{v_1 : bool, v_2 : int, v_3 : int} |= if v_1 = true then v_2 < (v_3 / 10)
+>>
+Rule 44 (if the true_classes tensor is empty, num_true must be 0)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) = 0 ∨ shape(v_1,1) = 0 then v_2 = 0
+>>
+Rule 45 (The product of num_true and num_sampled should be less than a reasonable value to prevent excessive memory usage)
+{v_1 : int, v_2 : int} |= v_1 * v_2 < 10000000
+>>
+Rule 46 (The value of num_sampled should not be too close to range_max when unique is true, as this can lead to performance issues.)
+{v_1 : int, v_2 : int, v_3 : bool} |= if v_3 = true then v_1 < (v_2 * 0.9)
+>>
+Rule 47 (If the range_max is a small number, then unique sampling may not function correctly when num_sampled is large)
+{v_1 : int, v_2 : int} |= if v_2 < 100 then v_1 < v_2
+>>
+Rule 48 (If seed is 0, then seed2 should be 0, because only one seed is needed for random generation)
+{v_1: int, v_2: int} |= if v_1 = 0 then v_2 = 0
+>>
+Rule 49 (The shape of the true classes should have a reasonable value and should not be excessively high to avoid performance bottlenecks)
+{v_1 : tensor} |= shape(v_1, 0) < 10000
+>>
+Rule 50 (If the true_classes tensor has a zero shape, then num_true has to be zero)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) = 0 ∨ shape(v_1, 1) = 0 then v_2 = 0
+>>
+Rule 51 (The range_max value should be significantly higher than the num_true * num_sampled value to avoid sampling clashes when unique=false)
+{v_1 : int, v_2 : int, v_3 : int, v_4 : bool} |= if v_4 = false then v_3 > (v_1 * v_2 * 10)
+>>
+Rule 52 (seed2 parameter should be limited in scope)
+{v_1 : int} |= -2147483648 < v_1 ∧ v_1 < 2147483647
+>>
+Rule 53 (Check range_max can't be a negative number)
+{v_1 : int} |= v_1 >= 0
+>>
+Rule 54 (If unique sampling is requested, num_true can't be greater than range_max or it will cause an error.)
+{v_1 : int, v_2 : int, v_3 : bool} |= if v_3 = true then v_1 ≤ v_2
+>>
+Rule 55 (If true_classes is a very large tensor, then num_true should be carefully considered to avoid unnecessary calculations)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) > 1000 then v_2 < 100
+>>
+Rule 56 (num_true should be a small fraction of range_max)
+{v_1 : int, v_2 : int} |= v_1 < (v_2 / 5) ∨ v_2 > 1000
+>>
+Rule 57 (The name should be a valid string, and must not contain commas)
+{v_1: str} |= ∀i ∈ [0, v_1.len - 1]: v_1[i] ≠ ","
+>>
+Rule 58 (If name has illegal characters it should be replaced or removed)
+{v_1: str} |= ∀i ∈ [0, v_1.len - 1]: v_1[i] ≠ "\\" ∧ v_1[i] ≠ "/" ∧ v_1[i] ≠ ":" ∧ v_1[i] ≠ "*" ∧ v_1[i] ≠ "?" ∧ v_1[i] ≠ "\"" ∧ v_1[i] ≠ "<" ∧ v_1[i] ≠ ">" ∧ v_1[i] ≠ "|"
+>>
+Rule 60 (If unique is set to true, num_sampled should be much smaller than range_max)
+{v_1 : int, v_2 : int, v_3 : bool} |= if v_3 = true then v_1 < (v_2 * 0.1)
+>>
+Rule 61 (num_sampled needs to be smaller than range_max)
+{v_1 : int, v_2 : int} |= v_1 < v_2
+>>
+Rule 62 (If name contains invalid characters it will be converted.)
+{v_1: str} |= ∃i ∈ [0, v_1.len - 1]: (v_1[i] = "_" ∨ v_1[i] = "a" ∨ v_1[i] = "b" ∨ v_1[i] = "c" ∨ v_1[i] = "d" ∨ v_1[i] = "e" ∨ v_1[i] = "f" ∨ v_1[i] = "g" ∨ v_1[i] = "h" ∨ v_1[i] = "i" ∨ v_1[i] = "j" ∨ v_1[i] = "k" ∨ v_1[i] = "l" ∨ v_1[i] = "m" ∨ v_1[i] = "n" ∨ v_1[i] = "o" ∨ v_1[i] = "p" ∨ v_1[i] = "q" ∨ v_1[i] = "r" ∨ v_1[i] = "s" ∨ v_1[i] = "t" ∨ v_1[i] = "u" ∨ v_1[i] = "v" ∨ v_1[i] = "w" ∨ v_1[i] = "x" ∨ v_1[i] = "y" ∨ v_1[i] = "z" ∨ v_1[i] = "A" ∨ v_1[i] = "B" ∨ v_1[i] = "C" ∨ v_1[i] = "D" ∨ v_1[i] = "E" ∨ v_1[i] = "F" ∨ v_1[i] = "G" ∨ v_1[i] = "H" ∨ v_1[i] = "I" ∨ v_1[i] = "J" ∨ v_1[i] = "K" ∨ v_1[i] = "L" ∨ v_1[i] = "M" ∨ v_1[i] = "N" ∨ v_1[i] = "O" ∨ v_1[i] = "P" ∨ v_1[i] = "Q" ∨ v_1[i] = "R" ∨ v_1[i] = "S" ∨ v_1[i] = "T" ∨ v_1[i] = "U" ∨ v_1[i] = "V" ∨ v_1[i] = "W" ∨ v_1[i] = "X" ∨ v_1[i] = "Y" ∨ v_1[i] = "Z" ∨ v_1[i] = "1" ∨ v_1[i] = "2" ∨ v_1[i] = "3" ∨ v_1[i] = "4" ∨ v_1[i] = "5" ∨ v_1[i] = "6" ∨ v_1[i] = "7" ∨ v_1[i] = "8" ∨ v_1[i] = "9" ∨ v_1[i] = "0")
+>>
+Rule 63 (num_true must be in a valid range.)
+{v_1 : int} |= 1 ≤ v_1 ∧ v_1 < 100000
+>>
+Rule 65 (The dimensions of true_classes must be in sensible limits)
+{v_1: tensor} |= shape(v_1, 0) < 100000 ∧ shape(v_1, 1) < 10000
+>>
+Rule 66 (range_max value can't be equal to zero)
+{v_1: int} |= v_1 != 0
+>>
+Rule 67 (If unique sampling is enabled num_true should be much less then range_max)
+{v_1 : int, v_2 : int, v_3 : bool} |= if v_3 = true then v_1 < (v_2 / 10)
+>>
+Rule 68 (If seed is provided seed2 can't have a extremely large value)
+{v_1: int, v_2: int} |= if v_1 != 0 then -2147483647 < v_2 ∧ v_2 < 2147483647
+>>
+Rule 69 (Name should not include spaces.)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1]: v_1[i] ≠ " "
+>>
+Rule 70 (True classes should not be empty if num_true is greater than zero.)
+{v_1: tensor, v_2: int} |= if v_2 > 0 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+>>
+Rule 71 (If num_true is not provided and the true_classes tensor is empty, this results in unexpected behaviour)
+{v_1: tensor, v_2: int} |= if shape(v_1, 0) = 0 ∧ shape(v_1, 1) = 0 then v_2 = 0
+>>
+Rule 72 (When sampling is carried out with rejection enabled the probability of each item being chosen should be close to uniform)
+{v_1: int, v_2: int} |= v_1 < v_2
+>>
+Rule 73 (Name should start with a character and not number)
+{v_1: str} |= if v_1.len > 0 then (v_1[0] = "a" ∨ v_1[0] = "b" ∨ v_1[0] = "c" ∨ v_1[0] = "d" ∨ v_1[0] = "e" ∨ v_1[0] = "f" ∨ v_1[0] = "g" ∨ v_1[0] = "h" ∨ v_1[0] = "i" ∨ v_1[0] = "j" ∨ v_1[0] = "k" ∨ v_1[0] = "l" ∨ v_1[0] = "m" ∨ v_1[0] = "n" ∨ v_1[0] = "o" ∨ v_1[0] = "p" ∨ v_1[0] = "q" ∨ v_1[0] = "r" ∨ v_1[0] = "s" ∨ v_1[0] = "t" ∨ v_1[0] = "u" ∨ v_1[0] = "v" ∨ v_1[0] = "w" ∨ v_1[0] = "x" ∨ v_1[0] = "y" ∨ v_1[0] = "z" ∨ v_1[0] = "A" ∨ v_1[0] = "B" ∨ v_1[0] = "C" ∨ v_1[0] = "D" ∨ v_1[0] = "E" ∨ v_1[0] = "F" ∨ v_1[0] = "G" ∨ v_1[0] = "H" ∨ v_1[0] = "I" ∨ v_1[0] = "J" ∨ v_1[0] = "K" ∨ v_1[0] = "L" ∨ v_1[0] = "M" ∨ v_1[0] = "N" ∨ v_1[0] = "O" ∨ v_1[0] = "P" ∨ v_1[0] = "Q" ∨ v_1[0] = "R" ∨ v_1[0] = "S" ∨ v_1[0] = "T" ∨ v_1[0] = "U" ∨ v_1[0] = "V" ∨ v_1[0] = "W" ∨ v_1[0] = "X" ∨ v_1[0] = "Y" ∨ v_1[0] = "Z")
+>>
+Rule 74 (If you provide one seed you must provide a second seed, and you should check they are distinct.)
+{v_1: int, v_2: int} |= if v_1 != 0 then v_1 != v_2
+>>
+Rule 75 (Check that you aren't trying to oversample, in this case you are wasting compute for no benefit.)
+{v_1: int, v_2: int, v_3 : int} |= v_1 * v_2 <= v_3
+>>
+Rule 76 (If unique is true, range_max must be sufficiently large compared to the number of true classes)
+{v_1: int, v_2: int, v_3: bool} |= if v_3 = true then v_2 > v_1
+>>
+Rule 77 (If unique is true you can't sample zero elements.)
+{v_1: int, v_2: bool} |= if v_2 = true then v_1 > 0
+>>
+Rule 78 (If range_max is very large, ensure that both seed and seed2 are provided, and are distinct, for better randomization)
+{v_1: int, v_2: int, v_3: int} |= if v_3 > 100000 then v_1 != 0 ∧ v_2 != 0 ∧ v_1 != v_2
+>>
+Rule 79 (If num_sampled = 1, unique has no effect)
+{v_1: int} |= if v_1 = 1 then true
+>>
+Rule 80 (Name has to be a legal string and can't be too long)
+{v_1: str} |= v_1.len < 255
+>>
+Rule 81 (range_max must be large enough)
+{v_1: int} |= v_1 > 1
+>>
+Rule 82 (num_sampled must be smaller or equal to range_max)
+{v_1: int, v_2: int} |= v_1 <= v_2
+>>
+Rule 83 (when using unique the ratio num_sampled / range_max must be smaller than 1, or it will likely raise an error)
+{v_1: int, v_2: int, v_3 : bool} |= if v_3 = true then v_1 < v_2
+>>
+Rule 84 (name can't contain control characters, such as newline and tab.)
+{v_1: str} |= ∀i ∈ [0, v_1.len - 1]: v_1[i] ≠ "\n" ∧ v_1[i] ≠ "\t" ∧ v_1[i] ≠ "\r"
+>>
+Rule 86 (num_sampled can not be greater than range_max in a situation when num_true is zero)
+{v_1: int, v_2: int, v_3: int} |= if v_2 = 0 then v_1 <= v_3
+>>
+Rule 87 (The range max shouldn't be too large compared to int64 max or you might have issues.)
+{v_1: int} |= v_1 < 9223372036854775807
+>>
+Rule 88 (If we have a small range the unique parameter should not be enabled)
+{v_1: int, v_2: bool} |= if v_1 < 10 then v_2 = false
+>>
+Rule 91 (the true_classes tensor cannot be empty when performing sampling)
+{v_1: tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+>>
+Rule 92 (if name is not provided then no operations are carried out)
+{v_1: str} |= if v_1 = "none" then false
+>>
+Rule 93 (The seed can't be too large to prevent errors.)
+{v_1: int} |= v_1 < 2147483647
+>>
+Rule 94 (the range of true_classes should be sensible based on dtype)
+{v_1: tensor} |= if dtype_(v_1) = 4 then min(v_1) > -9223372036854775808 ∧ max(v_1) < 9223372036854775807
+>>
+Rule 95 (unique = True and num_true = range_max is not possible)
+{v_1: int, v_2: bool} |= if v_2 = true then v_1 != range_max
+>>
+Rule 96 (true_classes has a size equal to the number of true examples)
+{v_1: tensor, v_2: int} |= shape(v_1, 1) = v_2
+>>
+Rule 97 (If unique = true, then num_true * num_sampled should be smaller than range_max )
+{v_1: int, v_2: int, v_3: int, v_4: bool} |= if v_4 = true then v_2 * v_3 < v_1
+>>
+Rule 98 (The name should follow a specific format to prevent crashes/errors from occurring further down the line)
+{v_1: str} |= ∃i ∈ [0, v_1.len - 1]: (v_1[i] = "_" ∨ v_1[i] = "a" ∨ v_1[i] = "b" ∨ v_1[i] = "c" ∨ v_1[i] = "d" ∨ v_1[i] = "e" ∨ v_1[i] = "f" ∨ v_1[i] = "g" ∨ v_1[i] = "h" ∨ v_1[i] = "i" ∨ v_1[i] = "j" ∨ v_1[i] = "k" ∨ v_1[i] = "l" ∨ v_1[i] = "m" ∨ v_1[i] = "n" ∨ v_1[i] = "o" ∨ v_1[i] = "p" ∨ v_1[i] = "q" ∨ v_1[i] = "r" ∨ v_1[i] = "s" ∨ v_1[i] = "t" ∨ v_1[i] = "u" ∨ v_1[i] = "v" ∨ v_1[i] = "w" ∨ v_1[i] = "x" ∨ v_1[i] = "y" ∨ v_1[i] = "z")
+>>
+Rule 99 (if you provide a seed you likely want to reproduce results so it needs to be a constant)
+{v_1: int} |= v_1 < 1000000
+>>
+Rule 100 (Ensure the correct dtype of true classes)
+{v_1: tensor} |= dtype_(v_1) = 4
+>>
+Rule 101 (if a name is supplied it should match a valid regular expression, only allow for alphabetic strings as this can cause issues otherwise)
+{v_1: str} |= ∀i ∈ [0, v_1.len - 1]: (v_1[i] = "a" ∨ v_1[i] = "b" ∨ v_1[i] = "c" ∨ v_1[i] = "d" ∨ v_1[i] = "e" ∨ v_1[i] = "f" ∨ v_1[i] = "g" ∨ v_1[i] = "h" ∨ v_1[i] = "i" ∨ v_1[i] = "j" ∨ v_1[i] = "k" ∨ v_1[i] = "l" ∨ v_1[i] = "m" ∨ v_1[i] = "n" ∨ v_1[i] = "o" ∨ v_1[i] = "p" ∨ v_1[i] = "q" ∨ v_1[i] = "r" ∨ v_1[i] = "s" ∨ v_1[i] = "t" ∨ v_1[i] = "u" ∨ v_1[i] = "v" ∨ v_1[i] = "w" ∨ v_1[i] = "x" ∨ v_1[i] = "y" ∨ v_1[i] = "z")
+>>
+Rule 102 (If there is sampling and unique=True we need a high number of samples and small number of true examples)
+{v_1: int, v_2: int, v_3: bool} |= if v_3 = true then v_1 > 1000 ∧ v_2 < 5
+>>
+Rule 103 (The total number of unique classes (range_max) shouldn't be too large to prevent performance bottlenecks.)
+{v_1: int} |= v_1 < 2000000000
+>>
+Rule 105 (Check unique flag is only used when num_true < range_max)
+{v_1: int, v_2: int, v_3: bool} |= if v_1 >= v_2 then v_3 = false
+>>
+Rule 106 (Name should be valid ASCII to prevent errors during serialization or usage with other frameworks)
+{v_1: str} |= ∀i ∈ [0, v_1.len - 1]: 0 <= v_1[i] ∧ v_1[i] <= 127
+>>
+Rule 107 (if you provide a seed2, you should probably provide seed, seed2 should also be smaller than some value to prevent issues)
+{v_1 : int, v_2 : int} |= if v_2 != 0 then v_1 != 0 ∧ v_2 < 2147483647
+>>
+Rule 108 (if name is provided then len(name) > 0)
+{v_1 : str} |= if v_1 != "none" then v_1.len > 0
+>>
+Rule 109 (if sampling with rejection sampling you can run into convergence issues if the number of samples is very high )
+{v_1 : int, v_2 : bool} |= if v_2 = true then v_1 < 10000
+>>
+Rule 110 (the true_classes values shouldn't be very small)
+{v_1: tensor} |= min(v_1) > -100000
+>>
+Rule 111 (if unique is enabled we need to ensure num_sampled is less than range_max)
+{v_1 : int, v_2 : int, v_3 : bool} |= if v_3 = true then v_1 < v_2
+>>
+Rule 112 (If seed or seed2 are negative then behavior is undefined)
+{v_1 : int, v_2: int} |= v_1 >= 0 ∧ v_2 >= 0
+>>
+Rule 113 (Check all the shapes are compatible)
+{v_1: tensor, v_2: int} |= shape(v_1, 1) * shape(v_1, 0) * v_2 < 1000000000
+>>
+Rule 114 (the shape should also have a reasonable amount of rows)
+{v_1: tensor} |= shape(v_1, 0) < 100000
+>>
+Rule 115 (range_max should be large enough)
+{v_1: int, v_2: int} |= v_1 > v_2
+>>
+Rule 116 (if num_sampled is too small then we have no samples)
+{v_1: int} |= v_1 > 0
+>>
+Rule 117 (The seed parameters must be a 32 bit integer to work correctly in GPU/TPU)
+{v_1: int, v_2: int} |= v_1 < 4294967295 ∧ v_2 < 4294967295
+>>
+Rule 119 (Name needs to be a non-zero length string, this means no default values)
+{v_1: str} |= v_1.len > 0
+>>
+Rule 120 (If unique the true_classes and sampled tensor will have disjoint items. If not then the probability of collision is high)
+{v_1: bool, v_2: int} |= if v_2 = true then v_1 != range_max
+>>
+Rule 121 (if num_sampled is too close to zero, the process will be very unstable)
+{v_1: int} |= v_1 > 10
+>>
+Rule 122 (Check range_max is within reasonable bound, such that we don't have memory issues when creating tensors)
+{v_1: int} |= v_1 < 100000000
+>>
+Rule 123 (Unique parameter has to be either true or false)
+{v_1: bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 124 (Ensure unique samples are possible by making range_max sufficiently large)
+{v_1: int, v_2: int, v_3: bool} |= if v_3 = true then v_2 > v_1 * 2
+>>
+Rule 126 (The random number seed should be positive.)
+{v_1: int} |= v_1 >= 0
+>>
+Rule 127 (Check name isn't an empty string because this will throw an error later on if using other libraries)
+{v_1: str} |= v_1 != ""
+>>
+Rule 128 (Num_true should be greater than 0)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 129 (the values in true_classes should be less than the range_max as otherwise sampling may not produce valid results)
+{v_1: tensor, v_2: int} |= max(v_1) < v_2
+>>
+Rule 130 (If using unique sampling, the maximum number of true classes must be at least 1 as otherwise you can't sample the correct tensors)
+{v_1 : int, v_2 : bool} |= if v_2 = true then v_1 > 0
+>>
+Rule 131 (If we want deterministic behavior seed has to be a constant)
+{v_1: int, v_2: int} |= if v_1 != 0 then v_2 < 10000
+>>
+Rule 132 (The shape of true classes should make sense such that it is not an invalid number)
+{v_1 : tensor} |= shape(v_1, 1) < 100000
+>>
+Rule 133 (range max cannot be lower than 2 or else the algorithm will always fail!)
+{v_1: int} |= v_1 >= 2
+>>
+Rule 134 (if num_true or num_sampled is greater than range_max the sampling will fail)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 <= v_3 ∧ v_2 <= v_3
+>>
+Rule 136 (if you are using a small range max then unique sampling won't work, it will be likely that elements are duplicated)
+{v_1: int, v_2: bool} |= if v_1 < 100 then v_2 = false
+>>
+Rule 137 (the dimensions of true_classes shouldn't be ridiculously large or this indicates a bug in the way the data is structured )
+{v_1: tensor} |= shape(v_1, 0) * shape(v_1, 1) < 10000000
+>>
+Rule 138 (If you specify a seed you also want to ensure deterministic results, this can be achieved by setting the config deterministic ops setting)
+{v_1: int} |= v_1 < 10000

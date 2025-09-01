@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The range between min_x and max_x must be non-zero (Rule 13)
+# If x is qint8 or quint8, then Toutput can be qint8, quint8 or qint32 (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg2_range"], 1) - Select(v["arg1_range"], 0) > 0) if n else
-          Select(v["arg2_range"], 1) - Select(v["arg1_range"], 0) > 0)
+    s.add(Not(If(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 5), Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 5), v["arg2_value"] == 3), True)) if n else
+          If(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 5), Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 5), v["arg2_value"] == 3), True))
 )
 
 def rule_13_func(arg1, arg2, solver=None, neg=False):
@@ -20,24 +20,22 @@ def rule_13_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
 
         # Constraints for rule 13
-        rule_13(solver, {'arg1_range': arg1_range, 'arg2_range': arg2_range})
+        rule_13(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_13(solver, {'arg1_range': arg1['range'], 'arg2_range': arg2['range']}, neg)
+        rule_13(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

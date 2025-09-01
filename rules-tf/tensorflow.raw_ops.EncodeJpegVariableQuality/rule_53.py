@@ -5,33 +5,41 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Combine channel and size restrictions (Rule 53)
+# if the image tensor has any dimension equal to zero, then the quality is not allowed to be 100 (Rule 53)
 
 rule_53 = lambda s, v, n=False: (
-    s.add(Not(And((And(Select(v["arg1_shape"], 0) <= 4096, Select(v["arg1_shape"], 1) <= 4096)), Select(v["arg1_shape"], 2) <= 4)) if n else
-          And((And(Select(v["arg1_shape"], 0) <= 4096, Select(v["arg1_shape"], 1) <= 4096)), Select(v["arg1_shape"], 2) <= 4))
+    s.add(Not(If((Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)])), Select(v["arg2_range"], 1) != 100, True)) if n else
+          If((Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)])), Select(v["arg2_range"], 1) != 100, True))
 )
 
-def rule_53_func(arg1, solver=None, neg=False):
+def rule_53_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
+        if not isinstance(arg2, np.ndarray):
+            return False
 
         # Variable declarations
         solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 53
-        rule_53(solver, {'arg1_shape': arg1_shape})
+        rule_53(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_range': arg2_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_53(solver, {'arg1_shape': arg1['shape']}, neg)
+        rule_53(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_range': arg2['range']}, neg)

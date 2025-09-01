@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Input tensor should have a floating-point or integer dtype to avoid complex numbers as a result. (Rule 1)
+# The input tensor must have a floating-point or integer dtype (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(Or(Or(v["arg1_dtype"] == 2, v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)) if n else
-          Or(Or(Or(Or(Or(v["arg1_dtype"] == 2, v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8))
+    s.add(Not(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 9)) if n else
+          And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 9))
 )
 
 def rule_1_func(arg1, solver=None, neg=False):

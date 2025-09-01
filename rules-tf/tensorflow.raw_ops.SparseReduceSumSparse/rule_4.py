@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# input_indices's shape[1] must be equal to input_shape's length, representing rank (Rule 4)
+# The number of columns in input_indices should match the rank of input_shape (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
     s.add(Not(Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0)) if n else

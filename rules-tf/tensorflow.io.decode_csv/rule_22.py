@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Records should not be empty (Rule 22)
+# select_cols cannot contain negative values or not strictly increasing (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) > 0) if n else
-          Select(v["arg1_shape"], 0) > 0)
+    s.add(Not(And((And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) >= 0) for i in range(6)])), (If(v["arg1_length"] > 1, And([Implies(i < (v["arg1_length"] - 2 + 1), Select(v["arg1_values"], i) < Select(v["arg1_values"], i + 1)) for i in range(6)]), True)))) if n else
+          And((And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) >= 0) for i in range(6)])), (If(v["arg1_length"] > 1, And([Implies(i < (v["arg1_length"] - 2 + 1), Select(v["arg1_values"], i) < Select(v["arg1_values"], i + 1)) for i in range(6)]), True))))
 )
 
 def rule_22_func(arg1, solver=None, neg=False):
@@ -17,21 +17,23 @@ def rule_22_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_length = Int('arg1_length')
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_length == len(arg1))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 22
-        rule_22(solver, {'arg1_shape': arg1_shape})
+        rule_22(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_22(solver, {'arg1_shape': arg1['shape']}, neg)
+        rule_22(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length']}, neg)

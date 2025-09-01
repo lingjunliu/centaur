@@ -1,129 +1,150 @@
 >>
 Rule 1 (logits and labels must have the same shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+{labels : tensor, logits : tensor} |= ndim(labels) = ndim(logits) ∧ ∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(logits, i)
 >>
-Rule 2 (logits must be of type float32 or float64)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 2 (labels tensor values must be between 0 and 1 inclusive)
+{labels : tensor} |= ∀i ∈ [0, ndim(labels) - 1] : ∀j ∈ [0, shape(labels, i) - 1] : min(labels) ≥ 0 ∧ max(labels) ≤ 1
 >>
-Rule 3 (labels values should be between 0 and 1)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 1
+Rule 3 (logits tensor must be float32 or float64 - corresponds to type indices 7 or 8)
+{logits : tensor} |= dtype_(logits) = 7 ∨ dtype_(logits) = 8
 >>
-Rule 4 (labels must be of the same type as logits)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 4 (labels tensor must be float32 or float64 - corresponds to type indices 7 or 8)
+{labels : tensor} |= dtype_(labels) = 7 ∨ dtype_(labels) = 8
 >>
-Rule 5 (If logits is a scalar, labels must also be a scalar)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+Rule 5 (logits tensor cannot be empty)
+{logits : tensor} |= ndim(logits) > 0 ∧ ∀i ∈ [0, ndim(logits) - 1] : shape(logits, i) > 0
 >>
-Rule 6 (logits and labels tensors cannot have negative dimensions)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+Rule 6 (labels tensor cannot be empty)
+{labels : tensor} |= ndim(labels) > 0 ∧ ∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) > 0
 >>
-Rule 7 (labels should not be NaN if logits is not NaN)
-{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = "NaN") then (∃j ∈ [0, shape(v_2, 0) - 1] : v_2[j] = "NaN")
+Rule 8 (logits and labels shapes are the same or labels is a scalar)
+{labels : tensor, logits : tensor} |= (ndim(labels) = ndim(logits) ∧ ∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(logits, i)) ∨ (ndim(labels) = 0)
 >>
-Rule 8 (if logits has shape [x,y,z] the labels should have the same shape [x,y,z])
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 3) then (shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1) ∧ shape(v_1, 2) = shape(v_2, 2))
+Rule 18 (labels tensor values must be between 0 and 1 inclusive)
+{labels : tensor} |= ∀i ∈ [0, ndim(labels) - 1] : ∀j ∈ [0, shape(labels, i) - 1] : labels ≥ 0 ∧ labels ≤ 1
 >>
-Rule 9 (The number of elements in logits should not be too large to avoid memory issues)
-{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) < 1000000 ∨ ndim(v_1) < 2
+Rule 23 (If labels is a scalar, its value must be between 0 and 1)
+{labels: tensor} |= if ndim(labels) = 0 then min(labels) ≥ 0 ∧ max(labels) ≤ 1
 >>
-Rule 10 (If the logits is a matrix then both dimensions should be greater than 1)
-{v_1 : tensor} |= if (ndim(v_1) = 2) then (shape(v_1, 0) > 1 ∧ shape(v_1, 1) > 1)
+Rule 24 (If labels and logits have different ndim then labels is scalar)
+{labels : tensor, logits : tensor} |= if ndim(labels) ≠ ndim(logits) then ndim(labels) = 0
 >>
-Rule 11 (If logits contains very large values then the labels should be close to 0 or 1)
-{v_1 : tensor, v_2 : tensor} |= if (max(v_1) > 100) then (min(v_2) < 0.1 ∨ max(v_2) > 0.9)
+Rule 25 (labels and logits have compatible dtypes - float32 or float64)
+{labels: tensor, logits: tensor} |= (dtype_(labels) = 7 ∨ dtype_(labels) = 8) ∧ (dtype_(logits) = 7 ∨ dtype_(logits) = 8)
 >>
-Rule 12 (Labels cannot all be zero)
-{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
+Rule 26 (logits and labels must have the same shape - combined dimension check)
+{labels : tensor, logits : tensor} |= if ndim(labels) = ndim(logits) then ∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(logits, i) else false
 >>
-Rule 13 (Labels cannot all be one)
-{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 1
+Rule 32 (If labels is a scalar, its value must be between 0 and 1)
+{labels: tensor} |= if ndim(labels) = 0 then (labels ≥ 0 ∧ labels ≤ 1)
 >>
-Rule 14 (If logits are very small, labels should not be 1)
-{v_1 : tensor, v_2 : tensor} |= if min(v_1) < -100 then ∃i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < 1
+Rule 33 (If labels and logits have different ndim then labels is scalar - Combined with same shape or scalar shape condition)
+{labels : tensor, logits : tensor} |= (ndim(labels) = ndim(logits) ∧ ∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(logits, i)) ∨ ndim(labels) = 0
 >>
-Rule 15 (If logits are very big, labels should not be 0)
-{v_1 : tensor, v_2 : tensor} |= if max(v_1) > 100 then ∃i ∈ [0, shape(v_2, 0) - 1] : v_2[i] > 0
+Rule 34 (If logits has more than one dimension, then each shape > 0)
+{logits: tensor} |= if ndim(logits) > 1 then ∀i ∈ [0, ndim(logits) -1]: shape(logits, i) > 0
 >>
-Rule 16 (If logits contains inf, labels should be either 0 or 1)
-{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = "inf") then ∀j ∈ [0, shape(v_2, 0) - 1] : v_2[j] = 0 ∨ v_2[j] = 1
+Rule 36 (labels tensor values must be between 0 and 1 inclusive)
+{labels : tensor} |= ∀i ∈ [0, ndim(labels) - 1] : ∀j ∈ [0, if ndim(labels) > 0 then shape(labels, i) else 1 - 1] : labels ≥ 0 ∧ labels ≤ 1
 >>
-Rule 17 (If labels has only 1 element then logits should have only 1 element)
-{v_1 : tensor, v_2 : tensor} |= if (shape(v_1, 0) = 1 ∧ ndim(v_1) = 1) then (shape(v_2, 0) = 1 ∧ ndim(v_2) = 1)
+Rule 38 (labels tensor must be float32 or float64)
+{labels : tensor} |= dtype_(labels) = 7 ∨ dtype_(labels) = 7
 >>
-Rule 18 (if logits contains only positive values labels should be close to zero)
-{v_1 : tensor, v_2 : tensor} |= if (min(v_1) >= 0) then (max(v_2) < 0.5) ∨ (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = 0)
+Rule 41 (If labels is a scalar, its value must be between 0 and 1)
+{labels: tensor} |= if ndim(labels) = 0 then (min(labels) ≥ 0 ∧ max(labels) ≤ 1)
 >>
-Rule 19 (if labels contains only the value 0, then the minimum of logits should be a very large negative number)
-{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0) then min(v_2) < -50
+Rule 42 (shape of labels and logits must be equal or labels must be scalar)
+{labels: tensor, logits: tensor} |= if ndim(labels) = ndim(logits) then (∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(logits, i)) else (ndim(labels) = 0)
 >>
-Rule 20 (If labels contains only the value 1, then the maximum of logits should be a very large number)
-{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 1) then max(v_2) > 50
+Rule 43 (logits and labels are the same shape or at least one is scalar)
+{labels: tensor, logits: tensor} |= (ndim(labels) = ndim(logits) ∧ ∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(logits, i)) ∨ (ndim(labels) = 0) ∨ (ndim(logits) = 0)
 >>
-Rule 21 (If labels is a tensor with only 0 and 1 then logits minimum should be negative and maximum positive)
-{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0 ∨ v_1[i] = 1) then min(v_2) < 0 ∧ max(v_2) > 0
+Rule 45 (labels tensor values must be between 0 and 1 inclusive)
+{labels : tensor} |= if ndim(labels) > 0 then ∀i ∈ [0, ndim(labels) - 1] : ∀j ∈ [0, shape(labels, i) - 1] : labels ≥ 0 ∧ labels ≤ 1 else labels ≥ 0 ∧ labels ≤ 1
 >>
-Rule 22 (The absolute difference between the min and max values of logits should be less than 1000)
-{v_1 : tensor} |= max(v_1) - min(v_1) < 1000
+Rule 50 (The dimension of logits and labels must be the same)
+{labels : tensor, logits : tensor} |= ndim(logits) = ndim(labels)
 >>
-Rule 23 (If labels contains any Nan, then Logits should also contain Nan)
-{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = "NaN") then (∃i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = "NaN")
+Rule 54 (labels tensor values must be between 0 and 1 inclusive, either scalar or tensor)
+{labels : tensor} |= if ndim(labels) = 0 then (labels ≥ 0 ∧ labels ≤ 1) else ∀i ∈ [0, ndim(labels) - 1] : ∀j ∈ [0, shape(labels, i) - 1] : labels ≥ 0 ∧ labels ≤ 1
 >>
-Rule 24 (if labels contains only 0 or 1 the average value of logits should be between -50 and 50)
-{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0 ∨ v_1[i] = 1) then (min(v_2) + max(v_2)) / 2 > -50 ∧ (min(v_2) + max(v_2)) / 2 < 50
+Rule 59 (The dimension of logits and labels must be the same if labels isn't a scalar)
+{labels : tensor, logits : tensor} |= if ndim(labels) ≠ 0 then ndim(logits) = ndim(labels)
 >>
-Rule 26 (if Logits has nan values, then labels must have same amount of Nan values)
-{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = "NaN") ∧ (∃j ∈ [0, shape(v_2, 0) - 1] : v_2[j] = "NaN")
+Rule 60 (labels needs to be scalar or the shapes needs to be the same)
+{labels: tensor, logits: tensor} |= (ndim(labels) = 0) ∨ (ndim(logits) = ndim(labels) ∧ ∀i ∈ [0, ndim(logits) - 1] : shape(logits, i) = shape(labels, i))
 >>
-Rule 28 (If all logits are positive, all labels should be near 0)
-{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0) then (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < 0.1)
+Rule 61 (Dtype of labels and Logits should match)
+{labels: tensor, logits: tensor} |= dtype_(labels) = dtype_(logits)
 >>
-Rule 29 (If labels has a very high standard deviation, the logits should too)
-{v_1 : tensor, v_2 : tensor} |= if (max(v_1) - min(v_1) > 1) then (max(v_2) - min(v_2) > 1)
+Rule 70 (labels must be between 0 and 1)
+{labels: tensor} |= min(labels) >= 0 ∧ max(labels) <= 1
 >>
-Rule 30 (If all Logits are negative all labels must be neaR 1)
-{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 0) then (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] > 0.9)
+Rule 77 (Dtype of labels and Logits should match if they are not scalar, else labels needs to be float)
+{labels : tensor, logits : tensor} |= if ndim(labels) ≠ 0 ∧ ndim(logits) ≠ 0 then dtype_(labels) = dtype_(logits) else dtype_(labels) = 7 ∨ dtype_(labels) = 8
 >>
-Rule 36 (Labels can not only have 0.5 value )
-{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ 0.5
+Rule 78 (If Logits are not 7 or 8, report error)
+{logits: tensor} |= dtype_(logits) = 7 ∨ dtype_(logits) = 8
 >>
-Rule 37 (If Logits has nan values, then labels must have same amount of Nan values)
-{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = "NaN") then (∃j ∈ [0, shape(v_2, 0) - 1] : v_2[j] = "NaN") else (if (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = "NaN") then false)
+Rule 79 (If labels are not 7 or 8, report error)
+{labels: tensor} |= dtype_(labels) = 7 ∨ dtype_(labels) = 8
 >>
-Rule 38 (If the mean of the logits is very high, the mean of the labels should be close to 1)
-{v_1 : tensor, v_2 : tensor} |= if ((min(v_2) + max(v_2)) / 2) > 50 then ((min(v_1) + max(v_1)) / 2) > 0.8
+Rule 80 (Shape must match if labels and logits aren't scalar)
+{labels : tensor, logits : tensor} |= if ndim(labels) ≠ 0 ∧ ndim(logits) ≠ 0 then (ndim(labels) = ndim(logits) ∧ ∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(logits, i))
 >>
-Rule 39 (If the mean of the logits is very small, the mean of the labels should be close to 0)
-{v_1 : tensor, v_2 : tensor} |= if ((min(v_2) + max(v_2)) / 2) < -50 then ((min(v_1) + max(v_1)) / 2) < 0.2
+Rule 86 (Labels and Logits, at least one tensor needs to be not empty)
+{labels: tensor, logits: tensor} |= (ndim(labels) > 0 ∧ ∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) > 0) ∨ (ndim(logits) > 0 ∧ ∀i ∈ [0, ndim(logits) - 1] : shape(logits, i) > 0)
 >>
-Rule 40 (The ratio between the maximum and minimum label can not be too big)
-{v_1 : tensor} |= max(v_1) / min(v_1) < 100 ∨ (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0)
+Rule 93 (Logits and labels must be tensors with non-zero dimensions)
+{labels : tensor, logits : tensor} |= (ndim(logits) > 0 ∧ ∀i ∈ [0, ndim(logits) - 1] : shape(logits, i) > 0) ∧ (ndim(labels) > 0 ∧ ∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) > 0)
 >>
-Rule 41 (The labels must have a valid dtype)
-{v_1: tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 94 (Shape matching or scalar)
+{labels: tensor, logits: tensor} |= (ndim(labels) = 0) ∨ (ndim(logits) = 0) ∨ (ndim(labels) = ndim(logits) ∧ ∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(logits, i))
 >>
-Rule 42 (If logits has zero values, the labels should be close to 0.5)
-{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = 0) then (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0.4 ∧ v_1[i] < 0.6 )
+Rule 95 (if not empty tensor then labels and logits must be of type float32 or float64)
+{labels: tensor, logits: tensor} |= (if ndim(logits) > 0 then (dtype_(logits) = 7 ∨ dtype_(logits) = 8)) ∧ (if ndim(labels) > 0 then (dtype_(labels) = 7 ∨ dtype_(labels) = 8))
 >>
-Rule 43 (If the labels are one-hot encoded, logits should have distinct values)
-{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0 ∨ v_1[i] = 1) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] = 1) ∧ (∀j ∈ [0, shape(v_1, 0) - 1] : if i ≠ j then v_1[j] = 0)) then (max(v_2) - min(v_2) > 10)
+Rule 102 (Logits and labels must be tensors with non-zero dimensions, or it can be scalar)
+{labels : tensor, logits : tensor} |= (ndim(logits) > 0 ∧ ∀i ∈ [0, ndim(logits) - 1] : shape(logits, i) > 0) ∧ (ndim(labels) > 0 ∧ ∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) > 0) ∨ (ndim(logits) = 0) ∨ (ndim(labels) = 0)
 >>
-Rule 44 (If logits have very high values, labels should have small std deviation)
-{v_1 : tensor, v_2 : tensor} |= if (max(v_2) > 100) then (max(v_1) - min(v_1) < 0.1)
+Rule 106 (If labels are outside the [0,1] range, report error)
+{labels: tensor} |= if ndim(labels) > 0 then (∀i ∈ [0, ndim(labels)-1]: ∀j ∈ [0, shape(labels, i)-1]: (labels >= 0) ∧ (labels <= 1)) else ((labels >= 0) ∧ (labels <= 1))
 >>
-Rule 45 (The product between the maximum value of logits and minimum value of labels must not be greater than a threshold)
-{v_1 : tensor, v_2 : tensor} |= max(v_2) * min(v_1) < 1000
+Rule 107 (Shape must match if labels and logits aren't scalar or logits is scalar)
+{labels : tensor, logits : tensor} |= if (ndim(labels) ≠ 0 ∧ ndim(logits) ≠ 0) then (ndim(labels) = ndim(logits) ∧ ∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(logits, i)) else if (ndim(logits) = 0) then true
 >>
-Rule 46 (If labels are all the same value logits should have small variance)
-{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = v_1[0]) then (max(v_2) - min(v_2) < 1)
+Rule 113 (If label is scalar then its value must be between 0 and 1 inclusive)
+{labels: tensor} |= if ndim(labels) = 0 then (labels >= 0 ∧ labels <=1)
 >>
-Rule 48 (If the labels are one-hot encoded, logits should have distinct values)
-{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0 ∨ v_1[i] = 1) ∧ (∃i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] = 1) ∧ (∀j ∈ [0, shape(v_1, 0) - 1] : if i ≠ j then v_1[j] = 0)) then (max(v_2) - min(v_2) > 10)
+Rule 114 (All dimension size must be positive)
+{labels: tensor, logits: tensor} |= (∀i ∈ [0, if ndim(logits) > 0 then ndim(logits) - 1 else 0]: shape(logits, i) > 0) ∧ (∀i ∈ [0, if ndim(labels) > 0 then ndim(labels)-1 else 0]: shape(labels,i) > 0)
 >>
-Rule 52 (If logits has zero values, the labels should be close to 0.5)
-{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0) then (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] > 0.4 ∧ v_2[i] < 0.6 )
+Rule 115 (Number of dimension of logits and labels must be same unless one of the dimension is scalar)
+{labels: tensor, logits: tensor} |= if ndim(labels) ≠ 0 ∧ ndim(logits) ≠ 0 then ndim(labels) = ndim(logits)
 >>
-Rule 54 (If logits have very high values, labels should have small std deviation)
-{v_1 : tensor, v_2 : tensor} |= if (max(v_1) > 100) then (max(v_2) - min(v_2) < 0.1)
+Rule 121 (All dimension size must be positive and tensors cannot be empty)
+{labels: tensor, logits: tensor} |= (ndim(logits) > 0 ∧ ∀i ∈ [0, if ndim(logits) > 0 then ndim(logits) - 1 else 0]: shape(logits, i) > 0) ∧ (ndim(labels) > 0 ∧ ∀i ∈ [0, if ndim(labels) > 0 then ndim(labels)-1 else 0]: shape(labels,i) > 0)
 >>
-Rule 55 (The product between the maximum value of logits and minimum value of labels must not be greater than a threshold)
-{v_1 : tensor, v_2 : tensor} |= max(v_1) * min(v_2) < 1000
+Rule 123 (dtype should be 7 or 8)
+{labels: tensor, logits: tensor} |= (dtype_(logits) = 7 ∨ dtype_(logits) = 8) ∧ (dtype_(labels) = 7 ∨ dtype_(labels) = 8)
+>>
+Rule 131 (dtype should be 7 or 8)
+{labels: tensor, logits: tensor} |= (dtype_(logits) = 7 ∨ dtype_(logits) = 8) ∧ (dtype_(labels) = 7 ∨ dtype_(labels) = 7)
+>>
+Rule 134 (Shape and dimension of labels and logits are compatible)
+{labels : tensor, logits : tensor} |= (ndim(labels) = 0) ∨ (ndim(labels) = ndim(logits) ∧ ∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(logits, i))
+>>
+Rule 135 (labels tensor values must be between 0 and 1 inclusive)
+{labels : tensor} |= ∀i ∈ [0, if ndim(labels) > 0 then ndim(labels) - 1 else 0] : ∀j ∈ [0, if ndim(labels) > 0 then shape(labels, i) - 1 else 0]: labels ≥ 0 ∧ labels ≤ 1
+>>
+Rule 139 (labels and logits should have the same dtype)
+{labels: tensor, logits: tensor} |= dtype_(logits) = dtype_(labels)
+>>
+Rule 140 (If the rank of tensors are not the same, one needs to be scalar)
+{labels: tensor, logits: tensor} |= ndim(labels) = 0 ∨ ndim(logits) = 0 ∨ ndim(labels) = ndim(logits)
+>>
+Rule 141 (Shape and dimension of labels and logits are compatible)
+{labels : tensor, logits : tensor} |= (ndim(labels) = 0) ∨ (ndim(logits) = 0) ∨ (ndim(labels) = ndim(logits) ∧ ∀i ∈ [0, ndim(labels) - 1] : shape(labels, i) = shape(logits, i))
+>>
+Rule 148 (The values of labels should be between 0 and 1)
+{labels: tensor} |= (labels >= 0) ∧ (labels <= 1)

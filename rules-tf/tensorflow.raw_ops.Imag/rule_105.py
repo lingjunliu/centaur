@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-#  If Tout is specified, and input is complex64, then Tout should be float32 (Rule 105)
+# If Tout is unspecified, then output dtype depends on input dtype, otherwise if Tout is specified, the output dtype is equal to Tout (Rule 105)
 
 rule_105 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_dtype"] == 10), (v["arg2_value"] == 8), If((v["arg1_dtype"] == 11), (v["arg2_value"] == 9), False))) if n else
-          If((v["arg1_dtype"] == 10), (v["arg2_value"] == 8), If((v["arg1_dtype"] == 11), (v["arg2_value"] == 9), False)))
+    s.add(Not(If(And(v["arg2_value"] == 0, v["arg1_dtype"] == 10), v["arg1_dtype"] == 8, If(And(v["arg2_value"] == 0, v["arg1_dtype"] == 11), v["arg1_dtype"] == 9, If(v["arg2_value"] == 8, v["arg1_dtype"] == 8, If(v["arg2_value"] == 9, v["arg1_dtype"] == 9, True))))) if n else
+          If(And(v["arg2_value"] == 0, v["arg1_dtype"] == 10), v["arg1_dtype"] == 8, If(And(v["arg2_value"] == 0, v["arg1_dtype"] == 11), v["arg1_dtype"] == 9, If(v["arg2_value"] == 8, v["arg1_dtype"] == 8, If(v["arg2_value"] == 9, v["arg1_dtype"] == 9, True)))))
 )
 
 def rule_105_func(arg1, arg2, solver=None, neg=False):

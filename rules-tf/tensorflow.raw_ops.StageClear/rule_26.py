@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The first dtype in dtypes is string (Rule 26)
+# The dtypes should not be all boolean - at least one other type (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_length"] > 0, Select(v["arg1_values"], 0) == 11, False)) if n else
-          If(v["arg1_length"] > 0, Select(v["arg1_values"], 0) == 11, False))
+    s.add(Not(Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) != 0) for i in range(6)])) if n else
+          Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) != 0) for i in range(6)]))
 )
 
 def rule_26_func(arg1, solver=None, neg=False):

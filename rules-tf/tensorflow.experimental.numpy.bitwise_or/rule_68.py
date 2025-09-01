@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# shape must be smaller or equal to value.len (Rule 68)
+# Only Integer and Boolean data types are allowed for bitwise OR operations. (Rule 68)
 
 rule_68 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) <= v["arg2_length"]) if n else
-          Select(v["arg1_shape"], 0) <= v["arg2_length"])
+    s.add(Not(Or((And((v["arg1_dtype"] == 0), (v["arg2_dtype"] == 0))), (And((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (And(1 <= v["arg2_dtype"], v["arg2_dtype"] <= 5)))))) if n else
+          Or((And((v["arg1_dtype"] == 0), (v["arg2_dtype"] == 0))), (And((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (And(1 <= v["arg2_dtype"], v["arg2_dtype"] <= 5))))))
 )
 
 def rule_68_func(arg1, arg2, solver=None, neg=False):
@@ -20,23 +20,22 @@ def rule_68_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_length = Int('arg2_length')
+        arg1_dtype = Int('arg1_dtype')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_length == len(arg2))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 68
-        rule_68(solver, {'arg1_shape': arg1_shape, 'arg2_length': arg2_length})
+        rule_68(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_68(solver, {'arg1_shape': arg1['shape'], 'arg2_length': arg2['length']}, neg)
+        rule_68(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

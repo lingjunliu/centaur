@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If axis equals to the number of dimensions of inputs, there will be an error (Rule 7)
+# axis should be a valid negative integer within the rank of input tensor (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_value"] != v["arg1_ndim"]) if n else
-          v["arg2_value"] != v["arg1_ndim"])
+    s.add(Not(And(v["arg2_value"] < 0, v["arg2_value"] >= (0 - v["arg1_ndim"]))) if n else
+          And(v["arg2_value"] < 0, v["arg2_value"] >= (0 - v["arg1_ndim"])))
 )
 
 def rule_7_func(arg1, arg2, solver=None, neg=False):

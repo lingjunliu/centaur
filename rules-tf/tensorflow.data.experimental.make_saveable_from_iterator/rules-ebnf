@@ -1,51 +1,60 @@
 >>
-Rule 1 (external_state_policy must be one of "ignore", "warn", or "fail")
-{v_1 : str} |= v_1 = "ignore" ∨ v_1 = "warn" ∨ v_1 = "fail"
+Rule 1 (external_state_policy should be one of 'warn', 'ignore', or 'fail')
+{v_1 : str} |= v_1 = "warn" ∨ v_1 = "ignore" ∨ v_1 = "fail"
 >>
-Rule 2 (if external_state_policy is "ignore", iterator must be initialized)
-{v_1 : str, v_2 : bool} |= if v_1 = "ignore" then v_2 = true
->>
-Rule 3 (external_state_policy should not be an empty string)
+Rule 2 (external_state_policy cannot be an empty string)
 {v_1 : str} |= v_1 ≠ ""
 >>
-Rule 4 (Checkpointing support depends on the iterator type)
-{v_1 : str, v_2 : bool} |= if v_1 = "warn" then v_2 = true
+Rule 5 (external_state_policy must be one of the allowed strings)
+{v_1 : str} |= if v_1 = "warn" then true else if v_1 = "ignore" then true else if v_1 = "fail" then true else false
 >>
-Rule 5 (The iterator must support checkpointing if external_state_policy is not ignore)
-{v_1 : str, v_2 : bool} |= if v_1 ≠ "ignore" then v_2 = true
+Rule 6 (if external_state_policy is provided, it must be a string from allowed values)
+{v_1 : str} |= (v_1 = "warn") ∨ (v_1 = "ignore") ∨ (v_1 = "fail")
 >>
-Rule 7 (If external_state_policy is fail, the iterator should not depend on external state)
-{v_1 : str, v_2 : bool} |= if v_1 = "fail" then v_2 = false
+Rule 7 (Iterator must be a tensor)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 8 (If checkpointing is not supported, external_state_policy must be "ignore")
-{v_1 : bool, v_2 : str} |= if v_1 = false then v_2 = "ignore"
+Rule 8 (iterator must be a valid tensor with non-zero shape)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 9 (The iterator must be initializable)
-{v_1: bool} |= v_1 = true
+Rule 17 (If an iterator does not support checkpointing, then external_state_policy must not be provided, or be set to None, and if external_state_policy is provided, it must be from allowed values)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "warn" ∨ v_1 = "ignore" ∨ v_1 = "fail"
 >>
-Rule 10 (The iterator's output types should be supported by SaveableObject)
-{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 11 ∨ v_1 = 12 ∨ v_1 = 13
+Rule 19 (external_state_policy must be a valid string and if provided, iterator must support checkpointing)
+{v_1:str} |= (v_1 = "none") ∨ (v_1 = "warn") ∨ (v_1 = "ignore") ∨ (v_1 = "fail")
 >>
-Rule 11 (The dataset graph should be deterministic)
-{v_1 : bool} |= v_1 = true
+Rule 21 (If external_state_policy is equal to 'warn', then the iterator tensor v_1's dtype must be representable.)
+{v_1: tensor, v_2: str} |= if v_2 = "warn" then dtype_(v_1) ≠ 0
 >>
-Rule 13 (If the dataset graph depends on external state, external_state_policy must not be "fail")
-{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 ≠ "fail"
+Rule 23 (If external_state_policy is not 'none', then the iterator must be checkpointable)
+{v_1:str} |= if v_1 = "warn" ∨ v_1 = "ignore" ∨ v_1 = "fail" then true
 >>
-Rule 15 (External state policy must be a valid string)
-{v_1: str} |= v_1 = "ignore" ∨ v_1 = "warn" ∨ v_1 = "fail"
+Rule 24 (The external_state_policy can only be specified as 'warn', 'ignore', or 'fail'.)
+{v_1:str} |= v_1 = "warn" ∨ v_1 = "ignore" ∨ v_1 = "fail"
 >>
-Rule 17 (When external state policy is warn or fail, then iterator should support external state)
-{v_1 : str, v_2 : bool} |= if v_1 = "warn" ∨ v_1 = "fail" then v_2 = true
+Rule 25 (iterator should at least be a tensor of rank 0)
+{v_1: tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 18 (If external state is supported, external_state_policy cannot be ignore.)
-{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 ≠ "ignore"
+Rule 26 (external_state_policy is a string with length greater than or equal to 0)
+{v_1 : str} |= v_1.len ≥ 0
 >>
-Rule 20 (If iterator depends on external state, external_state_policy cannot be "ignore")
-{v_1: bool, v_2: str} |= if v_1 = true then v_2 ≠ "ignore"
+Rule 31 (external_state_policy is a string with length lower than 100)
+{v_1:str} |= v_1.len < 100
 >>
-Rule 21 (If iterator output dtype is not supported, external_state_policy should be ignore)
-{v_1 : dtype, v_2 : str} |= if v_1 ≠ 1 ∧ v_1 ≠ 2 ∧ v_1 ≠ 3 ∧ v_1 ≠ 4 ∧ v_1 ≠ 5 ∧ v_1 ≠ 6 ∧ v_1 ≠ 7 ∧ v_1 ≠ 8 ∧ v_1 ≠ 9 ∧ v_1 ≠ 10 ∧ v_1 ≠ 11 ∧ v_1 ≠ 12 ∧ v_1 ≠ 13 then v_2 = "ignore"
+Rule 32 (External state policy is a string and if specified must be 'warn', 'ignore', 'fail')
+{v_1 : str} |= (v_1 = "warn") ∨ (v_1 = "ignore") ∨ (v_1 = "fail") ∨ true
 >>
-Rule 25 (The iterator should be deterministic if the dataset graph is determinstic)
-{v_1: bool, v_2: bool} |= if v_1 = true then v_2 = true
+Rule 33 (external_state_policy string is not equal to "test")
+{v_1: str} |= v_1 ≠ "test"
+>>
+Rule 36 (If iterator does not support checkpointing, external_state_policy must be none)
+{v_1:str} |= v_1 = "none" ∨ true
+>>
+Rule 39 (external state policy needs to be string type and non-empty)
+{v_1: str} |= v_1 ≠ ""
+>>
+Rule 40 (external_state_policy starts with a lowercase character if its length is more than 0)
+{v_1: str} |= if v_1.len > 0 then ∃i ∈ [0, 0]: v_1[i] ≥ "a" ∧ v_1[i] ≤ "z"
+>>
+Rule 44 (The external_state_policy, if not empty, starts with 'w', 'i', 'f', or 'n'.)
+{v_1: str} |= if v_1.len > 0 then (v_1[0] = "w") ∨ (v_1[0] = "i") ∨ (v_1[0] = "f") ∨ (v_1[0] = "n")

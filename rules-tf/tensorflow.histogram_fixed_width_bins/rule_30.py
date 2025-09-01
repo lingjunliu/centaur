@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If values (v_1 (Rule 30)
+# if value_range is int, dtype must be int32 or int64 (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(If(And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10), Or(Or(v["arg2_value"] == 9, v["arg2_value"] == 10), v["arg2_value"] == 13), False)) if n else
-          If(And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10), Or(Or(v["arg2_value"] == 9, v["arg2_value"] == 10), v["arg2_value"] == 13), False))
+    s.add(Not(If(And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5), (Or(v["arg2_value"] == 3, v["arg2_value"] == 4)), True)) if n else
+          If(And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5), (Or(v["arg2_value"] == 3, v["arg2_value"] == 4)), True))
 )
 
 def rule_30_func(arg1, arg2, solver=None, neg=False):

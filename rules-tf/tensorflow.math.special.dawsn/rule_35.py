@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The tensor dtype must be defined (Rule 35)
+# x must be of a valid dtype to prevent InvalidArgumentError (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == v["arg1_dtype"]) if n else
-          v["arg1_dtype"] == v["arg1_dtype"])
+    s.add(Not(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 6), v["arg1_dtype"] == 0)) if n else
+          Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 6), v["arg1_dtype"] == 0))
 )
 
 def rule_35_func(arg1, solver=None, neg=False):

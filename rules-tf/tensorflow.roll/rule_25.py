@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# shift and axis must be int32 or int64 tensors (Rule 25)
+# dtype of axis and shift must be int32 or int64 (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(And(Or((v["arg1_dtype"] == 3), (v["arg1_dtype"] == 4)), Or((v["arg2_dtype"] == 3), (v["arg2_dtype"] == 4)))) if n else
-          And(Or((v["arg1_dtype"] == 3), (v["arg1_dtype"] == 4)), Or((v["arg2_dtype"] == 3), (v["arg2_dtype"] == 4))))
+    s.add(Not(And((Or(v["arg1_dtype"] == 2, v["arg1_dtype"] == 3)), (Or(v["arg2_dtype"] == 2, v["arg2_dtype"] == 3)))) if n else
+          And((Or(v["arg1_dtype"] == 2, v["arg1_dtype"] == 3)), (Or(v["arg2_dtype"] == 2, v["arg2_dtype"] == 3))))
 )
 
 def rule_25_func(arg1, arg2, solver=None, neg=False):

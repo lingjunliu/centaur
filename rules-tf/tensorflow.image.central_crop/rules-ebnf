@@ -1,63 +1,102 @@
 >>
-Rule 1 (image must be either a 3-D or 4-D Tensor)
-{v_1 : tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
+Rule 1 (central_fraction should be greater than 0 and less than or equal to 1)
+{v_2 : float} |= v_2 > 0.0 ∧ v_2 ≤ 1.0
 >>
-Rule 3 (central_fraction must be greater than 0)
-{v_2 : float} |= v_2 > 0
+Rule 2 (Image should be at least 3D tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 3
 >>
-Rule 4 (central_fraction must be less than or equal to 1)
-{v_2 : float} |= v_2 ≤ 1
+Rule 3 (Image should be at most 4D tensor)
+{v_1 : tensor} |= ndim(v_1) ≤ 4
 >>
-Rule 5 (image must have a floating-point dtype)
-{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+Rule 4 (Shape of image should be non-negative)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 6 (batch size must be greater than 0 if image is 4D)
-{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 0) > 0
+Rule 7 (The height and width should be greater than zero.)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∨ ndim(v_1) = 4 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
 >>
-Rule 7 (central_fraction must be within (0, 1])
-{v_2 : float} |= v_2 > 0 ∧ v_2 ≤ 1
+Rule 9 (Image should be a float tensor)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 9 (if image is 3D, height and width must be positive)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 11 (The image should have valid dimensions based on the central fraction)
+{v_1 : tensor, v_2 : float} |= if ndim(v_1) = 3 then shape(v_1, 0) * v_2 ≤ shape(v_1, 0) ∧ shape(v_1, 1) * v_2 ≤ shape(v_1, 1) else if ndim(v_1) = 4 then shape(v_1, 1) * v_2 ≤ shape(v_1, 1) ∧ shape(v_1, 2) * v_2 ≤ shape(v_1, 2) else false
 >>
-Rule 10 (if image is 4D, height and width must be positive)
-{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+Rule 12 (central_fraction must be within (0, 1])
+{v_1 : float} |= v_1 > 0.0 ∧ v_1 ≤ 1.0
 >>
-Rule 11 (central_fraction influences the output shape)
-{v_1 : tensor, v_2 : float} |= if ndim(v_1) = 3 then shape(v_1, 0) * v_2 ≤ shape(v_1, 0) ∧ shape(v_1, 1) * v_2 ≤ shape(v_1, 1) else shape(v_1, 1) * v_2 ≤ shape(v_1, 1) ∧ shape(v_1, 2) * v_2 ≤ shape(v_1, 2)
+Rule 13 (The image should have valid dimensions based on the central fraction and be non-empty)
+{v_1 : tensor, v_2 : float} |= (ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 0) * v_2 ≤ shape(v_1, 0) ∧ shape(v_1, 1) * v_2 ≤ shape(v_1, 1)) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 1) * v_2 ≤ shape(v_1, 1) ∧ shape(v_1, 2) * v_2 ≤ shape(v_1, 2))
 >>
-Rule 13 (central_fraction close to 0 will result in small or empty tensor)
-{v_1 : tensor, v_2 : float} |= if v_2 < 0.1 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ min(v_1) < 1
+Rule 15 (When the image is 3D, height and width must be non-zero.)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1,0) > 0 ∧ shape(v_1,1) > 0
 >>
-Rule 16 (central_fraction close to 1 will result output close to input tensor's data range)
-{v_1 : tensor, v_2 : float} |= if v_2 > 0.9 then min(v_1) ≤ min(v_1) + 1 ∧ max(v_1) ≥ max(v_1) - 1
+Rule 17 (The image should have valid dimensions based on the central fraction)
+{v_1 : tensor, v_2 : float} |= (ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ 0 < shape(v_1,0) * v_2 ∧ shape(v_1,0) * v_2 ≤ shape(v_1, 0) ∧ 0 < shape(v_1,1) * v_2 ∧ shape(v_1,1) * v_2 ≤ shape(v_1, 1)) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ 0 < shape(v_1,1) * v_2 ∧ shape(v_1,1) * v_2 ≤ shape(v_1, 1) ∧ 0 < shape(v_1,2) * v_2 ∧ shape(v_1,2) * v_2 ≤ shape(v_1, 2))
 >>
-Rule 17 (central_fraction between 0 and 1)
-{v_2 : float} |= 0 < v_2 ∧ v_2 ≤ 1
+Rule 19 (When the image is 4D, batch, height, width, and depth must be non-zero and central_fraction related constraint)
+{v_1 : tensor, v_2 : float} |= if ndim(v_1) = 4 then shape(v_1,0) > 0 ∧ shape(v_1,1) > 0 ∧ shape(v_1,2) > 0 ∧ shape(v_1,3) > 0 ∧ 0 < shape(v_1,1) * v_2 ∧ shape(v_1,1) * v_2 ≤ shape(v_1, 1) ∧ 0 < shape(v_1,2) * v_2 ∧ shape(v_1,2) * v_2 ≤ shape(v_1, 2)
 >>
-Rule 18 (output tensor has the same dtype as the input tensor)
-{v_1 : tensor} |= dtype_(v_1) = dtype_(v_1)
+Rule 21 (Image tensor should have a floating point dtype)
+{v_1: tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
 >>
-Rule 21 (Applying central crop to 3D tensor results in a 3D tensor and 4D tensor results in a 4D tensor)
-{v_1 : tensor} |= (ndim(v_1) = 3) ∨ (ndim(v_1) = 4)
+Rule 24 (Image tensor must have a floating point dtype and valid dimensions.)
+{v_1: tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6) ∧ ((ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0) ∨ (ndim(v_1) = 4 ∧ shape(v_1,0) > 0 ∧ shape(v_1,1) > 0 ∧ shape(v_1,2) > 0 ∧ shape(v_1,3) > 0))
 >>
-Rule 22 (If central fraction is close to 1, shape of output is close to input)
-{v_1 : tensor, v_2 : float} |= if v_2 > 0.9 then (∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0)
+Rule 25 (Image tensor must have valid dtype, dimensions, and shape based on central_fraction)
+{v_1: tensor, v_2: float} |= v_2 > 0.0 ∧ v_2 <= 1.0 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6) ∧ ((ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ 0 < shape(v_1, 0) * v_2 ∧ shape(v_1, 0) * v_2 <= shape(v_1, 0) ∧ 0 < shape(v_1, 1) * v_2 ∧ shape(v_1, 1) * v_2 <= shape(v_1, 1)) ∨ (ndim(v_1) = 4 ∧ shape(v_1,0) > 0 ∧ shape(v_1,1) > 0 ∧ shape(v_1,2) > 0 ∧ shape(v_1,3) > 0 ∧ 0 < shape(v_1, 1) * v_2 ∧ shape(v_1, 1) * v_2 <= shape(v_1, 1) ∧ 0 < shape(v_1, 2) * v_2 ∧ shape(v_1, 2) * v_2 <= shape(v_1, 2)))
 >>
-Rule 25 (If image has shape (H,W,D) and central_fraction is cf, then the depth of output equals input depth. If image has shape (B,H,W,D), the output depth equals input depth)
-{v_1 : tensor} |= if ndim(v_1) = 3 then true else if ndim(v_1) = 4 then true
+Rule 26 (Combined rule for central_fraction and image)
+{v_1: tensor, v_2: float} |= v_2 > 0.0 ∧ v_2 <= 1.0 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6) ∧ ((ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0))
 >>
-Rule 26 (if cf is small the cropped area is smaller)
-{v_1 : tensor, v_2 : float} |= if v_2 < 0.5 then shape(v_1, 0) * v_2 < shape(v_1, 0) ∧ shape(v_1, 1) * v_2 < shape(v_1, 1)
+Rule 27 (Image tensor and central_fraction must be valid)
+{v_1: tensor, v_2: float} |= v_2 > 0.0 ∧ v_2 <= 1.0 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6) ∧ ((ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0))
 >>
-Rule 27 (If image has shape (H,W,D) then H*cf, W*cf >= 1)
-{v_1 : tensor, v_2 : float} |= if ndim(v_1) = 3 then shape(v_1, 0) * v_2 ≥ 1 ∧ shape(v_1, 1) * v_2 ≥ 1 else if ndim(v_1) = 4 then shape(v_1, 1) * v_2 ≥ 1 ∧ shape(v_1, 2) * v_2 ≥ 1
+Rule 28 (Image tensor and central_fraction must be valid, ensuring no division by zero)
+{v_1: tensor, v_2: float} |= v_2 > 0.0 ∧ v_2 <= 1.0 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6) ∧ ((ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0)) ∧ (if ndim(v_1) = 3 then (shape(v_1,0) > 0 ∧ shape(v_1,1) > 0) else if ndim(v_1) = 4 then (shape(v_1,1) > 0 ∧ shape(v_1,2) > 0))
 >>
-Rule 28 (Output tensor rank is same as input)
-{v_1 : tensor} |= ndim(v_1) = ndim(v_1)
+Rule 30 (Image tensor and central_fraction must be valid according to the API definition.)
+{v_1: tensor, v_2: float} |= v_2 > 0.0 ∧ v_2 <= 1.0 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6) ∧ ((ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0)) ∧ (if ndim(v_1) = 3 then (shape(v_1, 0) * v_2 <= shape(v_1, 0) ∧ shape(v_1, 1) * v_2 <= shape(v_1, 1)) else if ndim(v_1) = 4 then (shape(v_1, 1) * v_2 <= shape(v_1, 1) ∧ shape(v_1, 2) * v_2 <= shape(v_1, 2)))
 >>
-Rule 31 (The central_fraction should be a float between 0 and 1)
-{v_1: float} |= 0 < v_1 ∧ v_1 ≤ 1
+Rule 32 (Central Fraction must be valid.)
+{v_1: float} |= v_1 > 0.0 ∧ v_1 <= 1.0
 >>
-Rule 33 (if input is 3D, then output is also 3D and the number of channels remain the same)
-{v_1: tensor} |= if ndim(v_1) = 3 then shape(v_1, 2) = shape(v_1, 2)
+Rule 34 (combined check for central_fraction and tensor validity)
+{v_1: tensor, v_2: float} |= v_2 > 0.0 ∧ v_2 ≤ 1.0 ∧ (if ndim(v_1) = 3 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6) ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 else if ndim(v_1) = 4 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6) ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 else false)
+>>
+Rule 35 (Comprehensive validation for image and central_fraction)
+{v_1: tensor, v_2: float} |= v_2 > 0.0 ∧ v_2 <= 1.0 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6) ∧ ((ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 0) * v_2 <= shape(v_1, 0) ∧ shape(v_1, 1) * v_2 <= shape(v_1, 1)) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ shape(v_1, 1) * v_2 <= shape(v_1, 1) ∧ shape(v_1, 2) * v_2 <= shape(v_1, 2)))
+>>
+Rule 37 (Valid central_fraction and image tensor properties)
+{v_1: tensor, v_2: float} |= v_2 > 0.0 ∧ v_2 <= 1.0 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6) ∧ ((ndim(v_1) = 3 ∧ ∀i ∈ [0, 2] : shape(v_1, i) > 0) ∨ (ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0))
+>>
+Rule 39 (central_fraction value should be valid)
+{v_2: float} |= v_2 > 0.0 ∧ v_2 <= 1.0
+>>
+Rule 40 (Image dimension should be 3 or 4)
+{v_1: tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
+>>
+Rule 41 (Valid central_fraction)
+{v_2: float} |= v_2 > 0.0 ∧ v_2 ≤ 1.0
+>>
+Rule 42 (Central fraction should be a float between 0 and 1, and the tensor should have a float dtype)
+{v_1: tensor, v_2: float} |= v_2 > 0.0 ∧ v_2 ≤ 1.0 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6)
+>>
+Rule 43 (Combine central_fraction constraint with image dimensionality check)
+{v_1: tensor, v_2: float} |= v_2 > 0.0 ∧ v_2 <= 1.0 ∧ (ndim(v_1) = 3 ∨ ndim(v_1) = 4)
+>>
+Rule 44 (Check for valid image shape)
+{v_1: tensor} |= (ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0)
+>>
+Rule 45 (Combined check for valid dimensions and central fraction)
+{v_1: tensor, v_2: float} |= v_2 > 0.0 ∧ v_2 <= 1.0 ∧ ((ndim(v_1) = 3 ∧ ∀i ∈ [0, 2] : shape(v_1, i) > 0) ∨ (ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0))
+>>
+Rule 48 (Central fraction and image properties)
+{v_1: tensor, v_2: float} |= v_2 > 0.0 ∧ v_2 <= 1.0 ∧ ((ndim(v_1) = 3 ∧ ∀i ∈ [0, 2] : shape(v_1, i) > 0 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6)) ∨ (ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6)))
+>>
+Rule 50 (Combination of all the constraints)
+{v_1: tensor, v_2: float} |= v_2 > 0.0 ∧ v_2 <= 1.0 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6) ∧ ((ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ 0 < shape(v_1, 0) * v_2 ∧ shape(v_1, 0) * v_2 <= shape(v_1, 0) ∧ 0 < shape(v_1, 1) * v_2 ∧ shape(v_1, 1) * v_2 <= shape(v_1, 1)) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ 0 < shape(v_1, 1) * v_2 ∧ shape(v_1, 1) * v_2 <= shape(v_1, 1) ∧ 0 < shape(v_1, 2) * v_2 ∧ shape(v_1, 2) * v_2 <= shape(v_1, 2)))
+>>
+Rule 51 (Final Combined Rule)
+{v_1: tensor, v_2: float} |= v_2 > 0.0 ∧ v_2 <= 1.0 ∧ ((ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6)) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6)))
+>>
+Rule 53 (Ultimate Validity Check)
+{v_1: tensor, v_2: float} |= v_2 > 0.0 ∧ v_2 <= 1.0 ∧ ((ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6)) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6))) ∧ (if ndim(v_1) = 3 then shape(v_1, 0) * v_2 <= shape(v_1, 0) ∧ shape(v_1, 1) * v_2 <= shape(v_1, 1) else if ndim(v_1) = 4 then shape(v_1, 1) * v_2 <= shape(v_1, 1) ∧ shape(v_1, 2) * v_2 <= shape(v_1, 2))

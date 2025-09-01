@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the tensor has a single element, its absolute value must be less than 10000 (Rule 11)
+# The product of all dimensions of the tensor should not exceed a certain value (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) == 1), And(Select(v["arg1_range"], 0) >= -10000, Select(v["arg1_range"], 1) <= 10000), False)) if n else
-          If(And(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) == 1), And(Select(v["arg1_range"], 0) >= -10000, Select(v["arg1_range"], 1) <= 10000), False))
+    s.add(Not(If(v["arg1_ndim"] > 0, (Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 1000000000) for i in range(6)])), True)) if n else
+          If(v["arg1_ndim"] > 0, (Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 1000000000) for i in range(6)])), True))
 )
 
 def rule_11_func(arg1, solver=None, neg=False):
@@ -24,19 +24,16 @@ def rule_11_func(arg1, solver=None, neg=False):
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 11
-        rule_11(solver, {'arg1_shape': arg1_shape, 'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
+        rule_11(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_11(solver, {'arg1_shape': arg1['shape'], 'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_11(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

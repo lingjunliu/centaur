@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the dtype is complex, N and M cannot be large values (Rule 39)
+# N and M must be less than a max if dtype is a smaller precision float (Rule 39)
 
 rule_39 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg3_value"] == 9, v["arg3_value"] == 10), And(v["arg1_value"] < 1000, v["arg2_value"] < 1000), False)) if n else
-          If(Or(v["arg3_value"] == 9, v["arg3_value"] == 10), And(v["arg1_value"] < 1000, v["arg2_value"] < 1000), False))
+    s.add(Not(If(v["arg3_value"] == 6, And(v["arg1_value"] < 100, v["arg2_value"] < 100), True)) if n else
+          If(v["arg3_value"] == 6, And(v["arg1_value"] < 100, v["arg2_value"] < 100), True))
 )
 
 def rule_39_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -23,7 +23,7 @@ def rule_39_func(arg1, arg2, arg3, solver=None, neg=False):
             return False
         if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
-        if not (isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool)):
+        if not (isinstance(arg3, torch.dtype) or isinstance(arg3, tf.dtypes.DType)):
             return False
 
         # Variable declarations
@@ -35,7 +35,7 @@ def rule_39_func(arg1, arg2, arg3, solver=None, neg=False):
         # Value assignments
         solver.add(arg1_value == int(arg1))
         solver.add(arg2_value == int(arg2))
-        solver.add(arg3_value == int(arg3))
+        solver.add(arg3_value == list_of_available_dtypes.index(np_dtype(arg3)))
 
         # Constraints for rule 39
         rule_39(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_value': arg3_value})

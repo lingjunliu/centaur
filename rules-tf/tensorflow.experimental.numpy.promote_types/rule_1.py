@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The types should be different. (Rule 1)
+# type1 and type2 cannot be strings (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != v["arg2_value"]) if n else
-          v["arg1_value"] != v["arg2_value"])
+    s.add(Not(And(v["arg1_value"] != 12, v["arg2_value"] != 12)) if n else
+          And(v["arg1_value"] != 12, v["arg2_value"] != 12))
 )
 
 def rule_1_func(arg1, arg2, solver=None, neg=False):

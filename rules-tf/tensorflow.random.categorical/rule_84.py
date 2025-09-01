@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If logits contains NaN, then the calculation may give erroneous results (Rule 84)
+# Logits' second dimension must be less than or equal to 1000 to prevent OOM. (Rule 84)
 
 rule_84 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) > -9999999999999999) if n else
-          Select(v["arg1_range"], 0) > -9999999999999999)
+    s.add(Not(Select(v["arg1_shape"], 1) <= 1000) if n else
+          Select(v["arg1_shape"], 1) <= 1000)
 )
 
 def rule_84_func(arg1, solver=None, neg=False):
@@ -22,16 +22,16 @@ def rule_84_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 84
-        rule_84(solver, {'arg1_range': arg1_range})
+        rule_84(solver, {'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_84(solver, {'arg1_range': arg1['range']}, neg)
+        rule_84(solver, {'arg1_shape': arg1['shape']}, neg)

@@ -1,243 +1,66 @@
 >>
-Rule 2 (A float variable must be greater than zero)
-{v_1 : float} |= v_1 > 0
+Rule 1 (x must be of type float32 or float64)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 3 (The shape of the input tensor must be greater than 1)
-{x : tensor} |= shape(x, 0) > 1
+Rule 4 (The shape of x must be defined)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 4 (Check if the minimum value of a tensor is less than the maximum value)
-{x : tensor} |= min(x) < max(x)
+Rule 7 (Check if the tensor is not empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 5 (A floating-point variable must be within a specific range)
-{v_1 : float} |= v_1 ≥ -1.0 ∧ v_1 ≤ 1.0
+Rule 10 (If the dtype is float32, ensure the size is reasonable.)
+{v_1 : tensor} |= if dtype_(v_1) = 7 then max(v_1) < 100000000
 >>
-Rule 6 (The first dimension of a tensor is positive)
-{x : tensor} |= shape(x, 0) > 0
+Rule 12 (The values of x should not be NaN)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≠ "NaN"
 >>
-Rule 7 (The number of dimensions of a tensor must be greater than or equal to 1)
-{x : tensor} |= ndim(x) ≥ 1
+Rule 15 (Ensure that the input tensor's values are finite to avoid potential numerical issues.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : (v_1[j] ≠ "NaN" ∧ v_1[j] ≠ "inf" ∧ v_1[j] ≠ "-inf")
 >>
-Rule 8 (Comparing the dimension of tensor x with a number)
-{x : tensor, v_1: int} |= ndim(x) = v_1
+Rule 17 (Check that if x is float16, the device is not CPU)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then false
 >>
-Rule 9 (The minimum value of the input tensor is greater than -10)
-{x : tensor} |= min(x) > -10
+Rule 19 (If x is float16 or bfloat16, then the shape must be statically defined)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 0 then ndim(v_1) > 0
 >>
-Rule 10 (The maximum value of the input tensor is less than 10)
-{x : tensor} |= max(x) < 10
+Rule 21 (If x is half, the device must be GPU.)
+{v_1 : tensor} |= if dtype_(v_1) = 1 then false
 >>
-Rule 11 (Input tensor must have dtype float32 or float64)
-{x : tensor} |= dtype_(x) = 7 ∨ dtype_(x) = 8
+Rule 25 (If dtype is float64, then ensure the values are in a reasonable range)
+{v_1 : tensor} |= if dtype_(v_1) = 8 then min(v_1) > -1000 ∧ max(v_1) < 1000
 >>
-Rule 21 (Input tensor must have dtype float32 or float64, represented as a numerical value)
-{x : tensor} |= if dtype_(x) = 7 then true else dtype_(x) = 8
+Rule 27 (If x is float64 and the shape is known, make sure the values are finite.)
+{v_1 : tensor} |= if dtype_(v_1) = 8 ∧ ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : (v_1[j] ≠ "NaN" ∧ v_1[j] ≠ "inf" ∧ v_1[j] ≠ "-inf")
 >>
-Rule 22 (If input tensor has dimension 1, then its first element is greater than 0)
-{x : tensor} |= if ndim(x) = 1 then shape(x,0) > 0
+Rule 29 (x can't be bool)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 23 (The number of elements in the input tensor is a positive integer)
-{x : tensor, v_1 : int} |= v_1 > 0 ∧ v_1 = shape(x,0)
+Rule 31 (Prevent using half precision on CPU)
+{v_1 : tensor} |= if dtype_(v_1) = 7 then true
 >>
-Rule 24 (If the input tensor is float32, a float variable must be smaller than the max value of input)
-{x : tensor, v_1 : float} |= if dtype_(x) = 7 then v_1 < max(x)
+Rule 32 (The input can only be of specific types)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 25 (The input tensor is of type float and a check if the sum of its elements is a positive value)
-{x: tensor, v_1: float} |= dtype_(x) = 7 ∧ v_1 > 0
+Rule 33 (Check allowed dtypes)
+{v_1 : tensor} |= dtype_(v_1) = 2 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 26 (If input tensor has dimension 2, then shape[0] == shape[1])
-{x : tensor} |= if ndim(x) = 2 then shape(x,0) = shape(x,1)
+Rule 34 (x cannot be a complex number)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
 >>
-Rule 27 (The value of an integer variable is greater than the ndim of the input tensor)
-{x: tensor, v_1: int} |= v_1 > ndim(x)
+Rule 36 (If dtype is half, double must be on GPU)
+{v_1 : tensor} |= if dtype_(v_1) = 2 then false
 >>
-Rule 28 (The dtype of tensor x must not be boolean)
-{x : tensor} |= dtype_(x) ≠ 0
+Rule 39 (Disallow double precision on CPU - revised)
+{v_1 : tensor} |= if dtype_(v_1) = 8 then false
 >>
-Rule 29 (Input tensor's min and max difference must be greater than 0)
-{x: tensor} |= max(x) - min(x) > 0
+Rule 43 (If x is half or bfloat16, then the device must support it)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 6 then false
 >>
-Rule 30 (Check if a constant float value is equal to the tensor's min value)
-{x:tensor, v_1: float} |= v_1 = min(x)
+Rule 45 (Only allow permitted datatypes.)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 32 (A float variable must not be NaN)
-{v_1 : float} |= v_1 = v_1
+Rule 48 (If half precision is used, the device must be a GPU)
+{v_1 : tensor} |= if dtype_(v_1) = 2 then true
 >>
-Rule 33 (Shape of input must be a positive integer if dtype is float32)
-{x: tensor, v_1 : int} |= if dtype_(x) = 7 then v_1 > 0 ∧ v_1 = shape(x, 0)
->>
-Rule 34 (If input is float32, then a shape dim must be less than 100)
-{x: tensor} |= if dtype_(x) = 7 then shape(x, 0) < 100
->>
-Rule 35 (Maximum value of input should be smaller than 1000)
-{x : tensor} |= max(x) < 1000
->>
-Rule 36 (If ndim is one and dtype is float32, then shape[0] has to be greater than zero)
-{x : tensor} |= if ndim(x) = 1 ∧ dtype_(x) = 7 then shape(x,0) > 0
->>
-Rule 37 (If input is a tensor, dimension should be less than or equal to 5)
-{x : tensor} |= ndim(x) ≤ 5
->>
-Rule 38 (A float number must be greater than or equal to minimum value of the input tensor)
-{x : tensor, v_1 : float} |= v_1 ≥ min(x)
->>
-Rule 39 (A float number must be less than or equal to max value of the input tensor)
-{x : tensor, v_1 : float} |= v_1 ≤ max(x)
->>
-Rule 40 (If the minimum value of input tensor is greater than zero then its max value must be greater than the min)
-{x : tensor} |= if min(x) > 0 then max(x) > min(x)
->>
-Rule 41 (Input tensor's dtype must be float32 or float64)
-{x : tensor, d : dtype} |= (d = 7 ∧ dtype_(x) = d) ∨ (d = 8 ∧ dtype_(x) = d)
->>
-Rule 45 (Maximum value of input should be smaller than 1000 if it's float64)
-{x : tensor} |= if dtype_(x) = 8 then max(x) < 1000
->>
-Rule 49 (A float number must be less than or equal to max value of the input tensor, also it is positive)
-{x : tensor, v_1 : float} |= v_1 ≤ max(x) ∧ v_1 > 0
->>
-Rule 51 (A float variable must be positive and less than 1)
-{v_1 : float} |= 0 < v_1 ∧ v_1 < 1
->>
-Rule 52 (Maximum value of input should be smaller than 1000 if it's float64)
-{x : tensor, v_1: float} |= if dtype_(x) = 8 then max(x) < v_1
->>
-Rule 53 (If input is a tensor and its dtype is float32, then min is greater than -10)
-{x : tensor} |= if dtype_(x) = 7 then min(x) > -10
->>
-Rule 54 (If ndim of input tensor is less than or equal to 2 and shape[0] is greater than 1)
-{x : tensor} |= if ndim(x) ≤ 2 then shape(x,0) > 1
->>
-Rule 55 (If a float variable is not positive, then max value of input must be less than zero)
-{x : tensor, v_1 : float} |= if v_1 ≤ 0 then max(x) < 0
->>
-Rule 56 (If input tensor is 2D then shape[0] * shape[1] must be greater than 1)
-{x : tensor} |= if ndim(x) = 2 then shape(x, 0) * shape(x, 1) > 1
->>
-Rule 57 (Check whether the dtype of a tensor is equal to another's)
-{x: tensor, y: tensor} |= dtype_(x) = dtype_(y)
->>
-Rule 58 (If a bool is true, the min of the input should be greater than 0)
-{x: tensor, v_1: bool} |= if v_1 = true then min(x) > 0
->>
-Rule 59 (Check if input tensor is scalar - 0 dimension)
-{x: tensor} |= ndim(x) = 0
->>
-Rule 60 (If input tensor's shape at index 0 is equal to a constant, the min of the tensor is positive)
-{x: tensor, v_1: int} |= if shape(x, 0) = v_1 then min(x) > 0
->>
-Rule 61 (A tensor must have at least one element, when represented as an integer)
-{x: tensor, v_1: int} |= v_1 ≥ 1 ∧ shape(x, 0) = v_1
->>
-Rule 62 (If input is 3D, then the first dimension must be greater than the sum of the other two dimensions)
-{x: tensor} |= if ndim(x) = 3 then shape(x, 0) > shape(x, 1) + shape(x, 2)
->>
-Rule 63 (If max value is less than one, the min value must be greater than negative one)
-{x: tensor} |= if max(x) < 1 then min(x) > -1
->>
-Rule 64 (The sum of dimensions must be a positive number)
-{x: tensor, v_1: int} |= v_1 > 0 ∧ v_1 = shape(x,0) + shape(x, 1)
->>
-Rule 65 (If a float is less than 0, every element of the input tensor should be less than 0)
-{x: tensor, v_1: float} |= if v_1 < 0 then ∀i ∈ [0, shape(x,0) - 1] : x[i] < 0
->>
-Rule 66 (If input's dtype is float32 and it's shape[0] is less than 10, then min is greater than zero)
-{x: tensor} |= if dtype_(x) = 7 ∧ shape(x,0) < 10 then min(x) > 0
->>
-Rule 67 (Input tensor's max value must be smaller than an int)
-{x: tensor, v_1: int} |= max(x) < v_1
->>
-Rule 68 (If the average of tensor is bigger than 0, then min value of the tensor must be bigger than a negative float number)
-{x: tensor, v_1: float} |= if (min(x) + max(x)) / 2 > 0 then min(x) > (v_1 * -1)
->>
-Rule 69 (Check if the dimensions of tensor must be smaller than a value)
-{x: tensor, v_1: int} |= ndim(x) < v_1
->>
-Rule 70 (If tensor x is not 0 dimensional and shape 0 is bigger than 0)
-{x: tensor} |= if ndim(x) ≠ 0 then shape(x, 0) > 0
->>
-Rule 71 (If min of the tensor is positive, then max is less than 1 and tensor must be 1D)
-{x: tensor} |= if min(x) > 0 then max(x) < 1 ∧ ndim(x) = 1
->>
-Rule 72 (if ndim of input tensor is 1 and dtype is float32, then elements must be in range)
-{x: tensor} |= if ndim(x) = 1 ∧ dtype_(x) = 7 then ∀i ∈ [0, shape(x,0) - 1] : x[i] ≥ -1 ∧ x[i] ≤ 1
->>
-Rule 73 (If 2D tensor has first dim > 1, then min must be less than 0)
-{x: tensor} |= if ndim(x) = 2 ∧ shape(x, 0) > 1 then min(x) < 0
->>
-Rule 74 (If dtype is float64 then minimum is -1 and max is 1)
-{x: tensor} |= if dtype_(x) = 8 then min(x) = -1 ∧ max(x) = 1
->>
-Rule 75 (If ndim is greater than 1, then a constant integer can not be the same as any shape dim)
-{x: tensor, v_1: int} |= if ndim(x) > 1 then ∀i ∈ [0, ndim(x) - 1] : shape(x, i) ≠ v_1
->>
-Rule 76 (If the tensor is 1D, then max(x) must be less than 10)
-{x: tensor} |= if ndim(x) = 1 then max(x) < 10
->>
-Rule 77 (Input tensor's shape at dim 0 must be less than 100 if the max is positive)
-{x: tensor} |= if max(x) > 0 then shape(x, 0) < 100
->>
-Rule 78 (If min is smaller than a float number, then dimension must be smaller than an integer)
-{x: tensor, v_1: float, v_2: int} |= if min(x) < v_1 then ndim(x) < v_2
->>
-Rule 79 (If min is smaller than zero then dtype should be float32)
-{x: tensor} |= if min(x) < 0 then dtype_(x) = 7
->>
-Rule 80 (if max is bigger than 0, the dimension must be at least 1)
-{x: tensor} |= if max(x) > 0 then ndim(x) ≥ 1
->>
-Rule 81 (If the difference between max and min of tensor is less than one, then the dimension should be 1.)
-{x: tensor} |= if max(x) - min(x) < 1 then ndim(x) = 1
->>
-Rule 82 (If the tensor's dimension is greater than zero, then the product of each dimension must be smaller than an integer v_1)
-{x: tensor, v_1: int} |= if ndim(x) > 0 then ∀i ∈ [0, ndim(x) - 1] : shape(x, i) < v_1
->>
-Rule 83 (If input tensor has shape 0 smaller than shape 1, then min must be smaller than zero)
-{x: tensor} |= if ndim(x) = 2 ∧ shape(x, 0) < shape(x, 1) then min(x) < 0
->>
-Rule 84 (If dtype is float32, then a float number cannot be smaller than the minimum of input tensor)
-{x: tensor, v_1: float} |= if dtype_(x) = 7 then v_1 ≥ min(x)
->>
-Rule 85 (If the dimension of the tensor is one, a floating point number should be in the range of elements of the tensor)
-{x: tensor, v_1: float} |= if ndim(x) = 1 then ∀i ∈ [0, shape(x, 0) - 1] : v_1 ≥ x[i] ∧ v_1 ≤ x[i]
->>
-Rule 86 (If the max value is smaller than 1, dimension must be equal to 1 or smaller)
-{x: tensor} |= if max(x) < 1 then ndim(x) ≤ 1
->>
-Rule 87 (The sum of the tensor shapes must be greater than an integer v1 if its min is less than -1)
-{x: tensor, v_1: int} |= if min(x) < -1 then (shape(x,0) + shape(x,1)) > v_1
->>
-Rule 88 (A bool variable should indicate if the dtype is float32)
-{x: tensor, v_1: bool} |= if v_1 = true then dtype_(x) = 7
->>
-Rule 89 (The maximum of a tensor must be greater than 0 if the dtype is float64)
-{x: tensor} |= if dtype_(x) = 8 then max(x) > 0
->>
-Rule 90 (If a float is greater than min and smaller than max of input)
-{x: tensor, v_1: float} |= min(x) < v_1 ∧ v_1 < max(x)
->>
-Rule 91 (If min of the tensor is positive and the shape[0] is larger than 10 then the max must be smaller than 1.)
-{x: tensor} |= if min(x) > 0 ∧ shape(x, 0) > 10 then max(x) < 1
->>
-Rule 93 (If ndim is 1, then minimum must be smaller than max and maximum must be bigger than 0 if it is a valid float64 tensor)
-{x: tensor} |= if ndim(x) = 1 ∧ dtype_(x) = 8 then min(x) < max(x) ∧ max(x) > 0
->>
-Rule 94 (If a float variable is non zero, min and max must not be the same)
-{x: tensor, v_1: float} |= if v_1 ≠ 0 then min(x) ≠ max(x)
->>
-Rule 95 (If tensor x's shape[0] is not 0, then there must exist an element smaller than 0)
-{x: tensor} |= if shape(x, 0) ≠ 0 then ∃i ∈ [0, shape(x,0) - 1] : x[i] < 0
->>
-Rule 96 (The max value of input must be greater than the value of input's shape)
-{x: tensor} |= if shape(x,0) > 0 then max(x) > shape(x,0)
->>
-Rule 97 (Input Tensor's maximum absolute value must be less than 1 if dimension is 1 and the dtype is float32)
-{x: tensor} |= if ndim(x) = 1 ∧ dtype_(x) = 7 then max(x) < 1 ∧ min(x) > -1
->>
-Rule 98 (If float variable is positive, then minimum value of input must be smaller than 0)
-{x: tensor, v_1: float} |= if v_1 > 0 then min(x) < 0
->>
-Rule 99 (Check if min value is equal to max value if it has only one element)
-{x: tensor} |= if shape(x, 0) = 1 ∧ ndim(x) = 1 then min(x) = max(x)
->>
-Rule 100 (Check if the dimension of tensor should be greater than an integer v1 and that the sum of min and max should be larger than 0)
-{x: tensor, v_1: int} |= ndim(x) > v_1 ∧ min(x) + max(x) > 0
+Rule 52 (Use allowed dtypes as op's attr T values)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8

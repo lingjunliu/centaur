@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The sum of depth_radius and 1 must be less than or equal to the last dimension size of input (Rule 18)
+# input shape's last two dimensions are greater than depth_radius (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_value"] + 1 <= Select(v["arg1_shape"], 3)) if n else
-          v["arg2_value"] + 1 <= Select(v["arg1_shape"], 3))
+    s.add(Not(And(Select(v["arg1_shape"], 2) > v["arg2_value"], Select(v["arg1_shape"], 3) > v["arg2_value"])) if n else
+          And(Select(v["arg1_shape"], 2) > v["arg2_value"], Select(v["arg1_shape"], 3) > v["arg2_value"]))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The tensor's values should be such that squaring them does not lead to infinite values or overflows (Rule 34)
+# If the input tensor is integer type, the values must not be so large as to cause overflow after squaring. (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(If(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), And(Select(v["arg1_range"], 0) > -1000, Select(v["arg1_range"], 1) < 1000), False)) if n else
-          If(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), And(Select(v["arg1_range"], 0) > -1000, Select(v["arg1_range"], 1) < 1000), False))
+    s.add(Not(If(v["arg1_dtype"] == 1, And(Select(v["arg1_range"], 1) < 127, Select(v["arg1_range"], 0) > -128), If(v["arg1_dtype"] == 2, And(Select(v["arg1_range"], 1) < 32767, Select(v["arg1_range"], 0) > -32768), If(v["arg1_dtype"] == 3, And(Select(v["arg1_range"], 1) < 2147483647, Select(v["arg1_range"], 0) > -2147483648), If(v["arg1_dtype"] == 4, And(Select(v["arg1_range"], 0) < 9223372036854775807, Select(v["arg1_range"], 1) > -9223372036854775808), True))))) if n else
+          If(v["arg1_dtype"] == 1, And(Select(v["arg1_range"], 1) < 127, Select(v["arg1_range"], 0) > -128), If(v["arg1_dtype"] == 2, And(Select(v["arg1_range"], 1) < 32767, Select(v["arg1_range"], 0) > -32768), If(v["arg1_dtype"] == 3, And(Select(v["arg1_range"], 1) < 2147483647, Select(v["arg1_range"], 0) > -2147483648), If(v["arg1_dtype"] == 4, And(Select(v["arg1_range"], 0) < 9223372036854775807, Select(v["arg1_range"], 1) > -9223372036854775808), True)))))
 )
 
 def rule_34_func(arg1, solver=None, neg=False):

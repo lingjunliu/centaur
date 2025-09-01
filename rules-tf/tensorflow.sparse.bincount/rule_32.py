@@ -5,40 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If weights are defined, its values should be non-negative when values's dtype is int (Rule 32)
+# minlength must be less than or equal to 2^63 - 1, the maximum value of int64 (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_ndim"] > 0, (If(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), Select(v["arg2_range"], 0) >= 0, False)), False)) if n else
-          If(v["arg2_ndim"] > 0, (If(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), Select(v["arg2_range"], 0) >= 0, False)), False))
+    s.add(Not(v["arg1_value"] <= 9223372036854775807) if n else
+          v["arg1_value"] <= 9223372036854775807)
 )
 
-def rule_32_func(arg1, arg2, solver=None, neg=False):
+def rule_32_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
-            return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_ndim = Int('arg2_ndim')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_ndim == arg2.ndim)
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 32
-        rule_32(solver, {'arg1_dtype': arg1_dtype, 'arg2_range': arg2_range, 'arg2_ndim': arg2_ndim})
+        rule_32(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_32(solver, {'arg1_dtype': arg1['dtype'], 'arg2_range': arg2['range'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_32(solver, {'arg1_value': arg1['value']}, neg)

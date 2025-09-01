@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Casting from bool to complex type, truncate must be false. (Rule 55)
+# If DstT is complex128, source cannot be int64. (Rule 55)
 
 rule_55 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_dtype"] == 0, (Or(v["arg2_value"] == 9, v["arg2_value"] == 10))), True, False)) if n else
-          If(And(v["arg1_dtype"] == 0, (Or(v["arg2_value"] == 9, v["arg2_value"] == 10))), True, False))
+    s.add(Not(If(v["arg2_value"] == 10, v["arg1_dtype"] != 4, True)) if n else
+          If(v["arg2_value"] == 10, v["arg1_dtype"] != 4, True))
 )
 
 def rule_55_func(arg1, arg2, solver=None, neg=False):

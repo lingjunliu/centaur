@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If global_batch_size is provided and it is zero, then all elements in the per_example_loss tensor must be zero. (Rule 53)
+# Sample weight must be non-negative and must be defined if per-example loss is not a scalar (Rule 53)
 
 rule_53 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == 0, (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or(Select(v["arg1_shape"], i) == 0, (And(Select(v["arg1_range"], 0) == 0, Select(v["arg1_range"], 1) == 0)))) for i in range(6)])), False)) if n else
-          If(v["arg2_value"] == 0, (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or(Select(v["arg1_shape"], i) == 0, (And(Select(v["arg1_range"], 0) == 0, Select(v["arg1_range"], 1) == 0)))) for i in range(6)])), False))
+    s.add(Not(If(v["arg1_ndim"] > 0, And(v["arg2_ndim"] > 0, Select(v["arg2_range"], 0) >= 0), True)) if n else
+          If(v["arg1_ndim"] > 0, And(v["arg2_ndim"] > 0, Select(v["arg2_range"], 0) >= 0), True))
 )
 
 def rule_53_func(arg1, arg2, solver=None, neg=False):
@@ -20,26 +20,25 @@ def rule_53_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)) or isinstance(arg2, (float, np.floating))):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg2_ndim = Int('arg2_ndim')
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg2_ndim == arg2.ndim)
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 53
-        rule_53(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_53(solver, {'arg1_ndim': arg1_ndim, 'arg2_range': arg2_range, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_53(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_53(solver, {'arg1_ndim': arg1['ndim'], 'arg2_range': arg2['range'], 'arg2_ndim': arg2['ndim']}, neg)

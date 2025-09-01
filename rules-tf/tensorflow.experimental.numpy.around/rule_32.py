@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If decimals is zero, then output tensor dtype must be the same as input tensor dtype (Rule 32)
+# if the input is not numerical, decimals must be zero (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == 0, v["arg1_dtype"] == v["arg1_dtype"], False)) if n else
-          If(v["arg2_value"] == 0, v["arg1_dtype"] == v["arg1_dtype"], False))
+    s.add(Not(If(Or(v["arg1_dtype"] < 1, v["arg1_dtype"] > 9), v["arg2_value"] == 0, True)) if n else
+          If(Or(v["arg1_dtype"] < 1, v["arg1_dtype"] > 9), v["arg2_value"] == 0, True))
 )
 
 def rule_32_func(arg1, arg2, solver=None, neg=False):

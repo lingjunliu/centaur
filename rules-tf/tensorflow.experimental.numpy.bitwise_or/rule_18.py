@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The bitwise_or of two bool tensors should also have a bool dtype (Rule 18)
+# Input tensors must have compatible dtypes: both boolean, or both integer (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0), True, And((And(0 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (And(0 <= v["arg2_dtype"], v["arg2_dtype"] <= 5))))) if n else
-          If(And(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0), True, And((And(0 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (And(0 <= v["arg2_dtype"], v["arg2_dtype"] <= 5)))))
+    s.add(Not(Or((And(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0)), (And((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5)), (And(v["arg2_dtype"] >= 1, v["arg2_dtype"] <= 5)))))) if n else
+          Or((And(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0)), (And((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5)), (And(v["arg2_dtype"] >= 1, v["arg2_dtype"] <= 5))))))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):

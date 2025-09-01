@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# segment_ids tensor's values must be less than or equal to max element of indices, if indices is not empty (Rule 65)
+# number of elements in indices must match number of elements in segment_ids (Rule 65)
 
 rule_65 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg2_shape"], 0) > 0, Select(v["arg1_range"], 1) <= Select(v["arg2_range"], 1), False)) if n else
-          If(Select(v["arg2_shape"], 0) > 0, Select(v["arg1_range"], 1) <= Select(v["arg2_range"], 1), False))
+    s.add(Not(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)) if n else
+          Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0))
 )
 
 def rule_65_func(arg1, arg2, solver=None, neg=False):
@@ -25,22 +25,19 @@ def rule_65_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_shape = Array('arg2_shape', IntSort(), IntSort())
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         for i in range(arg2.ndim):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 65
-        rule_65(solver, {'arg1_range': arg1_range, 'arg2_range': arg2_range, 'arg2_shape': arg2_shape})
+        rule_65(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_65(solver, {'arg1_range': arg1['range'], 'arg2_range': arg2['range'], 'arg2_shape': arg2['shape']}, neg)
+        rule_65(solver, {'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape']}, neg)

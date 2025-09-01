@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the data tensor is of type qint32, then segment_ids and num_segments are of type int32. (Rule 33)
+# Complete set of rules covering all parameters (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 15, And(v["arg2_dtype"] == 3, v["arg3_dtype"] == 3), False)) if n else
-          If(v["arg1_dtype"] == 15, And(v["arg2_dtype"] == 3, v["arg3_dtype"] == 3), False))
+    s.add(Not(And(And((Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 3), v["arg1_dtype"] == 5), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 9), v["arg1_dtype"] == 4), v["arg1_dtype"] == 13), v["arg1_dtype"] == 6), v["arg1_dtype"] == 15), v["arg1_dtype"] == 16), v["arg1_dtype"] == 10), v["arg1_dtype"] == 17), v["arg1_dtype"] == 18)), (Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 4))), v["arg3_ndim"] == 0)) if n else
+          And(And((Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 3), v["arg1_dtype"] == 5), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 9), v["arg1_dtype"] == 4), v["arg1_dtype"] == 13), v["arg1_dtype"] == 6), v["arg1_dtype"] == 15), v["arg1_dtype"] == 16), v["arg1_dtype"] == 10), v["arg1_dtype"] == 17), v["arg1_dtype"] == 18)), (Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 4))), v["arg3_ndim"] == 0))
 )
 
 def rule_33_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -30,17 +30,17 @@ def rule_33_func(arg1, arg2, arg3, solver=None, neg=False):
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
         arg2_dtype = Int('arg2_dtype')
-        arg3_dtype = Int('arg3_dtype')
+        arg3_ndim = Int('arg3_ndim')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
+        solver.add(arg3_ndim == arg3.ndim)
 
         # Constraints for rule 33
-        rule_33(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype})
+        rule_33(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_ndim': arg3_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_33(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype']}, neg)
+        rule_33(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_ndim': arg3['ndim']}, neg)

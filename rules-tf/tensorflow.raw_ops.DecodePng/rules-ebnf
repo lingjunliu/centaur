@@ -1,318 +1,249 @@
 >>
-Rule 1 (channels should be one of 0, 1, 3, or 4)
+Rule 1 (channels must be either 0, 1, 3, or 4)
 {v_1 : int} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 3 ∨ v_1 = 4
 >>
-Rule 2 (dtype must be uint8 or uint16)
-{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 2
+Rule 2 (dtype must be uint8 or uint16, represented by indices 5 and 2 respectively)
+{v_1 : dtype} |= v_1 = 5 ∨ v_1 = 2
 >>
 Rule 3 (contents must be a non-empty string)
 {v_1 : str} |= v_1 ≠ ""
 >>
-Rule 4 (If channels is not 0, the decoded image must have the specified number of channels)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then (ndim(v_1) = 3 ∧ (shape(v_1, 2) = v_2))
->>
-Rule 5 (check valid tensor)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
->>
-Rule 6 (Check image dimensions are positive)
-{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 7 (Check that contents is a valid PNG image)
-{v_1 : str} |= v_1 ≠ "invalid_png_string"
->>
-Rule 8 (If channels is 1, output is grayscale)
-{v_1 : tensor, v_2 : int} |= if v_2 = 1 then ndim(v_1) = 2
->>
-Rule 9 (Output tensor's dtype must match the specified dtype)
-{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
->>
-Rule 10 (content tensor has to be a scalar)
-{v_1 : str} |= ndim(v_1) = 0
->>
-Rule 11 (channels has to be non-negative)
-{v_1: int} |= v_1 >= 0
->>
-Rule 12 (If dtype is uint16, then the output tensor should have values in the range 0-65535)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then min(v_1) ≥ 0 ∧ max(v_1) ≤ 65535
->>
-Rule 13 (If dtype is uint8, then the output tensor should have values in the range 0-255)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 6 then min(v_1) ≥ 0 ∧ max(v_1) ≤ 255
->>
-Rule 14 (channels must be an integer type)
-{v_1 : int ⊎ float} |= if v_1 = v_1 then true else false
->>
-Rule 16 (The output tensor should have ndim > 1)
-{v_1 : tensor} |= ndim(v_1) > 1
->>
-Rule 17 (The number of channels should be less than or equal to 4)
-{v_1 : int} |= v_1 ≤ 4
->>
-Rule 18 (If channels is 3, output is RGB)
-{v_1 : tensor, v_2 : int} |= if v_2 = 3 then ndim(v_1) = 3 ∧ shape(v_1, 2) = 3
->>
-Rule 19 (If channels is 4, output is RGBA)
-{v_1 : tensor, v_2 : int} |= if v_2 = 4 then ndim(v_1) = 3 ∧ shape(v_1, 2) = 4
->>
-Rule 20 (The content should not exceed a certain size)
-{v_1 : str} |= v_1.len < 1000000
->>
-Rule 21 (channels parameter must be an integer)
-{v_1: int ⊎ float} |= v_1 % 1 = 0
->>
-Rule 22 (if channels = 0, then the output tensor has a valid number of channels i.e. 1, 3, or 4 based on input image.)
-{v_1 : tensor, v_2 : int} |= if v_2 = 0 then (∃i ∈ [1, 4] : shape(v_1, 2) = i)
->>
-Rule 23 (check if the channels parameter is within a reasonable range)
-{v_1 : int} |= v_1 ≥ 0 ∧ v_1 ≤ 10
->>
-Rule 24 (Check output tensor dimensions)
-{v_1: tensor} |= ndim(v_1) = 2 ∨ ndim(v_1) = 3
->>
-Rule 25 (dtype parameter is a valid enum value)
-{v_1 : dtype} |= v_1 = 2 ∨ v_1 = 6
->>
-Rule 26 (Check if image content length is positive)
-{v_1: str} |= v_1.len > 0
->>
-Rule 27 (if channels = 1, then the output tensor has a single channel i.e. shape(output, 2) = 1)
-{v_1 : tensor, v_2 : int} |= if v_2 = 1 then shape(v_1, 2) = 1
->>
-Rule 28 (If dtype is uint8 and channels is 1, output is grayscale with values between 0 and 255)
-{v_1 : tensor, v_2 : dtype, v_3: int} |= if v_2 = 6 ∧ v_3 = 1 then min(v_1) ≥ 0 ∧ max(v_1) ≤ 255
->>
-Rule 29 (If dtype is uint16 and channels is 1, output is grayscale with values between 0 and 65535)
-{v_1 : tensor, v_2 : dtype, v_3: int} |= if v_2 = 2 ∧ v_3 = 1 then min(v_1) ≥ 0 ∧ max(v_1) ≤ 65535
->>
-Rule 30 (Channels should not be a negative number)
+Rule 4 (channels should be a non-negative integer)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 31 (Content length shouldn't be excessively long)
-{v_1 : str} |= v_1.len < 2000000
+Rule 5 (if channels is set to a specific value, the shape of the output tensor depends on it, but we cannot determine it statically)
+{v_1 : int, v_2 : tensor} |= if v_1 = 1 then ndim(v_2) ≥ 2 else (if v_1 = 3 ∨ v_1 = 4 then ndim(v_2) ≥ 3)
 >>
-Rule 32 (Output height and width of the decoded image should be positive)
-{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
->>
-Rule 34 (check that the output tensor has shape of at least [height, width])
-{v_1 : tensor} |= ndim(v_1) ≥ 2
->>
-Rule 35 (channels parameter can't be a very large number)
-{v_1 : int} |= v_1 < 100
->>
-Rule 36 (if the output tensor is grayscale, the last dim must be 1)
-{v_1: tensor} |= if shape(v_1, 2) = 1 then true else false
->>
-Rule 38 (The output tensor dimensions should match the channels value when channels is not zero)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then ndim(v_1) = 3
->>
-Rule 42 (If channels is 0, then output channels should be automatically determined)
-{v_1 : tensor, v_2 : int} |= if v_2 = 0 then (shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 3 ∨ shape(v_1, 2) = 4)
->>
-Rule 43 (contents should be less than the maximum allowed string length)
-{v_1 : str} |= v_1.len < 5000000
->>
-Rule 47 (If the output tensor has 3 dimensions, then the last dimension must be equal to the number of channels.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 then shape(v_1, 2) = v_2 ∨ v_2 = 0
->>
-Rule 49 (Output cannot have more than 3 dimensions)
-{v_1 : tensor} |= ndim(v_1) ≤ 3
->>
-Rule 50 (channels value cannot be a very small number to avoid errors)
-{v_1 : int} |= v_1 > -1
->>
-Rule 51 (The height or width shouldn't be excessively large)
-{v_1 : tensor} |= shape(v_1, 0) < 5000 ∧ shape(v_1, 1) < 5000
->>
-Rule 52 (If the channel value is not 0, then dtype must be either uint8 or uint16.)
-{v_1 : int, v_2 : dtype} |= if v_1 ≠ 0 then v_2 = 6 ∨ v_2 = 2
->>
-Rule 53 (Contents should have some length, to ensure something decodable is passed)
-{v_1 : str} |= v_1.len > 10
->>
-Rule 54 (If ndim is 2, number of channels should be 1)
-{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1, 2) = 1
->>
-Rule 55 (Ensure channels value isn't arbitrarily large to prevent resource exhaustion)
-{v_1 : int} |= v_1 < 256
->>
-Rule 59 (Check if content can be encoded using ASCII)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : 0 ≤ v_1[i] ∧ v_1[i] ≤ 127
->>
-Rule 61 (Output Tensor Dimensions must conform to valid image format)
-{v_1 : tensor} |= ndim(v_1) = 2 ∨ ndim(v_1) = 3
->>
-Rule 62 (When a grayscale image is requested, the dtype must support only one channel, i.e. it can be only uint8 and uint16)
-{v_1 : int, v_2 : dtype} |= if v_1 = 1 then v_2 = 6 ∨ v_2 = 2
->>
-Rule 63 (Contents length cannot exceed max int value)
-{v_1 : str} |= v_1.len < 2147483647
->>
-Rule 64 (Output dimensions should never be zero)
-{v_1 : tensor} |= shape(v_1, 0) ≠ 0 ∧ shape(v_1, 1) ≠ 0
->>
-Rule 65 (check valid tensor shape)
-{v_1 : tensor} |= ndim(v_1) > 0
->>
-Rule 67 (When channels is greater than 0, it should be a valid integer)
-{v_1 : int} |= v_1 = 1 ∨ v_1 = 3 ∨ v_1 = 4
->>
-Rule 69 (The decoded image height and width should not exceed a certain value)
-{v_1 : tensor} |= shape(v_1, 0) < 10000 ∧ shape(v_1, 1) < 10000
->>
-Rule 70 (Contents must be a valid string)
-{v_1 : str} |= v_1 = v_1
->>
-Rule 73 (content string should have a valid length)
-{v_1 : str} |= v_1.len > 10 ∧ v_1.len < 4000000
->>
-Rule 75 (channels values should have finite values)
-{v_1 : int} |= v_1 < 200
->>
-Rule 76 (Contents cannot be a very short string)
-{v_1 : str} |= v_1.len > 5
->>
-Rule 77 (channels value is appropriate for chosen dtype)
-{v_1 : int, v_2 : dtype} |= if v_2 = 6 then v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 3 ∨ v_1 = 4 else if v_2 = 2 then v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 3 ∨ v_1 = 4 else false
->>
-Rule 78 (Contents length can't be negative)
-{v_1: str} |= v_1.len ≥ 0
->>
-Rule 80 (channels parameter can't be a very small number to avoid errors)
-{v_1 : int} |= v_1 > -2
->>
-Rule 82 (The pixel values in the decoded image must match the specified dtype's range)
-{v_1: tensor, v_2: dtype} |= if v_2 = 6 then (min(v_1) ≥ 0 ∧ max(v_1) ≤ 255) else if v_2 = 2 then (min(v_1) ≥ 0 ∧ max(v_1) ≤ 65535)
->>
-Rule 84 (Width and height cannot be both 1)
-{v_1: tensor} |= shape(v_1, 0) > 1 ∨ shape(v_1, 1) > 1
->>
-Rule 85 (channels parameter must be a reasonable size)
-{v_1 : int} |= v_1 < 1000
->>
-Rule 86 (The content length has to be non zero for valid decoding)
+Rule 6 (contents must be a string, and its length must be greater than 0)
 {v_1 : str} |= v_1.len > 0
 >>
-Rule 87 (The channel parameter should not be too large compared to height or width)
-{v_1 : int, v_2 : tensor} |= v_1 < shape(v_2, 0) ∨ v_1 < shape(v_2, 1) ∨ v_1 = 0
+Rule 7 (if dtype is uint8, output tensor dtype must be 5)
+{v_1 : dtype, v_2 : tensor} |= if v_1 = 5 then dtype_(v_2) = 5
 >>
-Rule 88 (When channels is 3, the output must be 3D)
-{v_1 : tensor, v_2 : int} |= if v_2 = 3 then ndim(v_1) = 3
+Rule 8 (if dtype is uint16, output tensor dtype must be 2)
+{v_1 : dtype, v_2 : tensor} |= if v_1 = 2 then dtype_(v_2) = 2
 >>
-Rule 89 (the output tensor must have a valid shape)
-{v_1: tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 9 (contents must be a 0-dimensional tensor of type string)
+{v_1 : tensor} |= ndim(v_1) = 0 ∧ dtype_(v_1) = 11
 >>
-Rule 91 (When the number of channel is 4, the output must have 4 channel)
-{v_1 : tensor, v_2 : int} |= if v_2 = 4 then shape(v_1, 2) = 4
+Rule 12 (The contents string cannot be longer than a certain limit for security)
+{v_1 : str} |= v_1.len < 1000000
 >>
-Rule 96 (Contents strings should not exceed max character lengths)
-{v_1: str} |= v_1.len < 5000000
+Rule 14 (The dtype must be a valid dtype)
+{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 12
 >>
-Rule 97 (channel value cannot be negative number)
+Rule 15 (If channels is 1, the output tensor should have a grayscale format (number of channels is 1))
+{v_1 : int, v_2 : tensor} |= if v_1 = 1 then shape(v_2, ndim(v_2) - 1) = 1
+>>
+Rule 16 (If channels is 1, the output tensor should have a grayscale format. We can only partially check if the number of channels is 1 if the tensor is at least 3D)
+{v_1 : int, v_2 : tensor} |= if v_1 = 1 then if ndim(v_2) ≥ 3 then shape(v_2, ndim(v_2) - 1) = 1
+>>
+Rule 17 (If channels is 3, the output tensor should have a RGB format (number of channels is 3). We can only partially check)
+{v_1 : int, v_2 : tensor} |= if v_1 = 3 then if ndim(v_2) ≥ 3 then shape(v_2, ndim(v_2) - 1) = 3
+>>
+Rule 18 (If channels is 4, the output tensor should have a RGBA format (number of channels is 4). We can only partially check)
+{v_1 : int, v_2 : tensor} |= if v_1 = 4 then if ndim(v_2) ≥ 3 then shape(v_2, ndim(v_2) - 1) = 4
+>>
+Rule 20 (contents length should be reasonable)
+{v_1 : str} |= v_1.len < 2000000
+>>
+Rule 21 (If dtype is tf.uint8 then the output tensor's values should be between 0 and 255)
+{v_1 : dtype, v_2 : tensor} |= if v_1 = 5 then min(v_2) ≥ 0 ∧ max(v_2) ≤ 255
+>>
+Rule 22 (If dtype is tf.uint16 then the output tensor's values should be between 0 and 65535)
+{v_1 : dtype, v_2 : tensor} |= if v_1 = 2 then min(v_2) ≥ 0 ∧ max(v_2) ≤ 65535
+>>
+Rule 24 (If channels is not 0, then the output tensor must have ndim >= 3)
+{v_1 : int, v_2 : tensor} |= if v_1 ≠ 0 then ndim(v_2) ≥ 3
+>>
+Rule 25 (If channels is 0 and input is valid image format, output tensor must have ndim >= 2)
+{v_1 : int, v_2 : tensor} |= if v_1 = 0 then ndim(v_2) ≥ 2
+>>
+Rule 28 (If channels is greater than 0, it must be one of the accepted values)
+{v_1 : int} |= if v_1 > 0 then v_1 = 1 ∨ v_1 = 3 ∨ v_1 = 4
+>>
+Rule 29 (If channels is 0, then the number of channels in the output tensor must be either 1,3, or 4 if the tensor has at least 3 dimensions)
+{v_1 : int, v_2 : tensor} |= if v_1 = 0 then if ndim(v_2) ≥ 3 then shape(v_2, ndim(v_2) - 1) = 1 ∨ shape(v_2, ndim(v_2) - 1) = 3 ∨ shape(v_2, ndim(v_2) - 1) = 4
+>>
+Rule 30 (the dtype must be either uint8 or uint16)
+{v_1: dtype} |= v_1 = 5 ∨ v_1 = 2
+>>
+Rule 31 (if dtype is tf.uint8, output is non-negative)
+{v_1 : dtype, v_2 : tensor} |= if v_1 = 5 then min(v_2) ≥ 0
+>>
+Rule 32 (if dtype is tf.uint16, output is non-negative)
+{v_1 : dtype, v_2 : tensor} |= if v_1 = 2 then min(v_2) ≥ 0
+>>
+Rule 33 (If channels is explicitly defined, output must have at least as many dimensions as the channel count)
+{v_1 : int, v_2 : tensor} |= if v_1 = 1 then ndim(v_2) ≥ 2 else if v_1 = 3 ∨ v_1 = 4 then ndim(v_2) ≥ 3
+>>
+Rule 34 (string contents must not be none)
+{v_1 : str} |= v_1 ≠ "none"
+>>
+Rule 36 (if output channels are 1,3,or 4 the number of channels can influence further ops)
+{v_1 : int} |= if v_1 = 1 then true else if v_1 = 3 then true else if v_1 = 4 then true
+>>
+Rule 38 (channels must be a number between 0 and 4)
+{v_1 : int} |= 0 ≤ v_1 ∧ v_1 ≤ 4
+>>
+Rule 39 (If the channels attribute is set to 1, 3, or 4 the last dimension of shape of the output Tensor should have a value of 1, 3, or 4 respectively)
+{v_1 : int, v_2 : tensor} |= if v_1 = 1 then (if ndim(v_2) > 0 then shape(v_2, ndim(v_2)-1) = 1) else if v_1 = 3 then (if ndim(v_2) > 0 then shape(v_2, ndim(v_2)-1) = 3) else if v_1 = 4 then (if ndim(v_2) > 0 then shape(v_2, ndim(v_2)-1) = 4)
+>>
+Rule 40 (Contents string length has to be under a reasonable limit, although that limit is arbitrary)
+{v_1 : str} |= v_1.len < 3000000
+>>
+Rule 41 (If channels is not 0, it must be 1, 3 or 4. If tensor is rank 2 or higher, the final dimension has to align)
+{v_1 : int, v_2 : tensor} |= if v_1 ≠ 0 then (v_1 = 1 ∨ v_1 = 3 ∨ v_1 = 4) ∧ (if ndim(v_2) ≥ 2 then (if v_1 = 1 then shape(v_2, ndim(v_2)-1) = 1 else if v_1 = 3 then shape(v_2, ndim(v_2)-1) = 3 else if v_1 = 4 then shape(v_2, ndim(v_2)-1) = 4))
+>>
+Rule 44 (content length can't be negative)
+{v_1 : str} |= v_1.len ≥ 0
+>>
+Rule 46 (If dtype is uint8 and channel = 1, the output tensor must have values between 0 and 255, and shape[-1] must be 1 if rank >= 2)
+{v_1 : dtype, v_2 : int, v_3 : tensor} |= if v_1 = 5 ∧ v_2 = 1 then min(v_3) ≥ 0 ∧ max(v_3) ≤ 255 ∧ (if ndim(v_3) ≥ 2 then shape(v_3, ndim(v_3) - 1) = 1)
+>>
+Rule 47 (If dtype is uint16 and channel = 1, the output tensor must have values between 0 and 65535, and shape[-1] must be 1 if rank >= 2)
+{v_1 : dtype, v_2 : int, v_3 : tensor} |= if v_1 = 2 ∧ v_2 = 1 then min(v_3) ≥ 0 ∧ max(v_3) ≤ 65535 ∧ (if ndim(v_3) ≥ 2 then shape(v_3, ndim(v_3) - 1) = 1)
+>>
+Rule 48 (If dtype is uint8 and channel = 3, the output tensor must have values between 0 and 255, and shape[-1] must be 3 if rank >= 2)
+{v_1 : dtype, v_2 : int, v_3 : tensor} |= if v_1 = 5 ∧ v_2 = 3 then min(v_3) ≥ 0 ∧ max(v_3) ≤ 255 ∧ (if ndim(v_3) ≥ 2 then shape(v_3, ndim(v_3) - 1) = 3)
+>>
+Rule 49 (If dtype is uint16 and channel = 3, the output tensor must have values between 0 and 65535, and shape[-1] must be 3 if rank >= 2)
+{v_1 : dtype, v_2 : int, v_3 : tensor} |= if v_1 = 2 ∧ v_2 = 3 then min(v_3) ≥ 0 ∧ max(v_3) ≤ 65535 ∧ (if ndim(v_3) ≥ 2 then shape(v_3, ndim(v_3) - 1) = 3)
+>>
+Rule 50 (If dtype is uint8 and channel = 4, the output tensor must have values between 0 and 255, and shape[-1] must be 4 if rank >= 2)
+{v_1 : dtype, v_2 : int, v_3 : tensor} |= if v_1 = 5 ∧ v_2 = 4 then min(v_3) ≥ 0 ∧ max(v_3) ≤ 255 ∧ (if ndim(v_3) ≥ 2 then shape(v_3, ndim(v_3) - 1) = 4)
+>>
+Rule 51 (If dtype is uint16 and channel = 4, the output tensor must have values between 0 and 65535, and shape[-1] must be 4 if rank >= 2. Combining rules 41-45 into one comprehensive rule using or)
+{v_1 : dtype, v_2 : int, v_3 : tensor} |= if (v_1 = 5 ∧ v_2 = 1) then min(v_3) ≥ 0 ∧ max(v_3) ≤ 255 ∧ (if ndim(v_3) ≥ 2 then shape(v_3, ndim(v_3) - 1) = 1) else if (v_1 = 2 ∧ v_2 = 1) then min(v_3) ≥ 0 ∧ max(v_3) ≤ 65535 ∧ (if ndim(v_3) ≥ 2 then shape(v_3, ndim(v_3) - 1) = 1) else if (v_1 = 5 ∧ v_2 = 3) then min(v_3) ≥ 0 ∧ max(v_3) ≤ 255 ∧ (if ndim(v_3) ≥ 2 then shape(v_3, ndim(v_3) - 1) = 3) else if (v_1 = 2 ∧ v_2 = 3) then min(v_3) ≥ 0 ∧ max(v_3) ≤ 65535 ∧ (if ndim(v_3) ≥ 2 then shape(v_3, ndim(v_3) - 1) = 3) else if (v_1 = 5 ∧ v_2 = 4) then min(v_3) ≥ 0 ∧ max(v_3) ≤ 255 ∧ (if ndim(v_3) ≥ 2 then shape(v_3, ndim(v_3) - 1) = 4) else if (v_1 = 2 ∧ v_2 = 4) then min(v_3) ≥ 0 ∧ max(v_3) ≤ 65535 ∧ (if ndim(v_3) ≥ 2 then shape(v_3, ndim(v_3) - 1) = 4)
+>>
+Rule 60 (if channels = 0 then the last dimension of the output is determined by contents, we can't represent this)
+{v_1:int} |= if v_1 = 0 then true
+>>
+Rule 61 (If dtype is tf.uint16 and channel = 4, the output tensor must have values between 0 and 65535, and shape[-1] must be 4 if rank >= 2)
+{v_1 : dtype, v_2 : int, v_3 : tensor} |= if v_1 = 2 ∧ v_2 = 4 then min(v_3) ≥ 0 ∧ max(v_3) ≤ 65535 ∧ (if ndim(v_3) ≥ 2 then shape(v_3, ndim(v_3) - 1) = 4)
+>>
+Rule 62 (If the decoded image is grayscale the output can be represented as 2D tensor.)
+{v_1 : int, v_2 : tensor} |= if v_1 = 1 then ndim(v_2) ≥ 2
+>>
+Rule 63 (If the decoded image is RGB the output can be represented as 3D tensor.)
+{v_1 : int, v_2 : tensor} |= if v_1 = 3 then ndim(v_2) ≥ 3
+>>
+Rule 64 (If the decoded image is RGBA the output can be represented as 3D tensor.)
+{v_1 : int, v_2 : tensor} |= if v_1 = 4 then ndim(v_2) ≥ 3
+>>
+Rule 65 (Check number of channels in output tensor when channels = 0 based on different dtypes)
+{v_1 : dtype, v_2 : int, v_3 : tensor} |= if (v_1 = 5 ∧ v_2 = 0) then (if ndim(v_3) ≥ 3 then (shape(v_3, ndim(v_3)-1) = 1 ∨ shape(v_3, ndim(v_3)-1) = 3 ∨ shape(v_3, ndim(v_3)-1) = 4) ) else if (v_1 = 2 ∧ v_2 = 0) then (if ndim(v_3) ≥ 3 then (shape(v_3, ndim(v_3)-1) = 1 ∨ shape(v_3, ndim(v_3)-1) = 3 ∨ shape(v_3, ndim(v_3)-1) = 4) )
+>>
+Rule 66 (if channels is not zero it must be 1,3 or 4)
+{v_1 : int} |= if v_1 ≠ 0 then v_1 = 1 ∨ v_1 = 3 ∨ v_1 = 4
+>>
+Rule 68 (If channels is 1 and the tensor has > 2 dimensions, last dimension has to be 1)
+{v_1: int, v_2 : tensor} |= if v_1 = 1 then if ndim(v_2) > 1 then shape(v_2, ndim(v_2) - 1) = 1
+>>
+Rule 69 (If channels is 3 and the tensor has > 2 dimensions, last dimension has to be 3)
+{v_1: int, v_2 : tensor} |= if v_1 = 3 then if ndim(v_2) > 1 then shape(v_2, ndim(v_2) - 1) = 3
+>>
+Rule 70 (If channels is 4 and the tensor has > 2 dimensions, last dimension has to be 4)
+{v_1: int, v_2 : tensor} |= if v_1 = 4 then if ndim(v_2) > 1 then shape(v_2, ndim(v_2) - 1) = 4
+>>
+Rule 71 (Check number of channels in output tensor when channels = 0 based on different dtypes, more compact)
+{v_1 : dtype, v_2 : int, v_3 : tensor} |= if (v_2 = 0) then (if ndim(v_3) ≥ 3 then (dtype_(v_3) = v_1 ∧ (shape(v_3, ndim(v_3)-1) = 1 ∨ shape(v_3, ndim(v_3)-1) = 3 ∨ shape(v_3, ndim(v_3)-1) = 4)) )
+>>
+Rule 72 (Content must have more than 10 bytes)
+{v_1 : str} |= v_1.len > 10
+>>
+Rule 74 (dtype is either 2 or 5)
+{v_1: dtype} |= v_1 = 2 ∨ v_1 = 5
+>>
+Rule 75 (channels must be positive or 0)
 {v_1: int} |= v_1 ≥ 0
 >>
-Rule 99 (Width and height must have reasonable sizes)
-{v_1 : tensor} |= shape(v_1, 0) < 4000 ∧ shape(v_1, 1) < 4000
+Rule 76 (dtype and channels determine output tensor value range)
+{v_1 : dtype, v_2 : tensor} |= if v_1 = 5 then min(v_2) ≥ 0 ∧ max(v_2) ≤ 255 else if v_1 = 2 then min(v_2) ≥ 0 ∧ max(v_2) ≤ 65535
 >>
-Rule 100 (if channels is 0, its auto determined.)
-{v_1 : int} |= if v_1 = 0 then true else false
+Rule 77 (content length has to be less than 4MB)
+{v_1: str} |= v_1.len < 4000000
 >>
-Rule 101 (check that output has three dimensions, if not 0 or 1 channels are chosen)
-{v_1: tensor, v_2: int} |= if v_2 = 3 ∨ v_2 = 4 then ndim(v_1) = 3
+Rule 78 (When the channel is explicitly assigned, ndim has to be greater than one)
+{v_1: int, v_2 : tensor} |= if v_1 ≠ 0 then ndim(v_2) > 0
 >>
-Rule 102 (Channels cannot be a large prime number)
-{v_1: int} |= v_1 ≠ 73
+Rule 80 (The channel information must be valid)
+{v_1: int} |= if v_1 ≠ 0 then (v_1=1 ∨ v_1=3 ∨ v_1 =4)
 >>
-Rule 103 (Input is too large)
-{v_1 : str} |= v_1.len < 6000000
+Rule 83 (The image contents has to be decodable, which can not be represented with this rule)
+{v_1:str} |= v_1 = v_1
 >>
-Rule 105 (Channels cannot take a value greater than tensor shape)
-{v_1: tensor, v_2: int} |= if v_2 > 0 then v_2 < shape(v_1, 0) ∧ v_2 < shape(v_1, 1)
+Rule 84 (Combined rule relating channels, dtype, and tensor shape/values)
+{v_1 : dtype, v_2 : int, v_3 : tensor} |= if (v_2=1) then (if ndim(v_3) ≥ 2 then (shape(v_3, ndim(v_3)-1) = 1 ∧ (if v_1=5 then min(v_3)≥0 ∧ max(v_3)≤255 else if v_1 = 2 then min(v_3)≥0 ∧ max(v_3)≤65535))) else if (v_2 = 3) then (if ndim(v_3) ≥ 2 then (shape(v_3, ndim(v_3)-1) = 3 ∧ (if v_1=5 then min(v_3)≥0 ∧ max(v_3)≤255 else if v_1 = 2 then min(v_3)≥0 ∧ max(v_3)≤65535))) else if (v_2 = 4) then (if ndim(v_3) ≥ 2 then (shape(v_3, ndim(v_3)-1) = 4 ∧ (if v_1=5 then min(v_3)≥0 ∧ max(v_3)≤255 else if v_1 = 2 then min(v_3)≥0 ∧ max(v_3)≤65535)))
 >>
-Rule 106 (If no Dtype, check that it could be either uint8 or uint16)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 2
+Rule 85 (The image contents has to be decodable, it's not possible to represent this rule by existing grammar)
+{v_1 : str} |= v_1 = v_1
 >>
-Rule 108 (contents length must be reasonable)
-{v_1 : str} |= v_1.len < 7000000
+Rule 86 (if dtype is uint8 and channels != 0 then max must be less than 256, more efficiently)
+{v_1 : dtype, v_2: int, v_3:tensor} |= if v_1=5 ∧ v_2 ≠ 0 then max(v_3) ≤ 255 else if v_1=2 ∧ v_2 ≠ 0 then max(v_3) ≤ 65535
 >>
-Rule 110 (Channels value should be less than 5)
-{v_1 : int} |= v_1 < 5
+Rule 87 (It's impossible to check is content is valid png data by current grammar)
+{v_1:str} |= v_1=v_1
 >>
-Rule 112 (Channels values must be one of the supported values)
+Rule 88 (If dtype is uint8, then max value in the tensor has to be less than 256)
+{v_1: dtype, v_2:tensor} |= if v_1 = 5 then max(v_2) < 256
+>>
+Rule 90 (If the dtype is tf.uint16, then max value in the tensor has to be less than 65536)
+{v_1: dtype, v_2:tensor} |= if v_1 = 2 then max(v_2) < 65536
+>>
+Rule 91 (if dtype is tf.uint16, then min value in the tensor has to be greater or equal to 0)
+{v_1: dtype, v_2:tensor} |= if v_1 = 2 then min(v_2) ≥ 0
+>>
+Rule 92 (if dtype is tf.uint8, then min value in the tensor has to be greater or equal to 0)
+{v_1: dtype, v_2:tensor} |= if v_1 = 5 then min(v_2) ≥ 0
+>>
+Rule 94 (If channels=1, last dimension has to be 1. Otherwise, no check)
+{v_1: int, v_2:tensor} |= if v_1=1 then (if ndim(v_2) > 0 then shape(v_2, ndim(v_2)-1)=1)
+>>
+Rule 95 (If channels=3, last dimension has to be 3. Otherwise, no check)
+{v_1: int, v_2:tensor} |= if v_1=3 then (if ndim(v_2) > 0 then shape(v_2, ndim(v_2)-1)=3)
+>>
+Rule 96 (If channels=4, last dimension has to be 4. Otherwise, no check)
+{v_1: int, v_2:tensor} |= if v_1=4 then (if ndim(v_2) > 0 then shape(v_2, ndim(v_2)-1)=4)
+>>
+Rule 97 (If dtype is unit8 and channel =1, min must be >= 0, max <=255 and shape[-1] =1. Combine check)
+{v_1:dtype, v_2:int, v_3: tensor} |= if v_1 = 5 ∧ v_2 = 1 then min(v_3) ≥ 0 ∧ max(v_3) ≤ 255 ∧ (if ndim(v_3) > 0 then shape(v_3, ndim(v_3)-1) = 1)
+>>
+Rule 98 (Combine check dtype, channel 3)
+{v_1:dtype, v_2:int, v_3: tensor} |= if v_1 = 5 ∧ v_2 = 3 then min(v_3) ≥ 0 ∧ max(v_3) ≤ 255 ∧ (if ndim(v_3) > 0 then shape(v_3, ndim(v_3)-1) = 3)
+>>
+Rule 99 (Combine check dtype, channel 4)
+{v_1:dtype, v_2:int, v_3: tensor} |= if v_1 = 5 ∧ v_2 = 4 then min(v_3) ≥ 0 ∧ max(v_3) ≤ 255 ∧ (if ndim(v_3) > 0 then shape(v_3, ndim(v_3)-1) = 4)
+>>
+Rule 101 (If the dtype is tf.uint8 and channel =1 or 3 or 4 combine all min/max value checks, and shape[-1])
+{v_1:dtype, v_2:int, v_3: tensor} |= if v_1 = 5 then (if v_2 = 1 then min(v_3) ≥ 0 ∧ max(v_3) ≤ 255 ∧ (if ndim(v_3) > 0 then shape(v_3, ndim(v_3)-1) = 1) else if v_2 = 3 then min(v_3) ≥ 0 ∧ max(v_3) ≤ 255 ∧ (if ndim(v_3) > 0 then shape(v_3, ndim(v_3)-1) = 3) else if v_2 = 4 then min(v_3) ≥ 0 ∧ max(v_3) ≤ 255 ∧ (if ndim(v_3) > 0 then shape(v_3, ndim(v_3)-1) = 4))
+>>
+Rule 102 (If the dtype is tf.uint16 and channel =1 or 3 or 4 combine all min/max value checks, and shape[-1])
+{v_1:dtype, v_2:int, v_3: tensor} |= if v_1 = 2 then (if v_2 = 1 then min(v_3) ≥ 0 ∧ max(v_3) ≤ 65535 ∧ (if ndim(v_3) > 0 then shape(v_3, ndim(v_3)-1) = 1) else if v_2 = 3 then min(v_3) ≥ 0 ∧ max(v_3) ≤ 65535 ∧ (if ndim(v_3) > 0 then shape(v_3, ndim(v_3)-1) = 3) else if v_2 = 4 then min(v_3) ≥ 0 ∧ max(v_3) ≤ 65535 ∧ (if ndim(v_3) > 0 then shape(v_3, ndim(v_3)-1) = 4))
+>>
+Rule 105 (Channel can have values 0, 1, 3, 4)
 {v_1: int} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 3 ∨ v_1 = 4
 >>
-Rule 113 (Content string length needs to fit into a reasonable limit)
-{v_1 : str} |= v_1.len < 8000000
+Rule 107 (Content has a reasonable length, >10, <4MB)
+{v_1 : str} |= v_1.len > 10 ∧ v_1.len < 4000000
 >>
-Rule 115 (Channels value must be small than width and height)
-{v_1 : tensor, v_2 : int} |= if v_2 > 0 then shape(v_1, 0) > v_2 ∧ shape(v_1, 1) > v_2
+Rule 108 (Check Channels dimension is 1, 3 or 4 given that those are possible cases)
+{v_1 : int, v_2 : tensor} |= if v_1 = 1 then ndim(v_2) > 0 else if v_1=3 then ndim(v_2) > 0 else if v_1=4 then ndim(v_2) > 0
 >>
-Rule 118 (The string contents need to at least be a few bytes to be a possible PNG)
-{v_1 : str} |= v_1.len > 15
+Rule 109 (If the dtype and the channels do not agree with any defined rule, return true)
+{v_1 : dtype, v_2 : int} |= if (v_1 = 2 ∨ v_1 = 5) ∧ (v_2 = 0 ∨ v_2 = 1 ∨ v_2 = 3 ∨ v_2 = 4) then true else false
 >>
-Rule 119 (The image dimensions (height/width) have reasonable upper bounds)
-{v_1 : tensor} |= shape(v_1, 0) < 6000 ∧ shape(v_1, 1) < 6000
+Rule 111 (combining channel checks and dimension presence)
+{v_1 : int, v_2 : tensor} |= if v_1 = 1 ∨ v_1 = 3 ∨ v_1 = 4 then ndim(v_2) > 0
 >>
-Rule 122 (If channels == 1, the dtype is uint8 or uint16)
-{v_1 : int, v_2 : dtype} |= if v_1 = 1 then (v_2 = 6 ∨ v_2 = 2)
+Rule 113 (Contents length needs to be reasonable)
+{v_1 : str} |= v_1.len > 10 ∧ v_1.len < 5000000
 >>
-Rule 123 (Image cannot be too large)
-{v_1 : str} |= v_1.len < 9000000
+Rule 116 (If Channel == 1/3/4, check shape[-1] when ndim > 1)
+{v_1: int, v_2: tensor} |= if v_1 = 1 then (if ndim(v_2) > 1 then (shape(v_2, ndim(v_2) - 1) = 1)) else if v_1=3 then (if ndim(v_2)>1 then (shape(v_2, ndim(v_2)-1) = 3)) else if v_1=4 then (if ndim(v_2) > 1 then (shape(v_2, ndim(v_2)-1)=4))
 >>
-Rule 125 (The dimensions need to be sensible)
-{v_1: tensor} |= shape(v_1, 0) < 7000 ∧ shape(v_1, 1) < 7000
+Rule 117 (If dtype and channel match the limited set of rules)
+{v_1: dtype, v_2: int} |= (v_1 = 2 ∨ v_1 = 5) ∧ (v_2 = 0 ∨ v_2 = 1 ∨ v_2 = 3 ∨ v_2 = 4)
 >>
-Rule 127 (If channels is 1 then dtype must equal unit8 or unit16.)
-{v_1: int, v_2: dtype} |= if v_1 = 1 then v_2 = 6 ∨ v_2 = 2
->>
-Rule 128 (Contents length needs to be reasonable in order to be able to perform proper decode.)
-{v_1 : str} |= v_1.len < 10000000
->>
-Rule 130 (Check channels value for acceptable bound.)
-{v_1 : int} |= v_1 < 6
->>
-Rule 132 (For channels = 1 the last dim must be 1)
-{v_1: tensor, v_2: int} |= if v_2 = 1 then shape(v_1, 2) = 1
->>
-Rule 133 (Size of content string must be reasonable to avoid memory issues.)
-{v_1 : str} |= v_1.len < 11000000
->>
-Rule 137 (If channel is other than 0, the channel must be set to either 1, 3, or 4)
-{v_1 : int} |= if v_1 ≠ 0 then (v_1 = 1 ∨ v_1 = 3 ∨ v_1 = 4)
->>
-Rule 138 (Content length has to be within some reasonable length)
-{v_1 : str} |= v_1.len < 12000000
->>
-Rule 139 (Dimensions should not be too skewed to avoid errors)
-{v_1 : tensor} |= shape(v_1, 0) < 8000 ∧ shape(v_1, 1) < 8000
->>
-Rule 140 (Check channel parameter is non zero)
-{v_1 : int} |= v_1 = 0 ∨ v_1 > 0
->>
-Rule 142 (If channels is set to 0 then the decoded image has 1,3,4 channels)
-{v_1: tensor, v_2: int} |= if v_2 = 0 then (shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 3 ∨ shape(v_1, 2) = 4)
->>
-Rule 143 (Contents size should not exceed memory limits.)
-{v_1 : str} |= v_1.len < 13000000
->>
-Rule 144 (The image height and width can't be extremely disproportional)
-{v_1: tensor} |= shape(v_1, 0) < 9000 ∧ shape(v_1, 1) < 9000
->>
-Rule 146 (check shape conforms to PNG standard)
-{v_1: tensor} |= ndim(v_1) > 1
->>
-Rule 148 (limit on content size to prevent denial of service)
-{v_1 : str} |= v_1.len < 14000000
->>
-Rule 150 (Channels must be either 0 or positive)
-{v_1: int} |= v_1 = 0 ∨ v_1 > 0
->>
-Rule 151 (channels parameter must be small)
-{v_1: int} |= v_1 < 10
->>
-Rule 153 (Content length must be less or equal to some maximum threshold)
-{v_1 : str} |= v_1.len < 15000000
->>
-Rule 154 (Make sure dimensions are greater than some minimum values to ensure it's decodable)
-{v_1 : tensor} |= shape(v_1, 0) > 1 ∧ shape(v_1, 1) > 1
->>
-Rule 156 (If channels ==0, output tensor has 1,3, or 4 channels)
-{v_1: tensor, v_2: int} |= if v_2 = 0 then shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 3 ∨ shape(v_1, 2) = 4
+Rule 118 (The contents should be of reasonable size to prevent overflow issues in downstream operators, but the size is arbitrary)
+{v_1: str} |= v_1.len < 6000000

@@ -1,243 +1,174 @@
 >>
-Rule 1 (value tensor must be of a supported type)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 5
+Rule 1 (The bias tensor must be 1-dimensional)
+{bias : tensor} |= ndim(bias) = 1
 >>
-Rule 2 (bias tensor must be 1-dimensional)
-{v_2 : tensor} |= ndim(v_2) = 1
+Rule 2 (value and bias must have the same dtype)
+{value : tensor, bias : tensor} |= dtype_(value) = dtype_(bias)
 >>
-Rule 3 (value and bias tensor must have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 3 (data_format must be either "NHWC" or "NCHW")
+{data_format : str} |= data_format = "NHWC" ∨ data_format = "NCHW"
 >>
-Rule 4 (bias tensor size must equal the last dimension of the value tensor if data_format is NHWC)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NHWC" then shape(v_2, 0) = shape(v_1, ndim(v_1) - 1)
+Rule 4 (The size of bias must be equal to the last dimension of value when data_format is "NHWC")
+{value : tensor, bias : tensor, data_format : str} |= if data_format = "NHWC" then shape(value, ndim(value) - 1) = shape(bias, 0)
 >>
-Rule 5 (bias tensor size must equal the third-to-last dimension of the value tensor if data_format is NCHW)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NCHW" then shape(v_2, 0) = shape(v_1, ndim(v_1) - 3)
+Rule 5 (The size of bias must be equal to the third-to-last dimension of value when data_format is "NCHW")
+{value : tensor, bias : tensor, data_format : str} |= if data_format = "NCHW" then shape(value, ndim(value) - 3) = shape(bias, 0)
 >>
-Rule 6 (data_format must be either NHWC or NCHW)
-{v_3 : str} |= v_3 = "NHWC" ∨ v_3 = "NCHW"
+Rule 6 (value tensor must have at least one dimension)
+{value : tensor} |= ndim(value) ≥ 1
 >>
-Rule 7 (value tensor's dtype must be in the allowed set)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 9
+Rule 7 (bias tensor cannot have negative size)
+{bias : tensor} |= shape(bias, 0) > 0
 >>
-Rule 8 (bias tensor must have positive shape)
-{v_2 : tensor} |= shape(v_2, 0) > 0
+Rule 8 (if value is 3D tensor, shape of bias must not exceed any dimension of value)
+{value : tensor, bias : tensor} |= if ndim(value) = 3 then shape(bias, 0) ≤ shape(value, 0) ∧ shape(bias, 0) ≤ shape(value, 1) ∧ shape(bias, 0) ≤ shape(value, 2)
 >>
-Rule 9 (value tensor must have non-zero dimensions)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 9 (value tensor must have supported dtypes)
+{value : tensor} |= dtype_(value) = 7 ∨ dtype_(value) = 8 ∨ dtype_(value) = 4 ∨ dtype_(value) = 6 ∨ dtype_(value) = 3 ∨ dtype_(value) = 1 ∨ dtype_(value) = 9 ∨ dtype_(value) = 5 ∨ dtype_(value) = 2 ∨ dtype_(value) = 0 ∨ dtype_(value) = 10
 >>
-Rule 10 (if data_format is NHWC, then the size of the last dimension of value must be greater than 0)
-{v_1 : tensor, v_3 : str} |= if v_3 = "NHWC" then shape(v_1, ndim(v_1) - 1) > 0
+Rule 10 (If data_format is specified, it should not be an empty string)
+{data_format : str} |= if data_format ≠ "" then data_format = "NHWC" ∨ data_format = "NCHW"
 >>
-Rule 11 (If data_format is NCHW, then the size of the third to last dimension of value must be greater than 0)
-{v_1 : tensor, v_3 : str} |= if v_3 = "NCHW" then shape(v_1, ndim(v_1) - 3) > 0
+Rule 12 (value tensor's number of dimensions must be less than or equal to 5.)
+{value : tensor} |= ndim(value) ≤ 5
 >>
-Rule 12 (if data_format is NCHW, the value tensor must have at least 3 dimensions)
-{v_1 : tensor, v_3 : str} |= if v_3 = "NCHW" then ndim(v_1) ≥ 3
+Rule 13 (If data format is NCHW, the value tensor must have at least 3 dimensions)
+{value : tensor, data_format : str} |= if data_format = "NCHW" then ndim(value) ≥ 3
 >>
-Rule 13 (if data_format is NHWC, the value tensor must have at least 1 dimension)
-{v_1 : tensor, v_3 : str} |= if v_3 = "NHWC" then ndim(v_1) ≥ 1
+Rule 15 (The bias shape must be consistent when value's last dimension is known at compile time and format is NHWC)
+{value: tensor, bias: tensor, data_format: str} |= if data_format = "NHWC" ∧ ndim(value) > 0 then shape(value, ndim(value)-1) = shape(bias, 0)
 >>
-Rule 14 (The data format string must not be empty)
-{v_3 : str} |= v_3 ≠ ""
+Rule 17 (if data_format is specified as "NCHW", the bias size should match the number of input channels, given that value tensor has enough dimensions)
+{value : tensor, bias : tensor, data_format : str} |= if data_format = "NCHW" ∧ ndim(value) ≥ 3 then shape(bias, 0) = shape(value, ndim(value)-3)
 >>
-Rule 15 (value tensor's dtype must be a valid dtype index)
-{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 13
+Rule 18 (value tensor's dtype should be within the allowed dtypes)
+{value : tensor} |= dtype_(value) = 7 ∨ dtype_(value) = 8 ∨ dtype_(value) = 4 ∨ dtype_(value) = 5 ∨ dtype_(value) = 2 ∨ dtype_(value) = 3 ∨ dtype_(value) = 1 ∨ dtype_(value) = 9 ∨ dtype_(value) = 6 ∨ dtype_(value) = 0 ∨ dtype_(value) = 10
 >>
-Rule 17 (If data_format is NCHW, bias size should match in_channels)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NCHW" then shape(v_2, 0) = shape(v_1, 1)
+Rule 19 (If data format is NCHW and value tensor has less than 3 dimensions, then the condition should be false)
+{value : tensor, data_format : str} |= if data_format = "NCHW" ∧ ndim(value) < 3 then false
 >>
-Rule 18 (If data_format is NHWC and value has 4 dimensions, bias size should match the last dimension)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NHWC" ∧ ndim(v_1) = 4 then shape(v_2, 0) = shape(v_1, 3)
+Rule 20 (If the value is a complex type, then the bias must also be a complex type)
+{value: tensor, bias: tensor} |= if dtype_(value) = 9 ∨ dtype_(value) = 10 then dtype_(bias) = 9 ∨ dtype_(bias) = 10
 >>
-Rule 19 (The value tensor's number of dimensions should not be excessively large)
-{v_1 : tensor} |= ndim(v_1) < 10
+Rule 21 (If value's dtype is quantized (qint8, quint8, qint32, qint16, quint16), then bias's dtype must be the same)
+{value : tensor, bias : tensor} |= if dtype_(value) = 1 then dtype_(bias) = 1 else if dtype_(value) = 5 then dtype_(bias) = 5 else if dtype_(value) = 0 then dtype_(bias) = 0 else if dtype_(value) = 2 then dtype_(bias) = 2 else if dtype_(value) = 6 then dtype_(bias) = 6
 >>
-Rule 21 (If the value tensor is 1D, and data format is NHWC, then bias size should match its dimension.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if ndim(v_1) = 1 ∧ v_3 = "NHWC" then shape(v_2, 0) = shape(v_1, 0)
+Rule 22 (If value's dtype is bfloat16, then bias's dtype must also be bfloat16)
+{value : tensor, bias : tensor} |= if dtype_(value) = 11 then dtype_(bias) = 11
 >>
-Rule 22 (If the value tensor is 2D, and data format is NHWC, then bias size should match its last dimension.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if ndim(v_1) = 2 ∧ v_3 = "NHWC" then shape(v_2, 0) = shape(v_1, 1)
+Rule 23 (If value's dtype is half, then bias's dtype must also be half)
+{value : tensor, bias : tensor} |= if dtype_(value) = 16 then dtype_(bias) = 16
 >>
-Rule 23 (If the value tensor is 3D, and data format is NHWC, then bias size should match its last dimension.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if ndim(v_1) = 3 ∧ v_3 = "NHWC" then shape(v_2, 0) = shape(v_1, 2)
+Rule 24 (if value tensor's data type is integer, bias should be integer as well)
+{value: tensor, bias: tensor} |= if dtype_(value) = 3 ∨ dtype_(value) = 4 ∨ dtype_(value) = 1 ∨ dtype_(value) = 5 ∨ dtype_(value) = 2 then dtype_(bias) = 3 ∨ dtype_(bias) = 4 ∨ dtype_(bias) = 1 ∨ dtype_(bias) = 5 ∨ dtype_(bias) = 2
 >>
-Rule 24 (If the value tensor has more than 3 dimensions and data format is NHWC, then bias size should match its last dimension.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if ndim(v_1) > 3 ∧ v_3 = "NHWC" then shape(v_2, 0) = shape(v_1, ndim(v_1) - 1)
+Rule 25 (value tensor's shape dimension should be greater than 0)
+{value : tensor} |= ∀i ∈ [0, ndim(value) - 1] : shape(value, i) > 0
 >>
-Rule 25 (If the value tensor has more than 3 dimensions and data format is NCHW, then bias size should match its second dimension.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if ndim(v_1) > 3 ∧ v_3 = "NCHW" then shape(v_2, 0) = shape(v_1, 1)
+Rule 26 (If value's dtype is uint32 or uint64, then bias's dtype must also be uint32 or uint64)
+{value : tensor, bias : tensor} |= if dtype_(value) = 17 ∨ dtype_(value) = 18 then dtype_(bias) = 17 ∨ dtype_(bias) = 18
 >>
-Rule 26 (Value tensor must have a valid number of dimensions based on data format)
-{v_1 : tensor, v_3 : str} |= (v_3 = "NHWC" ∧ ndim(v_1) > 0) ∨ (v_3 = "NCHW" ∧ ndim(v_1) > 2)
+Rule 27 (If value's dtype is float16, float32, or float64, then bias's dtype must also be one of them)
+{value : tensor, bias : tensor} |= if dtype_(value) = 6 ∨ dtype_(value) = 7 ∨ dtype_(value) = 8 then dtype_(bias) = 6 ∨ dtype_(bias) = 7 ∨ dtype_(bias) = 8
 >>
-Rule 27 (If value is a complex type, then bias must be a complex type)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 9 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 9
+Rule 28 (If value's dtype is int8, int16, int32, int64, uint8, uint16, uint32, or uint64, then bias's dtype must also be one of them)
+{value : tensor, bias : tensor} |= if dtype_(value) = 1 ∨ dtype_(value) = 2 ∨ dtype_(value) = 3 ∨ dtype_(value) = 4 ∨ dtype_(value) = 5 ∨ dtype_(value) = 15 ∨ dtype_(value) = 17 ∨ dtype_(value) = 18 then dtype_(bias) = 1 ∨ dtype_(bias) = 2 ∨ dtype_(bias) = 3 ∨ dtype_(bias) = 4 ∨ dtype_(bias) = 5 ∨ dtype_(bias) = 15 ∨ dtype_(bias) = 17 ∨ dtype_(bias) = 18
 >>
-Rule 28 (If value has int type, bias should also have int type)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5
+Rule 29 (If value's dtype is qint8, quint8, qint32, qint16, quint16, then bias's dtype must also be one of them)
+{value : tensor, bias : tensor} |= if dtype_(value) = 12 ∨ dtype_(value) = 13 ∨ dtype_(value) = 14 then dtype_(bias) = 12 ∨ dtype_(bias) = 13 ∨ dtype_(bias) = 14
 >>
-Rule 29 (If value has float type, bias should also have float type)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+Rule 30 (if the shape of value's last dimension is known at compile time and format is NHWC, then bias' shape should not be greater)
+{value: tensor, bias: tensor, data_format: str} |= if data_format = "NHWC" ∧ ndim(value) > 0 then shape(bias, 0) ≤ shape(value, ndim(value)-1)
 >>
-Rule 30 (If value is bfloat16, bias should also be bfloat16)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 11 then dtype_(v_2) = 11
+Rule 31 (If data_format is specified as "NCHW", the bias size should not be greater than the number of input channels, given that value tensor has enough dimensions)
+{value : tensor, bias : tensor, data_format : str} |= if data_format = "NCHW" ∧ ndim(value) ≥ 3 then shape(bias, 0) ≤ shape(value, ndim(value)-3)
 >>
-Rule 31 (Shape of bias should be less or equal to value)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) ≤ max(v_1)
+Rule 32 (value tensor must have supported dtypes: float32, float64, int32, uint8, int16, int8, complex64, int64, uint32, uint64, bfloat16, half)
+{value : tensor} |= dtype_(value) = 7 ∨ dtype_(value) = 8 ∨ dtype_(value) = 3 ∨ dtype_(value) = 5 ∨ dtype_(value) = 2 ∨ dtype_(value) = 1 ∨ dtype_(value) = 9 ∨ dtype_(value) = 4 ∨ dtype_(value) = 17 ∨ dtype_(value) = 18 ∨ dtype_(value) = 11 ∨ dtype_(value) = 16
 >>
-Rule 32 (if value's dtype is quint8/qint8/qint32/qint16/quint16, bias's dtype should match)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 12 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 6 then dtype_(v_1) = dtype_(v_2)
+Rule 34 (If the value tensor is a vector, its size must be equal to the bias vector's size)
+{value : tensor, bias : tensor} |= if ndim(value) = 1 then shape(value, 0) = shape(bias, 0)
 >>
-Rule 34 (Shape of bias can't be zero)
-{v_2 : tensor} |= shape(v_2, 0) ≠ 0
+Rule 35 (If data_format is not specified, it defaults to "NHWC")
+{data_format : str} |= if data_format = "" then data_format = "NHWC"
 >>
-Rule 35 (Dtype of Value and bias must be a valid one according to the documentation)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 1 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 5)
+Rule 36 (If data_format is an empty string, then when the value tensor is a matrix, the bias shape should not be greater than the columns)
+{value : tensor, bias : tensor, data_format : str} |= if data_format = "" ∧ ndim(value) = 2 then shape(bias, 0) ≤ shape(value, 1)
 >>
-Rule 36 (Data format should not be any other random string)
-{v_3 : str} |= v_3 ≠ "any"
+Rule 37 (If data_format is an empty string, then when the value tensor is a 3D tensor, the bias shape should not be greater than the last dimension.)
+{value : tensor, bias : tensor, data_format : str} |= if data_format = "" ∧ ndim(value) = 3 then shape(bias, 0) ≤ shape(value, 2)
 >>
-Rule 37 (data_format can either be "NHWC", "NCHW" or not be provided)
-{v_3 : str} |= v_3 = "NHWC" ∨ v_3 = "NCHW" ∨ v_3 = ""
+Rule 38 (If data_format is not specified, then when the value tensor is a 4D tensor, the bias shape should not be greater than the last dimension.)
+{value : tensor, bias : tensor, data_format : str} |= if data_format = "" ∧ ndim(value) = 4 then shape(bias, 0) ≤ shape(value, 3)
 >>
-Rule 38 (Check if Value Tensor has supported data type)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 39 (If data_format is specified as "NHWC", then the bias shape should not be greater than the number of channels, given that value tensor has enough dimensions)
+{value : tensor, bias : tensor, data_format : str} |= if data_format = "NHWC" ∧ ndim(value) > 0 then shape(bias, 0) ≤ shape(value, ndim(value)-1)
 >>
-Rule 40 (If value is 0 dimension, then data_format must be NHWC)
-{v_1 : tensor, v_3 : str} |= if ndim(v_1) = 0 then v_3 = "NHWC"
+Rule 40 (If data_format is an empty string, then bias' dtype should be the same as value's dtype)
+{value : tensor, bias : tensor, data_format : str} |= if data_format = "" then dtype_(value) = dtype_(bias)
 >>
-Rule 41 (If Value Tensor is complex 64 or complex 128 then bias also should be same.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+Rule 41 (data_format should be selected from allowed string values.)
+{data_format : str} |= data_format = "NHWC" ∨ data_format = "NCHW" ∨ data_format = ""
 >>
-Rule 42 (If data_format is empty, then it defaults to "NHWC")
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "" then shape(v_2, 0) = shape(v_1, ndim(v_1)-1)
+Rule 42 (If value tensor's data type is uint16, then bias should be uint16 as well)
+{value : tensor, bias : tensor} |= if dtype_(value) = 15 then dtype_(bias) = 15
 >>
-Rule 43 (Shape of bias should be non-negative)
-{v_2 : tensor} |= shape(v_2, 0) ≥ 0
+Rule 43 (If value's dtype is quint8, then bias's dtype must also be quint8)
+{value : tensor, bias : tensor} |= if dtype_(value) = 13 then dtype_(bias) = 13
 >>
-Rule 44 (Value tensor should be either int, float or complex type)
-{v_1 : tensor} |= (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5) ∨ (dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 8) ∨ (dtype_(v_1) ≥ 9 ∧ dtype_(v_1) ≤ 10)
+Rule 44 (If value's dtype is qint16, then bias's dtype must also be qint16)
+{value : tensor, bias : tensor} |= if dtype_(value) = 14 then dtype_(bias) = 14
 >>
-Rule 45 (Value tensor dimension can not be negative)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 45 (If value's dtype is qint32, then bias's dtype must also be qint32)
+{value : tensor, bias : tensor} |= if dtype_(value) = 0 then dtype_(bias) = 0
 >>
-Rule 46 (If value tensor dimension is greater or equal to 3, data format can be NCHW)
-{v_1 : tensor, v_3 : str} |= if ndim(v_1) ≥ 3 then v_3 = "NCHW" ∨ v_3 = "NHWC" ∨ v_3 = ""
+Rule 46 (If value's dtype is uint8, then bias's dtype must also be uint8)
+{value : tensor, bias : tensor} |= if dtype_(value) = 5 then dtype_(bias) = 5
 >>
-Rule 47 (if the data format is NCHW and value tensor is 3D, then bias size should match the first dimension of value tensor)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if ndim(v_1) = 3 ∧ v_3 = "NCHW" then shape(v_2, 0) = shape(v_1, 0)
+Rule 47 (If value's dtype is int16, then bias's dtype must also be int16)
+{value : tensor, bias : tensor} |= if dtype_(value) = 2 then dtype_(bias) = 2
 >>
-Rule 48 (if value tensor has only 1 dimentsion, Data Format can be either empty or NHWC)
-{v_1:tensor, v_3:str} |= if ndim(v_1)=1 then v_3="NHWC" ∨ v_3=""
+Rule 48 (If value's dtype is int8, then bias's dtype must also be int8)
+{value : tensor, bias : tensor} |= if dtype_(value) = 12 then dtype_(bias) = 12
 >>
-Rule 49 (Value Tensor Dtype can not be dtype since dtype is just used to represent dtype rather than actual Tensor)
-{v_1:tensor} |= dtype_(v_1) ≠ 13
+Rule 49 (If value's dtype is int32, then bias's dtype must also be int32)
+{value : tensor, bias : tensor} |= if dtype_(value) = 3 then dtype_(bias) = 3
 >>
-Rule 50 (Bias Tensor Dtype can not be dtype since dtype is just used to represent dtype rather than actual Tensor)
-{v_2:tensor} |= dtype_(v_2) ≠ 13
+Rule 50 (If value's dtype is int64, then bias's dtype must also be int64)
+{value : tensor, bias : tensor} |= if dtype_(value) = 4 then dtype_(bias) = 4
 >>
-Rule 51 (If value Tensor dimension =0, then Bias size should also be zero)
-{v_1: tensor, v_2:tensor} |= if ndim(v_1)=0 then shape(v_2,0)=0
+Rule 51 (If value's dtype is float32, then bias's dtype must also be float32)
+{value : tensor, bias : tensor} |= if dtype_(value) = 7 then dtype_(bias) = 7
 >>
-Rule 52 (If Value tensor has more than one dimension and the first dimension is zero then the whole value tensor must be an empty tensor.)
-{v_1:tensor} |= if ndim(v_1) > 0 then shape(v_1,0) ≠ 0
+Rule 52 (If value's dtype is float64, then bias's dtype must also be float64)
+{value : tensor, bias : tensor} |= if dtype_(value) = 8 then dtype_(bias) = 8
 >>
-Rule 53 (Bias can not be a bool type.)
-{v_2 : tensor} |= dtype_(v_2) ≠ 0
+Rule 53 (If value's dtype is complex64, then bias's dtype must also be complex64)
+{value : tensor, bias : tensor} |= if dtype_(value) = 9 then dtype_(bias) = 9
 >>
-Rule 54 (When data_format is 'NCHW' and value tensor has 4 dimensions then bias shape must be equal to shape(value, 1))
-{v_1 : tensor, v_2 : tensor, v_3: str} |= if v_3 = "NCHW" ∧ ndim(v_1) = 4 then shape(v_2, 0) = shape(v_1, 1)
+Rule 54 (If value's dtype is complex128, then bias's dtype must also be complex128)
+{value : tensor, bias : tensor} |= if dtype_(value) = 10 then dtype_(bias) = 10
 >>
-Rule 55 (If bias tensor contains only zero value, then Value also should contain only zero values.)
-{v_1: tensor, v_2: tensor} |= if max(v_2) = 0 ∧ min(v_2) = 0 then max(v_1) = 0 ∧ min(v_1) = 0
+Rule 55 (If value's dtype is uint32, then bias's dtype must also be uint32)
+{value : tensor, bias : tensor} |= if dtype_(value) = 17 then dtype_(bias) = 17
 >>
-Rule 56 (If value and bias tensor both are empty then return tensor also will be an empty tensor.)
-{v_1: tensor, v_2:tensor} |= (shape(v_1,0) = 0) ∧ (shape(v_2,0) = 0)
+Rule 56 (If value's dtype is uint64, then bias's dtype must also be uint64)
+{value : tensor, bias : tensor} |= if dtype_(value) = 18 then dtype_(bias) = 18
 >>
-Rule 57 (If value is uint8 then bias also should be uint8)
-{v_1:tensor, v_2:tensor} |= if dtype_(v_1)=5 then dtype_(v_2) = 5
+Rule 57 (The last dimension of value must match the size of the bias if data_format is an empty string and value has more than one dimension.)
+{value : tensor, bias : tensor, data_format : str} |= if data_format = "" ∧ ndim(value) > 1 then shape(value, ndim(value) - 1) = shape(bias, 0)
 >>
-Rule 58 (if value dimension is 0 and bias size is not 0, the rule is broken.)
-{v_1:tensor, v_2:tensor} |= if ndim(v_1) = 0 then shape(v_2,0) = 0
+Rule 58 (If data_format is specified as "NHWC" and value tensor does not have enough dimensions (ndim(value) ≤ 0) then the condition should be false.)
+{value : tensor, data_format : str} |= if data_format = "NHWC" ∧ ndim(value) ≤ 0 then false
 >>
-Rule 59 (if value is 2 dimension and data format is NCHW then bias Size must be shape(value,0))
-{v_1: tensor, v_2: tensor, v_3: str} |= if ndim(v_1)=2 ∧ v_3 = "NCHW" then shape(v_2,0) = shape(v_1,0)
+Rule 59 (The size of the bias tensor should be less than or equal to 2048 if data_format is an empty string)
+{bias : tensor, data_format : str} |= if data_format = "" then shape(bias, 0) ≤ 2048
 >>
-Rule 60 (If bias size is zero then value also should contain all zero.)
-{v_1: tensor, v_2:tensor} |= if shape(v_2,0) = 0 then max(v_1) = 0 ∧ min(v_1) = 0
+Rule 61 (If the value tensor's dtype is not one of the allowed types, then the whole condition is false.)
+{value : tensor} |= dtype_(value) = 7 ∨ dtype_(value) = 8 ∨ dtype_(value) = 3 ∨ dtype_(value) = 5 ∨ dtype_(value) = 2 ∨ dtype_(value) = 1 ∨ dtype_(value) = 9 ∨ dtype_(value) = 4 ∨ dtype_(value) = 17 ∨ dtype_(value) = 18 ∨ dtype_(value) = 11 ∨ dtype_(value) = 16 ∨ dtype_(value) = 13 ∨ dtype_(value) = 14
 >>
-Rule 61 (If data format is none, dimension must be 0, and shape should be equal)
-{v_1:tensor, v_2: tensor, v_3: str} |= if v_3="none" then ndim(v_1)=0 ∧ shape(v_1,0)=shape(v_2,0)
+Rule 62 (if data_format is "NHWC", then the value tensor must have at least one dimension)
+{value : tensor, data_format : str} |= if data_format = "NHWC" then ndim(value) ≥ 1
 >>
-Rule 62 (if data_format is neither NCHW nor NHWC, it defaults to NHWC, so bias size should be last dimension)
-{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 ≠ "NCHW" ∧ v_3 ≠ "NHWC" then shape(v_2, 0) = shape(v_1, ndim(v_1) - 1)
->>
-Rule 63 (if bias and value tensor is not empty, dimension can't be zero)
-{v_1: tensor, v_2: tensor} |= if shape(v_1,0) ≠ 0 ∧ shape(v_2,0) ≠ 0 then ndim(v_1) ≠ 0 ∧ ndim(v_2) ≠ 0
->>
-Rule 64 (If value is int8 then bias also should be int8)
-{v_1:tensor, v_2:tensor} |= if dtype_(v_1)=1 then dtype_(v_2) = 1
->>
-Rule 66 (if value Tensor dimension is less than 3 and Data format is NCHW then Value tensor is not valid)
-{v_1: tensor, v_3: str} |= if ndim(v_1)<3 then v_3 ≠ "NCHW"
->>
-Rule 67 (if shape(value,0) is less than 0 then value is not valid)
-{v_1:tensor} |= if shape(v_1, 0) < 0 then false
->>
-Rule 68 (If value is uint16 then bias also should be uint16)
-{v_1:tensor, v_2:tensor} |= if dtype_(v_1)=16 then dtype_(v_2) = 16
->>
-Rule 69 (If Dataformat is NCHW, and the value is 1D, the value is invalid.)
-{v_1: tensor, v_3: str} |= if ndim(v_1)=1 then v_3 ≠ "NCHW"
->>
-Rule 70 (If bias has a float value, the value also should have a float value.)
-{v_1: tensor, v_2: tensor} |= if 6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8 then 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
->>
-Rule 71 (if bias has 0 dimensions then Value also should have 0 dimensions)
-{v_1: tensor, v_2: tensor} |= if ndim(v_2)=0 then ndim(v_1)=0
->>
-Rule 72 (If the shape of value is 0 then data format can be anything.)
-{v_1:tensor, v_3:str} |= if shape(v_1,0) = 0 then v_3="NHWC" ∨ v_3="NCHW" ∨ v_3 = ""
->>
-Rule 73 (If Value is uint32 then bias also should be uint32)
-{v_1:tensor, v_2:tensor} |= if dtype_(v_1)=17 then dtype_(v_2) = 17
->>
-Rule 74 (if ndim of value is 0 then shape(bias, 0) can either be 0 or 1)
-{v_1:tensor, v_2: tensor} |= if ndim(v_1)=0 then shape(v_2,0)=0 ∨ shape(v_2, 0) = 1
->>
-Rule 75 (If Value has int64 then bias should also have int64)
-{v_1:tensor, v_2:tensor} |= if dtype_(v_1)=4 then dtype_(v_2) = 4
->>
-Rule 76 (If Value Dtype is float16, then bias also should be float16)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1)=6 then dtype_(v_2) = 6
->>
-Rule 77 (If the value has zero dimension, the bias also should have zero dimension)
-{v_1: tensor, v_2:tensor} |= if ndim(v_1)=0 then ndim(v_2)=0
->>
-Rule 78 (If Value Dtype is float32, then bias also should be float32)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1)=7 then dtype_(v_2) = 7
->>
-Rule 79 (Data Format cannot be an empty string if the dimension of the input tensor is greater than 0)
-{v_1: tensor, v_3: str} |= if ndim(v_1) > 0 then v_3 ≠ ""
->>
-Rule 80 (If value is uint64 then bias also should be uint64)
-{v_1:tensor, v_2:tensor} |= if dtype_(v_1)=19 then dtype_(v_2) = 19
->>
-Rule 81 (Value should have either dimension 0 or data type should be among allowed data type according to documentation)
-{v_1: tensor} |= ndim(v_1)=0 ∨ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
->>
-Rule 82 (The maximum value present in the Bias Tensor should be greater or equal to the min value of Value Tensor.)
-{v_1:tensor, v_2: tensor} |= max(v_2) ≥ min(v_1)
->>
-Rule 83 (When data_format is NHWC, the size of the last dimension of value must match with the size of bias if value is not empty)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NHWC" ∧ shape(v_1,0) ≠ 0 then shape(v_2, 0) = shape(v_1, ndim(v_1) - 1)
->>
-Rule 85 (Data type of Value Tensor should be same as the data type of bias Tensor )
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
->>
-Rule 86 (if the data format is NHWC and the value tensor has more then 0 dimensions then the value of the last shape should be greater than 0)
-{v_1: tensor, v_3: str} |= if v_3 = "NHWC" ∧ ndim(v_1)>0 then shape(v_1,ndim(v_1)-1) > 0
->>
-Rule 87 (If bias is a scalar, the operation will fail)
-{v_2: tensor} |= ndim(v_2) > 0
+Rule 63 (The shape of the bias tensor should be less than or equal to 2048, regardless of data format)
+{bias : tensor} |= shape(bias, 0) ≤ 2048

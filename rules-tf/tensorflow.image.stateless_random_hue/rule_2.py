@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# max_delta should be a float between 0 and 0.5 (Rule 2)
+# max_delta must be non-negative (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] <= 0.5)) if n else
-          And(v["arg1_value"] >= 0, v["arg1_value"] <= 0.5))
+    s.add(Not(v["arg1_value"] >= 0) if n else
+          v["arg1_value"] >= 0)
 )
 
 def rule_2_func(arg1, solver=None, neg=False):

@@ -1,96 +1,156 @@
 >>
-Rule 3 (gradients, input, input_min and input_max must have the same shape)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ndim(v_1) = ndim(v_4) ∧ ∀ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ ∀ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i) ∧ ∀ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_4, i)
+Rule 1 (gradients, input, input_min, input_max should have the same type)
+{gradients : tensor, input : tensor, input_min : tensor, input_max : tensor} |= dtype_(gradients) = dtype_(input) ∧ dtype_(gradients) = dtype_(input_min) ∧ dtype_(gradients) = dtype_(input_max)
 >>
-Rule 4 (axis must be a valid dimension for the input tensor)
-{v_1 : tensor, v_2 : int} |= -1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1
+Rule 3 (gradients, input, input_min, input_max should have ndim >= 0)
+{gradients : tensor, input : tensor, input_min : tensor, input_max : tensor} |= ndim(gradients) ≥ 0 ∧ ndim(input) ≥ 0 ∧ ndim(input_min) ≥ 0 ∧ ndim(input_max) ≥ 0
 >>
-Rule 6 (If axis is not -1, then input_min and input_max must be scalars (ndim = 0).)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 ≠ -1 then ndim(v_1) = 0 ∧ ndim(v_2) = 0
+Rule 5 (input_min and input_max should be scalars)
+{input_min : tensor, input_max : tensor} |= ndim(input_min) = 0 ∧ ndim(input_max) = 0
 >>
-Rule 8 (gradients and input must have the same type)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 6 (gradients, input should have the same shape)
+{gradients : tensor, input : tensor} |= if ndim(gradients) = ndim(input) then (∀i ∈ [0, ndim(gradients) - 1] : shape(gradients, i) = shape(input, i)) else false
 >>
-Rule 10 (gradients must have a floating-point dtype: 6–8)
-{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+Rule 11 (gradients' dtype should be bfloat16, half, float32, or float64)
+{gradients : tensor} |= dtype_(gradients) = 6 ∨ dtype_(gradients) = 7 ∨ dtype_(gradients) = 8
 >>
-Rule 11 (gradients and input must have the same shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 13 (Check axis against gradients shape)
+{gradients : tensor, axis : int} |= if ndim(gradients) > 0 then axis ≥ (0 - ndim(gradients)) ∧ axis < ndim(gradients)
 >>
-Rule 12 (input_min and input_max must be scalar tensors)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0
+Rule 15 (if axis is not -1, gradients should have at least one dimension)
+{gradients : tensor, axis : int} |= if axis ≠ -1 then ndim(gradients) > 0
 >>
-Rule 14 (axis must be a valid dimension for the gradients tensor if not -1)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then -1 * ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1
+Rule 16 (input_min and input_max should be non-negative)
+{input_min : tensor, input_max : tensor} |= min(input_min) ≥ 0 ∧ min(input_max) ≥ 0
 >>
-Rule 15 (gradients, input, input_min, and input_max must have the same floating-point dtype: 6–8)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 ∧ dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3) ∧ dtype_(v_1) = dtype_(v_4)
+Rule 17 (if gradients has more than one dimension, axis should be less than rank)
+{gradients : tensor, axis : int} |= if ndim(gradients) > 1 then axis < ndim(gradients)
 >>
-Rule 18 (if axis is -1, gradients and input must have the same shape)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 then ndim(v_1) = ndim(v_2) ∧ ∀ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 18 (input_min must be less than or equal to input_max)
+{input_min : tensor, input_max : tensor} |= max(input_min) ≤ min(input_max)
 >>
-Rule 19 (gradients, input, input_min, and input_max must have the same floating-point dtype: 6–8)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 ∧ dtype_(v_2) = dtype_(v_1) ∧ dtype_(v_3) = dtype_(v_1) ∧ dtype_(v_4) = dtype_(v_1)
+Rule 19 (gradients' dtype must match input's dtype and both should be float16, float32, float64 or bfloat16.)
+{gradients : tensor, input : tensor} |= dtype_(gradients) = dtype_(input) ∧ (dtype_(gradients) = 6 ∨ dtype_(gradients) = 7 ∨ dtype_(gradients) = 8)
 >>
-Rule 21 (axis must be within the valid range of dimensions for the gradients tensor)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then (0 - ndim(v_1)) ≤ v_2 ∧ v_2 ≤ (ndim(v_1) - 1)
+Rule 22 (If axis is specified, it must be a valid dimension index)
+{gradients : tensor, axis : int} |= if ndim(gradients) > 0 then axis ≥ (0 - ndim(gradients)) ∧ axis < ndim(gradients) else axis = -1
 >>
-Rule 24 (if axis is not -1, input_min and input_max must be scalar tensors; otherwise, they must have the same shape as gradients)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : int} |= if v_4 ≠ -1 then ndim(v_2) = 0 ∧ ndim(v_3) = 0 else ndim(v_2) = ndim(v_1) ∧ ndim(v_3) = ndim(v_1) ∧ ∀ i ∈ [0, ndim(v_1) - 1] : shape(v_2, i) = shape(v_1, i) ∧ ∀ i ∈ [0, ndim(v_1) - 1] : shape(v_3, i) = shape(v_1, i)
+Rule 23 (gradients and input must have at least one dimension if axis is not -1)
+{gradients : tensor, input: tensor, axis: int} |= if axis != -1 then ndim(gradients) >= 1 ∧ ndim(input) >= 1
 >>
-Rule 25 (axis must be within the valid range of dimensions for the gradients tensor)
-{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 ≤ (ndim(v_1) - 1)
+Rule 24 (gradients and input should have compatible shapes for element-wise operations)
+{gradients : tensor, input : tensor} |= ndim(gradients) = ndim(input) ∧ (∀i ∈ [0, ndim(gradients) - 1] : shape(gradients, i) = shape(input, i) ∨ shape(gradients, i) = 1 ∨ shape(input, i) = 1)
 >>
-Rule 27 (input_min and input_max must have the same dtype as gradients)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
+Rule 25 (gradients and input must have the same dtype)
+{gradients: tensor, input: tensor} |= dtype_(gradients) = dtype_(input)
 >>
-Rule 29 (if axis is not -1, input_min and input_max must be scalar tensors)
-{v_1 : int, v_2 : tensor, v_3 : tensor} |= if v_1 ≠ -1 then ndim(v_2) = 0 ∧ ndim(v_3) = 0
+Rule 26 (input_min and input_max must have compatible dtypes with gradients)
+{gradients : tensor, input_min : tensor, input_max : tensor} |= dtype_(gradients) = dtype_(input_min) ∧ dtype_(gradients) = dtype_(input_max)
 >>
-Rule 31 (if axis is specified, input_min and input_max must be scalar tensors; otherwise, they must have the same shape as gradients)
-{v_1 : int, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= if v_1 ≠ -1 then ndim(v_3) = 0 ∧ ndim(v_4) = 0 else ndim(v_3) = ndim(v_2) ∧ ndim(v_4) = ndim(v_2) ∧ ∀ i ∈ [0, ndim(v_2) - 1] : shape(v_3, i) = shape(v_2, i) ∧ ∀ i ∈ [0, ndim(v_2) - 1] : shape(v_4, i) = shape(v_2, i)
+Rule 28 (If axis is not -1, it must be a valid dimension for gradients)
+{gradients : tensor, axis : int} |= if axis ≠ -1 then axis ≥ (0 - ndim(gradients)) ∧ axis < ndim(gradients) ∧ ndim(gradients) > 0
 >>
-Rule 32 (if axis is -1, gradients and input must have the same shape)
-{v_1 : int, v_2 : tensor, v_3 : tensor} |= if v_1 = -1 then ndim(v_2) = ndim(v_3) ∧ ∀ i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)
+Rule 31 (input_min and input_max must have the same dtype as gradients)
+{gradients : tensor, input_min : tensor, input_max : tensor} |= dtype_(input_min) = dtype_(gradients) ∧ dtype_(input_max) = dtype_(gradients)
 >>
-Rule 36 (input, input_min and input_max must have floating point type: 6–8)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 ∧ dtype_(v_2) = dtype_(v_1) ∧ dtype_(v_3) = dtype_(v_1)
+Rule 35 (gradients and input tensors should have the same shape if axis is -1)
+{gradients : tensor, input : tensor, axis : int} |= if axis = -1 then (ndim(gradients) = ndim(input) ∧ (∀i ∈ [0, ndim(gradients) - 1] : shape(gradients, i) = shape(input, i)))
 >>
-Rule 38 (if axis is not -1, input_min and input_max must be scalar tensors and have the same dtype as gradient)
-{v_1 : int, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= if v_1 ≠ -1 then ndim(v_3) = 0 ∧ ndim(v_4) = 0 ∧ dtype_(v_2) = dtype_(v_3) ∧ dtype_(v_2) = dtype_(v_4)
+Rule 39 (gradients and input must have compatible shapes for element-wise operations and the same number of dimensions when the axis is -1)
+{gradients : tensor, input : tensor, axis : int} |= if axis = -1 then (ndim(gradients) = ndim(input) ∧ (∀i ∈ [0, ndim(gradients) - 1] : shape(gradients, i) = shape(input, i) ∨ shape(gradients, i) = 1 ∨ shape(input, i) = 1)) else ndim(gradients) = ndim(input)
 >>
-Rule 39 (if axis is -1, gradients and input must have the same shape and the same dtype)
-{v_1 : int, v_2 : tensor, v_3 : tensor} |= if v_1 = -1 then ndim(v_2) = ndim(v_3) ∧ ∀ i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i) ∧ dtype_(v_2) = dtype_(v_3)
+Rule 40 (gradients, input_min and input_max must have the same dtype and it must be one of float16, float32, float64 or bfloat16 (6,7,8))
+{gradients : tensor, input_min : tensor, input_max : tensor} |= dtype_(gradients) = 6 ∨ dtype_(gradients) = 7 ∨ dtype_(gradients) = 8 ∧ dtype_(gradients) = dtype_(input_min) ∧ dtype_(gradients) = dtype_(input_max)
 >>
-Rule 40 (gradients, input, input_min and input_max must have the same type)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3) ∧ dtype_(v_1) = dtype_(v_4)
+Rule 42 (If the axis is not -1, it must be a valid dimension for the gradients tensor)
+{gradients : tensor, axis : int} |= if axis ≠ -1 then axis ≥ (0 - ndim(gradients)) ∧ axis < ndim(gradients)
 >>
-Rule 44 (gradients and input must have the same dtype and be a floating point type)
-{v_1 : tensor, v_2 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 ∧ dtype_(v_1) = dtype_(v_2)
+Rule 44 (gradients and input tensors should have the same shape if axis is -1, otherwise they should have the same dimensions.)
+{gradients : tensor, input : tensor, axis : int} |= if axis = -1 then (ndim(gradients) = ndim(input) ∧ (∀i ∈ [0, ndim(gradients) - 1] : shape(gradients, i) = shape(input, i))) else ndim(gradients) = ndim(input)
 >>
-Rule 48 (gradients, input_min and input_max must have the same dtype and be a floating point type)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 ∧ dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
+Rule 45 (gradients, input_min and input_max must have the same dtype and it must be one of float16, float32, float64 or bfloat16 (6,7,8))
+{gradients : tensor, input_min : tensor, input_max : tensor} |= (dtype_(gradients) = 6 ∨ dtype_(gradients) = 7 ∨ dtype_(gradients) = 8) ∧ dtype_(gradients) = dtype_(input_min) ∧ dtype_(gradients) = dtype_(input_max)
 >>
-Rule 52 (axis must be a valid dimension for the gradients tensor if not -1)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then (0 - ndim(v_1)) ≤ v_2 ∧ v_2 ≤ (ndim(v_1) - 1)
+Rule 48 (The values of input_min should be less than or equal to input_max)
+{input_min : tensor, input_max : tensor} |= min(input_min) ≤ max(input_max)
 >>
-Rule 57 (if axis is not -1, input_min and input_max must be scalar tensors and gradients, input, input_min and input_max must have the same floating point type)
-{v_1 : int, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= if v_1 ≠ -1 then ndim(v_2) = 0 ∧ ndim(v_3) = 0 ∧ 6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8 ∧ dtype_(v_2) = dtype_(v_3) ∧ dtype_(v_2) = dtype_(v_4)
+Rule 52 (If the axis is not -1, it must be a valid dimension for the gradients tensor, gradients and input must have at least one dimension)
+{gradients : tensor, axis : int, input: tensor} |= if axis ≠ -1 then axis ≥ (0 - ndim(gradients)) ∧ axis < ndim(gradients) ∧ ndim(gradients) > 0 ∧ ndim(input) > 0
 >>
-Rule 58 (if axis is -1, gradients and input must have the same shape and gradients, input, input_min and input_max must have the same floating point type)
-{v_1 : int, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= if v_1 = -1 then ndim(v_2) = ndim(v_3) ∧ ∀ i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i) ∧ 6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8 ∧ dtype_(v_2) = dtype_(v_4)
+Rule 55 (gradients, input_min and input_max must have the same dtype, it must be one of float16, float32, float64 or bfloat16 (6,7,8), input_min and input_max must be scalar)
+{gradients : tensor, input_min : tensor, input_max : tensor} |= (dtype_(gradients) = 6 ∨ dtype_(gradients) = 7 ∨ dtype_(gradients) = 8) ∧ dtype_(gradients) = dtype_(input_min) ∧ dtype_(gradients) = dtype_(input_max) ∧ ndim(input_min) = 0 ∧ ndim(input_max) = 0
 >>
-Rule 61 (gradients and input must have the same shape if axis is -1, otherwise input_min and input_max must be scalar)
-{v_1 : int, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor} |= if v_1 = -1 then ndim(v_2) = ndim(v_3) ∧ ∀ i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i) else ndim(v_4) = 0 ∧ ndim(v_5) = 0
+Rule 63 (The values of input_min should be less than or equal to input_max AND must be finite)
+{input_min : tensor, input_max : tensor} |= min(input_min) ≤ max(input_max) ∧ max(input_max) < 100000000 ∧ min(input_min) > -100000000
 >>
-Rule 63 (if axis is not -1, input_min and input_max must be scalar tensors and have the same dtype as gradients)
-{v_1 : int, v_2 : tensor, v_3 : tensor} |= if v_1 ≠ -1 then ndim(v_2) = 0 ∧ ndim(v_3) = 0 ∧ dtype_(v_2) = dtype_(v_3)
+Rule 65 (gradients, input_min, input_max must have the same dtype and must be a floating point type)
+{gradients : tensor, input_min : tensor, input_max : tensor} |= dtype_(gradients) = dtype_(input_min) ∧ dtype_(gradients) = dtype_(input_max) ∧ (dtype_(gradients) = 6 ∨ dtype_(gradients) = 7 ∨ dtype_(gradients) = 8)
 >>
-Rule 66 (if axis is not -1, input_min and input_max must be scalar tensors and have the same floating point dtype as gradients)
-{v_1 : int, v_2 : tensor, v_3 : tensor} |= if v_1 ≠ -1 then ndim(v_2) = 0 ∧ ndim(v_3) = 0 ∧ 6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8
+Rule 67 (if axis is provided, gradients tensor should have at least one dimension and axis must be within the valid range.)
+{gradients : tensor, axis : int} |= if axis ≠ -1 then (ndim(gradients) > 0 ∧ axis ≥ (0 - ndim(gradients)) ∧ axis < ndim(gradients))
 >>
-Rule 77 (if axis is not -1, dtype of gradients must be equal to dtype of input_min and input_max)
-{v_1 : int, v_2 : tensor, v_3 : tensor} |= if v_1 ≠ -1 then dtype_(v_2) = dtype_(v_3)
+Rule 69 (gradients, input tensors must have same number of dimensions)
+{gradients : tensor, input : tensor} |= ndim(gradients) = ndim(input)
 >>
-Rule 87 (if axis is not -1, input_min and input_max must be scalar tensors, with the same dtype of gradients)
-{v_1 : int, v_2 : tensor, v_3 : tensor} |= if v_1 ≠ -1 then ndim(v_2) = 0 ∧ ndim(v_3) = 0 ∧ dtype_(v_2) = dtype_(v_1)
+Rule 70 (If axis is -1, gradients and input tensors must have same shape)
+{gradients : tensor, input : tensor, axis: int} |= if axis = -1 then (∀i ∈ [0, ndim(gradients) - 1] : shape(gradients, i) = shape(input, i))
+>>
+Rule 73 (if axis is not -1, it should be a valid dimension for the gradients)
+{gradients : tensor, axis : int} |= if axis ≠ -1 then (axis ≥ (0 - ndim(gradients)) ∧ axis < ndim(gradients))
+>>
+Rule 74 (gradients and input have same number of dimensions, and if axis is -1, they have same shape)
+{gradients : tensor, input : tensor, axis : int} |= if axis = -1 then (∀i ∈ [0, ndim(gradients) - 1] : shape(gradients, i) = shape(input, i)) else ndim(gradients) = ndim(input)
+>>
+Rule 79 (gradients and input have same number of dimensions, same dtype and same shape if axis is -1)
+{gradients : tensor, input : tensor, axis : int} |= dtype_(gradients) = dtype_(input) ∧ (if axis = -1 then (∀i ∈ [0, ndim(gradients) - 1] : shape(gradients, i) = shape(input, i)) else ndim(gradients) = ndim(input))
+>>
+Rule 82 (if axis is not -1, it must be a valid dimension for gradients tensor and gradients and input must have at least one dimension)
+{gradients : tensor, axis : int, input: tensor} |= if axis ≠ -1 then (axis ≥ (0 - ndim(gradients)) ∧ axis < ndim(gradients) ∧ ndim(gradients) > 0 ∧ ndim(input) > 0)
+>>
+Rule 83 (input_min should be less than or equal to input_max)
+{input_min: tensor, input_max: tensor} |= min(input_min) <= max(input_max)
+>>
+Rule 84 (gradients and input tensors must have the same number of dimensions and same data type and same shape if axis is -1)
+{gradients : tensor, input : tensor, axis : int} |= dtype_(gradients) = dtype_(input) ∧ (dtype_(gradients) = 6 ∨ dtype_(gradients) = 7 ∨ dtype_(gradients) = 8) ∧ (if axis = -1 then (∀i ∈ [0, ndim(gradients) - 1] : shape(gradients, i) = shape(input, i)) else ndim(gradients) = ndim(input))
+>>
+Rule 85 (input_min and input_max must be scalar tensors and must have the same dtype as gradients.)
+{gradients: tensor, input_min : tensor, input_max : tensor} |= ndim(input_min) = 0 ∧ ndim(input_max) = 0 ∧ dtype_(gradients) = dtype_(input_min) ∧ dtype_(gradients) = dtype_(input_max)
+>>
+Rule 89 (gradients and input have same number of dimensions and same dtype)
+{gradients : tensor, input : tensor} |= dtype_(gradients) = dtype_(input) ∧ ndim(gradients) = ndim(input)
+>>
+Rule 93 (Input and gradients should have at least one dimensions if the axis is not -1)
+{gradients: tensor, input: tensor, axis: int} |= if axis ≠ -1 then ndim(gradients) > 0 ∧ ndim(input) > 0
+>>
+Rule 94 (gradients and input tensors should have the same number of dimensions and, if axis is -1, same shape)
+{gradients : tensor, input : tensor, axis : int} |= (ndim(gradients) = ndim(input)) ∧ (if axis = -1 then (∀i ∈ [0, ndim(gradients) - 1] : shape(gradients, i) = shape(input, i)))
+>>
+Rule 96 (input_min and input_max must be scalar tensors and of the same dtype)
+{input_min : tensor, input_max : tensor} |= ndim(input_min) = 0 ∧ ndim(input_max) = 0 ∧ dtype_(input_min) = dtype_(input_max)
+>>
+Rule 99 (gradients and input tensors should have the same number of dimensions and, if axis is -1, same shape)
+{gradients : tensor, input : tensor, axis : int} |= (if axis = -1 then (∀i ∈ [0, ndim(gradients) - 1] : shape(gradients, i) = shape(input, i)) else ndim(gradients) = ndim(input))
+>>
+Rule 100 (gradients, input_min, input_max must be scalar tensors, must have the same dtype, and the dtype must be one of float16, float32, float64 or bfloat16.)
+{gradients : tensor, input_min : tensor, input_max : tensor} |= ndim(input_min) = 0 ∧ ndim(input_max) = 0 ∧ dtype_(gradients) = dtype_(input_min) ∧ dtype_(gradients) = dtype_(input_max) ∧ (dtype_(gradients) = 6 ∨ dtype_(gradients) = 7 ∨ dtype_(gradients) = 8)
+>>
+Rule 102 (gradients and input tensors must have the same dtype)
+{gradients : tensor, input : tensor} |= dtype_(gradients) = dtype_(input)
+>>
+Rule 112 (min of input_min must be less than or equal to max of input_max)
+{input_min: tensor, input_max: tensor} |= min(input_min) ≤ max(input_max)
+>>
+Rule 116 (If the axis is not -1, it must be a valid dimension for the gradients tensor, also gradients and input should have same dtype)
+{gradients : tensor, axis : int, input: tensor} |= dtype_(gradients) = dtype_(input) ∧ if axis ≠ -1 then (axis ≥ (0 - ndim(gradients)) ∧ axis < ndim(gradients) ∧ ndim(gradients) > 0 ∧ ndim(input) > 0)
+>>
+Rule 118 (Check if the value of the max and min is reasonable)
+{input_min: tensor, input_max: tensor} |= min(input_min) > -100000000 ∧ max(input_max) < 100000000
+>>
+Rule 119 (gradients and input tensors have same number of dimensions and also the same data type)
+{gradients : tensor, input : tensor} |= ndim(gradients) = ndim(input) ∧ dtype_(gradients) = dtype_(input)
+>>
+Rule 120 (if axis is -1, gradients and input tensors should have the same shape)
+{gradients : tensor, input : tensor, axis : int} |= if axis = -1 then (∀i ∈ [0, ndim(gradients) - 1] : shape(gradients, i) = shape(input, i))
+>>
+Rule 121 (gradients, input_min, input_max must be scalar tensors, and gradients dtype must be one of float16, float32, float64 or bfloat16.)
+{gradients : tensor, input_min : tensor, input_max : tensor} |= ndim(input_min) = 0 ∧ ndim(input_max) = 0 ∧ dtype_(gradients) = 6 ∨ dtype_(gradients) = 7 ∨ dtype_(gradients) = 8 ∧ dtype_(gradients) = dtype_(input_min) ∧ dtype_(gradients) = dtype_(input_max)

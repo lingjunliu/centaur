@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the second input is complex128 then the first input must be complex128 (Rule 16)
+# If x2 is a complex number, then x1 must also be a complex number (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_dtype"] == 10, v["arg1_dtype"] == 10, False)) if n else
-          If(v["arg2_dtype"] == 10, v["arg1_dtype"] == 10, False))
+    s.add(Not(If(Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11), Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11), True)) if n else
+          If(Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11), Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11), True))
 )
 
 def rule_16_func(arg1, arg2, solver=None, neg=False):

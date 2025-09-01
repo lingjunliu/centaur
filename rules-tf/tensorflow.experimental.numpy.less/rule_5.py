@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check if all elements in v_1 tensor are less than all elements in v_2 tensor. Not a real constraint for less, but syntactically correct. (Rule 5)
+# if the first tensor's minimum value is greater than or equal to the second tensor's maximum value, then all elements of v1 are greater than or equal to all elements of v2, so less will return false (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 1) < Select(v["arg2_range"], 0)) if n else
-          Select(v["arg1_range"], 1) < Select(v["arg2_range"], 0))
+    s.add(Not(If(Select(v["arg1_range"], 0) >= Select(v["arg2_range"], 1), False, True)) if n else
+          If(Select(v["arg1_range"], 0) >= Select(v["arg2_range"], 1), False, True))
 )
 
 def rule_5_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# filter must be of type half, bfloat16, float32, float64, or int32 (Rule 26)
+# dilations must have length 4 (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 4)) if n else
-          Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 4))
+    s.add(Not(v["arg1_length"] == 4) if n else
+          v["arg1_length"] == 4)
 )
 
 def rule_26_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_26_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_length = Int('arg1_length')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_length == len(arg1))
 
         # Constraints for rule 26
-        rule_26(solver, {'arg1_dtype': arg1_dtype})
+        rule_26(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_26(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_26(solver, {'arg1_length': arg1['length']}, neg)

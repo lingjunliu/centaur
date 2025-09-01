@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if x is a bool tensor, y must also be a bool tensor (Rule 39)
+# If either x or y has ndim == 0, then the other one also has ndim == 0 (Rule 39)
 
 rule_39 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0, False)) if n else
-          If(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0, False))
+    s.add(Not(If(Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), And(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), True)) if n else
+          If(Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), And(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), True))
 )
 
 def rule_39_func(arg1, arg2, solver=None, neg=False):
@@ -25,17 +25,17 @@ def rule_39_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_ndim = Int('arg2_ndim')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 39
-        rule_39(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_39(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_39(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_39(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)

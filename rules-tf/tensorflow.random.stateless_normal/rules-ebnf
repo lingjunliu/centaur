@@ -1,93 +1,63 @@
 >>
-Rule 1 (seed must be a shape [2] Tensor)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = 2
+Rule 1 (seed must be a tensor of shape [2])
+{v_1 : tensor} |= shape(v_1, 0) = 2
 >>
-Rule 2 (seed must have dtype `int32` or `int64`)
-{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 2 (dtype must be a float type)
+{v_1 : dtype} |= v_1 = "float16" ∨ v_1 = "float32" ∨ v_1 = "float64"
 >>
-Rule 3 (shape must be a 1-D integer Tensor or Python array (list or tuple of integers))
+Rule 3 (mean and stddev must have the same dtype)
+{v_1 : float, v_2 : float} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 4 (shape must be a 1-D integer Tensor or Python array)
 {v_1 : tensor} |= ndim(v_1) = 1
 >>
-Rule 4 (dtype must be a float type: `float16`, `bfloat16`, `float32`, `float64` - considering bfloat16 as float)
-{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+Rule 5 (stddev must be greater than zero)
+{v_1 : float} |= v_1 > 0.0
 >>
-Rule 5 (mean and stddev should be same dtype if both are tensors.)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 6 (seed must have dtype int32 or int64)
+{v_1 : tensor} |= dtype_(v_1) = "int32" ∨ dtype_(v_1) = "int64"
 >>
-Rule 6 (shape elements must be positive)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
+Rule 7 (dtype must be a valid TensorFlow dtype)
+{v_1 : dtype} |= v_1 = "float16" ∨ v_1 = "float32" ∨ v_1 = "float64" ∨ v_1 = "bfloat16"
 >>
-Rule 7 (stddev must be greater than 0)
-{v_1 : float} |= v_1 > 0
+Rule 8 (dtype must be a string representing a floating-point type)
+{v_1 : dtype} |= v_1 = "float16" ∨ v_1 = "bfloat16" ∨ v_1 = "float32" ∨ v_1 = "float64"
 >>
-Rule 10 (The shape can also be a tuple of integers)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 10 (dtype must be a valid dtype string)
+{v_1 : dtype} |= v_1 = "float16" ∨ v_1 = "bfloat16" ∨ v_1 = "float32" ∨ v_1 = "float64" ∨ v_1 = "int32" ∨ v_1 = "int64"
 >>
-Rule 19 (if shape is a tensor and dtype is specified, then the first element must have compatible integer dtypes with shape tensor)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 14 (dtype must be either float16, bfloat16, float32, or float64)
+{v_1 : dtype} |= (v_1 = "float16") ∨ (v_1 = "bfloat16") ∨ (v_1 = "float32") ∨ (v_1 = "float64")
 >>
-Rule 20 (If stddev is a tensor, it must be a scalar)
+Rule 19 (dtype must be a valid tensorflow dtype)
+{v_1 : dtype} |= v_1 ≠ "torch.int64"
+>>
+Rule 21 (dtype must be a string representing a supported TF DType)
+{v_1 : str} |= v_1 = "float16" ∨ v_1 = "bfloat16" ∨ v_1 = "float32" ∨ v_1 = "float64"
+>>
+Rule 23 (Dtype as a string must not be 'torch.int64')
+{v_1 : str} |= v_1 ≠ "torch.int64"
+>>
+Rule 26 (Seed must be int32/int64 if dtype is explicitly given)
+{v_1 : tensor, v_3 : str} |= if v_3 = "float16" ∨ v_3 = "bfloat16" ∨ v_3 = "float32" ∨ v_3 = "float64" then (dtype_(v_1) = "int32" ∨ dtype_(v_1) = "int64")
+>>
+Rule 32 (Shape tensor must be 1-dimensional and non-empty)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) > 0
+>>
+Rule 37 (The shape tensor cannot have negative dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+>>
+Rule 41 (If dtype is provided as a bool, it must be false.)
+{v_1 : bool} |= v_1 = false
+>>
+Rule 45 (If dtype is provided as a tensor, it must be of a specific shape)
 {v_1 : tensor} |= ndim(v_1) = 0
 >>
-Rule 22 (If mean is tensor, the dtype of output dtype should be same)
-{v_1 : tensor, v_2 : dtype} |= if ndim(v_1) = 0 then (dtype_(v_1) = 6 ∧ v_2 = 6) ∨ (dtype_(v_1) = 7 ∧ v_2 = 7) ∨ (dtype_(v_1) = 8 ∧ v_2 = 8)
+Rule 47 (If the dtype is provided as a tensor, its dtype should be float32, float16, float64 or bfloat16)
+{v_1 : tensor} |= dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "bfloat16"
 >>
-Rule 28 (If dtype is specified then mean/stddev should be of same type)
-{v_1 : dtype, v_2 : tensor} |= if v_1 = 6 then dtype_(v_2) = 6 else if v_1 = 7 then dtype_(v_2) = 7 else if v_1 = 8 then dtype_(v_2) = 8
+Rule 48 (If the dtype is provided as a tensor, it must be a 0-d tensor with a valid floating point dtype)
+{v_1 : tensor} |= ndim(v_1) = 0 ∧ (dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "bfloat16")
 >>
-Rule 30 (stddev must be a non-negative float if it is a scalar.)
-{v_1 : float} |= v_1 ≥ 0
->>
-Rule 33 (If mean and stddev are tensors, their shapes must match.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
->>
-Rule 36 (If stddev is a scalar and dtype is complex, it's invalid.)
-{v_1 : dtype} |= if v_1 = 9 ∨ v_1 = 10 then false
->>
-Rule 38 (If seed is a tensor and shape is a tensor, then all elements in shape tensor must be non-negative)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
->>
-Rule 43 (If stddev is a tensor, it should have at least one element)
-{v_1 : tensor} |= ∃i ∈ [0, 0] : shape(v_1, i) ≥ 0
->>
-Rule 44 (If shape is a list, all its elements must be positive)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
->>
-Rule 48 (If shape is a tensor and mean is specified then they should have same type.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then dtype_(v_1) = dtype_(v_2)
->>
-Rule 52 (If mean and stddev are both specified, and the shape is a tensor with elements greater than 0, then stddev must be a positive number.)
-{v_1 : tensor, v_2 : float} |= (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0) ∧ v_2 > 0
->>
-Rule 57 (If shape is a list, the length of the list should be less than or equal to 8 - max support by hardware)
-{v_1 : list(int)} |= v_1.len ≤ 8
->>
-Rule 58 (Shape tensor and seed tensor shouldn't be the same variable)
-{v_1 : tensor, v_2 : tensor} |= v_1 ≠ v_2
->>
-Rule 63 (stddev should be greater than or equal to zero)
-{v_1: tensor} |= min(v_1) ≥ 0
->>
-Rule 66 (If shape is specified as tensor, each element of it can't be zero)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ 0
->>
-Rule 68 (If mean is a scalar and stddev is a tensor and its lengh is zero then it is valid)
-{v_1: tensor} |= shape(v_1, 0) = 0
->>
-Rule 69 (if name argument is passed, it cannot be empty)
-{v_1: str} |= v_1 ≠ ""
->>
-Rule 70 (If dtype is specified as a tensor, all the tensor shapes must be of same datatype)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
->>
-Rule 74 (If alg parameter exists then it has to be a string from given list)
-{v_1 : str} |= v_1 = "none" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "constant" ∨ v_1 = "linear" ∨ v_1 = "softplus"
->>
-Rule 75 (if shape is a tensor, and its first element is negative, throw error.)
-{v_1 : tensor} |= if shape(v_1, 0) < 0 then false
->>
-Rule 76 (If stddev is a tensor it should be non empty.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 80 (seed variable must be tensor and should be a valid seed)
-{v_1: tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = 2 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
+Rule 49 (Dtype as a tensor cannot have int64 dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ "int64"

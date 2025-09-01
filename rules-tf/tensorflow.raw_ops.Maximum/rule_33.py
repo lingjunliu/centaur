@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Maximum rank for both tensors (Rule 33)
+# At least one of the tensors must have more than 0 dimensions (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] <= 5, v["arg2_ndim"] <= 5)) if n else
-          And(v["arg1_ndim"] <= 5, v["arg2_ndim"] <= 5))
+    s.add(Not(Or(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0)) if n else
+          Or(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0))
 )
 
 def rule_33_func(arg1, arg2, solver=None, neg=False):

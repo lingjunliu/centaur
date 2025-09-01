@@ -8,8 +8,8 @@ from z3 import *
 # indices must be int32 or int64 (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4)) if n else
-          Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4))
+    s.add(Not(Or(v["arg1_dtype"] == 2, v["arg1_dtype"] == 4)) if n else
+          Or(v["arg1_dtype"] == 2, v["arg1_dtype"] == 4))
 )
 
 def rule_1_func(arg1, solver=None, neg=False):

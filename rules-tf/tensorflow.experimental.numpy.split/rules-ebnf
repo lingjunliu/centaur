@@ -1,45 +1,210 @@
 >>
-Rule 3 (Number of sections should be less than the size of the array along the given axis when indices_or_sections is an integer)
-{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 > 0 ∧ v_3 < shape(v_1, v_2)
+Rule 2 (indices_or_sections must be positive)
+{v_2 : int} |= v_2 > 0
 >>
-Rule 4 (indices_or_sections must be sorted when it's a 1D array)
-{v_1 : tensor} |= ∀i ∈ [1, shape(v_1, 0) - 1] : v_1[i - 1] < v_1[i]
+Rule 3 (if indices_or_sections is greater than the size of the specified axis, it should not cause an error; in this case, it leads to an empty array.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 > shape(v_1, v_3) then true
 >>
-Rule 5 (The length of indices_or_sections must be less than the size of the array along axis)
-{v_1 : tensor, v_2 : int, v_3 : tensor} |= shape(v_3, 0) < shape(v_1, v_2)
+Rule 5 (input tensor dimension should be greater than 0 to perform split)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 6 (Array must not be empty)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 7 (If indices_or_sections is an integer n, the tensor will be split into n sections. If such a split is not possible, an error is raised.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= shape(v_1, v_3) % v_2 = 0
 >>
-Rule 7 (indices_or_sections can not be zero)
-{v_1 : int} |= v_1 > 0
+Rule 9 (axis must be within the valid range for the input tensor's dimensions)
+{v_1 : tensor, v_3 : int} |= (0 ≤ v_3 + ndim(v_1) ∧ v_3 + ndim(v_1) < ndim(v_1)) ∨ (0 ≤ v_3 ∧ v_3 < ndim(v_1))
 >>
-Rule 9 (indices_or_sections must be positive)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : v_1[i] > 0
+Rule 14 (if indices_or_sections is a list, then elements must be sorted and increasing)
+{v_2 : list(int)} |= if v_2.len > 1 then ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i + 1]
 >>
-Rule 11 (axis must be within the valid range for the tensor's dimensions)
-{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+Rule 17 (if axis is none then the input tensor should be flattened)
+{v_1 : tensor, v_3 : int} |= if v_3 = -100 then ndim(v_1) = 1
 >>
-Rule 12 (Number of sections should be less than the size of the array along the given axis when indices_or_sections is an integer and axis is given)
-{v_1 : tensor, v_2 : int, v_3 : int} |= v_3 > 0 ∧ v_3 < shape(v_1, v_2)
+Rule 18 (if indices_or_sections is a list, it can't be empty)
+{v_2 : list(int)} |= v_2.len > 0
 >>
-Rule 17 (The sum of the lengths of the split arrays must equal the length of the input array along the given axis)
-{v_1 : tensor, v_2 : int, v_3 : list(int)} |= (v_2 < ndim(v_1)) ∧ (∀i ∈ [0, shape(v_1, v_2) -1] : v_3[i] > 0)
+Rule 19 (indices_or_sections must be less than the size of the specified axis)
+{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 < shape(v_1, v_3)
 >>
-Rule 18 (indices_or_sections must be positive)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
+Rule 20 (if the tensor's shape along the axis is 0, indices_or_sections must be 1)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if shape(v_1, v_3) = 0 then v_2 = 1
 >>
-Rule 44 (The sum of the lengths of the split arrays must equal the length of the input array along the given axis)
-{v_1 : tensor, v_2 : int, v_3 : list(int)} |= (v_2 < ndim(v_1)) ∧ (∀i ∈ [0, shape(v_3,0) -1] : v_3[i] > 0)
+Rule 23 (if axis is none then the input tensor should be flattened or it is already flat)
+{v_1 : tensor, v_3 : int} |= if v_3 = -100 then ndim(v_1) ≤ 1
 >>
-Rule 55 (If indices_or_sections is a tensor, its elements must be non-negative)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) -1] : v_1[i] ≥ 0
+Rule 24 (If indices_or_sections is a list, the values should not be zero)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≠ 0
 >>
-Rule 73 (The sum of the lengths of the split arrays must equal the length of the input array along the given axis)
-{v_1 : tensor, v_2 : int, v_3 : list(int)} |= (v_2 < ndim(v_1)) ∧ (∀i ∈ [0, shape(v_3,0) -1] : v_3[i] ≥ 0)
+Rule 25 (if indices_or_sections is a list, the elements must be less than shape of tensor)
+{v_1 : tensor, v_2 : list(int), v_3 : int} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < shape(v_1, v_3)
 >>
-Rule 74 (The total number of elements should be greater than zero)
-{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) -1] : shape(v_1,i) > 0
+Rule 27 (if indices_or_sections is a list, ensure all elements are positive and within range)
+{v_1 : tensor, v_2 : list(int), v_3 : int} |=  ∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ 0) ∧ (v_2[i] < shape(v_1, v_3))
 >>
-Rule 85 (If the array has more than one dimension, the split axis should be within the range of array dimension)
-{v_1 : tensor, v_2: int} |= if ndim(v_1) > 1 then (v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1))
+Rule 30 (if indices_or_sections is a list, the elements must be less than shape of tensor, or the list is empty)
+{v_1 : tensor, v_2 : list(int), v_3 : int} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : v_2[i] < shape(v_1, v_3)
+>>
+Rule 31 (if indices_or_sections is a list, then length should be less than the shape)
+{v_1 : tensor, v_2 : list(int), v_3 : int} |= v_2.len < shape(v_1, v_3)
+>>
+Rule 32 (If indices_or_sections is an integer, it must be less than the maximum value of int.)
+{v_2 : int} |= v_2 < 2147483647 ∧ v_2 > -2147483648
+>>
+Rule 34 (if axis is none then the number of sections should divide total number of elements)
+{v_1 : tensor, v_2 : int, v_3: int} |= if v_3 = -100 then (∀i ∈ [0, ndim(v_1)-1] : shape(v_1,i) > 0) ∧ (shape(v_1, 0) % v_2 = 0)
+>>
+Rule 35 (if indices_or_sections is a list, it must be strictly increasing)
+{v_2 : list(int)} |= if v_2.len > 1 then ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1]
+>>
+Rule 36 (if indices_or_sections is a list, its elements must be in valid bounds)
+{v_1 : tensor, v_2 : list(int), v_3 : int} |= ∀i ∈ [0, v_2.len-1]: v_2[i] > 0 ∧ v_2[i] < shape(v_1, v_3)
+>>
+Rule 37 (if number of section is int, it can't exceed the length of the axis to be split)
+{v_1 : tensor, v_2 : int, v_3: int} |= v_2 <= shape(v_1, v_3)
+>>
+Rule 38 (if axis is none then the number of sections should divide total number of elements, if shape is non-zero)
+{v_1 : tensor, v_2 : int, v_3: int} |= if v_3 = -100 then (∃i ∈ [0, ndim(v_1)-1] : shape(v_1,i) = 0) ∨ (shape(v_1, 0) % v_2 = 0)
+>>
+Rule 40 (if indices_or_sections is a list, its elements must be in valid positive bounds, if length > 0)
+{v_1 : tensor, v_2 : list(int), v_3 : int} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len-1]: v_2[i] > 0 ∧ v_2[i] < shape(v_1, v_3)
+>>
+Rule 43 (if axis is none then the number of sections should divide total number of elements, if shape is non-zero, if number of dimension > 0)
+{v_1 : tensor, v_2 : int, v_3: int} |= if v_3 = -100 then (ndim(v_1) > 0) ∧ ((∃i ∈ [0, ndim(v_1)-1] : shape(v_1,i) = 0) ∨ (shape(v_1, 0) % v_2 = 0))
+>>
+Rule 44 (If indices_or_sections is a list, it must be strictly increasing and contain only positive elements)
+{v_2 : list(int)} |= (v_2.len > 1 ∧ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1] ∧ v_2[i] > 0) ∨ (v_2.len <= 1)
+>>
+Rule 46 (if indices_or_sections is a list, then elements must be less than shape of tensor along given axis, when dimension > 0)
+{v_1 : tensor, v_2 : list(int), v_3 : int} |= if ndim(v_1) > 0 then (∀i ∈ [0, v_2.len-1]: v_2[i] < shape(v_1, v_3))
+>>
+Rule 50 (axis value is in valid range)
+{v_1 : tensor, v_3 : int} |= (v_3 + ndim(v_1) >= 0 ∧ v_3 + ndim(v_1) < ndim(v_1)) ∨ (v_3 >= 0 ∧ v_3 < ndim(v_1))
+>>
+Rule 51 (if indices_or_sections is a list, then elements must be less than shape of tensor along given axis, when dimension > 0)
+{v_1 : tensor, v_2 : list(int), v_3 : int} |= if ndim(v_1) > 0 then (v_2.len = 0) ∨ (∀i ∈ [0, v_2.len-1]: v_2[i] < shape(v_1, v_3))
+>>
+Rule 52 (input should be a tensor of floats/complex)
+{v_1 : tensor} |= dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128"
+>>
+Rule 53 (if axis is none then the number of sections should divide total number of elements, if shape is non-zero, if number of dimension > 0 and indices or sections is not none)
+{v_1 : tensor, v_2 : int, v_3: int} |= if v_3 = -100 then (ndim(v_1) > 0) ∧ (v_2 ≠ -100) ∧ ((∃i ∈ [0, ndim(v_1)-1] : shape(v_1,i) = 0) ∨ (shape(v_1, 0) % v_2 = 0))
+>>
+Rule 54 (If indices_or_sections is a list, it must be strictly increasing and contain only positive elements when the list is not empty)
+{v_2 : list(int)} |= if v_2.len > 0 then (v_2.len > 1 ∧ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1] ∧ v_2[i] > 0)
+>>
+Rule 56 (if indices_or_sections is an int, then it must be greater than 0 and less than max int value)
+{v_2 : int} |= v_2 > 0 ∧ v_2 < 2147483647
+>>
+Rule 58 (if axis is none then the number of sections should divide total number of elements, if shape is non-zero, if number of dimension > 0 and indices or sections is not none and tensor shape is not 0)
+{v_1 : tensor, v_2 : int, v_3: int} |= if v_3 = -100 then (ndim(v_1) > 0) ∧ (v_2 ≠ -100) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ ((∃i ∈ [0, ndim(v_1)-1] : shape(v_1,i) = 0) ∨ (shape(v_1, 0) % v_2 = 0))
+>>
+Rule 63 (if axis is none then the number of sections should divide total number of elements, if shape is non-zero, if number of dimension > 0 and indices or sections is not none and tensor shape is not 0 and sections is not zero)
+{v_1 : tensor, v_2 : int, v_3: int} |= if v_3 = -100 then (ndim(v_1) > 0) ∧ (v_2 ≠ -100) ∧ (v_2 > 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ ((∃i ∈ [0, ndim(v_1)-1] : shape(v_1,i) = 0) ∨ (shape(v_1, 0) % v_2 = 0))
+>>
+Rule 64 (If indices_or_sections is a list, it must be strictly increasing and contain only positive elements when the list is not empty and its length is also positive, and each element in list must be less than MAX_INT)
+{v_2 : list(int)} |= if v_2.len > 0 then (v_2.len > 1 ∧ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1] ∧ v_2[i] > 0 ∧ v_2[i] < 2147483647)
+>>
+Rule 66 (if indices_or_sections is list then size of list should not be greater than corresponding shape, else leads to error)
+{v_1 : tensor, v_2 : list(int), v_3 : int} |= (v_2.len = 0) ∨ (v_2.len < shape(v_1, v_3))
+>>
+Rule 68 (If axis is none, then the number of sections should divide total number of elements, and indices or sections should be valid)
+{v_1 : tensor, v_2 : int, v_3: int} |= if v_3 = -100 then (shape(v_1, 0) % v_2 = 0) ∧ (v_2 > 0)
+>>
+Rule 69 (If indices_or_sections is a list, it must be strictly increasing and contain only positive elements and also must be within size limits for given dimension)
+{v_1 : tensor, v_2 : list(int), v_3 : int} |= if v_2.len > 0 then (v_2.len > 1 ∧ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1] ∧ v_2[i] > 0 ∧ v_2[i] < shape(v_1, v_3))
+>>
+Rule 70 (axis should be valid number, with -ndim <= axis < ndim)
+{v_1 : tensor, v_3 : int} |= v_3 + ndim(v_1) >= 0 ∧ v_3 < ndim(v_1)
+>>
+Rule 71 (if indices or sections is integer it cannot be greater than shape)
+{v_1: tensor, v_2: int, v_3: int} |= v_2 < shape(v_1, v_3)
+>>
+Rule 72 (the size of the tensor should not be zero for any dimension)
+{v_1 : tensor} |=  ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+>>
+Rule 73 (If axis is none, then the number of sections should divide total number of elements, and indices or sections should be valid positive and should not be greater than maximum integer limit)
+{v_1 : tensor, v_2 : int, v_3: int} |= if v_3 = -100 then (shape(v_1, 0) % v_2 = 0) ∧ (v_2 > 0) ∧ (v_2 < 2147483647)
+>>
+Rule 75 (if indices_or_sections is list, the first element should be greater than or equal to 0)
+{v_2 : list(int)} |= if v_2.len > 0 then v_2[0] >= 0
+>>
+Rule 80 (if indices_or_sections is list, the first element should be greater than or equal to 0 and must be less than MAX_INT)
+{v_2 : list(int)} |= if v_2.len > 0 then v_2[0] >= 0 ∧ v_2[0] < 2147483647
+>>
+Rule 81 (If the number of sections doesn't divide the length of the axis, then it must error out)
+{v_1: tensor, v_2: int, v_3: int} |= shape(v_1, v_3) % v_2 = 0
+>>
+Rule 82 (If axis is specified and indices or sections is not specified then it defaults to 1 dimension array)
+{v_1 : tensor, v_3 : int} |= if v_3 != -100 then ndim(v_1) = 1
+>>
+Rule 83 (When axis is None, the number of sections should be valid i.e. number of sections should be greater than zero)
+{v_2 : int, v_3: int} |= if v_3 = -100 then v_2 > 0 ∧ v_2 < 2147483647
+>>
+Rule 84 (If indices_or_sections is a list, then the elements should be strictly increasing and the first elements must be non negative and less than maximum integer limit, all elements must also be integers)
+{v_2 : list(int)} |= if (v_2.len > 0) then (v_2.len > 1 ∧ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1] ∧ v_2[i] >= 0 ∧ v_2[i] < 2147483647)
+>>
+Rule 86 (If the number of sections doesn't divide the length of the axis, and axis specified for split, then it must error out)
+{v_1: tensor, v_2: int, v_3: int} |= if v_3 != -100 then shape(v_1, v_3) % v_2 = 0
+>>
+Rule 87 (If axis value is less than zero add it with dimension and ensure is not negative)
+{v_1 : tensor, v_3 : int} |= if v_3 < 0 then v_3 + ndim(v_1) >= 0
+>>
+Rule 90 (If the number of sections doesn't divide the length of the axis, and axis specified for split and number of sections is int, then it must error out.)
+{v_1: tensor, v_2: int, v_3: int} |= if v_3 != -100 then if v_2 > 0 then shape(v_1, v_3) % v_2 = 0
+>>
+Rule 91 (If axis is specified, indices_or_section's values can not exceed the maximum shape in the specified axis)
+{v_1: tensor, v_2: int, v_3: int} |= if v_3 != -100 then v_2 <= shape(v_1, v_3)
+>>
+Rule 92 (If axis value is less than zero add it with dimension and ensure is not negative else it's non negative)
+{v_1 : tensor, v_3 : int} |= if v_3 < 0 then v_3 + ndim(v_1) >= 0 else v_3 >= 0
+>>
+Rule 93 (When axis is None and section size doesn't divide tensor, it should throw exception)
+{v_1 : tensor, v_2 : int, v_3: int} |= if v_3 = -100 then shape(v_1, 0) % v_2 = 0
+>>
+Rule 96 (If axis is specified, the axis value can not be negative)
+{v_3 : int} |= v_3 >= -31
+>>
+Rule 97 (If axis is specified, the axis value can not be greater than 31)
+{v_3 : int} |= v_3 <= 31
+>>
+Rule 100 (If the number of sections which is an int, the value can not be negative if split axis is specified)
+{v_2: int, v_3: int} |= if v_3 != -100 then v_2 >= 0
+>>
+Rule 102 (If axis value is less than zero add it with dimension and ensure it is non-negative and if axis value is greater or equal to zero, it must be valid i.e. less than ndim)
+{v_1 : tensor, v_3 : int} |= (v_3 < 0 ∧ v_3 + ndim(v_1) >= 0) ∨ (v_3 >= 0 ∧ v_3 < ndim(v_1))
+>>
+Rule 103 (When axis is None, shape is not None, indices or sections must be an integer, and number of sections be positive integer)
+{v_1 : tensor, v_2 : int, v_3: int} |= if v_3 = -100 then (shape(v_1, 0) > 0) ∧ (v_2 > 0) ∧ (v_2 < 2147483647)
+>>
+Rule 104 (If indices_or_sections is a list, then the elements should be strictly increasing and should be valid 32 bit integer value, and all of them must be positive, and the list must be non empty)
+{v_2 : list(int)} |= if (v_2.len > 0) then (v_2.len > 1 ∧ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1] ∧ v_2[i] >= 0 ∧ v_2[i] < 2147483647) else false
+>>
+Rule 105 (If the number of sections which is an int, and is greater than 0 and specified split axis and ensure that the split axis is within valid dimension and is non negative)
+{v_1: tensor, v_2: int, v_3: int} |= if v_3 != -100 then (v_2 > 0 ∧ v_2 < shape(v_1, v_3) ∧ v_3 >= 0)
+>>
+Rule 108 (When axis is None, the number of sections is a valid positive integer, and number of sections must divide total length to avoid error)
+{v_1 : tensor, v_2 : int, v_3: int} |= if v_3 = -100 then (v_2 > 0) ∧ (v_2 < 2147483647) ∧ (shape(v_1, 0) % v_2 = 0)
+>>
+Rule 110 (If the number of sections which is an int, is greater than 0 which is less than MAX_INT and shape is appropriate, but still when there is any remainder value it is an error)
+{v_1: tensor, v_2: int, v_3: int} |= if v_3 != -100 then if v_2 > 0 then (v_2 <= shape(v_1, v_3))
+>>
+Rule 111 (If axis is specified it is within valid range and less than dimension size, but if axis is not specified which is none, then ensure number of split values does not exceed the tensor size)
+{v_1 : tensor, v_3 : int, v_2 : int} |= (v_3 < 0 ∧ v_3 + ndim(v_1) >= 0 ∧ v_2 < shape(v_1, v_3)) ∨ (v_3 >= 0 ∧ v_3 < ndim(v_1) ∧ v_2 < shape(v_1, v_3)) ∨ (v_3=-100 ∧ v_2< shape(v_1, 0))
+>>
+Rule 112 (Ensure the specified shape or the split axis length doesn't exceed max value, i.e. size limit 2^31)
+{v_1 : tensor, v_3: int} |= if v_3 < 0 then v_3 + ndim(v_1) < 2147483647 else v_3 < 2147483647
+>>
+Rule 113 (When axis is None, the number of sections is a valid positive integer, shape must be valid and number of sections divides length)
+{v_1 : tensor, v_2 : int, v_3: int} |= if v_3 = -100 then (v_2 > 0) ∧ (v_2 < 2147483647) ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (shape(v_1, 0) % v_2 = 0)
+>>
+Rule 114 (If indices_or_sections is a list, all properties must be valid, it must be strictly increasing and should be valid 32 bit integer value, and all of them must be positive)
+{v_1 : tensor, v_2 : list(int), v_3 : int} |= if (v_2.len > 0) then (v_2.len > 1 ∧ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1] ∧ v_2[i] >= 0 ∧ v_2[i] < 2147483647 ∧ (v_3 + ndim(v_1) >= 0) ∧ (v_3 + ndim(v_1) < ndim(v_1)))
+>>
+Rule 116 (If axis is specified, indices_or_section's value can not exceed the maximum shape in the specified axis and v2 cannot be less than 0)
+{v_1: tensor, v_2: int, v_3: int} |= if v_3 != -100 then (v_2 < shape(v_1, v_3)) ∧ v_2 >= 0
+>>
+Rule 117 (axis must not be greater than or equal to the number of dimension)
+{v_1: tensor, v_3: int} |= v_3 < ndim(v_1)
+>>
+Rule 118 (When axis is None, the number of sections is a valid positive integer, shape must be valid and number of sections divides length, all within MAX_INT range)
+{v_1 : tensor, v_2 : int, v_3: int} |= if v_3 = -100 then (v_2 > 0) ∧ (v_2 < 2147483647) ∧ (shape(v_1, 0) < 2147483647) ∧ ((∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (shape(v_1, 0) % v_2 = 0))

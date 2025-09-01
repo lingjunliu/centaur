@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input tensor is complex, the value should have real and imaginary part (Rule 31)
+# Input tensor values must avoid overflow based on their maximum allowed value based on the dtype (Rule 31)
 
 rule_31 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or([And(x < (Select(v["arg1_range"], 1) + 1), x == x) for x in range(6)]), False)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or([And(x < (Select(v["arg1_range"], 1) + 1), x == x) for x in range(6)]), False))
+    s.add(Not(If(v["arg1_dtype"] == 1, Select(v["arg1_range"], 1) <= 127, If(v["arg1_dtype"] == 2, Select(v["arg1_range"], 1) <= 32767, If(v["arg1_dtype"] == 3, Select(v["arg1_range"], 1) <= 2147483647, If(v["arg1_dtype"] == 6, Select(v["arg1_range"], 1) <= 65500, True))))) if n else
+          If(v["arg1_dtype"] == 1, Select(v["arg1_range"], 1) <= 127, If(v["arg1_dtype"] == 2, Select(v["arg1_range"], 1) <= 32767, If(v["arg1_dtype"] == 3, Select(v["arg1_range"], 1) <= 2147483647, If(v["arg1_dtype"] == 6, Select(v["arg1_range"], 1) <= 65500, True)))))
 )
 
 def rule_31_func(arg1, solver=None, neg=False):

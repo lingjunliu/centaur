@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if dims is int32 and value is float then it should fit into a float32 (Rule 29)
+# if dims list is not empty, the value should be a scalar (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 3, And(v["arg2_value"] < 3.4028235E38, v["arg2_value"] > -3.4028235E38), False)) if n else
-          If(v["arg1_dtype"] == 3, And(v["arg2_value"] < 3.4028235E38, v["arg2_value"] > -3.4028235E38), False))
+    s.add(Not(If(v["arg1_length"] > 0, v["arg2_ndim"] == 0, True)) if n else
+          If(v["arg1_length"] > 0, v["arg2_ndim"] == 0, True))
 )
 
 def rule_29_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_29_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
-        if not isinstance(arg2, (float, np.floating)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_value = Real('arg2_value')
+        arg1_length = Int('arg1_length')
+        arg2_ndim = Int('arg2_ndim')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_length == len(arg1))
+        solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 29
-        rule_29(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
+        rule_29(solver, {'arg1_length': arg1_length, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_29(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)
+        rule_29(solver, {'arg1_length': arg1['length'], 'arg2_ndim': arg2['ndim']}, neg)

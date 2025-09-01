@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# true_classes should have a reasonable number of batches. (Rule 22)
+# True classes shape 0 must be greater than 0 (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) < 1000000) if n else
-          Select(v["arg1_shape"], 0) < 1000000)
+    s.add(Not(Select(v["arg1_shape"], 0) > 0) if n else
+          Select(v["arg1_shape"], 0) > 0)
 )
 
 def rule_22_func(arg1, solver=None, neg=False):

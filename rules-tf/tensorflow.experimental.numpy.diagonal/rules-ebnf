@@ -1,69 +1,90 @@
 >>
-Rule 1 (offset should be within reasonable bounds of the dimension)
-{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 ≥ -1 * shape(v_1, v_3) ∧ v_2 ≤ shape(v_1, v_3)
+Rule 1 (offset should be less than the size of the axis)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= v_2 < shape(v_1, v_3) ∧ v_2 < shape(v_1, v_4)
 >>
-Rule 2 (dimensions must be valid indices for the input tensor)
-{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 ≥ 0 ∧ v_2 < ndim(v_1) ∧ v_3 ≥ 0 ∧ v_3 < ndim(v_1) ∧ v_2 ≠ v_3
+Rule 3 (axis1 and axis2 should be within the rank of the tensor)
+{v_1 : tensor, v_3 : int, v_4 : int} |= v_3 ≥ 0 ∧ v_3 < ndim(v_1) ∧ v_4 ≥ 0 ∧ v_4 < ndim(v_1)
 >>
-Rule 6 (if offset is non-zero, at least one dimension size must be greater than the absolute value of offset)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 > 0 then shape(v_1, v_3) > v_2 else if v_2 < 0 then shape(v_1, v_3) > -1 * v_2
+Rule 5 (The input tensor should have at least two dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 7 (The dimensions supplied cannot be equal)
-{v_1 : int, v_2 : int} |= v_1 ≠ v_2
+Rule 7 (if offset is zero, then shape along axis 1 must match shape along axis 2)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= if v_2 = 0 then shape(v_1, v_3) = shape(v_1, v_4)
 >>
-Rule 8 (The type of diagonal should be the same as the type of input tensor)
-{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
+Rule 8 (axis1 must not equal axis2)
+{v_3 : int, v_4 : int} |= v_3 ≠ v_4
 >>
-Rule 15 (input tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 17 (Shape of axis1 must be greater than offset)
+{v_1 : tensor, v_2 : int, v_3 : int} |= shape(v_1, v_3) > v_2
 >>
-Rule 18 (if provided, dimensions must be valid)
-{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 >= 0 ∧ v_2 < ndim(v_1) ∧ v_3 >= 0 ∧ v_3 < ndim(v_1)
+Rule 19 (If offset is positive, axis1 must be larger than axis2. if offset is negative axis2 must be larger than axis1)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= if v_2 > 0 then shape(v_1, v_3) > shape(v_1, v_4) else if v_2 < 0 then shape(v_1, v_4) > shape(v_1, v_3)
 >>
-Rule 19 (input tensor must not be empty)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 23 (Shape of axis2 must be greater than absolute value of offset)
+{v_1 : tensor, v_2 : int, v_4 : int} |= shape(v_1, v_4) > 0 - v_2
 >>
-Rule 20 (if the offset is greater than 0 then the shape of dim1 must be greater than or equal to offset.)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 > 0 then shape(v_1, v_3) >= v_2
+Rule 24 (If offset is positive, axis1 must be larger than axis2, considering offset)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= if v_2 > 0 then shape(v_1, v_3) > shape(v_1, v_4) + v_2
 >>
-Rule 21 (if the offset is smaller than 0 then the shape of dim2 must be greater than or equal to the absolute of offset.)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 < 0 then shape(v_1, v_3) >= -1 * v_2
+Rule 26 (Axes should be valid dimensions)
+{v_1 : tensor, v_3 : int, v_4 : int} |= v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) ∧ v_4 ≥ (0 - ndim(v_1)) ∧ v_4 < ndim(v_1)
 >>
-Rule 22 (offset must be a scalar value)
-{v_1 : tensor} |= ndim(v_1) = 0
+Rule 27 (axes must be within reasonable bounds based on shape and offset)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= shape(v_1, v_3) > v_2 ∧ shape(v_1, v_4) > (0 - v_2) ∧ v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) ∧ v_4 ≥ (0 - ndim(v_1)) ∧ v_4 < ndim(v_1)
 >>
-Rule 27 (if dimensions are the same, offset must be 0)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 = v_3 then v_1 = 0
+Rule 33 (If axis1 and axis2 are the same, offset has to be 0)
+{v_2 : int, v_3 : int, v_4 : int} |= if v_3 = v_4 then v_2 = 0
 >>
-Rule 30 (offset is within the bounds considering dimension sizes)
-{v_1 : tensor, v_2 : int, v_3 : int} |= shape(v_1, v_2) + v_3 >= 0
+Rule 36 (shape along axis1 must be greater than or equal to the absolute value of the offset)
+{v_1 : tensor, v_2 : int, v_3 : int} |= shape(v_1, v_3) ≥ (if v_2 > 0 then v_2 else (0-v_2))
 >>
-Rule 33 (Dimensions cannot be equal if tensor is not 2D)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) > 2 then v_2 ≠ v_3
+Rule 38 (Shape of axis 1 has to be positive)
+{v_1 : tensor, v_3 : int} |= shape(v_1, v_3) > 0
 >>
-Rule 34 (dimensions must be valid and different)
-{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 >= 0 ∧ v_2 < ndim(v_1) ∧ v_3 >= 0 ∧ v_3 < ndim(v_1) ∧ v_2 ≠ v_3
+Rule 39 (Shape of axis 2 has to be positive)
+{v_1 : tensor, v_4 : int} |= shape(v_1, v_4) > 0
 >>
-Rule 35 (Shape compatibility between input and offset)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then shape(v_1, 0) > (if v_2 < 0 then -1 * v_2 else v_2)
+Rule 42 (The offset absolute value is limited by the minimum shape value)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= if shape(v_1, v_3) < shape(v_1, v_4) then (if v_2 > 0 then v_2 < shape(v_1, v_3) else (0 - v_2) < shape(v_1, v_3)) else (if v_2 > 0 then v_2 < shape(v_1, v_4) else (0 - v_2) < shape(v_1, v_4))
 >>
-Rule 39 (dimensions must be valid and different, if specified)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 ≥ 0 ∧ v_2 < ndim(v_1) ∧ v_3 ≥ 0 ∧ v_3 < ndim(v_1) then v_2 ≠ v_3
+Rule 43 (Shape cannot be zero)
+{v_1 : tensor, v_3 : int, v_4 : int} |= shape(v_1, v_3) ≠ 0 ∧ shape(v_1, v_4) ≠ 0
 >>
-Rule 40 (Shape compatibility between input and offset for 2D tensors)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then shape(v_1, 0) > (if v_2 < 0 then -1 * v_2 else v_2) ∧ shape(v_1,1) > (if v_2 > 0 then v_2 else -1 * v_2)
+Rule 47 (The offset is within the bounds of the axes)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= (0 - shape(v_1, v_3)) < v_2 ∧ v_2 < shape(v_1, v_3) ∧ (0 - shape(v_1, v_4)) < v_2 ∧ v_2 < shape(v_1, v_4)
 >>
-Rule 47 (If a dimension is specified the offset must be smaller than the shape for that dimension)
-{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 ≤ shape(v_1, v_3) ∧ v_2 ≥ -1 * shape(v_1, v_3)
+Rule 56 (axes must be greater than 0)
+{v_1 : tensor, v_3 : int, v_4 : int} |= shape(v_1, v_3) > 0 ∧ shape(v_1, v_4) > 0
 >>
-Rule 49 (dimensions, if specified, must be non-negative and less than the number of dimensions)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 ≥ 0 ∧ v_3 ≥ 0 then v_2 < ndim(v_1) ∧ v_3 < ndim(v_1)
+Rule 86 (If the offset is zero the shapes of axis 1 and axis 2 must be equal)
+{v_1 : tensor, v_2 : int, v_3: int, v_4: int} |= if v_2 = 0 then shape(v_1, v_3) = shape(v_1, v_4)
 >>
-Rule 53 (input should at least have one dimension)
-{v_1 :tensor} |= ndim(v_1) > 0
+Rule 89 (Shape of tensor along given axes must be strictly positive)
+{v_1 : tensor, v_3: int, v_4: int} |= shape(v_1, v_3) > 0 ∧ shape(v_1, v_4) > 0
 >>
-Rule 65 (If offset is specified, input tensor should have sufficient dimensions)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 > 0 then ndim(v_1) > v_3 else if v_2 < 0 then ndim(v_1) > v_3
+Rule 99 (The absolute value of the offset needs to be smaller than at least one of the axes shapes)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= if shape(v_1, v_3) < shape(v_1, v_4) then shape(v_1, v_3) > (if v_2 > 0 then v_2 else 0 - v_2) else shape(v_1, v_4) > (if v_2 > 0 then v_2 else 0 - v_2)
 >>
-Rule 66 (Dimensions must be within range if specified)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 >=0 ∧ v_3>=0 then v_2 < ndim(v_1) ∧ v_3 < ndim(v_1)
+Rule 101 (If the offset is negative, the shape of the first axis must be greater or equal than the negative of the offset)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 < 0 then shape(v_1, v_3) ≥ (0 - v_2)
+>>
+Rule 104 (The absolute value of offset must be less than the shapes of both axes)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= shape(v_1, v_3) > (if v_2 > 0 then v_2 else (0 - v_2)) ∧ shape(v_1, v_4) > (if v_2 > 0 then v_2 else (0-v_2))
+>>
+Rule 109 (The absolute value of offset needs to be smaller or equal to the shapes of both axes)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= shape(v_1, v_3) ≥ (if v_2 > 0 then v_2 else (0 - v_2)) ∧ shape(v_1, v_4) ≥ (if v_2 > 0 then v_2 else (0-v_2))
+>>
+Rule 114 (The absolute value of offset needs to be smaller or equal to the shapes of both axes, taking the min to not overflow when ndim is small and axes are large)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= (shape(v_1, v_3) ≥ (if v_2 > 0 then v_2 else (0 - v_2))) ∨ (shape(v_1, v_4) ≥ (if v_2 > 0 then v_2 else (0-v_2)))
+>>
+Rule 115 (If the offset is not 0 then v_3 - v_4 = sign(v_2), else, v_3=v_4)
+{v_2 : int, v_3 : int, v_4 : int} |= if v_2 ≠ 0 then v_3 - v_4 = (if v_2 > 0 then 1 else (0 - 1)) else v_3=v_4
+>>
+Rule 125 (If the offset is not zero then the first axis need to be smaller than the second one, and otherwise the opposite should occur)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= if v_2 ≠ 0 then shape(v_1, v_3) < shape(v_1, v_4) else shape(v_1, v_3) ≥ shape(v_1, v_4)
+>>
+Rule 129 (The absolute value of offset must be less than the shapes of both axes)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= (shape(v_1, v_3) > (if v_2 > 0 then v_2 else (0 - v_2))) ∧ (shape(v_1, v_4) > (if v_2 > 0 then v_2 else (0-v_2)))
+>>
+Rule 131 (If shape is equal on both axis, the offset should be zero)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= if shape(v_1, v_3) = shape(v_1,v_4) then v_2 = 0

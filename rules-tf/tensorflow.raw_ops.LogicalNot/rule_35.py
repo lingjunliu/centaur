@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Input tensor is non-empty. (Rule 35)
+# The number of elements should be less than a limit for performance reasons (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]))
+    s.add(Not(If(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) < 1000000, True)) if n else
+          If(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) < 1000000, True))
 )
 
 def rule_35_func(arg1, solver=None, neg=False):

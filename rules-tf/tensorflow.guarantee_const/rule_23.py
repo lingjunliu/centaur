@@ -5,35 +5,40 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If tensor's dtype is int8, int16, int32, int64, uint8 then values must fall within their respective range (Rule 23)
+# If the tensor has 4 or 5 dimensions, and name is channels_first or channels_last, the second dimension must be 1 or 3 (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 1, And(Select(v["arg1_range"], 0) >= -128, Select(v["arg1_range"], 1) <= 127), If(v["arg1_dtype"] == 2, And(Select(v["arg1_range"], 0) >= -32768, Select(v["arg1_range"], 1) <= 32767), If(v["arg1_dtype"] == 3, And(Select(v["arg1_range"], 0) >= -2147483648, Select(v["arg1_range"], 1) <= 2147483647), If(v["arg1_dtype"] == 4, And(Select(v["arg1_range"], 0) >= -9223372036854775808, Select(v["arg1_range"], 1) <= 9223372036854775807), If(v["arg1_dtype"] == 5, And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 255), False)))))) if n else
-          If(v["arg1_dtype"] == 1, And(Select(v["arg1_range"], 0) >= -128, Select(v["arg1_range"], 1) <= 127), If(v["arg1_dtype"] == 2, And(Select(v["arg1_range"], 0) >= -32768, Select(v["arg1_range"], 1) <= 32767), If(v["arg1_dtype"] == 3, And(Select(v["arg1_range"], 0) >= -2147483648, Select(v["arg1_range"], 1) <= 2147483647), If(v["arg1_dtype"] == 4, And(Select(v["arg1_range"], 0) >= -9223372036854775808, Select(v["arg1_range"], 1) <= 9223372036854775807), If(v["arg1_dtype"] == 5, And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 255), False))))))
+    s.add(Not(If(And((Or(v["arg1_ndim"] == 4, v["arg1_ndim"] == 5)), (Or(v["arg2_value"] == 25, v["arg2_value"] == 24))), Or(Select(v["arg1_shape"], 1) == 1, Select(v["arg1_shape"], 1) == 3), True)) if n else
+          If(And((Or(v["arg1_ndim"] == 4, v["arg1_ndim"] == 5)), (Or(v["arg2_value"] == 25, v["arg2_value"] == 24))), Or(Select(v["arg1_shape"], 1) == 1, Select(v["arg1_shape"], 1) == 3), True))
 )
 
-def rule_23_func(arg1, solver=None, neg=False):
+def rule_23_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
+        if not isinstance(arg2, str):
+            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_value = String('arg2_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg2_value == list_of_string_values_tf.index(arg2))
 
         # Constraints for rule 23
-        rule_23(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
+        rule_23(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_23(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)
+        rule_23(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

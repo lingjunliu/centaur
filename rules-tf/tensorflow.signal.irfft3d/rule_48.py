@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The input tensor must be complex64 or complex128 and has at least 3 dimensions with positive shape (Rule 48)
+# If fft_length provided, it has to be an int32 tensor of shape [3] (Rule 48)
 
 rule_48 = lambda s, v, n=False: (
-    s.add(Not(And(And((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), v["arg1_ndim"] >= 3), Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0)) if n else
-          And(And((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), v["arg1_ndim"] >= 3), Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0))
+    s.add(Not(And(And(v["arg1_dtype"] == 3, v["arg1_ndim"] == 1), Select(v["arg1_shape"], 0) == 3)) if n else
+          And(And(v["arg1_dtype"] == 3, v["arg1_ndim"] == 1), Select(v["arg1_shape"], 0) == 3))
 )
 
 def rule_48_func(arg1, solver=None, neg=False):
@@ -33,9 +33,9 @@ def rule_48_func(arg1, solver=None, neg=False):
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 48
-        rule_48(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_48(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_48(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_48(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype']}, neg)

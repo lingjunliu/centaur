@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# sample_rate must be a positive float or integer (Rule 3)
+# sample_rate must be positive (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
     s.add(Not(v["arg1_value"] > 0) if n else
@@ -17,7 +17,7 @@ def rule_3_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)) or isinstance(arg1, (float, np.floating))):
+        if not (isinstance(arg1, (float, np.floating)) or (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool))):
             return False
 
         # Variable declarations

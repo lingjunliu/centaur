@@ -1,222 +1,192 @@
 >>
-Rule 1 (grad must be one of the allowed types: bfloat16, half, float32, float64)
-{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+Rule 1 (grad must be a float16, float32, float64 or bfloat16)
+{grad : tensor} |= dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8
 >>
-Rule 2 (indices must be one of the allowed types: int32, int64)
-{v_1 : dtype} |= v_1 = 3 ∨ v_1 = 4
+Rule 2 (indices must be int32 or int64)
+{indices : tensor} |= dtype_(indices) = 3 ∨ dtype_(indices) = 4
 >>
-Rule 4 (output_dim0 must be of type int32)
-{v_1 : dtype} |= v_1 = 3
+Rule 3 (segment_ids must be int32 or int64)
+{segment_ids : tensor} |= dtype_(segment_ids) = 3 ∨ dtype_(segment_ids) = 4
 >>
-Rule 6 (indices must be a vector (rank 1 tensor))
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 4 (output_dim0 must be int32)
+{output_dim0 : tensor} |= dtype_(output_dim0) = 3
 >>
-Rule 10 (output_dim0 must be greater or equal to 0)
-{v_1 : int} |= v_1 ≥ 0
+Rule 5 (indices's dimension must be 1)
+{indices : tensor} |= ndim(indices) = 1
 >>
-Rule 11 (grad must be one of the allowed types: bfloat16, half, float32, float64)
-{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9
+Rule 6 (segment_ids's dimension must be 1)
+{segment_ids : tensor} |= ndim(segment_ids) = 1
 >>
-Rule 15 (grad's dtype matches output's dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 7 (output_dim0's dimension must be 0)
+{output_dim0 : tensor} |= ndim(output_dim0) = 0
 >>
-Rule 18 (The size of indices and segment_ids must match)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1) = shape(v_2)
+Rule 9 (The first dimension of grad can be zero only if output_dim0 is zero.)
+{grad: tensor, output_dim0: tensor} |= if shape(grad, 0) = 0 then output_dim0 = 0
 >>
-Rule 19 (segment_ids must be non-negative)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1) - 1] : v_1[i] ≥ 0
+Rule 10 (The length of segment_ids should be less than or equal to the first dimension of grad)
+{grad: tensor, segment_ids: tensor} |= shape(segment_ids, 0) ≤ shape(grad, 0)
 >>
-Rule 21 (indices values must be non-negative)
-{v_1 : tensor} |= min(v_1) >= 0
+Rule 21 (segment_ids' max should be less than the first dimension of grad)
+{grad: tensor, segment_ids: tensor} |= max(segment_ids) < shape(grad, 0)
 >>
-Rule 22 (grad must be one of the allowed types: bfloat16, half, float32, float64 and indices must be int32 or int64)
-{v_1 : dtype, v_2 : dtype} |= (v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9) ∧ (v_2 = 3 ∨ v_2 = 4)
+Rule 22 (indices' max value should be less than or equal to the shape of the data passed to SparseSegmentMean)
+{indices: tensor, output_dim0: tensor} |= max(indices) < output_dim0
 >>
-Rule 23 (if grad is bfloat16, then indices must be int32)
-{v_1 : dtype, v_2 : dtype} |= if v_1 = 6 then v_2 = 3
+Rule 23 (grad must be a float16, float32, float64 or bfloat16 and indices must be int32 or int64)
+{grad : tensor, indices : tensor} |= (dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8) ∧ (dtype_(indices) = 3 ∨ dtype_(indices) = 4)
 >>
-Rule 24 (segment_ids and indices must have the same dtype)
-{v_1 : dtype, v_2 : dtype} |= v_1 = v_2
+Rule 24 (segment_ids must be int32 or int64 and output_dim0 must be int32)
+{segment_ids : tensor, output_dim0 : tensor} |= (dtype_(segment_ids) = 3 ∨ dtype_(segment_ids) = 4) ∧ dtype_(output_dim0) = 3
 >>
-Rule 25 (shape of grad must be greater than or equal to shape of output_dim0)
-{v_1 : tensor, v_2 : int} |= shape(v_1) >= v_2
+Rule 25 (indices and segment_ids's dimension must be 1 and output_dim0's dimension must be 0)
+{indices : tensor, segment_ids : tensor, output_dim0 : tensor} |= ndim(indices) = 1 ∧ ndim(segment_ids) = 1 ∧ ndim(output_dim0) = 0
 >>
-Rule 26 (output_dim0 must be less or equal to size of indices)
-{v_1 : int, v_2 : tensor} |= v_1 <= shape(v_2)
+Rule 30 (segment_ids' values should be non-negative)
+{segment_ids: tensor} |= ∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] ≥ 0
 >>
-Rule 27 (indices values must be less than or equal to max int32/int64 value depending on dtype)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 3 then max(v_1) ≤ 2147483647 else max(v_1) ≤ 9223372036854775807
+Rule 31 (output_dim0 must be greater than or equal to 0)
+{output_dim0: tensor} |= output_dim0 ≥ 0
 >>
-Rule 29 (If segment_ids has dtype int32, indices must have dtype int32)
-{v_1 : dtype, v_2 : dtype} |= if v_1 = 3 then v_2 = 3
+Rule 32 (indices' values should be non-negative)
+{indices: tensor} |= ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0
 >>
-Rule 30 (segment_ids should be sorted)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1) - 2] : v_1[i] ≤ v_1[i+1]
+Rule 33 (grad must be a float16, float32, float64 or bfloat16, indices must be int32 or int64, segment_ids must be int32 or int64 and output_dim0 must be int32)
+{grad : tensor, indices : tensor, segment_ids : tensor, output_dim0 : tensor} |= (dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8) ∧ (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ (dtype_(segment_ids) = 3 ∨ dtype_(segment_ids) = 4) ∧ dtype_(output_dim0) = 3
 >>
-Rule 32 (indices and segment_ids should not have empty shape)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1) > 0 ∧ shape(v_2) > 0
+Rule 34 (indices and segment_ids's dimension must be 1 and output_dim0's dimension must be 0 and segment_ids values are non-negative)
+{indices : tensor, segment_ids : tensor, output_dim0 : tensor} |= ndim(indices) = 1 ∧ ndim(segment_ids) = 1 ∧ ndim(output_dim0) = 0 ∧ (∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] ≥ 0)
 >>
-Rule 33 (output_dim0 must be less than or equal to size of grad's first dimension)
-{v_1 : int, v_2 : tensor} |= v_1 ≤ shape(v_2)
+Rule 35 (The first dimension of grad can be zero only if output_dim0 is zero and output_dim0 is non-negative)
+{grad: tensor, output_dim0: tensor} |= (if shape(grad, 0) = 0 then output_dim0 = 0) ∧ (output_dim0 ≥ 0)
 >>
-Rule 34 (if grad's dtype is float16, then indices must have dtype int32)
-{v_1 : dtype, v_2 : dtype} |= if v_1 = 7 then v_2 = 3
+Rule 36 (The length of segment_ids should be less than or equal to the first dimension of grad and indices' values should be non-negative)
+{grad: tensor, segment_ids: tensor, indices: tensor} |= shape(segment_ids, 0) ≤ shape(grad, 0) ∧ (∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0)
 >>
-Rule 35 (if grad's dtype is float32, then indices can be int32 or int64)
-{v_1 : dtype, v_2 : dtype} |= if v_1 = 8 then (v_2 = 3 ∨ v_2 = 4)
+Rule 37 (segment_ids' max should be less than the first dimension of grad and indices' max value should be less than or equal to output_dim0)
+{grad: tensor, segment_ids: tensor, indices: tensor, output_dim0: tensor} |= max(segment_ids) < shape(grad, 0) ∧ max(indices) < output_dim0
 >>
-Rule 36 (if grad's dtype is float64, then indices can be int32 or int64)
-{v_1 : dtype, v_2 : dtype} |= if v_1 = 9 then (v_2 = 3 ∨ v_2 = 4)
+Rule 40 (If grad is empty, then output_dim0 is zero and output_dim0 is non-negative and indices values are non-negative)
+{grad: tensor, output_dim0: tensor, indices: tensor} |= (if shape(grad, 0) = 0 then output_dim0 = 0) ∧ (output_dim0 ≥ 0) ∧ (∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0)
 >>
-Rule 38 (output_dim0 should be an integer greater than or equal to the minimum value of segment_ids)
-{v_1 : int, v_2 : tensor} |= v_1 >= min(v_2)
+Rule 42 (Number of segments must be consistent)
+{segment_ids: tensor} |= ∀i ∈ [1, shape(segment_ids,0)-1]: segment_ids[i-1] ≤ segment_ids[i]
 >>
-Rule 39 (the maximum value of segment_ids should be less than the shape of grad at dimension 0)
-{v_1 : tensor, v_2 : tensor} |= max(v_1) < shape(v_2)
+Rule 43 (Data types are constrained for grad, indices, segment_ids, and output_dim0 and Dimensions are constrained for indices, segment_ids and output_dim0)
+{grad : tensor, indices : tensor, segment_ids : tensor, output_dim0 : tensor} |= (dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8) ∧ (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ (dtype_(segment_ids) = 3 ∨ dtype_(segment_ids) = 4) ∧ dtype_(output_dim0) = 3 ∧ ndim(indices) = 1 ∧ ndim(segment_ids) = 1 ∧ ndim(output_dim0) = 0
 >>
-Rule 40 (the maximum value of indices should be less than the shape of data at dimension 0)
-{v_1 : tensor, v_2 : int} |= max(v_1) < v_2
+Rule 46 (segment_ids values are non-negative and the length of segment_ids should be less than or equal to the first dimension of grad)
+{grad: tensor, segment_ids: tensor} |= (∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] ≥ 0) ∧ shape(segment_ids, 0) ≤ shape(grad, 0)
 >>
-Rule 41 (check if all values in segment_ids are valid indices for grad)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1) - 1] : v_1[i] < shape(v_2)
+Rule 50 (If grad's first dimension is 0, then output_dim0 is 0 and indices values are non-negative)
+{grad: tensor, output_dim0: tensor, indices: tensor} |= (if shape(grad, 0) = 0 then output_dim0 = 0) ∧ (∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0)
 >>
-Rule 42 (If segment_ids has dtype int64, indices can have dtype int32 or int64)
-{v_1 : dtype, v_2 : dtype} |= if v_1 = 4 then (v_2 = 3 ∨ v_2 = 4)
+Rule 55 (If grad's first dimension is 0, then output_dim0 is 0 and indices values are non-negative and segment_ids' max should be less than the first dimension of grad and indices' max value should be less than or equal to output_dim0)
+{grad: tensor, output_dim0: tensor, indices: tensor, segment_ids: tensor} |= (if shape(grad, 0) = 0 then output_dim0 = 0) ∧ (∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0) ∧ max(segment_ids) < shape(grad, 0) ∧ max(indices) < output_dim0
 >>
-Rule 43 (segment_ids must be less than or equal to indices)
-{v_1 : tensor, v_2 : tensor} |= max(v_1) ≤ max(v_2)
+Rule 56 (The values in segment_ids must be sorted.)
+{segment_ids: tensor} |= ∀i ∈ [1, shape(segment_ids, 0) - 1] : segment_ids[i-1] ≤ segment_ids[i]
 >>
-Rule 44 (output_dim0 must be a scalar value)
-{v_1 : tensor} |= ndim(v_1) = 0
+Rule 57 (Data types and Dimensions are constrained for grad, indices, segment_ids, and output_dim0 and length of segment_ids must be less than or equal to the first dimension of grad)
+{grad : tensor, indices : tensor, segment_ids : tensor, output_dim0 : tensor} |= (dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8) ∧ (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ (dtype_(segment_ids) = 3 ∨ dtype_(segment_ids) = 4) ∧ dtype_(output_dim0) = 3 ∧ ndim(indices) = 1 ∧ ndim(segment_ids) = 1 ∧ ndim(output_dim0) = 0 ∧ shape(segment_ids, 0) ≤ shape(grad, 0)
 >>
-Rule 45 (output_dim0's value must be non-negative)
-{v_1 : tensor} |= v_1 ≥ 0
+Rule 58 (segment_ids values are non-negative)
+{segment_ids: tensor} |= (∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] ≥ 0)
 >>
-Rule 47 (If grad's dtype is bfloat16, indices dtype must be int32 and segment_ids dtype must be int32.)
-{v_1 : dtype, v_2 : dtype, v_3 : dtype} |= if v_1 = 6 then v_2 = 3 ∧ v_3 = 3
+Rule 61 (indices are increasing)
+{indices: tensor} |= ∀i ∈ [1, shape(indices, 0) - 1] : indices[i-1] ≤ indices[i]
 >>
-Rule 48 (The number of elements in segment_ids should be less than or equal to the number of elements in grad)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1) ≤ shape(v_2)
+Rule 62 (Data types and Dimensions are constrained for grad, indices, segment_ids, and output_dim0 and length of segment_ids must be less than or equal to the first dimension of grad and segment_ids values are non-negative)
+{grad : tensor, indices : tensor, segment_ids : tensor, output_dim0 : tensor} |= (dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8) ∧ (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ (dtype_(segment_ids) = 3 ∨ dtype_(segment_ids) = 4) ∧ dtype_(output_dim0) = 3 ∧ ndim(indices) = 1 ∧ ndim(segment_ids) = 1 ∧ ndim(output_dim0) = 0 ∧ shape(segment_ids, 0) ≤ shape(grad, 0) ∧ (∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] ≥ 0)
 >>
-Rule 49 (output_dim0 should be smaller than the number of unique segment ids)
-{v_1 : int, v_2 : tensor} |= v_1 < max(v_2)
+Rule 66 (segment_ids' dtype and indices's dtype must be same)
+{segment_ids: tensor, indices: tensor} |= dtype_(segment_ids) = dtype_(indices)
 >>
-Rule 50 (If a segment_id appears multiple times, then corresponding indices should also appear multiple times)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1) - 1] : ∃j ∈ [0, shape(v_2) - 1] : v_1[i] = v_2[j]
+Rule 68 (If grad's first dimension is 0, then output_dim0 is 0 and indices values are non-negative and segment_ids' max should be less than the first dimension of grad and indices' max value should be less than or equal to output_dim0 and segment_ids must be increasing)
+{grad: tensor, output_dim0: tensor, indices: tensor, segment_ids: tensor} |= (if shape(grad, 0) = 0 then output_dim0 = 0) ∧ (∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0) ∧ max(segment_ids) < shape(grad, 0) ∧ max(indices) < output_dim0 ∧ (∀i ∈ [1, shape(segment_ids, 0) - 1] : segment_ids[i-1] ≤ segment_ids[i])
 >>
-Rule 51 (Segment_ids must contain at least one element)
-{v_1 : tensor} |= shape(v_1) > 0
+Rule 69 (indices are increasing and segment_ids' dtype and indices's dtype must be same)
+{indices: tensor, segment_ids: tensor} |= (∀i ∈ [1, shape(indices, 0) - 1] : indices[i-1] ≤ indices[i]) ∧ dtype_(segment_ids) = dtype_(indices)
 >>
-Rule 54 (If indices and segment_ids have the same values in certain positions, then the same segment mean is used)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1) - 1] : ∃j ∈ [0, shape(v_2) - 1] : if v_1[i] = v_2[j] then true
+Rule 70 (indices are valid.)
+{indices: tensor, output_dim0: tensor} |= ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] < output_dim0
 >>
-Rule 55 (Indices should be less than shape of the first dimension of the input data to sparse segment mean)
-{v_1: tensor, v_2: int} |= max(v_1) < v_2
+Rule 71 (Data types and Dimensions are constrained for grad, indices, segment_ids, and output_dim0 and length of segment_ids must be less than or equal to the first dimension of grad and segment_ids values are non-negative and segment_ids must be increasing)
+{grad : tensor, indices : tensor, segment_ids : tensor, output_dim0 : tensor} |= (dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8) ∧ (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ (dtype_(segment_ids) = 3 ∨ dtype_(segment_ids) = 4) ∧ dtype_(output_dim0) = 3 ∧ ndim(indices) = 1 ∧ ndim(segment_ids) = 1 ∧ ndim(output_dim0) = 0 ∧ shape(segment_ids, 0) ≤ shape(grad, 0) ∧ (∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] ≥ 0) ∧ (∀i ∈ [1, shape(segment_ids, 0) - 1] : segment_ids[i-1] ≤ segment_ids[i])
 >>
-Rule 59 (indices should be smaller than or equal to the largest index possible in grad)
-{v_1 : tensor, v_2 : tensor} |= max(v_1) <= shape(v_2)
+Rule 75 (The number of elements in indices must be equal to the number of elements in segment_ids)
+{indices: tensor, segment_ids: tensor} |= shape(indices, 0) = shape(segment_ids, 0)
 >>
-Rule 60 (if indices and segment_ids are equal at a position, the gradients are accumulated to the corresponding output element.)
-{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, shape(v_1) - 1] : v_1[i] = v_2[i]
+Rule 77 (If grad's first dimension is 0, then output_dim0 is 0 and indices values are non-negative and segment_ids' max should be less than the first dimension of grad and indices' max value should be less than or equal to output_dim0 and indices must be increasing)
+{grad: tensor, output_dim0: tensor, indices: tensor, segment_ids: tensor} |= (if shape(grad, 0) = 0 then output_dim0 = 0) ∧ (∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0) ∧ max(segment_ids) < shape(grad, 0) ∧ max(indices) < output_dim0 ∧ (∀i ∈ [1, shape(indices, 0) - 1] : indices[i-1] ≤ indices[i])
 >>
-Rule 62 (segment_ids and indices must have compatible dtypes (both int32 or both int64))
-{v_1 : dtype, v_2 : dtype} |= (v_1 = 3 ∧ v_2 = 3) ∨ (v_1 = 4 ∧ v_2 = 4)
+Rule 78 (segment_ids' dtype and indices's dtype must be same and the number of elements in indices must be equal to the number of elements in segment_ids)
+{indices: tensor, segment_ids: tensor} |= dtype_(segment_ids) = dtype_(indices) ∧ shape(indices, 0) = shape(segment_ids, 0)
 >>
-Rule 63 (the number of segments must be greater than 0)
-{v_1 : int} |= v_1 > 0
+Rule 80 (Shape of grad must be at least one dimension)
+{grad : tensor} |= ndim(grad) ≥ 1
 >>
-Rule 65 (grad must be at least a vector, i.e. rank 1)
-{v_1 : tensor} |= ndim(v_1) >= 1
+Rule 81 (Data types and Dimensions are constrained for grad, indices, segment_ids, and output_dim0 and length of segment_ids must be less than or equal to the first dimension of grad and segment_ids values are non-negative and segment_ids must be increasing and indices values must be non-negative)
+{grad : tensor, indices : tensor, segment_ids : tensor, output_dim0 : tensor} |= (dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8) ∧ (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ (dtype_(segment_ids) = 3 ∨ dtype_(segment_ids) = 4) ∧ dtype_(output_dim0) = 3 ∧ ndim(indices) = 1 ∧ ndim(segment_ids) = 1 ∧ ndim(output_dim0) = 0 ∧ shape(segment_ids, 0) ≤ shape(grad, 0) ∧ (∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] ≥ 0) ∧ (∀i ∈ [1, shape(segment_ids, 0) - 1] : segment_ids[i-1] ≤ segment_ids[i]) ∧ (∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0)
 >>
-Rule 66 (if indices are int64, segment_ids must also be int64)
-{v_1 : dtype, v_2 : dtype} |= if v_1 = 4 then v_2 = 4
+Rule 82 (If grad's first dimension is 0, then output_dim0 is 0 and segment_ids' max should be less than the first dimension of grad and indices' max value should be less than or equal to output_dim0 and indices must be increasing)
+{grad: tensor, output_dim0: tensor, indices: tensor, segment_ids: tensor} |= (if shape(grad, 0) = 0 then output_dim0 = 0) ∧ max(segment_ids) < shape(grad, 0) ∧ max(indices) < output_dim0 ∧ (∀i ∈ [1, shape(indices, 0) - 1] : indices[i-1] ≤ indices[i])
 >>
-Rule 68 (segment_ids must be non-decreasing)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1) - 2] : v_1[i] <= v_1[i+1]
+Rule 84 (indices are valid and output_dim0 is non-negative.)
+{indices: tensor, output_dim0: tensor} |= (∀i ∈ [0, shape(indices, 0) - 1] : indices[i] < output_dim0) ∧ (output_dim0 >= 0)
 >>
-Rule 72 (segment_ids must be less than the size of grad)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1) <= shape(v_2)
+Rule 88 (segment_ids' dtype and indices's dtype must be same and the number of elements in indices must be equal to the number of elements in segment_ids and indices are valid)
+{indices: tensor, segment_ids: tensor, output_dim0: tensor} |= dtype_(segment_ids) = dtype_(indices) ∧ shape(indices, 0) = shape(segment_ids, 0) ∧ (∀i ∈ [0, shape(indices, 0) - 1] : indices[i] < output_dim0)
 >>
-Rule 74 (indices must be within the range [0, grad.shape[0])
-{v_1: tensor, v_2: tensor} |= max(v_1) < shape(v_2)
+Rule 89 (Shape of grad must be at least one dimension and output_dim0 is non-negative.)
+{grad : tensor, output_dim0: tensor} |= ndim(grad) ≥ 1 ∧ (output_dim0 >= 0)
 >>
-Rule 75 (output_dim0 must be a non-negative integer)
-{v_1 : int} |= v_1 >= 0
+Rule 91 (Data types and Dimensions are constrained for grad, indices, segment_ids, and output_dim0 and length of segment_ids must be less than or equal to the first dimension of grad and segment_ids values are non-negative and segment_ids must be increasing and indices values must be non-negative and indices are increasing)
+{grad : tensor, indices : tensor, segment_ids : tensor, output_dim0 : tensor} |= (dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8) ∧ (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ (dtype_(segment_ids) = 3 ∨ dtype_(segment_ids) = 4) ∧ dtype_(output_dim0) = 3 ∧ ndim(indices) = 1 ∧ ndim(segment_ids) = 1 ∧ ndim(output_dim0) = 0 ∧ shape(segment_ids, 0) ≤ shape(grad, 0) ∧ (∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] ≥ 0) ∧ (∀i ∈ [1, shape(segment_ids, 0) - 1] : segment_ids[i-1] ≤ segment_ids[i]) ∧ (∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0) ∧ (∀i ∈ [1, shape(indices, 0) - 1] : indices[i-1] ≤ indices[i])
 >>
-Rule 76 (Indices and Segment_ids must have compatible type int32 or int64)
-{v_1 : dtype, v_2 : dtype} |= (v_1=3 ∧ v_2=3) ∨ (v_1=4 ∧ v_2=4)
+Rule 92 (If grad's first dimension is 0, then output_dim0 is 0 and segment_ids' max should be less than the first dimension of grad and indices' max value should be less than or equal to output_dim0)
+{grad: tensor, output_dim0: tensor, indices: tensor, segment_ids: tensor} |= (if shape(grad, 0) = 0 then output_dim0 = 0) ∧ max(segment_ids) < shape(grad, 0) ∧ max(indices) < output_dim0
 >>
-Rule 77 (output_dim0 should be of dimension zero)
-{v_1: tensor} |= ndim(v_1) = 0
+Rule 93 (segment_ids' dtype and indices's dtype must be same and the number of elements in indices must be equal to the number of elements in segment_ids and indices are valid and output_dim0 is non-negative)
+{indices: tensor, segment_ids: tensor, output_dim0: tensor} |= dtype_(segment_ids) = dtype_(indices) ∧ shape(indices, 0) = shape(segment_ids, 0) ∧ (∀i ∈ [0, shape(indices, 0) - 1] : indices[i] < output_dim0) ∧ (output_dim0 >= 0)
 >>
-Rule 78 (if grad has bfloat16 type then segment_ids and indices must have int32 type)
-{v_1 : dtype, v_2 : dtype, v_3 : dtype} |= if v_1 = 6 then (v_2 = 3 ∧ v_3 = 3)
+Rule 95 (grad's type is valid and its rank is greater than 0.)
+{grad: tensor} |= (dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8) ∧ ndim(grad) > 0
 >>
-Rule 81 (output_dim0 must be less than or equal to the number of rows in grad tensor)
-{v_1: int, v_2 : tensor} |= v_1 <= shape(v_2)
+Rule 96 (Data types and Dimensions are constrained for grad, indices, segment_ids, and output_dim0 and length of segment_ids must be less than or equal to the first dimension of grad and segment_ids values are non-negative and segment_ids must be increasing and indices values must be non-negative and indices are increasing and grad's shape is valid)
+{grad : tensor, indices : tensor, segment_ids : tensor, output_dim0 : tensor} |= (dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8) ∧ (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ (dtype_(segment_ids) = 3 ∨ dtype_(segment_ids) = 4) ∧ dtype_(output_dim0) = 3 ∧ ndim(indices) = 1 ∧ ndim(segment_ids) = 1 ∧ ndim(output_dim0) = 0 ∧ shape(segment_ids, 0) ≤ shape(grad, 0) ∧ (∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] ≥ 0) ∧ (∀i ∈ [1, shape(segment_ids, 0) - 1] : segment_ids[i-1] ≤ segment_ids[i]) ∧ (∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0) ∧ (∀i ∈ [1, shape(indices, 0) - 1] : indices[i-1] ≤ indices[i]) ∧ ndim(grad) ≥ 1
 >>
-Rule 82 (grad needs to have floating point type )
-{v_1: dtype} |= v_1=6 ∨ v_1=7 ∨ v_1=8 ∨ v_1=9
+Rule 99 (output tensor should have same type as grad)
+{grad : tensor} |= (dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8)
 >>
-Rule 85 (output_dim0 has to be non-negative)
-{v_1: tensor} |= v_1 >= 0
+Rule 100 (The output shape's first dimension should be same as output_dim0.)
+{grad: tensor, output_dim0: tensor} |= shape(grad,0) = output_dim0
 >>
-Rule 86 (if the segment_id has the same value then the results of the gradient will be the same)
-{v_1: tensor} |= ∀i ∈ [0, shape(v_1) - 2] : if v_1[i] = v_1[i+1] then true
+Rule 101 (Data types and Dimensions are constrained for grad, indices, segment_ids, and output_dim0 and length of segment_ids must be less than or equal to the first dimension of grad and segment_ids values are non-negative and segment_ids must be increasing and indices values must be non-negative and indices must be increasing and grad's shape is valid and indices are valid)
+{grad : tensor, indices : tensor, segment_ids : tensor, output_dim0 : tensor} |= (dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8) ∧ (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ (dtype_(segment_ids) = 3 ∨ dtype_(segment_ids) = 4) ∧ dtype_(output_dim0) = 3 ∧ ndim(indices) = 1 ∧ ndim(segment_ids) = 1 ∧ ndim(output_dim0) = 0 ∧ shape(segment_ids, 0) ≤ shape(grad, 0) ∧ (∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] ≥ 0) ∧ (∀i ∈ [1, shape(segment_ids, 0) - 1] : segment_ids[i-1] ≤ segment_ids[i]) ∧ (∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0) ∧ (∀i ∈ [1, shape(indices, 0) - 1] : indices[i-1] ≤ indices[i]) ∧ ndim(grad) ≥ 1 ∧ (∀i ∈ [0, shape(indices, 0) - 1] : indices[i] < output_dim0)
 >>
-Rule 88 (values in the indices tensor should not exceed int max)
-{v_1 : tensor} |= max(v_1) < 2147483647
+Rule 103 (segment_ids' dtype and indices's dtype must be same and the number of elements in indices must be equal to the number of elements in segment_ids and output_dim0 is non-negative)
+{indices: tensor, segment_ids: tensor, output_dim0: tensor} |= dtype_(segment_ids) = dtype_(indices) ∧ shape(indices, 0) = shape(segment_ids, 0) ∧ (output_dim0 >= 0)
 >>
-Rule 89 (The number of rows in grad must be positive)
-{v_1: tensor} |= shape(v_1) > 0
+Rule 105 (The length of grad should be the same as the length of the output tensor)
+{grad : tensor} |= ndim(grad) > 0
 >>
-Rule 90 (if dtype is float32 or float64 indices must be int32 or int64)
-{v_1 : dtype, v_2 : dtype} |= if v_1 = 8 ∨ v_1 = 9 then v_2 = 3 ∨ v_2 = 4
+Rule 106 (Data types and Dimensions are constrained for grad, indices, segment_ids, and output_dim0 and length of segment_ids must be less than or equal to the first dimension of grad and segment_ids values are non-negative and segment_ids must be increasing and indices values must be non-negative and indices are increasing and indices are valid and output_dim0 is non-negative)
+{grad : tensor, indices : tensor, segment_ids : tensor, output_dim0 : tensor} |= (dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8) ∧ (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ (dtype_(segment_ids) = 3 ∨ dtype_(segment_ids) = 4) ∧ dtype_(output_dim0) = 3 ∧ ndim(indices) = 1 ∧ ndim(segment_ids) = 1 ∧ ndim(output_dim0) = 0 ∧ shape(segment_ids, 0) ≤ shape(grad, 0) ∧ (∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] ≥ 0) ∧ (∀i ∈ [1, shape(segment_ids, 0) - 1] : segment_ids[i-1] ≤ segment_ids[i]) ∧ (∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0) ∧ (∀i ∈ [1, shape(indices, 0) - 1] : indices[i-1] ≤ indices[i]) ∧ (∀i ∈ [0, shape(indices, 0) - 1] : indices[i] < output_dim0) ∧ (output_dim0 >= 0)
 >>
-Rule 91 (output_dim0 value is integer and non-negative and smaller than 2147483647)
-{v_1: int} |= v_1 >=0 ∧ v_1 < 2147483647
+Rule 107 (If grad's first dimension is 0, then output_dim0 is 0 and segment_ids' max should be less than the first dimension of grad and indices' max value should be less than or equal to output_dim0 and grad has a valid shape)
+{grad: tensor, output_dim0: tensor, indices: tensor, segment_ids: tensor} |= (if shape(grad, 0) = 0 then output_dim0 = 0) ∧ max(segment_ids) < shape(grad, 0) ∧ max(indices) < output_dim0 ∧ ndim(grad) ≥ 1
 >>
-Rule 101 (output_dim0 value is integer and non-negative and smaller than 2147483647)
-{v_1: int} |= v_1 >= 0 ∧ v_1 < 2147483647
+Rule 109 (output tensor should have same type as grad and the length of grad should be the same as the length of the output tensor.)
+{grad : tensor, output_dim0: tensor} |= (dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8) ∧ shape(grad,0) = output_dim0
 >>
-Rule 102 (indices needs to be a vector)
-{v_1: tensor} |= ndim(v_1) = 1
+Rule 110 (Data types and Dimensions are constrained for grad, indices, segment_ids, and output_dim0 and length of segment_ids must be less than or equal to the first dimension of grad and segment_ids values are non-negative and segment_ids must be increasing and indices values must be non-negative and indices are increasing and indices are valid and output_dim0 is non-negative and segment_ids' dtype and indices's dtype must be same and the number of elements in indices must be equal to the number of elements in segment_ids)
+{grad : tensor, indices : tensor, segment_ids : tensor, output_dim0 : tensor} |= (dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8) ∧ (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ (dtype_(segment_ids) = 3 ∨ dtype_(segment_ids) = 4) ∧ dtype_(output_dim0) = 3 ∧ ndim(indices) = 1 ∧ ndim(segment_ids) = 1 ∧ ndim(output_dim0) = 0 ∧ shape(segment_ids, 0) ≤ shape(grad, 0) ∧ (∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] ≥ 0) ∧ (∀i ∈ [1, shape(segment_ids, 0) - 1] : segment_ids[i-1] ≤ segment_ids[i]) ∧ (∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0) ∧ (∀i ∈ [1, shape(indices, 0) - 1] : indices[i-1] ≤ indices[i]) ∧ (∀i ∈ [0, shape(indices, 0) - 1] : indices[i] < output_dim0) ∧ (output_dim0 >= 0) ∧ dtype_(segment_ids) = dtype_(indices) ∧ shape(indices, 0) = shape(segment_ids, 0)
 >>
-Rule 106 (Output_dim0 must be greater than or equal to zero)
-{v_1 : tensor} |= v_1 >= 0
+Rule 114 (Data types and Dimensions are constrained for grad, indices, segment_ids, and output_dim0 and length of segment_ids must be less than or equal to the first dimension of grad and segment_ids values are non-negative and segment_ids must be increasing and indices values must be non-negative and indices are increasing and indices are valid and output_dim0 is non-negative and segment_ids' dtype and indices's dtype must be same and the number of elements in indices must be equal to the number of elements in segment_ids and grad has a valid shape.)
+{grad : tensor, indices : tensor, segment_ids : tensor, output_dim0 : tensor} |= (dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8) ∧ (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ (dtype_(segment_ids) = 3 ∨ dtype_(segment_ids) = 4) ∧ dtype_(output_dim0) = 3 ∧ ndim(indices) = 1 ∧ ndim(segment_ids) = 1 ∧ ndim(output_dim0) = 0 ∧ shape(segment_ids, 0) ≤ shape(grad, 0) ∧ (∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] ≥ 0) ∧ (∀i ∈ [1, shape(segment_ids, 0) - 1] : segment_ids[i-1] ≤ segment_ids[i]) ∧ (∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0) ∧ (∀i ∈ [1, shape(indices, 0) - 1] : indices[i-1] ≤ indices[i]) ∧ (∀i ∈ [0, shape(indices, 0) - 1] : indices[i] < output_dim0) ∧ (output_dim0 >= 0) ∧ dtype_(segment_ids) = dtype_(indices) ∧ shape(indices, 0) = shape(segment_ids, 0) ∧ ndim(grad) ≥ 1
 >>
-Rule 107 (Grad must be a tensor of rank at least 1.)
-{v_1: tensor} |= ndim(v_1) >= 1
+Rule 115 (If grad's first dimension is 0, then output_dim0 is 0 and segment_ids' max should be less than the first dimension of grad and indices' max value should be less than or equal to output_dim0 and output tensor should have the same type as grad.)
+{grad: tensor, output_dim0: tensor, indices: tensor, segment_ids: tensor} |= (if shape(grad, 0) = 0 then output_dim0 = 0) ∧ max(segment_ids) < shape(grad, 0) ∧ max(indices) < output_dim0 ∧ (dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8)
 >>
-Rule 108 (if grad's dtype is float64, indices dtype must be int64 and segment_ids dtype must be int64.)
-{v_1 : dtype, v_2 : dtype, v_3 : dtype} |= if v_1 = 9 then v_2 = 4 ∧ v_3 = 4
->>
-Rule 109 (the size of segment_ids must be less than or equal to the first dimension of grad)
-{v_1: tensor, v_2: tensor} |= shape(v_1) <= shape(v_2)
->>
-Rule 112 (Output_dim0 must be representable as int32 type )
-{v_1 : int} |= v_1 <= 2147483647
->>
-Rule 121 (the values of indices should not exceed int32)
-{v_1: tensor} |= max(v_1) < 2147483647
->>
-Rule 128 (if grad dtype is half, segment_ids and indices dtype are int32)
-{v_1 : dtype, v_2 : dtype, v_3 : dtype} |= if v_1=7 then v_2 = 3 ∧ v_3 = 3
->>
-Rule 129 (indices values must be less than the number of segments or equal to it)
-{v_1 : tensor, v_2 : int} |= max(v_1) <= v_2
->>
-Rule 131 (Output_dim0 value needs to be within the boundary 0 to 2147483647)
-{v_1 : int} |= v_1 >= 0 ∧ v_1 < 2147483647
->>
-Rule 136 (Indices values must be less than or equal to the number of elements in grad)
-{v_1: tensor, v_2: tensor} |= max(v_1) <= shape(v_2)
->>
-Rule 139 (Segment ids can be an empty tensor when output_dim0 is zero)
-{v_1 : tensor, v_2: tensor} |= shape(v_1) = 0 ∧ shape(v_2) = 0
->>
-Rule 140 (if the dtype of grad is float64 then dtype of output_dim0 is int32)
-{v_1 : dtype, v_2 : dtype} |= if v_1 = 9 then v_2 = 3
->>
-Rule 141 (if indices has dtype int64, segment_ids must be int64, otherwise the behavior is undefined)
-{v_1: dtype, v_2: dtype} |= if v_1 = 4 then v_2 = 4
+Rule 116 (The length of grad should be the same as the length of the output tensor.)
+{grad : tensor, output_dim0: tensor} |= shape(grad,0) = output_dim0

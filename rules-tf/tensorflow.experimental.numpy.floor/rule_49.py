@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the tensor is complex, then its real and imaginary parts should be of same magnitude (Rule 49)
+# If input tensor is complex, real and imaginary parts must both be between -10000 and 10000 (Rule 49)
 
 rule_49 = lambda s, v, n=False: (
-    s.add(Not(If(Or((v["arg1_dtype"] == 10), (v["arg1_dtype"] == 11)), Select(v["arg1_range"], 0) * -1 == Select(v["arg1_range"], 1), False)) if n else
-          If(Or((v["arg1_dtype"] == 10), (v["arg1_dtype"] == 11)), Select(v["arg1_range"], 0) * -1 == Select(v["arg1_range"], 1), False))
+    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), And(Select(v["arg1_range"], 0) > -10000, Select(v["arg1_range"], 1) < 10000), True)) if n else
+          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), And(Select(v["arg1_range"], 0) > -10000, Select(v["arg1_range"], 1) < 10000), True))
 )
 
 def rule_49_func(arg1, solver=None, neg=False):

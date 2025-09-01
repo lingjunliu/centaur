@@ -1,72 +1,159 @@
 >>
-Rule 1 (Length of bucket_batch_sizes should be equal to the length of bucket_boundaries plus one)
+Rule 1 (bucket_batch_sizes length should be equal to bucket_boundaries length plus one)
 {v_1 : list(int), v_2 : list(int)} |= v_2.len = v_1.len + 1
 >>
-Rule 2 (bucket_boundaries should be a list of increasing integers)
-{v_1 : list(int)} |= ∀i ∈ [1, v_1.len - 1] : v_1[i-1] < v_1[i]
+Rule 2 (pad_to_bucket_boundary is true then padding_values type should match element type from element_length_func)
+{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 then dtype_(v_2) = dtype_(v_3)
 >>
-Rule 4 (element_length_func must return a non-negative integer)
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 3 (element_length_func should return a tf.int32 tensor)
+{v_1 : tensor} |= dtype_(v_1) = 3
 >>
-Rule 5 (batch size for each bucket should be greater than zero)
+Rule 4 (bucket_boundaries should be a list of integers and non-decreasing)
+{v_1 : list(int)} |= ∀i ∈ [1, v_1.len - 1] : v_1[i] ≥ v_1[i-1]
+>>
+Rule 5 (batch sizes should be positive)
 {v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 9 (Each bucket boundary must be a non-negative integer.)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+Rule 6 (padding_values should be a scalar tensor)
+{v_1 : tensor} |= ndim(v_1) = 0
 >>
-Rule 10 (If pad_to_bucket_boundary is true, all element lengths should be less than or equal to the maximum bucket boundary)
-{v_1 : tensor, v_2 : list(int), v_3 : bool} |= if v_3 = true then max(v_1) ≤ v_2[v_2.len - 1]
+Rule 7 (no_padding should be a boolean value)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 14 (element_length_func tensor must have a rank of 1)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 9 (padding_values should be greater than -1000 and less than 1000)
+{v_1 : tensor} |= v_1 > -1000 ∧ v_1 < 1000
 >>
-Rule 21 (If no_padding is true, the padded shape is not allowed to be specified)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then ndim(v_2) = 0
->>
-Rule 22 (bucket_batch_sizes is not empty)
-{v_1 : list(int)} |= v_1.len > 0
->>
-Rule 24 (bucket_batch_sizes and bucket_boundaries should be of reasonable size - less than 100)
-{v_1 : list(int), v_2 : list(int)} |= v_1.len < 100 ∧ v_2.len < 100
->>
-Rule 26 (If bucket_boundaries is empty, then bucket_batch_sizes should have length 1)
+Rule 10 (when bucket_boundaries is empty, bucket_batch_sizes should be length 1)
 {v_1 : list(int), v_2 : list(int)} |= if v_1.len = 0 then v_2.len = 1
 >>
-Rule 27 (If drop_remainder is true, bucket_batch_sizes should be set.)
-{v_1 : bool, v_2 : list(int)} |= if v_1 = true then v_2.len > 0
+Rule 12 (If pad_to_bucket_boundary is true, bucket_boundaries must be specified)
+{v_1 : bool, v_2 : list(int)} |= if v_1 then v_2.len > 0
 >>
-Rule 28 (The length of elements returned by element_length_func must be consistent)
-{v_1 : tensor} |= ∀i ∈ [1, v_1.len - 1] : shape(v_1, 0) = shape(v_1, i)
+Rule 14 (element_length_func input tensor must have rank >= 1)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 29 (Padding value should be in reasonable range )
-{v_1 : int ⊎ float} |= -1000 < v_1 ∧ v_1 < 1000
+Rule 15 (If pad_to_bucket_boundary is true, elements length should be less or equal to max boundary.)
+{v_1 : bool, v_2 : list(int), v_3 : tensor} |= if v_1 then shape(v_3, 0) ≤ v_2[v_2.len - 1]
 >>
-Rule 42 (padded_shapes is only applicable when no_padding is false)
-{v_1 : bool, v_2 : tensor} |= if v_1 = false then ndim(v_2) > 0
+Rule 16 (padded_shapes should have the same rank as elements in dataset)
+{v_1 : tuple(tensor), v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 50 (bucket_boundaries should be non-empty list when bucket_batch_sizes is specified)
-{v_1 : list(int), v_2 : list(int)} |= if v_2.len > 0 then v_1.len > 0
+Rule 20 (If pad_to_bucket_boundary is true, batch_size should be less or equal to the max boundary.)
+{v_1 : bool, v_2 : list(int), v_3 : list(int)} |= if v_1 then v_3[v_3.len - 1] ≤ v_2[v_2.len - 1]
 >>
-Rule 62 (If padded_shapes is specified, its length must be the same as element_length_func output length)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 23 (If no_padding is true, then padded_shapes should be empty.)
+{v_1 : bool, v_2 : tuple(tensor)} |= if v_1 then v_2.len = 0
 >>
-Rule 70 (If padded_shapes is specified, each dimension of padded shape must be greater than 0)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0
+Rule 24 (bucket_batch_sizes should not be empty)
+{v_1 : list(int)} |= v_1.len > 0
 >>
-Rule 72 (The shape of bucket_boundaries elements must be scalar)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -1000 ∧ v_1[i] < 1000
+Rule 25 (If drop_remainder is true, batch size must be larger than 0)
+{v_1 : bool, v_2 : list(int)} |= if v_1 then ∀i ∈ [0, v_2.len - 1]: v_2[i] > 0
 >>
-Rule 80 (If the dataset elements is a tuple then padded_shapes must be a tuple)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 then ndim(v_2) > 1
+Rule 26 (padded_shapes length should be positive.)
+{v_1 : tuple(tensor)} |= v_1.len > 0
 >>
-Rule 82 (bucket_batch_sizes values should be in a reasonable range to avoid OOM issues)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 1024
+Rule 27 (If pad_to_bucket_boundary is true, then bucket_boundaries' largest element must be greater than 0)
+{v_1 : bool, v_2 : list(int)} |= if v_1 then v_2[v_2.len - 1] > 0
 >>
-Rule 90 (bucket_boundaries max value should be less than 2^31 -1 to fit int32)
-{v_1 : list(int)} |= v_1[v_1.len - 1] < 2147483647
+Rule 30 (If drop_remainder is true, batch size must be larger than 0, and less than 1000)
+{v_1 : bool, v_2 : list(int)} |= if v_1 then ∀i ∈ [0, v_2.len - 1]: v_2[i] > 0 ∧ v_2[i] < 1000
 >>
-Rule 91 (If the length of padded shape list is more than 0 then no_padding is false)
-{v_1 : list(int), v_2 : bool} |= if v_1.len > 0 then v_2 = false
+Rule 32 (If pad_to_bucket_boundary is true, padding_values should not be empty)
+{v_1 : bool, v_2 : tensor} |= if v_1 then ndim(v_2) = 0
 >>
-Rule 92 (The padded_shapes should not be empty.)
+Rule 33 (If no_padding is true, drop_remainder should be false.)
+{v_1 : bool, v_2 : bool} |= if v_1 then v_2 = false
+>>
+Rule 35 (bucket_boundaries should not contain duplicate values.)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 2] : v_1[i] ≠ v_1[i+1]
+>>
+Rule 37 (If pad_to_bucket_boundary is true, padding_values should not be string)
+{v_1 : bool, v_2 : dtype} |= if v_1 then v_2 ≠ 11
+>>
+Rule 39 (If bucket_boundaries is not empty then bucket_batch_sizes can not be empty)
+{v_1 : list(int), v_2 : list(int)} |= if v_1.len > 0 then v_2.len > 0
+>>
+Rule 40 (element_length_func must return a non-negative value)
+{v_1 : tensor} |= v_1 ≥ 0
+>>
+Rule 42 (If pad_to_bucket_boundary is true, padding_values should be an integer or a float.)
+{v_1 : bool, v_2 : tensor} |= if v_1 then dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9
+>>
+Rule 43 (element_length_func must have one input tensor)
 {v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 45 (element_length_func must return an int32 scalar tensor with non-negative value)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∧ v_1 ≥ 0
+>>
+Rule 50 (bucket_boundaries elements should not be negative)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1]: v_1[i] ≥ 0
+>>
+Rule 52 (If pad_to_bucket_boundary is true and drop_remainder is true, the padding values should be the same type as element_length_func output)
+{v_1 : bool, v_2 : bool, v_3 : tensor, v_4 : tensor} |= if v_1 ∧ v_2 then dtype_(v_3) = dtype_(v_4)
+>>
+Rule 54 (element_length_func must output a scalar int32 tensor and be callable)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1) = shape(v_2)
+>>
+Rule 58 (If no_padding is false, then padded_shapes must have the same shape as the output_shapes of dataset)
+{v_1 : bool, v_2 : tuple(tensor)} |= if (v_1 = false) then v_2.len > 0
+>>
+Rule 60 (bucket_batch_sizes must be list of int32)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1]: v_1[i] ≥ 0 ∧ v_1[i] < 2147483647
+>>
+Rule 62 (If pad_to_bucket_boundary is true and drop_remainder is true, the padding values should be a scalar tensor with compatible data type)
+{v_1 : bool, v_2 : bool, v_3 : tensor, v_4 : tensor} |= if v_1 ∧ v_2 then ndim(v_3) = 0 ∧ dtype_(v_3) = dtype_(v_4)
+>>
+Rule 63 (If no_padding is false and pad_to_bucket_boundary is false, padded_shapes should not be empty)
+{v_1 : bool, v_2 : bool, v_3 : tuple(tensor)} |= if (v_1 = false) ∧ (v_2 = false) then v_3.len > 0
+>>
+Rule 64 (element_length_func must output a scalar int32 tensor and be callable with the element of dataset)
+{v_1 : tensor} |= ndim(v_1) = 0 ∧ dtype_(v_1) = 3
+>>
+Rule 65 (bucket_batch_sizes must be list of positive int32)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1]: v_1[i] > 0 ∧ v_1[i] < 2147483647
+>>
+Rule 67 (If pad_to_bucket_boundary is true and drop_remainder is true, the padding values should be a scalar tensor with compatible shape)
+{v_1 : bool, v_2 : bool, v_3 : tensor, v_4 : tensor} |= if v_1 ∧ v_2 then shape(v_3) = shape(v_4)
+>>
+Rule 68 (If no_padding is false, then number of padded_shapes must less than 10)
+{v_1 : bool, v_2 : tuple(tensor)} |= if (v_1 = false) then v_2.len < 10
+>>
+Rule 72 (If pad_to_bucket_boundary is true, then padding_values should be smaller than 10000 and larger than -10000)
+{v_1 : bool, v_2 : tensor} |= if v_1 then v_2 > -10000 ∧ v_2 < 10000
+>>
+Rule 74 (element_length_func output must be a non-negative scalar int32 tensor)
+{v_1 : tensor} |= ndim(v_1) = 0 ∧ dtype_(v_1) = 3 ∧ v_1 ≥ 0
+>>
+Rule 77 (If pad_to_bucket_boundary is true and drop_remainder is true, the padding values should be a scalar tensor and its dtype should be in int8, int16, int32, int64, uint8, float16, float32, float64, complex64, complex128)
+{v_1 : bool, v_2 : bool, v_3 : tensor} |= if v_1 ∧ v_2 then ndim(v_3) = 0 ∧ (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5 ∨ dtype_(v_3) = 6 ∨ dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 9 ∨ dtype_(v_3) = 10)
+>>
+Rule 82 (If pad_to_bucket_boundary is true and drop_remainder is true, the padding values should be a scalar tensor with a valid type.)
+{v_1 : bool, v_2 : bool, v_3 : tensor} |= if v_1 ∧ v_2 then ndim(v_3) = 0 ∧ (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5 ∨ dtype_(v_3) = 6 ∨ dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 9 ∨ dtype_(v_3) = 10 ∨ dtype_(v_3) = 11)
+>>
+Rule 84 (element_length_func must return a scalar int32 tensor with value between 0 and max int32 value)
+{v_1 : tensor} |= ndim(v_1) = 0 ∧ dtype_(v_1) = 3 ∧ v_1 ≥ 0 ∧ v_1 < 2147483647
+>>
+Rule 85 (The bucket_batch_sizes should all be positive)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1]: v_1[i] > 0
+>>
+Rule 107 (no_padding and pad_to_bucket_boundary cannot both be true, if no padding is true then length of bucket_batch_sizes should be length of bucket_boundaries + 1)
+{v_1 : bool, v_2 : bool, v_3 : list(int), v_4 : list(int)} |= if v_1 then v_2 = false else if v_1 then v_3.len = v_4.len + 1
+>>
+Rule 109 (element_length_func must return a non-negative scalar tensor)
+{v_1 : tensor} |= ndim(v_1) = 0 ∧ v_1 ≥ 0
+>>
+Rule 114 (element_length_func must return a non-negative scalar int32 tensor with a small value, as shape(v_1) can lead to large computation size)
+{v_1 : tensor} |= ndim(v_1) = 0 ∧ dtype_(v_1) = 3 ∧ v_1 ≥ 0 ∧ v_1 < 1000
+>>
+Rule 119 (element_length_func output must be a small value of int32 to avoid large computation)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∧ v_1 < 1000
+>>
+Rule 128 (If no_padding is false and padded_shapes is defined, then the output shape should be scalar)
+{v_1 : bool, v_2 : tensor} |= if (v_1 = false) then ndim(v_2) = 0
+>>
+Rule 129 (The element_length_func output must be a small non-negative scalar tensor)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∧ v_1 ≥ 0 ∧ ndim(v_1) = 0
+>>
+Rule 134 (element_length_func output must be a small int32 and must be a scalar and must be non-negative)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∧ v_1 < 1000 ∧ ndim(v_1) = 0 ∧ v_1 ≥ 0

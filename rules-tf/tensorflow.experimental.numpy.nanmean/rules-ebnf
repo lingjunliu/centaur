@@ -1,129 +1,201 @@
 >>
-Rule 1 (Input tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
->>
-Rule 2 (Axis parameter must be a non-negative integer or None. None is not covered in this grammar, only integer is considered)
+Rule 1 (axis must be a non-negative integer)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 6 (If an axis is specified, it must be within the bounds of the tensor's dimensions)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 2 (axis must be less than the number of dimensions of the input tensor)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
 >>
-Rule 7 (Shape of input tensor has to be greater than 0)
-{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+Rule 3 (keepdims must be a boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 8 (If a tensor is a boolean type, all elements are boolean)
-{v_1 : tensor} |= dtype_(v_1) = 0
+Rule 4 (dtype must be one of the allowed dtypes)
+{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 11 ∨ v_1 = 13
 >>
-Rule 9 (if there are two tensors, their shapes must be equal)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 5 (if axis is None, keepdims must be false)
+{v_1 : int, v_2 : bool} |= if v_1 = -1 then v_2 = false
 >>
-Rule 13 (Shape of input tensor has to be greater than 0 along a given axis)
-{v_1 : tensor, v_2 : int} |= shape(v_1, v_2) > 0
+Rule 6 (Input tensor must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 15 (If dtype is specified, it has to be a floating point dtype.)
-{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+Rule 9 (The shape of the input tensor must be positive.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 16 (If axis is a tuple, all elements within the tuple must be within bounds)
-{v_1 : tensor, v_2 : tuple(int)} |= (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1))
+Rule 10 (Dtype cannot be string.)
+{v_1 : dtype} |= v_1 ≠ 12
 >>
-Rule 17 (String value representing the data type should be from the allowed list.)
-{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "constant" ∨ v_1 = "linear" ∨ v_1 = "softplus"
+Rule 12 (The axis must be an integer or None (-1))
+{v_1 : int} |= v_1 = -1 ∨ v_1 ≥ 0
 >>
-Rule 18 (If an axis is specified as a list of integers, each integer must be a valid axis for the tensor)
-{v_1 : tensor, v_2 : list(int)} |= (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1))
+Rule 13 (If the axis is None, the output is a scalar or 0-dimensional tensor)
+{v_1 : tensor, v_2 : int} |= if v_2 = -1 then ndim(v_1) = 0
 >>
-Rule 19 (If dtype is specified, it should be a valid numerical dtype.)
-{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10
+Rule 14 (If dtype is specified, it must be compatible with the tensor)
+{v_1 : tensor, v_2 : dtype} |= (dtype_(v_1) = 1 ∧ (v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5)) ∨ (dtype_(v_1) > 5 ∧ (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 11 )) ∨ (dtype_(v_1) = 10 ∧ (v_2 = 10 ∨ v_2 = 11))
 >>
-Rule 20 (If axis is int and tensor is 1D, then axis value should always be 0.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 = 0
+Rule 15 (If the input tensor has only NaN values, the result should be NaN)
+{v_1: tensor} |= min(v_1) = max(v_1)
 >>
-Rule 21 (Input tensor's dtype should not be string)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
+Rule 16 (Axis should be within the valid range)
+{v_1: tensor, v_2: int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 22 (The specified axis should not be out of range even if the input tensor is empty along other dimensions.)
-{v_1 : tensor, v_2 : int} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then true else v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 17 (The number of elements in tensor cannot exceed a limit.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483647
 >>
-Rule 23 (If a tuple of axes is specified, the tuple cannot be empty.)
-{v_1 : tuple(int)} |= v_1.len > 0
+Rule 18 (If input tensor is empty, the output must be a scalar)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ ndim(v_1) = 0
 >>
-Rule 24 (Dtype must be either floating point or complex.)
-{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10
+Rule 26 (If input is a scalar, axis must be None.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 = -1
 >>
-Rule 25 (If input is complex, output should be complex.)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true
+Rule 27 (If the output has the same dtype as the input, it must also be a valid dtype.)
+{v_1 : tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 )
 >>
-Rule 26 (If input tensor is complex128, then the minimum value should not be less than -1000)
-{v_1 : tensor} |= if dtype_(v_1) = 10 then min(v_1) ≥ -1000
+Rule 28 (If axis is specified, it must be less than rank of tensor even when negative.)
+{v_1 : tensor, v_2 : int} |= v_2 > (0 - ndim(v_1))
 >>
-Rule 27 (If axis is specified as a list, its length must be less than the number of dimensions)
-{v_1 : tensor, v_2 : list(int)} |= v_2.len < ndim(v_1)
+Rule 31 (If dtype is not specified, it defaults to float64 if input is int and float32 if input is float)
+{v_1: tensor, v_2: dtype} |= if (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5) then v_2 = 8 else if (dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 8) then v_2 = 7
 >>
-Rule 28 (If the tensor is complex64, maximum element should be less than 1000)
-{v_1 : tensor} |= if dtype_(v_1) = 9 then max(v_1) ≤ 1000
+Rule 32 (If the input tensor is complex, the output should also be complex.)
+{v_1: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true
 >>
-Rule 29 (If axis is none, number of dimensions of output will be zero)
-{v_1 : tensor, v_2 : str} |= if v_2 = "none" then ndim(v_1) = 0
+Rule 33 (Dtype must be one of the valid float types if input type is int.)
+{v_1: tensor, v_2: dtype} |= if dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5 then v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8
 >>
-Rule 30 (If axis is a tuple, it should not contain duplicate values.)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i + 1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+Rule 34 (If axis is a tuple, all the elements should be within the range.)
+{v_1: tensor, v_2: tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)
 >>
-Rule 32 (If axis is specified as a tuple, all elements must be integers.)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ -1000 ∧ v_1[i] ≤ 1000)
+Rule 35 (If a tuple is specified for axis, it can only contain unique values)
+{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i + 1, v_1.len - 1] : v_1[i] ≠ v_1[j]
 >>
-Rule 33 (If dtype is float16, then the minimum value of the tensor should be larger than -65500)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > -65500
+Rule 36 (If axis is None, keepdims does not matter)
+{v_1 : int} |= if v_1 = -1 then true
 >>
-Rule 34 (If dtype is float16, then the maximum value of the tensor should be smaller than 65500)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then max(v_1) < 65500
+Rule 37 (If a tuple is specified for axis, it can not be empty.)
+{v_1: tuple(int)} |= v_1.len > 0
 >>
-Rule 35 (If the dtype of the tensor is float, then its minimum should be greater than -1.7976931348623157e+308)
-{v_1 : tensor} |= if dtype_(v_1) = 8 then min(v_1) > -1.7976931348623157e+308
+Rule 40 (If dtype is specified it must be compatible with the tensor's existing dtype range)
+{v_1: tensor, v_2: dtype} |= if (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5) then (1 <= v_2 ∧ v_2 <= 5 ∨ 6 <= v_2 ∧ v_2 <= 8) else if (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) then (6 <= v_2 ∧ v_2 <= 8) else if (9 <= dtype_(v_1) ∧ dtype_(v_1) <= 11) then (9 <= v_2 ∧ v_2 <= 11)
 >>
-Rule 38 (If input tensor has integer dtype and axis is none, then min and max should be > 0.)
-{v_1 : tensor, v_2 : str} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ v_2 = "none" then min(v_1) > 0 ∧ max(v_1) > 0
+Rule 42 (If the output requires upcasting the datatype then an appropriate datatype should be chosen)
+{v_1: tensor, v_2: dtype} |= if dtype_(v_1) < v_2 then true
 >>
-Rule 39 (if the tensor is complex, then the real part and imaginary part should not exceed max float value)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) < 3.4028235e+38 ∧ max(v_1) < 3.4028235e+38
+Rule 43 (If the tensor is complex, the dtype must also be complex)
+{v_1: tensor, v_2: dtype} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then (v_2 = 10 ∨ v_2 = 11)
 >>
-Rule 41 (If keepdims is true and an axis is specified as an integer, the output tensor should have at least one dimension.)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then ndim(v_1) ≥ 1
+Rule 44 (The number of dimensions of the tensor should not be excessively high.)
+{v_1: tensor} |= ndim(v_1) < 6
 >>
-Rule 43 (If input tensor has integer dtype and axis is none, then min and max should be > 0 or min and max are < 0.)
-{v_1 : tensor, v_2 : str} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ v_2 = "none" then (min(v_1) > 0 ∧ max(v_1) > 0) ∨ (min(v_1) < 0 ∧ max(v_1) < 0)
+Rule 47 (if axis is an integer, it must be in the valid range)
+{v_1: int, v_2: tensor} |= v_1 > (0 - ndim(v_2)) ∧ v_1 < ndim(v_2) ∨ v_1 = -1
 >>
-Rule 44 (if the tensor is complex, then the min should be less than max.)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) ≤ max(v_1)
+Rule 48 (keepdims can only be true if the tensor has more than 0 dimensions)
+{v_1: tensor, v_2: bool} |= if ndim(v_1) > 0 then true else v_2 = false
 >>
-Rule 45 (If axis is a tuple, the maximum value cannot be greater than number of dimensions)
-{v_1 : tensor, v_2 : tuple(int)} |= (∀i ∈ [0, v_2.len - 1] : v_2[i] < ndim(v_1))
+Rule 50 (Dtype must be compatible given complex numbers.)
+{v_1: tensor, v_2: dtype} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then (v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 11)
 >>
-Rule 46 (If keepdims is true and the dtype is int32 then the maximum dimension length can only be 256.)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true ∧ dtype_(v_1) = 3 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≤ 256)
+Rule 51 (If dtype is an integer type it must be within valid ranges.)
+{v_1 : dtype} |= (v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5) ∨ (v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 11) ∨ v_1 = 13
 >>
-Rule 47 (If keepdims is false, then the shape of the resulting tensor will be different, given axis)
-{v_1 : tensor, v_2 : bool, v_3 : int} |= if v_2 = false then shape(v_1, v_3) = 0
+Rule 56 (The value of axis cannot be greater than the number of dimensions of the input tensor.)
+{v_1: tensor, v_2: int} |= v_2 < ndim(v_1)
 >>
-Rule 48 (If input tensor has integer dtype and axis is none, then min must be less than or equal to max.)
-{v_1 : tensor, v_2 : str} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ v_2 = "none" then min(v_1) ≤ max(v_1)
+Rule 58 (if the tensor dtype is integral, the returned dtype must be at least float32)
+{v_1: tensor, v_2: dtype} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then (v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 11)
 >>
-Rule 49 (If the tensor is complex, the square of min should not be greater than 1e+10)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) * min(v_1) ≤ 1e+10
+Rule 59 (axis should not be out of bounds with negative indexing)
+{v_1: tensor, v_2: int} |= v_2 >= (0 - ndim(v_1))
 >>
-Rule 54 (if the tensor is complex, the square of min should not be greater than 1e+10 or the square of max should not be greater than 1e+10)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then (min(v_1) * min(v_1) ≤ 1e+10) ∨ (max(v_1) * max(v_1) ≤ 1e+10)
+Rule 60 (Ensure that the tensor has valid shape)
+{v_1: tensor} |= (ndim(v_1) >= 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
 >>
-Rule 55 (If axis is a tuple and a dimension is reduced, ensure it has a size bigger than 0)
-{v_1 : tensor, v_2 : tuple(int)} |= (∀i ∈ [0, v_2.len - 1] : shape(v_1, v_2[i]) > 0)
+Rule 62 (If the input tensor is complex, the output should also be complex)
+{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then (v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 11)
 >>
-Rule 56 (If keepdims is false and axis is an int and its value equals number of dimensions, it should be false)
-{v_1 : bool, v_2 : int, v_3 : tensor} |= if v_1 = false ∧ v_2 = ndim(v_3) then v_1 = false
+Rule 64 (axis should always be less than the total dimensions present in a tensor.)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) > v_2
 >>
-Rule 57 (If tensor and axis are the same type, shape must be equal)
-{v_1 : tensor, v_2 : tensor} |=  if dtype_(v_1) = dtype_(v_2) then shape(v_1,0) = shape(v_2,0)
+Rule 70 (If the input tensor does not have a floating type, the dtype needs to be specified.)
+{v_1: tensor, v_2 :dtype} |= if (dtype_(v_1) < 6 ) then (v_2 > 5)
 >>
-Rule 58 (Dtype tensor can be int or float or complex)
-{v_1 : tensor} |=  (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∨ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 72 (If the axis is a tuple, the elements should be less than ndim(v1).)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < ndim(v_1)
 >>
-Rule 59 (If there is an axis, max needs to be more than zero)
-{v_1 : int, v_2 : tensor} |= if v_1 > 0 then max(v_2) > 0
+Rule 73 (If axis is an integer and it's out of range, then it is not valid.)
+{v_1 : tensor, v_2 : int} |= (v_2 ≥ (0 - ndim(v_1))) ∧ (v_2 < ndim(v_1)) ∨ v_2 = -1
+>>
+Rule 74 (The axis cannot have a shape dimension of zero.)
+{v_1: tensor, v_2: int} |= if v_2 >= 0 then shape(v_1, v_2) > 0
+>>
+Rule 75 (If axis is None then the input needs to be flattened and the output becomes a scalar value.)
+{v_1: tensor, v_2: int} |= if v_2 = -1 then ndim(v_1) >= 0
+>>
+Rule 76 (If the tensor contains only nan values, and the dtype provided is not a float or complex type, then it will fail)
+{v_1: tensor, v_2: dtype} |= if (min(v_1) ≠ min(v_1)) then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 11)
+>>
+Rule 77 (if axis is a tuple and one of its values is out of range then raise an exception)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : (v_2[i] >= (0 - ndim(v_1))) ∧ (v_2[i] < ndim(v_1))
+>>
+Rule 78 (if the tensor only has NAN then the result will be NAN)
+{v_1 : tensor} |= if max(v_1) ≠ max(v_1) then true
+>>
+Rule 79 (if dtype is specified and it is integer, then it should be an integer-compatible dtype)
+{v_1: dtype} |= (v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5) ∨ (v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 11) ∨ v_1 = 13
+>>
+Rule 80 (if the keepdims is set to True, the dimensions of the tensor remains the same)
+{v_1: tensor, v_2: bool} |= if (v_2 = true) then ndim(v_1) > 0
+>>
+Rule 82 (the keepdims cannot be true if the dimensions are less than 1)
+{v_1 : tensor, v_2: bool} |= if ndim(v_1) < 1 then v_2 = false
+>>
+Rule 83 (The keepdims parameter cannot be true for a scalar input)
+{v_1: tensor, v_2: bool} |= if ndim(v_1) = 0 then v_2 = false
+>>
+Rule 86 (if all the tensor values are NAN then the output should be a NAN with the appropriate datatype)
+{v_1: tensor} |= if (max(v_1) ≠ max(v_1)) then (min(v_1) ≠ min(v_1))
+>>
+Rule 87 (if axis is none and keepdims is true then the output shape needs to be broadcastable to original shape)
+{v_1: tensor, v_2: bool, v_3: int} |= if (v_3 = -1) ∧ (v_2 = true) then (ndim(v_1) > 0)
+>>
+Rule 89 (if all the tensor values are NAN then the output should be a NAN with the appropriate datatype.)
+{v_1: tensor, v_2: dtype} |= if (max(v_1) ≠ max(v_1)) then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 11)
+>>
+Rule 90 (If the specified dtype is not a floating point or complex type, the function will raise a TypeError exception.)
+{v_1: tensor, v_2: dtype} |= if (dtype_(v_1) < 9) then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 11)
+>>
+Rule 91 (the input tensor cannot have negative shape dimensions)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+>>
+Rule 92 (if dtype is integral, it must be of at least the same size as the original)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) < 6 then (v_2 >= dtype_(v_1))
+>>
+Rule 93 (If axis is a tuple, then no two elements can have the same value)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i+1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+>>
+Rule 95 (if any shape dimension for a particular axis is zero, then mean along that axis will be NaN.)
+{v_1: tensor, v_2: int} |= if shape(v_1, v_2) = 0 then true
+>>
+Rule 96 (the axes specified should be lesser than or equal to the number of axes possible)
+{v_1: tensor, v_2: int} |= v_2 <= ndim(v_1)
+>>
+Rule 97 (ensure the axis value is a valid number)
+{v_1: int} |= v_1 >= -100 ∧ v_1 <= 100
+>>
+Rule 98 (If a tuple is provided as an axis value, no value in that tuple can be greater than ndim(v1)-1)
+{v_1: tensor, v_2: tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] <= ndim(v_1) - 1
+>>
+Rule 99 (If keepdims is set to True, then the output must have at least one dimension.)
+{v_1: tensor, v_2: bool} |= if (v_2 = true) then ndim(v_1) >= 1
+>>
+Rule 102 (The parameter dtype needs to be a valid dtype)
+{v_1: dtype} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 11 ∨ v_1 = 13
+>>
+Rule 103 (if a tuple is provided as an axis, the same axis can't be provided again)
+{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i+1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+>>
+Rule 104 (if the tensor dtype is complex then the dtype parameter should be complex, or allow complex types)
+{v_1: tensor, v_2: dtype} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then (v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 11)
+>>
+Rule 106 (if the specified axis is an integer value it should be within the range -ndim and ndim-1)
+{v_1: tensor, v_2: int} |= (v_2 >= (0 - ndim(v_1))) ∧ (v_2 <= (ndim(v_1) - 1))

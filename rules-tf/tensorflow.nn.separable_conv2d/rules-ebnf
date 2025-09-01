@@ -1,45 +1,66 @@
 >>
-Rule 1 (input and filters must be 4-dimensional tensors)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ ndim(v_3) = 4
+Rule 1 (strides must be a 1-D list of size 4)
+{v_1 : list(int)} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = 4
 >>
-Rule 2 (strides must be a 1-D tensor of size 4)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = 4
+Rule 2 (dilations must be a 1-D list of size 2)
+{v_1 : list(int)} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = 2
 >>
 Rule 3 (strides[0] and strides[3] must be 1)
-{v_1 : tensor} |= shape(v_1, 0) = 4 ∧ v_1[0] = 1 ∧ v_1[3] = 1
+{v_1 : list(int)} |= shape(v_1, 0) = 4 ∧ v_1[0] = 1 ∧ v_1[3] = 1
 >>
-Rule 5 (data_format must be either "NHWC" or "NCHW")
+Rule 4 (data_format must be "NHWC" or "NCHW")
 {v_1 : str} |= v_1 = "NHWC" ∨ v_1 = "NCHW"
 >>
-Rule 7 (dilations must be a 1-D tensor of size 2)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = 2
+Rule 7 (input must be a 4-D tensor)
+{v_1 : tensor} |= ndim(v_1) = 4
 >>
-Rule 10 (pointwise_filter shape[2] should match depthwise_filter shape[2] * shape[3])
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 2) = shape(v_2, 2) * shape(v_2, 3)
+Rule 10 (depthwise_filter shape check)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 2) = shape(v_2, 2)
 >>
-Rule 16 (if any value in dilations is greater than 1, then all values of strides must be 1)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 1 ∧ shape(v_1,0) = 2 ∧ (v_1[0] > 1 ∨ v_1[1] > 1)) then (ndim(v_2) = 1 ∧ shape(v_2, 0) = 4 ∧ v_2[0] = 1 ∧ v_2[1] = 1 ∧ v_2[2] = 1 ∧ v_2[3] = 1)
+Rule 11 (pointwise_filter shape check)
+{v_1 : tensor, v_2 : tensor, v_3: tensor} |= shape(v_1, 2) * shape(v_2, 3) = shape(v_3, 2)
 >>
-Rule 18 (depthwise_filter shape[2] should match input shape[3] when data_format is "NHWC", shape[0] and shape[3] must be 1)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NHWC" then shape(v_2, 2) = shape(v_1, 3) ∧ shape(v_2, 0) = 1 ∧ shape(v_2, 3) = 1
+Rule 12 (Explicit padding for NHWC must be a list of lists with correct dimensions)
+{v_1 : list(list(int)), v_2 : str} |= if v_2 = "NHWC" then (ndim(v_1) = 2 ∧ shape(v_1, 0) = 4 ∧ shape(v_1, 1) = 2)
 >>
-Rule 19 (depthwise_filter shape[2] should match input shape[1] when data_format is "NCHW", shape[0] and shape[1] must be 1)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NCHW" then shape(v_2, 2) = shape(v_1, 1) ∧ shape(v_2, 0) = 1 ∧ shape(v_2, 1) = 1
+Rule 13 (Explicit padding for NCHW must be a list of lists with correct dimensions)
+{v_1 : list(list(int)), v_2 : str} |= if v_2 = "NCHW" then (ndim(v_1) = 2 ∧ shape(v_1, 0) = 4 ∧ shape(v_1, 1) = 2)
 >>
-Rule 22 (padding is a list, it must have the correct shape depending on data_format)
-{v_1 : list(list(int)), v_2 : str} |= if v_2 = "NHWC" then (ndim(v_1) = 2 ∧ shape(v_1,0) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1,1) = 2) else if v_2 = "NCHW" then (ndim(v_1) = 2 ∧ shape(v_1,0) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1,1) = 2)
+Rule 15 (Strides dimension check, minimum size check)
+{v_1: list(int)} |= ndim(v_1) >= 1
 >>
-Rule 26 (dilations must be positive)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = 2 ∧ v_1[0] > 0 ∧ v_1[1] > 0
+Rule 20 (padding must be "SAME" or "VALID" or a list)
+{v_1 : str ⊎ list(int)} |= v_1 = "SAME" ∨ v_1 = "VALID" ∨ (v_1.len > 0)
 >>
-Rule 30 (pointwise_filter shape[0] and shape[1] must be 1)
-{v_1 : tensor} |= shape(v_1, 0) = 1 ∧ shape(v_1, 1) = 1
+Rule 31 (strides must be a list of integers)
+{v_1 : list(int)} |= ndim(v_1) = 1
 >>
-Rule 39 (channel_multiplier must be positive)
-{v_1 : tensor} |= shape(v_1, 3) > 0
+Rule 33 (strides[0] and strides[3] must be 1 when strides is a list of 4)
+{v_1 : list(int)} |= if shape(v_1, 0) = 4 then v_1[0] = 1 ∧ v_1[3] = 1
 >>
-Rule 44 (depthwise_filter shape[3] * pointwise_filter shape[3] should match input channels)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_1, 3) * shape(v_2, 3) = shape(v_3, 2)
+Rule 35 (padding must be "SAME" or "VALID" or a list)
+{v_1 : str ⊎ list(int)} |= v_1 = "SAME" ∨ v_1 = "VALID" ∨ ndim(v_1) > 0
 >>
-Rule 49 (depthwise_filter shape[3] should match channel_multiplier)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 3) = shape(v_2, 3)
+Rule 40 (depthwise_filter in_channels matches input in_channels when data_format is NHWC)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NHWC" then shape(v_1, 3) = shape(v_2, 2)
+>>
+Rule 41 (depthwise_filter in_channels matches input in_channels when data_format is NCHW)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NCHW" then shape(v_1, 1) = shape(v_2, 2)
+>>
+Rule 42 (pointwise_filter channel_multiplier * in_channels must match depthwise_filter out_channels)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 2) * shape(v_2, 3) = shape(v_1, 2)
+>>
+Rule 45 (strides must be a list of integers with at least one element)
+{v_1 : list(int)} |= ndim(v_1) = 1 ∧ v_1.len > 0
+>>
+Rule 47 (If strides is a list of 4, then strides[0] and strides[3] must be 1)
+{v_1 : list(int)} |= if v_1.len = 4 then v_1[0] = 1 ∧ v_1[3] = 1
+>>
+Rule 56 (pointwise_filter channel_multiplier * depthwise_filter in_channels must match pointwise_filter in_channels)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 3) * shape(v_2, 2) = shape(v_1, 2)
+>>
+Rule 70 (pointwise_filter channel_multiplier * depthwise_filter channel_multiplier must match pointwise_filter in_channels)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 3) * shape(v_2, 3) = shape(v_2, 2)
+>>
+Rule 126 (pointwise_filter channel_multiplier * depthwise_filter channel_multiplier must match pointwise_filter in_channels)
+{v_1 : tensor, v_2 : tensor} |= shape(v_2, 3) * shape(v_1, 3) = shape(v_2, 2)

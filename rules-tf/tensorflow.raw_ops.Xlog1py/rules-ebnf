@@ -1,78 +1,117 @@
 >>
-Rule 1 (x and y tensors must have the same dtype)
+Rule 1 (x's dtype must be half, bfloat16, float32, float64, complex64, or complex128 (represented by corresponding integer values))
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+>>
+Rule 2 (x and y must have the same dtype)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 2 (x tensor must be of a supported type)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 6
->>
-Rule 3 (y tensor must be of a supported type if x is not)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 6 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 6
->>
-Rule 4 (The shapes of x and y must be compatible)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 1)
->>
-Rule 5 (x and y tensors must have compatible shapes for broadcasting)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, ndim(v_2) - ndim(v_1) + i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, ndim(v_2) - ndim(v_1) + i) = 1) else if ndim(v_1) > ndim(v_2) then ∀i ∈ [0, ndim(v_2) - 1] : (shape(v_2, i) = shape(v_1, ndim(v_1) - ndim(v_2) + i) ∨ shape(v_2, i) = 1 ∨ shape(v_1, ndim(v_1) - ndim(v_2) + i) = 1) else ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
->>
-Rule 6 (The shape of x must be defined)
-{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 7 (y should not have NaN values)
-{v_2 : tensor} |= ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) ≥ 0
->>
-Rule 8 (If x is complex, then y must also be complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
->>
-Rule 9 (x tensor must have a defined number of dimensions)
+Rule 3 (x must be a tensor with dimension greater or equal to 1)
 {v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 10 (y tensor must have a defined number of dimensions)
-{v_2 : tensor} |= ndim(v_2) ≥ 1
+Rule 4 (x and y have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 11 (If x is bfloat16 then y must also be bfloat16)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6
+Rule 5 (shape of x is greater than 0 in all dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 12 (If x is float16 then y must also be float16)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7
+Rule 6 (x's dtype must be a valid floating point or complex type)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 13 (If x is float32 then y must also be float32)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = 8
+Rule 7 (If x is complex, then y cannot be int.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5)
 >>
-Rule 14 (If x is float64 then y must also be float64)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 then dtype_(v_2) = 9
+Rule 8 (x's dtype must be half, bfloat16, float32, float64, complex64, or complex128.)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 15 (If x is complex64 then y must also be complex64)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 10
+Rule 9 (If x is bfloat16 or half, then y must be also.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7) then dtype_(v_2) = dtype_(v_1)
 >>
-Rule 16 (If x is complex128 then y must also be complex128)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 11 then dtype_(v_2) = 11
+Rule 10 (If x is complex, then y cannot be bfloat16 or half.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) ≠ 6 ∧ dtype_(v_2) ≠ 7)
 >>
-Rule 17 (shape of x and y should be greater than 0)
-{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+Rule 11 (If x is float32 or float64, then y must be also.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then dtype_(v_2) = dtype_(v_1)
 >>
-Rule 18 (x must have positive shape)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 13 (If x is complex64 or complex128, then y must be also.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then dtype_(v_2) = dtype_(v_1)
 >>
-Rule 19 (y must have positive shape)
-{v_2 : tensor} |= ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+Rule 14 (If y is bfloat16 or half, then x must be also.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7) then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 20 (x and y tensors should have same rank if broadcasting is not used)
-{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 1) then true else ndim(v_1) = ndim(v_2)
+Rule 15 (If y is float32 or float64, then x must be also.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 21 (if x has zero shape then y should also have zero shape )
-{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then (∃j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) = 0)
+Rule 16 (If y is complex64 or complex128, then x must be also.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 24 (If x has zero shape, it must be of the allowed dtypes)
-{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 17 (If y is not bfloat16 or half, then x cannot be.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) ≠ 6 ∧ dtype_(v_2) ≠ 7) then (dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 7)
 >>
-Rule 25 (if any dimension of x or y is zero then dtypes must match if both are non-zero dimensions)
-{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∃j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) = 0) then true else dtype_(v_1) = dtype_(v_2)
+Rule 18 (If y is not float32 or float64, then x cannot be.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8) then (dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8)
 >>
-Rule 26 (x and y must be either both real or both complex)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9) ∨ (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (dtype_(v_2) = 10 ∨ dtype_(v_2) = 11)
+Rule 19 (If y is not complex64 or complex128, then x cannot be.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10) then (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10)
 >>
-Rule 27 (If x is a valid type, y must also be a valid type.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
+Rule 20 (Either both tensors are complex or neither are.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) = (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
 >>
-Rule 28 (If the rank of the tensors are different, at least one of them has to be broadcastable)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 1)
+Rule 21 (Either both tensors are bfloat16/half or neither are.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7) = (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7)
+>>
+Rule 22 (Either both tensors are float32/float64 or neither are.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) = (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 23 (The tensors x and y must have a rank of at least 0)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0
+>>
+Rule 24 (If x is not float32 or float64, and y is complex, then error)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 25 (If x is not bfloat16/half, and y is complex, then error)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7)
+>>
+Rule 26 (If x is not float32/float64, and y is complex, then error)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 29 (If x is not float32/float64, and y is complex, then error)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12)
+>>
+Rule 32 (If x is not bfloat16/half, and y is complex, then error)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (dtype_(v_1) < 6 ∨ dtype_(v_1) > 7)
+>>
+Rule 33 (If x is not float32/float64, and y is complex, then error)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (dtype_(v_1) < 7 ∨ dtype_(v_1) > 8)
+>>
+Rule 35 (If y is not complex64 or complex128, then x cannot be.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) < 9 ∨ dtype_(v_2) > 10) then (dtype_(v_1) < 9 ∨ dtype_(v_1) > 10)
+>>
+Rule 36 (Either both tensors are float or both tensors are complex.)
+{v_1 : tensor, v_2 : tensor} |= ((dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)) ∨ ((dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10))
+>>
+Rule 37 (Either both tensors are bfloat16/half, both are float32/float64 or both are complex.)
+{v_1 : tensor, v_2 : tensor} |= ((dtype_(v_1) = 6 ∨ dtype_(v_1) = 7) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7)) ∨ ((dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)) ∨ ((dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10))
+>>
+Rule 38 (The tensors x and y must have a rank of at least 1)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1
+>>
+Rule 39 (If y is not float32/float64, and x is complex, then error)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) < 7 ∨ dtype_(v_2) > 8)
+>>
+Rule 40 (If y is not bfloat16/half, and x is complex, then error)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) < 6 ∨ dtype_(v_2) > 7)
+>>
+Rule 49 (If y is not float32/float64, and x is complex, then error)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8)
+>>
+Rule 51 (Either both tensors are bfloat16/half, both are float32/float64 or both are complex.)
+{v_1 : tensor, v_2 : tensor} |= ((dtype_(v_1) = 6 ∨ dtype_(v_1) = 7) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7)) ∨ ((dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)) ∨ ((dtype_(v_1) ≥ 9) ∧ (dtype_(v_2) ≥ 9))
+>>
+Rule 53 (Either both tensors are float32/float64 or neither are bfloat16 or half.)
+{v_1 : tensor, v_2 : tensor} |= if ((dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)) then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) else (dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_2) ≠ 6 ∧ dtype_(v_2) ≠ 7)
+>>
+Rule 54 (If x is not float32/float64, and y is complex, then error)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≥ 9) then (dtype_(v_2) < 7 ∨ dtype_(v_2) > 8)
+>>
+Rule 56 (Either both tensors are float32/float64, or x isn't a complex number)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∧ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 )∨ (dtype_(v_1) < 9 ∨ dtype_(v_1) > 10)

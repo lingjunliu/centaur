@@ -1,84 +1,63 @@
 >>
-Rule 1 (Input tensor must be of type bfloat16, half, float32, or float64)
+Rule 1 (x must be a bfloat16, half, float32, or float64 tensor to avoid InvalidArgumentError)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 12
+>>
+Rule 2 (x must have a valid floating-point dtype)
 {v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 2 (Input tensor must have at least one element)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 3 (x must be a bfloat16, half, float32, or float64 tensor)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
 >>
-Rule 4 (Input tensor's dtype must be either float16, float32, or float64 if bfloat16 is not supported)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 6 (x's dtype must be in the allowed list)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 6
 >>
-Rule 5 (Shape of input tensor should not be an empty tuple)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 8 (The dtype of x should be bfloat16, half, float32, or float64 represented by indices 6, 7, 8, or 9 respectively)
+{v_1 : tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9)
 >>
-Rule 6 (Minimum value of tensor should be less than infinity)
-{v_1 : tensor} |= max(v_1) < 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
+Rule 19 (The input tensor x must have a valid dtype i.e., it is true only if x's dtype is one of the allowed dtypes )
+{v_1 : tensor, v_2: bool} |= v_2 = ((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9))
 >>
-Rule 7 (If the dtype is bfloat16, the implementation must support it.)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then true
+Rule 20 (Enforce allowed dtypes using a boolean flag calculated externally)
+{v_1 : tensor, v_2 : bool} |= v_2 = (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9)
 >>
-Rule 8 (Shape of the input must be within reasonable bounds to avoid overflow)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483647
+Rule 21 (x's dtype must be valid, and its number of dimensions must be positive.)
+{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9) ∧ ndim(v_1) > 0
 >>
-Rule 9 (Minimum value of tensor elements must be a number)
-{v_1 : tensor} |= min(v_1) > -10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
+Rule 22 (x's dtype must be valid, and have positive dimensions)
+{v_1 : tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∧ ∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) > 0
 >>
-Rule 10 (The number of dimensions of the input tensor must be less than or equal to 8)
-{v_1 : tensor} |= ndim(v_1) ≤ 8
+Rule 23 (x's dtype must be valid and x is not empty)
+{v_1 : tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∧ ∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0
 >>
-Rule 14 (Input tensor values shouldn't overflow during computation)
-{v_1 : tensor} |= max(v_1) < 3.4028235e+38 ∧ min(v_1) > -3.4028235e+38
+Rule 25 (x must have a valid dtype and a rank between 1 and 5 inclusive)
+{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9) ∧ (ndim(v_1) ≥ 1 ∧ ndim(v_1) ≤ 5)
 >>
-Rule 15 (Each dimension of the tensor should have a reasonable size to prevent memory issues.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000000
+Rule 26 (x's dtype must be a valid float and the last dimension of x must be greater than zero.)
+{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9) ∧ (if ndim(v_1) > 0 then shape(v_1, ndim(v_1) - 1) > 0)
 >>
-Rule 16 (If the tensor's dtype is float16, float32 or float64, its value should be inside range to avoid overflow)
-{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) > -3.4028235e+38 ∧ max(v_1) < 3.4028235e+38
+Rule 27 (x's dtype must be a permitted float and sum of shape must be positive)
+{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9) ∧ (if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0))
 >>
-Rule 18 (The tensor should have a valid number of dimensions)
-{v_1: tensor} |= ndim(v_1) >= 1 ∧ ndim(v_1) <= 8
+Rule 30 (Valid dtype for x)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then true else if dtype_(v_1) = 7 then true else if dtype_(v_1) = 8 then true else if dtype_(v_1) = 9 then true else false
 >>
-Rule 19 (Tensor can't have any dimension with size 0.)
-{v_1 : tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+Rule 31 (dtype check using nested if, ensuring tensor is non-empty)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0) else if dtype_(v_1) = 7 then (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0) else if dtype_(v_1) = 8 then (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0) else if dtype_(v_1) = 9 then (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0) else false
 >>
-Rule 20 (If the tensor's dtype is float16, its value should be inside range to avoid overflow)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > -65500.0 ∧ max(v_1) < 65500.0
+Rule 32 (Check if dtype is valid, requiring tensor to be at least 1D)
+{v_1 : tensor} |= if ndim(v_1) > 0 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9) else false
 >>
-Rule 24 (The product of the shape of the tensor should be less than a certain amount)
-{v_1 : tensor} |= if ndim(v_1) = 0 then 1 < 2000000000 else if ndim(v_1) = 1 then shape(v_1,0) < 2000000000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 2000000000 else if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 2000000000
+Rule 33 (dtype check with if and ndim check for zero-rank tensors)
+{v_1 : tensor} |= if ndim(v_1) = 0 then false else (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9)
 >>
-Rule 25 (If the tensor's dtype is bfloat16, its value should be inside range to avoid overflow)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > -3.39E+38 ∧ max(v_1) < 3.39E+38
+Rule 34 (Require a floating-point dtype and positive shape)
+{v_1 : tensor} |= if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9) then (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0) else false
 >>
-Rule 26 (The product of the shape of the tensor should be less than a certain amount, and each dimension should be non-zero)
-{v_1 : tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ if ndim(v_1) = 0 then 1 < 2000000000 else if ndim(v_1) = 1 then shape(v_1,0) < 2000000000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 2000000000 else if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 2000000000
+Rule 35 (Check that the tensor has a valid dtype and has at least one element in its shape)
+{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9) else false
 >>
-Rule 27 (The tensor dimension must be smaller than a threshold to avoid long running times)
-{v_1 : tensor} |= ndim(v_1) < 5
+Rule 36 (If the tensor exists, it must have a permitted floating point dtype)
+{v_1 : tensor} |= if ∃i ∈ [0, 0] : true then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9) else false
 >>
-Rule 29 (The product of the shape of the tensor should be less than a certain amount, and each dimension should be non-zero)
-{v_1 : tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ (if ndim(v_1) = 0 then 1 < 2000000000 else if ndim(v_1) = 1 then shape(v_1,0) < 2000000000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 2000000000 else if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 2000000000)
->>
-Rule 30 (If all elements of tensor are finite then the max and min of tensor should be a number and not +/- infinity)
-{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then max(v_1) ≠ 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0 ∧ min(v_1) ≠ -10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
->>
-Rule 31 (If the tensor's dtype is a floating type, its value should be inside range to avoid overflow)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > -3.39E+38 ∧ max(v_1) < 3.39E+38 else if dtype_(v_1) = 7 then min(v_1) > -3.4028235e+38 ∧ max(v_1) < 3.4028235e+38 else if dtype_(v_1) = 8 then min(v_1) > -1.7976931348623157e+308 ∧ max(v_1) < 1.7976931348623157e+308
->>
-Rule 35 (The maximum value of the tensor should be less than infinity, and the minimum value should be greater than negative infinity.)
-{v_1 : tensor} |= (if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then  max(v_1) < 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0 ∧ min(v_1) > -10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0)
->>
-Rule 36 (The tensor should be a vector or a matrix)
-{v_1: tensor} |= ndim(v_1) = 1 ∨ ndim(v_1) = 2
->>
-Rule 39 (The number of dimensions must not be greater than the maximum allowed value)
-{v_1 : tensor} |= ndim(v_1) < 6
->>
-Rule 40 (The tensor must have dimensions with a non-zero size and a number of elements within the allowed range)
-{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (if ndim(v_1) = 0 then 1 < 2000000000 else if ndim(v_1) = 1 then shape(v_1,0) < 2000000000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 2000000000 else if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 2000000000)
->>
-Rule 41 (If the tensor's dtype is a floating-point type, its values should be within the allowed range to avoid overflow and underflow.)
-{v_1 : tensor} |= (if dtype_(v_1) = 6 then min(v_1) > -3.39E+38 ∧ max(v_1) < 3.39E+38 else if dtype_(v_1) = 7 then min(v_1) > -3.4028235e+38 ∧ max(v_1) < 3.4028235e+38 else if dtype_(v_1) = 8 then min(v_1) > -1.7976931348623157e+308 ∧ max(v_1) < 1.7976931348623157e+308)
->>
-Rule 42 (The tensor's shape should not be excessively large to avoid performance issues.)
-{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1,0) * shape(v_1, ndim(v_1)-1) < 100000000 else shape(v_1,0) < 100000000
+Rule 37 (The tensor must have at least one dimension and a valid dtype.)
+{v_1 : tensor} |= if ndim(v_1) ≥ 1 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9) else false

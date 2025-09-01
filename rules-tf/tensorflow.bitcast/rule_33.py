@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The ratio between the size of output and input datatype must be an integer or 1. (Rule 33)
+# Complex output requires complex input, otherwise invalid argument error. (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(Or([And(i < (10 + 1), (v["arg1_dtype"] * i) == v["arg2_value"]) for i in range(6)])) if n else
-          Or([And(i < (10 + 1), (v["arg1_dtype"] * i) == v["arg2_value"]) for i in range(6)]))
+    s.add(Not(If((And(v["arg2_value"] > 8, v["arg2_value"] < 12)), (And(v["arg1_dtype"] > 8, v["arg1_dtype"] < 12)), True)) if n else
+          If((And(v["arg2_value"] > 8, v["arg2_value"] < 12)), (And(v["arg1_dtype"] > 8, v["arg1_dtype"] < 12)), True))
 )
 
 def rule_33_func(arg1, arg2, solver=None, neg=False):

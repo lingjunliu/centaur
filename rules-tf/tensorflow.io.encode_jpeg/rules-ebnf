@@ -1,123 +1,144 @@
 >>
-Rule 1 (image tensor must be of type uint8, corresponding to dtype index 5)
-{v_1 : tensor} |= dtype_(v_1) = 5
+Rule 1 (image tensor must have three dimensions)
+{image : tensor} |= ndim(image) = 3
 >>
-Rule 2 (image tensor must be 3-dimensional)
-{v_1 : tensor} |= ndim(v_1) = 3
+Rule 2 (image tensor must have uint8 type)
+{image : tensor} |= dtype_(image) = 5
 >>
-Rule 3 (quality must be between 0 and 100 inclusive)
-{v_1 : int} |= 0 ≤ v_1 ∧ v_1 ≤ 100
+Rule 3 (format string must be one of the allowed values)
+{format : str} |= format = "" ∨ format = "grayscale" ∨ format = "rgb"
 >>
-Rule 4 (density_unit must be either "in" or "cm")
-{v_1 : str} |= v_1 = "in" ∨ v_1 = "cm"
+Rule 4 (quality must be within the valid range)
+{quality : int} |= quality ≥ 0 ∧ quality ≤ 100
 >>
-Rule 5 (format must be one of "", "grayscale", or "rgb")
-{v_1 : str} |= v_1 = "" ∨ v_1 = "grayscale" ∨ v_1 = "rgb"
+Rule 5 (density_unit must be one of the allowed values)
+{density_unit : str} |= density_unit = "in" ∨ density_unit = "cm"
 >>
-Rule 6 (x_density must be a positive integer)
-{v_1 : int} |= v_1 > 0
+Rule 6 (if format is grayscale, the channels dimension of image must be 1)
+{image : tensor, format : str} |= if format = "grayscale" then shape(image, 2) = 1
 >>
-Rule 8 (If quality is greater than or equal to 90, then optimize_size must be false.)
-{v_1 : int, v_2 : bool} |= if v_1 ≥ 90 then v_2 = false
+Rule 7 (if format is rgb, the channels dimension of image must be 3)
+{image : tensor, format : str} |= if format = "rgb" then shape(image, 2) = 3
 >>
-Rule 9 (The product of the dimensions of the image tensor should be less than 1000000)
-{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 1000000
+Rule 8 (x_density must be greater than zero)
+{x_density : int} |= x_density > 0
 >>
-Rule 10 (image tensor dimensions must be greater than 0)
-{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+Rule 9 (y_density must be greater than zero)
+{y_density : int} |= y_density > 0
 >>
-Rule 11 (If format is "grayscale", then the channels dimension of the image tensor must be 1)
-{v_1 : tensor, v_2 : str} |= if v_2 = "grayscale" then shape(v_1, 2) = 1
+Rule 10 (The image should have positive height and width)
+{image : tensor} |= shape(image, 0) > 0 ∧ shape(image, 1) > 0
 >>
-Rule 12 (If format is "rgb", then the channels dimension of the image tensor must be 3)
-{v_1 : tensor, v_2 : str} |= if v_2 = "rgb" then shape(v_1, 2) = 3
+Rule 11 (Quality should not be negative)
+{quality : int} |= quality ≥ 0
 >>
-Rule 13 (xmp_metadata can be any string with length less than 1024)
-{v_1 : str} |= v_1.len < 1024
+Rule 12 (x_density should not be negative)
+{x_density : int} |= x_density ≥ 0
 >>
-Rule 15 (chroma_downsampling should only affect RGB or YUV images)
-{v_1 : bool, v_2 : str} |= if v_1 then (v_2 = "" ∨ v_2 = "rgb" ∨ v_2 = "grayscale")
+Rule 13 (y_density should not be negative)
+{y_density : int} |= y_density ≥ 0
 >>
-Rule 17 (If progressive is true, then optimize_size is recommended to be true too.)
-{v_1 : bool, v_2 : bool} |= if v_1 then v_2
+Rule 14 (If format is specified, it should be a valid string)
+{format : str} |= (format = "") ∨ (format = "grayscale") ∨ (format = "rgb")
 >>
-Rule 18 (progressive and optimize_size cannot be both true.)
-{v_1 : bool, v_2 : bool} |= (v_1 = false) ∨ (v_2 = false)
+Rule 21 (The product of x_density and y_density must be less than a reasonable value)
+{x_density : int, y_density : int} |= x_density * y_density < 1000000
 >>
-Rule 19 (If image tensor has 1 channel, format should be "" or "grayscale")
-{v_1 : tensor, v_2 : str} |= if shape(v_1, 2) = 1 then (v_2 = "" ∨ v_2 = "grayscale")
+Rule 22 (The sum of x_density and y_density must be less than a reasonable value)
+{x_density : int, y_density : int} |= x_density + y_density < 5000
 >>
-Rule 20 (If image tensor has 3 channel, format should be "", or "rgb")
-{v_1 : tensor, v_2 : str} |= if shape(v_1, 2) = 3 then (v_2 = "" ∨ v_2 = "rgb")
+Rule 23 (If density_unit is cm, both densities should be less than a reasonable limit)
+{density_unit : str, x_density : int, y_density : int} |= if density_unit = "cm" then x_density < 1000 ∧ y_density < 1000
 >>
-Rule 21 (If density_unit is "in", x_density and y_density should not be too small)
-{v_1 : str, v_2 : int, v_3 : int} |= if v_1 = "in" then (v_2 ≥ 100 ∧ v_3 ≥ 100)
+Rule 24 (If density_unit is in, both densities should be less than a reasonable limit)
+{density_unit : str, x_density : int, y_density : int} |= if density_unit = "in" then x_density < 2000 ∧ y_density < 2000
 >>
-Rule 22 (If xmp_metadata is not empty, its length should be smaller than 65536.)
-{v_1 : str} |= if v_1 ≠ "" then v_1.len < 65536
+Rule 25 (If the image has one channel, the format must be either empty or grayscale)
+{image : tensor, format : str} |= if shape(image, 2) = 1 then (format = "" ∨ format = "grayscale")
 >>
-Rule 23 (If density_unit is "cm", x_density and y_density should not be too small)
-{v_1 : str, v_2 : int, v_3 : int} |= if v_1 = "cm" then (v_2 ≥ 40 ∧ v_3 ≥ 40)
+Rule 26 (If the image has three channels, the format must be either empty or rgb)
+{image : tensor, format : str} |= if shape(image, 2) = 3 then (format = "" ∨ format = "rgb")
 >>
-Rule 24 (If progressive is enabled, the image dimensions should be at least 16x16)
-{v_1 : bool, v_2 : tensor} |= if v_1 then (shape(v_2, 0) ≥ 16 ∧ shape(v_2, 1) ≥ 16)
+Rule 27 (The image tensor must have a valid shape)
+{image : tensor} |= shape(image, 0) > 0 ∧ shape(image, 1) > 0 ∧ shape(image, 2) > 0
 >>
-Rule 25 (If xmp_metadata is provided, the image format should be rgb or grayscale)
-{v_1 : str, v_2 : str} |= if v_1 ≠ "" then (v_2 = "rgb" ∨ v_2 = "grayscale" ∨ v_2 = "")
+Rule 28 (If quality is specified, optimize_size should not be true)
+{quality : int, optimize_size : bool} |= if quality ≠ 95 then optimize_size = false
 >>
-Rule 26 (If the image tensor's channel is not 1 or 3, then the format should be specified.)
-{v_1 : tensor, v_2 : str} |= if shape(v_1, 2) ≠ 1 ∧ shape(v_1, 2) ≠ 3 then v_2 ≠ ""
+Rule 29 (If progressive is set to True, the quality should be greater than a minimum value, say 50)
+{progressive : bool, quality : int} |= if progressive = true then quality ≥ 50
 >>
-Rule 27 (x_density should not be greater than 5000)
-{v_1 : int} |= v_1 ≤ 5000
+Rule 30 (If xmp_metadata is not empty, its length should be less than a maximum allowed value, e.g., 65535)
+{xmp_metadata : str} |= if xmp_metadata ≠ "" then xmp_metadata.len < 65535
 >>
-Rule 29 (The dimensions of image tensor should be less than or equal to 2048 if optimize_size is true.)
-{v_1 : bool, v_2 : tensor} |= if v_1 then (shape(v_2, 0) ≤ 2048 ∧ shape(v_2, 1) ≤ 2048)
+Rule 33 (If image channels are 1, format must be "" or "grayscale", otherwise format must be "" or "rgb")
+{image : tensor, format : str} |= if shape(image, 2) = 1 then (format = "" ∨ format = "grayscale") else if shape(image, 2) ≠ 1 then (format = "" ∨ format = "rgb")
 >>
-Rule 30 (quality cannot be negative)
-{v_1: int} |= v_1 ≥ 0
+Rule 34 (If the image has a number of channels other than 1 or 3, the format must be empty)
+{image : tensor, format : str} |= if shape(image, 2) ≠ 1 ∧ shape(image, 2) ≠ 3 then format = ""
 >>
-Rule 31 (If the format is grayscale, the image data range should be between 0 and 255)
-{v_1: str, v_2: tensor} |= if v_1 = "grayscale" then (min(v_2) ≥ 0 ∧ max(v_2) ≤ 255)
+Rule 35 (If the image is not a 3D tensor, then the format should be an empty string.)
+{image : tensor, format : str} |= if ndim(image) ≠ 3 then format = ""
 >>
-Rule 32 (If quality is 100, then optimize_size should be true)
-{v_1: int, v_2: bool} |= if v_1 = 100 then v_2
+Rule 36 (Format must match image shape or be empty)
+{image : tensor, format : str} |= (ndim(image) = 3 ∧ shape(image, 2) = 1 ∧ (format = "" ∨ format = "grayscale")) ∨ (ndim(image) = 3 ∧ shape(image, 2) = 3 ∧ (format = "" ∨ format = "rgb")) ∨ (ndim(image) ≠ 3 ∧ format = "") ∨ (ndim(image) = 3 ∧ shape(image, 2) ≠ 1 ∧ shape(image, 2) ≠ 3 ∧ format = "")
 >>
-Rule 33 (If density_unit is "cm", then x_density and y_density should have same value.)
-{v_1: str, v_2: int, v_3: int} |= if v_1 = "cm" then v_2 = v_3
+Rule 37 (If format is grayscale, then image's channel must be 1, otherwise if format is rgb, then image's channel must be 3, otherwise format must be empty string)
+{image : tensor, format : str} |= (format = "grayscale" ∧ ndim(image) = 3 ∧ shape(image, 2) = 1) ∨ (format = "rgb" ∧ ndim(image) = 3 ∧ shape(image, 2) = 3) ∨ (format = "" ∧ ndim(image) = 3) ∨ (format = "" ∧ ndim(image) ≠ 3) ∨ (format = "" ∧ ndim(image) = 3 ∧ shape(image, 2) ≠ 1 ∧ shape(image, 2) ≠ 3)
 >>
-Rule 34 (If the format is rgb, the image data range for each channel should be between 0 and 255.)
-{v_1: str, v_2: tensor} |= if v_1 = "rgb" then (min(v_2) ≥ 0 ∧ max(v_2) ≤ 255)
+Rule 38 (If image is 3D, format should be either "", grayscale if channels is 1, rgb if channels is 3. If image is not 3D, format must be "")
+{image : tensor, format : str} |= (ndim(image) = 3 ∧ (if shape(image, 2) = 1 then format = "grayscale" ∨ format = "" else if shape(image, 2) = 3 then format = "rgb" ∨ format = "" else format = "")) ∨ (ndim(image) ≠ 3 ∧ format = "")
 >>
-Rule 35 (chroma_downsampling should be disabled if the image is grayscale)
-{v_1: bool, v_2: str} |= if v_2 = "grayscale" then v_1 = false
+Rule 39 (Image must be 3D if format is specified)
+{image : tensor, format : str} |= if format ≠ "" then ndim(image) = 3
 >>
-Rule 36 (If x_density and y_density are different, then density_unit must not be cm)
-{v_1: int, v_2: int, v_3: str} |= if v_1 ≠ v_2 then v_3 ≠ "cm"
+Rule 40 (If image is not uint8, the format must be empty string)
+{image : tensor, format : str} |= if dtype_(image) ≠ 5 then format = ""
 >>
-Rule 37 (If quality is less than 50, optimize_size should be set to false.)
-{v_1: int, v_2: bool} |= if v_1 < 50 then v_2 = false
+Rule 41 (If the image is uint8 and is 3D, then format should be "", "rgb", or "grayscale". Otherwise format must be "")
+{image : tensor, format : str} |= if (dtype_(image) = 5) ∧ (ndim(image) = 3) then (format = "" ∨ format = "rgb" ∨ format = "grayscale") else format = ""
 >>
-Rule 38 (If optimize_size is true, chroma_downsampling should also be set to true.)
-{v_1: bool, v_2: bool} |= if v_1 then v_2
+Rule 42 (Format and channels relationship with 3D tensor)
+{image : tensor, format : str} |= if ndim(image) = 3 then (if shape(image, 2) = 1 then (format = "" ∨ format = "grayscale") else if shape(image, 2) = 3 then (format = "" ∨ format = "rgb") else format = "") else format = ""
 >>
-Rule 39 (If quality is 0, then the progressive should be set to false.)
-{v_1: int, v_2: bool} |= if v_1 = 0 then v_2 = false
+Rule 43 (Relationship between image properties and format)
+{image : tensor, format : str} |= if dtype_(image) = 5 ∧ ndim(image) = 3 then (if shape(image, 2) = 1 then format = "grayscale" ∨ format = "" else if shape(image, 2) = 3 then format = "rgb" ∨ format = "" else format = "") else format = ""
 >>
-Rule 40 (If the image format is not specified (empty string), the number of channels in image tensor should be either 1 or 3.)
-{v_1: str, v_2: tensor} |= if v_1 = "" then (shape(v_2, 2) = 1 ∨ shape(v_2, 2) = 3)
+Rule 44 (Comprehensive check of image and format)
+{image : tensor, format : str} |= (dtype_(image) = 5 ∧ ndim(image) = 3 ∧ shape(image, 2) = 1 ∧ (format = "" ∨ format = "grayscale")) ∨ (dtype_(image) = 5 ∧ ndim(image) = 3 ∧ shape(image, 2) = 3 ∧ (format = "" ∨ format = "rgb")) ∨ (dtype_(image) = 5 ∧ ndim(image) = 3 ∧ shape(image, 2) ≠ 1 ∧ shape(image, 2) ≠ 3 ∧ format = "") ∨ (dtype_(image) ≠ 5 ∧ format = "") ∨ (dtype_(image) = 5 ∧ ndim(image) ≠ 3 ∧ format = "")
 >>
-Rule 41 (If progressive is true and quality is 100, optimize_size should be true.)
-{v_1: bool, v_2: int, v_3: bool} |= if v_1 ∧ (v_2 = 100) then v_3
+Rule 45 (Final Format Rule)
+{image : tensor, format : str} |= (dtype_(image) = 5 ∧ ndim(image) = 3 ∧ ((shape(image, 2) = 1 ∧ (format = "" ∨ format = "grayscale")) ∨ (shape(image, 2) = 3 ∧ (format = "" ∨ format = "rgb")) ∨ (shape(image, 2) ≠ 1 ∧ shape(image, 2) ≠ 3 ∧ format = ""))) ∨ (dtype_(image) ≠ 5 ∧ format = "") ∨ (ndim(image) ≠ 3 ∧ format = "")
 >>
-Rule 42 (If the density unit is 'in', and the x_density or y_density is not 300, then a warning message should be prompted to inform user.)
-{v_1: str, v_2: int, v_3: int} |= if v_1 = "in" then ((v_2 = 300) ∧ (v_3 = 300))
+Rule 46 (Ultimate Format Rule)
+{image : tensor, format : str} |= ((dtype_(image) = 5) ∧ (ndim(image) = 3) ∧ (((shape(image, 2) = 1) ∧ ((format = "") ∨ (format = "grayscale"))) ∨ ((shape(image, 2) = 3) ∧ ((format = "") ∨ (format = "rgb"))) ∨ ((shape(image, 2) ≠ 1) ∧ (shape(image, 2) ≠ 3) ∧ (format = "")))) ∨ ((dtype_(image) ≠ 5) ∧ (format = "")) ∨ ((ndim(image) ≠ 3) ∧ (format = ""))
 >>
-Rule 43 (density_unit should be either "in" or "cm", if x_density is not 300 or y_density is not 300.)
-{v_1 : int, v_2: int, v_3: str} |= if (v_1 ≠ 300) ∨ (v_2 ≠ 300) then (v_3 = "in" ∨ v_3 = "cm")
+Rule 47 (The most complete format validation rule)
+{image : tensor, format : str} |= ((dtype_(image) = 5) ∧ (ndim(image) = 3) ∧ (((shape(image, 2) = 1) ∧ ((format = "") ∨ (format = "grayscale"))) ∨ ((shape(image, 2) = 3) ∧ ((format = "") ∨ (format = "rgb"))) ∨ ((shape(image, 2) > 0 ∧ shape(image, 2) ≠ 1 ∧ shape(image, 2) ≠ 3) ∧ (format = "")))) ∨ ((dtype_(image) ≠ 5) ∧ (format = "")) ∨ ((ndim(image) < 3) ∧ (format = "")) ∨ ((ndim(image) > 3) ∧ (format = ""))
 >>
-Rule 44 (If chroma_downsampling is false, the image must have enough pixels)
-{v_1: bool, v_2: tensor} |= if v_1 = false then (shape(v_2, 0) ≥ 2 ∧ shape(v_2, 1) ≥ 2)
+Rule 48 (Image must be uint8 if format is specified)
+{image : tensor, format : str} |= if format ≠ "" then dtype_(image) = 5
 >>
-Rule 45 (The image tensor values should fall within [0, 255])
-{v_1: tensor} |= min(v_1) ≥ 0 ∧ max(v_1) ≤ 255
+Rule 49 (Final Rule - Dtype and Format Relationship)
+{image : tensor, format : str} |= if format ≠ "" ∨ format = "grayscale" ∨ format = "rgb" then dtype_(image) = 5
+>>
+Rule 50 (The Final Rule)
+{image : tensor, format : str} |= if (format = "grayscale" ∨ format = "rgb") then (dtype_(image) = 5) ∧ (ndim(image) = 3) else if format = "" then true else false
+>>
+Rule 51 (Final and Ultimate format Validation Rule)
+{image : tensor, format : str} |= if (format = "grayscale") then ((dtype_(image) = 5) ∧ (ndim(image) = 3) ∧ (shape(image, 2) = 1)) else if (format = "rgb") then ((dtype_(image) = 5) ∧ (ndim(image) = 3) ∧ (shape(image, 2) = 3)) else if format = "" then ((dtype_(image) = 5) ∧ (ndim(image) = 3)) ∨ ((dtype_(image) ≠ 5) ∨ (ndim(image) ≠ 3)) else false
+>>
+Rule 52 (The Final and Utmost Format Validation Rule)
+{image : tensor, format : str} |= ((format = "grayscale") ∧ (dtype_(image) = 5) ∧ (ndim(image) = 3) ∧ (shape(image, 2) = 1)) ∨ ((format = "rgb") ∧ (dtype_(image) = 5) ∧ (ndim(image) = 3) ∧ (shape(image, 2) = 3)) ∨ ((format = "") ∧ (((dtype_(image) = 5) ∧ (ndim(image) = 3)) ∨ ((dtype_(image) ≠ 5) ∨ (ndim(image) ≠ 3))))
+>>
+Rule 53 (The Actual Final and Utmost format Validation Rule)
+{image : tensor, format : str} |= ((format = "grayscale") ∧ (dtype_(image) = 5) ∧ (ndim(image) = 3) ∧ (shape(image, 2) = 1)) ∨ ((format = "rgb") ∧ (dtype_(image) = 5) ∧ (ndim(image) = 3) ∧ (shape(image, 2) = 3)) ∨ ((format = "") ∧ (((dtype_(image) = 5) ∧ (ndim(image) = 3) ∧ ((shape(image, 2) = 1) ∨ (shape(image, 2) = 3))) ∨ ((dtype_(image) ≠ 5) ∨ (ndim(image) ≠ 3))))
+>>
+Rule 55 (Another Attempt at The Final Rule)
+{image : tensor, format : str} |= if (format = "grayscale") then ((dtype_(image) = 5) ∧ (ndim(image) = 3) ∧ (shape(image, 2) = 1)) else if (format = "rgb") then ((dtype_(image) = 5) ∧ (ndim(image) = 3) ∧ (shape(image, 2) = 3)) else if (format = "") then ((dtype_(image) = 5) ∧ (ndim(image) = 3)) ∨ ((dtype_(image) ≠ 5) ∨ (ndim(image) ≠ 3 ∨ (∃i ∈ [0, ndim(image) - 1]: shape(image, i) = 0))) else false
+>>
+Rule 56 (Attempt to fix parse error - The Actual Final and Utmost format Validation Rule)
+{image : tensor, format : str} |= if (format = "grayscale") then ((dtype_(image) = 5) ∧ (ndim(image) = 3) ∧ (shape(image, 2) = 1)) else if (format = "rgb") then ((dtype_(image) = 5) ∧ (ndim(image) = 3) ∧ (shape(image, 2) = 3)) else if (format = "") then (((dtype_(image) = 5) ∧ (ndim(image) = 3)) ∨ ((dtype_(image) ≠ 5) ∨ (ndim(image) ≠ 3) ∨ (∃i ∈ [0, ndim(image) - 1] : shape(image, i) = 0))) else false
+>>
+Rule 58 (Attempt to fix parse error and be Final - The Actual Final and Utmost format Validation Rule)
+{image : tensor, format : str} |= if (format = "grayscale") then ((dtype_(image) = 5) ∧ (ndim(image) = 3) ∧ (shape(image, 2) = 1)) else if (format = "rgb") then ((dtype_(image) = 5) ∧ (ndim(image) = 3) ∧ (shape(image, 2) = 3)) else if (format = "") then (((dtype_(image) = 5) ∧ (ndim(image) = 3)) ∨ ((dtype_(image) ≠ 5) ∨ (ndim(image) ≠ 3 ∨ (∃i ∈ [0, shape(image,0) - 1] : shape(image,i) = 0)))) else false

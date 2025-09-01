@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If axis is none, then arrays must have same dtype. (Rule 15)
+# if axis is out of range, both tensors must be 1D (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg3_value"] == -100, v["arg1_dtype"] == v["arg2_dtype"], False)) if n else
-          If(v["arg3_value"] == -100, v["arg1_dtype"] == v["arg2_dtype"], False))
+    s.add(Not(If(Or(v["arg3_value"] < (0 - v["arg1_ndim"]), v["arg3_value"] >= v["arg1_ndim"]), And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 1), True)) if n else
+          If(Or(v["arg3_value"] < (0 - v["arg1_ndim"]), v["arg3_value"] >= v["arg1_ndim"]), And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 1), True))
 )
 
 def rule_15_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -28,19 +28,19 @@ def rule_15_func(arg1, arg2, arg3, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_ndim = Int('arg2_ndim')
         arg3_value = Int('arg3_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
         solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 15
-        rule_15(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_value': arg3_value})
+        rule_15(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_15(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_value': arg3['value']}, neg)
+        rule_15(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg3_value': arg3['value']}, neg)

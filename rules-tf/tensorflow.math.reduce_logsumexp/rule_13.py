@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The values in axis cannot be duplicated (Rule 13)
+# Axis values must be integers (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), And([Implies(j < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) != Select(v["arg1_values"], j)) for j in range(6)])) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_length"] - 1 + 1), And([Implies(j < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) != Select(v["arg1_values"], j)) for j in range(6)])) for i in range(6)]))
+    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) == Select(v["arg1_values"], i)) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) == Select(v["arg1_values"], i)) for i in range(6)]))
 )
 
 def rule_13_func(arg1, solver=None, neg=False):

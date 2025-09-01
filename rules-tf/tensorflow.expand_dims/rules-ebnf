@@ -1,180 +1,102 @@
 >>
-Rule 1 (axis must be within the valid range based on the input tensor's rank)
+Rule 1 (axis should be within the valid range based on the input tensor's number of dimensions)
 {v_1 : tensor, v_2 : int} |= -1 - ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1)
 >>
-Rule 2 (input tensor's rank should be greater than 0)
+Rule 3 (input tensor should not be empty, preventing ndim from being undefined)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 4 (check axis is non-negative)
-{v_2 : int} |= v_2 >= 0
+Rule 14 (axis must be an integer)
+{v_2 : int ⊎ float} |= if v_2 % 1 = 0 then true else false
 >>
-Rule 5 (input tensor shape must have positive elements.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 16 (axis must be smaller than some threshold)
+{v_2 : int} |= v_2 > -100
 >>
-Rule 7 (ensure the shape of input is within a limit)
-{v_1 : tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000
+Rule 18 (axis should not exceed the maximum allowed absolute value)
+{v_2 : int} |= v_2 > -100 ∧ v_2 < 100
 >>
-Rule 8 (axis is zero)
-{v_2 : int} |= v_2 = 0
+Rule 20 (axis should be within a reasonable range to avoid very large negative indices)
+{v_2 : int} |= v_2 > -1000
 >>
-Rule 9 (check tensor has a batch dimension)
-{v_1 : tensor} |= ndim(v_1) > 1
+Rule 23 (axis should be smaller than a threshold)
+{v_2 : int} |= v_2 < 1000
 >>
-Rule 10 (axis not equal to input dimension)
-{v_1 : tensor, v_2 : int} |= v_2 ≠ ndim(v_1)
+Rule 25 (Number of dimensions should be limited)
+{v_1 : tensor} |= ndim(v_1) < 10
 >>
-Rule 14 (check axis is non-negative)
-{v_2 : int} |= v_2 ≥ 0
+Rule 30 (The name should be short string)
+{v_3 : str} |= v_3.len < 20
 >>
-Rule 16 (validity of axis range)
-{v_1 : tensor, v_2 : int} |= (v_2 ≥ 0 ∧ v_2 ≤ ndim(v_1)) ∨ (v_2 < 0 ∧ v_2 ≥ (0 - ndim(v_1) - 1))
+Rule 32 (name value must be a valid string)
+{v_3 : str} |= v_3 = "none" ∨ v_3 = "valid" ∨ v_3 = "same"
 >>
-Rule 21 (axis equals the tensor's rank)
-{v_1 : tensor, v_2 : int} |= v_2 = ndim(v_1)
+Rule 33 (axis should be smaller than a certain maximum value)
+{v_2 : int} |= v_2 < 100
 >>
-Rule 22 (input tensor's data type is float32)
-{v_1 : tensor} |= dtype_(v_1) = 7
+Rule 36 (input tensor should not have too many dimensions)
+{v_1 : tensor} |= ndim(v_1) < 20
 >>
-Rule 23 (axis must be less than a constant value)
-{v_2 : int} |= v_2 < 10
+Rule 38 (name should not be too long)
+{v_3 : str} |= v_3.len < 50
 >>
-Rule 24 (input tensor has a maximum shape dimension)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = max(v_1)
+Rule 40 (The dimensionality of the input must be reasonable)
+{v_1 : tensor} |= ndim(v_1) < 30
 >>
-Rule 25 (input tensor's dtype is either int or float)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 41 (axis should be positive)
+{v_2 : int} |= v_2 > -1
 >>
-Rule 26 (axis is non-negative and less than 5)
-{v_2 : int} |= v_2 ≥ 0 ∧ v_2 < 5
+Rule 42 (The input tensor must have less than 32 dimensions for efficiency.)
+{v_1 : tensor} |= ndim(v_1) < 32
 >>
-Rule 27 (ensure that the axis is not too small)
-{v_2 : int} |= v_2 > -5
+Rule 43 (axis should be large enough to index in the tensor)
+{v_1 : tensor, v_2 : int} |= v_2 > (-1-ndim(v_1))
 >>
-Rule 28 (input tensor is not a scalar)
-{v_1 : tensor} |= ndim(v_1) ≠ 0
+Rule 44 (name must not be a long string)
+{v_3: str} |= v_3.len < 100
 >>
-Rule 29 (check tensor dtype is not a string)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
+Rule 45 (The axis value should be reasonable to avoid extreme negative values)
+{v_1 : tensor, v_2 : int} |= v_2 > (shape(v_1, 0)*-50)
 >>
-Rule 30 (axis can be -1 only if rank is > 0)
-{v_1: tensor, v_2 : int} |= if v_2 = -1 then ndim(v_1) > 0
+Rule 46 (tensor must have less than 6 dimensions)
+{v_1 : tensor} |= ndim(v_1) < 6
 >>
-Rule 31 (axis can be a smaller value based on tensor size)
-{v_1 : tensor, v_2 : int} |= v_2 < shape(v_1, 0) + 5
+Rule 47 (axis must be small enough in absolute value, given a reasonable rank)
+{v_2 : int} |= v_2 > -500 ∧ v_2 < 500
 >>
-Rule 32 (If input is a vector, axis is 0 or 1)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then (v_2 = 0 ∨ v_2 = 1)
+Rule 49 (axis value should be reasonable and not cause overflows)
+{v_2 : int} |= v_2 > -1000 ∧ v_2 < 1000
 >>
-Rule 33 (if the tensor is 2D, the axis should not be equal to both 0 and 1 at the same time)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then v_2 ≠ 0 ∨ v_2 ≠ 1
+Rule 55 (The axis value must be limited)
+{v_2 : int} |= v_2 > -50 ∧ v_2 < 50
 >>
-Rule 34 (If axis is negative, the tensor rank must be less than 5)
-{v_1 : tensor, v_2 : int} |= if v_2 < 0 then ndim(v_1) < 5
+Rule 57 (The axis must be of some practical magnitude)
+{v_2: int} |= v_2 > -50 ∧ v_2 < 50
 >>
-Rule 35 (axis is valid only for int32 and float32)
-{v_1 : tensor, v_2 : int} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 7) ∧ v_2 ≥ (0 - ndim(v_1) - 1) ∧ v_2 ≤ ndim(v_1)
+Rule 61 (magnitude of axis should be small to avoid potential errors related to number of dimensions)
+{v_2: int} |= v_2 > -100 ∧ v_2 < 100
 >>
-Rule 36 (axis cannot be larger than a limit when the tensor rank is fixed)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 then v_2 < 4
+Rule 63 (name parameter value should not be too long)
+{v_3: str} |= v_3.len < 50
 >>
-Rule 37 (the tensor should have at least two elements)
-{v_1 : tensor} |= shape(v_1,0) > 1 ∨ shape(v_1,1) > 1
+Rule 64 (Axis must fall in specific range)
+{v_1 : tensor, v_2 : int} |= -1 - ndim(v_1) <= v_2 ∧ v_2 <= ndim(v_1)
 >>
-Rule 38 (check if axis is within a specified range when rank is fixed)
-{v_1: tensor, v_2: int} |= if ndim(v_1) = 4 then v_2 > -6 ∧ v_2 < 5
+Rule 76 (Axis must not be so large)
+{v_2 : int} |= v_2 < 50
 >>
-Rule 39 (axis must not equal a specific negative value)
-{v_2 : int} |= v_2 ≠ -10
+Rule 84 (Valid axis range)
+{v_1: tensor, v_2: int} |= -1 - ndim(v_1) <= v_2 ∧ v_2 <= ndim(v_1)
 >>
-Rule 40 (if axis is -1 then dtype is floating point)
-{v_1: tensor, v_2: int} |= if v_2 = -1 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+Rule 86 (The Name parameter should be short.)
+{v_3: str} |= v_3.len < 20
 >>
-Rule 41 (If the axis is equal to rank of the input tensor, all dimensions must be positive.)
-{v_1: tensor, v_2: int} |= if v_2 = ndim(v_1) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 89 (If axis is within the valid range, its number of dimensions has to be positive)
+{v_1: tensor, v_2: int} |= -1 - ndim(v_1) <= v_2 ∧ v_2 <= ndim(v_1) ∧ ndim(v_1) > 0
 >>
-Rule 42 (if axis equals -1 then min value of tensor must be less than max)
-{v_1: tensor, v_2: int} |= if v_2 = -1 then min(v_1) < max(v_1)
+Rule 91 (if name parameter present, avoid using special characters.)
+{v_3:str} |= v_3 ≠ "" ∧  ∀i ∈ [0, v_3.len - 1] : v_3[i] ≠ "/" ∧ v_3[i] ≠ ":" ∧ v_3[i] ≠ "*" ∧ v_3[i] ≠ "?" ∧ v_3[i] ≠ "<" ∧ v_3[i] ≠ ">" ∧ v_3[i] ≠ "|" ∧ v_3[i] ≠ "="
 >>
-Rule 43 (if tensor's dtype is bool, axis should be 0)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 0 then v_2 = 0
+Rule 94 (name must be a valid string value)
+{v_3: str} |= v_3 = "none" ∨ v_3 = "sum" ∨ v_3 = "max" ∨ v_3 = "min" ∨ v_3 = "prod" ∨ v_3 = "relu" ∨ v_3 = "tanh" ∨ v_3 = "sigmoid" ∨ v_3 = "softmax" ∨ v_3 = "elu" ∨ v_3 = "selu" ∨ v_3 = "gelu" ∨ v_3 = "swish" ∨ v_3 = "softplus" ∨ v_3 = "linear" ∨ v_3 = "valid" ∨ v_3 = "same" ∨ v_3 = "causal" ∨ v_3 = "channels_last" ∨ v_3 = "channels_first"
 >>
-Rule 44 (check that if the shape dimension is large, that dtype is double)
-{v_1: tensor} |= if shape(v_1, 0) > 1000 then dtype_(v_1) = 8
->>
-Rule 45 (if rank is zero then axis is always 0)
-{v_1: tensor, v_2: int} |= if ndim(v_1) = 0 then v_2 = 0
->>
-Rule 46 (dtype of tensor should not be string when shape is greater than zero)
-{v_1: tensor} |= if shape(v_1, 0) > 0 then dtype_(v_1) ≠ 11
->>
-Rule 47 (if rank is 1 then shape must be greater than constant)
-{v_1: tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 5
->>
-Rule 48 (check the minimum value of tensor is less than a const value)
-{v_1: tensor} |= min(v_1) < 100
->>
-Rule 49 (check tensor has specific dimensions)
-{v_1 : tensor} |= ndim(v_1) = 2 ∨ ndim(v_1) = 3
->>
-Rule 50 (the shape of tensor at axis = 0 should not be zero)
-{v_1 : tensor} |= shape(v_1, 0) ≠ 0
->>
-Rule 51 (If axis is zero the input tensor can not have only one shape)
-{v_1 : tensor, v_2 : int} |= if v_2 = 0 then ndim(v_1) ≠ 1
->>
-Rule 53 (if the dtype is not valid, then axis should be 0)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) > 10 then v_2 = 0
->>
-Rule 54 (dtype should be int or axis should be zero)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 3 then true else v_2 = 0
->>
-Rule 55 (check all shapes are less than 100 when a specific axis is selected)
-{v_1 : tensor, v_2 : int} |= if v_2 = 1 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 100
->>
-Rule 56 (If axis is within range of ranks, then tensor should not have only one dimension)
-{v_1: tensor, v_2: int} |= if v_2 > -1 - ndim(v_1) ∧ v_2 < ndim(v_1) + 1 then ndim(v_1) ≠ 1
->>
-Rule 57 (dtype should be bool when minimum value is equal to maximum value of tensor)
-{v_1: tensor} |= if min(v_1) = max(v_1) then dtype_(v_1) = 0
->>
-Rule 58 (axis has to be zero, if tensor has specific dtype and rank.)
-{v_1: tensor, v_2: int} |= if ndim(v_1) = 1 ∧ dtype_(v_1) = 11 then v_2 = 0
->>
-Rule 59 (tensor data type should not be complex when axis has zero value)
-{v_1 : tensor, v_2 : int} |= if v_2 = 0 then dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
->>
-Rule 60 (check that rank should not be equal to axis)
-{v_1: tensor, v_2: int} |= if v_2 = ndim(v_1) then ndim(v_1) < 5
->>
-Rule 62 (input tensor's shape along axis must be greater than specific value)
-{v_1 : tensor, v_2 : int} |= if v_2 < ndim(v_1) then shape(v_1, v_2) > 3
->>
-Rule 71 (The tensor cannot have ndim equals to constant 6)
-{v_1 : tensor} |= ndim(v_1) ≠ 6
->>
-Rule 73 (dtype should be int32)
-{v_1 : tensor} |= dtype_(v_1) = 3
->>
-Rule 74 (check all shapes are positive)
-{v_1 : tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 75 (If axis is within range of ranks, then tensor should be more than 2 dimension)
-{v_1: tensor, v_2: int} |= if v_2 > -1 - ndim(v_1) ∧ v_2 < ndim(v_1) + 1 then ndim(v_1) > 2
->>
-Rule 76 (check that min value is greater than constant )
-{v_1: tensor} |= min(v_1) > 5
->>
-Rule 77 (check if dimension along axis is equal to constant)
-{v_1 : tensor, v_2 : int} |= if v_2 < ndim(v_1) then shape(v_1, v_2) = 10
->>
-Rule 78 (tensor data type should not be complex)
-{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
->>
-Rule 79 (check that rank should be less than some value)
-{v_1: tensor} |= ndim(v_1) < 5
->>
-Rule 80 (tensor's dtype must be float)
-{v_1: tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
->>
-Rule 90 (if shape is within certain range then axis has to be a fixed number)
-{v_1: tensor, v_2: int} |= if shape(v_1, 0) > 0 ∧ shape(v_1, 0) < 5 then v_2 = 0
+Rule 96 (If an axis value is less than a specific value, then the error will occur)
+{v_2 : int} |= v_2 > -200

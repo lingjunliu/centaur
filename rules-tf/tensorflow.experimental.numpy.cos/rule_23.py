@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input is int64, it must be within representable bounds (Rule 23)
+# If the tensor's dtype is float32, then the maximum value of its elements should not exceed a certain limit (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 4, And(Select(v["arg1_range"], 0) >= -9223372036854775808, Select(v["arg1_range"], 1) <= 9223372036854775807), False)) if n else
-          If(v["arg1_dtype"] == 4, And(Select(v["arg1_range"], 0) >= -9223372036854775808, Select(v["arg1_range"], 1) <= 9223372036854775807), False))
+    s.add(Not(If(v["arg1_dtype"] == 7, Select(v["arg1_range"], 1) < 1e10, True)) if n else
+          If(v["arg1_dtype"] == 7, Select(v["arg1_range"], 1) < 1e10, True))
 )
 
 def rule_23_func(arg1, solver=None, neg=False):

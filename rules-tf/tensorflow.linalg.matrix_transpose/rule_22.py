@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if conjugate is true, then the tensor cannot be int (Rule 22)
+# If the input tensor has boolean values, conjugate should be false (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == True, Or(v["arg1_dtype"] < 1, v["arg1_dtype"] > 5), False)) if n else
-          If(v["arg2_value"] == True, Or(v["arg1_dtype"] < 1, v["arg1_dtype"] > 5), False))
+    s.add(Not(If(v["arg1_dtype"] == 0, v["arg2_value"] == False, True)) if n else
+          If(v["arg1_dtype"] == 0, v["arg2_value"] == False, True))
 )
 
 def rule_22_func(arg1, arg2, solver=None, neg=False):

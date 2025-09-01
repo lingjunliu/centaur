@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# For broadcasting v1 and v2's shapes, if v2 is missing dimensions prepend it (Rule 15)
+# If either shape is a scalar, ensure the other is also a scalar (ndim is 0 (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_ndim"] < v["arg1_ndim"], (And([Implies(i < (v["arg1_ndim"] - v["arg2_ndim"] - 1 + 1), True) for i in range(6)])), False)) if n else
-          If(v["arg2_ndim"] < v["arg1_ndim"], (And([Implies(i < (v["arg1_ndim"] - v["arg2_ndim"] - 1 + 1), True) for i in range(6)])), False))
+    s.add(Not(If(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0, If(v["arg2_ndim"] == 0, v["arg1_ndim"] == 0, True))) if n else
+          If(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0, If(v["arg2_ndim"] == 0, v["arg1_ndim"] == 0, True)))
 )
 
 def rule_15_func(arg1, arg2, solver=None, neg=False):

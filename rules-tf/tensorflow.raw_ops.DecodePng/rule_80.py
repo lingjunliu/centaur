@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# channels parameter can't be a very small number to avoid errors (Rule 80)
+# The channel information must be valid (Rule 80)
 
 rule_80 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] > -2) if n else
-          v["arg1_value"] > -2)
+    s.add(Not(If(v["arg1_value"] != 0, (Or(Or(v["arg1_value"] == 1, v["arg1_value"] == 3), v["arg1_value"] == 4)), True)) if n else
+          If(v["arg1_value"] != 0, (Or(Or(v["arg1_value"] == 1, v["arg1_value"] == 3), v["arg1_value"] == 4)), True))
 )
 
 def rule_80_func(arg1, solver=None, neg=False):

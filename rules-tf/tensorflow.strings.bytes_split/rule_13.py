@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Each element of the input tensor must be a valid string (Rule 13)
+# If input is a scalar string, the result will be a vector of bytes. (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), True) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_ndim"] - 1 + 1), True) for i in range(6)]))
+    s.add(Not(If(v["arg1_ndim"] == 0, True, True)) if n else
+          If(v["arg1_ndim"] == 0, True, True))
 )
 
 def rule_13_func(arg1, solver=None, neg=False):

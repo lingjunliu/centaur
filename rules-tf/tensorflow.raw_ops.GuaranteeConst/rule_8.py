@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# GuaranteeConst returns a tensor with the same shape as the input (Rule 8)
+# if the input tensor is 3D, the first dimension should be greater than 0 (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg1_shape"], i)) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg1_shape"], i)) for i in range(6)]))
+    s.add(Not(If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) > 0, True)) if n else
+          If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) > 0, True))
 )
 
 def rule_8_func(arg1, solver=None, neg=False):

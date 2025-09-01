@@ -1,63 +1,117 @@
 >>
-Rule 1 (input must be a tensor of string type)
-{v_1 : tensor} |= dtype_(v_1) = 11
+Rule 1 (input must be a string tensor)
+{input : tensor} |= dtype_(input) = 11
 >>
-Rule 2 (input tensor should have a non-zero number of dimensions)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 3 (input tensor must have at least one element)
+{input : tensor} |= ∃i ∈ [0, ndim(input) - 1] : shape(input, i) > 0
 >>
-Rule 3 (input tensor cannot have shape dimension equal to zero)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+Rule 4 (The shape of input tensor should not be too large (e.g., less than 1024))
+{input : tensor} |= ∀i ∈ [0, ndim(input) - 1] : shape(input, i) < 1024
 >>
-Rule 4 (input tensor has at least one element when dimensions are greater than 0)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 8 (input tensor's dimension should be less than or equal to 3)
+{input : tensor} |= ndim(input) ≤ 3
 >>
-Rule 8 (The input tensor should not contain excessively long strings to avoid potential memory issues.)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : shape(v_1, 0) < 10000
+Rule 16 (If input tensor has multiple dimensions, the last dimension must be smaller than 200)
+{input : tensor} |= if ndim(input) > 1 then shape(input, ndim(input) - 1) < 200
 >>
-Rule 10 (The total number of elements in the input tensor should not exceed a certain limit to prevent potential memory exhaustion)
-{v_1 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ min(v_1) < 1000000
+Rule 20 (The total number of elements in input tensor must be less than 10000)
+{input : tensor} |= if ndim(input) = 0 then true else if ndim(input) = 1 then shape(input, 0) < 10000 else if ndim(input) = 2 then shape(input, 0) * shape(input, 1) < 10000 else if ndim(input) = 3 then shape(input, 0) * shape(input, 1) * shape(input, 2) < 10000 else false
 >>
-Rule 11 (The total number of elements in the input tensor should not exceed a certain limit to prevent potential memory exhaustion)
-{v_1 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000)
+Rule 21 (input must be a string tensor and not empty)
+{input : tensor} |= dtype_(input) = 11 ∧ (∃i ∈ [0, ndim(input) - 1] : shape(input, i) > 0)
 >>
-Rule 12 (The input tensor should have a small number of dimensions.)
-{v_1 : tensor} |= ndim(v_1) < 5
+Rule 22 (The shape of input tensor should not be too large (e.g., less than 1024) or have too many elements (less than 10000))
+{input : tensor} |= (∀i ∈ [0, ndim(input) - 1] : shape(input, i) < 1024) ∧ (if ndim(input) = 0 then true else if ndim(input) = 1 then shape(input, 0) < 10000 else if ndim(input) = 2 then shape(input, 0) * shape(input, 1) < 10000 else if ndim(input) = 3 then shape(input, 0) * shape(input, 1) * shape(input, 2) < 10000 else false)
 >>
-Rule 14 (The input tensor should have a reasonable size for each string value.)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : shape(v_1, i) < 2048
+Rule 23 (The number of dimensions should not exceed 5)
+{input : tensor} |= ndim(input) ≤ 5
 >>
-Rule 15 (If the input tensor is a scalar (0-dimensional), then it must contain a valid base64 string.)
-{v_1 : tensor} |= if ndim(v_1) = 0 then true
+Rule 24 (If the input is 2D, the length of each string should be a multiple of 4, or a multiple of 4 + 2, or a multiple of 4 + 3.)
+{input : tensor} |= if ndim(input) = 2 then ∀i ∈ [0, shape(input, 0) - 1] : shape(input, 1) % 4 = 0 ∨ shape(input, 1) % 4 = 2 ∨ shape(input, 1) % 4 = 3
 >>
-Rule 18 (The last dimension of the input tensor should not be excessively large to avoid memory issues related to string handling.)
-{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, ndim(v_1) - 1) < 4096
+Rule 26 (Input tensor's shape should be within reasonable bounds to prevent excessive memory usage)
+{input : tensor} |= (∀i ∈ [0, ndim(input) - 1] : shape(input, i) < 4096) ∧ (if ndim(input) = 0 then true else if ndim(input) = 1 then shape(input, 0) < 10000 else if ndim(input) = 2 then shape(input, 0) * shape(input, 1) < 40000 else if ndim(input) = 3 then shape(input, 0) * shape(input, 1) * shape(input, 2) < 100000)
 >>
-Rule 19 (Each dimension of the input tensor has a maximum size to prevent overly large tensors and memory issues)
-{v_1 : tensor} |= ∀i ∈ [0, if ndim(v_1) > 0 then ndim(v_1) - 1 else 0] : shape(v_1, i) < 1000
+Rule 28 (If the input is 2D, the length of each string should be a multiple of 4 or have valid padding characters)
+{input : tensor} |= if ndim(input) = 2 then ∀i ∈ [0, shape(input, 0) - 1] : (shape(input, 1) % 4 = 0) ∨ (shape(input, 1) % 4 = 2) ∨ (shape(input, 1) % 4 = 3)
 >>
-Rule 22 (The input cannot be a list)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 29 (input must be a non-empty string tensor with a manageable number of elements)
+{input : tensor} |= dtype_(input) = 11 ∧ (∃i ∈ [0, ndim(input) - 1] : shape(input, i) > 0) ∧ ((∀i ∈ [0, ndim(input) - 1] : shape(input, i) < 4096) ∧ (if ndim(input) = 0 then true else if ndim(input) = 1 then shape(input, 0) < 10000 else if ndim(input) = 2 then shape(input, 0) * shape(input, 1) < 40000 else if ndim(input) = 3 then shape(input, 0) * shape(input, 1) * shape(input, 2) < 100000))
 >>
-Rule 23 (Web-safe base64 strings should have a length divisible by 4, before potentially removing padding)
-{v_1 : tensor} |= ∀i ∈ [0, if ndim(v_1) > 0 then shape(v_1, 0) - 1 else 0] : shape(v_1, i) % 4 = 0
+Rule 30 (If the input is 2D, the length of each string should be a multiple of 4 or have valid padding characters. If 1D, its length should not be zero after removing possible paddings)
+{input : tensor} |= if ndim(input) = 2 then ∀i ∈ [0, shape(input, 0) - 1] : (shape(input, 1) % 4 = 0) ∨ (shape(input, 1) % 4 = 2) ∨ (shape(input, 1) % 4 = 3) else if ndim(input) = 1 then shape(input, 0) > 0
 >>
-Rule 24 (The input tensor has at least one string value whose length is divisble by 4.)
-{v_1 : tensor} |= ∃i ∈ [0, if ndim(v_1) > 0 then shape(v_1, 0) - 1 else 0] : shape(v_1, i) % 4 = 0
+Rule 31 (If the input is a scalar string, its length should be greater than zero)
+{input : tensor} |= if ndim(input) = 0 then shape(input) > 0
 >>
-Rule 27 (The input tensor should be able to represent string data without truncation issues.)
-{v_1: tensor} |= min(v_1) > 0
+Rule 35 (If the last dimension exists (ndim>0) and is of size 1, ensure first character is a valid base64 character or padding)
+{input: tensor} |= if ndim(input) > 0 then if shape(input, ndim(input)-1) = 1 then (input[0] = "A") ∨ (input[0] = "B") ∨ (input[0] = "C") ∨ (input[0] = "D") ∨ (input[0] = "E") ∨ (input[0] = "F") ∨ (input[0] = "G") ∨ (input[0] = "H") ∨ (input[0] = "I") ∨ (input[0] = "J") ∨ (input[0] = "K") ∨ (input[0] = "L") ∨ (input[0] = "M") ∨ (input[0] = "N") ∨ (input[0] = "O") ∨ (input[0] = "P") ∨ (input[0] = "Q") ∨ (input[0] = "R") ∨ (input[0] = "S") ∨ (input[0] = "T") ∨ (input[0] = "U") ∨ (input[0] = "V") ∨ (input[0] = "W") ∨ (input[0] = "X") ∨ (input[0] = "Y") ∨ (input[0] = "Z") ∨ (input[0] = "a") ∨ (input[0] = "b") ∨ (input[0] = "c") ∨ (input[0] = "d") ∨ (input[0] = "e") ∨ (input[0] = "f") ∨ (input[0] = "g") ∨ (input[0] = "h") ∨ (input[0] = "i") ∨ (input[0] = "j") ∨ (input[0] = "k") ∨ (input[0] = "l") ∨ (input[0] = "m") ∨ (input[0] = "n") ∨ (input[0] = "o") ∨ (input[0] = "p") ∨ (input[0] = "q") ∨ (input[0] = "r") ∨ (input[0] = "s") ∨ (input[0] = "t") ∨ (input[0] = "u") ∨ (input[0] = "v") ∨ (input[0] = "w") ∨ (input[0] = "x") ∨ (input[0] = "y") ∨ (input[0] = "z") ∨ (input[0] = "0") ∨ (input[0] = "1") ∨ (input[0] = "2") ∨ (input[0] = "3") ∨ (input[0] = "4") ∨ (input[0] = "5") ∨ (input[0] = "6") ∨ (input[0] = "7") ∨ (input[0] = "8") ∨ (input[0] = "9") ∨ (input[0] = "-") ∨ (input[0] = "_") ∨ (input[0] = "=")
 >>
-Rule 28 (The input tensor should be non-empty.)
-{v_1 : tensor} |= ∀i ∈ [0, if ndim(v_1) > 0 then ndim(v_1) - 1 else 0] : shape(v_1, i) > 0
+Rule 37 (The total number of elements in input tensor must be less than or equal to a certain value.)
+{input: tensor} |= if ndim(input) = 0 then true else if ndim(input) = 1 then shape(input, 0) <= 65536 else if ndim(input) = 2 then shape(input, 0) * shape(input, 1) <= 65536 else if ndim(input) = 3 then shape(input, 0) * shape(input, 1) * shape(input, 2) <= 65536
 >>
-Rule 32 (If the number of string values is greater than 0, strings should follow web safe rule)
-{v_1 : tensor} |= ∃i ∈ [0, if ndim(v_1) > 0 then shape(v_1, 0) - 1 else 0] : shape(v_1, i) > 0
+Rule 38 (If input tensor has multiple dimensions, the size of each dimension must be a positive integer.)
+{input: tensor} |= if ndim(input) > 0 then  ∀i ∈ [0, ndim(input) - 1] : shape(input, i) > 0
 >>
-Rule 37 (The input tensor should have no more than 3 dimensions.)
-{v_1 : tensor} |= ndim(v_1) ≤ 3
+Rule 39 ( If the input is 2D, then the lengths of all strings must have the same lengths)
+{input: tensor} |= if ndim(input) = 2 then ∀i ∈ [1, shape(input, 0) - 1] : shape(input, 1) = shape(input, 1)
 >>
-Rule 39 (The input string tensor is not empty.)
-{v_1 : tensor} |= ∃i ∈ [0, if ndim(v_1) > 0 then ndim(v_1) - 1 else 0] : shape(v_1, i) > 0
+Rule 40 (Input tensor must be non-empty.)
+{input: tensor} |= ∃i ∈ [0, ndim(input) - 1] : shape(input, i) > 0
 >>
-Rule 40 (Input string lengths are within limits.)
-{v_1 : tensor} |= ∀i ∈ [0, if ndim(v_1) > 0 then shape(v_1, 0) - 1 else 0] : shape(v_1, i) < 4096
+Rule 44 (The input cannot have more than 3 dimensions)
+{input : tensor} |= ndim(input) <= 3
+>>
+Rule 46 (The total number of elements in input tensor should be reasonable)
+{input: tensor} |=  if ndim(input) = 0 then true else if ndim(input) = 1 then shape(input, 0) <= 65536 else if ndim(input) = 2 then shape(input, 0) * shape(input, 1) <= 65536 else if ndim(input) = 3 then shape(input, 0) * shape(input, 1) * shape(input, 2) <= 65536
+>>
+Rule 49 ( If the input is 2D, and the first dimension is larger than one, then the lengths of all strings in second dimension must have the same lengths)
+{input: tensor} |= if ndim(input) = 2 then if shape(input, 0) > 1 then ∀i ∈ [1, shape(input, 0) - 1] : shape(input, 1) = shape(input, 1)
+>>
+Rule 50 (Input tensor must be a string tensor and have positive dimensions)
+{input : tensor} |= dtype_(input) = 11 ∧ (if ndim(input) > 0 then  ∀i ∈ [0, ndim(input) - 1] : shape(input, i) > 0)
+>>
+Rule 54 (If the input is 2D, then the length of second dimenstion should be multiple of 4)
+{input: tensor} |= if ndim(input) = 2 then shape(input,1) % 4 = 0
+>>
+Rule 56 (The total number of elements in input tensor should be reasonable)
+{input: tensor} |=  if ndim(input) = 0 then true else if ndim(input) = 1 then shape(input, 0) <= 65536 else if ndim(input) = 2 then shape(input, 0) * shape(input, 1) <= 65536
+>>
+Rule 57 (The input cannot have more than 2 dimensions)
+{input : tensor} |= ndim(input) <= 2
+>>
+Rule 58 ( If the input is 2D, and the first dimension is larger than one, then the lengths of all strings in the second dimension must be a multiple of 4.)
+{input: tensor} |= if ndim(input) = 2 then if shape(input, 0) > 1 then ∀i ∈ [0, shape(input,0)-1] : shape(input,1) % 4 = 0
+>>
+Rule 63 (If the input is 1D, then all elements should be valid base64 characters)
+{input: tensor} |= if ndim(input) = 1 then ∀i ∈ [0, shape(input,0)-1] : (input[i] = "A") ∨ (input[i] = "B") ∨ (input[i] = "C") ∨ (input[i] = "D") ∨ (input[i] = "E") ∨ (input[i] = "F") ∨ (input[i] = "G") ∨ (input[i] = "H") ∨ (input[i] = "I") ∨ (input[i] = "J") ∨ (input[i] = "K") ∨ (input[i] = "L") ∨ (input[i] = "M") ∨ (input[i] = "N") ∨ (input[i] = "O") ∨ (input[i] = "P") ∨ (input[i] = "Q") ∨ (input[i] = "R") ∨ (input[i] = "S") ∨ (input[i] = "T") ∨ (input[i] = "U") ∨ (input[i] = "V") ∨ (input[i] = "W") ∨ (input[i] = "X") ∨ (input[i] = "Y") ∨ (input[i] = "Z") ∨ (input[i] = "a") ∨ (input[i] = "b") ∨ (input[i] = "c") ∨ (input[i] = "d") ∨ (input[i] = "e") ∨ (input[i] = "f") ∨ (input[i] = "g") ∨ (input[i] = "h") ∨ (input[i] = "i") ∨ (input[i] = "j") ∨ (input[i] = "k") ∨ (input[i] = "l") ∨ (input[i] = "m") ∨ (input[i] = "n") ∨ (input[i] = "o") ∨ (input[i] = "p") ∨ (input[i] = "q") ∨ (input[i] = "r") ∨ (input[i] = "s") ∨ (input[i] = "t") ∨ (input[i] = "u") ∨ (input[i] = "v") ∨ (input[i] = "w") ∨ (input[i] = "x") ∨ (input[i] = "y") ∨ (input[i] = "z") ∨ (input[i] = "0") ∨ (input[i] = "1") ∨ (input[i] = "2") ∨ (input[i] = "3") ∨ (input[i] = "4") ∨ (input[i] = "5") ∨ (input[i] = "6") ∨ (input[i] = "7") ∨ (input[i] = "8") ∨ (input[i] = "9") ∨ (input[i] = "-") ∨ (input[i] = "_") ∨ (input[i] = "=")
+>>
+Rule 65 (The total number of elements in input tensor should be reasonable)
+{input: tensor} |=  if ndim(input) = 0 then true else if ndim(input) = 1 then shape(input, 0) <= 65536
+>>
+Rule 66 (The input cannot have more than 1 dimensions)
+{input : tensor} |= ndim(input) <= 1
+>>
+Rule 73 (The total number of elements in input tensor should be reasonable and cannot be zero, if dimension is not zero)
+{input: tensor} |=  if ndim(input) = 0 then true else if ndim(input) = 1 then shape(input, 0) <= 65536 ∧ shape(input, 0) > 0
+>>
+Rule 75 (If the input is 1D, then all elements should be valid base64 characters or padding, allowing "-" and "_" as well. If the input is 0D, then it should be a string with a valid base64 character or padding)
+{input: tensor} |= if ndim(input) = 1 then ∀i ∈ [0, shape(input,0)-1] : (input[i] = "A") ∨ (input[i] = "B") ∨ (input[i] = "C") ∨ (input[i] = "D") ∨ (input[i] = "E") ∨ (input[i] = "F") ∨ (input[i] = "G") ∨ (input[i] = "H") ∨ (input[i] = "I") ∨ (input[i] = "J") ∨ (input[i] = "K") ∨ (input[i] = "L") ∨ (input[i] = "M") ∨ (input[i] = "N") ∨ (input[i] = "O") ∨ (input[i] = "P") ∨ (input[i] = "Q") ∨ (input[i] = "R") ∨ (input[i] = "S") ∨ (input[i] = "T") ∨ (input[i] = "U") ∨ (input[i] = "V") ∨ (input[i] = "W") ∨ (input[i] = "X") ∨ (input[i] = "Y") ∨ (input[i] = "Z") ∨ (input[i] = "a") ∨ (input[i] = "b") ∨ (input[i] = "c") ∨ (input[i] = "d") ∨ (input[i] = "e") ∨ (input[i] = "f") ∨ (input[i] = "g") ∨ (input[i] = "h") ∨ (input[i] = "i") ∨ (input[i] = "j") ∨ (input[i] = "k") ∨ (input[i] = "l") ∨ (input[i] = "m") ∨ (input[i] = "n") ∨ (input[i] = "o") ∨ (input[i] = "p") ∨ (input[i] = "q") ∨ (input[i] = "r") ∨ (input[i] = "s") ∨ (input[i] = "t") ∨ (input[i] = "u") ∨ (input[i] = "v") ∨ (input[i] = "w") ∨ (input[i] = "x") ∨ (input[i] = "y") ∨ (input[i] = "z") ∨ (input[i] = "0") ∨ (input[i] = "1") ∨ (input[i] = "2") ∨ (input[i] = "3") ∨ (input[i] = "4") ∨ (input[i] = "5") ∨ (input[i] = "6") ∨ (input[i] = "7") ∨ (input[i] = "8") ∨ (input[i] = "9") ∨ (input[i] = "-") ∨ (input[i] = "_") ∨ (input[i] = "=") else if ndim(input) = 0 then (input = "A") ∨ (input = "B") ∨ (input = "C") ∨ (input = "D") ∨ (input = "E") ∨ (input = "F") ∨ (input = "G") ∨ (input = "H") ∨ (input = "I") ∨ (input = "J") ∨ (input = "K") ∨ (input = "L") ∨ (input = "M") ∨ (input = "N") ∨ (input = "O") ∨ (input = "P") ∨ (input = "Q") ∨ (input = "R") ∨ (input = "S") ∨ (input = "T") ∨ (input = "U") ∨ (input = "V") ∨ (input = "W") ∨ (input = "X") ∨ (input = "Y") ∨ (input = "Z") ∨ (input = "a") ∨ (input = "b") ∨ (input = "c") ∨ (input = "d") ∨ (input = "e") ∨ (input = "f") ∨ (input[i] = "g") ∨ (input = "h") ∨ (input = "i") ∨ (input = "j") ∨ (input = "k") ∨ (input = "l") ∨ (input = "m") ∨ (input = "n") ∨ (input = "o") ∨ (input = "p") ∨ (input = "q") ∨ (input = "r") ∨ (input = "s") ∨ (input = "t") ∨ (input = "u") ∨ (input = "v") ∨ (input = "w") ∨ (input = "x") ∨ (input = "y") ∨ (input = "z") ∨ (input = "0") ∨ (input = "1") ∨ (input = "2") ∨ (input = "3") ∨ (input = "4") ∨ (input = "5") ∨ (input = "6") ∨ (input = "7") ∨ (input = "8") ∨ (input = "9") ∨ (input = "-") ∨ (input = "_") ∨ (input = "=")
+>>
+Rule 77 (The total number of elements in input tensor should be reasonable and not zero, if it's 1D)
+{input: tensor} |=  if ndim(input) = 0 then true else shape(input, 0) <= 65536 ∧ shape(input, 0) > 0
+>>
+Rule 79 (If the input is 1D, then all elements should be valid base64 characters or padding, allowing "-" and "_" as well. If the input is 0D, it should not be an empty string)
+{input: tensor} |= if ndim(input) = 1 then ∀i ∈ [0, shape(input,0)-1] : (input[i] = "A") ∨ (input[i] = "B") ∨ (input[i] = "C") ∨ (input[i] = "D") ∨ (input[i] = "E") ∨ (input[i] = "F") ∨ (input[i] = "G") ∨ (input[i] = "H") ∨ (input[i] = "I") ∨ (input[i] = "J") ∨ (input[i] = "K") ∨ (input[i] = "L") ∨ (input[i] = "M") ∨ (input[i] = "N") ∨ (input[i] = "O") ∨ (input[i] = "P") ∨ (input[i] = "Q") ∨ (input[i] = "R") ∨ (input[i] = "S") ∨ (input[i] = "T") ∨ (input[i] = "U") ∨ (input[i] = "V") ∨ (input[i] = "W") ∨ (input[i] = "X") ∨ (input[i] = "Y") ∨ (input[i] = "Z") ∨ (input[i] = "a") ∨ (input[i] = "b") ∨ (input[i] = "c") ∨ (input[i] = "d") ∨ (input[i] = "e") ∨ (input[i] = "f") ∨ (input[i] = "g") ∨ (input[i] = "h") ∨ (input[i] = "i") ∨ (input[i] = "j") ∨ (input[i] = "k") ∨ (input[i] = "l") ∨ (input[i] = "m") ∨ (input[i] = "n") ∨ (input[i] = "o") ∨ (input[i] = "p") ∨ (input[i] = "q") ∨ (input[i] = "r") ∨ (input[i] = "s") ∨ (input[i] = "t") ∨ (input[i] = "u") ∨ (input[i] = "v") ∨ (input[i] = "w") ∨ (input[i] = "x") ∨ (input[i] = "y") ∨ (input[i] = "z") ∨ (input[i] = "0") ∨ (input[i] = "1") ∨ (input[i] = "2") ∨ (input[i] = "3") ∨ (input[i] = "4") ∨ (input[i] = "5") ∨ (input[i] = "6") ∨ (input[i] = "7") ∨ (input[i] = "8") ∨ (input[i] = "9") ∨ (input[i] = "-") ∨ (input[i] = "_") ∨ (input[i] = "=") else if ndim(input) = 0 then input ≠ ""
+>>
+Rule 81 (The total number of elements in input tensor should be reasonable and the tensor should not be empty)
+{input: tensor} |= (if ndim(input) = 0 then true else shape(input, 0) <= 65536) ∧ (if ndim(input) > 0 then ∃i ∈ [0, ndim(input)-1] : shape(input,i) > 0)
+>>
+Rule 83 (If the input is 1D, then all elements should be valid base64 characters or padding, allowing "-" and "_" as well. if input is 0D, the string should not be empty and the length should not be greater than 256)
+{input: tensor} |= if ndim(input) = 1 then ∀i ∈ [0, shape(input,0)-1] : (input[i] = "A") ∨ (input[i] = "B") ∨ (input[i] = "C") ∨ (input[i] = "D") ∨ (input[i] = "E") ∨ (input[i] = "F") ∨ (input[i] = "G") ∨ (input[i] = "H") ∨ (input[i] = "I") ∨ (input[i] = "J") ∨ (input[i] = "K") ∨ (input[i] = "L") ∨ (input[i] = "M") ∨ (input[i] = "N") ∨ (input[i] = "O") ∨ (input[i] = "P") ∨ (input[i] = "Q") ∨ (input[i] = "R") ∨ (input[i] = "S") ∨ (input[i] = "T") ∨ (input[i] = "U") ∨ (input[i] = "V") ∨ (input[i] = "W") ∨ (input[i] = "X") ∨ (input[i] = "Y") ∨ (input[i] = "Z") ∨ (input[i] = "a") ∨ (input[i] = "b") ∨ (input[i] = "c") ∨ (input[i] = "d") ∨ (input[i] = "e") ∨ (input[i] = "f") ∨ (input[i] = "g") ∨ (input[i] = "h") ∨ (input[i] = "i") ∨ (input[i] = "j") ∨ (input[i] = "k") ∨ (input[i] = "l") ∨ (input[i] = "m") ∨ (input[i] = "n") ∨ (input[i] = "o") ∨ (input[i] = "p") ∨ (input[i] = "q") ∨ (input[i] = "r") ∨ (input[i] = "s") ∨ (input[i] = "t") ∨ (input[i] = "u") ∨ (input[i] = "v") ∨ (input[i] = "w") ∨ (input[i] = "x") ∨ (input[i] = "y") ∨ (input[i] = "z") ∨ (input[i] = "0") ∨ (input[i] = "1") ∨ (input[i] = "2") ∨ (input[i] = "3") ∨ (input[i] = "4") ∨ (input[i] = "5") ∨ (input[i] = "6") ∨ (input[i] = "7") ∨ (input[i] = "8") ∨ (input[i] = "9") ∨ (input[i] = "-") ∨ (input[i] = "_") ∨ (input[i] = "=") else if ndim(input) = 0 then input ≠ "" ∧ shape(input) <= 256
+>>
+Rule 85 (If the tensor is 1D, it should contain some elements, if 0D, then it is acceptable)
+{input: tensor} |= if ndim(input) = 1 then shape(input, 0) > 0
+>>
+Rule 88 (The shape/length of input cannot exceed 4096)
+{input: tensor} |= shape(input) <= 4096

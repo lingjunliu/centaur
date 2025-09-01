@@ -1,174 +1,210 @@
 >>
-Rule 1 (image_size must be a 1D tensor)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 1 (image_size must be a 1-D tensor)
+{image_size : tensor} |= ndim(image_size) = 1
 >>
-Rule 2 (image_size must have a valid dtype)
-{v_1 : tensor} |= 5 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 9
+Rule 2 (image_size's elements must be positive)
+{image_size : tensor} |= ∀i ∈ [0, shape(image_size, 0) - 1] : image_size[i] > 0
 >>
-Rule 3 (bounding_boxes must be a 3D tensor)
-{v_1 : tensor} |= ndim(v_1) = 3
+Rule 3 (image_size's dtype must be one of allowed types)
+{image_size : tensor} |= dtype_(image_size) = 6 ∨ dtype_(image_size) = 1 ∨ dtype_(image_size) = 2 ∨ dtype_(image_size) = 3 ∨ dtype_(image_size) = 4
 >>
-Rule 4 (bounding_boxes must have dtype float32)
-{v_1 : tensor} |= dtype_(v_1) = 7
+Rule 4 (bounding_boxes must be a 3-D tensor)
+{bounding_boxes : tensor} |= ndim(bounding_boxes) = 3
 >>
-Rule 5 (bounding_boxes shape is [batch, N, 4])
-{v_1 : tensor} |= shape(v_1, 2) = 4
+Rule 5 (bounding_boxes's shape must be valid)
+{bounding_boxes : tensor} |= shape(bounding_boxes, 2) = 4
 >>
-Rule 6 (min_object_covered must be a float)
-{v_1 : float} |= v_1 ≥ 0.0
+Rule 6 (bounding_boxes's dtype must be float32)
+{bounding_boxes : tensor} |= dtype_(bounding_boxes) = 7
 >>
-Rule 8 (seed must have length 2)
-{v_1 : tensor} |= shape(v_1, 0) = 2
+Rule 7 (min_object_covered must be non-negative)
+{min_object_covered : tensor} |= min(min_object_covered) ≥ 0.0
 >>
-Rule 9 (seed must have a valid dtype)
-{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 8 (min_object_covered's dtype must be float32)
+{min_object_covered : tensor} |= dtype_(min_object_covered) = 7
 >>
-Rule 10 (aspect_ratio_range must be a list of floats of length 2)
-{v_1 : list(float)} |= shape(v_1,0) = 2
+Rule 9 (seed must be a 1-D tensor)
+{seed : tensor} |= ndim(seed) = 1
 >>
-Rule 11 (aspect_ratio_range values must be positive)
+Rule 10 (seed's shape must be [2])
+{seed : tensor} |= shape(seed, 0) = 2
+>>
+Rule 11 (seed's dtype must be int32 or int64)
+{seed : tensor} |= dtype_(seed) = 3 ∨ dtype_(seed) = 4
+>>
+Rule 12 (aspect_ratio_range must be a list of two floats)
+{v_1 : list(float)} |= v_1.len = 2
+>>
+Rule 13 (aspect_ratio_range's elements must be positive)
 {v_1 : list(float)} |= v_1[0] > 0 ∧ v_1[1] > 0
 >>
-Rule 13 (area_range values must be between 0 and 1)
+Rule 15 (area_range's elements must be between 0 and 1)
 {v_1 : list(float)} |= v_1[0] ≥ 0 ∧ v_1[0] ≤ 1 ∧ v_1[1] ≥ 0 ∧ v_1[1] ≤ 1
 >>
-Rule 14 (max_attempts must be a positive integer)
-{v_1 : int} |= v_1 > 0
+Rule 16 (max_attempts must be a positive integer)
+{max_attempts : int} |= max_attempts > 0
 >>
-Rule 16 (height, width and channels must be non-negative)
-{v_1 : tensor} |= shape(v_1, 0) ≥ 0 ∧ shape(v_1, 1) ≥ 0 ∧ shape(v_1, 2) ≥ 0
+Rule 17 (use_image_if_no_bounding_boxes must be a boolean)
+{use_image_if_no_bounding_boxes : bool} |= use_image_if_no_bounding_boxes = true ∨ use_image_if_no_bounding_boxes = false
 >>
-Rule 17 (image_size must be a 1D tensor with at least one element)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) > 0
+Rule 18 (image_size and begin must have same dtype)
+{image_size : tensor, v_1 : tensor} |= dtype_(image_size) = dtype_(v_1)
 >>
-Rule 21 (bounding_boxes shape is [batch, N, 4], batch must be non-negative)
-{v_1 : tensor} |= shape(v_1, 2) = 4 ∧ shape(v_1, 0) ≥ 0
+Rule 21 (aspect_ratio_range[0] should be smaller than aspect_ratio_range[1])
+{v_1 : list(float)} |= v_1[0] ≤ v_1[1]
 >>
-Rule 27 (aspect_ratio_range values must be positive)
-{v_1 : list(float)} |= if v_1.len = 2 then v_1[0] > 0 ∧ v_1[1] > 0
+Rule 23 (If use_image_if_no_bounding_boxes is true, bounding_boxes can have shape [0,0,4])
+{use_image_if_no_bounding_boxes : bool, bounding_boxes: tensor} |= if use_image_if_no_bounding_boxes = true then shape(bounding_boxes, 0) = 0 ∧ shape(bounding_boxes, 1) = 0
 >>
-Rule 29 (area_range values must be between 0 and 1)
-{v_1 : list(float)} |= if v_1.len = 2 then v_1[0] ≥ 0 ∧ v_1[0] ≤ 1 ∧ v_1[1] ≥ 0 ∧ v_1[1] ≤ 1
+Rule 24 (image_size's elements must be of consistent size)
+{image_size : tensor} |= if shape(image_size, 0) = 3 then true else if shape(image_size, 0) = 2 then true else false
 >>
-Rule 31 (use_image_if_no_bounding_boxes must be a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 29 (aspect_ratio_range[0] must be smaller than aspect_ratio_range[1])
+{aspect_ratio_range: list(float)} |= aspect_ratio_range[0] ≤ aspect_ratio_range[1]
 >>
-Rule 32 (height, width and channels must be non-negative)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) ≥ 0
+Rule 30 (area_range values should be within valid range)
+{v_1 : list(float)} |= v_1[0] ≥ 0.0 ∧ v_1[0] ≤ 1.0 ∧ v_1[1] ≥ 0.0 ∧ v_1[1] ≤ 1.0
 >>
-Rule 33 (The first element of aspect_ratio_range list should be smaller than the second one.)
-{v_1 : list(float)} |= if v_1.len = 2 then v_1[0] ≤ v_1[1]
+Rule 31 (area_range[0] should be smaller than area_range[1])
+{area_range: list(float)} |= area_range[0] ≤ area_range[1]
 >>
-Rule 34 (image_size shape values must be valid)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 32 (min_object_covered should be between 0 and 1)
+{min_object_covered : tensor} |= min(min_object_covered) ≥ 0.0 ∧ max(min_object_covered) ≤ 1.0
 >>
-Rule 35 (bounding_boxes shape[0] must be non-negative integer)
-{v_1 : tensor} |= shape(v_1, 0) ≥ 0
+Rule 33 (aspect_ratio_range values should be positive)
+{v_1 : list(float)} |= v_1[0] > 0.0 ∧ v_1[1] > 0.0
 >>
-Rule 36 (The min_object_covered must be smaller or equal than 1.0)
-{v_1 : float} |= v_1 ≤ 1.0
+Rule 34 (If use_image_if_no_bounding_boxes is false, bounding_boxes shape[0] must be greater than 0)
+{use_image_if_no_bounding_boxes : bool, bounding_boxes: tensor} |= if use_image_if_no_bounding_boxes = false then shape(bounding_boxes, 0) > 0
 >>
-Rule 37 (max_attempts should be less than a reasonable upper bound)
-{v_1 : int} |= v_1 < 1000
+Rule 38 (If aspect_ratio_range[0] > aspect_ratio_range[1] max_attempts should be a big number)
+{aspect_ratio_range: list(float), max_attempts : int} |= if aspect_ratio_range[0] > aspect_ratio_range[1] then max_attempts > 1000
 >>
-Rule 38 (Seed tensor must be one of the required data types)
-{v_1 : tensor} |= if dtype_(v_1) = 3 then true else if dtype_(v_1) = 4 then true else false
+Rule 39 (If area_range[0] > area_range[1] max_attempts should be a big number)
+{area_range: list(float), max_attempts : int} |= if area_range[0] > area_range[1] then max_attempts > 1000
 >>
-Rule 39 (Check if aspect_ratio_range is sorted)
-{v_1 : list(float)} |= if v_1.len = 2 then v_1[0] <= v_1[1]
+Rule 41 (image_size must have at least 2 dimensions)
+{image_size : tensor} |= shape(image_size, 0) ≥ 2
 >>
-Rule 40 (If use_image_if_no_bounding_boxes is true then bounding_boxes must be empty)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then shape(v_2, 1) = 0
+Rule 44 (min_object_covered must be a scalar tensor)
+{min_object_covered: tensor} |= ndim(min_object_covered) = 0
 >>
-Rule 41 (image_size must have 3 dimensions [height, width, channels] if no bounding boxes supplied)
-{v_1: tensor, v_2: bool} |= if v_2 = true then ndim(v_1) = 1 ∧ shape(v_1, 0) = 3
+Rule 45 (min_object_covered should be a scalar value)
+{min_object_covered : tensor} |= ndim(min_object_covered) = 0
 >>
-Rule 51 (If bounding_boxes is not empty, its values must be between 0 and 1)
-{v_1: tensor} |= if shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 then min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
+Rule 46 (area_range values should be within 0 and 1)
+{area_range: list(float)} |= area_range[0] ≥ 0.0 ∧ area_range[0] ≤ 1.0 ∧ area_range[1] ≥ 0.0 ∧ area_range[1] ≤ 1.0
 >>
-Rule 52 (If aspect_ratio_range list has more then 0 elements then min value should be positive)
-{v_1: list(float)} |= if v_1.len > 0 then min(v_1) > 0
+Rule 47 (aspect_ratio_range must have length 2)
+{aspect_ratio_range : list(float)} |= aspect_ratio_range.len = 2
 >>
-Rule 53 (If aspect_ratio_range list has length 2 then first element should be positive and smaller or equal than 1.33)
-{v_1: list(float)} |= if v_1.len = 2 then v_1[0] > 0 ∧ v_1[0] ≤ 1.33
+Rule 49 (area_range[0] should be less or equal to area_range[1])
+{area_range : list(float)} |= area_range[0] ≤ area_range[1]
 >>
-Rule 54 (If area_range list has length 2 then second element should be greater or equal than 0.05)
-{v_1: list(float)} |= if v_1.len = 2 then v_1[1] ≥ 0.05
+Rule 54 (aspect_ratio_range[0] must be positive)
+{aspect_ratio_range : list(float)} |= aspect_ratio_range[0] > 0
 >>
-Rule 55 (min_object_covered must be non-negative and less than or equal to 1.0 when bounding boxes is supplied)
-{v_1: float, v_2: tensor} |= if shape(v_2,1) > 0 then v_1 >= 0.0 ∧ v_1 <= 1.0
+Rule 55 (aspect_ratio_range[1] must be positive)
+{aspect_ratio_range : list(float)} |= aspect_ratio_range[1] > 0
 >>
-Rule 56 (If use_image_if_no_bounding_boxes is false and bounding_boxes are not supplied, an error should raise)
-{v_1: bool, v_2: tensor} |= if v_1 = false then shape(v_2,1) > 0
+Rule 57 (image_size dtype must be in the allowed list)
+{image_size : tensor} |= dtype_(image_size) = 0 ∨ dtype_(image_size) = 1 ∨ dtype_(image_size) = 2 ∨ dtype_(image_size) = 3 ∨ dtype_(image_size) = 4
 >>
-Rule 57 (If bounding_boxes is not empty then shape(bounding_boxes,2) should be equal to 4)
-{v_1: tensor} |= if shape(v_1,1) > 0 then shape(v_1,2) = 4
+Rule 61 (If use_image_if_no_bounding_boxes is True, then bounding_boxes can be empty)
+{use_image_if_no_bounding_boxes : bool, bounding_boxes : tensor} |= if use_image_if_no_bounding_boxes = true then shape(bounding_boxes, 1) = 0
 >>
-Rule 58 (image_size must contain positive height and width if use_image_if_no_bounding_boxes is True)
-{v_1: tensor, v_2: bool} |= if v_2 = true then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 63 (area_range elements should be non-negative)
+{area_range : list(float)} |= area_range[0] ≥ 0 ∧ area_range[1] ≥ 0
 >>
-Rule 59 (Seed must be of type int32 and less then 2^31-1)
-{v_1: tensor} |= if dtype_(v_1) = 3 then max(v_1) < 2147483647
+Rule 64 (If use_image_if_no_bounding_boxes is false then bounding_boxes's shape[1] must be positive)
+{use_image_if_no_bounding_boxes : bool, bounding_boxes: tensor} |= if use_image_if_no_bounding_boxes = false then shape(bounding_boxes, 1) > 0
 >>
-Rule 60 (If area_range list has length 2 then first element should be smaller or equal than the second element)
-{v_1: list(float)} |= if v_1.len = 2 then v_1[0] <= v_1[1]
+Rule 65 (if aspect_ratio_range[0] is greater than aspect_ratio_range[1] then max_attempts must be high)
+{aspect_ratio_range : list(float), max_attempts : int} |= if aspect_ratio_range[0] > aspect_ratio_range[1] then max_attempts > 500
 >>
-Rule 61 (If aspect_ratio_range list is empty, the min value will be 0.75 and the max value will be 1.33)
-{v_1: list(float)} |= if v_1.len = 0 then true
+Rule 66 (area_range elements must be less or equal to 1)
+{area_range : list(float)} |= area_range[0] ≤ 1 ∧ area_range[1] ≤ 1
 >>
-Rule 62 (If use_image_if_no_bounding_boxes is True, the first element in image_size cannot be 0)
-{v_1: tensor, v_2: bool} |= if v_2 = true then shape(v_1,0) > 0
+Rule 68 (if use_image_if_no_bounding_boxes is true, then bounding_boxes shape[0] can be 0)
+{use_image_if_no_bounding_boxes : bool, bounding_boxes : tensor} |= if use_image_if_no_bounding_boxes = true then shape(bounding_boxes, 0) = 0
 >>
-Rule 63 (If max_attempts is greater than 500 then min_object_covered should be less than 0.5)
-{v_1: int, v_2: float} |= if v_1 > 500 then v_2 < 0.5
+Rule 69 (aspect_ratio_range[0] must be less or equal than aspect_ratio_range[1])
+{aspect_ratio_range : list(float)} |= aspect_ratio_range[0] ≤ aspect_ratio_range[1]
 >>
-Rule 64 (If seed is of type int64 then the minimum value is greater than -2^63 and maximum value is less than 2^63-1)
-{v_1: tensor} |= if dtype_(v_1) = 4 then min(v_1) > -9223372036854775808 ∧ max(v_1) < 9223372036854775807
+Rule 70 (If bounding_boxes is empty and use_image_if_no_bounding_boxes is false, then max_attempts must be high)
+{bounding_boxes : tensor, use_image_if_no_bounding_boxes : bool, max_attempts : int} |= if shape(bounding_boxes, 1) = 0 ∧ use_image_if_no_bounding_boxes = false then max_attempts > 500
 >>
-Rule 65 (if aspect_ratio_range is supplied then first element of list should be greater than or equal than zero)
-{v_1: list(float)} |= if v_1.len > 0 then v_1[0] >= 0
+Rule 72 (aspect_ratio_range elements must be positive)
+{aspect_ratio_range : list(float)} |= aspect_ratio_range[0] > 0 ∧ aspect_ratio_range[1] > 0
 >>
-Rule 66 (If area_range is supplied then second element of list should be less than or equal than 1)
-{v_1: list(float)} |= if v_1.len > 0 then v_1[1] <= 1
+Rule 73 (If bounding_boxes is empty and use_image_if_no_bounding_boxes is false, then raise error)
+{bounding_boxes : tensor, use_image_if_no_bounding_boxes : bool} |= if shape(bounding_boxes, 1) = 0 ∧ use_image_if_no_bounding_boxes = false then false
 >>
-Rule 67 (If area_range list is supplied and its length is 1, then first element should be greater or equal than zero and smaller or equal than 1)
-{v_1: list(float)} |= if v_1.len = 1 then v_1[0] >= 0 ∧ v_1[0] <= 1
+Rule 77 (min_object_covered must be a scalar tensor between 0 and 1)
+{min_object_covered : tensor} |= ndim(min_object_covered) = 0 ∧ min(min_object_covered) ≥ 0 ∧ max(min_object_covered) ≤ 1
 >>
-Rule 68 (The product of all the dimensions in image_size should be a non-negative integer)
-{v_1: tensor} |= shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) >= 0
+Rule 79 (area_range[0] must be less than or equal to 1)
+{area_range : list(float)} |= area_range[0] ≤ 1
 >>
-Rule 69 (If min_object_covered is greater then 0.8 then max_attempts should be greater then 200)
-{v_1: float, v_2: int} |= if v_1 > 0.8 then v_2 > 200
+Rule 80 (area_range[1] must be less than or equal to 1)
+{area_range : list(float)} |= area_range[1] ≤ 1
 >>
-Rule 70 (Bounding boxes should have non-negative y_min, x_min, y_max, x_max values)
-{v_1: tensor} |= if shape(v_1,0) > 0 ∧ shape(v_1, 1) > 0 then min(v_1) >= 0
+Rule 82 (area_range elements must be within the valid range)
+{area_range : list(float)} |= area_range[0] ≥ 0 ∧ area_range[0] ≤ 1 ∧ area_range[1] ≥ 0 ∧ area_range[1] ≤ 1
 >>
-Rule 71 (If the first element in seed tensor is 1, then second element in seed tensor should be greater than 0)
-{v_1: tensor} |= if shape(v_1,0) = 2 ∧ v_1[0] = 1 then v_1[1] > 0
+Rule 83 (if use_image_if_no_bounding_boxes is false and bounding_boxes is empty, a default value must be used instead)
+{use_image_if_no_bounding_boxes : bool, bounding_boxes: tensor} |= if use_image_if_no_bounding_boxes = false then shape(bounding_boxes, 0) > -1
 >>
-Rule 72 (if aspect_ratio_range is not supplied, the shape of area_range should be 2)
-{v_1: list(float), v_2: list(float)} |= if v_1.len = 0 then v_2.len = 2
+Rule 87 (if use_image_if_no_bounding_boxes is false and bounding_boxes is empty, raise an exception)
+{use_image_if_no_bounding_boxes : bool, bounding_boxes: tensor} |= if shape(bounding_boxes, 1) = 0 ∧ use_image_if_no_bounding_boxes = false then false
 >>
-Rule 73 (If use_image_if_no_bounding_boxes is true then bounding_boxes N dimension should equal to 1)
-{v_1: bool, v_2: tensor} |= if v_1 = true then shape(v_2, 1) = 1
+Rule 90 (area_range must be a list of two floats)
+{area_range : list(float)} |= area_range.len = 2
 >>
-Rule 74 (If area_range is not supplied, then aspect_ratio_range list should have at least one element)
-{v_1: list(float), v_2: list(float)} |= if v_2.len = 0 then v_1.len >= 1
+Rule 92 (image_size dtype must be an integer type)
+{image_size : tensor} |= dtype_(image_size) = 1 ∨ dtype_(image_size) = 2 ∨ dtype_(image_size) = 3 ∨ dtype_(image_size) = 4 ∨ dtype_(image_size) = 5 ∨ dtype_(image_size) = 6
 >>
-Rule 75 (If bounding_boxes are supplied, then the maximum value of image_size must be greater than 0.)
-{v_1: tensor, v_2: tensor} |= if shape(v_2,1) > 0 then max(v_1) > 0
+Rule 94 (if use_image_if_no_bounding_boxes is false, bounding_boxes cannot be empty)
+{use_image_if_no_bounding_boxes : bool, bounding_boxes : tensor} |= if use_image_if_no_bounding_boxes = false then shape(bounding_boxes, 1) > 0
 >>
-Rule 76 (If min_object_covered is less than 0.2, max_attempts can be default, otherwise, should be 1000)
-{v_1 : float, v_2 : int} |= if v_1 < 0.2 then v_2 = 100 else v_2 = 1000
+Rule 96 (if bounding_boxes is empty and use_image_if_no_bounding_boxes is false, then default value for bounding boxes must be used)
+{bounding_boxes : tensor, use_image_if_no_bounding_boxes : bool} |= if shape(bounding_boxes, 1) = 0 ∧ use_image_if_no_bounding_boxes = false then shape(bounding_boxes, 1) > -1
 >>
-Rule 77 (if use_image_if_no_bounding_boxes is true and bounding boxes are not supplied then image_size shape should be 3.)
-{v_1: bool, v_2: tensor} |= if v_1 = true ∧ shape(v_2, 1) = 0 then ndim(v_2) = 1 ∧ shape(v_2, 0) = 3
+Rule 97 (area_range[0] must be in [0, 1])
+{area_range : list(float)} |= area_range[0] ≥ 0 ∧ area_range[0] ≤ 1
 >>
-Rule 78 (Seed should be a 1D tensor and first element be greater equal zero and second element also greater equal zero)
-{v_1: tensor} |= if ndim(v_1) = 1 ∧ shape(v_1,0) = 2 then v_1[0] >= 0 ∧ v_1[1] >= 0
+Rule 98 (area_range[1] must be in [0, 1])
+{area_range : list(float)} |= area_range[1] ≥ 0 ∧ area_range[1] ≤ 1
 >>
-Rule 79 (if aspect_ratio_range.len = 2, area_range.len must equal to 2)
-{v_1 : list(float), v_2: list(float)} |= if v_1.len = 2 then v_2.len = 2
+Rule 99 (area_range elements should be in the correct range)
+{area_range : list(float)} |= area_range[0] ≥ 0.0 ∧ area_range[0] ≤ 1.0 ∧ area_range[1] ≥ 0.0 ∧ area_range[1] ≤ 1.0
 >>
-Rule 80 (max_attempts * min_object_covered should be smaller than 100)
-{v_1: int, v_2: float} |= v_1 * v_2 < 100
+Rule 101 (if use_image_if_no_bounding_boxes is True, bounding_boxes can be zero)
+{use_image_if_no_bounding_boxes : bool, bounding_boxes : tensor} |= if use_image_if_no_bounding_boxes = true then shape(bounding_boxes,0) = 0
+>>
+Rule 107 (image_size must be a 1D tensor with at least 2 elements)
+{image_size : tensor} |= ndim(image_size) = 1 ∧ shape(image_size, 0) ≥ 2
+>>
+Rule 108 (seed has to be a vector of size 2)
+{seed : tensor} |= ndim(seed) = 1 ∧ shape(seed, 0) = 2
+>>
+Rule 114 (min_object_covered elements must be positive and less then 1)
+{min_object_covered : tensor} |= min(min_object_covered) ≥ 0 ∧ max(min_object_covered) ≤ 1
+>>
+Rule 115 (if use_image_if_no_bounding_boxes is false and bounding_boxes is empty then error should be raised)
+{use_image_if_no_bounding_boxes : bool, bounding_boxes : tensor} |= if use_image_if_no_bounding_boxes = false ∧ shape(bounding_boxes, 1) = 0 then false
+>>
+Rule 117 (If area_range[0] is more then area_range[1] then max_attempts needs to be high value)
+{area_range : list(float), max_attempts : int} |= if area_range[0] > area_range[1] then max_attempts > 500
+>>
+Rule 119 (bounding_boxes must be a tensor of floats)
+{bounding_boxes: tensor} |= dtype_(bounding_boxes) = 7
+>>
+Rule 120 (seed must be a vector of size 2, and each element should be an integer number)
+{seed : tensor} |= ndim(seed) = 1 ∧ shape(seed, 0) = 2 ∧ (dtype_(seed) = 3 ∨ dtype_(seed) = 4)
+>>
+Rule 121 (bounding_boxes must be a float32 tensor with shape[2] = 4)
+{bounding_boxes : tensor} |= dtype_(bounding_boxes) = 7 ∧ shape(bounding_boxes, 2) = 4
+>>
+Rule 122 (area_range must contain valid range, must be between 0 and 1, and the first element must be less then or equal to the second element)
+{area_range : list(float)} |= area_range[0] ≥ 0.0 ∧ area_range[0] ≤ 1.0 ∧ area_range[1] ≥ 0.0 ∧ area_range[1] ≤ 1.0 ∧ area_range[0] ≤ area_range[1]

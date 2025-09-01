@@ -5,37 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If axis is a tuple, then the dimensions reduced cannot exceed the dimensions of the input. (Rule 38)
+# If axis is none, keepdims does not matter (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_length"] <= v["arg1_ndim"]) if n else
-          v["arg2_length"] <= v["arg1_ndim"])
+    s.add(Not(If(v["arg1_value"] == none, True, True)) if n else
+          If(v["arg1_value"] == none, True, True))
 )
 
-def rule_38_func(arg1, arg2, solver=None, neg=False):
+def rule_38_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
-            return False
-        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_length = Int('arg2_length')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_length == len(arg2))
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 38
-        rule_38(solver, {'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length})
+        rule_38(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_38(solver, {'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length']}, neg)
+        rule_38(solver, {'arg1_value': arg1['value']}, neg)

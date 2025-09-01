@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If x is complex128 then y must also be complex128 (Rule 16)
+# If y is complex64 or complex128, then x must be also. (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, False)) if n else
-          If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, False))
+    s.add(Not(If((Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), v["arg1_dtype"] == v["arg2_dtype"], True)) if n else
+          If((Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), v["arg1_dtype"] == v["arg2_dtype"], True))
 )
 
 def rule_16_func(arg1, arg2, solver=None, neg=False):

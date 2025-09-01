@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Dtype object can appear in any combination (Rule 19)
+# At least one of the types must be non-string (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_value"] == 13, v["arg2_value"] == 13), True, False)) if n else
-          If(Or(v["arg1_value"] == 13, v["arg2_value"] == 13), True, False))
+    s.add(Not(Or((v["arg1_value"] != 12), (v["arg2_value"] != 12))) if n else
+          Or((v["arg1_value"] != 12), (v["arg2_value"] != 12)))
 )
 
 def rule_19_func(arg1, arg2, solver=None, neg=False):

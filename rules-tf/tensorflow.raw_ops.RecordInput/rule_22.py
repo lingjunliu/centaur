@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# batch_size is a multiple of file_parallelism. (Rule 22)
+# file_parallelism must be less than or equal to file_buffer_size (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] % v["arg2_value"] == 0) if n else
-          v["arg1_value"] % v["arg2_value"] == 0)
+    s.add(Not(v["arg1_value"] <= v["arg2_value"]) if n else
+          v["arg1_value"] <= v["arg2_value"])
 )
 
 def rule_22_func(arg1, arg2, solver=None, neg=False):

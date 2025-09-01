@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If real is of float64 and imag is float32 then error (Rule 45)
+# If real is float64, imag must be float64 (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 8, v["arg2_dtype"] != 7, False)) if n else
-          If(v["arg1_dtype"] == 8, v["arg2_dtype"] != 7, False))
+    s.add(Not(If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9, True)) if n else
+          If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9, True))
 )
 
 def rule_45_func(arg1, arg2, solver=None, neg=False):

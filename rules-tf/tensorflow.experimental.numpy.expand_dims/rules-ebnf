@@ -1,153 +1,120 @@
 >>
-Rule 3 (The input tensor v_1 must have a valid shape)
+Rule 5 (tensor should have at least one dimension to expand)
 {v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 5 (If axis is negative, it should correspond to a valid positive index)
-{v_1 : tensor, v_2 : int} |= if v_2 < 0 then v_2 + ndim(v_1) + 1 ≥ 0
+Rule 7 (axis should be within the allowed range based on the tensor's rank, accounting for negative indexing)
+{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1) - 1) ≤ v_2 ∧ v_2 ≤ ndim(v_1)
 >>
-Rule 6 (If axis is negative, it should correspond to a valid positive index)
-{v_1 : tensor, v_2 : int} |= if v_2 < 0 then v_2 + ndim(v_1) + 1 ≤ ndim(v_1)
+Rule 9 (The axis cannot be greater than 31 due to limitations of dimension size)
+{v_2 : int} |= v_2 ≤ 31
 >>
-Rule 10 (Checking if dimension size is positive)
-{v_1 : tensor, v_2 : int} |= shape(v_1, v_2) > 0
+Rule 10 (The axis cannot be smaller than -32 due to limitations of dimension size)
+{v_2 : int} |= v_2 ≥ -32
 >>
-Rule 12 (The axis parameter must be within the allowed range for a new dimension)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) - 1 ∧ v_2 ≤ ndim(v_1)
+Rule 11 (axis should be within the allowed range based on the tensor's rank, accounting for negative indexing and ndim should be greater than 0)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ (0 - ndim(v_1) - 1) ≤ v_2 ∧ v_2 ≤ ndim(v_1)
 >>
-Rule 14 (Shape after expansion must be within allowed limits, max dimension is 32)
-{v_1 : tensor} |= ndim(v_1) + 1 ≤ 32
+Rule 13 (tensor rank should be less than or equal to 32)
+{v_1 : tensor} |= ndim(v_1) ≤ 32
 >>
-Rule 17 (The input tensor v_1 must have a valid dtype - not string or dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12
+Rule 14 (If axis is negative, it should be in valid range)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then (0 - ndim(v_1) - 1) ≤ v_2
 >>
-Rule 19 (If the input is a scalar, the axis can be any integer)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then true else v_2 ≥ (0 - ndim(v_1)) - 1 ∧ v_2 ≤ ndim(v_1)
+Rule 15 (If axis is non-negative, it should be less than or equal to the rank of the tensor)
+{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then v_2 ≤ ndim(v_1)
 >>
-Rule 20 (Checking if dimension size is positive)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 ∧ v_2 < ndim(v_1) then shape(v_1, v_2) > 0
+Rule 16 (The dimension to expand should be less than 32)
+{v_2 : int} |= v_2 < 32
 >>
-Rule 21 (The axis parameter must be an integer within reasonable bounds)
-{v_1 : int} |= v_1 ≥ -33 ∧ v_1 ≤ 32
+Rule 17 (The tensor should not have more than 31 dimensions before expansion)
+{v_1 : tensor} |= ndim(v_1) <= 31
 >>
-Rule 22 (Shape after expansion must be within allowed limits, min dimension is 0)
-{v_1 : tensor} |= ndim(v_1) + 1 ≥ 0
+Rule 18 (If the axis is equal to the number of dimensions, then the shape of expanded dimension is 1)
+{v_1 : tensor, v_2 : int} |= if v_2 = ndim(v_1) then true
 >>
-Rule 23 (The input tensor's ndim must be less than 32)
+Rule 20 (If the axis is negative, it should be greater than or equal to the negative rank - 1)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then v_2 ≥ (0 - ndim(v_1) - 1)
+>>
+Rule 24 (The input tensor must have a valid number of dimensions to start with)
 {v_1 : tensor} |= ndim(v_1) < 32
 >>
-Rule 24 (If axis is negative, then its absolute value must be less than max dimension.)
-{v_1 : int} |= if v_1 < 0 then 0 - v_1 ≤ 32
+Rule 25 (The tensor should have a valid dtype)
+{v_1 : tensor} |= dtype_(v_1) ≥ 0
 >>
-Rule 25 (dtype of the tensor must be valid.)
-{v_1 : tensor} |= dtype_(v_1) ≥ 0 ∧ dtype_(v_1) ≤ 12
+Rule 26 (The valid dtypes should be limited to the valid encoding types)
+{v_1 : tensor} |= 0 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 12
 >>
-Rule 27 (If the input is a scalar, the axis should not have too large value.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 ≥ -1 ∧ v_2 ≤ 0
+Rule 29 (If axis is a tensor, it must contain a single integer value)
+{v_2 : tensor} |= ndim(v_2) = 0 ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
 >>
-Rule 28 (If the axis is a very large positive integer, it's probably wrong.)
-{v_1 : int} |= v_1 < 1000
+Rule 30 (If axis is a tensor, its value must be a valid axis for expansion)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) then (min(v_2) ≥ (0 - ndim(v_1) - 1) ∧ min(v_2) ≤ ndim(v_1))
 >>
-Rule 29 (If the axis is a very small negative integer, it's probably wrong.)
-{v_1 : int} |= v_1 > -1000
+Rule 31 (Axis is a valid integer when the rank is zero)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then -1 <= v_2 ∧ v_2 <= 0
 >>
-Rule 34 (If axis is negative, then its absolute value must be less than max dimension.)
-{v_1 : int} |= if v_1 < 0 then (0 - v_1) ≤ 32
+Rule 32 (Valid values of axis)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) < 32 then (0 - ndim(v_1) - 1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) else false
 >>
-Rule 39 (The input should have small size if it's complex type)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then shape(v_1, 0) < 1000
+Rule 34 (The rank of input tensor must be less than or equal to 32.)
+{v_1 : tensor} |= ndim(v_1) <= 32
 >>
-Rule 40 (The axis should be valid for tuple type)
-{v_1 : tuple(int), v_2 : int} |= v_2 ≥ (0 - v_1.len) ∧ v_2 < v_1.len
+Rule 36 (If the input tensor is a scalar, the axis must be either 0 or -1)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then (v_2 = 0 ∨ v_2 = -1)
 >>
-Rule 46 (If input is complex128, total size must be less than a limit to avoid OOM)
-{v_1 : tensor} |= if dtype_(v_1) = 10 then shape(v_1, 0) * shape(v_1, 1) < 1000000
+Rule 39 (The absolute value of axis should be less than or equal to the rank of the tensor.)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then 0 - v_2 <= ndim(v_1) + 1 else v_2 <= ndim(v_1)
 >>
-Rule 47 (The result ndim should be valid number)
-{v_1: tensor} |= ndim(v_1) + 1 < 100
+Rule 43 (Negative axis must be greater than or equal to the negative of (rank + 1))
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then v_2 ≥ (0 - (ndim(v_1) + 1))
 >>
-Rule 48 (If v1 is a float and v2 is an int, there should be no precision loss.)
-{v_1 : float, v_2 : int} |= v_1 = v_2
+Rule 45 (Expanding a scalar to 1D using expand_dims)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 0 then (v_2 = 0 ∨ v_2 = (0 - 1))
 >>
-Rule 49 (The input tensor dimension sizes must be non-negative.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 47 (For non scalar tensors, the axis must be within allowed bounds.)
+{v_1: tensor, v_2: int} |= if ndim(v_1) > 0 then ((0 - ndim(v_1) - 1) ≤ v_2 ∧ v_2 ≤ ndim(v_1))
 >>
-Rule 51 (Axis parameter must be within the allowed range for list)
-{v_1 : list(int), v_2 : int} |= v_2 >= (0 - (v_1.len)) - 1 ∧ v_2 <= v_1.len
+Rule 48 (The data type should be a valid encoding type)
+{v_1 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 ∨ dtype_(v_1) = 12
 >>
-Rule 52 (Length of list parameter should be reasonable)
-{v_1 : list(int)} |= v_1.len < 1000
+Rule 49 (The axis must be of integer datatype, even if it's a tensor.)
+{v_2 : tensor} |= (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
 >>
-Rule 55 (If input is complex128, the first two dimensions' product must be within a limit to avoid OOM)
-{v_1 : tensor} |= if dtype_(v_1) = 10 ∧ ndim(v_1) >= 2 then shape(v_1, 0) * shape(v_1, 1) < 1000000
+Rule 51 (If the dimension to be expanded already exists, it would result in an error.)
+{v_1 : tensor, v_2 : int} |= if v_2 >= 0 ∧ v_2 < ndim(v_1) then false
 >>
-Rule 56 (If v1 is a float and v2 is an int, there should be no precision loss if v1 is in valid range)
-{v_1 : float, v_2 : int} |= if v_1 >= -1000000 ∧ v_1 <= 1000000 then v_1 = v_2
+Rule 52 (Expanded axis should be in range [-rank-1, rank])
+{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1) - 1) <= v_2 ∧ v_2 <= ndim(v_1)
 >>
-Rule 57 (If the axis is a tuple, each element has to be a valid axis for tensor)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] >= (0 - ndim(v_1)) -1 ∧ v_2[i] <= ndim(v_1)
+Rule 53 (When expanding dimensions of 0-rank tensor, axis should be -1 or 0)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then (v_2 = 0 ∨ v_2 = (0 - 1))
 >>
-Rule 58 (If the input is a tensor and axis is a tuple, the number of axis cannot be more than ndim + 1)
-{v_1: tensor, v_2: tuple(int)} |= v_2.len <= ndim(v_1) + 1
->>
-Rule 59 (If dtype is object, it should not have large shape.)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then shape(v_1, 0) < 1000
->>
-Rule 60 (If axis is specified, it needs to be inside a reasonable range.)
-{v_1 : int} |= v_1 > -100 ∧ v_1 < 100
->>
-Rule 63 (If the axis parameter is specified as a float, it must have an integer value)
-{v_1 : float} |= (v_1 % 1) = 0
->>
-Rule 65 (If v1 is a float and v2 is an int, there should be no precision loss if v1 is within range.)
-{v_1 : float, v_2 : int} |= if v_1 >= -10000 ∧ v_1 <= 10000 then v_1 = v_2
->>
-Rule 71 (If Axis parameter must be non-negative if specified.)
-{v_1 : int} |= v_1 >= 0
->>
-Rule 72 (The axis is valid for tuple input, it can not cause index out of bound)
-{v_1: tuple(int), v_2: int} |= v_2 < v_1.len
->>
-Rule 73 (The dtype of expanded tensor must be valid.)
+Rule 54 (Valid datatype)
 {v_1: tensor} |= dtype_(v_1) >= 0 ∧ dtype_(v_1) <= 12
 >>
-Rule 74 (Tensor with dimensions > 3 should not be of type int8 for performance)
-{v_1: tensor} |= if ndim(v_1) > 3 then dtype_(v_1) ≠ 1
+Rule 55 (Rank of tensor must be less than 32)
+{v_1: tensor} |= ndim(v_1) < 32
 >>
-Rule 75 (If input is complex128, it is bounded by max tensor size)
-{v_1 : tensor} |= if dtype_(v_1) = 10 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 10000000
+Rule 57 (Dimension less than 31)
+{v_1: tensor} |= ndim(v_1) <= 31
 >>
-Rule 76 (If v1 is a float and v2 is an int, there should be no precision loss)
-{v_1 : float, v_2 : int} |= if v_1 >= -1000 ∧ v_1 <= 1000 then v_1 = v_2
+Rule 60 (Axis cannot be greater than maximum dimensions limit)
+{v_2:int} |= v_2 <= 31
 >>
-Rule 77 (If the axis is a tuple, the length of the tuple must be reasonable)
-{v_1: tuple(int)} |= v_1.len < 10
+Rule 64 (The dimension should be expand among the existing dimensions.)
+{v_1: tensor, v_2: int} |= (0 - ndim(v_1) - 1) <= v_2 ∧ v_2 <= ndim(v_1)
 >>
-Rule 78 (The shape of the tensor shouldn't be too large)
-{v_1: tensor} |= shape(v_1, 0) < 10000
+Rule 66 (If already a scalar, can only expand to single dimension)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 0 then min(v_2) >= (0-1) ∧ max(v_2) <= 0 else True
 >>
-Rule 79 (The list size shouldn't be zero)
-{v_1 : list(int)} |= v_1.len > 0
+Rule 67 (For non scalar tensors and valid axis)
+{v_1: tensor, v_2: int} |= if ndim(v_1) != 0 then (min(v_2) >= (0- ndim(v_1) -1) ∧ max(v_2) <= ndim(v_1))
 >>
-Rule 80 (If input is bool type, it should not have very large dimension)
-{v_1: tensor} |= if dtype_(v_1) = 0 then shape(v_1, 0) < 100000
+Rule 68 (Dtype of the tensor has to be defined)
+{v_1 : tensor} |= dtype_(v_1) ≠ none
 >>
-Rule 82 (Length of list parameter should not be too long, or OOM.)
-{v_1 : list(int)} |= v_1.len < 500
+Rule 70 (Axis must have a valid value)
+{v_1 : tensor, v_2 : int} |= ((0 - ndim(v_1) - 1) ≤ v_2) ∧ (v_2 ≤ 31)
 >>
-Rule 84 (If the input is of complex128, the overall number of elements should fit within a reasonable memory size)
-{v_1 : tensor} |= if dtype_(v_1) = 10 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 5000000
->>
-Rule 86 (If the axis parameter contains several axis, then the dimension cannot be greater than 30.)
-{v_1: tuple(int)} |= v_1.len < 30
->>
-Rule 87 (A general check so that dimension cannot go beyond limits.)
-{v_1: tensor} |= ndim(v_1) < 64
->>
-Rule 88 (Tensor first dimension less than limit, for speed reasons)
-{v_1: tensor} |= shape(v_1, 0) < 5000
->>
-Rule 89 (List isn't too small)
-{v_1 : list(int)} |= v_1.len > 1
->>
-Rule 90 (If dimension is bool then prevent it from becoming too massive)
-{v_1: tensor} |= if dtype_(v_1) = 0 then shape(v_1, 0) < 500000
+Rule 71 (Valid axis values)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) < 32 then (0 - ndim(v_1) - 1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) else False

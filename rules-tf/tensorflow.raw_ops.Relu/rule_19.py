@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The total number of elements in the features tensor (product of its shape (Rule 19)
+# If the features tensor has shape [A, B, C, D], then A, B, C, D > 0. (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 0, 1 <= 1000000000, If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) <= 1000000000, If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) <= 1000000000, If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) <= 1000000000, If(v["arg1_ndim"] == 4, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3) <= 1000000000, False)))))) if n else
-          If(v["arg1_ndim"] == 0, 1 <= 1000000000, If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) <= 1000000000, If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) <= 1000000000, If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) <= 1000000000, If(v["arg1_ndim"] == 4, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3) <= 1000000000, False))))))
+    s.add(Not(If(v["arg1_ndim"] == 4, And(And(And(Select(v["arg1_shape"], 0) > 0, Select(v["arg1_shape"], 1) > 0), Select(v["arg1_shape"], 2) > 0), Select(v["arg1_shape"], 3) > 0), True)) if n else
+          If(v["arg1_ndim"] == 4, And(And(And(Select(v["arg1_shape"], 0) > 0, Select(v["arg1_shape"], 1) > 0), Select(v["arg1_shape"], 2) > 0), Select(v["arg1_shape"], 3) > 0), True))
 )
 
 def rule_19_func(arg1, solver=None, neg=False):

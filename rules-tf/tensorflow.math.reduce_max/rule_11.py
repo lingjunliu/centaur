@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If axis is a list, elements should be in the range `[-rank(input_tensor (Rule 11)
+# axis values should be within the valid range (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg2_length"] - 1 + 1), And(Select(v["arg2_values"], i) >= (0 - v["arg1_ndim"]), Select(v["arg2_values"], i) < v["arg1_ndim"])) for i in range(6)])) if n else
-          And([Implies(i < (v["arg2_length"] - 1 + 1), And(Select(v["arg2_values"], i) >= (0 - v["arg1_ndim"]), Select(v["arg2_values"], i) < v["arg1_ndim"])) for i in range(6)]))
+    s.add(Not(And(v["arg2_length"] > 0, (And([Implies(i < (v["arg2_length"] - 1 + 1), And(-1 * v["arg1_ndim"] <= Select(v["arg2_values"], i), Select(v["arg2_values"], i) < v["arg1_ndim"])) for i in range(6)])))) if n else
+          And(v["arg2_length"] > 0, (And([Implies(i < (v["arg2_length"] - 1 + 1), And(-1 * v["arg1_ndim"] <= Select(v["arg2_values"], i), Select(v["arg2_values"], i) < v["arg1_ndim"])) for i in range(6)]))))
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

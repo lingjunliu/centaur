@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If casting to a complex number then source cannot be string (Rule 51)
+# If DstT is complex64, source cannot be int64. (Rule 51)
 
 rule_51 = lambda s, v, n=False: (
-    s.add(Not(If((Or(v["arg2_value"] == 9, v["arg2_value"] == 10)), v["arg1_dtype"] != 11, False)) if n else
-          If((Or(v["arg2_value"] == 9, v["arg2_value"] == 10)), v["arg1_dtype"] != 11, False))
+    s.add(Not(If(v["arg2_value"] == 9, v["arg1_dtype"] != 4, True)) if n else
+          If(v["arg2_value"] == 9, v["arg1_dtype"] != 4, True))
 )
 
 def rule_51_func(arg1, arg2, solver=None, neg=False):

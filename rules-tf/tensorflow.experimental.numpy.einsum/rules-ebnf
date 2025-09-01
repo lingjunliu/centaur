@@ -1,87 +1,96 @@
 >>
-Rule 1 (equation string must not be empty)
-{v_1 : str} |= v_1 ≠ ""
+Rule 11 (subscripts must be a non-empty string)
+{v_1 : str} |= v_1.len > 0
 >>
-Rule 2 (number of input tensors must be greater than 0)
+Rule 12 (operands must be a non-empty list of tensors)
 {v_1 : list(tensor)} |= v_1.len > 0
 >>
-Rule 3 (dtype of input tensor v_1 must be equal to v_2)
-{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
+Rule 13 (number of operands should be greater than or equal to zero)
+{v_1 : list(tensor)} |= v_1.len ≥ 0
 >>
-Rule 4 (input tensor v_1 ndim must be less or equal to v_2)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) ≤ v_2
+Rule 15 (at least one of subscript or tensor list should be present.)
+{v_1 : str, v_2 : list(tensor)} |= v_1.len > 0 ∨ v_2.len > 0
 >>
-Rule 5 (if v_1 is true then v_2 must be true)
-{v_1 : bool, v_2 : bool} |= if v_1 then v_2
+Rule 17 (if number of tensors is 1, the subscript should be non-empty)
+{v_1 : str, v_2 : list(tensor)} |= if v_2.len = 1 then v_1.len > 0
 >>
-Rule 6 (v_1 must be positive)
-{v_1 : int ⊎ float} |= v_1 > 0
+Rule 34 (If ndim(tensor) is zero then shape(tensor) is 0.)
+{v_1 : tensor} |= if ndim(v_1) = 0 then shape(v_1) = 0
 >>
-Rule 7 (shape of tensor v_1 at dimension v_2 must be equal to v_3)
-{v_1 : tensor, v_2 : int, v_3 : int} |= shape(v_1, v_2) = v_3
+Rule 35 (The number of dimensions of each tensor should be less than or equal to 32)
+{v_1 : tensor} |= ndim(v_1) ≤ 32
 >>
-Rule 8 (minimum value of tensor v_1 must be smaller than v_2)
-{v_1 : tensor, v_2 : int ⊎ float} |= min(v_1) < v_2
+Rule 43 (If subscript is "ii", then shape(v_1,0) should be equal to shape(v_1,1))
+{v_1 : str, v_2 : tensor} |= if v_1 = "ii" then shape(v_2, 0) = shape(v_2, 1)
 >>
-Rule 9 (maximum value of tensor v_1 must be greater than v_2)
-{v_1 : tensor, v_2 : int ⊎ float} |= max(v_1) > v_2
+Rule 44 (For 'i,j->ij' subscript ndim(v_1) = 1 ∧ ndim(v_2) = 1)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "i,j->ij" then ndim(v_2) = 1 ∧ ndim(v_3) = 1
 >>
-Rule 10 (the length of the tuple v_1 must be positive and a multiple of 2)
-{v_1 : tuple(int)} |= v_1.len > 0 ∧ v_1.len % 2 = 0
+Rule 51 (If the subscript is "ii->i", then the shape of dimension 0 and 1 should be the same for the tensor.)
+{v_1 : str, v_2 : tensor} |= if v_1 = "ii->i" then shape(v_2, 0) = shape(v_2, 1)
 >>
-Rule 11 (If v_1 is "mean", then the number of input tensors should be 1)
-{v_1 : str, v_2 : list(tensor)} |= if v_1 = "mean" then v_2.len = 1
->>
-Rule 12 (If equation string v_1 contains '...', then the number of dimensions of tensor v_2 must be greater than 1)
-{v_1 : str, v_2 : tensor} |= if v_1 = "...ij->...ji" then ndim(v_2) > 1
->>
-Rule 13 (If equation string v_1 is 'ii', the tensor v_2 must be a square matrix)
-{v_1 : str, v_2 : tensor} |= if v_1 = "ii" then ndim(v_2) = 2 ∧ shape(v_2, 0) = shape(v_2, 1)
->>
-Rule 14 (equation string v_1 must be one of the predefined strings)
+Rule 53 (String should be one of valid options in list)
 {v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba"
 >>
-Rule 15 (Dtype of tensor v_1 must be float32 or float64)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 58 (String should be one of valid options in list)
+{v_1 : str} |= (v_1 = "ii") ∨ (v_1 = "ii->i") ∨ (v_1 = "i,j->ij") ∨ (v_1 = "bij,bjk->bik") ∨ (v_1 = "...ij->...ji") ∨ (v_1 = "bn,anm,bm->ba")
 >>
-Rule 16 (The number of dimensions of tensor v_1 must be within a certain range)
-{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 ≤ ndim(v_1) ∧ ndim(v_1) ≤ v_3
+Rule 62 (If einsum subscript is "i,j->ij", ndim of both tensors should be 1. And there should be two tensors.)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "i,j->ij" then ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ v_3 ≠ v_2
 >>
-Rule 17 (If v_1 is true, then the shape of tensor v_2 at dimension 0 must be equal to v_3)
-{v_1 : bool, v_2 : tensor, v_3 : int} |= if v_1 then shape(v_2, 0) = v_3
->>
-Rule 22 (The dimensions of tensor v_1 must be smaller than the constant 100)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 100
->>
-Rule 23 (If the equation string is "...ij->...ji", then the input tensor's dimensions must be greater than or equal to 2.)
-{v_1 : str, v_2 : tensor} |= if v_1 = "...ij->...ji" then ndim(v_2) ≥ 2
->>
-Rule 24 (Tensor v_1 should have a shape where each dimension is greater than 0)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 27 (If equation string v_1 is 'bn,anm,bm->ba', then the number of input tensors should be 3.)
-{v_1 : str, v_2 : list(tensor)} |= if v_1 = "bn,anm,bm->ba" then v_2.len = 3
->>
-Rule 28 (If the reduction operation v_1 is 'sum' or 'mean', and the input tensor v_2's dtype is an integer type (1-5), cast to float32.)
-{v_1 : str, v_2 : tensor} |= if (v_1 = "sum" ∨ v_1 = "mean") ∧ (1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5) then dtype_(v_2) = 7
->>
-Rule 29 (The shape of tensor v_1 must be a square matrix when the equation is 'ii->i'.)
+Rule 63 (If einsum subscript is "ii->i", ndim should be 2, shape(0) = shape(1))
 {v_1 : str, v_2 : tensor} |= if v_1 = "ii->i" then ndim(v_2) = 2 ∧ shape(v_2, 0) = shape(v_2, 1)
 >>
-Rule 34 (If string v_1 is equal to one of the reduction operations, then the dtype of tensor v_2 must be float)
-{v_1 : str, v_2 : tensor} |= if v_1 = "sum" ∨ v_1 = "mean" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9
+Rule 64 (If einsum subscript is "bij,bjk->bik", then ndim of both tensors should be 3.)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "bij,bjk->bik" then ndim(v_2) = 3 ∧ ndim(v_3) = 3
 >>
-Rule 38 (If the reduction string is "sum", "mean", "min", "max", or "prod", the input tensor v_2 must be at least a vector i.e. ndim > 0)
-{v_1 : str, v_2 : tensor} |= if v_1 = "sum" ∨ v_1 = "mean" ∨ v_1 = "min" ∨ v_1 = "max" ∨ v_1 = "prod" then ndim(v_2) > 0
+Rule 69 (If einsum subscript is "...ij->...ji", then ndim of tensor should be at least 2)
+{v_1 : str, v_2 : tensor} |= if v_1 = "...ij->...ji" then ndim(v_2) ≥ 2
 >>
-Rule 39 (The length of the tuple should match the dimension of tensor v_1)
-{v_1 : tensor, v_2 : tuple(int)} |= v_2.len = ndim(v_1)
+Rule 74 (If einsum subscript is "bn,anm,bm->ba", then ndim of all tensors must be greater than or equal to 2.)
+{v_1 : str, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= if v_1 = "bn,anm,bm->ba" then ndim(v_2) ≥ 2 ∧ ndim(v_3) ≥ 2 ∧ ndim(v_4) ≥ 2
 >>
-Rule 43 (If the equation string v_1 requires multiple input tensors, then the length of v_2 must be greater than one.)
-{v_1 : str, v_2 : list(tensor)} |= if v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "bn,anm,bm->ba" then v_2.len > 1
+Rule 75 (If einsum subscript is "bn,anm,bm->ba", then shape(v_2,0) = shape(v_4, 0), shape(v_3, 0) = shape(v_4, 1), shape(v_2, 1) = shape(v_3, 1) where v2, v3, v4 are tensors)
+{v_1 : str, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= if v_1 = "bn,anm,bm->ba" then shape(v_2, 0) = shape(v_4, 0) ∧ shape(v_3, 0) = shape(v_4, 1) ∧ shape(v_2, 1) = shape(v_3, 1)
 >>
-Rule 44 (If the string is "tanh", "sigmoid", "relu", "elu", "selu", "gelu", "swish", "softplus", then v_1 must be a tensor and it's dtype should be 7 or 8)
-{v_1 : str, v_2 : tensor} |= if v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "relu" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+Rule 76 (If einsum subscript is "bn,anm,bm->ba", shape(v_2,0), shape(v_3, 0), shape(v_4,1) >0)
+{v_1 : str, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= if v_1 = "bn,anm,bm->ba" then shape(v_2, 0) > 0 ∧ shape(v_3, 0) > 0 ∧ shape(v_4, 1) > 0
 >>
-Rule 48 (The shape of a tensor v_1 along the first dimension should be greater than zero)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 77 (If einsum subscript is "bn,anm,bm->ba", shape(v_2,1), shape(v_3, 1), shape(v_4,0) >0)
+{v_1 : str, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= if v_1 = "bn,anm,bm->ba" then shape(v_2, 1) > 0 ∧ shape(v_3, 1) > 0 ∧ shape(v_4, 0) > 0
+>>
+Rule 79 (If subscript not in list, false.)
+{v_1 : str} |= (v_1 = "ii") ∨ (v_1 = "ii->i") ∨ (v_1 = "i,j->ij") ∨ (v_1 = "bij,bjk->bik") ∨ (v_1 = "...ij->...ji") ∨ (v_1 = "bn,anm,bm->ba") ∨ true
+>>
+Rule 89 (Tensor cannot have negative dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) >=0
+>>
+Rule 92 (If tensor is not empty then it should have dimensions greater than 0)
+{v_1: tensor} |= if (∃i ∈ [0, ndim(v_1) -1]: shape(v_1, i) = 0) then false else ndim(v_1) > 0
+>>
+Rule 94 (Tensor cannot have negative dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) ≥ 0
+>>
+Rule 99 (Tensor cannot have negative dimension size)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) ≥ 0
+>>
+Rule 109 (If subscript is 'bij,bjk->bik' the shape of dimension 1 of v2, v3 must be equal.)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "bij,bjk->bik" then shape(v_2, 1) = shape(v_3, 1)
+>>
+Rule 114 (If einsum subscript is "bij,bjk->bik" the shape of dimension 1 of v_2 and dimension 0 of v_3 must be equal.)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "bij,bjk->bik" then shape(v_2, 1) = shape(v_3, 0)
+>>
+Rule 119 (If einsum subscript is "bij,bjk->bik" the shape of dimension 1 of v_2 and dimension 0 of v_3 must be equal, and tensors v2 and v3 are different tensors)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "bij,bjk->bik" then shape(v_2, 1) = shape(v_3, 0) ∧ v_2 ≠ v_3
+>>
+Rule 124 (If einsum subscript is "...ij->...ji" then the shape of dimension ndim(v_2) - 2 should be equal to shape of ndim(v_2) -1.)
+{v_1 : str, v_2 : tensor} |= if v_1 = "...ij->...ji" then shape(v_2, ndim(v_2)-2) = shape(v_2, ndim(v_2)-1)
+>>
+Rule 128 (If einsum subscript is "...ij->...ji" and the ndim is greater than 1 then shape of dimension ndim(v_2) - 2 should be equal to shape of dimension ndim(v_2) -1.)
+{v_1 : str, v_2 : tensor} |= if v_1 = "...ij->...ji" ∧ ndim(v_2) > 1 then shape(v_2, ndim(v_2)-2) = shape(v_2, ndim(v_2)-1)
+>>
+Rule 129 (If einsum subscript is "bn,anm,bm->ba", then shape of dimension 0 of v_2, v_3, v_4 must be greather than 0)
+{v_1 : str, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= if v_1 = "bn,anm,bm->ba" then shape(v_2, 0) > 0 ∧ shape(v_3, 0) > 0 ∧ shape(v_4, 0) > 0
+>>
+Rule 134 (If einsum subscript is "bn,anm,bm->ba", then shape of dimension 0 of v_2, v_3, v_4 must be positive, and shapes v_2[1] = v_3[1])
+{v_1 : str, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= if v_1 = "bn,anm,bm->ba" then shape(v_2, 0) > 0 ∧ shape(v_3, 0) > 0 ∧ shape(v_4, 0) > 0 ∧ shape(v_2, 1) = shape(v_3, 1)

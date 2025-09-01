@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If ndim of x is greater than 1 and y is 1, then y's element values are 1 (Rule 43)
+# Division by zero is not allowed, so ensure y is not equal to 0 when x is a floating type. (Rule 43)
 
 rule_43 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] > 1, v["arg2_ndim"] == 1), And(Select(v["arg2_range"], 0) == 1, Select(v["arg2_range"], 1) == 1), False)) if n else
-          If(And(v["arg1_ndim"] > 1, v["arg2_ndim"] == 1), And(Select(v["arg2_range"], 0) == 1, Select(v["arg2_range"], 1) == 1), False))
+    s.add(Not(If((Or(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 11)), And([Implies(i < (v["arg2_ndim"] - 1 + 1), And(Select(v["arg2_shape"], i) > 0, (Or(Select(v["arg2_range"], 0) > 0, Select(v["arg2_range"], 1) < 0)))) for i in range(6)]), And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) > 0) for i in range(6)]))) if n else
+          If((Or(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 11)), And([Implies(i < (v["arg2_ndim"] - 1 + 1), And(Select(v["arg2_shape"], i) > 0, (Or(Select(v["arg2_range"], 0) > 0, Select(v["arg2_range"], 1) < 0)))) for i in range(6)]), And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) > 0) for i in range(6)])))
 )
 
 def rule_43_func(arg1, arg2, solver=None, neg=False):
@@ -25,20 +25,23 @@ def rule_43_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_dtype = Int('arg1_dtype')
         arg2_ndim = Int('arg2_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
         arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
         arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
         arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 43
-        rule_43(solver, {'arg1_ndim': arg1_ndim, 'arg2_range': arg2_range, 'arg2_ndim': arg2_ndim})
+        rule_43(solver, {'arg1_dtype': arg1_dtype, 'arg2_shape': arg2_shape, 'arg2_range': arg2_range, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_43(solver, {'arg1_ndim': arg1['ndim'], 'arg2_range': arg2['range'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_43(solver, {'arg1_dtype': arg1['dtype'], 'arg2_shape': arg2['shape'], 'arg2_range': arg2['range'], 'arg2_ndim': arg2['ndim']}, neg)

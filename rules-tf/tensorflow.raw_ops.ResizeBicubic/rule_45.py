@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Images must have a valid number of channels (Rule 45)
+# Images height and width should be greater or equal to 0 (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Select(v["arg1_shape"], 3) == 1, Select(v["arg1_shape"], 3) == 3), Select(v["arg1_shape"], 3) == 4)) if n else
-          Or(Or(Select(v["arg1_shape"], 3) == 1, Select(v["arg1_shape"], 3) == 3), Select(v["arg1_shape"], 3) == 4))
+    s.add(Not(And(Select(v["arg1_shape"], 1) >= 0, Select(v["arg1_shape"], 2) >= 0)) if n else
+          And(Select(v["arg1_shape"], 1) >= 0, Select(v["arg1_shape"], 2) >= 0))
 )
 
 def rule_45_func(arg1, solver=None, neg=False):

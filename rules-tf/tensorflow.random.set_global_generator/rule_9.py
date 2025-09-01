@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check if the generator's internal dtype is a valid float or int (Rule 9)
+# generator cannot have boolean dtype (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(Or((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)))) if n else
-          Or((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8))))
+    s.add(Not(v["arg1_dtype"] != 0) if n else
+          v["arg1_dtype"] != 0)
 )
 
 def rule_9_func(arg1, solver=None, neg=False):

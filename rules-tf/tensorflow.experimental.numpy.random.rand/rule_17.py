@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If shape is an integer, it should be a reasonable size, say less than 2048 (Rule 17)
+# Size must be less than the maximum value of int32 (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] <= 2048) if n else
-          v["arg1_value"] <= 2048)
+    s.add(Not(v["arg1_value"] < 2147483648) if n else
+          v["arg1_value"] < 2147483648)
 )
 
 def rule_17_func(arg1, solver=None, neg=False):

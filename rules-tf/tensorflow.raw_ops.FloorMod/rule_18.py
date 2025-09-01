@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if x is int16, y must also be int16 (Rule 18)
+# if x is half, y must be half (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 2, v["arg2_dtype"] == 2, False)) if n else
-          If(v["arg1_dtype"] == 2, v["arg2_dtype"] == 2, False))
+    s.add(Not(If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, True)) if n else
+          If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, True))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):

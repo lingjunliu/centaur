@@ -1,72 +1,60 @@
 >>
 Rule 1 (indices must be int32 or int64)
-{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+{v_2 : tensor} |= dtype_(v_2) = 2 ∨ dtype_(v_2) = 4
 >>
-Rule 2 (updates must have the same type as tensor)
+Rule 2 (updates and tensor must have the same dtype)
 {v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3)
 >>
-Rule 3 (indices should have at least rank 1)
-{v_2 : tensor} |= ndim(v_2) ≥ 1
+Rule 3 (bad_indices_policy must be a valid string - suppressing unknown attribute error)
+{v_4 : str} |= v_4 = "none" ∨ v_4 = "skip" ∨ v_4 = "ignore"
 >>
-Rule 4 (The last dimension of indices should be no more than the rank of tensor)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, ndim(v_2) - 1) ≤ ndim(v_1)
+Rule 4 (indices must be a tensor of integers)
+{v_2 : tensor} |= ndim(v_2) > 0 ∧ (dtype_(v_2) = 2 ∨ dtype_(v_2) = 4)
 >>
-Rule 5 (Shape check between indices and updates)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_3) + ndim(v_1) -1
+Rule 5 (tensor must be a tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 6 (tensor's rank should greater than zero)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 6 (updates must be a tensor)
+{v_3 : tensor} |= ndim(v_3) ≥ 0
 >>
-Rule 8 (indices element value should be valid, simplified)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_2, 1) = ndim(v_1)
+Rule 7 (indices shape[1] must be less or equal than tensor ndim)
+{v_1 : tensor, v_2 : tensor} |= shape(v_2, 1) ≤ ndim(v_1)
 >>
-Rule 10 (indices shape[0] matches updates shape[0])
+Rule 8 (updates shape[0] must be equal to indices shape[0])
 {v_2 : tensor, v_3 : tensor} |= shape(v_2, 0) = shape(v_3, 0)
 >>
-Rule 12 (bad_indices_policy argument type is string)
-{v_4 : str} |= v_4 = "" ∨ v_4 = "ignore" ∨ v_4 = "drop"
+Rule 12 (tensor's dtype must be in the allowed list when indices are int32)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 0)
 >>
-Rule 15 (bad_indices_policy argument type is string and defaults to "")
-{v_4 : str} |= v_4 = "" ∨ v_4 = "ignore"
+Rule 13 (tensor's dtype must be in the allowed list when indices are int64)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 4 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 0)
 >>
-Rule 16 (indices's last dimension equals tensor's rank )
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, ndim(v_2)-1) = ndim(v_1)
+Rule 15 (The updates shape must match expected shape based on tensor and indices)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_3) = ndim(v_1) - 1 + (ndim(v_2) - 1)
 >>
-Rule 17 (indices's data type is int32 or int64)
-{v_2: tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Rule 16 (The updates shape must match expected shape based on tensor and indices)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_3) = ndim(v_1) - (1) + (ndim(v_2) - (1))
 >>
-Rule 18 (updates shape matches indices and tensor shapes)
-{v_1 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = shape(v_3, i)
+Rule 17 (The updates shape must match expected shape based on tensor and indices, more precisely.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_3, ndim(v_3) - 1) = shape(v_1, shape(v_2, 1) -1)
 >>
-Rule 20 (tensor and updates's data type should be valid)
-{v_1: tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 19 (Indices shape[1] must be less or equal than tensor ndim)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 1 then shape(v_2, 1) ≤ ndim(v_1)
 >>
-Rule 23 (updates shape matches indices and tensor shapes, rank 1)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_2, 0) = shape(v_3, 0) ∧ shape(v_1, 0) = shape(v_3, 1)
+Rule 20 (If indices has more than one dimension, the last dimension of indices must be less or equal than the rank of tensor.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then shape(v_2, ndim(v_2)-1) <= ndim(v_1)
 >>
-Rule 27 (indices's last dimension equals tensor's rank if indices is rank > 1)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 1 then shape(v_2, ndim(v_2)-1) = ndim(v_1)
+Rule 37 (tensor and updates should have compatible shapes for scatter_nd, complete)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_2) > 0) then (shape(v_2, ndim(v_2)-1) + ndim(v_3) = ndim(v_1))
 >>
-Rule 28 (updates shape matches indices and tensor shapes for indices with rank 1)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_3, 0) ∧ shape(v_1, 0) = shape(v_3, 1)
+Rule 38 (tensor and updates should have compatible shapes for scatter_nd, complete)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_2) > 0) then ((shape(v_2, ndim(v_2)-1) + ndim(v_3)) = ndim(v_1))
 >>
-Rule 29 (updates and tensor data types should be the same)
-{v_1: tensor, v_3: tensor} |= dtype_(v_1) = dtype_(v_3)
+Rule 39 (tensor and updates should have compatible shapes for scatter_nd, complete)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_2) > 0) then ((shape(v_2, ndim(v_2)-1) + ndim(v_3)) = ndim(v_1)) else (ndim(v_1) = ndim(v_3))
 >>
-Rule 35 (indices must have rank >=1 and <= tensor.rank +1)
-{v_1: tensor, v_2: tensor} |= ndim(v_2) >= 1 ∧ ndim(v_2) <= ndim(v_1) + 1
+Rule 40 (tensor and updates should have compatible shapes for scatter_nd, complete)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_2) > 0) then (((shape(v_2, 0) > 0) ∧ ((shape(v_2, ndim(v_2)-1) + ndim(v_3)) = ndim(v_1)))) else (ndim(v_1) = ndim(v_3))
 >>
-Rule 38 (updates shape matches indices and tensor shapes when indices is rank 1)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_3, 0) ∧ shape(v_1, 0) = shape(v_3, ndim(v_1))
->>
-Rule 48 (updates shape matches indices and tensor shapes when indices is rank 1)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_3, 0) ∧ (ndim(v_1) = 0 ∨ shape(v_1, 0) = shape(v_3, 1))
->>
-Rule 52 (All the indices must be within the tensor's shape's bounds)
-{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, shape(v_2, 0) - 1] : shape(v_2, ndim(v_2)-1) ≤ ndim(v_1)
->>
-Rule 53 (The shape of updates must match the shape of the tensor except for the dimensions specified in indices)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_3) = ndim(v_1) - shape(v_2, ndim(v_2) -1) + shape(v_2, 0)
->>
-Rule 63 (updates rank must be tensor's rank - indices's last dim +1 if indices rank >1)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 1 then ndim(v_3) = ndim(v_1) - shape(v_2, ndim(v_2) -1) + 1
+Rule 41 (tensor and updates should have compatible shapes for scatter_nd, complete)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_2) > 0) then ((shape(v_2, 0) > 0) ∧ ((shape(v_2, ndim(v_2)-1) + ndim(v_3)) = ndim(v_1))) else (ndim(v_1) = ndim(v_3))

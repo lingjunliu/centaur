@@ -1,45 +1,216 @@
 >>
-Rule 1 (input tensors must have compatible dimensions for inner product)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 1)
+Rule 1 (Input tensors must have at least one dimension)
+{a : tensor, b : tensor} |= ndim(a) > 0 ∧ ndim(b) > 0
 >>
-Rule 2 (first tensor must be at least rank-1)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 3 (Input tensors' data types must be consistent.)
+{a : tensor, b : tensor} |= dtype_(a) = dtype_(b)
 >>
-Rule 3 (second tensor must be at least rank-1)
-{v_2 : tensor} |= ndim(v_2) ≥ 1
+Rule 4 (The last dimension of 'a' must match the last dimension of 'b')
+{a : tensor, b : tensor} |= shape(a, ndim(a) - 1) = shape(b, ndim(b) - 1)
 >>
-Rule 4 (if one tensor is a scalar, the other must also be a scalar)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+Rule 5 (The number of dimensions should be greater than or equal to 1)
+{a : tensor} |= ndim(a) >= 1
 >>
-Rule 6 (dtype of the tensors should be the same)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 11 (If one input is a scalar, the other one can be of any shape)
+{a : tensor, b : tensor} |= if ndim(a) = 0 then true else if ndim(b) = 0 then true
 >>
-Rule 15 (If one of the tensors is a scalar, their inner product is their product)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∨ ndim(v_2) = 0 then true
+Rule 12 (Tensors must have compatible dtypes for multiplication.)
+{a : tensor, b : tensor} |= (dtype_(a) = 6 ∧ dtype_(b) = 6) ∨ (dtype_(a) = 7 ∧ dtype_(b) = 7) ∨ (dtype_(a) = 8 ∧ dtype_(b) = 8) ∨ (dtype_(a) = 9 ∧ dtype_(b) = 9) ∨ (dtype_(a) = 10 ∧ dtype_(b) = 10)
 >>
-Rule 17 (If one of the tensors is a scalar, the result will have the dtype of the other)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then dtype_(v_2) = dtype_(v_2) else if ndim(v_2) = 0 then dtype_(v_1) = dtype_(v_1)
+Rule 13 (The result has the same number of dimensions as the inputs, except for the inner dimensions, which are summed over.)
+{a : tensor, b : tensor} |= if ndim(a) > 1 ∧ ndim(b) > 1 then true
 >>
-Rule 19 (Tensors must have compatible dtypes to avoid casting)
-{v_1: tensor, v_2: tensor} |= (dtype_(v_1) = dtype_(v_2)) ∨ ((dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8))
+Rule 15 (Input tensors cannot be boolean.)
+{a : tensor, b : tensor} |= dtype_(a) ≠ 0 ∧ dtype_(b) ≠ 0
 >>
-Rule 21 (If inputs are matrices, inner product is equivalent to matrix multiplication)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 then shape(v_1, 1) = shape(v_2, 0)
+Rule 19 (At least one tensor should be a vector if both are not scalars)
+{a : tensor, b : tensor} |= if ndim(a) != 0 ∧ ndim(b) != 0 then ndim(a) = 1 ∨ ndim(b) = 1
 >>
-Rule 22 (If inputs are vectors, the result is a scalar.)
-{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 then true
+Rule 21 (If both inputs are vectors, they must have the same length.)
+{a : tensor, b : tensor} |= if ndim(a) = 1 ∧ ndim(b) = 1 then shape(a, 0) = shape(b, 0)
 >>
-Rule 23 (If one input is complex, the other should also be complex)
-{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then (dtype_(v_2) = 10 ∨ dtype_(v_2) = 11)
+Rule 22 (If 'a' is a matrix and 'b' is a vector, the number of columns of 'a' must equal the length of 'b'.)
+{a : tensor, b : tensor} |= if ndim(a) = 2 ∧ ndim(b) = 1 then shape(a, 1) = shape(b, 0)
 >>
-Rule 24 (If one input is complex, the other should also be complex)
-{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then (dtype_(v_2) = 10 ∨ dtype_(v_2) = 11) else if (dtype_(v_2) = 10 ∨ dtype_(v_2) = 11) then (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11)
+Rule 23 (If 'a' is a vector and 'b' is a matrix, the number of rows of 'b' must equal the length of 'a'.)
+{a : tensor, b : tensor} |= if ndim(a) = 1 ∧ ndim(b) = 2 then shape(a, 0) = shape(b, 0)
 >>
-Rule 25 (if the last dimension of v_1 and v_2 are not equal, inner product is not valid)
-{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 1))
+Rule 24 (Data types should be int or float.)
+{a : tensor, b : tensor} |= (dtype_(a) = 1 ∨ dtype_(a) = 2 ∨ dtype_(a) = 3 ∨ dtype_(a) = 4 ∨ dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8) ∧ (dtype_(b) = 1 ∨ dtype_(b) = 2 ∨ dtype_(b) = 3 ∨ dtype_(b) = 4 ∨ dtype_(b) = 6 ∨ dtype_(b) = 7 ∨ dtype_(b) = 8)
 >>
-Rule 27 (If the last dimension is not equal, the result is invalid)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then shape(v_1, ndim(v_1)-1) = shape(v_2, ndim(v_2)-1)
+Rule 25 (Tensors should have compatible shapes for inner product.)
+{a : tensor, b : tensor} |= ndim(a) > 0 ∧ ndim(b) > 0 ∧ shape(a, ndim(a) -1) = shape(b, ndim(b) - 1)
 >>
-Rule 28 (If one of the inputs is a bool tensor, the other should be also bool)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0 else if dtype_(v_2) = 0 then dtype_(v_1) = 0
+Rule 26 (Complex input tensors must have matching complex dtypes.)
+{a : tensor, b : tensor} |= if dtype_(a) = 9 then dtype_(b) = 9 else if dtype_(a) = 10 then dtype_(b) = 10
+>>
+Rule 28 (Both inputs should be of same rank)
+{a : tensor, b : tensor} |= ndim(a) = ndim(b)
+>>
+Rule 29 (If either input is complex, output should be complex)
+{a : tensor, b : tensor} |= if dtype_(a) = 9 ∨ dtype_(a) = 10 then dtype_(b) = 9 ∨ dtype_(b) = 10
+>>
+Rule 30 (If either tensor is empty the result is an empty tensor)
+{a : tensor, b : tensor} |= (∃i ∈ [0, ndim(a) - 1] : shape(a, i) = 0) ∨ (∃i ∈ [0, ndim(b) - 1] : shape(b, i) = 0)
+>>
+Rule 32 (If the last dimensions do not match, tensors should have a dimension of size zero)
+{a : tensor, b : tensor} |= if shape(a, ndim(a) - 1) ≠ shape(b, ndim(b) - 1) then (∃i ∈ [0, ndim(a) - 1] : shape(a, i) = 0) ∨ (∃i ∈ [0, ndim(b) - 1] : shape(b, i) = 0)
+>>
+Rule 36 (If the last dimensions do not match, and one is a scalar then result should be zero)
+{a : tensor, b : tensor} |= if shape(a, ndim(a) - 1) ≠ shape(b, ndim(b) - 1) then if ndim(a) = 0 ∨ ndim(b) = 0 then true else false
+>>
+Rule 37 (Data type should not be string)
+{a : tensor, b : tensor} |= dtype_(a) ≠ 11 ∧ dtype_(b) ≠ 11
+>>
+Rule 38 (The tensors should be either both real or both complex)
+{a : tensor, b : tensor} |= (dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8) ∧ (dtype_(b) = 6 ∨ dtype_(b) = 7 ∨ dtype_(b) = 8) ∨ (dtype_(a) = 9 ∨ dtype_(a) = 10) ∧ (dtype_(b) = 9 ∨ dtype_(b) = 10)
+>>
+Rule 44 (If a is a scalar and b is a vector then the result is a vector)
+{a : tensor, b : tensor} |= if ndim(a) = 0 ∧ ndim(b) = 1 then ndim(b) = 1
+>>
+Rule 45 (If a and b are matrices, then the result will be a scalar)
+{a : tensor, b : tensor} |= if ndim(a) = 2 ∧ ndim(b) = 2 then ndim(a) = 0
+>>
+Rule 46 (If the last dimensions do not match, and at least one is non-scalar, the inner product defaults to 0)
+{a : tensor, b : tensor} |= if shape(a, ndim(a) - 1) ≠ shape(b, ndim(b) - 1) then if ndim(a) > 0 ∨ ndim(b) > 0 then min(a) = 0 ∧ min(b) = 0
+>>
+Rule 47 (Inputs must be numeric (int, float, complex))
+{a : tensor, b : tensor} |= (1 ≤ dtype_(a) ∧ dtype_(a) ≤ 8) ∨ (9 ≤ dtype_(a) ∧ dtype_(a) ≤ 10) ∧ (1 ≤ dtype_(b) ∧ dtype_(b) ≤ 8) ∨ (9 ≤ dtype_(b) ∧ dtype_(b) ≤ 10)
+>>
+Rule 48 (Result data type is float64/complex128 if either of the input is float64/complex128)
+{a : tensor, b : tensor} |= if dtype_(a) = 8 ∨ dtype_(a) = 10 then dtype_(b) = 8 ∨ dtype_(b) = 10
+>>
+Rule 49 (When operating on integer types, result will be integer type)
+{a : tensor, b : tensor} |= if (1 <= dtype_(a) ∧ dtype_(a) <=4) ∧ (1 <= dtype_(b) ∧ dtype_(b) <=4) then true
+>>
+Rule 50 (When operating on float types, result will be float type)
+{a : tensor, b : tensor} |= if (6 <= dtype_(a) ∧ dtype_(a) <=8) ∧ (6 <= dtype_(b) ∧ dtype_(b) <=8) then true
+>>
+Rule 51 (Inputs should have same shape or at least one should be a scalar)
+{a : tensor, b : tensor} |= if ndim(a) ≠ 0 ∧ ndim(b) ≠ 0 then (∀i ∈ [0, ndim(a) - 1] : shape(a, i) = shape(b, i)) ∨ ndim(a) = 0 ∨ ndim(b) = 0
+>>
+Rule 52 (If one input is complex and the other is real, the real one is cast to complex)
+{a : tensor, b : tensor} |= if (dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8) ∧ (dtype_(b) = 9 ∨ dtype_(b) = 10) then true else if (dtype_(a) = 9 ∨ dtype_(a) = 10) ∧ (dtype_(b) = 6 ∨ dtype_(b) = 7 ∨ dtype_(b) = 8) then true
+>>
+Rule 53 (If both inputs are boolean, the result is boolean)
+{a : tensor, b : tensor} |= if dtype_(a) = 0 ∧ dtype_(b) = 0 then true
+>>
+Rule 54 (If 'a' is boolean, 'b' must also be boolean)
+{a : tensor, b : tensor} |= if dtype_(a) = 0 then dtype_(b) = 0
+>>
+Rule 55 (If 'b' is boolean, 'a' must also be boolean)
+{a : tensor, b : tensor} |= if dtype_(b) = 0 then dtype_(a) = 0
+>>
+Rule 56 (If a is a scalar and b is a vector, then the result is vector b multiplied by scalar a)
+{a : tensor, b : tensor} |= if ndim(a) = 0 ∧ ndim(b) = 1 then ∀i ∈ [0, shape(b, 0) -1]: true
+>>
+Rule 57 (If a is a matrix and b is a vector, then the result is a scalar.)
+{a : tensor, b : tensor} |= if ndim(a) = 2 ∧ ndim(b) = 1 then true
+>>
+Rule 58 (If a and b are matrices, the result is a scalar.)
+{a : tensor, b : tensor} |= if ndim(a) = 2 ∧ ndim(b) = 2 then true
+>>
+Rule 59 (Last dimension length must be the same when neither are scalar)
+{a : tensor, b : tensor} |= if ndim(a) > 0 ∧ ndim(b) > 0 then shape(a, ndim(a) - 1) = shape(b, ndim(b) - 1)
+>>
+Rule 60 (If either input is complex, result must be complex)
+{a : tensor, b : tensor} |= if dtype_(a) = 9 ∨ dtype_(a) = 10 ∨ dtype_(b) = 9 ∨ dtype_(b) = 10 then true
+>>
+Rule 61 (If a is a scalar and b is a vector, the result is vector b multiplied by scalar a)
+{a : tensor, b : tensor} |= if ndim(a) = 0 ∧ ndim(b) = 1 then shape(a,0) = 1
+>>
+Rule 62 (if both tensor a,b are scalar the result will be scalar)
+{a : tensor, b : tensor} |= if ndim(a) = 0 ∧ ndim(b) = 0 then shape(a,0) = 1
+>>
+Rule 63 (The input tensor must be a vector if one of the inputs is scalar)
+{a : tensor, b : tensor} |= if ndim(a) = 0 ∨ ndim(b) = 0 then (ndim(a) = 1 ∨ ndim(b) = 1)
+>>
+Rule 65 (Tensors must have at least one non-zero dimension)
+{a : tensor, b : tensor} |= (∃i ∈ [0, ndim(a) - 1] : shape(a, i) > 0) ∧ (∃i ∈ [0, ndim(b) - 1] : shape(b, i) > 0)
+>>
+Rule 66 (If a is a scalar and b is a vector, the result is vector b multiplied by scalar a)
+{a : tensor, b : tensor} |= if ndim(a) = 0 ∧ ndim(b) = 1 then shape(b,0) > 0
+>>
+Rule 72 (scalars and vectors must have compatible shape)
+{a : tensor, b : tensor} |= if ndim(a) = 1 ∧ ndim(b) = 0 then shape(a,0) > 0
+>>
+Rule 73 (Result data type should be float64 if any of inputs are float64)
+{a : tensor, b : tensor} |= if dtype_(a) = 8 ∨ dtype_(b) = 8 then true else false
+>>
+Rule 74 (Result data type should be complex128 if any of inputs are complex128)
+{a : tensor, b : tensor} |= if dtype_(a) = 10 ∨ dtype_(b) = 10 then true else false
+>>
+Rule 75 (Check complex compatibility)
+{a : tensor, b : tensor} |= if dtype_(a) = 9 ∨ dtype_(a) = 10 then dtype_(b) = 9 ∨ dtype_(b) = 10 else if dtype_(b) = 9 ∨ dtype_(b) = 10 then dtype_(a) = 9 ∨ dtype_(a) = 10
+>>
+Rule 76 (Scalars have an effective dimension of 1)
+{a : tensor} |= if ndim(a) = 0 then ndim(a) = 1
+>>
+Rule 82 (If one input is scalar and another is vector then result is same shape as vector)
+{a : tensor, b : tensor} |= if ndim(a) = 0 ∧ ndim(b) = 1 then True else if ndim(a) = 1 ∧ ndim(b) = 0 then True else True
+>>
+Rule 83 (If a tensor have one dimension then last dimension must greater than zero)
+{a : tensor} |= if ndim(a) = 1 then shape(a,0) > 0 else True
+>>
+Rule 84 (Result data type should be complex128 if any of inputs are complex128)
+{a : tensor, b : tensor} |= if dtype_(a) = 10 ∨ dtype_(b) = 10 then True else False
+>>
+Rule 85 (Check complex compatibility)
+{a : tensor, b : tensor} |= if dtype_(a) = 9 ∨ dtype_(a) = 10 then dtype_(b) = 9 ∨ dtype_(b) = 10 else if dtype_(b) = 9 ∨ dtype_(b) = 10 then dtype_(a) = 9 ∨ dtype_(a) = 10 else True
+>>
+Rule 86 (If Scalar and vector, then vector must contain atleast one element)
+{a : tensor, b : tensor} |= if ndim(a) = 0 ∧ ndim(b) = 1 then shape(b,0) > 0 else if ndim(b) = 0 ∧ ndim(a) = 1 then shape(a,0) > 0 else True
+>>
+Rule 87 (Check that inputs are not boolean)
+{a : tensor, b : tensor} |= dtype_(a) != 0 ∧ dtype_(b) != 0
+>>
+Rule 99 (check float compatibility)
+{a : tensor, b : tensor} |= if dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 then dtype_(b) = 6 ∨ dtype_(b) = 7 ∨ dtype_(b) = 8
+>>
+Rule 102 (Check that dtypes must be numerical, bool, complex or float)
+{a : tensor, b : tensor} |= dtype_(a) != 11 ∧ dtype_(a) != 12 ∧ dtype_(a) != 13 ∧ dtype_(b) != 11 ∧ dtype_(b) != 12 ∧ dtype_(b) != 13
+>>
+Rule 108 (If tensors a and b are complex, then a and b must be of the same complex type)
+{a : tensor, b : tensor} |= if dtype_(a) = 9 then dtype_(b) = 9 else if  dtype_(a) = 10 then dtype_(b) = 10 else True
+>>
+Rule 109 (If one input is int and another is float, then check float)
+{a : tensor, b : tensor} |= if dtype_(a) = 1 ∨ dtype_(a) = 2 ∨ dtype_(a) = 3 ∨ dtype_(a) = 4 ∨ dtype_(a) = 5 then dtype_(b) = 6 ∨ dtype_(b) = 7 ∨ dtype_(b) = 8 else True
+>>
+Rule 110 (if one tensor has one dimension then other should also has only one dimension )
+{a : tensor, b : tensor} |= ndim(a) = 1 ∧ ndim(b) = 1
+>>
+Rule 112 (Check that dtypes must be numerical, bool, complex or float)
+{a : tensor, b : tensor} |= dtype_(a) ≠ 11 ∧ dtype_(a) ≠ 12 ∧ dtype_(a) ≠ 13 ∧ dtype_(b) ≠ 11 ∧ dtype_(b) ≠ 12 ∧ dtype_(b) ≠ 13
+>>
+Rule 114 (If one tensor has one dimension then other should also has only one dimension or scalar)
+{a : tensor, b : tensor} |= if ndim(a) = 1 then ndim(b) = 1 ∨ ndim(b) = 0 else True
+>>
+Rule 115 (If one input is int and another is float, then float input size has to be greater than int type size)
+{a : tensor, b : tensor} |= if dtype_(a) = 1 then dtype_(b) = 6 ∨ dtype_(b) = 7 ∨ dtype_(b) = 8 else True
+>>
+Rule 118 (Check tensors a and b must have a similar number of dimensions)
+{a : tensor, b : tensor} |= ndim(a) ≤ 4 ∧ ndim(b) ≤ 4
+>>
+Rule 123 (if one tensor has one dimension then other should also has only one dimension or scalar)
+{a : tensor, b : tensor} |= if ndim(a) = 1 then ndim(b) = 1 ∨ ndim(b) = 0 else if ndim(b) = 1 then ndim(a) = 1 ∨ ndim(a) = 0 else True
+>>
+Rule 125 (If one input is int and another is float, then check float input dtype is float 32 or float64)
+{a : tensor, b : tensor} |= if dtype_(a) = 1 ∨ dtype_(a) = 2 ∨ dtype_(a) = 3 ∨ dtype_(a) = 4 ∨ dtype_(a) = 5 then dtype_(b) = 7 ∨ dtype_(b) = 8 else True
+>>
+Rule 128 (If tensors a and b are complex, then a and b must be of the same complex type)
+{a : tensor, b : tensor} |= (dtype_(a) = 9 ∧ dtype_(b) = 9) ∨ ( dtype_(a) = 10 ∧ dtype_(b) = 10) ∨ (dtype_(a) ≠ 9 ∧ dtype_(a) ≠ 10 ∧ dtype_(b) ≠ 9 ∧ dtype_(b) ≠ 10)
+>>
+Rule 130 (The dtypes must be compatible )
+{a : tensor, b : tensor} |= (dtype_(a) = 1 ∧ dtype_(b) = 1) ∨ (dtype_(a) = 2 ∧ dtype_(b) = 2) ∨ (dtype_(a) = 3 ∧ dtype_(b) = 3) ∨ (dtype_(a) = 4 ∧ dtype_(b) = 4) ∨ (dtype_(a) = 7 ∧ dtype_(b) = 7) ∨ (dtype_(a) = 8 ∧ dtype_(b) = 8)
+>>
+Rule 133 (Inner product defaults to zero)
+{a : tensor, b : tensor} |= if min(a) = 0 ∨ min(b) = 0 then True else False
+>>
+Rule 135 (If a tensor has more than one dimension then all its dimensions must have elements)
+{a : tensor} |=  ∀i ∈ [0, ndim(a) - 1] : shape(a, i) > 0
+>>
+Rule 138 (Dimension mismatch implies empty result.)
+{a : tensor, b : tensor} |= if ndim(a) ≠ ndim(b) then min(a) = 0 ∧ min(b) = 0 else True
+>>
+Rule 139 (If tensors a and b are complex, then a and b must be of the same complex type or both non complex.)
+{a : tensor, b : tensor} |= (dtype_(a) = 9 ∧ dtype_(b) = 9) ∨ ( dtype_(a) = 10 ∧ dtype_(b) = 10) ∨ (dtype_(a) < 9 ∧ dtype_(b) < 9)

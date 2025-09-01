@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# handle must be a non-empty string tensor (Rule 11)
+# handle must be a tensor with string dtype and non-negative shape (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_ndim"] == 0, v["arg1_dtype"] == 11), Select(v["arg1_shape"], 0) > 0)) if n else
-          And(And(v["arg1_ndim"] == 0, v["arg1_dtype"] == 11), Select(v["arg1_shape"], 0) > 0))
+    s.add(Not(And(v["arg1_dtype"] == 11, (Or(v["arg1_ndim"] == 0, (And(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) >= 0)))))) if n else
+          And(v["arg1_dtype"] == 11, (Or(v["arg1_ndim"] == 0, (And(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) >= 0))))))
 )
 
 def rule_11_func(arg1, solver=None, neg=False):
@@ -33,9 +33,9 @@ def rule_11_func(arg1, solver=None, neg=False):
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 11
-        rule_11(solver, {'arg1_shape': arg1_shape, 'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim})
+        rule_11(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_11(solver, {'arg1_shape': arg1['shape'], 'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_11(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype']}, neg)

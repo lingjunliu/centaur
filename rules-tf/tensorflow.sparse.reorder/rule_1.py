@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Input sp_input must be a tensor (Rule 1)
+# sp_input must be a SparseTensor, checking if it has at least two dimensions (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] >= 1) if n else
-          v["arg1_ndim"] >= 1)
+    s.add(Not(v["arg1_ndim"] >= 2) if n else
+          v["arg1_ndim"] >= 2)
 )
 
 def rule_1_func(arg1, solver=None, neg=False):

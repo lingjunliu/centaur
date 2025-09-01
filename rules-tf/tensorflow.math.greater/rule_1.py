@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# x and y must have the same type (Rule 1)
+# x and y must have allowed dtypes (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
-          v["arg1_dtype"] == v["arg2_dtype"])
+    s.add(Not(And((Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 3), v["arg1_dtype"] == 5), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 4), v["arg1_dtype"] == 8), v["arg1_dtype"] == 13), v["arg1_dtype"] == 0), v["arg1_dtype"] == 14), v["arg1_dtype"] == 15)), (Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 3), v["arg2_dtype"] == 5), v["arg2_dtype"] == 2), v["arg2_dtype"] == 1), v["arg2_dtype"] == 4), v["arg2_dtype"] == 8), v["arg2_dtype"] == 13), v["arg2_dtype"] == 0), v["arg2_dtype"] == 14), v["arg2_dtype"] == 15)))) if n else
+          And((Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 3), v["arg1_dtype"] == 5), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 4), v["arg1_dtype"] == 8), v["arg1_dtype"] == 13), v["arg1_dtype"] == 0), v["arg1_dtype"] == 14), v["arg1_dtype"] == 15)), (Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 3), v["arg2_dtype"] == 5), v["arg2_dtype"] == 2), v["arg2_dtype"] == 1), v["arg2_dtype"] == 4), v["arg2_dtype"] == 8), v["arg2_dtype"] == 13), v["arg2_dtype"] == 0), v["arg2_dtype"] == 14), v["arg2_dtype"] == 15))))
 )
 
 def rule_1_func(arg1, arg2, solver=None, neg=False):

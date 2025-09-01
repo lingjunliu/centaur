@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If both are tensors, ensure that if their dimension is greater than zero, their shapes should be broadcast compatible  (Rule 21)
+# If x and y have the same shape, their dimensions should be greater than or equal to 0 (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(And((v["arg1_ndim"] > 0), (v["arg2_ndim"] > 0)), True, False)) if n else
-          If(And((v["arg1_ndim"] > 0), (v["arg2_ndim"] > 0)), True, False))
+    s.add(Not(And(v["arg1_ndim"] >= 0, v["arg2_ndim"] >= 0)) if n else
+          And(v["arg1_ndim"] >= 0, v["arg2_ndim"] >= 0))
 )
 
 def rule_21_func(arg1, arg2, solver=None, neg=False):

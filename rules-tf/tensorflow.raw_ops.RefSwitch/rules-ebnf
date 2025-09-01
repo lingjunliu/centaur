@@ -1,111 +1,141 @@
 >>
-Rule 2 (data tensor should not have empty shape)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 3 (pred should be a scalar, so ndim = 0)
-{v_2 : tensor} |= ndim(v_2) = 0
->>
-Rule 6 (pred tensor must be of boolean type)
-{v_1 : tensor} |= dtype_(v_1) = 0
->>
-Rule 8 (data tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
->>
-Rule 10 (pred tensor must be scalar)
-{v_1 : tensor} |= ndim(v_1) = 0
->>
-Rule 12 (data and pred tensors must be defined)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) = 0
->>
-Rule 13 (data tensor's dtype cannot be string)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
->>
-Rule 14 (data tensor's dtype cannot be boolean if the op requires numerical values)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
->>
-Rule 21 (pred tensor must be scalar and boolean)
-{v_1 : tensor} |= ndim(v_1) = 0 ∧ dtype_(v_1) = 0
->>
-Rule 22 (data tensor must be defined with non-string dtype)
-{v_1 : tensor} |= ndim(v_1) ≥ 0 ∧ dtype_(v_1) ≠ 11
->>
-Rule 23 (data tensor must be defined with a numerical dtype)
-{v_1 : tensor} |=  dtype_(v_1) ≠ 0
->>
-Rule 24 (data tensor must be defined and have numerical dtype)
-{v_1 : tensor} |= ndim(v_1) ≥ 0 ∧ dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 0
->>
-Rule 29 (pred tensor's dtype must be boolean)
+Rule 1 (pred must be a boolean tensor)
 {v_2 : tensor} |= dtype_(v_2) = 0
 >>
-Rule 30 (data tensor must be defined and have numerical dtype, and the pred tensor must be scalar boolean)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 0 ∧ ndim(v_2) = 0 ∧ dtype_(v_2) = 0
+Rule 2 (data and output_true/output_false have the same shape)
+{v_1 : tensor} |= shape(v_1, 0) = shape(v_1, 0)
 >>
-Rule 34 (pred tensor must be scalar and boolean)
-{v_2 : tensor} |= ndim(v_2) = 0 ∧ dtype_(v_2) = 0
+Rule 3 (data must not be an empty tensor)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 39 (data and pred tensors must be defined correctly)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ dtype_(v_1) ≠ 11 ∧ dtype_(v_2) = 0 ∧ ndim(v_2) = 0
+Rule 4 (if data is a 1D tensor, its length should be greater than zero)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 0
 >>
-Rule 40 (data tensor and output tensors must have same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 5 (pred must be a scalar tensor, i.e., ndim(pred) = 0)
+{v_2 : tensor} |= ndim(v_2) = 0
 >>
-Rule 41 (Shape of data and output tensors should be the same)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 6 (data and pred tensors should not overlap in memory)
+{v_1 : tensor, v_2 : tensor} |= v_1 ≠ v_2
 >>
-Rule 42 (data and pred tensors must be defined with allowed dtypes)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ (dtype_(v_1) ≠ 11) ∧ (ndim(v_2) = 0) ∧ (dtype_(v_2) = 0)
+Rule 7 (data tensor's dtype should be within a supported range)
+{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11
 >>
-Rule 44 (data tensor should have at least one element if dimensions are non-zero)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 8 (data tensor must have at least one element if pred is true)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 0 ∧ v_2 = true then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 47 (data tensor has at least one element along each dimension)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 9 (if pred is false data must have at least dimension)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 0 ∧ v_2 = false then ndim(v_1) > 0
 >>
-Rule 48 (data and pred tensors types and shapes must be valid)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧  (ndim(v_2) = 0) ∧ (dtype_(v_2) = 0)
+Rule 10 (data and pred must have a valid data type)
+{v_1 : tensor, v_2 : tensor} |= (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11) ∧ dtype_(v_2) = 0
 >>
-Rule 51 (data and pred tensors must be defined according to their specific requirements)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 0) ∧ (dtype_(v_1) ≠ 11) ∧ (ndim(v_2) = 0) ∧ (dtype_(v_2) = 0)
+Rule 11 (data tensor's shape should not contain negative values)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 54 (Data and Pred tensors must be defined with specific types)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 0) ∧ (dtype_(v_1) ≠ 11)  ∧ (ndim(v_2) = 0) ∧ (dtype_(v_2) = 0)
+Rule 12 (pred's value should affect data's max value)
+{v_1 : tensor, v_2 : tensor} |= if v_2 = true then max(v_1) > -1000 else max(v_1) < 1000
 >>
-Rule 57 (data tensor has valid shape and type)
-{v_1 : tensor} |= (dtype_(v_1) ≠ 11)
+Rule 13 (shape of data tensor cannot exceed a max value)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≤ 2048
 >>
-Rule 58 (pred tensor should be scalar and boolean)
-{v_2 : tensor} |= (ndim(v_2) = 0) ∧ (dtype_(v_2) = 0)
+Rule 14 (The data tensor should have a non-zero number of elements)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 60 (data and pred tensors must have valid properties)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 11) ∧ (ndim(v_2) = 0) ∧ (dtype_(v_2) = 0)
+Rule 15 (data and pred are different tensors)
+{v_1: tensor, v_2: tensor} |= v_1 ≠ v_2
 >>
-Rule 66 (Data and pred tensors types are as expected)
-{v_1 : tensor, v_2 : tensor} |=  (ndim(v_2) = 0) ∧ (dtype_(v_2) = 0) ∧ (dtype_(v_1) ≠ 11)
+Rule 16 (If data is empty, pred should be false)
+{v_1: tensor, v_2: tensor} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then v_2 = false
 >>
-Rule 71 (data tensor must be defined, and it must not be a string)
-{v_1 : tensor} |= (ndim(v_1) >= 0)
+Rule 17 (If the data tensor has dimension > 1, then all dimensions should have size > 0)
+{v_1: tensor} |= if ndim(v_1) > 1 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 72 (The types of the data and pred tensors must adhere to the API's requirements)
-{v_1 : tensor, v_2 : tensor} |=  (dtype_(v_1) ≠ 11) ∧ (ndim(v_2) = 0) ∧ (dtype_(v_2) = 0)
+Rule 18 (If the data tensor has dimension 0, then the pred must equal false)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 0 then v_2 = false
 >>
-Rule 74 (If a data tensor is provided, then all constraints are true.)
-{v_1 : tensor} |= ndim(v_1) >=0
+Rule 19 (If data is a matrix, then the sum of its elements must be non-negative)
+{v_1: tensor} |= if ndim(v_1) = 2 then min(v_1) ≥ 0
 >>
-Rule 77 (data, output_true and output_false tensors should have same properties)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 20 (If pred is false, the min of the tensor should be less than 100)
+{v_1: tensor, v_2: tensor} |= if v_2 = false then min(v_1) < 100
 >>
-Rule 86 (The datatypes for the input tensor (data), and the output tensors must match.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
+Rule 21 (If the dimension of data is 1, then the max value in the tensor must be less than 1000)
+{v_1: tensor} |= if ndim(v_1) = 1 then max(v_1) < 1000
 >>
-Rule 89 (The output tensors must have the same dtype and shape as the input tensor)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧  ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 22 (If the dtype of data is int, the max value must be less than 2^31)
+{v_1: tensor} |= if (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5) then max(v_1) < 2147483648
 >>
-Rule 101 (The output tensors must have the same dtype as the input tensor and data and output tensors should not have same name)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3) ∧ v_1 ≠ v_2 ∧ v_1 ≠ v_3
+Rule 23 (If data has more than one dimension, the product of the dimensions should be less than 2^20)
+{v_1 : tensor} |= if ndim(v_1) > 1 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1)
 >>
-Rule 110 (The output_true and output_false tensors must have the same data type as input data tensors, must have the same shape, and output_true and output_false are not same tensors)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3) ∧ ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 24 (if data has less than 3 dimensions, then min(data) should be greater than -100)
+{v_1 : tensor} |= if ndim(v_1) < 3 then min(v_1) > -100
 >>
-Rule 113 (Output true and output false must have the same dtype and shape as input data tensor)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ dtype_(v_1) = dtype_(v_2)
+Rule 25 (If data has dtype float32 or float64, then the min of data should be less than the max of data)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) < max(v_1)
+>>
+Rule 26 (If pred is true, the data tensor must have at least one element equal to 0)
+{v_1: tensor, v_2: tensor} |= if v_2 = true then ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 0
+>>
+Rule 27 (If data is a vector, and pred is true, all elements should be positive)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 ∧ v_2 = true then min(v_1) ≥ 0
+>>
+Rule 28 (If pred is false and data's dtype is float, then max(data) > 0)
+{v_1: tensor, v_2: tensor} |= if v_2 = false ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then max(v_1) > 0
+>>
+Rule 29 (If the data tensor has 2 dimensions, and pred is True, then shape(data, 0) must be equal to shape(data, 1))
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ v_2 = true then shape(v_1, 0) = shape(v_1, 1)
+>>
+Rule 30 (If the pred tensor is True, the data tensor cannot have complex dtype)
+{v_1: tensor, v_2: tensor} |= if v_2 = true then dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+>>
+Rule 31 (If data has a string dtype, then pred should be false)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 11 then v_2 = false
+>>
+Rule 32 (If the pred tensor is False, then data's maximum value must be smaller than 1000)
+{v_1: tensor, v_2: tensor} |= if v_2 = false then max(v_1) < 1000
+>>
+Rule 33 (If the pred tensor is false, then the data tensor should have at least one dimension with a size greater than 1)
+{v_1: tensor, v_2: tensor} |= if v_2 = false then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1
+>>
+Rule 34 (If the data tensor is of type bool and pred is True, all the elements in data must be True)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 0 ∧ v_2 = true then min(v_1) = true
+>>
+Rule 35 (If the data tensor's dtype is float and pred is false, then standard deviation must be positive)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ v_2 = false then max(v_1) > min(v_1)
+>>
+Rule 36 (If the data tensor has a floating-point dtype, and pred is true, then the average should be greater than 0)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ v_2 = true then min(v_1) + max(v_1) > 0
+>>
+Rule 38 (If data tensor has at least one dimension > 1 and the tensor is of dtype int, then pred must be true)
+{v_1: tensor, v_2: tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1) ∧ (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5) then v_2 = true
+>>
+Rule 41 (If the data tensor has at least one dimension > 1, and the tensor is of dtype bool, then min(data) must be false)
+{v_1: tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1) ∧ dtype_(v_1) = 0 then min(v_1) = false
+>>
+Rule 42 (If the pred tensor is True, then the maximum value in the data tensor must be greater than the minimum)
+{v_1: tensor, v_2: tensor} |= if v_2 = true then max(v_1) > min(v_1)
+>>
+Rule 43 (If pred is true and dtype of data is an integer type, then min(data) must be >= 0)
+{v_1: tensor, v_2: tensor} |= if v_2 = true ∧ (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5) then min(v_1) ≥ 0
+>>
+Rule 44 (If dtype is complex64 or complex128, then pred must be false.)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then v_2 = false
+>>
+Rule 45 (If pred is true and data is a scalar tensor, then data must be greater than 0)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 0 ∧ v_2 = true then v_1 > 0
+>>
+Rule 46 (If data is of type string and pred is true, the string cannot be empty)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 11 ∧ v_2 = true then v_1 ≠ ""
+>>
+Rule 47 (If pred is true and data is a tensor of dtype dtype, then dtype(data) must be a valid data type (0 to 12))
+{v_1: tensor, v_2: tensor} |= if v_2 = true ∧ dtype_(v_1) = 12 then 0 ≤ v_1 ∧ v_1 ≤ 12
+>>
+Rule 48 (If data tensor is multi-dimensional and pred is True, then product of dimensions should be > 1)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 1 ∧ v_2 = true then ∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 1
+>>
+Rule 50 (If data is of type bool and pred is false, the tensor must contain at least one false element)
+{v_1: tensor} |= if dtype_(v_1) = 0 then if false = true then true else ∃i ∈ [0, ndim(v_1)-1] : min(v_1, i) = false
+>>
+Rule 52 (If data is of type bool and pred is false, the tensor must contain at least one false element)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 0 ∧ v_2 = false then ∃i ∈ [0, ndim(v_1)-1] : min(v_1) = false

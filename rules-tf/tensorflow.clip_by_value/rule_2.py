@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# clip_value_min and clip_value_max types should be the same (Rule 2)
+# Input tensor and clip_value_min should have compatible dtypes (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else

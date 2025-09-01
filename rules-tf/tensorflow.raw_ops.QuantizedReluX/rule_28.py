@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# max_value tensor must have positive value (Rule 28)
+# if max_value is zero then output should be zero (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) > 0) if n else
-          Select(v["arg1_range"], 0) > 0)
+    s.add(Not(Select(v["arg1_range"], 0) == 0) if n else
+          Select(v["arg1_range"], 0) == 0)
 )
 
 def rule_28_func(arg1, solver=None, neg=False):

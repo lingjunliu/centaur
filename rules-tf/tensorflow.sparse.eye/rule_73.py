@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If num_rows is a tensor and num_columns is an integer, and the number of rows are not provided then num_columns has to be the same as default num_rows, which is 1. (Rule 73)
+# Ensure Range start is leq limit, small Rows. (Rule 73)
 
 rule_73 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] == 1) if n else
-          v["arg1_value"] == 1)
+    s.add(Not(v["arg1_value"] < 10000) if n else
+          v["arg1_value"] < 10000)
 )
 
 def rule_73_func(arg1, solver=None, neg=False):

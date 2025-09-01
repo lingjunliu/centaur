@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Output tensors need to have positive values (Rule 68)
+# The key should be int64 and Scalar (Rule 68)
 
 rule_68 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) >= 0) if n else
-          Select(v["arg1_range"], 0) >= 0)
+    s.add(Not(And(v["arg1_ndim"] == 0, v["arg1_dtype"] == 4)) if n else
+          And(v["arg1_ndim"] == 0, v["arg1_dtype"] == 4))
 )
 
 def rule_68_func(arg1, solver=None, neg=False):
@@ -22,16 +22,17 @@ def rule_68_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 68
-        rule_68(solver, {'arg1_range': arg1_range})
+        rule_68(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_68(solver, {'arg1_range': arg1['range']}, neg)
+        rule_68(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype']}, neg)

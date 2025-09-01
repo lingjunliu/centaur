@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input is a complex tensor, the magnitude should be less than 709 to prevent overflow (Rule 34)
+# For complex numbers, ensure real and imaginary parts have reasonable bounds to avoid overflow/underflow during computation (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Select(v["arg1_range"], 1) < 709, False)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Select(v["arg1_range"], 1) < 709, False))
+    s.add(Not(If(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11), And(Select(v["arg1_range"], 0) > -50, Select(v["arg1_range"], 1) < 50), True)) if n else
+          If(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11), And(Select(v["arg1_range"], 0) > -50, Select(v["arg1_range"], 1) < 50), True))
 )
 
 def rule_34_func(arg1, solver=None, neg=False):

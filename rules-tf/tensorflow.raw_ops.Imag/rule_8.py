@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Tout must be float32 if input is complex64 (Rule 8)
+# if Tout is provided, the returned tensor will have the same dtype as Tout (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 10, v["arg2_value"] == 8, False)) if n else
-          If(v["arg1_dtype"] == 10, v["arg2_value"] == 8, False))
+    s.add(Not(If(v["arg2_value"] != 0, v["arg1_dtype"] == v["arg2_value"], True)) if n else
+          If(v["arg2_value"] != 0, v["arg1_dtype"] == v["arg2_value"], True))
 )
 
 def rule_8_func(arg1, arg2, solver=None, neg=False):

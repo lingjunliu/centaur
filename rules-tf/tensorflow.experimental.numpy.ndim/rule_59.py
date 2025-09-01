@@ -5,40 +5,35 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If shape is greater then a number then the tensor ndim is greater then zero (Rule 59)
+# If the dimension is less than 3, then at least one dim should be one (Rule 59)
 
 rule_59 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_shape"], 0) > v["arg2_value"], v["arg1_ndim"] > 0, False)) if n else
-          If(Select(v["arg1_shape"], 0) > v["arg2_value"], v["arg1_ndim"] > 0, False))
+    s.add(Not(If(v["arg1_ndim"] < 3, Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 1) for i in range(6)]), True)) if n else
+          If(v["arg1_ndim"] < 3, Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 1) for i in range(6)]), True))
 )
 
-def rule_59_func(arg1, arg2, solver=None, neg=False):
+def rule_59_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
-            return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_value = Int('arg2_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 59
-        rule_59(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_59(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_59(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)
+        rule_59(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

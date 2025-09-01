@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check if the shape of the first tensor is equal to a constant number (Rule 21)
+# list of booleans should not be empty (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) == 5) if n else
-          Select(v["arg1_shape"], 0) == 5)
+    s.add(Not(v["arg1_length"] > 0) if n else
+          v["arg1_length"] > 0)
 )
 
 def rule_21_func(arg1, solver=None, neg=False):
@@ -17,21 +17,20 @@ def rule_21_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, list) and all(isinstance(e, bool) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_length = Int('arg1_length')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_length == len(arg1))
 
         # Constraints for rule 21
-        rule_21(solver, {'arg1_shape': arg1_shape})
+        rule_21(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_21(solver, {'arg1_shape': arg1['shape']}, neg)
+        rule_21(solver, {'arg1_length': arg1['length']}, neg)

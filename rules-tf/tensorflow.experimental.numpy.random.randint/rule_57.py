@@ -5,37 +5,30 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if the output shape needs to be same size with low tensor's shape, the size parameter should be a tuple (Rule 57)
+# dtype must be a valid dtype (Rule 57)
 
 rule_57 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] == v["arg2_length"]) if n else
-          v["arg1_ndim"] == v["arg2_length"])
+    s.add(Not(If(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or((v["arg1_value"] == 0), (v["arg1_value"] == 1)), (v["arg1_value"] == 2)), (v["arg1_value"] == 3)), (v["arg1_value"] == 4)), (v["arg1_value"] == 5)), (v["arg1_value"] == 6)), (v["arg1_value"] == 7)), (v["arg1_value"] == 8)), (v["arg1_value"] == 9)), (v["arg1_value"] == 10)), (v["arg1_value"] == 12)), True, True)) if n else
+          If(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or((v["arg1_value"] == 0), (v["arg1_value"] == 1)), (v["arg1_value"] == 2)), (v["arg1_value"] == 3)), (v["arg1_value"] == 4)), (v["arg1_value"] == 5)), (v["arg1_value"] == 6)), (v["arg1_value"] == 7)), (v["arg1_value"] == 8)), (v["arg1_value"] == 9)), (v["arg1_value"] == 10)), (v["arg1_value"] == 12)), True, True))
 )
 
-def rule_57_func(arg1, arg2, solver=None, neg=False):
+def rule_57_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
-            return False
-        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)) or (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType))):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_length = Int('arg2_length')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_length == len(arg2))
 
         # Constraints for rule 57
-        rule_57(solver, {'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length})
+        rule_57(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_57(solver, {'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length']}, neg)
+        rule_57(solver, {'arg1_value': arg1['value']}, neg)

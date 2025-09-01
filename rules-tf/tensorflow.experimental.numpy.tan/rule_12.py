@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check that the minimum value of the tensor is representable as float32 (Rule 12)
+# input tensor values are not NaN (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) > -3.4028235e38) if n else
-          Select(v["arg1_range"], 0) > -3.4028235e38)
+    s.add(Not(Or([And(i < (Select(v["arg1_range"], 1) + 1), i == i) for i in range(6)])) if n else
+          Or([And(i < (Select(v["arg1_range"], 1) + 1), i == i) for i in range(6)]))
 )
 
 def rule_12_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If data and partition are not scalars, then Data and Partitions must have compatible shapes. (Rule 70)
+# The product of data's shape must start with the product of partition's shape (Rule 70)
 
 rule_70 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), And([Implies(i < (If(v["arg1_ndim"] < v["arg2_ndim"], v["arg1_ndim"], v["arg2_ndim"] - 1) + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]), False)) if n else
-          If(Or(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), And([Implies(i < (If(v["arg1_ndim"] < v["arg2_ndim"], v["arg1_ndim"], v["arg2_ndim"] - 1) + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]), False))
+    s.add(Not(If(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), (And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])), True)) if n else
+          If(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), (And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])), True))
 )
 
 def rule_70_func(arg1, arg2, solver=None, neg=False):

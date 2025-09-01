@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input is a ragged tensor, then axis must be specified, and length of axis must be less or equal to ndim(v_1 (Rule 61)
+# Axis as a list of integers, each must be in valid dimension range of the tensor AND the dimension sizes at each listed index must be 1 (Rule 61)
 
 rule_61 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 13, And(v["arg2_length"] > 0, v["arg2_length"] <= v["arg1_ndim"]), False)) if n else
-          If(v["arg1_dtype"] == 13, And(v["arg2_length"] > 0, v["arg2_length"] <= v["arg1_ndim"]), False))
+    s.add(Not(And([Implies(i < (v["arg2_length"] - 1 + 1), If(And(Select(v["arg2_values"], i) >= (0 - v["arg1_ndim"]), Select(v["arg2_values"], i) < v["arg1_ndim"]), Select(v["arg1_shape"], Select(v["arg2_values"], i)) == 1, Or([And(j < (v["arg2_length"] - 1 + 1), Or(Select(v["arg2_values"], j) < (0 - v["arg1_ndim"]), Select(v["arg2_values"], j) >= v["arg1_ndim"])) for j in range(6)]))) for i in range(6)])) if n else
+          And([Implies(i < (v["arg2_length"] - 1 + 1), If(And(Select(v["arg2_values"], i) >= (0 - v["arg1_ndim"]), Select(v["arg2_values"], i) < v["arg1_ndim"]), Select(v["arg1_shape"], Select(v["arg2_values"], i)) == 1, Or([And(j < (v["arg2_length"] - 1 + 1), Or(Select(v["arg2_values"], j) < (0 - v["arg1_ndim"]), Select(v["arg2_values"], j) >= v["arg1_ndim"])) for j in range(6)]))) for i in range(6)]))
 )
 
 def rule_61_func(arg1, arg2, solver=None, neg=False):
@@ -26,18 +26,22 @@ def rule_61_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg1_dtype = Int('arg1_dtype')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_length = Int('arg2_length')
+        arg2_values = Array('arg2_values', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg2_length == len(arg2))
+        for i in range(len(arg2)):
+            arg2_values = Store(arg2_values, i, arg2[i])
 
         # Constraints for rule 61
-        rule_61(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length})
+        rule_61(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_values': arg2_values, 'arg2_length': arg2_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_61(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length']}, neg)
+        rule_61(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_values': arg2['values'], 'arg2_length': arg2['length']}, neg)

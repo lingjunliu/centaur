@@ -1,39 +1,144 @@
 >>
-Rule 2 (The number of dimensions of the input tensor must be greater than 0)
-{v_1 : tensor} |= ndim(v_1) > 0
->>
-Rule 3 (Data type of the input tensor should not be boolean)
-{v_1 : tensor} |= dtype_(v_1) ≠ bool
->>
-Rule 5 (The shape of input tensor must be positive)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 6 (Input tensor must be of float or complex dtype)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
->>
-Rule 7 (Input tensor's dimension must be at least 1)
+Rule 1 (Input tensor must have at least one dimension)
 {v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 9 (If the tensor is empty, it should return a tensor of the same shape, filled with False)
-{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then true
+Rule 2 (Input tensor's dtype must be a floating-point or complex type for isnan)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 6
 >>
-Rule 10 (Input tensor must be of float or complex dtype to contain NaN)
+Rule 3 (Check if all elements in a tensor are finite)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 4 (The shape of the input tensor should not be empty.)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 1
+>>
+Rule 5 (Input tensor must have a floating-point or complex dtype for isnan)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 6 (The input tensor should have a non-zero size in all dimensions.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+>>
+Rule 7 (The input tensor cannot have a dtype of bool)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 8 (The minimum value in the tensor should be a valid float or complex number for isnan to function)
+{v_1 : tensor} |= min(v_1) ≠ "inf" ∧ min(v_1) ≠ "-inf"
+>>
+Rule 9 (The maximum value in the tensor should be a valid float or complex number for isnan to function)
+{v_1 : tensor} |= max(v_1) ≠ "inf" ∧ max(v_1) ≠ "-inf"
+>>
+Rule 10 (If the input tensor's dtype is complex, the imaginary part should be checked as well.)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true
+>>
+Rule 11 (The shape of the input tensor should not be too large to avoid memory issues)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000000
+>>
+Rule 12 (The input tensor's dtype should not be string)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 13 (The input tensor's dtype should not be an integer type)
+{v_1 : tensor} |= dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
+>>
+Rule 14 (The product of the dimensions of the input tensor should be within a reasonable limit)
+{v_1 : tensor} |= if ndim(v_1) = 0 then 1 < 1000000000 else if ndim(v_1) = 1 then shape(v_1, 0) < 1000000000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 1000000000 else if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 1000000000 else shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) < 1000000000
+>>
+Rule 15 (The input tensor should not have NaN values.)
+{v_1 : tensor} |= max(v_1) ≠ "NaN" ∧ min(v_1) ≠ "NaN"
+>>
+Rule 17 (If the dtype is complex, then ensure it is either complex64 or complex128.)
+{v_1 : tensor} |= if dtype_(v_1) = 9 then true else if dtype_(v_1) = 10 then true else if dtype_(v_1) < 9 then false else if dtype_(v_1) > 10 then false
+>>
+Rule 18 (If the tensor's dtype is float16, float32, or float64, the values must be within the representable range)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) > -65500 ∧ max(v_1) < 65500
+>>
+Rule 19 (If the tensor has float16 dtype, then the tensor's values should fall in the representable range)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) ≥ -65504 ∧ max(v_1) ≤ 65504
+>>
+Rule 20 (If the tensor's dtype is float32, then the tensor's values should fall in the representable range)
+{v_1 : tensor} |= if dtype_(v_1) = 7 then min(v_1) ≥ -3.4028235e+38 ∧ max(v_1) ≤ 3.4028235e+38
+>>
+Rule 21 (If the tensor has float64 dtype, then the tensor's values should fall in the representable range)
+{v_1 : tensor} |= if dtype_(v_1) = 8 then min(v_1) ≥ -1.7976931348623157e+308 ∧ max(v_1) ≤ 1.7976931348623157e+308
+>>
+Rule 22 (If the tensor has complex64 dtype, then the real and imaginary components should fall within the representable range)
+{v_1 : tensor} |= if dtype_(v_1) = 9 then true
+>>
+Rule 23 (If the tensor has complex128 dtype, then the real and imaginary components should fall within the representable range)
+{v_1 : tensor} |= if dtype_(v_1) = 10 then true
+>>
+Rule 24 (If the input tensor has a dimension of size zero, isnan should still be valid)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 ∨ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 25 (The tensor should not have inf values.)
+{v_1 : tensor} |= max(v_1) ≠ "inf" ∧ min(v_1) ≠ "-inf"
+>>
+Rule 26 (Ensure tensor is not too large along any one dimension to prevent OOM errors.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483647
+>>
+Rule 27 (Check for NaN by comparing against itself. Only NaN will fail this comparison)
+{v_1 : tensor} |= max(v_1) = max(v_1)
+>>
+Rule 28 (Check for NaN by comparing against itself, but using the min function.)
+{v_1 : tensor} |= min(v_1) = min(v_1)
+>>
+Rule 29 (The tensor cannot be an empty tensor.)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 30 (The dtype of the tensor cannot be a dtype object itself)
+{v_1 : tensor} |= dtype_(v_1) ≠ 12
+>>
+Rule 31 (Ensure that tensor's data is not quantized.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 5
+>>
+Rule 32 (Ensure that tensor's data is not a bfloat16.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 6
+>>
+Rule 35 (The tensor should have float16, float32, float64, complex64 or complex128 dtype.)
 {v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 20 (Input tensor must have at least one dimension if shape is not (0,))
-{v_1 : tensor} |= (ndim(v_1) > 0)
+Rule 40 (The shape of the tensor should be the same as the shape of another tensor - for cases where other functions' output may be the input.)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ ndim(v_1) = ndim(v_2)
 >>
-Rule 23 (The input tensor's number of dimensions must be greater than or equal to 0)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 41 (if the input is a complex tensor, check that the real and imaginary components are of compatible float types)
+{v_1 : tensor} |= if dtype_(v_1) = 9 then true else if dtype_(v_1) = 10 then true
 >>
-Rule 26 (When the input is a 0-dimensional tensor the output is a 0-dimensional boolean tensor)
-{v_1 : tensor} |= if ndim(v_1) = 0 then true
+Rule 42 (The input tensor dtype should be of size 16, 32, 64 or 128 bits if it's a float or complex tensor for the function to be valid)
+{v_1 : tensor} |= if dtype_(v_1) = 7 then true else if dtype_(v_1) = 8 then true else if dtype_(v_1) = 9 then true else if dtype_(v_1) = 10 then true else if dtype_(v_1) = 6 then false else false
 >>
-Rule 39 (Input must be a tensor with at least one number)
+Rule 44 (At least one dimension in the tensor must be positive length to perform isnan)
 {v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 57 (The input should be a tensor and not a scalar if the dimension is positive)
-{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then ndim(v_1) > 0
+Rule 45 (The input tensor needs to have at least one element)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 1
 >>
-Rule 60 (Dimensions of the input must match the dimensions of the output)
-{v_1 : tensor} |= ndim(v_1) > -1
+Rule 47 (Check that the tensor is not a quantized tensor.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4
+>>
+Rule 48 (If a complex number, both the real and imaginary parts should fall within the floating-point range)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) ≠ "inf" ∧ min(v_1) ≠ "-inf" ∧ max(v_1) ≠ "inf" ∧ max(v_1) ≠ "-inf"
+>>
+Rule 49 (The input tensor should have dimensions and elements. Make sure it is not an empty tensor.)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0 else false
+>>
+Rule 50 (If complex64, make sure that the min real part and max real part exist.)
+{v_1 : tensor} |= if dtype_(v_1) = 9 then min(v_1) ≠ "None" ∧ max(v_1) ≠ "None"
+>>
+Rule 51 (If complex128, make sure that the min real part and max real part exist.)
+{v_1 : tensor} |= if dtype_(v_1) = 10 then min(v_1) ≠ "None" ∧ max(v_1) ≠ "None"
+>>
+Rule 52 (If the shape is not known, then it defaults to none.)
+{v_1 : tensor} |= shape(v_1) ≠ "None"
+>>
+Rule 53 (If dtype is complex64 or complex128, min/max imaginary part cannot be 'None')
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) ≠ "None" ∧ max(v_1) ≠ "None"
+>>
+Rule 55 (isnan input tensor should have a valid shape)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) ≥ 0
+>>
+Rule 56 (If complex64, make sure that the min imaginary part exists and is not None.)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) ≠ "None"
+>>
+Rule 57 (If dtype is complex64 or complex128, check that the max imaginary part exists and is not None.)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then max(v_1) ≠ "None"
+>>
+Rule 58 (If dtype is float32, the min value should not be None)
+{v_1 : tensor} |= if dtype_(v_1) = 7 then min(v_1) ≠ "None"

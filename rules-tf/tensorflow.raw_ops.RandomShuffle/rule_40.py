@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Seed values should be in range (Rule 40)
+# If seed2 is provided then value should be shufflable (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(v["arg1_value"] >= -2147483648, v["arg1_value"] <= 2147483647), v["arg2_value"] >= -2147483648), v["arg2_value"] <= 2147483647)) if n else
-          And(And(And(v["arg1_value"] >= -2147483648, v["arg1_value"] <= 2147483647), v["arg2_value"] >= -2147483648), v["arg2_value"] <= 2147483647))
+    s.add(Not(If(v["arg1_value"] != 0, Select(v["arg2_shape"], 0) > 0, True)) if n else
+          If(v["arg1_value"] != 0, Select(v["arg2_shape"], 0) > 0, True))
 )
 
 def rule_40_func(arg1, arg2, solver=None, neg=False):
@@ -20,22 +20,23 @@ def rule_40_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Int('arg1_value')
-        arg2_value = Int('arg2_value')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_value == int(arg1))
-        solver.add(arg2_value == int(arg2))
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 40
-        rule_40(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_40(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_40(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_40(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# For complex tensors, the real and imaginary parts should be within a reasonable range. (Rule 14)
+# If the tensor has a complex dtype, then its magnitude should be smaller than certain value (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), And(Select(v["arg1_range"], 0) > -1e5, Select(v["arg1_range"], 1) < 1e5), False)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), And(Select(v["arg1_range"], 0) > -1e5, Select(v["arg1_range"], 1) < 1e5), False))
+    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), And(Select(v["arg1_range"], 0) > -1000, Select(v["arg1_range"], 1) < 1000), True)) if n else
+          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), And(Select(v["arg1_range"], 0) > -1000, Select(v["arg1_range"], 1) < 1000), True))
 )
 
 def rule_14_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_14_func(arg1, solver=None, neg=False):
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 14
-        rule_14(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_14(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_14(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_14(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)

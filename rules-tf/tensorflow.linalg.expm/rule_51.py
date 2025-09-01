@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The dtype should be float16, float32, float64, complex64, or complex128, and the dimension should be larger or equal to 2 (Rule 51)
+# Input tensor must have less than 5 dimensions (Rule 51)
 
 rule_51 = lambda s, v, n=False: (
-    s.add(Not(And((Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), (v["arg1_ndim"] >= 2))) if n else
-          And((Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), (v["arg1_ndim"] >= 2)))
+    s.add(Not(v["arg1_ndim"] < 5) if n else
+          v["arg1_ndim"] < 5)
 )
 
 def rule_51_func(arg1, solver=None, neg=False):
@@ -23,16 +23,14 @@ def rule_51_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 51
-        rule_51(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim})
+        rule_51(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_51(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_51(solver, {'arg1_ndim': arg1['ndim']}, neg)

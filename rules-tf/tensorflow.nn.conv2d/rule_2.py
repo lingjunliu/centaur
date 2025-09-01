@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Filters tensor must have rank 4 (Rule 2)
+# strides should be of length 1, 2 or 4 (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] == 4) if n else
-          v["arg1_ndim"] == 4)
+    s.add(Not(Or(Or(v["arg1_length"] == 1, v["arg1_length"] == 2), v["arg1_length"] == 4)) if n else
+          Or(Or(v["arg1_length"] == 1, v["arg1_length"] == 2), v["arg1_length"] == 4))
 )
 
 def rule_2_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_2_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_length = Int('arg1_length')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_length == len(arg1))
 
         # Constraints for rule 2
-        rule_2(solver, {'arg1_ndim': arg1_ndim})
+        rule_2(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_2(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_2(solver, {'arg1_length': arg1['length']}, neg)

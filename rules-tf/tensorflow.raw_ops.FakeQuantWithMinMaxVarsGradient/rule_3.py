@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# gradients, inputs, min, and max should be float32 tensors (Rule 3)
+# gradients, inputs, min, and max must be of type float32 (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
     s.add(Not(And(And(And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7), v["arg3_dtype"] == 7), v["arg4_dtype"] == 7)) if n else

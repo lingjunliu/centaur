@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input is a sparse tensor, indices should be validated when validate_indices is not False. (Rule 49)
+# If there are any unknown dimensions (-1 (Rule 49)
 
 rule_49 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] != False, True, False)) if n else
-          If(v["arg2_value"] != False, True, False))
+    s.add(Not(If(And((Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == -1) for i in range(6)])), v["arg2_value"] == True), True, True)) if n else
+          If(And((Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == -1) for i in range(6)])), v["arg2_value"] == True), True, True))
 )
 
 def rule_49_func(arg1, arg2, solver=None, neg=False):
@@ -25,15 +25,20 @@ def rule_49_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_value = Bool('arg2_value')
 
         # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg2_value == arg2)
 
         # Constraints for rule 49
-        rule_49(solver, {'arg2_value': arg2_value})
+        rule_49(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_49(solver, {'arg2_value': arg2['value']}, neg)
+        rule_49(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# segment_ids must be less than num_segments (Rule 12)
+# If num_segments is specified, it should be greater or equal to the largest value in segment_ids (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(And((Select(v["arg1_shape"], 0) > 0), (Select(v["arg1_range"], 1) < v["arg2_value"]))) if n else
-          And((Select(v["arg1_shape"], 0) > 0), (Select(v["arg1_range"], 1) < v["arg2_value"])))
+    s.add(Not(v["arg1_value"] >= Select(v["arg2_range"], 1) + 1) if n else
+          v["arg1_value"] >= Select(v["arg2_range"], 1) + 1)
 )
 
 def rule_12_func(arg1, arg2, solver=None, neg=False):
@@ -18,28 +18,25 @@ def rule_12_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_value = Int('arg2_value')
+        arg1_value = Int('arg1_value')
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_value == int(arg1))
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 12
-        rule_12(solver, {'arg1_range': arg1_range, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_12(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_12(solver, {'arg1_range': arg1['range'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_12(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range']}, neg)

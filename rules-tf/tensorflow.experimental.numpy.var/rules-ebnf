@@ -1,102 +1,150 @@
 >>
-Rule 2 (If 'ddof' is provided, it must be a non-negative integer.)
+Rule 1 (axis should be a valid dimension of input tensor a)
+{v_1 : tensor, v_2 : int} |= -1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1
+>>
+Rule 2 (ddof should be non-negative)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 3 (If keepdims is True, output tensor's ndim == input tensor's ndim)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then ndim(v_1) = ndim(v_1)
+Rule 3 (dtype should be a valid dtype)
+{v_1 : dtype} |= 0 ≤ v_1 ∧ v_1 ≤ 12
 >>
-Rule 4 (The dtype of the output should either match the input or be a float.)
-{v_1 : tensor, v_2 : dtype} |= v_2 = dtype_(v_1) ∨ (v_2 = 7) ∨ (v_2 = 8)
+Rule 4 (if out is specified, its dtype should be the same as dtype)
+{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
 >>
-Rule 5 (Check if the axis argument contains valid dimensions)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1)
+Rule 5 (if out is specified, its shape should be the same as input tensor a, excluding axis if keepdims is false)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : bool} |= if v_4 then shape(v_1) = shape(v_2) else (∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_3 then shape(v_1, i) = shape(v_2, i))
 >>
-Rule 6 (If a single axis is provided as an integer, it should be a valid dimension)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 ∧ v_2 < ndim(v_1)
->>
-Rule 7 (The ddof parameter is less than the number of elements in the array)
-{v_1 : tensor, v_2 : int} |= v_2 < shape(v_1, 0)
->>
-Rule 8 (If multiple axes are provided, the ddof should be less than the product of the sizes of those axes.)
-{v_1 : tensor, v_2 : tuple(int), v_3 : int} |= if v_2.len > 0 then v_3 < shape(v_1, v_2[0])
->>
-Rule 9 (Shape of tensor must not be empty)
-{v_1 : tensor} |= shape(v_1, 0) > 0
->>
-Rule 10 (ddof must be less than or equal to the total number of elements)
-{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1,0)
->>
-Rule 21 (if axis is a tuple, then all axes values should be distinct)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i+1, v_1.len - 1] : v_1[i] ≠ v_1[j]
->>
-Rule 23 (If a dtype is specified, it must be a valid dtype.)
-{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 12
->>
-Rule 25 (If axis is specified as a tuple, the length of the tuple cannot be greater than the rank of the input tensor.)
-{v_1 : tensor, v_2 : tuple(int)} |= v_2.len <= ndim(v_1)
->>
-Rule 26 (The value of ddof cannot be larger or equal to the number of elements along any axis.)
-{v_1 : tensor, v_2 : int, v_3 : int} |= v_3 < shape(v_1, v_2)
->>
-Rule 28 (The result dtype is float if input is integer)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then v_2 = 7 ∨ v_2 = 8
->>
-Rule 31 (If the axis argument is present, it must have a rank less than the number of dimensions of the input. Axis is int.)
-{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
->>
-Rule 34 (If axis is specified as a tuple, the length of the tuple cannot be greater than the rank of the input tensor.)
-{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ ndim(v_1)
->>
-Rule 38 (If the input is complex, the result dtype must also be complex)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_2 = 9 ∨ v_2 = 10
->>
-Rule 39 (ddof must be less than the number of elements in the specified axis)
-{v_1 : tensor, v_2 : int, v_3 : int} |= v_3 < shape(v_1,v_2)
->>
-Rule 40 (If the input dtype is bool, the output dtype must be float or complex)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 0 then v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10
->>
-Rule 44 (If axis is provided as a tuple, then all axes values should be within valid range.)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
->>
-Rule 45 (if dtype is provided, it must be a valid dtype.)
-{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨  v_1 = 11 ∨ v_1 = 12
->>
-Rule 46 (Input tensor must have at least one element)
-{v_1 : tensor} |= shape(v_1,0) > 0
->>
-Rule 48 (keepdims must be a boolean value)
+Rule 6 (keepdims should be either true or false)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 50 (if input tensor is of integer type, the dtype must be a float type)
-{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) then (v_2 = 7) ∨ (v_2 = 8)
->>
-Rule 55 (If ddof is specified, ddof must be less or equal the size of input data along the axis specified)
-{v_1 : tensor, v_2 : int, v_3 : int} |= v_3 ≤ shape(v_1,v_2)
->>
-Rule 56 (If the input dtype is float, then the output dtype is also float or complex)
-{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) then (v_2 = 6) ∨ (v_2 = 7) ∨ (v_2 = 8) ∨ (v_2 = 9) ∨ (v_2 = 10)
->>
-Rule 60 (if the input is complex128, the output type must also be complex128)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 10 then v_2 = 10
->>
-Rule 61 (if dtype is provided, and the input tensor has integer type, then the dtype must be float or complex)
-{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) then (v_2 = 7) ∨ (v_2 = 8) ∨ (v_2 = 9) ∨ (v_2 = 10)
->>
-Rule 62 (if ddof is present, it must be less than or equal to the size of the input along the reduced axis, when the whole array is reduced)
-{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, 0)
->>
-Rule 64 (if axis is given, and the tensor is a 2D tensor, the axis can only be 0 or 1)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then (v_2 = 0) ∨ (v_2 = 1)
->>
-Rule 67 (Input tensor must not be empty)
+Rule 7 (input tensor a should not be empty)
 {v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 77 (if axis is not None (meaning empty tuple), then the dimension must be within the range)
-{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1)
+Rule 9 (If axis is None, out should be a scalar)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 < -1 * ndim(v_1) then ndim(v_2) = 0
 >>
-Rule 78 (if dtype is provided, it must be a valid dtype (0-12))
+Rule 10 (dtype must be one of the valid dtypes)
+{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 12
+>>
+Rule 13 (a must be a numerical tensor)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 14 (ddof must be less than or equal to the number of elements along the axis)
+{v_1 : tensor, v_2 : int, v_3 : int} |= v_3 ≤ shape(v_1, v_2)
+>>
+Rule 15 (If axis is specified and keepdims is true, out's ndim should be the same as a's ndim)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then ndim(v_1) = ndim(v_2)
+>>
+Rule 19 (If axis and out are given and keepdims is true, out's shape along the axis should be 1)
+{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_3 then v_2 < ndim(v_1) ∧ v_2 >= -1 * ndim(v_1)
+>>
+Rule 21 (ddof must be less than or equal to the number of elements along the axis, if axis is given)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 >= -1 * ndim(v_1) ∧ v_2 < ndim(v_1) then v_3 ≤ shape(v_1, v_2)
+>>
+Rule 23 (If axis is None, the output tensor must be a scalar.)
+{v_1 : tensor} |= ndim(v_1) = 0
+>>
+Rule 24 (dtype must be one of the valid dtypes)
 {v_1 : dtype} |= v_1 ≥ 0 ∧ v_1 ≤ 12
 >>
-Rule 80 (Input cannot be a scalar)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 28 (ddof must be less than or equal to the number of elements along the axis, if axis is given and positive)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 ≥ 0 then v_3 ≤ shape(v_1, v_2)
+>>
+Rule 31 (If axis and out are given and keepdims is true, the output tensor's shape at the axis must be 1)
+{v_1 : int, v_2 : tensor, v_3 : bool} |= if v_3 ∧ v_1 >= 0 then shape(v_2, v_1) = 1
+>>
+Rule 33 (If axis is given, then the output tensor's dtype must be at least as precise as the input tensor's)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 >= -1 * ndim(v_1) ∧ v_3 < ndim(v_1) then dtype_(v_2) ≥ dtype_(v_1)
+>>
+Rule 34 (ddof must be less than or equal to the number of elements along the axis, if axis is given and positive)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 ≥ 0 ∧ v_2 < ndim(v_1) then v_3 ≤ shape(v_1, v_2)
+>>
+Rule 35 (The output tensor's shape is the same as the input tensor when keepdims is true)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then shape(v_1) = shape(v_2)
+>>
+Rule 36 (If out is provided, its dtype should be at least as precise as the specified dtype)
+{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) ≥ v_2
+>>
+Rule 37 (If axis is provided, it should be a valid axis for the input tensor)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ -1 * ndim(v_1) ∧ v_2 < ndim(v_1)
+>>
+Rule 38 (If axis and out are given and keepdims is true, the output tensor's shape at the axis must be 1)
+{v_1 : int, v_2 : tensor, v_3 : bool, v_4: tensor} |= if v_3 ∧ v_1 >= 0 ∧ v_1 < ndim(v_4) then shape(v_2, v_1) = 1
+>>
+Rule 40 (If axis is given, and keepdims is false, then out ndim should be one less than input ndim)
+{v_1: tensor, v_2: tensor, v_3: int, v_4: bool} |= if v_3 >= -1 * ndim(v_1) ∧ v_3 < ndim(v_1) ∧ v_4 = false then ndim(v_2) = ndim(v_1) - 1
+>>
+Rule 41 (Keepdims must be boolean)
+{v_1: bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 42 (If out is specified, and axis is not specified, the output tensor must be a scalar)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 0 then ndim(v_2) = 0
+>>
+Rule 46 (ddof must be less than the number of elements in the input if no axis is given and the input is 1D)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 < shape(v_1, 0)
+>>
+Rule 52 (If the input tensor is empty, then ddof must be 0)
+{v_1 : tensor, v_2: int} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then v_2 = 0
+>>
+Rule 53 (If axis is provided, then it cannot exceed the rank of the input)
+{v_1 : tensor, v_2: int} |= v_2 > -1 * ndim(v_1) ∧ v_2 < ndim(v_1)
+>>
+Rule 55 (If out is specified, it should have compatible dtype with the input and dtype parameter)
+{v_1: tensor, v_2: dtype, v_3: tensor} |= dtype_(v_3) ≥ dtype_(v_1) ∧ dtype_(v_3) ≥ v_2
+>>
+Rule 56 (If axis and out are given and keepdims is true, the output tensor's shape at the specified axis must be 1)
+{v_1 : tensor, v_2: tensor, v_3: int, v_4: bool} |= if (v_3 > -1 * ndim(v_1) ∧ v_3 < ndim(v_1) ∧ v_4) then shape(v_2, v_3) = 1
+>>
+Rule 61 (If axis is a tuple, then all elements in axis must be valid axis indices of input tensor)
+{v_1: tensor, v_2: tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] >= -1 * ndim(v_1) ∧ v_2[i] < ndim(v_1)
+>>
+Rule 62 (Dtype must be valid)
+{v_1: dtype} |= 0 ≤ v_1 ∧ v_1 ≤ 12
+>>
+Rule 63 (ddof must be non-negative)
+{v_1: int} |= v_1 ≥ 0
+>>
+Rule 69 (If the axis is not provided and keepdims is specified as false, then the output must be scalar)
+{v_1: bool, v_2: tensor} |= if v_1 = false then ndim(v_2) = 0
+>>
+Rule 70 (If the output tensor is specified then its rank must be equal to the rank of input minus the length of axis if the axis is specified as a tuple and keepdims is false)
+{v_1: tensor, v_2: tuple(int), v_3: tensor, v_4: bool} |= if v_4 = false then ndim(v_3) = ndim(v_1) - v_2.len
+>>
+Rule 72 (If no axis is specified and out is provided, then the output must be a scalar.)
+{v_1: tensor} |= ndim(v_1) = 0
+>>
+Rule 78 (If keepdims is false and the axis is specified, then the shape of the output should not match the shape of the input in any dimension)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : bool} |= if v_4 = false ∧ v_3 ≥ -1 * ndim(v_1) ∧ v_3 < ndim(v_1) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ shape(v_2, i)
+>>
+Rule 85 (If keepdims is false and the axis is specified, then the shape of the output should not match the shape of the input in any dimension along those axis)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : bool} |= if v_4 = false ∧ v_3 ≥ -1 * ndim(v_1) ∧ v_3 < ndim(v_1) then shape(v_1, v_3) ≠ shape(v_2, v_3)
+>>
+Rule 98 (If the axis is not provided and keepdims is false the output tensor must be a scalar)
+{v_1: tensor, v_2 : bool} |= if v_2 = false then ndim(v_1) = 0
+>>
+Rule 99 (If the input tensor is specified, then its datatype should be numerical)
+{v_1: tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 103 (If the input tensor is empty then the ddof should be 0)
+{v_1: tensor, v_2: int} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then v_2 = 0
+>>
+Rule 106 (If the specified dtype is complex, the input tensor must be complex.)
+{v_1: tensor, v_2: dtype} |= if v_2 = 9 ∨ v_2 = 10 then dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 113 (If the specified dtype is complex, the input tensor must be complex or float)
+{v_1: tensor, v_2: dtype} |= if v_2 = 9 ∨ v_2 = 10 then dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 120 (If the specified dtype is complex, the input tensor must be complex or float or integer)
+{v_1: tensor, v_2: dtype} |= if v_2 = 9 ∨ v_2 = 10 then dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+>>
+Rule 127 (If the specified dtype is complex, the input tensor must be complex or float or integer or boolean)
+{v_1: tensor, v_2: dtype} |= if v_2 = 9 ∨ v_2 = 10 then dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 0
+>>
+Rule 139 (if the user has specified a keepdims, the shape will be preserved. Otherwise reduced)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then ndim(v_1) = ndim(v_2)
+>>
+Rule 141 (if the specified dtype is complex, the input tensor must be complex or float or integer or boolean)
+{v_1: tensor, v_2: dtype} |= if v_2 = 9 ∨ v_2 = 10 then (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 0)
+>>
+Rule 154 (When no axis is defined the output is a scalar value)
+{v_1: bool, v_2 : tensor} |= if v_1 = false then ndim(v_2) = 0

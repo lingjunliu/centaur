@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if s is bool it has to be true (Rule 31)
+# s must be a representable 8 bit integer (Rule 31)
 
 rule_31 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] == True) if n else
-          v["arg1_value"] == True)
+    s.add(Not(And(-128 <= v["arg1_value"], v["arg1_value"] <= 127)) if n else
+          And(-128 <= v["arg1_value"], v["arg1_value"] <= 127))
 )
 
 def rule_31_func(arg1, solver=None, neg=False):
@@ -17,15 +17,15 @@ def rule_31_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 31
         rule_31(solver, {'arg1_value': arg1_value})

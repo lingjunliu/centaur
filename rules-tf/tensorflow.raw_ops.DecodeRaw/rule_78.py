@@ -5,38 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the length of bytes is zero, then out_type must be a valid type (Rule 78)
+# The output dtype has to be one of the supported dtypes (Rule 78)
 
 rule_78 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_shape"], 0) == 0, Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg2_value"] == 0, v["arg2_value"] == 1), v["arg2_value"] == 2), v["arg2_value"] == 3), v["arg2_value"] == 4), v["arg2_value"] == 5), v["arg2_value"] == 6), v["arg2_value"] == 7), v["arg2_value"] == 8), v["arg2_value"] == 9), v["arg2_value"] == 10), v["arg2_value"] == 12), False)) if n else
-          If(Select(v["arg1_shape"], 0) == 0, Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg2_value"] == 0, v["arg2_value"] == 1), v["arg2_value"] == 2), v["arg2_value"] == 3), v["arg2_value"] == 4), v["arg2_value"] == 5), v["arg2_value"] == 6), v["arg2_value"] == 7), v["arg2_value"] == 8), v["arg2_value"] == 9), v["arg2_value"] == 10), v["arg2_value"] == 12), False))
+    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] <= 12)) if n else
+          And(v["arg1_value"] >= 0, v["arg1_value"] <= 12))
 )
 
-def rule_78_func(arg1, arg2, solver=None, neg=False):
+def rule_78_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
-            return False
-        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_value = Int('arg2_value')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
 
         # Constraints for rule 78
-        rule_78(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_78(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_78(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_78(solver, {'arg1_value': arg1['value']}, neg)

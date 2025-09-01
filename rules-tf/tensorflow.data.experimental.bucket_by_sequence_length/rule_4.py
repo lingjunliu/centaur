@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# element_length_func must return a non-negative integer (Rule 4)
+# bucket_boundaries should be a list of integers and non-decreasing (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) >= 0) if n else
-          Select(v["arg1_range"], 0) >= 0)
+    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) >= Select(v["arg1_values"], i - 1)) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) >= Select(v["arg1_values"], i - 1)) for i in range(6)]))
 )
 
 def rule_4_func(arg1, solver=None, neg=False):
@@ -17,21 +17,23 @@ def rule_4_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_length = Int('arg1_length')
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_length == len(arg1))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 4
-        rule_4(solver, {'arg1_range': arg1_range})
+        rule_4(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_4(solver, {'arg1_range': arg1['range']}, neg)
+        rule_4(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length']}, neg)

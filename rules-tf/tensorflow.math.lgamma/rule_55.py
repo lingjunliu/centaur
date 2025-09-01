@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The minimum value in tensor cannot be infinity (Rule 55)
+# Avoid potential underflow and overflow by checking the range of tensor values before Lgamma (Rule 55)
 
 rule_55 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) > -100000000) if n else
-          Select(v["arg1_range"], 0) > -100000000)
+    s.add(Not(And(Select(v["arg1_range"], 0) > -20, Select(v["arg1_range"], 1) < 20)) if n else
+          And(Select(v["arg1_range"], 0) > -20, Select(v["arg1_range"], 1) < 20))
 )
 
 def rule_55_func(arg1, solver=None, neg=False):

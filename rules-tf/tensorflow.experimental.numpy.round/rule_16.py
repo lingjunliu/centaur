@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If decimals is an integer and the input is a tensor, then decimals must be less than or equal to the number of fractional bits in the tensor's dtype (Rule 16)
+# If the input tensor's dtype is complex, decimals cannot be negative (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_dtype"] == 6), v["arg2_value"] <= 10, If((v["arg1_dtype"] == 7), v["arg2_value"] <= 23, If((v["arg1_dtype"] == 8), v["arg2_value"] <= 52, False)))) if n else
-          If((v["arg1_dtype"] == 6), v["arg2_value"] <= 10, If((v["arg1_dtype"] == 7), v["arg2_value"] <= 23, If((v["arg1_dtype"] == 8), v["arg2_value"] <= 52, False))))
+    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg2_value"] >= 0, True)) if n else
+          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg2_value"] >= 0, True))
 )
 
 def rule_16_func(arg1, arg2, solver=None, neg=False):

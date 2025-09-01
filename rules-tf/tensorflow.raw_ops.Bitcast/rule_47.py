@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input is quint16 and the output is uint8, last dimension size of input should be 2 (Rule 47)
+# Check if bit cast between bfloat16 and float32 is allowed (Rule 47)
 
 rule_47 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_dtype"] == 17, v["arg2_value"] == 5), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 2, False)) if n else
-          If(And(v["arg1_dtype"] == 17, v["arg2_value"] == 5), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 2, False))
+    s.add(Not(If((And(v["arg1_dtype"] == 0, v["arg2_value"] == 7)), True, If((And(v["arg1_dtype"] == 7, v["arg2_value"] == 0)), True, Or((v["arg1_dtype"] * 8) % (v["arg2_value"] * 8) == 0, (v["arg2_value"] * 8) % (v["arg1_dtype"] * 8) == 0)))) if n else
+          If((And(v["arg1_dtype"] == 0, v["arg2_value"] == 7)), True, If((And(v["arg1_dtype"] == 7, v["arg2_value"] == 0)), True, Or((v["arg1_dtype"] * 8) % (v["arg2_value"] * 8) == 0, (v["arg2_value"] * 8) % (v["arg1_dtype"] * 8) == 0))))
 )
 
 def rule_47_func(arg1, arg2, solver=None, neg=False):
@@ -25,22 +25,17 @@ def rule_47_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg1_dtype = Int('arg1_dtype')
         arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
 
         # Constraints for rule 47
-        rule_47(solver, {'arg1_shape': arg1_shape, 'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_47(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_47(solver, {'arg1_shape': arg1['shape'], 'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)
+        rule_47(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

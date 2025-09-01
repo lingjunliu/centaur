@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If axis is specified, all elements in axis list must be valid and unique (Rule 29)
+# If axis is a list and tensor has dimension, all axes should have a shape = 1 (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_length"] > 0, And((And([Implies(i < (v["arg2_length"] - 1 + 1), And(And(Select(v["arg2_values"], i) >= (0 - v["arg1_ndim"]), Select(v["arg2_values"], i) < v["arg1_ndim"]), Select(v["arg1_shape"], Select(v["arg2_values"], i)) == 1)) for i in range(6)])), (And([Implies(i < (v["arg2_length"] - 1 + 1), And([Implies(j < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) != Select(v["arg2_values"], j)) for j in range(6)])) for i in range(6)]))), False)) if n else
-          If(v["arg2_length"] > 0, And((And([Implies(i < (v["arg2_length"] - 1 + 1), And(And(Select(v["arg2_values"], i) >= (0 - v["arg1_ndim"]), Select(v["arg2_values"], i) < v["arg1_ndim"]), Select(v["arg1_shape"], Select(v["arg2_values"], i)) == 1)) for i in range(6)])), (And([Implies(i < (v["arg2_length"] - 1 + 1), And([Implies(j < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) != Select(v["arg2_values"], j)) for j in range(6)])) for i in range(6)]))), False))
+    s.add(Not(If(v["arg1_ndim"] > 0, And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg1_shape"], Select(v["arg2_values"], i)) == 1) for i in range(6)]), True)) if n else
+          If(v["arg1_ndim"] > 0, And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg1_shape"], Select(v["arg2_values"], i)) == 1) for i in range(6)]), True))
 )
 
 def rule_29_func(arg1, arg2, solver=None, neg=False):
@@ -39,9 +39,9 @@ def rule_29_func(arg1, arg2, solver=None, neg=False):
             arg2_values = Store(arg2_values, i, arg2[i])
 
         # Constraints for rule 29
-        rule_29(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_values': arg2_values, 'arg2_length': arg2_length})
+        rule_29(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_values': arg2_values, 'arg2_length': arg2_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_29(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_values': arg2['values'], 'arg2_length': arg2['length']}, neg)
+        rule_29(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_values': arg2['values'], 'arg2_length': arg2['length']}, neg)

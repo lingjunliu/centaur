@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If narrow_range is false, no constraint. (Rule 40)
+# num_bits must be a positive integer and less than the maximum allowed bitwidth, lets assume 32 (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == False, True, False)) if n else
-          If(v["arg1_value"] == False, True, False))
+    s.add(Not(If(v["arg1_value"] <= 0, False, v["arg1_value"] < 32)) if n else
+          If(v["arg1_value"] <= 0, False, v["arg1_value"] < 32))
 )
 
 def rule_40_func(arg1, solver=None, neg=False):
@@ -17,15 +17,15 @@ def rule_40_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 40
         rule_40(solver, {'arg1_value': arg1_value})

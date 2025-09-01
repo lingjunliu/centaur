@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The data type of the input tensor is int32 or int64 (Rule 15)
+# Input tensor's dtype should be numerical (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4)) if n else
-          Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4))
+    s.add(Not(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 11)) if n else
+          And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 11))
 )
 
 def rule_15_func(arg1, solver=None, neg=False):

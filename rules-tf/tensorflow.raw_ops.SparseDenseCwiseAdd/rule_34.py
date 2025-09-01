@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If broadcasting is not used (ndim(dense (Rule 34)
+# Shape compatibility between dense and sp_shape: dense must be able to be broadcasted to sp_shape.  Considers scalars. (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] == Select(v["arg2_shape"], 0), v["arg1_ndim"] != 0), And([Implies(i < (Select(v["arg2_shape"], 0) - 1 + 1), Select(v["arg1_shape"], i) >= Select(v["arg2_shape"], i)) for i in range(6)]), False)) if n else
-          If(And(v["arg1_ndim"] == Select(v["arg2_shape"], 0), v["arg1_ndim"] != 0), And([Implies(i < (Select(v["arg2_shape"], 0) - 1 + 1), Select(v["arg1_shape"], i) >= Select(v["arg2_shape"], i)) for i in range(6)]), False))
+    s.add(Not(If(v["arg1_ndim"] == 0, Select(v["arg2_shape"], 0) == 0, And([Implies(i < (Select(v["arg2_shape"], 0) - 1 + 1), Or(Or((v["arg1_ndim"] - Select(v["arg2_shape"], 0) + i < 0), (Select(v["arg1_shape"], v["arg1_ndim"] - Select(v["arg2_shape"], 0) + i) == Select(v["arg2_shape"], i))), (Select(v["arg1_shape"], v["arg1_ndim"] - Select(v["arg2_shape"], 0) + i) == 1))) for i in range(6)]))) if n else
+          If(v["arg1_ndim"] == 0, Select(v["arg2_shape"], 0) == 0, And([Implies(i < (Select(v["arg2_shape"], 0) - 1 + 1), Or(Or((v["arg1_ndim"] - Select(v["arg2_shape"], 0) + i < 0), (Select(v["arg1_shape"], v["arg1_ndim"] - Select(v["arg2_shape"], 0) + i) == Select(v["arg2_shape"], i))), (Select(v["arg1_shape"], v["arg1_ndim"] - Select(v["arg2_shape"], 0) + i) == 1))) for i in range(6)])))
 )
 
 def rule_34_func(arg1, arg2, solver=None, neg=False):

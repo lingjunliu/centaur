@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# When the tensor is boolean, all element must be false or true (Rule 72)
+# The new dimension should not make tensor to be larger than possible (Rule 72)
 
 rule_72 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 0, (Or(Select(v["arg1_range"], 0) == False, Select(v["arg1_range"], 1) == True)), False)) if n else
-          If(v["arg1_dtype"] == 0, (Or(Select(v["arg1_range"], 0) == False, Select(v["arg1_range"], 1) == True)), False))
+    s.add(Not(If(v["arg1_ndim"] < 31, True, False)) if n else
+          If(v["arg1_ndim"] < 31, True, False))
 )
 
 def rule_72_func(arg1, solver=None, neg=False):
@@ -22,18 +22,15 @@ def rule_72_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_ndim == arg1.ndim)
 
         # Constraints for rule 72
-        rule_72(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_72(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_72(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_72(solver, {'arg1_ndim': arg1['ndim']}, neg)

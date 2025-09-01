@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# num_shards must be less than or equal to 100 (Rule 38)
+# Number of shards has to be positive and less than the maximum allowed number of shards to avoid DoS. (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] <= 100) if n else
-          v["arg1_value"] <= 100)
+    s.add(Not(And(v["arg1_value"] > 0, v["arg1_value"] < 16384)) if n else
+          And(v["arg1_value"] > 0, v["arg1_value"] < 16384))
 )
 
 def rule_38_func(arg1, solver=None, neg=False):

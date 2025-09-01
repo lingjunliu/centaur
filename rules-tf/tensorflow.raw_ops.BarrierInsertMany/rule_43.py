@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If values is an int8 tensor, then component_index must be less than 128 (Rule 43)
+# If component_index is even then values's dtype can't be bool (Rule 43)
 
 rule_43 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 1, v["arg2_value"] < 128, False)) if n else
-          If(v["arg1_dtype"] == 1, v["arg2_value"] < 128, False))
+    s.add(Not(If(v["arg2_value"] % 2 == 0, v["arg1_dtype"] != 0, True)) if n else
+          If(v["arg2_value"] % 2 == 0, v["arg1_dtype"] != 0, True))
 )
 
 def rule_43_func(arg1, arg2, solver=None, neg=False):

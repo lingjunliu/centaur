@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the tensor is complex, ensure the absolute value is not excessively large (Rule 54)
+# If the input tensor is float16, it's min should be <= max (Rule 54)
 
 rule_54 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Select(v["arg1_range"], 1) < 1e5, False)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Select(v["arg1_range"], 1) < 1e5, False))
+    s.add(Not(If(v["arg1_dtype"] == 6, Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1), True)) if n else
+          If(v["arg1_dtype"] == 6, Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1), True))
 )
 
 def rule_54_func(arg1, solver=None, neg=False):

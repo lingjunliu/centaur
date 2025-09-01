@@ -1,150 +1,243 @@
 >>
-Rule 1 (The length of the first padding list should be 2)
-{v_1 : list(int)} |= v_1.len = 2
+Rule 1 (padding list should have length 2 when padding is "valid" or "same")
+{v_1 : list(int), v_2 : str} |= if v_2 = "valid" ∨ v_2 = "same" then v_1.len = 2
 >>
-Rule 2 (The length of the second padding list should be 2)
-{v_2 : list(int)} |= v_2.len = 2
+Rule 2 (data_format should be either channels_first or channels_last)
+{v_1 : str} |= v_1 = "channels_first" ∨ v_1 = "channels_last"
 >>
-Rule 3 (The elements of the first padding list must be non-negative integers)
+Rule 3 (strides list should have length equal to the number of dimensions of input when data_format is channels_first.)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "channels_first" then v_2.len = ndim(v_1)
+>>
+Rule 4 (strides list should have length equal to the number of dimensions of input when data_format is channels_last.)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "channels_last" then v_2.len = ndim(v_1)
+>>
+Rule 7 (each element of padding list should be non-negative)
 {v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 4 (The elements of the second padding list must be non-negative integers)
-{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+Rule 8 (each element of strides list should be positive)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 5 (The first element of the first padding list should be less than or equal to a maximum value)
-{v_1 : list(int), v_3 : int} |= v_1[0] ≤ v_3
+Rule 10 (the input tensor should have at least 4 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 4
 >>
-Rule 6 (The second element of the first padding list should be less than or equal to a maximum value)
-{v_1 : list(int), v_3 : int} |= v_1[1] ≤ v_3
+Rule 16 (the pointwise filter should have 4 dimensions)
+{v_1 : tensor} |= ndim(v_1) = 4
 >>
-Rule 7 (The first element of the second padding list should be less than or equal to a maximum value)
-{v_2 : list(int), v_3 : int} |= v_2[0] ≤ v_3
+Rule 18 (pointwise filter's first two dimension match input tensor when data format is channels last)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_last" then shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1)
 >>
-Rule 8 (The second element of the second padding list should be less than or equal to a maximum value)
-{v_2 : list(int), v_3 : int} |= v_2[1] ≤ v_3
+Rule 19 (pointwise filter's first two dimension match input tensor when data format is channels first)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_first" then shape(v_1, 2) = shape(v_2, 0) ∧ shape(v_1, 3) = shape(v_2, 1)
 >>
-Rule 11 (The sum of the elements of the first padding list should be less than or equal to a maximum value)
-{v_1 : list(int), v_3 : int} |= v_1[0] + v_1[1] ≤ v_3
+Rule 20 (the dilations list must have non-negative entries)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 1
 >>
-Rule 12 (The sum of the elements of the second padding list should be less than or equal to a maximum value)
-{v_2 : list(int), v_3 : int} |= v_2[0] + v_2[1] ≤ v_3
+Rule 21 (the strides list must have positive entries)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 13 (The elements of padding lists should be integers and less than certain constant)
-{v_1 : list(int), v_2 : list(int), v_3 : int} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ v_3) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] ≤ v_3)
+Rule 22 (depthwise filter's channel dimension should match input's channel dimension when channels_last)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_last" then shape(v_1, 3) = shape(v_2, 2)
 >>
-Rule 14 (If a value is greater than 0, then the corresponding element in padding should be greater or equal to 0)
-{v_1 : int, v_2 : list(int)} |= if v_1 > 0 then v_2[0] ≥ 0 ∧ v_2[1] ≥ 0
+Rule 23 (depthwise filter's channel dimension should match input's channel dimension when channels_first)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_first" then shape(v_1, 1) = shape(v_2, 2)
 >>
-Rule 15 (Compare paddings)
-{v_1 : list(int), v_2 : list(int)} |= v_1[0] ≤ v_2[0] ∧ v_1[1] ≤ v_2[1]
+Rule 24 (pointwise filter input channels should match depthwise filter output channels)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 2) = shape(v_2, 3)
 >>
-Rule 16 (The padding values must be integers)
-{v_1 : list(int), v_2 : list(int)} |= ∀i ∈ [0, v_1.len - 1]: v_1[i] % 1 = 0 ∧ ∀i ∈ [0, v_2.len - 1]: v_2[i] % 1 = 0
+Rule 25 (strides should be of the same length as dilations)
+{v_1 : list(int), v_2 : list(int)} |= v_1.len = v_2.len
 >>
-Rule 17 (The first padding value should be less than the tensor shape along corresponding dimension)
-{v_1 : list(int), v_2 : tensor} |= v_1[0] < shape(v_2, 0)
+Rule 26 (Input tensor's data type must be float or integer)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 18 (The second padding value should be less than the tensor shape along corresponding dimension)
-{v_1 : list(int), v_2 : tensor} |= v_1[1] < shape(v_2, 1)
+Rule 27 (If padding is explicit, padding list should have length of 4)
+{v_1 : list(int), v_2 : str} |= if v_2 ≠ "valid" ∧ v_2 ≠ "same" then v_1.len = 4
 >>
-Rule 19 (If the first padding list's first value is zero, the second padding list's first value must be zero)
-{v_1 : list(int), v_2 : list(int)} |= if v_1[0] = 0 then v_2[0] = 0
+Rule 28 (If data format is channels first input should have shape [N, C, H, W])
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_first" then ndim(v_1) = 4
 >>
-Rule 20 (If the first padding list's second value is zero, the second padding list's second value must be zero)
-{v_1 : list(int), v_2 : list(int)} |= if v_1[1] = 0 then v_2[1] = 0
+Rule 29 (If data format is channels last input should have shape [N, H, W, C])
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_last" then ndim(v_1) = 4
 >>
-Rule 21 (If the first padding list's sum is greater than 0, then the second padding list's sum must be greater than 0)
-{v_1 : list(int), v_2 : list(int)} |= if v_1[0] + v_1[1] > 0 then v_2[0] + v_2[1] > 0
+Rule 30 (If data format is channels first strides should have length of 4 and first element must be 1)
+{v_1 : list(int), v_2 : str} |= if v_2 = "channels_first" then v_1.len = 4 ∧ v_1[0] = 1
 >>
-Rule 22 (The difference between corresponding elements in two padding list should be small than a threshold)
-{v_1 : list(int), v_2 : list(int), v_3 : int} |= (v_1[0] - v_2[0]) ≤ v_3 ∧ (v_1[1] - v_2[1]) ≤ v_3
+Rule 31 (If data format is channels last strides should have length of 4 and first element must be 1)
+{v_1 : list(int), v_2 : str} |= if v_2 = "channels_last" then v_1.len = 4 ∧ v_1[0] = 1
 >>
-Rule 23 (The product of elements in a list should be less than a threshold)
-{v_1 : list(int), v_2 : int} |= v_1[0] * v_1[1] ≤ v_2
+Rule 32 (If data format is channels first dilations should have length of 4 and first element must be 1 and second element must be 1)
+{v_1 : list(int), v_2 : str} |= if v_2 = "channels_first" then v_1.len = 4 ∧ v_1[0] = 1 ∧ v_1[1] = 1
 >>
-Rule 24 (The ratio of corresponding elements in padding lists must be smaller than a given value)
-{v_1 : list(int), v_2 : list(int), v_3 : float} |= (if v_2[0] ≠ 0 then (v_1[0] / v_2[0]) ≤ v_3) ∧ (if v_2[1] ≠ 0 then (v_1[1] / v_2[1]) ≤ v_3)
+Rule 33 (If data format is channels last dilations should have length of 4 and first element must be 1 and last element must be 1)
+{v_1 : list(int), v_2 : str} |= if v_2 = "channels_last" then v_1.len = 4 ∧ v_1[0] = 1 ∧ v_1[3] = 1
 >>
-Rule 25 (If the first padding has the same value, then the second padding should have the same value)
-{v_1 : list(int), v_2 : list(int)} |= if v_1[0] = v_1[1] then v_2[0] = v_2[1]
+Rule 34 (If padding is explicit, values in padding list must be smaller than input tensor's spatial dimensions)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "channels_first" then v_2[0] < shape(v_1, 2) ∧ v_2[1] < shape(v_1, 2) ∧ v_2[2] < shape(v_1, 3) ∧ v_2[3] < shape(v_1, 3) else v_2[0] < shape(v_1, 1) ∧ v_2[1] < shape(v_1, 1) ∧ v_2[2] < shape(v_1, 2) ∧ v_2[3] < shape(v_1, 2)
 >>
-Rule 28 (If the input tensor is a square matrix, the padding values in each dimension should be equal)
-{v_1 : list(int), v_2 : list(int), v_3 : tensor} |= if shape(v_3, 0) = shape(v_3, 1) then v_1[0] = v_1[1] ∧ v_2[0] = v_2[1]
+Rule 35 (depthwise_filter height and width should be smaller than input height and width)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_first" then shape(v_2, 0) < shape(v_1, 2) ∧ shape(v_2, 1) < shape(v_1, 3) else shape(v_2, 0) < shape(v_1, 1) ∧ shape(v_2, 1) < shape(v_1, 2)
 >>
-Rule 29 (One padding list should be all zeros if the other one is within a threshold)
-{v_1 : list(int), v_2 : list(int), v_3 : int} |= if v_1[0] ≤ v_3 ∧ v_1[1] ≤ v_3 then v_2[0] = 0 ∧ v_2[1] = 0
+Rule 36 (pointwise_filter height and width should be 1)
+{v_1 : tensor} |= shape(v_1, 0) = 1 ∧ shape(v_1, 1) = 1
 >>
-Rule 30 (The product of padding values must not exceed a certain threshold)
-{v_1 : list(int), v_2 : list(int), v_3 : int} |= v_1[0] * v_1[1] * v_2[0] * v_2[1] ≤ v_3
+Rule 37 (If data format is channels first and dilations are 1,1,1,1 then the output height is (input_height + 2 * pad_height - filter_height) / stride_height + 1)
+{v_1 : tensor, v_2 : list(int), v_3 : list(int), v_4 : tensor, v_5 : str} |= if v_5 = "channels_first" ∧ v_2[0] = 1 ∧ v_2[1] = 1 ∧ v_2[2] = 1 ∧ v_2[3] = 1 then (shape(v_1, 2) + 2 * v_3[0] - shape(v_4, 0)) / v_3[2] + 1 > 0
 >>
-Rule 31 (The absolute difference between the paddings should be less than or equal to the input dimension size)
-{v_1 : list(int), v_2 : list(int), v_3 : tensor} |= (v_1[0] - v_2[0]) ≤ shape(v_3, 0) ∧ (v_2[0] - v_1[0]) ≤ shape(v_3, 0) ∧ (v_1[1] - v_2[1]) ≤ shape(v_3, 1) ∧ (v_2[1] - v_1[1]) ≤ shape(v_3, 1)
+Rule 38 (If data format is channels last and dilations are 1,1,1,1 then the output height is (input_height + 2 * pad_height - filter_height) / stride_height + 1)
+{v_1 : tensor, v_2 : list(int), v_3 : list(int), v_4 : tensor, v_5 : str} |= if v_5 = "channels_last" ∧ v_2[0] = 1 ∧ v_2[1] = 1 ∧ v_2[2] = 1 ∧ v_2[3] = 1 then (shape(v_1, 1) + 2 * v_3[0] - shape(v_4, 0)) / v_3[1] + 1 > 0
 >>
-Rule 36 (The sum of the elements of the first padding list must be even)
-{v_1 : list(int)} |= (v_1[0] + v_1[1]) % 2 = 0
+Rule 39 (If data format is channels first and dilations are 1,1,1,1 then the output width is (input_width + 2 * pad_width - filter_width) / stride_width + 1)
+{v_1 : tensor, v_2 : list(int), v_3 : list(int), v_4 : tensor, v_5 : str} |= if v_5 = "channels_first" ∧ v_2[0] = 1 ∧ v_2[1] = 1 ∧ v_2[2] = 1 ∧ v_2[3] = 1 then (shape(v_1, 3) + 2 * v_3[2] - shape(v_4, 1)) / v_3[3] + 1 > 0
 >>
-Rule 37 (The sum of the elements of the second padding list must be even)
-{v_2 : list(int)} |= (v_2[0] + v_2[1]) % 2 = 0
+Rule 40 (If data format is channels last and dilations are 1,1,1,1 then the output width is (input_width + 2 * pad_width - filter_width) / stride_width + 1)
+{v_1 : tensor, v_2 : list(int), v_3 : list(int), v_4 : tensor, v_5 : str} |= if v_5 = "channels_last" ∧ v_2[0] = 1 ∧ v_2[1] = 1 ∧ v_2[2] = 1 ∧ v_2[3] = 1 then (shape(v_1, 2) + 2 * v_3[2] - shape(v_4, 1)) / v_3[2] + 1 > 0
 >>
-Rule 38 (The product of the first element of the padding list must be less than the second element)
-{v_1 : list(int)} |= v_1[0] < v_1[1]
+Rule 41 (If data format is channels first and dilations are 1,1,1,1 then the output width is (input_width + 2 * pad_width - filter_width) / stride_width + 1)
+{v_1 : tensor, v_2 : list(int), v_3 : list(int), v_4 : tensor, v_5 : str} |= if v_5 = "channels_first" ∧ v_2[0] = 1 ∧ v_2[1] = 1 ∧ v_2[2] = 1 ∧ v_2[3] = 1 then (shape(v_1, 3) + 2 * v_3[3] - shape(v_4, 1)) / v_3[3] + 1 > 0
 >>
-Rule 39 (The list's element should have the same value)
-{v_1 : list(int)} |= v_1[0] = v_1[1]
+Rule 43 (if data_format is channel_first, depthwise filter channels_out should match pointwise filter channels_in)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_first" then shape(v_1, 3) = shape(v_2, 2)
 >>
-Rule 40 (The sum of all padding elements should be less than constant.)
-{v_1 : list(int), v_2 : list(int), v_3 : int} |= v_1[0] + v_1[1] + v_2[0] + v_2[1] ≤ v_3
+Rule 45 (If data format is channels first and dilations are 1,1,1,1 then the output height is (input_height + 2 * pad_height - filter_height - (filter_height - 1) * (dilation_height - 1)) / stride_height + 1)
+{v_1 : tensor, v_2 : list(int), v_3 : list(int), v_4 : tensor, v_5 : str} |= if v_5 = "channels_first" ∧ v_2[0] = 1 ∧ v_2[1] = 1 ∧ v_2[2] = 1 ∧ v_2[3] = 1 then (shape(v_1, 2) + 2 * v_3[0] - shape(v_4, 0) - (shape(v_4, 0) - 1) * (v_2[2] - 1)) / v_3[2] + 1 > 0
 >>
-Rule 41 (The first padding element should not be greater than the second element, and the sum cannot be zero)
-{v_1 : list(int)} |= v_1[0] ≤ v_1[1] ∧ v_1[0] + v_1[1] ≠ 0
+Rule 47 (the input's batch size should be larger than 0)
+{v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 42 (At least one element in padding must be non-zero if the input shape along that dimension is non-zero)
-{v_1 : list(int), v_2 : tensor} |= if shape(v_2, 0) > 0 then v_1[0] > 0 ∨ v_1[1] > 0
+Rule 50 (If padding is valid or same, dilations should be 1,1,1,1, strides should be positive, dephtwise_filter shape shoud be more than 0)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if (v_1 = "valid") ∨ (v_1 = "same") then (v_2[0] = 1) ∧ (v_2[1] = 1) ∧ (v_2[2] = 1) ∧ (v_2[3] = 1) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ shape(v_3,0) > 0
 >>
-Rule 43 (The difference of the padding values with a shape dimension should have same parity)
-{v_1 : list(int), v_2 : tensor} |= (shape(v_2, 0) - (v_1[0] + v_1[1])) % 2 = 0
+Rule 51 (The input tensor and depthwise_filter must have same shape in channels dimension)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_last" then shape(v_1, 3) = shape(v_2, 2) else shape(v_1, 1) = shape(v_2, 2)
 >>
-Rule 44 (The second padding list elements should not be greater than the first list's elements multiplied by a constant.)
-{v_1 : list(int), v_2 : list(int), v_3 : int} |= v_2[0] ≤ v_3 * v_1[0] ∧ v_2[1] ≤ v_3 * v_1[1]
+Rule 52 (The depthwise filter must have non-negative width and height)
+{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
 >>
-Rule 45 (Both padding lists should be identical)
-{v_1 : list(int), v_2 : list(int)} |= v_1[0] = v_2[0] ∧ v_1[1] = v_2[1]
+Rule 53 (padding list must have 4 elements and must be integer type)
+{v_1 : list(int)} |= v_1.len = 4
 >>
-Rule 46 (If the average of the first padding is larger than the average of the second padding, the standard deviation of the first list should be larger.)
-{v_1 : list(int), v_2 : list(int)} |= if (v_1[0] + v_1[1]) / 2 > (v_2[0] + v_2[1]) / 2 then (v_1[0] - (v_1[0] + v_1[1]) / 2)*(v_1[0] - (v_1[0] + v_1[1]) / 2) + (v_1[1] - (v_1[0] + v_1[1]) / 2)*(v_1[1] - (v_1[0] + v_1[1]) / 2) > (v_2[0] - (v_2[0] + v_2[1]) / 2)*(v_2[0] - (v_2[0] + v_2[1]) / 2) + (v_2[1] - (v_2[0] + v_2[1]) / 2)*(v_2[1] - (v_2[0] + v_2[1]) / 2)
+Rule 54 (If padding is auto i.e., not valid or same then strides should be 1,1,1,1)
+{v_1 : str, v_2 : list(int)} |= if (v_1 ≠ "valid") ∧ (v_1 ≠ "same") then (v_2[0] = 1) ∧ (v_2[1] = 1) ∧ (v_2[2] = 1) ∧ (v_2[3] = 1)
 >>
-Rule 48 (The padding value should be smaller than at least one dimensions in the input tensor)
-{v_1 : list(int), v_2 : tensor} |= v_1[0] < shape(v_2, 0) ∨ v_1[1] < shape(v_2, 1)
+Rule 55 (the dilations list must have length 4 and the last element of dilations should be 1)
+{v_1 : list(int)} |= v_1.len = 4 ∧ v_1[3] = 1
 >>
-Rule 49 (The ratio of the first padding should be equal to the ratio of the shape dimensions.)
-{v_1 : list(int), v_2 : tensor} |= if shape(v_2, 1) ≠ 0 then (v_1[0] / v_1[1]) = (shape(v_2, 0) / shape(v_2, 1))
+Rule 56 (pointwise filter's last two dimension match input tensor)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_last" then shape(v_1, 3) = shape(v_2, 2) ∧ shape(v_2, 3) > 0 else shape(v_1, 1) = shape(v_2, 2) ∧ shape(v_2, 3) > 0
 >>
-Rule 50 (The sum of padding should be equal to the shape of other tensor)
-{v_1 : list(int), v_2 : tensor} |= v_1[0] + v_1[1] = shape(v_2, 0)
+Rule 57 (Padding should be either valid, same, or auto)
+{v_1 : str} |= (v_1 = "valid") ∨ (v_1 = "same")
 >>
-Rule 51 (If the average of the first padding is larger than the average of the second padding, then the first element in the first padding list must be greater than first element in the second padding list)
-{v_1 : list(int), v_2 : list(int)} |= if (v_1[0] + v_1[1]) / 2 > (v_2[0] + v_2[1]) / 2 then v_1[0] > v_2[0]
+Rule 58 (If data format is channels first, input channels equals depthwise filters channel out times pointwise filter channel in)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : str} |= if v_4 = "channels_first" then shape(v_1, 1) = shape(v_2, 2) * shape(v_3, 2)
 >>
-Rule 52 (Both padding lists must contain same value)
-{v_1 : list(int), v_2 : list(int)} |= v_1[0] = v_1[1] ∧ v_2[0] = v_2[1] ∧ v_1[0] = v_2[0]
+Rule 59 (If data format is channels last, input channels equals depthwise filters channel out times pointwise filter channel in)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : str} |= if v_4 = "channels_last" then shape(v_1, 3) = shape(v_2, 2) * shape(v_3, 2)
 >>
-Rule 53 (If the first padding lists elements are the same, then elements in the second list cannot be zero)
-{v_1 : list(int), v_2 : list(int)} |= if v_1[0] = v_1[1] then v_2[0] ≠ 0 ∧ v_2[1] ≠ 0
+Rule 61 (If data format is channels first, the pointwise filter should have height and width equal to 1)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_first" then shape(v_1, 0) = 1 ∧ shape(v_1, 1) = 1
 >>
-Rule 55 (If the tensor is a vector, then one list padding is zero)
-{v_1 : list(int), v_2 : list(int), v_3 : tensor} |= if ndim(v_3) = 1 then v_1[0] = 0 ∧ v_1[1] = 0 ∨ v_2[0] = 0 ∧ v_2[1] = 0
+Rule 62 (If data format is channels last, the pointwise filter should have height and width equal to 1)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_last" then shape(v_1, 0) = 1 ∧ shape(v_1, 1) = 1
 >>
-Rule 59 (The padding should be smaller than each dimension of input tensor.)
-{v_1 : list(int), v_2 : list(int), v_3 : tensor} |= v_1[0] < shape(v_3, 0) ∧ v_1[1] < shape(v_3, 1) ∧ v_2[0] < shape(v_3, 0) ∧ v_2[1] < shape(v_3, 1)
+Rule 64 (If data format is channels first, input has shape NCHW, then strides has format 1CHW)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "channels_first" then shape(v_1, 0) > 0 ∧ v_2[0] = 1
 >>
-Rule 62 (If all elements of the first padding are greater than 0, then tensor's elements must be greater than 0)
-{v_1 : list(int), v_2 : tensor} |= if v_1[0] > 0 ∧ v_1[1] > 0 then min(v_2) > 0
+Rule 65 (If data format is channels last, input has shape NHWC, then strides has format 1HWC)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "channels_last" then shape(v_1, 0) > 0 ∧ v_2[0] = 1
 >>
-Rule 63 (The padding must not produce out of bounds access)
-{v_1 : list(int), v_2 : tensor} |= (shape(v_2, 0) + v_1[0] + v_1[1]) > 0 ∧ (shape(v_2, 1) + v_1[0] + v_1[1]) > 0
+Rule 67 (If padding is valid or same, dilations should be 1,1,1,1)
+{v_1 : str, v_2 : list(int)} |= if (v_1 = "valid") ∨ (v_1 = "same") then (v_2[0] = 1) ∧ (v_2[1] = 1) ∧ (v_2[2] = 1) ∧ (v_2[3] = 1)
 >>
-Rule 64 (If second element in the first list is 0, then the first element must be 0)
-{v_1 : list(int)} |= if v_1[1] = 0 then v_1[0] = 0
+Rule 70 (If data format is channels first, input channels equal depthwise filter's output channels)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_first" then shape(v_1, 1) = shape(v_2, 3)
 >>
-Rule 65 (The first element must be even if the dimension shape is even)
-{v_1 : list(int), v_2 : tensor} |= if shape(v_2, 0) % 2 = 0 then v_1[0] % 2 = 0
+Rule 71 (If data format is channels last, input channels equal depthwise filter's output channels)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_last" then shape(v_1, 3) = shape(v_2, 3)
+>>
+Rule 73 (The sum of the padding values on top and bottom (or left and right) must be smaller than the input height (or width), if padding is explicit)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 ≠ "valid" ∧ v_3 ≠ "same" then v_2[0] + v_2[1] < shape(v_1, 1) ∧ v_2[2] + v_2[3] < shape(v_1, 2)
+>>
+Rule 74 (If data_format is "channels_first", then pointwise filter's 3rd dimension should equal to the number of channels in input)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_first" then shape(v_2, 2) = shape(v_1, 1)
+>>
+Rule 75 (If data_format is "channels_last", then pointwise filter's 3rd dimension should equal to the number of channels in input)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_last" then shape(v_2, 2) = shape(v_1, 3)
+>>
+Rule 76 (the dilation list must have positive height and width, if format is channel first)
+{v_1 : list(int), v_2 : str} |= if v_2 = "channels_first" then v_1[2] > 0 ∧ v_1[3] > 0
+>>
+Rule 77 (the dilation list must have positive height and width, if format is channel last)
+{v_1 : list(int), v_2 : str} |= if v_2 = "channels_last" then v_1[1] > 0 ∧ v_1[2] > 0
+>>
+Rule 78 (All filter shape dimensions must be positive.)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+>>
+Rule 79 (If data format is channels first and padding is explicit, padding height and width should be less than corresponding input size)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "channels_first" ∧ v_3 ≠ "valid" ∧ v_3 ≠ "same" then v_2[0] < shape(v_1, 2) ∧ v_2[1] < shape(v_1, 2) ∧ v_2[2] < shape(v_1, 3) ∧ v_2[3] < shape(v_1, 3)
+>>
+Rule 80 (If data format is channels last and padding is explicit, padding height and width should be less than corresponding input size)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "channels_last" ∧ v_3 ≠ "valid" ∧ v_3 ≠ "same" then v_2[0] < shape(v_1, 1) ∧ v_2[1] < shape(v_1, 1) ∧ v_2[2] < shape(v_1, 2) ∧ v_2[3] < shape(v_1, 2)
+>>
+Rule 81 (if data_format is channel_first, input and depthwise filter should be float32 type)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_first" then dtype_(v_1) = 7 ∧ dtype_(v_2) = 7
+>>
+Rule 82 (if data_format is channel_last, input and depthwise filter should be float32 type)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_last" then dtype_(v_1) = 7 ∧ dtype_(v_2) = 7
+>>
+Rule 83 (the output channels of depthwise filter must be positive)
+{v_1 : tensor} |= shape(v_1, 3) > 0
+>>
+Rule 84 (If the data format is channels first, the input width and height dimensions must be greater than zero)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_first" then shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+>>
+Rule 85 (If the data format is channels last, the input width and height dimensions must be greater than zero)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_last" then shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+>>
+Rule 86 (If the input strides[1] is greater than 1, and the depthwise filter's width is greater than the input width then, stride[1] must be 1)
+{v_1 : tensor, v_2 : tensor, v_3 : list(int)} |= if (v_3[1] > 1) ∧ (shape(v_2, 1) > shape(v_1, 1)) then v_3[1] = 1
+>>
+Rule 87 (The input must have correct dtype)
+{v_1 : tensor} |= (dtype_(v_1) = 7)
+>>
+Rule 88 (If the input strides[2] is greater than 1, and the depthwise filter's height is greater than the input height then, stride[2] must be 1)
+{v_1 : tensor, v_2 : tensor, v_3 : list(int), v_4 : str} |= if (v_3[2] > 1) ∧ (shape(v_2, 0) > shape(v_1, 2)) ∧ (v_4 = "channels_first") then v_3[2] = 1
+>>
+Rule 89 (If the input strides[2] is greater than 1, and the depthwise filter's height is greater than the input height then, stride[2] must be 1)
+{v_1 : tensor, v_2 : tensor, v_3 : list(int), v_4 : str} |= if (v_3[2] > 1) ∧ (shape(v_2, 0) > shape(v_1, 1)) ∧ (v_4 = "channels_last") then v_3[2] = 1
+>>
+Rule 90 (If the input strides[3] is greater than 1, and the depthwise filter's width is greater than the input width then, stride[3] must be 1)
+{v_1 : tensor, v_2 : tensor, v_3 : list(int), v_4 : str} |= if (v_3[3] > 1) ∧ (shape(v_2, 1) > shape(v_1, 3)) ∧ (v_4 = "channels_first") then v_3[3] = 1
+>>
+Rule 91 (If the input strides[3] is greater than 1, and the depthwise filter's width is greater than the input width then, stride[3] must be 1)
+{v_1 : tensor, v_2 : tensor, v_3 : list(int), v_4 : str} |= if (v_3[3] > 1) ∧ (shape(v_2, 1) > shape(v_1, 2)) ∧ (v_4 = "channels_last") then v_3[3] = 1
+>>
+Rule 95 (If data format is channels first, dilation height and width should correspond to the depthwise filter size -1)
+{v_1 : list(int), v_2 : tensor, v_3 : str} |= if v_3 = "channels_first" then v_1[2] ≤ shape(v_2, 0) - 1 ∧ v_1[3] ≤ shape(v_2, 1) - 1
+>>
+Rule 96 (If data format is channels last, dilation height and width should correspond to the depthwise filter size -1)
+{v_1 : list(int), v_2 : tensor, v_3 : str} |= if v_3 = "channels_last" then v_1[1] ≤ shape(v_2, 0) - 1 ∧ v_1[2] ≤ shape(v_2, 1) - 1
+>>
+Rule 97 (if data_format is channel_first, pointwise filter channel out should be positive)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_first" then shape(v_1, 3) > 0
+>>
+Rule 98 (if data_format is channel_last, pointwise filter channel out should be positive)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_last" then shape(v_1, 3) > 0
+>>
+Rule 101 (If the input strides[1] is greater than 1, and the depthwise filter's width is greater than the input width then, stride[1] must be 1)
+{v_1 : tensor, v_2 : tensor, v_3 : list(int), v_4 : str} |= if (v_3[1] > 1) ∧ (shape(v_2, 1) > shape(v_1, 1)) ∧ (v_4 = "channels_last") then v_3[1] = 1
+>>
+Rule 103 (If the depthwise filter's data format is channel first then height and width dimensions should be greater than 0)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_first" then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+>>
+Rule 106 ( If data_format is channels_first, then dilations should correspond with input height and width )
+{v_1: tensor, v_2: list(int), v_3 : str} |= if (v_3 = "channels_first") then (v_2[2] ≤ shape(v_1, 2)) ∧ (v_2[3] ≤ shape(v_1, 3))
+>>
+Rule 107 (if data_format is channel_last, dilations height and width should correspond with input height and width)
+{v_1: tensor, v_2: list(int), v_3 : str} |= if (v_3 = "channels_last") then (v_2[1] ≤ shape(v_1, 1)) ∧ (v_2[2] ≤ shape(v_1, 2))
+>>
+Rule 108 (depthwise filter channels_in should be positive)
+{v_1 : tensor} |= shape(v_1, 2) > 0
+>>
+Rule 111 (The padding list should have integer type)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : 1 ≤ v_1[i] ∧ v_1[i] ≤ 5

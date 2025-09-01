@@ -1,30 +1,105 @@
 >>
-Rule 1 (tensor must have less than or equal to 8 dimensions)
-{v_1 : tensor} |= ndim(v_1) ≤ 8
->>
-Rule 2 (axis must be a 1D tensor)
+Rule 1 (axis tensor should be 1-dimensional)
 {v_2 : tensor} |= ndim(v_2) = 1
 >>
-Rule 4 (tensor must be of supported dtype)
-{v_1 : tensor} |= (dtype_(v_1) = 0) ∨ (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) ∨ (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) ∨ (dtype_(v_1) = 11)
+Rule 3 (tensor should have no more than 8 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≤ 8
 >>
-Rule 5 (axis tensor must be of int32 or int64 type)
-{v_2 : tensor} |= (dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4)
->>
-Rule 7 (check if the first element of axis is a positive integer)
-{v_2 : tensor} |= v_2[0] ≥ 0
->>
-Rule 9 (check min of axis is greater than -5)
-{v_2 : tensor} |= min(v_2) > -5
->>
-Rule 10 (check max of axis is less than 5)
-{v_2 : tensor} |= max(v_2) < 5
->>
-Rule 27 (If tensor is bool, then axis cannot be float)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 3
->>
-Rule 28 (The minimum dimension of axis should be an integer)
+Rule 4 (axis tensor elements are int32 or int64)
 {v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
 >>
-Rule 30 (check if ndim of tensor is greater than 0)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 5 (axis values must be within the valid range of tensor rank)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ (0 - ndim(v_1)) ∧ max(v_2) < ndim(v_1)
+>>
+Rule 6 (axis values must be within the valid range of tensor rank)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ (0 - ndim(v_1)) ∧ max(v_2) < ndim(v_1) ∧ ndim(v_1) > 0
+>>
+Rule 7 (axis values must be within the valid range of tensor rank and handle empty tensor)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then min(v_2) ≥ (0 - ndim(v_1)) ∧ max(v_2) < ndim(v_1)
+>>
+Rule 8 (axis values must be within the valid range of tensor rank, handling the case when the rank is zero)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then true else min(v_2) ≥ (0 - ndim(v_1)) ∧ max(v_2) < ndim(v_1)
+>>
+Rule 9 (axis tensor elements are valid dimensions)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1))
+>>
+Rule 11 (The elements in the axis tensor should not have duplicates.)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : ∀j ∈ [i+1, shape(v_2, 0) - 1] : v_2[i] ≠ v_2[j]
+>>
+Rule 13 (If the axis tensor is empty, then the operation should still be valid)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) = 0 then true else ∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (∀j ∈ [i+1, shape(v_2, 0) - 1] : v_2[i] ≠ v_2[j])
+>>
+Rule 14 (If the input tensor has zero dimensions, the axis tensor must also be empty)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then shape(v_2, 0) = 0
+>>
+Rule 15 (If the axis tensor is empty, then the rank of the input tensor must be less than or equal to 8)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) = 0 then ndim(v_1) ≤ 8
+>>
+Rule 16 (The input tensor must be one of the allowed types defined in the API documentation.)
+{v_1 : tensor} |= dtype_(v_1) = 5 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 0 ∨ dtype_(v_1) = 12 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+>>
+Rule 17 (Combined rule ensuring axis tensor validity)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≤ 8) ∧ (shape(v_2, 0) = 0 ∨ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)) ∧ (∀j ∈ [i+1, shape(v_2, 0) - 1] : v_2[i] ≠ v_2[j])))
+>>
+Rule 19 (Valid tensor and axis)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≤ 8) ∧ ((shape(v_2, 0) = 0 ∧ ndim(v_1) ≥ 0) ∨ ((dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1))) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : ∀j ∈ [i+1, shape(v_2, 0) - 1] : v_2[i] ≠ v_2[j])))
+>>
+Rule 21 (Input tensor must be one of the allowed data types and axis values must be valid)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 5 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 0 ∨ dtype_(v_1) = 12 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (shape(v_2, 0) = 0 ∨ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1))))
+>>
+Rule 22 (Valid tensor and axis - refined)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 5 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 0 ∨ dtype_(v_1) = 12 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ ((shape(v_2, 0) = 0) ∨ ((dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1))))) ∧ (ndim(v_1) ≤ 8)
+>>
+Rule 23 (Valid tensor and axis - even more refined)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 5 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 0 ∨ dtype_(v_1) = 12 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ if shape(v_2, 0) > 0 then ((dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)))) ∧ (ndim(v_1) <= 8)
+>>
+Rule 24 (Putting it all together - hopefully the last one)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 5 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 0 ∨ dtype_(v_1) = 12 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (ndim(v_1) <= 8) ∧ (if shape(v_2, 0) > 0 then (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)) ∧ (∀j ∈ [i+1, shape(v_2, 0) - 1] : v_2[i] ≠ v_2[j])))
+>>
+Rule 27 (Name parameter is a non-empty string)
+{v_3 : str} |= v_3 ≠ ""
+>>
+Rule 28 (Name parameter is a non-empty string)
+{v_3 : str} |= v_3 ≠ "" ∧ v_3.len > 0
+>>
+Rule 29 (The name parameter, if provided, should have a reasonable length.)
+{v_3 : str} |= if v_3 = "" then true else v_3.len < 100
+>>
+Rule 30 (If a name is given, it should be a non-empty string of reasonable length)
+{v_3 : str} |= (v_3 = "") ∨ (v_3.len > 0 ∧ v_3.len < 100)
+>>
+Rule 31 (If a name is given, it should be a string with reasonable length and valid characters)
+{v_3 : str} |= (v_3 = "") ∨ (v_3.len > 0 ∧ v_3.len < 100 ∧ ∀i ∈ [0, v_3.len - 1] : (v_3[i] ≥ "a" ∧ v_3[i] ≤ "z") ∨ (v_3[i] ≥ "A" ∧ v_3[i] ≤ "Z") ∨ (v_3[i] ≥ "0" ∧ v_3[i] ≤ "9") ∨ v_3[i] = "_")
+>>
+Rule 32 (If a name is given, it should be a string with reasonable length and valid characters, and contain at least one alphabet or underscore)
+{v_3 : str} |= (v_3 = "") ∨ (v_3.len > 0 ∧ v_3.len < 100 ∧ ∃i ∈ [0, v_3.len - 1] : (v_3[i] ≥ "a" ∧ v_3[i] ≤ "z") ∨ (v_3[i] ≥ "A" ∧ v_3[i] ≤ "Z") ∨ v_3[i] = "_" ∧ ∀j ∈ [0, v_3.len - 1] : (v_3[j] ≥ "a" ∧ v_3[j] ≤ "z") ∨ (v_3[j] ≥ "A" ∧ v_3[j] ≤ "Z") ∨ (v_3[j] ≥ "0" ∧ v_3[j] ≤ "9") ∨ v_3[j] = "_")
+>>
+Rule 33 (If a name is given, it should be a string with reasonable length and valid characters, and contain at least one alphabet or underscore - final attempt)
+{v_3 : str} |= (v_3 = "") ∨ (v_3.len > 0 ∧ v_3.len < 100 ∧ (∃i ∈ [0, v_3.len - 1] : (v_3[i] ≥ "a" ∧ v_3[i] ≤ "z") ∨ (v_3[i] ≥ "A" ∧ v_3[i] ≤ "Z") ∨ (v_3[i] = "_")) ∧ (∀j ∈ [0, v_3.len - 1] : (v_3[j] ≥ "a" ∧ v_3[j] ≤ "z") ∨ (v_3[j] ≥ "A" ∧ v_3[j] ≤ "Z") ∨ (v_3[j] ≥ "0" ∧ v_3[j] ≤ "9") ∨ (v_3[j] = "_")))
+>>
+Rule 34 (If a name is given, it should be a string with reasonable length and valid characters, and contain at least one alphabet or underscore - simplified character check)
+{v_3 : str} |= (v_3 = "") ∨ (v_3.len > 0 ∧ v_3.len < 100 ∧ (∃i ∈ [0, v_3.len - 1] : (v_3[i] ≥ "a" ∧ v_3[i] ≤ "z") ∨ (v_3[i] ≥ "A" ∧ v_3[i] ≤ "Z") ∨ (v_3[i] = "_")))
+>>
+Rule 35 (If a name is given, it should be a string with reasonable length and valid characters - attempt to avoid redundant characters)
+{v_3 : str} |= (v_3 = "") ∨ (v_3.len > 0 ∧ v_3.len < 100 ∧ (∃i ∈ [0, v_3.len - 1] : (v_3[i] ≥ "a" ∧ v_3[i] ≤ "z") ∨ (v_3[i] ≥ "A" ∧ v_3[i] ≤ "Z") ∨ (v_3[i] = "_")) ∧ (∀j ∈ [0, v_3.len - 1] : ((v_3[j] ≥ "a" ∧ v_3[j] ≤ "z") ∨ (v_3[j] ≥ "A" ∧ v_3[j] ≤ "Z") ∨ (v_3[j] ≥ "0" ∧ v_3[j] ≤ "9") ∨ (v_3[j] = "_"))))
+>>
+Rule 36 (Final Rule - handles optional name and ensures validity if provided)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= (dtype_(v_1) = 5 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 0 ∨ dtype_(v_1) = 12 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (ndim(v_1) <= 8) ∧ (if shape(v_2, 0) > 0 then (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)))) ∧ ((v_3 = "") ∨ (v_3.len > 0 ∧ v_3.len < 100 ∧ (∃i ∈ [0, v_3.len - 1] : (v_3[i] ≥ "a" ∧ v_3[i] ≤ "z") ∨ (v_3[i] ≥ "A" ∧ v_3[i] ≤ "Z") ∨ (v_3[i] = "_")) ∧ (∀j ∈ [0, v_3.len - 1] : ((v_3[j] ≥ "a" ∧ v_3[j] ≤ "z") ∨ (v_3[j] ≥ "A" ∧ v_3[j] ≤ "Z") ∨ (v_3[j] ≥ "0" ∧ v_3[j] ≤ "9") ∨ (v_3[j] = "_")))))
+>>
+Rule 37 (Complete validation rule)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= (dtype_(v_1) = 5 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 0 ∨ dtype_(v_1) = 12 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (ndim(v_1) <= 8) ∧ (shape(v_2, 0) = 0 ∨ ((dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1))))) ∧ ((v_3 = "") ∨ (v_3.len > 0 ∧ v_3.len < 100 ∧ (∃k ∈ [0, v_3.len - 1] : ((v_3[k] ≥ "a" ∧ v_3[k] ≤ "z") ∨ (v_3[k] ≥ "A" ∧ v_3[k] ≤ "Z") ∨ (v_3[k] = "_"))) ∧ (∀l ∈ [0, v_3.len - 1] : ((v_3[l] ≥ "a" ∧ v_3[l] ≤ "z") ∨ (v_3[l] ≥ "A" ∧ v_3[l] ≤ "Z") ∨ (v_3[l] ≥ "0" ∧ v_3[l] ≤ "9") ∨ (v_3[l] = "_")))))
+>>
+Rule 38 (Complete validation rule WITH a more efficient naming check)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= (dtype_(v_1) = 5 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 0 ∨ dtype_(v_1) = 12 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (ndim(v_1) <= 8) ∧ (shape(v_2, 0) = 0 ∨ ((dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1))))) ∧ ((v_3 = "") ∨ (v_3.len > 0 ∧ v_3.len < 100 ∧ (∃k ∈ [0, v_3.len - 1] : (v_3[k] ≥ "a" ∧ v_3[k] ≤ "z") ∨ (v_3[k] ≥ "A" ∧ v_3[k] ≤ "Z") ∨ (v_3[k] = "_"))))
+>>
+Rule 39 (Complete and Correct Validation)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= (dtype_(v_1) = 5 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 0 ∨ dtype_(v_1) = 12 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (ndim(v_1) ≤ 8) ∧ ((shape(v_2, 0) = 0) ∨ ((dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1))))) ∧ ((v_3 = "") ∨ (v_3.len > 0 ∧ v_3.len < 100 ∧ (∃k ∈ [0, v_3.len - 1] : ((v_3[k] ≥ "a" ∧ v_3[k] ≤ "z") ∨ (v_3[k] ≥ "A" ∧ v_3[k] ≤ "Z") ∨ (v_3[k] = "_")))))
+>>
+Rule 40 (Final and Correct Validation)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= (dtype_(v_1) = 5 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 0 ∨ dtype_(v_1) = 12 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (ndim(v_1) ≤ 8) ∧ (shape(v_2, 0) = 0 ∨ ((dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1))))) ∧ ((v_3 = "") ∨ (v_3.len > 0 ∧ v_3.len < 100 ∧ (∃k ∈ [0, v_3.len - 1] : (v_3[k] ≥ "a" ∧ v_3[k] ≤ "z") ∨ (v_3[k] ≥ "A" ∧ v_3[k] ≤ "Z") ∨ (v_3[k] = "_"))))
+>>
+Rule 41 (Final and hopefully NOT duplicated Rule, now with variable reuse and simplified name check - if present, name must have reasonable length and SOME characters)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= (dtype_(v_1) = 5 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 0 ∨ dtype_(v_1) = 12 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (ndim(v_1) ≤ 8) ∧ ((shape(v_2, 0) = 0) ∨ ((dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1))))) ∧ ((v_3 = "") ∨ (v_3.len > 0 ∧ v_3.len < 100 ∧ (∃i ∈ [0, v_3.len - 1] : (v_3[i] ≥ "a" ∧ v_3[i] ≤ "z") ∨ (v_3[i] ≥ "A" ∧ v_3[i] ≤ "Z") ∨ (v_3[i] = "_"))))
+>>
+Rule 42 (Combination Rule)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= (dtype_(v_1) = 5 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 0 ∨ dtype_(v_1) = 12 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (ndim(v_1) ≤ 8) ∧ (shape(v_2, 0) = 0 ∨ ((dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1))))) ∧ (v_3 = "" ∨ (v_3.len > 0 ∧ v_3.len < 100 ∧ (∃k ∈ [0, v_3.len - 1] : (v_3[k] ≥ "a" ∧ v_3[k] ≤ "z") ∨ (v_3[k] ≥ "A" ∧ v_3[k] ≤ "Z") ∨ (v_3[k] = "_"))))

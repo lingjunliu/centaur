@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If splits dtype is int64, out_type must be int64 (Rule 27)
+# out_type must be a valid integer dtype or defaults to splits dtype (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 4, v["arg2_value"] == 4, False)) if n else
-          If(v["arg1_dtype"] == 4, v["arg2_value"] == 4, False))
+    s.add(Not(Or((Or(Or(Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 2), v["arg2_value"] == 3), v["arg2_value"] == 4), v["arg2_value"] == 5)), (And(v["arg2_value"] == 12, (Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5)))))) if n else
+          Or((Or(Or(Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 2), v["arg2_value"] == 3), v["arg2_value"] == 4), v["arg2_value"] == 5)), (And(v["arg2_value"] == 12, (Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5))))))
 )
 
 def rule_27_func(arg1, arg2, solver=None, neg=False):

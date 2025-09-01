@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# strides list must satisfy constraints for dilation2d API (Rule 32)
+# Strides 1 and 4 must equal to 1 (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(v["arg1_length"] == 4, Select(v["arg1_values"], 0) == 1), Select(v["arg1_values"], 3) == 1), And([Implies(i < (2 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)]))) if n else
-          And(And(And(v["arg1_length"] == 4, Select(v["arg1_values"], 0) == 1), Select(v["arg1_values"], 3) == 1), And([Implies(i < (2 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)])))
+    s.add(Not(And(Select(v["arg1_values"], 0) == 1, Select(v["arg1_values"], 3) == 1)) if n else
+          And(Select(v["arg1_values"], 0) == 1, Select(v["arg1_values"], 3) == 1))
 )
 
 def rule_32_func(arg1, solver=None, neg=False):
@@ -22,18 +22,16 @@ def rule_32_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
         arg1_values = Array('arg1_values', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
         for i in range(len(arg1)):
             arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 32
-        rule_32(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length})
+        rule_32(solver, {'arg1_values': arg1_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_32(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length']}, neg)
+        rule_32(solver, {'arg1_values': arg1['values']}, neg)

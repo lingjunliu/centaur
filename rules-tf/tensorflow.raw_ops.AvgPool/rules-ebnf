@@ -1,156 +1,96 @@
 >>
-Rule 1 (value tensor must be 4-dimensional)
-{v_1 : tensor} |= ndim(v_1) = 4
->>
-Rule 2 (ksize list must have length greater than or equal to 4)
+Rule 2 (ksize length should be greater than or equal to 4)
 {v_1 : list(int)} |= v_1.len ≥ 4
 >>
-Rule 4 (ksize and strides should have the same length)
-{v_1 : list(int), v_2 : list(int)} |= v_1.len = v_2.len
+Rule 4 (padding should be SAME or VALID)
+{v_1 : str} |= v_1 = "same" ∨ v_1 = "valid"
 >>
-Rule 5 (each element of ksize should be greater than 0)
+Rule 5 (data_format should be NHWC or NCHW)
+{v_1 : str} |= v_1 = "channels_last" ∨ v_1 = "channels_first"
+>>
+Rule 6 (ksize elements should be greater than 0)
 {v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 7 (padding string should be either "SAME" or "VALID")
-{v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID"
+Rule 8 (Number of dimensions of value should be 4)
+{v_1 : tensor} |= ndim(v_1) = 4
 >>
-Rule 8 (data_format string should be either "NHWC" or "NCHW")
-{v_1 : str} |= v_1 = "NHWC" ∨ v_1 = "NCHW"
+Rule 9 (ksize and strides length should be equal)
+{v_1 : list(int), v_2 : list(int)} |= v_1.len = v_2.len
 >>
-Rule 9 (batch dimension of value tensor should be greater than 0)
+Rule 10 (If data_format is NCHW, the input tensor's shape[1] should be greater than 0)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_first" then shape(v_1, 1) > 0
+>>
+Rule 11 (If data_format is NHWC, the input tensor's shape[3] should be greater than 0)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_last" then shape(v_1, 3) > 0
+>>
+Rule 12 (ksize and strides elements should be integer numbers.)
+{v_1 : list(int), v_2 : int} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] = v_2
+>>
+Rule 13 (value's data type should be half, bfloat16, float32, or float64)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
+>>
+Rule 24 (The batch dimension of the input tensor should be greater than 0)
 {v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 10 (channel dimension of value tensor should be greater than 0 when data_format is "NHWC")
-{v_1 : tensor, v_2 : str} |= if v_2 = "NHWC" then shape(v_1, 3) > 0
+Rule 25 (ksize is a list of non-negative integers)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 11 (channel dimension of value tensor should be greater than 0 when data_format is "NCHW")
-{v_1 : tensor, v_2 : str} |= if v_2 = "NCHW" then shape(v_1, 1) > 0
+Rule 36 (If data_format is NCHW, the height dimension is shape[2] and width dimension is shape[3])
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "channels_first" then shape(v_1, 2) = v_2[2] ∧ shape(v_1, 3) = v_2[3]
 >>
-Rule 12 (data type of value tensor must be half, bfloat16, float32, or float64)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 37 (If data_format is NHWC, the height dimension is shape[1] and width dimension is shape[2])
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "channels_last" then shape(v_1, 1) = v_2[1] ∧ shape(v_1, 2) = v_2[2]
 >>
-Rule 13 (ksize and strides elements should be integers)
-{v_1 : list(int), v_2 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ ∀j ∈ [0, v_2.len - 1] : v_2[j] ≥ 0
+Rule 38 (ksize and strides dimensions should be less than or equal to input dimensions if padding is valid)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "valid" then v_2[1] ≤ shape(v_1, 1) ∧ v_2[2] ≤ shape(v_1, 2)
 >>
-Rule 14 (ksize length should be equal to the number of dimensions of the input tensor)
-{v_1 : tensor, v_2 : list(int)} |= v_2.len = ndim(v_1)
+Rule 50 (ksize and strides dimensions should be less than or equal to input dimensions if padding is valid - height)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "valid" then v_2[1] ≤ shape(v_1, 1)
 >>
-Rule 16 (ksize list must have length greater than or equal to 4, and all elements must be positive)
-{v_1 : list(int)} |= v_1.len ≥ 4 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 51 (ksize and strides dimensions should be less than or equal to input dimensions if padding is valid - width)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "valid" then v_2[2] ≤ shape(v_1, 2)
 >>
-Rule 26 (ksize and strides elements should be integers and no element of strides equals to zero)
-{v_1 : list(int), v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ ∀j ∈ [0, v_1.len - 1] : v_1[j] ≥ 0
+Rule 62 (If data_format is NCHW, then the height dimension should be greater than 0)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_first" then shape(v_1, 2) > 0
 >>
-Rule 28 (height and width dimensions must be greater than 0)
-{v_1 : tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+Rule 63 (If data_format is NHWC, then the height dimension should be greater than 0)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_last" then shape(v_1, 1) > 0
 >>
-Rule 29 (ksize and strides lists must have lengths greater than or equal to 4 and all elements must be positive and strides cannot be zero)
-{v_1 : list(int), v_2 : list(int)} |= v_1.len ≥ 4 ∧ v_2.len ≥ 4 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0 ∧ ∀j ∈ [0, v_2.len - 1] : v_2[j] > 0
+Rule 64 (ksize and strides dimensions should be less than or equal to input dimensions if padding is valid - height)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "valid" ∧ v_3 = "channels_last" then v_2[1] ≤ shape(v_1, 1)
 >>
-Rule 30 (padding string must be either "SAME" or "VALID", and data_format string must be either "NHWC" or "NCHW")
-{v_1 : str, v_2 : str} |= (v_1 = "SAME" ∨ v_1 = "VALID") ∧ (v_2 = "NHWC" ∨ v_2 = "NCHW")
+Rule 65 (ksize and strides dimensions should be less than or equal to input dimensions if padding is valid - width)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "valid" ∧ v_3 = "channels_last" then v_2[2] ≤ shape(v_1, 2)
 >>
-Rule 31 (value tensor's batch, height and width dimensions should be greater than 0)
-{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+Rule 66 (ksize and strides dimensions should be less than or equal to input dimensions if padding is valid - height channel first)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "valid" ∧ v_3 = "channels_first" then v_2[2] ≤ shape(v_1, 2)
 >>
-Rule 32 (data type of value tensor must be half, bfloat16, float32, or float64 and ndim equals to 4)
-{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ ndim(v_1) = 4
+Rule 67 (ksize and strides dimensions should be less than or equal to input dimensions if padding is valid - width channel first)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "valid" ∧ v_3 = "channels_first" then v_2[3] ≤ shape(v_1, 3)
 >>
-Rule 33 (If data format is NCHW, channel dimension > 0, otherwise, last dimension should be positive.)
-{v_1 : tensor, v_2 : str} |= if v_2 = "NCHW" then shape(v_1, 1) > 0 else shape(v_1, 3) > 0
+Rule 94 (If padding is same, ksize and strides dimensions should less than input size)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "same" then v_2[1] <= shape(v_1, 1) ∧ v_2[2] <= shape(v_1, 2) ∧ v_2[3] <= shape(v_1, 3)
 >>
-Rule 34 (ksize length should be equal to the number of dimensions of the input tensor (4) and strides length should be equal to ksize length)
-{v_1 : list(int), v_2 : list(int)} |= v_1.len = 4 ∧ v_2.len = v_1.len
+Rule 112 (ksize should influence the shape of the output tensor - example along height if channels_last)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "channels_last" then shape(v_1, 1) > v_2[1]
 >>
-Rule 35 (When padding is VALID, ksize should be no larger than the corresponding input dimension)
-{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "VALID" then v_2[1] <= shape(v_1,1) ∧ v_2[2] <= shape(v_1,2)
+Rule 113 (ksize should influence the shape of the output tensor - example along width if channels_last)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "channels_last" then shape(v_1, 2) > v_2[2]
 >>
-Rule 36 (When padding is VALID, strides cannot be larger than corresponding ksize value)
-{v_1 : list(int), v_2 : list(int), v_3 : str} |= if v_3 = "VALID" then v_1[1] >= v_2[1] ∧ v_1[2] >= v_2[2]
+Rule 114 (ksize should influence the shape of the output tensor - example along height if channels_first)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "channels_first" then shape(v_1, 2) > v_2[2]
 >>
-Rule 37 (value tensor must be 4-dimensional, and its data type must be half, bfloat16, float32, or float64)
-{v_1 : tensor} |= ndim(v_1) = 4 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+Rule 115 (ksize should influence the shape of the output tensor - example along width if channels_first)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "channels_first" then shape(v_1, 3) > v_2[3]
 >>
-Rule 38 (ksize and strides lists must have lengths of 4, and all elements must be positive)
-{v_1 : list(int), v_2 : list(int)} |= v_1.len = 4 ∧ v_2.len = 4 ∧ ∀i ∈ [0, 3] : v_1[i] > 0 ∧ ∀j ∈ [0, 3] : v_2[j] > 0
+Rule 129 (If padding is valid, then height dimension - channels_last)
+{v_1 : tensor, v_2 : list(int), v_3 : list(int), v_4 : str} |= if v_4 = "valid" ∧ v_4 = "channels_last" then (shape(v_1, 1) - v_2[1] + 1) / v_3[1] > 0
 >>
-Rule 42 (value tensor's channel dimension should be greater than 0, depending on data_format)
-{v_1 : tensor, v_2 : str} |= if v_2 = "NHWC" then shape(v_1, 3) > 0 else shape(v_1, 1) > 0
+Rule 130 (If padding is valid, then width dimension - channels_last)
+{v_1 : tensor, v_2 : list(int), v_3 : list(int), v_4 : str} |= if v_4 = "valid" ∧ v_4 = "channels_last" then (shape(v_1, 2) - v_2[2] + 1) / v_3[2] > 0
 >>
-Rule 44 (When padding is VALID, ksize's height and width dimensions should be no larger than the corresponding input dimension)
-{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "VALID" then v_2[1] <= shape(v_1, 1) ∧ v_2[2] <= shape(v_1, 2)
+Rule 131 (If padding is valid, then height dimension - channels_first)
+{v_1 : tensor, v_2 : list(int), v_3 : list(int), v_4 : str} |= if v_4 = "valid" ∧ v_4 = "channels_first" then (shape(v_1, 2) - v_2[2] + 1) / v_3[2] > 0
 >>
-Rule 46 (strides[0] and ksize[0] must be 1)
-{v_1 : list(int), v_2 : list(int)} |= v_1[0] = 1 ∧ v_2[0] = 1
->>
-Rule 47 (strides[3] and ksize[3] must be 1)
-{v_1 : list(int), v_2 : list(int)} |= v_1[3] = 1 ∧ v_2[3] = 1
->>
-Rule 48 (value tensor must be 4-dimensional, its data type must be half, bfloat16, float32, or float64, and its batch, height and width dimensions should be greater than 0)
-{v_1 : tensor} |= ndim(v_1) = 4 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
->>
-Rule 49 (ksize and strides lists must have lengths of 4, and all elements must be positive, and strides[0], strides[3], ksize[0] and ksize[3] must be 1)
-{v_1 : list(int), v_2 : list(int)} |= v_1.len = 4 ∧ v_2.len = 4 ∧ ∀i ∈ [0, 3] : v_1[i] > 0 ∧ ∀j ∈ [0, 3] : v_2[j] > 0 ∧ v_1[0] = 1 ∧ v_1[3] = 1 ∧ v_2[0] = 1 ∧ v_2[3] = 1
->>
-Rule 52 (When padding is VALID, ksize's height and width dimensions should be no larger than the corresponding input dimension, and strides height and width cannot be larger than corresponding ksize value)
-{v_1 : tensor, v_2 : list(int), v_3 : list(int), v_4 : str} |= if v_4 = "VALID" then v_2[1] <= shape(v_1, 1) ∧ v_2[2] <= shape(v_1, 2) ∧ v_1[1] >= v_3[1] ∧ v_1[2] >= v_3[2]
->>
-Rule 53 (ksize[1] * ksize[2] must be less than or equal to shape(v_1, 1) * shape(v_1, 2), if v_1 is the value tensor)
-{v_1 : tensor, v_2 : list(int)} |= v_2[1] * v_2[2] <= shape(v_1, 1) * shape(v_1, 2)
->>
-Rule 55 (value tensor must be 4-dimensional, its data type must be half, bfloat16, float32, or float64, and its batch, height and width dimensions should be greater than 0, and channel depends on data format)
-{v_1 : tensor, v_2 : str} |= ndim(v_1) = 4 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ (if v_2 = "NHWC" then shape(v_1, 3) > 0 else shape(v_1, 1) > 0)
->>
-Rule 59 (When padding is VALID, ksize's height and width dimensions should be no larger than the corresponding input dimension, and strides height and width cannot be larger than corresponding ksize value)
-{v_1 : tensor, v_2 : list(int), v_3 : list(int), v_4 : str} |= if v_4 = "VALID" then v_2[1] <= shape(v_1, 1) ∧ v_2[2] <= shape(v_1, 2) ∧ v_3[1] <= v_2[1] ∧ v_3[2] <= v_2[2]
->>
-Rule 60 (If data_format is NCHW, then ksize[2] * ksize[3] should be less than or equal to shape(v_1, 2) * shape(v_1, 3), otherwise ksize[1] * ksize[2] should be less than or equal to shape(v_1, 1) * shape(v_1, 2))
-{v_1 : tensor, v_2 : list(int), v_3: str} |= if v_3 = "NCHW" then v_2[2] * v_2[3] <= shape(v_1, 2) * shape(v_1, 3) else v_2[1] * v_2[2] <= shape(v_1, 1) * shape(v_1, 2)
->>
-Rule 62 (value tensor must be 4-dimensional, its data type must be half, bfloat16, float32, or float64, and its dimensions should be positive)
-{v_1 : tensor} |= ndim(v_1) = 4 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
->>
-Rule 63 (ksize and strides lists must have lengths of 4, and all elements must be positive, and strides[0], strides[3], ksize[0] and ksize[3] must be 1 and their h/w should less than input)
-{v_1 : tensor, v_2 : list(int), v_3 : list(int)} |= v_2.len = 4 ∧ v_3.len = 4 ∧ ∀i ∈ [0, 3] : v_2[i] > 0 ∧ ∀j ∈ [0, 3] : v_3[j] > 0 ∧ v_2[0] = 1 ∧ v_2[3] = 1 ∧ v_3[0] = 1 ∧ v_3[3] = 1 ∧ v_2[1] * v_2[2] <= shape(v_1, 1) * shape(v_1, 2) ∧  v_3[1] * v_3[2] <= shape(v_1, 1) * shape(v_1, 2)
->>
-Rule 64 (padding string must be either "SAME" or "VALID", and data_format string must be either "NHWC" or "NCHW", and If data format is NHWC channel is 3, else channel is 1)
-{v_1 : str, v_2 : str, v_3: tensor} |= (v_1 = "SAME" ∨ v_1 = "VALID") ∧ (v_2 = "NHWC" ∨ v_2 = "NCHW") ∧ (if v_2 = "NHWC" then shape(v_3, 3) > 0 else shape(v_3, 1) > 0)
->>
-Rule 66 (if data_format is NHWC, ksize and strides relates to height and width dimensions, if NCHW, they relates to height/width order switched.)
-{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "NHWC" then v_2[1] <= shape(v_1,1) ∧ v_2[2] <= shape(v_1,2) else v_2[2] <= shape(v_1,1) ∧ v_2[1] <= shape(v_1,2)
->>
-Rule 67 (value tensor must be 4-dimensional, its data type must be half, bfloat16, float32, or float64, and its dimensions should be positive, channel depends on data format)
-{v_1 : tensor, v_2 : str} |= ndim(v_1) = 4 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ (if v_2 = "NHWC" then shape(v_1, 3) > 0 else shape(v_1, 1) > 0)
->>
-Rule 68 (ksize and strides lists must have lengths of 4, and all elements must be positive, and strides[0], strides[3], ksize[0] and ksize[3] must be 1 and their h/w should less than input, and ksize > strides)
-{v_1 : tensor, v_2 : list(int), v_3 : list(int)} |= v_2.len = 4 ∧ v_3.len = 4 ∧ ∀i ∈ [0, 3] : v_2[i] > 0 ∧ ∀j ∈ [0, 3] : v_3[j] > 0 ∧ v_2[0] = 1 ∧ v_2[3] = 1 ∧ v_3[0] = 1 ∧ v_3[3] = 1 ∧ v_2[1] * v_2[2] <= shape(v_1, 1) * shape(v_1, 2) ∧  v_3[1] * v_3[2] <= shape(v_1, 1) * shape(v_1, 2) ∧ v_2[1] >= v_3[1] ∧ v_2[2] >= v_3[2]
->>
-Rule 70 (When padding is VALID, ksize related to the data format of tensor )
-{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "VALID" then (if v_3 = "NHWC" then v_2[1] <= shape(v_1,1) ∧ v_2[2] <= shape(v_1,2) else v_2[2] <= shape(v_1,1) ∧ v_2[1] <= shape(v_1,2))
->>
-Rule 73 (ksize and strides lists must have lengths of 4, and all elements must be positive, and strides[0], strides[3], ksize[0] and ksize[3] must be 1 and their h/w should less than input, and ksize > strides)
-{v_1 : tensor, v_2 : list(int), v_3 : list(int)} |= v_2.len = 4 ∧ v_3.len = 4 ∧ ∀i ∈ [0, 3] : v_2[i] > 0 ∧ ∀j ∈ [0, 3] : v_3[j] > 0 ∧ v_2[0] = 1 ∧ v_2[3] = 1 ∧ v_3[0] = 1 ∧ v_3[3] = 1 ∧ v_2[1] * v_2[2] <= shape(v_1, 1) * shape(v_1, 2) ∧  v_3[1] * v_3[2] <= shape(v_1, 1) * shape(v_1, 2) ∧ v_2[1] ≥ v_3[1] ∧ v_2[2] ≥ v_3[2]
->>
-Rule 75 (When padding is VALID, ksize related to the data format of tensor )
-{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "VALID" then (if v_3 = "NHWC" then v_2[1] ≤ shape(v_1,1) ∧ v_2[2] ≤ shape(v_1,2) else v_2[2] ≤ shape(v_1,1) ∧ v_2[1] ≤ shape(v_1,2))
->>
-Rule 76 (value tensor's data type must be same as output tensor's data type)
-{v_1: tensor} |= dtype_(v_1) = dtype_(v_1)
->>
-Rule 77 (value tensor must be 4-dimensional, its data type must be half, bfloat16, float32, or float64, and its dimensions should be positive and ksize and strides lists must have lengths of 4 and all elements must be positive)
-{v_1 : tensor, v_2 : list(int), v_3 : list(int)} |= ndim(v_1) = 4 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ v_2.len = 4 ∧ v_3.len = 4 ∧ ∀i ∈ [0, 3] : v_2[i] > 0 ∧ ∀j ∈ [0, 3] : v_3[j] > 0
->>
-Rule 79 (ksize[0], ksize[3], strides[0], and strides[3] must be 1)
-{v_1 : list(int), v_2 : list(int)} |= v_1[0] = 1 ∧ v_1[3] = 1 ∧ v_2[0] = 1 ∧ v_2[3] = 1
->>
-Rule 81 (the product of ksize's height and width dimensions, and strides's height and width dimensions must be less than shape)
-{v_1 : tensor, v_2 : list(int), v_3: list(int)} |= v_2[1] * v_2[2] <= shape(v_1, 1) * shape(v_1, 2) ∧  v_3[1] * v_3[2] <= shape(v_1, 1) * shape(v_1, 2)
->>
-Rule 86 (h/w of ksize and strides should less than input, and ksize >= strides)
-{v_1 : tensor, v_2 : list(int), v_3: list(int)} |= v_2[1] * v_2[2] <= shape(v_1, 1) * shape(v_1, 2) ∧  v_3[1] * v_3[2] <= shape(v_1, 1) * shape(v_1, 2) ∧ v_2[1] >= v_3[1] ∧ v_2[2] >= v_3[2]
->>
-Rule 93 (ksize and strides characteristics: length of 4, positive values, 1s at specific indices, ksize >= strides)
-{v_1 : list(int), v_2 : list(int)} |= v_1.len = 4 ∧ v_2.len = 4 ∧ ∀i ∈ [0, 3] : v_1[i] > 0 ∧ ∀j ∈ [0, 3] : v_2[j] > 0 ∧ v_1[0] = 1 ∧ v_1[3] = 1 ∧ v_2[0] = 1 ∧ v_2[3] = 1 ∧ v_1[1] >= v_2[1] ∧ v_1[2] >= v_2[2]
->>
-Rule 101 (Data format affect the meaning of hw.)
-{v_1: tensor, v_2 : list(int), v_3 : list(int), v_4: str} |= if v_4 = "NHWC" then (v_2[1] * v_2[2] <= shape(v_1, 1) * shape(v_1, 2) ∧  v_3[1] * v_3[2] <= shape(v_1, 1) * shape(v_1, 2)) else (v_2[2] * v_2[1] <= shape(v_1, 1) * shape(v_1, 2) ∧  v_3[2] * v_3[1] <= shape(v_1, 1) * shape(v_1, 2))
+Rule 132 (If padding is valid, then width dimension - channels_first)
+{v_1 : tensor, v_2 : list(int), v_3 : list(int), v_4 : str} |= if v_4 = "valid" ∧ v_4 = "channels_first" then (shape(v_1, 3) - v_2[3] + 1) / v_3[3] > 0

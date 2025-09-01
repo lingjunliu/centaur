@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If tensor x is a 3D tensor, check that dimension sizes are greater than 10 (Rule 41)
+# Shape of input tensor along dimension 0, if it exists, must be greater than or equal to 1 (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 3, And(And(Select(v["arg1_shape"], 0) > 10, Select(v["arg1_shape"], 1) > 10), Select(v["arg1_shape"], 2) > 10), False)) if n else
-          If(v["arg1_ndim"] == 3, And(And(Select(v["arg1_shape"], 0) > 10, Select(v["arg1_shape"], 1) > 10), Select(v["arg1_shape"], 2) > 10), False))
+    s.add(Not(If(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) >= 1, True)) if n else
+          If(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) >= 1, True))
 )
 
 def rule_41_func(arg1, solver=None, neg=False):

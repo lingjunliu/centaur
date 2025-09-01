@@ -5,37 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If either capacity or memory_limit are non-zero, both must be non-zero and capacity must be less than or equal to memory_limit. (Rule 61)
+# If key is multi dimensional and the number of dimensions > 3, the behavior is undefined (Rule 61)
 
 rule_61 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_value"] > 0, v["arg2_value"] > 0), And(And(v["arg1_value"] > 0, v["arg2_value"] > 0), v["arg1_value"] <= v["arg2_value"]), False)) if n else
-          If(Or(v["arg1_value"] > 0, v["arg2_value"] > 0), And(And(v["arg1_value"] > 0, v["arg2_value"] > 0), v["arg1_value"] <= v["arg2_value"]), False))
+    s.add(Not(If(v["arg1_ndim"] > 3, False, True)) if n else
+          If(v["arg1_ndim"] > 3, False, True))
 )
 
-def rule_61_func(arg1, arg2, solver=None, neg=False):
+def rule_61_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
-            return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_value = Int('arg2_value')
+        arg1_ndim = Int('arg1_ndim')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_ndim == arg1.ndim)
 
         # Constraints for rule 61
-        rule_61(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_61(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_61(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_61(solver, {'arg1_ndim': arg1['ndim']}, neg)

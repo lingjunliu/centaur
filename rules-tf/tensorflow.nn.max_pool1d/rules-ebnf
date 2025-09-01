@@ -1,21 +1,75 @@
 >>
-Rule 5 (data_format must be NWC or NCW)
-{v_1 : str} |= (v_1 = "NWC") ∨ (v_1 = "NCW")
+Rule 1 (padding must be "SAME" or "VALID")
+{v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID"
 >>
-Rule 9 (input tensor should be 3D)
-{v_1 : tensor} |= ndim(v_1) = 3
+Rule 2 (ksize should be of length 1, 1 or 3)
+{v_1 : list(int)} |= v_1.len = 1 ∨ v_1.len = 3
 >>
-Rule 14 (if padding is a list, its length must be 3.)
-{v_1 : list(list(int))} |= v_1.len = 3
+Rule 4 (data_format must be "NWC" or "NCW")
+{v_1 : str} |= v_1 = "NWC" ∨ v_1 = "NCW"
 >>
-Rule 17 (input tensor should be float or integer type)
-{v_1 : tensor} |= (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5) ∨ (7 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 9)
+Rule 5 (ksize elements must be positive)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 18 (ksize must be greater than zero)
+Rule 7 (ksize is an integer)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 25 (if ksize is list, each element must be greater than zero)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len -1] : v_1[i] > 0
+Rule 11 (padding must be "SAME", "VALID", or "EXPLICIT")
+{v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID" ∨ v_1 = "EXPLICIT"
 >>
-Rule 32 (if ksize is list, each element must be greater than zero)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 17 (If padding is EXPLICIT, data_format must be defined)
+{v_1 : str, v_2 : str} |= if v_1 = "EXPLICIT" then v_2 = "NWC" ∨ v_2 = "NCW"
+>>
+Rule 18 (ksize and strides must have the same length)
+{v_1 : list(int), v_2 : list(int)} |= v_1.len = v_2.len
+>>
+Rule 19 (ksize and strides are integers and ksize must be greater than 0)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+>>
+Rule 22 (If padding is EXPLICIT, explicit_paddings should be provided)
+{v_1 : str, v_2 : list(list(int))} |= if v_1 = "EXPLICIT" then v_2.len > 0
+>>
+Rule 24 (ksize length equal to the number of dimensions of explicit paddings)
+{v_1 : list(list(int)), v_2 : list(int)} |= v_1.len = v_2.len
+>>
+Rule 26 (ksize length should be 1 or the same as the input tensor dimension)
+{v_1 : list(int), v_2 : tensor} |= v_1.len = 1 ∨ v_1.len = ndim(v_2)
+>>
+Rule 28 (If explicit padding is used, ksize and strides lengths must match the number of spatial dimensions)
+{v_1 : str, v_2 : list(int), v_3 : list(int)} |= if v_1 = "EXPLICIT" then v_2.len = v_3.len
+>>
+Rule 29 (If explicit padding is used, ksize and strides lengths should be less than or equal to 3)
+{v_1 : str, v_2 : list(int)} |= if v_1 = "EXPLICIT" then v_2.len ≤ 3
+>>
+Rule 31 (Input tensor must be 3-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 3
+>>
+Rule 40 (If padding is EXPLICIT, the explicit padding list must have length equal to the number of dimensions.)
+{v_1 : str, v_2 : list(list(int)), v_3 : tensor} |= if v_1 = "EXPLICIT" then v_2.len = ndim(v_3)
+>>
+Rule 51 (If padding is EXPLICIT and the explicit padding is defined, then ksize and the explicit padding dimensions must match.)
+{v_1 : str, v_2 : list(list(int)), v_3: list(int)} |= if v_1 = "EXPLICIT" then v_2.len = v_3.len
+>>
+Rule 57 (ksize cannot be greater than the input tensor dimension size when data format is channel first and no explicit padding, and ksize is a list of length 3)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 ≠ "EXPLICIT" ∧ v_3 = "NCW" ∧ v_2.len = 3 then v_2[2] ≤ shape(v_1, 2)
+>>
+Rule 60 (ksize cannot be greater than the input tensor dimension size when data format is channel first and no explicit padding, and ksize is a list of length 3. Check valid dimensions)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 ≠ "EXPLICIT" ∧ v_3 = "NCW" ∧ v_2.len = 3 then v_2[2] < ndim(v_1)
+>>
+Rule 62 (data format is NWC and ksize is a list, the length is 3 then dimension must be valid)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "NWC" ∧ v_2.len = 3 then v_2[1] < ndim(v_1)
+>>
+Rule 63 (strides cannot be greater than the input tensor shape when data format is NWC and no explicit padding, and strides are individual ints)
+{v_1 : tensor, v_2 : int, v_3 : str} |= if v_3 ≠ "EXPLICIT" ∧ v_3 = "NWC" then v_2 ≤ shape(v_1, 1)
+>>
+Rule 67 (If data format is channel first and ksize is list, the channel dimension length must be 2, dimension constraint is 1.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NCW" ∧ v_2.len = 3 then v_2[0] ≤ shape(v_3, 1)
+>>
+Rule 68 (If data format is NWC and ksize is list, the channel dimension length must be 2, dimension constraint is 2.)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "NWC" ∧ v_2.len = 3 then v_2[2] ≤ shape(v_3, 2)
+>>
+Rule 72 (ksize values should not be larger than dimension size, nwc format list version.)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "NWC" ∧ v_2.len = 3 then v_2[1] ≤ shape(v_1, 1)
+>>
+Rule 74 (If data_format is NWC and ksize is a single int, it should be valid size of the tensor)
+{v_1 : tensor, v_2 : int, v_3 : str} |= if v_3 = "NWC" then v_2 ≤ shape(v_1,1)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The reciprocal of the smallest positive number must be less than max for float16, handling zero separately (Rule 26)
+# If the tensor is of integer type, no element should be equal to the maximum or minimum value of that dtype to prevent overflow (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, Or(Or((And(Select(v["arg1_range"], 0) > 0, Select(v["arg1_range"], 0) > 6.103515625e-05)), (And(Select(v["arg1_range"], 1) < 0, Select(v["arg1_range"], 1) < -6.103515625e-05))), (And(Select(v["arg1_range"], 0) > -0.000001, Select(v["arg1_range"], 1) < 0.000001))), False)) if n else
-          If(v["arg1_dtype"] == 6, Or(Or((And(Select(v["arg1_range"], 0) > 0, Select(v["arg1_range"], 0) > 6.103515625e-05)), (And(Select(v["arg1_range"], 1) < 0, Select(v["arg1_range"], 1) < -6.103515625e-05))), (And(Select(v["arg1_range"], 0) > -0.000001, Select(v["arg1_range"], 1) < 0.000001))), False))
+    s.add(Not(If(v["arg1_dtype"] == 1, And(Select(v["arg1_range"], 0) > -128, Select(v["arg1_range"], 1) < 127), If(v["arg1_dtype"] == 2, And(Select(v["arg1_range"], 0) > -32768, Select(v["arg1_range"], 1) < 32767), If(v["arg1_dtype"] == 3, And(Select(v["arg1_range"], 0) > -2147483648, Select(v["arg1_range"], 1) < 2147483647), If(v["arg1_dtype"] == 4, And(Select(v["arg1_range"], 0) > -9223372036854775808, Select(v["arg1_range"], 1) < 9223372036854775807), True))))) if n else
+          If(v["arg1_dtype"] == 1, And(Select(v["arg1_range"], 0) > -128, Select(v["arg1_range"], 1) < 127), If(v["arg1_dtype"] == 2, And(Select(v["arg1_range"], 0) > -32768, Select(v["arg1_range"], 1) < 32767), If(v["arg1_dtype"] == 3, And(Select(v["arg1_range"], 0) > -2147483648, Select(v["arg1_range"], 1) < 2147483647), If(v["arg1_dtype"] == 4, And(Select(v["arg1_range"], 0) > -9223372036854775808, Select(v["arg1_range"], 1) < 9223372036854775807), True)))))
 )
 
 def rule_26_func(arg1, solver=None, neg=False):

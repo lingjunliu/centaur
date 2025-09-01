@@ -1,96 +1,144 @@
 >>
-Rule 1 (input tensor rank should be greater than or equal to 2)
+Rule 1 (input tensor must have rank greater than or equal to 2)
 {v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 3 (padding_value must have the same dtype as input)
+Rule 2 (k tensor must be of type int32)
+{v_1 : tensor} |= dtype_(v_1) = 3
+>>
+Rule 5 (padding_value tensor must have the same type as input tensor)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 4 (align must be a valid string value)
+Rule 6 (align must be one of the allowed strings)
 {v_1 : str} |= v_1 = "LEFT_RIGHT" ∨ v_1 = "RIGHT_LEFT" ∨ v_1 = "LEFT_LEFT" ∨ v_1 = "RIGHT_RIGHT"
 >>
-Rule 6 (Check that the tuple k has a length of 2 if it is a tuple)
-{v_1 : tuple(int)} |= v_1.len = 2
+Rule 9 (k tensor can be a single integer or a tuple of two integers)
+{v_1 : tensor} |= ndim(v_1) = 0 ∨ ndim(v_1) = 1
 >>
-Rule 9 (If k is an integer, it must be representable as an int32)
-{v_1 : int} |= v_1 ≥ -2147483648 ∧ v_1 ≤ 2147483647
+Rule 10 (If k is a pair, k[0] must be less than or equal to k[1])
+{v_1 : tensor} |= if ndim(v_1) = 1 then v_1[0] ≤ v_1[1]
 >>
-Rule 11 (k[0] must not be larger than k[1] if k is a tuple)
-{v_1 : tuple(int)} |= if v_1.len = 2 then v_1[0] ≤ v_1[1]
+Rule 13 (k tensor's elements must be integers)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : dtype_(v_1) = 3
 >>
-Rule 19 (If input tensor has float type, padding value should also have a float or int type to be castable)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5
+Rule 15 (If k is a single integer, it must be a valid integer)
+{v_1 : tensor} |= if ndim(v_1) = 0 then v_1 ≥ -2147483648 ∧ v_1 ≤ 2147483647
 >>
-Rule 20 (The type of the k tensor has to be int32)
-{v_1: tensor} |= dtype_(v_1) = 3
+Rule 16 (If k is a pair of integers, both must be valid integers)
+{v_1 : tensor} |= if ndim(v_1) = 1 then v_1[0] ≥ -2147483648 ∧ v_1[0] ≤ 2147483647 ∧ v_1[1] ≥ -2147483648 ∧ v_1[1] ≤ 2147483647
 >>
-Rule 21 (The input must be at least a matrix, so the shape's length must be at least 2)
-{v_1: tensor} |= ndim(v_1) >= 2
+Rule 17 (If align is not specified, use the default value "RIGHT_LEFT")
+{v_1 : str} |= v_1 = "RIGHT_LEFT" ∨ v_1 = "LEFT_RIGHT" ∨ v_1 = "LEFT_LEFT" ∨ v_1 = "RIGHT_RIGHT"
 >>
-Rule 22 (If k is a tuple, then its length must be 2)
-{v_1: tensor} |= if dtype_(v_1) = 3 then true else false
+Rule 18 (input tensor's rank is related to k's shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 2 ∧ (if ndim(v_2) = 0 then true else ndim(v_2) = 1)
 >>
-Rule 23 (If input tensor has float type, padding value should also have a float or int type to be castable)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) then (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8) ∨ (dtype_(v_2) = 1) ∨ (dtype_(v_2) = 2) ∨ (dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4) ∨ (dtype_(v_2) = 5)
->>
-Rule 24 (If k is a tuple, its elements have to be integers)
-{v_1: tuple(int)} |= v_1.len = 2 ∧ true
->>
-Rule 26 (Alignment must be a defined string)
-{v_1: str} |= v_1 = "LEFT_RIGHT" ∨ v_1 = "RIGHT_LEFT" ∨ v_1 = "LEFT_LEFT" ∨ v_1 = "RIGHT_RIGHT"
->>
-Rule 27 (If k is a tuple, v_1[0] should not be greater than v_1[1])
-{v_1: tuple(int)} |= if v_1.len = 2 then v_1[0] <= v_1[1]
->>
-Rule 29 (If k is a tuple, its elements have to be integers and the length should be 2)
-{v_1: tuple(int)} |= v_1.len = 2
->>
-Rule 32 (The rank of input cannot exceed 6)
-{v_1 : tensor} |= ndim(v_1) <= 6
->>
-Rule 34 (If k is a tuple, its elements have to be integers and the length should be 2 and v_1[0] should be less than or equal to v_1[1])
-{v_1: tuple(int)} |= v_1.len = 2 ∧ v_1[0] <= v_1[1]
->>
-Rule 39 (If k is a tuple, its elements have to be integers and the length should be 2 and v_1[0] should be less than or equal to v_1[1])
-{v_1: tuple(int)} |= v_1.len = 2 ∧ v_1[0] ≤ v_1[1]
->>
-Rule 46 (k must be int32 type if provided as a tensor and have length of 1 or 2)
-{v_1: tensor} |= dtype_(v_1) = 3 ∧ (shape(v_1, 0) = 1 ∨ shape(v_1, 0) = 2)
->>
-Rule 47 (The last two dimensions of input must be greater than zero)
-{v_1: tensor} |= shape(v_1, ndim(v_1)-1) > 0 ∧ shape(v_1, ndim(v_1)-2) > 0
->>
-Rule 51 (If k is provided as a tensor, it must be int32 type and have length of 1 or 2)
-{v_1: tensor} |= if ndim(v_1) = 1 then dtype_(v_1) = 3 ∧ (shape(v_1, 0) = 1 ∨ shape(v_1, 0) = 2) else false
->>
-Rule 52 (Input tensor must have at least 2 dimensions, last two dimension should be greater than zero)
-{v_1: tensor} |= ndim(v_1) >= 2 ∧ shape(v_1, ndim(v_1)-1) > 0 ∧ shape(v_1, ndim(v_1)-2) > 0
->>
-Rule 57 (Input tensor must have at least 2 dimensions, last two dimension should be greater than zero, and rank should be smaller than 7)
-{v_1: tensor} |= ndim(v_1) >= 2 ∧ shape(v_1, ndim(v_1)-1) > 0 ∧ shape(v_1, ndim(v_1)-2) > 0 ∧ ndim(v_1) < 7
->>
-Rule 61 (The shape of padding_value should be [] if defined.)
-{v_1: tensor} |= ndim(v_1) = 0
->>
-Rule 63 (Padding value type should match with input if input is not quantized)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≠ 0) ∧ (dtype_(v_1) ≠ 5) ∧ (dtype_(v_1) ≠ 6) then dtype_(v_1) = dtype_(v_2)
->>
-Rule 67 (If padding value is defined its shape should be zero)
+Rule 20 (padding_value must be a scalar tensor)
 {v_1 : tensor} |= ndim(v_1) = 0
 >>
-Rule 68 (Padding value type should match with input if input is not quantized or bool or string)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≠ 0) ∧ (dtype_(v_1) ≠ 11) ∧ (dtype_(v_1) ≠ 12) then dtype_(v_1) = dtype_(v_2)
+Rule 24 (input tensor and padding_value tensor must have compatible shapes for broadcasting)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 0 ∨ (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_2,i) = 1))
 >>
-Rule 73 (Padding value type should match with input if input is not quantized or bool or string)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≠ 0) ∧ (dtype_(v_1) ≠ 11) then dtype_(v_1) = dtype_(v_2)
+Rule 25 (padding_value's dtype should be in [bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype])
+{v_1 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 ∨ dtype_(v_1) = 12
 >>
-Rule 76 (If input is a matrix, the number of dimensions must be 2 or more.)
-{v_1 : tensor} |= ndim(v_1) >= 2
+Rule 28 (padding_value must be a scalar of same type as input)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 0 ∧ dtype_(v_1) = dtype_(v_2)
 >>
-Rule 92 (If the input tensor has more than 2 dimensions, the shape in dimensions 0 and 1 should be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1,0) > 0 ∧ shape(v_1,1) > 0
+Rule 30 (Input tensor is not empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 102 (If the type of input is int, padding should be a number)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+Rule 31 (If k is a pair, the elements must be int32 tensors)
+{v_1 : tensor} |= if ndim(v_1) = 1 then dtype_(v_1) = 3
 >>
-Rule 117 (if input type is int, padding type should be int)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5
+Rule 33 (If k is a pair of integers, then the first element is less or equal to second element)
+{v_1 : tensor} |= if ndim(v_1) = 1 then min(v_1) ≤ max(v_1)
+>>
+Rule 37 (k must be a scalar or a vector of length 2)
+{v_1 : tensor} |= ndim(v_1) = 0 ∨ (ndim(v_1) = 1 ∧ shape(v_1, 0) = 2)
+>>
+Rule 43 (The shape of k must be either () or (2,))
+{v_1 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_1) = 1 ∧ shape(v_1, 0) = 2)
+>>
+Rule 46 (k's dimension should be smaller or equal to 1)
+{v_1 : tensor} |= ndim(v_1) ≤ 1
+>>
+Rule 47 (If k has dimension 1, then the shape should be 2)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) = 2
+>>
+Rule 56 (If k has dimension 1, both elements must be valid integers)
+{v_1 : tensor} |= if ndim(v_1) = 1 then (v_1[0] ≥ -2147483648 ∧ v_1[0] ≤ 2147483647) ∧ (v_1[1] ≥ -2147483648 ∧ v_1[1] ≤ 2147483647)
+>>
+Rule 57 (if input and padding_value tensor are passed, then their shapes are broadcastable)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 0 ∨ (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)))
+>>
+Rule 58 (If k is a scalar, it must be a valid int32)
+{v_1 : tensor} |= if ndim(v_1) = 0 then (v_1 ≥ -2147483648 ∧ v_1 ≤ 2147483647)
+>>
+Rule 59 (If padding_value is specified, it should match input type)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 60 (If k is a vector, the shape should have 2 elements)
+{v_1: tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) = 2
+>>
+Rule 61 (k should be either scalar or vector)
+{v_1: tensor} |= ndim(v_1) = 0 ∨ ndim(v_1) = 1
+>>
+Rule 62 (If align is given, it must be a valid string)
+{v_1: str} |= v_1 = "LEFT_RIGHT" ∨ v_1 = "RIGHT_LEFT" ∨ v_1 = "LEFT_LEFT" ∨ v_1 = "RIGHT_RIGHT"
+>>
+Rule 63 (If K is a vector then the first element has to be smaller than the second.)
+{v_1: tensor} |= if ndim(v_1) = 1 then v_1[0] <= v_1[1]
+>>
+Rule 65 (If k is a pair, it must have exactly 2 elements and should be the first one <= the second one.)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) = 2 ∧ v_1[0] ≤ v_1[1]
+>>
+Rule 67 (padding_value must be a scalar tensor)
+{v_1: tensor} |= ndim(v_1) = 0
+>>
+Rule 69 (The number of dimensions of the input tensor must be at least 2.)
+{v_1: tensor} |= ndim(v_1) ≥ 2
+>>
+Rule 72 (The `k` argument must be a tensor with a data type of `int32`.)
+{v_1: tensor} |= dtype_(v_1) = 3
+>>
+Rule 75 (The shape of the k argument is either () or (2,))
+{v_1: tensor} |= ndim(v_1) = 0 ∨ (ndim(v_1) = 1 ∧ shape(v_1, 0) = 2)
+>>
+Rule 76 (if k is a vector of shape 2, first value <= second value)
+{v_1: tensor} |= if ndim(v_1) = 1 then v_1[0] ≤ v_1[1]
+>>
+Rule 80 (If align is passed it must have one of the following values.)
+{v_1: str} |= v_1 = "RIGHT_LEFT" ∨ v_1 = "LEFT_RIGHT" ∨ v_1 = "LEFT_LEFT" ∨ v_1 = "RIGHT_RIGHT"
+>>
+Rule 82 (if input and padding value tensors are passed then they should have same dtype)
+{v_1:tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 84 (If k has dimension 1, both elements must be int32 tensors.)
+{v_1: tensor} |= if ndim(v_1) = 1 then dtype_(v_1) = 3
+>>
+Rule 85 (padding_value must have same type as input, and also dimension 0.)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2) ∧ ndim(v_2) = 0
+>>
+Rule 91 (If k has dimension 1, both elements must be the same type, and the same as input)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 1 then dtype_(v_1) = 3 ∧ dtype_(v_2) = dtype_(v_1)
+>>
+Rule 92 (Input tensor must have more than or equal 2 dimensions)
+{v_1: tensor} |= ndim(v_1) >= 2
+>>
+Rule 97 (The shape of the k argument is either () or (2,))
+{v_1: tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_1) = 1 ∧ shape(v_1, 0) = 2)
+>>
+Rule 101 (Input matrix cannot be a vector.)
+{v_1: tensor} |= ndim(v_1) > 1
+>>
+Rule 109 (k should be either 0 dimensional, or 1 dimensional, and int32 type if it is passed as argument.)
+{v_1: tensor} |= (ndim(v_1) = 0 ∨ ndim(v_1) = 1) ∧ dtype_(v_1) = 3
+>>
+Rule 136 (The shape of the k argument has to be either () or (2,) and the datatype must be int32.)
+{v_1: tensor} |= (ndim(v_1) = 0 ∨ (ndim(v_1) = 1 ∧ shape(v_1, 0) = 2)) ∧ dtype_(v_1) = 3
+>>
+Rule 139 (When the `k` argument is present it must be int32 with rank 0 or 1)
+{v_1: tensor} |= dtype_(v_1) = 3 ∧ (ndim(v_1) = 0 ∨ ndim(v_1) = 1)
+>>
+Rule 143 (If k is more than 1 dimension if used 1st and 2nd values must be in the rigth order)
+{v_1 : tensor} |= if ndim(v_1) = 1 then v_1[0] <= v_1[1]

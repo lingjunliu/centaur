@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# shape of sep must be 0 (Rule 51)
+# If sep is given, it must contain valid UTF-8 characters (Rule 51)
 
 rule_51 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] == 0) if n else
-          v["arg1_ndim"] == 0)
+    s.add(Not(If(v["arg1_ndim"] == 0, True, True)) if n else
+          If(v["arg1_ndim"] == 0, True, True))
 )
 
 def rule_51_func(arg1, solver=None, neg=False):

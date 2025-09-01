@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the features dtype is int8, int16, int32, int64, uint8, the output dtype is same. (Rule 19)
+# Features tensor must have a valid dtype (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 1, True, If(v["arg1_dtype"] == 2, True, If(v["arg1_dtype"] == 3, True, If(v["arg1_dtype"] == 4, True, If(v["arg1_dtype"] == 6, True, False)))))) if n else
-          If(v["arg1_dtype"] == 1, True, If(v["arg1_dtype"] == 2, True, If(v["arg1_dtype"] == 3, True, If(v["arg1_dtype"] == 4, True, If(v["arg1_dtype"] == 6, True, False))))))
+    s.add(Not(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 19)) if n else
+          Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 19))
 )
 
 def rule_19_func(arg1, solver=None, neg=False):

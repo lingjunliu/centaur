@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Cannot have very big number of dimensions. (Rule 109)
+# x must be a real floating-point tensor (Rule 109)
 
 rule_109 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] < 5) if n else
-          v["arg1_ndim"] < 5)
+    s.add(Not(And((Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), (And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10)))) if n else
+          And((Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), (And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10))))
 )
 
 def rule_109_func(arg1, solver=None, neg=False):
@@ -22,15 +22,15 @@ def rule_109_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 109
-        rule_109(solver, {'arg1_ndim': arg1_ndim})
+        rule_109(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_109(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_109(solver, {'arg1_dtype': arg1['dtype']}, neg)

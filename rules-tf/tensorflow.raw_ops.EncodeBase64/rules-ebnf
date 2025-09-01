@@ -1,93 +1,138 @@
 >>
-Rule 4 (if pad is true then string input tensor should not be empty)
-{v_1 : tensor, v_2 : bool} |= if v_2 then shape(v_1, 0) > 0
+Rule 1 (input tensor must be of type string)
+{v_1 : tensor} |= dtype_(v_1) = 11
 >>
-Rule 5 (input must be a tensor and not have zero dimensions)
+Rule 2 (pad must be a boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 3 (string must not be empty)
+{v_1 : tensor} |= shape(v_1, 0) > 0
+>>
+Rule 4 (input tensor must have at least one dimension)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 7 (input tensor can't have more than 5 dimensions)
-{v_1 : tensor} |= ndim(v_1) <= 5
+Rule 5 (pad must be a boolean and input must be a tensor)
+{v_1 : bool, v_2 : tensor} |= (v_1 = true ∨ v_1 = false) ∧ dtype_(v_2) = 11
 >>
-Rule 11 (The dimension size of the input must be same when pad is true.)
-{v_1 : tensor, v_2 : bool} |= if v_2 then ndim(v_1) = 1
+Rule 8 (If pad is true, the encoded string will be padded)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then ∃i ∈ [0, shape(v_2,0) -1] : shape(v_2,i) % 4 = 0
 >>
-Rule 13 (If padding is true, the input string tensor must have a defined shape.)
-{v_1 : tensor, v_2 : bool} |= if v_2 then ndim(v_1) > 0
+Rule 10 (input must have at least one element)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 14 (If the tensor has more than one dimension the other dimensions must be 1)
-{v_1 : tensor} |= if ndim(v_1) > 1 then ∀i ∈ [1, ndim(v_1) - 1] : shape(v_1, i) = 1
+Rule 13 (If pad is set to True, input string tensors should be padded by a multiple of 4)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then ∀i ∈ [0, shape(v_2, 0) - 1] : (shape(v_2, i) % 4) = 0 ∨ (shape(v_2, i) = 0)
 >>
-Rule 16 (If the tensor has a shape, all elements must be non-empty strings)
+Rule 14 (input string tensor cannot have dimension 0)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+>>
+Rule 15 (if pad is True, the length of strings in the input tensor needs to be a multiple of 4.)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then ∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_2, i) % 4 = 0
+>>
+Rule 17 (input tensor should not be empty in any dimension)
 {v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 23 (Tensor has maximum 2 dimensions when padding is used)
-{v_1: tensor, v_2: bool} |= if v_2 then ndim(v_1) <=2
+Rule 18 (The shape of the output tensor is the same as the input tensor)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 26 (When padding, at least one dimension must exist)
-{v_1 : tensor, v_2 : bool} |= if v_2 then ∃i ∈ [0, 0] : shape(v_1, i) ≥ 0
+Rule 19 (If pad is true then base64 encoding must happen.)
+{v_1: bool} |= if v_1 = true then true
 >>
-Rule 29 (When padding is requested, the dimensions of input string tensor should be 1 or 2)
-{v_1 : tensor, v_2 : bool} |= if v_2 then (ndim(v_1) = 1 ∨ ndim(v_1) = 2)
+Rule 20 (If the input tensor is a scalar string, the output is also a scalar string.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0
 >>
-Rule 31 (The encoded tensor has string data type which corresponds to 12)
-{v_1 : tensor} |= dtype_(v_1) = 12
+Rule 21 (The output tensor also has type string)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 11 ∧ dtype_(v_2) = 11
 >>
-Rule 32 (When padding is true, the number of elements in the input must be positive.)
-{v_1 : tensor, v_2 : bool} |= if v_2 then shape(v_1,0) > 0
+Rule 22 (If input is a scalar string then padding should not happen.)
+{v_1: bool, v_2: tensor} |= if ndim(v_2) = 0 then v_1 = false
 >>
-Rule 36 (If padding is used, all dimensions of the tensor must be greater than 0)
-{v_1: tensor, v_2: bool} |= if v_2 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 23 (pad is a boolean)
+{v_1: bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 46 (if padding is true the shape of the first dimension must be positive)
-{v_1: tensor, v_2 : bool} |= if v_2 then shape(v_1,0) > 0
+Rule 24 (output tensor dimension must not be zero.)
+{v_1 : tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
 >>
-Rule 48 (When padding is used, the tensor's dimensions must be strictly positive)
-{v_1 : tensor, v_2 : bool} |= if v_2 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 25 (If the input has shape (x,y), then the output has shape (x,y))
+{v_1 : tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 49 (Tensor has data type string, which is encoded as 12)
-{v_1:tensor} |= dtype_(v_1) = 12
+Rule 27 (If the input has at least one element, then its type must be string)
+{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then dtype_(v_1) = 11
 >>
-Rule 52 (String tensor has dtype string, or 12)
-{v_1: tensor} |= dtype_(v_1) = 12
+Rule 28 (If any dimension of the input tensor is 0, then pad must be false.)
+{v_1 : tensor, v_2 : bool} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then v_2 = false
 >>
-Rule 54 (When padding is used, the shape of the first dimension should be greater than 0)
-{v_1: tensor, v_2: bool} |= if v_2 then shape(v_1, 0) > 0
+Rule 29 (If pad is False, there is no padding needed.)
+{v_1 : bool} |= if v_1 = false then true
 >>
-Rule 57 (String tensor cannot have zero dimensions)
-{v_1 : tensor} |=  ndim(v_1) > 0
+Rule 30 (String tensors should have rank less than 7)
+{v_1: tensor} |= ndim(v_1) < 7
 >>
-Rule 60 (If padding is enabled, input tensor is non-empty)
-{v_1: tensor, v_2: bool} |= if v_2 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 31 (If the input tensor has more than 0 dimensions, then pad is optional)
+{v_1 : tensor, v_2 : bool} |= if (ndim(v_1) > 0) then (v_2 = true ∨ v_2 = false)
 >>
-Rule 63 (When padding is enabled, at least one dimension exists)
-{v_1: tensor, v_2: bool} |= if v_2 then ∃i ∈ [0, ndim(v_1) - 1] : true
+Rule 32 (if pad is false then shape of output matches shape of input string.)
+{v_1 : bool, v_2 : tensor, v_3: tensor} |= if v_1 = false then (ndim(v_2) = ndim(v_3) ∧  ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i))
 >>
-Rule 66 (Padding can be applied to a 1 or 2 dimensional string tensor)
-{v_1: tensor, v_2: bool} |= if v_2 then (ndim(v_1) = 1 ∨ ndim(v_1) = 2)
+Rule 33 (if pad is set to true, the encoded string will be padded, output string will be equal to multiple of 4.)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then ∀i ∈ [0, shape(v_2, 0) - 1] : (shape(v_2, i) % 4) = 0
 >>
-Rule 71 (Padding is boolean, therefore true or false)
-{v_2: bool} |= v_2 = true ∨ v_2 = false
+Rule 34 (If pad is set to True, shape cannot be zero.)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) ≠ 0
 >>
-Rule 74 (If padding is enabled, then each dimension must have a shape value greater than 0)
-{v_1: tensor, v_2: bool} |= if v_2 then ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0
+Rule 37 (If a dimension of input tensor is zero, pad must be false)
+{v_1: tensor, v_2: bool} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then v_2 = false
 >>
-Rule 77 (If no padding, the input shape can be scalar.)
-{v_1: tensor, v_2: bool} |= if v_2 then ndim(v_1) > 0
+Rule 38 (If input tensor has size 0 then the output tensor should also have size 0)
+{v_1 : tensor, v_2 : tensor} |= if ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then ∀j ∈ [0, ndim(v_2)-1] : shape(v_2, j) = 0
 >>
-Rule 92 (If padding is false, the tensor must have ndim zero or one)
-{v_1: tensor, v_2: bool} |= if v_2 = false then (ndim(v_1) = 0 ∨ ndim(v_1) = 1)
+Rule 39 (shape of output tensor should match shape of input tensor if padding is false)
+{v_1 : tensor, v_2: tensor, v_3 : bool} |= if v_3 = false then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 97 (If shape is defined, then padding must be true.)
-{v_1: tensor, v_2: bool} |= if (ndim(v_1) > 0) then v_2
+Rule 41 (If the input is empty, padding is irrelevant.)
+{v_1: tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then true
 >>
-Rule 100 (Padding is enabled if any of shape dimensions are defined)
-{v_1: tensor, v_2: bool} |= if (ndim(v_1) > 0) then v_2 = true
+Rule 42 (if shape(v_1, i) is not divisible by 3, then padding must be true)
+{v_1: tensor, v_2: bool} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) % 3 ≠ 0 then v_2 = true
 >>
-Rule 107 (If the first shape dimension is specified, padding must be enabled.)
-{v_1: tensor, v_2: bool} |= if shape(v_1, 0) > 0 then v_2
+Rule 44 (If the input has no elements, then the pad is irrelevant)
+{v_1: tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1 then true
 >>
-Rule 112 (Padding is valid only when the tensor has a shape.)
-{v_1: tensor, v_2: bool} |= if ndim(v_1) > 0 then v_2 = true
+Rule 45 (If input has no element, output also has no element.)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1 then  ∃j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) < 1
 >>
-Rule 113 (If padding is true and rank is greater than zero, the shape of the first dimension should be positive)
-{v_1: tensor, v_2: bool} |= if v_2 ∧ ndim(v_1) > 0 then shape(v_1, 0) > 0
+Rule 46 (Output tensor is always a string)
+{v_1: tensor} |= dtype_(v_1) = 11
+>>
+Rule 47 (The output tensor has type string, and if the input is non-empty, then padding is irrelevant)
+{v_1: tensor, v_2 :tensor, v_3:bool} |= dtype_(v_2) = 11 ∧ if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then (v_3 = true ∨ v_3 = false)
+>>
+Rule 48 (if the pad is true, shape of the output tensor must be such that last element is multiple of 4)
+{v_1: tensor, v_2: bool} |= if v_2 = true then (ndim(v_1) > 0 ∧ shape(v_1, ndim(v_1) - 1) % 4 = 0)
+>>
+Rule 49 (If pad is set to True, all strings must have a length that is multiple of 4.)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then ∀i ∈ [0, shape(v_1, 0) - 1] : shape(v_1, i) % 4 = 0
+>>
+Rule 51 (If pad is set to True, last dimension of the output tensor must be multiple of 4, when output tensor has ndim > 0)
+{v_1: tensor, v_2:bool} |= if v_2 = true then (if ndim(v_1) > 0 then shape(v_1, ndim(v_1) -1) % 4 = 0)
+>>
+Rule 53 (if input tensor has a size multiple of 3, pad = false is better)
+{v_1: tensor, v_2: bool} |= if ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) % 3 = 0 then v_2 = false
+>>
+Rule 54 (If input tensor has one or more dimensions, pad can be either true or false.)
+{v_1: tensor, v_2: bool} |= if ndim(v_1) > 0 then (v_2 = true ∨ v_2 = false)
+>>
+Rule 55 (Shape of input and output tensor must be the same)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 56 (If input tensor is non-empty, check pad is either true or false)
+{v_1: tensor, v_2: bool} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then (v_2 = true ∨ v_2 = false)
+>>
+Rule 57 ( If padding is not used, the output is not padded.)
+{v_1 : bool, v_2 : tensor} |= if v_1 = false then ∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_2, i) % 4 ≠ 0
+>>
+Rule 58 ( If the input tensor is a scalar, the output tensor is also a scalar and padding does not matter.)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if ndim(v_1) = 0 then (ndim(v_2) = 0 ∧ (v_3 = true ∨ v_3 = false))
+>>
+Rule 59 (If shape of input is multiple of 3 pad can be false else pad can be true)
+{v_1: tensor, v_2: bool} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) % 3 = 0) then v_2 = false else v_2 = true

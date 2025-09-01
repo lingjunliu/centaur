@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Ratio should be an integer from the specified values (Rule 51)
+# if channels is not 0 then it must be a positive number and be 1 or 3 (Rule 51)
 
 rule_51 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(v["arg1_value"] == 1, v["arg1_value"] == 2), v["arg1_value"] == 4), v["arg1_value"] == 8)) if n else
-          Or(Or(Or(v["arg1_value"] == 1, v["arg1_value"] == 2), v["arg1_value"] == 4), v["arg1_value"] == 8))
+    s.add(Not(If(v["arg1_value"] != 0, Or(v["arg1_value"] == 1, v["arg1_value"] == 3), True)) if n else
+          If(v["arg1_value"] != 0, Or(v["arg1_value"] == 1, v["arg1_value"] == 3), True))
 )
 
 def rule_51_func(arg1, solver=None, neg=False):

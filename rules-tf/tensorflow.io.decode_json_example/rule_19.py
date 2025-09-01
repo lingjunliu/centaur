@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Input tensor should be less than 8 dimensions (Rule 19)
+# json_examples must have a reasonable number of dimensions (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] < 8) if n else
-          v["arg1_ndim"] < 8)
+    s.add(Not(v["arg1_ndim"] < 5) if n else
+          v["arg1_ndim"] < 5)
 )
 
 def rule_19_func(arg1, solver=None, neg=False):

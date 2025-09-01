@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If tensor is an integer type, then it must have a value less than or equal to int64 (index 4 (Rule 8)
+# if the input tensor is float16, float32, or float64, then the output tensor dtype is same. (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), True, False)) if n else
-          If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), True, False))
+    s.add(Not(If(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), True, False)) if n else
+          If(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), True, False))
 )
 
 def rule_8_func(arg1, solver=None, neg=False):

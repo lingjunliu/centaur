@@ -1,99 +1,141 @@
 >>
-Rule 3 (fft_length shape must be 3)
-{v_2 : tensor} |= shape(v_2, 0) = 3
+Rule 1 (fft_length must have shape [3])
+{fft_length : tensor} |= ndim(fft_length) = 1 ∧ shape(fft_length, 0) = 3
 >>
-Rule 4 (input tensor must have at least 3 dimensions)
-{v_1 : tensor} |= ndim(v_1) ≥ 3
+Rule 2 (input tensor must be complex64 or complex128)
+{input_tensor : tensor} |= dtype_(input_tensor) = 10 ∨ dtype_(input_tensor) = 11
 >>
-Rule 5 (fft_length elements must be positive integers)
-{v_2 : tensor} |= ∀ i ∈ [0, 2] : shape(v_2,0) = 3 ∧ shape(v_2, i) > 0
+Rule 3 (fft_length tensor must be int32)
+{fft_length : tensor} |= dtype_(fft_length) = 3
 >>
-Rule 6 (fft_length must be defined if input tensor last 3 dims are used)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1, ndim(v_1) - 1) % 2 = 0 ∨ shape(v_1, ndim(v_1) - 2) % 2 = 0 ∨ shape(v_1, ndim(v_1) - 3) % 2 = 0 then true else ndim(v_2) = 1 ∧ shape(v_2,0) = 3
+Rule 4 (input tensor must have rank at least 3)
+{input_tensor : tensor} |= ndim(input_tensor) >= 3
 >>
-Rule 7 (input tensor must have a complex dtype: 9 or 10)
-{v_1 : tensor} |= dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 5 (fft_length values must be non-negative)
+{fft_length : tensor} |= ∀i ∈ [0, 2] : shape(fft_length, 0) = 3 ∧ shape(input_tensor, i) >= 0
 >>
-Rule 8 (fft_length must be a 1-D tensor of int32)
-{v_2 : tensor} |= ndim(v_2) = 1 ∧ dtype_(v_2) = 3
+Rule 6 (Check for zero dimensions in input tensor to avoid ValueError: Shape (0, 9) must have rank at least 3)
+{input_tensor : tensor} |= ndim(input_tensor) >= 3 ∧ ∀i ∈ [0, ndim(input_tensor) - 1] : shape(input_tensor, i) > 0
 >>
-Rule 11 (fft_length elements must be positive integers, simplified for the parser)
-{v_2 : tensor} |= shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0 ∧ shape(v_2, 2) > 0
+Rule 7 (fft_length values must be non-negative, more explicit)
+{fft_length : tensor} |= shape(fft_length, 0) = 3 ∧ (shape(fft_length, 0) ≥ 0 ∧ shape(fft_length, 1) ≥ 0 ∧ shape(fft_length, 2) ≥ 0)
 >>
-Rule 12 (fft_length must be defined if input tensor last 3 dims are odd)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1, ndim(v_1) - 1) % 2 ≠ 0 ∨ shape(v_1, ndim(v_1) - 2) % 2 ≠ 0 ∨ shape(v_1, ndim(v_1) - 3) % 2 ≠ 0 then ndim(v_2) = 1 ∧ shape(v_2,0) = 3
+Rule 8 (fft_length is a tensor of rank 1)
+{fft_length : tensor} |= ndim(fft_length) = 1
 >>
-Rule 14 (fft_length must be a 1-D tensor and its size is 3, and the elements are int32)
-{v_2 : tensor} |= ndim(v_2) = 1 ∧ shape(v_2, 0) = 3 ∧ dtype_(v_2) = 3
+Rule 10 (Input tensor's last dimension size related to fft_length's last dimension, ensuring proper cropping/padding)
+{input_tensor : tensor, fft_length : tensor} |= shape(fft_length, 0) = 3 ∧ (shape(input_tensor, ndim(input_tensor) -1) > 0)
 >>
-Rule 16 (The size of inner-most dimension of input tensor must be greater than 0)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) -1) > 0 ∧ shape(v_1, ndim(v_1) -2) > 0 ∧ shape(v_1, ndim(v_1) -3) > 0
+Rule 11 (fft_length cannot have negative dimension size)
+{fft_length : tensor} |= shape(fft_length,0) = 3 ∧ ∀i ∈ [0, shape(fft_length, 0) -1] : shape(fft_length, i) > 0
 >>
-Rule 17 (If input tensor last dim is odd, fft_length must be defined)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1, ndim(v_1) - 1) % 2 ≠ 0 then ndim(v_2) = 1 ∧ shape(v_2, 0) = 3
+Rule 12 (Input tensor's shape should be compatible with fft_length to prevent Incompatible shapes error)
+{input_tensor : tensor, fft_length : tensor} |= shape(fft_length, 0) = 3 ∧ (ndim(input_tensor) >= 3 ∧ ∀i ∈ [0, 2] : shape(fft_length, i) ≤ shape(input_tensor, ndim(input_tensor) - 3 + i))
 >>
-Rule 18 (fft_length's dimension must be positive)
-{v_2 : tensor} |= shape(v_2, 0) > 0
+Rule 13 (Elements of fft_length tensor should be positive)
+{fft_length : tensor} |= shape(fft_length, 0) = 3 ∧ ∀i ∈ [0, 2] : shape(fft_length, i) > 0
 >>
-Rule 20 (fft_length must be an int32 tensor)
-{v_2 : tensor} |= dtype_(v_2) = 3
+Rule 15 (fft_length tensor elements are np.int32 and greater than 0)
+{fft_length : tensor} |= dtype_(fft_length) = 3 ∧ shape(fft_length, 0) = 3 ∧ ∀i ∈ [0, 2] : shape(fft_length, i) > 0
 >>
-Rule 21 (fft_length must be 1D)
-{v_2 : tensor} |= ndim(v_2) = 1
+Rule 16 (The size of last dim of input_tensor should satisfy fft_length[2]/2 + 1)
+{input_tensor : tensor, fft_length : tensor} |= shape(fft_length, 0) = 3 ∧ shape(input_tensor, ndim(input_tensor) - 1) = shape(fft_length, 2) / 2 + 1
 >>
-Rule 24 (if last dimension of input is not (fft_length/2 + 1), provide fft_length)
-{v_1: tensor, v_2: tensor} |= if (shape(v_1, ndim(v_1) - 1)) = 0 then true else if shape(v_1, ndim(v_1) - 1) % 2 = 1 then true else ndim(v_2) = 1 ∧ shape(v_2, 0) = 3
+Rule 17 (The elements of fft_length should be less than or equal to the maximum allowed value)
+{fft_length : tensor} |= shape(fft_length, 0) = 3 ∧ ∀i ∈ [0, 2] : shape(fft_length, i) ≤ 2147483647
 >>
-Rule 25 (fft_length values must be positive)
-{v_2: tensor} |= ∀i ∈ [0, 2] : shape(v_2, i) > 0
+Rule 18 (fft_length should have positive values to avoid zero dimension errors)
+{input_tensor : tensor, fft_length : tensor} |= shape(fft_length, 0) = 3 ∧ (ndim(input_tensor) >= 3) ∧ (shape(input_tensor, ndim(input_tensor) -3) > 0 ∧ shape(input_tensor, ndim(input_tensor) -2) > 0 ∧ shape(input_tensor, ndim(input_tensor) -1) > 0)
 >>
-Rule 26 (fft_length must be an int32 tensor of shape [3])
-{v_2 : tensor} |= dtype_(v_2) = 3 ∧ ndim(v_2) = 1 ∧ shape(v_2, 0) = 3
+Rule 19 (fft_length's values should be non-negative to avoid invalid dimension)
+{fft_length : tensor} |= shape(fft_length, 0) = 3 ∧ ∀i ∈ [0, 2] : shape(fft_length, i) ≥ 0
 >>
-Rule 27 (input tensor's inner-most dimension must be greater than 0)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) -1) > 0
+Rule 20 (input_tensor should not contain very large negative dimensions to avoid ValueError: Dimension -1206381568 must be >= 0)
+{input_tensor : tensor} |= ndim(input_tensor) >= 3 ∧ ∀i ∈ [0, ndim(input_tensor) - 1] : shape(input_tensor, i) > -2147483647
 >>
-Rule 28 (If input tensor last dimension is not (fft_length/2 + 1), provide fft_length if last 3 dimension are even)
-{v_1: tensor, v_2: tensor} |= if shape(v_1, ndim(v_1) - 1) % 2 = 0 ∧ shape(v_1, ndim(v_1) - 2) % 2 = 0 ∧ shape(v_1, ndim(v_1) - 3) % 2 = 0 then ndim(v_2) = 1 ∧ shape(v_2, 0) = 3
+Rule 21 (Check that fft_length values are small enough to avoid integer overflow during computations)
+{fft_length : tensor} |= shape(fft_length, 0) = 3 ∧ ∀i ∈ [0, 2] : shape(fft_length, i) < 1073741823
 >>
-Rule 29 (Provide fft_length when the last dimension of input is unknown)
-{v_1: tensor, v_2: tensor} |= if shape(v_1, ndim(v_1) - 1) = -1 then ndim(v_2) = 1 ∧ shape(v_2, 0) = 3
+Rule 22 (The input tensor must have compatible shape with fft_length based on FFT length used to compute input_tensor is odd or even)
+{input_tensor : tensor, fft_length : tensor} |= shape(fft_length, 0) = 3 ∧ if shape(fft_length, 2) % 2 ≠ 0 then shape(input_tensor, ndim(input_tensor) - 1) = (shape(fft_length, 2) / 2) + 1 else shape(input_tensor, ndim(input_tensor) - 1) = (shape(fft_length, 2) / 2) + 1
 >>
-Rule 41 (If input tensor has even last 3 dimension, and its last dimension size is unknown then provide fft_length)
-{v_1: tensor, v_2: tensor} |= if shape(v_1, ndim(v_1) - 1) % 2 = 0 ∧ shape(v_1, ndim(v_1) - 2) % 2 = 0 ∧ shape(v_1, ndim(v_1) - 3) % 2 = 0 ∧ shape(v_1, ndim(v_1) - 1) = -1 then ndim(v_2) = 1 ∧ shape(v_2, 0) = 3
+Rule 24 (fft_length should have a valid shape and dtype)
+{fft_length : tensor} |= ndim(fft_length) = 1 ∧ shape(fft_length, 0) = 3 ∧ dtype_(fft_length) = 3
 >>
-Rule 43 (The input tensor must be complex64 or complex128 and has at least 3 dimensions)
-{v_1 : tensor} |= (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ ndim(v_1) ≥ 3
+Rule 25 (input tensor's dimension -1206381568 must be >= 0)
+{input_tensor : tensor} |= ∃i ∈ [0, ndim(input_tensor) - 1] : shape(input_tensor, i) > -1206381568
 >>
-Rule 44 (fft_length must be an int32 tensor of shape [3] and its elements must be positive)
-{v_2 : tensor} |= dtype_(v_2) = 3 ∧ ndim(v_2) = 1 ∧ shape(v_2, 0) = 3 ∧ ∀i ∈ [0, 2] : shape(v_2, i) > 0
+Rule 26 (Check shape of input_tensor and fft_length to prevent shape incompatibility error)
+{input_tensor : tensor, fft_length : tensor} |= shape(fft_length, 0) = 3 ∧ ndim(input_tensor) >= 3 ∧ ∀i ∈ [0,2] : shape(input_tensor, ndim(input_tensor) - 3 + i) >= shape(fft_length, i)
 >>
-Rule 46 (The size of the inner-most dimension must be known and greater than 0 for the transform to be well-defined.)
-{v_1: tensor} |= shape(v_1, ndim(v_1)-1) > 0 ∧ shape(v_1, ndim(v_1)-1) ≠ -1
+Rule 27 (fft_length's values should be within the range of int32)
+{fft_length : tensor} |= shape(fft_length, 0) = 3 ∧ ∀i ∈ [0, 2] : shape(fft_length, i) ≥ -2147483648 ∧ shape(fft_length, i) ≤ 2147483647
 >>
-Rule 47 (When the fft_length is provided, it must be greater or equal to the cropped size of the signal.)
-{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 1 ∧ shape(v_2,0) = 3 then shape(v_2, 0) ≥ shape(v_1, ndim(v_1)-3) ∧ shape(v_2, 1) ≥ shape(v_1, ndim(v_1)-2) ∧ shape(v_2, 2) ≥ shape(v_1, ndim(v_1)-1)
+Rule 29 (At least one dimension of input_tensor must be positive)
+{input_tensor : tensor} |= ∃i ∈ [0, ndim(input_tensor) - 1] : shape(input_tensor, i) > 0
 >>
-Rule 48 (The input tensor must be complex64 or complex128 and has at least 3 dimensions with positive shape)
-{v_1 : tensor} |= (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ ndim(v_1) ≥ 3 ∧ shape(v_1, ndim(v_1) -1) > 0
+Rule 30 (If fft_length is provided, input tensor must have at least 3 dimensions)
+{input_tensor : tensor, fft_length : tensor} |= if fft_length.len = 3 then ndim(input_tensor) >= 3
 >>
-Rule 51 (When the fft_length is provided, it must be greater or equal to half the size of the signal dimension + 1.)
-{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 1 ∧ shape(v_2,0) = 3 then shape(v_2, 2) ≥ (shape(v_1, ndim(v_1)-1) / 2) + 1
+Rule 32 (Input tensor should not be a scalar)
+{input_tensor : tensor} |= ndim(input_tensor) > 0
 >>
-Rule 52 (if the input tensor's last dimension is determined by RFFT3D, its size must be greater than 1)
-{v_1: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then shape(v_1, ndim(v_1) - 1) > 1
+Rule 33 (If fft_length is not provided, input_tensor should have at least 3 dimensions)
+{input_tensor : tensor, fft_length : tensor} |= if ∃i ∈ [0, 2] : shape(fft_length,i) = 0 then ndim(input_tensor) >= 3
 >>
-Rule 53 (The input tensor must be complex64 or complex128)
-{v_1 : tensor} |= (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 35 (The input tensor should have compatible shape with fft_length, considering RFFT3D properties)
+{input_tensor : tensor, fft_length : tensor} |= if shape(fft_length, 0) = 3 then ndim(input_tensor) >= 3 ∧ shape(input_tensor, ndim(input_tensor) -1) = (shape(fft_length, 2) / 2) + 1
 >>
-Rule 54 (fft_length must be an int32 tensor of shape [3] with positive elements)
-{v_2 : tensor} |= dtype_(v_2) = 3 ∧ ndim(v_2) = 1 ∧ shape(v_2, 0) = 3 ∧ (shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0 ∧ shape(v_2, 2) > 0)
+Rule 36 (fft_length values cannot result in dimension size which is too big, causing memory error)
+{fft_length : tensor} |= shape(fft_length, 0) = 3 ∧ ∀i ∈ [0, 2] : shape(fft_length, i) < 2048
 >>
-Rule 59 (The input tensor must be complex64 or complex128 with determined shape and at least 3 dimensions.)
-{v_1 : tensor} |= (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ ndim(v_1) ≥ 3 ∧ shape(v_1, ndim(v_1) -1) > 0 ∧ shape(v_1, ndim(v_1)-1) ≠ -1
+Rule 37 (Check if the dimensions are the result of RFFT3D)
+{input_tensor : tensor, fft_length : tensor} |= shape(fft_length, 0) = 3 ∧ shape(input_tensor, ndim(input_tensor) - 1) = (shape(fft_length, 2) / 2) + 1
 >>
-Rule 63 (fft_length values must be greater or equal than the input size)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2,0) >= shape(v_1,ndim(v_1) - 3) ∧ shape(v_2,1) >= shape(v_1,ndim(v_1) - 2) ∧ shape(v_2,2) >= shape(v_1,ndim(v_1) - 1)
+Rule 38 (The input tensor shape can be compatible with fft_length when padding is applied)
+{input_tensor : tensor, fft_length : tensor} |= shape(fft_length, 0) = 3 ∧ ndim(input_tensor) >= 3 ∧ ∀i ∈ [0, 2] : shape(input_tensor, ndim(input_tensor) - 3 + i) >= 0
 >>
-Rule 68 (when fft_length is provided, it must be greater or equal to the size of input dimensions)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 ∧ shape(v_2,0) = 3 then shape(v_2,0) >= shape(v_1,ndim(v_1) - 3) ∧ shape(v_2,1) >= shape(v_1,ndim(v_1) - 2) ∧ shape(v_2,2) >= shape(v_1,ndim(v_1) - 1)
+Rule 39 (input tensor's rank must be within acceptable boundries)
+{input_tensor: tensor} |= ndim(input_tensor) > 0 ∧ ndim(input_tensor) < 8
+>>
+Rule 40 (When fft_length is provided, its elements should be less or equal than input dimensions)
+{input_tensor: tensor, fft_length: tensor} |= shape(fft_length, 0) = 3 ∧ ndim(input_tensor) >= 3 ∧ ∀i ∈ [0, 2] : shape(fft_length, i) <= shape(input_tensor, ndim(input_tensor) -3 + i)
+>>
+Rule 42 (The third element of fft_length should not be zero)
+{fft_length : tensor} |= shape(fft_length, 0) = 3 ∧ shape(fft_length, 2) ≠ 0
+>>
+Rule 43 (fft_length must be a positive tensor)
+{fft_length : tensor} |= ∀i ∈ [0, shape(fft_length, 0) - 1] : shape(fft_length, i) > 0
+>>
+Rule 44 (If fft_length is provided then its first two elements should not be zero)
+{fft_length : tensor} |= shape(fft_length, 0) = 3 ∧ shape(fft_length, 0) > 0 ∧ shape(fft_length, 1) > 0
+>>
+Rule 45 (When fft_length is an array, it can not have a zero size dimension to prevent exceptions like "list index out of range")
+{fft_length : tensor} |= ndim(fft_length) = 1 ∧ shape(fft_length, 0) > 0
+>>
+Rule 46 (The last dimension of the input_tensor must be greater than 0 if fft_length is not provided to prevent dimension errors)
+{input_tensor : tensor, fft_length : tensor} |= if shape(fft_length, 0) = 0 then shape(input_tensor, ndim(input_tensor) - 1) > 0
+>>
+Rule 48 (If fft_length provided, it has to be an int32 tensor of shape [3])
+{fft_length : tensor} |= dtype_(fft_length) = 3 ∧ ndim(fft_length) = 1 ∧ shape(fft_length, 0) = 3
+>>
+Rule 50 (If fft_length is provided ensure that input_tensor is of valid complex dtype)
+{input_tensor : tensor, fft_length : tensor} |= if shape(fft_length, 0) = 3 then dtype_(input_tensor) = 10 ∨ dtype_(input_tensor) = 11
+>>
+Rule 51 (To prevent "The truth value of an array with more than one element is ambiguous" check for complex numbers)
+{input_tensor: tensor} |= if dtype_(input_tensor) = 10 ∨ dtype_(input_tensor) = 11 then true else false
+>>
+Rule 52 (If no fft_length provided input_tensor must be a complex Tensor)
+{input_tensor: tensor, fft_length: tensor} |= if shape(fft_length, 0) = 0 then dtype_(input_tensor) = 10 ∨ dtype_(input_tensor) = 11
+>>
+Rule 53 (If fft_length is provided then all the dimensions of input should be greater than or equal to zero)
+{input_tensor : tensor, fft_length : tensor} |= if shape(fft_length, 0) = 3 then ∀i ∈ [0, ndim(input_tensor) - 1] : shape(input_tensor, i) >= 0
+>>
+Rule 54 (The shape of fft_length must be [3] when it is given)
+{fft_length : tensor} |= if ndim(fft_length) > 0 then ndim(fft_length) = 1 ∧ shape(fft_length, 0) = 3
+>>
+Rule 55 (If fft_length is given, make sure its values are not so high that causes OOM error)
+{fft_length: tensor} |= if ndim(fft_length) = 1 ∧ shape(fft_length, 0) = 3 then ∀i ∈ [0, 2] : shape(fft_length, i) < 4096
+>>
+Rule 57 (The dtype of fft_length tensor, when specified, has to be int32)
+{fft_length : tensor} |= if ndim(fft_length) > 0 then dtype_(fft_length) = 3

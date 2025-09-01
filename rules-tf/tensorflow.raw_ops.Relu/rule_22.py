@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input tensor `features` is empty return empty tensor (Rule 22)
+# If the features tensor has fewer than 4 dimensions, each dimension should have a size greater than 0 (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 0, True, Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)]))) if n else
-          If(v["arg1_ndim"] == 0, True, Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)])))
+    s.add(Not(If(v["arg1_ndim"] < 4, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), True)) if n else
+          If(v["arg1_ndim"] < 4, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), True))
 )
 
 def rule_22_func(arg1, solver=None, neg=False):

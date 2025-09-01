@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Number of dimensions of Input tensor should not equal the maximum value of the tensor (Rule 52)
+# If the first dimension of the input tensor v_1 is of size 1, then the max value must be smaller than min value + 10 (Rule 52)
 
 rule_52 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] != Select(v["arg1_range"], 1)) if n else
-          v["arg1_ndim"] != Select(v["arg1_range"], 1))
+    s.add(Not(If(Select(v["arg1_shape"], 0) == 1, Select(v["arg1_range"], 1) < (Select(v["arg1_range"], 0) + 10), True)) if n else
+          If(Select(v["arg1_shape"], 0) == 1, Select(v["arg1_range"], 1) < (Select(v["arg1_range"], 0) + 10), True))
 )
 
 def rule_52_func(arg1, solver=None, neg=False):
@@ -22,18 +22,19 @@ def rule_52_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 52
-        rule_52(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
+        rule_52(solver, {'arg1_shape': arg1_shape, 'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_52(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_52(solver, {'arg1_shape': arg1['shape'], 'arg1_range': arg1['range']}, neg)

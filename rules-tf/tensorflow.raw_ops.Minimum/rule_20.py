@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If x is uint8 then y must be uint8 (Rule 20)
+# If y is uint8, uint16, uint32, uint64 then x is also one of them (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 5, v["arg2_dtype"] == 5, False)) if n else
-          If(v["arg1_dtype"] == 5, v["arg2_dtype"] == 5, False))
+    s.add(Not(If((v["arg2_dtype"] == 5), Or(Or(Or(Or((v["arg1_dtype"] == 5), (v["arg1_dtype"] == 1)), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 3)), (v["arg1_dtype"] == 4)), True)) if n else
+          If((v["arg2_dtype"] == 5), Or(Or(Or(Or((v["arg1_dtype"] == 5), (v["arg1_dtype"] == 1)), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 3)), (v["arg1_dtype"] == 4)), True))
 )
 
 def rule_20_func(arg1, arg2, solver=None, neg=False):

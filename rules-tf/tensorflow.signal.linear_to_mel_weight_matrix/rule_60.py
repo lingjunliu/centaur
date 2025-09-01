@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If sample_rate is high, edges cannot be too close (Rule 60)
+# Combined check on frequency ranges relative to sample rate (Rule 60)
 
 rule_60 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg3_value"] > 44100, v["arg2_value"] - v["arg1_value"] > 1000, False)) if n else
-          If(v["arg3_value"] > 44100, v["arg2_value"] - v["arg1_value"] > 1000, False))
+    s.add(Not(And(v["arg1_value"] < v["arg3_value"] / 2, v["arg2_value"] < v["arg3_value"] / 2)) if n else
+          And(v["arg1_value"] < v["arg3_value"] / 2, v["arg2_value"] < v["arg3_value"] / 2))
 )
 
 def rule_60_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -23,17 +23,19 @@ def rule_60_func(arg1, arg2, arg3, solver=None, neg=False):
             return False
         if not isinstance(arg2, (float, np.floating)):
             return False
-        if not ((isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool)) or isinstance(arg3, (float, np.floating))):
+        if not isinstance(arg3, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Real('arg1_value')
         arg2_value = Real('arg2_value')
+        arg3_value = Real('arg3_value')
 
         # Value assignments
         solver.add(arg1_value == arg1)
         solver.add(arg2_value == arg2)
+        solver.add(arg3_value == arg3)
 
         # Constraints for rule 60
         rule_60(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_value': arg3_value})

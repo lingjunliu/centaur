@@ -1,147 +1,120 @@
 >>
-Rule 1 (image tensor must be 3-dimensional)
-{v_1 : tensor} |= ndim(v_1) = 3
+Rule 1 (image tensor should have 3 dimensions)
+{image : tensor} |= ndim(image) = 3
 >>
-Rule 2 (image tensor's data type must be uint8 or uint16)
-{v_1 : tensor} |= dtype_(v_1) = 5 ∨ dtype_(v_1) = 6
+Rule 2 (image tensor's dtype must be uint8 or uint16)
+{image : tensor} |= dtype_(image) = 5 ∨ dtype_(image) = 6
 >>
-Rule 3 (compression level must be within the valid range)
-{v_1 : int} |= v_1 ≥ -1 ∧ v_1 ≤ 9
+Rule 3 (compression level should be within the range [-1, 9])
+{compression : int} |= compression ≥ -1 ∧ compression ≤ 9
 >>
-Rule 4 (channels dimension of the image tensor must be 1, 2, 3, or 4)
-{v_1 : tensor} |= shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 2 ∨ shape(v_1, 2) = 3 ∨ shape(v_1, 2) = 4
+Rule 4 (image tensor channels should be 1, 2, 3, or 4)
+{image : tensor} |= shape(image, 2) = 1 ∨ shape(image, 2) = 2 ∨ shape(image, 2) = 3 ∨ shape(image, 2) = 4
 >>
-Rule 5 (height dimension of the image tensor must be greater than zero)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 5 (image height and width should be positive)
+{image : tensor} |= shape(image, 0) > 0 ∧ shape(image, 1) > 0
 >>
-Rule 6 (width dimension of the image tensor must be greater than zero)
-{v_1 : tensor} |= shape(v_1, 1) > 0
+Rule 6 (image shape should not contain zero)
+{image : tensor} |= shape(image, 0) ≠ 0 ∧ shape(image, 1) ≠ 0 ∧ shape(image, 2) ≠ 0
 >>
-Rule 7 (combination of image tensor type and compression)
-{v_1 : tensor, v_2 : int} |= (dtype_(v_1) = 5 ∨ dtype_(v_1) = 6) ∧ v_2 ≥ -1 ∧ v_2 ≤ 9
+Rule 7 (compression can't be negative except for -1)
+{compression : int} |= compression > -1 ∨ compression = -1
 >>
-Rule 8 (if compression is -1, then it's the default)
-{v_1 : int} |= if v_1 = -1 then true else v_1 ≥ 0 ∧ v_1 ≤ 9
+Rule 8 (image height * width * channels must be less than the maximum integer value)
+{image : tensor} |= shape(image, 0) * shape(image, 1) * shape(image, 2) < 2147483647
 >>
-Rule 9 (image tensor must have positive height, width and channels)
-{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+Rule 9 (if compression is not -1, it has to be greater or equal to 0)
+{compression : int} |= if compression ≠ -1 then compression ≥ 0
 >>
-Rule 10 (If image tensor is uint8, compression should be valid)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 5 then v_2 ≥ -1 ∧ v_2 ≤ 9
+Rule 11 (image height and width must be at least 1)
+{image : tensor} |= shape(image, 0) ≥ 1 ∧ shape(image, 1) ≥ 1
 >>
-Rule 11 (If image tensor is uint16, compression should be valid)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 6 then v_2 ≥ -1 ∧ v_2 ≤ 9
+Rule 12 (channels must be at least 1)
+{image : tensor} |= shape(image, 2) ≥ 1
 >>
-Rule 13 (image tensor dimensions are constrained)
-{v_1 : tensor} |= ndim(v_1) = 3 ∧ shape(v_1, 2) ≥ 1 ∧ shape(v_1, 2) ≤ 4
+Rule 13 (image tensor values should be within range of its dtype)
+{image : tensor} |= if dtype_(image) = 5 then max(image) ≤ 255 ∧ min(image) ≥ 0 else if dtype_(image) = 6 then max(image) ≤ 65535 ∧ min(image) ≥ 0 else false
 >>
-Rule 14 (Valid compression levels for uint8 or uint16 images)
-{v_1 : tensor, v_2 : int} |= (dtype_(v_1) = 5 ∨ dtype_(v_1) = 6) ∧ (v_2 ≥ -1 ∧ v_2 ≤ 9)
+Rule 14 (image dtype should be uint8 or uint16)
+{image : tensor} |= dtype_(image) = 6 ∨ dtype_(image) = 5
 >>
-Rule 15 (Shape of image tensor is valid)
-{v_1 : tensor} |= ndim(v_1) = 3 ∧ shape(v_1,2) ≥ 1 ∧ shape(v_1, 2) ≤ 4 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 16 (image tensor values should be non-negative)
+{image : tensor} |= min(image) ≥ 0
 >>
-Rule 16 (Channels must be 1,2,3, or 4 when the image is uint8)
-{v_1 : tensor} |= if dtype_(v_1) = 5 then shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 2 ∨ shape(v_1, 2) = 3 ∨ shape(v_1, 2) = 4
+Rule 17 (If compression is equal to -1, then it will use the default)
+{compression : int} |= if compression = -1 then true else compression ≥ 0 ∧ compression ≤ 9
 >>
-Rule 17 (Channels must be 1,2,3, or 4 when the image is uint16)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 2 ∨ shape(v_1, 2) = 3 ∨ shape(v_1, 2) = 4
+Rule 19 (image values must be less than or equal to max value)
+{image : tensor} |= if dtype_(image) = 5 then max(image) <= 255 else max(image) <= 65535
 >>
-Rule 18 (combination rule for image dimensions and compression)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ (shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 2 ∨ shape(v_1, 2) = 3 ∨ shape(v_1, 2) = 4) ∧ (v_2 ≥ -1 ∧ v_2 ≤ 9)
+Rule 20 (image values must be greater than or equal to min value)
+{image : tensor} |= if dtype_(image) = 5 then min(image) >= 0 else min(image) >= 0
 >>
-Rule 19 (Conditional rule: if compression is present, then the image is either uint8 or uint16.)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then (dtype_(v_1) = 5 ∨ dtype_(v_1) = 6)
+Rule 23 (compression must be an integer between -1 and 9)
+{compression : int} |= compression >= -1 ∧ compression <= 9
 >>
-Rule 20 (If the compression level is explicitly set, the dimensions of the image must be valid)
-{v_1 : tensor, v_2 : int} |= if v_2 > -1 ∧ v_2 < 10 then ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ (shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 2 ∨ shape(v_1, 2) = 3 ∨ shape(v_1, 2) = 4)
+Rule 24 (image can not have zero values if the datatype is uint8.)
+{image : tensor} |= if (dtype_(image) = 5) then min(image) >= 0
 >>
-Rule 21 (Complete conditional rule: image is uint8 or uint16, dimensions are valid, compression is within range if specified)
-{v_1 : tensor, v_2 : int} |= (dtype_(v_1) = 5 ∨ dtype_(v_1) = 6) ∧ ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ (shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 2 ∨ shape(v_1, 2) = 3 ∨ shape(v_1, 2) = 4) ∧ (v_2 ≥ -1 ∧ v_2 ≤ 9)
+Rule 26 (image height should be less than or equal to a limit)
+{image : tensor} |= shape(image, 0) <= 16383
 >>
-Rule 22 (channels dimension of image depends on datatype.)
-{v_1: tensor} |= if dtype_(v_1) = 5 then shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 2 ∨ shape(v_1, 2) = 3 ∨ shape(v_1, 2) = 4 else if dtype_(v_1) = 6 then shape(v_1, 2) = 1 ∨ shape(v_1, 2) = 2 ∨ shape(v_1, 2) = 3 ∨ shape(v_1, 2) = 4
+Rule 27 (image width should be less than or equal to a limit)
+{image : tensor} |= shape(image, 1) <= 16383
 >>
-Rule 27 (If compression is specified, the data type should be valid)
-{v_1 : tensor, v_2 : int} |= if v_2 > -1 ∧ v_2 < 10 then (dtype_(v_1) = 5 ∨ dtype_(v_1) = 6)
+Rule 28 (The image has to be 3D and the channel must be 1,2,3, or 4)
+{image : tensor} |= ndim(image) = 3 ∧ (shape(image, 2) = 1 ∨ shape(image, 2) = 2 ∨ shape(image, 2) = 3 ∨ shape(image, 2) = 4)
 >>
-Rule 28 (If compression is specified, image should have valid height and width)
-{v_1 : tensor, v_2 : int} |= if v_2 > -1 ∧ v_2 < 10 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 30 (image data type can not be bool, string, complex, float)
+{image : tensor} |= dtype_(image) ≠ 0 ∧ dtype_(image) ≠ 11 ∧ dtype_(image) ≠ 9 ∧ dtype_(image) ≠ 10 ∧ dtype_(image) ≠ 7 ∧ dtype_(image) ≠ 8 ∧ dtype_(image) ≠ 6
 >>
-Rule 29 (If compression is set, the image must have a valid shape)
-{v_1 : tensor, v_2 : int} |= if v_2 > -1 ∧ v_2 < 10 then ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 2) ≤ 4
+Rule 32 (If image is unit8, values must be between 0-255, if it is uint16 values must be between 0-65535)
+{image : tensor} |= if dtype_(image) = 5 then (min(image) >= 0 ∧ max(image) <= 255) else (min(image) >= 0 ∧ max(image) <= 65535)
 >>
-Rule 30 (Combined rule: image is uint8 or uint16, 3D, valid shape, and valid compression if specified.)
-{v_1 : tensor, v_2 : int} |= (dtype_(v_1) = 5 ∨ dtype_(v_1) = 6) ∧ ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 2) ≤ 4 ∧ v_2 ≥ -1 ∧ v_2 ≤ 9
+Rule 33 (image data type should be unsigned integer.)
+{image : tensor} |= (dtype_(image) = 5) ∨ (dtype_(image) = 6)
 >>
-Rule 31 (Image properties)
-{v_1 : tensor} |= ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 2) ≤ 4
+Rule 34 (if compression is not specified, use the default, otherwise, it should be between 0 and 9)
+{compression : int} |= if compression = -1 then true else (compression >= 0 ∧ compression <= 9)
 >>
-Rule 32 (Image properties and datatype constraints)
-{v_1 : tensor} |= (dtype_(v_1) = 5 ∨ dtype_(v_1) = 6) ∧ ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 2) ≤ 4
+Rule 35 (Image should be three dimensional with positive dimensions and be of type uint8 or uint16)
+{image : tensor} |= ndim(image) = 3 ∧ shape(image, 0) > 0 ∧ shape(image, 1) > 0 ∧ shape(image, 2) > 0 ∧ (dtype_(image) = 5 ∨ dtype_(image) = 6)
 >>
-Rule 33 (The third dimension (channels) must be between 1 and 4 (inclusive))
-{v_1 : tensor} |= shape(v_1, 2) ≥ 1 ∧ shape(v_1, 2) ≤ 4
+Rule 36 (If image is uint8 or uint16 the maximum value must respect the type maximum.)
+{image : tensor} |= if (dtype_(image) = 5) then (max(image) <= 255) else if (dtype_(image) = 6) then (max(image) <= 65535) else false
 >>
-Rule 34 (The compression must be a valid integer, if specified.)
-{v_1 : int} |= if v_1 ≠ -1 then v_1 ≥ 0 ∧ v_1 ≤ 9
+Rule 37 (If image is uint8 or uint16 the minimum value must be greater than or equal to zero)
+{image : tensor} |= min(image) >= 0
 >>
-Rule 35 (Combining all conditions on the image tensor)
-{v_1 : tensor} |= dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∧ ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) ≥ 1 ∧ shape(v_1, 2) ≤ 4
+Rule 40 (image width should be less than or equal to a limit)
+{image : tensor} |= shape(image, 1) ≤ 16383
 >>
-Rule 36 (Combination of datatype, dimensions, shape and compression)
-{v_1 : tensor, v_2 : int} |= (dtype_(v_1) = 5 ∨ dtype_(v_1) = 6) ∧ ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) ≥ 1 ∧ shape(v_1, 2) ≤ 4 ∧ v_2 ≥ -1 ∧ v_2 ≤ 9
+Rule 41 (image height should be less than or equal to a limit)
+{image : tensor} |= shape(image, 0) ≤ 16383
 >>
-Rule 38 (If compression is other than default, the image should be 3D, has valid height, width, and channels)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 2) ≤ 4
+Rule 43 (If the compression level is not specified it can be anything, otherwise, it has to be between 0-9)
+{compression : int} |= if compression = -1 then true else compression >= 0 ∧ compression <= 9
 >>
-Rule 39 (If compression is specified, datatype and dimensions/shape must be valid.)
-{v_1 : tensor, v_2 : int} |= if v_2 > -1 ∧ v_2 < 10 then (dtype_(v_1) = 5 ∨ dtype_(v_1) = 6) ∧ ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) ≥ 1 ∧ shape(v_1, 2) ≤ 4
+Rule 47 (The range of image height must be (0, 16383).)
+{image : tensor} |= shape(image, 0) >= 0 ∧ shape(image, 0) <= 16383
 >>
-Rule 41 (Check if height is greater than width of the image)
-{v_1: tensor} |= shape(v_1, 0) ≥ shape(v_1, 1)
+Rule 48 (The range of image width must be (0, 16383).)
+{image : tensor} |= shape(image, 1) >= 0 ∧ shape(image, 1) <= 16383
 >>
-Rule 42 (Checking if height, width, and channels of the image are same.)
-{v_1 : tensor} |= shape(v_1, 0) = shape(v_1, 1) ∧ shape(v_1, 1) = shape(v_1, 2)
+Rule 52 (The range of image width must be greater than 0 and smaller than 16383.)
+{image : tensor} |= shape(image, 1) > 0 ∧ shape(image, 1) < 16384
 >>
-Rule 43 (If height and width are the same, then the channels should not be greater than height)
-{v_1 : tensor} |= if shape(v_1, 0) = shape(v_1, 1) then shape(v_1, 2) ≤ shape(v_1, 0)
+Rule 53 (The range of image height must be greater than 0 and smaller than 16384.)
+{image : tensor} |= shape(image, 0) > 0 ∧ shape(image, 0) < 16384
 >>
-Rule 44 (If channels = 1, then it's a grayscale image)
-{v_1 : tensor} |= if shape(v_1, 2) = 1 then true else false
+Rule 55 (If the image data type is uint8, the range should be between 0 and 255.)
+{image : tensor} |= if (dtype_(image) = 5) then (min(image) >= 0 ∧ max(image) <= 255)
 >>
-Rule 45 (The product of height and width should be greater than 0)
-{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) > 0
+Rule 56 (If the image data type is uint16, the range should be between 0 and 65535.)
+{image : tensor} |= if (dtype_(image) = 6) then (min(image) >= 0 ∧ max(image) <= 65535)
 >>
-Rule 46 (If Channels is greater than 2, then Height must be greater or equal to Width.)
-{v_1 : tensor} |= if shape(v_1,2) > 2 then shape(v_1, 0) ≥ shape(v_1, 1)
+Rule 57 (All values in the image must be valid for the image's datatype)
+{image : tensor} |= (dtype_(image) = 5 ∧ min(image) >= 0 ∧ max(image) <= 255) ∨ (dtype_(image) = 6 ∧ min(image) >= 0 ∧ max(image) <= 65535)
 >>
-Rule 47 (The compression level can only be between 0 and 9 when it's explicitly given)
-{v_1: int} |= if v_1 ≠ -1 then v_1 ≥ 0 ∧ v_1 ≤ 9
->>
-Rule 48 (If the compression level is -1, then the shape doesn't need to be checked.)
-{v_1: tensor, v_2 : int} |= if v_2 = -1 then ndim(v_1) = 3
->>
-Rule 49 (The channel dimension must be less than 5)
-{v_1 : tensor} |= shape(v_1, 2) < 5
->>
-Rule 50 (If the number of channels is 4, it should be an RGBA image.)
-{v_1 : tensor} |= if shape(v_1, 2) = 4 then true else false
->>
-Rule 51 (If the height and the width are the same then channel dimension value can only be 1)
-{v_1 : tensor} |= if shape(v_1, 0) = shape(v_1, 1) then shape(v_1, 2) = 1
->>
-Rule 52 (if the image is grayscale, it must have compression level greater than 2.)
-{v_1 : tensor, v_2 : int} |= if shape(v_1, 2) = 1 then v_2 > 2
->>
-Rule 53 (if the image is RGBA, it must have compression level greater than 5.)
-{v_1 : tensor, v_2 : int} |= if shape(v_1, 2) = 4 then v_2 > 5
->>
-Rule 54 (The image must have at least 100 pixels in height)
-{v_1 : tensor} |= shape(v_1, 0) ≥ 100
->>
-Rule 55 (If height is a multiple of 2 then the width should also be a multiple of 2)
-{v_1 : tensor} |= if shape(v_1, 0) % 2 = 0 then shape(v_1, 1) % 2 = 0
->>
-Rule 56 (If compression is not the default value, the image should have at least 1000 pixels)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then shape(v_1, 0) * shape(v_1, 1) ≥ 1000
+Rule 62 (The image height should be greater than zero.)
+{image : tensor} |= shape(image, 0) > 0

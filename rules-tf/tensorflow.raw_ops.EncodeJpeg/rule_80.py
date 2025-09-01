@@ -5,33 +5,42 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The product of height, width, and channels must be less than or equal to some limit (Rule 80)
+# Progressive, Optimize Size, or Chroma Downsampling - at least one must be enabled and the others must be valid booleans. (Rule 80)
 
 rule_80 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) <= 268435456) if n else
-          Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) <= 268435456)
+    s.add(Not(And(And(And((Or(v["arg1_value"] == True, v["arg1_value"] == False)), (Or(v["arg2_value"] == True, v["arg2_value"] == False))), (Or(v["arg3_value"] == True, v["arg3_value"] == False))), (Or(Or(v["arg1_value"] == True, v["arg2_value"] == True), v["arg3_value"] == True)))) if n else
+          And(And(And((Or(v["arg1_value"] == True, v["arg1_value"] == False)), (Or(v["arg2_value"] == True, v["arg2_value"] == False))), (Or(v["arg3_value"] == True, v["arg3_value"] == False))), (Or(Or(v["arg1_value"] == True, v["arg2_value"] == True), v["arg3_value"] == True))))
 )
 
-def rule_80_func(arg1, solver=None, neg=False):
+def rule_80_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, bool):
+            return False
+        if not isinstance(arg2, bool):
+            return False
+        if not isinstance(arg3, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_value = Bool('arg1_value')
+        arg2_value = Bool('arg2_value')
+        arg3_value = Bool('arg3_value')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == arg2)
+        solver.add(arg3_value == arg3)
 
         # Constraints for rule 80
-        rule_80(solver, {'arg1_shape': arg1_shape})
+        rule_80(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_80(solver, {'arg1_shape': arg1['shape']}, neg)
+        rule_80(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)

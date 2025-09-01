@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The square values should be finite. (Rule 39)
+# If the input is a complex tensor, the absolute values should not be too high to avoid overflow. (Rule 39)
 
 rule_39 = lambda s, v, n=False: (
-    s.add(Not(If(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), And(Select(v["arg1_range"], 0) > -1000, Select(v["arg1_range"], 1) < 1000), If(And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10), And(Select(v["arg1_range"], 0) > -1000, Select(v["arg1_range"], 1) < 1000), False))) if n else
-          If(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), And(Select(v["arg1_range"], 0) > -1000, Select(v["arg1_range"], 1) < 1000), If(And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10), And(Select(v["arg1_range"], 0) > -1000, Select(v["arg1_range"], 1) < 1000), False)))
+    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Select(v["arg1_range"], 1) < 1e5, True)) if n else
+          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Select(v["arg1_range"], 1) < 1e5, True))
 )
 
 def rule_39_func(arg1, solver=None, neg=False):

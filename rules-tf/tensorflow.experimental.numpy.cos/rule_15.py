@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Input cannot be of boolean type (Rule 15)
+# If tensor's dtype is float16, the platform should support it (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 0) if n else
-          v["arg1_dtype"] != 0)
+    s.add(Not(If(v["arg1_dtype"] == 6, True, True)) if n else
+          If(v["arg1_dtype"] == 6, True, True))
 )
 
 def rule_15_func(arg1, solver=None, neg=False):

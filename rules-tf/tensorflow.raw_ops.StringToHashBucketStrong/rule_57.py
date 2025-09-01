@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# key cannot contain negative values if number of buckets is really large. (Rule 57)
+# Input should have dtype of string, and num_buckets positive. (Rule 57)
 
 rule_57 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] > 1000000, And(Select(v["arg2_values"], 0) >= 0, Select(v["arg2_values"], 1) >= 0), False)) if n else
-          If(v["arg1_value"] > 1000000, And(Select(v["arg2_values"], 0) >= 0, Select(v["arg2_values"], 1) >= 0), False))
+    s.add(Not(And(v["arg1_dtype"] == 11, v["arg2_value"] > 0)) if n else
+          And(v["arg1_dtype"] == 11, v["arg2_value"] > 0))
 )
 
 def rule_57_func(arg1, arg2, solver=None, neg=False):
@@ -18,25 +18,24 @@ def rule_57_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_values = Array('arg2_values', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        for i in range(len(arg2)):
-            arg2_values = Store(arg2_values, i, arg2[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 57
-        rule_57(solver, {'arg1_value': arg1_value, 'arg2_values': arg2_values})
+        rule_57(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_57(solver, {'arg1_value': arg1['value'], 'arg2_values': arg2['values']}, neg)
+        rule_57(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

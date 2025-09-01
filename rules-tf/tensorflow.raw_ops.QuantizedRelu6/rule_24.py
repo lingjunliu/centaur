@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# out_type is valid even when features is quint16 (Rule 24)
+# if features is qint8, max_features must be within a certain range (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 4, (Or(Or(Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 5), v["arg2_value"] == 3), v["arg2_value"] == 2), v["arg2_value"] == 4)), False)) if n else
-          If(v["arg1_dtype"] == 4, (Or(Or(Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 5), v["arg2_value"] == 3), v["arg2_value"] == 2), v["arg2_value"] == 4)), False))
+    s.add(Not(If((v["arg1_dtype"] == 1), Select(v["arg2_range"], 1) <= 127, True)) if n else
+          If((v["arg1_dtype"] == 1), Select(v["arg2_range"], 1) <= 127, True))
 )
 
 def rule_24_func(arg1, arg2, solver=None, neg=False):
@@ -20,22 +20,23 @@ def rule_24_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg2_value = Int('arg2_value')
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 24
-        rule_24(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
+        rule_24(solver, {'arg1_dtype': arg1_dtype, 'arg2_range': arg2_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_24(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)
+        rule_24(solver, {'arg1_dtype': arg1['dtype'], 'arg2_range': arg2['range']}, neg)

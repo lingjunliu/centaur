@@ -1,105 +1,60 @@
 >>
-Rule 1 (params cannot be empty if sp_ids has a non-zero number of rows)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_2) = 2) ∧ (shape(v_2, 0) = 0) ∨ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
->>
-Rule 3 (Combiner must be one of the allowed strings)
+Rule 1 (combiner must be one of 'mean', 'sqrtn' or 'sum')
 {v_1 : str} |= v_1 = "mean" ∨ v_1 = "sqrtn" ∨ v_1 = "sum"
 >>
-Rule 4 (max_norm must be a non-negative float if it is not None)
-{v_1 : float} |= v_1 ≥ 0
->>
-Rule 6 (sp_ids must be a rank 2 tensor)
+Rule 2 (sp_ids must be a SparseTensor or RaggedTensor with rank 2. Assuming rank is accessible via ndim)
 {v_1 : tensor} |= ndim(v_1) = 2
 >>
-Rule 8 (If max_norm is specified, it should be greater than 0)
-{v_1: float} |= if v_1 > 0 then true else false
+Rule 3 (sparse_weights, if provided, must have the same shape as sp_ids. Assuming shape is accessible via shape)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1) = shape(v_2)
 >>
-Rule 10 (allow_fast_lookup is a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 4 (max_norm should be non-negative if it is not None. Assuming None is represented as -1, which requires type checking.  Here we only do the type and greater than zero. This assumes max_norm is either float or none(encoded to int))
+{v_1 : float} |= v_1 ≥ 0
 >>
-Rule 12 (If sparse weights are provided, they must have the same shape as sp_ids)
-{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ false then (shape(v_1, 0) = shape(v_2, 0)) ∧ (shape(v_1, 1) = shape(v_2, 1))
+Rule 6 (If allow_fast_lookup is true, then params must be a single tensor and max_norm must be None/0.)
+{v_1 : bool, v_2 : tensor, v_3 : float} |= if v_1 = true then ndim(v_2) > 0 ∧ v_3 = 0
 >>
-Rule 14 (max_norm must be a non-negative float if specified)
-{v_1 : float} |= if v_1 > 0 then v_1 ≥ 0
+Rule 9 (If sp_weights is not None, it must have the same type as sp_ids)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 17 (Dtype of sp_ids must be int)
-{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 21 (sparse_weights, if provided, must have the same shape as sp_ids. Assuming shape is accessible via func_call shape)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1,0) = shape(v_2,0) ∧ shape(v_1,1) = shape(v_2,1)
 >>
-Rule 19 (If sparse_weights is specified, params and sparse_weights must have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ false then dtype_(v_1) = dtype_(v_2)
+Rule 23 (Id values should lie in the range [0, params.shape[0]). This rule covers the case for single tensor params)
+{v_1 : tensor, v_2 : tensor} |= max(v_2) < shape(v_1,0)
 >>
-Rule 20 (If allow_fast_lookup is true, max_norm must be None)
-{v_1 : bool, v_2: float} |= if v_1 = true then v_2 = 0.0
+Rule 26 (If sp_ids and sp_weights are provided, the non-zero values count in each tensor should match)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 21 (params cannot be empty if sp_ids has a non-zero number of rows)
-{v_1 : tensor, v_2 : tensor} |= (shape(v_2, 0) = 0) ∨ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
->>
-Rule 28 (Params must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) > 0
->>
-Rule 29 (sp_ids must have positive values)
-{v_1 : tensor} |= min(v_1) >= 0
->>
-Rule 35 (If combiner is not specified, it defaults to "mean")
-{v_1 : str} |= if v_1 = "none" then v_1 = "mean"
->>
-Rule 36 (If sparse_weights is None then all weights assumed to be 1.0)
-{v_1 : tensor} |= min(v_1) = 1.0 ∧ max(v_1) = 1.0
->>
-Rule 37 (params must be a tensor of floats)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
->>
-Rule 47 (If max_norm is specified, sp_ids must have rank 2)
-{v_1 : float, v_2: tensor} |= if v_1 > 0 then ndim(v_2) = 2
->>
-Rule 50 (If sparse_weights are specified, sp_ids and sparse_weights must have compatible shapes)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1)
->>
-Rule 51 (The combiner string must be a valid option)
+Rule 33 (combiner is valid)
 {v_1 : str} |= v_1 = "sum" ∨ v_1 = "mean" ∨ v_1 = "sqrtn"
 >>
-Rule 52 (If allow_fast_lookup is true, max_norm must be zero or not specified)
-{v_1 : bool, v_2 : float} |= if v_1 = true then v_2 = 0
+Rule 44 (max_norm must be positive)
+{v_1 : float} |= v_1 > 0
 >>
-Rule 53 (If sparse weights are specified, its dtype must be float32 or float64)
-{v_1 : tensor} |= if v_1 ≠ false then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+Rule 53 (If sparse_weights is specified, it must have same dtype as sp_ids. Checking that both are integers.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) >= 1 ∧ dtype_(v_1) <= 5 then dtype_(v_2) >= 1 ∧ dtype_(v_2) <= 5
 >>
-Rule 56 (sp_ids must have rank 2)
+Rule 60 (If sparse_weights is specified, it must have same dtype as sp_ids if sp_ids is integer. Checking type matching is not necessary as if weights not None it has to be same as sp_ids according to doc.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) >= 1 ∧ dtype_(v_1) <= 5 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 62 (Id values should lie in the range [0, params.shape[0]). This rule covers the case for single tensor params)
+{v_1 : tensor, v_2 : tensor} |= max(v_2) < shape(v_1, 0)
+>>
+Rule 68 (allow_fast_lookup requires params to be single tensor and max_norm to be None/0. The opposite rule is easier to express.)
+{v_1: bool, v_2 : tensor, v_3: float} |= if v_1 = true then v_2.len = 1 ∧ v_3 = 0
+>>
+Rule 87 (allow_fast_lookup requires params to be single tensor and max_norm to be None/0. The opposite rule is easier to express.)
+{v_1: bool, v_2 : tensor, v_3: float} |= if v_1 = true then ndim(v_2) = 2 ∧ v_3 = 0
+>>
+Rule 96 (sp_ids must be rank 2)
 {v_1: tensor} |= ndim(v_1) = 2
 >>
-Rule 57 (max_norm must be a non-negative float)
-{v_1: float} |= v_1 >= 0
+Rule 110 (There must be at least one id for each row in sp_ids)
+{v_1: tensor} |= min(v_1) >= 0
 >>
-Rule 61 (If allow_fast_lookup is true, and max_norm is provided, it should be zero)
-{v_1: bool, v_2: float} |= if v_1 = true ∧ v_2 > 0 then v_2 = 0
+Rule 118 (Name is string)
+{v_1: str} |= v_1 = v_1
 >>
-Rule 64 (sp_ids must be a rank 2 tensor with non-negative values)
-{v_1: tensor} |= ndim(v_1) = 2 ∧ min(v_1) >= 0
->>
-Rule 65 (If sparse_weights are provided, and max_norm is provided, max_norm needs to be greater than 0)
-{v_1: tensor, v_2: float} |= if v_1 ≠ false then v_2 > 0
->>
-Rule 66 (If allow_fast_lookup is set to True then the combiner needs to be sum, mean, or sqrtn)
-{v_1: bool, v_2: str} |= if v_1 = true then v_2 = "sum" ∨ v_2 = "mean" ∨ v_2 = "sqrtn"
->>
-Rule 67 (Params must have at least 2 dimensions)
-{v_1: tensor} |= ndim(v_1) >= 2
->>
-Rule 68 (If params is a list, the first tensor must have at least one dimension)
-{v_1 : list(tensor)} |= v_1.len > 0
->>
-Rule 72 (If params is a list then it cannot be an empty list)
-{v_1: list(tensor)} |= v_1.len > 0
->>
-Rule 74 (If max_norm is greater than zero, then at least one dimension of params must be greater than 1)
-{v_1: float, v_2: tensor} |= if v_1 > 0 then (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 1)
->>
-Rule 75 (If allow_fast_lookup is true, then the number of dimensions of the params must be less than or equal to 3)
-{v_1: bool, v_2: tensor} |= if v_1 = true then ndim(v_2) <= 3
->>
-Rule 76 (The combiner string must be one of the allowed values if the length of the string is greater than 0)
-{v_1 : str} |= if v_1.len > 0 then v_1 = "sum" ∨ v_1 = "mean" ∨ v_1 = "sqrtn"
->>
-Rule 77 (If max_norm is 0, then allow_fast_lookup cannot be false)
-{v_1: float, v_2: bool} |= if v_1 = 0 then v_2 = true
+Rule 125 (If sp_ids and sparse_weights are specified, then their dtypes are of same type)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)

@@ -1,192 +1,159 @@
 >>
-Rule 1 (input tensor's rank should be non-negative)
+Rule 1 (input tensor's rank must be non-negative)
 {v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 2 (The shape tensor should have a non-negative number of dimensions)
-{v_2 : tensor} |= ndim(v_2) ≥ 0
->>
-Rule 3 (The shape tensor should be one dimensional if it's a tensor)
-{v_2 : tensor} |= ndim(v_2) = 1
->>
-Rule 4 (If the shape is a list, its length must be non-negative)
+Rule 2 (shape list must have non-negative length)
 {v_2 : list(int)} |= v_2.len ≥ 0
 >>
-Rule 5 (Each element in the shape list must be non-negative)
-{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
->>
-Rule 6 (If shape is a tuple of ints, each element must be non-negative)
-{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
->>
-Rule 7 (If shape is a list, its length should be equal to input's rank)
-{v_1 : tensor, v_2 : list(int)} |= v_2.len = ndim(v_1)
->>
-Rule 8 (If shape is a tuple, its length should be equal to input's rank)
-{v_1 : tensor, v_2 : tuple(int)} |= v_2.len = ndim(v_1)
->>
-Rule 9 (If shape is a tensor of ints, its length should be equal to input's rank)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) = ndim(v_1)
->>
-Rule 10 (If shape is a tensor of ints, all elements should be positive)
-{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] > 0
->>
-Rule 11 (check if the element type of the input tensor and the shape tensor is the same)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
->>
-Rule 12 (shape can be a tuple with variable types)
-{v_2: tuple(int ⊎ str)} |= v_2.len > 0
->>
-Rule 28 (If the input tensor has a zero-sized dimension, then the shape must also reflect a zero size)
-{v_1 : tensor, v_2 : list(int)} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then (∃j ∈ [0, v_2.len - 1] : v_2[j] = 0)
->>
-Rule 29 (If the input tensor's shape is fully defined and the provided shape is a list, the shapes must match)
-{v_1 : tensor, v_2 : list(int)} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then (v_2.len = ndim(v_1) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] = shape(v_1, i)))
->>
-Rule 30 (If the input tensor's shape is fully defined and the provided shape is a tuple, the shapes must match)
-{v_1 : tensor, v_2 : tuple(int)} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then (v_2.len = ndim(v_1) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] = shape(v_1, i)))
->>
-Rule 31 (If the input tensor's shape is fully defined and the provided shape is a tensor, the shapes must match)
-{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then (shape(v_2, 0) = ndim(v_1) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = shape(v_1, i)))
->>
-Rule 35 (If provided shape is partially specified (using -1), other dimensions must match)
-{v_1 : tensor, v_2 : list(int)} |= if (∃i ∈ [0, v_2.len - 1] : v_2[i] = -1) then (v_2.len = ndim(v_1))
->>
-Rule 39 (If any dimension is negative in shape list, it's an invalid shape)
+Rule 3 (elements of the shape list must be integers)
 {v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -1
 >>
-Rule 40 (If any dimension is negative in shape tuple, it's an invalid shape)
-{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -1
+Rule 4 (input tensor's shape should match provided shape if shape is provided)
+{v_1 : tensor, v_2 : list(int)} |= (v_2.len > 0) ∧ (ndim(v_1) = v_2.len) ∧ ∀i ∈ [0, v_2.len - 1] : (v_2[i] = -1) ∨ (shape(v_1, i) = v_2[i])
 >>
-Rule 41 (If any dimension is negative in shape tensor, it's an invalid shape)
-{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ -1
+Rule 6 (shape list must contain only integer values if length is greater than 0)
+{v_2 : list(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : true
 >>
-Rule 43 (If the provided shape is a list of integers and it is not fully specified, the non -1 values should match the input)
-{v_1 : tensor, v_2 : list(int)} |= if (∃i ∈ [0, v_2.len - 1] : v_2[i] = -1) then (v_2.len = ndim(v_1) ∧ (∀i ∈ [0, v_2.len - 1] : if v_2[i] ≠ -1 then v_2[i] = shape(v_1, i)))
+Rule 7 (input tensor is not empty)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 44 (If the provided shape is a tuple of integers and it is not fully specified, the non -1 values should match the input)
-{v_1 : tensor, v_2 : tuple(int)} |= if (∃i ∈ [0, v_2.len - 1] : v_2[i] = -1) then (v_2.len = ndim(v_1) ∧ (∀i ∈ [0, v_2.len - 1] : if v_2[i] ≠ -1 then v_2[i] = shape(v_1, i)))
+Rule 10 (input tensor must have the same number of dimensions as specified in shape)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then ndim(v_1) = v_2.len
 >>
-Rule 45 (The specified shape as tensor must have a compatible number of dimensions with the input)
-{v_1 : tensor, v_2 : tensor} |= (shape(v_2, 0) = ndim(v_1))
+Rule 12 (If shape is not fully defined, dimensions should be -1 or positive)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] = -1 ∨ v_2[i] > 0
 >>
-Rule 46 (The values in v_2 shape tensor should not be negative, if they aren't -1)
-{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] >= -1
+Rule 14 (If shape is partially defined, then tensor must have dimension defined)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then ∃i ∈ [0, v_2.len - 1] : v_2[i] = -1 ∨ shape(v_1, i) > 0
 >>
-Rule 47 (if the shape is not fully specified as a tensor, non -1 dimensions must match)
-{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = -1) then (shape(v_2, 0) = ndim(v_1) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : if v_2[i] ≠ -1 then v_2[i] = shape(v_1, i) ))
+Rule 15 (If the shape is known, then each dimension of tensor should match shape value or shape value is -1)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : (v_2[i] = -1) ∨ (shape(v_1, i) = v_2[i])
 >>
-Rule 48 (If the provided shape is a list of integers, it's length should not exceed a certain value (e.g. 8 for practical purposes))
-{v_2 : list(int)} |= v_2.len ≤ 8
+Rule 19 (input tensor's shape must match defined shape)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≠ -1) then ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
 >>
-Rule 49 (If the provided shape is a tuple of integers, it's length should not exceed a certain value (e.g. 8 for practical purposes))
-{v_2 : tuple(int)} |= v_2.len ≤ 8
+Rule 20 (Input tensor must have at least one dimension if the shape is not empty)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then ndim(v_1) > 0
 >>
-Rule 50 (If input is scalar, shape must be empty)
-{v_1 : tensor, v_2: list(int)} |= if ndim(v_1) = 0 then v_2.len = 0
+Rule 21 (If the shape is fully defined, no -1 in shape if shape list has some items)
+{v_2 : list(int)} |= if v_2.len > 0 then ∃i ∈ [0, v_2.len - 1] : v_2[i] = -1 ∨ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≠ -1
 >>
-Rule 51 (If input is scalar, shape must be empty)
-{v_1 : tensor, v_2: tuple(int)} |= if ndim(v_1) = 0 then v_2.len = 0
+Rule 22 (input tensor's shape must match defined shape if the shape is provided and fully defined)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≠ -1) then (ndim(v_1) = v_2.len) ∧ (∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i])
 >>
-Rule 52 (If the shapes are provided as lists, they should have matching elements)
-{v_1 : list(int), v_2: list(int)} |= v_1.len = v_2.len ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] = v_2[i])
+Rule 23 (if shape list is provided but its length is 0, no shape validation is performed)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len = 0 then true else ndim(v_1) ≥ 0
 >>
-Rule 53 (If provided shape is a tensor and the input shape is partially defined with zeros then the corresponding shape dimensions should match if not -1)
-{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then (∀i ∈ [0, shape(v_2, 0) - 1] : if v_2[i] ≠ -1 then if shape(v_1, i) ≠ 0 then v_2[i] = shape(v_1, i))
+Rule 24 (Elements in shape list are valid integers)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ -1) ∧ (v_2[i] ≤ 2147483647)
 >>
-Rule 57 (If shape is a list and its not empty, then all the dimensions should be greater than -2)
-{v_2 : list(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : v_2[i] > -2
+Rule 26 (If the shape is partially defined, then the corresponding dimension of the input tensor must be greater than 0 if it's not -1)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : (v_2[i] = -1) ∨ (shape(v_1, i) > 0)
 >>
-Rule 58 (If shape is a tuple and its not empty, then all the dimensions should be greater than -2)
-{v_2 : tuple(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : v_2[i] > -2
->>
-Rule 59 (If shape is a tensor and its not empty, then all the dimensions should be greater than -2)
-{v_2 : tensor} |= if shape(v_2, 0) > 0 then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] > -2
->>
-Rule 60 (If the input tensor is a matrix, the shape list should have length 2)
-{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 2 then v_2.len = 2
->>
-Rule 61 (If the input tensor is a matrix, the shape tuple should have length 2)
-{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 2 then v_2.len = 2
->>
-Rule 62 (If the input tensor is a matrix, the shape tensor should have length 2)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then shape(v_2, 0) = 2
->>
-Rule 66 (If shape is a list and its length is one, the single dimension must be compatible to number of elements)
-{v_1 : tensor, v_2 : list(int)} |= if v_2.len = 1 then shape(v_1, 0) = v_2[0]
->>
-Rule 67 (If shape is a tuple and its length is one, the single dimension must be compatible to number of elements)
-{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 1 then shape(v_1, 0) = v_2[0]
->>
-Rule 68 (If shape is a tensor and its length is one, the single dimension must be compatible to number of elements)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2,0) = 1 then shape(v_1, 0) = v_2[0]
->>
-Rule 69 (If shape is a list of integers, the product of the dimensions should be less than the maximum possible size)
-{v_2 : list(int)} |= if v_2.len > 0 then (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -1) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≤ 10000)
->>
-Rule 70 (If shape is a tuple of integers, the product of the dimensions should be less than the maximum possible size)
-{v_2 : tuple(int)} |= if v_2.len > 0 then (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -1) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≤ 10000)
->>
-Rule 71 (If shape is a tensor, the product of the dimensions should be less than the maximum possible size)
-{v_2 : tensor} |= if shape(v_2,0) > 0 then (∀i ∈ [0, shape(v_2,0) - 1] : v_2[i] ≥ -1) ∧ (∀i ∈ [0, shape(v_2,0) - 1] : v_2[i] ≤ 10000)
->>
-Rule 72 (shape list or tuple must have int type elements)
-{v_2 : list(int ⊎ str)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] = "constant" ∨ v_2[i] = "linear" ∨ v_2[i] = "softplus" ∨ true
->>
-Rule 75 (If the shape argument is a tensor, the number of dimensions should not exceed the maximum allowed tensor rank)
-{v_2 : tensor} |= shape(v_2, 0) ≤ 8
->>
-Rule 76 (If shape is a list, all dimensions except atmost one should be positive)
-{v_2 : list(int)} |= (∃i ∈ [0, v_2.len - 1] : v_2[i] = -1) ∨ (∀i ∈ [0, v_2.len - 1] : v_2[i] > 0)
->>
-Rule 77 (If shape is a tuple, all dimensions except atmost one should be positive)
-{v_2 : tuple(int)} |= (∃i ∈ [0, v_2.len - 1] : v_2[i] = -1) ∨ (∀i ∈ [0, v_2.len - 1] : v_2[i] > 0)
->>
-Rule 78 (If shape is a tensor, all dimensions except atmost one should be positive)
-{v_2 : tensor} |= (∃i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = -1) ∨ (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] > 0)
->>
-Rule 79 (if the shape is provided as a list and the rank of the tensor is known, then dimensions except the unknown dimension must be positive)
-{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) > 0 then ∀i ∈ [0, v_2.len - 1] : if v_2[i] ≠ -1 then v_2[i] > 0
->>
-Rule 80 (if the shape is provided as a tuple and the rank of the tensor is known, then dimensions except the unknown dimension must be positive)
-{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) > 0 then ∀i ∈ [0, v_2.len - 1] : if v_2[i] ≠ -1 then v_2[i] > 0
->>
-Rule 81 (if the shape is provided as a tensor and the rank of the tensor is known, then dimensions except the unknown dimension must be positive)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, shape(v_2, 0) - 1] : if v_2[i] ≠ -1 then v_2[i] > 0
->>
-Rule 82 (The provided shape can only have a limited number of unknown dimensions (e.g., at most 1))
-{v_2 : list(int)} |= (∃i ∈ [0, v_2.len - 1] : v_2[i] = -1) ∧ (∀j ∈ [i+1, v_2.len - 1] : v_2[j] ≠ -1)
->>
-Rule 83 (The provided shape can only have a limited number of unknown dimensions (e.g., at most 1))
-{v_2 : tuple(int)} |= (∃i ∈ [0, v_2.len - 1] : v_2[i] = -1) ∧ (∀j ∈ [i+1, v_2.len - 1] : v_2[j] ≠ -1)
->>
-Rule 84 (The provided shape can only have a limited number of unknown dimensions (e.g., at most 1))
-{v_2 : tensor} |= (∃i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = -1) ∧ (∀j ∈ [i+1, shape(v_2, 0) - 1] : v_2[j] ≠ -1)
->>
-Rule 85 (If input tensor is a scalar, shape list must be empty)
+Rule 27 (if input tensor is a scalar, then shape should be an empty list)
 {v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 0 then v_2.len = 0
 >>
-Rule 86 (If input tensor is a scalar, shape tuple must be empty)
-{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 0 then v_2.len = 0
+Rule 28 (If input tensor is not a scalar, then shape list should have a valid length)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) ≠ 0 then v_2.len ≥ 0 ∧ v_2.len ≤ 10
 >>
-Rule 87 (If shape is a tensor, all its values should be a valid integer)
-{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : dtype_(v_2) = 3
+Rule 29 (If shape is provided, and the tensor is not scalar, then shape list can have elements that are either -1 or positive integers)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 ∧ ndim(v_1) ≠ 0 then ∀i ∈ [0, v_2.len - 1] : (v_2[i] = -1) ∨ (v_2[i] > 0)
 >>
-Rule 88 (If shape is provided, at least on of its dimensions must be less than 2)
-{v_2 : tensor} |= (∃i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < 2) ∨ (∃i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = -1)
+Rule 30 (If shape is partially known, all known dims should match tensor dims)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 ∧ ∃i ∈ [0, v_2.len - 1] : v_2[i] ≠ -1 then ∀i ∈ [0, v_2.len - 1] : (v_2[i] = -1) ∨ (shape(v_1, i) = v_2[i])
 >>
-Rule 89 (the shape argument should be a tensor of integer type)
-{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5
+Rule 31 (Shape list should not be empty if we want to ensure a specific shape)
+{v_2 : list(int)} |= if ∃i ∈ [0, 9] : true then v_2.len >= 0
 >>
-Rule 90 (If the shape is specified as a tensor, and input's rank is 1, the shape tensor must have a single element shape larger than zero)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then shape(v_2, 0) = 1 ∧ v_2[0] > 0
+Rule 32 (if shape list length is equal to the input tensor ndim, then validation can be performed)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len = ndim(v_1) then true else (v_2.len = 0)
 >>
-Rule 91 (If the expected shape has more than one dimension, every dimension must be a valid shape dimension )
-{v_2 : tensor} |= if shape(v_2, 0) > 1 then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] > -2
+Rule 33 (Shape list's length should be no more than the maximum allowed number of dimensions for a tensor)
+{v_2 : list(int)} |= v_2.len ≤ 10
 >>
-Rule 92 (If shape is provided as a tensor of integers, and the rank of the input tensor is unknown, ensure there are no negative values)
-{v_2 : tensor} |= if ndim(v_2) > 0 then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ -1
+Rule 34 (if input tensor has a specific shape that we want to ensure, then shape can not be an empty list)
+{v_1 : tensor, v_2 : list(int)} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then v_2.len > -1
 >>
-Rule 93 (if the shape is provided as a list of integers, at least one dimension should be > 0, otherwise it's an empty shape)
-{v_2 : list(int)} |= (∃i ∈ [0, v_2.len - 1] : v_2[i] > 0) ∨ v_2.len = 0
+Rule 36 (If all shape dimensions are provided, the shape of input tensor must be equal to the specified shape)
+{v_1 : tensor, v_2 : list(int)} |= if (v_2.len > 0) ∧ (v_2.len = ndim(v_1)) then (∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i])
 >>
-Rule 95 (If input has a known number of elements, that is, the shapes are positive, the multiplication of all dimensions must be larger than 0)
-{v_1 : tensor} |= if ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then true
+Rule 37 (For non-scalar tensors and shape list with positive length, the shape values must be either -1, or >=1)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) ≠ 0 ∧ v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : v_2[i] = -1 ∨ v_2[i] ≥ 1
+>>
+Rule 39 (If shape is a list and has a length of one, the element should be at least -1)
+{v_2 : list(int)} |= if v_2.len = 1 then v_2[0] >= -1
+>>
+Rule 41 (Shape list is valid)
+{v_2 : list(int)} |= v_2.len ≥ 0 ∧ v_2.len <= 10 ∧ ∀i ∈ [0, if v_2.len > 0 then v_2.len - 1 else -1] : v_2[i] ≥ -1
+>>
+Rule 43 (If the length of shape list is not zero then every entry in the shape list should be int.)
+{v_2 : list(int)} |= if v_2.len ≠ 0 then ∀i ∈ [0, v_2.len - 1] : true
+>>
+Rule 44 (The number of shape values should be less or equal to the maximum dimensions supported by tensorflow)
+{v_2: list(int)} |= v_2.len <= 8
+>>
+Rule 45 (If shape list contains valid integer dimensions, its length must match the tensor rank if it is provided)
+{v_1 : tensor, v_2 : list(int)} |= if (v_2.len > 0) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -1) then ndim(v_1) = v_2.len
+>>
+Rule 47 (shape list is provided, and its element is provided, the input tensor dimension can not be larger than the length of the shape list)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then ndim(v_1) <= v_2.len
+>>
+Rule 49 (If there is any specific number in the shape, no -1 allowed.)
+{v_1 : list(int)} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] > 0 then ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ -1
+>>
+Rule 50 (tensor shape can not be ensured with negative length dimension shape.)
+{v_1 : list(int)} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] < -1 then false
+>>
+Rule 51 (The dimensions of tensor should not be negative )
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+>>
+Rule 52 (If input tensor rank is bigger than 0, its dimensions should be integers)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : true
+>>
+Rule 53 (If you dont want shape ensure, please provide empty list of int)
+{v_2 : list(int)} |= if v_2.len = 0 then true
+>>
+Rule 54 (if the input tensor is a vector, shape list must have length zero or one.)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 1 then (v_2.len = 0) ∨ (v_2.len = 1)
+>>
+Rule 55 (It must be checked that all numbers in shape list are integer and can be represented by int32)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -1 ∧ v_2[i] ≤ 2147483647
+>>
+Rule 56 (if tensor is defined as unknown, you must define its shape with -1)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = -1 then ∀i ∈ [0, v_2.len - 1] : v_2[i] = -1
+>>
+Rule 57 (input tensor shape values should be smaller than the maximum limit)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483647
+>>
+Rule 58 (There shouldn't be mixed values in shape, either -1 or a proper shape value)
+{v_1 : list(int)} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = -1 then ∀j ∈ [0, v_1.len - 1] : (v_1[j] = -1) ∨ true
+>>
+Rule 59 (shape list length should be smaller or equal to tf maximum dimension.)
+{v_2 : list(int)} |= v_2.len <= 7
+>>
+Rule 60 (The shape values must be small enough to be stored in a int64.)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 9223372036854775807
+>>
+Rule 61 (if tensor has specific dimensions, check at least shape parameter is not empty)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) > 0 then v_2.len ≥ 0
+>>
+Rule 62 (input tensor should have defined rank)
+{v_1 : tensor} |= ndim(v_1) ≥ -1
+>>
+Rule 63 (if defined the number of dimensions, all dimension must be valid integers)
+{v_1 : tensor} |= if ndim(v_1) > -1 then ∀i ∈ [0, ndim(v_1) - 1] : true
+>>
+Rule 64 (if shape has any element, every other element should not be -1, if specific dimension needed)
+{v_1 : list(int)} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] > 0 then ∃j ∈ [0, v_1.len - 1] : v_1[j] ≠ -1
+>>
+Rule 65 (Shape list length is at most ndim(input))
+{v_1 : tensor, v_2 : list(int)} |= v_2.len ≤ ndim(v_1)
+>>
+Rule 66 (If there is an element in the shape list that is positive the length of shape list can not be zero)
+{v_2 : list(int)} |= if ∃i ∈ [0, v_2.len - 1] : v_2[i] > 0 then v_2.len > 0
+>>
+Rule 67 (if providing a full shape, it means that you want the same number of dimensions)
+{v_1 : tensor, v_2 : list(int)} |= if ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ v_2.len > 0 then ndim(v_1) = v_2.len
+>>
+Rule 68 (If the input shape list has some elements that are greater than 0, the length should match to the number of tensor dimensions)
+{v_1 : tensor, v_2 : list(int)} |= if (∃i ∈ [0, v_2.len - 1] : v_2[i] > 0) then v_2.len = ndim(v_1)

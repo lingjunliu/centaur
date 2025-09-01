@@ -8,8 +8,8 @@ from z3 import *
 # if x is complex64, Tout must be float32 (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 10, v["arg2_value"] == 7, False)) if n else
-          If(v["arg1_dtype"] == 10, v["arg2_value"] == 7, False))
+    s.add(Not(If(v["arg1_dtype"] == 10, v["arg2_value"] == 8, True)) if n else
+          If(v["arg1_dtype"] == 10, v["arg2_value"] == 8, True))
 )
 
 def rule_3_func(arg1, arg2, solver=None, neg=False):

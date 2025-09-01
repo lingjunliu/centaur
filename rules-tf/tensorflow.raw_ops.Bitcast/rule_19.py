@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input is uint32 or uint64, the output can be uint8 (Rule 19)
+# If input dtype is complex, type must also be complex OR if input dtype is not complex, type should also not be complex (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg2_value"] == 5, False)) if n else
-          If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg2_value"] == 5, False))
+    s.add(Not(And(And((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), Or((Or(v["arg2_value"] == 9, v["arg2_value"] == 10)), (v["arg1_dtype"] < 9))), (v["arg2_value"] < 9))) if n else
+          And(And((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), Or((Or(v["arg2_value"] == 9, v["arg2_value"] == 10)), (v["arg1_dtype"] < 9))), (v["arg2_value"] < 9)))
 )
 
 def rule_19_func(arg1, arg2, solver=None, neg=False):

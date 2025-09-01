@@ -5,39 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the max of x is less than 10, max of a must be less than 100 (Rule 74)
+# if a is a scalar tensor, its value must be a non-negative integer or it must be float32 or float64 (Rule 74)
 
 rule_74 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg2_range"], 1) < 10, Select(v["arg1_range"], 1) < 100, False)) if n else
-          If(Select(v["arg2_range"], 1) < 10, Select(v["arg1_range"], 1) < 100, False))
+    s.add(Not(If(v["arg1_ndim"] == 0, (And(Or(Or(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), Select(v["arg1_range"], 0) >= 0)), True)) if n else
+          If(v["arg1_ndim"] == 0, (And(Or(Or(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), Select(v["arg1_range"], 0) >= 0)), True))
 )
 
-def rule_74_func(arg1, arg2, solver=None, neg=False):
+def rule_74_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
-            return False
 
         # Variable declarations
         solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
+        arg1_dtype = Int('arg1_dtype')
         arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 74
-        rule_74(solver, {'arg1_range': arg1_range, 'arg2_range': arg2_range})
+        rule_74(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_74(solver, {'arg1_range': arg1['range'], 'arg2_range': arg2['range']}, neg)
+        rule_74(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype']}, neg)

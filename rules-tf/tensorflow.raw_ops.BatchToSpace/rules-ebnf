@@ -2,86 +2,218 @@
 Rule 1 (input tensor must be 4-dimensional)
 {v_1 : tensor} |= ndim(v_1) = 4
 >>
-Rule 2 (block_size must be greater than or equal to 2)
-{v_1 : int} |= v_1 ≥ 2
+Rule 2 (input tensor's batch size must be divisible by block_size * block_size)
+{v_1 : tensor, v_3 : int} |= shape(v_1, 0) % (v_3 * v_3) = 0
 >>
 Rule 3 (crops tensor must be 2-dimensional)
-{v_1 : tensor} |= ndim(v_1) = 2
+{v_2 : tensor} |= ndim(v_2) = 2
 >>
 Rule 4 (crops tensor must have shape [2, 2])
-{v_1 : tensor} |= shape(v_1, 0) = 2 ∧ shape(v_1, 1) = 2
+{v_2 : tensor} |= shape(v_2, 0) = 2 ∧ shape(v_2, 1) = 2
 >>
-Rule 6 (batch size of input tensor must be divisible by block_size * block_size)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) % (v_2 * v_2) = 0
+Rule 5 (crops tensor elements must be non-negative integers)
+{v_2 : tensor} |= min(v_2) ≥ 0 ∧ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
 >>
-Rule 7 (crops tensor elements must be non-negative)
-{v_1 : tensor} |= ∀i ∈ [0, 1] : ∀j ∈ [0, 1] : shape(v_1, i) ≥ 0 ∧ shape(v_1, j) ≥ 0
+Rule 6 (block_size must be greater than or equal to 2)
+{v_3 : int} |= v_3 ≥ 2
 >>
-Rule 8 (height_pad and width_pad dimensions of the input tensor must be divisible by block_size)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 1) * v_2 = shape(v_1, 1) ∧ shape(v_1, 2) * v_2 = shape(v_1, 2)
+Rule 7 (Shape of input tensor should be positive)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 9 (crops tensor must have int32 or int64 dtype)
-{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 8 (crops tensor is empty or only contains non-negative values)
+{v_2 : tensor} |= (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0) ∨ min(v_2) ≥ 0
 >>
-Rule 10 (height_pad and width_pad dimensions of the input tensor must be divisible by block_size)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 1) % v_2 = 0 ∧ shape(v_1, 2) % v_2 = 0
+Rule 19 (height_pad must be divisible by block_size)
+{v_1 : tensor, v_3 : int} |= shape(v_1, 1) * v_3 > 0 ∧ shape(v_1, 1) * v_3 % v_3 = 0
 >>
-Rule 12 (elements in crops tensor must be non-negative integers)
-{v_1 : tensor} |= ∀i ∈ [0, 1] : ∀j ∈ [0, 1] : v_1[i * 2 + j] ≥ 0
+Rule 20 (width_pad must be divisible by block_size)
+{v_1 : tensor, v_3 : int} |= shape(v_1, 2) * v_3 > 0 ∧ shape(v_1, 2) * v_3 % v_3 = 0
 >>
-Rule 13 (input height_pad dimension must be greater than the sum of crop_top and crop_bottom)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) > v_2[0] + v_2[1]
+Rule 21 (input's height_pad dimension must be divisible by block_size after adding crops)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (shape(v_1, 1) * v_3 + shape(v_2, 0) + shape(v_2, 1)) % v_3 = 0
 >>
-Rule 14 (input width_pad dimension must be greater than the sum of crop_left and crop_right)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 2) > v_2[2] + v_2[3]
+Rule 22 (input's width_pad dimension must be divisible by block_size after adding crops)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (shape(v_1, 2) * v_3 + shape(v_2, 2) + shape(v_2, 3)) % v_3 = 0
 >>
-Rule 16 (The depth dimension of the input tensor must be positive)
+Rule 23 (crops values should be smaller than height/width dimensions after batch to space)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_1, 1) * v_3 > shape(v_2, 0) + shape(v_2, 1) ∧ shape(v_1, 2) * v_3 > shape(v_2, 2) + shape(v_2, 3)
+>>
+Rule 24 (dtype of crops tensor must be int32 or int64)
+{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+>>
+Rule 25 (batch size of input tensor must be greater than 0)
+{v_1 : tensor} |= shape(v_1, 0) > 0
+>>
+Rule 26 (height dimension of input tensor must be greater than 0)
+{v_1 : tensor} |= shape(v_1, 1) > 0
+>>
+Rule 27 (width dimension of input tensor must be greater than 0)
+{v_1 : tensor} |= shape(v_1, 2) > 0
+>>
+Rule 28 (depth dimension of input tensor must be greater than 0)
 {v_1 : tensor} |= shape(v_1, 3) > 0
 >>
-Rule 19 (Height dimension after rearranging and cropping should be positive)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= (shape(v_1, 1) * v_3) - v_2[0] - v_2[1] > 0
+Rule 29 (block_size must be a positive integer)
+{v_3 : int} |= v_3 > 0
 >>
-Rule 20 (Width dimension after rearranging and cropping should be positive)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= (shape(v_1, 2) * v_3) - v_2[2] - v_2[3] > 0
+Rule 30 (elements of crops tensor should be non-negative)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : ∀j ∈ [0, shape(v_2, 1) - 1] : v_2[i * shape(v_2,1) + j] ≥ 0
 >>
-Rule 21 (block_size must be an integer type)
-{v_1 : int} |= 1 ≤ v_1 ∧ v_1 ≤ 5
+Rule 31 (batch size must be equal to the multiple of block_size squared if height/width are preserved)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if shape(v_2, 0) = 0 ∧ shape(v_2, 1) = 0 ∧ shape(v_2, 2) = 0 ∧ shape(v_2, 3) = 0 then shape(v_1, 0) % (v_3 * v_3) = 0
 >>
-Rule 22 (crops tensor must be an integer type)
-{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5
+Rule 32 (the input tensor's dtype should be consistent)
+{v_1 : tensor} |= dtype_(v_1) = dtype_(v_1)
 >>
-Rule 24 (After rearranging and cropping, the resulting height dimension must be positive)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= (shape(v_1, 1) * v_3 - v_2[0] - v_2[1]) > 0
+Rule 33 (crops tensor's shape should not be empty)
+{v_2 : tensor} |= shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0
 >>
-Rule 25 (After rearranging and cropping, the resulting width dimension must be positive)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= (shape(v_1, 2) * v_3 - v_2[2] - v_2[3]) > 0
+Rule 34 (if crops are zero, the height and width dimensions should still be valid after transformation)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if shape(v_2, 0) = 0 ∧ shape(v_2, 1) = 0 ∧ shape(v_2, 2) = 0 ∧ shape(v_2, 3) = 0 then shape(v_1, 1) * v_3 > 0 ∧ shape(v_1, 2) * v_3 > 0
 >>
-Rule 26 (Crops values must be less than block_size times the input shape)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= v_2[0] < v_3 * shape(v_1, 1) ∧ v_2[1] < v_3 * shape(v_1, 1) ∧ v_2[2] < v_3 * shape(v_1, 2) ∧ v_2[3] < v_3 * shape(v_1, 2)
+Rule 35 (block_size can not be zero)
+{v_3 : int} |= v_3 ≠ 0
 >>
-Rule 27 (The resulting height must be an integer)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= (shape(v_1, 1) * v_3 - v_2[0] - v_2[1]) % 1 = 0
+Rule 36 (crops tensor values should be small enough such that the output height and width are positive.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_1, 1) * v_3 - (shape(v_2, 0) + shape(v_2, 1)) > 0 ∧ shape(v_1, 2) * v_3 - (shape(v_2, 2) + shape(v_2, 3)) > 0
 >>
-Rule 28 (The resulting width must be an integer)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= (shape(v_1, 2) * v_3 - v_2[2] - v_2[3]) % 1 = 0
+Rule 37 (if any crop value is negative, return false.)
+{v_2 : tensor} |= if min(v_2) < 0 then false
 >>
-Rule 29 (block_size is a positive integer)
-{v_1 : int} |= v_1 > 0
+Rule 38 (batch size after transformation must be an integer)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (shape(v_1, 0) * (v_3 * v_3)) / (shape(v_1, 1) * v_3 + shape(v_2, 0) + shape(v_2, 1)) / (shape(v_1, 2) * v_3 + shape(v_2, 2) + shape(v_2, 3)) ≥ 0
 >>
-Rule 30 (The resulting height dimension is a positive integer)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= ((shape(v_1, 1) * v_3) - v_2[0] - v_2[1]) > 0 ∧ ((shape(v_1, 1) * v_3) - v_2[0] - v_2[1]) % 1 = 0
+Rule 39 (crops tensor can be empty with correct condition)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if shape(v_1, 1) * v_3 > 0 ∧ shape(v_1, 2) * v_3 > 0 ∧ shape(v_1, 0) % (v_3 * v_3) = 0 then true else shape(v_2, 0) > 0
 >>
-Rule 31 (The resulting width dimension is a positive integer)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= ((shape(v_1, 2) * v_3) - v_2[2] - v_2[3]) > 0 ∧ ((shape(v_1, 2) * v_3) - v_2[2] - v_2[3]) % 1 = 0
+Rule 40 (block_size should be less than the height and width dimension)
+{v_1 : tensor, v_3 : int} |= v_3 ≤ shape(v_1, 1) ∧ v_3 ≤ shape(v_1, 2)
 >>
-Rule 32 (crops is a 2x2 tensor)
-{v_1 : tensor} |= ndim(v_1) = 2 ∧ shape(v_1, 0) = 2 ∧ shape(v_1, 1) = 2
+Rule 43 (If block_shape divides the spatial dimensions of the input, the corresponding crops should be zero.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if (shape(v_1, 1) % v_3 = 0) then shape(v_2, 0) = 0 ∧ shape(v_2, 1) = 0
 >>
-Rule 34 (The first dimension of input must be batch_size * block_size * block_size)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) = v_2 * v_2 * (shape(v_1, 0) / (v_2 * v_2))
+Rule 45 (crops shape must satisfy certain condition)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_1, 1) * v_3 ≥ 0 ∧ shape(v_1, 2) * v_3 ≥ 0 ∧ shape(v_2, 0) ≥ 0 ∧ shape(v_2, 1) ≥ 0 ∧ shape(v_2, 2) ≥ 0 ∧ shape(v_2, 3) ≥ 0
 >>
-Rule 36 (The first dimension of input must be expressible as batch_size * block_size * block_size for some batch_size)
-{v_1 : tensor, v_2 : int} |= ∃batch_size ∈ [1, shape(v_1, 0)] : shape(v_1, 0) = batch_size * v_2 * v_2
+Rule 53 (transformed height must be integer)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (shape(v_1, 1) * v_3 - (shape(v_2, 0) + shape(v_2, 1))) ≥ 0
 >>
-Rule 37 (Input tensor must have a valid dtype)
-{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11
+Rule 54 (transformed width must be integer)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (shape(v_1, 2) * v_3 - (shape(v_2, 2) + shape(v_2, 3))) ≥ 0
+>>
+Rule 55 (the batch size transformation is valid)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ v_3 > 1 ∧ shape(v_1, 0) % (v_3*v_3) = 0 ∧ shape(v_2, 0) ≥ 0 ∧ shape(v_2, 1) ≥ 0 ∧ shape(v_2, 2) ≥ 0 ∧ shape(v_2, 3) ≥ 0 ∧ (shape(v_1, 1) * v_3 - (shape(v_2, 0) + shape(v_2, 1))) > 0 ∧ (shape(v_1, 2) * v_3 - (shape(v_2, 2) + shape(v_2, 3))) > 0
+>>
+Rule 56 (if crops top == crops bottom and crops left == crops right then batch to space transformation is area preserving on height and width.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if (shape(v_2, 0) = shape(v_2, 1)) ∧ (shape(v_2, 2) = shape(v_2, 3)) then (shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2)) = ((shape(v_1, 1) * v_3 - (shape(v_2, 0) + shape(v_2, 1))) * (shape(v_1, 2) * v_3 - (shape(v_2, 2) + shape(v_2, 3))) * (shape(v_1, 0) / (v_3 * v_3)))
+>>
+Rule 58 (block_size should be compatible with the input tensor's spatial dimensions, or the shape will be zero.)
+{v_1 : tensor, v_3 : int} |= if (shape(v_1, 1) = 0) ∨ (shape(v_1, 2) = 0) then v_3 > 0
+>>
+Rule 59 (Crops shape must not be larger than intermediate tensor shape)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (shape(v_2, 0) + shape(v_2, 1)) <= shape(v_1, 1) * v_3 ∧ (shape(v_2, 2) + shape(v_2, 3)) <= shape(v_1, 2) * v_3
+>>
+Rule 63 (Crops shape must not be larger than intermediate tensor shape)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (shape(v_2, 0) + shape(v_2, 1)) ≤ shape(v_1, 1) * v_3 ∧ (shape(v_2, 2) + shape(v_2, 3)) ≤ shape(v_1, 2) * v_3
+>>
+Rule 64 (Block size must be smaller than or equal to height pad or width pad)
+{v_1 : tensor, v_3 : int} |= v_3 ≤ shape(v_1, 1) ∨ v_3 ≤ shape(v_1, 2)
+>>
+Rule 65 (if the input is an empty tensor, crops must also be empty)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) = 0 ∧ shape(v_1, 1) = 0 ∧ shape(v_1, 2) = 0 ∧ shape(v_1, 3) = 0 then shape(v_2, 0) = 0 ∧ shape(v_2, 1) = 0
+>>
+Rule 66 (Crops shape must not be larger than intermediate tensor shape combined)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (shape(v_2, 0) + shape(v_2, 1)) + (shape(v_2, 2) + shape(v_2, 3)) <= shape(v_1, 1) * v_3 + shape(v_1, 2) * v_3
+>>
+Rule 67 (Shape of crops tensor must be less than or equal to 2)
+{v_2 : tensor} |= shape(v_2, 0) ≤ 2 ∧ shape(v_2, 1) ≤ 2
+>>
+Rule 68 (transformed batch must be greater than zero.)
+{v_1 : tensor, v_3 : int} |= (shape(v_1, 0) / (v_3 * v_3)) > 0
+>>
+Rule 69 (intermediate height and width must be positive.)
+{v_1 : tensor, v_3 : int} |= shape(v_1, 1) * v_3 > 0 ∧ shape(v_1, 2) * v_3 > 0
+>>
+Rule 70 (Block size must be a small positive number to have a valid shape)
+{v_3 : int} |= v_3 < 1000 ∧ v_3 > 1
+>>
+Rule 77 (If the sum of crop values exceed spatial dimension * block size, then return false)
+{v_1: tensor, v_2: tensor, v_3: int} |= if (shape(v_2, 0) + shape(v_2, 1) > shape(v_1, 1) * v_3) ∨ (shape(v_2, 2) + shape(v_2, 3) > shape(v_1, 2) * v_3) then false
+>>
+Rule 78 (Transformed height and width must have a positive area)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (shape(v_1, 1) * v_3 - (shape(v_2, 0) + shape(v_2, 1))) * (shape(v_1, 2) * v_3 - (shape(v_2, 2) + shape(v_2, 3))) > 0
+>>
+Rule 80 (If block_size is 1 then crops must be 0)
+{v_2 : tensor, v_3 : int} |= if v_3 = 1 then shape(v_2, 0) = 0 ∧ shape(v_2, 1) = 0 ∧ shape(v_2, 2) = 0 ∧ shape(v_2, 3) = 0
+>>
+Rule 81 (Crops must be positive)
+{v_2 : tensor} |= min(v_2) >= 0
+>>
+Rule 86 (batch transformed size must not be zero)
+{v_1 : tensor, v_3 : int} |= shape(v_1,0) / (v_3 * v_3) > 0
+>>
+Rule 87 (crops tensor must have non-empty shape)
+{v_2: tensor} |= shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0
+>>
+Rule 89 (output height and width have to be bigger or equal to 1.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (shape(v_1, 1) * v_3 - (shape(v_2, 0) + shape(v_2, 1))) ≥ 1 ∧ (shape(v_1, 2) * v_3 - (shape(v_2, 2) + shape(v_2, 3))) ≥ 1
+>>
+Rule 90 (if block_size does not divide the input height and width, then the new height/width can not be 0)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if shape(v_1, 1) % v_3 ≠ 0 ∨ shape(v_1, 2) % v_3 ≠ 0 then (shape(v_1, 1) * v_3 - (shape(v_2, 0) + shape(v_2, 1))) > 0 ∧ (shape(v_1, 2) * v_3 - (shape(v_2, 2) + shape(v_2, 3))) > 0
+>>
+Rule 92 (input tensor and crops tensor should have compatible dtypes)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4)
+>>
+Rule 96 (If the transformed batch, height, or width are 0, then output shape should be all zeros)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if (shape(v_1,0) / (v_3 * v_3) = 0) ∨ (shape(v_1, 1) * v_3 - (shape(v_2, 0) + shape(v_2, 1)) = 0) ∨ (shape(v_1, 2) * v_3 - (shape(v_2, 2) + shape(v_2, 3)) = 0) then shape(v_1,0) = 0 ∧ shape(v_1,1) = 0 ∧ shape(v_1,2) = 0 ∧ shape(v_1,3) = 0
+>>
+Rule 97 (Crops values cannot exceed the padded height and width values)
+{v_1: tensor, v_2: tensor, v_3: int} |= shape(v_2, 0) + shape(v_2, 1) <= shape(v_1, 1) * v_3 ∧ shape(v_2, 2) + shape(v_2, 3) <= shape(v_1, 2) * v_3
+>>
+Rule 98 (After transformation, if the number of elements in height or width is too big, throw error)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (shape(v_1, 1) * v_3 - (shape(v_2, 0) + shape(v_2, 1))) < 10000 ∧ (shape(v_1, 2) * v_3 - (shape(v_2, 2) + shape(v_2, 3))) < 10000
+>>
+Rule 100 (If input size is zero, then output has to be zero)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if (shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3)) = 0 then (shape(v_1, 1) * v_3 - (shape(v_2, 0) + shape(v_2, 1))) = 0 ∧ (shape(v_1, 2) * v_3 - (shape(v_2, 2) + shape(v_2, 3))) = 0 ∧ shape(v_1, 0) = 0
+>>
+Rule 102 ( transformed values cannot be negative)
+{v_1: tensor, v_2: tensor, v_3: int} |= (shape(v_1, 1) * v_3 - (shape(v_2, 0) + shape(v_2, 1))) >=0 ∧ (shape(v_1, 2) * v_3 - (shape(v_2, 2) + shape(v_2, 3))) >= 0
+>>
+Rule 104 (If input tensor has very large batch size, require crop tensor to be empty to avoid memory issue)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) > 100000 then shape(v_2, 0) = 0 ∧ shape(v_2, 1) = 0 ∧ shape(v_2, 2) = 0 ∧ shape(v_2, 3) = 0
+>>
+Rule 107 ( the transformation should result in positive dimension sizes)
+{v_1: tensor, v_2: tensor, v_3: int} |= ((shape(v_1, 1) * v_3) - (shape(v_2,0) + shape(v_2, 1))) > 0 ∧ ((shape(v_1, 2) * v_3) - (shape(v_2,2) + shape(v_2, 3))) > 0
+>>
+Rule 108 (transformed shape should not be too large (overflow prevention))
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (shape(v_1, 0) / (v_3 * v_3)) < 1000000 ∧ (shape(v_1, 1) * v_3 - (shape(v_2, 0) + shape(v_2, 1))) < 1000000 ∧ (shape(v_1, 2) * v_3 - (shape(v_2, 2) + shape(v_2, 3))) < 1000000
+>>
+Rule 109 (transformed height and width should be well-defined)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (shape(v_1, 1) * v_3 - (shape(v_2, 0) + shape(v_2, 1))) ≥ 0 ∧ (shape(v_1, 2) * v_3 - (shape(v_2, 2) + shape(v_2, 3))) ≥ 0
+>>
+Rule 110 (batch dimension cannot be zero if other dimensions are non-zero)
+{v_1 : tensor} |= if shape(v_1, 1) > 0 ∨ shape(v_1, 2) > 0 ∨ shape(v_1, 3) > 0 then shape(v_1, 0) > 0
+>>
+Rule 111 (if any of the dimensions are very big throw exception for runtime)
+{v_1 : tensor} |= shape(v_1, 0) < 1000000 ∧ shape(v_1, 1) < 1000000 ∧ shape(v_1, 2) < 1000000 ∧ shape(v_1, 3) < 1000000
+>>
+Rule 112 (block_size can not be too big)
+{v_3 : int} |= v_3 < 100000
+>>
+Rule 113 (transformed dimensions of the tensor must be representable by int32)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (shape(v_1, 1) * v_3 - (shape(v_2, 0) + shape(v_2, 1))) < 2147483647 ∧ (shape(v_1, 2) * v_3 - (shape(v_2, 2) + shape(v_2, 3))) < 2147483647
+>>
+Rule 115 (the crops can not have too many values.)
+{v_2 : tensor} |= shape(v_2, 0) < 1000 ∧ shape(v_2, 1) < 1000
+>>
+Rule 116 (if crop size is bigger than original dimensions, it should throw exception)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if shape(v_2, 0) > shape(v_1, 1) * v_3 ∨ shape(v_2, 1) > shape(v_1, 1) * v_3 ∨ shape(v_2, 2) > shape(v_1, 2) * v_3 ∨ shape(v_2, 3) > shape(v_1, 2) * v_3 then false
+>>
+Rule 117 (transformed size * transformed batch must not be too large.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (shape(v_1, 1) * v_3 - (shape(v_2, 0) + shape(v_2, 1))) * (shape(v_1, 2) * v_3 - (shape(v_2, 2) + shape(v_2, 3))) * (shape(v_1, 0) / (v_3*v_3)) < 1000000000
+>>
+Rule 126 (batch size is greater than 0)
+{v_1: tensor} |= shape(v_1, 0) > 0
+>>
+Rule 127 (shape[1] and shape[2] can not be 0 at the same time.)
+{v_1: tensor} |= shape(v_1, 1) > 0 ∨ shape(v_1, 2) > 0

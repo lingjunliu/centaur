@@ -8,8 +8,8 @@ from z3 import *
 # rtol should be non-negative (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] >= 0.0) if n else
-          v["arg1_value"] >= 0.0)
+    s.add(Not(v["arg1_value"] >= 0) if n else
+          v["arg1_value"] >= 0)
 )
 
 def rule_1_func(arg1, solver=None, neg=False):

@@ -1,117 +1,201 @@
 >>
-Rule 1 (input, min_range and max_range should be float32 tensors)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 7 ∧ dtype_(v_3) = 7
+Rule 1 (input, min_range and max_range should have the same dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
 >>
-Rule 2 (T should be a valid quantized dtype)
-{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 5 ∨ v_1 = 2 ∨ v_1 = 6 ∨ v_1 = 3
->>
-Rule 3 (mode should be a valid string)
-{v_1 : str} |= v_1 = "MIN_COMBINED" ∨ v_1 = "MIN_FIRST" ∨ v_1 = "SCALED"
->>
-Rule 4 (round_mode should be a valid string)
-{v_1 : str} |= v_1 = "HALF_AWAY_FROM_ZERO" ∨ v_1 = "HALF_TO_EVEN"
->>
-Rule 5 (narrow_range should be a boolean)
+Rule 2 (narrow_range should be either true or false)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 7 (ensure_minimum_range should be a float)
-{v_1 : float} |= v_1 ≥ 0.0
+Rule 3 (axis should be a non-negative integer)
+{v_1 : int} |= v_1 ≥ 0
 >>
-Rule 8 (min_range and max_range should be scalars if axis is not specified or -1)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 then ndim(v_1) = 0 ∧ ndim(v_2) = 0
+Rule 4 (ensure_minimum_range should be non-negative)
+{v_1 : float} |= v_1 ≥ 0
 >>
-Rule 9 (If axis is specified, min_range and max_range should be 1D tensors)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : int} |= if v_4 ≠ -1 then (ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_2, 0) = shape(v_1, v_4) ∧ shape(v_3, 0) = shape(v_1, v_4))
+Rule 5 (mode should be one of the specified strings)
+{v_1 : str} |= v_1 = "MIN_COMBINED" ∨ v_1 = "MIN_FIRST" ∨ v_1 = "SCALED"
 >>
-Rule 10 (min_range should be less than or equal to max_range)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) ≤ max(v_2)
+Rule 6 (round_mode should be one of the specified strings)
+{v_1 : str} |= v_1 = "HALF_AWAY_FROM_ZERO" ∨ v_1 = "HALF_TO_EVEN"
 >>
-Rule 11 (If axis is specified, ensure_minimum_range should be non-negative.)
-{v_1 : int, v_2 : float} |= if v_1 ≠ -1 then v_2 ≥ 0.0
+Rule 7 (input tensor should have non-zero dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 14 (If axis is specified, min_range and max_range should be 1D tensors and axis between -ndim(input) and ndim(input)-1)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : int} |= if v_4 ≠ -1 then (ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_2, 0) = shape(v_1, v_4) ∧ shape(v_3, 0) = shape(v_1, v_4) ∧ (-1 * ndim(v_1)) ≤ v_4 ∧ v_4 ≤ (ndim(v_1) - 1))
+Rule 10 (If axis is specified, min_range should be 1D tensor)
+{v_1 : int, v_2 : tensor} |= if v_1 ≥ 0 then ndim(v_2) = 1
 >>
-Rule 15 (min_range should be less than or equal to max_range considering each element)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≤ v_2[i]
+Rule 12 (If axis is specified, the dimension of min_range and input matches the axis dimension of the input)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 ≥ 0 then shape(v_2, 0) = shape(v_1, v_3)
 >>
-Rule 16 (If narrow range is true, the T dtype should be either int8 or uint8.)
-{v_1 : bool, v_2 : dtype} |= if v_1 = true then v_2 = 1 ∨ v_2 = 5
+Rule 14 (T should be one of the specific quantized dtypes)
+{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 5 ∨ v_1 = 3
 >>
-Rule 21 (Min range must be smaller than max range)
-{v_1: float, v_2: float} |= v_1 < v_2
+Rule 15 (min_range and max_range should be scalar if axis is not set)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 < 0 then ndim(v_1) = 0 ∧ ndim(v_2) = 0
 >>
-Rule 22 (min_range and max_range should be scalars if axis is not specified or -1 and input is a scalar)
-{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : tensor} |= if v_3 = -1 then ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ ndim(v_4) = 0
+Rule 16 (input tensor's dtype should be float32, which is represented by 7)
+{v_1 : tensor} |= dtype_(v_1) = 7
 >>
-Rule 23 (If axis is specified, min_range and max_range should be 1D tensors and axis between -ndim(input) and ndim(input)-1, and the length of range tensors must be greater than 0)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : int} |= if v_4 ≠ -1 then (ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_2, 0) = shape(v_1, v_4) ∧ shape(v_3, 0) = shape(v_1, v_4) ∧ (-1 * ndim(v_1)) ≤ v_4 ∧ v_4 ≤ (ndim(v_1) - 1) ∧ shape(v_2, 0) > 0 ∧ shape(v_3,0) > 0)
+Rule 17 (min_range should be less than max_range)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) < max(v_2)
 >>
-Rule 24 (The elements of min_range should be less than or equal to the corresponding elements of max_range)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≤ v_2[i]
+Rule 18 (If narrow_range is true, mode must be SCALED)
+{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 = "SCALED"
 >>
-Rule 25 (If narrow range is true, the T dtype should be either int8 or uint8, input tensor must be float and min_range and max_range must be float.)
-{v_1 : bool, v_2 : dtype, v_3 : tensor, v_4 : tensor, v_5: tensor} |= if v_1 = true then v_2 = 1 ∨ v_2 = 5 ∧ dtype_(v_3) = 7 ∧ dtype_(v_4) = 7 ∧ dtype_(v_5) = 7 else dtype_(v_3) = 7 ∧ dtype_(v_4) = 7 ∧ dtype_(v_5) = 7
+Rule 19 (if axis is not specified, min_range should be a scalar tensor)
+{v_1 : int, v_2 : tensor} |= if v_1 < 0 then ndim(v_2) = 0
 >>
-Rule 28 (If axis is specified, min_range and max_range should be 1D tensors and axis between -ndim(input) and ndim(input)-1, and the length of range tensors must be greater than 0. Check that the range tensors are actually float tensors.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : int} |= if v_4 ≠ -1 then (ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_2, 0) = shape(v_1, v_4) ∧ shape(v_3, 0) = shape(v_1, v_4) ∧ (-1 * ndim(v_1)) ≤ v_4 ∧ v_4 ≤ (ndim(v_1) - 1) ∧ shape(v_2, 0) > 0 ∧ shape(v_3,0) > 0 ∧ dtype_(v_2) = 7 ∧ dtype_(v_3) = 7)
+Rule 22 (If mode is SCALED, ensure_minimum_range should not affect behavior if it's close to the default value)
+{v_1 : str, v_2 : float} |= if v_1 = "SCALED" then v_2 ≤ 0.01
 >>
-Rule 29 (The elements of min_range should be less than or equal to the corresponding elements of max_range, min_range, max_range and input tensors must have the same first dimension and be one dimensional)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_2, 0) = shape(v_3, 0) ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≤ v_2[i]
+Rule 23 (if mode is not SCALED, narrow_range should not affect behavior)
+{v_1 : str, v_2 : bool} |= if v_1 ≠ "SCALED" then v_2 = false ∨ v_2 = true
 >>
-Rule 31 (If the mode is SCALED, the narrow_range parameter must be specified.)
-{v_1 : str, v_2 : bool} |= if v_1 = "SCALED" then v_2 = true ∨ v_2 = false
+Rule 24 (T must be a quantized dtype)
+{v_1: dtype} |= v_1 = 1 ∨ v_1 = 5 ∨ v_1 = 3
 >>
-Rule 35 (If narrow range is true, the T dtype should be either int8 or uint8, input tensor, min_range and max_range must be float tensors.)
-{v_1 : bool, v_2 : dtype, v_3 : tensor, v_4 : tensor, v_5: tensor} |= if v_1 = true then v_2 = 1 ∨ v_2 = 5 ∧ dtype_(v_3) = 7 ∧ dtype_(v_4) = 7 ∧ dtype_(v_5) = 7 else (dtype_(v_3) = 7 ∧ dtype_(v_4) = 7 ∧ dtype_(v_5) = 7)
+Rule 35 (Axis value should be within the valid range of input tensor dimensions using if-then-else)
+{v_1: tensor, v_2: int} |= if v_2 < (-1 * ndim(v_1)) then false else if v_2 > (ndim(v_1) -1) then false
 >>
-Rule 37 (ensure_minimum_range must be a non-negative float and input tensor has valid shape (no negative or zero dimension).)
-{v_1 : float, v_2: tensor} |= v_1 ≥ 0.0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+Rule 36 (Input, min_range, and max_range tensors must have the same shape.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)
 >>
-Rule 40 (The elements of min_range should be less than or equal to the corresponding elements of max_range. Check that min_range and max_range are tensors and the elements inside are float values)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≤ v_2[i] ∧ dtype_(v_1) = 7 ∧ dtype_(v_2) = 7
+Rule 37 (When axis is specified, it must be less than the number of dimensions in input)
+{v_1: tensor, v_2: int} |= if v_2 >= 0 then v_2 < ndim(v_1)
 >>
-Rule 45 (If axis is specified, min_range and max_range should be 1D tensors, axis should be a valid axis of input, and range tensors must be float tensors)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : int} |= if v_4 ≠ -1 then (ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_2, 0) = shape(v_1, v_4) ∧ shape(v_3, 0) = shape(v_1, v_4) ∧ (-1 * ndim(v_1)) ≤ v_4 ∧ v_4 ≤ (ndim(v_1) - 1) ∧ dtype_(v_2) = 7 ∧ dtype_(v_3) = 7)
+Rule 38 (When axis is specified, it must be greater than or equal to -number of dimensions in input)
+{v_1: tensor, v_2: int} |= if v_2 >= 0 then v_2 >= (-1 * ndim(v_1))
 >>
-Rule 47 (The input, min_range, and max_range must be float tensors.)
-{v_1 : tensor, v_2 : tensor, v_3: tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 7 ∧ dtype_(v_3) = 7
+Rule 39 (if round_mode is not specified, it should default to "HALF_AWAY_FROM_ZERO")
+{v_1: str} |= v_1 = "HALF_AWAY_FROM_ZERO" ∨ v_1 = "HALF_TO_EVEN"
 >>
-Rule 50 (When axis is not specified, the input, min_range and max_range must be scalar tensors of float type.)
-{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : tensor} |= if v_3 = -1 then ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ ndim(v_4) = 0 ∧ dtype_(v_1) = 7 ∧ dtype_(v_2) = 7 ∧ dtype_(v_4) = 7
+Rule 40 (min_range should be smaller or equal to max_range)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) <= max(v_2)
 >>
-Rule 51 (If axis is specified, min_range and max_range should be 1D tensors, axis should be a valid axis of input, and range tensors must be float tensors and input is also float type)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : int} |= if v_4 ≠ -1 then (ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_2, 0) = shape(v_1, v_4) ∧ shape(v_3, 0) = shape(v_1, v_4) ∧ (-1 * ndim(v_1)) ≤ v_4 ∧ v_4 ≤ (ndim(v_1) - 1) ∧ dtype_(v_2) = 7 ∧ dtype_(v_3) = 7 ∧ dtype_(v_1) = 7)
+Rule 42 (T must be a quantized dtype represented by integers 1,3,5)
+{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 3 ∨ v_1 = 5
 >>
-Rule 52 (The elements of min_range should be less than or equal to the corresponding elements of max_range, and min_range and max_range must be one-dimensional tensors)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≤ v_2[i]
+Rule 43 (axis should be less than ndim(input) when axis is non-negative)
+{v_1 : tensor, v_2 : int} |= if v_2 >= 0 then v_2 < ndim(v_1)
 >>
-Rule 53 (If narrow range is true, the T dtype should be either int8 or uint8, and T dtype must be a valid quantized type)
-{v_1 : bool, v_2 : dtype} |= if v_1 = true then v_2 = 1 ∨ v_2 = 5 else v_2 = 1 ∨ v_2 = 5 ∨ v_2 = 2 ∨ v_2 = 6 ∨ v_2 = 3
+Rule 44 (The dtypes of min_range and max_range must be float32, which is 7)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 7
 >>
-Rule 58 (The elements of min_range should be less than or equal to the corresponding elements of max_range, check ndim of input, min_range, max_range, and dtype of min_range, max_range)
-{v_1 : tensor, v_2 : tensor, v_3: tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≤ v_2[i] ∧ dtype_(v_1) = 7 ∧ dtype_(v_2) = 7
+Rule 45 (If mode is MIN_COMBINED or MIN_FIRST, narrow_range should be false)
+{v_1 : str, v_2 : bool} |= if v_1 = "MIN_COMBINED" ∨ v_1 = "MIN_FIRST" then v_2 = false
 >>
-Rule 60 (If the mode is SCALED, the narrow_range parameter must be specified and a boolean, and T dtype must be a valid quantized type)
-{v_1 : str, v_2 : bool, v_3 : dtype} |= if v_1 = "SCALED" then (v_2 = true ∨ v_2 = false) ∧ (v_3 = 1 ∨ v_3 = 5 ∨ v_3 = 2 ∨ v_3 = 6 ∨ v_3 = 3)
+Rule 47 (axis should be less than ndim(input) when axis is non-negative)
+{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then v_2 < ndim(v_1)
 >>
-Rule 63 (If axis is specified, min_range and max_range should be 1D tensors, axis should be a valid axis of input, and range tensors must be float tensors and input is also float type, round_mode must have valid value.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : int, v_5 : str} |= if v_4 ≠ -1 then (ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_2, 0) = shape(v_1, v_4) ∧ shape(v_3, 0) = shape(v_1, v_4) ∧ (-1 * ndim(v_1)) ≤ v_4 ∧ v_4 ≤ (ndim(v_1) - 1) ∧ dtype_(v_2) = 7 ∧ dtype_(v_3) = 7 ∧ dtype_(v_1) = 7 ∧ (v_5 = "HALF_AWAY_FROM_ZERO" ∨ v_5 = "HALF_TO_EVEN"))
+Rule 53 (axis should be in the range [-ndim(input), ndim(input)-1] when axis is non-negative)
+{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1))
 >>
-Rule 64 (The elements of min_range should be less than or equal to the corresponding elements of max_range, check ndim of input, min_range, max_range, and dtype of min_range, max_range)
-{v_1 : tensor, v_2 : tensor, v_3: tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 0 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≤ v_2[i] ∧ dtype_(v_1) = 7 ∧ dtype_(v_2) = 7
+Rule 59 (if mode is "SCALED" and narrow_range is true, the quantization range must be greater or equal than ensure_minimum_range.)
+{v_1: str, v_2: bool, v_3: float, v_4: tensor, v_5: tensor} |= if v_1 = "SCALED" ∧ v_2 = true then (max(v_5) - min(v_4)) ≥ v_3
 >>
-Rule 67 (ensure_minimum_range must be a non-negative float and mode is a valid string)
-{v_1 : float, v_2: str} |= v_1 ≥ 0.0 ∧ (v_2 = "MIN_COMBINED" ∨ v_2 = "MIN_FIRST" ∨ v_2 = "SCALED")
+Rule 60 (min_range should be finite)
+{v_1 : tensor} |= min(v_1) < 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 >>
-Rule 70 (The elements of min_range should be less than or equal to the corresponding elements of max_range, check ndim of min_range, max_range, and dtype of min_range, max_range)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≤ v_2[i] ∧ dtype_(v_1) = 7 ∧ dtype_(v_2) = 7
+Rule 61 (max_range should be finite)
+{v_1 : tensor} |= max(v_1) < 100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 >>
-Rule 74 (When axis is not specified, the input, min_range and max_range must be scalar tensors of float type. And mode should be a valid string)
-{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : tensor, v_5 : str} |= if v_3 = -1 then ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ ndim(v_4) = 0 ∧ dtype_(v_1) = 7 ∧ dtype_(v_2) = 7 ∧ dtype_(v_4) = 7 ∧ (v_5 = "MIN_COMBINED" ∨ v_5 = "MIN_FIRST" ∨ v_5 = "SCALED")
+Rule 62 (ensure_minimum_range should be a finite number.)
+{v_1 : float} |= v_1 < 100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 >>
-Rule 77 (If narrow range is true, the T dtype should be either int8 or uint8 and round_mode must be from valid list.)
-{v_1 : bool, v_2 : dtype, v_3: str} |= if v_1 = true then (v_2 = 1 ∨ v_2 = 5) ∧ (v_3 = "HALF_AWAY_FROM_ZERO" ∨ v_3 = "HALF_TO_EVEN") else (v_2 = 1 ∨ v_2 = 5 ∨ v_2 = 2 ∨ v_2 = 6 ∨ v_2 = 3)
+Rule 64 (min_range should be finite)
+{v_1 : tensor} |= min(v_1) < 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 >>
-Rule 78 (If the mode is SCALED, the narrow_range parameter must be specified and a boolean, T must be a valid quantized type and ensure_minimum_range is non-negative.)
-{v_1 : str, v_2 : bool, v_3 : dtype, v_4: float} |= if v_1 = "SCALED" then (v_2 = true ∨ v_2 = false) ∧ (v_3 = 1 ∨ v_3 = 5 ∨ v_3 = 2 ∨ v_3 = 6 ∨ v_3 = 3) ∧ v_4 ≥ 0.0
+Rule 65 (max_range should be finite)
+{v_1 : tensor} |= max(v_1) < 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+>>
+Rule 66 (ensure_minimum_range should be a finite number.)
+{v_1 : float} |= v_1 < 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+>>
+Rule 67 (mode value can be "MIN_COMBINED" or "MIN_FIRST" or "SCALED")
+{v_1: str} |= v_1 = "MIN_COMBINED" ∨ v_1 = "MIN_FIRST" ∨ v_1 = "SCALED"
+>>
+Rule 68 (min_range should be finite)
+{v_1 : tensor} |= min(v_1) < 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+>>
+Rule 73 (min_range values must be representable as float32 - avoid inf/nan)
+{v_1 : tensor} |= min(v_1) ≠ 1.0/0.0 ∧ min(v_1) ≠ (0.0/0.0)
+>>
+Rule 74 (max_range values must be representable as float32 - avoid inf/nan)
+{v_1 : tensor} |= max(v_1) ≠ 1.0/0.0 ∧ max(v_1) ≠ (0.0/0.0)
+>>
+Rule 75 (ensure_minimum_range must be representable as float32 - avoid inf/nan)
+{v_1 : float} |= v_1 ≠ 1.0/0.0 ∧ v_1 ≠ (0.0/0.0)
+>>
+Rule 83 (If axis is specified (not -1), min_range and max_range must be 1D tensors)
+{v_1: int, v_2: tensor, v_3: tensor} |= if v_1 ≠ -1 then ndim(v_2) = 1 ∧ ndim(v_3) = 1
+>>
+Rule 84 (The input tensor must have dtype of float32)
+{v_1: tensor} |= dtype_(v_1) = 7
+>>
+Rule 86 (Min range must be less than or equal to max range.)
+{v_1: tensor, v_2: tensor} |= min(v_1) <= max(v_2)
+>>
+Rule 87 (If the axis is negative, min_range and max_range should be scalar)
+{v_1: int, v_2: tensor, v_3: tensor} |= if v_1 < 0 then (ndim(v_2) = 0 ∧ ndim(v_3) = 0)
+>>
+Rule 88 (If mode is not scaled, narrow_range is false.)
+{v_1: str, v_2: bool} |= if v_1 ≠ "SCALED" then v_2 = false
+>>
+Rule 93 (If ensure_minimum_range is 0, the difference between min and max range should be >= 0)
+{v_1: float, v_2: tensor, v_3: tensor} |= if v_1 = 0.0 then (max(v_3) - min(v_2)) ≥ 0
+>>
+Rule 97 (If narrow_range is true, then mode must be SCALED)
+{v_1: bool, v_2: str} |= if v_1 = true then v_2 = "SCALED"
+>>
+Rule 99 (if mode is "SCALED", narrow_range can be true or false)
+{v_1: str, v_2: bool} |= if v_1 = "SCALED" then (v_2 = true ∨ v_2 = false)
+>>
+Rule 100 (Axis must be within the range of dimensions for the input tensor)
+{v_1: tensor, v_2: int} |= (v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∨ v_2 = -1
+>>
+Rule 101 (ensure_minimum_range has to be non-negative.)
+{v_1: float} |= v_1 >= 0
+>>
+Rule 102 (min_range and max_range cannot be infinite or NaN.)
+{v_1: tensor, v_2: tensor} |= min(v_1) ≠ (1.0 / 0.0) ∧ min(v_1) ≠ (0.0 / 0.0) ∧ max(v_2) ≠ (1.0 / 0.0) ∧ max(v_2) ≠ (0.0 / 0.0)
+>>
+Rule 103 (ensure_minimum_range has to be less than infinity.)
+{v_1: float} |= v_1 < (1.0/0.0)
+>>
+Rule 104 (ensure_minimum_range has to be less than infinity and cannot be NaN)
+{v_1: float} |= v_1 < (1.0/0.0) ∧ v_1 ≠ (0.0/0.0)
+>>
+Rule 106 (If T is qint8, quint8, qint16 or quint16 then T should have one dimension)
+{v_1: dtype} |= if v_1 = 1 ∨ v_1 = 5 ∨ v_1 = 2 then ndim(v_1) = 0
+>>
+Rule 107 (The minimum range has to be a valid float32 number (not infinite or NaN).)
+{v_1: tensor} |= min(v_1) ≠ (1.0 / 0.0) ∧ min(v_1) ≠ (0.0 / 0.0)
+>>
+Rule 108 (The maximum range has to be a valid float32 number (not infinite or NaN).)
+{v_1: tensor} |= max(v_1) ≠ (1.0 / 0.0) ∧ max(v_1) ≠ (0.0 / 0.0)
+>>
+Rule 113 (If axis is not -1, shape of min_range and max_range must match the input tensor at the axis dimension)
+{v_1: int, v_2: tensor, v_3: tensor, v_4: tensor} |= if v_1 ≠ -1 then shape(v_2, 0) = shape(v_4, v_1) ∧ shape(v_3, 0) = shape(v_4, v_1)
+>>
+Rule 114 (If ensure_minimum_range is not a valid number (infinite or NaN), it defaults to 0.01)
+{v_1: float} |= if v_1 = (1.0/0.0) ∨ v_1 = (0.0/0.0) then false
+>>
+Rule 115 (If T is qint8, quint8, qint32, qint16 or quint16 then T cannot have more than one dimension)
+{v_1: dtype} |= if v_1 = 1 ∨ v_1 = 5 ∨ v_1 = 3 then ndim(v_1) ≤ 0
+>>
+Rule 116 (If the range of input tensor's value are too small compared with ensure_minimum_range, then it is not valid)
+{v_1: tensor, v_2: tensor, v_3: float} |= if (max(v_2) - min(v_1)) < v_3 then false
+>>
+Rule 120 (If T is qint8, quint8, qint32, qint16 or quint16 then T cannot have more than zero dimensions)
+{v_1: dtype} |= if v_1 = 1 ∨ v_1 = 5 ∨ v_1 = 3 ∨ v_1 = 2 then ndim(v_1) = 0
+>>
+Rule 126 (If T is qint8, quint8, qint32, qint16 or quint16 then T cannot have more than zero dimensions)
+{v_1: dtype} |= if v_1 = 1 ∨ v_1 = 5 ∨ v_1 = 3 then ndim(v_1) = 0
+>>
+Rule 128 (When the axis is specified, the input, min_range, and max_range must have the same dtype)
+{v_1: tensor, v_2: tensor, v_3: int, v_4: tensor} |= if v_3 >= 0 then dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_4)
+>>
+Rule 129 (When the axis is specified, the min_range and max_range tensors should be 1D tensors and their shapes should match.)
+{v_1: int, v_2: tensor, v_3: tensor} |= if v_1 >= 0 then (ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_2, 0) = shape(v_3, 0))
+>>
+Rule 130 (if mode is "SCALED" and ensure_minimum_range is zero, then max(min_range) must be less or equal to max(max_range))
+{v_1: str, v_2: float, v_3: tensor, v_4: tensor} |= if v_1 = "SCALED" ∧ v_2 = 0.0 then min(v_3) ≤ max(v_4)

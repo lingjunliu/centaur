@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input is a int8, int16, int32, int64 or float16, float32, float64 type, the max value should not be greater than 65500 (Rule 34)
+# If tensor has a floating point dtype, its max value needs to be a valid float number (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), Select(v["arg1_range"], 1) <= 65500, False)) if n else
-          If(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), Select(v["arg1_range"], 1) <= 65500, False))
+    s.add(Not(If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), And(Select(v["arg1_range"], 1) < 10000000000, Select(v["arg1_range"], 1) > -10000000000), True)) if n else
+          If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), And(Select(v["arg1_range"], 1) < 10000000000, Select(v["arg1_range"], 1) > -10000000000), True))
 )
 
 def rule_34_func(arg1, solver=None, neg=False):

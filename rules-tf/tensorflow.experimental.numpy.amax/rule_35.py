@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If axis is an integer and the input is a vector, the axis must be 0 or -1 (Rule 35)
+# if axis is negative, it needs to be a valid index. (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 1, (Or(v["arg2_value"] == 0, v["arg2_value"] == (0 - 1))), False)) if n else
-          If(v["arg1_ndim"] == 1, (Or(v["arg2_value"] == 0, v["arg2_value"] == (0 - 1))), False))
+    s.add(Not(If(v["arg2_value"] < 0, v["arg2_value"] >= (0 - v["arg1_ndim"]), True)) if n else
+          If(v["arg2_value"] < 0, v["arg2_value"] >= (0 - v["arg1_ndim"]), True))
 )
 
 def rule_35_func(arg1, arg2, solver=None, neg=False):

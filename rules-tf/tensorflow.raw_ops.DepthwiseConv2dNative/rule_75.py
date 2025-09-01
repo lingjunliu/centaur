@@ -5,39 +5,35 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# batch dimension of the input and filter should be greater than 0 (Rule 75)
+# Strides values should be positive integers and have the constraint strides[0] = strides[3] = 1 (Rule 75)
 
 rule_75 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_shape"], 0) > 0, Select(v["arg2_shape"], 0) > 0)) if n else
-          And(Select(v["arg1_shape"], 0) > 0, Select(v["arg2_shape"], 0) > 0))
+    s.add(Not(And([Implies(i < (v["arg1_length"] - 2 + 1), And(And(And(Select(v["arg1_values"], i) > 0, v["arg1_length"] == 4), Select(v["arg1_values"], 0) == 1), Select(v["arg1_values"], 3) == 1)) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_length"] - 2 + 1), And(And(And(Select(v["arg1_values"], i) > 0, v["arg1_length"] == 4), Select(v["arg1_values"], 0) == 1), Select(v["arg1_values"], 3) == 1)) for i in range(6)]))
 )
 
-def rule_75_func(arg1, arg2, solver=None, neg=False):
+def rule_75_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
-            return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg1_length = Int('arg1_length')
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg1_length == len(arg1))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 75
-        rule_75(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape})
+        rule_75(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_75(solver, {'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape']}, neg)
+        rule_75(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length']}, neg)

@@ -1,69 +1,84 @@
 >>
-Rule 1 (input tensor must be of type float32 or float64)
-{v_1 : tensor} |= dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
+Rule 1 (input tensor must be float32 or float64 (types 7 or 8))
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 2 (fft_length must be a 1D tensor)
-{v_2 : tensor} |= ndim(v_2) = 1
+Rule 2 (fft_length must be a non-negative integer)
+{v_2 : int} |= v_2 ≥ 0
 >>
-Rule 3 (fft_length must have size 1)
-{v_2 : tensor} |= shape(v_2, 0) = 1
->>
-Rule 4 (fft_length must be of type int32)
-{v_2 : tensor} |= dtype_(v_2) = 3
+Rule 3 (fft_length shape must be [1])
+{v_2 : tensor} |= ndim(v_2) = 1 ∧ shape(v_2, 0) = 1
 >>
 Rule 5 (input tensor must have at least one dimension)
 {v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 6 (fft_length must be non-negative)
-{v_2 : tensor} |= min(v_2) ≥ 0
+Rule 6 (fft_length must be int32)
+{v_2: tensor} |= dtype_(v_2) = 4
 >>
-Rule 7 (fft_length converted to int must be greater than 0)
-{v_2 : tensor} |= v_2[0] > 0
+Rule 10 (fft_length must be an int32 tensor of shape [1])
+{v_2: tensor} |= dtype_(v_2) = 4 ∧ ndim(v_2) = 1 ∧ shape(v_2, 0) = 1
 >>
-Rule 9 (if fft_length is provided, its value must be less than or equal to the last dimension of the input)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then v_2[0] ≤ shape(v_1, ndim(v_1) - 1)
+Rule 11 (input tensor must be float32 or float64 and have at least one dimension)
+{v_1 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ ndim(v_1) ≥ 1
 >>
-Rule 10 (if fft_length is larger than the input dimension, the input is padded)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then if v_2[0] > shape(v_1, ndim(v_1) - 1) then true
+Rule 16 (fft_length must be an int32 tensor of shape [1] and input must be float32 or float64 with at least one dimension)
+{v_1 : tensor, v_2: tensor} |= dtype_(v_2) = 4 ∧ ndim(v_2) = 1 ∧ shape(v_2, 0) = 1 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ ndim(v_1) ≥ 1
 >>
-Rule 11 (input tensor dtype must be float32 or float64)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
->>
-Rule 12 (fft_length tensor must have non-negative values)
-{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0
->>
-Rule 14 (if input is empty tensor, fft_length should not be specified)
-{v_1 : tensor} |= if ndim(v_1) = 0 then true
->>
-Rule 15 (fft_length tensor must have positive values)
-{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] > 0
->>
-Rule 18 (if fft_length is provided and is smaller than input, crop the dimension)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then if v_2[0] < shape(v_1, ndim(v_1) - 1) then true
->>
-Rule 22 (fft_length value must be representable by int32)
-{v_2 : tensor} |= min(v_2) ≥ -2147483648 ∧ max(v_2) ≤ 2147483647
->>
-Rule 23 (If fft_length is not provided, the length of the last dimension of input must be representable by int32)
-{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, ndim(v_1)-1) ≥ -2147483648 ∧ shape(v_1, ndim(v_1)-1) ≤ 2147483647
->>
-Rule 25 (if fft_length is present the shape must be 1)
+Rule 20 (fft_length must be a 1D tensor)
 {v_2: tensor} |= ndim(v_2) = 1
 >>
-Rule 30 (The last dimension of the input must exist)
-{v_1: tensor} |= if ndim(v_1) > 0 then true else false
+Rule 21 (fft_length must have shape [1])
+{v_2: tensor} |= shape(v_2, 0) = 1
 >>
-Rule 33 (if fft_length is provided, then the last dimension of the output tensor will be v_2[0]/2+1, and this value must be positive)
-{v_2 : tensor} |= if v_2[0] > 0 then v_2[0] / 2 + 1 > 0
+Rule 22 (input must be either float32 or float64 tensor)
+{v_1: tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 34 (if fft_length is provided, then it must be smaller than 2 * max int32)
-{v_2 : tensor} |= if v_2[0] > 0 then v_2[0] < 4294967294
+Rule 23 (fft_length must be a 1D tensor of type int32 and input must be either float32 or float64)
+{v_1: tensor, v_2: tensor} |= dtype_(v_2) = 4 ∧ ndim(v_2) = 1 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
 >>
-Rule 35 (if fft_length is provided, then it must be less than the maximum value that int32 can hold to prevent overflow when calculating output shape)
-{v_2 : tensor} |= v_2[0] < 2147483647
+Rule 25 (fft_length must be a 1D tensor of type int32 and input must be either float32 or float64)
+{v_1: tensor, v_2: tensor} |= dtype_(v_2) = 4 ∧ ndim(v_2) = 1 ∧ shape(v_2,0) = 1 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
 >>
-Rule 36 (the returned tensor must have type complex64 or complex128)
-{v_1: tensor} |= dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+Rule 26 (fft_length must be a 1D tensor of type int32)
+{v_2: tensor} |= dtype_(v_2) = 4 ∧ ndim(v_2) = 1
 >>
-Rule 37 (if input is float32, then output is complex64, if input is float64, output is complex128)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then true else if dtype_(v_1) = 8 then true else false
+Rule 27 (fft_length must have shape [1])
+{v_2: tensor} |= shape(v_2,0) = 1
+>>
+Rule 30 (fft_length must be a 1D tensor of type int32 and input must be either float32 or float64)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_2) = 4 ∧ ndim(v_2) = 1 ∧ shape(v_2,0) = 1) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 36 (fft_length must be a 1D tensor of type int32 and input must be either float32 or float64)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_2) = 4) ∧ (ndim(v_2) = 1) ∧ (shape(v_2, 0) = 1) ∧ ((dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8))
+>>
+Rule 43 (fft_length must be a 1D tensor of type int32 with shape [1], and input must be float32 or float64)
+{v_input: tensor, v_fft_length: tensor} |= (dtype_(v_fft_length) = 4) ∧ (ndim(v_fft_length) = 1) ∧ (shape(v_fft_length, 0) = 1) ∧ ((dtype_(v_input) = 7) ∨ (dtype_(v_input) = 8))
+>>
+Rule 44 (fft_length must be a 1D tensor of type int32 and input must be either float32 or float64)
+{input_tensor: tensor, fft_length: tensor} |= (dtype_(fft_length) = 4) ∧ (ndim(fft_length) = 1) ∧ (shape(fft_length, 0) = 1) ∧ ((dtype_(input_tensor) = 7) ∨ (dtype_(input_tensor) = 8))
+>>
+Rule 45 (fft_length must be a 1D tensor of type int32 with shape [1], and input must be float32 or float64 and fft_length must be non-negative)
+{input_tensor: tensor, fft_length: tensor} |= (dtype_(fft_length) = 4) ∧ (ndim(fft_length) = 1) ∧ (shape(fft_length, 0) = 1) ∧ ((dtype_(input_tensor) = 7) ∨ (dtype_(input_tensor) = 8)) ∧ (min(fft_length) >= 0)
+>>
+Rule 46 (fft_length must be a 1D tensor of type int32 with shape [1], and input must be float32 or float64 and all elements in fft_length tensor must be non-negative)
+{input_tensor: tensor, fft_length: tensor} |= (dtype_(fft_length) = 4) ∧ (ndim(fft_length) = 1) ∧ (shape(fft_length, 0) = 1) ∧ ((dtype_(input_tensor) = 7) ∨ (dtype_(input_tensor) = 8)) ∧ (∀i ∈ [0, 0] : fft_length[i] ≥ 0)
+>>
+Rule 47 (fft_length must be a 1D tensor of type int32 with shape [1], and input must be float32 or float64 and all elements in fft_length tensor must be non-negative)
+{input_tensor: tensor, fft_length: tensor} |= (dtype_(fft_length) = 4) ∧ (ndim(fft_length) = 1) ∧ (shape(fft_length, 0) = 1) ∧ ((dtype_(input_tensor) = 7) ∨ (dtype_(input_tensor) = 8)) ∧ (∀i ∈ [0, shape(fft_length, 0) -1] : fft_length[i] ≥ 0)
+>>
+Rule 48 (fft_length must be a 1D tensor of type int32 with shape [1], and input must be float32 or float64 and all elements in fft_length tensor must be non-negative and input tensor must have at least 1 dimension)
+{input_tensor: tensor, fft_length: tensor} |= (dtype_(fft_length) = 4) ∧ (ndim(fft_length) = 1) ∧ (shape(fft_length, 0) = 1) ∧ ((dtype_(input_tensor) = 7) ∨ (dtype_(input_tensor) = 8)) ∧ (∀i ∈ [0, shape(fft_length, 0) -1] : fft_length[i] ≥ 0) ∧ (ndim(input_tensor) >= 1)
+>>
+Rule 49 (fft_length must be a 1D tensor of type int32 with shape [1], and input must be float32 or float64 and all elements in fft_length tensor must be non-negative and input tensor must have at least 1 dimension and fft_length must be less than shape of input tensor's last dim)
+{input_tensor: tensor, fft_length: tensor} |= (dtype_(fft_length) = 4) ∧ (ndim(fft_length) = 1) ∧ (shape(fft_length, 0) = 1) ∧ ((dtype_(input_tensor) = 7) ∨ (dtype_(input_tensor) = 8)) ∧ (∀i ∈ [0, shape(fft_length, 0) -1] : fft_length[i] ≥ 0) ∧ (ndim(input_tensor) >= 1) ∧ (fft_length[0] <= shape(input_tensor, ndim(input_tensor) - 1))
+>>
+Rule 50 (fft_length must be a 1D tensor of type int32 with shape [1], and input must be float32 or float64 and all elements in fft_length tensor must be non-negative and input tensor must have at least 1 dimension and fft_length's value must be less than or equal to the shape of input tensor's last dimension)
+{input_tensor: tensor, fft_length: tensor} |= (dtype_(fft_length) = 4) ∧ (ndim(fft_length) = 1) ∧ (shape(fft_length, 0) = 1) ∧ ((dtype_(input_tensor) = 7) ∨ (dtype_(input_tensor) = 8)) ∧ (∀i ∈ [0, shape(fft_length, 0) -1] : fft_length[i] ≥ 0) ∧ (ndim(input_tensor) >= 1) ∧ (fft_length[0] ≤ shape(input_tensor, ndim(input_tensor) - 1))
+>>
+Rule 52 (fft_length must be a 1D tensor of type int32 with shape [1], and input must be float32 or float64 and the single element in fft_length tensor must be non-negative and less or equal to the last dimension of input tensor)
+{input_tensor: tensor, fft_length: tensor} |= (dtype_(fft_length) = 4) ∧ (ndim(fft_length) = 1) ∧ (shape(fft_length, 0) = 1) ∧ ((dtype_(input_tensor) = 7) ∨ (dtype_(input_tensor) = 8)) ∧ (fft_length[0] ≥ 0) ∧ (fft_length[0] ≤ shape(input_tensor, ndim(input_tensor) - 1))
+>>
+Rule 53 (fft_length must be a 1D tensor of type int32 with shape [1], input must be float32 or float64, the value in fft_length must be non-negative and less than or equal to the shape of input tensor's last dim and input tensor must not be empty)
+{input_tensor: tensor, fft_length: tensor} |= (dtype_(fft_length) = 4) ∧ (ndim(fft_length) = 1) ∧ (shape(fft_length, 0) = 1) ∧ ((dtype_(input_tensor) = 7) ∨ (dtype_(input_tensor) = 8)) ∧ (fft_length[0] ≥ 0) ∧ (fft_length[0] ≤ shape(input_tensor, ndim(input_tensor) - 1)) ∧ ∀i ∈ [0, ndim(input_tensor) -1] : shape(input_tensor, i) > 0
+>>
+Rule 54 (fft_length must be a 1D tensor of type int32 with shape [1], input must be float32 or float64, the value in fft_length must be non-negative and less or equal to the size of the innermost dimension of the input tensor)
+{input_tensor: tensor, fft_length: tensor} |= (dtype_(fft_length) = 4) ∧ (ndim(fft_length) = 1) ∧ (shape(fft_length, 0) = 1) ∧ ((dtype_(input_tensor) = 7 ∨ dtype_(input_tensor) = 8)) ∧ (fft_length[0] ≥ 0) ∧ (fft_length[0] ≤ shape(input_tensor, ndim(input_tensor) - 1))

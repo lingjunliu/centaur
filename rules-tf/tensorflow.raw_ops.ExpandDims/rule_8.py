@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The rank of input tensor plus one must be smaller than 32 (Rule 8)
+# input tensor must have at least one dimension (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] + 1 < 32) if n else
-          v["arg1_ndim"] + 1 < 32)
+    s.add(Not(v["arg1_ndim"] >= 1) if n else
+          v["arg1_ndim"] >= 1)
 )
 
 def rule_8_func(arg1, solver=None, neg=False):

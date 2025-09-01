@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Input tensors should have the same dtype (Rule 1)
+# input tensors must have integer dtype (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
-          v["arg1_dtype"] == v["arg2_dtype"])
+    s.add(Not(And(And(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), 1 <= v["arg2_dtype"]), v["arg2_dtype"] <= 5)) if n else
+          And(And(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), 1 <= v["arg2_dtype"]), v["arg2_dtype"] <= 5))
 )
 
 def rule_1_func(arg1, arg2, solver=None, neg=False):

@@ -1,0 +1,46 @@
+import numpy as np
+import torch 
+import tensorflow as tf
+
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
+from z3 import *
+
+# Number of axes in list must be less than or equal to ndim of the tensors a and b (Rule 40)
+
+rule_40 = lambda s, v, n=False: (
+    s.add(Not(And(v["arg3_length"] <= v["arg1_ndim"], v["arg3_length"] <= v["arg2_ndim"])) if n else
+          And(v["arg3_length"] <= v["arg1_ndim"], v["arg3_length"] <= v["arg2_ndim"]))
+)
+
+def rule_40_func(arg1, arg2, arg3, solver=None, neg=False):
+    arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
+
+    # Invariant learning phase
+    if not solver:
+        if not isinstance(arg1, np.ndarray):
+            return False
+        if not isinstance(arg2, np.ndarray):
+            return False
+        if not (isinstance(arg3, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg3)):
+            return False
+
+        # Variable declarations
+        solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
+        arg2_ndim = Int('arg2_ndim')
+        arg3_length = Int('arg3_length')
+
+        # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg3_length == len(arg3))
+
+        # Constraints for rule 40
+        rule_40(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg3_length': arg3_length})
+        return solver.check() == sat
+
+    # Fuzz input generation phase
+    else:
+        rule_40(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg3_length': arg3['length']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Input tensor should be within specific range (Rule 79)
+# if input tensor is integer, then it's range (max - min (Rule 79)
 
 rule_79 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 7), And(Select(v["arg1_range"], 0) >= -1000, Select(v["arg1_range"], 1) <= 1000), False)) if n else
-          If(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 7), And(Select(v["arg1_range"], 0) >= -1000, Select(v["arg1_range"], 1) <= 1000), False))
+    s.add(Not(If(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), Select(v["arg1_range"], 1) - Select(v["arg1_range"], 0) <= 4294967295, True)) if n else
+          If(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), Select(v["arg1_range"], 1) - Select(v["arg1_range"], 0) <= 4294967295, True))
 )
 
 def rule_79_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_79_func(arg1, solver=None, neg=False):
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 79
-        rule_79(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_79(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_79(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_79(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)

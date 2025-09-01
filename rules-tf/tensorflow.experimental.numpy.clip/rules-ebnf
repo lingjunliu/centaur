@@ -1,54 +1,90 @@
 >>
-Rule 3 (If clip_value_min is provided, its dtype must be the same as the input tensor's dtype)
-{v_1 : tensor, v_2 : int ⊎ float} |= dtype_(v_1) = dtype_(v_2)
+Rule 1 (Input tensor a's ndim should be greater than 0)
+{a : tensor} |= ndim(a) > 0
 >>
-Rule 5 (If clip_value_min and clip_value_max are both provided, their dtypes must be the same)
-{v_1 : int ⊎ float, v_2 : int ⊎ float} |= dtype_(v_1) = dtype_(v_2)
+Rule 2 (a_min should be less than or equal to a_max)
+{a_min : tensor, a_max : tensor} |= max(a_min) ≤ min(a_max)
 >>
-Rule 6 (If clip_value_min and clip_value_max are provided, they should have the same number of dimensions when these are tensors)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 3 (The dtypes of a, a_min, and a_max should be the same)
+{a : tensor, a_min : tensor, a_max : tensor} |= dtype_(a) = dtype_(a_min) ∧ dtype_(a) = dtype_(a_max)
 >>
-Rule 7 (clip_value_min must be less than or equal to clip_value_max when both are provided)
-{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+Rule 7 (a_min should be a tensor and a_max should be a tensor)
+{a_min : tensor, a_max : tensor} |= ndim(a_min) ≥ 0 ∧ ndim(a_max) ≥ 0
 >>
-Rule 8 (The input tensor and clip_value_min must have compatible shapes for broadcasting)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ ndim(v_2) then true else ∃i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_2, i) = 1
+Rule 14 (If a_min and a_max are scalars, then a's dtype should be numeric)
+{a : tensor, a_min : tensor, a_max : tensor} |= if ndim(a_min) = 0 ∧ ndim(a_max) = 0 then (dtype_(a) = 1 ∨ dtype_(a) = 2 ∨ dtype_(a) = 3 ∨ dtype_(a) = 4 ∨ dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 9 ∨ dtype_(a) = 10)
 >>
-Rule 10 (If clip_value_min is a tensor, its dtype must be the same as the input tensor's dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 15 (If a_min is not None, then a_min's shape should be broadcastable to a's shape)
+{a : tensor, a_min : tensor} |= if ndim(a_min) ≠ -1 then (∀i ∈ [0, ndim(a_min) - 1] : (shape(a_min, i) = shape(a, i) ∨ shape(a_min, i) = 1))
 >>
-Rule 19 (If clip_value_min is a tensor, its shape must be broadcastable to the input tensor's shape)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ ndim(v_2) then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, ndim(v_1)-ndim(v_2)+i) ∨ shape(v_2, i) = 1 else ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, ndim(v_2)-ndim(v_1)+i) ∨ shape(v_1, i) = 1
+Rule 16 (If a_max is not None, then a_max's shape should be broadcastable to a's shape)
+{a : tensor, a_max : tensor} |= if ndim(a_max) ≠ -1 then (∀i ∈ [0, ndim(a_max) - 1] : (shape(a_max, i) = shape(a, i) ∨ shape(a_max, i) = 1))
 >>
-Rule 25 (if clip_value_min and clip_value_max are tensors, input tensor should have same ndim as them)
-{v_1: tensor, v_2: tensor, v_3: tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3)
+Rule 18 (If a_min and a_max are both present, the shape of a_min should be broadcastable to the shape of a_max.)
+{a_min : tensor, a_max : tensor} |= if ndim(a_min) ≠ -1 ∧ ndim(a_max) ≠ -1 then (∀i ∈ [0, ndim(a_min) - 1] : (shape(a_min, i) = shape(a_max, i) ∨ shape(a_min, i) = 1))
 >>
-Rule 28 (if clip_value_min and clip_value_max are provided, they should have the same shape)
-{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 19 (If a_min is provided, then a_min's dtype must match a's dtype)
+{a : tensor, a_min : tensor} |= if ndim(a_min) ≠ -1 then (dtype_(a) = dtype_(a_min))
 >>
-Rule 30 (if clip_value_min and clip_value_max are provided as tensors, their dtypes should be equal)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 20 (If a_max is provided, then a_max's dtype must match a's dtype)
+{a : tensor, a_max : tensor} |= if ndim(a_max) ≠ -1 then (dtype_(a) = dtype_(a_max))
 >>
-Rule 33 (input is not complex)
-{v_1: tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Rule 21 (If a_min's ndim is not zero, then a's ndim should be equal to a_min's ndim)
+{a : tensor, a_min : tensor} |= if ndim(a_min) ≠ 0 then ndim(a) = ndim(a_min)
 >>
-Rule 34 (clip value should not be boolean)
-{v_1: tensor} |= dtype_(v_1) ≠ 0
+Rule 22 (If a_max's ndim is not zero, then a's ndim should be equal to a_max's ndim)
+{a : tensor, a_max : tensor} |= if ndim(a_max) ≠ 0 then ndim(a) = ndim(a_max)
 >>
-Rule 36 (if clip_value_min is None, then clip_value_max must be provided)
-{v_1: int} |= v_1 ≠ -1
+Rule 23 (If a_min is a scalar and a_max is a scalar, then a's shape should be greater than 0)
+{a : tensor, a_min : tensor, a_max : tensor} |= if ndim(a_min) = 0 ∧ ndim(a_max) = 0 then (∀i ∈ [0, ndim(a) - 1] : shape(a, i) > 0)
 >>
-Rule 40 (If only clip_value_min is not None (represented by -1), then it should be less than or equal to maximum value)
-{v_1: int, v_2: int ⊎ float} |= if v_1 ≠ -1 then v_1 ≤ v_2
+Rule 24 (If a is a scalar, a_min and a_max must also be scalars)
+{a : tensor, a_min : tensor, a_max : tensor} |= if ndim(a) = 0 then (ndim(a_min) = 0 ∧ ndim(a_max) = 0)
 >>
-Rule 41 (If only clip_value_max is not None (represented by -1), then it should be greater than or equal to minimum value)
-{v_1: int, v_2: int ⊎ float} |= if v_1 ≠ -1 then v_1 ≥ v_2
+Rule 26 (If a_min is a scalar, all values in a should be greater or equal to a_min)
+{a : tensor, a_min : tensor} |= if ndim(a_min) = 0 then (∀i ∈ [0, ndim(a) -1] : ∃j ∈ [0, shape(a, i)-1]: a[j] ≥ min(a_min) )
 >>
-Rule 42 (if clip_value_min and clip_value_max are provided, they must have compatible dtypes with input and must be same dtype)
-{v_1 : tensor, v_2 : int ⊎ float ⊎ tensor, v_3 : int ⊎ float ⊎ tensor} |= if v_2 = v_3 then true else if dtype_(v_1) = dtype_(v_2) then true else if dtype_(v_1) = dtype_(v_3) then true else false
+Rule 32 (If a_min is a scalar, all values in a should be greater or equal to a_min)
+{a : tensor, a_min : tensor} |= if ndim(a_min) = 0 then min(a) ≥ min(a_min)
 >>
-Rule 48 (If both clip_value_min and clip_value_max are tensors, shapes need to be broadcastable)
-{v_1: tensor, v_2: tensor} |= if ndim(v_1) ≥ ndim(v_2) then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, ndim(v_1)-ndim(v_2)+i) ∨ shape(v_2, i) = 1 else ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, ndim(v_2)-ndim(v_1)+i) ∨ shape(v_1, i) = 1
+Rule 39 (If a_min and a_max are provided a should have the same shape as the broadcast shape)
+{a : tensor, a_min : tensor, a_max : tensor} |= if ndim(a_min) > 0 ∧ ndim(a_max) > 0 then (∀i ∈ [0, ndim(a)-1] : shape(a, i) = shape(a_min, i) ∨ shape(a, i) = shape(a_max, i) ∨ shape(a_min, i) = 1 ∨ shape(a_max, i) = 1)
 >>
-Rule 54 (Input should not be boolean tensor)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 43 (if a_min and a_max have the same shape, it must be broadcastable with a)
+{a : tensor, a_min : tensor, a_max : tensor} |= if ndim(a_min) > 0 ∧ ndim(a_max) > 0 ∧ (ndim(a_min) = ndim(a_max) ∧ (∀i ∈ [0, ndim(a_min) - 1]: shape(a_min, i) = shape(a_max, i))) then (∀i ∈ [0, ndim(a) - 1] : (shape(a, i) = shape(a_min, i) ∨ shape(a_min, i) = 1))
+>>
+Rule 45 (If the dtype of a is an integer type, then a_min and a_max must also be integer type, if scalars.)
+{a : tensor, a_min : tensor, a_max : tensor} |= if (dtype_(a) = 1 ∨ dtype_(a) = 2 ∨ dtype_(a) = 3 ∨ dtype_(a) = 4 ∨ dtype_(a) = 5) then ((if ndim(a_min) = 0 then (dtype_(a_min) = 1 ∨ dtype_(a_min) = 2 ∨ dtype_(a_min) = 3 ∨ dtype_(a_min) = 4 ∨ dtype_(a_min) = 5)) ∧ (if ndim(a_max) = 0 then (dtype_(a_max) = 1 ∨ dtype_(a_max) = 2 ∨ dtype_(a_max) = 3 ∨ dtype_(a_max) = 4 ∨ dtype_(a_max) = 5)))
+>>
+Rule 46 (If the dtype of a is floating point type, then a_min and a_max must also be floating point type, if scalars.)
+{a : tensor, a_min : tensor, a_max : tensor} |= if (dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 9 ∨ dtype_(a) = 10) then ((if ndim(a_min) = 0 then (dtype_(a_min) = 6 ∨ dtype_(a_min) = 7 ∨ dtype_(a_min) = 8 ∨ dtype_(a_min) = 9 ∨ dtype_(a_min) = 10)) ∧ (if ndim(a_max) = 0 then (dtype_(a_max) = 6 ∨ dtype_(a_max) = 7 ∨ dtype_(a_max) = 8 ∨ dtype_(a_max) = 9 ∨ dtype_(a_max) = 10)))
+>>
+Rule 51 (a_min cannot be greater than a_max)
+{a_min: tensor, a_max: tensor} |= max(a_min) <= min(a_max)
+>>
+Rule 53 (If a's dtype is integer-like and a_min is a scalar, then a_min's dtype must be integer-like)
+{a : tensor, a_min : tensor} |= if (dtype_(a) = 1 ∨ dtype_(a) = 2 ∨ dtype_(a) = 3 ∨ dtype_(a) = 4 ∨ dtype_(a) = 5) ∧ ndim(a_min) = 0 then (dtype_(a_min) = 1 ∨ dtype_(a_min) = 2 ∨ dtype_(a_min) = 3 ∨ dtype_(a_min) = 4 ∨ dtype_(a_min) = 5)
+>>
+Rule 54 (If a's dtype is float-like and a_min is a scalar, then a_min's dtype must be float-like)
+{a : tensor, a_min : tensor} |= if (dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 9 ∨ dtype_(a) = 10) ∧ ndim(a_min) = 0 then (dtype_(a_min) = 6 ∨ dtype_(a_min) = 7 ∨ dtype_(a_min) = 8 ∨ dtype_(a_min) = 9 ∨ dtype_(a_min) = 10)
+>>
+Rule 55 (If a's dtype is integer-like and a_max is a scalar, then a_max's dtype must be integer-like)
+{a : tensor, a_max : tensor} |= if (dtype_(a) = 1 ∨ dtype_(a) = 2 ∨ dtype_(a) = 3 ∨ dtype_(a) = 4 ∨ dtype_(a) = 5) ∧ ndim(a_max) = 0 then (dtype_(a_max) = 1 ∨ dtype_(a_max) = 2 ∨ dtype_(a_max) = 3 ∨ dtype_(a_max) = 4 ∨ dtype_(a_max) = 5)
+>>
+Rule 56 (If a's dtype is float-like and a_max is a scalar, then a_max's dtype must be float-like)
+{a : tensor, a_max : tensor} |= if (dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 9 ∨ dtype_(a) = 10) ∧ ndim(a_max) = 0 then (dtype_(a_max) = 6 ∨ dtype_(a_max) = 7 ∨ dtype_(a_max) = 8 ∨ dtype_(a_max) = 9 ∨ dtype_(a_max) = 10)
+>>
+Rule 60 (If a_min and a_max are not scalars, then they should have the same shape)
+{a_min : tensor, a_max : tensor} |= if ndim(a_min) ≠ 0 ∧ ndim(a_max) ≠ 0 then (ndim(a_min) = ndim(a_max) ∧ (∀i ∈ [0, ndim(a_min) - 1] : shape(a_min, i) = shape(a_max, i)))
+>>
+Rule 62 (If the dtype of a is an integer type, and if a_min is provided, then a_min's dtype must be an integer type)
+{a : tensor, a_min : tensor} |= if (dtype_(a) = 1 ∨ dtype_(a) = 2 ∨ dtype_(a) = 3 ∨ dtype_(a) = 4 ∨ dtype_(a) = 5) then (if ndim(a_min) = 0 then (dtype_(a_min) = 1 ∨ dtype_(a_min) = 2 ∨ dtype_(a_min) = 3 ∨ dtype_(a_min) = 4 ∨ dtype_(a_min) = 5))
+>>
+Rule 63 (If the dtype of a is floating point type, and if a_min is provided, then a_min's dtype must be floating point type)
+{a : tensor, a_min : tensor} |= if (dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 9 ∨ dtype_(a) = 10) then (if ndim(a_min) = 0 then (dtype_(a_min) = 6 ∨ dtype_(a_min) = 7 ∨ dtype_(a_min) = 8 ∨ dtype_(a_min) = 9 ∨ dtype_(a_min) = 10))
+>>
+Rule 64 (If the dtype of a is an integer type, and if a_max is provided, then a_max's dtype must be an integer type)
+{a : tensor, a_max : tensor} |= if (dtype_(a) = 1 ∨ dtype_(a) = 2 ∨ dtype_(a) = 3 ∨ dtype_(a) = 4 ∨ dtype_(a) = 5) then (if ndim(a_max) = 0 then (dtype_(a_max) = 1 ∨ dtype_(a_max) = 2 ∨ dtype_(a_max) = 3 ∨ dtype_(a_max) = 4 ∨ dtype_(a_max) = 5))
+>>
+Rule 65 (If the dtype of a is floating point type, and if a_max is provided, then a_max's dtype must be floating point type)
+{a : tensor, a_max : tensor} |= if (dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8 ∨ dtype_(a) = 9 ∨ dtype_(a) = 10) then (if ndim(a_max) = 0 then (dtype_(a_max) = 6 ∨ dtype_(a_max) = 7 ∨ dtype_(a_max) = 8 ∨ dtype_(a_max) = 9 ∨ dtype_(a_max) = 10))

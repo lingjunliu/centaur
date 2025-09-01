@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the first tensor's dtype is complex64, the second tensor's dtype cannot be bool (Rule 21)
+# If x1's dtype is int, x2's dtype should be int. (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 9, v["arg2_dtype"] != 0, False)) if n else
-          If(v["arg1_dtype"] == 9, v["arg2_dtype"] != 0, False))
+    s.add(Not(If(And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5), And(v["arg2_dtype"] >= 1, v["arg2_dtype"] <= 5), True)) if n else
+          If(And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5), And(v["arg2_dtype"] >= 1, v["arg2_dtype"] <= 5), True))
 )
 
 def rule_21_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If shapes of x and y don't match, at least one of them should have a dimension of size 1 so they can broadcast together, OR one of them must be scalar (Rule 30)
+# If y is a vector and x is a matrix, number of columns of x must match size of y (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == v["arg2_ndim"], Or((And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or(Or(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), Select(v["arg1_shape"], i) == 1), Select(v["arg2_shape"], i) == 1)) for i in range(6)])), (Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0))), False)) if n else
-          If(v["arg1_ndim"] == v["arg2_ndim"], Or((And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or(Or(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), Select(v["arg1_shape"], i) == 1), Select(v["arg2_shape"], i) == 1)) for i in range(6)])), (Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0))), False))
+    s.add(Not(If(And(v["arg2_ndim"] == 1, v["arg1_ndim"] == 2), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0), True)) if n else
+          If(And(v["arg2_ndim"] == 1, v["arg1_ndim"] == 2), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0), True))
 )
 
 def rule_30_func(arg1, arg2, solver=None, neg=False):

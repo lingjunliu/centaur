@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# number of rows pointed to by indices should be less than or equal to the number of rows in var. (Rule 11)
+# indices values must be non-negative and less than the size of the first dimension of var (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg2_range"], 1) <= Select(v["arg1_shape"], 0) - 1) if n else
-          Select(v["arg2_range"], 1) <= Select(v["arg1_shape"], 0) - 1)
+    s.add(Not(And(Select(v["arg2_range"], 0) >= 0, Select(v["arg2_range"], 1) < Select(v["arg1_shape"], 0))) if n else
+          And(Select(v["arg2_range"], 0) >= 0, Select(v["arg2_range"], 1) < Select(v["arg1_shape"], 0)))
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

@@ -1,48 +1,150 @@
 >>
-Rule 5 (x and y must have compatible shapes, expressed using a simplification: shapes must be equal)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1) = shape(v_2)
+Rule 1 (x and y must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1) ∧ shape(v_1, 2) = shape(v_2, 2) ∧ shape(v_1, 3) = shape(v_2, 3)
 >>
-Rule 9 (x and y must be boolean tensors based on dtype_ function)
+Rule 2 (x and y must be of type bool)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 0 ∧ dtype_(v_2) = 0
 >>
-Rule 13 (at least one of x,y is tensor with more than one dimension)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 1 ∨ ndim(v_2) > 1
+Rule 3 (x and y should have broadcast compatible shapes - simplified 1D case)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = 1 ∨ shape(v_2, 0) = 1 ∨ shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 16 (x and y have same number of dimensions)
+Rule 4 (x and y should have broadcast compatible shapes - ndim check)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 20 (x and y are tensors with broadcast compatible shapes)
-{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1
+Rule 7 (x and y tensors rank <= 4 to keep shape check rule relatively concise)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) ≤ 4 ∧ ndim(v_2) ≤ 4
 >>
-Rule 25 (x and y are tensors, their dtypes must be bool, and they have the same number of dimensions)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 0 ∧ dtype_(v_2) = 0 ∧ ndim(v_1) = ndim(v_2)
+Rule 18 (name is a string - exists to validate name parameter)
+{v_3: str} |= v_3 = v_3
 >>
-Rule 29 (If one input is a bool, then the other input must be a tensor of bool)
-{v_1 : bool ⊎ tensor, v_2 : bool ⊎ tensor} |= if v_1 = true ∨ v_1 = false then dtype_(v_2) = 0 else if v_2 = true ∨ v_2 = false then dtype_(v_1) = 0
+Rule 19 (tensor dimensions must be non-negative)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 36 (x and y are tensors and their shapes are equal or broadcastable)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+Rule 20 (at least one tensor should not be empty)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) > 0 ∨ shape(v_2, 0) > 0
 >>
-Rule 40 (x and y are tensors, their dtypes must be bool and one of them is empty)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 0 ∧ dtype_(v_2) = 0 ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 ∨ ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0)
+Rule 21 (x is boolean tensor, shape must be valid)
+{v_1 : tensor} |= if ndim(v_1) > 0 then dtype_(v_1) = 0
 >>
-Rule 41 (If x and y are tensors, their shapes must be equal)
-{v_1 : tensor, v_2 : tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 22 (y is boolean tensor, shape must be valid)
+{v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_2) = 0
 >>
-Rule 44 (x and y are bool and are equal to each other)
-{v_1 : bool, v_2 : bool} |= v_1 = v_2
+Rule 24 (tensor dimensions must be non-negative - at least one)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) ≥ 0 else if ndim(v_2) > 0 then shape(v_2, 0) ≥ 0
 >>
-Rule 46 (If x and y are tensors and have different rank, then the smaller rank tensor's shape must be broadcastable to the larger)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1) else if ndim(v_2) < ndim(v_1) then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_2, i) = 1)
+Rule 25 (Check shapes are equal if ndims are equal and not zero)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) ∧ ndim(v_1) > 0 then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 49 (If both tensors' ndim = 0, dtype must be bool)
+Rule 26 (If one tensor is scalar, the other must be boolean.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then dtype_(v_2) = 0 else if ndim(v_2) = 0 then dtype_(v_1) = 0
+>>
+Rule 29 (tensor dimensions must be non-negative - at least one)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0 else if ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) ≥ 0
+>>
+Rule 30 (Check shapes are equal if ndims are equal and not zero)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) ∧ ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 32 (If one tensor is scalar, make sure they are both boolean)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then dtype_(v_1) = 0 ∧ dtype_(v_2) = 0 else if ndim(v_2) = 0 then dtype_(v_1) = 0 ∧ dtype_(v_2) = 0
+>>
+Rule 36 (If one tensor is scalar, the other must have dtype bool, and both must have same value if both scalars)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then dtype_(v_1) = 0 ∧ dtype_(v_2) = 0 ∧ v_1 = v_2
+>>
+Rule 37 (At least one tensor must have positive number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∨ ndim(v_2) > 0
+>>
+Rule 38 (If ndim is not equal, check for broadcasting compatibility, simplified 1D)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) ∧ ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (shape(v_1, 0) = 1 ∨ shape(v_2, 0) = 1)
+>>
+Rule 41 (Check shape compatibility when both tensors are not scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) ≠ ndim(v_2) ∧ (shape(v_1, 0) = 1 ∨ shape(v_2, 0) = 1))
+>>
+Rule 42 (Both tensors must have valid data types)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∨ dtype_(v_1) = 0) ∧ (ndim(v_2) = 0 ∨ dtype_(v_2) = 0)
+>>
+Rule 43 (tensor shape dimensions should be positive when ndim>0)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 else if ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+>>
+Rule 44 (Check data type of both tensors when not scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then dtype_(v_1) = 0 ∧ dtype_(v_2) = 0
+>>
+Rule 47 (Check the shape of tensors if they both have dimension>0, and same rank)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 50 (Shape must be broadcast compatible, attempt 2, for 2D tensors)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 then (shape(v_1, 0) = shape(v_2, 0) ∨ shape(v_1, 0) = 1 ∨ shape(v_2, 0) = 1) ∧ (shape(v_1, 1) = shape(v_2, 1) ∨ shape(v_1, 1) = 1 ∨ shape(v_2, 1) = 1)
+>>
+Rule 52 (If ndim is 0 for one, then the other must be of dtype bool if tensor)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 0 then dtype_(v_2) = 0 else if ndim(v_2) = 0 then dtype_(v_1) = 0
+>>
+Rule 53 (Check if tensor shapes are valid i.e. positive and not empty)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 57 (If the rank/ndim are different, but the smaller tensor is effectively a scalar-vector, then the dims need to be compatible)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 1 ∧ ndim(v_2) > 1) ∨ (ndim(v_2) = 1 ∧ ndim(v_1) > 1) then shape(v_1, 0) = shape(v_2,0)
+>>
+Rule 60 (Check broadcasting when ranks differ, valid dims must equal one)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_1) ≠ ndim(v_2) then (ndim(v_1) = 1 ∧ shape(v_1,0) = 1) ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) = 1)
+>>
+Rule 65 (Shape Equality Check)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 66 (Both tensors must be bool or both tensors must be scalar)
 {v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then dtype_(v_1) = 0 ∧ dtype_(v_2) = 0
 >>
-Rule 51 (If x and y are tensors and have different rank, then the smaller rank tensor's shape must be broadcastable to the larger OR one of them is scalar)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then (ndim(v_1) = 0 ∨ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1) else if ndim(v_2) < ndim(v_1) then (ndim(v_2) = 0 ∨ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_2, i) = 1)
+Rule 67 (Enforce boolean dtype on both tensors if either has ndim>0)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∨ ndim(v_2) > 0 then dtype_(v_1) = 0 ∧ dtype_(v_2) = 0
 >>
-Rule 56 (If x and y are tensors and have different rank, then the smaller rank tensor's shape must be broadcastable to the larger OR one of them is scalar. Only works for ndim > 0)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_1) < ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1) else if ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_2) < ndim(v_1) then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_2, i) = 1)
+Rule 69 (Equal shapes for two tensors if each is a tensor and not a scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 62 (If x is a tensor, then it must be a tensor of bools with ndim > 0 )
-{v_1 : tensor} |= dtype_(v_1) = 0 ∧ ndim(v_1) > 0
+Rule 70 (1D compatibility if there are mixed dimensions)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 1 ∧ ndim(v_2) > 1) ∨ (ndim(v_2) = 1 ∧ ndim(v_1) > 1) then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 71 (If one tensor is not boolean, shape of other tensor must be zero)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) ≠ 0 then shape(v_2, 0) = 0 else if dtype_(v_2) ≠ 0 then shape(v_1, 0) = 0
+>>
+Rule 76 (Scalar Equality Check)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then dtype_(v_1) = 0 ∧ dtype_(v_2) = 0 ∧ v_1 = v_2
+>>
+Rule 77 (Check Boolean data type when not a scalar value.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 0 ∨ ndim(v_2) > 0 then dtype_(v_1) = 0 ∧ dtype_(v_2) = 0
+>>
+Rule 78 (If ranks differ, lower rank dimensions have to equal 1)
+{v_1: tensor, v_2: tensor} |= if (ndim(v_1) > 0 ∧ ndim(v_2) > 0) ∧ ndim(v_1) ≠ ndim(v_2) then (ndim(v_1) = 1 ∧ shape(v_1,0) = 1) ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) = 1)
+>>
+Rule 83 (If one has ndim == 0, the data type is bool.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 0 then dtype_(v_1) = 0 else if ndim(v_2) = 0 then dtype_(v_2) = 0
+>>
+Rule 85 (If ranks differ but tensors not a scalar, dim size must equal 1 for the smaller tensor (valid case for broadcasting))
+{v_1: tensor, v_2: tensor} |= if (ndim(v_1) = 1 ∧ ndim(v_2) > 1) ∨ (ndim(v_2) = 1 ∧ ndim(v_1) > 1) then shape(v_1, 0) = 1 ∨ shape(v_2,0) = 1
+>>
+Rule 86 (All non-zero rank tensors have shapes with positive values)
+{v_1: tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 87 (Tensors dimensions must be either 0 or greater than 0.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∨ ndim(v_1) > 0) ∧ (ndim(v_2) = 0 ∨ ndim(v_2) > 0)
+>>
+Rule 90 (Require dtypes be boolean and of a valid rank to avoid illegal value issues when casting.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 0 then dtype_(v_1) = 0 else if ndim(v_2) > 0 then dtype_(v_2) = 0
+>>
+Rule 92 (At least one of the tensors must have > 0 dimensions.)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) > 0 ∨ ndim(v_2) > 0
+>>
+Rule 99 (For 1-dimensional tensors where the rank differs, ensure shape compatibility)
+{v_1: tensor, v_2: tensor} |= if (ndim(v_1) = 1 ∧ ndim(v_2) > 1) ∨ (ndim(v_2) = 1 ∧ ndim(v_1) > 1) then shape(v_1, 0) = 1 ∨ shape(v_2, 0) = 1
+>>
+Rule 105 (Tensors must have a boolean data type if the dimensions are greater than 0.)
+{v_1: tensor, v_2: tensor} |= if (ndim(v_1) > 0 ∨ ndim(v_2) > 0) then (dtype_(v_1) = 0 ∧ dtype_(v_2) = 0)
+>>
+Rule 106 (The data types should match to boolean, but is of a non-scalar shape.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 0 ∨ ndim(v_2) > 0 then (dtype_(v_1) = 0 ∧ dtype_(v_2) = 0)
+>>
+Rule 110 (Tensor needs a type that is boolean if zero rank.)
+{v_1: tensor} |= if ndim(v_1) = 0 then dtype_(v_1) = 0
+>>
+Rule 114 (The tensors must be of a boolean, not scalar type. Enforce dtypes to adhere to the standard of 0.)
+{v_1: tensor, v_2: tensor} |= if (ndim(v_1) > 0 ∨ ndim(v_2) > 0) then dtype_(v_1) = 0 ∧ dtype_(v_2) = 0
+>>
+Rule 125 (Allow broadcasting with dim-1 in different rank if tensors are of greater type.)
+{v_1: tensor, v_2: tensor} |= if (ndim(v_1) > 1 ∧ ndim(v_2) = 1) ∨ (ndim(v_2) > 1 ∧ ndim(v_1) = 1) then (shape(v_1, 0) = 1) ∨ (shape(v_2, 0) = 1)

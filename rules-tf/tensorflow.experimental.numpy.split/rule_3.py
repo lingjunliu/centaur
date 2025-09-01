@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Number of sections should be less than the size of the array along the given axis when indices_or_sections is an integer (Rule 3)
+# if indices_or_sections is greater than the size of the specified axis, it should not cause an error; in this case, it leads to an empty array. (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg2_value"] > 0, v["arg3_value"] < Select(v["arg1_shape"], v["arg2_value"]))) if n else
-          And(v["arg2_value"] > 0, v["arg3_value"] < Select(v["arg1_shape"], v["arg2_value"])))
+    s.add(Not(If(v["arg2_value"] > Select(v["arg1_shape"], v["arg3_value"]), True, True)) if n else
+          If(v["arg2_value"] > Select(v["arg1_shape"], v["arg3_value"]), True, True))
 )
 
 def rule_3_func(arg1, arg2, arg3, solver=None, neg=False):

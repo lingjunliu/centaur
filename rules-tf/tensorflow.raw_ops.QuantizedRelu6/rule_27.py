@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if out_type is qint8 then min_features should be negative (Rule 27)
+# if features is qint16, max_features must be within a certain range (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 1, Select(v["arg2_range"], 1) < 0, False)) if n else
-          If(v["arg1_value"] == 1, Select(v["arg2_range"], 1) < 0, False))
+    s.add(Not(If((v["arg1_dtype"] == 2), Select(v["arg2_range"], 1) <= 32767, True)) if n else
+          If((v["arg1_dtype"] == 2), Select(v["arg2_range"], 1) <= 32767, True))
 )
 
 def rule_27_func(arg1, arg2, solver=None, neg=False):
@@ -18,25 +18,25 @@ def rule_27_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
+        if not isinstance(arg1, np.ndarray):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_dtype = Int('arg1_dtype')
         arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
         arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 27
-        rule_27(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range})
+        rule_27(solver, {'arg1_dtype': arg1_dtype, 'arg2_range': arg2_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_27(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range']}, neg)
+        rule_27(solver, {'arg1_dtype': arg1['dtype'], 'arg2_range': arg2['range']}, neg)

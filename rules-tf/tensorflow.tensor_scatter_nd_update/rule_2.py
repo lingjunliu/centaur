@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# index_depth must be less than or equal to rank of tensor (Rule 2)
+# index_depth must be less than or equal to the rank of the tensor (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(Select(v["arg2_shape"], v["arg2_ndim"] - 1) <= v["arg1_ndim"]) if n else
@@ -36,9 +36,9 @@ def rule_2_func(arg1, arg2, solver=None, neg=False):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 2
-        rule_2(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape})
+        rule_2(solver, {'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_2(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']}, neg)
+        rule_2(solver, {'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']}, neg)

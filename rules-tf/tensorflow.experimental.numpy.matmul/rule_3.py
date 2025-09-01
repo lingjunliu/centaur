@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If one input is a scalar (0-dimensional tensor (Rule 3)
+# The number of dimensions should not exceed a reasonable limit, e.g., 32 (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_ndim"] == 0), (v["arg2_ndim"] == 1), If((v["arg2_ndim"] == 0), (v["arg1_ndim"] == 1), False))) if n else
-          If((v["arg1_ndim"] == 0), (v["arg2_ndim"] == 1), If((v["arg2_ndim"] == 0), (v["arg1_ndim"] == 1), False)))
+    s.add(Not(And(v["arg1_ndim"] < 32, v["arg2_ndim"] < 32)) if n else
+          And(v["arg1_ndim"] < 32, v["arg2_ndim"] < 32))
 )
 
 def rule_3_func(arg1, arg2, solver=None, neg=False):

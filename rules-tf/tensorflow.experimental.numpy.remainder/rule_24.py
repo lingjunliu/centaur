@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Input tensors must have compatible data types for the remainder operation, v_2's dtype is int (Rule 24)
+# x1 and x2 must have integer or floating-point dtypes (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(If(And(1 <= v["arg2_dtype"], v["arg2_dtype"] <= 5), (Or((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)))), False)) if n else
-          If(And(1 <= v["arg2_dtype"], v["arg2_dtype"] <= 5), (Or((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)))), False))
+    s.add(Not(And((Or((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 8)), (v["arg1_dtype"] == 0))), (Or((And(v["arg2_dtype"] >= 1, v["arg2_dtype"] <= 8)), (v["arg2_dtype"] == 0))))) if n else
+          And((Or((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 8)), (v["arg1_dtype"] == 0))), (Or((And(v["arg2_dtype"] >= 1, v["arg2_dtype"] <= 8)), (v["arg2_dtype"] == 0)))))
 )
 
 def rule_24_func(arg1, arg2, solver=None, neg=False):

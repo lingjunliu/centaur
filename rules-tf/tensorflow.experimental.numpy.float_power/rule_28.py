@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If exponent is a tensor, and has float dtype, base must have a numerical dtype. (Rule 28)
+# If x1 is of float64 type, x2 should be float64 or scalar (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(If((Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8)), (v["arg1_dtype"] < 12), False)) if n else
-          If((Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8)), (v["arg1_dtype"] < 12), False))
+    s.add(Not(If(v["arg1_dtype"] == 8, Or(v["arg2_dtype"] == 8, v["arg2_ndim"] == 0), True)) if n else
+          If(v["arg1_dtype"] == 8, Or(v["arg2_dtype"] == 8, v["arg2_ndim"] == 0), True))
 )
 
 def rule_28_func(arg1, arg2, solver=None, neg=False):
@@ -26,16 +26,18 @@ def rule_28_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
+        arg2_ndim = Int('arg2_ndim')
         arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_ndim == arg2.ndim)
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 28
-        rule_28(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_28(solver, {'arg1_dtype': arg1_dtype, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_28(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_28(solver, {'arg1_dtype': arg1['dtype'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']}, neg)

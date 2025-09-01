@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If x is a vector, axis must be 0 or -1 and the rank must be one (Rule 59)
+# if the tensor is two dimensional, the axis must not be -113.  (Rule 59)
 
 rule_59 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 1, And(Or(v["arg2_value"] == 0, v["arg2_value"] == -1), v["arg1_ndim"] == 1), False)) if n else
-          If(v["arg1_ndim"] == 1, And(Or(v["arg2_value"] == 0, v["arg2_value"] == -1), v["arg1_ndim"] == 1), False))
+    s.add(Not(If(v["arg1_ndim"] == 2, v["arg2_value"] != -113, True)) if n else
+          If(v["arg1_ndim"] == 2, v["arg2_value"] != -113, True))
 )
 
 def rule_59_func(arg1, arg2, solver=None, neg=False):

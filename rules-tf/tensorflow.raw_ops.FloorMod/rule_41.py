@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Output tensor has the same dtype as x (Rule 41)
+# x and y are allowed dtypes, and if one is half, the other also should be half. (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
-          v["arg1_dtype"] == v["arg2_dtype"])
+    s.add(Not(And(And((Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 9), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), (Or(Or(Or(Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5), v["arg2_dtype"] == 9), v["arg2_dtype"] == 7), v["arg2_dtype"] == 8))), If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, True))) if n else
+          And(And((Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 9), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), (Or(Or(Or(Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5), v["arg2_dtype"] == 9), v["arg2_dtype"] == 7), v["arg2_dtype"] == 8))), If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, True)))
 )
 
 def rule_41_func(arg1, arg2, solver=None, neg=False):

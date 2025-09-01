@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# x and y cannot both be strings (Rule 35)
+# Both tensors x and y should have dtypes that are comparable. If either tensor's dtype is a string then dtypes must be equal (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(Or((v["arg1_dtype"] != 11), (v["arg2_dtype"] != 11))) if n else
-          Or((v["arg1_dtype"] != 11), (v["arg2_dtype"] != 11)))
+    s.add(Not(If((Or(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11)), (v["arg1_dtype"] == v["arg2_dtype"]), True)) if n else
+          If((Or(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11)), (v["arg1_dtype"] == v["arg2_dtype"]), True))
 )
 
 def rule_35_func(arg1, arg2, solver=None, neg=False):

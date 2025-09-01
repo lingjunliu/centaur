@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# updates must have the same type as ref (Rule 2)
+# updates tensor (v_3 (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else

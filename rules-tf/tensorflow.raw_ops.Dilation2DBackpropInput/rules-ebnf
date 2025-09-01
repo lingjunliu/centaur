@@ -1,18 +1,21 @@
 >>
-Rule 2 (strides should have length 4)
-{strides : list(int)} |= shape(strides, 0) = 4
+Rule 1 (input, filter, and out_backprop tensors should have the same data type)
+{input : tensor, filter : tensor, out_backprop : tensor} |= dtype_(input) = dtype_(filter) ∧ dtype_(input) = dtype_(out_backprop)
 >>
-Rule 3 (rates should have length 4)
-{rates : list(int)} |= shape(rates, 0) = 4
+Rule 2 (strides list should have length 4)
+{strides : list(int)} |= strides.len = 4
 >>
-Rule 4 (strides[0] and strides[3] should be 1)
+Rule 3 (rates list should have length 4)
+{rates : list(int)} |= rates.len = 4
+>>
+Rule 4 (strides list's first and last elements should be 1)
 {strides : list(int)} |= strides[0] = 1 ∧ strides[3] = 1
 >>
-Rule 5 (rates[0] and rates[3] should be 1)
+Rule 5 (rates list's first and last elements should be 1)
 {rates : list(int)} |= rates[0] = 1 ∧ rates[3] = 1
 >>
-Rule 6 (padding must be either "SAME" or "VALID")
-{padding : str} |= padding = "SAME" ∨ padding = "VALID"
+Rule 6 (padding string should be either "VALID" or "SAME")
+{padding : str} |= padding = "VALID" ∨ padding = "SAME"
 >>
 Rule 7 (input tensor should have 4 dimensions)
 {input : tensor} |= ndim(input) = 4
@@ -23,158 +26,131 @@ Rule 8 (filter tensor should have 3 dimensions)
 Rule 9 (out_backprop tensor should have 4 dimensions)
 {out_backprop : tensor} |= ndim(out_backprop) = 4
 >>
-Rule 11 (filter height and width should be greater than zero)
-{filter : tensor} |= shape(filter, 0) > 0 ∧ shape(filter, 1) > 0
+Rule 10 (Input tensor's data type should be in the allowed list)
+{input : tensor} |= dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 3 ∨ dtype_(input) = 6 ∨ dtype_(input) = 2 ∨ dtype_(input) = 1 ∨ dtype_(input) = 4 ∨ dtype_(input) = 9 ∨ dtype_(input) = 10 ∨ dtype_(input) = 5
 >>
-Rule 12 (depth of the filter should be equal to the depth of the input)
-{input : tensor, filter : tensor} |= shape(input, 3) = shape(filter, 2)
+Rule 11 (shape of input tensor)
+{input : tensor} |= shape(input,0) > 0 ∧ shape(input,1) > 0 ∧ shape(input,2) > 0 ∧ shape(input,3) > 0
 >>
-Rule 13 (input, filter and out_backprop tensors must have the same dtype)
-{input : tensor, filter : tensor, out_backprop : tensor} |= dtype_(input) = dtype_(filter) ∧ dtype_(input) = dtype_(out_backprop)
+Rule 12 (shape of filter tensor)
+{filter : tensor} |= shape(filter,0) > 0 ∧ shape(filter,1) > 0 ∧ shape(filter,2) > 0
 >>
-Rule 22 (filter depth must be equal to the number of channels in the input and output)
-{input : tensor, filter : tensor, out_backprop : tensor} |= shape(input, 3) = shape(filter, 2) ∧ shape(input, 3) = shape(out_backprop, 3)
+Rule 13 (shape of out_backprop tensor)
+{out_backprop : tensor} |= shape(out_backprop,0) > 0 ∧ shape(out_backprop,1) > 0 ∧ shape(out_backprop,2) > 0 ∧ shape(out_backprop,3) > 0
 >>
-Rule 24 (input dtype must be one of the allowed types)
-{input : tensor} |= dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 3 ∨ dtype_(input) = 5 ∨ dtype_(input) = 2 ∨ dtype_(input) = 1 ∨ dtype_(input) = 4 ∨ dtype_(input) = 9 ∨ dtype_(input) = 13 ∨ dtype_(input) = 14
+Rule 14 (depth of input, filter, and out_backprop should be the same)
+{input : tensor, filter : tensor, out_backprop : tensor} |= shape(input,3) = shape(filter,2) ∧ shape(input,3) = shape(out_backprop,3)
 >>
-Rule 25 (input, filter, out_backprop tensors must have compatible data types)
-{input : tensor, filter : tensor, out_backprop : tensor} |= (dtype_(input) = dtype_(filter)) ∧ (dtype_(input) = dtype_(out_backprop)) ∧ (dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 3 ∨ dtype_(input) = 5 ∨ dtype_(input) = 2 ∨ dtype_(input) = 1 ∨ dtype_(input) = 4 ∨ dtype_(input) = 9 ∨ dtype_(input) = 13 ∨ dtype_(input) = 14)
+Rule 15 (All strides values should be positive)
+{strides : list(int)} |= ∀i ∈ [0, strides.len - 1] : strides[i] > 0
 >>
-Rule 26 (strides list must contain only positive integers)
-{strides : list(int)} |= ∀i ∈ [0, shape(strides, 0) - 1] : strides[i] > 0
+Rule 16 (All rates values should be positive)
+{rates : list(int)} |= ∀i ∈ [0, rates.len - 1] : rates[i] > 0
 >>
-Rule 27 (rates list must contain only positive integers)
-{rates : list(int)} |= ∀i ∈ [0, shape(rates, 0) - 1] : rates[i] > 0
->>
-Rule 28 (input height and width must be greater than filter height and width when padding is VALID)
-{input : tensor, filter : tensor, padding : str} |= if padding = "VALID" then shape(input, 1) ≥ shape(filter, 0) ∧ shape(input, 2) ≥ shape(filter, 1)
->>
-Rule 29 (filter depth must be greater than 0)
-{filter : tensor} |= shape(filter, 2) > 0
->>
-Rule 30 (output height and width must be greater than 0)
-{out_backprop : tensor} |= shape(out_backprop, 1) > 0 ∧ shape(out_backprop, 2) > 0
->>
-Rule 32 (strides and rates must have the same length)
-{strides : list(int), rates : list(int)} |= shape(strides, 0) = shape(rates, 0)
->>
-Rule 33 (product of strides should be less than or equal to the input height and width)
-{strides : list(int), input : tensor} |= (strides[1] * strides[2]) ≤ (shape(input, 1) * shape(input, 2))
->>
-Rule 34 (input and output height and width should be related according to padding, strides, and filter size)
-{input : tensor, out_backprop : tensor, strides : list(int), filter : tensor, padding : str, rates: list(int)} |= if padding = "VALID" then (shape(input, 1) - (shape(filter, 0) + (shape(filter, 0)-1)*(rates[1]-1)) + strides[1]) / strides[1] = shape(out_backprop, 1) ∧ (shape(input, 2) - (shape(filter, 1) + (shape(filter, 1)-1)*(rates[2]-1)) + strides[2]) / strides[2] = shape(out_backprop, 2)
->>
-Rule 35 (rates list must contain only integers greater than or equal to 1)
-{rates : list(int)} |= ∀i ∈ [0, shape(rates, 0) - 1] : rates[i] ≥ 1
->>
-Rule 36 (strides list must contain only integers greater than or equal to 1)
-{strides : list(int)} |= ∀i ∈ [0, shape(strides, 0) - 1] : strides[i] ≥ 1
->>
-Rule 39 (if strides are 1, input and output dimensions (height and width) are same for SAME padding)
-{input : tensor, out_backprop : tensor, strides : list(int), padding : str} |= if padding = "SAME" ∧ strides[1] = 1 ∧ strides[2] = 1 then shape(input, 1) = shape(out_backprop, 1) ∧ shape(input, 2) = shape(out_backprop, 2)
->>
-Rule 40 (input batch and channel dimensions match the output's)
+Rule 17 (The batch and depth of input and out_backprop should be the same)
 {input : tensor, out_backprop : tensor} |= shape(input, 0) = shape(out_backprop, 0) ∧ shape(input, 3) = shape(out_backprop, 3)
 >>
-Rule 42 (When padding is SAME, the output height and width should be approximately the input height and width divided by the stride)
-{input : tensor, out_backprop : tensor, strides : list(int), padding : str} |= if padding = "SAME" then (shape(out_backprop, 1) - shape(input, 1) / strides[1]) < 1 ∧ (shape(out_backprop, 1) - shape(input, 1) / strides[1]) > -1 ∧ (shape(out_backprop, 2) - shape(input, 2) / strides[2]) < 1 ∧ (shape(out_backprop, 2) - shape(input, 2) / strides[2]) > -1
+Rule 18 (Filter height and width should be greater than 0)
+{filter : tensor} |= shape(filter, 0) > 0 ∧ shape(filter, 1) > 0
 >>
-Rule 45 (If rate is greater than one, it corresponds to atrous dilation, hence filter size will influence the out_backprop shape differently, VALID padding)
-{input : tensor, out_backprop: tensor, filter: tensor, strides: list(int), rates: list(int), padding: str} |= if padding = "VALID" then (shape(out_backprop,1) = (shape(input,1) - (shape(filter,0) + (shape(filter,0)-1)*(rates[1]-1)) + strides[1] -1) / strides[1] + 1) ∧ (shape(out_backprop,2) = (shape(input,2) - (shape(filter,1) + (shape(filter,1)-1)*(rates[2]-1)) + strides[2] -1) / strides[2] + 1)
+Rule 19 (The in_height and in_width of the input affect the out_height and out_width of the out_backprop based on padding, strides and rates)
+{input : tensor, filter : tensor, out_backprop : tensor, strides : list(int), rates : list(int), padding : str} |= if padding = "VALID" then shape(out_backprop, 1) = (shape(input, 1) - (shape(filter, 0) + (shape(filter, 0)-1) * (rates[1]-1)) + strides[1]) / strides[1] ∧ shape(out_backprop, 2) = (shape(input, 2) - (shape(filter, 1) + (shape(filter, 1)-1) * (rates[2]-1)) + strides[2]) / strides[2] else if padding = "SAME" then shape(out_backprop, 1) = (shape(input, 1) + strides[1] -1) / strides[1] ∧ shape(out_backprop, 2) = (shape(input, 2) + strides[2] -1) / strides[2] else false
 >>
-Rule 47 (When padding is SAME, the output height and width should be approximately the input height and width divided by the stride)
-{input : tensor, out_backprop : tensor, strides : list(int), padding : str} |= if padding = "SAME" then (shape(out_backprop, 1) > shape(input, 1) / strides[1] - 1) ∧ (shape(out_backprop, 1) < shape(input, 1) / strides[1] + 1) ∧ (shape(out_backprop, 2) > shape(input, 2) / strides[2] - 1) ∧ (shape(out_backprop, 2) < shape(input, 2) / strides[2] + 1)
+Rule 20 (The in_height and in_width must be greater or equal than the filter height and width, respectively)
+{input : tensor, filter : tensor} |= shape(input, 1) ≥ shape(filter, 0) ∧ shape(input, 2) ≥ shape(filter, 1)
 >>
-Rule 49 (If rate is greater than one, it corresponds to atrous dilation, hence filter size will influence the out_backprop shape differently, SAME padding)
-{input : tensor, out_backprop: tensor, strides: list(int), padding: str} |= if padding = "SAME" then (shape(out_backprop,1) = (shape(input,1) + strides[1] -1) / strides[1]) ∧ (shape(out_backprop,2) = (shape(input,2) + strides[2] -1) / strides[2])
+Rule 21 (in_height and in_width of the input, combined with filter, rates and padding determine the out_height and out_width of the out_backprop tensor)
+{input : tensor, filter : tensor, out_backprop : tensor, strides : list(int), rates : list(int), padding : str} |= if padding = "VALID" then shape(out_backprop, 1) = (shape(input, 1) - (shape(filter, 0) + (shape(filter, 0) -1)*(rates[1]-1)) + strides[1] - 1) / strides[1] + 1 ∧ shape(out_backprop, 2) = (shape(input, 2) - (shape(filter, 1) + (shape(filter, 1) -1)*(rates[2]-1)) + strides[2] - 1) / strides[2] + 1 else shape(out_backprop, 1) = (shape(input, 1) + strides[1] - 1) / strides[1] ∧ shape(out_backprop, 2) = (shape(input, 2) + strides[2] - 1) / strides[2]
 >>
-Rule 50 (strides and rates lists' elements must be greater than 0)
-{strides: list(int), rates: list(int)} |= (∀i ∈ [0, shape(strides,0)-1] : strides[i] > 0) ∧ (∀i ∈ [0, shape(rates,0)-1]: rates[i] > 0)
+Rule 22 (If padding is SAME, then the output spatial dimensions depend only on input spatial dimensions and strides)
+{input : tensor, out_backprop : tensor, strides : list(int), padding : str} |= if padding = "SAME" then shape(out_backprop, 1) = (shape(input, 1) + strides[1] - 1) / strides[1] ∧ shape(out_backprop, 2) = (shape(input, 2) + strides[2] - 1) / strides[2]
 >>
-Rule 51 (input and filter have the same data type)
-{input: tensor, filter: tensor} |= dtype_(input) = dtype_(filter)
+Rule 23 (When padding is VALID, a relationship between input, filter, out_backprop, strides and rates exists)
+{input : tensor, filter : tensor, out_backprop : tensor, strides : list(int), rates : list(int), padding : str} |= if padding = "VALID" then (shape(input, 1) -1)*strides[1] + shape(filter, 0) + (shape(filter, 0) -1)*(rates[1]-1) = shape(out_backprop, 1)*strides[1] ∧ (shape(input, 2) -1)*strides[2] + shape(filter, 1) + (shape(filter, 1) -1)*(rates[2]-1) = shape(out_backprop, 2)*strides[2]
 >>
-Rule 53 (If rate is greater than one, it corresponds to atrous dilation, hence filter size will influence the out_backprop shape differently, when padding is VALID)
-{input : tensor, out_backprop: tensor, filter: tensor, strides: list(int), rates: list(int), padding: str} |= if padding = "VALID" then shape(out_backprop,1) = (shape(input,1) - (shape(filter,0) + (shape(filter,0)-1)*(rates[1]-1)) + strides[1] -1) / strides[1] + 1 ∧ shape(out_backprop,2) = (shape(input,2) - (shape(filter,1) + (shape(filter,1)-1)*(rates[2]-1)) + strides[2] -1) / strides[2] + 1
+Rule 24 (When padding is SAME, a relationship between input, filter, out_backprop, strides and rates exists)
+{input : tensor, filter : tensor, out_backprop : tensor, strides : list(int), rates : list(int), padding : str} |= if padding = "SAME" then shape(input, 1)*strides[1] = (shape(out_backprop, 1) - 1)*strides[1] + shape(filter, 0) + (shape(filter, 0)-1)*(rates[1]-1) ∧ shape(input, 2)*strides[2] = (shape(out_backprop, 2) - 1)*strides[2] + shape(filter, 1) + (shape(filter, 1)-1)*(rates[2]-1)
 >>
-Rule 54 (rates list's elements must be greater than 0)
-{rates: list(int)} |= (∀i ∈ [0, shape(rates,0)-1]: rates[i] > 0)
+Rule 25 (When padding is VALID, there is a specific relationship between spatial dimensions)
+{input : tensor, filter : tensor, out_backprop : tensor, strides : list(int), rates : list(int), padding : str} |= if padding = "VALID" then shape(input, 1) = (shape(out_backprop, 1)-1)*strides[1] + shape(filter, 0) + (shape(filter, 0)-1)*(rates[1]-1) ∧ shape(input, 2) = (shape(out_backprop, 2)-1)*strides[2] + shape(filter, 1) + (shape(filter, 1)-1)*(rates[2]-1)
 >>
-Rule 55 (strides list's elements must be greater than 0)
-{strides: list(int)} |= (∀i ∈ [0, shape(strides,0)-1]: strides[i] > 0)
+Rule 26 (Strides and rates should be non-negative)
+{strides : list(int), rates : list(int)} |= ∀i ∈ [0, strides.len - 1] : strides[i] ≥ 0 ∧ ∀i ∈ [0, rates.len - 1] : rates[i] ≥ 0
 >>
-Rule 60 (input and out_backprop and filter should have same dtype)
-{input : tensor, out_backprop : tensor, filter : tensor} |= dtype_(input) = dtype_(out_backprop) ∧ dtype_(input) = dtype_(filter)
+Rule 28 (If padding is SAME, output_shape calculation should satisfy this condition)
+{input : tensor, out_backprop : tensor, strides : list(int), padding : str} |= if padding = "SAME" then shape(input, 1) = shape(out_backprop, 1)*strides[1] ∧ shape(input, 2) = shape(out_backprop, 2)*strides[2]
 >>
-Rule 61 (When the data type is int8, int16, int32, int64 or uint8, then the values must be integers)
-{input: tensor} |= if dtype_(input) = 1 ∨ dtype_(input) = 2 ∨ dtype_(input) = 3 ∨ dtype_(input) = 4 ∨ dtype_(input) = 5 then true
+Rule 29 (When padding is VALID and stride is 1, the output shape should be smaller or equal to the input shape)
+{input : tensor, out_backprop : tensor, strides : list(int), padding : str} |= if padding = "VALID" ∧ strides[1] = 1 ∧ strides[2] = 1 then shape(out_backprop, 1) ≤ shape(input, 1) ∧ shape(out_backprop, 2) ≤ shape(input, 2)
 >>
-Rule 62 (Valid padding values)
-{padding: str} |= padding = "SAME" ∨ padding = "VALID"
+Rule 30 (If padding is EXPLICIT, then the padding values should be correctly specified)
+{padding : str} |= padding ≠ "EXPLICIT"
 >>
-Rule 63 (If the rate values are not 1, then the relationship of input and output shape depends on the VALID or SAME padding values)
-{input : tensor, out_backprop: tensor, filter: tensor, strides: list(int), rates: list(int), padding: str} |= if padding = "VALID" then shape(out_backprop,1) = (shape(input,1) - (shape(filter,0) + (shape(filter,0)-1)*(rates[1]-1)) + strides[1] -1) / strides[1] + 1 ∧ shape(out_backprop,2) = (shape(input,2) - (shape(filter,1) + (shape(filter,1)-1)*(rates[2]-1)) + strides[2] -1) / strides[2] + 1 else if padding = "SAME" then (shape(out_backprop,1) = (shape(input,1) + strides[1] -1) / strides[1]) ∧ (shape(out_backprop,2) = (shape(input,2) + strides[2] -1) / strides[2])
+Rule 32 (When padding is not VALID or SAME, then specific calculations/conditions must still hold.)
+{input : tensor, filter : tensor, out_backprop : tensor, strides : list(int), rates : list(int), padding : str} |= if padding ≠ "VALID" ∧ padding ≠ "SAME" then shape(out_backprop, 1) = (shape(input, 1) - (shape(filter, 0) + (shape(filter, 0)-1) * (rates[1]-1)) + strides[1]) / strides[1] ∧ shape(out_backprop, 2) = (shape(input, 2) - (shape(filter, 1) + (shape(filter, 1)-1) * (rates[2]-1)) + strides[2]) / strides[2]
 >>
-Rule 64 (Valid dtypes for the input tensor)
-{input: tensor} |= dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 3 ∨ dtype_(input) = 5 ∨ dtype_(input) = 2 ∨ dtype_(input) = 1 ∨ dtype_(input) = 4 ∨ dtype_(input) = 9 ∨ dtype_(input) = 13 ∨ dtype_(input) = 14
+Rule 33 (strides values should not be zero)
+{strides : list(int)} |= ∀i ∈ [0, strides.len - 1] : strides[i] ≠ 0
 >>
-Rule 66 (If the rate values are not 1, then the relationship of input and output shape depends on the VALID or SAME padding values and other parameters.)
-{input : tensor, out_backprop: tensor, filter: tensor, strides: list(int), rates: list(int), padding: str} |= if padding = "VALID" then shape(out_backprop,1) = (shape(input,1) - (shape(filter,0) + (shape(filter,0)-1)*(rates[1]-1)) + strides[1] -1) / strides[1] + 1 ∧ shape(out_backprop,2) = (shape(input,2) - (shape(filter,1) + (shape(filter,1)-1)*(rates[2]-1)) + strides[2] -1) / strides[2] + 1 else (shape(out_backprop,1) = (shape(input,1) + strides[1] -1) / strides[1]) ∧ (shape(out_backprop,2) = (shape(input,2) + strides[2] -1) / strides[2])
+Rule 34 (rates values should not be zero)
+{rates : list(int)} |= ∀i ∈ [0, rates.len - 1] : rates[i] ≠ 0
 >>
-Rule 67 (Valid strides list)
-{strides: list(int)} |= shape(strides, 0) = 4 ∧ strides[0] = 1 ∧ strides[3] = 1
+Rule 35 (rates[1] and rates[2] should be greater than 0)
+{rates : list(int)} |= rates[1] > 0 ∧ rates[2] > 0
 >>
-Rule 68 (Valid rates list)
-{rates: list(int)} |= shape(rates, 0) = 4 ∧ rates[0] = 1 ∧ rates[3] = 1
+Rule 36 (strides[1] and strides[2] should be greater than 0)
+{strides : list(int)} |= strides[1] > 0 ∧ strides[2] > 0
 >>
-Rule 73 (The dtypes of the tensors must be a valid type as specified in the documentation)
-{input: tensor, filter: tensor, out_backprop: tensor} |= (dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 3 ∨ dtype_(input) = 5 ∨ dtype_(input) = 2 ∨ dtype_(input) = 1 ∨ dtype_(input) = 4 ∨ dtype_(input) = 9 ∨ dtype_(input) = 13 ∨ dtype_(input) = 14) ∧ (dtype_(filter) = 7 ∨ dtype_(filter) = 8 ∨ dtype_(filter) = 3 ∨ dtype_(filter) = 5 ∨ dtype_(filter) = 2 ∨ dtype_(filter) = 1 ∨ dtype_(filter) = 4 ∨ dtype_(filter) = 9 ∨ dtype_(filter) = 13 ∨ dtype_(filter) = 14) ∧ (dtype_(out_backprop) = 7 ∨ dtype_(out_backprop) = 8 ∨ dtype_(out_backprop) = 3 ∨ dtype_(out_backprop) = 5 ∨ dtype_(out_backprop) = 2 ∨ dtype_(out_backprop) = 1 ∨ dtype_(out_backprop) = 4 ∨ dtype_(out_backprop) = 9 ∨ dtype_(out_backprop) = 13 ∨ dtype_(out_backprop) = 14)
+Rule 37 (If the padding is SAME, then the input height and width must be positive)
+{input : tensor, padding:str} |= if padding = "SAME" then shape(input, 1) > 0 ∧ shape(input, 2) > 0
 >>
-Rule 76 (strides[0] and strides[3] must be 1)
-{strides: list(int)} |= strides[0] = 1 ∧ strides[3] = 1
+Rule 38 (If the padding is VALID, then the input height and width, filter height and width, strides and rates must all be positive)
+{input : tensor, filter: tensor, strides : list(int), rates : list(int), padding:str} |= if padding = "VALID" then shape(input, 1) > 0 ∧ shape(input, 2) > 0 ∧ shape(filter, 0) > 0 ∧ shape(filter, 1) > 0 ∧ strides[1] > 0 ∧ strides[2] > 0 ∧ rates[1] > 0 ∧ rates[2] > 0
 >>
-Rule 77 (rates[0] and rates[3] must be 1)
-{rates: list(int)} |= rates[0] = 1 ∧ rates[3] = 1
+Rule 39 (strides[1] and strides[2] cannot be greater than the input height and width when padding is VALID)
+{input : tensor, strides: list(int), padding:str} |= if padding = "VALID" then strides[1] ≤ shape(input, 1) ∧ strides[2] ≤ shape(input, 2)
 >>
-Rule 78 (Input, filter, and out_backprop must all have the same dtype)
-{input: tensor, filter: tensor, out_backprop: tensor} |= dtype_(input) = dtype_(filter) ∧ dtype_(filter) = dtype_(out_backprop)
+Rule 41 (filter height and filter width, combined with rates, should not exceed input height and width when padding is VALID)
+{input : tensor, filter : tensor, rates: list(int), padding:str} |= if padding = "VALID" then shape(filter, 0) + (shape(filter, 0)-1)*(rates[1]-1) <= shape(input, 1) ∧ shape(filter, 1) + (shape(filter, 1)-1)*(rates[2]-1) <= shape(input, 2)
 >>
-Rule 79 (strides and rates lists must have correct format)
-{strides: list(int), rates: list(int)} |= shape(strides, 0) = 4 ∧ shape(rates, 0) = 4 ∧ strides[0] = 1 ∧ strides[3] = 1 ∧ rates[0] = 1 ∧ rates[3] = 1
+Rule 42 (In the valid padding case, output dimensions should be computed correctly)
+{input : tensor, filter : tensor, out_backprop : tensor, strides : list(int), rates : list(int), padding:str} |= if padding = "VALID" then shape(out_backprop, 1) = (shape(input, 1) - (shape(filter, 0) + (shape(filter, 0)-1)*(rates[1]-1) -1) ) / strides[1] ∧ shape(out_backprop, 2) = (shape(input, 2) - (shape(filter, 1) + (shape(filter, 1)-1)*(rates[2]-1) -1)) / strides[2]
 >>
-Rule 82 (The number of channel in input and out_backprop has to be the same)
-{input : tensor, out_backprop : tensor} |= shape(input, 3) = shape(out_backprop, 3)
+Rule 43 (rates[1] and rates[2] should be less than or equal to the input height and width respectively.)
+{input : tensor, rates : list(int)} |= rates[1] ≤ shape(input, 1) ∧ rates[2] ≤ shape(input, 2)
 >>
-Rule 84 (If the rate values are not 1, then the relationship of input and output shape depends on the VALID or SAME padding values and other parameters, and Strides are positive )
-{input : tensor, out_backprop: tensor, filter: tensor, strides: list(int), rates: list(int), padding: str} |= if padding = "VALID" then shape(out_backprop,1) = (shape(input,1) - (shape(filter,0) + (shape(filter,0)-1)*(rates[1]-1)) + strides[1] -1) / strides[1] + 1 ∧ shape(out_backprop,2) = (shape(input,2) - (shape(filter,1) + (shape(filter,1)-1)*(rates[2]-1)) + strides[2] -1) / strides[2] + 1 ∧ strides[1] > 0 ∧ strides[2] > 0 else (shape(out_backprop,1) = (shape(input,1) + strides[1] -1) / strides[1]) ∧ (shape(out_backprop,2) = (shape(input,2) + strides[2] -1) / strides[2]) ∧ strides[1] > 0 ∧ strides[2] > 0
+Rule 44 (If the padding is SAME, then the height and width of out_backprop are related to height and width of input based on the strides)
+{input : tensor, out_backprop: tensor, strides: list(int), padding: str} |= if padding = "SAME" then shape(out_backprop, 1) = (shape(input, 1) + strides[1] -1) / strides[1] ∧ shape(out_backprop, 2) = (shape(input, 2) + strides[2]-1)/strides[2]
 >>
-Rule 85 (strides[0], strides[3], rates[0] and rates[3] must be 1)
+Rule 47 (If shape of input[1] and filter[0] do not satisfy the condition with strides[1] and rates[1], and the out_backprop[1] shape doesn't match, then there may be an issue.)
+{input : tensor, filter : tensor, out_backprop : tensor, strides: list(int), rates: list(int)} |= (shape(input, 1) - (shape(filter, 0) + (shape(filter, 0)-1)*(rates[1]-1))) / strides[1] ≠ shape(out_backprop, 1)
+>>
+Rule 48 (The first and last element of strides and rates must be one)
 {strides: list(int), rates: list(int)} |= strides[0] = 1 ∧ strides[3] = 1 ∧ rates[0] = 1 ∧ rates[3] = 1
 >>
-Rule 86 (The number of channel in input and out_backprop has to be the same, and batch size also the same)
-{input : tensor, out_backprop : tensor} |= shape(input, 3) = shape(out_backprop, 3) ∧ shape(input, 0) = shape(out_backprop, 0)
+Rule 49 (if rates or strides are greater than 1 then the corresponding dimensions of the filter should be less than those of the input)
+{input: tensor, filter: tensor, rates: list(int), strides: list(int)} |= if rates[1] > 1 ∨ rates[2] > 1 ∨ strides[1] > 1 ∨ strides[2] > 1 then shape(filter, 0) <= shape(input, 1) ∧ shape(filter, 1) <= shape(input, 2)
 >>
-Rule 92 (strides list should have length >= 4 and rates list should have length >= 4)
-{strides : list(int), rates : list(int)} |= shape(strides, 0) ≥ 4 ∧ shape(rates, 0) ≥ 4
+Rule 50 (Check relationship for the valid padding between input_size, filter_size, out_backprop_size given the strides and rates)
+{input : tensor, filter : tensor, out_backprop: tensor, strides : list(int), rates: list(int), padding: str} |= if padding = "VALID" then (shape(input, 1) - (shape(filter, 0) + (shape(filter, 0) - 1)*(rates[1]-1) -1)) / strides[1] = shape(out_backprop, 1) ∧  (shape(input, 2) - (shape(filter, 1) + (shape(filter, 1) - 1)*(rates[2]-1) -1)) / strides[2] = shape(out_backprop, 2)
 >>
-Rule 93 (If the rate values are not 1, then the relationship of input and output shape depends on the VALID or SAME padding values and other parameters, and Strides are positive, also, strides list should have length >= 4 and rates list should have length >= 4)
-{input : tensor, out_backprop: tensor, filter: tensor, strides: list(int), rates: list(int), padding: str} |= if padding = "VALID" then shape(out_backprop,1) = (shape(input,1) - (shape(filter,0) + (shape(filter,0)-1)*(rates[1]-1)) + strides[1] -1) / strides[1] + 1 ∧ shape(out_backprop,2) = (shape(input,2) - (shape(filter,1) + (shape(filter,1)-1)*(rates[2]-1)) + strides[2] -1) / strides[2] + 1 ∧ strides[1] > 0 ∧ strides[2] > 0 ∧ shape(strides, 0) ≥ 4 ∧ shape(rates, 0) ≥ 4 else (shape(out_backprop,1) = (shape(input,1) + strides[1] -1) / strides[1]) ∧ (shape(out_backprop,2) = (shape(input,2) + strides[2] -1) / strides[2]) ∧ strides[1] > 0 ∧ strides[2] > 0 ∧ shape(strides, 0) ≥ 4 ∧ shape(rates, 0) ≥ 4
+Rule 51 (Strides cannot be larger than the input and filter dimensions in height and width.)
+{input: tensor, filter: tensor, strides: list(int)} |= strides[1] <= shape(input, 1) + shape(filter, 0) ∧ strides[2] <= shape(input, 2) + shape(filter, 1)
 >>
-Rule 94 (strides[0], strides[3], rates[0] and rates[3] must be 1, strides and rates must have length 4)
-{strides: list(int), rates: list(int)} |= strides[0] = 1 ∧ strides[3] = 1 ∧ rates[0] = 1 ∧ rates[3] = 1 ∧ shape(strides, 0) = 4 ∧ shape(rates,0) = 4
+Rule 53 (strides, when greater than 1, determine the valid shape sizes for out_backprop)
+{input: tensor, filter: tensor, out_backprop:tensor, strides: list(int), rates:list(int)} |= if strides[1] > 1 ∨ strides[2] > 1 then shape(out_backprop, 1) = (shape(input, 1) - (shape(filter, 0) + (shape(filter, 0)-1)*(rates[1]-1) - 1))/strides[1] ∧ shape(out_backprop, 2) = (shape(input, 2) - (shape(filter, 1) + (shape(filter, 1)-1)*(rates[2]-1) - 1))/strides[2]
 >>
-Rule 96 (The 3D filter must have a depth that is consistent with 4D input)
-{input : tensor, filter : tensor} |= ndim(filter) = 3 ∧ shape(input, 3) = shape(filter, 2)
+Rule 54 (rates cannot cause effective filter size to exceed input dimensions)
+{input: tensor, filter: tensor, rates: list(int)} |= (shape(filter, 0) + (shape(filter, 0) -1)*(rates[1]-1)) <= shape(input, 1) ∧ (shape(filter, 1) + (shape(filter, 1)-1)*(rates[2]-1)) <= shape(input, 2)
 >>
-Rule 98 (If the rate values are not 1, then the relationship of input and output shape depends on the VALID or SAME padding values and other parameters, and Strides are positive, also, strides list should have length >= 4 and rates list should have length >= 4. Finally, The 4D input has positive values)
-{input : tensor, out_backprop: tensor, filter: tensor, strides: list(int), rates: list(int), padding: str} |= if padding = "VALID" then shape(out_backprop,1) = (shape(input,1) - (shape(filter,0) + (shape(filter,0)-1)*(rates[1]-1)) + strides[1] -1) / strides[1] + 1 ∧ shape(out_backprop,2) = (shape(input,2) - (shape(filter,1) + (shape(filter,1)-1)*(rates[2]-1)) + strides[2] -1) / strides[2] + 1 ∧ strides[1] > 0 ∧ strides[2] > 0 ∧ shape(strides, 0) ≥ 4 ∧ shape(rates, 0) ≥ 4 ∧ min(input) ≥ 0 else (shape(out_backprop,1) = (shape(input,1) + strides[1] -1) / strides[1]) ∧ (shape(out_backprop,2) = (shape(input,2) + strides[2] -1) / strides[2]) ∧ strides[1] > 0 ∧ strides[2] > 0 ∧ shape(strides, 0) ≥ 4 ∧ shape(rates, 0) ≥ 4 ∧ min(input) ≥ 0
+Rule 55 (When padding is SAME, and strides is 1, the out_backprop shape is same as input shape)
+{input : tensor, out_backprop: tensor, strides: list(int), padding: str} |= if padding = "SAME" ∧ strides[1] = 1 ∧ strides[2] = 1 then shape(input, 1) = shape(out_backprop, 1) ∧ shape(input, 2) = shape(out_backprop, 2)
 >>
-Rule 99 (strides[0], strides[3], rates[0] and rates[3] must be 1, strides and rates must have length 4, and they are all greater than 0)
-{strides: list(int), rates: list(int)} |= strides[0] = 1 ∧ strides[3] = 1 ∧ rates[0] = 1 ∧ rates[3] = 1 ∧ shape(strides, 0) = 4 ∧ shape(rates,0) = 4 ∧ strides[1] > 0 ∧ strides[2] > 0 ∧ rates[1] > 0 ∧ rates[2] > 0
+Rule 57 (Effective filter size should be less than or equal to input and can derive outbackprop dimensions)
+{input : tensor, filter: tensor, out_backprop: tensor, strides : list(int), rates:list(int), padding: str} |= (shape(filter, 0) + (shape(filter, 0)-1)*(rates[1]-1)) <= shape(input, 1) ∧ (shape(filter, 1) + (shape(filter, 1)-1)*(rates[2]-1)) <= shape(input, 2) ∧ if padding = "VALID" then shape(out_backprop, 1) = (shape(input, 1) - (shape(filter, 0) + (shape(filter, 0)-1)*(rates[1]-1) - 1))/strides[1] ∧ shape(out_backprop, 2) = (shape(input, 2) - (shape(filter, 1) + (shape(filter, 1)-1)*(rates[2]-1) - 1))/strides[2] else if padding = "SAME" then shape(out_backprop, 1) = (shape(input, 1) + strides[1] -1)/strides[1] ∧ shape(out_backprop, 2) = (shape(input, 2) + strides[2] - 1)/strides[2]
 >>
-Rule 100 (The number of channel in input and out_backprop has to be the same, and batch size also the same, and the depth of the filter matches with input and backprop)
-{input : tensor, out_backprop : tensor, filter : tensor} |= shape(input, 3) = shape(out_backprop, 3) ∧ shape(input, 0) = shape(out_backprop, 0) ∧ shape(input, 3) = shape(filter, 2)
+Rule 58 (If the padding is SAME, then calculate output dimensions based on input size and strides while the depth remains constant)
+{input: tensor, out_backprop: tensor, strides: list(int), padding: str} |= if padding = "SAME" then shape(out_backprop, 0) = shape(input, 0) ∧ shape(out_backprop, 1) = (shape(input, 1) + strides[1] -1)/strides[1] ∧ shape(out_backprop, 2) = (shape(input, 2) + strides[2] - 1) / strides[2] ∧ shape(out_backprop, 3) = shape(input, 3)
 >>
-Rule 101 (The shape of the input should be 4D, the shape of the filter should be 3D, the shape of out_backprop should be 4D)
-{input : tensor, filter : tensor, out_backprop : tensor} |= ndim(input) = 4 ∧ ndim(filter) = 3 ∧ ndim(out_backprop) = 4
+Rule 59 (If the padding is VALID, then calculate output dimensions based on input size, filter size, rates and strides while the depth remains constant)
+{input : tensor, filter: tensor, out_backprop: tensor, strides : list(int), rates:list(int), padding: str} |= if padding = "VALID" then shape(out_backprop, 0) = shape(input, 0) ∧ shape(out_backprop, 1) = (shape(input, 1) - (shape(filter, 0) + (shape(filter, 0)-1)*(rates[1]-1) - 1))/strides[1] ∧ shape(out_backprop, 2) = (shape(input, 2) - (shape(filter, 1) + (shape(filter, 1)-1)*(rates[2]-1) - 1))/strides[2] ∧ shape(out_backprop, 3) = shape(input, 3)

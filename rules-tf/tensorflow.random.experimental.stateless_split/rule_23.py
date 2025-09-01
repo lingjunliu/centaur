@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# num is smaller than 2^31 (Rule 23)
+# num must be less than a very large number to avoid overflow (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 2147483648) if n else
-          v["arg1_value"] < 2147483648)
+    s.add(Not(v["arg1_value"] < 10000000) if n else
+          v["arg1_value"] < 10000000)
 )
 
 def rule_23_func(arg1, solver=None, neg=False):

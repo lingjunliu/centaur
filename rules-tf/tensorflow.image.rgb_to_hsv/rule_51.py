@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# images tensor should have dimension >= 1 and image values should be between 0 and 1. (Rule 51)
+# If the images tensor has at least 1 dimension, its last dimension has to have size 3 (Rule 51)
 
 rule_51 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_ndim"] >= 1, Select(v["arg1_range"], 0) >= 0.0), Select(v["arg1_range"], 1) <= 1.0)) if n else
-          And(And(v["arg1_ndim"] >= 1, Select(v["arg1_range"], 0) >= 0.0), Select(v["arg1_range"], 1) <= 1.0))
+    s.add(Not(Or((v["arg1_ndim"] < 1), (Or([And(k < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], k) == 3, k == v["arg1_ndim"] - 1)) for k in range(6)])))) if n else
+          Or((v["arg1_ndim"] < 1), (Or([And(k < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], k) == 3, k == v["arg1_ndim"] - 1)) for k in range(6)]))))
 )
 
 def rule_51_func(arg1, solver=None, neg=False):
@@ -23,17 +23,17 @@ def rule_51_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 51
-        rule_51(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
+        rule_51(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_51(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_51(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

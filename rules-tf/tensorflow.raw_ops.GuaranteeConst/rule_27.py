@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input tensor is a matrix, it should have more rows than columns (Rule 27)
+# If input is not a scalar, the product of all shape dimensions must be smaller than MAX_INT (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) > Select(v["arg1_shape"], 1), False)) if n else
-          If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) > Select(v["arg1_shape"], 1), False))
+    s.add(Not(If(v["arg1_ndim"] > 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 2147483647) for i in range(6)]), True)) if n else
+          If(v["arg1_ndim"] > 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 2147483647) for i in range(6)]), True))
 )
 
 def rule_27_func(arg1, solver=None, neg=False):

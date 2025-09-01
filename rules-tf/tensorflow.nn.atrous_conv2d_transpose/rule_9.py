@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# batch size in output shape must be positive (Rule 9)
+# output_shape tensor must have positive values (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) > 0) if n else
-          Select(v["arg1_shape"], 0) > 0)
+    s.add(Not(And([Implies(i < (Select(v["arg1_shape"], 0) - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])) if n else
+          And([Implies(i < (Select(v["arg1_shape"], 0) - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]))
 )
 
 def rule_9_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# max_to_keep should not be close to save_interval (Rule 46)
+# step_counter and checkpoint_interval must have the same sign (Rule 46)
 
 rule_46 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_value"] < v["arg2_value"] - 10, v["arg1_value"] > v["arg2_value"] + 10)) if n else
-          Or(v["arg1_value"] < v["arg2_value"] - 10, v["arg1_value"] > v["arg2_value"] + 10))
+    s.add(Not(Or(Or((And(v["arg1_value"] > 0, v["arg2_value"] > 0)), (And(v["arg1_value"] == 0, v["arg2_value"] == 0))), (And(v["arg1_value"] < 0, v["arg2_value"] < 0)))) if n else
+          Or(Or((And(v["arg1_value"] > 0, v["arg2_value"] > 0)), (And(v["arg1_value"] == 0, v["arg2_value"] == 0))), (And(v["arg1_value"] < 0, v["arg2_value"] < 0))))
 )
 
 def rule_46_func(arg1, arg2, solver=None, neg=False):

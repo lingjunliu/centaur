@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Image batch size should be equal to one (Rule 35)
+# images' height, width, channels must be positive (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) == 1) if n else
-          Select(v["arg1_shape"], 0) == 1)
+    s.add(Not(And(And(Select(v["arg1_shape"], 1) > 0, Select(v["arg1_shape"], 2) > 0), Select(v["arg1_shape"], 3) > 0)) if n else
+          And(And(Select(v["arg1_shape"], 1) > 0, Select(v["arg1_shape"], 2) > 0), Select(v["arg1_shape"], 3) > 0))
 )
 
 def rule_35_func(arg1, solver=None, neg=False):

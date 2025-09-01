@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# gradients can only be 1, 2, or 4 dimensions (Rule 7)
+# if gradients is rank 2, its shape should be [b, d] (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(v["arg1_ndim"] == 1, v["arg1_ndim"] == 2), v["arg1_ndim"] == 4)) if n else
-          Or(Or(v["arg1_ndim"] == 1, v["arg1_ndim"] == 2), v["arg1_ndim"] == 4))
+    s.add(Not(If(v["arg1_ndim"] == 2, True, True)) if n else
+          If(v["arg1_ndim"] == 2, True, True))
 )
 
 def rule_7_func(arg1, solver=None, neg=False):

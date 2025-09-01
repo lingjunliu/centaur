@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# lr must be positive (Rule 20)
+# lr_power must be less than or equal to 0 (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) > 0) if n else
-          Select(v["arg1_range"], 0) > 0)
+    s.add(Not(Select(v["arg1_range"], 1) <= 0) if n else
+          Select(v["arg1_range"], 1) <= 0)
 )
 
 def rule_20_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If tensor is float16/float32/float64, no element can be infinite or NaN (Rule 27)
+# For float tensors, values should not overflow to infinity (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), (And(And(And(Select(v["arg1_range"], 0) > -1e38, Select(v["arg1_range"], 0) == Select(v["arg1_range"], 0)), Select(v["arg1_range"], 1) < 1e38), Select(v["arg1_range"], 1) == Select(v["arg1_range"], 1))), False)) if n else
-          If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), (And(And(And(Select(v["arg1_range"], 0) > -1e38, Select(v["arg1_range"], 0) == Select(v["arg1_range"], 0)), Select(v["arg1_range"], 1) < 1e38), Select(v["arg1_range"], 1) == Select(v["arg1_range"], 1))), False))
+    s.add(Not(If(v["arg1_dtype"] == 6, Or(Select(v["arg1_range"], 0) > -3.4028235e+38, Select(v["arg1_range"], 1) < 3.4028235e+38), If(v["arg1_dtype"] == 7, Or(Select(v["arg1_range"], 0) > -1.7976931348623157e+308, Select(v["arg1_range"], 1) < 1.7976931348623157e+308), If(v["arg1_dtype"] == 8, Or(Select(v["arg1_range"], 0) > -1.7976931348623157e+308, Select(v["arg1_range"], 1) < 1.7976931348623157e+308), True)))) if n else
+          If(v["arg1_dtype"] == 6, Or(Select(v["arg1_range"], 0) > -3.4028235e+38, Select(v["arg1_range"], 1) < 3.4028235e+38), If(v["arg1_dtype"] == 7, Or(Select(v["arg1_range"], 0) > -1.7976931348623157e+308, Select(v["arg1_range"], 1) < 1.7976931348623157e+308), If(v["arg1_dtype"] == 8, Or(Select(v["arg1_range"], 0) > -1.7976931348623157e+308, Select(v["arg1_range"], 1) < 1.7976931348623157e+308), True))))
 )
 
 def rule_27_func(arg1, solver=None, neg=False):

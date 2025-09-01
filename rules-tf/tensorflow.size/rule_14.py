@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# out_type must be a valid dtype value (Rule 14)
+# out_type must be a valid dtype. Suppresses AttributeError: 'torch.dtype' object has no attribute 'as_numpy_dtype' (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= 1, v["arg1_value"] <= 8)) if n else
-          And(v["arg1_value"] >= 1, v["arg1_value"] <= 8))
+    s.add(Not(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_value"] == 0, v["arg1_value"] == 1), v["arg1_value"] == 2), v["arg1_value"] == 3), v["arg1_value"] == 4), v["arg1_value"] == 5), v["arg1_value"] == 6), v["arg1_value"] == 7), v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10), v["arg1_value"] == 12)) if n else
+          Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_value"] == 0, v["arg1_value"] == 1), v["arg1_value"] == 2), v["arg1_value"] == 3), v["arg1_value"] == 4), v["arg1_value"] == 5), v["arg1_value"] == 6), v["arg1_value"] == 7), v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10), v["arg1_value"] == 12))
 )
 
 def rule_14_func(arg1, solver=None, neg=False):

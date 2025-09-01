@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If data is qint8, quint8, qint32 then segment_ids must be int32 or int64 (Rule 24)
+# If data is complex64, segment_ids must be int32 or int64 (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(v["arg1_dtype"] == 14, v["arg1_dtype"] == 15), v["arg1_dtype"] == 13), Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 4), False)) if n else
-          If(Or(Or(v["arg1_dtype"] == 14, v["arg1_dtype"] == 15), v["arg1_dtype"] == 13), Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 4), False))
+    s.add(Not(If(v["arg1_dtype"] == 9, (Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 4)), True)) if n else
+          If(v["arg1_dtype"] == 9, (Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 4)), True))
 )
 
 def rule_24_func(arg1, arg2, solver=None, neg=False):

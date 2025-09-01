@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if the input is a bool tensor, the output tensor must be an int tensor (Rule 36)
+# Input tensor must be a valid type (Rule 36)
 
 rule_36 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 0, True, True)) if n else
-          If(v["arg1_dtype"] == 0, True, True))
+    s.add(Not(And(v["arg1_dtype"] != 12, v["arg1_dtype"] != 13)) if n else
+          And(v["arg1_dtype"] != 12, v["arg1_dtype"] != 13))
 )
 
 def rule_36_func(arg1, solver=None, neg=False):

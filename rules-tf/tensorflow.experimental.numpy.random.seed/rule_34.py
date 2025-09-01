@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if s is zero as an integer, then another variable must be a positive integer (Rule 34)
+# s must be an integer and cannot be the result of some complex expression (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 0, v["arg2_value"] > 0, False)) if n else
-          If(v["arg1_value"] == 0, v["arg2_value"] > 0, False))
+    s.add(Not(v["arg1_value"] != v["arg2_value"] * v["arg2_value"] + 10) if n else
+          v["arg1_value"] != v["arg2_value"] * v["arg2_value"] + 10)
 )
 
 def rule_34_func(arg1, arg2, solver=None, neg=False):

@@ -1,72 +1,312 @@
 >>
-Rule 2 (input tensor 'a' must have at least one dimension)
-{a : tensor} |= ndim(a) ≥ 1
+Rule 1 (validate_indices should be a boolean)
+{v_2 : bool} |= v_2 = true ∨ v_2 = false
 >>
-Rule 4 (If the input is sparse, indices should be validated when validate_indices is true.)
-{a : tensor, validate_indices : bool} |= if validate_indices = true then true
+Rule 2 (The rank of input tensor `a` should be greater than 0)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 6 (Number of dimensions of a must be greater than 0 and less than 6)
-{a : tensor} |= ndim(a) > 0 ∧ ndim(a) < 6
+Rule 3 (If validate_indices is true, then shape of input tensor should be greater than 0)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
 >>
-Rule 7 (validate_indices must be either true or false)
-{validate_indices : bool} |= validate_indices = true ∨ validate_indices = false
+Rule 4 (If validate_indices is false, then no checks occur)
+{v_1 : tensor, v_2 : bool} |= if v_2 = false then true else ndim(v_1) > 0
 >>
-Rule 8 (input tensor 'a' must have int32 or int64 dtype)
-{a : tensor} |= dtype_(a) = 3 ∨ dtype_(a) = 4
+Rule 5 (If the input tensor is 1D, validate_indices must be false)
+{v_1 : tensor, v_2 : bool} |= if ndim(v_1) = 1 then v_2 = false
 >>
-Rule 11 (If validate_indices is false, a's dtype cannot be float16, float32 or float64)
-{a : tensor, validate_indices : bool} |= if validate_indices = false then dtype_(a) ≠ 6 ∧ dtype_(a) ≠ 7 ∧ dtype_(a) ≠ 8
+Rule 6 (The input tensor must not be a string dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
 >>
-Rule 12 (Shape of a must be valid if validate_indices is set to True)
-{a : tensor, validate_indices : bool} |= if validate_indices = true then ∀i ∈ [0, ndim(a) - 1] : shape(a, i) ≥ 0
+Rule 7 (If validate_indices is true, the last dimension of the tensor must be greater than 0)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then shape(v_1, ndim(v_1) - 1) > 0
 >>
-Rule 14 (a's rank (number of dimensions) should be greater than 0)
-{a : tensor} |= ndim(a) > 0
+Rule 8 (The dtype of input tensor should be an integer or float)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
 >>
-Rule 15 (If validate_indices is false, a's indices should not be validated.)
-{a : tensor, validate_indices : bool} |= if validate_indices = false then true
+Rule 10 (If the input tensor is a scalar, validate_indices has no effect, simplified)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true
 >>
-Rule 19 (If validate_indices is true, values in a should be non-negative.)
-{a : tensor, validate_indices : bool} |= if validate_indices = true then min(a) ≥ 0
+Rule 11 (If the tensor has rank greater than 1, then validate_indices matters.)
+{v_1 : tensor, v_2 : bool} |= if ndim(v_1) > 1 then true else v_2 = false
 >>
-Rule 20 (If a is 1D tensor, it should contain at least one element.)
-{a : tensor} |= if ndim(a) = 1 then shape(a, 0) > 0
+Rule 12 (validate_indices should be true if the elements of input tensor may not be sorted.)
+{v_1 : tensor, v_2 : bool} |= if min(v_1) > max(v_1) then v_2 = true
 >>
-Rule 21 (If a is a multi-dimensional tensor, the last dimension must have at least one element.)
-{a : tensor} |= if ndim(a) > 1 then shape(a, ndim(a) - 1) > 0
+Rule 13 (If the tensor has negative values, validate_indices must be true)
+{v_1 : tensor, v_2 : bool} |= if min(v_1) < 0 then v_2 = true
 >>
-Rule 26 (If validate_indices is true, then rank of a should be greater than 0)
-{a : tensor, validate_indices : bool} |= if validate_indices = true then ndim(a) > 0
+Rule 14 (The product of tensor's shape dimensions cannot be zero if validate_indices is true)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0)
 >>
-Rule 27 (The output Tensor has rank n-1 where n is the rank of input a, when rank of a is greater than 1.)
-{a : tensor} |= if ndim(a) > 1 then true
+Rule 15 (The number of unique elements in the last dimension must be less than or equal to the size of that dimension.)
+{v_1: tensor} |= max(v_1) - min(v_1) + 1 ≤ shape(v_1, ndim(v_1) - 1)
 >>
-Rule 29 (if validate_indices is a bool, then ndim(a) must be greater than 0)
-{a : tensor, validate_indices : bool} |= if validate_indices = true ∨ validate_indices = false then ndim(a) > 0
+Rule 16 (If validate_indices is true, then elements of last dimension must be sorted in ascending order)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then (∀i ∈ [0, shape(v_1, ndim(v_1) - 1) - 2] : v_1[i] ≤ v_1[i + 1])
 >>
-Rule 30 (if a is a tensor with dimension > 1 and validate_indices is true, then all values in the tensor must be less than max value of int32)
-{a : tensor, validate_indices : bool} |= if validate_indices = true ∧ ndim(a) > 1 then max(a) < 2147483647
+Rule 17 (If input tensor has duplicate elements on its last dimension and validate indices is true, undefined behavior may occur)
+{v_1 : tensor, v_2 : bool} |= if (∃i ∈ [0, shape(v_1, ndim(v_1) - 1) - 1] : v_1[i] = v_1[i+1]) ∧ v_2 = true then true
 >>
-Rule 32 (If validate_indices is true, all values in a must be less than the maximum value that the int32 dtype can represent)
-{a : tensor, validate_indices : bool} |= if validate_indices = true then max(a) < 2147483647
+Rule 18 (The input cannot be complex dtype)
+{v_1: tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 9
 >>
-Rule 33 (If a is a 0D tensor, it should return 1.)
-{a : tensor} |= if ndim(a) = 0 then true
+Rule 19 (If validate_indices is true and tensor has NaN values, undefined behavior might occur)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then max(v_1) ≠ max(v_1)
 >>
-Rule 35 (When a is a sparse tensor, validate_indices is either true or false)
-{a : tensor, validate_indices : bool} |= validate_indices = true ∨ validate_indices = false
+Rule 20 (If any shape dimension of input is unknown, then validate_indices should be false.)
+{v_1 : tensor, v_2 : bool} |= if (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 0) then v_2 = false
 >>
-Rule 37 (The output tensor should have rank of ndim(a) - 1 if ndim(a) > 0, and 0 otherwise)
-{a : tensor} |= ndim(a) ≥ 0
+Rule 21 (If the tensor contains inf value, validate_indices must be true)
+{v_1 : tensor, v_2 : bool} |= if max(v_1) = max(v_1) ∧ max(v_1) > 10000000 then v_2 = true
 >>
-Rule 38 (If validate_indices is true, then elements of a must be int32 or int64)
-{a : tensor, validate_indices : bool} |= if validate_indices = true then dtype_(a) = 3 ∨ dtype_(a) = 4
+Rule 22 (If validate_indices is true, then indices in the last dimension must be within the valid range)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then (min(v_1) ≥ 0 ∧ max(v_1) < shape(v_1, ndim(v_1) - 1))
 >>
-Rule 40 (If a is empty, return empty tensor with rank n-1)
-{a : tensor} |= if ∃i ∈ [0, ndim(a) - 1] : shape(a, i) = 0 then true
+Rule 23 (If the input is a sparse tensor, validate_indices may require a significant performance overhead)
+{v_1 : tensor, v_2 : bool} |= if ndim(v_1) > 2 ∧ (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < shape(v_1, ndim(v_1) - 1)) then if v_2 = true then true
 >>
-Rule 45 (validate_indices is a bool or it is not provided)
-{a : tensor, validate_indices : bool ⊎ int} |= validate_indices = true ∨ validate_indices = false ∨ validate_indices = 0
+Rule 24 (The values in input should be non-negative integers, or the output may be incorrect.)
+{v_1 : tensor, v_2 : bool} |= if v_2 = false then min(v_1) >= 0 ∧ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
 >>
-Rule 49 (If the input is a sparse tensor, indices should be validated when validate_indices is not False.)
-{a : tensor, validate_indices : bool} |= if validate_indices ≠ false then true
+Rule 26 (If validate_indices is True, then the input tensor cannot have NaN value)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then min(v_1) = min(v_1)
+>>
+Rule 27 (The minimum and maximum value in last dimension cannot be negative infinity)
+{v_1 : tensor} |= min(v_1) ≠ -1/0 ∧ max(v_1) ≠ -1/0
+>>
+Rule 28 (If the last dimension has only one unique value, validate_indices does not matter, simplified)
+{v_1 : tensor} |= if max(v_1) = min(v_1) then true
+>>
+Rule 31 (If the tensor is empty, validate_indices does not matter, simplified)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0)
+>>
+Rule 32 (For a valid SparseTensor, elements in indices tensor of the SparseTensor have to be smaller than the shape of the input, validate_indices should be true)
+{v_1 : tensor} |= min(v_1) ≥ 0 ∧ max(v_1) < shape(v_1, ndim(v_1)-1)
+>>
+Rule 33 (validate_indices must be false for float type inputs)
+{v_1: tensor, v_2 : bool} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then v_2 = false
+>>
+Rule 34 (The rank of output should be less than the rank of input tensor)
+{v_1: tensor} |= ndim(v_1) - 1 >= 0
+>>
+Rule 35 (validate_indices must be false if input is empty.)
+{v_1: tensor, v_2: bool} |= if (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 0) then v_2 = false
+>>
+Rule 36 (The input SparseTensor must have indices sorted in row-major order when validate_indices is false)
+{v_1: tensor, v_2: bool} |= if v_2 = false then ∀i ∈ [0, shape(v_1, ndim(v_1)-1) - 2] : v_1[i] ≤ v_1[i + 1]
+>>
+Rule 37 (validate_indices must be true for integer or float type inputs with negative elements)
+{v_1: tensor, v_2: bool} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9) ∧ min(v_1) < 0 then v_2 = true
+>>
+Rule 38 (validate_indices should be false if the elements in last dimension have the same value)
+{v_1: tensor, v_2: bool} |= if max(v_1) = min(v_1) then v_2 = false
+>>
+Rule 39 (If the rank of the input tensor is 1, validate_indices does not make sense.)
+{v_1: tensor, v_2: bool} |= if ndim(v_1) = 1 then v_2 = false
+>>
+Rule 40 (If validate_indices is True, there should be no duplicate elements in the input)
+{v_1: tensor, v_2: bool} |= if v_2 = true then ∀i ∈ [0, shape(v_1, ndim(v_1)-1) - 2] : v_1[i] < v_1[i + 1]
+>>
+Rule 41 (If validate_indices is true and the values in last dimension are not sorted, result might be incorrect)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then (min(v_1) < max(v_1) ∧ (∀i ∈ [0, shape(v_1, ndim(v_1)-1) - 2] : v_1[i] ≤ v_1[i+1]))
+>>
+Rule 42 (If validate_indices is false, then data type should be integer)
+{v_1: tensor, v_2: bool} |= if v_2 = false then dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+>>
+Rule 43 (validate_indices must be false if any value is NaN)
+{v_1: tensor, v_2: bool} |= if min(v_1) ≠ min(v_1) then v_2 = false
+>>
+Rule 44 (validate_indices should always be false if rank of the input is zero.)
+{v_1: tensor, v_2: bool} |= if ndim(v_1) = 0 then v_2 = false
+>>
+Rule 46 (If validate_indices is true and input has non integer values then the output will be unexpected.)
+{v_1: tensor, v_2: bool} |= if v_2 = true then dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+>>
+Rule 47 (If shape of input is [1], validate_indices is meaningless)
+{v_1: tensor, v_2: bool} |= if shape(v_1, 0) = 1 then v_2 = false
+>>
+Rule 48 (If dtype is not in integer/float/bool validate_indices is not applicable)
+{v_1: tensor, v_2: bool} |= if dtype_(v_1) > 9 then v_2 = false
+>>
+Rule 49 (If there are any unknown dimensions (-1) in input tensor's shape and validate_indices is set to true, the function might raise error.)
+{v_1: tensor, v_2: bool} |= if (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = -1) ∧ v_2 = true then true
+>>
+Rule 50 (If validate_indices is true, input tensor should not have any inf value.)
+{v_1: tensor, v_2: bool} |= if v_2 = true then min(v_1) ≠ -1/0 ∧ max(v_1) ≠ 1/0
+>>
+Rule 51 (If shape of last dimension is smaller than 2, validate_indices becomes meaningless)
+{v_1: tensor, v_2: bool} |= if shape(v_1, ndim(v_1) - 1) < 2 then v_2 = false
+>>
+Rule 53 (If validate_indices is true, elements on the indices must be different otherwise the number of unique element is incorrect.)
+{v_1: tensor, v_2: bool} |= if v_2 = true then (∀i ∈ [0, shape(v_1, ndim(v_1)-1)-1] : v_1[i] ≠ v_1[i+1])
+>>
+Rule 54 (If validate_indices is True, then values must be sorted otherwise count may include invalid ranges)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then (∀i ∈ [0, shape(v_1, ndim(v_1)-1)-2] : v_1[i] ≤ v_1[i+1])
+>>
+Rule 55 (When input tensor `a` is an integer and negative validate_indices must be true)
+{v_1: tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then min(v_1) >=0
+>>
+Rule 56 (If validate_indices is true then it should be in range to avoid out of bound error.)
+{v_1: tensor, v_2: bool} |= if v_2 = true then max(v_1) < shape(v_1, ndim(v_1)-1)
+>>
+Rule 57 (validate_indices is useless for single element tensor)
+{v_1: tensor, v_2: bool} |= if shape(v_1, ndim(v_1)-1) <=1 then v_2 = false
+>>
+Rule 58 (If input has only one element, validate_indices has no meaning.)
+{v_1: tensor, v_2: bool} |= if (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = 1) ∧ ndim(v_1) = 1 then v_2 = false
+>>
+Rule 59 (If dtype is bool, validate indices has no meaning)
+{v_1: tensor, v_2 : bool} |= if dtype_(v_1) = 0 then v_2 = false
+>>
+Rule 61 (input cannot have values which are infinite simplified)
+{v_1: tensor} |= min(v_1) ≠ -1/0 ∧ max(v_1) ≠ 1/0
+>>
+Rule 62 (The last dimension can not have shape 0)
+{v_1: tensor} |= shape(v_1, ndim(v_1) - 1) > 0
+>>
+Rule 63 (If dtype is complex, validate indices should be false)
+{v_1: tensor, v_2: bool} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_2 = false
+>>
+Rule 64 (If input is a sparse tensor and validate_indices is set to false, there might be duplicate elements.)
+{v_1: tensor, v_2: bool} |= if v_2 = false then (∃i ∈ [0, shape(v_1, ndim(v_1)-1) - 2] : v_1[i] ≥ v_1[i+1])
+>>
+Rule 65 (validate_indices has to be set to true if we have unsorted input to avoid undefined behaviour.)
+{v_1: tensor, v_2: bool} |= if (∃i ∈ [0, shape(v_1, ndim(v_1)-1)-1] : v_1[i] > v_1[i+1]) then v_2 = true
+>>
+Rule 67 (If validate_indices is false, and input tensor has negative values then the output will be incorrect.)
+{v_1: tensor, v_2: bool} |= if v_2 = false then min(v_1) ≥ 0
+>>
+Rule 68 (When the tensor is a scalar, validate_indices makes no sense.)
+{v_1:tensor, v_2: bool} |= if ndim(v_1) = 0 then v_2=false
+>>
+Rule 69 (If validate_indices is true then number of unique values must be less than or equal to shape of that tensor)
+{v_1:tensor, v_2: bool} |= if v_2 = true then max(v_1) - min(v_1) ≤ shape(v_1, ndim(v_1) - 1)
+>>
+Rule 70 (if shape of input is [0], validate_indices does not matter)
+{v_1: tensor, v_2: bool} |= if shape(v_1, ndim(v_1) - 1) = 0 then v_2 = false
+>>
+Rule 71 (validate indices must be false if number of dimensions is not defined.)
+{v_1: tensor, v_2: bool} |= if ndim(v_1) < 0 then v_2 = false
+>>
+Rule 73 (If the last dimension of the tensor is not sorted validate_indices = true else validate_indices = false.)
+{v_1: tensor, v_2: bool} |= if (∃i ∈ [0, shape(v_1, ndim(v_1)-1) - 2]: v_1[i] > v_1[i+1]) then v_2 = true else v_2 = false
+>>
+Rule 74 (validate indices should be false if data type is string)
+{v_1: tensor, v_2: bool} |= if dtype_(v_1) = 11 then v_2 = false
+>>
+Rule 75 (The rank of input tensor `a` should be less than or equal to 5)
+{v_1: tensor} |= ndim(v_1) ≤ 5
+>>
+Rule 76 (valid indices range for tensor a when validate_indices is set to True)
+{v_1: tensor, v_2: bool} |= if v_2 = true then ∀i ∈ [0, shape(v_1, ndim(v_1)-1) - 1] : v_1[i] ≥ 0
+>>
+Rule 77 (When validate_indices is set to false, no error is raised even if the last dimension contains unsorted elements. The returned value is just not reliable.)
+{v_1: tensor, v_2: bool} |= if v_2 = false then (∀i ∈ [0, shape(v_1, ndim(v_1)-1) - 2] : v_1[i] ≤ v_1[i+1]) ∨ (∃i ∈ [0, shape(v_1, ndim(v_1)-1) - 2] : v_1[i] > v_1[i+1])
+>>
+Rule 79 (If rank of the tensor is zero, validate_indices does not matter. Simplified version.)
+{v_1: tensor} |= if ndim(v_1) = 0 then true
+>>
+Rule 80 (If the tensor is boolean values, the output is either 1 or 0)
+{v_1: tensor} |= if dtype_(v_1) = 0 then max(v_1) ≤ 1 ∧ min(v_1) ≥ 0
+>>
+Rule 81 (When validate_indices is true, there must be enough memory to load all unique values for set calculations, otherwise OOM error would be caused.)
+{v_1: tensor, v_2: bool} |= if v_2 = true then shape(v_1, ndim(v_1)-1) < 1000000000
+>>
+Rule 82 (If there is nan value, validate_indices makes no difference because it will be discarded)
+{v_1: tensor, v_2: bool} |= if (∃i ∈ [0, shape(v_1, ndim(v_1)-1) - 1]: v_1[i] ≠ v_1[i]) then v_2 = false
+>>
+Rule 83 (if the shape of input tensor in any dimension is negative the behaviour is undefined)
+{v_1: tensor, v_2: bool} |= if (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 0) then v_2 = false
+>>
+Rule 84 (Last dimension must be greater than or equal to zero)
+{v_1: tensor} |= shape(v_1, ndim(v_1) - 1) ≥ 0
+>>
+Rule 85 (If data type is integer, then all the values should be whole numbers not fraction)
+{v_1: tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then (∀i ∈ [0, shape(v_1, ndim(v_1)-1)-1] : v_1[i] % 1 = 0)
+>>
+Rule 86 (When validate_indices is false, duplicates on the indices may not be properly counted.)
+{v_1: tensor, v_2: bool} |= if v_2 = false then (∀i ∈ [0, shape(v_1, ndim(v_1)-1) - 1]: v_1[i] ≠ v_1[i])
+>>
+Rule 87 (If shape of input tensor is greater than 100000 the execution will be slow so validate_indices should be false)
+{v_1: tensor, v_2: bool} |= if shape(v_1, ndim(v_1) - 1) > 100000 then v_2 = false
+>>
+Rule 88 (If the data type of the input is not integer or float, then validate indices has no effect.)
+{v_1: tensor, v_2: bool} |= if dtype_(v_1) = 0 ∨ dtype_(v_1) = 11 then v_2 = false
+>>
+Rule 89 (When input is boolean then it needs no validation)
+{v_1: tensor, v_2: bool} |= if dtype_(v_1) = 0 then v_2=false
+>>
+Rule 90 (When validate_indices is false data must be sorted or else function would return wrong value.)
+{v_1: tensor, v_2: bool} |= if v_2 = false then (∀i ∈ [0, shape(v_1, ndim(v_1)-1)-2] : v_1[i] <= v_1[i+1])
+>>
+Rule 91 (For SparseTensor when validate_indices is False it needs the indices to be sorted)
+{v_1: tensor, v_2: bool} |= if v_2 = false then (∀i ∈ [0, shape(v_1, ndim(v_1)-1) - 2] : v_1[i] <= v_1[i+1])
+>>
+Rule 92 (validate indices should be true when dtype is boolean otherwise output might not be correct.)
+{v_1: tensor, v_2: bool} |= if dtype_(v_1) = 0 then v_2 = false
+>>
+Rule 93 (validate_indices should be set as false when the last dimensions of tensor is empty so we donot need to worry about validation.)
+{v_1: tensor, v_2: bool} |= if shape(v_1, ndim(v_1)-1) = 0 then v_2 = false
+>>
+Rule 94 (When shape of the input tensor in the last dimension is not a number then validate_indices is ignored.)
+{v_1: tensor, v_2: bool} |= if shape(v_1, ndim(v_1) - 1) < 0 then v_2 = false
+>>
+Rule 95 (When the tensor is not sorted the results will be inaccurate if validate_indices = false.)
+{v_1: tensor, v_2: bool} |= if v_2 = false then min(v_1) ≤ max(v_1)
+>>
+Rule 96 (validate_indices is true if and only if the tensor `a` has negative values.)
+{v_1: tensor, v_2: bool} |= if min(v_1) < 0 then v_2 = true
+>>
+Rule 97 (The rank of the input should be less than 6)
+{v_1: tensor} |= ndim(v_1) < 6
+>>
+Rule 98 (if input contains infinite values validate_indices should be True otherwise nan values are considered)
+{v_1: tensor, v_2: bool} |= if min(v_1) = -1/0 ∨ max(v_1) = 1/0 then v_2 = true
+>>
+Rule 101 (shape in the last dimension should be less than 2147483647)
+{v_1: tensor} |= shape(v_1, ndim(v_1) - 1) < 2147483647
+>>
+Rule 102 (For float dtypes if indices are negative then it might give incorrect set size if validate_indices is false)
+{v_1: tensor, v_2: bool} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (if min(v_1) < 0 then v_2 = true)
+>>
+Rule 103 (For float dtypes if indices are not sorted then the output might not be correct.)
+{v_1: tensor, v_2: bool} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (if (∃i ∈ [0, shape(v_1, ndim(v_1)-1)-2]: v_1[i] > v_1[i+1]) then v_2=true)
+>>
+Rule 104 (When we want to calculate for sparse tensors, we should sort elements and validate indices)
+{v_1: tensor, v_2: bool} |= if max(v_1) - min(v_1) > 1000 then v_2 = true
+>>
+Rule 105 (for string dtype, we should not call the API)
+{v_1: tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 106 (When tensor has elements not sorted, we should validate indexes)
+{v_1: tensor, v_2: bool} |= if (∃i ∈ [0, shape(v_1, ndim(v_1)-1)-1]: v_1[i] > v_1[i+1]) then v_2 = true
+>>
+Rule 107 (When tensor has negative elements, we should validate indices)
+{v_1: tensor, v_2: bool} |= if (∃i ∈ [0, shape(v_1, ndim(v_1)-1)-1]: v_1[i] < 0) then v_2 = true
+>>
+Rule 108 (If the input is 32 bit or 64 bit, validate indices must be false)
+{v_1: tensor, v_2: bool} |= if dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then v_2 = false
+>>
+Rule 109 (For indices with floating point validate_indices has no use )
+{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then v_2 = false
+>>
+Rule 110 (For tensors if there exist duplicate and data type is an int, you should use validate indices to validate.)
+{v_1: tensor, v_2: bool} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then (if (∃i ∈ [0, shape(v_1, ndim(v_1)-1)-1] : v_1[i] = v_1[i+1]) then v_2 = true)
+>>
+Rule 112 (The number of unique elements can never be more than the possible values for int32)
+{v_1: tensor} |= max(v_1) - min(v_1) < 2147483647
+>>
+Rule 113 (validate_indices makes more sense if data type is integer because we have memory limitations)
+{v_1: tensor, v_2: bool} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then v_2 = true
+>>
+Rule 114 (If input tensor is not in row major order, the result is incorrect)
+{v_1: tensor} |= (∃i ∈ [0, shape(v_1, ndim(v_1)-1)-1] : v_1[i] > v_1[i+1])
+>>
+Rule 115 (Even if validate_indices = false , having duplicate values the output will just be an approximation instead of the actual result)
+{v_1: tensor, v_2: bool} |= if v_2 = false then (∀i ∈ [0, shape(v_1, ndim(v_1)-1)-1] : v_1[i] ≠ v_1[i+1])
+>>
+Rule 116 (If there are duplicate elements, the validate_indices should be true to obtain a correct result.)
+{v_1: tensor, v_2: bool} |= if (∃i ∈ [0, shape(v_1, ndim(v_1)-1)-1]: v_1[i] = v_1[i+1]) then v_2 = true
+>>
+Rule 117 (Shape of tensor should not be greater than 256 to avoid high memory usage)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 256

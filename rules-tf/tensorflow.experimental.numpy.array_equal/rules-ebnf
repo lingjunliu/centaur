@@ -1,105 +1,153 @@
 >>
-Rule 1 (Input tensors should have the same data type)
+Rule 1 (tensors must have the same dtype)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 2 (Input tensors should have the same shape)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then false else (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 2 (tensor shapes should be compatible)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1) = shape(v_2)
 >>
-Rule 3 (One input tensor is boolean, then the other should also be boolean)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0 else if dtype_(v_2) = 0 then dtype_(v_1) = 0
+Rule 3 (tensors must have at least one dimension)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
 >>
-Rule 4 (Input tensors dimensions cannot be negative)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0
+Rule 4 (tensor dtypes should be compatible and within a range)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3)
 >>
-Rule 5 (Both input tensors can't be string type)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_2) ≠ 11
+Rule 5 (if one tensor is bool, the other should be as well)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0
 >>
-Rule 6 (Check if the first dimension of v_1 is greater than 0 and if shape of both tensors match along the first axis)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 0) = shape(v_2, 0)
+Rule 6 (ensure no NaNs, checking first element is enough)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) = min(v_1) ∧ min(v_2) = min(v_2)
 >>
-Rule 7 (If the first tensor is a 2D tensor, then the second tensor must have at least one dimension)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then ndim(v_2) >= 1
->>
-Rule 8 (If the second tensor is a 2D tensor, then the first tensor must have at least one dimension)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 2 then ndim(v_1) >= 1
->>
-Rule 9 (If one of the tensors is a scalar, the other should be scalar as well)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) = (ndim(v_2) = 0)
->>
-Rule 10 (If first tensor has boolean type, then second tensor's elements can only be 0 or 1)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then (min(v_2) = 0 ∧ max(v_2) = 1) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0)
->>
-Rule 11 (If the second tensor has more than one dimensions, then the first tensor has more than zero dimensions)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 1 then ndim(v_1) > 0
->>
-Rule 12 (Either both input tensors should have a dimension equal to 1, or neither should)
-{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1) = (∃j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) = 1)
->>
-Rule 13 (The data type of both tensors should not be complex)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 ∧ dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10
->>
-Rule 15 (If tensor v_1 is of float type, then tensor v_2 cannot be of integer type)
-{v_1 : tensor, v_2 : tensor} |= if 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 then (1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5) = false
->>
-Rule 16 (If the tensors are not scalar then the shape of the tensors must match)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
->>
-Rule 17 (If tensor v_1 is integer type, then tensor v_2 cannot be string)
-{v_1 : tensor, v_2 : tensor} |= if 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 then dtype_(v_2) ≠ 11
->>
-Rule 20 (At least one tensor cannot have a dimension of 0)
-{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0) ∨ (∀j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) ≠ 0)
->>
-Rule 21 (If both tensors have only one dimension, then their shapes must be equal)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 then shape(v_1, 0) = shape(v_2, 0)
->>
-Rule 22 (If one of the tensors is bool, then the other tensor can only have bool or numerical datatype)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then (dtype_(v_2) = 0 ∨ (1 <= dtype_(v_2) ∧ dtype_(v_2) <= 8)) else if dtype_(v_2) = 0 then (dtype_(v_1) = 0 ∨ (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 8))
->>
-Rule 23 (If one tensor's minimum element is greater than the other tensor's max element then the comparison will always return false)
-{v_1 : tensor, v_2 : tensor} |= if min(v_1) > max(v_2) then false
->>
-Rule 24 (If both tensors are of the same integer type, the minimum value should be >= 0)
-{v_1 : tensor, v_2 : tensor} |= if 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 ∧ dtype_(v_1) = dtype_(v_2) then min(v_1) >= 0 ∧ min(v_2) >= 0
->>
-Rule 25 (If the shape of two tensors is equal along one axis, but dtype is different, then comparison could return false)
-{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) then dtype_(v_1) = dtype_(v_2)
->>
-Rule 26 (If a tensor's data type is complex then the other should also be complex)
+Rule 7 (if one tensor is complex, the other should be as well)
 {v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
 >>
-Rule 27 (if both tensors have a bool dtype, then at least one of the tensor should contain at least one 'true' element)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 ∧ dtype_(v_2) = 0 then max(v_1) = true ∨ max(v_2) = true
+Rule 8 (if one tensor is floating point, the other should be as well)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
 >>
-Rule 28 (If the first tensor is of type string then the second tensor should also be of type string)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 11 then dtype_(v_2) = 11
+Rule 11 (tensors should not have string dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_2) ≠ 11
 >>
-Rule 29 (If the dimension of a tensor is greater than zero, the shape of the first dimension must be greater than zero)
-{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) > 0
+Rule 12 (if one tensor is integer, the other one should be as well)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5
 >>
-Rule 30 (If the data type of tensor v_1 is a floating point then the maximum value contained by tensor v_2 cannot be greater than 1)
-{v_1 : tensor, v_2 : tensor} |= if 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8 then max(v_2) <= 1
+Rule 13 (both tensors have the same size if they have at least one dimension - corrected)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 31 (If the first tensor's dimension is zero, then the second tensor's dimension should also be zero)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+Rule 16 (if one tensor is boolean, the other one cannot be complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10
 >>
-Rule 32 (If any of the dimensions of the tensors are not the same the min of v_1 should be equal to the min of v_2)
-{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ shape(v_2, i) then min(v_1) = min(v_2)
+Rule 17 (tensors dimensions should be less than certain number)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) < 6 ∧ ndim(v_2) < 6
 >>
-Rule 33 (If the tensors have different shapes, the min/max functions must be equivalent.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) ∨ (∃i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) -1 ] : shape(v_1, i) ≠ shape(v_2, i)) then min(v_1) = min(v_2) ∧ max(v_1) = max(v_2)
+Rule 18 (at least one tensor must have more than zero dimensions if the dtypes are the same)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = dtype_(v_2) then ndim(v_1) > 0 ∨ ndim(v_2) > 0
 >>
-Rule 34 (If tensors are boolean then max and min are 0 and 1 respectively)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 ∧ dtype_(v_2) = 0 then min(v_1) = 0 ∧ max(v_1) = 1 ∧ min(v_2) = 0 ∧ max(v_2) = 1
+Rule 19 (if one tensor has a certain shape then the other should also have the same shape value at a specific dimension)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) = 5 then shape(v_2, 0) = 5
 >>
-Rule 36 (The min element of each tensor should be >=0 or be of string type.)
-{v_1 : tensor, v_2 : tensor} |= (min(v_1) >= 0 ∧ min(v_2) >= 0) ∨ (dtype_(v_1) = 11 ∧ dtype_(v_2) = 11)
+Rule 20 (if one tensor is single precision float, the other should not be double precision float)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) ≠ 8
 >>
-Rule 37 (The max element of each tensor should be <=1 or be of string type.)
-{v_1 : tensor, v_2 : tensor} |= (max(v_1) <= 1 ∧ max(v_2) <= 1) ∨ (dtype_(v_1) = 11 ∧ dtype_(v_2) = 11)
+Rule 22 (sum of shape of one tensor is greater than other, corrected)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then shape(v_1,0) + shape(v_1,1) >= shape(v_2,0) + shape(v_2,1)
 >>
-Rule 38 (If any of the tensor is a boolean type, then its min should equal to 0, and max should equal to 1)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 ∨ dtype_(v_2) = 0 then min(v_1) = 0 ∧ max(v_1) = 1 ∧ min(v_2) = 0 ∧ max(v_2) = 1
+Rule 23 (min of one tensor must be less than max of other)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) <= max(v_2)
 >>
-Rule 39 (If any of tensors are complex, their minimum should not be zero)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 then min(v_1) ≠ 0 ∧ min(v_2) ≠ 0
+Rule 24 (if the number of dimensions are same then shape of each dimension must be same)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1,i) = shape(v_2,i)
+>>
+Rule 25 (if tensor is of complex type, then the other must have same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ndim(v_1) = ndim(v_2)
+>>
+Rule 29 (if tensor has more than 2 dimension then the first two dimensions must be less than certain number)
+{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, 0) < 10 ∧ shape(v_1, 1) < 10
+>>
+Rule 35 (if the first dimension of one tensor is greater than 10 then the same must be true for the other tensor)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) > 10 then shape(v_2, 0) > 10
+>>
+Rule 36 (if one tensor's dtype is dtype, the other must be as well)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 12 then dtype_(v_2) = 12
+>>
+Rule 41 (if the number of dimension of one tensor is greater than zero then the shape of the second tensor can not be zero)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then shape(v_2, 0) > 0
+>>
+Rule 42 (If the sum of the shape of one tensor is greater than zero the other must be too)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1,0) + shape(v_1,1) > 0 then shape(v_2,0) + shape(v_2,1) > 0
+>>
+Rule 44 (if the number of dimension of one tensor is greater than zero then the shape of the second tensor can not be zero - simplified)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then ndim(v_2) > 0
+>>
+Rule 46 (tensors can not be both complex 64 and complex 128 - corrected and valid grammar)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∧ dtype_(v_2) = 10) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_2) = 9) then false
+>>
+Rule 48 (if the dtype of the tensors are numeric, then both must have at least one dimension)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) then ndim(v_1) > 0 ∧ ndim(v_2) > 0
+>>
+Rule 50 (if one tensor's data type is float 16 then the other one should have at least one dimension)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then ndim(v_2) > 0
+>>
+Rule 52 (If dtypes are not equal, at least one must be floating)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ dtype_(v_2) then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∨ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 53 (if one tensor is complex, the other can not be bool)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) ≠ 0
+>>
+Rule 54 (at least one tensor must have 2 dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) >=2 ∨ ndim(v_2)>=2
+>>
+Rule 55 (the tensors should have dtypes that fall in the same general category)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 0) then (dtype_(v_2) = 0) else if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) else if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) else if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 57 (the number of dimensions must not be equal)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≠ ndim(v_2)
+>>
+Rule 59 (The product of the shape must be the same using quantifiers)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) > 0)
+>>
+Rule 60 (if dtypes are equal then first element must also be equal)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = dtype_(v_2) then min(v_1) = min(v_2)
+>>
+Rule 61 (the tensors should have dtypes that fall in the same general category - Simplified and Rephrased)
+{v_1 : tensor, v_2 : tensor} |=  (dtype_(v_1) < 6 ∧ dtype_(v_2) < 6) ∨ (6 <= dtype_(v_1) ∧ dtype_(v_1) < 9 ∧ 6 <= dtype_(v_2) ∧ dtype_(v_2) < 9) ∨ (dtype_(v_1) >=9 ∧ dtype_(v_2) >= 9) ∨ (dtype_(v_1) = 0 ∧ dtype_(v_2) = 0)
+>>
+Rule 62 (the tensor dtypes must have same parity (even or odd), only checking numeric dtypes)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) > 0 ∧ dtype_(v_1) < 11 ∧ dtype_(v_2) > 0 ∧ dtype_(v_2) < 11) then (dtype_(v_1) % 2) = (dtype_(v_2) % 2)
+>>
+Rule 66 (if the shape of the first tensor has values, then the second should also be the same - using OR operator this time)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∨ (∃j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) > 0)
+>>
+Rule 67 (At least one tensor must have a floating-point or complex dtype)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∨ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 68 (If one of the tensors is of type bool, both tensors should not be equal)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 0) then (v_1 ≠ v_2)
+>>
+Rule 72 (if dtype is int then shape should be at least one, simplified)
+{v_1 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then ndim(v_1) > 0
+>>
+Rule 73 (If the tensors are both boolean they must be the same object)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 0 ∧ dtype_(v_2) = 0) then (v_1 = v_2)
+>>
+Rule 74 (If one tensor has one dimension, then the other must have the same shape in some dimension)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 1) then ∃i ∈ [0, ndim(v_2) - 1] : shape(v_1, 0) = shape(v_2, i)
+>>
+Rule 79 (the min of the two must be the same, and the max must be the same)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) = min(v_2) ∧ max(v_1) = max(v_2)
+>>
+Rule 80 (If one tensor has str dtype, other must also)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 11) then (dtype_(v_2) = 11)
+>>
+Rule 94 (the min of the two must be the same, or at least one is small - corrected again)
+{v_1 : tensor, v_2 : tensor} |= (min(v_1) = min(v_2)) ∨ (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) ≤ 4) ∨ (∀j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) ≤ 4)
+>>
+Rule 95 (the number of dimensions is same, or at least one is small - corrected again)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∨ (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) ≤ 4) ∨ (∀j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) ≤ 4)
+>>
+Rule 97 (the min of the two must be the same, or at least one is small - corrected AGAIN and grammar corrected)
+{v_1 : tensor, v_2 : tensor} |= (min(v_1) = min(v_2)) ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≤ 4) ∨ (∀j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) ≤ 4)
+>>
+Rule 98 (the number of dimensions is same, or at least one is small - corrected AGAIN and grammar corrected)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≤ 4) ∨ (∀j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) ≤ 4)
+>>
+Rule 100 (If both tensors have more than 2 dimensions, they should have same number of elements in the first dimension)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 2 ∧ ndim(v_2) > 2 then shape(v_1,0) = shape(v_2, 0)

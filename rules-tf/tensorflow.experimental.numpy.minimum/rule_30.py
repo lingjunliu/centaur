@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the values are boolean, then compare the boolean values, convert the boolean values into numeric representations (Rule 30)
+# x1 and x2 should have compatible dtypes (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0), True, False)) if n else
-          If(And(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0), True, False))
+    s.add(Not(And(And(And(And((Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5)), Or((Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5)), (Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)))), Or((Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8)), (Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)))), Or((Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), (v["arg1_dtype"] == 0))), (v["arg2_dtype"] == 0))) if n else
+          And(And(And(And((Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5)), Or((Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5)), (Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)))), Or((Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8)), (Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)))), Or((Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), (v["arg1_dtype"] == 0))), (v["arg2_dtype"] == 0)))
 )
 
 def rule_30_func(arg1, arg2, solver=None, neg=False):

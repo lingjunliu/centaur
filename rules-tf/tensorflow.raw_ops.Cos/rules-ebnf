@@ -1,195 +1,120 @@
 >>
-Rule 1 (x must be a tensor)
-{x : tensor} |= ndim(x) ≥ 0
->>
-Rule 2 (x must be a bfloat16, half, float32, float64, complex64, or complex128)
+Rule 2 (x must have a supported dtype)
 {x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10
 >>
-Rule 5 (If x's dtype is complex64, then its min must be a complex number)
-{x : tensor} |= if dtype_(x) = 9 then true
+Rule 4 (The number of dimension of x must be greater than or equal to 0)
+{x : tensor} |= ndim(x) ≥ 0
 >>
-Rule 6 (If x's dtype is complex128, then its max must be a complex number)
-{x : tensor} |= if dtype_(x) = 10 then true
+Rule 11 (name must not be empty)
+{name: str} |= name ≠ ""
 >>
-Rule 8 (if x is float32, then its min cannot be infinity)
-{x : tensor} |= if dtype_(x) = 7 then min(x) ≠ "inf"
+Rule 13 (if x is complex, the imaginary part must be zero)
+{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then min(x) ≥ 0 ∧ max(x) ≤ 0
 >>
-Rule 9 (if x is float64, then its max cannot be negative infinity)
-{x : tensor} |= if dtype_(x) = 8 then max(x) ≠ "-inf"
+Rule 16 (if x is complex, the imaginary part must be zero)
+{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then min(x) = 0 ∧ max(x) = 0
 >>
-Rule 10 (x should not contain NaN values when dtype is float32)
-{x : tensor} |= if dtype_(x) = 7 then ∀i ∈ [0, shape(x, 0)-1] : x[i] ≠ "nan"
->>
-Rule 11 (x should not contain NaN values when dtype is float64)
-{x : tensor} |= if dtype_(x) = 8 then ∀i ∈ [0, shape(x, 0)-1] : x[i] ≠ "nan"
->>
-Rule 12 (x's shape should be greater or equal to 1 when it's float type)
-{x : tensor} |= if dtype_(x) = 7 ∨ dtype_(x) = 8 then shape(x, 0) ≥ 1
->>
-Rule 13 (if x is complex64, then its shape's first dimension must be greater than zero)
-{x : tensor} |= if dtype_(x) = 9 then shape(x, 0) > 0
->>
-Rule 14 (if x is complex128, then its shape's first dimension must be greater than zero)
-{x : tensor} |= if dtype_(x) = 10 then shape(x, 0) > 0
->>
-Rule 15 (If the input is a complex number the imaginary part must be present)
-{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then true
->>
-Rule 16 (if x is bfloat16, then its min cannot be infinity)
-{x : tensor} |= if dtype_(x) = 6 then min(x) ≠ "inf"
->>
-Rule 17 (if x is bfloat16, then its max cannot be negative infinity)
-{x : tensor} |= if dtype_(x) = 6 then max(x) ≠ "-inf"
->>
-Rule 18 (if x is half, then its min cannot be infinity)
-{x : tensor} |= if dtype_(x) = 1 then min(x) ≠ "inf"
->>
-Rule 19 (if x is half, then its max cannot be negative infinity)
-{x : tensor} |= if dtype_(x) = 1 then max(x) ≠ "-inf"
->>
-Rule 20 (min of x should be less than or equal to max of x)
-{x : tensor} |= min(x) ≤ max(x)
->>
-Rule 22 (if x is half, its values must be in the range of (-65500, 65500))
-{x : tensor} |= if dtype_(x) = 1 then ∀i ∈ [0, shape(x, 0)-1] : x[i] ≥ -65500 ∧ x[i] ≤ 65500
->>
-Rule 27 (The number of dimensions of x cannot exceed 5)
+Rule 17 (The number of dimensions of x must be less than or equal to 5)
 {x : tensor} |= ndim(x) ≤ 5
 >>
-Rule 28 (if x is bfloat16, then its shape's first dimension must be greater than zero)
-{x : tensor} |= if dtype_(x) = 6 then shape(x, 0) > 0
+Rule 19 (If x is complex, real and imaginary parts must be within a reasonable range)
+{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then min(x) > -1000 ∧ max(x) < 1000
 >>
-Rule 29 (if x is half, then its shape's first dimension must be greater than zero)
-{x : tensor} |= if dtype_(x) = 1 then shape(x, 0) > 0
+Rule 20 (The size of tensor should not be too large)
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) < 10000
 >>
-Rule 30 (if x is float32, then its shape's first dimension must be greater than zero)
-{x : tensor} |= if dtype_(x) = 7 then shape(x, 0) > 0
+Rule 23 (x should have less than 6 dimensions)
+{x : tensor} |= ndim(x) < 6
 >>
-Rule 31 (if x is float64, then its shape's first dimension must be greater than zero)
-{x : tensor} |= if dtype_(x) = 8 then shape(x, 0) > 0
+Rule 25 (If x is complex, real and imaginary parts should have the same magnitude)
+{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then min(x) + max(x) = 0
 >>
-Rule 32 (if x is bfloat16, then its values must be in the range of (-65500, 65500))
-{x : tensor} |= if dtype_(x) = 6 then ∀i ∈ [0, shape(x, 0)-1] : x[i] ≥ -65500 ∧ x[i] ≤ 65500
+Rule 28 (if x is complex, the tensor's real and imaginary parts must have values between -inf and inf, as the cos operation is defined for complex numbers.)
+{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then true
 >>
-Rule 33 (if x is float32, its values must be in the range of (-3.4e38, 3.4e38))
-{x : tensor} |= if dtype_(x) = 7 then ∀i ∈ [0, shape(x, 0)-1] : x[i] ≥ -3.4e38 ∧ x[i] ≤ 3.4e38
+Rule 29 (name should be less than 20 characters)
+{name: str} |= name.len < 20
 >>
-Rule 34 (if x is float64, its values must be in the range of (-1.7e308, 1.7e308))
-{x : tensor} |= if dtype_(x) = 8 then ∀i ∈ [0, shape(x, 0)-1] : x[i] ≥ -1.7e308 ∧ x[i] ≤ 1.7e308
+Rule 31 (The dimensions of x should be smaller than 1000)
+{x : tensor} |= ∀i ∈ [0, if ndim(x) > 0 then ndim(x) - 1 else 0] : shape(x, i) < 1000
 >>
-Rule 35 (x cannot have zero dimensions)
-{x : tensor} |= ndim(x) > 0
+Rule 35 (name should be less than 20 characters or absent)
+{name: str ⊎ str} |= if name = "" then true else name.len < 20
 >>
-Rule 36 (if the shape of x is a tuple, then all elements in the tuple must be greater than zero)
-{x : tensor} |= if ndim(x) > 0 then ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
+Rule 38 (The size of each dimension of tensor x should be less than 10000)
+{x : tensor} |= ∀i ∈ [0, if ndim(x) > 0 then ndim(x) - 1 else 0] : shape(x, i) < 10000
 >>
-Rule 37 (if x is float32 and contains inf, then the output should be NaN)
-{x : tensor} |= if dtype_(x) = 7 ∧ (∃i ∈ [0, shape(x, 0)-1] : x[i] = "inf" ∨ x[i] = "-inf") then true
+Rule 40 (If x is complex, the values must be finite)
+{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then min(x) ≠ -1/0 ∧ max(x) ≠ 1/0
 >>
-Rule 38 (if x is float64 and contains inf, then the output should be NaN)
-{x : tensor} |= if dtype_(x) = 8 ∧ (∃i ∈ [0, shape(x, 0)-1] : x[i] = "inf" ∨ x[i] = "-inf") then true
+Rule 47 (name should be less than 20 characters or empty)
+{name: str} |= name = "" ∨ name.len < 20
 >>
-Rule 39 (if x is complex64 and contains inf, then the output should be NaN)
-{x : tensor} |= if dtype_(x) = 9 ∧ (∃i ∈ [0, shape(x, 0)-1] : x[i] = "inf" ∨ x[i] = "-inf") then true
+Rule 50 (If x is complex, then it should contain no NaN values)
+{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then ∃i ∈ [0, ndim(x) - 1] : ∃j ∈ [0, shape(x,i) -1]: x[j] ≠ 1/0 ∧ x[j] ≠ -1/0
 >>
-Rule 40 (if x is complex128 and contains inf, then the output should be NaN)
-{x : tensor} |= if dtype_(x) = 10 ∧ (∃i ∈ [0, shape(x, 0)-1] : x[i] = "inf" ∨ x[i] = "-inf") then true
+Rule 53 (If x is complex, then it should contain no infinite values)
+{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x,i) -1]: x[j] ≠ 1/0 ∧ x[j] ≠ -1/0
 >>
-Rule 41 (The values in the tensor must be finite numbers)
-{x: tensor} |= ∀i ∈ [0, shape(x,0) - 1]: x[i] ≠ "inf" ∧ x[i] ≠ "-inf"
+Rule 55 (If x is complex, then the absolute value of its real and imaginary parts should have some bound)
+{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then min(x) > -10000 ∧ max(x) < 10000
 >>
-Rule 42 (if x is bfloat16 and contains NaN, the output should be NaN)
-{x : tensor} |= if dtype_(x) = 6 ∧ (∃i ∈ [0, shape(x, 0)-1] : x[i] = "nan") then true
+Rule 56 (name should be a short descriptive string)
+{name: str} |= name.len < 30
 >>
-Rule 43 (if x is half and contains NaN, the output should be NaN)
-{x : tensor} |= if dtype_(x) = 1 ∧ (∃i ∈ [0, shape(x, 0)-1] : x[i] = "nan") then true
+Rule 58 (x must be a matrix or vector)
+{x : tensor} |= ndim(x) = 1 ∨ ndim(x) = 2
 >>
-Rule 44 (if x is float32 and contains NaN, the output should be NaN)
-{x : tensor} |= if dtype_(x) = 7 ∧ (∃i ∈ [0, shape(x, 0)-1] : x[i] = "nan") then true
+Rule 62 (If x is complex, then it should contain no infinite values or NaNs)
+{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x,i) -1]: x[j] ≠ 1/0 ∧ x[j] ≠ -1/0 ∧ x[j] = x[j]
 >>
-Rule 45 (if x is float64 and contains NaN, the output should be NaN)
-{x : tensor} |= if dtype_(x) = 8 ∧ (∃i ∈ [0, shape(x, 0)-1] : x[i] = "nan") then true
+Rule 68 (The string length of name must be less than 30)
+{name : str} |= name.len < 30
 >>
-Rule 46 (if x is complex64 and contains NaN, the output should be NaN)
-{x : tensor} |= if dtype_(x) = 9 ∧ (∃i ∈ [0, shape(x, 0)-1] : x[i] = "nan") then true
+Rule 70 (name can be an empty string or a string less than 30 characters)
+{name : str} |= name = "" ∨ name.len < 30
 >>
-Rule 47 (if x is complex128 and contains NaN, the output should be NaN)
-{x : tensor} |= if dtype_(x) = 10 ∧ (∃i ∈ [0, shape(x, 0)-1] : x[i] = "nan") then true
+Rule 74 (If the input is complex, the shape of real and imaginary part must equal)
+{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then ndim(x) > 0 ∧ (∀i ∈ [0, ndim(x) - 1] : shape(x,i) = shape(x,i))
 >>
-Rule 48 (The values in the tensor must be real numbers if the dtype is real)
-{x: tensor} |= if dtype_(x) = 6 ∨ dtype_(x) = 1 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 then true
+Rule 77 (If the input is complex, the shape of its real and imaginary parts must equal)
+{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then ndim(x) > 0 ∧ (∃i ∈ [0, ndim(x) - 1] : shape(x,i) = shape(x,i))
 >>
-Rule 49 (The values in the tensor must be complex numbers if the dtype is complex)
-{x: tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then true
+Rule 80 (the shape of x must be less than or equal to 1000)
+{x: tensor} |= ∀i ∈ [0, if ndim(x) > 0 then ndim(x) - 1 else 0] : shape(x, i) < 1000
 >>
-Rule 50 (if x is complex64 and contains finite value, then its cos value should not be NaN)
-{x : tensor} |= if dtype_(x) = 9 ∧ (∃i ∈ [0, shape(x, 0)-1] : x[i] ≠ "inf" ∧ x[i] ≠ "-inf" ∧ x[i] ≠ "nan") then true
+Rule 83 (When x is complex128, the shape of the real component must match the imaginary component)
+{x: tensor} |= if dtype_(x) = 10 then ndim(x) > 0 ∧ (∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0)
 >>
-Rule 51 (if x is complex128 and contains finite value, then its cos value should not be NaN)
-{x : tensor} |= if dtype_(x) = 10 ∧ (∃i ∈ [0, shape(x, 0)-1] : x[i] ≠ "inf" ∧ x[i] ≠ "-inf" ∧ x[i] ≠ "nan") then true
+Rule 86 (If the input is complex and at least 1D, ensure dimensions contain positive values.)
+{x: tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then ndim(x) > 0 ∧ (∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0)
 >>
-Rule 53 (If x is bfloat16 and contains finite value, then its cos value should not be NaN)
-{x : tensor} |= if dtype_(x) = 6 ∧ (∃i ∈ [0, shape(x, 0)-1] : x[i] ≠ "inf" ∧ x[i] ≠ "-inf" ∧ x[i] ≠ "nan") then true
+Rule 89 (For complex tensors, shapes of the real and imaginary components cannot be zero.)
+{x: tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then ∃i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
 >>
-Rule 54 (If x is half and contains finite value, then its cos value should not be NaN)
-{x : tensor} |= if dtype_(x) = 1 ∧ (∃i ∈ [0, shape(x, 0)-1] : x[i] ≠ "inf" ∧ x[i] ≠ "-inf" ∧ x[i] ≠ "nan") then true
+Rule 92 (If the input is complex and multi-dimensional, ensure shapes don't exceed a reasonable limit)
+{x: tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then ndim(x) > 1 ∧ (∀i ∈ [0, ndim(x) - 1] : shape(x, i) < 5000)
 >>
-Rule 55 (If x is float32 and contains finite value, then its cos value should not be NaN)
-{x : tensor} |= if dtype_(x) = 7 ∧ (∃i ∈ [0, shape(x, 0)-1] : x[i] ≠ "inf" ∧ x[i] ≠ "-inf" ∧ x[i] ≠ "nan") then true
+Rule 98 (If the tensor is complex and at least 1D, limit its size to avoid OOM)
+{x: tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then ndim(x) > 0 ∧ (shape(x,0) * shape(x,0) < 1000000)
 >>
-Rule 56 (If x is float64 and contains finite value, then its cos value should not be NaN)
-{x : tensor} |= if dtype_(x) = 8 ∧ (∃i ∈ [0, shape(x, 0)-1] : x[i] ≠ "inf" ∧ x[i] ≠ "-inf" ∧ x[i] ≠ "nan") then true
+Rule 101 (Complex tensors must be reasonably sized to avoid resource exhaustion)
+{x: tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then ∀i ∈ [0, if ndim(x) > 0 then ndim(x) - 1 else 0] : shape(x, i) < 5000
 >>
-Rule 57 (if x is bfloat16, it has to be within bfloat16 range)
-{x : tensor} |= if dtype_(x) = 6 then ∀i ∈ [0, shape(x, 0) - 1] : x[i] >= -3.3895313879525314e+38 ∧ x[i] <= 3.3895313879525314e+38
+Rule 104 (If the input is complex and at least 1D, ensure total number of elements aren't too large)
+{x: tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then ndim(x) > 0 ∧ (if ndim(x) = 1 then shape(x, 0) < 1000000 else if ndim(x) = 2 then shape(x, 0) * shape(x, 1) < 1000000)
 >>
-Rule 58 (if x is half, it has to be within half range)
-{x : tensor} |= if dtype_(x) = 1 then ∀i ∈ [0, shape(x, 0) - 1] : x[i] >= -65504.0 ∧ x[i] <= 65504.0
+Rule 107 (For complex tensors, the number of elements should not be excessively large. )
+{x: tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then ndim(x) > 0 ∧ (∃i ∈ [0, ndim(x) - 1]: shape(x,i) < 5000)
 >>
-Rule 59 (If x is float32, it has to be within float32 range)
-{x : tensor} |= if dtype_(x) = 7 then ∀i ∈ [0, shape(x, 0) - 1] : x[i] >= -3.4028234663852886e+38 ∧ x[i] <= 3.4028234663852886e+38
+Rule 110 (Complex input should be finite and reasonably sized)
+{x: tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then (∀i ∈ [0, if ndim(x) > 0 then ndim(x) - 1 else 0]: shape(x, i) < 5000) ∧ (min(x) ≠ 1/0 ∧ max(x) ≠ 1/0)
 >>
-Rule 60 (If x is float64, it has to be within float64 range)
-{x : tensor} |= if dtype_(x) = 8 then ∀i ∈ [0, shape(x, 0) - 1] : x[i] >= -1.7976931348623157e+308 ∧ x[i] <= 1.7976931348623157e+308
+Rule 113 (If x is complex, all dimensions have to be under a certain size)
+{x: tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then ∀i ∈ [0, if ndim(x) > 0 then ndim(x) - 1 else 0]: shape(x, i) < 5000
 >>
-Rule 63 (If x is bfloat16, then each of its elements must be finite)
-{x : tensor} |= if dtype_(x) = 6 then ∀i ∈ [0, shape(x, 0)-1] : x[i] ≠ "inf" ∧ x[i] ≠ "-inf" ∧ x[i] ≠ "nan"
+Rule 119 (For multi-dimensional complex tensor inputs, all dimensions have to be smaller than 5000)
+{x: tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then (∀i ∈ [0, if ndim(x) > 0 then ndim(x) - 1 else 0]: shape(x, i) < 5000)
 >>
-Rule 64 (If x is half, then each of its elements must be finite)
-{x : tensor} |= if dtype_(x) = 1 then ∀i ∈ [0, shape(x, 0)-1] : x[i] ≠ "inf" ∧ x[i] ≠ "-inf" ∧ x[i] ≠ "nan"
->>
-Rule 65 (If x is float32, then each of its elements must be finite)
-{x : tensor} |= if dtype_(x) = 7 then ∀i ∈ [0, shape(x, 0)-1] : x[i] ≠ "inf" ∧ x[i] ≠ "-inf" ∧ x[i] ≠ "nan"
->>
-Rule 66 (If x is float64, then each of its elements must be finite)
-{x : tensor} |= if dtype_(x) = 8 then ∀i ∈ [0, shape(x, 0)-1] : x[i] ≠ "inf" ∧ x[i] ≠ "-inf" ∧ x[i] ≠ "nan"
->>
-Rule 67 (If x is complex64, its real part must be finite)
-{x : tensor} |= if dtype_(x) = 9 then ∀i ∈ [0, shape(x, 0)-1] : x[i] ≠ "inf" ∧ x[i] ≠ "-inf" ∧ x[i] ≠ "nan"
->>
-Rule 68 (If x is complex128, its real part must be finite)
-{x : tensor} |= if dtype_(x) = 10 then ∀i ∈ [0, shape(x, 0)-1] : x[i] ≠ "inf" ∧ x[i] ≠ "-inf" ∧ x[i] ≠ "nan"
->>
-Rule 71 (The values in the tensor must be complex numbers if the dtype is complex64)
-{x: tensor} |= if dtype_(x) = 9 then true
->>
-Rule 72 (The values in the tensor must be complex numbers if the dtype is complex128)
-{x: tensor} |= if dtype_(x) = 10 then true
->>
-Rule 73 (The shape of x must be a valid tensor shape)
-{x: tensor} |= ndim(x) >= 0
->>
-Rule 74 (if dtype is bfloat16, then the range of the tensor should be smaller than the range of float 32)
-{x : tensor} |= if dtype_(x) = 6 then true
->>
-Rule 75 (if dtype is half, then the range of the tensor should be smaller than the range of float 32)
-{x : tensor} |= if dtype_(x) = 1 then true
->>
-Rule 76 (the input tensor should not be empty)
-{x : tensor} |= (ndim(x) = 0) ∨ (∃i ∈ [0, ndim(x) - 1] : shape(x, i) > 0)
->>
-Rule 77 (if the tensor has a dimension with size zero, then the tensor is considered empty)
-{x : tensor} |= if ∃i ∈ [0, ndim(x)-1] : shape(x, i) = 0 then true
->>
-Rule 79 (if the tensor x's dimension is greater than 0, all dimensions have to be greater or equal than 1)
-{x: tensor} |= if ndim(x) > 0 then ∀i ∈ [0, ndim(x) - 1] : shape(x, i) >= 1
+Rule 125 (If tensor's dtype is complex64 or complex128, make sure it does not contain infinite values)
+{x: tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then min(x) ≠ 1/0 ∧ max(x) ≠ -1/0

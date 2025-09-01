@@ -1,189 +1,162 @@
 >>
-Rule 1 (indices tensor must be of type uint8, int8, int32, or int64)
+Rule 1 (indices must be of type uint8, int8, int32, or int64)
 {v_1 : tensor} |= dtype_(v_1) = 5 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
 >>
 Rule 2 (depth must be a positive integer)
-{v_2 : int} |= v_2 > 0
+{v_2 : tensor} |= dtype_(v_2) = 3 ∧ v_2 > 0
 >>
 Rule 3 (on_value and off_value must have the same type)
 {v_3 : tensor, v_4 : tensor} |= dtype_(v_3) = dtype_(v_4)
 >>
-Rule 4 (axis must be within the valid range of possible axes, given the rank of indices)
-{v_1 : tensor, v_5 : int} |= -1 ∧ ndim(v_1) ≤ v_5 ∧ v_5 ≤ ndim(v_1)
+Rule 4 (axis must be an integer)
+{v_5 : int} |= v_5 ≥ -1
 >>
-Rule 5 (If indices is a scalar, the output shape is a vector of length depth)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then shape(v_1, 0) = v_2
->>
-Rule 7 (The axis value should be greater or equal to the negative ndim of indices and less than or equal to ndim of indices.)
-{v_1 : tensor, v_5 : int} |= v_5 ≥ (0 - ndim(v_1)) ∧ v_5 ≤ ndim(v_1)
->>
-Rule 9 (If indices is a scalar, the depth has to be specified)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 > 0
->>
-Rule 10 (indices can't have a dimension of size 0)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
->>
-Rule 11 (on_value should be a scalar)
+Rule 6 (on_value must be a scalar)
 {v_3 : tensor} |= ndim(v_3) = 0
 >>
-Rule 12 (off_value should be a scalar)
+Rule 7 (off_value must be a scalar)
 {v_4 : tensor} |= ndim(v_4) = 0
 >>
-Rule 13 (when axis is not -1, it must be non-negative)
-{v_5 : int} |= if v_5 ≠ -1 then v_5 ≥ 0
+Rule 8 (depth must be greater than or equal to the maximum value in indices)
+{v_1 : tensor, v_2 : tensor} |= max(v_1) < v_2
 >>
-Rule 22 (Indices tensor cannot be empty)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 9 (depth must be positive)
+{v_2 : tensor} |= v_2 > 0
 >>
-Rule 23 (Depth should not be larger than maximum value for indices tensor's dtype)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 5 then v_2 ≤ 255 else if dtype_(v_1) = 1 then v_2 ≤ 127 else if dtype_(v_1) = 3 then v_2 ≤ 2147483647 else if dtype_(v_1) = 4 then v_2 ≤ 9223372036854775807
+Rule 15 (if indices is a scalar, depth must be greater than 0)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then v_2 > 0
 >>
-Rule 24 (If axis is provided, it should not exceed the maximum allowed value given the rank of indices when indices is a scalar)
-{v_1 : tensor, v_5 : int} |= if ndim(v_1) = 0 then v_5 ≤ 0 ∧ v_5 ≥ -1
+Rule 20 (if axis is not -1, it must be less than or equal to the number of dimensions of indices)
+{v_1 : tensor, v_5 : int} |= if v_5 ≠ -1 then v_5 ≤ ndim(v_1)
 >>
-Rule 25 (If the indices is empty then depth must be 0)
-{v_1 : tensor, v_2 : int} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then v_2 = 0
+Rule 21 (indices must be of type uint8, int8, int32, or int64, and depth must be int32)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 5 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∧ dtype_(v_2) = 3
 >>
-Rule 26 (if indices is 1-d and axis = -1, the output rank is 2)
-{v_1: tensor, v_5: int} |= if ndim(v_1) = 1 ∧ v_5 = -1 then true
+Rule 22 (on_value and off_value must have the same type and be scalar)
+{v_3 : tensor, v_4 : tensor} |= dtype_(v_3) = dtype_(v_4) ∧ ndim(v_3) = 0 ∧ ndim(v_4) = 0
 >>
-Rule 28 (if depth is equal to zero, then the indices must be empty)
-{v_1 : tensor, v_2 : int} |= if v_2 = 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0)
+Rule 24 (axis must be within a reasonable range)
+{v_5 : int, v_1 : tensor} |= v_5 ≥ -1 ∧ v_5 < ndim(v_1) + 1
 >>
-Rule 32 (dtype of on_value has to be either float or int)
-{v_3 : tensor} |= (dtype_(v_3) ≥ 6 ∧ dtype_(v_3) ≤ 8) ∨ (dtype_(v_3) ≥ 1 ∧ dtype_(v_3) ≤ 5)
+Rule 25 (depth must be a scalar)
+{v_2 : tensor} |= ndim(v_2) = 0
 >>
-Rule 34 (The depth should be small enough to prevent overflow if indices data type is int8)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 1 then v_2 < 128
+Rule 26 (indices values cannot exceed depth)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) ≥ (min(v_1)∧(-1)) ∧ max(v_1) < v_2
 >>
-Rule 35 (The depth should be small enough to prevent overflow if indices data type is uint8)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 5 then v_2 < 256
+Rule 28 (on_value must be of numerical type)
+{v_3 : tensor} |= dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 6 ∨ dtype_(v_3) = 7 ∨ dtype_(v_3) = 8
 >>
-Rule 37 (on_value and off_value should have same type)
-{v_3 : tensor, v_4: tensor} |= dtype_(v_3) = dtype_(v_4)
+Rule 29 (off_value must be of numerical type)
+{v_4 : tensor} |= dtype_(v_4) = 1 ∨ dtype_(v_4) = 2 ∨ dtype_(v_4) = 3 ∨ dtype_(v_4) = 4 ∨ dtype_(v_4) = 6 ∨ dtype_(v_4) = 7 ∨ dtype_(v_4) = 8
 >>
-Rule 41 (Indices data type must be int8, uint8, int32, or int64)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 30 (if axis is -1 or equal to indices' dimensions + 1, this is ok)
+{v_1 : tensor, v_5 : int} |= (v_5 = -1) ∨ (v_5 = ndim(v_1))
 >>
-Rule 42 (axis must be within valid bounds)
-{v_1 : tensor, v_5 : int} |= v_5 >= (0 - ndim(v_1)) ∧ v_5 < ndim(v_1)
+Rule 32 (depth must be an int32 scalar and positive)
+{v_2 : tensor} |= dtype_(v_2) = 3 ∧ ndim(v_2) = 0 ∧ v_2 > 0
 >>
-Rule 48 (axis must be within valid bounds when indices is not a scalar)
-{v_1 : tensor, v_5 : int} |= if ndim(v_1) ≠ 0 then v_5 >= (0 - ndim(v_1)) ∧ v_5 < ndim(v_1)
+Rule 38 (if indices is an integer, depth should be at least one)
+{v_1 : tensor, v_2: tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then v_2 > 0
 >>
-Rule 49 (on_value and off_value should have the same type only if indices is int32 or int64)
-{v_1 : tensor, v_3 : tensor, v_4: tensor} |= if dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then dtype_(v_3) = dtype_(v_4)
+Rule 39 (the rank of indices can't be too high)
+{v_1 : tensor} |= ndim(v_1) < 5
 >>
-Rule 51 (The depth should be small enough to prevent overflow if indices data type is int8)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 1 then v_2 < 127
+Rule 40 (The on and off values need to be castable to int32)
+{v_3: tensor, v_4: tensor} |= if (dtype_(v_3) = 3) then true else if (dtype_(v_4) = 3) then true else false
 >>
-Rule 52 (The depth should be small enough to prevent overflow if indices data type is uint8)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 5 then v_2 < 255
+Rule 44 (axis must be within a reasonable range of -indices.ndim()-1 and indices.ndim())
+{v_5 : int, v_1 : tensor} |= v_5 ≥ (0 - (ndim(v_1) + 1)) ∧ v_5 ≤ ndim(v_1)
 >>
-Rule 59 (If depth is 0, then indices must have at least one dimension with size 0)
-{v_1 : tensor, v_2 : int} |= if v_2 = 0 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
+Rule 48 (The on and off values need to be castable to int32 if depth is also int32)
+{v_3: tensor, v_4: tensor, v_2: tensor} |= if (dtype_(v_2) = 3) then (dtype_(v_3) = 3) ∧ (dtype_(v_4) = 3)
 >>
-Rule 60 (When indices is a scalar, axis must be -1 or 0)
-{v_1 : tensor, v_5 : int} |= if ndim(v_1) = 0 then v_5 = -1 ∨ v_5 = 0
+Rule 49 (If axis is specified and indices is scalar, then depth is same as axis)
+{v_1 : tensor, v_2: tensor, v_5 : int} |= if (ndim(v_1) = 0 ∧ v_5 ≠ -1) then v_2 = v_5
 >>
-Rule 64 (Indices can not contain a value that is greater or equal to depth if it is uint8)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 5 then max(v_1) < v_2
+Rule 50 (indices values cannot exceed depth, account for negative indexing)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) ≥ (0 - v_2) ∧ max(v_1) < v_2
 >>
-Rule 65 (Indices can not contain a value that is greater or equal to depth if it is int8)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 1 then max(v_1) < v_2
+Rule 58 (off_value and on_value are of same data type)
+{v_3: tensor, v_4: tensor} |= dtype_(v_3) = dtype_(v_4)
 >>
-Rule 67 (on_value and off_value should have the same type only if indices is int32 or int64 and on_value is not bool)
-{v_1 : tensor, v_3 : tensor, v_4: tensor} |= if (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ dtype_(v_3) ≠ 0 then dtype_(v_3) = dtype_(v_4)
+Rule 60 (indices are scalar)
+{v_1 : tensor} |= ndim(v_1) = 0
 >>
-Rule 71 (If on_value is bool, off_value should also be bool)
-{v_3 : tensor, v_4: tensor} |= if dtype_(v_3) = 0 then dtype_(v_4) = 0
+Rule 67 (The rank of the indices should not exceed 4)
+{v_1 : tensor} |= ndim(v_1) <= 4
 >>
-Rule 76 (If depth is negative, then it is invalid)
-{v_2 : int} |= v_2 ≥ 0
+Rule 68 (The depth of the one-hot encoding needs to be greater than the largest value in indices)
+{v_1: tensor, v_2: tensor} |= max(v_1) < v_2
 >>
-Rule 77 (on_value and off_value have to be scalars)
-{v_3: tensor, v_4: tensor} |= ndim(v_3) = 0 ∧ ndim(v_4) = 0
+Rule 69 (indices must contain only integer values)
+{v_1 : tensor} |= (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5)
 >>
-Rule 79 (Indices can not contain a value that is greater or equal to depth if it is uint8 and depth is less than 255)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 5 ∧ v_2 < 255 then max(v_1) < v_2
+Rule 70 (on_value and off_value have same shape)
+{v_3 : tensor, v_4 : tensor} |= shape(v_3,0) = shape(v_4,0)
 >>
-Rule 80 (Indices can not contain a value that is greater or equal to depth if it is int8 and depth is less than 127)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 1 ∧ v_2 < 127 then max(v_1) < v_2
+Rule 79 (Both on and off values need to be of the same data type and of the same shape)
+{v_3: tensor, v_4: tensor} |= dtype_(v_3) = dtype_(v_4) ∧ ndim(v_3) = ndim(v_4)
 >>
-Rule 83 (If axis is not default (-1) then it must be a valid axis index)
-{v_1: tensor, v_5: int} |= if v_5 ≠ -1 then v_5 ≥ 0 ∧ v_5 < ndim(v_1) + 1
+Rule 80 (The depth of the one-hot encoding needs to be greater than zero)
+{v_2: tensor} |= v_2 > 0
 >>
-Rule 87 (If depth is zero, the shape of indices should have at least one zero dimension)
-{v_1 : tensor, v_2 : int} |= if v_2 = 0 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0)
+Rule 86 (on_value must be of the same shape of off_value)
+{v_3 : tensor, v_4 : tensor} |= if shape(v_3, 0) = shape(v_4, 0) then true else false
 >>
-Rule 88 (if on_value is bool and off_value is not provided then it is assumed to be bool)
-{v_3 : tensor} |= if dtype_(v_3) = 0 then true
+Rule 87 (if on and off value data type is int32 then the condition is satisfied.)
+{v_3: tensor, v_4: tensor} |= if (dtype_(v_3) = 3) ∧ (dtype_(v_4) = 3) then true else false
 >>
-Rule 93 (If the indices data type is int32 and depth is not default, make sure that max value of indices does not exceed depth)
-{v_1: tensor, v_2: int} |= if dtype_(v_1) = 3 then max(v_1) < v_2
+Rule 90 (rank of the indices cannot be higher than five)
+{v_1 : tensor} |= ndim(v_1) < 6
 >>
-Rule 94 (If the indices data type is int64 and depth is not default, make sure that max value of indices does not exceed depth)
-{v_1: tensor, v_2: int} |= if dtype_(v_1) = 4 then max(v_1) < v_2
+Rule 96 (on_value must be of the same shape of off_value and both must be scalars)
+{v_3 : tensor, v_4 : tensor} |= shape(v_3,0) = shape(v_4,0) ∧ ndim(v_3) = 0 ∧ ndim(v_4) = 0
 >>
-Rule 95 (The on_value dtype has to be int or float only if indices is int32 or int64)
-{v_1: tensor, v_3: tensor} |= if dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then (dtype_(v_3) >= 1 ∧ dtype_(v_3) <= 5) ∨ (dtype_(v_3) >= 6 ∧ dtype_(v_3) <= 8)
+Rule 97 (if on and off value data type is int32 then the condition is satisfied.)
+{v_3: tensor, v_4: tensor} |= if (dtype_(v_3) = 3) ∧ (dtype_(v_4) = 3) then true
 >>
-Rule 99 (If the indices is int8 or uint8, max value of indices should not be smaller than depth.)
-{v_1: tensor, v_2: int} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 then v_2 > min(v_1)
+Rule 100 (if the indices contains negative value then the axis should not be negative)
+{v_1 : tensor, v_5 : int} |= if min(v_1) < 0 then v_5 > 0
 >>
-Rule 100 (if on_value's data type is complex, then off_value has to be complex too)
-{v_3: tensor, v_4: tensor} |= if dtype_(v_3) = 9 ∨ dtype_(v_3) = 10 then dtype_(v_4) = 9 ∨ dtype_(v_4) = 10
+Rule 105 (if axis is specified and indices is scalar, then depth should be not negative)
+{v_1 : tensor, v_2: tensor, v_5 : int} |= if (ndim(v_1) = 0 ∧ v_5 ≠ -1) then v_2 ≥ 0
 >>
-Rule 101 (if indices is int8, it has to be less than the int8 max value)
-{v_1: tensor} |= if dtype_(v_1) = 1 then max(v_1) < 128
+Rule 109 (If the indices data type is int32 then everything is fine)
+{v_1: tensor} |= if dtype_(v_1) = 3 then true else false
 >>
-Rule 105 (if indices is uint8, it has to be less than the uint8 max value)
-{v_1: tensor} |= if dtype_(v_1) = 5 then max(v_1) < 256
+Rule 115 (The on and off values need to be castable to the indices type and have the same shape)
+{v_3: tensor, v_4: tensor, v_1: tensor} |= if (dtype_(v_1) = 1) then (dtype_(v_3) = 1) ∧ (dtype_(v_4) = 1) ∧ (shape(v_3,0) = shape(v_4, 0))  else if (dtype_(v_1) = 5) then (dtype_(v_3) = 5) ∧ (dtype_(v_4) = 5) ∧ (shape(v_3,0) = shape(v_4, 0)) else if (dtype_(v_1) = 3) then (dtype_(v_3) = 3) ∧ (dtype_(v_4) = 3) ∧ (shape(v_3,0) = shape(v_4, 0)) else if (dtype_(v_1) = 4) then (dtype_(v_3) = 4) ∧ (dtype_(v_4) = 4) ∧ (shape(v_3,0) = shape(v_4, 0)) else false
 >>
-Rule 106 (If indices contains negative values, it is invalid for uint8 indices.)
-{v_1: tensor} |= if dtype_(v_1) = 5 then min(v_1) >= 0
+Rule 119 (the on and off values' data type should not be string)
+{v_3 : tensor, v_4: tensor} |= (dtype_(v_3) ≠ 11) ∧ (dtype_(v_4) ≠ 11)
 >>
-Rule 107 (If depth is equal to 0, it is invalid if there is no zero dimension in indices shape)
-{v_1: tensor, v_2: int} |= if v_2 = 0 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
+Rule 129 (if indices shape is [x,y] then the output has shape [x,y,depth])
+{v_1 : tensor} |= if ndim(v_1) = 2 then true else false
 >>
-Rule 113 (If indices data type is not int, it is an invalid parameter setting)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Rule 135 (if indices contains negative value, the minimum of indices must be greater or equal than -depth)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) < 0 then min(v_1) ≥ (0-v_2)
 >>
-Rule 116 (If axis is negative, it must be greater or equal to negative (rank of indices plus one).)
-{v_1: tensor, v_5: int} |= if v_5 < 0 then v_5 >= (0 - (ndim(v_1) + 1))
+Rule 138 (the on_value and off_value must be a valid data type)
+{v_3: tensor} |= (dtype_(v_3) = 0) ∨ (dtype_(v_3) = 1) ∨ (dtype_(v_3) = 2) ∨ (dtype_(v_3) = 3) ∨ (dtype_(v_3) = 4) ∨ (dtype_(v_3) = 5) ∨ (dtype_(v_3) = 6) ∨ (dtype_(v_3) = 7) ∨ (dtype_(v_3) = 8) ∨ (dtype_(v_3) = 9) ∨ (dtype_(v_3) = 10) ∨ (dtype_(v_3) = 12)
 >>
-Rule 118 (Depth has to be specified (positive integer) if indices tensor is empty)
-{v_1 : tensor, v_2 : int} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then v_2 > 0
+Rule 140 (The data type of the on_value and off_value must be same if indices is not bool data type)
+{v_3 : tensor, v_4 : tensor, v_1 : tensor} |= if dtype_(v_1) ≠ 0 then dtype_(v_3) = dtype_(v_4)
 >>
-Rule 119 (The depth should be small enough to prevent overflow if indices data type is int16)
-{v_1: tensor, v_2: int} |= if dtype_(v_1) = 2 then v_2 < 32767
+Rule 145 (if the dimension of indices is 0, then axis values shouldn't play a role in this)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true
 >>
-Rule 122 (The on_value dtype has to be int or float or bool or complex)
-{v_3: tensor} |= (dtype_(v_3) >= 1 ∧ dtype_(v_3) <= 5) ∨ (dtype_(v_3) >= 6 ∧ dtype_(v_3) <= 8) ∨ dtype_(v_3) = 0 ∨ dtype_(v_3) = 9 ∨ dtype_(v_3) = 10
+Rule 148 (The on and off value data type should be a valid data type if not the same as indices)
+{v_3: tensor, v_1: tensor} |= if dtype_(v_1) = 0 then true else (dtype_(v_3) = 0) ∨ (dtype_(v_3) = 1) ∨ (dtype_(v_3) = 2) ∨ (dtype_(v_3) = 3) ∨ (dtype_(v_3) = 4) ∨ (dtype_(v_3) = 5) ∨ (dtype_(v_3) = 6) ∨ (dtype_(v_3) = 7) ∨ (dtype_(v_3) = 8) ∨ (dtype_(v_3) = 9) ∨ (dtype_(v_3) = 10) ∨ (dtype_(v_3) = 12)
 >>
-Rule 125 (Depth must be within allowed boundaries if indices dtype is np.int32)
-{v_1: tensor, v_2: int} |= if dtype_(v_1) = 3 then v_2 < 2147483647
+Rule 150 (If v5 is not -1, then it must be a dimension of v1)
+{v_1 : tensor, v_5 : int} |= if v_5 ≠ -1 then v_5 < ndim(v_1)
 >>
-Rule 126 (If indices contains negative values, it is invalid for uint8 indices. If not, then the values have to be less than depth)
-{v_1: tensor, v_2: int} |= if dtype_(v_1) = 5 then min(v_1) >= 0 ∧ max(v_1) < v_2
+Rule 155 (if axis is specified and the indices is not a scalar, then the specified axis has to a value under the range)
+{v_1 : tensor, v_5 : int} |= if (ndim(v_1) > 0 ∧ v_5 ≠ -1) then v_5 < ndim(v_1)
 >>
-Rule 130 (If depth is a constant then depth cannot be negative)
-{v_2: int} |= v_2 >= 0
+Rule 159 (If indices values are smaller than 0, then the on_value/off_value needs to have integer data type)
+{v_1: tensor, v_3: tensor, v_4: tensor} |= if min(v_1) < 0 then (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5) ∧ (dtype_(v_4) = 1 ∨ dtype_(v_4) = 2 ∨ dtype_(v_4) = 3 ∨ dtype_(v_4) = 4 ∨ dtype_(v_4) = 5)
 >>
-Rule 131 (On_value cannot be a string)
-{v_3: tensor} |= dtype_(v_3) ≠ 11
->>
-Rule 135 (Depth must be within allowed boundaries if indices dtype is np.int64)
-{v_1: tensor, v_2: int} |= if dtype_(v_1) = 4 then v_2 < 9223372036854775807
->>
-Rule 136 (If there is zero value in shape of indices, depth must be provided which will lead to one-hot tensor of shape equal to depth)
-{v_1: tensor, v_2: int} |= if ∃i ∈ [0, ndim(v_1)-1]: shape(v_1, i) = 0 then v_2 > 0
->>
-Rule 137 (If the indices data type is float then raise exception)
-{v_1: tensor} |= dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8
->>
-Rule 142 (If on_value is not a scalar, then raise exception)
-{v_3: tensor} |= ndim(v_3) = 0
->>
-Rule 143 (If off_value is not a scalar, then raise exception)
-{v_4: tensor} |= ndim(v_4) = 0
+Rule 160 (If the data type of indices is bool, data types of on and off values has to be the same.)
+{v_1: tensor, v_3: tensor, v_4: tensor} |= if dtype_(v_1) = 0 then dtype_(v_3) = dtype_(v_4)

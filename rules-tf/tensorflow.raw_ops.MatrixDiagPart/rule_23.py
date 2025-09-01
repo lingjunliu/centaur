@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The tensor must have at least one dimension with size 1 (Rule 23)
+# if the shape of the last two dimensions are different, rank should be less than 3 (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 1) for i in range(6)])) if n else
-          Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 1) for i in range(6)]))
+    s.add(Not(If(Select(v["arg1_shape"], v["arg1_ndim"] - 1) != Select(v["arg1_shape"], v["arg1_ndim"] - 2), v["arg1_ndim"] < 3, True)) if n else
+          If(Select(v["arg1_shape"], v["arg1_ndim"] - 1) != Select(v["arg1_shape"], v["arg1_ndim"] - 2), v["arg1_ndim"] < 3, True))
 )
 
 def rule_23_func(arg1, solver=None, neg=False):

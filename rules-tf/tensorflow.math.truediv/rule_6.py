@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if x is integer type and larger than int16, it will be cast to float64, otherwise float32 (Rule 6)
+# if x is int8 or int16, then dtype of result is float32 (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(Or((v["arg1_dtype"] == 3), (v["arg1_dtype"] == 4)), True, If(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 2)), True, False))) if n else
-          If(Or((v["arg1_dtype"] == 3), (v["arg1_dtype"] == 4)), True, If(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 2)), True, False)))
+    s.add(Not(If((Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 7), True)) if n else
+          If((Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 7), True))
 )
 
 def rule_6_func(arg1, solver=None, neg=False):

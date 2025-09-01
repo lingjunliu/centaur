@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# T must match the return tensor type (Rule 28)
+# T is float32 implies grads is float32 (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_dtype"] == v["arg1_value"]) if n else
-          v["arg2_dtype"] == v["arg1_value"])
+    s.add(Not(If(v["arg1_value"] == 7, v["arg2_dtype"] == 7, True)) if n else
+          If(v["arg1_value"] == 7, v["arg2_dtype"] == 7, True))
 )
 
 def rule_28_func(arg1, arg2, solver=None, neg=False):

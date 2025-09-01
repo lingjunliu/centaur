@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if type of tensor v_1 is int then the max of tensor must be less or equal to 100 (Rule 57)
+# If input tensor has float16 then the absolute value of the minimum should be small enough. (Rule 57)
 
 rule_57 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), Select(v["arg1_range"], 1) <= 100, False)) if n else
-          If(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), Select(v["arg1_range"], 1) <= 100, False))
+    s.add(Not(If(v["arg1_dtype"] == 6, Select(v["arg1_range"], 0) > -65000, True)) if n else
+          If(v["arg1_dtype"] == 6, Select(v["arg1_range"], 0) > -65000, True))
 )
 
 def rule_57_func(arg1, solver=None, neg=False):

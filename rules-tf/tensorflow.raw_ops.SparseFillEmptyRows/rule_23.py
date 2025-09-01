@@ -5,32 +5,45 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# default_value should not be NaN (Rule 23)
+# values tensor is not empty implies indices and dense_shape are also not empty (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, True, If(v["arg1_dtype"] == 7, True, If(v["arg1_dtype"] == 8, True, False)))) if n else
-          If(v["arg1_dtype"] == 6, True, If(v["arg1_dtype"] == 7, True, If(v["arg1_dtype"] == 8, True, False))))
+    s.add(Not(If(Select(v["arg2_shape"], 0) > 0, And(Select(v["arg1_shape"], 0) > 0, Select(v["arg3_shape"], 0) > 0), True)) if n else
+          If(Select(v["arg2_shape"], 0) > 0, And(Select(v["arg1_shape"], 0) > 0, Select(v["arg3_shape"], 0) > 0), True))
 )
 
-def rule_23_func(arg1, solver=None, neg=False):
+def rule_23_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
+        if not isinstance(arg2, np.ndarray):
+            return False
+        if not isinstance(arg3, np.ndarray):
+            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        for i in range(arg3.ndim):
+            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
 
         # Constraints for rule 23
-        rule_23(solver, {'arg1_dtype': arg1_dtype})
+        rule_23(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape, 'arg3_shape': arg3_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_23(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_23(solver, {'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape'], 'arg3_shape': arg3['shape']}, neg)

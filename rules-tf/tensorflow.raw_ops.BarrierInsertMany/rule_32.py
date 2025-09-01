@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If values has more than one dimension then component index cannot be greater than 0 (Rule 32)
+# If the shape of keys is a large number, e.g. 500, then the shape of values' first dimension should be greater than 10 (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 1, v["arg2_value"] <= 0, False)) if n else
-          If(v["arg1_ndim"] > 1, v["arg2_value"] <= 0, False))
+    s.add(Not(If(Select(v["arg1_shape"], 0) > 500, Select(v["arg2_shape"], 0) > 10, True)) if n else
+          If(Select(v["arg1_shape"], 0) > 500, Select(v["arg2_shape"], 0) > 10, True))
 )
 
 def rule_32_func(arg1, arg2, solver=None, neg=False):
@@ -20,22 +20,24 @@ def rule_32_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_value = Int('arg2_value')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_value == int(arg2))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 32
-        rule_32(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_32(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_32(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)
+        rule_32(solver, {'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape']}, neg)

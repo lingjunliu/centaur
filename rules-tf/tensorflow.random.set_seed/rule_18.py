@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If seed is an integer, it should be between -2147483648 and 2147483647 (Rule 18)
+# seed must be an integer representable as float32 (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= -2147483648, v["arg1_value"] <= 2147483647)) if n else
-          And(v["arg1_value"] >= -2147483648, v["arg1_value"] <= 2147483647))
+    s.add(Not(v["arg1_value"] < 16777216) if n else
+          v["arg1_value"] < 16777216)
 )
 
 def rule_18_func(arg1, solver=None, neg=False):

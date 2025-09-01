@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# zlib_level should be an integer between -1 and 9 inclusive (Rule 8)
+# mem_level should be within a valid range (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= -1, v["arg1_value"] <= 9)) if n else
-          And(v["arg1_value"] >= -1, v["arg1_value"] <= 9))
+    s.add(Not(And(v["arg1_value"] >= 1, v["arg1_value"] <= 9)) if n else
+          And(v["arg1_value"] >= 1, v["arg1_value"] <= 9))
 )
 
 def rule_8_func(arg1, solver=None, neg=False):

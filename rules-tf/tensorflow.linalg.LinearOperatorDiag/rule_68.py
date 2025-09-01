@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# is_square should be same as self_adjoint (Rule 68)
+# For square matrices, the number of dimensions must be 1 or 2. (Rule 68)
 
 rule_68 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] == v["arg2_value"]) if n else
-          v["arg1_value"] == v["arg2_value"])
+    s.add(Not(If(v["arg2_value"], Or((v["arg1_ndim"] == 1), (v["arg1_ndim"] == 2)), True)) if n else
+          If(v["arg2_value"], Or((v["arg1_ndim"] == 1), (v["arg1_ndim"] == 2)), True))
 )
 
 def rule_68_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_68_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not isinstance(arg1, np.ndarray):
             return False
         if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
+        arg1_ndim = Int('arg1_ndim')
         arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        solver.add(arg1_ndim == arg1.ndim)
         solver.add(arg2_value == arg2)
 
         # Constraints for rule 68
-        rule_68(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_68(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_68(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_68(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

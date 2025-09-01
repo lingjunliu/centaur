@@ -1,60 +1,57 @@
 >>
-Rule 2 (input tensor must have statically known rank, meaning its rank should be greater than 0)
+Rule 1 (Input tensor must have a non-zero rank)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 4 (input tensor must be a string tensor, represented as dtype 11)
+Rule 3 (Input tensor's rank should be less than or equal to 5)
+{v_1 : tensor} |= ndim(v_1) ≤ 5
+>>
+Rule 4 (String input should not be empty)
+{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 5 (The name should not be an empty string)
+{v_2 : str} |= v_2 ≠ ""
+>>
+Rule 7 (If a name is provided, it must be a non-empty string.)
+{v_2 : str} |= if v_2 ≠ "" then true
+>>
+Rule 9 (String input should not be empty, meaning at least one dimension should be greater than 0 if the rank is greater than 0)
+{v_1: tensor} |= if ndim(v_1) > 0 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 10 (If the input tensor is a scalar (0-dimensional), it should be a string.)
+{v_1: tensor} |= if ndim(v_1) = 0 then true
+>>
+Rule 11 (Input tensor's dtype must be string or unicode)
 {v_1 : tensor} |= dtype_(v_1) = 11
 >>
-Rule 5 (input tensor must have statically known rank, meaning its rank should be greater than 0. We can express this as the number of dimensions is at least 1)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 13 (If input is a scalar string, the result will be a vector of bytes.)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true
 >>
-Rule 9 (input tensor's element must be a string)
+Rule 14 (Input tensor's rank should be non-negative)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 15 (Input tensor's shape should not have negative values.)
 {v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 10 (The input tensor must have elements with length greater than zero.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 19 (If the input tensor is a scalar string (""), return a tensor with shape (0,))
+{v_1 : tensor} |= if ndim(v_1) = 0 ∧ v_1 = "" then true
 >>
-Rule 12 (For all dimensions of the input tensor, the shape must be an integer value)
-{v_1 : tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 23 (If any dimension of input tensor has zero value, then output RaggedTensor should also have 0 value at corresponding dimension.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : if shape(v_1, i) = 0 then true
 >>
-Rule 13 (Each element of the input tensor must be a valid string)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : true
+Rule 27 (If input tensor has more than one dimension, then shape of last dimension must be positive)
+{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, ndim(v_1) - 1) > 0
 >>
-Rule 14 (If the input tensor has more than one dimension, then all dimensions must be greater than zero.)
-{v_1 : tensor} |= if ndim(v_1) > 1 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 35 (if input is a 1 dimensional tensor, each entry of the tensor must be of type string)
+{v_1 : tensor} |= if ndim(v_1) = 1 then true
 >>
-Rule 15 (The input tensor should not contain NaN string)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 55 (If the input tensor contains empty strings as elements, the output must also represent them correctly)
+{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then true
 >>
-Rule 18 (Shape should be positive)
-{v_1 : tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 74 (If the input is an empty string, the resulting tensor is empty.)
+{v_1: tensor} |= (ndim(v_1) = 0 ∧ v_1 = "") ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
 >>
-Rule 21 (The minimum length of any string in the input tensor must be greater than or equal to zero)
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 78 (If the input is a tensor with any dimension equal to zero, then the output is an empty tensor.)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
 >>
-Rule 30 (The product of the shape dimensions must be non-zero.)
-{v_1 : tensor} |= (shape(v_1, 0) * shape(v_1, 1)) ≠ 0
->>
-Rule 33 (If input tensor has more than 1 dimension, at least one dimension should have a size.)
-{v_1 : tensor} |= if ndim(v_1) > 1 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
->>
-Rule 42 (If any dimension of the input tensor has a size, it must be a positive integer)
-{v_1 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
->>
-Rule 51 (If the input has dimensions, these need to be greater or equal to 0, and the overall size needs to be a valid number of string characters)
-{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0)
->>
-Rule 57 (If any string in the tensor exist, its size is more than zero)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 60 (If the input tensor has a shape, the product of dimensions should not be zero.)
-{v_1 : tensor} |= if ndim(v_1) > 0 then (shape(v_1, 0) * shape(v_1, 1)) ≠ 0
->>
-Rule 63 (If the rank is more than 0, each dimension should have a valid dimension size)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
->>
-Rule 66 (If the input has more than zero dimension, the elements contained needs to be a strings with size greater than 0 )
-{v_1 : tensor} |= if (ndim(v_1) > 0) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
->>
-Rule 72 (If the input tensor has one or more dimensions, then the total elements must be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 109 (If input has dimension of length zero, output has matching dimension of length zero)
+{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0

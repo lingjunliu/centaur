@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# depth_radius * 2 + 1 must be less than or equal to the last dimension of input tensor (Rule 90)
+# When the tensor's dimensions are relatively uniform then the depth_radius can be increased. (Rule 90)
 
 rule_90 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_value"] * 2 + 1 <= Select(v["arg1_shape"], 3)) if n else
-          v["arg2_value"] * 2 + 1 <= Select(v["arg1_shape"], 3))
+    s.add(Not(If(Select(v["arg1_shape"], 2) - Select(v["arg1_shape"], 3) < 5, v["arg2_value"] < 15, True)) if n else
+          If(Select(v["arg1_shape"], 2) - Select(v["arg1_shape"], 3) < 5, v["arg2_value"] < 15, True))
 )
 
 def rule_90_func(arg1, arg2, solver=None, neg=False):

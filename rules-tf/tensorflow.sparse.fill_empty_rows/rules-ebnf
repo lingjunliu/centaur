@@ -1,93 +1,141 @@
 >>
-Rule 1 (sp_input must be a 2-D tensor)
+Rule 1 (sp_input must be a SparseTensor. Since SparseTensor is not a defined type, we can only represent this constraint by saying the ndim of sp_input should be at least 2 since it has shape [N, M])
+{v_1 : tensor} |= ndim(v_1) ≥ 2
+>>
+Rule 2 (sp_input must have rank 2)
 {v_1 : tensor} |= ndim(v_1) = 2
 >>
-Rule 2 (default_value should have the same dtype as sp_input)
-{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
->>
-Rule 4 (The first dimension of sp_input should be greater than 0)
-{v_1 : tensor} |= shape(v_1, 0) > 0
->>
-Rule 5 (The second dimension of sp_input should be greater or equal to 0)
-{v_1 : tensor} |= shape(v_1, 1) ≥ 0
->>
-Rule 6 (default_value should be a scalar value)
-{v_1 : tensor} |= ndim(v_1) = 0
->>
-Rule 7 (sp_input's dtype must be one of the valid dtypes)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
->>
-Rule 8 (default_value's type must be int, float, or bool)
-{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 7 ∨ v_1 = 8
->>
-Rule 9 (If default value's type is a string, then it must be in the allowed list)
-{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "constant" ∨ v_1 = "linear" ∨ v_1 = "softplus"
->>
-Rule 10 (The data type of default_value must be the same as the data type of sp_input.)
+Rule 3 (data types of sp_input and default_value must match)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 12 (If sp_input is bool, default_value must also be a bool)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0
+Rule 5 (shape of default_value must be compatible with sp_input's columns)
+{v_1 : tensor, v_2 : tensor} |= shape(v_2,0) = 1 ∨ shape(v_2, 0) = shape(v_1, 1)
 >>
-Rule 13 (If sp_input is a string, default_value must also be a string)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 11 then dtype_(v_2) = 11
+Rule 6 (if sp_input is a SparseTensor, default_value must be a scalar tensor or have compatible shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ (ndim(v_2) = 0 ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, 1)))
 >>
-Rule 14 (if the default value is an int or float, it should be representable by the sparse tensor's dtype)
-{v_1 : tensor, v_2 : float ⊎ int} |= if dtype_(v_1) = 1 then min(v_1) ≤ v_2 ∧ v_2 ≤ max(v_1) else if dtype_(v_1) = 2 then min(v_1) ≤ v_2 ∧ v_2 ≤ max(v_1) else if dtype_(v_1) = 3 then min(v_1) ≤ v_2 ∧ v_2 ≤ max(v_1) else if dtype_(v_1) = 4 then min(v_1) ≤ v_2 ∧ v_2 ≤ max(v_1) else if dtype_(v_1) = 5 then min(v_1) ≤ v_2 ∧ v_2 ≤ max(v_1) else if dtype_(v_1) = 6 then min(v_1) ≤ v_2 ∧ v_2 ≤ max(v_1) else if dtype_(v_1) = 7 then min(v_1) ≤ v_2 ∧ v_2 ≤ max(v_1) else if dtype_(v_1) = 8 then min(v_1) ≤ v_2 ∧ v_2 ≤ max(v_1) else if dtype_(v_1) = 9 then min(v_1) ≤ v_2 ∧ v_2 ≤ max(v_1) else if dtype_(v_1) = 10 then min(v_1) ≤ v_2 ∧ v_2 ≤ max(v_1)
+Rule 7 (sp_input has at least one row)
+{v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 16 (If sp_input is complex64 or complex128, default_value must also be complex64 or complex128)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 then dtype_(v_2) = 9 else if dtype_(v_1) = 10 then dtype_(v_2) = 10
+Rule 8 (Shape of default_value tensor must be a scalar)
+{v_2 : tensor} |= ndim(v_2) = 0
 >>
-Rule 19 (If sp_input is a string, default_value must be one of the permitted strings)
-{v_1 : tensor, v_2 : str} |= if dtype_(v_1) = 11 then (v_2 = "ii" ∨ v_2 = "ii->i" ∨ v_2 = "i,j->ij" ∨ v_2 = "bij,bjk->bik" ∨ v_2 = "...ij->...ji" ∨ v_2 = "bn,anm,bm->ba" ∨ v_2 = "none" ∨ v_2 = "mean" ∨ v_2 = "sum" ∨ v_2 = "max" ∨ v_2 = "min" ∨ v_2 = "prod" ∨ v_2 = "relu" ∨ v_2 = "tanh" ∨ v_2 = "sigmoid" ∨ v_2 = "softmax" ∨ v_2 = "elu" ∨ v_2 = "selu" ∨ v_2 = "gelu" ∨ v_2 = "swish" ∨ v_2 = "constant" ∨ v_2 = "linear" ∨ v_2 = "softplus")
+Rule 9 (If sp_input is not sparse, default_value should not be inf or nan.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ 2 then min(v_2) ≠ "inf" ∧ max(v_2) ≠ "inf" ∧ min(v_2) ≠ "nan" ∧ max(v_2) ≠ "nan"
 >>
-Rule 20 (sp_input's shape[0] * shape[1] must be smaller than the maximum value of int64)
-{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) < 9223372036854775807
+Rule 11 (If sp_input is a sparse tensor, then it should be 2-dimensional.)
+{v_1 : tensor} |= if ndim(v_1) = 2 then true else false
 >>
-Rule 21 (sp_input cannot have zero dimensions)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 12 (If default_value is provided, its shape must be compatible with the shape of sp_input)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then shape(v_2, 0) = shape(v_1, 1)
 >>
-Rule 22 (if sp_input is a np.dtype, default_value must also be a np.dtype)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 12 then dtype_(v_2) = 12
+Rule 13 (Shape of sp_input cannot be unknown)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ -1
 >>
-Rule 23 (If sp_input is a np.dtype (dtype 12), then the default value must be a valid np.dtype from the type list)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 12 then (v_2 = 0 ∨ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5 ∨ v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 11 ∨ v_2 = 12)
+Rule 14 (dtype of sp_input must be in the list of supported dtypes for SparseTensor)
+{v_1 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 24 (sp_input should have at least one non-zero shape dimension)
-{v_1 : tensor} |= ∃i ∈ [0, 1] : shape(v_1, i) > 0
+Rule 16 (ndim of default_value must be 0 or 1)
+{v_2 : tensor} |= ndim(v_2) = 0 ∨ ndim(v_2) = 1
 >>
-Rule 26 (If sp_input has float16, default_value must be a float16)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6
+Rule 17 (If default_value is a vector, its length must be equal to the number of columns in sp_input)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 then shape(v_2, 0) = shape(v_1, 1)
 >>
-Rule 27 (If sp_input has float32, default_value must be a float32)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7
+Rule 18 (Either sp_input is sparse or name is a valid string)
+{v_1 : tensor, v_3 : str} |= (ndim(v_1) = 2) ∨ (v_3 = v_3)
 >>
-Rule 28 (If sp_input has float64, default_value must be a float64)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = 8
+Rule 20 (If name is provided, it should be a string, and sp_input should be a SparseTensor with valid shape)
+{v_1 : tensor, v_3 : str} |= if ndim(v_1) = 2 then true else (v_3 = v_3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0)
 >>
-Rule 29 (If sp_input has complex64, default_value must be a complex64)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 then dtype_(v_2) = 9
+Rule 21 (If name is provided, it should be a string)
+{v_3 : str} |= v_3 = v_3
 >>
-Rule 30 (If sp_input has complex128, default_value must be a complex128)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 10
+Rule 22 (sp_input must be a SparseTensor, or default_value and sp_input must have compatible shapes)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 2) ∨ ((ndim(v_2) = 0) ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, 1)))
 >>
-Rule 31 (If sp_input has np.int8, default_value must be a np.int8)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 then dtype_(v_2) = 1
+Rule 23 (If sp_input is sparse, default_value should have a compatible shape)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then (ndim(v_2) = 0 ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, 1)))
 >>
-Rule 32 (If sp_input has np.int16, default_value must be a np.int16)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 2 then dtype_(v_2) = 2
+Rule 25 (Input must have at least one column)
+{v_1 : tensor} |= shape(v_1, 1) > 0
 >>
-Rule 33 (If sp_input has np.int32, default_value must be a np.int32)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 3 then dtype_(v_2) = 3
+Rule 26 (Either Input must be a SparseTensor or default_value must be valid)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 2) ∨ (min(v_2) ≠ "inf" ∧ max(v_2) ≠ "inf" ∧ min(v_2) ≠ "nan" ∧ max(v_2) ≠ "nan")
 >>
-Rule 34 (If sp_input has np.int64, default_value must be a np.int64)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 4 then dtype_(v_2) = 4
+Rule 27 (If default_value is a scalar, sp_input should be sparse.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then ndim(v_1) = 2
 >>
-Rule 35 (If sp_input has np.uint8, default_value must be a np.uint8)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 5 then dtype_(v_2) = 5
+Rule 28 (Input tensor must be 2D if default value is not provided)
+{v_1: tensor, v_2: tensor} |= if min(v_2) = "" ∧ max(v_2) = "" then ndim(v_1) = 2
 >>
-Rule 36 (if sp_input is bool, default_value must be true or false.)
-{v_1 : tensor, v_2 : str} |= if dtype_(v_1) = 0 then (v_2 = "true" ∨ v_2 = "false")
+Rule 29 (If default_value is not provided then sp_input must be sparse.)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) = 0 ∧ shape(v_2, 0) = 0 then ndim(v_1) = 2
 >>
-Rule 39 (sp_input must be a SparseTensor, so its indices must be int64 or int32)
-{v_1: tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 30 (The shape of default_value should be [1] if sp_input is a SparseTensor)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then (ndim(v_2) ≠ 1 ∨ shape(v_2,0) = 1)
+>>
+Rule 32 (If sp_input is not SparseTensor default_value should be of rank 0)
+{v_1: tensor, v_2:tensor} |= if ndim(v_1) != 2 then ndim(v_2) = 0
+>>
+Rule 33 (If the input is a 2D SparseTensor, and default_value is provided, then the 0th dimension of default_value must equal to the 1st dimension of sp_input or the ndim of default_value should be 0)
+{v_1: tensor, v_2:tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) > 0 then shape(v_2,0) = shape(v_1,1)  ∨ ndim(v_2) = 0
+>>
+Rule 34 (dtype of sp_input should not be string if default_value is specified)
+{v_1:tensor, v_2: tensor} |= if dtype_(v_1) = 11 then ndim(v_2) = 0
+>>
+Rule 35 (if sp_input is a SparseTensor, the default value is a scalar, and sp_input's dtype is string, then the default value has to be a string)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 0 ∧ dtype_(v_1) = 11 then dtype_(v_2) = 11
+>>
+Rule 36 (if sp_input is not a SparseTensor and default_value is provided, the shapes of two tensors must match)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ 2 ∧ ndim(v_2) > 0 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 37 (Either sp_input should be a sparse tensor or data types must match)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then true else dtype_(v_1) = dtype_(v_2)
+>>
+Rule 38 (sp_input should have at least two rows)
+{v_1:tensor} |= shape(v_1, 0) ≥ 2
+>>
+Rule 39 (If sp_input is a sparse tensor, its rank should be 2 and if default_value is a vector, its dimension should be equal to number of column of sp_input)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 1 then shape(v_2, 0) = shape(v_1, 1) else if ndim(v_1) = 2 ∧ ndim(v_2) = 0 then true else ndim(v_1) != 2
+>>
+Rule 40 (If Input is sparse, and default_value is vector, the length of default_value should be equal to column size of sp_input.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 1 then shape(v_2, 0) = shape(v_1, 1)
+>>
+Rule 41 (If default_value is not provided, the dtype of Input tensor must be valid)
+{v_1 : tensor, v_2: tensor} |= if shape(v_2, 0) = 0 ∧ shape(v_2, 0) = 0 then dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 42 (Shape of sp_input cannot be a scalar.)
+{v_1:tensor} |= ndim(v_1) > 0
+>>
+Rule 43 (If Input tensor is not sparse, name has to be string.)
+{v_1 : tensor, v_3 : str} |= if ndim(v_1) ≠ 2 then v_3 = v_3
+>>
+Rule 44 (if default_value is provided and has a shape, then it should match the column size)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) > 0 then shape(v_2, 0) = shape(v_1, 1)
+>>
+Rule 45 (If sp_input is a sparse tensor, its shape[1] must be positive)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 1) > 0
+>>
+Rule 46 (Sp_input should be a rank 2 tensor and data type of sp_input and default_value should be same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ dtype_(v_1) = dtype_(v_2)
+>>
+Rule 47 (The number of columns of the input sparse tensor and the number of elements in the default_value should be the same)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 1 then shape(v_1,1) = shape(v_2,0)
+>>
+Rule 48 (Either Input has to be a sparse tensor or it's dtype has to be same as that of default_value)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 2) ∨ (dtype_(v_1) = dtype_(v_2))
+>>
+Rule 49 (sp_input is a sparse tensor or its shape is well defined )
+{v_1:tensor} |= ndim(v_1) = 2 ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ -1)
+>>
+Rule 50 (sp_input must be a SparseTensor, or default_value shape must be valid)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then true else (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+>>
+Rule 51 (Either sp_input is sparse, or default_value is not provided.)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) = 2 ∨ (shape(v_2,0) = 0 ∧ shape(v_2,0) = 0)
+>>
+Rule 52 (If input tensor is not sparse its rank must be at least 1)
+{v_1:tensor} |= if ndim(v_1) != 2 then ndim(v_1) ≥ 1
+>>
+Rule 53 (Shape is defined or sparse)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ -1) ∨ ndim(v_1) = 2

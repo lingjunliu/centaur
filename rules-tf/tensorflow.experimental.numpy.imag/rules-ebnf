@@ -1,66 +1,111 @@
 >>
-Rule 1 (Input tensor must be a complex type)
-{v_1 : tensor} |= dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 1 (The input tensor must be of a complex dtype to have an imaginary part)
+{v_1 : tensor} |= dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
 >>
-Rule 2 (Real part of complex64 and complex128 tensors have corresponding float types)
-{v_1 : tensor} |= if dtype_(v_1) = 9 then true else if dtype_(v_1) = 10 then true else false
+Rule 2 (The input tensor must be a tensor.)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 4 (imag of a complex number must be a real number)
-{v_1 : tensor} |= if dtype_(v_1) = 9 then dtype_(v_1) = 7 else if dtype_(v_1) = 10 then dtype_(v_1) = 8 else false
+Rule 3 (The input tensor should have a valid dtype.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 12
 >>
-Rule 6 (The imaginary part of a complex tensor will have the same shape as the input tensor)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 6 (If the input tensor is complex, the result should not be a boolean.)
+{v_1 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_1) ≠ 0
 >>
-Rule 7 (Output tensor dtype is float32 if input tensor is complex64)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 then dtype_(v_2) = 7
+Rule 7 (If the input tensor is not complex, the result will be a tensor of zeros with the same shape as the input.)
+{v_1 : tensor} |= if dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, i)
 >>
-Rule 8 (Output tensor dtype is float64 if input tensor is complex128)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 8
+Rule 8 (If the input tensor is complex64, the output should be float32.)
+{v_1 : tensor} |= if dtype_(v_1) = 10 then true
 >>
-Rule 9 (If the input is not a complex type, the output should be a tensor of zeros with the same shape)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 9 (If the input tensor is complex128, the output should be float64.)
+{v_1 : tensor} |= if dtype_(v_1) = 11 then true
 >>
-Rule 12 (If input is a tensor, the output is a tensor of the same shape. Otherwise it's zero.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) else ndim(v_2) = 0
+Rule 10 (The tensor must have a shape defined for it.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 13 (Input tensor should have ndim >= 1 if dtype is complex)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ndim(v_1) ≥ 1
+Rule 11 (The number of dimensions must be less than a reasonably large number.)
+{v_1 : tensor} |= ndim(v_1) < 10
 >>
-Rule 14 (If the input tensor is not complex, the output tensor's values should all be zero)
-{v_1 : tensor} |= if dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 then ∀i ∈ [0, ndim(v_1) - 1] : min(v_1) = 0 ∧ max(v_1) = 0
+Rule 12 (If the input is a scalar complex number, the output is a scalar float.)
+{v_1 : tensor} |= if ndim(v_1) = 0 ∧ (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then true
 >>
-Rule 15 (Output tensor's dtype is float32 if input is complex64 and float64 if input is complex128)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 then dtype_(v_2) = 7 else if dtype_(v_1) = 10 then dtype_(v_2) = 8
+Rule 13 (The shape of the output tensor should be the same as the shape of the input tensor.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, i)
 >>
-Rule 16 (If the input is complex, the output is a float. Otherwise, it's 0.)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true else v_2 = 0
+Rule 17 (if ndim(v_1) is zero, dtype_(v_1) should be either 10 or 11, not any other value from the allowed list.)
+{v_1 : tensor} |= if ndim(v_1) = 0 then dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
 >>
-Rule 17 (If the input is not complex, the imaginary part is zero, meaning min and max must be 0)
-{v_1 : tensor} |= if dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 then min(v_1) = 0 ∧ max(v_1) = 0
+Rule 18 (The real and imaginary parts of the complex tensor should have the same shape and size)
+{v_1 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, i)
 >>
-Rule 18 (If input is complex64, output can be converted to float32 without data loss)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 9 then v_2 = 7
+Rule 19 (If the input is complex, the output should be float)
+{v_1 : tensor} |= if dtype_(v_1) = 10 then true else if dtype_(v_1) = 11 then true
 >>
-Rule 19 (If input is complex128, output can be converted to float64 without data loss)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 10 then v_2 = 8
+Rule 23 (if the dtype of the input tensor is complex64, the output will be float32, and if dtype of the input is complex128, the output will be float64.)
+{v_1 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_1) = 7 else if dtype_(v_1) = 11 then dtype_(v_1) = 8
 >>
-Rule 21 (If input is not complex, output is a zero-filled tensor with the same shape.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ min(v_2) = 0 ∧ max(v_2) = 0)
+Rule 24 (If the input tensor is complex and its elements are represented in float32, the output should also be float32.)
+{v_1 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_1) = 7
 >>
-Rule 22 (The imaginary part of a complex tensor must be a real number with the same shape)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∧ ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 25 (If the input tensor is complex and its elements are represented in float64, the output should also be float64.)
+{v_1 : tensor} |= if dtype_(v_1) = 11 then dtype_(v_1) = 8
 >>
-Rule 24 (If input is complex, it should be either complex64 or complex128)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true
+Rule 26 (The tensor must be of a valid shape i.e. all values within shape must be positive.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 26 (The output of imag must be a real-valued tensor.)
+Rule 28 (If the real part of the complex number is infinity/NaN, the imaginary part must also be infinity/NaN or zero.)
+{v_1 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then true
+>>
+Rule 31 (Complex tensors can't have elements other than complex numbers i.e. bool, string)
+{v_1 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 12
+>>
+Rule 36 (Tensor must not be boolean,string, or dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 12
+>>
+Rule 38 (Output must be of floating type and has the same number of dimension with the input tensor)
+{v_1 : tensor} |= ndim(v_1) = ndim(v_1) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 39 (If input is complex64 then dtype of output is 7, else if input is complex128 then dtype of output is 8, else default tensor.)
+{v_1 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_1) = 7 else if dtype_(v_1) = 11 then dtype_(v_1) = 8 else True
+>>
+Rule 42 (The output tensor should always have a floating point dtype.)
 {v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 29 (If the input tensor is complex, the output is guaranteed to be non-empty)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 43 (The output should always be real, even if the input was complex.)
+{v_1 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11 else True
 >>
-Rule 30 (If the input is complex64, the output dtype must be float32, and if input is complex128, the output dtype must be float64)
-{v_1 : tensor} |= if dtype_(v_1) = 9 then true else if dtype_(v_1) = 10 then true
+Rule 44 (If the input tensor is complex64 or complex128, the output tensor must be of type float32 or float64 respectively)
+{v_1 : tensor} |= if dtype_(v_1) = 10 then True else if dtype_(v_1) = 11 then True else True
 >>
-Rule 33 (Imaginary part is always a real-valued tensor, and the number of dimensions remains the same.)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) ∧ ndim(v_1) = ndim(v_2)
+Rule 45 (If the input tensor's dtype is complex, the output tensor will have the same number of dimensions.)
+{v_1 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then ndim(v_1) = ndim(v_1) else True
+>>
+Rule 48 (If input has one or more dimensions, it has a shape for at least one of these dimensions)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0 else True
+>>
+Rule 49 (If the input tensor is a scalar complex number, the output tensor should be a scalar float number)
+{v_1 : tensor} |= if ndim(v_1) = 0 ∧ (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then ndim(v_1) = 0 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) else True
+>>
+Rule 50 (If the output is not a boolean type tensor.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 51 (If the datatype of the input tensor is not complex, then a 0 filled tensor with the same shape will be returned)
+{v_1 : tensor} |= if dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, i) else True
+>>
+Rule 53 (If complex, tensor shape dimensions must be greater than or equal to 0.)
+{v_1 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0 else True
+>>
+Rule 54 (Only complex numbers has imaginary values)
+{v_1 : tensor} |= if dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11 then True else True
+>>
+Rule 55 (If dtype is complex then elements must be a real number)
+{v_1 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then True else True
+>>
+Rule 56 (the output should not be complex, output should be real dtype.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 58 (If tensor input is scalar then the output is also a scalar with the float dtype.)
+{v_1 : tensor} |= if ndim(v_1) = 0 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) else True
+>>
+Rule 59 (The tensor data type should be a float if the imaginary part has a single element)
+{v_1 : tensor} |= if ndim(v_1) = 0 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 else True

@@ -1,72 +1,111 @@
 >>
-Rule 3 (The 'name' parameter must be a valid string)
-{v_1 : str} |= v_1 = "hello" ∨ v_1 = "world"
->>
-Rule 4 (The 'name' parameter, if provided, should not be an empty string.)
+Rule 2 (name must be a non-empty string)
 {v_1 : str} |= v_1 ≠ ""
 >>
-Rule 6 (The output tensor is a string)
-{v_1: tensor} |= dtype_(v_1) = 12
+Rule 3 (name should be a valid string from the allowed list)
+{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear" ∨ v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "causal" ∨ v_1 = "channels_last" ∨ v_1 = "channels_first"
 >>
-Rule 7 (The output tensor is scalar)
-{v_1: tensor} |= ndim(v_1) = 0
+Rule 4 (The length of the name string should be less than 256.)
+{v_1 : str} |= v_1.len < 256
 >>
-Rule 8 (The name argument, if provided, should be one of the suggested names.)
-{v_1:str} |= v_1 = "Fact_Op" ∨ v_1 = "MyFact"
+Rule 6 (The name string should not contain control characters.)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] > " " ∨ v_1[i] < "\0")
 >>
-Rule 9 (If 'name' is given, it should be of type string)
-{v_1 : str ⊎ int ⊎ float ⊎ bool ⊎ tensor} |= if v_1 = "hello" then true else false
+Rule 7 (The name string should not contain control characters.)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > " " ∨ v_1[i] = "\0"
 >>
-Rule 10 (If 'name' is given, it should be a string.)
-{v_1 : str ⊎ int ⊎ float ⊎ bool ⊎ tensor} |= if v_1 = "" then true else if v_1 = "hello" then true else false
+Rule 8 (The name string should not contain control characters, excluding null termination.)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ " " ∨ v_1[i] = "\0")
 >>
-Rule 12 (The name argument should be a string or None)
-{v_1 : str ⊎ int ⊎ float ⊎ bool ⊎ tensor} |= if v_1 = "" then true
+Rule 9 (If a name is provided, it must begin with a letter)
+{v_1 : str} |= if v_1 ≠ "" then (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z")
 >>
-Rule 14 (If name is given then it must be a string)
-{v_1 : str ⊎ int ⊎ float ⊎ bool ⊎ tensor} |= if v_1 = "hello" then true
+Rule 10 (If a name is provided, it should only contain alphanumeric characters and underscores)
+{v_1 : str} |= if v_1 ≠ "" then ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = "_"
 >>
-Rule 15 (If name is given then it must be a string)
-{v_1 : str ⊎ int ⊎ float ⊎ bool ⊎ tensor} |= if v_1 = "" then true else if v_1 = v_1 then true else false
+Rule 11 (If a name is provided, it should not start with an underscore.)
+{v_1 : str} |= if v_1 ≠ "" then v_1[0] ≠ "_"
 >>
-Rule 16 (If name is given then it must be a valid string)
-{v_1 : str ⊎ int ⊎ float ⊎ bool ⊎ tensor} |= if v_1 = "Fact_Op" then true else if v_1 = "MyFact" then true else if v_1 = "" then true else false
+Rule 12 (If a name is provided, it should not be a reserved keyword.)
+{v_1 : str} |= if v_1 ≠ "" then v_1 ≠ "none" ∧ v_1 ≠ "sum" ∧ v_1 ≠ "max" ∧ v_1 ≠ "min" ∧ v_1 ≠ "prod"
 >>
-Rule 17 (If a name is provided, it should be a string.)
-{v_1 : str ⊎ int ⊎ float ⊎ bool ⊎ tensor} |= if v_1 ≠ "" then if v_1 = "hello" then true else false
+Rule 13 (If a name is provided, it should not shadow existing variable names in the scope.)
+{v_1 : str} |= if v_1 ≠ "" then v_1 ≠ "v_1" ∧ v_1 ≠ "v_2" ∧ v_1 ≠ "i"
 >>
-Rule 19 (If 'name' argument is not given, it defaults to "Fact" string tensor.)
-{v_1 : str ⊎ int ⊎ float ⊎ bool ⊎ tensor} |= if v_1 ≠ v_1 then true
+Rule 14 (If a name is provided, it cannot be longer than a system limit.)
+{v_1 : str} |= if v_1 ≠ "" then v_1.len < 1024
 >>
-Rule 20 (The output tensor has string type and no shape dimensions.)
-{v_1 : tensor} |= ndim(v_1) = 0 ∧ dtype_(v_1) = 12
+Rule 18 (If a name is provided, it should only contain lowercase alphanumeric characters.)
+{v_1 : str} |= if v_1 ≠ "" then ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9")
 >>
-Rule 21 (The output is a 0-dimensional string tensor)
-{v_1: tensor} |= ndim(v_1) = 0 ∧ dtype_(v_1) = 12
+Rule 19 (If a name is provided, it should start with 'fact_' prefix.)
+{v_1 : str} |= if v_1 ≠ "" then v_1[0] = "f" ∧ v_1[1] = "a" ∧ v_1[2] = "c" ∧ v_1[3] = "t" ∧ v_1[4] = "_"
 >>
-Rule 23 (If name is provided, it must have a length greater than 0)
-{v_1 : str ⊎ int ⊎ float ⊎ bool ⊎ tensor} |= if v_1 ≠ "" then if v_1 = v_1 then true else false
+Rule 20 (If a name is provided and has length >= 5, it should start with 'fact_' prefix.)
+{v_1 : str} |= if v_1 ≠ "" ∧ v_1.len ≥ 5 then v_1[0] = "f" ∧ v_1[1] = "a" ∧ v_1[2] = "c" ∧ v_1[3] = "t" ∧ v_1[4] = "_"
 >>
-Rule 24 (If the name is provided, it should be non-empty)
-{v_1: str} |= v_1 = "Fact_Op" ∨ v_1 = "MyFact" ∨ v_1 = "SomeOtherFact"
+Rule 21 (The name string, if longer than 4 characters, should not contain any of the restricted keywords.)
+{v_1 : str} |= if v_1 ≠ "" ∧ v_1.len > 4 then v_1 ≠ "none" ∧ v_1 ≠ "sum" ∧ v_1 ≠ "max" ∧ v_1 ≠ "min" ∧ v_1 ≠ "prod" ∧ v_1 ≠ "relu" ∧ v_1 ≠ "tanh" ∧ v_1 ≠ "sigmoid" ∧ v_1 ≠ "softmax" ∧ v_1 ≠ "elu" ∧ v_1 ≠ "selu" ∧ v_1 ≠ "gelu" ∧ v_1 ≠ "swish" ∧ v_1 ≠ "softplus" ∧ v_1 ≠ "linear" ∧ v_1 ≠ "valid" ∧ v_1 ≠ "same" ∧ v_1 ≠ "causal" ∧ v_1 ≠ "channels_last" ∧ v_1 ≠ "channels_first"
 >>
-Rule 25 (Name should be valid and a string)
-{v_1 : str ⊎ tensor ⊎ int} |= if v_1 = "" then true else if v_1 = "ValidName" then true else false
+Rule 22 (If a name is provided and is not empty, it must be a valid identifier according to Python syntax (simplified - starts with letter or underscore).)
+{v_1 : str} |= if v_1 ≠ "" then (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z") ∨ v_1[0] = "_"
 >>
-Rule 27 (If name is provided, it should not be an empty string)
-{v_1: str} |= v_1 ≠ ""
+Rule 23 (If the name starts with an underscore, it cannot contain double underscores consecutively.)
+{v_1 : str} |= if v_1 ≠ "" ∧ v_1[0] = "_" then ∀i ∈ [0, v_1.len - 2] : (v_1[i] = "_" ∧ v_1[i+1] = "_") = false
 >>
-Rule 28 (The output tensor should have string type)
-{v_1 : tensor} |= dtype_(v_1) = 12
+Rule 24 (If the name is provided, and starts with a letter, the rest should be alphanumeric or underscore.)
+{v_1 : str} |= if v_1 ≠ "" ∧ ((v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z")) then ∀i ∈ [1, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = "_"
 >>
-Rule 30 (If name is provided, it should be a valid string, otherwise it will be 'Fact')
-{v_1 : str ⊎ int ⊎ float ⊎ bool ⊎ tensor} |= if v_1 = "Fact" then true else if v_1 = "MyCustomFactName" then true else false
+Rule 27 (Name should not start with `tf.`.)
+{v_1 : str} |= if v_1 ≠ "" then v_1[0] ≠ "t" ∨ v_1[1] ≠ "f" ∨ v_1[2] ≠ "."
 >>
-Rule 32 (Valid name example check)
-{v_1 : str} |= v_1 = "Fact_Op"
+Rule 28 (Name should not start with `tf.`.)
+{v_1 : str} |= if v_1 ≠ "" ∧ v_1.len >= 3 then (v_1[0] ≠ "t" ∨ v_1[1] ≠ "f" ∨ v_1[2] ≠ ".")
 >>
-Rule 35 (If a name is specified it should be string type)
-{v_1 : str⊎tensor⊎float⊎int⊎bool } |= if v_1 = "hello" then true
+Rule 29 (Name should not start with `tf.`.)
+{v_1 : str} |= if v_1 ≠ "" ∧ v_1.len ≥ 3 then (v_1[0] ≠ "t" ∨ v_1[1] ≠ "f" ∨ v_1[2] ≠ ".")
 >>
-Rule 36 (If the name is provided, is is valid string )
-{v_1:str} |= v_1 = "Fact_Op" ∨ v_1 = "Fact"
+Rule 30 (If the name starts with `_`, it should be followed by at least one letter.)
+{v_1 : str} |= if v_1 ≠ "" ∧ v_1[0] = "_" then v_1.len > 1 ∧ ((v_1[1] ≥ "a" ∧ v_1[1] ≤ "z") ∨ (v_1[1] ≥ "A" ∧ v_1[1] ≤ "Z"))
+>>
+Rule 31 (If the name starts with `_`, it should be followed by at least one letter or number.)
+{v_1 : str} |= if v_1 ≠ "" ∧ v_1[0] = "_" then v_1.len > 1 ∧ ((v_1[1] ≥ "a" ∧ v_1[1] ≤ "z") ∨ (v_1[1] ≥ "A" ∧ v_1[1] ≤ "Z") ∨ (v_1[1] ≥ "0" ∧ v_1[1] ≤ "9"))
+>>
+Rule 32 (The string name, if provided, should not conflict with framework reserved name scopes.)
+{v_1 : str} |= if v_1 ≠ "" then v_1 ≠ "tf" ∧ v_1 ≠ "tensorflow" ∧ v_1 ≠ "keras"
+>>
+Rule 35 (Name must conform to the regex pattern '[A-Za-z0-9.][A-Za-z0-9_\\-/]*')
+{v_1 : str} |= if v_1 != "" then (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z") ∨ (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "0" ∧ v_1[0] ≤ "9") ∨ v_1[0] = "."
+>>
+Rule 38 (If name is provided and is non-empty, it must be a string)
+{v_1 : str} |= if v_1 ≠ "" then true
+>>
+Rule 39 (If name is provided and is non-empty, it must be a string)
+{v_1 : str} |= if v_1 = "" then true
+>>
+Rule 40 (If name is provided and is non-empty, then it must be a string with at least one character)
+{v_1 : str} |= v_1.len ≥ 0
+>>
+Rule 41 (If name is provided and is non-empty, then it must be a string that is not too long.)
+{v_1 : str} |= v_1.len < 2048
+>>
+Rule 42 (If name is provided, enforce a maximum string length.)
+{v_1 : str} |= v_1.len < 1024
+>>
+Rule 43 (If a name is given, then its length must be positive.)
+{v_1 : str} |= if v_1 = "" then true else v_1.len > 0
+>>
+Rule 45 (The name must not equal 'None')
+{v_1: str} |= v_1 ≠ "None"
+>>
+Rule 46 (The name, if provided, must not equal 'None')
+{v_1: str} |= if v_1 = "" then true else v_1 ≠ "None"
+>>
+Rule 47 (The name cannot be '""' or 'None')
+{v_1: str} |= (v_1 ≠ "") ∧ (v_1 ≠ "None")
+>>
+Rule 48 (The name must not be the empty string, nor the string "None")
+{v_1: str} |= if v_1 = "" then false else if v_1 = "None" then false
+>>
+Rule 49 (The name should not be equal to 'None', and if a name *is* provided, it needs to have at least one character)
+{v_1: str} |= if v_1 ≠ "" then v_1 ≠ "None"

@@ -1,87 +1,225 @@
 >>
-Rule 1 (ksize, strides must be a list of ints when input is a tensor)
-{v_1 : tensor, v_2 : list(int), v_3 : list(int)} |= v_2.len = ndim(v_1) - 2 ∧ v_3.len = ndim(v_1) - 2
->>
-Rule 3 (ksize and strides should have the same length when both are lists)
-{v_2 : list(int), v_3 : list(int)} |= v_2.len = v_3.len
->>
-Rule 4 (padding must be either 'VALID' or 'SAME')
+Rule 1 (padding should be 'VALID' or 'SAME')
 {v_1 : str} |= v_1 = "VALID" ∨ v_1 = "SAME"
 >>
-Rule 5 (data_format must be a valid string based on input tensor's ndim)
-{v_1 : tensor, v_2 : str} |= if ndim(v_1) = 3 then (v_2 = "NWC" ∨ v_2 = "NCW") else (if ndim(v_1) = 4 then (v_2 = "NHWC" ∨ v_2 = "NCHW") else (if ndim(v_1) = 5 then (v_2 = "NDHWC" ∨ v_2 = "NCDHW") else false))
+Rule 2 (input tensor rank must be 3, 4 or 5)
+{v_1 : tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4 ∨ ndim(v_1) = 5
 >>
-Rule 6 (ksize must be greater than 0)
-{v_1 : int} |= v_1 > 0
+Rule 9 (ksize elements must be greater than 0)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 8 (ksize list elements must be greater than 0)
-{v_1 : list(int)} |= ∀ i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 11 (ksize length constraint when rank is 3)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 3 then (v_2.len = 1 ∨ v_2.len = 3)
 >>
-Rule 10 (ksize and strides must have length 1, N, or N+2)
-{v_1 : tensor, v_2 : list(int), v_3 : list(int)} |= (v_2.len = 1 ∨ v_2.len = ndim(v_1) - 2 ∨ v_2.len = ndim(v_1)) ∧ (v_3.len = 1 ∨ v_3.len = ndim(v_1) - 2 ∨ v_3.len = ndim(v_1))
+Rule 12 (ksize length constraint when rank is 4)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 4 then (v_2.len = 1 ∨ v_2.len = 2 ∨ v_2.len = 4)
 >>
-Rule 12 (padding must be either 'VALID' or 'SAME' - alternative formulation)
-{v_1 : str} |= (v_1 = "VALID") ∨ (v_1 = "SAME")
+Rule 13 (ksize length constraint when rank is 5)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 5 then (v_2.len = 1 ∨ v_2.len = 3 ∨ v_2.len = 5)
 >>
-Rule 13 (data_format must be a valid string based on input tensor's ndim)
-{v_1 : tensor, v_2 : str} |= if ndim(v_1) = 3 then (v_2 = "NWC" ∨ v_2 = "NCW") else (if ndim(v_1) = 4 then (v_2 = "NHWC" ∨ v_2 = "NCHW") else (if ndim(v_1) = 5 then (v_2 = "NDHWC" ∨ v_2 = "NCDHW")))
+Rule 21 (ksize length depends on data_format for N=1)
+{v_1 : str, v_2 : list(int)} |= if v_1 = "NWC" ∨ v_1 = "NCW" then v_2.len = 1
 >>
-Rule 14 (When ksize is a list, its length should match input's spatial dimensions)
-{v_1 : tensor, v_2 : list(int)} |= v_2.len = ndim(v_1) - 2
+Rule 22 (ksize length depends on data_format for N=2)
+{v_1 : str, v_2 : list(int)} |= if v_1 = "NHWC" ∨ v_1 = "NCHW" then (v_2.len = 1 ∨ v_2.len = 2)
 >>
-Rule 25 (The data format string must contain only specific characters)
-{v_1 : str} |= ∀ i ∈ [0, v_1.len - 1] : v_1[i] = "N" ∨ v_1[i] = "C" ∨ v_1[i] = "H" ∨ v_1[i] = "W" ∨ v_1[i] = "D"
+Rule 23 (ksize length depends on data_format for N=3)
+{v_1 : str, v_2 : list(int)} |= if v_1 = "NDHWC" ∨ v_1 = "NCDHW" then (v_2.len = 1 ∨ v_2.len = 3)
 >>
-Rule 26 (If data_format starts with NC, channel dimension is different, more restrictive version)
-{v_1: str} |= v_1 = "NWC" ∨ v_1 = "NCW" ∨ v_1 = "NHWC" ∨ v_1 = "NCHW" ∨ v_1 = "NDHWC" ∨ v_1 = "NCDHW"
+Rule 27 (data_format must be valid according to N dimension)
+{v_1 : tensor, v_2 : str} |= (ndim(v_1) = 3 ∧ (v_2 = "NWC" ∨ v_2 = "NCW")) ∨ (ndim(v_1) = 4 ∧ (v_2 = "NHWC" ∨ v_2 = "NCHW")) ∨ (ndim(v_1) = 5 ∧ (v_2 = "NDHWC" ∨ v_2 = "NCDHW"))
 >>
-Rule 29 (data_format must be a valid string based on input tensor's ndim - simplified)
-{v_1 : str} |= v_1 = "NWC" ∨ v_1 = "NCW" ∨ v_1 = "NHWC" ∨ v_1 = "NCHW" ∨ v_1 = "NDHWC" ∨ v_1 = "NCDHW"
+Rule 32 (ksize and strides lengths consistency for rank 3)
+{v_1 : tensor, v_2 : list(int), v_3 : list(int)} |= if ndim(v_1) = 3 then v_2.len = v_3.len
 >>
-Rule 32 (input tensor must have a rank greater than or equal to 3 when data format is used)
-{v_1 : tensor, v_2 : str} |= if v_2 = "NWC" ∨ v_2 = "NCW" ∨ v_2 = "NHWC" ∨ v_2 = "NCHW" ∨ v_2 = "NDHWC" ∨ v_2 = "NCDHW" then ndim(v_1) ≥ 3
+Rule 33 (ksize and strides lengths consistency for rank 4)
+{v_1 : tensor, v_2 : list(int), v_3 : list(int)} |= if ndim(v_1) = 4 then v_2.len = v_3.len
 >>
-Rule 33 (The data format string must have valid length based on ndim of input)
-{v_1: tensor, v_2: str} |= if ndim(v_1) = 3 then v_2.len = 3 else (if ndim(v_1) = 4 then v_2.len = 4 else (if ndim(v_1) = 5 then v_2.len = 5))
+Rule 34 (ksize and strides lengths consistency for rank 5)
+{v_1 : tensor, v_2 : list(int), v_3 : list(int)} |= if ndim(v_1) = 5 then v_2.len = v_3.len
 >>
-Rule 34 (ksize must be an int and greater than 0 if it is an int.)
-{v_1: int} |= v_1 > 0
+Rule 35 (data_format compatibility with input rank N=1 and correct ksize length)
+{v_1 : tensor, v_2 : str, v_3 : list(int)} |= (ndim(v_1) = 3 ∧ (v_2 = "NWC" ∨ v_2 = "NCW") ∧ v_3.len = 1)
 >>
-Rule 36 (If padding is SAME, then the output spatial dimensions are the same as the input spatial dimensions (expressed abstractly))
-{v_1: str} |= if v_1 = "SAME" then true
+Rule 36 (data_format compatibility with input rank N=2 and correct ksize length)
+{v_1 : tensor, v_2 : str, v_3 : list(int)} |= (ndim(v_1) = 4 ∧ (v_2 = "NHWC" ∨ v_2 = "NCHW") ∧ (v_3.len = 1 ∨ v_3.len = 2))
 >>
-Rule 37 (if the data format starts with NC then ksize and strides list length must be ndim(input))
-{v_1: tensor, v_2: str, v_3: list(int), v_4: list(int)} |= if v_2 = "NCW" ∨ v_2 = "NCHW" ∨ v_2 = "NCDHW" then (v_3.len = ndim(v_1) ∧ v_4.len = ndim(v_1))
+Rule 37 (data_format compatibility with input rank N=3 and correct ksize length)
+{v_1 : tensor, v_2 : str, v_3 : list(int)} |= (ndim(v_1) = 5 ∧ (v_2 = "NDHWC" ∨ v_2 = "NCDHW") ∧ (v_3.len = 1 ∨ v_3.len = 3))
 >>
-Rule 38 (The data format string must have valid characters)
-{v_1: str} |= ∀ i ∈ [0, v_1.len - 1] : v_1[i] = "N" ∨ v_1[i] = "C" ∨ v_1[i] = "H" ∨ v_1[i] = "W" ∨ v_1[i] = "D"
+Rule 42 (data format must be 'channels_first' or 'channels_last' when not using NCHW, NHWC or NDHWC or NCDHW or NCW or NWC)
+{v_1: str} |= (v_1 = "channels_first") ∨ (v_1 = "channels_last")
 >>
-Rule 40 (If data format does not start with NC then ksize and strides list length must be ndim(input) - 2 if greater than 1)
-{v_1: tensor, v_2: str, v_3: list(int), v_4: list(int)} |= if v_2 = "NWC" ∨ v_2 = "NHWC" ∨ v_2 = "NDHWC" then (if v_3.len > 1 then (v_3.len = ndim(v_1) -2 ∧ v_4.len = ndim(v_1) -2))
+Rule 43 (if data_format starts with NC, then N+2 ksize elements must be specified, else N must be specified)
+{v_1: tensor, v_2: str, v_3: list(int)} |= if (v_2 = "NCHW" ∨ v_2 = "NCDHW" ∨ v_2 = "NCW") then v_3.len = ndim(v_1) else v_3.len = ndim(v_1) - 2
 >>
-Rule 41 (padding must be either VALID or SAME)
-{v_1: str} |= v_1 = "VALID" ∨ v_1 = "SAME"
+Rule 44 (If tensor rank is 3 and data format is NWC, then ksize length should be 1)
+{v_1: tensor, v_2: str, v_3: list(int)} |= if (ndim(v_1) = 3 ∧ v_2 = "NWC") then v_3.len = 1
 >>
-Rule 42 (Ksize and strides are the same length when both are lists)
-{v_1: list(int), v_2: list(int)} |= v_1.len = v_2.len
+Rule 45 (If tensor rank is 3 and data format is NCW, then ksize length should be 1)
+{v_1: tensor, v_2: str, v_3: list(int)} |= if (ndim(v_1) = 3 ∧ v_2 = "NCW") then v_3.len = 1
 >>
-Rule 43 (If data format starts with NC then ksize and strides list length must be ndim(input) otherwise ndim(input) - 2 if the lengths are greater than 1.)
-{v_1: tensor, v_2: str, v_3: list(int), v_4: list(int)} |= if v_2 = "NCW" ∨ v_2 = "NCHW" ∨ v_2 = "NCDHW" then (v_3.len = ndim(v_1) ∧ v_4.len = ndim(v_1)) else if v_3.len > 1 then (v_3.len = ndim(v_1) -2 ∧ v_4.len = ndim(v_1) -2)
+Rule 46 (If tensor rank is 4 and data format is NHWC, then ksize length should be 2)
+{v_1: tensor, v_2: str, v_3: list(int)} |= if (ndim(v_1) = 4 ∧ v_2 = "NHWC") then v_3.len = 2
 >>
-Rule 48 (If data format starts with NC, the number of spatial dimensions should align with ksize length)
-{v_1: tensor, v_2: str, v_3: list(int)} |= if v_2 = "NCW" ∨ v_2 = "NCHW" ∨ v_2 = "NCDHW" then v_3.len = ndim(v_1) else v_3.len = ndim(v_1) - 2
+Rule 47 (If tensor rank is 4 and data format is NCHW, then ksize length should be 2)
+{v_1: tensor, v_2: str, v_3: list(int)} |= if (ndim(v_1) = 4 ∧ v_2 = "NCHW") then v_3.len = 2
 >>
-Rule 53 (If data format doesn't start with NC, the number of spatial dimensions should align with ksize length or be 1)
-{v_1: tensor, v_2: str, v_3: list(int)} |= if v_2 = "NWC" ∨ v_2 = "NHWC" ∨ v_2 = "NDHWC" then (v_3.len = ndim(v_1) - 2 ∨ v_3.len = 1)
+Rule 48 (If tensor rank is 5 and data format is NDHWC, then ksize length should be 3)
+{v_1: tensor, v_2: str, v_3: list(int)} |= if (ndim(v_1) = 5 ∧ v_2 = "NDHWC") then v_3.len = 3
 >>
-Rule 56 (ksize list length should be greater than zero)
+Rule 49 (If tensor rank is 5 and data format is NCDHW, then ksize length should be 3)
+{v_1: tensor, v_2: str, v_3: list(int)} |= if (ndim(v_1) = 5 ∧ v_2 = "NCDHW") then v_3.len = 3
+>>
+Rule 54 (strides elements must be int)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1]: v_1[i] = (v_1[i] / 1) * 1
+>>
+Rule 55 (ksize can't be an empty list.)
 {v_1: list(int)} |= v_1.len > 0
 >>
-Rule 58 (Ksize and strides list length must be less than or equal to the maximum rank of the tensor if it's a list)
-{v_1: tensor, v_2: list(int)} |= v_2.len ≤ ndim(v_1)
+Rule 56 (if data_format is not NWC, NCW, NHWC, NCHW, NDHWC or NCDHW, and rank is 3, then data format can be channels_first or channels_last)
+{v_1: tensor, v_2: str} |= if (ndim(v_1) = 3) then (v_2 = "channels_first" ∨ v_2 = "channels_last")
 >>
-Rule 59 (The spatial ksize dimensions should be less than or equal to the spatial dimensions of the input tensor)
-{v_1: tensor, v_2: list(int)} |= ∀ i ∈ [0, if v_2.len < ndim(v_1) - 2 then v_2.len - 1 else ndim(v_1) -3] : v_2[i] ≤ shape(v_1, i + 1)
+Rule 57 (if data_format is not NWC, NCW, NHWC, NCHW, NDHWC or NCDHW, and rank is 4, then data format can be channels_first or channels_last)
+{v_1: tensor, v_2: str} |= if (ndim(v_1) = 4) then (v_2 = "channels_first" ∨ v_2 = "channels_last")
 >>
-Rule 66 (If the input is 1D then data format must be NWC or NCW)
-{v_1: tensor, v_2: str} |= if ndim(v_1) = 3 then v_2 = "NWC" ∨ v_2 = "NCW"
+Rule 58 (if data_format is not NWC, NCW, NHWC, NCHW, NDHWC or NCDHW, and rank is 5, then data format can be channels_first or channels_last)
+{v_1: tensor, v_2: str} |= if (ndim(v_1) = 5) then (v_2 = "channels_first" ∨ v_2 = "channels_last")
+>>
+Rule 63 (ksize elements cannot be zero.)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ 0
+>>
+Rule 64 (if rank is 3, and length of list is 3, then the first two ksize values must be equal to one)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 3 ∧ v_2.len = 3 then (v_2[0] = 1 ∧ v_2[1] = 1)
+>>
+Rule 65 (if rank is 4, and length of list is 4, then the first two ksize values must be equal to one)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 4 ∧ v_2.len = 4 then (v_2[0] = 1 ∧ v_2[1] = 1)
+>>
+Rule 66 (if rank is 5, and length of list is 5, then the first two ksize values must be equal to one)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 5 ∧ v_2.len = 5 then (v_2[0] = 1 ∧ v_2[1] = 1)
+>>
+Rule 75 (ksize and strides length consistency with data_format="channels_first" for rank 4)
+{v_1 : tensor, v_2 : list(int), v_3 : list(int), v_4 : str} |= if (ndim(v_1) = 4 ∧ v_4 = "channels_first") then (v_2.len = v_3.len ∧ v_2.len = 2)
+>>
+Rule 76 (ksize and strides length consistency with data_format="channels_last" for rank 4)
+{v_1 : tensor, v_2 : list(int), v_3 : list(int), v_4 : str} |= if (ndim(v_1) = 4 ∧ v_4 = "channels_last") then (v_2.len = v_3.len ∧ v_2.len = 2)
+>>
+Rule 77 (ksize and strides must have same length if rank = 3 and data_format is not channels_first nor channels_last)
+{v_1 : tensor, v_2 : list(int), v_3 : list(int), v_4: str} |= if (ndim(v_1) = 3 ∧ v_4 ≠ "channels_first" ∧ v_4 ≠ "channels_last") then v_2.len = v_3.len
+>>
+Rule 78 (if rank is 5, last ksize element can be less than or equal to a tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 5 ∧ v_2.len = 3 then v_2[2] ≤ shape(v_1, 4)
+>>
+Rule 80 (ksize length must be at least 1.)
+{v_1 : list(int)} |= v_1.len ≥ 1
+>>
+Rule 86 (If tensor rank is 3 and data format is not channels_first or channels_last, then ksize length must be one)
+{v_1: tensor, v_2: list(int), v_3: str} |= if ndim(v_1) = 3 ∧ v_3 ≠ "channels_first" ∧ v_3 ≠ "channels_last" then v_2.len = 1
+>>
+Rule 87 (if the tensor rank is 4, data_format is channels_first, then dimension 2 must be greater than 0)
+{v_1 : tensor, v_2 : str} |= if (ndim(v_1) = 4 ∧ v_2 = "channels_first") then shape(v_1, 2) > 0
+>>
+Rule 88 (If the tensor rank is 4, data_format is channels_last, then dimension 1 must be greater than 0)
+{v_1 : tensor, v_2 : str} |= if (ndim(v_1) = 4 ∧ v_2 = "channels_last") then shape(v_1, 1) > 0
+>>
+Rule 89 (If ksize length is greater than 1, data format cannot be none)
+{v_1: list(int), v_2: str} |= if v_1.len > 1 then v_2 ≠ "none"
+>>
+Rule 90 (Strides list cannot contain zero values)
+{v_1: list(int)} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 91 (Ksize length cannot be zero.)
+{v_1: list(int)} |= v_1.len ≠ 0
+>>
+Rule 96 (Ksize cannot have negative elements.)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+>>
+Rule 98 (Data format must be from allowed list.)
+{v_1 : str} |= v_1 = "NWC" ∨ v_1 = "NCW" ∨ v_1 = "NHWC" ∨ v_1 = "NCHW" ∨ v_1 = "NDHWC" ∨ v_1 = "NCDHW" ∨ v_1 = "channels_first" ∨ v_1 = "channels_last"
+>>
+Rule 99 (Padding must be from allowed list)
+{v_1: str} |= v_1 = "SAME" ∨ v_1 = "VALID"
+>>
+Rule 100 (Tensor must be rank 3, 4 or 5)
+{v_1: tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4 ∨ ndim(v_1) = 5
+>>
+Rule 103 (Ksize and Strides List Lengths must be equal)
+{v_1: list(int), v_2: list(int)} |= v_1.len = v_2.len
+>>
+Rule 110 (Check if the number is positive)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 112 (If rank is 3 and data_format is NWC or NCW, then dimension 0 must be greater than 0, dimension 1 must be greater than 0, and dimension 2 must be greater than 0.)
+{v_1 : tensor, v_2 : str} |= if ndim(v_1) = 3 ∧ (v_2 = "NWC" ∨ v_2 = "NCW") then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+>>
+Rule 113 (Ksize should have a length greater than 0 and less than 6.)
+{v_1: list(int)} |= v_1.len > 0 ∧ v_1.len < 6
+>>
+Rule 121 (strides length must be less than 6.)
+{v_1: list(int)} |= v_1.len < 6
+>>
+Rule 123 (If strides length is greater than 0, there has to exist an element which is less than 1000)
+{v_1: list(int)} |= if v_1.len > 0 then ∃i ∈ [0, v_1.len - 1] : v_1[i] < 1000
+>>
+Rule 125 (All the elements in ksize must be a number less than 32768.)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 32768
+>>
+Rule 132 (Padding should not contain chars.)
+{v_1: str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] = "V" ∨ v_1[i] = "A" ∨ v_1[i] = "L" ∨ v_1[i] = "I" ∨ v_1[i] = "D" ∨ v_1[i] = "S" ∨ v_1[i] = "M" ∨ v_1[i] = "E"
+>>
+Rule 133 (Ksize length should be equal to tensor's last dimension)
+{v_1: tensor, v_2: list(int)} |= if (ndim(v_1) > 0) then v_2.len = shape(v_1, ndim(v_1)-1)
+>>
+Rule 134 (All the strides can not be bigger than the tensor shape)
+{v_1: tensor, v_2: list(int)} |= if ndim(v_1) = v_2.len then ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) ≥ v_2[i]
+>>
+Rule 139 (If data format is valid, then padding length must be 1)
+{v_1 : str, v_2 : str} |= if (v_2 = "NWC" ∨ v_2 = "NCW" ∨ v_2 = "NHWC" ∨ v_2 = "NCHW" ∨ v_2 = "NDHWC" ∨ v_2 = "NCDHW" ∨ v_2 = "channels_first" ∨ v_2 = "channels_last") then v_1.len = 1
+>>
+Rule 140 (data format should be a string)
+{v_1 : str} |= v_1 = v_1
+>>
+Rule 141 (If padding is VALID then tensor rank must be 3 or 4 or 5)
+{v_1 : str, v_2 : tensor} |= if v_1 = "VALID" then ndim(v_2) = 3 ∨ ndim(v_2) = 4 ∨ ndim(v_2) = 5
+>>
+Rule 142 (If padding is SAME then tensor rank must be 3 or 4 or 5)
+{v_1 : str, v_2 : tensor} |= if v_1 = "SAME" then ndim(v_2) = 3 ∨ ndim(v_2) = 4 ∨ ndim(v_2) = 5
+>>
+Rule 143 (Ksize should have non negative values)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+>>
+Rule 150 (input should be a tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 151 (ksize should be list of int)
+{v_1 : list(int)} |= v_1.len ≥ 0
+>>
+Rule 155 (If Data format is NWC,NCW then ksize should have at least one positive value)
+{v_1: str, v_2: list(int)} |= if (v_1 = "NWC" ∨ v_1 = "NCW") then ∃i ∈ [0, v_2.len - 1] : v_2[i] > 0
+>>
+Rule 156 (If Data format is NHWC, NCHW then ksize should have at least one positive value)
+{v_1: str, v_2: list(int)} |= if (v_1 = "NHWC" ∨ v_1 = "NCHW") then ∃i ∈ [0, v_2.len - 1] : v_2[i] > 0
+>>
+Rule 157 (If Data format is NDHWC, NCDHW then ksize should have at least one positive value)
+{v_1: str, v_2: list(int)} |= if (v_1 = "NDHWC" ∨ v_1 = "NCDHW") then ∃i ∈ [0, v_2.len - 1] : v_2[i] > 0
+>>
+Rule 162 (If Data format is channels_first, channels_last, dimension 0 of the tensor should be more than 0)
+{v_1 : tensor, v_2 : str} |= if (v_2 = "channels_first" ∨ v_2 = "channels_last") then shape(v_1, 0) > 0
+>>
+Rule 163 (Padding String must be different than causal.)
+{v_1 : str} |= v_1 ≠ "causal"
+>>
+Rule 164 (name must be different than SAME and VALID)
+{v_1 : str} |= v_1 ≠ "SAME" ∧ v_1 ≠ "VALID"
+>>
+Rule 165 (if ksize length is 1 and rank is 3, then data format can be any of NWC, NCW channels_first channels_last.)
+{v_1 : list(int), v_2 : tensor, v_3 : str} |= if (v_1.len = 1 ∧ ndim(v_2) = 3) then (v_3 = "NWC" ∨ v_3 = "NCW" ∨ v_3 = "channels_first" ∨ v_3 = "channels_last")
+>>
+Rule 172 ( if the shape of the first dim is 0 then the rule validates to true )
+{v_1 : tensor} |= if (shape(v_1, 0) = 0) then true else false
+>>
+Rule 174 ( Strides should be of type list int. )
+{v_1 : tensor, v_2 : list(int)} |= ndim(v_1) > 0 ∧ v_2.len > 0
+>>
+Rule 175 ( The values of Ksize should be less than 65535 )
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 65535

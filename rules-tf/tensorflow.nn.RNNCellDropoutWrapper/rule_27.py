@@ -5,37 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# `input_keep_prob` and `output_keep_prob` should satisfy relationship, when at least one of them is not None (Rule 27)
+# The dtype if provided by index, should not be 4, which is the torch type (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 1, v["arg2_value"] == 1, If(v["arg2_value"] == 1, v["arg1_value"] == 1, False))) if n else
-          If(v["arg1_value"] == 1, v["arg2_value"] == 1, If(v["arg2_value"] == 1, v["arg1_value"] == 1, False)))
+    s.add(Not(If(v["arg1_value"] < 11, v["arg1_value"] != 4, True)) if n else
+          If(v["arg1_value"] < 11, v["arg1_value"] != 4, True))
 )
 
-def rule_27_func(arg1, arg2, solver=None, neg=False):
+def rule_27_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
-            return False
-        if not isinstance(arg2, (float, np.floating)):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
-        arg2_value = Real('arg2_value')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
 
         # Constraints for rule 27
-        rule_27(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_27(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_27(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_27(solver, {'arg1_value': arg1['value']}, neg)

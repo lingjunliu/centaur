@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the maximum value in labels is greater than or equal to num_classes, it will result in wrong indices. (Rule 23)
+# If num_classes is not None, num_classes should be smaller than the maximum value of the labels tensor (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] != null, Select(v["arg1_range"], 1) < v["arg2_value"], False)) if n else
-          If(v["arg2_value"] != null, Select(v["arg1_range"], 1) < v["arg2_value"], False))
+    s.add(Not(If(v["arg2_value"] != null, v["arg2_value"] <= Select(v["arg1_range"], 1) + 1, True)) if n else
+          If(v["arg2_value"] != null, v["arg2_value"] <= Select(v["arg1_range"], 1) + 1, True))
 )
 
 def rule_23_func(arg1, arg2, solver=None, neg=False):

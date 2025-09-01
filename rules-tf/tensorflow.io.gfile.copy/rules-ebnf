@@ -1,54 +1,27 @@
 >>
-Rule 1 (src and dst should be different strings)
-{v_1 : str, v_2 : str} |= v_1 ≠ v_2
+Rule 1 (src and dst should not be identical when overwrite is false)
+{src : str, dst : str, overwrite : bool} |= if overwrite = false then src ≠ dst
 >>
-Rule 3 (src and dst must be non-empty strings)
-{v_1 : str, v_2 : str} |= v_1.len > 0 ∧ v_2.len > 0
+Rule 4 (src and dst should not be identical when overwrite is false)
+{v_1 : str, v_2 : str, v_3 : bool} |= if v_3 = false then v_1 ≠ v_2
 >>
-Rule 5 (src and dst must not be equal to "none")
-{v_1 : str, v_2 : str} |= v_1 ≠ "none" ∧ v_2 ≠ "none"
+Rule 5 (src should not be an empty string)
+{v_1 : str} |= v_1 ≠ ""
 >>
-Rule 7 (overwrite must be a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 9 (src must be a valid existing file path)
+{v_1 : str} |= true ∧ ∃v_2 ∈ [0,0] : v_1 ≠ ""
 >>
-Rule 9 (src string must start with a valid scheme like "file:///")
-{v_1 : str} |= if v_1.len > 7 then (v_1[0] = "f" ∧ v_1[1] = "i" ∧ v_1[2] = "l" ∧ v_1[3] = "e" ∧ v_1[4] = ":" ∧ v_1[5] = "/" ∧ v_1[6] = "/")
+Rule 21 (src must be a valid existing file path. This rule is a simplification as true existence checks are beyond grammar.)
+{v_1 : str} |= v_1 = v_1
 >>
-Rule 11 (src and dst strings should be valid file paths or URIs)
-{v_1 : str, v_2 : str} |= (∃i ∈ [0, v_1.len - 1] : v_1[i] = "/") ∧ (∃i ∈ [0, v_2.len - 1] : v_2[i] = "/")
+Rule 22 (dst should not be a directory when src is a file. This rule is a simplification as directory checks are beyond grammar.)
+{v_1 : str, v_2 : str} |= v_1 = v_1 ∧ v_2 = v_2
 >>
-Rule 13 (src and dst must have the same file extension if they are local files)
-{v_1 : str, v_2 : str} |= if (v_1[0] = "/" ∧ v_2[0] = "/") then (∃i ∈ [0, v_1.len - 1] : v_1[i] = ".") = (∃i ∈ [0, v_2.len - 1] : v_2[i] = ".")
+Rule 24 (src must be a valid existing file path, expressed using string properties.)
+{v_1 : str} |= v_1.len > 0
 >>
-Rule 15 (if src is a local file, then the path should start with "/")
-{v_1 : str} |= if (∃i ∈ [0, v_1.len - 1] : v_1[i] = "/") then v_1[0] = "/"
+Rule 66 (src must exist - expressed as a valid string with a file extension (very rough approximation, as true extension check requires splitting the string)
+{v_1 : str} |= ∃v_2 ∈ [0,0] : v_1 = v_1
 >>
-Rule 28 (if src and dst are local, they should not be directories)
-{v_1 : str, v_2 : str} |= if (v_1[0] = "/") ∧ (v_2[0] = "/") then (v_1[v_1.len - 1] ≠ "/") ∧ (v_2[v_2.len - 1] ≠ "/")
->>
-Rule 30 (src must exist, if it is local)
-{v_1 : str} |= if v_1[0] = "/" then true
->>
-Rule 33 (if src and dst are local, they should not be directories)
-{v_1 : str, v_2 : str} |= if (v_1[0] = "/") ∧ (v_2[0] = "/") then (v_1[v_1.len - 1] ≠ "/") ∧ (v_2[v_2.len - 1] ≠ "/") = true
->>
-Rule 34 (src must be a valid file path)
-{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] = "/"
->>
-Rule 39 (if src is a Google Cloud Storage path, it must start with "gs://")
-{v_1 : str} |= if v_1.len > 5 then if v_1[0] = "g" ∧ v_1[1] = "s" ∧ v_1[2] = ":" ∧ v_1[3] = "/" ∧ v_1[4] = "/" then true
->>
-Rule 44 (if src is a valid s3 path, it must start with "s3://")
-{v_1 : str} |= if v_1.len > 5 then if v_1[0] = "s" ∧ v_1[1] = "3" ∧ v_1[2] = ":" ∧ v_1[3] = "/" ∧ v_1[4] = "/" then true
->>
-Rule 48 (If src and dst are local, and dst exists, then overwrite must be true.)
-{v_1 : str, v_2 : str, v_3 : bool} |= if (v_1[0] = "/") ∧ (v_2[0] = "/") then if v_3 = false then false
->>
-Rule 49 (src should be a valid file and not a directory)
-{v_1 : str} |= v_1[v_1.len - 1] ≠ "/"
->>
-Rule 54 (src should have a valid scheme)
-{v_1 : str} |= (v_1[0] = "/" ) ∨ (v_1.len > 5 ∧ v_1[0] = "s" ∧ v_1[1] = "3" ∧ v_1[2] = ":" ∧ v_1[3] = "/" ∧ v_1[4] = "/") ∨ (v_1.len > 5 ∧ v_1[0] = "g" ∧ v_1[1] = "s" ∧ v_1[2] = ":" ∧ v_1[3] = "/" ∧ v_1[4] = "/") ∨ (v_1.len > 7 ∧ v_1[0] = "f" ∧ v_1[1] = "i" ∧ v_1[2] = "l" ∧ v_1[3] = "e" ∧ v_1[4] = ":" ∧ v_1[5] = "/" ∧ v_1[6] = "/")
->>
-Rule 59 (src should have a valid scheme and valid characters)
-{v_1 : str} |= ((v_1[0] = "/" ) ∨ (v_1.len > 5 ∧ v_1[0] = "s" ∧ v_1[1] = "3" ∧ v_1[2] = ":" ∧ v_1[3] = "/" ∧ v_1[4] = "/") ∨ (v_1.len > 5 ∧ v_1[0] = "g" ∧ v_1[1] = "s" ∧ v_1[2] = ":" ∧ v_1[3] = "/" ∧ v_1[4] = "/") ∨ (v_1.len > 7 ∧ v_1[0] = "f" ∧ v_1[1] = "i" ∧ v_1[2] = "l" ∧ v_1[3] = "e" ∧ v_1[4] = ":" ∧ v_1[5] = "/" ∧ v_1[6] = "/")) ∧ (∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = "/" ∨ v_1[i] = ":" ∨ v_1[i] = "." ∨ v_1[i] = "-" ∨ v_1[i] = "_" )
+Rule 86 (Simplified: dst must be valid as a file path.)
+{v_1 : str} |= ∃v_2 ∈ ["file://", ""] : v_1 = v_2

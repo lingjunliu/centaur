@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if indices_or_sections is an integer, the array must be evenly divisible by it along axis 1 (Rule 3)
+# indices_or_sections must be less than the size of the array along axis 1 if it's not equally divisible (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 1) % v["arg2_value"] == 0) if n else
-          Select(v["arg1_shape"], 1) % v["arg2_value"] == 0)
+    s.add(Not(Or((Select(v["arg1_shape"], 1) % v["arg2_value"] == 0), (v["arg2_value"] < Select(v["arg1_shape"], 1)))) if n else
+          Or((Select(v["arg1_shape"], 1) % v["arg2_value"] == 0), (v["arg2_value"] < Select(v["arg1_shape"], 1))))
 )
 
 def rule_3_func(arg1, arg2, solver=None, neg=False):

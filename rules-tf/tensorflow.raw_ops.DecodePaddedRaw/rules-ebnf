@@ -1,105 +1,138 @@
 >>
-Rule 1 (fixed_length must be greater than zero)
-{v_1 : int} |= v_1 > 0
+Rule 2 (fixed_length must be positive)
+{v_2 : tensor} |= shape(v_2, 0) > 0
 >>
-Rule 2 (input_bytes must not be empty)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 3 (input_bytes must be a tensor of strings)
+{v_1 : tensor} |= ndim(v_1) >= 0
 >>
-Rule 3 (out_type must be a valid data type)
-{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 3 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 2 ∨ v_1 = 1 ∨ v_1 = 4 ∨ v_1 = 12
+Rule 4 (out_type must be a valid dtype)
+{v_3 : dtype} |= v_3 = 6 ∨ v_3 = 7 ∨ v_3 = 8 ∨ v_3 = 3 ∨ v_3 = 5 ∨ v_3 = 6 ∨ v_3 = 2 ∨ v_3 = 1 ∨ v_3 = 4 ∨ v_3 = 9
 >>
-Rule 4 (fixed_length must be a multiple of out_type size)
-{v_1 : int, v_2 : dtype} |= if v_2 = 0 then v_1 % 1 = 0 else if v_2 = 1 then v_1 % 1 = 0 else if v_2 = 2 then v_1 % 2 = 0 else if v_2 = 3 then v_1 % 4 = 0 else if v_2 = 4 then v_1 % 8 = 0 else if v_2 = 5 then v_1 % 1 = 0 else if v_2 = 6 then v_1 % 2 = 0 else if v_2 = 7 then v_1 % 4 = 0 else if v_2 = 8 then v_1 % 8 = 0 else if v_2 = 9 then v_1 % 8 = 0 else if v_2 = 10 then v_1 % 16 = 0
+Rule 5 (fixed_length must be a scalar int32 tensor)
+{v_2 : tensor} |= ndim(v_2) = 0
 >>
-Rule 5 (little_endian must be a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 6 (input_bytes must be a string tensor with at least one dimension)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 6 (shape of input bytes must be 1)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 7 (fixed_length must be a multiple of the size of out_type)
+{v_2 : tensor, v_3 : dtype} |= shape(v_2, 0) % v_3 = 0
 >>
-Rule 7 (fixed_length should not exceed max int size)
-{v_1 : int} |= v_1 < 2147483647
+Rule 10 (out_type must be a valid dtype)
+{v_3 : dtype} |= v_3 = 6 ∨ v_3 = 7 ∨ v_3 = 8 ∨ v_3 = 3 ∨ v_3 = 5 ∨ v_3 = 2 ∨ v_3 = 1 ∨ v_3 = 4 ∨ v_3 = 9
 >>
-Rule 11 (out_type must be a valid data type)
-{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 3 ∨ v_1 = 5 ∨ v_1 = 2 ∨ v_1 = 1 ∨ v_1 = 4 ∨ v_1 = 12
+Rule 13 (little_endian must be a boolean)
+{v_4 : bool} |= v_4 = true ∨ v_4 = false
 >>
-Rule 12 (fixed_length must be a multiple of out_type size)
-{v_1 : int, v_2 : dtype} |= if v_2 = 6 then v_1 % 2 = 0 else if v_2 = 7 then v_1 % 4 = 0 else if v_2 = 8 then v_1 % 8 = 0 else if v_2 = 3 then v_1 % 4 = 0 else if v_2 = 5 then v_1 % 1 = 0 else if v_2 = 2 then v_1 % 2 = 0 else if v_2 = 1 then v_1 % 1 = 0 else if v_2 = 4 then v_1 % 8 = 0 else if v_2 = 12 then true
+Rule 14 (fixed_length must be a multiple of the size of out_type, considering byte size)
+{v_2 : tensor, v_3 : dtype} |= shape(v_2, 0) % (if v_3 = 6 then 2 else if v_3 = 7 then 4 else if v_3 = 8 then 8 else if v_3 = 3 then 4 else if v_3 = 5 then 2 else if v_3 = 2 then 1 else if v_3 = 1 then 1 else if v_3 = 4 then 8 else 4) = 0
 >>
-Rule 16 (If out_type is a float type, then fixed_length must be a multiple of the float type size)
-{v_1 : int, v_2 : dtype} |= if v_2 = 7 ∨ v_2 = 8 then v_1 % 4 = 0 ∨ v_1 % 8 = 0
+Rule 15 (When little_endian is false, the out_type should not be a single byte type)
+{v_3 : dtype, v_4 : bool} |= if v_4 = false then v_3 ≠ 2 ∧ v_3 ≠ 1
 >>
-Rule 17 (The size of the out_type must be less than or equal to fixed_length)
-{v_1 : int, v_2 : dtype} |= if v_2 = 6 then v_1 ≥ 2 else if v_2 = 7 then v_1 ≥ 4 else if v_2 = 8 then v_1 ≥ 8 else if v_2 = 3 then v_1 ≥ 4 else if v_2 = 5 then v_1 ≥ 1 else if v_2 = 2 then v_1 ≥ 2 else if v_2 = 1 then v_1 ≥ 1 else if v_2 = 4 then v_1 ≥ 8 else if v_2 = 12 then true
+Rule 21 (fixed_length must be a multiple of the out_type's size, which depends on the dtype)
+{v_2 : tensor, v_3 : dtype} |= ∃size ∈ [0, 8] : (if v_3 = 6 then size = 2 else if v_3 = 7 then size = 4 else if v_3 = 8 then size = 8 else if v_3 = 3 then size = 4 else if v_3 = 5 then size = 2 else if v_3 = 2 then size = 1 else if v_3 = 1 then size = 1 else if v_3 = 4 then size = 8 else size = 4) ∧ shape(v_2, 0) % size = 0
 >>
-Rule 19 (out_type can only be specific types)
-{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 3 ∨ v_1 = 5 ∨ v_1 = 2 ∨ v_1 = 1 ∨ v_1 = 4
+Rule 22 (If little_endian is false and out_type is single-byte, the operation is invalid)
+{v_3 : dtype, v_4 : bool} |= if v_4 = false then v_3 ≠ 1 ∧ v_3 ≠ 2
 >>
-Rule 20 (If fixed_length is one, then out_type must be uint8, int8 or bool)
-{v_1 : int, v_2 : dtype} |= if v_1 = 1 then v_2 = 5 ∨ v_2 = 1 ∨ v_2 = 0
+Rule 24 (out_type must be a valid dtype (subset))
+{v_3 : dtype} |= v_3 = 6 ∨ v_3 = 7 ∨ v_3 = 8 ∨ v_3 = 3 ∨ v_3 = 5 ∨ v_3 = 2 ∨ v_3 = 1 ∨ v_3 = 4
 >>
-Rule 22 (The dtype of input_bytes should be string)
+Rule 25 (fixed_length must be non-negative)
+{v_2 : tensor} |= shape(v_2, 0) >= 0
+>>
+Rule 28 (fixed_length's dtype must be int32)
+{v_2 : tensor} |= dtype_(v_2) = 3
+>>
+Rule 30 (fixed_length must be non-negative)
+{v_2 : tensor} |= min(v_2) >= 0
+>>
+Rule 31 (fixed_length must be a multiple of the out_type's size)
+{v_2 : tensor, v_3 : dtype} |= (if v_3 = 6 then 2 else if v_3 = 7 then 4 else if v_3 = 8 then 8 else if v_3 = 3 then 4 else if v_3 = 5 then 2 else if v_3 = 2 then 1 else if v_3 = 1 then 1 else if v_3 = 4 then 8 else 4) % shape(v_2, 0) = 0
+>>
+Rule 35 (fixed_length must be non-negative)
+{v_2 : tensor} |= min(v_2) ≥ 0
+>>
+Rule 54 (input_bytes' dtype must be string)
 {v_1 : tensor} |= dtype_(v_1) = 11
 >>
-Rule 23 (The size of the out_type must be less than or equal to fixed_length)
-{v_1 : int, v_2 : dtype} |= if v_2 = 6 then v_1 ≥ 2 else if v_2 = 7 then v_1 ≥ 4 else if v_2 = 8 then v_1 ≥ 8 else if v_2 = 3 then v_1 ≥ 4 else if v_2 = 5 then v_1 ≥ 1 else if v_2 = 2 then v_1 ≥ 2 else if v_2 = 1 then v_1 ≥ 1 else if v_2 = 4 then v_1 ≥ 8
+Rule 61 (fixed_length must be a multiple of a valid size depending on out_type)
+{v_2 : tensor, v_3 : dtype} |= (v_3 = 6 ∧ shape(v_2, 0) % 2 = 0) ∨ (v_3 = 7 ∧ shape(v_2, 0) % 4 = 0) ∨ (v_3 = 8 ∧ shape(v_2, 0) % 8 = 0) ∨ (v_3 = 3 ∧ shape(v_2, 0) % 4 = 0) ∨ (v_3 = 5 ∧ shape(v_2, 0) % 2 = 0) ∨ (v_3 = 2 ∧ shape(v_2, 0) % 1 = 0) ∨ (v_3 = 1 ∧ shape(v_2, 0) % 1 = 0) ∨ (v_3 = 4 ∧ shape(v_2, 0) % 8 = 0)
 >>
-Rule 27 (If out_type is complex64 or complex128, then fixed_length must be 8 or 16 respectively.)
-{v_1 : int, v_2 : dtype} |= if v_2 = 9 then v_1 = 8 else if v_2 = 10 then v_1 = 16
+Rule 66 (fixed_length must be a multiple of a valid size depending on out_type, and fixed_length must be non-negative)
+{v_2 : tensor, v_3 : dtype} |= (v_3 = 6 ∧ shape(v_2, 0) % 2 = 0) ∨ (v_3 = 7 ∧ shape(v_2, 0) % 4 = 0) ∨ (v_3 = 8 ∧ shape(v_2, 0) % 8 = 0) ∨ (v_3 = 3 ∧ shape(v_2, 0) % 4 = 0) ∨ (v_3 = 5 ∧ shape(v_2, 0) % 2 = 0) ∨ (v_3 = 2 ∧ shape(v_2, 0) % 1 = 0) ∨ (v_3 = 1 ∧ shape(v_2, 0) % 1 = 0) ∨ (v_3 = 4 ∧ shape(v_2, 0) % 8 = 0) ∧ (min(v_2) ≥ 0)
 >>
-Rule 35 (The size of the out_type must divide fixed_length with no remainder)
-{v_1 : int, v_2 : dtype} |= if v_2 = 6 then v_1 % 2 = 0 else if v_2 = 7 then v_1 % 4 = 0 else if v_2 = 8 then v_1 % 8 = 0 else if v_2 = 3 then v_1 % 4 = 0 else if v_2 = 5 then v_1 % 1 = 0 else if v_2 = 2 then v_1 % 2 = 0 else if v_2 = 1 then v_1 % 1 = 0 else if v_2 = 4 then v_1 % 8 = 0
+Rule 70 (The number of elements in fixed_length tensor must be 1)
+{v_2 : tensor} |= shape(v_2, 0) = 1
 >>
-Rule 37 (If out_type is bfloat16 fixed_length must be greater or equal to 2)
-{v_1 : int, v_2 : dtype} |= if v_2 = 12 then v_1 ≥ 2
+Rule 76 (fixed_length must be a multiple of a valid size depending on out_type, and fixed_length must be non-negative)
+{v_2 : tensor, v_3 : dtype} |= (v_3 = 6 ∧ (min(v_2) ≥ 0) ∧ (shape(v_2, 0) % 2 = 0)) ∨ (v_3 = 7 ∧ (min(v_2) ≥ 0) ∧ (shape(v_2, 0) % 4 = 0)) ∨ (v_3 = 8 ∧ (min(v_2) ≥ 0) ∧ (shape(v_2, 0) % 8 = 0)) ∨ (v_3 = 3 ∧ (min(v_2) ≥ 0) ∧ (shape(v_2, 0) % 4 = 0)) ∨ (v_3 = 5 ∧ (min(v_2) ≥ 0) ∧ (shape(v_2, 0) % 2 = 0)) ∨ (v_3 = 2 ∧ (min(v_2) ≥ 0) ∧ (shape(v_2, 0) % 1 = 0)) ∨ (v_3 = 1 ∧ (min(v_2) ≥ 0) ∧ (shape(v_2, 0) % 1 = 0)) ∨ (v_3 = 4 ∧ (min(v_2) ≥ 0) ∧ (shape(v_2, 0) % 8 = 0))
 >>
-Rule 38 (If out_type is int8 or uint8, fixed_length must be 1)
-{v_1 : int, v_2 : dtype} |= if v_2 = 1 ∨ v_2 = 5 then v_1 = 1
+Rule 90 (The input_bytes must be a non-empty tensor of strings)
+{v_1 : tensor} |= dtype_(v_1) = 11 ∧ ndim(v_1) > 0
 >>
-Rule 39 (fixed_length must be less than or equal to the size of string tensor.)
-{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1,0)
+Rule 91 (fixed_length must be positive)
+{v_2 : tensor} |= min(v_2) > 0
 >>
-Rule 41 (If the out_type is a single byte, little_endian is not relevant)
-{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 5 ∨ v_1 = 0
+Rule 93 (fixed_length values must be less than or equal to 2^31 - 1)
+{v_2 : tensor} |= max(v_2) ≤ 2147483647
 >>
-Rule 46 (The size of the out_type must divide fixed_length with no remainder, or fixed_length equals zero)
-{v_1 : int, v_2 : dtype} |= (v_1 = 0) ∨ (if v_2 = 6 then v_1 % 2 = 0 else if v_2 = 7 then v_1 % 4 = 0 else if v_2 = 8 then v_1 % 8 = 0 else if v_2 = 3 then v_1 % 4 = 0 else if v_2 = 5 then v_1 % 1 = 0 else if v_2 = 2 then v_1 % 2 = 0 else if v_2 = 1 then v_1 % 1 = 0 else if v_2 = 4 then v_1 % 8 = 0 else if v_2 = 12 then v_1 % 2 = 0)
+Rule 94 (fixed_length must have the same shape as input_bytes)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1) = shape(v_2)
 >>
-Rule 47 (If the out_type is a single byte, little_endian is not relevant)
-{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 5
+Rule 95 (out_type cannot be complex64 or complex128)
+{v_3 : dtype} |= v_3 ≠ 9 ∧ v_3 ≠ 10
 >>
-Rule 50 (fixed_length must be less than or equal to the size of string tensor or zero)
-{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1,0) ∨ v_2=0
+Rule 97 (If little_endian is false, and if out_type is uint8 or int8 fixed_length must be 1)
+{v_2 : tensor, v_3 : dtype, v_4 : bool} |= if v_4 = false ∧ (v_3 = 1 ∨ v_3 = 2) then shape(v_2, 0) = 1
 >>
-Rule 55 (If fixed_length is zero, then the decoded output is an empty tensor)
-{v_1 : int} |= if v_1 = 0 then true
+Rule 99 (If fixed_length's shape doesn't equal to the shape of input_bytes, then fixed_length must be a scalar with value 1)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1) ≠ shape(v_2) then shape(v_2, 0) = 1
 >>
-Rule 61 (fixed_length must be non-negative)
-{v_1 : int} |= v_1 ≥ 0
+Rule 102 (If fixed_length's shape doesn't equal to the shape of input_bytes, then fixed_length must be a scalar.)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1) ≠ shape(v_2) then ndim(v_2) = 0
 >>
-Rule 65 (If out_type is int8 or uint8 or bool, fixed_length must be 1)
-{v_1 : int, v_2 : dtype} |= if v_2 = 1 ∨ v_2 = 5 ∨ v_2 = 0 then v_1 = 1
+Rule 103 (fixed_length tensor's values have to be smaller than the maximum int32)
+{v_2 : tensor} |= max(v_2) < 2147483648
 >>
-Rule 71 (If fixed_length is zero, then out_type can be any valid dtype)
-{v_1 : int, v_2 : dtype} |= if v_1 = 0 then v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 3 ∨ v_2 = 5 ∨ v_2 = 2 ∨ v_2 = 1 ∨ v_2 = 4 ∨ v_2 = 12
+Rule 104 (When the little_endian is true the out_type can not be bfloat16)
+{v_3 : dtype, v_4 : bool} |= if v_4 = true then v_3 ≠ 10
 >>
-Rule 74 (fixed_length must be less than or equal to the size of string tensor or zero)
-{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1,0) ∨ v_2 = 0
+Rule 105 (The input_bytes should not be empty)
+{v_1 : tensor} |= shape(v_1,0) > 0
 >>
-Rule 80 (If the out_type is bool, int8, or uint8, fixed_length must be 1)
-{v_1 : dtype, v_2 : int} |= if v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 5 then v_2 = 1
+Rule 108 (fixed_length tensor's values have to be smaller than the maximum int32)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2,0)-1] : v_2[i] < 2147483648
 >>
-Rule 91 (If the input tensor is empty, then fixed_length should be zero)
-{v_1 : tensor, v_2 : int} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then v_2 = 0
+Rule 111 (If little_endian is false, and if out_type is uint8 or int8 fixed_length must be 1 and fixed_length must have a minimum value greater than 0 )
+{v_2 : tensor, v_3 : dtype, v_4 : bool} |= if v_4 = false ∧ (v_3 = 1 ∨ v_3 = 2) then shape(v_2, 0) = 1 ∧ min(v_2) > 0
 >>
-Rule 105 (input_bytes must be a 1D tensor of strings)
-{v_1: tensor} |= ndim(v_1) = 1 ∧ dtype_(v_1) = 11
+Rule 115 (When the little_endian is false fixed_length has to be greater than 0.)
+{v_2 : tensor, v_4: bool} |= if v_4 = false then min(v_2) > 0
 >>
-Rule 111 (The size of fixed_length should be a multiple of 2 if the out_type is float16)
-{v_1 : int, v_2 : dtype} |= if v_2 = 6 then v_1 % 2 = 0
+Rule 119 (fixed_length tensor's values have to be smaller than the maximum int32 and greater than 0)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2,0)-1] : v_2[i] < 2147483648 ∧ v_2[i] > 0
 >>
-Rule 112 (fixed_length must be non-negative, and if fixed_length is not zero, then the size of the out_type must divide fixed_length with no remainder)
-{v_1 : int, v_2 : dtype} |= (v_1 = 0) ∨ (if v_2 = 6 then v_1 % 2 = 0 else if v_2 = 7 then v_1 % 4 = 0 else if v_2 = 8 then v_1 % 8 = 0 else if v_2 = 3 then v_1 % 4 = 0 else if v_2 = 5 then v_1 % 1 = 0 else if v_2 = 2 then v_1 % 2 = 0 else if v_2 = 1 then v_1 % 1 = 0 else if v_2 = 4 then v_1 % 8 = 0 else if v_2 = 12 then v_1 % 2 = 0) ∧ v_1 ≥ 0
+Rule 120 (fixed_length has to be a valid shape.)
+{v_2 : tensor} |= shape(v_2,0) > 0
 >>
-Rule 116 (The size of the out_type must divide fixed_length with no remainder, or fixed_length equals zero, taking into account bfloat16 needing at least length 2)
-{v_1 : int, v_2 : dtype} |= (v_1 = 0) ∨ (if v_2 = 6 then v_1 % 2 = 0 else if v_2 = 7 then v_1 % 4 = 0 else if v_2 = 8 then v_1 % 8 = 0 else if v_2 = 3 then v_1 % 4 = 0 else if v_2 = 5 then v_1 % 1 = 0 else if v_2 = 2 then v_1 % 2 = 0 else if v_2 = 1 then v_1 % 1 = 0 else if v_2 = 4 then v_1 % 8 = 0 else if v_2 = 12 then (v_1 % 2 = 0 ∧ v_1 ≥ 2))
+Rule 123 (If fixed_length's shape doesn't equal to the shape of input_bytes, then fixed_length must be a scalar and non-zero.)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1) ≠ shape(v_2) then ndim(v_2) = 0 ∧ min(v_2) > 0
+>>
+Rule 126 (The output dtype must be valid)
+{v_3:dtype} |= v_3 = 6 ∨ v_3 = 7 ∨ v_3 = 8 ∨ v_3 = 3 ∨ v_3 = 5 ∨ v_3 = 2 ∨ v_3 = 1 ∨ v_3 = 4
+>>
+Rule 132 (When the little_endian is false and the out_type is integer then the values of the fixed length must be between 0 and the max int32)
+{v_2 : tensor, v_3 : dtype, v_4 : bool} |= if v_4 = false ∧ (v_3 = 3 ∨ v_3 = 4 ∨ v_3 = 5) then (∀i ∈ [0, shape(v_2,0)-1] : v_2[i] < 2147483648 ∧ v_2[i] > 0)
+>>
+Rule 135 (When little endian is not specified fixed_length is between 1 and max int32)
+{v_2 : tensor} |= min(v_2) > 0 ∧ max(v_2) < 2147483648
+>>
+Rule 137 (If fixed_length's shape doesn't equal to the shape of input_bytes, then fixed_length must be a scalar and non-negative.)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1) ≠ shape(v_2) then ndim(v_2) = 0 ∧ min(v_2) ≥ 0
+>>
+Rule 144 (The size of fixed length must be less or equal to 4 bytes)
+{v_2: tensor} |= max(v_2) < 4
+>>
+Rule 145 (The shape of out_type must be between 1 and 10)
+{v_3 : dtype} |= v_3 > 0 ∧ v_3 < 11

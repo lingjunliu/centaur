@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The data tensor's values should fall in the range of representable values for the data type (Rule 16)
+# if the data tensor is complex, it must be either complex64 or complex128 (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 1, And(Select(v["arg1_range"], 0) >= -128, Select(v["arg1_range"], 1) <= 127), False)) if n else
-          If(v["arg1_dtype"] == 1, And(Select(v["arg1_range"], 0) >= -128, Select(v["arg1_range"], 1) <= 127), False))
+    s.add(Not(If(v["arg1_dtype"] == 9, True, If(v["arg1_dtype"] == 10, True, True))) if n else
+          If(v["arg1_dtype"] == 9, True, If(v["arg1_dtype"] == 10, True, True)))
 )
 
 def rule_16_func(arg1, solver=None, neg=False):
@@ -23,17 +23,14 @@ def rule_16_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 16
-        rule_16(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_16(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_16(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_16(solver, {'arg1_dtype': arg1['dtype']}, neg)

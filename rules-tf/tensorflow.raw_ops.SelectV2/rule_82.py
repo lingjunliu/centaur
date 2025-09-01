@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if condition and t/e are scalar, then output is also scalar (Rule 82)
+# If the tensors have 4 or fewer dimensions then the condition must have an equal or fewer number of dimensions  (Rule 82)
 
 rule_82 = lambda s, v, n=False: (
-    s.add(Not(If(And(And((v["arg1_ndim"] == 0), (v["arg2_ndim"] == 0)), (v["arg3_ndim"] == 0)), v["arg1_ndim"] == 0, False)) if n else
-          If(And(And((v["arg1_ndim"] == 0), (v["arg2_ndim"] == 0)), (v["arg3_ndim"] == 0)), v["arg1_ndim"] == 0, False))
+    s.add(Not(If(And(v["arg2_ndim"] <= 4, v["arg3_ndim"] <= 4), v["arg1_ndim"] <= v["arg2_ndim"], True)) if n else
+          If(And(v["arg2_ndim"] <= 4, v["arg3_ndim"] <= 4), v["arg1_ndim"] <= v["arg2_ndim"], True))
 )
 
 def rule_82_func(arg1, arg2, arg3, solver=None, neg=False):

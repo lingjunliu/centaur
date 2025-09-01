@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the image only has one channel, then the min and max must be equal (Rule 68)
+# image range check using some tensor arithmetic to avoid direct min/max function (Rule 68)
 
 rule_68 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_shape"], 2) == 1, Select(v["arg1_range"], 0) == Select(v["arg1_range"], 1), False)) if n else
-          If(Select(v["arg1_shape"], 2) == 1, Select(v["arg1_range"], 0) == Select(v["arg1_range"], 1), False))
+    s.add(Not(And(0 <= Select(v["arg1_shape"], 0), (1000 * 1000 + 1) * Select(v["arg1_range"], 0) <= (1000 * 1000 + 1) * 255)) if n else
+          And(0 <= Select(v["arg1_shape"], 0), (1000 * 1000 + 1) * Select(v["arg1_range"], 0) <= (1000 * 1000 + 1) * 255))
 )
 
 def rule_68_func(arg1, solver=None, neg=False):
@@ -32,9 +32,9 @@ def rule_68_func(arg1, solver=None, neg=False):
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 68
-        rule_68(solver, {'arg1_range': arg1_range, 'arg1_shape': arg1_shape})
+        rule_68(solver, {'arg1_shape': arg1_shape, 'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_68(solver, {'arg1_range': arg1['range'], 'arg1_shape': arg1['shape']}, neg)
+        rule_68(solver, {'arg1_shape': arg1['shape'], 'arg1_range': arg1['range']}, neg)

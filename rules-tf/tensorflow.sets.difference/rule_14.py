@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# a and b data type must be from a limited list (Rule 14)
+# The data types of tensors a and b must be among the allowed data types. (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(And((Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 1), v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 11), v["arg1_dtype"] == 12)), (Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg2_dtype"] == 0, v["arg2_dtype"] == 1), v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5), v["arg2_dtype"] == 6), v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), v["arg2_dtype"] == 11), v["arg2_dtype"] == 12)))) if n else
-          And((Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 1), v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 11), v["arg1_dtype"] == 12)), (Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg2_dtype"] == 0, v["arg2_dtype"] == 1), v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5), v["arg2_dtype"] == 6), v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), v["arg2_dtype"] == 11), v["arg2_dtype"] == 12))))
+    s.add(Not(And((Or(Or(Or(Or(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 5), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 12), v["arg1_dtype"] == 4)), (Or(Or(Or(Or(Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 5), v["arg2_dtype"] == 2), v["arg2_dtype"] == 1), v["arg2_dtype"] == 12), v["arg2_dtype"] == 4)))) if n else
+          And((Or(Or(Or(Or(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 5), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 12), v["arg1_dtype"] == 4)), (Or(Or(Or(Or(Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 5), v["arg2_dtype"] == 2), v["arg2_dtype"] == 1), v["arg2_dtype"] == 12), v["arg2_dtype"] == 4))))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):

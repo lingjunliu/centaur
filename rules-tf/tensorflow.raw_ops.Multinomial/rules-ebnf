@@ -1,60 +1,153 @@
 >>
-Rule 1 (logits should be a 2-D tensor)
-{v_1 : tensor} |= ndim(v_1) = 2
+Rule 1 (logits tensor must be 2-dimensional)
+{logits : tensor} |= ndim(logits) = 2
 >>
-Rule 2 (num_samples should be a non-negative integer)
-{v_1 : int} |= v_1 ≥ 0
+Rule 2 (num_samples tensor must be 0-dimensional)
+{num_samples : tensor} |= ndim(num_samples) = 0
 >>
-Rule 3 (output_dtype should be either int32 or int64)
-{v_1 : dtype} |= v_1 = 3 ∨ v_1 = 4
+Rule 3 (num_samples tensor must be of type int32)
+{num_samples : tensor} |= dtype_(num_samples) = 3
 >>
-Rule 7 (batch_size of logits should be greater than 0)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 4 (output_dtype must be either int32 or int64)
+{output_dtype : dtype} |= output_dtype = 3 ∨ output_dtype = 4
 >>
-Rule 8 (num_classes of logits should be greater than 0)
-{v_1 : tensor} |= shape(v_1, 1) > 0
+Rule 5 (logits tensor must have a supported dtype)
+{logits : tensor} |= dtype_(logits) = 7 ∨ dtype_(logits) = 8 ∨ dtype_(logits) = 3 ∨ dtype_(logits) = 5 ∨ dtype_(logits) = 2 ∨ dtype_(logits) = 1 ∨ dtype_(logits) = 4
 >>
-Rule 12 (logits should be of a valid type: float32, float64, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 4
+Rule 6 (seed must be a non-negative integer)
+{seed : int} |= seed ≥ 0
 >>
-Rule 17 (num_samples must be less than or equal to the maximum integer value)
-{v_1 : int} |= v_1 ≤ 2147483647
+Rule 7 (seed2 must be a non-negative integer)
+{seed2 : int} |= seed2 ≥ 0
 >>
-Rule 22 (seed should be a non-negative integer and less than max int)
-{v_1 : int} |= v_1 ≥ 0 ∧ v_1 ≤ 2147483647
+Rule 8 (logits tensor shape's second dimension must be greater than 0)
+{logits : tensor} |= shape(logits, 1) > 0
 >>
-Rule 27 (output_dtype must be a valid dtype)
-{v_1 : dtype} |= v_1 ≥ 0 ∧ v_1 ≤ 12
+Rule 9 (logits tensor shape's first dimension must be greater than 0)
+{logits : tensor} |= shape(logits, 0) > 0
 >>
-Rule 34 (the number of samples should not exceed the number of classes)
-{v_1 : int, v_2 : tensor} |= v_1 ≤ shape(v_2, 1)
+Rule 11 (num_samples tensor must be positive)
+{num_samples : tensor} |= min(num_samples) > 0
 >>
-Rule 57 (If seed or seed2 is non-zero, they should both be non-negative and less than max int)
-{v_1 : int, v_2 : int} |= if v_1 ≠ 0 ∨ v_2 ≠ 0 then v_1 ≥ 0 ∧ v_1 ≤ 2147483647 ∧ v_2 ≥ 0 ∧ v_2 ≤ 2147483647
+Rule 12 (if seed is non-zero, seed2 can be any integer)
+{seed : int, seed2 : int} |= if seed ≠ 0 then true else seed2 = 0
 >>
-Rule 63 (If seed and seed2 are provided, logits dtype must be float32 or float64)
-{v_1 : int, v_2 : int, v_3 : tensor} |= if v_1 ≠ 0 ∨ v_2 ≠ 0 then dtype_(v_3) = 7 ∨ dtype_(v_3) = 8
+Rule 16 (output_dtype must be int32 if num_samples is relatively small)
+{num_samples : tensor, output_dtype : dtype} |= if max(num_samples) < 2147483647 then output_dtype = 3
 >>
-Rule 76 (If seed is zero then seed2 must be zero)
-{v_1 : int, v_2 : int} |= if v_1 = 0 then v_2 = 0
+Rule 17 (num_samples must have a positive value)
+{num_samples : tensor} |= max(num_samples) > 0
 >>
-Rule 77 (num_samples must be greater than zero)
-{v_1: int} |= v_1 > 0
+Rule 18 (if seed2 is non-zero, seed should be a valid integer)
+{seed : int, seed2 : int} |= if seed2 ≠ 0 then true else seed = 0
 >>
-Rule 106 (If output dtype is int32 then num_samples * batch_size must be less than max int)
-{v_1 : int, v_2 : tensor, v_3 : dtype} |= if v_3 = 3 then v_1 * shape(v_2, 0) ≤ 2147483647
+Rule 19 (output_dtype must be int64 if the values in logits are large)
+{logits : tensor, output_dtype : dtype} |= if max(logits) > 100 then output_dtype = 4
 >>
-Rule 107 (If output dtype is int64 then num_samples * batch_size must be less than max long)
-{v_1 : int, v_2 : tensor, v_3 : dtype} |= if v_3 = 4 then v_1 * shape(v_2, 0) ≤ 9223372036854775807
+Rule 20 (the number of classes must be greater than one, based on logits shape)
+{logits : tensor} |= shape(logits, 1) > 1
 >>
-Rule 116 (If output dtype is int32 then num_samples * batch_size must be less than max int, otherwise if output dtype is int64 then num_samples * batch_size must be less than max long, otherwise false)
-{v_1 : int, v_2 : tensor, v_3 : dtype} |= if v_3 = 3 then v_1 * shape(v_2, 0) ≤ 2147483647 else if v_3 = 4 then v_1 * shape(v_2, 0) ≤ 9223372036854775807 else false
+Rule 21 (if the logits data type is int, then the output data type must be int)
+{logits : tensor, output_dtype : dtype} |= if dtype_(logits) = 3 ∨ dtype_(logits) = 5 ∨ dtype_(logits) = 2 ∨ dtype_(logits) = 1 ∨ dtype_(logits) = 4 then output_dtype = 3 ∨ output_dtype = 4
 >>
-Rule 117 (If logits is int32, int16, int8, int64, uint8, uint16, uint32 or uint64 then the output dtype must be int32 or int64)
-{v_1: tensor, v_2: dtype} |= if dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then v_2 = 3 ∨ v_2 = 4
+Rule 22 (If seed or seed2 is provided, they should not be equal)
+{seed : int, seed2 : int} |= if seed ≠ 0 ∨ seed2 ≠ 0 then seed ≠ seed2
 >>
-Rule 126 (If output dtype is int32 then num_samples * batch_size must be less than max int)
-{v_1 : int, v_2 : tensor, v_3 : dtype} |= if v_3 = 3 then v_1 * shape(v_2, 0) ≤ 2147483647 else if v_3 = 4 then v_1 * shape(v_2, 0) ≤ 9223372036854775807
+Rule 24 (num_samples cannot exceed the maximum possible int32 value)
+{num_samples : tensor} |= max(num_samples) ≤ 2147483647
 >>
-Rule 127 (If logits is an integer type, output_dtype must be an integer type)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 4 then v_2 = 3 ∨ v_2 = 4
+Rule 26 (If the logits dtype is not int, output_dtype must be either int32 or int64.)
+{logits : tensor, output_dtype : dtype} |= if dtype_(logits) = 7 ∨ dtype_(logits) = 8 then output_dtype = 3 ∨ output_dtype = 4
+>>
+Rule 27 (The number of samples must be a non-negative integer)
+{num_samples : tensor} |= min(num_samples) ≥ 0
+>>
+Rule 28 (if seed and seed2 are both 0, then a random seed is used)
+{seed : int, seed2 : int} |= if seed = 0 ∧ seed2 = 0 then true else seed ≥ 0 ∧ seed2 ≥ 0
+>>
+Rule 29 (num_samples must be a valid int32 tensor and greater than 0)
+{num_samples : tensor} |= dtype_(num_samples) = 3 ∧ min(num_samples) > 0
+>>
+Rule 34 (If logits has float dtype, check for NaN values by checking if min is less than max)
+{logits : tensor} |= if dtype_(logits) = 7 ∨ dtype_(logits) = 8 then min(logits) ≤ max(logits)
+>>
+Rule 35 (If logits has float dtype, NaN values imply that min(logits) is not a valid number)
+{logits : tensor} |= if dtype_(logits) = 7 ∨ dtype_(logits) = 8 then min(logits) < 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
+>>
+Rule 36 (If logits has float dtype, values should be finite)
+{logits : tensor} |= if dtype_(logits) = 7 ∨ dtype_(logits) = 8 then min(logits) > -340282346638528859811704183484516377600.0 ∧ max(logits) < 340282346638528859811704183484516377600.0
+>>
+Rule 37 (If logits has float dtype, values should be finite)
+{logits : tensor} |= if dtype_(logits) = 7 ∨ dtype_(logits) = 8 then min(logits) > -3.402823e+38 ∧ max(logits) < 3.402823e+38
+>>
+Rule 38 (If seed and seed2 are equal and not 0, it might cause issues)
+{seed : int, seed2 : int} |= if seed = seed2 ∧ seed ≠ 0 then false
+>>
+Rule 39 (If seed is 0, then seed2 should be 0)
+{seed : int, seed2 : int} |= if seed = 0 then seed2 = 0
+>>
+Rule 40 (If seed is negative then it should be flagged)
+{seed : int} |= if seed < 0 then false
+>>
+Rule 41 (Seed values must be within the range of representable integers)
+{seed : int, seed2 : int} |= seed > -2147483648 ∧ seed < 2147483647 ∧ seed2 > -2147483648 ∧ seed2 < 2147483647
+>>
+Rule 42 (output_dtype must be int32 or int64, but it's recommended to use int64 if num_samples is very large)
+{num_samples : tensor, output_dtype : dtype} |= output_dtype = 3 ∨ (output_dtype = 4 ∧ max(num_samples) > 10000)
+>>
+Rule 43 (If seed2 is negative then it should be flagged)
+{seed2 : int} |= if seed2 < 0 then false
+>>
+Rule 44 (The shape of logits cannot be unknown)
+{logits : tensor} |= shape(logits, 0) ≠ -1 ∧ shape(logits, 1) ≠ -1
+>>
+Rule 47 (Logits must contain non-negative values)
+{logits : tensor} |= min(logits) ≥ 0
+>>
+Rule 48 (Logits must contain finite values to allow for sampling.)
+{logits : tensor} |= if dtype_(logits) = 7 ∨ dtype_(logits) = 8 then min(logits) > -1e10 ∧ max(logits) < 1e10
+>>
+Rule 49 (If num_samples is very large, the output data type should be int64)
+{num_samples : tensor, output_dtype : dtype} |= if max(num_samples) > 2147483647 then output_dtype = 4
+>>
+Rule 51 (Seed2 should be within the range of representable integers)
+{seed2 : int} |= seed2 > -2147483648 ∧ seed2 < 2147483647
+>>
+Rule 53 (If the output_dtype is not explicitly specified and num_samples suggests a large value, default to int64)
+{num_samples : tensor, output_dtype : dtype} |= if output_dtype = 4 then true else if max(num_samples) > 2147483647 then output_dtype = 4
+>>
+Rule 55 (if seed is zero, seed2 is ignored)
+{seed : int, seed2 : int} |= if seed = 0 then true else seed2 ≥ 0
+>>
+Rule 56 (if seed is non-zero then seed2 can be any integer value that is also non-negative)
+{seed : int, seed2 : int} |= if seed ≠ 0 then seed2 ≥ 0
+>>
+Rule 57 (If seed is non-zero, then the seed must be a non-negative integer)
+{seed : int} |= if seed ≠ 0 then seed ≥ 0
+>>
+Rule 58 (If num_samples is greater than 1, then output dtype should be large enough to hold the values)
+{num_samples : tensor, output_dtype : dtype} |= if max(num_samples) > 1 then output_dtype = 3 ∨ output_dtype = 4
+>>
+Rule 61 (If the seed is non-zero, it should have a reasonable value for seeding purposes)
+{seed : int} |= if seed ≠ 0 then seed > 100 ∨ seed < -100
+>>
+Rule 63 (If the logits data type is an unsigned integer, the values of the logits must be positive)
+{logits : tensor} |= if dtype_(logits) = 5 then min(logits) >= 0
+>>
+Rule 66 (If seed is provided, seed2 must also be provided)
+{seed: int, seed2 : int} |= if seed ≠ 0 then seed2 ≠ 0
+>>
+Rule 68 (If logits has a float dtype, then it must be 2D)
+{logits : tensor} |= if dtype_(logits) = 7 ∨ dtype_(logits) = 8 then ndim(logits) = 2
+>>
+Rule 70 (If seed2 is defined, seed should also be defined)
+{seed : int, seed2 : int} |= if seed2 > 0 then seed ≥ 0
+>>
+Rule 71 (If logits has dtype int32,int64 then it must be 2D)
+{logits : tensor} |= if dtype_(logits) = 3 ∨ dtype_(logits) = 4 then ndim(logits) = 2
+>>
+Rule 72 (If num_samples is less than 1 then it might cause an error)
+{num_samples : tensor} |= max(num_samples) ≥ 1
+>>
+Rule 73 (If seed2 is defined and greater than one, seed must be greater than zero)
+{seed : int, seed2 : int} |= if seed2 > 1 then seed > 0

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# For complex tensors, the imaginary part cannot be too large. (Rule 23)
+# name can only be one of predefined values when input tensor is complex (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Select(v["arg1_range"], 1) < v["arg2_value"], False)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Select(v["arg1_range"], 1) < v["arg2_value"], False))
+    s.add(Not(If(v["arg1_dtype"] >= 9, (Or(v["arg2_value"] == 6, v["arg2_value"] == 7)), True)) if n else
+          If(v["arg1_dtype"] >= 9, (Or(v["arg2_value"] == 6, v["arg2_value"] == 7)), True))
 )
 
 def rule_23_func(arg1, arg2, solver=None, neg=False):
@@ -20,25 +20,22 @@ def rule_23_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, (float, np.floating)):
+        if not isinstance(arg2, str):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_value = Real('arg2_value')
+        arg2_value = String('arg2_value')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        solver.add(arg2_value == arg2)
+        solver.add(arg2_value == list_of_string_values_tf.index(arg2))
 
         # Constraints for rule 23
-        rule_23(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range, 'arg2_value': arg2_value})
+        rule_23(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_23(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range'], 'arg2_value': arg2['value']}, neg)
+        rule_23(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

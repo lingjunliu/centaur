@@ -8,8 +8,8 @@ from z3 import *
 # iou_threshold must be between 0 and 1 inclusive (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] <= 1)) if n else
-          And(v["arg1_value"] >= 0, v["arg1_value"] <= 1))
+    s.add(Not(And(0 <= v["arg1_value"], v["arg1_value"] <= 1)) if n else
+          And(0 <= v["arg1_value"], v["arg1_value"] <= 1))
 )
 
 def rule_6_func(arg1, solver=None, neg=False):

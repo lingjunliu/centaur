@@ -1,246 +1,117 @@
 >>
 Rule 1 (images tensor must be 4-dimensional)
-{v_1 : tensor} |= ndim(v_1) = 4
+{images : tensor} |= ndim(images) = 4
 >>
 Rule 2 (size tensor must be 1-dimensional)
-{v_1 : tensor} |= ndim(v_1) = 1
+{size : tensor} |= ndim(size) = 1
 >>
 Rule 3 (size tensor must have 2 elements)
-{v_1 : tensor} |= shape(v_1, 0) = 2
+{size : tensor} |= shape(size, 0) = 2
 >>
-Rule 4 (images tensor's dtype must be quint8, qint32, or float32)
-{v_1 : tensor} |= dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 7
+Rule 4 (min and max must be float32 tensors)
+{min : tensor, max : tensor} |= dtype_(min) = 7 ∧ dtype_(max) = 7
 >>
-Rule 5 (min and max tensors must be float32)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 7
+Rule 5 (images tensor must be quint8, qint32, or float32)
+{images : tensor} |= dtype_(images) = 5 ∨ dtype_(images) = 3 ∨ dtype_(images) = 7
 >>
-Rule 6 (min and max tensors must be scalar (0-dimensional))
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0
+Rule 6 (size tensor must be int32)
+{size : tensor} |= dtype_(size) = 3
 >>
-Rule 7 (size tensor elements must be greater than 0)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : shape(v_1, i) > 0
+Rule 7 (align_corners must be a boolean)
+{align_corners : bool} |= align_corners = true ∨ align_corners = false
 >>
-Rule 8 (images height and width must be greater than 0)
-{v_1 : tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+Rule 8 (half_pixel_centers must be a boolean)
+{half_pixel_centers : bool} |= half_pixel_centers = true ∨ half_pixel_centers = false
 >>
-Rule 9 (align_corners must be either true or false.)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 9 (image height and width must be positive.)
+{images : tensor} |= shape(images, 1) > 0 ∧ shape(images, 2) > 0
 >>
-Rule 11 (size tensor elements must be int32)
-{v_1 : tensor} |= dtype_(v_1) = 3
+Rule 10 (The new height and width in size must be positive.)
+{size : tensor} |= size[0] > 0 ∧ size[1] > 0
 >>
-Rule 12 (The first dimension of images tensor must be greater than 0)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 12 (images' batch size must be greater than 0)
+{images : tensor} |= shape(images, 0) > 0
 >>
-Rule 13 (images tensor dimensions 1 and 2 should be different)
-{v_1 : tensor} |= shape(v_1, 1) ≠ shape(v_1, 2)
+Rule 13 (images' channel size must be greater than 0)
+{images : tensor} |= shape(images, 3) > 0
 >>
-Rule 15 (If align_corners is true, then half_pixel_centers should be false)
-{v_1 : bool, v_2 : bool} |= if v_1 = true then v_2 = false else v_2 = true ∨ v_2 = false
+Rule 14 (min must be a scalar tensor)
+{min : tensor} |= ndim(min) = 0
 >>
-Rule 16 (images height divided by size height should be greater than 0)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) / shape(v_2, 0) > 0
+Rule 15 (max must be a scalar tensor)
+{max : tensor} |= ndim(max) = 0
 >>
-Rule 17 (images width divided by size width should be greater than 0)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 2) / shape(v_2, 1) > 0
+Rule 16 (images' elements must be in range [min, max])
+{images : tensor, min : tensor, max : tensor} |= min(images) ≥ min ∧ max(images) ≤ max
 >>
-Rule 18 (min tensor should be less than max tensor)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) < max(v_2)
+Rule 20 (align_corners can only be true if half_pixel_centers is false)
+{align_corners : bool, half_pixel_centers : bool} |= if align_corners then half_pixel_centers = false
 >>
-Rule 19 (images shape[3] (channels) should be greater than 0)
-{v_1 : tensor} |= shape(v_1, 3) > 0
+Rule 21 (if align_corners is true, both new height and new width can not be zero)
+{align_corners : bool, size : tensor} |= if align_corners then size[0] > 0 ∧ size[1] > 0
 >>
-Rule 21 (images tensor shape[0] should be divisible by 1)
-{v_1 : tensor} |= shape(v_1, 0) % 1 = 0
+Rule 22 (images and min/max must have compatible dtypes)
+{images : tensor, min : tensor, max : tensor} |= (dtype_(images) = 5 ∧ dtype_(min) = 7 ∧ dtype_(max) = 7) ∨ (dtype_(images) = 3 ∧ dtype_(min) = 7 ∧ dtype_(max) = 7) ∨ (dtype_(images) = 7 ∧ dtype_(min) = 7 ∧ dtype_(max) = 7)
 >>
-Rule 22 (size tensor shape[0] should be smaller than images shape[1])
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) < shape(v_1, 1)
+Rule 23 (if half_pixel_centers is true, align_corners must be false)
+{align_corners : bool, half_pixel_centers : bool} |= if half_pixel_centers then align_corners = false
 >>
-Rule 23 (size tensor shape[1] should be smaller than images shape[2])
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 1) < shape(v_1, 2)
+Rule 24 (min value must be less than or equal to max value)
+{min : tensor, max : tensor} |= min ≤ max
 >>
-Rule 29 (size tensor elements should be non-negative)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : shape(v_1, i) ≥ 0
+Rule 25 (The new size of the images must be smaller or equal to the original size)
+{images : tensor, size : tensor} |= size[0] <= shape(images, 1) ∧ size[1] <= shape(images, 2)
 >>
-Rule 30 (If align_corners is true, then half_pixel_centers should be false)
-{v_1 : bool, v_2 : bool} |= if v_1 = true then v_2 = false else v_1 = false ∨ v_1 = true
+Rule 26 (If half_pixel_centers is enabled, the images' height and width must be greater than 1)
+{images : tensor, half_pixel_centers : bool} |= if half_pixel_centers then shape(images, 1) > 1 ∧ shape(images, 2) > 1
 >>
-Rule 31 (if images dtype is quint8, then min should be less or equal to 0)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 5 then min(v_2) ≤ 0 else min(v_2) > 0 ∨ min(v_2) ≤ 0
+Rule 27 (If align_corners is enabled, the images' height and width must be greater than 0)
+{images : tensor, align_corners : bool} |= if align_corners then shape(images, 1) > 0 ∧ shape(images, 2) > 0
 >>
-Rule 32 (if images dtype is quint8, then max should be greater or equal to 255)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 5 then max(v_2) ≥ 255 else max(v_2) < 255 ∨ max(v_2) ≥ 255
+Rule 28 (if align_corners is true, the new size of the images must be smaller than or equal to the original size)
+{images : tensor, size : tensor, align_corners : bool} |= if align_corners then size[0] <= shape(images, 1) ∧ size[1] <= shape(images, 2)
 >>
-Rule 34 (The number of channels of the images should be in a reasonable range)
-{v_1 : tensor} |= shape(v_1, 3) > 0 ∧ shape(v_1, 3) < 1024
+Rule 30 (If align_corners is enabled and half_pixel_centers is disabled, size must be different than images.)
+{images : tensor, size : tensor, align_corners : bool, half_pixel_centers : bool} |= if align_corners ∧ (half_pixel_centers = false) then (shape(images, 1) ≠ size[0]) ∨ (shape(images, 2) ≠ size[1])
 >>
-Rule 36 (images height should be less than 4096)
-{v_1 : tensor} |= shape(v_1, 1) < 4096
+Rule 31 (images' channel size must be the same when resizing)
+{images : tensor} |= shape(images, 3) = shape(images, 3)
 >>
-Rule 37 (images width should be less than 4096)
-{v_1 : tensor} |= shape(v_1, 2) < 4096
+Rule 32 (if half_pixel_centers is enabled then align_corners must also be enabled or size must be different than images)
+{images : tensor, size : tensor, align_corners : bool, half_pixel_centers : bool} |= if half_pixel_centers then align_corners ∨ ((shape(images, 1) ≠ size[0]) ∨ (shape(images, 2) ≠ size[1]))
 >>
-Rule 39 (The size width must be greater than zero.)
-{v_1 : tensor} |= shape(v_1, 1) > 0
+Rule 33 (If the images's dtype is quint8 then min and max must be between 0 and 255)
+{images : tensor, min : tensor, max : tensor} |= if dtype_(images) = 5 then 0 ≤ min ∧ max ≤ 255
 >>
-Rule 42 (The product of size tensor elements should be less than 2^20)
-{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) < 1048576
+Rule 34 (If the images's dtype is qint32 then min and max must be between -2147483648 and 2147483647)
+{images : tensor, min : tensor, max : tensor} |= if dtype_(images) = 3 then -2147483648 ≤ min ∧ max ≤ 2147483647
 >>
-Rule 43 (min tensor should be finite)
-{v_1 : tensor} |= min(v_1) ≠ "inf" ∧ min(v_1) ≠ "-inf" ∧ min(v_1) ≠ "nan"
+Rule 36 (images and min tensors should have compatible dtypes)
+{images : tensor, min : tensor} |= (dtype_(images) = 5 ∧ dtype_(min) = 7) ∨ (dtype_(images) = 3 ∧ dtype_(min) = 7) ∨ (dtype_(images) = 7 ∧ dtype_(min) = 7)
 >>
-Rule 44 (max tensor should be finite)
-{v_1 : tensor} |= max(v_1) ≠ "inf" ∧ max(v_1) ≠ "-inf" ∧ max(v_1) ≠ "nan"
+Rule 37 (images and max tensors should have compatible dtypes)
+{images : tensor, max : tensor} |= (dtype_(images) = 5 ∧ dtype_(max) = 7) ∨ (dtype_(images) = 3 ∧ dtype_(max) = 7) ∨ (dtype_(images) = 7 ∧ dtype_(max) = 7)
 >>
-Rule 45 (if images dtype is qint32, then min should be less than 2147483647)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 3 then min(v_2) < 2147483647 else (dtype_(v_1) ≠ 3 ∨ min(v_2) < 2147483647)
+Rule 40 (if half_pixel_centers is true, align_corners has no effect)
+{half_pixel_centers : bool} |= if half_pixel_centers then true
 >>
-Rule 46 (if images dtype is qint32, then max should be greater than -2147483648)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 3 then max(v_2) > -2147483648 else (dtype_(v_1) ≠ 3 ∨ max(v_2) > -2147483648)
+Rule 41 (The minimum value cannot be greater than the maximum allowed value for the specific data type)
+{images : tensor, min : tensor} |= if dtype_(images) = 5 then min ≤ 255 else if dtype_(images) = 3 then min ≤ 2147483647
 >>
-Rule 47 (size must have positive values.)
-{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 42 (The maximum value cannot be less than the minimum allowed value for the specific data type)
+{images : tensor, max : tensor} |= if dtype_(images) = 5 then max ≥ 0 else if dtype_(images) = 3 then max ≥ -2147483648
 >>
-Rule 48 (images must have shape of at least [1,1,1,1])
-{v_1 : tensor} |= shape(v_1, 0) ≥ 1 ∧ shape(v_1, 1) ≥ 1 ∧ shape(v_1, 2) ≥ 1 ∧ shape(v_1, 3) ≥ 1
+Rule 44 (min and max values should be finite float32 numbers)
+{min : tensor, max : tensor} |= min = min ∧ max = max
 >>
-Rule 50 (if align_corners and half_pixel_centers are both false, then images dimensions should be greater than 1)
-{v_1: bool, v_2: bool, v_3: tensor} |= if v_1 = false ∧ v_2 = false then shape(v_3, 1) > 1 ∧ shape(v_3, 2) > 1 else v_1 = true ∨ v_2 = true
+Rule 48 (size tensor must have values representable as int32s)
+{size : tensor} |= ∀i ∈ [0, 1] : size[i] ≥ -2147483648 ∧ size[i] ≤ 2147483647
 >>
-Rule 51 (Images channels should be smaller than images height * width.)
-{v_1 : tensor} |= shape(v_1, 3) < shape(v_1, 1) * shape(v_1, 2)
+Rule 49 (size tensor's elements must be non-negative)
+{size : tensor} |= size[0] ≥ 0 ∧ size[1] ≥ 0
 >>
-Rule 55 (if images dtype is not float32, the min value of the min tensor should be less than 0)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) ≠ 7 then min(v_2) < 0 else dtype_(v_1) = 7 ∨ min(v_2) < 0
+Rule 51 (If images dtype is quint8, then the minimum and maximum values must be float32 tensors)
+{images : tensor, min : tensor, max : tensor} |= if dtype_(images) = 5 then dtype_(min) = 7 ∧ dtype_(max) = 7
 >>
-Rule 56 (if images dtype is not float32, the max value of the max tensor should be greater than 0)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) ≠ 7 then max(v_2) > 0 else dtype_(v_1) = 7 ∨ max(v_2) > 0
->>
-Rule 57 (If align corners is true, then at least one of the size dimensions should be greater than 1.)
-{v_1: bool, v_2: tensor} |= if v_1 = true then shape(v_2, 0) > 1 ∨ shape(v_2, 1) > 1 else v_1 = false ∨ v_1 = true
->>
-Rule 60 (If image data type is float32, min should be less than 1.0)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 7 then min(v_2) < 1.0 else dtype_(v_1) ≠ 7 ∨ min(v_2) < 1.0
->>
-Rule 61 (If image data type is float32, max should be greater than 1.0)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 7 then max(v_2) > 1.0 else dtype_(v_1) ≠ 7 ∨ max(v_2) > 1.0
->>
-Rule 62 (Size values should result in a tensor shape which is less than the initial shape)
-{v_1: tensor, v_2: tensor} |= shape(v_2, 0) ≤ shape(v_1, 1) ∧ shape(v_2, 1) ≤ shape(v_1, 2)
->>
-Rule 63 (Minimum value should be smaller or equal to maximum value)
-{v_1: tensor, v_2: tensor} |= min(v_1) ≤ max(v_2)
->>
-Rule 65 (If half_pixel_centers is true, the resized image tensor must be the same datatype as the images tensor)
-{v_1: bool, v_2: tensor, v_3: tensor} |= if v_1 = true then dtype_(v_2) = dtype_(v_3) else dtype_(v_2) = dtype_(v_3) ∨ dtype_(v_2) ≠ dtype_(v_3)
->>
-Rule 66 (The new height must be within a reasonable range)
-{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 0) < 2048
->>
-Rule 67 (The new width must be within a reasonable range)
-{v_1 : tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 1) < 2048
->>
-Rule 70 (If images data type is quint8, min value should be within a specific range)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 5 then min(v_2) ≥ -128 ∧ min(v_2) ≤ 0 else (dtype_(v_1) ≠ 5 ∨ min(v_2) ≥ -128 ∧ min(v_2) ≤ 0)
->>
-Rule 71 (If images data type is quint8, max value should be within a specific range)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 5 then max(v_2) ≥ 255 ∧ max(v_2) ≤ 383 else (dtype_(v_1) ≠ 5 ∨ max(v_2) ≥ 255 ∧ max(v_2) ≤ 383)
->>
-Rule 72 (New height divided by old height should be reasonable.)
-{v_1: tensor, v_2: tensor} |= shape(v_2, 0) / shape(v_1, 1) > 0.1 ∧ shape(v_2, 0) / shape(v_1, 1) < 10
->>
-Rule 73 (New width divided by old width should be reasonable.)
-{v_1: tensor, v_2: tensor} |= shape(v_2, 1) / shape(v_1, 2) > 0.1 ∧ shape(v_2, 1) / shape(v_1, 2) < 10
->>
-Rule 75 (If images dtype is qint32 then min should be less than 0)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 3 then min(v_2) < 0 else dtype_(v_1) ≠ 3 ∨ min(v_2) < 0
->>
-Rule 76 (if images dtype is qint32 then max should be larger than 0)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 3 then max(v_2) > 0 else dtype_(v_1) ≠ 3 ∨ max(v_2) > 0
->>
-Rule 77 (The size tensor must have a shape less than 2048)
-{v_1: tensor} |= shape(v_1, 0) < 2048
->>
-Rule 80 (if align_corners is true the size must be more than 1)
-{v_1: bool, v_2 : tensor} |= if v_1 = true then shape(v_2, 0) > 1 ∧ shape(v_2, 1) > 1 else v_1 = false ∨ v_1 = true
->>
-Rule 81 (If the image data type is float32 then the values of min and max must be in a specific range)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 7 then min(v_2) > -100 ∧ max(v_2) < 100 else dtype_(v_1) ≠ 7 ∨ min(v_2) > -100 ∧ max(v_2) < 100
->>
-Rule 83 (the image tensors height and width must not be extremely small)
-{v_1: tensor} |= shape(v_1, 1) > 4 ∧ shape(v_1, 2) > 4
->>
-Rule 84 (Min value of the tensor must be less than max value.)
-{v_1: tensor, v_2: tensor} |= min(v_1) < max(v_2)
->>
-Rule 85 (If images data type is qint32, min and max should be in reasonable range)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 3 then min(v_2) > -32768 ∧ max(v_2) < 32767 else dtype_(v_1) ≠ 3 ∨ min(v_2) > -32768 ∧ max(v_2) < 32767
->>
-Rule 86 (Size tensor should not have any zero values)
-{v_1: tensor} |= shape(v_1, 0) ≠ 0 ∧ shape(v_1, 1) ≠ 0
->>
-Rule 87 (the image tensors batch size must not be extremely small)
-{v_1: tensor} |= shape(v_1, 0) > 0
->>
-Rule 91 (If align_corners is false, and half_pixel_centers is true, at least one dimension of the size tensor must be different than the images.)
-{v_1: bool, v_2: bool, v_3: tensor, v_4: tensor} |= if v_1 = false ∧ v_2 = true then shape(v_3, 1) ≠ shape(v_4, 0) ∨ shape(v_3, 2) ≠ shape(v_4, 1) else v_1 = true ∨ v_2 = false
->>
-Rule 93 (Min values must be within a reasonable range.)
-{v_1: tensor} |= min(v_1) > -5000 ∧ min(v_1) < 5000
->>
-Rule 94 (Max values must be within a reasonable range.)
-{v_1: tensor} |= max(v_1) > -5000 ∧ max(v_1) < 5000
->>
-Rule 95 (The ratio between the new and old image height should be similar to the ratio for the width)
-{v_1: tensor, v_2: tensor} |= (shape(v_2, 0) / shape(v_1, 1)) - (shape(v_2, 1) / shape(v_1, 2)) > -0.2 ∧ (shape(v_2, 0) / shape(v_1, 1)) - (shape(v_2, 1) / shape(v_1, 2)) < 0.2
->>
-Rule 100 (If image data type is float32, then min cannot be positive)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 7 then min(v_2) ≤ 0 else dtype_(v_1) ≠ 7 ∨ min(v_2) ≤ 0
->>
-Rule 101 (If image data type is float32, then max cannot be negative)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 7 then max(v_2) ≥ 0 else dtype_(v_1) ≠ 7 ∨ max(v_2) ≥ 0
->>
-Rule 102 (Min and max values of quint8 must be within reasonable bounds)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 5 then min(v_2) > -256 ∧ max(v_2) < 512 else dtype_(v_1) ≠ 5 ∨ min(v_2) > -256 ∧ max(v_2) < 512
->>
-Rule 103 (If align_corners = True then at least one dimension of the Size should be greater than 1)
-{v_1: bool, v_2: tensor} |= if v_1 = true then shape(v_2, 0) > 1 ∨ shape(v_2, 1) > 1 else v_1 = false ∨ (shape(v_2, 0) > 1 ∨ shape(v_2, 1) > 1)
->>
-Rule 105 (If images data type is qint32, min and max should be in reasonable range)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 3 then min(v_2) > -65536 ∧ max(v_2) < 65536 else dtype_(v_1) ≠ 3 ∨ (min(v_2) > -65536 ∧ max(v_2) < 65536)
->>
-Rule 107 (The difference between image shape and size shape should be reasonable.)
-{v_1: tensor, v_2: tensor} |= shape(v_1, 1) - shape(v_2, 0) > -100 ∧ shape(v_1, 2) - shape(v_2, 1) > -100
->>
-Rule 110 (If images dtype is float32 then min cannot be too big and max cannot be too small)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 7 then min(v_2) < 1000 ∧ max(v_2) > -1000 else dtype_(v_1) ≠ 7 ∨ min(v_2) < 1000 ∧ max(v_2) > -1000
->>
-Rule 112 (images data type must be quantized if align corners or half pixel centers is enabled)
-{v_1: tensor, v_2: bool, v_3: bool} |= if v_2 = true ∨ v_3 = true then dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 else v_2=false ∧ v_3 = false
->>
-Rule 113 (If align corners is false, the size dimensions must be less than or equal to the image dimensions)
-{v_1: bool, v_2: tensor, v_3: tensor} |= if v_1 = false then shape(v_3, 1) ≥ shape(v_2, 0) ∧ shape(v_3, 2) ≥ shape(v_2, 1) else v_1=true
->>
-Rule 114 (If images data type is not float32 the min value must be greater or equal to the minimum allowed and the max value must be less or equal to the maximum)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) ≠ 7 then min(v_2) ≥ -16777216 ∧ max(v_2) ≤ 16777215 else dtype_(v_1) = 7 ∨ min(v_2) ≥ -16777216 ∧ max(v_2) ≤ 16777215
->>
-Rule 115 (images data type must be quantized if align corners or half pixel centers is enabled)
-{v_1: tensor, v_2: bool, v_3: bool} |= if v_2 = true ∨ v_3 = true then dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 else v_2 = false ∨ v_3 = false
->>
-Rule 116 (If align corners is false, the size dimensions must be less than or equal to the image dimensions)
-{v_1: bool, v_2: tensor, v_3: tensor} |= if v_1 = false then shape(v_3, 1) ≥ shape(v_2, 0) ∧ shape(v_3, 2) ≥ shape(v_2, 1) else v_1 = true ∨ (shape(v_3, 1) ≥ shape(v_2, 0) ∧ shape(v_3, 2) ≥ shape(v_2, 1))
->>
-Rule 117 (Size dimensions must not be zero)
-{v_1 : tensor} |= ∀i ∈ [0, 1] : shape(v_1, i) ≠ 0
->>
-Rule 119 (If half pixel centers is enabled, the values of Size tensor must be different than the images)
-{v_1: bool, v_2: tensor, v_3: tensor} |= if v_1 = true then shape(v_2, 0) ≠ shape(v_3, 1) ∨ shape(v_2, 1) ≠ shape(v_3, 2) else v_1 = false ∨ (shape(v_2, 0) ≠ shape(v_3, 1) ∨ shape(v_2, 1) ≠ shape(v_3, 2))
->>
-Rule 120 (Size tensor should not have extremely large values)
-{v_1: tensor} |= shape(v_1, 0) < 8192 ∧ shape(v_1, 1) < 8192
->>
-Rule 121 (The image should have at least 1 channel)
-{v_1: tensor} |= shape(v_1, 3) ≥ 1
->>
-Rule 123 (Size tensor dimensions are valid values.)
-{v_1: tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 52 (If images dtype is qint32, then the minimum and maximum values must be float32 tensors)
+{images : tensor, min : tensor, max : tensor} |= if dtype_(images) = 3 then dtype_(min) = 7 ∧ dtype_(max) = 7

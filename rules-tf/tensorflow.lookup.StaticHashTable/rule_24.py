@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Shape of keys and values tensor cannot be zero (Rule 24)
+# key and value tensor dimensions should be compatible (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_shape"], 0) > 0, Select(v["arg2_shape"], 0) > 0)) if n else
-          And(Select(v["arg1_shape"], 0) > 0, Select(v["arg2_shape"], 0) > 0))
+    s.add(Not(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)) if n else
+          Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0))
 )
 
 def rule_24_func(arg1, arg2, solver=None, neg=False):

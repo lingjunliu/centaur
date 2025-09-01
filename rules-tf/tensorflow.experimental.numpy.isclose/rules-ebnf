@@ -1,117 +1,126 @@
 >>
-Rule 1 (Input tensors `x` and `y` must have the same dtype)
-{x : tensor, y : tensor} |= dtype_(x) = dtype_(y)
+Rule 1 (rtol must be non-negative)
+{v_1 : float} |= v_1 ≥ 0
 >>
-Rule 2 (The `rtol` parameter should be a non-negative float)
-{rtol : float} |= rtol ≥ 0.0
+Rule 4 (if equal_nan is true, at least one of a or b should be NaN)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then ∃i ∈ [0, shape(v_1,0)-1] : (v_1[i] = "NaN") ∨ ∃i ∈ [0, shape(v_2,0)-1] : (v_2[i] = "NaN")
 >>
-Rule 3 (The `atol` parameter should be a non-negative float)
-{atol : float} |= atol ≥ 0.0
+Rule 5 (rtol must be non-negative and less than 1)
+{v_1 : float} |= 0 ≤ v_1 ∧ v_1 ≤ 1
 >>
-Rule 4 (If `equal_nan` is true, then both inputs should be allowed to have NaN values)
-{equal_nan : bool} |= if equal_nan then true
+Rule 7 (if equal_nan is true, then rtol and atol don't matter and can be any value)
+{v_1 : bool, v_2 : float, v_3 : float} |= if v_1 = true then true else v_2 ≥ 0 ∧ v_3 ≥ 0
 >>
-Rule 5 (`x` and `y` are tensors with the same shape)
-{x : tensor, y : tensor} |= ndim(x) = ndim(y) ∧ ∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(y, i)
+Rule 8 (a and b should have the same shape)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) else false
 >>
-Rule 9 (If atol is a tensor, it must have the same shape as x)
-{x : tensor, atol : tensor} |= ndim(x) = ndim(atol) ∧ ∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(atol, i)
+Rule 13 (If equal_nan is false, then neither tensor contains NaN values)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then (∀i ∈ [0, shape(v_1,0)-1] : v_1[i] ≠ "NaN") ∧ (∀i ∈ [0, shape(v_2,0)-1] : v_2[i] ≠ "NaN")
 >>
-Rule 10 (If rtol is a tensor, it must have the same shape as x)
-{x : tensor, rtol : tensor} |= ndim(x) = ndim(rtol) ∧ ∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(rtol, i)
+Rule 14 (If rtol and atol are zero, then only check for exact equality)
+{v_1 : float, v_2 : float} |= if v_1 = 0 ∧ v_2 = 0 then true else v_1 ≥ 0 ∧ v_2 ≥ 0
 >>
-Rule 11 (If atol and rtol are both scalars, they must both be non-negative)
-{atol : float, rtol : float} |= atol ≥ 0.0 ∧ rtol ≥ 0.0
+Rule 17 (Shapes must be broadcastable)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∃i ∈ [0, ndim(v_1)-1]: shape(v_1, i) = shape(v_2, i) else if ndim(v_1) > ndim(v_2) then ∃i ∈ [0, ndim(v_2)-1]: shape(v_1, i) = shape(v_2, i) else ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 12 (The parameter `equal_nan` can only be a boolean value)
-{equal_nan : bool} |= equal_nan = true ∨ equal_nan = false
+Rule 20 (rtol is a small positive float)
+{v_1 : float} |= 0 < v_1 ∧ v_1 < 1
 >>
-Rule 13 (If x is a tensor, its dimension should be less than or equal to 5)
-{x : tensor} |= ndim(x) ≤ 5
+Rule 23 (If equal_nan is set to true, then any nan value in either tensor must return true)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then true else ∀i ∈ [0, shape(v_1,0)-1] : v_1[i] ≠ "NaN" ∧ ∀i ∈ [0, shape(v_2,0)-1] : v_2[i] ≠ "NaN"
 >>
-Rule 14 (If x and atol are tensors, they must have the same dtype)
-{x : tensor, atol : tensor} |= dtype_(x) = dtype_(atol)
+Rule 24 (rtol must be greater than 0 and less than 1 if atol is zero)
+{v_1 : float, v_2 : float} |= if v_2 = 0 then 0 < v_1 ∧ v_1 < 1 else v_1 ≥ 0
 >>
-Rule 15 (If x and rtol are tensors, they must have the same dtype)
-{x : tensor, rtol : tensor} |= dtype_(x) = dtype_(rtol)
+Rule 27 (atol must be greater or equal to zero and smaller than 1)
+{v_1 : float} |= 0 ≤ v_1 ∧ v_1 < 1
 >>
-Rule 16 (If y and atol are tensors, they must have the same dtype)
-{y : tensor, atol : tensor} |= dtype_(y) = dtype_(atol)
+Rule 31 (data types of the input tensors must be of the same kind i.e. both float or both complex, or both integer, or both bool)
+{v_1 : tensor, v_2 : tensor} |= ((6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8)) ∨ ((9 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11) ∧ (9 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 11)) ∨ ((1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5) ∧ (1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5)) ∨ (dtype_(v_1) = 0 ∧ dtype_(v_2) = 0)
 >>
-Rule 17 (If y and rtol are tensors, they must have the same dtype)
-{y : tensor, rtol : tensor} |= dtype_(y) = dtype_(rtol)
+Rule 35 (If equal_nan is set to false, and rtol and atol are 0 then both tensors must be equal)
+{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4 : float, v_5: float} |= if v_3 = false ∧ v_4 = 0 ∧ v_5 = 0 then (∀i ∈ [0, shape(v_1,0)-1] : v_1[i] = v_2[i])
 >>
-Rule 18 (If y is a tensor, its dimension should be less than or equal to 5)
-{y : tensor} |= ndim(y) ≤ 5
+Rule 36 (If rtol is 0, then results depends only on absolute tolerance)
+{v_1 : float} |= if v_1 = 0 then true else v_1 ≥ 0
 >>
-Rule 19 (If atol is a tensor, all its elements must be non-negative)
-{atol : tensor} |= ∀i ∈ [0, ndim(atol) - 1] : min(atol) ≥ 0
+Rule 37 (data types of the input tensors must be of the same floating point kind)
+{v_1 : tensor, v_2 : tensor} |= ((6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8))
 >>
-Rule 20 (If rtol is a tensor, all its elements must be non-negative)
-{rtol : tensor} |= ∀i ∈ [0, ndim(rtol) - 1] : min(rtol) ≥ 0
+Rule 40 (rtol is a scalar value)
+{v_1 : float} |= ndim(v_1) = 0
 >>
-Rule 23 (If equal_nan is set, the dtype of x and y can only be float or complex)
-{x : tensor, y : tensor, equal_nan : bool} |= if equal_nan then (dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10) ∧ (dtype_(y) = 6 ∨ dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10)
+Rule 41 (If equal_nan is set to true, then both tensors can contains NaN values and these values will be considered equal)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then (∃i ∈ [0, shape(v_1,0)-1] : v_1[i] = "NaN") ∧ (∃i ∈ [0, shape(v_2,0)-1] : v_2[i] = "NaN")
 >>
-Rule 28 (If `x` is a complex tensor, then both `atol` and `rtol` should also be complex or float.)
-{x : tensor, atol : tensor ⊎ float, rtol : tensor ⊎ float} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then ((if atol = x then (dtype_(atol) = 9 ∨ dtype_(atol) = 10 ∨ dtype_(atol) = 7 ∨ dtype_(atol) = 8 )) ∧ (if rtol = x then (dtype_(rtol) = 9 ∨ dtype_(rtol) = 10 ∨ dtype_(rtol) = 7 ∨ dtype_(rtol) = 8)))
+Rule 43 (rtol must be a non-negative scalar value)
+{v_1 : float} |= ndim(v_1) = 0 ∧ v_1 ≥ 0
 >>
-Rule 29 (If x and y are tensors, then if one of them is a complex type, the other should also be a complex type)
-{x : tensor, y : tensor} |= if (dtype_(x) = 9 ∨ dtype_(x) = 10) then (dtype_(y) = 9 ∨ dtype_(y) = 10) else if (dtype_(y) = 9 ∨ dtype_(y) = 10) then (dtype_(x) = 9 ∨ dtype_(x) = 10)
+Rule 46 (rtol must be smaller than 1)
+{v_1 : float} |= v_1 < 1
 >>
-Rule 30 (If atol is a tensor, it must have float or complex dtype)
-{atol : tensor} |= dtype_(atol) = 6 ∨ dtype_(atol) = 7 ∨ dtype_(atol) = 8 ∨ dtype_(atol) = 9 ∨ dtype_(atol) = 10
+Rule 47 (If equal_nan is set to true, tensors can have different shapes)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then true else if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) else false
 >>
-Rule 31 (If rtol is a tensor, it must have float or complex dtype)
-{rtol : tensor} |= dtype_(rtol) = 6 ∨ dtype_(rtol) = 7 ∨ dtype_(rtol) = 8 ∨ dtype_(rtol) = 9 ∨ dtype_(rtol) = 10
+Rule 49 (rtol must be a non-negative scalar value and smaller than 1)
+{v_1 : float} |= ndim(v_1) = 0 ∧ 0 ≤ v_1 ∧ v_1 < 1
 >>
-Rule 32 (x and y should have compatible shapes for comparison)
-{x : tensor, y : tensor} |= (ndim(x) = ndim(y) ∧ ∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(y, i)) ∨ (ndim(x) = 0 ∨ ndim(y) = 0)
+Rule 50 (If equal_nan is set to false, tensors must have same dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 33 (If equal_nan is true, and dtype of x is float, then x can contain NaN values)
-{x : tensor, equal_nan : bool} |= if equal_nan ∧ (dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8) then true
+Rule 52 (rtol must be a non-negative scalar value and also must be different from atol)
+{v_1 : float, v_2: float} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ 0 ≤ v_1 ∧ v_1 < 1 ∧ v_1 ≠ v_2
 >>
-Rule 36 (If atol is a scalar, then its value must be finite)
-{atol : float} |= atol < 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+Rule 53 (If equal_nan is set to true, then tensors are allowed to have different dtypes)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then true else dtype_(v_1) = dtype_(v_2)
 >>
-Rule 37 (If rtol is a scalar, then its value must be finite)
-{rtol : float} |= rtol < 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+Rule 55 (rtol must be a non-negative scalar value and also must be different from atol if equal_nan is false)
+{v_1 : float, v_2: float, v_3 : bool} |= if v_3 = false then ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ 0 ≤ v_1 ∧ v_1 < 1 ∧ v_1 ≠ v_2
 >>
-Rule 38 (If equal_nan is true, and dtype of x is complex, then x can contain NaN values)
-{x : tensor, equal_nan : bool} |= if equal_nan ∧ (dtype_(x) = 9 ∨ dtype_(x) = 10) then true
+Rule 56 (If tensors are integer dtype then rtol must be 0)
+{v_1 : tensor, v_2 : float} |= if 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 then v_2 = 0
 >>
-Rule 41 (If x and y are tensors of different dtypes, then equal_nan must be false)
-{x : tensor, y : tensor, equal_nan : bool} |= if (dtype_(x) ≠ dtype_(y)) then equal_nan = false
+Rule 57 (atol must be a non-negative scalar value and also must be different from rtol if equal_nan is false)
+{v_1 : float, v_2: float, v_3 : bool} |= if  v_3 = false then ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ 0 ≤ v_1 ∧ v_1 < 1 ∧ v_1 ≠ v_2
 >>
-Rule 42 (If x and y are tensors with the same shape, then x and y must have a dtype that supports element-wise comparison.)
-{x : tensor, y : tensor} |= (ndim(x) = ndim(y) ∧ ∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(y, i))
+Rule 61 (rtol must be a non-negative scalar value and must be different from atol if equal_nan is false, also rtol must be smaller than 1 and greater than 0)
+{v_1 : float, v_2: float, v_3 : bool} |= if v_3 = false then ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ 0 < v_1 ∧ v_1 < 1 ∧ v_1 ≠ v_2
 >>
-Rule 43 (If equal_nan is true, x and y need to be of the same dtype.)
-{x: tensor, y: tensor, equal_nan: bool} |= if equal_nan then dtype_(x) = dtype_(y)
+Rule 62 (If tensors are integer dtype then atol must be 0 and rtol must be 0)
+{v_1 : tensor, v_2 : float, v_3: float} |= if 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 then v_2 = 0 ∧ v_3 = 0
 >>
-Rule 45 (If x is a tensor and y is a tensor, then both atol and rtol has to be a scalar or a tensor of the same dtype as x and y)
-{x : tensor, y : tensor, atol : tensor ⊎ float, rtol : tensor ⊎ float} |= ((if atol = x then (dtype_(atol) = dtype_(x))) ∧ (if rtol=x then (dtype_(rtol) = dtype_(x))))
+Rule 63 (atol must be a non-negative scalar value and also must be different from rtol if equal_nan is false, also atol must be smaller than 1 and greater than 0)
+{v_1 : float, v_2: float, v_3 : bool} |= if  v_3 = false then ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ 0 < v_1 ∧ v_1 < 1 ∧ v_1 ≠ v_2
 >>
-Rule 46 (If atol and rtol are both tensors then they must have the same shape)
-{atol: tensor, rtol: tensor} |= ndim(atol) = ndim(rtol) ∧ ∀i ∈ [0, ndim(atol) - 1] : shape(atol, i) = shape(rtol, i)
+Rule 65 (If tensors are integer dtype then atol must be 0 and rtol must be 0, or tensors can be of bool type)
+{v_1 : tensor, v_2 : float, v_3: float} |= if 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 then v_2 = 0 ∧ v_3 = 0 else if dtype_(v_1) = 0 then true
 >>
-Rule 47 (If x and y are tensors, then if atol is tensor then its shape has to be compatible with x and y shapes, and if either x or y shape is (1,), then atol shape has to be (1,))
-{x: tensor, y: tensor, atol: tensor} |= if (ndim(x) = 1 ∧ shape(x, 0) = 1) ∨ (ndim(y) = 1 ∧ shape(y, 0) = 1) then (ndim(atol) = 1 ∧ shape(atol, 0) = 1) else (ndim(atol) = ndim(x) ∧ ∀i ∈ [0, ndim(x) - 1] : shape(atol, i) = shape(x, i))
+Rule 72 (atol must be a non-negative scalar value and also must be different from rtol)
+{v_1 : float, v_2: float} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ 0 < v_1 ∧ v_1 < 1 ∧ v_1 ≠ v_2
 >>
-Rule 48 (If atol is a scalar then it needs to be non-negative)
-{atol: float} |= atol ≥ 0
+Rule 73 (rtol must be a non-negative scalar value and must be different from atol)
+{v_1 : float, v_2: float} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ 0 ≤ v_1 ∧ 0 ≤ v_2 ∧ v_1 ≠ v_2
 >>
-Rule 49 (If rtol is a tensor, and x and y are also tensors, then rtol needs to be the same shape and dtype as x and y.)
-{x : tensor, y : tensor, rtol : tensor} |= ndim(rtol) = ndim(x) ∧ ∀i ∈ [0, ndim(x) - 1] : shape(rtol, i) = shape(x, i) ∧ dtype_(rtol) = dtype_(x) ∧ dtype_(x) = dtype_(y)
+Rule 74 (If tensors are integer dtype then atol and rtol must be 0)
+{v_1 : tensor, v_2 : tensor, v_3 : float, v_4: float} |= if (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5) ∧ (1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5) then v_3 = 0 ∧ v_4 = 0
 >>
-Rule 50 (If atol is a tensor, and x and y are also tensors, then atol needs to be the same shape and dtype as x and y.)
-{x : tensor, y : tensor, atol : tensor} |= ndim(atol) = ndim(x) ∧ ∀i ∈ [0, ndim(x) - 1] : shape(atol, i) = shape(x, i) ∧ dtype_(atol) = dtype_(x) ∧ dtype_(x) = dtype_(y)
+Rule 76 (rtol must be a non-negative scalar value and must be different from atol, and smaller than 1)
+{v_1 : float, v_2: float} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ 0 ≤ v_1 ∧ 0 ≤ v_2 ∧ v_1 < 1 ∧ v_2 < 1 ∧ v_1 ≠ v_2
 >>
-Rule 51 (If atol is a tensor and x is also a tensor then both need to have dtypes that are float or complex.)
-{x : tensor, atol: tensor} |= (dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10) ∧ (dtype_(atol) = 6 ∨ dtype_(atol) = 7 ∨ dtype_(atol) = 8 ∨ dtype_(atol) = 9 ∨ dtype_(atol) = 10)
+Rule 80 (If tensors are both of float type and equal_nan is false, then atol and rtol must be different)
+{v_1 : tensor, v_2 : tensor, v_3 : float, v_4: float, v_5:bool} |= if (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ (6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8) ∧ v_5 = false then v_3 ≠ v_4
 >>
-Rule 52 (If rtol is a tensor and x is also a tensor then both need to have dtypes that are float or complex.)
-{x : tensor, rtol: tensor} |= (dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10) ∧ (dtype_(rtol) = 6 ∨ dtype_(rtol) = 7 ∨ dtype_(rtol) = 8 ∨ dtype_(rtol) = 9 ∨ dtype_(rtol) = 10)
+Rule 86 (If tensors are both of float type, equal_nan is false, then atol and rtol must be different)
+{v_1 : tensor, v_2 : tensor, v_3 : float, v_4: float, v_5:bool} |= if (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8) ∧ v_5 = false then v_3 ≠ v_4
 >>
-Rule 53 (If x and y are tensors with different dtypes, equal_nan is not applicable)
-{x : tensor, y : tensor, equal_nan : bool} |= if dtype_(x) ≠ dtype_(y) then equal_nan = false
+Rule 88 (rtol must be a non-negative scalar value smaller than 1 and different from atol)
+{v_1 : float, v_2: float} |= ndim(v_1) = 0 ∧ 0 ≤ v_1 ∧ v_1 < 1 ∧ ndim(v_2) = 0 ∧ 0 ≤ v_2 ∧ v_2 < 1 ∧ v_1 ≠ v_2
+>>
+Rule 91 (rtol must be a non-negative scalar value smaller than 1 and different from atol)
+{v_1 : float, v_2: float} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ 0 ≤ v_1 ∧ v_1 < 1 ∧ 0 ≤ v_2 ∧ v_2 < 1 ∧ v_1 ≠ v_2
+>>
+Rule 92 (If tensors are both of float type, and equal_nan is false, and at least one tensor has inf values, then atol must be greater than 0)
+{v_1 : tensor, v_2 : float, v_3:bool} |= if (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ v_3 = false ∧ ((∃i ∈ [0, shape(v_1,0)-1] : v_1[i] = "inf")) then v_2 > 0
+>>
+Rule 95 (If tensors are both of float type, and equal_nan is false, and at least one tensor has inf values, then atol must be greater than or equal rtol)
+{v_1 : tensor, v_2 : float, v_3:bool, v_4:float} |= if (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ v_3 = false ∧ ((∃i ∈ [0, shape(v_1,0)-1] : v_1[i] = "inf")) then v_2 ≥ v_4

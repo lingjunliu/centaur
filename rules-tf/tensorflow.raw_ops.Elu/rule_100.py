@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if features has less than 4 dimensions, check shapes (Rule 100)
+# The name must not be one of the restricted names (Rule 100)
 
 rule_100 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] < 4, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) < 2147483647, False)) if n else
-          If(v["arg1_ndim"] < 4, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) < 2147483647, False))
+    s.add(Not(And(And(And(And(And(And(And(And(And(And(And(And(And(And(And(And(And(v["arg1_value"] != 6, v["arg1_value"] != 7), v["arg1_value"] != 8), v["arg1_value"] != 9), v["arg1_value"] != 10), v["arg1_value"] != 11), v["arg1_value"] != 12), v["arg1_value"] != 13), v["arg1_value"] != 14), v["arg1_value"] != 15), v["arg1_value"] != 16), v["arg1_value"] != 17), v["arg1_value"] != 18), v["arg1_value"] != 19), v["arg1_value"] != 20), v["arg1_value"] != 21), v["arg1_value"] != 22), v["arg1_value"] != 23)) if n else
+          And(And(And(And(And(And(And(And(And(And(And(And(And(And(And(And(And(v["arg1_value"] != 6, v["arg1_value"] != 7), v["arg1_value"] != 8), v["arg1_value"] != 9), v["arg1_value"] != 10), v["arg1_value"] != 11), v["arg1_value"] != 12), v["arg1_value"] != 13), v["arg1_value"] != 14), v["arg1_value"] != 15), v["arg1_value"] != 16), v["arg1_value"] != 17), v["arg1_value"] != 18), v["arg1_value"] != 19), v["arg1_value"] != 20), v["arg1_value"] != 21), v["arg1_value"] != 22), v["arg1_value"] != 23))
 )
 
 def rule_100_func(arg1, solver=None, neg=False):
@@ -17,23 +17,20 @@ def rule_100_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, str):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_value = String('arg1_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_value == list_of_string_values_tf.index(arg1))
 
         # Constraints for rule 100
-        rule_100(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
+        rule_100(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_100(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_100(solver, {'arg1_value': arg1['value']}, neg)

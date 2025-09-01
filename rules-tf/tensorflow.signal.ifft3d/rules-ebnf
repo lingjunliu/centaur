@@ -1,84 +1,123 @@
 >>
 Rule 1 (input tensor must be complex64 or complex128)
-{v_1 : tensor} |= dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+{input : tensor} |= dtype_(input) = 10 ∨ dtype_(input) = 11
 >>
-Rule 2 (input tensor must have at least 3 dimensions)
-{v_1 : tensor} |= ndim(v_1) ≥ 3
+Rule 2 (input tensor must have rank of at least 3)
+{input : tensor} |= ndim(input) ≥ 3
 >>
-Rule 3 (The last three dimensions of the input tensor must have positive sizes)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 3) > 0
+Rule 6 (shape of input should be positive)
+{input : tensor} |= ∀i ∈ [0, ndim(input) - 1] : shape(input, i) > 0
 >>
-Rule 6 (Check if the tensor is not empty)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 7 (input tensor must be complex64 or complex128 and rank >= 3)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ ndim(input) ≥ 3
 >>
-Rule 7 (Shape of input tensor should be greater than 1 in the last 3 dimensions)
-{v_1 : tensor} |= shape(v_1, ndim(v_1)-1) > 1 ∧ shape(v_1, ndim(v_1)-2) > 1 ∧ shape(v_1, ndim(v_1)-3) > 1
+Rule 9 (input tensor must be complex64 or complex128 and rank >= 3 and innermost 3 dimensions are positive)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ ndim(input) ≥ 3 ∧ shape(input, ndim(input)-1) > 0 ∧ shape(input, ndim(input)-2) > 0 ∧ shape(input, ndim(input)-3) > 0
 >>
-Rule 8 (input tensor must have shape greater than 1 on all dimensions.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1
+Rule 13 (if input has rank 3, its dimensions must be positive)
+{input : tensor} |= if ndim(input) = 3 then shape(input, 0) > 0 ∧ shape(input, 1) > 0 ∧ shape(input, 2) > 0
 >>
-Rule 9 (The number of elements in the last 3 dimensions must be greater than 1)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) * shape(v_1, ndim(v_1) - 2) * shape(v_1, ndim(v_1) - 3) > 1
+Rule 17 (If any of the last three dimensions are 0, then the input should have rank > 3)
+{input : tensor} |= if shape(input, ndim(input)-1) = 0 ∨ shape(input, ndim(input)-2) = 0 ∨ shape(input, ndim(input)-3) = 0 then ndim(input) > 3
 >>
-Rule 10 (The size of the input tensor must be greater than 0)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 18 (input tensor must be complex64 or complex128)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11)
 >>
-Rule 11 (If the input tensor has more than 3 dimensions, the dimensions from 0 to ndim - 4 must have size greater than zero)
-{v_1 : tensor} |= if ndim(v_1) > 3 then ∀i ∈ [0, ndim(v_1) - 4] : shape(v_1, i) > 0
+Rule 20 (If any of the last three dimensions are 0 and rank is not 0, then the input should have rank > 3)
+{input : tensor} |= if (shape(input, ndim(input)-1) = 0 ∨ shape(input, ndim(input)-2) = 0 ∨ shape(input, ndim(input)-3) = 0) ∧ ndim(input) ≠ 0 then ndim(input) > 3
 >>
-Rule 12 (If the input tensor has a shape where the last 3 dimensions are 1, then the tensor is effectively 1D)
-{v_1 : tensor} |= if shape(v_1, ndim(v_1) - 1) = 1 ∧ shape(v_1, ndim(v_1) - 2) = 1 ∧ shape(v_1, ndim(v_1) - 3) = 1 then ndim(v_1) = 3
+Rule 22 (If the tensor is less than rank 3, then the dimensions of the last 3 dimensions do not matter.)
+{input : tensor} |= if ndim(input) < 3 then true else if (shape(input, ndim(input)-1) = 0 ∨ shape(input, ndim(input)-2) = 0 ∨ shape(input, ndim(input)-3) = 0) then ndim(input) > 3
 >>
-Rule 13 (Input tensor's last three dimensions cannot be zero simultaneously)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) + shape(v_1, ndim(v_1) - 2) + shape(v_1, ndim(v_1) - 3) > 0
+Rule 23 (input tensor must be complex64 or complex128, and if any of the last three dimensions are 0 then the input should have rank > 3)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ (if (shape(input, ndim(input)-1) = 0 ∨ shape(input, ndim(input)-2) = 0 ∨ shape(input, ndim(input)-3) = 0) ∧ ndim(input) ≠ 0 then ndim(input) > 3)
 >>
-Rule 14 (If input tensor is complex64, min and max values are within range)
-{v_1 : tensor} |= if dtype_(v_1) = 10 then min(v_1) > -1000 ∧ max(v_1) < 1000
+Rule 26 (input tensor must have rank of at least 3, but if last 3 dimensions are zero-sized then input tensor must have rank > 3 to be valid)
+{input : tensor} |= ndim(input) ≥ 3 ∧ if (shape(input, ndim(input)-1) = 0 ∨ shape(input, ndim(input)-2) = 0 ∨ shape(input, ndim(input)-3) = 0) then ndim(input) > 3
 >>
-Rule 15 (If the input tensor's datatype is complex64, its min value should be less than its max value.)
-{v_1 : tensor} |= if dtype_(v_1) = 10 then min(v_1) < max(v_1)
+Rule 27 (input tensor must be complex64 or complex128 and satisfy the rank conditions)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ ndim(input) ≥ 3 ∧ if (shape(input, ndim(input)-1) = 0 ∨ shape(input, ndim(input)-2) = 0 ∨ shape(input, ndim(input)-3) = 0) then ndim(input) > 3
 >>
-Rule 16 (The product of the last three dimensions of input should not cause an overflow)
-{v_1 : tensor} |= shape(v_1, ndim(v_1)-1) * shape(v_1, ndim(v_1)-2) < 2147483647 / shape(v_1, ndim(v_1)-3)
+Rule 30 (input tensor must have rank of at least 3, and if the last 3 dimensions are zero-sized, then its rank must be greater than 3; if it has less than 3 dims, it's valid)
+{input : tensor} |= ndim(input) ≥ 3 ∧ (if (shape(input, ndim(input)-1) = 0 ∨ shape(input, ndim(input)-2) = 0 ∨ shape(input, ndim(input)-3) = 0) then ndim(input) > 3) ∨ ndim(input) < 3
 >>
-Rule 18 (If the input tensor has less than 3 dimensions, it cannot be processed)
-{v_1 : tensor} |= if ndim(v_1) < 3 then false
+Rule 31 (input tensor must be complex64 or complex128 and satisfy the rank conditions)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ (ndim(input) ≥ 3 ∧ if (shape(input, ndim(input)-1) = 0 ∨ shape(input, ndim(input)-2) = 0 ∨ shape(input, ndim(input)-3) = 0) then ndim(input) > 3)
 >>
-Rule 20 (The size of the last dimension should be power of 2 or power of 2 plus 1 for better performance, up to 1024. Expressed using boolean ORs)
-{v_1 : tensor} |= shape(v_1, ndim(v_1)-1) = 1 ∨ shape(v_1, ndim(v_1)-1) = 2 ∨ shape(v_1, ndim(v_1)-1) = 3 ∨ shape(v_1, ndim(v_1)-1) = 4 ∨ shape(v_1, ndim(v_1)-1) = 5 ∨ shape(v_1, ndim(v_1)-1) = 8 ∨ shape(v_1, ndim(v_1)-1) = 9 ∨ shape(v_1, ndim(v_1)-1) = 16 ∨ shape(v_1, ndim(v_1)-1) = 17 ∨ shape(v_1, ndim(v_1)-1) = 32 ∨ shape(v_1, ndim(v_1)-1) = 33 ∨ shape(v_1, ndim(v_1)-1) = 64 ∨ shape(v_1, ndim(v_1)-1) = 65 ∨ shape(v_1, ndim(v_1)-1) = 128 ∨ shape(v_1, ndim(v_1)-1) = 129 ∨ shape(v_1, ndim(v_1)-1) = 256 ∨ shape(v_1, ndim(v_1)-1) = 257 ∨ shape(v_1, ndim(v_1)-1) = 512 ∨ shape(v_1, ndim(v_1)-1) = 513 ∨ shape(v_1, ndim(v_1)-1) = 1024 ∨ shape(v_1, ndim(v_1)-1) = 1025
+Rule 32 (Input tensor must be complex64 or complex128 and have rank >=3, and its last 3 dimensions should be greater than 0 unless the whole tensor has rank < 3)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ ndim(input) ≥ 3 ∧ (if ndim(input) < 3 then true else (shape(input, ndim(input)-1) > 0 ∧ shape(input, ndim(input)-2) > 0 ∧ shape(input, ndim(input)-3) > 0))
 >>
-Rule 21 (Check if the real and imaginary parts of the complex tensor are within a reasonable range)
-{v_1 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then min(v_1) > -10000 ∧ max(v_1) < 10000
+Rule 33 (Input tensor 'input' must be complex64 or complex128, must have rank >=3, and its last 3 dimensions should be greater than 0 if rank >=3.)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ (ndim(input) ≥ 3 ∧ (if ndim(input) >= 3 then (shape(input, ndim(input)-1) > 0 ∧ shape(input, ndim(input)-2) > 0 ∧ shape(input, ndim(input)-3) > 0)))
 >>
-Rule 22 (If the input tensor is complex128, its min value should be less than its max value.)
-{v_1 : tensor} |= if dtype_(v_1) = 11 then min(v_1) < max(v_1)
+Rule 34 (Input tensor 'input' must be complex64 or complex128, have rank >=3, and have valid dimensions if rank >= 3.)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ (ndim(input) ≥ 3 ∧ (if ndim(input) >= 3 then (∀i ∈ [0, 2] : shape(input, ndim(input)-1-i) > 0)))
 >>
-Rule 23 (The input tensor cannot have any dimension with size zero in the last three dimensions.)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) ≠ 0 ∧ shape(v_1, ndim(v_1) - 2) ≠ 0 ∧ shape(v_1, ndim(v_1) - 3) ≠ 0
+Rule 35 (Input tensor 'input' must be complex64 or complex128, must have rank >=3, and its last 3 dimensions should be greater than 0.)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ (ndim(input) ≥ 3 ∧ (∀i ∈ [0, 2] : shape(input, ndim(input)-1-i) > 0))
 >>
-Rule 24 (If the input tensor has more than 3 dimensions, its shape should not contain inf.)
-{v_1 : tensor} |= if ndim(v_1) > 3 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 1.7976931348623157e+308
+Rule 36 (Input tensor 'input' must be complex64 or complex128, have rank >=3.)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ (ndim(input) ≥ 3)
 >>
-Rule 25 (The last three dimensions must be less than a certain value to avoid memory issues)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) < 2048 ∧ shape(v_1, ndim(v_1) - 2) < 2048 ∧ shape(v_1, ndim(v_1) - 3) < 2048
+Rule 37 (Input tensor 'input' must be complex64 or complex128 and have rank >=3, and last 3 dimensions should be > 0)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ ndim(input) ≥ 3 ∧ (∀i ∈ [0,2]: shape(input, ndim(input) - 1 - i) > 0)
 >>
-Rule 26 (The number of elements in the input tensor should be within reasonable limits to avoid OOM)
-{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 100000000
+Rule 40 (Input tensor 'input' must have rank >=3, and its shape dims should be > 0 if it has rank >= 3)
+{input : tensor} |= ndim(input) >= 3 ∧ if ndim(input) >= 3 then (∀i ∈ [0, 2] : shape(input, ndim(input) - 1 - i) > 0)
 >>
-Rule 27 (If dtype is complex64, then min and max should both be representable as float32)
-{v_1 : tensor} |= if dtype_(v_1) = 10 then min(v_1) > -3.4028235e+38 ∧ max(v_1) < 3.4028235e+38
+Rule 41 (Input tensor 'input' must be complex64 or complex128, and must have rank >=3 and positive dimensions if rank >=3)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ (ndim(input) >= 3 ∧ (if ndim(input) >= 3 then (∀i ∈ [0, 2] : shape(input, ndim(input) - 1 - i) > 0)))
 >>
-Rule 28 (If dtype is complex128, then min and max should both be representable as float64)
-{v_1 : tensor} |= if dtype_(v_1) = 11 then min(v_1) > -1.7976931348623157e+308 ∧ max(v_1) < 1.7976931348623157e+308
+Rule 42 (Input tensor 'input' must be complex64 or complex128 and must have rank of at least 3 and positive dimensions if the rank is at least 3)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ (ndim(input) ≥ 3 ∧ (if ndim(input) ≥ 3 then (∀i ∈ [0, 2] : shape(input, ndim(input) - 1 - i) > 0)))
 >>
-Rule 29 (For performance reasons, avoid very large dimensions on the innermost dimensions)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) * shape(v_1, ndim(v_1) - 2) * shape(v_1, ndim(v_1) - 3) < 2000000
+Rule 43 (Input tensor 'input' must be complex64 or complex128, and if its rank is greater or equal to 3 then its shape dimensions in the last three axes should be greater than zero, otherwise is valid)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ (if ndim(input) >= 3 then (∀i ∈ [0, 2] : shape(input, ndim(input) - 1 - i) > 0))
 >>
-Rule 32 (For complex64, the input tensor value cannot be NaN or Inf.)
-{v_1 : tensor} |= if dtype_(v_1) = 10 then min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "NaN" ∧ min(v_1) ≠ "Inf" ∧ max(v_1) ≠ "Inf"
+Rule 44 (Input tensor 'input' must be complex64 or complex128, have rank >=3, and last three dimensions must be positive)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ (ndim(input) ≥ 3) ∧ (∀i ∈ [0, 2] : shape(input, ndim(input) - 1 - i) > 0)
 >>
-Rule 33 (For complex128, the input tensor value cannot be NaN or Inf.)
-{v_1 : tensor} |= if dtype_(v_1) = 11 then min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "NaN" ∧ min(v_1) ≠ "Inf" ∧ max(v_1) ≠ "Inf"
+Rule 47 (Input tensor 'input' must have rank >=3 and last 3 dimensions must be positive)
+{input : tensor} |= (ndim(input) ≥ 3) ∧ (∀i ∈ [0, 2] : shape(input, ndim(input) - 1 - i) > 0)
 >>
-Rule 34 (The total size of the tensor in bytes should be less than a certain limit)
-{v_1 : tensor} |= if dtype_(v_1) = 10 then shape(v_1, ndim(v_1)-1) * shape(v_1, ndim(v_1)-2) * shape(v_1, ndim(v_1)-3) * 8 < 2000000000 else shape(v_1, ndim(v_1)-1) * shape(v_1, ndim(v_1)-2) * shape(v_1, ndim(v_1)-3) * 16 < 2000000000
+Rule 49 (Input tensor 'input' must be complex64 or complex128 and meet shape requirements)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ (ndim(input) ≥ 3 ∧ (∀i ∈ [0, 2] : shape(input, ndim(input) - 1 - i) > 0))
+>>
+Rule 51 (Input tensor 'input' must be complex64 or complex128, have rank >=3 and positive shape dimensions for the innermost 3 dimensions if the rank is >=3)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ (if ndim(input) >= 3 then (ndim(input) >= 3 ∧ (∀i ∈ [0, 2] : shape(input, ndim(input) - 1 - i) > 0)))
+>>
+Rule 53 (Input tensor 'input' must be complex64 or complex128 and must have rank >=3 and all dimensions positive if rank >=3.)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ if ndim(input) >= 3 then (ndim(input) >= 3 ∧ (∀i ∈ [0, ndim(input) - 1] : shape(input, i) > 0))
+>>
+Rule 54 (Input tensor must be complex64 or complex128, has at least 3 dimensions, and dimensions are valid)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ (ndim(input) ≥ 3) ∧ (if ndim(input) >= 3 then (∀i ∈ [0, ndim(input)-1]: shape(input, i) > 0))
+>>
+Rule 55 (Input tensor must be complex64 or complex128, and rank/dimensions must be valid)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ ((ndim(input) ≥ 3) ∧ (∀i ∈ [0, 2] : shape(input, ndim(input)-1-i) > 0))
+>>
+Rule 56 (Input tensor must be complex64 or complex128, rank must be >=3 and dimensions valid.)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ (if ndim(input) >= 3 then ((ndim(input) >= 3) ∧ (∀i ∈ [0, 2] : shape(input, ndim(input) - 1 - i) > 0)))
+>>
+Rule 57 (Input tensor must be complex64 or complex128, has at least 3 dimensions, and has positive shape dimensions if rank is at least 3)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ if ndim(input) >= 3 then (ndim(input) >= 3 ∧ (∀i ∈ [0, 2] : shape(input, ndim(input)-1-i) > 0))
+>>
+Rule 58 (Input tensor must be complex64 or complex128 with valid rank and shape dimensions)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ (ndim(input) ≥ 3) ∧ (if ndim(input) >= 3 then (∀i ∈ [0, 2] : shape(input, ndim(input) - 1 - i) > 0))
+>>
+Rule 59 (Input tensor 'input' must be complex64 or complex128 with compatible rank and shape)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ (if ndim(input) >= 3 then ∀i ∈ [ndim(input)-3, ndim(input)-1] : shape(input, i) > 0) ∧ (ndim(input) >= 3)
+>>
+Rule 60 (Input tensor dtype is complex64 or complex128 and dimensions are valid and rank is at least 3)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ if ndim(input) >= 3 then (∀i ∈ [ndim(input)-3, ndim(input)-1] : shape(input, i) > 0) ∧ (ndim(input) >= 3)
+>>
+Rule 61 (Input tensor must be complex64 or complex128 and its 3 innermost dimensions are positive if rank >=3)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ if ndim(input) >= 3 then (∀i ∈ [0,2]: shape(input, ndim(input) - i -1) > 0)
+>>
+Rule 62 (Input tensor must be complex64 or complex128 and its dimensions and rank are valid)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ if ndim(input) >= 3 then (ndim(input) >= 3 ∧ (∀i ∈ [ndim(input)-3, ndim(input)-1] : shape(input, i) > 0))
+>>
+Rule 63 (Input tensor must be complex64 or complex128 and have valid shape and rank >=3)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ (if ndim(input) >= 3 then (∀i ∈ [ndim(input)-3, ndim(input)-1] : shape(input, i) > 0))
+>>
+Rule 65 (The input tensor must be complex64 or complex128, rank >= 3 and innermost 3 dimensions must be > 0)
+{input : tensor} |= (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ (ndim(input) ≥ 3) ∧ (∀i ∈ [ndim(input)-3, ndim(input)-1] : shape(input, i) > 0)

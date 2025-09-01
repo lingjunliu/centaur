@@ -1,78 +1,108 @@
 >>
-Rule 1 (input tensor x must be 1-D)
+Rule 1 (x must be a 1-D tensor)
 {v_1 : tensor} |= ndim(v_1) = 1
 >>
-Rule 2 (input tensor x must be int32 or int64)
-{v_1 : dtype} |= v_1 = 3 ∨ v_1 = 4
+Rule 2 (x must have int32 or int64 dtype)
+{v_1 : tensor} |= dtype_(v_1) = 2 ∨ dtype_(v_1) = 3
 >>
-Rule 3 (all values in tensor x must be non-negative)
+Rule 3 (all elements in x must be non-negative)
 {v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
 >>
-Rule 4 (all values in tensor x must be less than len(x))
+Rule 4 (all elements in x must be less than the length of x)
 {v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < shape(v_1, 0)
 >>
-Rule 5 (no duplicate values in tensor x)
+Rule 5 (no duplicate values in x)
 {v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j]
 >>
-Rule 6 (values in tensor x must include 0)
+Rule 6 (x must contain 0)
 {v_1 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0
 >>
-Rule 8 (The maximum value in x must be less than or equal to the length of x minus one)
-{v_1 : tensor} |= max(v_1) ≤ shape(v_1, 0) - 1
+Rule 7 (all elements in x must be unique and in range [0, shape(x,0) -1])
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j] ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < shape(v_1, 0)
 >>
-Rule 9 (The elements of x must form a complete sequence from 0 to len(x) - 1)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : ∃j ∈ [0, shape(v_1, 0) - 1] : v_1[j] = i
+Rule 8 (The values in x represent a valid permutation of [0, shape(x, 0) - 1])
+{v_1 : tensor} |= ∀k ∈ [0, shape(v_1, 0) - 1] : ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = k
 >>
-Rule 10 (The values in tensor x must be within the valid range based on the shape)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : 0 ≤ v_1[i] ∧ v_1[i] < shape(v_1, 0)
+Rule 9 (the output tensor has the same shape as the input)
+{v_1 : tensor} |= shape(v_1, 0) = shape(v_1, 0)
 >>
-Rule 11 (Output tensor has the same shape as input tensor)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 10 (x is a valid permutation)
+{v_1 : tensor} |= (ndim(v_1) = 1) ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < shape(v_1, 0)) ∧ (∀k ∈ [0, shape(v_1, 0) - 1] : ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = k)
 >>
-Rule 12 (Output tensor has the same dtype as input tensor)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 11 (The maximum value in x is equal to shape(x, 0) - 1)
+{v_1 : tensor} |= max(v_1) = shape(v_1, 0) - 1
 >>
-Rule 13 (Output tensor is of type int32 or int64)
-{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 12 (x contains all numbers from 0 to shape(x, 0) - 1 exactly once)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : ∃j ∈ [0, shape(v_1, 0) - 1] : v_1[j] = i ∧ ∀j1 ∈ [0, shape(v_1, 0) - 1] : ∀j2 ∈ [j1 + 1, shape(v_1, 0) - 1] : v_1[j1] ≠ v_1[j2]
 >>
-Rule 14 (The range of values in x is from 0 to len(x)-1)
-{v_1 : tensor} |= min(v_1) = 0 ∧ max(v_1) = shape(v_1, 0) - 1
+Rule 13 (Input tensor x's elements form a permutation from 0 to shape(x)[0]-1)
+{v_1 : tensor} |= (ndim(v_1) = 1) ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < shape(v_1, 0)) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : ∃j ∈ [0, shape(v_1, 0) - 1] : v_1[j] = i)
 >>
-Rule 16 (Input tensor x is a permutation of range(len(x)))
-{v_1 : tensor} |= (min(v_1) = 0) ∧ (max(v_1) = shape(v_1, 0) - 1) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j])
+Rule 15 (x is a permutation of integers from 0 to shape(x, 0) - 1)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] ≥ 0 ∧ v_1[i] < shape(v_1, 0)) ∧ ∀k ∈ [0, shape(v_1, 0) - 1] : ∃j ∈ [0, shape(v_1, 0) - 1] : v_1[j] = k
 >>
-Rule 17 (If input tensor x is empty, the output should also be empty)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) = 0 then shape(v_2, 0) = 0
+Rule 16 (x is a permutation)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ (min(v_1) ≥ 0) ∧ (max(v_1) ≤ shape(v_1, 0) - 1) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j])
 >>
-Rule 18 (The output tensor y should satisfy y[x[i]] = i)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_2[v_1[i]] = i
+Rule 17 (x values form a valid permutation)
+{v_1 : tensor} |= (ndim(v_1) = 1) ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ (∀val ∈ [0, shape(v_1, 0)-1] : ∃idx ∈ [0, shape(v_1, 0)-1]: v_1[idx] = val)
 >>
-Rule 19 (The inverted permutation tensor values should be non-negative and less than the input tensor length)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0 ∧ v_2[i] < shape(v_1, 0)
+Rule 18 (The input 'x' must contain all the numbers from 0 to shape(x,0)-1)
+{v_1 : tensor} |= (ndim(v_1) = 1) ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : ∃j ∈ [0, shape(v_1, 0) - 1] : v_1[j] = i
 >>
-Rule 20 (The length of the inverted permutation tensor is equal to the maximum value in the original permutation tensor plus one)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) = max(v_1) + 1
+Rule 20 (x must be a 1D tensor of int32 or int64 where each value represents a unique index from 0 to N-1)
+{v_1 : tensor} |= (ndim(v_1) = 1) ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] ≥ 0) ∧ (v_1[i] < shape(v_1, 0))) ∧ (∀k ∈ [0, shape(v_1, 0) - 1] : (∃j ∈ [0, shape(v_1, 0) - 1] : v_1[j] = k))
 >>
-Rule 23 (If max(x) + 1 != len(x), then an error will be raised)
-{v_1 : tensor} |= if max(v_1) + 1 ≠ shape(v_1, 0) then false
+Rule 22 (x is permutation of integers)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < shape(v_1, 0)) ∧ (∀k ∈ [0, shape(v_1, 0) - 1] : ∃j ∈ [0, shape(v_1, 0) - 1] : v_1[j] = k)
 >>
-Rule 26 (If input tensor x is a valid permutation, then the output tensor values are also bounded.)
-{v_1 : tensor, v_2 : tensor} |= if (min(v_1) = 0 ∧ max(v_1) = shape(v_1, 0) - 1 ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j])) then (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0 ∧ v_2[i] < shape(v_1,0))
+Rule 27 (x contains a valid permutation of integers from 0 to shape(x, 0)-1)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] ≥ 0 ∧ v_1[i] < shape(v_1, 0))) ∧ (∀k ∈ [0, shape(v_1, 0) - 1] : (∃j ∈ [0, shape(v_1, 0) - 1] : v_1[j] = k))
 >>
-Rule 27 (If the input tensor is a valid permutation, then the output tensor must also be a valid permutation.)
-{v_1 : tensor, v_2 : tensor} |= if (min(v_1) = 0 ∧ max(v_1) = shape(v_1, 0) - 1 ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j])) then (min(v_2) = 0 ∧ max(v_2) = shape(v_2, 0) - 1 ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : ∀j ∈ [i + 1, shape(v_2, 0) - 1] : v_2[i] ≠ v_2[j]))
+Rule 29 (Input x is a valid permutation)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] ≥ 0) ∧ (v_1[i] < shape(v_1, 0))) ∧ (∀k ∈ [0, shape(v_1, 0) - 1] : (∃j ∈ [0, shape(v_1, 0) - 1] : v_1[j] = k))
 >>
-Rule 28 (The output at index i is the index of value i in the input)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : ∃j ∈ [0, shape(v_2, 0) - 1] : v_1[j] = i ∧ v_2[i] = j
+Rule 30 (Input 'x' is a valid permutation)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] ≥ 0) ∧ (v_1[i] < shape(v_1, 0))) ∧ (∀k ∈ [0, shape(v_1, 0) - 1] : ∃j ∈ [0, shape(v_1, 0) - 1] : v_1[j] = k)
 >>
-Rule 30 (The input and output tensor, when composed, must yield identity)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[v_2[i]] = i
+Rule 31 (x represents a permutation of integers from 0 to shape(x, 0) - 1)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] ≥ 0 ∧ v_1[i] < shape(v_1, 0))) ∧ (∀k ∈ [0, shape(v_1, 0) - 1] : (∃j ∈ [0, shape(v_1, 0) - 1] : v_1[j] = k)) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j])
 >>
-Rule 31 (Input tensor x values cannot exceed int32 max if dtype is int32.)
-{v_1 : tensor} |= if dtype_(v_1) = 3 then max(v_1) ≤ 2147483647
+Rule 32 (x is valid permutation tensor)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ (min(v_1) ≥ 0) ∧ (max(v_1) < shape(v_1, 0)) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j]) ∧ (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0)
 >>
-Rule 32 (If the input is a valid permutation then every value in the output should also be a valid index into the input tensor.)
-{v_1 : tensor, v_2 : tensor} |= if (min(v_1) = 0 ∧ max(v_1) = shape(v_1, 0) - 1 ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j])) then (∀i ∈ [0, shape(v_2, 0) - 1] : 0 ≤ v_2[i] ∧ v_2[i] < shape(v_1, 0))
+Rule 33 (x is a valid permutation)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < shape(v_1, 0)) ∧ (∀k ∈ [0, shape(v_1, 0) - 1] : ∃j ∈ [0, shape(v_1, 0) - 1] : v_1[j] = k) ∧ (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0)
 >>
-Rule 33 (If any value in x is negative, the function will throw an error)
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 34 (x is a valid permutation)
+{v_1 : tensor} |= (ndim(v_1) = 1) ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] ≥ 0 ∧ v_1[i] < shape(v_1, 0))) ∧ (∀k ∈ [0, shape(v_1, 0) - 1] : (∃j ∈ [0, shape(v_1, 0) - 1] : v_1[j] = k)) ∧ (∃idx ∈ [0, shape(v_1, 0) - 1] : v_1[idx] = 0)
+>>
+Rule 36 (Input 'x' is a valid permutation)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] ≥ 0 ∧ v_1[i] < shape(v_1, 0))) ∧ (∀val ∈ [0, shape(v_1, 0) - 1] : ∃idx ∈ [0, shape(v_1, 0) - 1] : v_1[idx] = val)
+>>
+Rule 37 (Input x is a valid permutation)
+{v_1 : tensor} |= (ndim(v_1) = 1) ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] ≥ 0) ∧ (v_1[i] < shape(v_1, 0))) ∧ (∀val ∈ [0, shape(v_1, 0) - 1] : (∃idx ∈ [0, shape(v_1, 0) - 1] : v_1[idx] = val)) ∧ (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j])
+>>
+Rule 38 (x is a valid 1D permutation tensor with int32 or int64 dtypes.)
+{v_1 : tensor} |= (ndim(v_1) = 1) ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] ≥ 0 ∧ v_1[i] < shape(v_1, 0))) ∧ (∀k ∈ [0, shape(v_1, 0) - 1] : (∃j ∈ [0, shape(v_1, 0) - 1] : v_1[j] = k)) ∧ (∃idx ∈ [0, shape(v_1, 0) - 1] : v_1[idx] = 0) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j])
+>>
+Rule 39 (x is valid 1D permutation)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : 0 ≤ v_1[i] ∧ v_1[i] < shape(v_1, 0)) ∧ (∃j ∈ [0, shape(v_1, 0) - 1] : v_1[j] = 0) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : ∀k ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[k])
+>>
+Rule 40 (x must be a valid permutation)
+{v_1 : tensor} |= (ndim(v_1) = 1) ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ (min(v_1) ≥ 0) ∧ (max(v_1) < shape(v_1, 0)) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : ∀k ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[k]) ∧ (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0) ∧ (max(v_1) = shape(v_1, 0)-1)
+>>
+Rule 41 (The input tensor x is a valid permutation, containing all integers from 0 to its length - 1, with no repetitions)
+{v_1 : tensor} |= (ndim(v_1) = 1) ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : 0 ≤ v_1[i] ∧ v_1[i] < shape(v_1, 0)) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j]) ∧ (∀k ∈ [0, shape(v_1, 0) - 1] : ∃j ∈ [0, shape(v_1, 0) - 1] : v_1[j] = k)
+>>
+Rule 42 (Input 'x' is a valid permutation)
+{v_1 : tensor} |= (ndim(v_1) = 1) ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : 0 ≤ v_1[i] ∧ v_1[i] < shape(v_1, 0)) ∧ (∀k ∈ [0, shape(v_1, 0) - 1] : ∃j ∈ [0, shape(v_1, 0) - 1] : v_1[j] = k)
+>>
+Rule 44 (x is a valid permutation)
+{v_1 : tensor} |= (ndim(v_1) = 1) ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < shape(v_1, 0)) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j]) ∧ (∀k ∈ [0, shape(v_1, 0) - 1] : ∃j ∈ [0, shape(v_1, 0) - 1] : v_1[j] = k)
+>>
+Rule 45 (x is a valid 1D permutation tensor)
+{v_1 : tensor} |= (ndim(v_1) = 1) ∧ ((dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3)) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : (0 ≤ v_1[i] ∧ v_1[i] < shape(v_1, 0))) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j]) ∧ (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0)
+>>
+Rule 46 (x is a 1-D tensor with int32 or int64 elements representing a valid permutation from 0 to N-1, containing 0 and no duplicates)
+{v_1 : tensor} |= (ndim(v_1) = 1) ∧ (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] ≥ 0 ∧ v_1[i] < shape(v_1, 0))) ∧ (∀k ∈ [0, shape(v_1, 0) - 1] : ∃j ∈ [0, shape(v_1, 0) - 1] : v_1[j] = k) ∧ (∃idx ∈ [0, shape(v_1, 0) - 1] : v_1[idx] = 0) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j])

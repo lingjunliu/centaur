@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# check if it's not int8 or uint8 (Rule 19)
+# Ensure x is a tensor of floats to avoid TypeError (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 5)) if n else
-          And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 5))
+    s.add(Not(If(v["arg1_dtype"] == 1, False, If(v["arg1_dtype"] == 2, False, If(v["arg1_dtype"] == 3, False, If(v["arg1_dtype"] == 4, False, If(v["arg1_dtype"] == 5, False, True)))))) if n else
+          If(v["arg1_dtype"] == 1, False, If(v["arg1_dtype"] == 2, False, If(v["arg1_dtype"] == 3, False, If(v["arg1_dtype"] == 4, False, If(v["arg1_dtype"] == 5, False, True))))))
 )
 
 def rule_19_func(arg1, solver=None, neg=False):

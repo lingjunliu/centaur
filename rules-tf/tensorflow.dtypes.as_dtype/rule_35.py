@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the type is list of string, and each one must be within specified list (Rule 35)
+# If type_value is an integer, it must be a valid DataType enum (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_length"] > 0, And([Implies(i < (v["arg1_length"] - 1 + 1), (Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Select(v["arg1_values"], i) == 0, Select(v["arg1_values"], i) == 1), Select(v["arg1_values"], i) == 2), Select(v["arg1_values"], i) == 3), Select(v["arg1_values"], i) == 4), Select(v["arg1_values"], i) == 5), Select(v["arg1_values"], i) == 6), Select(v["arg1_values"], i) == 7), Select(v["arg1_values"], i) == 8), Select(v["arg1_values"], i) == 9), Select(v["arg1_values"], i) == 10), Select(v["arg1_values"], i) == 11), Select(v["arg1_values"], i) == 12), Select(v["arg1_values"], i) == 13), Select(v["arg1_values"], i) == 14), Select(v["arg1_values"], i) == 15), Select(v["arg1_values"], i) == 16), Select(v["arg1_values"], i) == 17), Select(v["arg1_values"], i) == 18), Select(v["arg1_values"], i) == 19), Select(v["arg1_values"], i) == 20), Select(v["arg1_values"], i) == 21), Select(v["arg1_values"], i) == 22))) for i in range(6)]))) if n else
-          And(v["arg1_length"] > 0, And([Implies(i < (v["arg1_length"] - 1 + 1), (Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Select(v["arg1_values"], i) == 0, Select(v["arg1_values"], i) == 1), Select(v["arg1_values"], i) == 2), Select(v["arg1_values"], i) == 3), Select(v["arg1_values"], i) == 4), Select(v["arg1_values"], i) == 5), Select(v["arg1_values"], i) == 6), Select(v["arg1_values"], i) == 7), Select(v["arg1_values"], i) == 8), Select(v["arg1_values"], i) == 9), Select(v["arg1_values"], i) == 10), Select(v["arg1_values"], i) == 11), Select(v["arg1_values"], i) == 12), Select(v["arg1_values"], i) == 13), Select(v["arg1_values"], i) == 14), Select(v["arg1_values"], i) == 15), Select(v["arg1_values"], i) == 16), Select(v["arg1_values"], i) == 17), Select(v["arg1_values"], i) == 18), Select(v["arg1_values"], i) == 19), Select(v["arg1_values"], i) == 20), Select(v["arg1_values"], i) == 21), Select(v["arg1_values"], i) == 22))) for i in range(6)])))
+    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] <= 12)) if n else
+          And(v["arg1_value"] >= 0, v["arg1_value"] <= 12))
 )
 
 def rule_35_func(arg1, solver=None, neg=False):
@@ -17,23 +17,20 @@ def rule_35_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all(isinstance(e, str) for e in arg1)):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg1_values = Array('arg1_values', IntSort(), StringSort())
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 35
-        rule_35(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length})
+        rule_35(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_35(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length']}, neg)
+        rule_35(solver, {'arg1_value': arg1['value']}, neg)

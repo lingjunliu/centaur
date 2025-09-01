@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# images tensor must have values between 0 and 1 inclusive (Rule 13)
+# The last dimension must have size 3 if the tensor is not a scalar (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_range"], 0) >= 0.0, Select(v["arg1_range"], 1) <= 1.0)) if n else
-          And(Select(v["arg1_range"], 0) >= 0.0, Select(v["arg1_range"], 1) <= 1.0))
+    s.add(Not(Or((v["arg1_ndim"] == 0), (And(v["arg1_ndim"] > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 3)))) if n else
+          Or((v["arg1_ndim"] == 0), (And(v["arg1_ndim"] > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 3))))
 )
 
 def rule_13_func(arg1, solver=None, neg=False):
@@ -22,16 +22,18 @@ def rule_13_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 13
-        rule_13(solver, {'arg1_range': arg1_range})
+        rule_13(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_13(solver, {'arg1_range': arg1['range']}, neg)
+        rule_13(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

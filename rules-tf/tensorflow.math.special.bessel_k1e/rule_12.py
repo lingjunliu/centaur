@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# check that all elements are non-negative, using a different approach by checking min (Rule 12)
+# x must be a tensor, and its rank should be less than or equal to 5 (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) >= 0) if n else
-          Select(v["arg1_range"], 0) >= 0)
+    s.add(Not(v["arg1_ndim"] <= 5) if n else
+          v["arg1_ndim"] <= 5)
 )
 
 def rule_12_func(arg1, solver=None, neg=False):
@@ -22,16 +22,15 @@ def rule_12_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_ndim == arg1.ndim)
 
         # Constraints for rule 12
-        rule_12(solver, {'arg1_range': arg1_range})
+        rule_12(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_12(solver, {'arg1_range': arg1['range']}, neg)
+        rule_12(solver, {'arg1_ndim': arg1['ndim']}, neg)

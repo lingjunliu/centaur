@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If dtype is int16/uint16, then the values should be reasonable. (Rule 39)
+# If the dtype is int8 then the max value should be <=127 (Rule 39)
 
 rule_39 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 2, v["arg1_dtype"] == 3), And(Select(v["arg1_range"], 0) > -32768, Select(v["arg1_range"], 1) < 65536), False)) if n else
-          If(Or(v["arg1_dtype"] == 2, v["arg1_dtype"] == 3), And(Select(v["arg1_range"], 0) > -32768, Select(v["arg1_range"], 1) < 65536), False))
+    s.add(Not(If(v["arg1_dtype"] == 1, Select(v["arg1_range"], 1) <= 127, True)) if n else
+          If(v["arg1_dtype"] == 1, Select(v["arg1_range"], 1) <= 127, True))
 )
 
 def rule_39_func(arg1, solver=None, neg=False):

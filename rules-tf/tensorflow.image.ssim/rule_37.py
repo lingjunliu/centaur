@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If img1 is float16, max_val should be around 1.0 (Rule 37)
+# Height and width of img1 and img2 must be at least 11 (Rule 37)
 
 rule_37 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, And(v["arg2_value"] >= 0.9, v["arg2_value"] <= 1.1), False)) if n else
-          If(v["arg1_dtype"] == 6, And(v["arg2_value"] >= 0.9, v["arg2_value"] <= 1.1), False))
+    s.add(Not(And(And(And(Select(v["arg1_shape"], 1) >= 11, Select(v["arg1_shape"], 2) >= 11), Select(v["arg2_shape"], 1) >= 11), Select(v["arg2_shape"], 2) >= 11)) if n else
+          And(And(And(Select(v["arg1_shape"], 1) >= 11, Select(v["arg1_shape"], 2) >= 11), Select(v["arg2_shape"], 1) >= 11), Select(v["arg2_shape"], 2) >= 11))
 )
 
 def rule_37_func(arg1, arg2, solver=None, neg=False):
@@ -20,20 +20,24 @@ def rule_37_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, (float, np.floating)) or (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool))):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 37
-        rule_37(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
+        rule_37(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_37(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)
+        rule_37(solver, {'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape']}, neg)

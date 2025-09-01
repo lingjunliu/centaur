@@ -5,19 +5,22 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# input tensor must be of a supported type as defined in the documentation (Rule 1)
+# input tensor must be of valid type as listed in API documentation (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 4), v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 10), v["arg1_dtype"] == 9)) if n else
-          Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 4), v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 10), v["arg1_dtype"] == 9))
+    s.add(Not(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 5), v["arg1_dtype"] == 4), v["arg1_dtype"] == 6), v["arg1_dtype"] == 15), v["arg1_dtype"] == 16), v["arg1_dtype"] == 17), v["arg1_dtype"] == 18), v["arg1_dtype"] == 3), v["arg1_dtype"] == 14), v["arg1_dtype"] == 10), v["arg1_dtype"] == 11)) if n else
+          Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 5), v["arg1_dtype"] == 4), v["arg1_dtype"] == 6), v["arg1_dtype"] == 15), v["arg1_dtype"] == 16), v["arg1_dtype"] == 17), v["arg1_dtype"] == 18), v["arg1_dtype"] == 3), v["arg1_dtype"] == 14), v["arg1_dtype"] == 10), v["arg1_dtype"] == 11))
 )
 
-def rule_1_func(arg1, solver=None, neg=False):
+def rule_1_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
+            return False
+        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
             return False
 
         # Variable declarations

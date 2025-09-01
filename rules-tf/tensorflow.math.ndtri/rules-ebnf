@@ -1,108 +1,33 @@
 >>
-Rule 1 (input tensor must be of float or double type)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 1 (Input tensor x must be of type float or double)
+{x : tensor} |= dtype_(x) = 7 ∨ dtype_(x) = 8
 >>
-Rule 2 (input tensor must have values between 0 and 1)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
+Rule 3 (Input tensor x must have at least one dimension)
+{x : tensor} |= ndim(x) ≥ 1
 >>
-Rule 3 (input tensor must be at least 0-dimensional)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 4 (Input tensor x must not be empty)
+{x : tensor} |= ∃i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
 >>
-Rule 4 (if input is scalar, it should be between 0 and 1)
-{v_1 : tensor} |= if ndim(v_1) = 0 then v_1 ≥ 0 ∧ v_1 ≤ 1
+Rule 5 (The input tensor x's dtype must be either float16, float32, float64 or bfloat16)
+{x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8
 >>
-Rule 5 (check element-wise maximum value in the tensor)
-{v_1 : tensor} |= max(v_1) ≤ 1
+Rule 7 (If input x is float16 or bfloat16, then the device must support it)
+{x : tensor} |= if dtype_(x) = 6 then true
 >>
-Rule 6 (check element-wise minimum value in the tensor)
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 8 (The input tensor x's dtype must not be bool)
+{x : tensor} |= dtype_(x) ≠ 0
 >>
-Rule 7 (check if the input tensor is not empty)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0
+Rule 11 (If input x is not float32 or float64, then device must support XLA)
+{x : tensor} |= if dtype_(x) = 7 ∨ dtype_(x) = 8 then true else (∃i ∈ [0, 0] : true)
 >>
-Rule 8 (check that the shape of the tensor is finite)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 1000000
+Rule 12 (If input x is not float32 or float64, then device must support XLA)
+{x : tensor} |= if dtype_(x) = 7 ∨ dtype_(x) = 8 then true
 >>
-Rule 9 (Check if all elements of input tensor are finite)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: ∀j ∈ [0, shape(v_1, i) -1]: v_1[j] ≠ "inf" ∧ v_1[j] ≠ "-inf" ∧ v_1[j] ≠ "nan"
+Rule 15 (x should not have complex dtypes)
+{x : tensor} |= dtype_(x) ≠ 9 ∧ dtype_(x) ≠ 10
 >>
-Rule 10 (If the tensor is multi-dimensional, check that all dimensions have size greater than 0)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0
+Rule 16 (x should not have integer dtypes)
+{x : tensor} |= dtype_(x) ≠ 1 ∧ dtype_(x) ≠ 2 ∧ dtype_(x) ≠ 3 ∧ dtype_(x) ≠ 4 ∧ dtype_(x) ≠ 5
 >>
-Rule 11 (check if input tensor contains any NaN values)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1]: ∃j ∈ [0, shape(v_1, i) - 1]: v_1[j] ≠ "nan"
->>
-Rule 12 (If all elements of input tensor are identical then value must be within [0, 1])
-{v_1 : tensor} |= if min(v_1) = max(v_1) then min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
->>
-Rule 13 (check that the maximum value of the tensor is a finite number)
-{v_1 : tensor} |= max(v_1) < 1000000
->>
-Rule 14 (check the minimum value of the tensor is a finite number)
-{v_1 : tensor} |= min(v_1) > -1000000
->>
-Rule 15 (check input tensor is not complex)
-{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
->>
-Rule 16 (if the input tensor is a scalar, its value must be in the range (0, 1))
-{v_1 : tensor} |= if ndim(v_1) = 0 then v_1 > 0 ∧ v_1 < 1
->>
-Rule 17 (ensure no element of the tensor is less than 0 or greater than 1)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: ∀j ∈ [0, shape(v_1, i) - 1]: v_1[j] ≥ 0 ∧ v_1[j] ≤ 1
->>
-Rule 18 (check for valid range, must be greater than 0 and less than 1 exclusive)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: ∀j ∈ [0, shape(v_1, i) - 1]: v_1[j] > 0 ∧ v_1[j] < 1
->>
-Rule 19 (Check if any dimension has size 1. If so, all values in that dimension must be the same)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: if shape(v_1, i) = 1 then min(v_1) = max(v_1)
->>
-Rule 20 (input tensor has all elements as same datatype)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1]: dtype_(v_1) = dtype_(v_1)
->>
-Rule 21 (check if shape of tensor is a valid number)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ -1
->>
-Rule 22 (check that tensor is not a bool type)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
->>
-Rule 23 (If the input tensor's values are the same, then the result of function is deterministic)
-{v_1 : tensor} |= if min(v_1) = max(v_1) then true else false
->>
-Rule 26 (Valid range for the input values )
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: ∀j ∈ [0, shape(v_1, i) - 1]: v_1[j] ≥ 0 ∧ v_1[j] ≤ 1
->>
-Rule 27 (the tensor can not have dimensions with size equal to zero)
-{v_1: tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) = false
->>
-Rule 30 (check if input tensor contains only real numbers)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
->>
-Rule 31 (check that input values are valid probabilities (between 0 and 1 inclusive))
-{v_1 : tensor} |= min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
->>
-Rule 32 (If the input is a scalar, ensure it's not a complex number)
-{v_1 : tensor} |= if ndim(v_1) = 0 then dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
->>
-Rule 33 (if the dtype is float16 then range must be between 0 and 1)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
->>
-Rule 34 (If input is a float16, then its values should be between a valid range to prevent overflow.)
-{v_1: tensor} |= if dtype_(v_1) = 6 then min(v_1) > -65500 ∧ max(v_1) < 65500
->>
-Rule 35 (Check for inf values in the tensor)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1]: ∃j ∈ [0, shape(v_1, i) - 1]: v_1[j] ≠ "inf"
->>
-Rule 36 (check for -inf values in the tensor)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1]: ∃j ∈ [0, shape(v_1, i) - 1]: v_1[j] ≠ "-inf"
->>
-Rule 37 (Ensure no values in the tensor are negative infinite.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: ∀j ∈ [0, shape(v_1, i) - 1]: v_1[j] > "-inf"
->>
-Rule 38 (Check that no values in the input tensor is positive infinite.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: ∀j ∈ [0, shape(v_1, i) - 1]: v_1[j] < "inf"
->>
-Rule 39 (Check that the number of dimensions is a valid number)
-{v_1: tensor} |= ndim(v_1) < 100
->>
-Rule 40 (If the input tensor is not scalar, it must have at least one element within [0,1])
-{v_1 : tensor} |= if ndim(v_1) ≠ 0 then ∃i ∈ [0, ndim(v_1) - 1]: ∃j ∈ [0, shape(v_1, i) - 1]: v_1[j] ≥ 0 ∧ v_1[j] ≤ 1
+Rule 19 (The name parameter should not be none.)
+{name : str} |= name ≠ "none"

@@ -1,240 +1,135 @@
 >>
-Rule 1 (true_classes must be a 2D tensor)
-{v_1 : tensor} |= ndim(v_1) = 2
+Rule 1 (num_sampled should be at least 1)
+{num_sampled : int} |= num_sampled ≥ 1
 >>
-Rule 2 (true_classes must have int64 type)
-{v_1 : tensor} |= dtype_(v_1) = 4
+Rule 2 (num_true should be at least 1)
+{num_true : int} |= num_true ≥ 1
 >>
-Rule 3 (num_true must be greater than 0)
-{v_2 : int} |= v_2 > 0
+Rule 3 (true_classes's shape[1] should match num_true)
+{true_classes : tensor, num_true : int} |= shape(true_classes, 1) = num_true
 >>
-Rule 4 (num_sampled must be greater than 0)
-{v_3 : int} |= v_3 > 0
+Rule 4 (Ensure seed is non-negative)
+{seed : int} |= seed ≥ 0
 >>
-Rule 5 (seed must be non-negative)
-{v_5 : int} |= v_5 ≥ 0
+Rule 5 (batch size should be positive)
+{true_classes : tensor} |= shape(true_classes, 0) > 0
 >>
-Rule 6 (shape of true_classes must be positive)
-{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 6 (num_sampled should be a valid int32)
+{num_sampled : int} |= -2147483648 ≤ num_sampled ∧ num_sampled ≤ 2147483647
 >>
-Rule 8 (num_true cannot be equal to num_sampled)
-{v_2 : int, v_3 : int} |= v_2 ≠ v_3
+Rule 7 (true_classes must have a valid number of columns)
+{true_classes : tensor, num_true : int} |= if ndim(true_classes) > 1 then shape(true_classes, 1) = num_true
 >>
-Rule 15 (num_sampled must be greater or equal than num_true)
-{v_2 : int, v_3 : int} |= v_3 ≥ v_2
+Rule 8 (true_classes should be of type int64)
+{true_classes : tensor} |= dtype_(true_classes) = 4
 >>
-Rule 16 (The batch size of true_classes must be greater than 0)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 11 (true_classes must have at least one dimension)
+{true_classes : tensor} |= ndim(true_classes) ≥ 1
 >>
-Rule 17 (num_true must be less than or equal to the size of the last dimension of true_classes)
-{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, 1)
+Rule 12 (num_true must be less than or equal to the size of true_classes along the relevant axis)
+{true_classes : tensor, num_true : int} |= if ndim(true_classes) > 1 then num_true ≤ shape(true_classes, 1)
 >>
-Rule 18 (num_sampled should be less than 2^31, avoid int32 overflow)
-{v_3 : int} |= v_3 < 2147483648
+Rule 13 (if true_classes is a matrix, the number of columns should match num_true)
+{true_classes : tensor, num_true : int} |= if ndim(true_classes) = 2 then shape(true_classes, 1) = num_true
 >>
-Rule 20 (if seed is provided, the sampled candidates should be deterministic)
-{v_5 : int} |= if v_5 > 0 then true
+Rule 14 (Checking shape of true_classes to ensure num_true is valid)
+{true_classes : tensor, num_true : int} |= if ndim(true_classes) = 1 then num_true = 1
 >>
-Rule 21 (num_sampled should not be too large compared to num_true)
-{v_2 : int, v_3 : int} |= v_3 ≤ 1000 * v_2
+Rule 16 (Ensuring num_true isn't larger than a reasonable maximum.)
+{num_true: int} |= num_true < 10000
 >>
-Rule 22 (true_classes should have a reasonable number of batches.)
-{v_1 : tensor} |= shape(v_1, 0) < 1000000
+Rule 17 (num_true should also be a valid int32)
+{num_true : int} |= -2147483648 ≤ num_true ∧ num_true ≤ 2147483647
 >>
-Rule 30 (The product of num_true and num_sampled cannot exceed the maximum integer value)
-{v_2 : int, v_3 : int} |= v_2 * v_3 < 2147483647
+Rule 18 (seed must be a valid int32)
+{seed : int} |= -2147483648 ≤ seed ∧ seed ≤ 2147483647
 >>
-Rule 33 (num_true should not be zero.)
-{v_2 : int} |= v_2 ≠ 0
+Rule 19 (If the tensor has more than one dimension, enforce the second dimension size relationship.)
+{true_classes : tensor, num_true: int} |= if ndim(true_classes) > 1 then shape(true_classes, 1) ≥ 1 ∧ shape(true_classes, 1) = num_true
 >>
-Rule 34 (num_sampled should be a reasonable positive integer)
-{v_3 : int} |= 1 ≤ v_3 ∧ v_3 < 100000000
+Rule 20 (If name is provided, ensure it's not an empty string)
+{name: str} |= name ≠ ""
 >>
-Rule 35 (The size of the last dimension of true_classes cannot be zero)
-{v_1 : tensor} |= shape(v_1, 1) ≠ 0
+Rule 21 (If the number of true classes is greater than 1, then require batch_size be greater than one.)
+{true_classes : tensor, num_true : int} |= if num_true > 1 then shape(true_classes, 0) > 1
 >>
-Rule 36 (seed must be positive if it's not 0)
-{v_5 : int} |= if v_5 ≠ 0 then v_5 > 0
+Rule 22 (True classes shape 0 must be greater than 0)
+{true_classes: tensor} |= shape(true_classes, 0) > 0
 >>
-Rule 38 (Number of true classes shouldn't exceed some arbitrary limit)
-{v_2 : int} |= v_2 < 10000
+Rule 23 (num_sampled should be less than a reasonable maximum value.)
+{num_sampled: int} |= num_sampled < 1000000000
 >>
-Rule 39 (The dimensions of true_classes must be non-negative)
-{v_1 : tensor} |= shape(v_1, 0) ≥ 0 ∧ shape(v_1, 1) ≥ 0
+Rule 24 (The size of the second dimension of true classes cannot be zero.)
+{true_classes: tensor} |= if ndim(true_classes) > 1 then shape(true_classes, 1) ≠ 0
 >>
-Rule 41 (num_true cannot be a negative number)
-{v_2 : int} |= v_2 ≥ 0
+Rule 25 (The seed cannot be negative.)
+{seed: int} |= seed ≥ 0
 >>
-Rule 42 (true_classes is not a scalar.)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 26 (True classes must be int64.)
+{true_classes: tensor} |= dtype_(true_classes) = 4
 >>
-Rule 43 (num_sampled is reasonably sized compared to the maximum possible class.)
-{v_3 : int} |= v_3 < 2000000000
+Rule 27 (If true_classes is one dimensional, then num_true should be 1)
+{true_classes: tensor, num_true: int} |= if ndim(true_classes) = 1 then num_true = 1
 >>
-Rule 44 (If num_true is greater than 1, the shape must be 2D)
-{v_1 : tensor, v_2 : int} |= if v_2 > 1 then ndim(v_1) = 2
+Rule 28 (Ensure the name parameter is not longer than 255 characters to prevent issues.)
+{name: str} |= name.len < 256
 >>
-Rule 45 (num_true is at most the maximum number of classes.)
-{v_2 : int, v_3 : int} |= v_2 ≤ v_3
+Rule 29 (If the tensor is a matrix, the number of true classes must be less than or equal to the number of columns)
+{true_classes: tensor, num_true: int} |= if ndim(true_classes) > 1 then num_true ≤ shape(true_classes, 1)
 >>
-Rule 46 (true_classes must have non-zero batch size.)
-{v_1 : tensor} |= shape(v_1, 0) ≠ 0
+Rule 31 (If true_classes has 2 dimensions, ensure that batch size * num_true is less than a safe limit)
+{true_classes: tensor, num_true: int} |= if ndim(true_classes) = 2 then shape(true_classes, 0) * num_true < 100000
 >>
-Rule 47 (true_classes last dimension cannot exceed a reasonable size)
-{v_1 : tensor} |= shape(v_1, 1) < 100000
+Rule 32 (If num_true > 1, the shape of true_classes must be [batch_size, num_true]. If num_true = 1, the shape must be [batch_size]. The batch_size should be consistent between both cases.)
+{true_classes: tensor, num_true: int} |= if num_true > 1 then ndim(true_classes) = 2 ∧ shape(true_classes, 1) = num_true else ndim(true_classes) = 1
 >>
-Rule 48 (seed must have reasonable size)
-{v_5 : int} |= v_5 < 10000000
+Rule 33 (Checking dimension of true classes, if one dimensional, num true must be 1)
+{true_classes: tensor, num_true: int} |= if ndim(true_classes) = 1 then num_true = 1 else if ndim(true_classes) = 2 then true else false
 >>
-Rule 49 (seed can be zero)
-{v_5 : int} |= v_5 = 0
+Rule 34 (Combining the dimension checks of true_classes into one rule)
+{true_classes: tensor, num_true: int} |= if ndim(true_classes) = 1 then num_true = 1 else if ndim(true_classes) = 2 then shape(true_classes, 1) = num_true else false
 >>
-Rule 50 (num_true can be equal to 1.)
-{v_2 : int} |= v_2 = 1
+Rule 35 (If num_true > 1 and true_classes has 2 dimensions, make sure they are compatible)
+{true_classes: tensor, num_true: int} |= if num_true > 1 ∧ ndim(true_classes) = 2 then shape(true_classes, 1) = num_true
 >>
-Rule 51 (true_classes can have large number of batches if num_true is 1)
-{v_1 : tensor, v_2 : int} |= if v_2 = 1 then shape(v_1, 0) < 10000000
+Rule 36 (Consolidated shape requirement for true_classes: num_true must match the number of columns)
+{true_classes: tensor, num_true: int} |= (ndim(true_classes) = 2 ∧ shape(true_classes, 1) = num_true) ∨ (ndim(true_classes) = 1 ∧ num_true = 1)
 >>
-Rule 52 (If true_classes has only one batch, then number of true classes must be less than total candidates.)
-{v_1: tensor, v_2: int, v_3: int} |= if shape(v_1, 0) = 1 then v_2 <= v_3
+Rule 37 (Ensure num_true <= num_sampled so that there are enough candidates to sample from.)
+{num_true: int, num_sampled: int} |= num_true ≤ num_sampled
 >>
-Rule 53 (num_sampled cannot exceed maximum int64 value)
-{v_3: int} |= v_3 < 9223372036854775807
+Rule 38 (if num_true > 1 the shape must be [any, num_true])
+{true_classes : tensor, num_true : int} |= if num_true > 1 then ndim(true_classes) = 2 ∧ shape(true_classes, 1) = num_true
 >>
-Rule 54 (seed value should be within reasonable bound)
-{v_5 : int} |= -10000000 < v_5 ∧ v_5 < 10000000
+Rule 39 (The number of columns of true_classes must be equal to num_true if true_classes is a matrix (2D tensor).)
+{true_classes: tensor, num_true: int} |= if ndim(true_classes) = 2 then shape(true_classes, 1) = num_true
 >>
-Rule 55 (true_classes has reasonable first dimension.)
-{v_1 : tensor} |= shape(v_1, 0) < 2000000
+Rule 40 (If the tensor is not a matrix, then the number of true classes should be 1)
+{true_classes: tensor, num_true: int} |= if ndim(true_classes) ≠ 2 then num_true = 1
 >>
-Rule 56 (true_classes has small batch size when num_true is close to num_sampled)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 - v_2 < 10 then shape(v_1, 0) < 1000
+Rule 41 (Requiring correct true_classes shape given num_true value)
+{true_classes: tensor, num_true: int} |= if num_true = 1 then ndim(true_classes) = 1 else if num_true > 1 then ndim(true_classes) = 2 ∧ shape(true_classes, 1) = num_true
 >>
-Rule 57 (num_true is at least 1)
-{v_2 : int} |= v_2 ≥ 1
+Rule 43 (The number of target classes per training example should be a positive integer)
+{num_true: int} |= num_true > 0
 >>
-Rule 58 (If num_sampled equals num_true then true_classes first dimension must be 1)
-{v_1: tensor, v_2: int, v_3: int} |= if v_2 = v_3 then shape(v_1, 0) = 1
+Rule 44 (Ensure that if the number of true classes is a 1x1 matrix it can be seen as 1 dimensional)
+{true_classes: tensor, num_true: int} |= if ndim(true_classes) = 2 ∧ shape(true_classes, 0) = 1 ∧ shape(true_classes, 1) = 1 then num_true = 1
 >>
-Rule 59 (If batch size of true_classes is very large, number of true classes must be relatively small)
-{v_1 : tensor, v_2: int} |= if shape(v_1, 0) > 10000 then v_2 < 10000
+Rule 45 (Combine all tensor shape, dimension and datatype requirements into a single comprehensive rule.)
+{true_classes: tensor, num_true: int} |= dtype_(true_classes) = 4 ∧ ((ndim(true_classes) = 2 ∧ shape(true_classes, 1) = num_true) ∨ (ndim(true_classes) = 1 ∧ num_true = 1))
 >>
-Rule 60 (If num_sampled is a very large value, then the shape of true classes must be 2D)
-{v_1: tensor, v_3: int} |= if v_3 > 1000000000 then ndim(v_1) = 2
+Rule 46 (Complete rule to prevent true_classes shape errors)
+{true_classes: tensor, num_true: int} |= (dtype_(true_classes) = 4) ∧ ((ndim(true_classes) = 1 ∧ num_true = 1) ∨ (ndim(true_classes) = 2 ∧ shape(true_classes, 1) = num_true))
 >>
-Rule 61 (num_sampled should be reasonably high)
-{v_3: int} |= v_3 > 100
+Rule 47 (Consolidated Requirements, including shape and positive values)
+{true_classes: tensor, num_true: int, num_sampled: int} |= (dtype_(true_classes) = 4) ∧ ((ndim(true_classes) = 1 ∧ num_true = 1) ∨ (ndim(true_classes) = 2 ∧ shape(true_classes, 1) = num_true)) ∧ (num_sampled > 0) ∧ (num_true > 0) ∧ (num_true ≤ num_sampled)
 >>
-Rule 62 (true_classes should not contain nan values)
-{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) -1 ] : min(v_1) = min(v_1)
+Rule 48 (Complete and final requirements)
+{true_classes: tensor, num_true: int, num_sampled: int} |= (dtype_(true_classes) = 4) ∧ ((ndim(true_classes) = 1 ∧ num_true = 1) ∨ (ndim(true_classes) = 2 ∧ shape(true_classes, 1) = num_true)) ∧ (num_sampled ≥ 1) ∧ (num_true ≥ 1) ∧ (num_true ≤ num_sampled) ∧ (-2147483648 ≤ num_sampled ∧ num_sampled ≤ 2147483647) ∧ (-2147483648 ≤ num_true ∧ num_true ≤ 2147483647)
 >>
-Rule 63 (The number of true classes should be smaller than the square of the number of sampled)
-{v_2: int, v_3: int} |= v_2 < v_3 * v_3
+Rule 50 (Complete and final requirements with seed)
+{true_classes: tensor, num_true: int, num_sampled: int, seed:int} |= (dtype_(true_classes) = 4) ∧ ((ndim(true_classes) = 1 ∧ num_true = 1) ∨ (ndim(true_classes) = 2 ∧ shape(true_classes, 1) = num_true)) ∧ (num_sampled ≥ 1) ∧ (num_true ≥ 1) ∧ (num_true ≤ num_sampled) ∧ (-2147483648 ≤ num_sampled ∧ num_sampled ≤ 2147483647) ∧ (-2147483648 ≤ num_true ∧ num_true ≤ 2147483647) ∧ (-2147483648 ≤ seed ∧ seed ≤ 2147483647)
 >>
-Rule 64 (The seed should not be excessively large, but not zero as well.)
-{v_5: int} |= -10000 < v_5 ∧ v_5 < 10000 ∧ v_5 ≠ 0
->>
-Rule 65 (num_true cannot be larger than the maximum int64 value)
-{v_2 : int} |= v_2 < 9223372036854775807
->>
-Rule 66 (If num_true is a small value, true_classes can have small shape in the last dimension )
-{v_1: tensor, v_2: int} |= if v_2 < 10 then shape(v_1, 1) < 100
->>
-Rule 67 (If num_sampled is small, the number of batches in true_classes must also be relatively small)
-{v_1 : tensor, v_3: int} |= if v_3 < 1000 then shape(v_1, 0) < 10000
->>
-Rule 68 (If the shape of last dimension in true_classes is 1, then num_true should be 1)
-{v_1 : tensor, v_2 : int} |= if shape(v_1, 1) = 1 then v_2 = 1
->>
-Rule 69 (If num_true is close to the maximum int64, num_sampled cannot be small)
-{v_2: int, v_3: int} |= if v_2 > 9223372036854775000 then v_3 > 100000
->>
-Rule 70 (seed should have reasonable size when true classes has a single batch )
-{v_1 : tensor, v_5 : int} |= if shape(v_1, 0) = 1 then -1000 < v_5 ∧ v_5 < 1000
->>
-Rule 71 (The number of classes must be smaller than a very large number)
-{v_3 : int} |= v_3 < 10000000000
->>
-Rule 73 (num_true cannot be too close to the maximum int64 value to avoid overflows.)
-{v_2 : int} |= v_2 < 9223372036854775000
->>
-Rule 74 (If true_classes is a matrix, then the last dimension should be smaller than maximum number.)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 1) < 2000000
->>
-Rule 75 (If true_classes has many batches, then num_sampled cannot be very small.)
-{v_1 : tensor, v_3 : int} |= if shape(v_1, 0) > 100000 then v_3 > 1000
->>
-Rule 76 (The product of batch size and num_true must be in reasonable range)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) * v_2 < 10000000000
->>
-Rule 77 (The seed must be in the range of int32)
-{v_5 : int} |= -2147483648 < v_5 ∧ v_5 < 2147483647
->>
-Rule 78 (The last dimension of true_classes should be greater or equal to 1)
-{v_1: tensor} |= shape(v_1, 1) >= 1
->>
-Rule 79 (num_sampled cannot be too small, to provide enough candidates.)
-{v_3 : int} |= v_3 ≥ 10
->>
-Rule 80 (If true_classes has a large number of batches, then seed should not be 0)
-{v_1 : tensor, v_5 : int} |= if shape(v_1, 0) > 10000 then v_5 ≠ 0
->>
-Rule 82 (if num_sampled has a reasonable value, number of true classes must be small)
-{v_2 : int, v_3: int} |= if v_3 < 100000 then v_2 < 1000
->>
-Rule 83 (If shape is 1D tensor num_true also must be 1)
-{v_1:tensor, v_2: int} |= if ndim(v_1)=1 then v_2 = 1
->>
-Rule 84 (If shape is very small, then number of samplings should be small too)
-{v_1: tensor, v_3: int} |= if shape(v_1, 0) < 100 then v_3 < 10000
->>
-Rule 85 (num_sampled shouldn't be too close to zero.)
-{v_3 : int} |= v_3 > 5
->>
-Rule 86 (true classes must be a valid tensor if present)
-{v_1:tensor} |= ndim(v_1) > 0
->>
-Rule 88 (If shape is less than num_true also must be equal 1 or greater)
-{v_1:tensor, v_2: int} |= if shape(v_1, 0) < v_2 then shape(v_1,0) >=1
->>
-Rule 89 (num_sampled should be less than the maximum value if true classes is a tensor )
-{v_1:tensor, v_3:int } |= if ndim(v_1)>0 then v_3<9223372036854775807
->>
-Rule 90 (If the number of the sampled values is high, make sure true class has at least one item.)
-{v_1 : tensor, v_3 : int} |= if v_3 > 1000 then shape(v_1, 1) >= 1
->>
-Rule 91 (number of classes is between 100 and max value possible)
-{v_3: int} |= 100<v_3 ∧ v_3< 9000000000
->>
-Rule 92 (The number of true classes is non zero and greater than 1 if it can)
-{v_2: int} |= 1<=v_2 ∧ v_2 < 10000
->>
-Rule 93 (If num_true equals 1 then shape of true classes must be reasonable size.)
-{v_1 : tensor, v_2 : int} |= if v_2 = 1 then shape(v_1, 1) < 1000000
->>
-Rule 94 (num_sampled needs to be in 32 bit format for the seed)
-{v_3: int, v_5: int} |= if v_5 > 0 then v_3 < 2147483647
->>
-Rule 95 (num_true must be reasonable based on tensor dimension)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then v_2 < 10000000
->>
-Rule 96 (If shape is same of size of tensor equal num_true equal one)
-{v_1:tensor, v_2: int} |= if shape(v_1, 1) = v_2 then v_2 = 1
->>
-Rule 97 (If seed given ensure number of samples are within some scale)
-{v_3:int, v_5: int} |= if v_5 != 0 then v_3<2000000000
->>
-Rule 98 (check high amount of samples must not increase memory of tensor dramatically.)
-{v_1 : tensor, v_3 : int} |= if v_3 > 500 then shape(v_1, 0) * v_3 <2000000
->>
-Rule 99 (The maximum candidate must be reasobale limit in numbers)
-{v_3: int} |= v_3<20000000
->>
-Rule 100 (Num true must be at the very least one)
-{v_2 : int} |= v_2 >=1
->>
-Rule 101 (For non zero seed num samples is not 0)
-{v_3 : int, v_5: int} |= if v_5 > 0 then v_3 >=1
->>
-Rule 102 (true shape must always be at least 1 if number of classes is 1.)
-{v_1:tensor, v_2: int} |= if v_2 >1 then shape(v_1, 0) > 1
+Rule 51 (Combined type, size, and value checks for API parameters)
+{true_classes: tensor, num_true: int, num_sampled: int, seed: int} |= (dtype_(true_classes) = 4) ∧ ((ndim(true_classes) = 1 ∧ num_true = 1) ∨ (ndim(true_classes) = 2 ∧ shape(true_classes, 1) = num_true)) ∧ (1 ≤ num_sampled ∧ num_sampled ≤ 2147483647) ∧ (1 ≤ num_true ∧ num_true ≤ 2147483647) ∧ (num_true ≤ num_sampled) ∧ (-2147483648 ≤ seed ∧ seed ≤ 2147483647)

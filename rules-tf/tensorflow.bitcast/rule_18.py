@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# size of the types should divide each other (Rule 18)
+# If input is complex, output must be complex (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(Or((v["arg1_dtype"] % v["arg2_value"]) == 0, (v["arg2_value"] % v["arg1_dtype"]) == 0)) if n else
-          Or((v["arg1_dtype"] % v["arg2_value"]) == 0, (v["arg2_value"] % v["arg1_dtype"]) == 0))
+    s.add(Not(If((And(v["arg1_dtype"] > 8, v["arg1_dtype"] < 12)), And(v["arg2_value"] > 8, v["arg2_value"] < 12), True)) if n else
+          If((And(v["arg1_dtype"] > 8, v["arg1_dtype"] < 12)), And(v["arg2_value"] > 8, v["arg2_value"] < 12), True))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):

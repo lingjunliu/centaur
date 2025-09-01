@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# lr, rho, momentum, epsilon must be scalar tensors (Rule 2)
+# lr, rho, momentum and epsilon must be scalar tensors (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(And(And(And(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), v["arg3_ndim"] == 0), v["arg4_ndim"] == 0)) if n else

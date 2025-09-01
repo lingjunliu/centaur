@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The dtype of tensor x should be a valid dtype. (Rule 18)
+# x's dtype must be a valid input type (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] >= 0, v["arg1_dtype"] <= 12)) if n else
-          And(v["arg1_dtype"] >= 0, v["arg1_dtype"] <= 12))
+    s.add(Not(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)) if n else
+          Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8))
 )
 
 def rule_18_func(arg1, solver=None, neg=False):

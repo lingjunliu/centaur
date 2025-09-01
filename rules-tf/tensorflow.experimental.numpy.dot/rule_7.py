@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Shape of input tensor should be equal to the length of the tuple (Rule 7)
+# If 'a' is an N-D array and 'b' is an M-D array, their product is a sum over the last axis of 'a' and the second-to-last axis of 'b' (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) == v["arg2_length"]) if n else
-          Select(v["arg1_shape"], 0) == v["arg2_length"])
+    s.add(Not(If(And(v["arg1_ndim"] > 1, v["arg2_ndim"] > 1), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - 2), True)) if n else
+          If(And(v["arg1_ndim"] > 1, v["arg2_ndim"] > 1), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - 2), True))
 )
 
 def rule_7_func(arg1, arg2, solver=None, neg=False):
@@ -20,23 +20,28 @@ def rule_7_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_length = Int('arg2_length')
+        arg2_ndim = Int('arg2_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_length == len(arg2))
+        solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 7
-        rule_7(solver, {'arg1_shape': arg1_shape, 'arg2_length': arg2_length})
+        rule_7(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_7(solver, {'arg1_shape': arg1['shape'], 'arg2_length': arg2['length']}, neg)
+        rule_7(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']}, neg)

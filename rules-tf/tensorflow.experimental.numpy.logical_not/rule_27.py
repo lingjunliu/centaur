@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The shape of the tensor at dimension 0 must be greater than 10 if the dimension is at least one (Rule 27)
+# The maximum number of elements in the tensor should be limited to 1000 (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] >= 1, Select(v["arg1_shape"], 0) > 10, False)) if n else
-          If(v["arg1_ndim"] >= 1, Select(v["arg1_shape"], 0) > 10, False))
+    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) <= 1000) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) <= 1000) for i in range(6)]))
 )
 
 def rule_27_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_27_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 27
-        rule_27(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_27(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_27(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_27(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

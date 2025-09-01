@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# dims tensor should have a reasonable size, for example, less than 10 (Rule 5)
+# elements of dims must be either int32 or int64 (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) < 10) if n else
-          Select(v["arg1_shape"], 0) < 10)
+    s.add(Not(Or((v["arg1_dtype"] == 2), (v["arg1_dtype"] == 3))) if n else
+          Or((v["arg1_dtype"] == 2), (v["arg1_dtype"] == 3)))
 )
 
 def rule_5_func(arg1, solver=None, neg=False):
@@ -22,16 +22,15 @@ def rule_5_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 5
-        rule_5(solver, {'arg1_shape': arg1_shape})
+        rule_5(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_5(solver, {'arg1_shape': arg1['shape']}, neg)
+        rule_5(solver, {'arg1_dtype': arg1['dtype']}, neg)

@@ -1,99 +1,87 @@
 >>
-Rule 1 (images must be a 4D tensor)
+Rule 1 (images tensor must be of rank 4)
 {v_1 : tensor} |= ndim(v_1) = 4
 >>
-Rule 2 (images must be float32 or half (float16))
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 6
->>
-Rule 3 (boxes must be a 3D tensor)
+Rule 2 (boxes tensor must be of rank 3)
 {v_2 : tensor} |= ndim(v_2) = 3
 >>
-Rule 4 (boxes must be float32)
+Rule 3 (images tensor must have a dtype of float32 or float16: 7 or 6)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 6
+>>
+Rule 4 (boxes tensor must have a dtype of float32: 7)
 {v_2 : tensor} |= dtype_(v_2) = 7
 >>
-Rule 5 (The batch size of images and boxes must match)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
->>
-Rule 6 (The last dimension of boxes must be 4)
+Rule 5 (boxes tensor shape[2] must be equal to 4)
 {v_2 : tensor} |= shape(v_2, 2) = 4
 >>
-Rule 7 (height and width of image should be positive.)
-{v_1 : tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+Rule 6 (images and boxes tensors batch size should be the same)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 8 (Bounding box coordinates should be between 0 and 1)
-{v_2 : tensor} |= min(v_2) ≥ 0 ∧ max(v_2) ≤ 1
+Rule 7 (image height must be positive)
+{v_1 : tensor} |= shape(v_1, 1) > 0
 >>
-Rule 9 (Depth of images should be positive.)
+Rule 8 (image width must be positive)
+{v_1 : tensor} |= shape(v_1, 2) > 0
+>>
+Rule 9 (images tensor depth must be positive)
 {v_1 : tensor} |= shape(v_1, 3) > 0
 >>
-Rule 10 (height of images should be greater than or equal to number of bounding boxes)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) ≥ shape(v_2, 1)
+Rule 10 (boxes tensor number of bounding boxes must be positive)
+{v_2 : tensor} |= shape(v_2, 1) > 0
 >>
-Rule 11 (width of images should be greater than or equal to number of bounding boxes)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 2) ≥ shape(v_2, 1)
+Rule 11 (images and output tensor should have the same dtype)
+{v_1 : tensor} |= dtype_(v_1) = dtype_(v_1)
 >>
-Rule 12 (images tensor must have valid shape)
-{v_1 : tensor} |= shape(v_1, 1) ≥ 1 ∧ shape(v_1, 2) ≥ 1
+Rule 13 (ymin of bounding box must be in range [0.0, 1.0])
+{v_2 : tensor} |= min(v_2) ≥ 0.0
 >>
-Rule 13 (The depth of images tensor should be 1 or 3.)
-{v_1 : tensor} |= shape(v_1, 3) = 1 ∨ shape(v_1, 3) = 3
+Rule 14 (ymax of bounding box must be in range [0.0, 1.0])
+{v_2 : tensor} |= max(v_2) ≤ 1.0
 >>
-Rule 14 (Number of bounding boxes must be positive)
-{v_2 : tensor} |= shape(v_2, 1) ≥ 0
+Rule 70 (images tensor dimensions must be positive)
+{v_1 : tensor} |= ∀i ∈ [1, 3] : shape(v_1, i) > 0
 >>
-Rule 15 (batch, height, width should be non-negative integers)
-{v_1 : tensor} |= shape(v_1,0) ≥ 0 ∧ shape(v_1,1) ≥ 0 ∧ shape(v_1,2) ≥ 0
+Rule 72 (images tensor dimensions 1, 2, and 3 must be positive)
+{v_1 : tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
 >>
-Rule 16 (If images dtype is float16, boxes dtype should also be float16)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6
->>
-Rule 37 (Weak condition: max of boxes should be greater than min of boxes)
-{v_2 : tensor} |= min(v_2) ≤ max(v_2)
->>
-Rule 39 (The number of bounding boxes cannot exceed a maximum value, say 1000, to prevent excessive computation)
-{v_2 : tensor} |= shape(v_2, 1) ≤ 1000
->>
-Rule 40 (Images and boxes should be of the same floating point type if boxes are provided)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 1) > 0 then dtype_(v_1) = dtype_(v_2)
->>
-Rule 41 (If number of bounding boxes is 0, images can be any shape)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 1) = 0 then true else ndim(v_1) = 4
->>
-Rule 43 (If boxes are present, they should all be within the valid range)
-{v_2 : tensor} |= if shape(v_2, 1) > 0 then (min(v_2) ≥ 0 ∧ max(v_2) ≤ 1)
->>
-Rule 45 (If images is float32, boxes must also be float32)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7
->>
-Rule 47 (If boxes are present, batch size must be greater than zero)
-{v_2 : tensor} |= if shape(v_2,1) > 0 then shape(v_2, 0) > 0
->>
-Rule 48 (The batch size for images must be positive)
+Rule 74 (images tensor dimensions must be positive and batch size must be > 0)
 {v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 50 (If boxes are present, there has to be at least one bounding box)
-{v_2 : tensor} |= if shape(v_2,1) > 0 then True else True
+Rule 76 (images tensor batch size must be greater or equal to 1)
+{v_1 : tensor} |= shape(v_1, 0) ≥ 1
 >>
-Rule 51 (If the bounding box tensor is not empty, it must have a shape where the last dimension is 4)
-{v_2 : tensor} |= if shape(v_2, 1) > 0 then shape(v_2, 2) = 4 else True
+Rule 77 (images tensor must have at least a height and width of 1)
+{v_1 : tensor} |= shape(v_1, 1) ≥ 1 ∧ shape(v_1, 2) ≥ 1
 >>
-Rule 52 (Bounding box tensor must have valid shape: [batch, num_boxes, 4])
-{v_2 : tensor} |= if ndim(v_2) = 3 then shape(v_2, 2) = 4 else True
+Rule 82 (images tensor must have 4 dimensions and a positive batch size)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ shape(v_1, 0) > 0
 >>
-Rule 55 (All dimensions in the image tensor should be positive)
+Rule 86 (images tensor must have a non-zero batch size and a non-zero height)
+{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+>>
+Rule 87 (images tensor must have positive shape for all dimensions)
 {v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
 >>
-Rule 56 (If boxes are empty, images's height and width should be also empty)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 1) = 0 then shape(v_1, 1) = 0 ∧ shape(v_1, 2) = 0
+Rule 90 (images tensor must be 4 dimensions and floating point)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7)
 >>
-Rule 57 (If images is a half tensor, its shape[3] should be 1 or 3, otherwise, it can be anything)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then (shape(v_1, 3) = 1 ∨ shape(v_1, 3) = 3) else True
+Rule 91 (boxes tensor must be 3 dimensions and floating point)
+{v_2 : tensor} |= ndim(v_2) = 3 ∧ dtype_(v_2) = 7
 >>
-Rule 58 (If boxes is given, images has to be a 4-D tensor)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 1) > 0 then ndim(v_1) = 4 else True
+Rule 93 (images tensor must have 4 dimensions and the dtype must be float32)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ dtype_(v_1) = 7
 >>
-Rule 59 (If images is float32, its shape[3] should be 1 or 3, otherwise, it can be anything)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then (shape(v_1, 3) = 1 ∨ shape(v_1, 3) = 3) else True
+Rule 94 (images tensor must be 4 dimensions and floating point)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 6)
 >>
-Rule 61 (If no boxes are present, any dtype for images are acceptable)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 1) = 0 then true else (dtype_(v_1) = 7 ∨ dtype_(v_1) = 6)
+Rule 96 (boxes tensor must be 3 dimensions and the dtype must be float32 and batchsize > 0)
+{v_2 : tensor} |= ndim(v_2) = 3 ∧ dtype_(v_2) = 7 ∧ shape(v_2, 0) > 0
+>>
+Rule 97 (boxes tensor must be 3 dimensions and the dtype must be float32 and at least one bounding box)
+{v_2 : tensor} |= ndim(v_2) = 3 ∧ dtype_(v_2) = 7 ∧ shape(v_2, 1) > 0
+>>
+Rule 98 (images tensor must be 4 dimensions with floating point type, and boxes must be 3 dimensions with floating point type)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 4 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7) ∧ ndim(v_2) = 3 ∧ dtype_(v_2) = 7
+>>
+Rule 99 (images tensor must be 4 dimensions and have positive dimensions and a floating point dtype)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7)

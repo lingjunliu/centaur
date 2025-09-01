@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# file_shuffle_shift_ratio * file_buffer_size should be less than file_buffer_size itself (Rule 29)
+# file_shuffle_shift_ratio cannot be 1 if file_random_seed is 0 (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not((v["arg1_value"] * v["arg2_value"]) < v["arg2_value"]) if n else
-          (v["arg1_value"] * v["arg2_value"]) < v["arg2_value"])
+    s.add(Not(If(v["arg1_value"] == 1.0, v["arg2_value"] != 0, True)) if n else
+          If(v["arg1_value"] == 1.0, v["arg2_value"] != 0, True))
 )
 
 def rule_29_func(arg1, arg2, solver=None, neg=False):

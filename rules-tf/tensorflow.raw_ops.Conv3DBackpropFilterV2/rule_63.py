@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Dilations[0] must be 1 (Rule 63)
+# Dilation factor for the batch dimension must be 1 (Rule 63)
 
 rule_63 = lambda s, v, n=False: (
     s.add(Not(Select(v["arg1_values"], 0) == 1) if n else

@@ -1,96 +1,39 @@
 >>
-Rule 1 (value must be a tensor of specific data types)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 9
+Rule 1 (value tensor should have a valid type)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 9
 >>
-Rule 2 (bias must be a 1-D tensor)
+Rule 2 (bias tensor should be 1-dimensional)
 {v_2 : tensor} |= ndim(v_2) = 1
 >>
-Rule 3 (data_format should be a string and be either N...C or NC...)
-{v_3 : str} |= v_3 = "N...C" ∨ v_3 = "NC..."
+Rule 3 (data_format should be a valid string)
+{v_3 : str} |= v_3 = "channels_last" ∨ v_3 = "channels_first"
 >>
-Rule 4 (If value is int32, bias can be int32 or float32)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 4 then (dtype_(v_2) = 4 ∨ dtype_(v_2) = 7)
+Rule 4 (If data_format is N...C/None, value should have at least 2 dimensions)
+{v_1 : tensor, v_3 : str} |= if v_3 = "channels_last" ∨ v_3 = "none" then ndim(v_1) ≥ 2
 >>
-Rule 5 (If data_format is N...C or None, value tensor should have at least two dimensions)
-{v_1 : tensor, v_3 : str} |= if v_3 = "N...C" ∨ v_3 = "none" then ndim(v_1) ≥ 2
+Rule 5 (If data_format is NC..., value should have at least 3 dimensions)
+{v_1 : tensor, v_3 : str} |= if v_3 = "channels_first" then ndim(v_1) ≥ 3
 >>
-Rule 6 (If data_format is NC..., value tensor should have at least three dimensions)
-{v_1 : tensor, v_3 : str} |= if v_3 = "NC..." then ndim(v_1) ≥ 3
+Rule 6 (bias size should match the channel dimension of value when data_format is channels_last (N...C))
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_last" then shape(v_2, 0) = shape(v_1, ndim(v_1) - 1)
 >>
-Rule 7 (bias size should match the channel dimension of value, assuming N...C format)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) = shape(v_1, ndim(v_1) - 1)
+Rule 7 (bias size should match the channel dimension of value when data_format is channels_first (NC...))
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_first" then shape(v_2, 0) = shape(v_1, 1)
 >>
-Rule 8 (bias size should match the channel dimension of value, assuming NC... format)
-{v_1 : tensor, v_2 : tensor, v_3: str} |= if v_3 = "NC..." then shape(v_2, 0) = shape(v_1, 1)
+Rule 8 (bias size should match the channel dimension of value when data_format is None (N...C))
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "none" then shape(v_2, 0) = shape(v_1, ndim(v_1) - 1)
 >>
-Rule 9 (value can be either float32 or float64, bias should have compatible types)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+Rule 9 (data_format must be of the form `N...C` or `NC...`)
+{v_3 : str} |= v_3 = "channels_last" ∨ v_3 = "channels_first" ∨ v_3 = "none"
 >>
-Rule 13 (data_format should be a string and be either N...C or NC...)
-{v_3 : str} |= v_3 = "N...C" ∨ v_3 = "NC..." ∨ v_3 = "none"
+Rule 16 (Check that data_format is either None, channels_first or channels_last)
+{v_3 : str} |= v_3 = "none" ∨ v_3 = "channels_first" ∨ v_3 = "channels_last"
 >>
-Rule 17 (bias size should match the channel dimension of value, assuming N...C or None format)
-{v_1 : tensor, v_2 : tensor, v_3: str} |= if v_3 = "N...C" ∨ v_3 = "none" then shape(v_2, 0) = shape(v_1, ndim(v_1) - 1)
+Rule 17 (Check data_format for allowed values)
+{v_3 : str} |= (v_3 = "none") ∨ (v_3 = "channels_first") ∨ (v_3 = "channels_last")
 >>
-Rule 20 (if bias and value are not quantized, they must have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 6 ∨ dtype_(v_1) > 8 then dtype_(v_1) = dtype_(v_2)
->>
-Rule 22 (If data_format is None, treat it as N...C)
+Rule 18 (value has at least two dimensions when data_format is None)
 {v_1 : tensor, v_3 : str} |= if v_3 = "none" then ndim(v_1) ≥ 2
 >>
-Rule 27 (Bias size should match channel dimension of value with N...C or None)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "N...C" ∨ v_3 = "none" then shape(v_2, 0) = shape(v_1, ndim(v_1) - 1)
->>
-Rule 28 (Bias size should match channel dimension of value with NC...)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NC..." then shape(v_2, 0) = shape(v_1, 1)
->>
-Rule 29 (If value is quantized, bias can have different quantized type)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 2 ∨ dtype_(v_1) = 6 then true else dtype_(v_1) = dtype_(v_2)
->>
-Rule 38 (if value is quantized, bias can have a different quantized type)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 2 ∨ dtype_(v_1) = 6) then true else dtype_(v_1) = dtype_(v_2)
->>
-Rule 40 (Value and bias dtype must be the same if not quantized)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 2 ∨ dtype_(v_1) > 6 then dtype_(v_1) = dtype_(v_2)
->>
-Rule 49 (If value is quantized, bias must also be quantized)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 2 ∨ dtype_(v_1) = 6) then (dtype_(v_2) = 2 ∨ dtype_(v_2) = 6)
->>
-Rule 58 (quantized value means quantized bias, else dtypes must match)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 2 ∨ dtype_(v_1) = 6) then (dtype_(v_2) = 2 ∨ dtype_(v_2) = 6) else dtype_(v_1) = dtype_(v_2)
->>
-Rule 59 (Check for valid shape given data format)
-{v_1 : tensor, v_3 : str} |= if v_3 = "N...C" ∨ v_3 = "none" then (ndim(v_1) > 1) else if v_3 = "NC..." then (ndim(v_1) > 2)
->>
-Rule 60 (If bias and value are different types (int and float), value can only be complex)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) then (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
->>
-Rule 64 (Minimum dimensions for Value based on Data Format)
-{v_1 : tensor, v_3 : str} |= if v_3 = "N...C" ∨ v_3 = "none" then ndim(v_1) ≥ 2 else if v_3 = "NC..." then ndim(v_1) ≥ 3
->>
-Rule 65 (Bias size related to Value size depends on Data Format)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "N...C" ∨ v_3 = "none" then shape(v_2, 0) = shape(v_1, ndim(v_1) - 1) else if v_3 = "NC..." then shape(v_2, 0) = shape(v_1, 1)
->>
-Rule 67 (Bias elements must be non-negative)
-{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0
->>
-Rule 68 (Value dtype must be larger than bias dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≥ dtype_(v_2)
->>
-Rule 69 (value should not contain NaN)
-{v_1: tensor} |= min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "NaN"
->>
-Rule 70 (bias should not contain NaN)
-{v_2: tensor} |= min(v_2) ≠ "NaN" ∧ max(v_2) ≠ "NaN"
->>
-Rule 77 (Shape of value must be positive)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 78 (Min/max values)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) ≤ max(v_1) ∧ min(v_2) ≤ max(v_2)
->>
-Rule 79 (If bias is larger, then value should be complex)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) > 10 then (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
->>
-Rule 80 (Check element of value, the type should be matched with the dtype)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then ∀i ∈ [0, ndim(v_1) -1]: v_1[i] > -100 ∧  v_1[i] < 100
+Rule 20 (Enforce correct data_format values)
+{v_3 : str} |= v_3 = "channels_first" ∨ v_3 = "channels_last" ∨ v_3 = "none"

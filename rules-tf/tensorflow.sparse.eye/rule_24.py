@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# num_rows must be less than 2^31 -1 to prevent overflow during calculations (Rule 24)
+# If num_columns is not given, it is equal to num_rows which should follow the rules (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 2147483647) if n else
-          v["arg1_value"] < 2147483647)
+    s.add(Not(v["arg1_value"] > -1) if n else
+          v["arg1_value"] > -1)
 )
 
 def rule_24_func(arg1, solver=None, neg=False):

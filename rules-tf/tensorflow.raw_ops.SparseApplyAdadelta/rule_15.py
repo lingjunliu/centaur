@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# shape of indices[0] dimension must be less or equal than shape of var[0] dimension (Rule 15)
+# indices tensor should have smaller or equal number of elements than the first dimension of var (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
     s.add(Not(Select(v["arg2_shape"], 0) <= Select(v["arg1_shape"], 0)) if n else

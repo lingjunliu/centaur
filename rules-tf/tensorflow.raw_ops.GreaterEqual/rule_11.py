@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the first tensor's dimension is 2, then the second tensor dimension should also be 2. (Rule 11)
+# if x is scalar, y must be scalar or vector (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 2, v["arg2_ndim"] == 2, False)) if n else
-          If(v["arg1_ndim"] == 2, v["arg2_ndim"] == 2, False))
+    s.add(Not(If(v["arg1_ndim"] == 0, v["arg2_ndim"] <= 1, True)) if n else
+          If(v["arg1_ndim"] == 0, v["arg2_ndim"] <= 1, True))
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

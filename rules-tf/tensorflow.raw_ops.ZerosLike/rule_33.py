@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If tensor is 3D then at least two dimensions must be equal (Rule 33)
+# if tensor's dimension is greater than 1, shape(v_1,0 (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 3, Or(Or(Select(v["arg1_shape"], 0) == Select(v["arg1_shape"], 1), Select(v["arg1_shape"], 0) == Select(v["arg1_shape"], 2)), Select(v["arg1_shape"], 1) == Select(v["arg1_shape"], 2)), False)) if n else
-          If(v["arg1_ndim"] == 3, Or(Or(Select(v["arg1_shape"], 0) == Select(v["arg1_shape"], 1), Select(v["arg1_shape"], 0) == Select(v["arg1_shape"], 2)), Select(v["arg1_shape"], 1) == Select(v["arg1_shape"], 2)), False))
+    s.add(Not(If(v["arg1_ndim"] > 1, Select(v["arg1_shape"], 0) > 0, True)) if n else
+          If(v["arg1_ndim"] > 1, Select(v["arg1_shape"], 0) > 0, True))
 )
 
 def rule_33_func(arg1, solver=None, neg=False):

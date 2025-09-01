@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# ref and value have compatible dtypes (Rule 59)
+# if ref is float32, value must be float32 (Rule 59)
 
 rule_59 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(Or(Or(Or(Or(Or((And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7)), (And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8))), (And(v["arg1_dtype"] == 3, v["arg2_dtype"] == 3))), (And(v["arg1_dtype"] == 5, v["arg2_dtype"] == 5))), (And(v["arg1_dtype"] == 2, v["arg2_dtype"] == 2))), (And(v["arg1_dtype"] == 1, v["arg2_dtype"] == 1))), (And(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9))), (And(v["arg1_dtype"] == 4, v["arg2_dtype"] == 4))), (And(v["arg1_dtype"] == 13, v["arg2_dtype"] == 13)))) if n else
-          Or(Or(Or(Or(Or(Or(Or(Or((And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7)), (And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8))), (And(v["arg1_dtype"] == 3, v["arg2_dtype"] == 3))), (And(v["arg1_dtype"] == 5, v["arg2_dtype"] == 5))), (And(v["arg1_dtype"] == 2, v["arg2_dtype"] == 2))), (And(v["arg1_dtype"] == 1, v["arg2_dtype"] == 1))), (And(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9))), (And(v["arg1_dtype"] == 4, v["arg2_dtype"] == 4))), (And(v["arg1_dtype"] == 13, v["arg2_dtype"] == 13))))
+    s.add(Not(If((v["arg1_dtype"] == 7), (v["arg2_dtype"] == 7), True)) if n else
+          If((v["arg1_dtype"] == 7), (v["arg2_dtype"] == 7), True))
 )
 
 def rule_59_func(arg1, arg2, solver=None, neg=False):

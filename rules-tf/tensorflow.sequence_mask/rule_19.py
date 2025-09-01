@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# dtype must be a valid boolean or integer type (Rule 19)
+# lengths values must be representable by int32 to avoid overflow issues (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(Or(Or((v["arg1_value"] == 0), (v["arg1_value"] == 1)), (v["arg1_value"] == 2)), (v["arg1_value"] == 3)), (v["arg1_value"] == 4)), (v["arg1_value"] == 5))) if n else
-          Or(Or(Or(Or(Or((v["arg1_value"] == 0), (v["arg1_value"] == 1)), (v["arg1_value"] == 2)), (v["arg1_value"] == 3)), (v["arg1_value"] == 4)), (v["arg1_value"] == 5)))
+    s.add(Not(And([Implies(i < (Select(v["arg1_shape"], 0) - 1 + 1), And(Select(v["arg1_range"], 0) > -2147483648, Select(v["arg1_range"], 1) < 2147483647)) for i in range(6)])) if n else
+          And([Implies(i < (Select(v["arg1_shape"], 0) - 1 + 1), And(Select(v["arg1_range"], 0) > -2147483648, Select(v["arg1_range"], 1) < 2147483647)) for i in range(6)]))
 )
 
 def rule_19_func(arg1, solver=None, neg=False):
@@ -17,20 +17,24 @@ def rule_19_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 19
-        rule_19(solver, {'arg1_value': arg1_value})
+        rule_19(solver, {'arg1_shape': arg1_shape, 'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_19(solver, {'arg1_value': arg1['value']}, neg)
+        rule_19(solver, {'arg1_shape': arg1['shape'], 'arg1_range': arg1['range']}, neg)

@@ -1,96 +1,96 @@
 >>
-Rule 2 (The shape must be a tuple of non-negative integers)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+Rule 1 (shape must be a non-empty list of integers)
+{shape : list(int)} |= shape.len > 0 ∧ ∀i ∈ [0, shape.len - 1] : shape[i] > 0
 >>
-Rule 3 (If dtype is specified as an integer, it must be a valid dtype index)
-{v_1 : int} |= 0 ≤ v_1 ∧ v_1 ≤ 12
+Rule 2 (fill_value must be a tensor with a valid dtype)
+{fill_value : tensor, dtype : dtype} |= dtype_(fill_value) = dtype
 >>
-Rule 4 (If dtype is None, the fill_value must be of a supported type)
-{v_1 : tensor ⊎ int ⊎ float ⊎ bool} |= dtype_(v_1) ≠ 12
+Rule 4 (shape must contain only non-negative integers)
+{shape : list(int)} |= ∀i ∈ [0, shape.len - 1] : shape[i] ≥ 0
 >>
-Rule 5 (Shape should not be too large)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 10000
+Rule 5 (fill_value must have a shape compatible with the output)
+{shape : list(int), fill_value : tensor} |= ndim(fill_value) ≤ shape.len
 >>
-Rule 10 (The fill_value must be a scalar if shape is an empty tuple)
-{v_1 : tuple(int), v_2 : tensor ⊎ int ⊎ float ⊎ bool} |= if v_1.len = 0 then ndim(v_2) = 0
+Rule 6 (Shape of fill_value must be broadcastable to shape)
+{shape : list(int), fill_value : tensor} |= if ndim(fill_value) > 0 then (shape.len >= ndim(fill_value) ∧ ∀i ∈ [0, if ndim(fill_value) >= shape.len then ndim(fill_value) - 1 else shape.len - 1] : if shape.len - i - 1 < 0 then true else if ndim(fill_value) - i - 1 < 0 then true else shape[shape.len - i - 1] = 1 ∨ shape[shape.len - i - 1] = shape(fill_value, ndim(fill_value) - i - 1) ∨ shape(fill_value, ndim(fill_value) - i - 1) = 1)
 >>
-Rule 13 (The fill_value must be of a supported type when no dtype provided)
-{v_1 : tensor ⊎ int ⊎ float ⊎ bool, v_2 : int} |= if v_2 = 12 then true else (dtype_(v_1) ≠ 12)
+Rule 8 (shape must be a non-empty list of integers)
+{shape : list(int)} |= shape.len > 0 ∧ ∀i ∈ [0, shape.len - 1] : shape[i] ≥ 0
 >>
-Rule 15 (If shape is not empty, then at least one dimension should be non-zero.)
-{v_1 : tuple(int)} |= if v_1.len > 0 then (∃i ∈ [0, v_1.len - 1] : v_1[i] > 0)
+Rule 9 (fill_value must be a tensor)
+{fill_value : tensor} |= ndim(fill_value) ≥ 0
 >>
-Rule 16 (The fill_value should be smaller than a large value)
-{v_1 : float} |= v_1 < 1.0e+10
+Rule 10 (dtype must be a valid dtype string)
+{dtype : str} |= dtype = "float32" ∨ dtype = "float64" ∨ dtype = "int32" ∨ dtype = "int64" ∨ dtype = "bool"
 >>
-Rule 18 (If a bool is specified for fill_value, dtype cannot be a string)
-{v_1 : bool, v_2 : int} |= if v_1 = true ∨ v_1 = false then v_2 ≠ 11
+Rule 11 (dtype of fill_value should be consistent with dtype parameter)
+{fill_value : tensor, dtype : str} |= if dtype = "float32" then dtype_(fill_value) = "float32" else if dtype = "float64" then dtype_(fill_value) = "float64" else if dtype = "int32" then dtype_(fill_value) = "int32" else if dtype = "int64" then dtype_(fill_value) = "int64"
 >>
-Rule 20 (If dtype is a string, it must be one of supported string values)
-{v_1 : int} |= if v_1 = 11 then (v_1 = 11)
+Rule 16 (If dtype is specified, it should be a valid numpy dtype)
+{dtype : dtype} |= dtype = "bool" ∨ dtype = "np.int8" ∨ dtype = "np.int16" ∨ dtype = "np.int32" ∨ dtype = "np.int64" ∨ dtype = "np.uint8" ∨ dtype = "np.float16" ∨ dtype = "np.float32" ∨ dtype = "np.float64" ∨ dtype = "np.complex64" ∨ dtype = "np.complex128"
 >>
-Rule 29 (The shape tuple cannot be too long.)
-{v_1: tuple(int)} |= v_1.len < 10
+Rule 17 (shape must be a non-empty list)
+{shape : list(int)} |= shape.len > 0
 >>
-Rule 32 (The shape tuple cannot contain elements that exceed a maximum reasonable size)
-{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 100000
+Rule 18 (shape elements must be integers)
+{shape : list(int)} |= ∀i ∈ [0, shape.len - 1] : shape[i] > -1000 ∧ shape[i] < 1000
 >>
-Rule 33 (If the fill_value is an integer, it must be within a reasonable range.)
-{v_1 : int} |= -10000 < v_1 ∧ v_1 < 10000
+Rule 19 (dtype must be a valid dtype)
+{dtype : dtype} |= dtype = "bool" ∨ dtype = "np.int8" ∨ dtype = "np.int16" ∨ dtype = "np.int32" ∨ dtype = "np.int64" ∨ dtype = "np.uint8" ∨ dtype = "np.float16" ∨ dtype = "np.float32" ∨ dtype = "np.float64" ∨ dtype = "np.complex64" ∨ dtype = "np.complex128" ∨ dtype = "int" ∨ dtype = "float"
 >>
-Rule 34 (If the fill_value is a float, it cannot be NaN or Inf)
-{v_1 : float} |= v_1 = v_1
+Rule 20 (dtype of fill_value should be consistent with dtype parameter)
+{fill_value : tensor, dtype : dtype} |= if dtype = "bool" then dtype_(fill_value) = "bool" else if dtype = "np.int8" then dtype_(fill_value) = "np.int8" else if dtype = "np.int16" then dtype_(fill_value) = "np.int16" else if dtype = "np.int32" then dtype_(fill_value) = "np.int32" else if dtype = "np.int64" then dtype_(fill_value) = "np.int64" else if dtype = "np.uint8" then dtype_(fill_value) = "np.uint8" else if dtype = "np.float16" then dtype_(fill_value) = "np.float16" else if dtype = "np.float32" then dtype_(fill_value) = "np.float32" else if dtype = "np.float64" then dtype_(fill_value) = "np.float64" else if dtype = "np.complex64" then dtype_(fill_value) = "np.complex64" else if dtype = "np.complex128" then dtype_(fill_value) = "np.complex128" else if dtype = "int" then dtype_(fill_value) = "np.int32" ∨ dtype_(fill_value) = "np.int64" else if dtype = "float" then dtype_(fill_value) = "np.float32" ∨ dtype_(fill_value) = "np.float64"
 >>
-Rule 35 (If the dtype is bool, the fill_value must be a boolean.)
-{v_1 : int, v_2 : bool} |= if v_1 = 0 then (v_2 = true ∨ v_2 = false)
+Rule 22 (shape elements must be integers)
+{shape : list(int)} |= ∀i ∈ [0, shape.len - 1] : shape[i] > -100000 ∧ shape[i] < 100000
 >>
-Rule 36 (If the dtype is an integer type, the fill_value must be convertible to an integer.)
-{v_1 : int, v_2 : float} |= if v_1 > 0 ∧ v_1 < 7 then (v_2 = (v_2 * 1.0))
+Rule 24 (dtype of fill_value should be consistent with dtype parameter if dtype is provided as string)
+{fill_value : tensor, dtype : str} |= if dtype = "bool" then dtype_(fill_value) = "bool" else if dtype = "np.int8" then dtype_(fill_value) = "np.int8" else if dtype = "np.int16" then dtype_(fill_value) = "np.int16" else if dtype = "np.int32" then dtype_(fill_value) = "np.int32" else if dtype = "np.int64" then dtype_(fill_value) = "np.int64" else if dtype = "np.uint8" then dtype_(fill_value) = "np.uint8" else if dtype = "np.float16" then dtype_(fill_value) = "np.float16" else if dtype = "np.float32" then dtype_(fill_value) = "np.float32" else if dtype = "np.float64" then dtype_(fill_value) = "np.float64" else if dtype = "np.complex64" then dtype_(fill_value) = "np.complex64" else if dtype = "np.complex128" then dtype_(fill_value) = "np.complex128" else if dtype = "int" then dtype_(fill_value) = "np.int32" ∨ dtype_(fill_value) = "np.int64" else if dtype = "float" then dtype_(fill_value) = "np.float32" ∨ dtype_(fill_value) = "np.float64"
 >>
-Rule 37 (The number of elements in the shape tuple should not exceed the maximum allowed rank.)
-{v_1 : tuple(int)} |= v_1.len < 32
+Rule 27 (shape elements must be valid integers)
+{shape : list(int)} |= ∀i ∈ [0, shape.len - 1] : shape[i] > -2147483648 ∧ shape[i] < 2147483647
 >>
-Rule 45 (If the shape is an empty tuple, dtype must be specified)
-{v_1: tuple(int), v_2 : int} |= if v_1.len = 0 then v_2 ≠ 12
+Rule 28 (dtype must be a valid dtype or string)
+{dtype : dtype ⊎ str} |= dtype = "bool" ∨ dtype = "np.int8" ∨ dtype = "np.int16" ∨ dtype = "np.int32" ∨ dtype = "np.int64" ∨ dtype = "np.uint8" ∨ dtype = "np.float16" ∨ dtype = "np.float32" ∨ dtype = "np.float64" ∨ dtype = "np.complex64" ∨ dtype = "np.complex128" ∨ dtype = "int" ∨ dtype = "float" ∨ dtype = "dtype"
 >>
-Rule 50 (The resulting tensor shape should not lead to an excessive memory allocation.)
-{v_1 : tuple(int)} |= if v_1.len > 0 then (∃i ∈ [0, v_1.len - 1] : v_1[i] < 10000)
+Rule 29 (fill_value's dtype must be compatible with the specified dtype)
+{fill_value : tensor, dtype : dtype ⊎ str} |= if dtype = "bool" then dtype_(fill_value) = "bool" else if dtype = "np.int8" then dtype_(fill_value) = "np.int8" else if dtype = "np.int16" then dtype_(fill_value) = "np.int16" else if dtype = "np.int32" then dtype_(fill_value) = "np.int32" else if dtype = "np.int64" then dtype_(fill_value) = "np.int64" else if dtype = "np.uint8" then dtype_(fill_value) = "np.uint8" else if dtype = "np.float16" then dtype_(fill_value) = "np.float16" else if dtype = "np.float32" then dtype_(fill_value) = "np.float32" else if dtype = "np.float64" then dtype_(fill_value) = "np.float64" else if dtype = "np.complex64" then dtype_(fill_value) = "np.complex64" else if dtype = "np.complex128" then dtype_(fill_value) = "np.complex128" else if dtype = "int" then dtype_(fill_value) = "np.int32" ∨ dtype_(fill_value) = "np.int64" else if dtype = "float" then dtype_(fill_value) = "np.float32" ∨ dtype_(fill_value) = "np.float64" else if dtype = "dtype" then true
 >>
-Rule 51 (If a boolean dtype is specified, the fill value should be either True or False.)
-{v_1: int, v_2: bool} |= if v_1 = 0 then (v_2 = true ∨ v_2 = false)
+Rule 34 (shape elements must be valid shape)
+{shape : list(int)} |= ∀i ∈ [0, shape.len - 1] : shape[i] > 0 ∧ shape[i] < 2147483647
 >>
-Rule 52 (If fill_value is a string, dtype should be string)
-{v_1: str, v_2: int} |= if v_1 = "hello" ∨ v_1 = "world" then v_2 = 11
+Rule 35 (dtype must be a valid dtype or string)
+{dtype : dtype ⊎ str} |= dtype = "bool" ∨ dtype = "np.int8" ∨ dtype = "np.int16" ∨ dtype = "np.int32" ∨ dtype = "np.int64" ∨ dtype = "np.uint8" ∨ dtype = "np.float16" ∨ dtype = "np.float32" ∨ dtype = "np.float64" ∨ dtype = "np.complex64" ∨ dtype = "np.complex128" ∨ dtype = "int" ∨ dtype = "float" ∨ dtype = "dtype" ∨ dtype = "str"
 >>
-Rule 57 (The number of elements in the shape tuple must be a non-negative number)
-{v_1: tuple(int)} |= v_1.len ≥ 0
+Rule 36 (dtype and fill_value must be type compatible)
+{fill_value : tensor, dtype : dtype ⊎ str} |= (dtype = "dtype" ∧ dtype_(fill_value) = dtype) ∨ (dtype = "str" ∧ (if dtype = "bool" then dtype_(fill_value) = "bool" else if dtype = "np.int8" then dtype_(fill_value) = "np.int8" else if dtype = "np.int16" then dtype_(fill_value) = "np.int16" else if dtype = "np.int32" then dtype_(fill_value) = "np.int32" else if dtype = "np.int64" then dtype_(fill_value) = "np.int64" else if dtype = "np.uint8" then dtype_(fill_value) = "np.uint8" else if dtype = "np.float16" then dtype_(fill_value) = "np.float16" else if dtype = "np.float32" then dtype_(fill_value) = "np.float32" else if dtype = "np.float64" then dtype_(fill_value) = "np.float64" else if dtype = "np.complex64" then dtype_(fill_value) = "np.complex64" else if dtype = "np.complex128" then dtype_(fill_value) = "np.complex128" else if dtype = "int" then dtype_(fill_value) = "np.int32" ∨ dtype_(fill_value) = "np.int64" else if dtype = "float" then dtype_(fill_value) = "np.float32" ∨ dtype_(fill_value) = "np.float64"))
 >>
-Rule 58 (Shape should be less than certain upperbound)
-{v_1: tuple(int)} |= v_1.len < 32
+Rule 37 (dtype and fill_value must be type compatible)
+{fill_value : tensor, dtype : dtype ⊎ str} |= if dtype = "bool" then dtype_(fill_value) = "bool" else if dtype = "np.int8" then dtype_(fill_value) = "np.int8" else if dtype = "np.int16" then dtype_(fill_value) = "np.int16" else if dtype = "np.int32" then dtype_(fill_value) = "np.int32" else if dtype = "np.int64" then dtype_(fill_value) = "np.int64" else if dtype = "np.uint8" then dtype_(fill_value) = "np.uint8" else if dtype = "np.float16" then dtype_(fill_value) = "np.float16" else if dtype = "np.float32" then dtype_(fill_value) = "np.float32" else if dtype = "np.float64" then dtype_(fill_value) = "np.float64" else if dtype = "np.complex64" then dtype_(fill_value) = "np.complex64" else if dtype = "np.complex128" then dtype_(fill_value) = "np.complex128" else if dtype = "int" then (dtype_(fill_value) = "np.int32" ∨ dtype_(fill_value) = "np.int64") else if dtype = "float" then (dtype_(fill_value) = "np.float32" ∨ dtype_(fill_value) = "np.float64") else if dtype = "dtype" then dtype_(fill_value) = dtype else if dtype = "str" then true
 >>
-Rule 66 (Dtype should be selected from valid list)
-{v_1: int} |= if v_1 >= 0 ∧ v_1 <=12 then true else false
+Rule 39 (shape elements must be valid and non-negative)
+{shape : list(int)} |= ∀i ∈ [0, shape.len - 1] : shape[i] ≥ 0 ∧ shape[i] < 2147483647
 >>
-Rule 68 (If the fill_value is a very large value, dtype should be float64)
-{v_1: float, v_2: int} |= if v_1 > 1000000000 then v_2 = 8
+Rule 41 (dtype and fill_value must be type compatible)
+{fill_value : tensor, dtype : dtype ⊎ str} |= if dtype = "bool" then dtype_(fill_value) = "bool" else if dtype = "np.int8" then dtype_(fill_value) = "np.int8" else if dtype = "np.int16" then dtype_(fill_value) = "np.int16" else if dtype = "np.int32" then dtype_(fill_value) = "np.int32" else if dtype = "np.int64" then dtype_(fill_value) = "np.int64" else if dtype = "np.uint8" then dtype_(fill_value) = "np.uint8" else if dtype = "np.float16" then dtype_(fill_value) = "np.float16" else if dtype = "np.float32" then dtype_(fill_value) = "np.float32" else if dtype = "np.float64" then dtype_(fill_value) = "np.float64" else if dtype = "np.complex64" then dtype_(fill_value) = "np.complex64" else if dtype = "np.complex128" then dtype_(fill_value) = "np.complex128" else if dtype = "int" then (dtype_(fill_value) = "np.int32" ∨ dtype_(fill_value) = "np.int64") else if dtype = "float" then (dtype_(fill_value) = "np.float32" ∨ dtype_(fill_value) = "np.float64") else if dtype = "dtype" then dtype_(fill_value) = dtype
 >>
-Rule 69 (The dtype should be one of the supported dtypes as an integer.)
-{v_1: int} |= 0 ≤ v_1 ∧ v_1 ≤ 12
+Rule 43 (String dtypes must be valid strings)
+{dtype : str} |= dtype = "bool" ∨ dtype = "np.int8" ∨ dtype = "np.int16" ∨ dtype = "np.int32" ∨ dtype = "np.int64" ∨ dtype = "np.uint8" ∨ dtype = "np.float16" ∨ dtype = "np.float32" ∨ dtype = "np.float64" ∨ dtype = "np.complex64" ∨ dtype = "np.complex128" ∨ dtype = "int" ∨ dtype = "float"
 >>
-Rule 70 (Shape cannot contain extremely large dimension)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 100000
+Rule 51 (shape elements must be valid and non-negative integers, and the shape must be non-empty)
+{shape : list(int)} |= shape.len > 0 ∧ ∀i ∈ [0, shape.len - 1] : shape[i] ≥ 0 ∧ shape[i] < 2147483647
 >>
-Rule 72 (Fill value must be a scalar)
-{v_1: tensor} |= ndim(v_1) = 0
+Rule 56 (shape values must be valid)
+{shape : list(int)} |= ∀i ∈ [0, shape.len - 1] : shape[i] > 0 ∧ shape[i] < 2147483647 ∧ shape.len > 0
 >>
-Rule 73 (If shape is of length 1, it cannot be greater than 100000)
-{v_1: tuple(int)} |= if v_1.len = 1 then v_1[0] < 100000
+Rule 59 (shape validity - non-empty list of positive integers)
+{shape : list(int)} |= shape.len > 0 ∧ ∀i ∈ [0, shape.len - 1] : shape[i] > 0 ∧ shape[i] < 2147483647
 >>
-Rule 86 (The shape elements must be greater or equal to zero.)
-{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+Rule 60 (dtype compatibility)
+{fill_value : tensor, dtype : dtype ⊎ str} |= (dtype = "dtype" ∧ dtype_(fill_value) = dtype) ∨ (dtype = "str" ∧ ((dtype = "bool" ∧ dtype_(fill_value) = "bool") ∨ (dtype = "np.int8" ∧ dtype_(fill_value) = "np.int8") ∨ (dtype = "np.int16" ∧ dtype_(fill_value) = "np.int16") ∨ (dtype = "np.int32" ∧ dtype_(fill_value) = "np.int32") ∨ (dtype = "np.int64" ∧ dtype_(fill_value) = "np.int64") ∨ (dtype = "np.uint8" ∧ dtype_(fill_value) = "np.uint8") ∨ (dtype = "np.float16" ∧ dtype_(fill_value) = "np.float16") ∨ (dtype = "np.float32" ∧ dtype_(fill_value) = "np.float32") ∨ (dtype = "np.float64" ∧ dtype_(fill_value) = "np.float64") ∨ (dtype = "np.complex64" ∧ dtype_(fill_value) = "np.complex64") ∨ (dtype = "np.complex128" ∧ dtype_(fill_value) = "np.complex128") ∨ (dtype = "int" ∧ (dtype_(fill_value) = "np.int32" ∨ dtype_(fill_value) = "np.int64")) ∨ (dtype = "float" ∧ (dtype_(fill_value) = "np.float32" ∨ dtype_(fill_value) = "np.float64"))))
 >>
-Rule 96 (Shape cannot be a negative number)
-{v_1 : int} |= v_1 ≥ 0
+Rule 64 (data type compatibility)
+{fill_value : tensor, dtype : dtype ⊎ str} |= (dtype = "dtype" ∧ dtype_(fill_value) = dtype) ∨ (dtype = "str" ∧ ((dtype = "bool") ∨ (dtype = "np.int8") ∨ (dtype = "np.int16") ∨ (dtype = "np.int32") ∨ (dtype = "np.int64") ∨ (dtype = "np.uint8") ∨ (dtype = "np.float16") ∨ (dtype = "np.float32") ∨ (dtype = "np.float64") ∨ (dtype = "np.complex64") ∨ (dtype = "np.complex128") ∨ (dtype = "int") ∨ (dtype = "float")))
 >>
-Rule 98 (Shape must be non-empty)
-{v_1: tuple(int)} |= v_1.len > 0
+Rule 67 (shape list must have valid dimensions)
+{shape : list(int)} |= ∀i ∈ [0, if shape.len > 0 then shape.len - 1 else 0] : shape[i] > 0 ∧ shape[i] < 2147483647

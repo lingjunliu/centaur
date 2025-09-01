@@ -1,105 +1,222 @@
 >>
-Rule 1 (labels must be a tensor of int64 or a SparseTensor, logits must be a tensor of float32)
-{labels : tensor, logits : tensor} |= (dtype_(labels) = 4) ∧ (dtype_(logits) = 7)
+Rule 1 (labels and label_length must be both provided or both None)
+{labels : tensor, label_length : tensor} |= (labels = "none" ∧ label_length = "none") ∨ (labels ≠ "none" ∧ label_length ≠ "none")
 >>
-Rule 2 (label_length and logit_length must be tensors of int64)
-{label_length : tensor, logit_length : tensor} |= (dtype_(label_length) = 4) ∧ (dtype_(logit_length) = 4)
+Rule 2 (logits must have at least 2 dimensions)
+{logits : tensor} |= ndim(logits) ≥ 2
 >>
-Rule 3 (label_length and logit_length dimensions must be 1)
-{label_length : tensor, logit_length : tensor} |= (ndim(label_length) = 1) ∧ (ndim(logit_length) = 1)
+Rule 3 (label_length values must be non-negative)
+{label_length : tensor} |= min(label_length) ≥ 0
 >>
-Rule 4 (label_length and logit_length values should be non-negative)
-{label_length : tensor, logit_length : tensor} |= (min(label_length) ≥ 0) ∧ (min(logit_length) ≥ 0)
+Rule 4 (logit_length values must be non-negative)
+{logit_length : tensor} |= min(logit_length) ≥ 0
 >>
-Rule 5 (logits shape[1] should match label_length shape[0] and logit_length shape[0])
-{logits : tensor, label_length : tensor, logit_length : tensor} |= shape(logits, 1) = shape(label_length, 0) ∧ shape(logits, 1) = shape(logit_length, 0)
+Rule 5 (blank_index must be non-negative if not negative)
+{blank_index : int} |= blank_index ≥ 0 ∨ blank_index < 0
 >>
-Rule 6 (labels shape[0] must match label_length shape[0])
+Rule 6 (logit_length should not exceed the maximum possible value based on the logits tensor)
+{logits : tensor, logit_length : tensor} |= max(logit_length) ≤ shape(logits, 0)
+>>
+Rule 7 (label_length should not exceed the maximum possible value based on the labels tensor)
+{labels : tensor, label_length : tensor} |= max(label_length) ≤ shape(labels, 1)
+>>
+Rule 8 (logits_time_major should be either true or false)
+{logits_time_major : bool} |= logits_time_major = true ∨ logits_time_major = false
+>>
+Rule 9 (name should be a string)
+{name : str} |= name ≠ "none"
+>>
+Rule 10 (label_length shape should be [batch_size], matching the second dimension of logits when time_major is true)
+{logits : tensor, label_length : tensor} |= shape(label_length, 0) = shape(logits, 1)
+>>
+Rule 11 (logit_length shape should be [batch_size], matching the second dimension of logits when time_major is true)
+{logits : tensor, logit_length : tensor} |= shape(logit_length, 0) = shape(logits, 1)
+>>
+Rule 12 (label_length shape should be [batch_size], matching the first dimension of logits when time_major is false)
+{logits : tensor, label_length : tensor} |= shape(label_length, 0) = shape(logits, 0)
+>>
+Rule 13 (logit_length shape should be [batch_size], matching the first dimension of logits when time_major is false)
+{logits : tensor, logit_length : tensor} |= shape(logit_length, 0) = shape(logits, 0)
+>>
+Rule 15 (unique must be a tensor if provided)
+{unique : tensor} |= unique ≠ "none"
+>>
+Rule 16 (labels must have integer dtype)
+{labels : tensor} |= dtype_(labels) = 2 ∨ dtype_(labels) = 3 ∨ dtype_(labels) = 4 ∨ dtype_(labels) = 5
+>>
+Rule 17 (label_length must have integer dtype)
+{label_length : tensor} |= dtype_(label_length) = 2 ∨ dtype_(label_length) = 3 ∨ dtype_(label_length) = 4 ∨ dtype_(label_length) = 5
+>>
+Rule 18 (logit_length must have integer dtype)
+{logit_length : tensor} |= dtype_(logit_length) = 2 ∨ dtype_(logit_length) = 3 ∨ dtype_(logit_length) = 4 ∨ dtype_(logit_length) = 5
+>>
+Rule 19 (blank_index should be within the valid range)
+{logits : tensor, blank_index : int} |= blank_index ≥ (0 - shape(logits, 2)) ∧ blank_index < shape(logits, 2)
+>>
+Rule 20 (labels must be provided if label_length is present)
+{labels : tensor, label_length : tensor} |= (label_length = "none") ∨ (labels ≠ "none")
+>>
+Rule 21 (logits must be float type)
+{logits : tensor} |= dtype_(logits) = 7 ∨ dtype_(logits) = 8
+>>
+Rule 22 (label_length and logit_length must have the same dtype)
+{label_length : tensor, logit_length : tensor} |= dtype_(label_length) = dtype_(logit_length)
+>>
+Rule 23 (logits must have 3 dimensions if logits_time_major is true)
+{logits : tensor, logits_time_major : bool} |= (logits_time_major = false) ∨ (ndim(logits) = 3)
+>>
+Rule 24 (labels must have 2 dimensions if not sparse tensor)
+{labels : tensor} |= ndim(labels) = 2
+>>
+Rule 25 (If labels is a SparseTensor, label_length should be None)
+{labels : tensor, label_length : tensor} |= (labels = "none") ∨ (label_length = "none")
+>>
+Rule 26 (label_length and logit_length should be int64)
+{label_length : tensor, logit_length : tensor} |= dtype_(label_length) = 4 ∧ dtype_(logit_length) = 4
+>>
+Rule 27 (If labels is a SparseTensor, unique must be none)
+{labels : tensor, unique : tensor} |= (labels = "none") ∨ (unique = "none")
+>>
+Rule 28 (logits has valid dimension based on logits_time_major)
+{logits : tensor, logits_time_major : bool} |= if logits_time_major = true then ndim(logits) = 3 else ndim(logits) = 3
+>>
+Rule 33 (logits dimension 0 should match logit_length when time_major is true)
+{logits : tensor, logit_length : tensor, logits_time_major : bool} |= if logits_time_major = true then shape(logits, 1) = shape(logit_length, 0)
+>>
+Rule 34 (labels dimension 0 should match label_length)
 {labels : tensor, label_length : tensor} |= shape(labels, 0) = shape(label_length, 0)
 >>
-Rule 10 (label_length values should not exceed the maximum length allowed by labels)
-{labels : tensor, label_length : tensor} |= ∀i ∈ [0, shape(label_length, 0) - 1] : label_length[i] ≤ shape(labels, 1)
+Rule 36 (logits dimension 1 should match logit_length dimension 0 when time_major is false)
+{logits : tensor, logit_length : tensor, logits_time_major : bool} |= if logits_time_major = false then shape(logits, 0) = shape(logit_length, 0)
 >>
-Rule 11 (logit_length values should not exceed the frames length allowed by logits)
-{logits : tensor, logit_length : tensor} |= ∀i ∈ [0, shape(logit_length, 0) - 1] : logit_length[i] ≤ shape(logits, 0)
+Rule 38 (logits dimension 1 should match label_length dimension 0)
+{logits : tensor, label_length : tensor, logits_time_major : bool} |= if logits_time_major = true then shape(logits, 1) = shape(label_length, 0)
 >>
-Rule 12 (logits shape must have 3 dimensions)
-{logits : tensor} |= ndim(logits) = 3
+Rule 40 (If logits_time_major is true, logit_length should be less than or equal to logits dimension 0)
+{logits : tensor, logit_length : tensor, logits_time_major : bool} |= if logits_time_major = true then max(logit_length) ≤ shape(logits, 0)
 >>
-Rule 13 (labels values should be non-negative)
-{labels : tensor} |= min(labels) >= 0
+Rule 41 (labels and logits must be tensors)
+{labels: tensor, logits: tensor} |= labels ≠ "none" ∧ logits ≠ "none"
 >>
-Rule 14 (blank_index should be less than num_labels)
-{blank_index : int, logits : tensor} |= blank_index < shape(logits, 2)
+Rule 42 (label_length and logit_length must be tensors or None (represented as "none"))
+{label_length: tensor, logit_length: tensor} |= (label_length = "none") ∨ (logit_length = "none") ∨ (label_length ≠ "none" ∧ logit_length ≠ "none")
 >>
-Rule 16 (label_length should not exceed logit_length when label_length is provided)
-{label_length : tensor, logit_length : tensor} |= ∀i ∈ [0, shape(label_length, 0) - 1] : label_length[i] <= logit_length[i]
+Rule 43 (logits_time_major must be a boolean value)
+{logits_time_major: bool} |= logits_time_major = true ∨ logits_time_major = false
 >>
-Rule 17 (labels must be a tensor of int64 or a SparseTensor, logits must be a tensor of float32)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 4) ∧ (dtype_(v_2) = 7)
+Rule 44 (labels cannot be none when label_length is specified)
+{labels: tensor, label_length: tensor} |= (label_length = "none") ∨ (labels ≠ "none")
 >>
-Rule 18 (label_length and logit_length must be tensors of int64)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 4) ∧ (dtype_(v_2) = 4)
+Rule 45 (logit_length cannot be none when logits is not none)
+{logits: tensor, logit_length: tensor} |= (logits = "none") ∨ (logit_length ≠ "none")
 >>
-Rule 19 (label_length and logit_length dimensions must be 1)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 1) ∧ (ndim(v_2) = 1)
+Rule 46 (blank_index must be an integer)
+{blank_index: int} |= blank_index ≥ -100000 ∧ blank_index ≤ 100000
 >>
-Rule 20 (label_length and logit_length values should be non-negative)
-{v_1 : tensor, v_2 : tensor} |= (min(v_1) ≥ 0) ∧ (min(v_2) ≥ 0)
+Rule 47 (unique must be a tensor when specified)
+{unique: tensor} |= (unique = "none") ∨ (unique ≠ "none")
 >>
-Rule 21 (logits shape[1] should match label_length shape[0] and logit_length shape[0])
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_1, 1) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_3, 0)
+Rule 48 (name must be a string when specified)
+{name: str} |= name ≠ "none"
 >>
-Rule 22 (labels shape[0] must match label_length shape[0])
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 49 (If logits_time_major is false, then logits dimension 0 should match label_length dimension 0)
+{logits : tensor, label_length : tensor, logits_time_major : bool} |= if logits_time_major = false then shape(logits, 0) = shape(label_length, 0)
 >>
-Rule 23 (logits shape must have 3 dimensions)
-{v_1 : tensor} |= ndim(v_1) = 3
+Rule 50 (blank_index must be smaller than number of labels)
+{logits: tensor, blank_index: int} |= blank_index < shape(logits, 2)
 >>
-Rule 24 (labels values should be non-negative)
-{v_1 : tensor} |= min(v_1) >= 0
+Rule 51 (blank_index must be >= 0 if blank_index is non-negative)
+{blank_index: int} |= if blank_index >= 0 then blank_index >= 0
 >>
-Rule 25 (label_length values should not exceed the maximum length allowed by labels)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ shape(v_1, 1)
+Rule 52 (label_length values must be less or equal than max_label_seq_length)
+{labels: tensor, label_length: tensor} |= ∀ i ∈ [0, shape(label_length,0) - 1] : label_length[i] <= shape(labels, 1)
 >>
-Rule 26 (logit_length values should not exceed the frames length allowed by logits)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ shape(v_1, 0)
+Rule 53 (If labels is a SparseTensor, blank_index must be provided)
+{labels: tensor, blank_index: int} |= (labels ≠ "none") ∨ (blank_index ≠ -1)
 >>
-Rule 28 (blank_index must be within allowed range)
-{v_1 : int, v_2 : tensor} |= v_1 < shape(v_2, 2)
+Rule 54 (labels and logits tensors dimensions are validated)
+{labels: tensor, logits: tensor} |= ndim(labels) >= 1 ∧ ndim(logits) >= 2
 >>
-Rule 29 (label_length should not exceed logit_length when label_length is provided)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] <= v_2[i]
+Rule 55 (Check logits data type is float)
+{logits: tensor} |= dtype_(logits) = 7 ∨ dtype_(logits) = 8 ∨ dtype_(logits) = 6
 >>
-Rule 30 (labels' dtype can be int32 or int64)
-{v_1: tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 56 (If labels is SparseTensor, label_length must be None)
+{labels: tensor, label_length: tensor} |= if labels = "none" then true else if ndim(labels) > 2 then label_length = "none"
 >>
-Rule 43 (logits must be float type)
-{v_1: tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 57 (logit_length values must be greater than 0)
+{logit_length: tensor} |= ∀ i ∈ [0, shape(logit_length, 0) - 1] : logit_length[i] > 0
 >>
-Rule 44 (If logits_time_major is false, shape is [batch_size, frames, num_labels])
-{v_1: tensor, v_2: bool} |= if v_2 = false then shape(v_1,0) = shape(v_1, 0)
+Rule 58 (label_length values must be >= 0)
+{label_length: tensor} |= ∀ i ∈ [0, shape(label_length, 0) - 1] : label_length[i] >= 0
 >>
-Rule 45 (labels must be a tensor and have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 59 (labels tensor must have int64 dtype)
+{labels: tensor} |= dtype_(labels) = 4
 >>
-Rule 52 (logits shape[1] should match label_length shape[0])
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = shape(v_2, 0)
+Rule 60 (logit_length tensor must have int64 dtype)
+{logit_length: tensor} |= dtype_(logit_length) = 4
 >>
-Rule 59 (logits third dimension must be positive)
-{v_1 : tensor} |= shape(v_1, 2) > 0
+Rule 61 (labels and label_length shape[0] should match)
+{labels: tensor, label_length: tensor} |= shape(labels, 0) = shape(label_length, 0)
 >>
-Rule 72 (label_length shape[0] should be positive)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 62 (logit_length shape[0] match with logits shape[1] if logits_time_major is true)
+{logits: tensor, logit_length: tensor, logits_time_major: bool} |= if logits_time_major = true then shape(logits, 1) = shape(logit_length, 0)
 >>
-Rule 74 (The third dimension of logits must be greater than blank_index)
-{v_1: tensor, v_2: int} |= shape(v_1, 2) > v_2
+Rule 63 (If logits_time_major is false, logit_length shape[0] match with logits shape[0])
+{logits: tensor, logit_length: tensor, logits_time_major: bool} |= if logits_time_major = false then shape(logits, 0) = shape(logit_length, 0)
 >>
-Rule 75 (label_length values should be less than or equal to maximum length of labels)
-{v_1: tensor, v_2: tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1]: v_2[i] <= shape(v_1, 1)
+Rule 64 (logits shape should be [frames, batch_size, num_labels] when logits_time_major is True)
+{logits: tensor, logits_time_major: bool} |= if logits_time_major = true then ndim(logits) = 3
 >>
-Rule 105 (blank_index is non-negative)
-{v_1 : int} |= v_1 >= 0
+Rule 65 (logits shape should be [batch_size, frames, num_labels] when logits_time_major is False)
+{logits: tensor, logits_time_major: bool} |= if logits_time_major = false then ndim(logits) = 3
 >>
-Rule 113 (if logits_time_major is false, then logits shape is [batch_size, frames, num_labels])
-{v_1: bool, v_2: tensor} |= if v_1 = false then shape(v_2, 0) > 0
+Rule 66 (If logits_time_major is false, then logit_length shape[0] match with logits shape[0] else logits shape[1] should match)
+{logits: tensor, logit_length: tensor, logits_time_major: bool} |= if logits_time_major = false then shape(logits, 0) = shape(logit_length, 0) else shape(logits, 1) = shape(logit_length, 0)
+>>
+Rule 67 (logit_length cannot be a bool tensor)
+{logit_length: tensor} |= dtype_(logit_length) ≠ 0
+>>
+Rule 68 (label_length cannot be a bool tensor)
+{label_length: tensor} |= dtype_(label_length) ≠ 0
+>>
+Rule 71 (If the shapes of label_length and logit_length are different, then there is a high chance it would result into broadcasting problems or value ambiguity )
+{logits : tensor, label_length : tensor} |= shape(logits, 1) = shape(label_length, 0)
+>>
+Rule 72 (logits shape must align with label shape)
+{labels: tensor, logits: tensor} |= if ndim(labels) = 2 then shape(labels, 0) = shape(logits, 1)
+>>
+Rule 73 (If the first dimension of logits is small, then there is a high chance it would result into problems)
+{logits : tensor} |= shape(logits, 0) > 2
+>>
+Rule 74 (labels dtype cannot be bool)
+{labels : tensor} |= dtype_(labels) ≠ 0
+>>
+Rule 75 (labels dtype cannot be float)
+{labels : tensor} |= dtype_(labels) ≠ 7 ∧ dtype_(labels) ≠ 8 ∧ dtype_(labels) ≠ 6
+>>
+Rule 76 (labels tensor must have rank > 0)
+{labels: tensor} |= ndim(labels) > 0
+>>
+Rule 77 (blank_index value constraints to prevent transpose errors)
+{logits: tensor, blank_index: int} |= if ndim(logits) = 3 then true else blank_index = 0
+>>
+Rule 78 (If labels is a SparseTensor, then its indices and values should have correct shapes.)
+{labels: tensor} |= if ndim(labels) > 2 then true else ndim(labels) < 3
+>>
+Rule 79 (labels: if label_length is not None, then check shape consistency)
+{labels: tensor, label_length: tensor} |= if label_length ≠ "none" then shape(labels, 0) = shape(label_length, 0)
+>>
+Rule 80 (Check logits values are not inf or nan)
+{logits: tensor} |= min(logits) > -1000 ∧ max(logits) < 1000
+>>
+Rule 81 (If logits_time_major is True, then first dim of logits must be greater or equal than max value inside logit_length)
+{logits: tensor, logit_length: tensor} |= ∀i ∈ [0, shape(logit_length, 0) - 1]: logit_length[i] <= shape(logits, 0)
+>>
+Rule 82 (If labels is not none (SparseTensor), blank_index cannot be provided as None )
+{labels: tensor, blank_index: int} |= (labels = "none") ∨ (blank_index ≠ -1)
+>>
+Rule 83 (logits shape 2nd dimension must be > 0)
+{logits: tensor} |= shape(logits, 1) > 0
+>>
+Rule 84 (If labels is a SparseTensor then label_length should be "none")
+{labels: tensor, label_length: tensor} |= if ndim(labels) > 2 then label_length = "none"

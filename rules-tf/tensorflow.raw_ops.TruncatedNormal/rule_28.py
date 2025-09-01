@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# At least one of the seeds must be zero, if both are not provided (Rule 28)
+# If seed or seed2 is defined, then seed + seed2 should be greater than 0 to ensure it will seed (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_value"] == 0, v["arg2_value"] == 0)) if n else
-          Or(v["arg1_value"] == 0, v["arg2_value"] == 0))
+    s.add(Not(If(Or((v["arg1_value"] != 0), (v["arg2_value"] != 0)), (v["arg1_value"] + v["arg2_value"]) > 0, True)) if n else
+          If(Or((v["arg1_value"] != 0), (v["arg2_value"] != 0)), (v["arg1_value"] + v["arg2_value"]) > 0, True))
 )
 
 def rule_28_func(arg1, arg2, solver=None, neg=False):

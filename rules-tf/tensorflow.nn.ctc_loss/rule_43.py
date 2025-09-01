@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# logits must be float type (Rule 43)
+# logits_time_major must be a boolean value (Rule 43)
 
 rule_43 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)) if n else
-          Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8))
+    s.add(Not(Or(v["arg1_value"] == True, v["arg1_value"] == False)) if n else
+          Or(v["arg1_value"] == True, v["arg1_value"] == False))
 )
 
 def rule_43_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_43_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_value = Bool('arg1_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 43
-        rule_43(solver, {'arg1_dtype': arg1_dtype})
+        rule_43(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_43(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_43(solver, {'arg1_value': arg1['value']}, neg)

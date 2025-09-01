@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# a, b, and x must have the same floating-point type (Rule 1)
+# a, b, and x must have the same float32 or float64 dtype (7 or 8 (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] == v["arg2_dtype"], v["arg1_dtype"] == v["arg3_dtype"])) if n else
-          And(v["arg1_dtype"] == v["arg2_dtype"], v["arg1_dtype"] == v["arg3_dtype"]))
+    s.add(Not(And(And((Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), v["arg1_dtype"] == v["arg2_dtype"]), v["arg1_dtype"] == v["arg3_dtype"])) if n else
+          And(And((Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), v["arg1_dtype"] == v["arg2_dtype"]), v["arg1_dtype"] == v["arg3_dtype"]))
 )
 
 def rule_1_func(arg1, arg2, arg3, solver=None, neg=False):

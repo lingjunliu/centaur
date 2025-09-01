@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# priority must be a valid integer within a specific range (Rule 10)
+# priority should not be too large (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= -100, v["arg1_value"] <= 200)) if n else
-          And(v["arg1_value"] >= -100, v["arg1_value"] <= 200))
+    s.add(Not(v["arg1_value"] <= 1000) if n else
+          v["arg1_value"] <= 1000)
 )
 
 def rule_10_func(arg1, solver=None, neg=False):

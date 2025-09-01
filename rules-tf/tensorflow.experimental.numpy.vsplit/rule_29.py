@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If indices_or_sections is an integer, it must evenly divide the length of the axis (Rule 29)
+# if indices_or_sections is an integer, its value must be smaller than the number of rows. (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) % v["arg2_value"] == 0) if n else
-          Select(v["arg1_shape"], 0) % v["arg2_value"] == 0)
+    s.add(Not(v["arg2_value"] <= Select(v["arg1_shape"], 0)) if n else
+          v["arg2_value"] <= Select(v["arg1_shape"], 0))
 )
 
 def rule_29_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if memory_limit is greater than 0, then memory_limit should be a multiple of 1024 (Rule 26)
+# If memory_limit is specified then memory_limit must be less than maximum integer value (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] > 0, v["arg1_value"] % 1024 == 0, False)) if n else
-          If(v["arg1_value"] > 0, v["arg1_value"] % 1024 == 0, False))
+    s.add(Not(v["arg1_value"] < 2147483647) if n else
+          v["arg1_value"] < 2147483647)
 )
 
 def rule_26_func(arg1, solver=None, neg=False):

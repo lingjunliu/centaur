@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Number of buckets must not be a negative number (Rule 52)
+# num_buckets modulus 2 should not be zero (Rule 52)
 
 rule_52 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] > -1) if n else
-          v["arg1_value"] > -1)
+    s.add(Not(v["arg1_value"] % 2 != 0) if n else
+          v["arg1_value"] % 2 != 0)
 )
 
 def rule_52_func(arg1, solver=None, neg=False):

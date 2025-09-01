@@ -1,72 +1,144 @@
 >>
-Rule 1 (input_min must be less than or equal to input_max if range_given is true)
-{v_1 : float, v_2 : float, v_3 : bool} |= if v_3 then v_1 ≤ v_2
+Rule 1 (input_min and input_max must be tensors if axis is specified)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_10 : int} |= (v_10 ≠ -1) ∧ (ndim(v_2) > 0) ∧ (ndim(v_3) > 0)
 >>
-Rule 2 (num_bits must be greater than 0 and less than or equal to 16)
-{v_1 : int} |= v_1 > 0 ∧ v_1 ≤ 16
+Rule 2 (round_mode must be either HALF_TO_EVEN or HALF_UP)
+{v_7 : str} |= v_7 = "HALF_TO_EVEN" ∨ v_7 = "HALF_UP"
 >>
-Rule 3 (axis must be a non-negative integer)
-{v_1 : int} |= v_1 ≥ 0
+Rule 3 (num_bits must be greater than 0)
+{v_5 : int} |= v_5 > 0
 >>
-Rule 4 (round_mode must be a valid string)
-{v_1 : str} |= v_1 = "HALF_TO_EVEN" ∨ v_1 = "HALF_UP"
+Rule 4 (input_min must be less than or equal to input_max when range_given is true)
+{v_2 : tensor, v_3 : tensor, v_6 : bool} |= if v_6 then min(v_2) ≤ max(v_3)
 >>
-Rule 5 (input must be a tensor)
+Rule 5 (axis must be a valid dimension of the input tensor)
+{v_1 : tensor, v_10 : int} |= if v_10 ≠ -1 then v_10 ≥ 0 ∧ v_10 < ndim(v_1)
+>>
+Rule 6 (If input_min and input_max are scalars, then axis must be -1.)
+{v_2 : tensor, v_3 : tensor, v_10 : int} |= if ndim(v_2) = 0 ∧ ndim(v_3) = 0 then v_10 = -1
+>>
+Rule 7 (input must be a tensor with ndim attribute)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 9 (input_min and input_max tensors must have compatible shapes when axis is not None)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_10 : int} |= if v_10 ≠ -1 then shape(v_2, 0) = shape(v_3, 0)
+>>
+Rule 10 (num_bits must be a reasonable value)
+{v_5 : int} |= v_5 > 1 ∧ v_5 < 17
+>>
+Rule 14 (input_min and input_max must have the same shape if they are both tensors and axis is used)
+{v_2 : tensor, v_3 : tensor, v_10 : int} |= if v_10 ≠ -1 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0 then shape(v_2, 0) = shape(v_3, 0)
+>>
+Rule 15 (num_bits must be within a valid range)
+{v_5 : int} |= v_5 ≥ 2 ∧ v_5 ≤ 16
+>>
+Rule 16 (If axis is specified, input_min must have the same number of elements as the specified axis)
+{v_1 : tensor, v_2 : tensor, v_10 : int} |= if v_10 ≠ -1 then shape(v_2, 0) = shape(v_1, v_10)
+>>
+Rule 19 (input_min and input_max shapes must be scalar or match along the specified axis)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_10 : int} |= if v_10 = -1 then ndim(v_2) = 0 ∧ ndim(v_3) = 0 else (ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_2, 0) = shape(v_3, 0) ∧ shape(v_2, 0) = shape(v_1, v_10))
+>>
+Rule 24 (input_min and input_max must have compatible shape with input along axis dimension if axis is specified.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_10 : int} |= if v_10 ≠ -1 then (ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_2, 0) = shape(v_3, 0) ∧ shape(v_2, 0) = shape(v_1, v_10)) ∨ (ndim(v_2) = 0 ∧ ndim(v_3) = 0) else ndim(v_2) = 0 ∧ ndim(v_3) = 0
+>>
+Rule 29 (axis must be within the valid range of dimensions for input tensor)
+{v_1 : tensor, v_10 : int} |= if ndim(v_1) > 0 then (v_10 ≥ (0 - ndim(v_1)) ∧ v_10 < ndim(v_1)) else v_10 = -1
+>>
+Rule 30 (If range_given is true, input_min must be less than or equal to input_max)
+{v_2: tensor, v_3: tensor, v_6: bool} |= if v_6 then min(v_2) <= max(v_3)
+>>
+Rule 31 (ndim of input should not be None to avoid AttributeError)
+{v_1 : tensor} |= ndim(v_1) >= 0
+>>
+Rule 32 (input_min and input_max must have the same dtype)
+{v_2 : tensor, v_3 : tensor} |= dtype_(v_2) = dtype_(v_3)
+>>
+Rule 36 (If range_given is true, input_min and input_max shapes must be compatible with the input shape along the axis, or be scalar)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_6 : bool, v_10 : int} |= if v_6 then (if v_10 = -1 then ndim(v_2) = 0 ∧ ndim(v_3) = 0 else (ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_2, 0) = shape(v_3, 0) ∧ shape(v_2, 0) = shape(v_1, v_10)))
+>>
+Rule 39 (If range_given is true and axis is specified, input_min and input_max must be vectors with length matching the input's dimension along the axis, and input must have a defined number of dimensions to avoid AttributeError)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_6 : bool, v_10 : int} |= if v_6 ∧ v_10 ≠ -1 then (ndim(v_1) > 0 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_2, 0) = shape(v_1, v_10) ∧ shape(v_3, 0) = shape(v_1, v_10))
+>>
+Rule 40 (narrow_range must be a boolean)
+{v_9 : bool} |= v_9 = true ∨ v_9 = false
+>>
+Rule 41 (input_min and input_max must be scalar or vector)
+{v_2 : tensor, v_3: tensor} |= (ndim(v_2) = 0 ∧ ndim(v_3) = 0) ∨ (ndim(v_2) = 1 ∧ ndim(v_3) = 1)
+>>
+Rule 42 (input tensor must have dimension greater than 0)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 7 (signed_input must be a boolean value)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 45 (if range_given is true, then input_min must be less than input_max, vectorized version)
+{v_2 : tensor, v_3 : tensor, v_6 : bool} |= if v_6 then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] <= v_3[i]
 >>
-Rule 9 (if axis is not none, input_min and input_max shape along that axis must match input shape)
-{v_1 : tensor, v_2 : float, v_3 : float, v_4 : int} |= if v_4 > -1 then shape(v_1, v_4) = shape(v_2, 0) ∧ shape(v_1, v_4) = shape(v_3, 0)
+Rule 51 (if range_given is false, then input_min and input_max have no constraints)
+{v_6 : bool} |= if v_6 then true
 >>
-Rule 12 (axis must be a non-negative integer)
-{v_1 : int} |= v_1 ≥ -1
+Rule 54 (input_min and input_max must have compatible shapes,considering axis, to prevent shape mismatch during quantization)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_6 : bool, v_10 : int} |= if v_6 ∧ v_10 ≠ -1 then (ndim(v_1) > 0 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_2, 0) = shape(v_1, v_10) ∧ shape(v_3, 0) = shape(v_1, v_10)) ∨ (ndim(v_2) = 0 ∧ ndim(v_3) = 0)
 >>
-Rule 15 (If axis is specified, it must be within the input tensor's dimension range)
-{v_1 : int, v_2 : tensor} |= if v_1 > -1 then v_1 < ndim(v_2)
+Rule 55 (signed_input must be a boolean)
+{v_4 : bool} |= v_4 = true ∨ v_4 = false
 >>
-Rule 17 (dtype of input must be float, int or bool)
-{v_1 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 56 (if range_given is true, input_min must be less than or equal to input_max to guarantee valid quantization range)
+{v_2 : tensor, v_3 : tensor, v_6 : bool} |= if v_6 then min(v_2) <= max(v_3)
 >>
-Rule 22 (axis must be a valid dimension index or -1)
-{v_1 : int, v_2 : tensor} |= v_1 ≥ -1 ∧ if v_1 > -1 then v_1 < ndim(v_2)
+Rule 60 (if axis is specified, input_min, input_max, and input must have compatible shapes)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_10 : int} |= if v_10 ≠ -1 then (ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_2, 0) = shape(v_1, v_10) ∧ shape(v_3, 0) = shape(v_1, v_10))
 >>
-Rule 27 (If axis is present, input_min and input_max must have compatible shapes along that axis)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 > -1 then shape(v_1, v_3) = shape(v_2, 0)
+Rule 61 (input tensor must have a floating point dtype)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
 >>
-Rule 28 (Data type of input tensor should be numerical.)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 64 (if range_given is true, input_min must be less than or equal to input_max to guarantee valid quantization range when both are scalar tensors)
+{v_2 : tensor, v_3 : tensor, v_6 : bool} |= if v_6 ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 0 then min(v_2) <= max(v_3)
 >>
-Rule 31 (axis must be a valid dimension index or -1, and input must be at least 1D)
-{v_1 : int, v_2 : tensor} |= ndim(v_2) > 0 ∧ v_1 ≥ -1 ∧ if v_1 > -1 then v_1 < ndim(v_2)
+Rule 70 (if axis is specified and range_given is true, input_min and input_max must be 1D tensors)
+{v_2 : tensor, v_3 : tensor, v_10 : int, v_6 : bool} |= if v_10 ≠ -1 ∧ v_6 then ndim(v_2) = 1 ∧ ndim(v_3) = 1
 >>
-Rule 45 (If axis is present, input_min and input_max must have compatible shapes along that axis when they are tensors)
-{v_1 : tensor, v_3 : int, v_4: tensor, v_5: tensor} |= if v_3 > -1 then (ndim(v_4) > 0 ∧ ndim(v_5) > 0 ∧ shape(v_1, v_3) = shape(v_4, 0) ∧ shape(v_1, v_3) = shape(v_5, 0))
+Rule 76 (if axis is specified and range_given is true, input_min, input_max, and input must have compatible shapes along specified axis or be scalar)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_10 : int, v_6 : bool} |= if v_10 ≠ -1 ∧ v_6 then (ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_2, 0) = shape(v_1, v_10) ∧ shape(v_3, 0) = shape(v_1, v_10)) ∨ (ndim(v_2) = 0 ∧ ndim(v_3) = 0)
 >>
-Rule 46 (Input tensor should have a supported datatype)
-{v_1: tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 80 (If range_given is true, then if input_min or input_max have ndim > 0 they should have the same shape)
+{v_2 : tensor, v_3 : tensor, v_6 : bool} |= if v_6 ∧ (ndim(v_2) > 0 ∨ ndim(v_3) > 0) then shape(v_2, 0) = shape(v_3, 0)
 >>
-Rule 47 (If range_given is false, then input min is ignored)
-{v_1: bool} |= if v_1 then true
+Rule 85 (if range_given is true, and axis is -1, input_min and input_max should be scalar tensors)
+{v_2 : tensor, v_3 : tensor, v_6 : bool, v_10 : int} |= if v_6 ∧ v_10 = -1 then ndim(v_2) = 0 ∧ ndim(v_3) = 0
 >>
-Rule 56 (Input tensor should have a supported datatype)
-{v_1: tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 90 (if axis is specified, then input_min and input_max should also specify axis)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_10 : int} |= if v_10 ≠ -1 then ndim(v_2) = 1 ∧ ndim(v_3) = 1
 >>
-Rule 58 (If range_given is true and axis is specified, input_min and input_max must have shape [shape(input, axis)])
-{v_1 : bool, v_2 : int, v_3 : tensor, v_4 : tensor, v_5: tensor} |= if v_1 ∧ v_2 > -1 then (ndim(v_3) > 0 ∧ ndim(v_4) > 0 ∧ ndim(v_5) > 0 ∧ shape(v_3, v_2) = shape(v_4, 0) ∧ shape(v_3, v_2) = shape(v_5, 0))
+Rule 95 (if range_given is true, and axis is not -1 and if tensor input_min/max then ensure the leading dimension of the inputs match)
+{v_2 : tensor, v_3 : tensor, v_6 : bool, v_10 : int , v_1:tensor} |= if v_6 ∧ v_10 != -1 ∧ ndim(v_2)>0 ∧ ndim(v_3)>0 then shape(v_2,0) = shape(v_3,0) ∧ shape(v_2,0) = shape(v_1,v_10)
 >>
-Rule 65 (If axis is present and range_given is true, input_min and input_max must have compatible shapes along that axis)
-{v_1 : tensor, v_3 : int, v_4: tensor, v_5: tensor, v_6: bool} |= if v_3 > -1 ∧ v_6 then (ndim(v_4) > 0 ∧ ndim(v_5) > 0 ∧ shape(v_1, v_3) = shape(v_4, 0) ∧ shape(v_1, v_3) = shape(v_5, 0))
+Rule 96 (If input is a quantized type, the range given must be defined)
+{v_1: tensor, v_6: bool} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then v_6 = true
 >>
-Rule 67 (The input_min must be a scalar if range_given is true and axis is -1)
-{v_1: bool, v_2: int, v_3 : tensor} |= if v_1 ∧ v_2 = -1 then ndim(v_3) = 0
+Rule 100 (if axis is not -1, the length of input_min and input_max must match the shape of input along the axis dimension)
+{v_1: tensor, v_2: tensor, v_3: tensor, v_10: int} |= if v_10 ≠ -1 then ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, v_10) ∧ ndim(v_3) = 1 ∧ shape(v_3, 0) = shape(v_1, v_10)
 >>
-Rule 76 (if range_given is true, input_min and input_max must be tensors)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 then ndim(v_2) ≥ 0 ∧ ndim(v_3) ≥ 0
+Rule 101 (if range_given is true and input_min and input_max are scalars, then input_min <= input_max)
+{v_2 : tensor, v_3 : tensor, v_6 : bool} |= if v_6 ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 0 then v_2 <= v_3
 >>
-Rule 78 (Input tensor must have a supported datatype that is not string or dtype.)
-{v_1: tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12
+Rule 102 (if range_given is true, and axis is not -1, then input_min and input_max must have a vector shape consistent with that axis)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_6 : bool, v_10 : int} |= if v_6 ∧ v_10 ≠ -1 then (ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_2, 0) = shape(v_1, v_10) ∧ shape(v_3, 0) = shape(v_1, v_10))
 >>
-Rule 88 (If range_given is true, axis must also be provided if input_min and input_max are not scalars)
-{v_1 : bool, v_2 : int, v_3 : tensor} |= if v_1 ∧ ndim(v_3) > 0 then v_2 > -1
+Rule 110 (If axis is not -1, the length of input_min and input_max must match the shape of input along the axis dimension and have valid ndim for torch size issue)
+{v_1: tensor, v_2: tensor, v_3: tensor, v_10: int} |= if v_10 ≠ -1 then (ndim(v_1) >=0 ∧ ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, v_10) ∧ ndim(v_3) = 1 ∧ shape(v_3, 0) = shape(v_1, v_10))
+>>
+Rule 116 (If range_given is true and input_min and input_max are scalars, and also axis!=-1 then input_min <= input_max, only when both have dimension 0)
+{v_2 : tensor, v_3 : tensor, v_6 : bool, v_10 : int} |= if v_6 ∧ v_10 = -1 then (ndim(v_2) = 0 ∧ ndim(v_3) = 0 ∧ v_2 ≤ v_3)
+>>
+Rule 120 (if axis is specified, and range_given is true, then input_min, input_max, and input must have compatible shapes, and have defined ndim for torch size)
+{v_1: tensor, v_2: tensor, v_3: tensor, v_6: bool, v_10: int} |= if v_10 ≠ -1 ∧ v_6 then (ndim(v_1) >= 0 ∧ ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, v_10) ∧ ndim(v_3) = 1 ∧ shape(v_3, 0) = shape(v_1, v_10))
+>>
+Rule 125 (if range_given is true, if input_min and input_max are 1D, then ensure the shapes are the same)
+{v_2 : tensor, v_3 : tensor, v_6 : bool} |= if v_6 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1 then shape(v_2, 0) = shape(v_3, 0)
+>>
+Rule 130 (If axis is specified, input_min and input_max need to have the same shape as input along that axis)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_6 : bool, v_10 : int} |= if v_10 ≠ -1 ∧ v_6 ∧ ndim(v_1) > 0 then (ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, v_10) ∧ ndim(v_3) = 1 ∧ shape(v_3, 0) = shape(v_1, v_10))
+>>
+Rule 136 (If axis is not -1 and range_given, input and input_min must have compatible shape)
+{v_1 : tensor, v_2 : tensor, v_6 : bool, v_10 : int} |= if v_6 ∧ v_10 ≠ -1 then ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_2, 0) = shape(v_1, v_10)
+>>
+Rule 140 (If range_given is true, input_min and input_max must have consistent shape/scalarity)
+{v_2 : tensor, v_3 : tensor, v_6 : bool} |= if v_6 then (ndim(v_2) = ndim(v_3))

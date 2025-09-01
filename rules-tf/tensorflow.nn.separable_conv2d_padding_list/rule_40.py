@@ -5,44 +5,56 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The sum of all padding elements should be less than constant. (Rule 40)
+# If data format is channels last and dilations are 1,1,1,1 then the output width is (input_width + 2 * pad_width - filter_width (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_values"], 0) + Select(v["arg1_values"], 1) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) <= v["arg3_value"]) if n else
-          Select(v["arg1_values"], 0) + Select(v["arg1_values"], 1) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) <= v["arg3_value"])
+    s.add(Not(If(And(And(And(And(v["arg5_value"] == 24, Select(v["arg2_values"], 0) == 1), Select(v["arg2_values"], 1) == 1), Select(v["arg2_values"], 2) == 1), Select(v["arg2_values"], 3) == 1), (Select(v["arg1_shape"], 2) + 2 * Select(v["arg3_values"], 2) - Select(v["arg4_shape"], 1)) / Select(v["arg3_values"], 2) + 1 > 0, True)) if n else
+          If(And(And(And(And(v["arg5_value"] == 24, Select(v["arg2_values"], 0) == 1), Select(v["arg2_values"], 1) == 1), Select(v["arg2_values"], 2) == 1), Select(v["arg2_values"], 3) == 1), (Select(v["arg1_shape"], 2) + 2 * Select(v["arg3_values"], 2) - Select(v["arg4_shape"], 1)) / Select(v["arg3_values"], 2) + 1 > 0, True))
 )
 
-def rule_40_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_40_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
     arg3 = next(iter(arg3.values()))
+    arg4 = next(iter(arg4.values()))
+    arg5 = next(iter(arg5.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, np.ndarray):
             return False
         if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
-        if not (isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool)):
+        if not (isinstance(arg3, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg3)):
+            return False
+        if not isinstance(arg4, np.ndarray):
+            return False
+        if not isinstance(arg5, str):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_values = Array('arg2_values', IntSort(), IntSort())
-        arg3_value = Int('arg3_value')
+        arg3_values = Array('arg3_values', IntSort(), IntSort())
+        arg4_shape = Array('arg4_shape', IntSort(), IntSort())
+        arg5_value = String('arg5_value')
 
         # Value assignments
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         for i in range(len(arg2)):
             arg2_values = Store(arg2_values, i, arg2[i])
-        solver.add(arg3_value == int(arg3))
+        for i in range(len(arg3)):
+            arg3_values = Store(arg3_values, i, arg3[i])
+        for i in range(arg4.ndim):
+            arg4_shape = Store(arg4_shape, i, arg4.shape[i])
+        solver.add(arg5_value == list_of_string_values_tf.index(arg5))
 
         # Constraints for rule 40
-        rule_40(solver, {'arg1_values': arg1_values, 'arg2_values': arg2_values, 'arg3_value': arg3_value})
+        rule_40(solver, {'arg1_shape': arg1_shape, 'arg2_values': arg2_values, 'arg3_values': arg3_values, 'arg4_shape': arg4_shape, 'arg5_value': arg5_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_40(solver, {'arg1_values': arg1['values'], 'arg2_values': arg2['values'], 'arg3_value': arg3['value']}, neg)
+        rule_40(solver, {'arg1_shape': arg1['shape'], 'arg2_values': arg2['values'], 'arg3_values': arg3['values'], 'arg4_shape': arg4['shape'], 'arg5_value': arg5['value']}, neg)

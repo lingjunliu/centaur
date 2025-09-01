@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# filters' out_channels dimension must be positive (Rule 16)
+# filters tensor must have positive out_channels (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
     s.add(Not(Select(v["arg1_shape"], 2) > 0) if n else

@@ -1,117 +1,231 @@
 >>
-Rule 1 (partitions tensor should be of type int32)
-{v_2 : tensor} |= dtype_(v_2) = 3
->>
-Rule 2 (num_partitions should be greater than or equal to 1)
+Rule 1 (num_partitions must be greater than or equal to 1)
 {v_3 : int} |= v_3 ≥ 1
 >>
-Rule 3 (partitions rank should be less than or equal to data rank)
+Rule 2 (partitions must be of type int32, represented by index 3)
+{v_2 : tensor} |= dtype_(v_2) = 3
+>>
+Rule 3 (number of dimensions of partitions must be less than or equal to the number of dimensions of data)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≤ ndim(v_1)
 >>
-Rule 4 (shape of partitions should match the leading dimensions of data)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, i)
->>
-Rule 5 (partitions values should be within the range [0, num_partitions))
-{v_2 : tensor, v_3 : int} |= ∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ 0 ∧ v_2[i] < v_3)
->>
-Rule 13 (data rank must be greater than or equal to the partitions rank)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ ndim(v_2)
->>
-Rule 14 (num_partitions should be greater than the max value of partitions)
-{v_2 : tensor, v_3 : int} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_3 > v_2[i]
->>
-Rule 15 (The type of data should be float32 or float64 when num_partitions is 2)
-{v_1 : tensor, v_3 : int} |= if v_3 = 2 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
->>
-Rule 16 (data's leading dimensions match partitions' shape)
+Rule 4 (shape of partitions must match the prefix of the shape of data)
 {v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 17 (num_partitions should be greater than the maximum value in partitions)
+Rule 6 (data tensor must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+>>
+Rule 7 (partitions tensor must have at least one dimension)
+{v_2 : tensor} |= ndim(v_2) ≥ 1
+>>
+Rule 8 (The data and partitions tensor should not have overlapping names, to prevent confusion.)
+{v_1 : tensor, v_2 : tensor} |= v_1 ≠ v_2
+>>
+Rule 17 (partitions values should be non-negative)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0
+>>
+Rule 18 (partitions values should be less than num_partitions)
 {v_2 : tensor, v_3 : int} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < v_3
 >>
-Rule 18 (If data is a scalar, partitions must also be a scalar)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
->>
-Rule 19 (If partitions has more than one element, num_partitions must be greater than 0)
-{v_2 : tensor, v_3 : int} |= if shape(v_2, 0) > 1 then v_3 > 0
->>
-Rule 21 (if partitions is a scalar, its value must be less than num_partitions)
-{v_2 : tensor, v_3 : int} |= if ndim(v_2) = 0 then v_2[0] < v_3
->>
-Rule 25 (If partitions has more than one element, num_partitions must be greater than 0)
-{v_2 : tensor, v_3 : int} |= if shape(v_2, 0) > 1 then v_3 > 0 else v_3 ≥ 0
->>
-Rule 28 (If partitions has more than one element, num_partitions must be greater than 0)
-{v_2 : tensor, v_3 : int} |= if shape(v_2, 0) > 0 then v_3 > 0 else v_3 > 0
->>
-Rule 29 (The maximum value in partitions must be less than num_partitions)
-{v_2 : tensor, v_3 : int} |= max(v_2) < v_3
->>
-Rule 31 (If partitions has more than one element, num_partitions must be greater than 0)
-{v_2 : tensor, v_3 : int} |= if shape(v_2, 0) > 0 then v_3 > 0
->>
-Rule 36 (If the data tensor has more dimensions than the partition tensor, the extra dimensions must have size greater than zero)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > ndim(v_2) then ∀i ∈ [ndim(v_2), ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 39 (If data is empty tensor, partition should also be empty)
-{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then (∃j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) = 0)
->>
-Rule 40 (Partitions shape must be a prefix of data shape)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i)
->>
-Rule 41 (Partitions values must be valid indices for num_partitions)
-{v_2 : tensor, v_3 : int} |= if ndim(v_2) > 0 then ∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ 0 ∧ v_2[i] < v_3)
->>
-Rule 43 (Partitions shape must be a prefix of data shape)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i) else ndim(v_1) = 0
->>
-Rule 44 (Partitions values must be valid indices for num_partitions)
-{v_2 : tensor, v_3 : int} |= if ndim(v_2) > 0 then (min(v_2) ≥ 0 ∧ max(v_2) < v_3) else (v_2[0] ≥ 0 ∧ v_2[0] < v_3)
->>
-Rule 45 (num_partitions should be a non-negative integer)
-{v_3 : int} |= v_3 ≥ 0
->>
-Rule 47 (Partitions values must be valid indices for num_partitions)
-{v_2 : tensor, v_3 : int} |=  min(v_2) ≥ 0 ∧ max(v_2) < v_3
->>
-Rule 51 (If data and partitions are both scalars, the partition value must be non-negative and less than num_partitions)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then v_2[0] ≥ 0 ∧ v_2[0] < v_3
->>
-Rule 53 (Partitions values must be valid indices for num_partitions and non-negative)
-{v_2 : tensor, v_3 : int} |= min(v_2) ≥ 0 ∧ max(v_2) < v_3
->>
-Rule 54 (num_partitions must be greater than 0)
+Rule 20 (Number of partitions must be positive)
 {v_3 : int} |= v_3 > 0
 >>
-Rule 59 (Partitions values must be valid indices for num_partitions and non-negative, when partitions has at least one element)
-{v_2 : tensor, v_3 : int} |= if shape(v_2, 0) > 0 then (min(v_2) ≥ 0 ∧ max(v_2) < v_3)
+Rule 21 (Partitions should not be None)
+{v_2 : tensor} |= v_2 ≠ "none"
 >>
-Rule 64 (If data has fewer dimensions than partitions, it should have dimensions greater than 0)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 23 (partitions values should be non-negative and less than num_partitions)
+{v_2 : tensor, v_3 : int} |= ∀i ∈ [0, shape(v_2, 0) - 1] : 0 ≤ v_2[i] ∧ v_2[i] < v_3
 >>
-Rule 69 (If the partition has more dimensions than the data, then the shapes of the partitions must be greater than 0)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > ndim(v_1) then ∀i ∈ [0, ndim(v_2) -1 ] : shape(v_2, i) > 0
+Rule 24 (data tensor ndim should be greater or equal than partitions ndim)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ ndim(v_2)
 >>
-Rule 70 (If data and partition are not scalars, then Data and Partitions must have compatible shapes.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∨ ndim(v_2) > 0 then ∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 25 (The shape of partitions must be a prefix of the shape of data)
+{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, ndim(v_2) -1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 74 (Partitions values must be valid indices for num_partitions and non-negative)
-{v_2 : tensor, v_3 : int} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0 ∧ v_2[i] < v_3
+Rule 28 (The shape of partitions must be a prefix of the shape of data - covering only the first dimension)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 77 (Partitions values must be valid indices for num_partitions)
-{v_2 : tensor, v_3 : int} |= ∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] < v_3 ∧ v_2[i] ≥ 0)
+Rule 30 (The data tensor's dtype should be int, float, or bool)
+{v_1 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 82 (Data and Partitions must have compatible shapes.)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1) else ndim(v_2)] : shape(v_1, i) = shape(v_2, i)
+Rule 31 (The number of partitions must be a non-negative integer)
+{v_3 : int} |= v_3 ≥ 0
 >>
-Rule 85 (Data and Partitions must have compatible shapes.)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 32 (If data is a scalar, partition must be an integer 0)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0 ∧ v_2 = 0
 >>
-Rule 87 (If the data is a scalar, num_partitions must be greater than partition)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) = 0 then v_2[0] < v_3
+Rule 33 (If data is a vector and num_partitions=1, elements in partitions must be zero)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) = 1 ∧ v_3 = 1 then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = 0
 >>
-Rule 91 (If data and partition are not scalars, then Data and Partitions must have compatible shapes.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then ∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 34 (When partitions tensor is scalar, num_partitions should be greater than zero)
+{v_2 : tensor, v_3 : int} |= if ndim(v_2) = 0 then v_3 > 0
 >>
-Rule 95 (Partitions values must be valid indices for num_partitions, given num_partitions is greater than zero.)
-{v_2 : tensor, v_3 : int} |= if v_3 > 0 then ∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] < v_3 ∧ v_2[i] ≥ 0)
+Rule 35 (If the partitions tensor is a scalar, then its value must be 0 when num_partitions is 1)
+{v_2 : tensor, v_3 : int} |= if ndim(v_2) = 0 ∧ v_3 = 1 then v_2 = 0
+>>
+Rule 37 (The minimum value in partitions should be less than the number of partitions.)
+{v_2 : tensor, v_3 : int} |= min(v_2) < v_3
+>>
+Rule 38 (The maximum value in partitions should be less than the number of partitions.)
+{v_2 : tensor, v_3 : int} |= max(v_2) < v_3
+>>
+Rule 39 (If num_partitions is 1, then the maximum value of the partitions tensor must be 0.)
+{v_2 : tensor, v_3 : int} |= if v_3 = 1 then max(v_2) = 0
+>>
+Rule 40 (If num_partitions equals the number of unique values in partitions, then everything is fine.)
+{v_2 : tensor, v_3 : int} |= if v_3 = max(v_2) + 1 then true else false
+>>
+Rule 42 (The number of dimensions of the partitions tensor cannot exceed 7)
+{v_2 : tensor} |= ndim(v_2) ≤ 7
+>>
+Rule 43 (If data is a scalar, then the partitions tensor must also be a scalar.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+>>
+Rule 44 (If data is a scalar, the partition tensor must be 0)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then v_2 = 0
+>>
+Rule 46 (If data is a tensor and num_partitions is 1, every element in partitions must be 0)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) > 0 ∧ v_3 = 1 then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = 0
+>>
+Rule 47 (Shape of Partitions must be a prefix of Data)
+{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 48 (If num_partitions is 0, every value in partition should be 0, shape of data should be greater than or equal to shape of partition)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = 0 then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = 0 ∧ ndim(v_1) ≥ ndim(v_2)
+>>
+Rule 51 (If the rank of partitions is greater than 1, shape of data in dimension 0 has to equal to shape of partition in dimension 0.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 53 (If data is 1D, partitions must also be 1D)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then ndim(v_2) = 1
+>>
+Rule 54 (If num_partitions equals 0, then the values inside partition should also be zero.)
+{v_2 : tensor, v_3 : int} |= if v_3 = 0 then  ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = 0
+>>
+Rule 55 (Partitions values must be in the range [0, num_partitions))
+{v_2 : tensor, v_3 : int} |= ∃i ∈ [0, shape(v_2, 0) - 1] : 0 ≤ v_2[i] ∧ v_2[i] < v_3
+>>
+Rule 56 (If the partitions' shape matches the data's shape, data's dtype and partitions' dtype cannot both be int32 (index 3))
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) then dtype_(v_1) ≠ 3 ∨ dtype_(v_2) ≠ 3
+>>
+Rule 57 (If the shape of data matches the shape of partitions, then max(partitions) needs to be at least 1 less than num_partitions.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) then max(v_2) < v_3
+>>
+Rule 58 (Partitions must be a 1D tensor if num_partitions is greater than 1.)
+{v_2 : tensor, v_3 : int} |= if v_3 > 1 then ndim(v_2) = 1
+>>
+Rule 59 (If Partitions has higher rank than Data, the operation is invalid)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) <= ndim(v_1)
+>>
+Rule 60 (Data should at least have rank 1 if the partitions has at least rank 1 and num_partition > 0.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_2) > 0 ∧ v_3 > 0 then ndim(v_1) > 0
+>>
+Rule 64 (If num_partitions is 0, data must be 0-dimensional and partitions should also be zero)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = 0 then ndim(v_1) = 0 ∧ v_2 = 0
+>>
+Rule 66 (Partitions cannot contain values larger than the maximum allowed value given the dtype)
+{v_2 : tensor} |= max(v_2) < 2147483647
+>>
+Rule 68 (Data's dtype must be one of a small set of primitives)
+{v_1 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 69 (If partitions has more than 0 dimensions, num_partitions must be greater than 0)
+{v_2 : tensor, v_3 : int} |= if ndim(v_2) > 0 then v_3 > 0
+>>
+Rule 70 (The product of data's shape must start with the product of partition's shape)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 71 (The partitions tensor must have a smaller number of elements than the data tensor.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then  ∀i ∈ [0, shape(v_2,0) -1] : shape(v_2, i) <= shape(v_1, i)
+>>
+Rule 72 (If data ndim and partition ndim is 0, then num partition must be > 0)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then v_3 > 0
+>>
+Rule 76 (If partitions is scalar, then data must be scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then ndim(v_1) = 0
+>>
+Rule 77 (For every dimension in partitions, check the shape prefix for data is valid)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_2) < ndim(v_1) then ndim(v_2)-1 else ndim(v_1) -1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 80 (If shape of data is not equal to shape of partitions then data has to have more dimensions than the partitions)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : shape(v_1, i) ≠ shape(v_2, i) then ndim(v_1) > ndim(v_2)
+>>
+Rule 81 (shape of partition, at its first dimension, must be less than or equal to the shape of data at its first dimension)
+{v_1 : tensor, v_2 : tensor} |=  shape(v_2, 0) ≤ shape(v_1, 0)
+>>
+Rule 82 (Partitions cannot contain values greater than or equal to num_partitions)
+{v_2 : tensor, v_3 : int} |= (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < v_3)
+>>
+Rule 86 (If number of partitions is 0 then all element of partition should also be 0)
+{v_2 : tensor, v_3 : int} |= if v_3 = 0 then (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = 0)
+>>
+Rule 87 (The data tensor needs to at least have a shape with the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ndim(v_1) > 0
+>>
+Rule 90 (Data needs to at least have 1 dimension if number of partition is larger than 0)
+{v_1 : tensor, v_3 : int} |= if v_3 > 0 then ndim(v_1) > 0
+>>
+Rule 91 (Partitions value is valid in the range of number of partitions)
+{v_2 : tensor, v_3 : int} |= (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < v_3)
+>>
+Rule 92 (If the partitions' first dimension is greater than the data's first dimension, it is invalid.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then shape(v_2, 0) ≤ shape(v_1, 0)
+>>
+Rule 93 (If Data has zero shape, then the partitions shape also must be 0)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) = 0 then shape(v_2, 0) = 0
+>>
+Rule 94 (If the data has more dimensions than the partitions, the shape of the partitions must match the prefix of the data shape)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > ndim(v_2) then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 95 (if num_partitions is not given then default value should be -1)
+{v_3: int} |= v_3 ≠ "none"
+>>
+Rule 96 (Data must be a tensor)
+{v_1 : tensor} |= v_1 ≠ "none"
+>>
+Rule 97 (The data should be a tensor and should be non-empty)
+{v_1 : tensor} |= v_1 ≠ "none" ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 100 (If data is not empty, and number of dimensions is greater than 0, then paritition should not be empty)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ ndim(v_1) > 0 then v_2 ≠ "none"
+>>
+Rule 102 (Shape of the Data must start with shape of Partitions)
+{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, if ndim(v_2) < ndim(v_1) then ndim(v_2) else ndim(v_1)] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 103 (The value of each element in partitions must be a valid index, from 0 up to num_partitions -1)
+{v_2 : tensor, v_3 : int} |= ∃i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ 0) ∧ v_2[i] < v_3
+>>
+Rule 104 (Data must be non-empty if the shape of partition is larger than 0)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) > 0 then (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0)
+>>
+Rule 106 (Shape of Data cannot be "...ij".)
+{v_1 : tensor} |= shape(v_1) ≠ "...ij->...ji"
+>>
+Rule 107 (Number of partitions should be greater than zero and not equal to "none")
+{v_3 : int} |= v_3 > 0 ∧ v_3 ≠ "none"
+>>
+Rule 108 (If shape of data is not equal to shape of partitions, then partition cannot have 0 as its element)
+{v_1 : tensor, v_2 : tensor} |= if  ∃i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1) else ndim(v_2)] : shape(v_1, i) ≠ shape(v_2, i) then (∀j ∈ [0,shape(v_2,0) -1] : v_2[j] ≠ 0)
+>>
+Rule 109 (If data and partitions have same number of dimensions, then each of their shapes should be non-negative)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then (∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) ≥ 0) ∧ (∀i ∈ [0, ndim(v_2)-1] : shape(v_2, i) ≥ 0)
+>>
+Rule 110 (Partitions must be in valid dtype range, 1 to 11, or 13)
+{v_2 : tensor} |= 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 11 ∨ dtype_(v_2) = 13
+>>
+Rule 111 (If the data is scalar then the range of values for the partitions should also be 0)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = 0)
+>>
+Rule 113 (if the minimum of partition value is greater than or equal to number of partitions then operation must be false)
+{v_2 : tensor, v_3 : int} |= if min(v_2) ≥ v_3 then false
+>>
+Rule 114 (Number of partitions cannot be none)
+{v_3 : int} |= v_3 ≠ "none"
+>>
+Rule 116 (The maximum value in the partitions tensor must be less than num_partitions and the dtype of v_2 is 3)
+{v_2 : tensor, v_3 : int} |= max(v_2) < v_3 ∧ dtype_(v_2) = 3
+>>
+Rule 117 (If number of partitions is less than 1, it defaults to 1.)
+{v_3 : int} |= if v_3 < 1 then v_3 = 1
+>>
+Rule 118 (number of partitions must be greater than the maximum element in the partition tensor)
+{v_2 : tensor, v_3 : int} |= v_3 > max(v_2)

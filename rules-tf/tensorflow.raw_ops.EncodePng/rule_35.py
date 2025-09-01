@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Combining all conditions on the image tensor (Rule 35)
+# Image should be three dimensional with positive dimensions and be of type uint8 or uint16 (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(And(Or(v["arg1_dtype"] == 5, v["arg1_dtype"] == 6), v["arg1_ndim"] == 3), Select(v["arg1_shape"], 0) > 0), Select(v["arg1_shape"], 1) > 0), Select(v["arg1_shape"], 2) >= 1), Select(v["arg1_shape"], 2) <= 4)) if n else
-          And(And(And(And(And(Or(v["arg1_dtype"] == 5, v["arg1_dtype"] == 6), v["arg1_ndim"] == 3), Select(v["arg1_shape"], 0) > 0), Select(v["arg1_shape"], 1) > 0), Select(v["arg1_shape"], 2) >= 1), Select(v["arg1_shape"], 2) <= 4))
+    s.add(Not(And(And(And(And(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) > 0), Select(v["arg1_shape"], 1) > 0), Select(v["arg1_shape"], 2) > 0), (Or(v["arg1_dtype"] == 5, v["arg1_dtype"] == 6)))) if n else
+          And(And(And(And(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) > 0), Select(v["arg1_shape"], 1) > 0), Select(v["arg1_shape"], 2) > 0), (Or(v["arg1_dtype"] == 5, v["arg1_dtype"] == 6))))
 )
 
 def rule_35_func(arg1, solver=None, neg=False):
@@ -33,9 +33,9 @@ def rule_35_func(arg1, solver=None, neg=False):
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 35
-        rule_35(solver, {'arg1_shape': arg1_shape, 'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim})
+        rule_35(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_35(solver, {'arg1_shape': arg1['shape'], 'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_35(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype']}, neg)

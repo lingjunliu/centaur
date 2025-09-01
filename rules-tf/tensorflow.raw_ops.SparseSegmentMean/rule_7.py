@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# shape of indices must be less than or equal to the first dimension of data (Rule 7)
+# length of indices and segment_ids should be equal (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg2_shape"], 0) <= Select(v["arg1_shape"], 0)) if n else
-          Select(v["arg2_shape"], 0) <= Select(v["arg1_shape"], 0))
+    s.add(Not(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)) if n else
+          Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0))
 )
 
 def rule_7_func(arg1, arg2, solver=None, neg=False):

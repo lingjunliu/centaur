@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check if the input tensor has a valid number of dimensions. (Rule 4)
+# Input tensor must have a rank between 0 and 10 (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] >= 0) if n else
-          v["arg1_ndim"] >= 0)
+    s.add(Not(And(v["arg1_ndim"] >= 0, v["arg1_ndim"] <= 10)) if n else
+          And(v["arg1_ndim"] >= 0, v["arg1_ndim"] <= 10))
 )
 
 def rule_4_func(arg1, solver=None, neg=False):

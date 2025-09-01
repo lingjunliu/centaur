@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If default_value is not -1, num_oov_buckets should be zero. (Rule 14)
+# num_oov_buckets must be a non-negative integer and vocabulary_size must be positive. (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] != -1, v["arg2_value"] == 0, False)) if n else
-          If(v["arg1_value"] != -1, v["arg2_value"] == 0, False))
+    s.add(Not(And(v["arg1_value"] >= 0, v["arg2_value"] > 0)) if n else
+          And(v["arg1_value"] >= 0, v["arg2_value"] > 0))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):

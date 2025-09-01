@@ -8,8 +8,8 @@ from z3 import *
 # adj_x is a boolean (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(Or((v["arg1_value"] == True), (v["arg1_value"] == False))) if n else
-          Or((v["arg1_value"] == True), (v["arg1_value"] == False)))
+    s.add(Not(Or(v["arg1_value"] == True, v["arg1_value"] == False)) if n else
+          Or(v["arg1_value"] == True, v["arg1_value"] == False))
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

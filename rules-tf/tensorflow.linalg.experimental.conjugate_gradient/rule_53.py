@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if x has more than one dimension then the shape of x should be the same as shape of rhs (Rule 53)
+# Check if operator has correct shape with rhs, when rhs is a vector. (Rule 53)
 
 rule_53 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 1, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]), False)) if n else
-          If(v["arg1_ndim"] > 1, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]), False))
+    s.add(Not(And(And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 1), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0))) if n else
+          And(And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 1), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0)))
 )
 
 def rule_53_func(arg1, arg2, solver=None, neg=False):
@@ -27,19 +27,21 @@ def rule_53_func(arg1, arg2, solver=None, neg=False):
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_ndim = Int('arg2_ndim')
         arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg2_ndim == arg2.ndim)
         for i in range(arg2.ndim):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 53
-        rule_53(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape})
+        rule_53(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_53(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape']}, neg)
+        rule_53(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']}, neg)

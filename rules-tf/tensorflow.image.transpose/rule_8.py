@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# image can be transposed to different sizes depending on the transpose (Rule 8)
+# image must have either 3 or 4 dimensions (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 3, True, If(v["arg1_ndim"] == 4, True, False))) if n else
-          If(v["arg1_ndim"] == 3, True, If(v["arg1_ndim"] == 4, True, False)))
+    s.add(Not(And(v["arg1_ndim"] != 3, Or(v["arg1_ndim"] != 4, (And(Or(v["arg1_ndim"] == 3, v["arg1_ndim"] == 4), True))))) if n else
+          And(v["arg1_ndim"] != 3, Or(v["arg1_ndim"] != 4, (And(Or(v["arg1_ndim"] == 3, v["arg1_ndim"] == 4), True)))))
 )
 
 def rule_8_func(arg1, solver=None, neg=False):

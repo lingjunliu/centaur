@@ -8,8 +8,8 @@ from z3 import *
 # jpeg_quality must be in the interval [0, 100] (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] <= 100)) if n else
-          And(v["arg1_value"] >= 0, v["arg1_value"] <= 100))
+    s.add(Not(And(0 <= v["arg1_value"], v["arg1_value"] <= 100)) if n else
+          And(0 <= v["arg1_value"], v["arg1_value"] <= 100))
 )
 
 def rule_1_func(arg1, solver=None, neg=False):

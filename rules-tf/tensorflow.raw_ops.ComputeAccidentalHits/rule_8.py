@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# true_classes shape should be compatible with num_true. (Rule 8)
+# num_true must be less than or equal to the size of sampled_candidates (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) >= v["arg2_value"]) if n else
-          Select(v["arg1_shape"], 0) >= v["arg2_value"])
+    s.add(Not(v["arg2_value"] <= Select(v["arg1_shape"], 0)) if n else
+          v["arg2_value"] <= Select(v["arg1_shape"], 0))
 )
 
 def rule_8_func(arg1, arg2, solver=None, neg=False):

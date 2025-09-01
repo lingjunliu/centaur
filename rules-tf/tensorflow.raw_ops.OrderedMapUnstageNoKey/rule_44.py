@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If capacity and memory_limit are both specified, then memory_limit should be greater than or equal to capacity (Rule 44)
+# if capacity is non-zero then memory_limit must also be non-zero (Rule 44)
 
 rule_44 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_value"] > 0, v["arg2_value"] > 0), v["arg2_value"] >= v["arg1_value"], False)) if n else
-          If(And(v["arg1_value"] > 0, v["arg2_value"] > 0), v["arg2_value"] >= v["arg1_value"], False))
+    s.add(Not(If(v["arg1_value"] > 0, v["arg2_value"] > 0, True)) if n else
+          If(v["arg1_value"] > 0, v["arg2_value"] > 0, True))
 )
 
 def rule_44_func(arg1, arg2, solver=None, neg=False):

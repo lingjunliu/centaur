@@ -1,96 +1,333 @@
 >>
-Rule 1 (Tensors a and b must have rank >= 2)
+Rule 1 (a and b must have rank >= 2)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2
 >>
-Rule 2 (Tensors a and b must have the same type)
+Rule 2 (a and b must have the same type, restricting to allowed types)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 5 (a_is_sparse and b_is_sparse require rank-2 tensors)
+{v_1 : tensor, v_2 : tensor, v_7 : bool, v_8 : bool} |= if v_7 ∨ v_8 then ndim(v_1) = 2 ∧ ndim(v_2) = 2
+>>
+Rule 6 (a_is_sparse and b_is_sparse are only available for bfloat16 and float32)
+{v_1 : tensor, v_7 : bool, v_8 : bool} |= if v_7 ∨ v_8 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7)
+>>
+Rule 7 (output_type restriction for (u)int8 inputs)
+{v_1 : tensor, v_9 : dtype} |= if (dtype_(v_1) = 5) then v_9 = 3
+>>
+Rule 8 (Shape of a must be positive)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 9 (Shape of b must be positive)
+{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+>>
+Rule 10 (If output_type is given, it should be a valid dtype)
+{v_9 : dtype} |= v_9 = 0 ∨ v_9 = 1 ∨ v_9 = 2 ∨ v_9 = 3 ∨ v_9 = 4 ∨ v_9 = 5 ∨ v_9 = 6 ∨ v_9 = 7 ∨ v_9 = 8 ∨ v_9 = 9 ∨ v_9 = 10 ∨ v_9 = 12
+>>
+Rule 11 (adjoint_a is boolean)
+{v_5 : bool} |= v_5 = true ∨ v_5 = false
+>>
+Rule 12 (adjoint_b is boolean)
+{v_6 : bool} |= v_6 = true ∨ v_6 = false
+>>
+Rule 13 (a_is_sparse is boolean)
+{v_7 : bool} |= v_7 = true ∨ v_7 = false
+>>
+Rule 14 (b_is_sparse is boolean)
+{v_8 : bool} |= v_8 = true ∨ v_8 = false
+>>
+Rule 15 (transpose_a is boolean)
+{v_3 : bool} |= v_3 = true ∨ v_3 = false
+>>
+Rule 16 (transpose_b is boolean)
+{v_4 : bool} |= v_4 = true ∨ v_4 = false
+>>
+Rule 19 (transpose_a and adjoint_a cannot both be True)
+{v_3 : bool, v_5 : bool} |= (v_3 ∧ v_5) = false
+>>
+Rule 20 (transpose_b and adjoint_b cannot both be True)
+{v_4 : bool, v_6 : bool} |= (v_4 ∧ v_6) = false
+>>
+Rule 33 (a and b must have the same type)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 5 (a_is_sparse and b_is_sparse are only valid for rank-2 tensors)
-{v_1 : tensor, v_2 : bool} |= if v_2 then ndim(v_1) = 2
+Rule 34 (if a_is_sparse then a must be bfloat16 or float32)
+{v_1 : tensor, v_7 : bool} |= if v_7 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7)
 >>
-Rule 7 (output_type can only be specified for (u)int8 input tensors)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 then v_2 = 4
+Rule 35 (if b_is_sparse then b must be bfloat16 or float32)
+{v_2 : tensor, v_8 : bool} |= if v_8 then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7)
 >>
-Rule 8 (If a_is_sparse is true, the dtype must be bfloat16 or float32.)
-{v_1 : tensor, v_2 : bool} |= if v_2 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 36 (If a_is_sparse is true, then ndim of a should be 2)
+{v_1 : tensor, v_7 : bool} |= if v_7 then ndim(v_1) = 2
 >>
-Rule 10 (The dimensions of matrices a and b must align)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2)
+Rule 37 (If b_is_sparse is true, then ndim of b should be 2)
+{v_2 : tensor, v_8 : bool} |= if v_8 then ndim(v_2) = 2
 >>
-Rule 14 (transpose_a and adjoint_a cannot both be true)
-{v_1 : bool, v_2 : bool} |= if v_1 then if v_2 then false
+Rule 38 (grad_a is boolean)
+{v_10 : bool} |= v_10 = true ∨ v_10 = false
 >>
-Rule 22 (Tensors a and b must have rank >= 2)
-{v_1 : tensor} |= ndim(v_1) ≥ 2
+Rule 39 (grad_b is boolean)
+{v_11 : bool} |= v_11 = true ∨ v_11 = false
 >>
-Rule 24 (transpose_a and adjoint_a cannot both be true)
-{v_1 : bool, v_2 : bool} |= (v_1 = false) ∨ (v_2 = false)
+Rule 40 (output_type is only valid for specific dtypes of a and b)
+{v_1 : tensor, v_2 : tensor, v_9 : dtype} |= if dtype_(v_1) = 5 ∧ dtype_(v_2) = 5 then v_9 = 3 else if dtype_(v_1) = 5 ∧ dtype_(v_2) = 5 then v_9 = 3
 >>
-Rule 26 (If output_type is specified, it should be int32)
-{v_1 : dtype} |= v_1 = 4
+Rule 41 (If output_type is specified, it must be int32 when inputs are uint8.)
+{v_1 : tensor, v_2 : tensor, v_9 : dtype} |= if dtype_(v_1) = 5 ∧ dtype_(v_2) = 5 then v_9 = 3
 >>
-Rule 27 (Shape of first dimension of tensor a must be greater than 0)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 42 (adjoint_a and transpose_a cannot both be true)
+{v_3 : bool, v_5 : bool} |= if v_3 then v_5 = false
 >>
-Rule 29 (adjoint_a can only be true if tensor a has complex dtype)
-{v_1 : tensor, v_2 : bool} |= if v_2 then dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+Rule 43 (adjoint_b and transpose_b cannot both be true)
+{v_4 : bool, v_6 : bool} |= if v_4 then v_6 = false
 >>
-Rule 31 (output_type is only valid when a and b are uint8 or int8)
-{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 6 ∧ dtype_(v_2) = 1 ∨ dtype_(v_2) = 6 then true else v_3 = 0
+Rule 44 (a is tensor of valid dtype)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 35 (If a_is_sparse or b_is_sparse is true then the type must be float16 or float32)
-{v_1 : tensor, v_2 : bool, v_3 : bool} |= if v_2 ∨ v_3 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 45 (b is tensor of valid dtype)
+{v_2 : tensor} |= dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
 >>
-Rule 36 (If adjoint_a is true then transpose_a must be false)
-{v_1 : bool, v_2 : bool} |= if v_1 then v_2 = false
+Rule 47 (name is an empty string or non-empty)
+{v_12 : str} |= v_12 = "" ∨ v_12 ≠ ""
 >>
-Rule 38 (Rank of tensor a must be greater than 1)
-{v_1 : tensor} |= ndim(v_1) > 1
+Rule 48 (output_type must be a valid dtype if a or b are (u)int8)
+{v_1 : tensor, v_2 : tensor, v_9 : dtype} |= if (dtype_(v_1) = 5 ∨ dtype_(v_2) = 5) then v_9 = 3
 >>
-Rule 40 (Shape of last dimension of tensor a is greater than zero)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0
+Rule 51 (Rank of tensors should be less than a maximum value)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) < 10 ∧ ndim(v_2) < 10
 >>
-Rule 41 (Shape of second to last dimension of tensor b is greater than zero)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 2) > 0
+Rule 52 (Shape of a should not exceed a maximum size)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2048
 >>
-Rule 47 (if transpose_a is true, then a must have at least 2 dimensions)
-{v_1 : tensor, v_2 : bool} |= if v_2 then ndim(v_1) >= 2
+Rule 53 (Shape of b should not exceed a maximum size)
+{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) < 2048
 >>
-Rule 49 (The first two tensors have the same datatype)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 54 (name, if present, must be a string of a specific length)
+{v_12 : str} |= v_12.len < 256
 >>
-Rule 50 (a_is_sparse must be boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 55 (If sparse, then shape cannot be empty)
+{v_1 : tensor, v_7 : bool} |= if v_7 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
 >>
-Rule 58 (Shape of tensor a cannot be zero.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+Rule 56 (If sparse, the element cannot be NaN)
+{v_1 : tensor, v_7 : bool} |= if v_7 then min(v_1) ≠ "nan" ∧ max(v_1) ≠ "nan"
 >>
-Rule 60 (If output_type is specified, then input tensors should have (u)int8 type)
-{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= if v_3 ≠ 0 then dtype_(v_1) = 1 ∨ dtype_(v_1) = 6 ∧ dtype_(v_2) = 1 ∨ dtype_(v_2) = 6
+Rule 57 (Check for element size limits for sparse tensors)
+{v_1 : tensor, v_7 : bool} |= if v_7 then min(v_1) > -1000 ∧ max(v_1) < 1000
 >>
-Rule 67 (if transpose_a is true, then a must have at least 2 dimensions)
-{v_1 : tensor, v_2 : bool} |= if v_2 then ndim(v_1) ≥ 2
+Rule 58 (gradient input must be boolean if grad_a or grad_b is true)
+{v_10 : bool, v_11 : bool} |= if v_10 ∨ v_11 then v_10 = true ∨ v_10 = false ∧ v_11 = true ∨ v_11 = false
 >>
-Rule 68 (The type of a and b can be one of these)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+Rule 59 (If a_is_sparse is set, only float types are supported)
+{v_1 : tensor, v_7 : bool} |= if v_7 then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7
 >>
-Rule 71 (If output type is given, a and b should be int8 or uint8)
-{v_1 : dtype, v_2 : tensor} |= if v_1 ≠ 0 then dtype_(v_2) = 1 ∨ dtype_(v_2) = 6
+Rule 60 (If b_is_sparse is set, only float types are supported)
+{v_2 : tensor, v_8 : bool} |= if v_8 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7
 >>
-Rule 72 (If a_is_sparse or b_is_sparse is true then the type must be float16 or float32)
-{v_1 : tensor, v_2 : bool, v_3 : bool} |= if v_2 ∨ v_3 then (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)
+Rule 61 (name, if present, must be a string of a reasonable length and format)
+{v_12 : str} |= v_12.len < 256 ∧ ∃i ∈ [0, v_12.len-1] : v_12[i] ≠ ""
 >>
-Rule 75 (The type of a and b can be one of these)
-{v_1 : tensor} |= (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) ∨ (dtype_(v_1) = 10) ∨ (dtype_(v_1) = 11)
+Rule 62 (If sparse and a is complex, shape must be valid)
+{v_1 : tensor, v_7 : bool} |= if v_7 ∧ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
 >>
-Rule 77 (If output type is given, a and b should be int8 or uint8)
-{v_1 : dtype, v_2 : tensor} |= if v_1 ≠ 0 then (dtype_(v_2) = 1) ∨ (dtype_(v_2) = 6)
+Rule 63 (If sparse and b is complex, shape must be valid)
+{v_2 : tensor, v_8 : bool} |= if v_8 ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0
 >>
-Rule 80 (a_is_sparse is only used when a has bfloat16 or float32 type)
-{v_1 : tensor, v_2 : bool} |= if v_2 then (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)
+Rule 64 (Only float and complex types are allowed for sparse matrix.)
+{v_1 : tensor, v_7 : bool} |= if v_7 then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 86 (If output type is given, a and b should be int8 or uint8)
-{v_1 : dtype, v_2 : tensor, v_3 : tensor} |= if v_1 ≠ 0 then (dtype_(v_2) = 1) ∨ (dtype_(v_2) = 6) ∧ (dtype_(v_3) = 1) ∨ (dtype_(v_3) = 6)
+Rule 65 (Only float and complex types are allowed for sparse matrix.)
+{v_2 : tensor, v_8 : bool} |= if v_8 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
 >>
-Rule 88 (transpose_a is boolean)
-{v_1 : bool} |= (v_1 = true) ∨ (v_1 = false)
+Rule 66 (If transpose_a or adjoint_a are specified then a must be rank >=2)
+{v_1 : tensor, v_3 : bool, v_5 : bool} |= if v_3 ∨ v_5 then ndim(v_1) ≥ 2
+>>
+Rule 67 (If transpose_b or adjoint_b are specified then b must be rank >=2)
+{v_2 : tensor, v_4 : bool, v_6 : bool} |= if v_4 ∨ v_6 then ndim(v_2) ≥ 2
+>>
+Rule 69 (If sparse and a is complex, shape must be valid and a dimension has size 1)
+{v_1 : tensor, v_7 : bool} |= if v_7 ∧ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0) ∧ (shape(v_1, 0) = 1 ∨ shape(v_1, 1) = 1)
+>>
+Rule 70 (If sparse and b is complex, shape must be valid and a dimension has size 1)
+{v_2 : tensor, v_8 : bool} |= if v_8 ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0) ∧ (shape(v_2, 0) = 1 ∨ shape(v_2, 1) = 1)
+>>
+Rule 71 (Only float and complex types are allowed for sparse matrix, enforcing float16)
+{v_1 : tensor, v_7 : bool} |= if v_7 then dtype_(v_1) = 6
+>>
+Rule 72 (Only float and complex types are allowed for sparse matrix, enforcing complex64)
+{v_2 : tensor, v_8 : bool} |= if v_8 then dtype_(v_2) = 9
+>>
+Rule 73 (If transpose_a or adjoint_a are specified then a must be rank >=2 and shape dimension must be > 1)
+{v_1 : tensor, v_3 : bool, v_5 : bool} |= if v_3 ∨ v_5 then ndim(v_1) ≥ 2 ∧ shape(v_1,0) > 1
+>>
+Rule 74 (If transpose_b or adjoint_b are specified then b must be rank >=2 and shape dimension must be > 1)
+{v_2 : tensor, v_4 : bool, v_6 : bool} |= if v_4 ∨ v_6 then ndim(v_2) ≥ 2 ∧ shape(v_2,0) > 1
+>>
+Rule 75 (name, if present, must be a non-empty string)
+{v_12 : str} |= v_12 ≠ ""
+>>
+Rule 76 (If sparse and a is complex, shape must be valid and all dims = 1)
+{v_1 : tensor, v_7 : bool} |= if v_7 ∧ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (shape(v_1, 0) = 1 ∧ shape(v_1, 1) = 1)
+>>
+Rule 77 (If sparse and b is complex, shape must be valid and all dims = 1)
+{v_2 : tensor, v_8 : bool} |= if v_8 ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (shape(v_2, 0) = 1 ∧ shape(v_2, 1) = 1)
+>>
+Rule 79 (Only bfloat16 is allowed as a sparse tensor)
+{v_2 : tensor, v_8 : bool} |= if v_8 then dtype_(v_2) = 6
+>>
+Rule 80 (If transpose_a or adjoint_a are specified then a must be rank >=2, and the last two shape dimensions cannot be 0)
+{v_1 : tensor, v_3 : bool, v_5 : bool} |= if v_3 ∨ v_5 then ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1)-1) > 0 ∧ shape(v_1, ndim(v_1)-2) > 0
+>>
+Rule 81 (If transpose_b or adjoint_b are specified then b must be rank >=2 and the last two shape dimensions cannot be 0)
+{v_2 : tensor, v_4 : bool, v_6 : bool} |= if v_4 ∨ v_6 then ndim(v_2) ≥ 2 ∧ shape(v_2, ndim(v_2)-1) > 0 ∧ shape(v_2, ndim(v_2)-2) > 0
+>>
+Rule 82 (name, if present, must be a string with certain characters only)
+{v_12 : str} |= ∀i ∈ [0, v_12.len - 1] : (v_12[i] ≥ "a" ∧ v_12[i] ≤ "z") ∨ (v_12[i] ≥ "A" ∧ v_12[i] ≤ "Z") ∨ (v_12[i] ≥ "0" ∧ v_12[i] ≤ "9") ∨ v_12[i] = "_"
+>>
+Rule 83 (If sparse and a is complex, shape must be valid and product of dims must be less than a number)
+{v_1 : tensor, v_7 : bool} |= if v_7 ∧ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0) ∧ (shape(v_1, 0) * shape(v_1, 1) < 10000)
+>>
+Rule 84 (If sparse and b is complex, shape must be valid and product of dims must be less than a number)
+{v_2 : tensor, v_8 : bool} |= if v_8 ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0) ∧ (shape(v_2, 0) * shape(v_2, 1) < 10000)
+>>
+Rule 85 (bfloat16 or float32 if a is sparse and transpose/adjoint is set)
+{v_1 : tensor, v_7 : bool, v_3 : bool, v_5 : bool} |= if v_7 ∧ (v_3 ∨ v_5) then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7
+>>
+Rule 86 (bfloat16 or float32 if b is sparse and transpose/adjoint is set)
+{v_2 : tensor, v_8 : bool, v_4 : bool, v_6 : bool} |= if v_8 ∧ (v_4 ∨ v_6) then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7
+>>
+Rule 87 (If transpose_a or adjoint_a are specified then a must be rank >=2, and the last two shape dimensions must be prime numbers)
+{v_1 : tensor, v_3 : bool, v_5 : bool} |= if v_3 ∨ v_5 then ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1)-1) > 1 ∧ shape(v_1, ndim(v_1)-2) > 1
+>>
+Rule 88 (If transpose_b or adjoint_b are specified then b must be rank >=2 and the last two shape dimensions must be prime numbers)
+{v_2 : tensor, v_4 : bool, v_6 : bool} |= if v_4 ∨ v_6 then ndim(v_2) ≥ 2 ∧ shape(v_2, ndim(v_2)-1) > 1 ∧ shape(v_2, ndim(v_2)-2) > 1
+>>
+Rule 89 (name, if present, must be a non-empty string with a limited character set)
+{v_12 : str} |= v_12 ≠ "" ∧ ∀i ∈ [0, v_12.len - 1] : (v_12[i] = "a" ∨ v_12[i] = "b" ∨ v_12[i] = "c")
+>>
+Rule 90 (If sparse and a is complex, shape must be valid and at least one dimension is greater than one)
+{v_1 : tensor, v_7 : bool} |= if v_7 ∧ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0) ∧ (shape(v_1, 0) > 1 ∨ shape(v_1, 1) > 1)
+>>
+Rule 91 (If sparse and b is complex, shape must be valid and at least one dimension is greater than one)
+{v_2 : tensor, v_8 : bool} |= if v_8 ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0) ∧ (shape(v_2, 0) > 1 ∨ shape(v_2, 1) > 1)
+>>
+Rule 92 (if output_type is specified then the output type must be int32)
+{v_9 : dtype} |= if v_9 ≠ 11 then v_9 = 3
+>>
+Rule 94 (If transpose_a or adjoint_a are specified then a must be rank >=2, and shape dimensions are not negative)
+{v_1 : tensor, v_3 : bool, v_5 : bool} |= if v_3 ∨ v_5 then ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1)-1) ≥ 0 ∧ shape(v_1, ndim(v_1)-2) ≥ 0
+>>
+Rule 95 (If transpose_b or adjoint_b are specified then b must be rank >=2 and shape dimensions are positive)
+{v_2 : tensor, v_4 : bool, v_6 : bool} |= if v_4 ∨ v_6 then ndim(v_2) ≥ 2 ∧ shape(v_2, ndim(v_2)-1) ≥ 0 ∧ shape(v_2, ndim(v_2)-2) ≥ 0
+>>
+Rule 97 (If sparse and a is complex, shape must be valid and sum of dimension must smaller than certain number)
+{v_1 : tensor, v_7 : bool} |= if v_7 ∧ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0) ∧ (shape(v_1, 0) + shape(v_1, 1) < 100)
+>>
+Rule 98 (If sparse and b is complex, shape must be valid and product is less than certain number)
+{v_2 : tensor, v_8 : bool} |= if v_8 ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0) ∧ (shape(v_2, 0) * shape(v_2, 1) < 1000)
+>>
+Rule 99 (if output_type is specified then it should not be complex64 when input is bfloat)
+{v_1 : tensor, v_9 : dtype} |= if dtype_(v_1) = 6 then v_9 ≠ 9
+>>
+Rule 100 (output_type if specified can not be bool if a is bfloat16 )
+{v_1 : tensor, v_9 : dtype} |= if dtype_(v_1) = 6 then v_9 ≠ 0
+>>
+Rule 101 (If transpose_a or adjoint_a are specified then a must be rank >=2, and at least one shape dimension must not be zero)
+{v_1 : tensor, v_3 : bool, v_5 : bool} |= if v_3 ∨ v_5 then ndim(v_1) ≥ 2 ∧ (shape(v_1, ndim(v_1)-1) > 0 ∨ shape(v_1, ndim(v_1)-2) > 0)
+>>
+Rule 102 (If transpose_b or adjoint_b are specified then b must be rank >=2 and at least one shape dimension cannot be negative)
+{v_2 : tensor, v_4 : bool, v_6 : bool} |= if v_4 ∨ v_6 then ndim(v_2) ≥ 2 ∧ (shape(v_2, ndim(v_2)-1) ≥ 0 ∨ shape(v_2, ndim(v_2)-2) ≥ 0)
+>>
+Rule 103 (name, if present, must be a string that starts with a letter)
+{v_12 : str} |= v_12 ≠ "" ∧ (v_12[0] ≥ "a" ∧ v_12[0] ≤ "z") ∨ (v_12[0] ≥ "A" ∧ v_12[0] ≤ "Z")
+>>
+Rule 104 (If sparse and a is complex, shape must be valid and either of the dimensions must be positive)
+{v_1 : tensor, v_7 : bool} |= if v_7 ∧ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0) ∧ (shape(v_1, 0) > 0 ∨ shape(v_1, 1) > 0)
+>>
+Rule 105 (If sparse and b is complex, shape must be valid and either of the dimensions must be zero)
+{v_2 : tensor, v_8 : bool} |= if v_8 ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0) ∧ (shape(v_2, 0) = 0 ∨ shape(v_2, 1) = 0)
+>>
+Rule 107 (if output_type is specified when input are uint8)
+{v_1 : tensor, v_9 : dtype} |= if dtype_(v_1) = 5 then v_9 = 3
+>>
+Rule 108 (If transpose_a or adjoint_a are specified then a must be rank >=2, and sum of dimensions is less than threshold)
+{v_1 : tensor, v_3 : bool, v_5 : bool} |= if v_3 ∨ v_5 then ndim(v_1) ≥ 2 ∧ (shape(v_1, ndim(v_1)-1) + shape(v_1, ndim(v_1)-2)) < 1000
+>>
+Rule 109 (If transpose_b or adjoint_b are specified then b must be rank >=2, and product of shape dimensions is greater than threshold)
+{v_2 : tensor, v_4 : bool, v_6 : bool} |= if v_4 ∨ v_6 then ndim(v_2) ≥ 2 ∧ (shape(v_2, ndim(v_2)-1) * shape(v_2, ndim(v_2)-2)) > 10
+>>
+Rule 110 (name, if present, must be a non-empty string and the string must have length between 2 to 5 characters)
+{v_12 : str} |= v_12 ≠ "" ∧ (v_12.len ≥ 2 ∧ v_12.len ≤ 5)
+>>
+Rule 111 (If sparse and a is complex, shape must be valid and sum of dimensions must be positive)
+{v_1 : tensor, v_7 : bool} |= if v_7 ∧ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0) ∧ (shape(v_1, 0) + shape(v_1, 1) > 0)
+>>
+Rule 113 (if output_type is specified when input is bfloat16, float16, float32, float64, int32, int64, complex64, complex128, the it can not be bool)
+{v_1 : tensor, v_9 : dtype} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_9 ≠ 0
+>>
+Rule 114 (if both tensors are complex64, output_type must be complex64)
+{v_1 : tensor, v_2 : tensor, v_9 : dtype} |= if dtype_(v_1) = 9 ∧ dtype_(v_2) = 9 then v_9 = 9
+>>
+Rule 115 (If transpose_a or adjoint_a are specified then a must be rank >=2, and the sum of dimensions and multiplication must be greater than zero)
+{v_1 : tensor, v_3 : bool, v_5 : bool} |= if v_3 ∨ v_5 then ndim(v_1) ≥ 2 ∧ (shape(v_1, ndim(v_1)-1) + shape(v_1, ndim(v_1)-2) > 0) ∧ (shape(v_1, ndim(v_1)-1) * shape(v_1, ndim(v_1)-2) > 0)
+>>
+Rule 116 (If transpose_b or adjoint_b are specified then b must be rank >=2, all the shapes are greater or equal to 1)
+{v_2 : tensor, v_4 : bool, v_6 : bool} |= if v_4 ∨ v_6 then ndim(v_2) ≥ 2 ∧ (shape(v_2, ndim(v_2)-1) ≥ 1 ∧ shape(v_2, ndim(v_2)-2) ≥ 1)
+>>
+Rule 118 (If a_is_sparse is true the datatype should be less than 9)
+{v_1 : tensor, v_7 : bool} |= if v_7 then dtype_(v_1) < 9
+>>
+Rule 119 (If b_is_sparse is true the datatype should be less than 9)
+{v_2 : tensor, v_8 : bool} |= if v_8 then dtype_(v_2) < 9
+>>
+Rule 120 (Check if output_type is in list of allowed data types)
+{v_9 : dtype} |= v_9 = 6 ∨ v_9 = 7 ∨ v_9 = 8 ∨ v_9 = 3 ∨ v_9 = 4 ∨ v_9 = 9 ∨ v_9 = 10
+>>
+Rule 121 (Ensure if transpose_a is False, then adjoint_a must be False as well)
+{v_3 : bool, v_5 : bool} |= if v_3 = false then v_5 = false
+>>
+Rule 122 (if adjoint_b is True, then transpose_b should be false)
+{v_4 : bool, v_6 : bool} |= if v_6 = true then v_4 = false
+>>
+Rule 124 (name, if present, must be a string. And its length should between 3 to 10 if the last character is A)
+{v_12 : str} |= if (v_12 ≠ "" ∧ v_12[v_12.len - 1] = "A") then (v_12.len ≥ 3 ∧ v_12.len ≤ 10)
+>>
+Rule 128 (Ensuring either transpose_a or adjoint_a is used, not both)
+{v_3 : bool, v_5 : bool} |= if v_3 then v_5 = false else if v_5 then v_3 = false
+>>
+Rule 131 (name, if present, can not have length zero and special name)
+{v_12 : str} |= (v_12 ≠ "" ∧ v_12 ≠ "name")
+>>
+Rule 132 (a_is_sparse is specified and is True)
+{v_7 : bool} |= (v_7 = false ∨ v_7 = true)
+>>
+Rule 133 (b_is_sparse is specified and is True)
+{v_8 : bool} |= (v_8 = false ∨ v_8 = true)
+>>
+Rule 135 (Either adjoint_a is False or transpose_a should be False)
+{v_3 : bool, v_5 : bool} |= (v_5 = false ∨ v_3 = false)
+>>
+Rule 136 (output_type should be a dtype value which ranges from 0-12)
+{v_9 : dtype} |= 0 ≤ v_9 ∧ v_9 ≤ 12
+>>
+Rule 137 (transpose_a must be boolean)
+{v_3 : bool} |= v_3 = false ∨ v_3 = true
+>>
+Rule 138 (name, if present, should not be in function name list)
+{v_12 : str} |= if (v_12 = "ndim" ∨ v_12 = "shape" ∨ v_12 = "dtype_" ∨ v_12 = "min" ∨ v_12 = "max") then false
+>>
+Rule 141 (Check if output_type is np.int32 or not)
+{v_9 : dtype, v_1: tensor} |= if dtype_(v_1) = 5 then v_9 = 3
+>>
+Rule 145 (name, if present, should not be any reserved keywords)
+{v_12 : str} |= (v_12 ≠ "ndim") ∧ (v_12 ≠ "shape") ∧ (v_12 ≠ "dtype_") ∧ (v_12 ≠ "min") ∧ (v_12 ≠ "max")
+>>
+Rule 146 (If a_is_sparse is true a must have dtype either bfloat16 or float32)
+{v_1 : tensor, v_7 : bool} |= if v_7 then (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7)
+>>
+Rule 147 (If b_is_sparse is true b must have dtype either bfloat16 or float32)
+{v_2 : tensor, v_8 : bool} |= if v_8 then (dtype_(v_2) = 6) ∨ (dtype_(v_2) = 7)
+>>
+Rule 148 (Check if output_type is valid depends on tensor types )
+{v_1 : tensor, v_2 : tensor, v_9 : dtype} |= if (dtype_(v_1) = 5 ∧ dtype_(v_2) = 5) then (v_9 = 3)
+>>
+Rule 150 (If adjoint_a specified as True transpose_a has to be False)
+{v_3 : bool, v_5 : bool} |= if v_5 = true then v_3 = false

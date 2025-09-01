@@ -1,87 +1,66 @@
 >>
-Rule 1 (Input tensors must be tensors)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
+Rule 2 (tensor shapes should be broadcastable)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ ndim(v_2) ∧ ∀i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_2, i) = 1)) ∨ (ndim(v_2) ≥ ndim(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_2, ndim(v_2) - ndim(v_1) + i) = shape(v_1, i) ∨ shape(v_1, i) = 1))
 >>
-Rule 4 (Tensors should have compatible dtypes; integer and float are compatible)
-{v_1 : tensor, v_2 : tensor} |= if (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8) then true else if (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5) then true else dtype_(v_1) = dtype_(v_2)
+Rule 4 (if one of the tensor's ndim is 0, the other tensor should have ndim 0)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) = (ndim(v_2) = 0)
 >>
-Rule 5 (Tensors shapes must be broadcastable)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1)
+Rule 7 (if a tensor's shape is 1, this dimension is broadcastable)
+{v_1 : tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1 ∨ shape(v_1, i) > 1
 >>
-Rule 7 (Check for division by zero if the divisor is a scalar)
-{v_2 : int ⊎ float} |= v_2 ≠ 0
+Rule 8 (tensor data types should be integer or floating-point)
+{v_1 : tensor, v_2 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 ∧ 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8
 >>
-Rule 8 (If one input is a tensor, it must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 12 (if one tensor has dimension 1, its shape should be greater than 0)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 0
 >>
-Rule 9 (If both inputs are tensors, their data types must be compatible.)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 1 ∧ dtype_(v_2) = 1) ∨ (dtype_(v_1) = 2 ∧ dtype_(v_2) = 2) ∨ (dtype_(v_1) = 3 ∧ dtype_(v_2) = 3) ∨ (dtype_(v_1) = 4 ∧ dtype_(v_2) = 4) ∨ (dtype_(v_1) = 5 ∧ dtype_(v_2) = 5) ∨ (dtype_(v_1) = 6 ∧ dtype_(v_2) = 6) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 8) ∨ (dtype_(v_1) = 9 ∧ dtype_(v_2) = 9) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_2) = 10)
+Rule 13 (tensor data types cannot be boolean type)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0
 >>
-Rule 13 (Check for zero divisor in integer division)
-{v_2 : int} |= v_2 ≠ 0
+Rule 16 (if one tensor is integer type, the other should not be complex)
+{v_1 : tensor, v_2 : tensor} |= if 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 then (9 > dtype_(v_2) ∨ dtype_(v_2) > 10) else if 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5 then (9 > dtype_(v_1) ∨ dtype_(v_1) > 10)
 >>
-Rule 14 (Check for zero divisor in float division)
-{v_2 : float} |= v_2 ≠ 0
->>
-Rule 17 (If divisor and dividend are tensors they must have the same dtype)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
->>
-Rule 18 (Dividend tensor must have numerical dtype)
-{v_1 : tensor} |= (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10)
->>
-Rule 19 (Divisor tensor must have numerical dtype)
-{v_2 : tensor} |= (1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 10)
->>
-Rule 24 (If the tensor is complex, it must have complex dtypes)
-{v_1: tensor} |= (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)
->>
-Rule 25 (tensor cannot be string dtype)
+Rule 21 (Dtype should not be string)
 {v_1: tensor} |= dtype_(v_1) ≠ 11
 >>
-Rule 27 (Check if complex division is valid in the domain)
-{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then true
+Rule 22 (tensor data types should be integer or floating-point)
+{v_1 : tensor, v_2 : tensor} |= (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8)
 >>
-Rule 31 (Both arguments must have numerical types (int, float, complex) or boolean)
-{v_1: tensor, v_2: tensor} |= ((1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10) ∨ dtype_(v_1) = 0) ∧ ((1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 10) ∨ dtype_(v_2) = 0)
+Rule 23 (if one tensor is integer type, the other should not be complex)
+{v_1 : tensor, v_2 : tensor} |= if (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5) then (9 > dtype_(v_2) ∨ dtype_(v_2) > 10) else if (1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5) then (9 > dtype_(v_1) ∨ dtype_(v_1) > 10)
 >>
-Rule 33 (check that the tensor is indeed numerical and of proper type)
-{v_1 : tensor} |= (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) ∨ (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)
+Rule 25 (If any of the shapes are equal to 0 then output also has shape 0)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0)
 >>
-Rule 35 (If tensors, they must have the same rank)
-{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2)
+Rule 26 (At least one of the tensor must have dimension greater than zero)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∨ ndim(v_2) > 0
 >>
-Rule 40 (If tensors, the dtypes must be compatible. Either equal or one can be safely cast to the other.)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∨ (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 ∧ 6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8) ∨ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 ∧ 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5)
+Rule 33 (if v2 is a scalar, v1 must be a numeric tensor (not boolean or string))
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 11
 >>
-Rule 43 (If the divisor is a tensor and contains any zero values, then the division cannot be performed)
-{v_2 : tensor} |= ∀i ∈ [0, if ndim(v_2) > 0 then shape(v_2, 0) else 0] : v_2[i] ≠ 0
+Rule 34 (If v1 is a scalar, v2 must be a numeric tensor (not boolean or string))
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 11
 >>
-Rule 44 (If the divisor is a tensor and contains any zero values, then the division cannot be performed)
-{v_2 : tensor} |= min(v_2) > 0 ∨ min(v_2) < 0
+Rule 38 (If one tensor is complex, the other should also be complex)
+{v_1 : tensor, v_2 : tensor} |= (9 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10) = (9 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 10)
 >>
-Rule 45 (Divisor must not be zero, consolidating int and float)
-{v_2: int ⊎ float} |= v_2 ≠ 0
+Rule 39 (If one tensor is boolean then other should also be boolean)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 0) = (dtype_(v_2) = 0)
 >>
-Rule 46 (If the divisor is a tensor, at least one element should not be zero if any element is zero)
-{v_2: tensor} |= ∃i ∈ [0, if ndim(v_2) > 0 then shape(v_2,0) else 0] : v_2[i] ≠ 0
+Rule 44 (If both inputs are scalars, dtypes must match)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 47 (If the divisor is a tensor, at least one element should not be zero)
-{v_2: tensor} |= ∃i ∈ [0, if ndim(v_2) > 0 then shape(v_2, 0) else 0] : ∀j ∈ [0, shape(v_2, i) -1] : v_2[j] ≠ 0
+Rule 48 (If v1 is a scalar, it cannot have boolean or string dtype, same for v2)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then dtype_(v_1) > 0 ∧ dtype_(v_1) < 11 ∧ if ndim(v_2) = 0 then dtype_(v_2) > 0 ∧ dtype_(v_2) < 11
 >>
-Rule 48 (if tensors are both complex, then the shapes should be broadcastable)
-{v_1:tensor, v_2:tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then ∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1)
+Rule 53 (If v1 is a scalar, it cannot have boolean or string dtype, same for v2)
+{v_1 : tensor, v_2 : tensor} |= (if ndim(v_1) = 0 then (dtype_(v_1) > 0 ∧ dtype_(v_1) < 11)) ∧ (if ndim(v_2) = 0 then (dtype_(v_2) > 0 ∧ dtype_(v_2) < 11))
 >>
-Rule 49 (Divisor, as tensor, has at least one non-zero element)
-{v_2: tensor} |= ∃i ∈ [0, if ndim(v_2) > 0 then shape(v_2, 0) else 0] : v_2[i] ≠ 0
+Rule 54 (Resultant dtype should not be string)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_2) ≠ 11
 >>
-Rule 50 (If dividend is complex, then divisor cannot be bool)
-{v_1: tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then dtype_(v_2) ≠ 0
+Rule 64 (If v1 is boolean, v2 must not be complex and vice versa)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then (dtype_(v_2) < 9 ∨ dtype_(v_2) > 10) else if dtype_(v_2) = 0 then (dtype_(v_1) < 9 ∨ dtype_(v_1) > 10)
 >>
-Rule 51 (If divisor is complex, then dividend cannot be bool)
-{v_1: tensor, v_2 : tensor} |= if (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then dtype_(v_1) ≠ 0
->>
-Rule 53 (dividend tensor cannot be string)
-{v_1:tensor} |= dtype_(v_1) ≠ 11
->>
-Rule 54 (Divisor tensor must not have all zero elements.)
-{v_2: tensor} |= ∃i ∈ [0, if ndim(v_2) > 0 then shape(v_2, 0) else 0] : (∃j ∈ [0, if ndim(v_2) > 1 then shape(v_2, 1) else 0]: v_2[i] ≠ 0)
+Rule 77 (v1 and v2 cannot be both string type)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 11) ∨ (dtype_(v_2) ≠ 11)

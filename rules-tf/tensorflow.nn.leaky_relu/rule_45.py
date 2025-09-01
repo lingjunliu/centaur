@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if features has an int dtype, alpha can be an int that is less than the max int value (Rule 45)
+# Avoid overflow by setting appropriate alpha value (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4), v["arg2_value"] < 2147483647, False)) if n else
-          If(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4), v["arg2_value"] < 2147483647, False))
+    s.add(Not(If(v["arg1_dtype"] == 7, v["arg2_value"] < 10.0, If(v["arg1_dtype"] == 8, v["arg2_value"] < 1000.0, If(v["arg1_dtype"] == 9, v["arg2_value"] < 100000.0, True)))) if n else
+          If(v["arg1_dtype"] == 7, v["arg2_value"] < 10.0, If(v["arg1_dtype"] == 8, v["arg2_value"] < 1000.0, If(v["arg1_dtype"] == 9, v["arg2_value"] < 100000.0, True))))
 )
 
 def rule_45_func(arg1, arg2, solver=None, neg=False):
@@ -20,17 +20,17 @@ def rule_45_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg2_value = Int('arg2_value')
+        arg2_value = Real('arg2_value')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 45
         rule_45(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})

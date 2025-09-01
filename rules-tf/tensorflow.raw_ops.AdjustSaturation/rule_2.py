@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# images tensor's last dimension should be 3 (Rule 2)
+# images tensor's last dimension (channels (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 3) if n else

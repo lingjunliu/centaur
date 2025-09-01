@@ -1,120 +1,225 @@
 >>
-Rule 1 (input tensor must be a 4-dimensional tensor)
-{v_1 : tensor} |= ndim(v_1) = 4
+Rule 1 (input tensor must be of quantized type: qint8, quint8, qint32, qint16, quint16, which corresponds to dtype 1 to 5)
+{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5
 >>
-Rule 2 (ksize list length must be 4)
+Rule 2 (ksize list must have length 4)
 {v_1 : list(int)} |= v_1.len = 4
 >>
-Rule 4 (ksize elements must be positive integers)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
->>
-Rule 6 (padding must be either "SAME" or "VALID")
+Rule 4 (padding string must be either "SAME" or "VALID")
 {v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID"
 >>
-Rule 7 (min_input must be a float32 tensor, which corresponds to dtype 7)
-{v_1 : tensor} |= dtype_(v_1) = 7
+Rule 5 (input tensor must be 4-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 4
 >>
-Rule 9 (min_input must be a scalar)
-{v_1 : tensor} |= ndim(v_1) = 0
+Rule 6 (ksize elements must be greater than 0)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 11 (input tensor must be one of the allowed quantized types: 1, 5, 3, 2, 13)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 13
->>
-Rule 12 (ksize list elements must be integers)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : true
->>
-Rule 14 (ksize and strides cannot have zero values)
-{v_1 : list(int), v_2 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≠ 0
->>
-Rule 15 (The shape of the output tensor's dimensions must be positive.)
-{v_1 : tensor, v_2 : list(int), v_3 : list(int)} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ v_2[1] > 0 ∧ v_2[2] > 0 ∧ v_3[1] > 0 ∧ v_3[2] > 0
->>
-Rule 16 (Input and output tensor must have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
->>
-Rule 17 (ksize and input shape are compatible)
-{v_1 : tensor, v_2 : list(int)} |= v_2[1] ≤ shape(v_1, 1) ∧ v_2[2] ≤ shape(v_1, 2)
->>
-Rule 19 (ksize and strides lists must contain integers greater than zero)
-{v_1 : list(int), v_2 : list(int)} |=  ∀i ∈ [0, 3] : v_1[i] > 0 ∧ v_2[i] > 0
->>
-Rule 20 (min_input is less than max_input)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) < max(v_2)
->>
-Rule 21 (input tensor shape height and width should be greater than or equal to ksize and stride respectively)
-{v_1 : tensor, v_2 : list(int), v_3 : list(int)} |= shape(v_1, 1) ≥ v_2[1] ∧ shape(v_1, 2) ≥ v_2[2] ∧ shape(v_1, 1) ≥ v_3[1] ∧ shape(v_1, 2) ≥ v_3[2]
->>
-Rule 22 (input tensor and output tensor should have the same shape)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1,0) = shape(v_2,0) ∧ shape(v_1,1) = shape(v_2,1) ∧ shape(v_1,2) = shape(v_2,2) ∧ shape(v_1,3) = shape(v_2,3)
->>
-Rule 23 (Input and output tensors have the same data range)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= min(v_1) = min(v_3) ∧ max(v_2) = max(v_4)
->>
-Rule 24 (If padding is SAME, then height and width of input and output tensor should be the same.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "SAME" then shape(v_1, 1) = shape(v_2, 1) ∧ shape(v_1, 2) = shape(v_2, 2)
->>
-Rule 25 (If padding is VALID, and stride is 1, the output height and width is equal to floor((input - ksize + 1)/stride))
-{v_1 : tensor, v_2 : tensor, v_3 : list(int), v_4 : list(int), v_5 : str} |= if v_5 = "VALID" ∧ v_4[1] = 1 ∧ v_4[2] = 1 then shape(v_2, 1) = (shape(v_1, 1) - v_3[1] + 1) / v_4[1] ∧ shape(v_2, 2) = (shape(v_1, 2) - v_3[2] + 1) / v_4[2]
->>
-Rule 26 (The min and max values of the input and output tensors should be within a reasonable range)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) < 1000 ∧ max(v_2) < 1000 ∧ min(v_1) > -1000 ∧ max(v_2) > -1000
->>
-Rule 27 (min_input should be less than or equal to all elements of the input tensor, and max_input should be greater than or equal to all elements of the input tensor.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= min(v_2) ≤ min(v_1) ∧ max(v_3) ≥ max(v_1)
->>
-Rule 28 (The difference between max_input and min_input should be greater than zero)
-{v_1 : tensor, v_2 : tensor} |= max(v_2) - min(v_1) > 0
->>
-Rule 29 (If padding is SAME, the ksize and stride should be less than the shape)
-{v_1 : tensor, v_2 : list(int), v_3 : list(int), v_4 : str} |= if v_4 = "SAME" then v_2[1] ≤ shape(v_1, 1) ∧ v_2[2] ≤ shape(v_1, 2) ∧ v_3[1] ≤ shape(v_1, 1) ∧ v_3[2] ≤ shape(v_1, 2)
->>
-Rule 30 (If padding is VALID, the output height and width should be less than or equal to the input height and width)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "VALID" then shape(v_2, 1) ≤ shape(v_1, 1) ∧ shape(v_2, 2) ≤ shape(v_1, 2)
->>
-Rule 31 (The last dimension of the input and output tensors should be the same, representing the number of channels.)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 3) = shape(v_2, 3)
->>
-Rule 32 (The data type of min_output and max_output should be float32)
+Rule 8 (min_input and max_input must be float32 tensors)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 7
 >>
-Rule 33 (min_output should be less than or equal to max_output)
+Rule 9 (ksize values should be less than or equal to the corresponding input dimension shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≤ shape(v_1, i + 1)
+>>
+Rule 11 (input tensor's batch and channel dimensions must be greater than zero)
+{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 3) > 0
+>>
+Rule 12 (minimum input value must be less than or equal to the maximum input value)
 {v_1 : tensor, v_2 : tensor} |= min(v_1) ≤ max(v_2)
 >>
-Rule 34 (The input and output tensors must have batch and channel sizes of at least 1)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) ≥ 1 ∧ shape(v_1, 3) ≥ 1 ∧ shape(v_2, 0) ≥ 1 ∧ shape(v_2, 3) ≥ 1
+Rule 13 (ksize and strides elements should not be zero)
+{v_1 : list(int), v_2 : list(int)} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ 0) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≠ 0)
 >>
-Rule 35 (ksize and stride height and width should not be bigger than the input tensor's height and width)
-{v_1 : tensor, v_2 : list(int), v_3 : list(int)} |= v_2[1] ≤ shape(v_1, 1) ∧ v_2[2] ≤ shape(v_1, 2) ∧ v_3[1] ≤ shape(v_1, 1) ∧ v_3[2] ≤ shape(v_1, 2)
+Rule 15 (ksize list and strides list should contain only positive numbers.)
+{v_1 : list(int), v_2 : list(int)} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] > 0)
 >>
-Rule 36 (If the padding is VALID and the stride is 1, the output size should be (input_size - ksize + 1).)
-{v_1 : tensor, v_2 : tensor, v_3 : list(int), v_4 : str} |= if v_4 = "VALID" ∧ v_3[1] = 1 ∧ v_3[2] = 1 then shape(v_2, 1) = shape(v_1, 1) - v_3[1] + 1 ∧ shape(v_2, 2) = shape(v_1, 2) - v_3[2] + 1
+Rule 16 (input tensor's height and width dimensions must be greater than zero)
+{v_1 : tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
 >>
-Rule 39 (If padding is VALID and stride is greater than 1, output size must be less than input size.)
-{v_1 : tensor, v_2 : tensor, v_3 : list(int), v_4 : str} |= if v_4 = "VALID" ∧ (v_3[1] > 1 ∨ v_3[2] > 1) then shape(v_2, 1) < shape(v_1, 1) ∧ shape(v_2, 2) < shape(v_1, 2)
+Rule 18 (If padding is VALID, then ksize must be smaller than or equal to input dimensions.)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "VALID" then (v_2[0] ≤ shape(v_1, 0) ∧ v_2[1] ≤ shape(v_1, 1) ∧ v_2[2] ≤ shape(v_1, 2) ∧ v_2[3] ≤ shape(v_1, 3))
 >>
-Rule 41 (The ksize and strides must be greater than zero)
-{v_1 : list(int), v_2 : list(int)} |= v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0 ∧ v_1[3] > 0 ∧ v_2[0] > 0 ∧ v_2[1] > 0 ∧ v_2[2] > 0 ∧ v_2[3] > 0
+Rule 19 (ksize and stride lists cannot contain negative numbers.)
+{v_1 : list(int), v_2 : list(int)} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0)
 >>
-Rule 43 (The shape of min_input and max_input must be scalar, which means ndim = 0)
+Rule 20 (The length of ksize must be equal to the number of dimensions in input tensor)
+{v_1 : tensor, v_2 : list(int)} |= v_2.len = ndim(v_1)
+>>
+Rule 21 (min_input must be less than max_input)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) < max(v_2)
+>>
+Rule 22 (If padding is VALID, the height and width of ksize must be smaller than or equal to height and width dimensions of input tensor)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "VALID" then (v_2[1] ≤ shape(v_1, 1) ∧ v_2[2] ≤ shape(v_1, 2))
+>>
+Rule 23 (If padding is SAME, strides must be smaller or equal to ksize)
+{v_1 : list(int), v_2 : list(int), v_3: str} |= if v_3 = "SAME" then (v_2[0] ≤ v_1[0] ∧ v_2[1] ≤ v_1[1] ∧ v_2[2] ≤ v_1[2] ∧ v_2[3] ≤ v_1[3])
+>>
+Rule 26 (min_input tensor is a scalar)
+{v_1 : tensor} |= ndim(v_1) = 0
+>>
+Rule 28 (If padding is SAME, strides must be smaller or equal to ksize for height and width.)
+{v_1 : list(int), v_2 : list(int), v_3: str} |= if v_3 = "SAME" then (v_2[1] ≤ v_1[1] ∧ v_2[2] ≤ v_1[2])
+>>
+Rule 30 (ksize and strides elements must be positive integers)
+{v_1 : list(int), v_2 : list(int)} |= (∀i ∈ [0, 3] : v_1[i] > 0) ∧ (∀i ∈ [0, 3] : v_2[i] > 0)
+>>
+Rule 31 (The batch and channel dimensions of ksize and strides must be 1)
+{v_1 : list(int), v_2 : list(int)} |= v_1[0] = 1 ∧ v_1[3] = 1 ∧ v_2[0] = 1 ∧ v_2[3] = 1
+>>
+Rule 32 (The min_input and max_input must be scalar float32 tensors)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ dtype_(v_1) = 7 ∧ dtype_(v_2) = 7
+>>
+Rule 33 (If padding is SAME, then strides must be less than or equal to ksize)
+{v_1 : list(int), v_2 : list(int), v_3 : str} |= if v_3 = "SAME" then (v_2[1] ≤ v_1[1] ∧ v_2[2] ≤ v_1[2])
+>>
+Rule 34 (The length of ksize list and strides list should be 4)
+{v_1 : list(int), v_2 : list(int)} |= v_1.len = 4 ∧ v_2.len = 4
+>>
+Rule 35 (input tensor must be one of the allowed quantized types)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+>>
+Rule 36 (if padding is VALID, strides cannot be greater than ksize)
+{v_1 : list(int), v_2 : list(int), v_3 : str} |= if v_3 = "VALID" then (v_2[1] ≤ v_1[1] ∧ v_2[2] ≤ v_1[2])
+>>
+Rule 37 (ksize and strides elements cannot be zero)
+{v_1 : list(int)} |= (v_1[0] ≠ 0) ∧ (v_1[1] ≠ 0) ∧ (v_1[2] ≠ 0) ∧ (v_1[3] ≠ 0)
+>>
+Rule 40 (ksize and strides must be positive)
+{v_1 : list(int)} |= (v_1[0] > 0) ∧ (v_1[1] > 0) ∧ (v_1[2] > 0) ∧ (v_1[3] > 0)
+>>
+Rule 41 (if padding is VALID, then the height and width dimensions of the stride must be valid)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "VALID" then (v_2[1] > 0 ∧ v_2[1] ≤ shape(v_1, 1) ∧ v_2[2] > 0 ∧ v_2[2] ≤ shape(v_1, 2))
+>>
+Rule 42 (the values of min_input and max_input should be different)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) ≠ max(v_2)
+>>
+Rule 43 (if padding is SAME and ksize is greater than 1, then the stride must be one)
+{v_1 : list(int), v_2 : str} |= if v_2 = "SAME" ∧ (v_1[1] > 1 ∨ v_1[2] > 1) then (v_1[1] = 1 ∧ v_1[2] = 1)
+>>
+Rule 46 (if padding is EXPLICIT, padding list should have length equal to 2 * number of dimensions)
+{v_1 : str, v_2 : list(int), v_3 : tensor} |= if v_1 = "EXPLICIT" then v_2.len = 2 * ndim(v_3)
+>>
+Rule 47 (ksize and strides can not be a negative value)
+{v_1 : list(int), v_2 : list(int)} |= (∀i ∈ [0, 3] : v_1[i] ≥ 0) ∧ (∀i ∈ [0, 3] : v_2[i] ≥ 0)
+>>
+Rule 48 (input tensor must have shape dimensions greater than zero)
+{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+>>
+Rule 51 (if padding is not VALID, the height and width of stride must be 1)
+{v_1 : list(int), v_2 : str} |= if v_2 ≠ "VALID" then (v_1[1] = 1 ∧ v_1[2] = 1)
+>>
+Rule 52 (Minimum value for height and width dimensions of ksize and strides lists are 1)
+{v_1 : list(int), v_2 : list(int)} |= v_1[1] ≥ 1 ∧ v_1[2] ≥ 1 ∧ v_2[1] ≥ 1 ∧ v_2[2] ≥ 1
+>>
+Rule 53 (If padding is SAME, then ksize must be equal to shape of tensor minus stride plus one.)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "SAME" then (shape(v_1, 1) - v_2[1] + 1 = v_2[1] ∧ shape(v_1, 2) - v_2[2] + 1 = v_2[2])
+>>
+Rule 54 (The ksize list must contain only positive numbers.)
+{v_1 : list(int)} |= (∀i ∈ [0, 3] : v_1[i] > 0)
+>>
+Rule 57 (if padding is SAME, height and width strides must be less than or equal to corresponding ksize values)
+{v_1 : list(int), v_2 : list(int), v_3 : str} |= if v_3 = "SAME" then v_2[1] ≤ v_1[1] ∧ v_2[2] ≤ v_1[2]
+>>
+Rule 59 (if padding is SAME, the formula for SAME padding should hold.)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "SAME" then (shape(v_1, 1) + v_2[1] -1) / v_2[1] = 1 ∧ (shape(v_1, 2) + v_2[2] -1) / v_2[2] = 1
+>>
+Rule 60 (if padding is VALID, the formula for VALID padding should hold.)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "VALID" then (shape(v_1, 1) - v_2[1] + 1) / v_2[1] = 1 ∧ (shape(v_1, 2) - v_2[2] + 1) / v_2[2] = 1
+>>
+Rule 63 (the ksize and stride must be greater than zero)
+{v_1 : list(int), v_2 : list(int)} |= (v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0 ∧ v_1[3] > 0) ∧ (v_2[0] > 0 ∧ v_2[1] > 0 ∧ v_2[2] > 0 ∧ v_2[3] > 0)
+>>
+Rule 64 (min_input and max_input are scalar tensors)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0
 >>
-Rule 44 (ksize and stride should have the same length.)
-{v_1 : list(int), v_2 : list(int)} |= v_1.len = v_2.len
+Rule 65 (ksize and strides cannot have zero values for height and width)
+{v_1 : list(int), v_2 : list(int)} |= v_1[1] ≠ 0 ∧ v_1[2] ≠ 0 ∧ v_2[1] ≠ 0 ∧ v_2[2] ≠ 0
 >>
-Rule 45 (If the first element of ksize or stride is not 1, it should be a legal batch size)
-{v_1 : list(int)} |= if v_1[0] ≠ 1 then true
+Rule 66 (if padding is SAME, shape of output tensor height and width must meet formula requirements)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "SAME" then (shape(v_1, 1) + v_2[1] - 1) / v_2[1] = 1 ∧ (shape(v_1, 2) + v_2[2] - 1) / v_2[2] = 1
 >>
-Rule 46 (When the first element of ksize or strides is 1, batch size should be remained)
-{v_1 : tensor, v_2 : list(int), v_3 : list(int)} |= if v_2[0] = 1 ∧ v_3[0] = 1 then shape(v_1, 0) = shape(v_1, 0)
+Rule 75 (Ksize and strides must be positive integers)
+{v_1 : list(int)} |= ∀i ∈ [0, 3] : v_1[i] > 0
 >>
-Rule 47 (If the first element of ksize or stride is not 1, the output batch size should be 1.)
-{v_1 : tensor, v_2 : list(int), v_3 : list(int)} |= if v_2[0] ≠ 1 ∨ v_3[0] ≠ 1 then shape(v_1, 0) = 1
+Rule 79 (height and width for both ksize and strides list has to be less than or equal to the corresponding input tensor)
+{v_1 : tensor, v_2 : list(int), v_3 : list(int)} |= v_2[1] ≤ shape(v_1, 1) ∧ v_2[2] ≤ shape(v_1, 2) ∧ v_3[1] ≤ shape(v_1, 1) ∧ v_3[2] ≤ shape(v_1, 2)
 >>
-Rule 50 (If ksize[0] or strides[0] is greater than 1, the output batch size should be 1)
-{v_1 : tensor, v_2 : list(int)} |= if v_2[0] > 1 then shape(v_1, 0) = 1
+Rule 80 (If padding is VALID, stride must be one)
+{v_1 : list(int), v_2 : str} |= if v_2 = "VALID" then v_1[1] = 1 ∧ v_1[2] = 1
 >>
-Rule 52 (The input and the output should have the same batch size when batchsize dimension is not 1.)
-{v_1 : tensor, v_2 : tensor, v_3 : list(int)} |= if v_3[0] = 1 then true else shape(v_1, 0) = shape(v_2, 0)
+Rule 82 (ksize can not be greater than shape for height and width)
+{v_1 : tensor, v_2 : list(int)} |= v_2[1] ≤ shape(v_1, 1) ∧ v_2[2] ≤ shape(v_1, 2)
 >>
-Rule 53 (If stride or ksize is not 1 at dim=1 or dim=2, output dimension size should be smaller than input size.)
-{v_1 : tensor, v_2 : tensor, v_3 : list(int)} |= if v_3[1] > 1 ∨ v_3[2] > 1 then shape(v_2, 1) ≤ shape(v_1, 1) ∧ shape(v_2, 2) ≤ shape(v_1, 2)
+Rule 98 (min input is a scalar tensor with dtype float32 and max input is a scalar tensor with dtype float32)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 0 ∧ dtype_(v_1) = 7 ∧ ndim(v_2) = 0 ∧ dtype_(v_2) = 7
+>>
+Rule 100 (If padding is SAME, ksize can be at most input size)
+{v_1 : tensor, v_2 : list(int)} |= if "SAME" = "SAME" then v_2[1] ≤ shape(v_1, 1) ∧ v_2[2] ≤ shape(v_1, 2)
+>>
+Rule 101 (ksize must be list of positive ints)
+{v_1 : list(int)} |= v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0 ∧ v_1[3] > 0
+>>
+Rule 103 (Input tensor must be quantized, min/max must be float32)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 7) ∧ (dtype_(v_3) = 7)
+>>
+Rule 105 (The channel dimension of ksize and stride list must be 1)
+{v_1 : list(int), v_2 : list(int)} |= v_1[3] = 1 ∧ v_2[3] = 1
+>>
+Rule 106 (If padding is valid then ksize should be less than or equal to input, otherwise padding is SAME, so stride has to be less than or equal to ksize)
+{v_1 : tensor, v_2 : list(int), v_3 : list(int), v_4 : str} |= if v_4 = "VALID" then v_2[1] ≤ shape(v_1, 1) ∧ v_2[2] ≤ shape(v_1, 2) else if v_4 = "SAME" then v_3[1] ≤ v_2[1] ∧ v_3[2] ≤ v_2[2]
+>>
+Rule 109 (Strides height and width should not be zero)
+{v_1 : list(int)} |= v_1[1] > 0 ∧ v_1[2] > 0
+>>
+Rule 110 (The batch dimensions of ksize and stride list must be equal to 1)
+{v_1 : list(int), v_2 : list(int)} |= v_1[0] = 1 ∧ v_2[0] = 1
+>>
+Rule 113 (if padding is SAME, the ksize height/width dimensions must equal to shape plus stride minus one.)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "SAME" then v_2[1] ≤ shape(v_1, 1) ∧ v_2[2] ≤ shape(v_1, 2)
+>>
+Rule 114 (if padding is VALID, then stride=1. Otherwise it is SAME, where stride can be any value)
+{v_1 : list(int), v_2 : str} |= if v_2 = "VALID" then (v_1[1] = 1 ∧ v_1[2] = 1)
+>>
+Rule 115 (If padding is SAME, ksize height/width can not be bigger than input size)
+{v_1 : tensor, v_2 : list(int), v_3: str} |= if v_3 = "SAME" then v_2[1] ≤ shape(v_1, 1) ∧ v_2[2] ≤ shape(v_1, 2)
+>>
+Rule 116 (ksize list elements must be greater than or equal to stride list elements)
+{v_1 : list(int), v_2 : list(int)} |= v_1[0] ≥ v_2[0] ∧ v_1[1] ≥ v_2[1] ∧ v_1[2] ≥ v_2[2] ∧ v_1[3] ≥ v_2[3]
+>>
+Rule 118 (For VALID padding, the stride size should be less than or equal to ksize)
+{v_1 : list(int), v_2 : list(int), v_3 : str} |= if v_3 = "VALID" then v_1[1] ≥ v_2[1] ∧ v_1[2] ≥ v_2[2]
+>>
+Rule 120 (if padding is not "VALID", the batch and channel dimension of stride must be 1)
+{v_1 : list(int), v_2 : str} |= if v_2 ≠ "VALID" then v_1[0] = 1 ∧ v_1[3] = 1
+>>
+Rule 122 (if padding is VALID, ksize must be no bigger than input. Otherwise if padding is SAME, stride must be no bigger than ksize)
+{v_1 : tensor, v_2 : list(int), v_3 : list(int), v_4 : str} |= if v_4 = "VALID" then (v_2[1] ≤ shape(v_1, 1) ∧ v_2[2] ≤ shape(v_1, 2)) else if v_4 = "SAME" then (v_3[1] ≤ v_2[1] ∧ v_3[2] ≤ v_2[2])
+>>
+Rule 125 (If padding is SAME and ksize is equal to shape, then stride must be one, for heigh and width dimensions)
+{v_1 : tensor, v_2 : list(int), v_3 : list(int), v_4 : str} |= if v_4 = "SAME" then if (v_2[1] = shape(v_1, 1)) ∧ (v_2[2] = shape(v_1, 2)) then (v_3[1] = 1 ∧ v_3[2] = 1)
+>>
+Rule 130 (Height and width ksize values must be less than or equal to input height and width when padding is valid and that batch size channel must be 1)
+{v_1 : tensor, v_2 : list(int), v_3 : str, v_4 : list(int)} |= if v_3 = "VALID" then (v_2[1] ≤ shape(v_1, 1) ∧ v_2[2] ≤ shape(v_1, 2) ∧ v_4[0] = 1 ∧ v_4[3] = 1)
+>>
+Rule 131 (If padding is SAME, stride can only be 1)
+{v_1 : list(int), v_2 : str} |= if v_2 = "SAME" then v_1[1] = 1 ∧ v_1[2] = 1
+>>
+Rule 134 (stride list elements must be non-zero.)
+{v_1 : list(int)} |= ∀i ∈ [0, 3] : v_1[i] ≠ 0
+>>
+Rule 135 (The channel and batch dimensions for ksize should be 1)
+{v_1 : list(int)} |= v_1[0] = 1 ∧ v_1[3] = 1
+>>
+Rule 137 (if padding is not VALID, stride = 1)
+{v_1 : list(int), v_2 : str} |= if v_2 ≠ "VALID" then v_1[1] = 1 ∧ v_1[2] = 1
+>>
+Rule 138 (if padding is VALID then ksize must be no bigger than input height and width)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "VALID" then v_2[1] ≤ shape(v_1, 1) ∧ v_2[2] ≤ shape(v_1, 2)
+>>
+Rule 140 (if padding is VALID, stride = 1 in height and width dimensions. Also, the Ksize batch and channel must be 1)
+{v_1 : list(int), v_2 : str, v_3 : list(int)} |= if v_2 = "VALID" then v_1[1] = 1 ∧ v_1[2] = 1 ∧ v_3[0] = 1 ∧ v_3[3] = 1
+>>
+Rule 143 (if the input tensor type is quantized, min and max type should be float32)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then dtype_(v_2) = 7 ∧ dtype_(v_3) = 7
+>>
+Rule 144 (padding has to be in VALID or SAME)
+{v_1 : str} |= v_1 = "VALID" ∨ v_1 = "SAME"

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The max value of argmax should be less than the product of input's height and width (Rule 28)
+# strides at index 1 and 2 must be less than or equal to ksize at index 1 and 2 (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg2_range"], 1) < Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2)) if n else
-          Select(v["arg2_range"], 1) < Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2))
+    s.add(Not(And(Select(v["arg1_values"], 1) <= Select(v["arg2_values"], 1), Select(v["arg1_values"], 2) <= Select(v["arg2_values"], 2))) if n else
+          And(Select(v["arg1_values"], 1) <= Select(v["arg2_values"], 1), Select(v["arg1_values"], 2) <= Select(v["arg2_values"], 2)))
 )
 
 def rule_28_func(arg1, arg2, solver=None, neg=False):
@@ -18,26 +18,26 @@ def rule_28_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
+        arg2_values = Array('arg2_values', IntSort(), IntSort())
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
+        for i in range(len(arg2)):
+            arg2_values = Store(arg2_values, i, arg2[i])
 
         # Constraints for rule 28
-        rule_28(solver, {'arg1_shape': arg1_shape, 'arg2_range': arg2_range})
+        rule_28(solver, {'arg1_values': arg1_values, 'arg2_values': arg2_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_28(solver, {'arg1_shape': arg1['shape'], 'arg2_range': arg2['range']}, neg)
+        rule_28(solver, {'arg1_values': arg1['values'], 'arg2_values': arg2['values']}, neg)

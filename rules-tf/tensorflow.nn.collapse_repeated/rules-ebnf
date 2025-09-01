@@ -1,93 +1,135 @@
 >>
-Rule 1 (labels tensor should have rank 2)
-{v_1 : tensor} |= ndim(v_1) = 2
+Rule 1 (labels and seq_length should have compatible batch sizes to avoid Incompatible shapes error)
+{labels : tensor, seq_length : tensor} |= shape(labels, 0) = shape(seq_length, 0)
 >>
-Rule 2 (seq_length tensor should have rank 1)
-{v_2 : tensor} |= ndim(v_2) = 1
+Rule 2 (labels should have at least one dimension to avoid Index out of range error)
+{labels : tensor} |= ndim(labels) ≥ 1
 >>
-Rule 3 (batch size of labels and seq_length should match)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 3 (seq_length should have exactly one dimension to avoid Shapes incompatible error)
+{seq_length : tensor} |= ndim(seq_length) = 1
 >>
-Rule 4 (seq_length tensor should have int32 or int64 dtype)
-{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Rule 4 (seq_length's dtype should be an integer type.)
+{seq_length : tensor} |= 1 ≤ dtype_(seq_length) ∧ dtype_(seq_length) ≤ 5
 >>
-Rule 5 (all values in seq_length should be non-negative)
-{v_2 : tensor} |= min(v_2) ≥ 0
+Rule 5 (labels' shape should be compatible with seq_length's values)
+{labels : tensor, seq_length : tensor} |= ∀ i ∈ [0, shape(seq_length, 0) - 1] : seq_length[i] ≤ shape(labels, 1)
 >>
-Rule 6 (maximum sequence length should be less or equal than labels' dimension 1)
-{v_1 : tensor, v_2 : tensor} |= max(v_2) ≤ shape(v_1, 1)
+Rule 7 (labels' shape[1] should be greater than or equal to all values in seq_length)
+{labels : tensor, seq_length : tensor} |= ∀ i ∈ [0, shape(seq_length, 0) - 1] : shape(labels, 1) ≥ seq_length[i]
 >>
-Rule 8 (labels and seq_length data types should be integer)
-{v_1 : tensor, v_2 : tensor} |= (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5) ∧ (1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5)
+Rule 9 (labels and seq_length shapes must be compatible, addressing Value Error)
+{labels : tensor, seq_length : tensor} |= if ndim(labels) = 1 then shape(labels,0) = shape(seq_length,0) else shape(labels, 0) = shape(seq_length, 0)
 >>
-Rule 11 (labels tensor cannot have dimensions with size 0)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
+Rule 10 (labels and seq_length should have compatible shapes, considering potential rank-0 tensors for seq_length)
+{labels : tensor, seq_length : tensor} |= (ndim(seq_length) = 0 ∧ shape(labels, 0) = 1) ∨ (ndim(seq_length) = 1 ∧ shape(labels, 0) = shape(seq_length, 0))
 >>
-Rule 12 (seq_length tensor cannot have dimensions with size 0)
-{v_2 : tensor} |= ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0
+Rule 11 (if labels is rank 1, then seq_length must have compatible size to avoid shapes error.)
+{labels : tensor, seq_length : tensor} |= if ndim(labels) = 1 then shape(labels, 0) = shape(seq_length, 0)
 >>
-Rule 13 (labels tensor should not have dimensions with size 0)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 12 (seq_length values should be less than or equal to the max value that the labels tensor can hold)
+{labels : tensor, seq_length : tensor} |=  ∀ i ∈ [0, shape(seq_length, 0) - 1] : seq_length[i] ≤ max(labels)
 >>
-Rule 14 (seq_length tensor should not have dimensions with size 0)
-{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+Rule 14 (If labels is rank 2, then seq_length must be rank 1 to avoid shape error)
+{labels : tensor, seq_length : tensor} |= if ndim(labels) = 2 then ndim(seq_length) = 1
 >>
-Rule 17 (labels and seq_length dtypes must be the same)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 15 (Labels tensor rank should be no more than 2 for this API)
+{labels : tensor} |= ndim(labels) ≤ 2
 >>
-Rule 18 (Sum of seq_length values must not exceed total number of labels)
-{v_1 : tensor, v_2 : tensor} |= min(v_2) * shape(v_2, 0) <= shape(v_1, 0) * shape(v_1,1)
+Rule 16 (The seq_length tensor must be of integer type)
+{seq_length : tensor} |= dtype_(seq_length) = 1 ∨ dtype_(seq_length) = 2 ∨ dtype_(seq_length) = 3 ∨ dtype_(seq_length) = 4 ∨ dtype_(seq_length) = 5 ∨ dtype_(seq_length) = 6
 >>
-Rule 19 (labels tensor must be integer type)
-{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5
+Rule 17 (if seq_length is rank 0, labels must have batch size 1)
+{labels : tensor, seq_length : tensor} |= if ndim(seq_length) = 0 then shape(labels, 0) = 1
 >>
-Rule 20 (seq_length tensor must be integer type)
-{v_2 : tensor} |= 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5
+Rule 18 (If labels is rank 2 and seq_length is rank 1, ensure that the batch sizes match)
+{labels : tensor, seq_length : tensor} |= if ndim(labels) = 2 ∧ ndim(seq_length) = 1 then shape(labels, 0) = shape(seq_length, 0)
 >>
-Rule 21 (all values in seq_length must be less than or equal to labels' max_seq_length)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ shape(v_1, 1)
+Rule 19 (seq_length's elements should be within the valid range of labels for a specific batch to prevent slicing errors during the collapse process)
+{labels : tensor, seq_length : tensor} |= ∀i ∈ [0, shape(seq_length, 0) - 1] : seq_length[i] ≥ 0 ∧ seq_length[i] ≤ shape(labels,1)
 >>
-Rule 22 (labels tensor must have values greater than or equal to 0)
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 20 (Seq_length should have a rank of 1 and have a compatible shape with labels)
+{labels: tensor, seq_length: tensor} |= (ndim(labels) = 2 ∧ ndim(seq_length) = 1 ∧ shape(labels, 0) = shape(seq_length, 0)) ∨ (ndim(labels) = 1 ∧ ndim(seq_length) = 1 ∧ shape(labels, 0) = shape(seq_length, 0))
 >>
-Rule 25 (The values in seq_length tensor must be valid indices for labels tensor)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < shape(v_1, 1)
+Rule 21 (If seq_length has a value greater than the number of columns in labels tensor, it can lead to out of bounds access.)
+{labels: tensor, seq_length: tensor} |= ∀ i ∈ [0, shape(seq_length, 0) - 1] : seq_length[i] <= shape(labels, 1)
 >>
-Rule 26 (labels tensor must have a positive shape along the max_seq_length dimension)
-{v_1 : tensor} |= shape(v_1, 1) > 0
+Rule 22 (shape of labels must be a matrix where the first dimension matches the shape of seq_length and values of the sequence lengths are less than the number of columns in the labels matrix. Or labels must be a vector with same size as seq_length.)
+{labels: tensor, seq_length: tensor} |= ((ndim(labels) = 2 ∧ ndim(seq_length) = 1 ∧ shape(labels, 0) = shape(seq_length, 0) ∧ ∀ i ∈ [0, shape(seq_length, 0) - 1] : seq_length[i] <= shape(labels, 1)) ∨ (ndim(labels) = 1 ∧ ndim(seq_length) = 1 ∧ shape(labels, 0) = shape(seq_length, 0)))
 >>
-Rule 27 (seq_length tensor must have a positive shape along the batch dimension)
-{v_2 : tensor} |= shape(v_2, 0) > 0
+Rule 23 (If labels has dimension greater than 0, the values within seq_length must be non-negative to prevent indexing errors.)
+{labels: tensor, seq_length: tensor} |= if ndim(labels) > 0 then (∀ i ∈ [0, shape(seq_length, 0) - 1] : seq_length[i] >= 0)
 >>
-Rule 28 (labels and seq_length tensors should be rank 2 and 1 respectively.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 1
+Rule 24 (If labels is rank 2, all values in seq_length must be no larger than the second dimension (number of columns) of labels.)
+{labels: tensor, seq_length: tensor} |= if ndim(labels) = 2 then (∀ i ∈ [0, shape(seq_length, 0) - 1] : seq_length[i] <= shape(labels, 1))
 >>
-Rule 29 (labels dtype should be int)
-{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 26 (If seq_length is a scalar, labels must have batch size of 1. If seq_length is a vector, both labels and seq_length must have same length (batch size). To avoid any shape mismatch errors.)
+{labels: tensor, seq_length: tensor} |= (ndim(seq_length) = 0 ∧ shape(labels, 0) = 1) ∨ (ndim(seq_length) = 1 ∧ shape(labels, 0) = shape(seq_length, 0))
 >>
-Rule 31 (The first dimension of labels and seq_length should be the same and positive)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) > 0
+Rule 27 (If labels is a matrix (rank 2) and seq_length is provided then all the values in seq_length should be less than or equal to the number of columns in labels to prevent out of bounds errors when slicing labels)
+{labels: tensor, seq_length: tensor} |= if ndim(labels) = 2 ∧ ndim(seq_length) > 0 then (∀i ∈ [0, shape(seq_length, 0) - 1] : seq_length[i] ≤ shape(labels, 1))
 >>
-Rule 36 (labels tensor's second dimension must be greater than or equal to max(seq_length))
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) ≥ max(v_2)
+Rule 28 (The shape of seq_length must be [batch_size] or [] where [batch_size] is the first dimension of labels to prevent incompatible shape errors during processing.)
+{labels: tensor, seq_length: tensor} |= (ndim(seq_length) = 1 ∧ shape(labels, 0) = shape(seq_length, 0)) ∨ (ndim(seq_length) = 0)
 >>
-Rule 37 (labels and seq_length tensors should be int32 or int64)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4)
+Rule 29 (To prevent out-of-range access, all sequence lengths must be within the bounds of the labels dimension 1, or labels length if rank 1.)
+{labels: tensor, seq_length: tensor} |= if ndim(labels) = 2 then (∀i ∈ [0, shape(seq_length, 0) - 1] : seq_length[i] < shape(labels, 1)) else if ndim(labels) = 1 then (∀i ∈ [0, shape(seq_length, 0) - 1] : seq_length[i] < shape(labels, 0))
 >>
-Rule 41 (The batch size must match between labels and seq_length, and both must be greater than zero)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_2, 0) > 0
+Rule 30 (Ensure that the number of elements in labels tensor can be divided evenly by the number of elements in seq_length to avoid value errors related to shape incompatibility. Applicable when labels is rank 1 and seq_length is also rank 1.)
+{labels: tensor, seq_length: tensor} |= if ndim(labels) = 1 ∧ ndim(seq_length) = 1 then shape(labels, 0) % shape(seq_length, 0) = 0
 >>
-Rule 49 (labels and seq_length's batch size should agree, while seq_length values must be positive)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ min(v_2) >= 0
+Rule 31 (If seq_length is provided as a scalar, it should be a valid sequence length for the entire batch. I.e., less than number of columns (dimension 1) in labels.)
+{labels: tensor, seq_length: tensor} |= if ndim(seq_length) = 0 then seq_length < shape(labels, 1)
 >>
-Rule 50 (all values in seq_length must be less than or equal to labels' max_seq_length)
-{v_1 : tensor, v_2 : tensor} |= max(v_2) <= shape(v_1, 1)
+Rule 32 (To avoid index out of bounds error during processing, the maximum sequence length should be smaller than the dimension 1 size for rank 2 labels and smaller than the dimension 0 size for rank 1 labels.)
+{labels: tensor, seq_length: tensor} |= if ndim(labels) = 2 then (max(seq_length) <= shape(labels, 1)) else if ndim(labels) = 1 then (max(seq_length) <= shape(labels, 0))
 >>
-Rule 51 (labels and seq_length should have the same dtype which should be int32 or int64)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
+Rule 33 (When seq_length is provided as a scalar, ensure that it does not exceed the maximum length of labels to prevent the entire sequence from being out of bounds. )
+{labels: tensor, seq_length: tensor} |= if ndim(seq_length) = 0 then (seq_length ≤ (if ndim(labels) = 2 then shape(labels, 1) else shape(labels, 0)))
 >>
-Rule 54 (Values in seq_length must be non-negative and less than labels's max_seq_length dimension)
-{v_1 : tensor, v_2 : tensor} |= min(v_2) >= 0 ∧ max(v_2) < shape(v_1, 1)
+Rule 34 (If labels is a vector and seq_length is provided (as vector or scalar), values in seq_length must be less than or equal to the size of labels to prevent out of bounds errors.)
+{labels: tensor, seq_length: tensor} |= if ndim(labels) = 1 then (∀i ∈ [0, shape(seq_length, 0) - 1] : seq_length[i] <= shape(labels, 0))
 >>
-Rule 56 (The sequence length values should be less than the maximum value allowed given the input)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < shape(v_1, 1) + 1
+Rule 35 (Ensure that no element in sequence length exceeds the corresponding dimension of labels to avoid errors.)
+{labels: tensor, seq_length: tensor} |= ∃ x ∈ [0, shape(seq_length, 0) - 1] : seq_length[x] ≤ (if ndim(labels) = 2 then shape(labels, 1) else shape(labels, 0))
+>>
+Rule 38 (Prevent out of bounds error: all values in seq_length should be within the maximum bounds of labels)
+{labels: tensor, seq_length: tensor} |= ∀ i ∈ [0, shape(seq_length, 0) - 1] : seq_length[i] < (if ndim(labels) = 2 then shape(labels, 1) else if ndim(labels) = 1 then shape(labels,0) else 0 )
+>>
+Rule 39 (Prevent index out of range error: require the dimension of labels to be not less than 1)
+{labels: tensor} |= ndim(labels) >= 1
+>>
+Rule 41 (If there is at least one value in sequence length vector, every such value must be less than or equal to the number of columns in labels tensor or length of labels vector to prevent slice errors.)
+{labels: tensor, seq_length: tensor} |= ∃ i ∈ [0, shape(seq_length, 0) - 1] : seq_length[i] ≤ (if ndim(labels) = 2 then shape(labels, 1) else shape(labels, 0))
+>>
+Rule 42 (To be robust, ensure every value in sequence length tensor is within the labels boundary to prevent potential slice issues down the line)
+{labels: tensor, seq_length: tensor} |= ∀ x ∈ [0, shape(seq_length, 0) - 1] : seq_length[x] ≤ (if ndim(labels) = 2 then shape(labels, 1) else shape(labels, 0)) - 1
+>>
+Rule 43 (All elements in the sequence length vector should be non-negative.)
+{seq_length: tensor} |= ∀ i ∈ [0, shape(seq_length, 0) - 1] : seq_length[i] ≥ 0
+>>
+Rule 44 (Guarantee valid memory access: sequence length values cannot be negative.)
+{seq_length: tensor} |= min(seq_length) >= 0
+>>
+Rule 45 (To prevent stride slice error, ensure min value of seq_length is always less than or equal to shape of labels, dimension 1 if available, otherwise dimension 0)
+{labels: tensor, seq_length: tensor} |= min(seq_length) <= (if ndim(labels) = 2 then shape(labels, 1) else shape(labels, 0))
+>>
+Rule 46 (Ensure seq_length is of correct integer type to prevent dtype issues)
+{seq_length: tensor} |= dtype_(seq_length) = 1 ∨ dtype_(seq_length) = 2 ∨ dtype_(seq_length) = 3 ∨ dtype_(seq_length) = 4 ∨ dtype_(seq_length) = 5
+>>
+Rule 47 (Prevent shape mismatch errors when labels is a vector): if labels is rank 1 and sequence_length is not a scalar, both should have same length.)
+{labels: tensor, seq_length: tensor} |= if ndim(labels) = 1 then (ndim(seq_length) = 0) ∨ (shape(labels, 0) = shape(seq_length, 0))
+>>
+Rule 48 (For safety, sequence length should not exceed the maximum value it can hold)
+{seq_length: tensor} |= max(seq_length) < 2147483647
+>>
+Rule 49 (Sequence length should be valid for all batches to avoid the "Incompatible shapes" error - particularly when sequence length is a tensor.)
+{labels : tensor, seq_length : tensor} |= if ndim(seq_length) > 0 then ∀ i ∈ [0, shape(seq_length, 0) - 1] : seq_length[i] ≤ (if ndim(labels) = 2 then shape(labels, 1) else shape(labels,0))
+>>
+Rule 51 (The API handles an empty sequence length tensor gracefully.)
+{seq_length: tensor} |= shape(seq_length,0) > 0
+>>
+Rule 52 (The max value in sequence_length should not exceed the length of corresponding labels)
+{labels: tensor, seq_length: tensor} |= if ndim(labels) = 2 then max(seq_length) <= shape(labels, 1) else max(seq_length) <= shape(labels, 0)
+>>
+Rule 53 (If the shape of sequence length exceeds batch size it should raise an error, so it should be addressed)
+{labels : tensor, seq_length : tensor} |= shape(seq_length, 0) <= shape(labels, 0)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# matrix must have complex64 or complex128 dtype if it is complex (Rule 8)
+# matrix should not be of bool type (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 9, True, If(v["arg1_dtype"] == 10, True, If(v["arg1_dtype"] < 9, False, False)))) if n else
-          If(v["arg1_dtype"] == 9, True, If(v["arg1_dtype"] == 10, True, If(v["arg1_dtype"] < 9, False, False))))
+    s.add(Not(v["arg1_dtype"] != 0) if n else
+          v["arg1_dtype"] != 0)
 )
 
 def rule_8_func(arg1, solver=None, neg=False):

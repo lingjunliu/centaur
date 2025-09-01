@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check if two tensors have the same number of dimensions (Rule 10)
+# If one tensor is scalar, the other must be at least 1-dimensional (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] == v["arg2_ndim"]) if n else
-          v["arg1_ndim"] == v["arg2_ndim"])
+    s.add(Not(If(v["arg1_ndim"] == 0, v["arg2_ndim"] >= 1, If(v["arg2_ndim"] == 0, v["arg1_ndim"] >= 1, True))) if n else
+          If(v["arg1_ndim"] == 0, v["arg2_ndim"] >= 1, If(v["arg2_ndim"] == 0, v["arg1_ndim"] >= 1, True)))
 )
 
 def rule_10_func(arg1, arg2, solver=None, neg=False):

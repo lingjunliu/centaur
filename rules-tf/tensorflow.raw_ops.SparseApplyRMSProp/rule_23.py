@@ -5,16 +5,19 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# var, ms, mom, lr, rho, momentum, epsilon, grad must all have compatible data types (Rule 23)
+# if indices has shape [N], then var, ms, mom, grad must have their first dimension with size at least max(indices (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, If(v["arg1_dtype"] == 3, v["arg2_dtype"] == 3, If(v["arg1_dtype"] == 5, v["arg2_dtype"] == 5, If(v["arg1_dtype"] == 2, v["arg2_dtype"] == 2, If(v["arg1_dtype"] == 1, v["arg2_dtype"] == 1, If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9, If(v["arg1_dtype"] == 4, v["arg2_dtype"] == 4, If(v["arg1_dtype"] == 12, v["arg2_dtype"] == 12, If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, False))))))))))) if n else
-          If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, If(v["arg1_dtype"] == 3, v["arg2_dtype"] == 3, If(v["arg1_dtype"] == 5, v["arg2_dtype"] == 5, If(v["arg1_dtype"] == 2, v["arg2_dtype"] == 2, If(v["arg1_dtype"] == 1, v["arg2_dtype"] == 1, If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9, If(v["arg1_dtype"] == 4, v["arg2_dtype"] == 4, If(v["arg1_dtype"] == 12, v["arg2_dtype"] == 12, If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, False)))))))))))
+    s.add(Not(And(And(And(And(v["arg5_ndim"] == 1, Select(v["arg5_range"], 1) < Select(v["arg1_shape"], 0)), Select(v["arg5_range"], 1) < Select(v["arg2_shape"], 0)), Select(v["arg5_range"], 1) < Select(v["arg3_shape"], 0)), Select(v["arg5_range"], 1) < Select(v["arg4_shape"], 0))) if n else
+          And(And(And(And(v["arg5_ndim"] == 1, Select(v["arg5_range"], 1) < Select(v["arg1_shape"], 0)), Select(v["arg5_range"], 1) < Select(v["arg2_shape"], 0)), Select(v["arg5_range"], 1) < Select(v["arg3_shape"], 0)), Select(v["arg5_range"], 1) < Select(v["arg4_shape"], 0)))
 )
 
-def rule_23_func(arg1, arg2, solver=None, neg=False):
+def rule_23_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
+    arg4 = next(iter(arg4.values()))
+    arg5 = next(iter(arg5.values()))
 
     # Invariant learning phase
     if not solver:
@@ -22,20 +25,39 @@ def rule_23_func(arg1, arg2, solver=None, neg=False):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
+        if not isinstance(arg3, np.ndarray):
+            return False
+        if not isinstance(arg4, np.ndarray):
+            return False
+        if not isinstance(arg5, np.ndarray):
+            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
+        arg4_shape = Array('arg4_shape', IntSort(), IntSort())
+        arg5_ndim = Int('arg5_ndim')
+        arg5_range = Array('arg5_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        for i in range(arg3.ndim):
+            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
+        for i in range(arg4.ndim):
+            arg4_shape = Store(arg4_shape, i, arg4.shape[i])
+        solver.add(arg5_ndim == arg5.ndim)
+        arg5_range = Store(arg5_range, 0, int(np.min(arg5)))
+        arg5_range = Store(arg5_range, 1, int(np.max(arg5)))
 
         # Constraints for rule 23
-        rule_23(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_23(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape, 'arg3_shape': arg3_shape, 'arg4_shape': arg4_shape, 'arg5_range': arg5_range, 'arg5_ndim': arg5_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_23(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_23(solver, {'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape'], 'arg3_shape': arg3['shape'], 'arg4_shape': arg4['shape'], 'arg5_range': arg5['range'], 'arg5_ndim': arg5['ndim']}, neg)

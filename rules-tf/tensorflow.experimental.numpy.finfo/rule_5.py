@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If dtype is complex, the precision must be either complex64 or complex128 (Rule 5)
+# dtype must not be a string (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 9, True, If(v["arg1_value"] == 10, True, False))) if n else
-          If(v["arg1_value"] == 9, True, If(v["arg1_value"] == 10, True, False)))
+    s.add(Not(v["arg1_value"] != 11) if n else
+          v["arg1_value"] != 11)
 )
 
 def rule_5_func(arg1, solver=None, neg=False):

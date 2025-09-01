@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# ksizes list must have length greater than or equal to 4 and elements must be greater than 0 and length should be smaller than images' dimensions (Rule 45)
+# If images is of type uint16, uint32, uint64, complex64, complex128 then ksizes must have size 1,1 (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_length"] >= 4, And([Implies(i < (v["arg1_length"] - 1 + 1), And(Select(v["arg1_values"], i) > 0, v["arg1_length"] <= v["arg2_ndim"])) for i in range(6)]))) if n else
-          And(v["arg1_length"] >= 4, And([Implies(i < (v["arg1_length"] - 1 + 1), And(Select(v["arg1_values"], i) > 0, v["arg1_length"] <= v["arg2_ndim"])) for i in range(6)])))
+    s.add(Not(If(Or(Or(Or(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg1_dtype"] == 11), v["arg1_dtype"] == 12), v["arg1_dtype"] == 13), And(Select(v["arg2_values"], 1) == 1, Select(v["arg2_values"], 2) == 1), True)) if n else
+          If(Or(Or(Or(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg1_dtype"] == 11), v["arg1_dtype"] == 12), v["arg1_dtype"] == 13), And(Select(v["arg2_values"], 1) == 1, Select(v["arg2_values"], 2) == 1), True))
 )
 
 def rule_45_func(arg1, arg2, solver=None, neg=False):
@@ -18,27 +18,25 @@ def rule_45_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
-        arg2_ndim = Int('arg2_ndim')
+        arg1_dtype = Int('arg1_dtype')
+        arg2_values = Array('arg2_values', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
-        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        for i in range(len(arg2)):
+            arg2_values = Store(arg2_values, i, arg2[i])
 
         # Constraints for rule 45
-        rule_45(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length, 'arg2_ndim': arg2_ndim})
+        rule_45(solver, {'arg1_dtype': arg1_dtype, 'arg2_values': arg2_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_45(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_45(solver, {'arg1_dtype': arg1['dtype'], 'arg2_values': arg2['values']}, neg)

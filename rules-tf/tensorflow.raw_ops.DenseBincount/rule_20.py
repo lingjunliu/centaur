@@ -5,42 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If weights is empty and binary_output is enabled, then the output tensor's dtype should be bool (Rule 20)
+# if weights is a length-0 tensor, then the output tensor has dtype int32 if binary_output is false, and bool if binary_output is true (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg2_ndim"] == 0, v["arg3_value"] == True), v["arg1_dtype"] == 0, False)) if n else
-          If(And(v["arg2_ndim"] == 0, v["arg3_value"] == True), v["arg1_dtype"] == 0, False))
+    s.add(Not(If(v["arg1_ndim"] == 0, (If(v["arg2_value"] == False, True, True)), True)) if n else
+          If(v["arg1_ndim"] == 0, (If(v["arg2_value"] == False, True, True)), True))
 )
 
-def rule_20_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_20_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
-            return False
-        if not isinstance(arg3, bool):
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_ndim = Int('arg2_ndim')
-        arg3_value = Bool('arg3_value')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_ndim == arg2.ndim)
-        solver.add(arg3_value == arg3)
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 20
-        rule_20(solver, {'arg1_dtype': arg1_dtype, 'arg2_ndim': arg2_ndim, 'arg3_value': arg3_value})
+        rule_20(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_20(solver, {'arg1_dtype': arg1['dtype'], 'arg2_ndim': arg2['ndim'], 'arg3_value': arg3['value']}, neg)
+        rule_20(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

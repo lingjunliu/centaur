@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the denominator is bool then the numerator should also be bool (Rule 35)
+# If x2 is bool type, then x1 must be a float (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg2_dtype"] == 0), (v["arg1_dtype"] == 0), False)) if n else
-          If((v["arg2_dtype"] == 0), (v["arg1_dtype"] == 0), False))
+    s.add(Not(If((v["arg2_dtype"] == 0), (And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 8)), True)) if n else
+          If((v["arg2_dtype"] == 0), (And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 8)), True))
 )
 
 def rule_35_func(arg1, arg2, solver=None, neg=False):

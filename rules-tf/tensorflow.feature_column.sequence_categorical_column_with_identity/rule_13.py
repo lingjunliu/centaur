@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# default_value must be smaller than num_buckets if it exists (Rule 13)
+# if num_buckets is small, default value should be relatively small (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] != -1, v["arg1_value"] < v["arg2_value"], False)) if n else
-          If(v["arg1_value"] != -1, v["arg1_value"] < v["arg2_value"], False))
+    s.add(Not(If(v["arg2_value"] < 100, v["arg1_value"] < v["arg2_value"], True)) if n else
+          If(v["arg2_value"] < 100, v["arg1_value"] < v["arg2_value"], True))
 )
 
 def rule_13_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# k should be an integer between 0 and 3 (Rule 20)
+# k must be less than or equal to 10 (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(And(0 <= v["arg1_value"], v["arg1_value"] < 4)) if n else
-          And(0 <= v["arg1_value"], v["arg1_value"] < 4))
+    s.add(Not(v["arg1_value"] <= 10) if n else
+          v["arg1_value"] <= 10)
 )
 
 def rule_20_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If locking is enabled, perform a check to make sure all tensor shapes are known at compile time, i.e. not dynamic (Rule 49)
+# If var's dtype is uint8, then lr, rho, and epsilon must also be uint8 (Rule 49)
 
 rule_49 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, And(And((And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) != -1) for i in range(6)])), (And([Implies(i < (v["arg3_ndim"] - 1 + 1), Select(v["arg3_shape"], i) != -1) for i in range(6)]))), (And([Implies(i < (v["arg4_ndim"] - 1 + 1), Select(v["arg4_shape"], i) != -1) for i in range(6)]))), False)) if n else
-          If(v["arg1_value"] == True, And(And((And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) != -1) for i in range(6)])), (And([Implies(i < (v["arg3_ndim"] - 1 + 1), Select(v["arg3_shape"], i) != -1) for i in range(6)]))), (And([Implies(i < (v["arg4_ndim"] - 1 + 1), Select(v["arg4_shape"], i) != -1) for i in range(6)]))), False))
+    s.add(Not(If(v["arg1_dtype"] == 5, And(And(v["arg2_dtype"] == 5, v["arg3_dtype"] == 5), v["arg4_dtype"] == 5), True)) if n else
+          If(v["arg1_dtype"] == 5, And(And(v["arg2_dtype"] == 5, v["arg3_dtype"] == 5), v["arg4_dtype"] == 5), True))
 )
 
 def rule_49_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
@@ -20,7 +20,7 @@ def rule_49_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not isinstance(arg1, np.ndarray):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
@@ -31,30 +31,21 @@ def rule_49_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_ndim = Int('arg2_ndim')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
-        arg3_ndim = Int('arg3_ndim')
-        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
-        arg4_ndim = Int('arg4_ndim')
-        arg4_shape = Array('arg4_shape', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
+        arg2_dtype = Int('arg2_dtype')
+        arg3_dtype = Int('arg3_dtype')
+        arg4_dtype = Int('arg4_dtype')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_ndim == arg2.ndim)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
-        solver.add(arg3_ndim == arg3.ndim)
-        for i in range(arg3.ndim):
-            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
-        solver.add(arg4_ndim == arg4.ndim)
-        for i in range(arg4.ndim):
-            arg4_shape = Store(arg4_shape, i, arg4.shape[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
+        solver.add(arg4_dtype == list_of_available_dtypes.index(arg4.dtype))
 
         # Constraints for rule 49
-        rule_49(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_shape': arg3_shape, 'arg3_ndim': arg3_ndim, 'arg4_shape': arg4_shape, 'arg4_ndim': arg4_ndim})
+        rule_49(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype, 'arg4_dtype': arg4_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_49(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_shape': arg3['shape'], 'arg3_ndim': arg3['ndim'], 'arg4_shape': arg4['shape'], 'arg4_ndim': arg4['ndim']}, neg)
+        rule_49(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype'], 'arg4_dtype': arg4['dtype']}, neg)

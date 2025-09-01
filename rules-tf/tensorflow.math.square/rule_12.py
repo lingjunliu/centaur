@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If x's dtype is int8, then it must be index 1 (Rule 12)
+# x's dtype cannot be bool or string (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 1, True, False)) if n else
-          If(v["arg1_dtype"] == 1, True, False))
+    s.add(Not(And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 12)) if n else
+          And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 12))
 )
 
 def rule_12_func(arg1, solver=None, neg=False):

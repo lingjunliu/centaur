@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The value of v_1 must be smaller than shape of x at 0-th dim (Rule 54)
+# If name is one of "channels_last" or "channels_first" then tensor's dimensions should meet some limitation (Rule 54)
 
 rule_54 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) > v["arg2_value"], False)) if n else
-          If(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) > v["arg2_value"], False))
+    s.add(Not(If(Or(v["arg2_value"] == 24, v["arg2_value"] == 25), Or(v["arg1_ndim"] == 4, v["arg1_ndim"] == 5), True)) if n else
+          If(Or(v["arg2_value"] == 24, v["arg2_value"] == 25), Or(v["arg1_ndim"] == 4, v["arg1_ndim"] == 5), True))
 )
 
 def rule_54_func(arg1, arg2, solver=None, neg=False):
@@ -20,25 +20,22 @@ def rule_54_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, str):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_value = Int('arg2_value')
+        arg2_value = String('arg2_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg2_value == list_of_string_values_tf.index(arg2))
 
         # Constraints for rule 54
-        rule_54(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_54(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_54(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)
+        rule_54(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

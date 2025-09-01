@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# rank 5 tensor (Rule 4)
+# input tensor's dimensions must be greater than or equal to diagonal indices (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] == 5) if n else
-          v["arg1_ndim"] == 5)
+    s.add(Not(If(v["arg1_ndim"] > 2, True, If(v["arg1_ndim"] == 2, True, False))) if n else
+          If(v["arg1_ndim"] > 2, True, If(v["arg1_ndim"] == 2, True, False)))
 )
 
 def rule_4_func(arg1, solver=None, neg=False):

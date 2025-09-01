@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Dummy rule with a string parameter that must be a particular value (Rule 4)
+# The function returns a boolean value which is either true or false (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(v["arg1_value"] == 12, v["arg1_value"] == 13), v["arg1_value"] == 14)) if n else
-          Or(Or(v["arg1_value"] == 12, v["arg1_value"] == 13), v["arg1_value"] == 14))
+    s.add(Not(Or(v["arg1_value"] == True, v["arg1_value"] == False)) if n else
+          Or(v["arg1_value"] == True, v["arg1_value"] == False))
 )
 
 def rule_4_func(arg1, solver=None, neg=False):
@@ -17,15 +17,15 @@ def rule_4_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, str):
+        if not isinstance(arg1, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_value = Bool('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values_tf.index(arg1))
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 4
         rule_4(solver, {'arg1_value': arg1_value})

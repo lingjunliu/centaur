@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the number of dimensions is greater than zero, then the product of all shapes is less than 2^20 (Rule 73)
+# The feature tensor's shape dimensions at index 0, 1, 2 should be greater than 0 if ndim > 2 (Rule 73)
 
 rule_73 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 0, Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 1048576) for i in range(6)]), False)) if n else
-          If(v["arg1_ndim"] > 0, Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 1048576) for i in range(6)]), False))
+    s.add(Not(If(v["arg1_ndim"] > 2, And(And(Select(v["arg1_shape"], 0) > 0, Select(v["arg1_shape"], 1) > 0), Select(v["arg1_shape"], 2) > 0), True)) if n else
+          If(v["arg1_ndim"] > 2, And(And(Select(v["arg1_shape"], 0) > 0, Select(v["arg1_shape"], 1) > 0), Select(v["arg1_shape"], 2) > 0), True))
 )
 
 def rule_73_func(arg1, solver=None, neg=False):

@@ -5,16 +5,18 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# min_a must be less than or equal to max_a (Rule 7)
+# If transpose_b is true, inner dimension of a must match inner dimension of b when transpose_a is false (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) <= Select(v["arg2_range"], 1)) if n else
-          Select(v["arg1_range"], 0) <= Select(v["arg2_range"], 1))
+    s.add(Not(If(And(v["arg3_value"] == False, v["arg4_value"] == True), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 1), True)) if n else
+          If(And(v["arg3_value"] == False, v["arg4_value"] == True), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 1), True))
 )
 
-def rule_7_func(arg1, arg2, solver=None, neg=False):
+def rule_7_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
+    arg4 = next(iter(arg4.values()))
 
     # Invariant learning phase
     if not solver:
@@ -22,22 +24,30 @@ def rule_7_func(arg1, arg2, solver=None, neg=False):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
+        if not isinstance(arg3, bool):
+            return False
+        if not isinstance(arg4, bool):
+            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg3_value = Bool('arg3_value')
+        arg4_value = Bool('arg4_value')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg3_value == arg3)
+        solver.add(arg4_value == arg4)
 
         # Constraints for rule 7
-        rule_7(solver, {'arg1_range': arg1_range, 'arg2_range': arg2_range})
+        rule_7(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape, 'arg3_value': arg3_value, 'arg4_value': arg4_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_7(solver, {'arg1_range': arg1['range'], 'arg2_range': arg2['range']}, neg)
+        rule_7(solver, {'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape'], 'arg3_value': arg3['value'], 'arg4_value': arg4['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The shape of the tensor must be less than 100 if the dimension is 1 (Rule 54)
+# Flipping up-down will make no change to a 1xN matrix (Rule 54)
 
 rule_54 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) < 100, False)) if n else
-          If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) < 100, False))
+    s.add(Not(If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) != 1, True)) if n else
+          If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) != 1, True))
 )
 
 def rule_54_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_54_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 54
-        rule_54(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_54(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_54(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_54(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

@@ -1,96 +1,102 @@
 >>
-Rule 3 (The condition tensor's shape must match the size of dimension axis if axis is specified)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 ≥ 0 ∧ v_3 < ndim(v_2) then shape(v_1, 0) = shape(v_2, v_3)
+Rule 1 (The axis parameter should be non-negative when a's dimension is greater than 0)
+{a : tensor, axis : int} |= ndim(a) > 0 ∧ axis ≥ 0
 >>
-Rule 6 (Input array cannot be empty if condition array is non-empty)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) > 0 then ndim(v_2) ≥ 0
+Rule 2 (The axis parameter should be smaller than the number of dimensions of a)
+{a : tensor, axis : int} |= axis < ndim(a)
 >>
-Rule 8 (The condition tensor should not have all false values.)
-{v_1 : tensor} |= ∃i ∈ [0, shape(v_1,0) - 1] : v_1[i] = true
+Rule 3 (The condition tensor must be a boolean tensor)
+{condition : tensor} |= dtype_(condition) = 0
 >>
-Rule 9 (If the condition tensor is empty, return an empty tensor of the correct shape.)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) = 0 then shape(v_2,0) = 0
+Rule 4 (The condition tensor must have the same size as the selected axis of a)
+{condition : tensor, a : tensor, axis : int} |= shape(condition, 0) = shape(a, axis)
 >>
-Rule 10 (The condition tensor must be a 1-dimensional tensor)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 5 (If a is a scalar, condition must be a single boolean value (or a tensor of size 1))
+{condition : tensor, a : tensor} |= ndim(a) = 0 ∧ shape(condition, 0) = 1
 >>
-Rule 11 (The condition tensor's dtype must be boolean)
-{v_1 : tensor} |= dtype_(v_1) = 0
+Rule 6 (Axis should be within the valid range even when the input tensor is 0-dimensional)
+{a : tensor, axis : int} |= if ndim(a) = 0 then axis = 0
 >>
-Rule 13 (The axis must be a valid dimension index)
-{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+Rule 8 (condition tensor must have dimension of 1 if a is not scalar and no axis is specified)
+{condition : tensor, a : tensor} |= ndim(a) > 0 ∧ shape(condition, 0) = shape(a, 0)
 >>
-Rule 14 (If axis is None, the input tensor should be flattened)
-{v_1 : tensor, v_2 : int} |= if v_2 < 0 then ndim(v_1) = 1
+Rule 10 (The shape of the condition tensor should be less than or equal to the size of the input tensor along the given axis.)
+{condition : tensor, a : tensor, axis : int} |= shape(condition, 0) ≤ shape(a, axis)
 >>
-Rule 15 (If `a` is empty and `axis` is not None, `axis` must be within valid bounds.)
-{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) = 0 then (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+Rule 11 (Axis should be within the valid range even when the input tensor is 0-dimensional)
+{a : tensor, axis : int} |= if ndim(a) = 0 then axis = 0 else axis ≥ 0 ∧ axis < ndim(a)
 >>
-Rule 18 (The input tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 13 (The condition tensor must have dimension of 1 if a is not scalar and no axis is specified, and the shape must match the first dimension of a)
+{condition : tensor, a : tensor} |= if ndim(a) > 0 then shape(condition, 0) = shape(a, 0)
 >>
-Rule 25 (The size of condition tensor must not exceed the size of selected dimension when axis is not None)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 ≥ 0 then shape(v_1,0) ≤ shape(v_2, v_3)
+Rule 15 (If the condition is a scalar boolean, a should also be a scalar)
+{condition: tensor, a: tensor} |= if ndim(condition) = 0 then ndim(a) = 0
 >>
-Rule 27 (If the input tensor is empty, then condition can be any size.)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2,0) = 0 then true else ndim(v_1) ≥ 0
+Rule 21 (The dtype of 'a' should not be dtype if 'axis' is specified and ndim(a) > 0)
+{a : tensor} |= ndim(a) > 0 ∧ dtype_(a) ≠ 12
 >>
-Rule 34 (if condition tensor's shape is 0, the result shape must be zero)
-{v_1: tensor, v_2: tensor} |= if shape(v_1, 0) = 0 then shape(v_2, 0) = 0
+Rule 24 (If axis is specified, then the number of elements in condition should match the size of dimension 'axis' in a)
+{condition: tensor, a: tensor, axis: int} |= if ndim(a) > 0 then shape(condition, 0) = shape(a, axis)
 >>
-Rule 35 (If a is empty, then resulting tensor should also be empty)
-{v_1: tensor, v_2: tensor} |= if shape(v_2, 0) = 0 then shape(v_1, 0) = 0
+Rule 25 (The dtype of the condition tensor must be boolean.)
+{condition: tensor} |= dtype_(condition) = 0
 >>
-Rule 36 (If axis is None, the condition tensor should have number of elements less than the original tensor's number of elements.)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 < 0 then shape(v_1, 0) < (shape(v_2, 0) * shape(v_2, 1))
+Rule 27 (If the condition is a scalar boolean, a should also be a scalar)
+{condition: tensor} |= if ndim(condition) = 0 then true else false
 >>
-Rule 40 (If axis is None, condition tensor size must not exceed a reasonable size)
-{v_1 : tensor, v_2 : int} |= if v_2 < 0 then shape(v_1, 0) ≤ 10000
+Rule 28 (If axis is specified, the axis must be a non-negative integer.)
+{axis: int} |= axis ≥ 0
 >>
-Rule 43 (If the input tensor's shape is 0, then the output tensor must also have shape of 0.)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) = 0 then shape(v_1, 0) = 0
+Rule 29 (If axis is specified, the axis must be less than the number of dimensions of a)
+{a: tensor, axis: int} |= axis < ndim(a)
 >>
-Rule 44 (The condition tensor cannot have a zero dimension if input tensor is not empty)
-{v_1: tensor, v_2: tensor} |= if shape(v_2, 0) > 0 then shape(v_1, 0) > 0
+Rule 30 (If the condition is a vector, the vector must consist of boolean values)
+{condition: tensor} |= ndim(condition) = 1 ∧ dtype_(condition) = 0
 >>
-Rule 45 (If axis is not None, number of dimensions of the condition must be one)
-{v_1: tensor, v_2: int} |= if v_2 >= 0 then ndim(v_1) = 1
+Rule 31 (If axis is not specified and a is not a scalar, then the number of elements in condition must match the size of the first dimension of a)
+{condition : tensor, a : tensor} |= if ndim(a) > 0 then shape(condition, 0) = shape(a, 0) else ndim(condition) = 0
 >>
-Rule 50 (The result tensor can have at most the same number of dimensions as the input tensor)
-{v_1: tensor, v_2: tensor} |= ndim(v_1) ≤ ndim(v_2)
+Rule 37 (If the condition is a scalar, it must be a boolean)
+{condition: tensor} |= ndim(condition) = 0 ∧ dtype_(condition) = 0
 >>
-Rule 52 (if there is any zero in condition tensor, resulting tensor shape should be smaller than the input tensor shape.)
-{v_1: tensor, v_2: tensor} |= if (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = false) then shape(v_2,0) < shape(v_1, 0)
+Rule 39 (When an axis is specified, the size of condition should match the size of the dimension specified by the axis)
+{condition: tensor, a: tensor, axis: int} |= shape(condition, 0) = shape(a, axis)
 >>
-Rule 53 (If the input tensor has a dimension with size 0, the output tensor's corresponding dimension must also have size 0)
-{v_1: tensor, v_2: tensor, v_3: int} |= if v_3 >= 0 then (if shape(v_2, v_3) = 0 then shape(v_1, 0) = 0)
+Rule 40 (If a is a scalar, condition must also be a scalar)
+{condition: tensor, a: tensor} |= ndim(a) = 0 ∧ ndim(condition) = 0
 >>
-Rule 58 (the input and output tensor must have the same dtype)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 51 (The number of dimensions of condition should be less than or equal to 1)
+{condition : tensor} |= ndim(condition) ≤ 1
 >>
-Rule 61 (When axis is specified, the size of the compressed dimension must be less than or equal to that of the input dimension)
-{v_1: tensor, v_2: tensor, v_3: int} |= if v_3 >= 0 then shape(v_1, 0) <= shape(v_2, v_3)
+Rule 53 (If axis is None and a is not a scalar, the size of condition's first dimension must match the size of a's first dimension)
+{condition: tensor, a: tensor} |= if ndim(a) > 0 then shape(condition, 0) = shape(a, 0)
 >>
-Rule 62 (If the input tensor has a dimension with size 0 and axis is specified, the output tensor must also have a dimension with size 0)
-{v_1: tensor, v_2: tensor, v_3: int} |= if v_3 >=0 then (if shape(v_2, v_3) = 0 then shape(v_1, 0) = 0)
+Rule 59 (The 'a' argument must be a tensor with dimension greater or equal to 0)
+{a: tensor} |= ndim(a) ≥ 0
 >>
-Rule 69 (The size of the output must less or equal than the input)
-{v_1: tensor, v_2: tensor} |= shape(v_1, 0) ≤ shape(v_2, 0)
+Rule 63 (If axis is specified, condition must be one dimensional)
+{condition: tensor} |= ndim(condition) = 1
 >>
-Rule 70 (If axis is None, the input tensor and condition tensor must have the same number of elements along dimension 0 after compression)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 < 0 then shape(v_1, 0) ≤ shape(v_2, 0)
+Rule 70 (The axis value should be greater than or equal to the negative number of dimensions in 'a')
+{a: tensor, axis: int} |= axis ≥ (0 - ndim(a))
 >>
-Rule 71 (When axis is None, the output shape is 1D)
-{v_1: tensor, v_2: int} |= if v_2 < 0 then ndim(v_1) = 1
+Rule 73 (The axis value should be a valid dimension in 'a')
+{a: tensor, axis: int} |= axis < ndim(a) ∧ axis ≥ (0 - ndim(a))
 >>
-Rule 72 (Condition tensor must have only ones and zeros)
-{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0 ∨ v_1[i] = 1
+Rule 74 (The dimension of the tensor 'a' should be greater than zero when axis is specified)
+{a : tensor} |=  ndim(a) > 0
 >>
-Rule 78 (Condition tensor can not have all false values)
-{v_1: tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = true
+Rule 93 (The axis value must be a valid axis for 'a' and a is not scalar)
+{a: tensor, axis: int} |= ndim(a) > 0 ∧ axis < ndim(a) ∧ axis ≥ (0 - ndim(a))
 >>
-Rule 80 (If shape of axis dimension is greater than zero in input then shape of 0th dimension in condition tensor should also be greater than 0)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 >= 0 then (if shape(v_2, v_3) > 0 then shape(v_1, 0) > 0)
+Rule 94 (If condition has dimension larger than 0, then shape(condition, 0) must be larger than 0)
+{condition: tensor} |= if ndim(condition) > 0 then shape(condition, 0) > 0
 >>
-Rule 81 (Condition data type can only be boolean)
-{v_1: tensor} |= dtype_(v_1) = 0
+Rule 98 (If an axis is provided and a is not scalar, then condition must be 1-dimensional)
+{condition: tensor, a: tensor} |= if ndim(a) > 0 then ndim(condition) = 1
+>>
+Rule 99 (If the dimension of 'a' is positive, axis must be valid)
+{a: tensor, axis: int} |= if ndim(a) > 0 then axis < ndim(a) ∧ axis ≥ (0 - ndim(a))
+>>
+Rule 124 (If axis is provided, the shape of condition tensor must be less than or equal to the shape of a tensor in axis dimension)
+{condition: tensor, a: tensor, axis: int} |= shape(condition, 0) ≤ shape(a, axis)

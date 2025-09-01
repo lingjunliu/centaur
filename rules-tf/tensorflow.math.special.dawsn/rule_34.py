@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The tensor cannot have inf values (Rule 34)
+# The elements in tensor x shouldn't be extremely large or small to prevent overflow. (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_range"], 1) != 10000000000, Select(v["arg1_range"], 0) != -10000000000)) if n else
-          And(Select(v["arg1_range"], 1) != 10000000000, Select(v["arg1_range"], 0) != -10000000000))
+    s.add(Not(And(Select(v["arg1_range"], 0) > -10000000, Select(v["arg1_range"], 1) < 10000000)) if n else
+          And(Select(v["arg1_range"], 0) > -10000000, Select(v["arg1_range"], 1) < 10000000))
 )
 
 def rule_34_func(arg1, solver=None, neg=False):

@@ -1,111 +1,30 @@
 >>
-Rule 1 (ngram_width must be greater than 0)
+Rule 1 (ngram_width must be a positive integer to avoid "All ngram_widths must be greater than 0. Got -12068")
 {v_1 : int} |= v_1 > 0
 >>
-Rule 2 (padding_width must be greater than or equal to 0)
-{v_1 : int} |= v_1 ≥ 0
+Rule 3 (ngram_width must be within the range of int32 to avoid "InvalidArgumentError: Attr ngram_widths has value ... out of range for an int32")
+{v_1 : int} |= v_1 ≥ -2147483648 ∧ v_1 ≤ 2147483647
 >>
-Rule 5 (ngram_width can be a tuple of ints, all greater than 0)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 39 (pad_values must not be a boolean)
+{v_1 : str} |= v_1 ≠ "true" ∧ v_1 ≠ "false"
 >>
-Rule 7 (pad_values can be a string tuple, and each element should not be empty string)
-{v_1 : tuple(str)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ "" ∧ v_1.len = 2
+Rule 47 (pad_values must be a string or tuple of strings and not boolean)
+{v_1 : str} |=  (v_1 = "true") ∨ (v_1 = "false")
 >>
-Rule 8 (If ngram_width is a single int, it should be smaller than the last dimension of the data if preserve_short_sequences is false and data is not empty)
-{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_3 = false then ndim(v_1) > 0 ∧ shape(v_1, ndim(v_1) - 1) > v_2
+Rule 51 (pad_values must be a string or a tuple(string) and should not equal "true" or "false")
+{v_1 : str ⊎ tuple(str)} |= if v_1 = "true" then false else if v_1 = "false" then false
 >>
-Rule 9 (ngram_width can be a list of ints, all greater than 0)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 55 (pad_values must be a string or a tuple(string) and should not equal "true" or "false")
+{v_1 : str} |= (v_1 ≠ "true") ∧ (v_1 ≠ "false")
 >>
-Rule 10 (The separator string length must be less than 20)
-{v_1 : str} |= v_1.len < 20
+Rule 67 (pad_values must not be a boolean value)
+{v_1 : str ⊎ tuple(str)} |= (if v_1 = "true" then false else if v_1 = "false" then false) ∧ true
 >>
-Rule 11 (If pad_values is a string, it should not be an empty string)
-{v_1 : str} |= v_1 ≠ ""
+Rule 71 (pad_values must be a string and must not have boolean values as string)
+{v_1 : str} |= if v_1 = "true" then false else if v_1 = "false" then false
 >>
-Rule 14 (separator length must be greater than 0)
-{v_1 : str} |= v_1.len > 0
+Rule 75 (pad_values should be a valid string value)
+{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear" ∨ v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "causal" ∨ v_1 = "channels_last" ∨ v_1 = "channels_first"
 >>
-Rule 15 (Data tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) > 0
->>
-Rule 18 (ngram_width can be a list of ints, all greater than 0 and has length > 0)
-{v_1 : list(int)} |= v_1.len > 0 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
->>
-Rule 20 (If pad_values is a string, it should not be an empty string. Need tensor data to check size)
-{v_1 : tensor, v_2 : str, v_3 : int} |= if shape(v_1, ndim(v_1) -1) > v_3 then v_2.len > 0
->>
-Rule 27 (If pad_values is a tuple, it needs to have length 2)
-{v_1 : tuple(str)} |= v_1.len = 2
->>
-Rule 28 (padding_width should be smaller than last dim of the data, if data's shape is known)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 < shape(v_1, ndim(v_1) - 1)
->>
-Rule 29 (if the data has only 1 dimension, ngram_width cannot be larger than the dimension)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 <= shape(v_1, 0)
->>
-Rule 30 (Check if sequence is preserved, the padding width must be positive)
-{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 0
->>
-Rule 31 (When preserving short sequences, the length of ngram_width + 2 * padding_width needs to less than the length of data.)
-{v_1 : tensor, v_2 : int, v_3 : int, v_4 : bool} |= if v_4 = true then shape(v_1, ndim(v_1) -1) > (v_2 + 2*v_3)
->>
-Rule 37 (if the data has only 1 dimension, ngram_width cannot be larger than the dimension)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 ≤ shape(v_1, 0)
->>
-Rule 38 (Check if sequence is preserved, the padding width must be non-negative)
-{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 ≥ 0
->>
-Rule 40 (if the ngram width is a list, the length of ngram width must be less than the size of the last dimension in data)
-{v_1: list(int), v_2 : tensor} |= if ndim(v_2) > 0 then v_1.len <= shape(v_2, ndim(v_2)-1)
->>
-Rule 41 (if the preserve_short_sequences is false, the sum of padding_width*2, ngram_width must be less than size of last dimension)
-{v_1 : tensor, v_2 : int, v_3: int, v_4 : bool} |= if v_4 = false ∧ ndim(v_1) > 0 then (v_2 * 2 + v_3) < shape(v_1, ndim(v_1) -1)
->>
-Rule 47 (When preserving short sequences, the length of ngram_width + 2 * padding_width needs to less than the length of data when data is 1D)
-{v_1 : tensor, v_2 : int, v_3 : int, v_4 : bool} |= if v_4 = true ∧ ndim(v_1) = 1 then shape(v_1, 0) > (v_2 + 2*v_3)
->>
-Rule 50 (The separator string must be in the allowed string list)
-{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "constant" ∨ v_1 = "linear" ∨ v_1 = "softplus"
->>
-Rule 51 (if data is a tensor and ngram_width is an int then ngram_width <= shape of data)
-{v_1: tensor, v_2: int} |= if ndim(v_1) > 0 then v_2 <= shape(v_1, ndim(v_1)-1)
->>
-Rule 59 (Pad values must be a valid string)
-{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "constant" ∨ v_1 = "linear" ∨ v_1 = "softplus" ∨ v_1 = ""
->>
-Rule 60 (if ngram_width is a tuple, then length must be less than shape)
-{v_1: tuple(int), v_2: tensor} |= if ndim(v_2) > 0 then v_1.len <= shape(v_2, ndim(v_2) - 1)
->>
-Rule 61 (ngram width should be less than 100)
-{v_1 : int} |= v_1 < 100
->>
-Rule 68 (Dtype of tensor must be string if the data is string)
-{v_1: tensor, v_2: dtype} |= if shape(v_1,0) > 0 then v_2 = 11
->>
-Rule 69 (if the data is string and length is larger than zero, separator must be a string)
-{v_1 : tensor, v_2 : str} |= if shape(v_1, 0) > 0 then v_2.len > 0
->>
-Rule 70 (Preserve short sequences can only be true if ngram_width is greater than 1)
-{v_1: bool, v_2: int} |= if v_1 = true then v_2 > 1
->>
-Rule 71 (If ngram width is not 1, padding width must be greater than zero)
-{v_1: int, v_2: int} |= if v_1 != 1 then v_2 > 0
->>
-Rule 78 (If ngram width is not 1, padding width must be greater than zero)
-{v_1: int, v_2: int} |= if v_1 ≠ 1 then v_2 > 0
->>
-Rule 79 (If data is a list, it cannot be empty)
-{v_1: list(str)} |= v_1.len > 0
->>
-Rule 80 (If pad_values is string, it should have a reasonable size)
-{v_1 : str} |= v_1.len < 50
->>
-Rule 81 (If ngram_width is a tuple, then each int should be lower than a threshold value to prevent explosion)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 50
->>
-Rule 87 (If data is a list, it cannot be empty, and its length should not be larger than 500)
-{v_1: list(str)} |= v_1.len > 0 ∧ v_1.len < 500
->>
-Rule 90 (Padding width should be less than shape of dimension)
-{v_1 : tensor, v_2: int} |= if ndim(v_1) > 0 then v_2 < shape(v_1, ndim(v_1) - 1)
+Rule 100 (ngram_width must be within the range of int32 to avoid "InvalidArgumentError: Attr ngram_widths has value ... out of range for an int32")
+{v_1 : int} |= v_1 > -2147483648 ∧ v_1 < 2147483647

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# shape of input must be greater than zero (Rule 5)
+# The length of sep cannot be negative. (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) > 0) if n else
-          Select(v["arg1_shape"], 0) > 0)
+    s.add(Not(Select(v["arg1_shape"], 0) >= 0) if n else
+          Select(v["arg1_shape"], 0) >= 0)
 )
 
 def rule_5_func(arg1, solver=None, neg=False):

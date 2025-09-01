@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If features is quint16, max_features should be greater than min_features (Rule 58)
+# If features and out_type are the same, then the value range of the features should be in between the min and max values (Rule 58)
 
 rule_58 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 16, Select(v["arg3_range"], 1) > Select(v["arg2_range"], 0), False)) if n else
-          If(v["arg1_dtype"] == 16, Select(v["arg3_range"], 1) > Select(v["arg2_range"], 0), False))
+    s.add(Not(If(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 5), v["arg1_dtype"] == 3), v["arg1_dtype"] == 2), v["arg1_dtype"] == 16), And(Select(v["arg2_range"], 0) <= Select(v["arg1_range"], 0), Select(v["arg3_range"], 1) >= Select(v["arg1_range"], 1)), True)) if n else
+          If(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 5), v["arg1_dtype"] == 3), v["arg1_dtype"] == 2), v["arg1_dtype"] == 16), And(Select(v["arg2_range"], 0) <= Select(v["arg1_range"], 0), Select(v["arg3_range"], 1) >= Select(v["arg1_range"], 1)), True))
 )
 
 def rule_58_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -29,20 +29,23 @@ def rule_58_func(arg1, arg2, arg3, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
         arg2_range = Array('arg2_range', IntSort(), IntSort())
         arg3_range = Array('arg3_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
         arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
         arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
         arg3_range = Store(arg3_range, 0, int(np.min(arg3)))
         arg3_range = Store(arg3_range, 1, int(np.max(arg3)))
 
         # Constraints for rule 58
-        rule_58(solver, {'arg1_dtype': arg1_dtype, 'arg2_range': arg2_range, 'arg3_range': arg3_range})
+        rule_58(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype, 'arg2_range': arg2_range, 'arg3_range': arg3_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_58(solver, {'arg1_dtype': arg1['dtype'], 'arg2_range': arg2['range'], 'arg3_range': arg3['range']}, neg)
+        rule_58(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype'], 'arg2_range': arg2['range'], 'arg3_range': arg3['range']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The batch size should be no more than int max (Rule 74)
+# Shape of logits cannot be too large (Rule 74)
 
 rule_74 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) < 2147483647) if n else
-          Select(v["arg1_shape"], 0) < 2147483647)
+    s.add(Not(And(Select(v["arg1_shape"], 0) < 10000, Select(v["arg1_shape"], 1) < 1000)) if n else
+          And(Select(v["arg1_shape"], 0) < 10000, Select(v["arg1_shape"], 1) < 1000))
 )
 
 def rule_74_func(arg1, solver=None, neg=False):

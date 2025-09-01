@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# num_bits should not be zero (Rule 56)
+# Combining range and type check for num_bits with simplified integer check (Rule 56)
 
 rule_56 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != 0) if n else
-          v["arg1_value"] != 0)
+    s.add(Not(If(And((And(2 <= v["arg1_value"], v["arg1_value"] <= 16)), (v["arg1_value"] % 1 == 0)), True, False)) if n else
+          If(And((And(2 <= v["arg1_value"], v["arg1_value"] <= 16)), (v["arg1_value"] % 1 == 0)), True, False))
 )
 
 def rule_56_func(arg1, solver=None, neg=False):
@@ -17,15 +17,13 @@ def rule_56_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not (isinstance(arg1, (float, np.floating)) or (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool))):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 56
         rule_56(solver, {'arg1_value': arg1_value})

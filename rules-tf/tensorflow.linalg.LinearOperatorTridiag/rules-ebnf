@@ -1,63 +1,66 @@
 >>
-Rule 3 (diagonals must have at least 2 dimensions when diagonals_format is 'compact')
+Rule 1 (diagonals_format must be one of 'compact', 'matrix', or 'sequence')
+{v_1 : str} |= v_1 = "compact" ∨ v_1 = "matrix" ∨ v_1 = "sequence"
+>>
+Rule 8 (diagonals must have at least 2 dimensions if diagonals_format is 'compact')
 {v_1 : tensor, v_2 : str} |= if v_2 = "compact" then ndim(v_1) ≥ 2
 >>
-Rule 5 (if diagonals_format is sequence, the first dimension of diagonals must be 3)
-{v_1 : tensor, v_2 : str} |= if v_2 = "sequence" then shape(v_1, 0) = 3
+Rule 9 (diagonals must have at least 3 dimensions if diagonals_format is 'matrix')
+{v_1 : tensor, v_2 : str} |= if v_2 = "matrix" then ndim(v_1) ≥ 3
 >>
-Rule 6 (diagonals must be a square matrix if diagonals_format is compact)
-{v_1 : tensor, v_2 : str} |= if v_2 = "compact" then shape(v_1, ndim(v_1) - 2) = shape(v_1, ndim(v_1) - 1)
+Rule 10 (diagonals must have at least 2 dimensions if diagonals_format is 'sequence')
+{v_1 : tensor, v_2 : str} |= if v_2 = "sequence" then ndim(v_1) ≥ 2
 >>
-Rule 12 (number of diagonals should be 3 for sequence format)
-{v_1: tensor, v_2: str} |= if v_2 = "sequence" then shape(v_1, 0) = 3
+Rule 12 (diagonals tensor must have compatible shape with diagonals_format)
+{v_1 : tensor, v_2 : str} |= if v_2 = "compact" then shape(v_1, ndim(v_1) - 2) = shape(v_1, ndim(v_1) - 1) + 2 else if v_2 = "matrix" then shape(v_1, ndim(v_1) - 2) = 3 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 3) else shape(v_1, 0) = 3
 >>
-Rule 13 (diagonals must be a tensor)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 13 (if is_non_singular is true, then diagonals must be non-zero)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then min(v_1) ≠ 0
 >>
-Rule 14 (diagonals_format must be a string and a valid option)
-{v_1 : str} |= v_1 = "sequence" ∨ v_1 = "compact"
+Rule 15 (diagonals cannot be empty)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0
 >>
-Rule 16 (diagonals data type must be float or complex)
-{v_1 : tensor} |= (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) ∨ (dtype_(v_1) = 11)
+Rule 19 (diagonals must have float or complex dtype)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
 >>
-Rule 23 (if the number of batch dimensions is more than 0, the shapes must align when diagonals_format is sequence)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "sequence" ∧ ndim(v_1) > 2 ∧ ndim(v_2) > 0 then shape(v_1, 1) = shape(v_2, 0)
+Rule 21 (is_non_singular must be true if any diagonal element is zero when diagonals_format is compact)
+{v_1 : tensor, v_2 : bool, v_3 : str} |= if v_3 = "compact" ∧ min(v_1) = 0 then v_2 = false
 >>
-Rule 24 (the shape of diagonals cannot be zero)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 22 (diagonals tensor must have compatible shape when diagonals_format is matrix)
+{v_1 : tensor, v_2 : str} |= if v_2 = "matrix" then ndim(v_1) ≥ 3 ∧ shape(v_1, ndim(v_1) - 2) = 3
 >>
-Rule 33 (diagonals_format depends on diagonals shape)
-{v_1: tensor, v_2: str} |= if ndim(v_1) = 2 then v_2 = "sequence" else if ndim(v_1) > 2 then v_2 = "compact" else false
+Rule 23 (diagonals tensor must have compatible shape when diagonals_format is sequence)
+{v_1 : tensor, v_2 : str} |= if v_2 = "sequence" then ndim(v_1) ≥ 2 ∧ shape(v_1, 0) = 3
 >>
-Rule 49 (if is_square is true, then diagonals has square shape)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then shape(v_1, ndim(v_1)-1) = shape(v_1, ndim(v_1)-2)
+Rule 24 (diagonals tensor must be square when is_square is true)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then shape(v_1, ndim(v_1) - 2) = shape(v_1, ndim(v_1) - 1)
 >>
-Rule 50 (if diagonals_format is compact, then diagonals have the same datatype)
-{v_1: tensor, v_2: str} |= if v_2 = "compact" then dtype_(v_1) = dtype_(v_1)
+Rule 26 (is_non_singular must be true if any diagonal element is zero when diagonals_format is compact and diagonals is float/complex)
+{v_1 : tensor, v_2 : bool, v_3 : str} |= if v_3 = "compact" ∧ min(v_1) = 0 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then v_2 = false
 >>
-Rule 59 (the number of dimensions of diagonals must be 2 if sequence)
-{v_1 : tensor, v_2 : str} |= if v_2 = "sequence" then ndim(v_1) = 2
+Rule 27 (diagonals tensor must have compatible shape when diagonals_format is matrix and diagonals is float/complex)
+{v_1 : tensor, v_2 : str} |= if v_2 = "matrix" ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then ndim(v_1) ≥ 3 ∧ shape(v_1, ndim(v_1) - 2) = 3
 >>
-Rule 65 (if is_square is true, then diagonals is a square matrix)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then shape(v_1, ndim(v_1)-2) = shape(v_1, ndim(v_1)-1)
+Rule 28 (diagonals tensor must have compatible shape when diagonals_format is sequence and diagonals is float/complex)
+{v_1 : tensor, v_2 : str} |= if v_2 = "sequence" ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then ndim(v_1) ≥ 2 ∧ shape(v_1, 0) = 3
 >>
-Rule 70 (If `diagonals_format` is compact, the matrix must be square)
-{v_1 : tensor, v_2 : str} |= if v_2 = "compact" then shape(v_1, ndim(v_1)-2) = shape(v_1, ndim(v_1)-1)
+Rule 29 (diagonals tensor must be square when is_square is true and diagonals is float/complex)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then shape(v_1, ndim(v_1) - 2) = shape(v_1, ndim(v_1) - 1)
 >>
-Rule 72 (diagonals tensor and another tensor must have the same dtype)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 32 (diagonals tensor must have compatible shape when diagonals_format is matrix and diagonals is float/complex, requiring batch dims to be equal)
+{v_1 : tensor, v_2 : str} |= if v_2 = "matrix" ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then ndim(v_1) ≥ 3 ∧ shape(v_1, ndim(v_1) - 2) = 3 ∧ ∀i ∈ [0, ndim(v_1)-3] : shape(v_1, i) > 0
 >>
-Rule 74 (If the matrix is square, diagonals have the same size for last two dimensions)
-{v_1: tensor, v_2: bool} |= if v_2 = true then shape(v_1, ndim(v_1) - 2) = shape(v_1, ndim(v_1) - 1)
+Rule 38 (If is_positive_definite=True, diag must be positive.)
+{v_1 : tensor, v_2: bool, v_3: str} |= if v_2 = true ∧ (v_3 = "sequence") then min(v_1) > 0
 >>
-Rule 75 (If the shape has the same dimensions for last dimensions for sequence, then diagonals tensor dimensions must be equal to 2)
-{v_1: tensor, v_2: str} |= if shape(v_1, ndim(v_1) - 2) = shape(v_1, ndim(v_1) - 1) ∧ v_2 = "sequence" then ndim(v_1) = 2
+Rule 45 (If is_self_adjoint=True, superdiag must equal subdiag in sequence format)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then shape(v_1,0) = shape(v_1,2)
 >>
-Rule 76 (If shape has the same dimensions for last dimensions for compact, then diagonals tensor dimensions must be at least 2)
-{v_1: tensor, v_2: str} |= if shape(v_1, ndim(v_1) - 2) = shape(v_1, ndim(v_1) - 1) ∧ v_2 = "compact" then ndim(v_1) >= 2
+Rule 46 (If is_positive_definite=True, diag must be positive in sequence format)
+{v_1 : tensor, v_2: bool} |= if v_2 = true then min(v_1) > 0
 >>
-Rule 77 (if the number of diagonals is 3, then the format is sequence)
-{v_1: tensor} |= shape(v_1,0) = 3
+Rule 49 (If is_self_adjoint=True, superdiag must equal subdiag in sequence format)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then shape(v_1,0) = shape(v_1,1) ∧ shape(v_1,1) = shape(v_1,2)
 >>
-Rule 78 (if is_square and the shape are not compatible then set it to be false)
-{v_1: bool, v_2: tensor} |= if shape(v_2, ndim(v_2) - 2) ≠ shape(v_2, ndim(v_2) - 1) then v_1 = false
+Rule 50 (If is_positive_definite=True, diag must be positive in sequence format and all diagonals must be real)
+{v_1 : tensor, v_2: bool} |= if v_2 = true then min(v_1) > 0 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)

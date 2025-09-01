@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# the number of channels (second dimension (Rule 16)
+# sample_rate must be within a reasonable range for human hearing (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 1) > 0) if n else
-          Select(v["arg1_shape"], 1) > 0)
+    s.add(Not(And(v["arg1_value"] >= 20, v["arg1_value"] <= 20000)) if n else
+          And(v["arg1_value"] >= 20, v["arg1_value"] <= 20000))
 )
 
 def rule_16_func(arg1, solver=None, neg=False):
@@ -17,21 +17,20 @@ def rule_16_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 16
-        rule_16(solver, {'arg1_shape': arg1_shape})
+        rule_16(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_16(solver, {'arg1_shape': arg1['shape']}, neg)
+        rule_16(solver, {'arg1_value': arg1['value']}, neg)

@@ -1,198 +1,132 @@
 >>
-Rule 1 (Tensors a and b must have the same data type.)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
->>
-Rule 2 (Axes must be a non-negative integer or a list/tensor of shape [2, k].)
-{v_1 : int} |= 0 ≤ v_1
->>
-Rule 3 (If axes is a scalar N, sum over the last N axes of a and the first N axes of b. N should not exceed the number of axes of a or b.)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= v_3 ≤ ndim(v_1) ∧ v_3 ≤ ndim(v_2)
->>
-Rule 4 (axes should be a list with two elements of int type. Each element represents the axes to be contracted.)
-{v_1 : tuple(int)} |= v_1.len = 2
->>
-Rule 6 (Values in axes cannot exceed the rank of the corresponding tensor)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < ndim(v_1)
->>
-Rule 7 (The type of the tensor a must be either float32 or float64, represented as index 7 or 8 in type.)
+Rule 1 (Input tensors must have float32 or float64 dtype)
 {v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 9 (axes can be zero. Represents the outer product between a and b)
-{v_1 : int} |= v_1 = 0
+Rule 2 (Input tensors must have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 18 (Axes' elements should be non-negative and less than the rank of v_1)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+Rule 3 (axes must be non-negative)
+{v_3 : int} |= v_3 ≥ 0
 >>
-Rule 19 (axes' length should be smaller than the number of dimensions of input tensor)
-{v_1 : tensor, v_2 : tuple(int)} |= v_2.len < ndim(v_1)
+Rule 4 (axes must be smaller than the number of dimensions of the input tensors when it is a scalar)
+{v_1 : tensor, v_3 : int} |= v_3 ≤ ndim(v_1)
 >>
-Rule 20 (The size of axes should be non-zero)
-{v_1: tuple(int)} |= v_1.len > 0
+Rule 7 (The number of axes for a and b must be equal when axes is a list or Tensor.)
+{v_3 : list(int)} |= v_3.len > 0
 >>
-Rule 21 (axes should be a tuple of int)
-{v_1 : tensor, v_2: tuple(int)} |= ndim(v_1) > 0 ∧ v_2.len > 0
->>
-Rule 29 (if axes is a list of tuples of ints, then the list should be length 2)
-{v_1 : list(tuple(int))} |= v_1.len = 2
->>
-Rule 38 (The length of the axes parameter cannot exceed the dimensions of the input tensors)
-{v_1 : tensor, v_2 : tensor, v_3 : tuple(int)} |= v_3.len <= ndim(v_1) ∧ v_3.len <= ndim(v_2)
->>
-Rule 39 (If axes is a list of tuples, then it must be a list of two tuples of ints)
-{v_1: list(tuple(int))} |= v_1.len = 2
->>
-Rule 43 (If axes is specified as a scalar, it must be less than or equal to the number of dimensions of tensors a and b)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= v_3 <= ndim(v_1) ∧ v_3 <= ndim(v_2)
->>
-Rule 44 (The values in axes parameter if tuple of ints must be within a valid range)
-{v_1: tensor, v_2: tuple(int)} |= ∀i ∈ [0, v_2.len - 1]: v_2[i] >= 0 ∧ v_2[i] < ndim(v_1)
->>
-Rule 45 (If axes is int, it must be non-negative)
-{v_1 : int} |= v_1 >= 0
->>
-Rule 47 (If the axes parameter is an integer, then the number of dimensions of both input tensors should be greater than or equal to it)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= ndim(v_1) >= v_3 ∧ ndim(v_2) >= v_3
->>
-Rule 48 (The number of axes being contracted must be the same for both tensors)
-{v_1: tensor, v_2: tensor, v_3: tuple(int)} |= ndim(v_1) >= v_3.len ∧ ndim(v_2) >= v_3.len
->>
-Rule 49 (The shapes of the axes along which contraction is performed must match)
-{v_1 : tensor, v_2 : tensor, v_3 : tuple(int)} |= ∀i ∈ [0, v_3.len - 1] : shape(v_1, v_3[i]) = shape(v_2, v_3[i])
->>
-Rule 52 (The axes parameter is valid for both tensors (Positive Only))
-{v_1: tensor, v_2: tensor, v_3: tuple(int)} |= ∀i ∈ [0, v_3.len - 1]: v_3[i] >= 0 ∧ v_3[i] < ndim(v_1) ∧ ∀i ∈ [0, v_3.len - 1]: v_3[i] >= 0 ∧ v_3[i] < ndim(v_2)
->>
-Rule 54 (If the axes parameter is an integer, it must be less than the ndim of the tensors)
-{v_1 : tensor, v_2: tensor, v_3 : int} |= v_3 < ndim(v_1) ∧ v_3 < ndim(v_2)
->>
-Rule 59 (If axes are provided as integers, make sure they are less than dimension of tensors.)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= v_3 < ndim(v_1) ∧ v_3 < ndim(v_2)
->>
-Rule 61 (The dimension of the axis to be contracted for both tensors should be same.)
-{v_1 : tensor, v_2 : tensor, v_3 : tuple(int)} |= v_3.len = 2 ∧ ∀i ∈ [0, v_3.len - 1] : shape(v_1, v_3[i]) = shape(v_2, v_3[i])
->>
-Rule 62 (If the axes parameter are negative, the range should be from -ndim to -1)
-{v_1: tensor, v_2: tensor, v_3: tuple(int)} |= ∀i ∈ [0, v_3.len - 1]: v_3[i] >= (-1 * ndim(v_1)) ∧ v_3[i] < 0 ∧ ∀i ∈ [0, v_3.len - 1]: v_3[i] >= (-1 * ndim(v_2)) ∧ v_3[i] < 0
->>
-Rule 64 (The shapes of contracted axes are not equal)
-{v_1 : tensor, v_2 : tensor, v_3 : tuple(int)} |= ∃i ∈ [0, v_3.len - 1] : shape(v_1, v_3[i]) ≠ shape(v_2, v_3[i])
->>
-Rule 65 (Valid data types for input tensors)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
->>
-Rule 66 (If axes are tuple of int, it should be of small length)
-{v_1 : tuple(int)} |= v_1.len < 5
->>
-Rule 68 (If axes are tuple of ints and the dimension is greater than 2 then shape should be aligned)
-{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) > 2 then ∀i ∈ [0, v_2.len - 1]: v_2[i] > 0
->>
-Rule 70 (If axes is a scalar N, it should be non-negative)
+Rule 11 (axes must be non-negative)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 73 (When axes is a list/tensor, length of the list/tensor must be less than or equal to ndim(a) and ndim(b))
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_3, 1) ≤ ndim(v_1) ∧ shape(v_3, 1) ≤ ndim(v_2)
+Rule 12 (axes must be smaller than the number of dimensions of the input tensors when it is a scalar)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ ndim(v_1)
 >>
-Rule 75 (Type of tensor a and b should be float32 or float64 which are represented by 7 and 8.)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+Rule 13 (axes must be smaller than the number of dimensions of the input tensors when it is a list of axes)
+{v_1 : tensor, v_2 : list(int)} |= v_2.len > 0 ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] < ndim(v_1))
 >>
-Rule 77 (Data type of axes must be int32 which is represented by 3)
-{v_1 : tensor} |= dtype_(v_1) = 3
+Rule 15 (axes must be smaller than the number of dimensions of the first input tensor when it is a scalar and ndim(a) > 0)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ v_2 < ndim(v_1)
 >>
-Rule 79 (Data types of tensors a and b must be float32 or float64)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 8)
+Rule 17 (Elements in axes list must be non-negative)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 81 (axes tensor must have shape [2,k])
-{v_1 : tensor} |= shape(v_1, 0) = 2
+Rule 18 (The number of axes for a and b must be equal when axes is a list.)
+{v_1 : list(int), v_2 : list(int)} |= v_1.len = v_2.len
 >>
-Rule 82 (Elements in axes tensor should be integers.)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 1) - 1] : dtype_(v_1) = 3
+Rule 19 (Axes elements must be within tensor dimension range)
+{v_1 : list(int), v_2 : tensor} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < ndim(v_2)
 >>
-Rule 83 (If axes is a scalar, it cannot be negative version of ndim(a))
-{v_1 : tensor, v_2 : int} |= v_2 > (-1 * ndim(v_1))
+Rule 24 (The sum of the contracted dimensions' sizes must match)
+{v_1 : tensor, v_2 : tensor, v_3 : list(int), v_4 : list(int)} |= v_3.len > 0 ∧ v_4.len > 0 ∧ v_3.len = v_4.len ∧ (∀i ∈ [0, v_3.len - 1] : shape(v_1, v_3[i]) = shape(v_2, v_4[i]))
 >>
-Rule 85 (if axes is a tensor, the number of columns should be consistent)
-{v_1 : tensor} |= ∀i ∈ [0, 1 - 1] : shape(v_1, i) > 0
+Rule 27 (The sum of the contracted dimensions' sizes must match using single axes int)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_1, ndim(v_1) - v_3) = shape(v_2, v_3 -1 )
 >>
-Rule 86 (Rank of input tensor a and b must be positive)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
+Rule 28 (Axes elements must be within tensor dimension range for first tensor)
+{v_1 : list(int), v_2 : tensor} |= v_1.len > 0 ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] < ndim(v_2))
 >>
-Rule 93 (If axes is a list/tensor, the number of contraction axes from A and B must be equal.)
-{v_1 : tensor} |= ∀i ∈ [0, 0 - 1] : shape(v_1, i) = 2
+Rule 31 (Axes elements must be within tensor dimension range for first tensor AND non negative list)
+{v_1 : list(int), v_2 : tensor} |= v_1.len > 0 ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] < ndim(v_2) ∧ v_1[i] ≥ 0)
 >>
-Rule 96 (Axes should not exceed the dimensions of the tensors if provided as a list or tuple)
-{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < ndim(v_1)
+Rule 32 (The sum of the contracted dimensions' sizes must match when axes is a single value)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_1, ndim(v_1) - v_3) = shape(v_2, v_3)
 >>
-Rule 97 (Rank of both input tensors must be at least 1)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1
+Rule 34 (axes must be a valid scalar - less than ndim)
+{v_1 : tensor, v_3 : int} |= v_3 < ndim(v_1)
 >>
-Rule 100 (If axes is a scalar, it cannot be larger than the number of dimensions of either tensor minus 1.)
-{v_1 : tensor, v_2 : tensor, v_3: int} |= v_3 ≤ ndim(v_1) -1 ∧ v_3 ≤ ndim(v_2) -1
+Rule 35 (Dimensions corresponding to axes must match using list)
+{v_1 : tensor, v_2 : tensor, v_3 : list(int), v_4 : list(int)} |= v_3.len = v_4.len ∧ (∀i ∈ [0, v_3.len - 1] : shape(v_1, v_3[i]) = shape(v_2, v_4[i]))
 >>
-Rule 101 (The shape of axes tensor should contain positive values.)
-{v_1: tensor} |= ∀i ∈ [0, 1 - 1]: shape(v_1, i) > 0
+Rule 39 (axes must be a valid scalar - greater than negative number of dimensions)
+{v_1 : tensor, v_3 : int} |= v_3 > (0 - ndim(v_1))
 >>
-Rule 102 (If axes is a scalar N, it must be representable as int32)
-{v_1 : int} |= -2147483648 ≤ v_1 ∧ v_1 ≤ 2147483647
+Rule 40 (Number of axes in list must be less than or equal to ndim of the tensors a and b)
+{v_1 : tensor, v_2 : tensor, v_3 : list(int)} |= v_3.len ≤ ndim(v_1) ∧ v_3.len ≤ ndim(v_2)
 >>
-Rule 103 (The number of axes to contract over must be the same for both input tensors, when specified in a list/tensor)
-{v_1 : tensor} |= shape(v_1, 1) > 0
+Rule 41 (The axes values must be valid dimension indices for list a and b)
+{v_1 : tensor, v_2 : tensor, v_3 : list(int), v_4 : list(int)} |= (∀i ∈ [0, v_3.len - 1] : v_3[i] ≥ 0 ∧ v_3[i] < ndim(v_1)) ∧ (∀i ∈ [0, v_4.len - 1] : v_4[i] ≥ 0 ∧ v_4[i] < ndim(v_2))
 >>
-Rule 104 (If axes is a tensor, shape must be 2D)
-{v_1: tensor} |= ndim(v_1) = 2
+Rule 42 (If axes is 0, it computes outer product)
+{v_3 : int} |= v_3 = 0
 >>
-Rule 105 (The axes tensor should not be empty.)
-{v_1 : tensor} |= shape(v_1, 1) ≥ 1
+Rule 43 (If axes is 0, the ndim should be greater than 0)
+{v_1: tensor, v_2: tensor, v_3 : int} |= if v_3 = 0 then ndim(v_1) > 0 ∧ ndim(v_2) > 0
 >>
-Rule 106 (Dtype of input tensors should not be boolean)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0
+Rule 45 (Number of axes should be less than or equal to ndim(a) and ndim(b) for scalar axes)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= v_3 ≤ ndim(v_1) ∧ v_3 ≤ ndim(v_2)
 >>
-Rule 109 (The number of axes to contract over must be positive value, when axes is provided as a list/tensor)
-{v_1 : tensor} |= ∀i ∈ [0, 0 - 1]: shape(v_1, i) > 0
+Rule 46 (If axes is 0, the number of axes for tensors a and b must be 0)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = 0 then ndim(v_1) = 0 ∧ ndim(v_2) = 0
 >>
-Rule 115 (If axes is a scalar N, it must be representable as int32 and non-negative)
-{v_1 : int} |= -2147483648 ≤ v_1 ∧ v_1 ≤ 2147483647 ∧ v_1 ≥ 0
+Rule 47 (For axes to be valid, it should be less than the ndim when its negative)
+{v_1: tensor, v_3: int} |= v_3 ≥ (0 - ndim(v_1))
 >>
-Rule 116 (If axes is a tensor, shape must be 2D and each dimension value should be positive)
-{v_1: tensor} |= ndim(v_1) = 2 ∧ shape(v_1,0) > 0 ∧ shape(v_1,1) > 0
+Rule 48 (if axes is an int, then it cannot be more than 0 if ndim(a) and ndim(b) are both 0)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then v_3 = 0
 >>
-Rule 117 (Dtype of input tensors must be floating point or integer)
-{v_1: tensor, v_2: tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∨ (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8) ∨ (1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5)
+Rule 50 (When axes are single int, their absolute values must be smaller than dimensions of tensors.)
+{v_1: tensor, v_2: tensor, v_3: int} |= (0 - v_3) < ndim(v_1) ∧ v_3 < ndim(v_1) ∧ (0 - v_3) < ndim(v_2) ∧ v_3 < ndim(v_2)
 >>
-Rule 119 (If axes is provided as a tensor, elements should be integer.)
-{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 1) - 1]: dtype_(v_1) = 3
+Rule 52 (When axes are single int, it should be non-negative and less than the number of dimensions)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 ∧ v_2 < ndim(v_1)
 >>
-Rule 124 (If axes is an integer, it should be less than ndim of both tensors)
-{v_1: tensor, v_2: tensor, v_3: int} |= v_3 < ndim(v_1) ∧ v_3 < ndim(v_2)
+Rule 55 (The dimensions along contracted axes should match using single int )
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then shape(v_1, (ndim(v_1) - (0 -v_3))) = shape(v_2, (0 - v_3))
 >>
-Rule 125 (If axes is provided as a tensor, elements should be integer. Also shape of axes should contain positive dimension values)
-{v_1: tensor} |= dtype_(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 56 (The dimensions along contracted axes should match using single int and also consider 0 ndim case)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then shape(v_1, (ndim(v_1) - (if v_3 < 0 then (0 - v_3) else v_3))) = shape(v_2, (if v_3 < 0 then (0 - v_3) else v_3))
 >>
-Rule 126 (Rank should be greater than zero)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 57 (The dimensions along contracted axes should match using single int and also consider 0 ndim case - take 2)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then shape(v_1, ndim(v_1) - (if v_3 < 0 then (0 - v_3) else v_3)) = shape(v_2, (if v_3 < 0 then (0 - v_3) else v_3)) else ndim(v_1) = 0 ∧ ndim(v_2) = 0
 >>
-Rule 127 (Dtype of input tensors must be float32 or float64)
-{v_1: tensor, v_2: tensor} |= (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 8)
+Rule 58 (The dimensions along contracted axes should match using single int and also consider 0 ndim case, ensuring to prevent stack overflow)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (if v_3 ≥ 0 then (ndim(v_1) > v_3 ∧ ndim(v_2) > v_3 ∧ shape(v_1, ndim(v_1) - v_3) = shape(v_2, v_3)) else (ndim(v_1) ≥ (0 - v_3) ∧ ndim(v_2) ≥ (0 -v_3) ∧ shape(v_1, ndim(v_1) + v_3) = shape(v_2, 0 - v_3))) else ndim(v_1) = 0 ∧ ndim(v_2) = 0
 >>
-Rule 128 (Rank of tensor 'axes' should be 2 or it should be an int)
-{v_1: tensor} |= (ndim(v_1) = 2)
+Rule 59 (The dimensions along contracted axes should match using single int and also consider 0 ndim case and prevent stack overflow)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (if v_3 ≥ 0 then (v_3 < ndim(v_1) ∧ v_3 < ndim(v_2) ∧ shape(v_1, ndim(v_1) - v_3 -1) = shape(v_2, v_3)) else ((0 - v_3) <= ndim(v_1) ∧ (0 - v_3) <= ndim(v_2) ∧ shape(v_1, ndim(v_1) + v_3) = shape(v_2, (0 - v_3)-1))) else ndim(v_1) = 0 ∧ ndim(v_2) = 0
 >>
-Rule 129 (If axes is an integer, it should be non-negative )
-{v_1: int} |= v_1 ≥ 0
+Rule 60 (The dimensions along contracted axes should match using single int absolute value - avoid stack overflow)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (if v_3 ≥ 0 then (v_3 < ndim(v_1) ∧ v_3 < ndim(v_2) ∧ shape(v_1, ndim(v_1) - v_3 - 1) = shape(v_2, v_3)) else ((0 - v_3) <= ndim(v_1) ∧ (0 - v_3) <= ndim(v_2) ∧ shape(v_1, ndim(v_1) + v_3) = shape(v_2, (0 - v_3) - 1)))
 >>
-Rule 130 (If axes is provided as a tensor, elements must be integer and should be non-negative)
-{v_1: tensor} |= dtype_(v_1) = 3
+Rule 61 (The dimensions along contracted axes should match using single int absolute value - avoid stack overflow and indexing error)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (if v_3 ≥ 0 then (v_3 < ndim(v_1) ∧ v_3 < ndim(v_2) ∧ (ndim(v_1) - v_3 - 1) >= 0 ∧ shape(v_1, ndim(v_1) - v_3 - 1) = shape(v_2, v_3)) else ((0 - v_3) <= ndim(v_1) ∧ (0 - v_3) <= ndim(v_2) ∧ (ndim(v_1) + v_3) >= 0 ∧ shape(v_1, ndim(v_1) + v_3) = shape(v_2, (0 - v_3)-1)))
 >>
-Rule 135 (Dtype of input tensors should be the same)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 63 (The dimensions along contracted axes should match using single int - with all conditions)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) then shape(v_1, ndim(v_1) - (if v_3 < 0 then (0 - v_3) else v_3)-1) = shape(v_2, (if v_3 < 0 then (0 - v_3) else v_3))
 >>
-Rule 136 (If axes is an integer, it should be less than ndim of tensor A)
-{v_1: tensor, v_2: int} |= v_2 < ndim(v_1)
+Rule 64 (The dimensions along contracted axes should match using single int and also consider 0 ndim case - avoid stack overflow and indexing error)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (if v_3 ≥ 0 then (v_3 < ndim(v_1) ∧ v_3 < ndim(v_2) ∧ shape(v_1, ndim(v_1) - v_3 - 1) = shape(v_2, v_3)) else ((0 - v_3) <= ndim(v_1) ∧ (0 - v_3) <= ndim(v_2) ∧ shape(v_1, ndim(v_1) + v_3) = shape(v_2, (0 - v_3)-1)))
 >>
-Rule 140 (If axes is a scalar N, it must be a valid int32 value and N must not be more than tensor dimensions)
-{v_1 : tensor, v_2 : int} |= -2147483648 ≤ v_2 ∧ v_2 ≤ 2147483647 ∧ v_2 < ndim(v_1)
+Rule 65 (The dimensions along contracted axes should match using single int and prevent stack overflow and out-of-bounds access)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (if v_3 ≥ 0 then (v_3 < ndim(v_1) ∧ v_3 < ndim(v_2) ∧ ndim(v_1) - v_3 - 1 ≥ 0 ∧ shape(v_1, ndim(v_1) - v_3 - 1) = shape(v_2, v_3)) else ((0 - v_3) <= ndim(v_1) ∧ (0 - v_3) <= ndim(v_2) ∧ (ndim(v_1) + v_3) >= 0 ∧ (0 - v_3) -1 < ndim(v_2) ∧ shape(v_1, ndim(v_1) + v_3) = shape(v_2, (0 - v_3)-1)))
 >>
-Rule 143 (If axes is provided as a tensor, elements must be integer and should be less than tensor dimension)
-{v_1: tensor, v_2 : tensor} |= dtype_(v_2) = 3 ∧ shape(v_1, 1) < 30
+Rule 67 (If single int axes, the number of axes to contract cannot be greater than the number of axes that exist)
+{v_1: tensor, v_2: tensor, v_3: int} |= if v_3 > 0 then v_3 ≤ ndim(v_1) ∧ v_3 ≤ ndim(v_2)
 >>
-Rule 146 (NDim must be > 0)
-{v_1: tensor} |= ndim(v_1) > 0
+Rule 68 (If axes is a list, the number of axes for tensors a and b must be equal, ndim(a), and ndim(b) should be same)
+{v_1 : tensor, v_2 : tensor, v_3 : list(int), v_4 : list(int)} |= v_3.len = v_4.len ∧ ndim(v_1) = ndim(v_2)
+>>
+Rule 69 (If axes is a list, it should contain elements between negative ndim(a) and ndim(a) - 1, and negative ndim(b) and ndim(b) - 1)
+{v_1 : tensor, v_2 : tensor, v_3 : list(int), v_4 : list(int)} |= (∀i ∈ [0, v_3.len - 1] : (0 - ndim(v_1)) ≤ v_3[i] ∧ v_3[i] ≤ (ndim(v_1) - 1)) ∧ (∀i ∈ [0, v_4.len - 1] : (0 - ndim(v_2)) ≤ v_4[i] ∧ v_4[i] ≤ (ndim(v_2) - 1))
+>>
+Rule 70 (The dimensions along contracted axes should match a and b using single int absolute value and consider zero ndim and no stack overflow/out of bound access)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (if v_3 ≥ 0 then (v_3 < ndim(v_1) ∧ v_3 < ndim(v_2) ∧ shape(v_1, ndim(v_1) - v_3 - 1) = shape(v_2, v_3)) else ((0 - v_3) <= ndim(v_1) ∧ (0 - v_3) <= ndim(v_2) ∧ shape(v_1, ndim(v_1) + v_3) = shape(v_2, (0 - v_3)- 1)))

@@ -1,66 +1,126 @@
 >>
-Rule 1 (input must be a string tensor)
-{v_1 : tensor} |= dtype_(v_1) = 12
+Rule 1 (pos and len must have the same shape)
+{v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)
 >>
-Rule 2 (pos must be an integer tensor)
+Rule 2 (pos must be int32 or int64)
 {v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
 >>
-Rule 3 (len must be an integer tensor)
+Rule 3 (len must be int32 or int64)
 {v_3 : tensor} |= dtype_(v_3) = 3 ∨ dtype_(v_3) = 4
 >>
-Rule 4 (pos and len must have the same data type)
-{v_2 : tensor, v_3 : tensor} |= dtype_(v_2) = dtype_(v_3)
->>
-Rule 5 (pos and len must have the same shape if they are tensors)
-{v_2 : tensor, v_3 : tensor} |= shape(v_2) = shape(v_3)
->>
-Rule 7 (len cannot be negative)
-{v_3 : tensor} |= min(v_3) ≥ 0
->>
-Rule 8 (unit must be either BYTE or UTF8_CHAR)
+Rule 4 (unit must be "BYTE" or "UTF8_CHAR")
 {v_4 : str} |= v_4 = "BYTE" ∨ v_4 = "UTF8_CHAR"
 >>
-Rule 9 (ndim of pos and len should not be greater than 2)
-{v_2 : tensor, v_3 : tensor} |= ndim(v_2) ≤ 2 ∧ ndim(v_3) ≤ 2
+Rule 5 (pos cannot be out of range, simplified to pos >= -string length)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : min(v_2) ≥ -100
 >>
-Rule 11 (shape broadcasting between input, pos and len is valid if ndim(input) = 1 and ndim(pos) = 1 and ndim(len) = 1)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1 then shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) = shape(v_3, 0)
+Rule 6 (len cannot be negative)
+{v_3 : tensor} |= min(v_3) ≥ 0
 >>
-Rule 16 (pos and len must have the same shape if they are tensors)
-{v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 0 ∧ ndim(v_3) > 0 then shape(v_2) = shape(v_3)
+Rule 7 (pos and len tensors must have at least one element)
+{v_2 : tensor, v_3 : tensor} |= (ndim(v_2) > 0 ∧ shape(v_2, 0) > 0) ∧ (ndim(v_3) > 0 ∧ shape(v_3, 0) > 0)
 >>
-Rule 17 (maximum value of pos must be less than the shape of the input string dimension)
-{v_1 : tensor, v_2 : tensor} |= max(v_2) ≤ shape(v_1, 0)
+Rule 8 (input tensor must be a string tensor)
+{v_1 : tensor} |= dtype_(v_1) = 12
 >>
-Rule 21 (minimum value of pos must be greater than or equal to the negative length of the smallest string in the input.)
-{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ (0 - shape(v_1, 0))
+Rule 13 (pos and len must have compatible shapes for broadcasting, simplified to same ndim if both are tensors)
+{v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_3)
 >>
-Rule 27 (pos and len must have the same shape if they are tensors and scalar)
-{v_2 : tensor, v_3 : tensor} |=  if ndim(v_2) = 0 ∧ ndim(v_3) = 0 then true else if ndim(v_2) > 0 ∧ ndim(v_3) > 0 then shape(v_2) = shape(v_3) else false
+Rule 15 (len's dtype should be int32 or int64 and same as pos)
+{v_2 : tensor, v_3 : tensor} |= dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∧ dtype_(v_2) = dtype_(v_3)
 >>
-Rule 30 (If len is a scalar, it has to be non negative)
-{v_3 : tensor} |= if ndim(v_3) = 0 then min(v_3) ≥ 0
+Rule 17 (pos and len must have compatible shapes for broadcasting)
+{v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 0 then ndim(v_3) = 0 else if ndim(v_3) = 0 then ndim(v_2) = 0
 >>
-Rule 32 (input and position must have same ndim or position ndim should be zero.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 0 ∨ ndim(v_1) = ndim(v_2)
+Rule 20 (pos and len must have the same dtype)
+{v_2 : tensor, v_3 : tensor} |= dtype_(v_2) = dtype_(v_3)
 >>
-Rule 33 (input and length must have same ndim or length ndim should be zero.)
-{v_1 : tensor, v_3 : tensor} |= ndim(v_3) = 0 ∨ ndim(v_1) = ndim(v_3)
+Rule 22 (pos and len must have compatible shapes for broadcasting)
+{v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 0 then ndim(v_3) = 0 else if ndim(v_3) = 0 then ndim(v_2) = 0 else (ndim(v_2) ≤ 2 ∧ ndim(v_3) ≤ 2)
 >>
-Rule 38 (pos and len must have the same shape or at least one of them should be scalar)
-{v_2 : tensor, v_3 : tensor} |=  if ndim(v_2) = 0 ∨ ndim(v_3) = 0 then true else shape(v_2) = shape(v_3)
+Rule 23 (pos's dtype must be int32 or int64 and len's dtype must be int32 or int64)
+{v_2 : tensor, v_3 : tensor} |= (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4)
 >>
-Rule 40 (If pos is a scalar, its absolute value has to be less than or equal to length of the input string)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then (v_2 ≥ (0 - shape(v_1, 0)) ∧ v_2 ≤ shape(v_1, 0))
+Rule 24 (Avoid large pos values exceeding string length)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then true else ∀i ∈ [0, shape(v_1, 0) - 1] : max(v_2) < 1000
 >>
-Rule 43 (If length is a scalar, it must be non negative)
-{v_3 : tensor} |= if ndim(v_3) = 0 then v_3 ≥ 0
+Rule 25 (Avoid large len values, exceeding string length)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then true else ∀i ∈ [0, shape(v_1, 0) - 1] : max(v_3) < 1000
 >>
-Rule 63 (If pos and len tensors are not scalar, number of elements in them must be less or equal to number of elements in input tensor)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 0 ∧ ndim(v_3) > 0 then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) ≤ shape(v_1, i)) ∧ (∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) ≤ shape(v_1, i))
+Rule 26 (input tensor must be a string tensor, pos and len must be int32 or int64)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = 12 ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4)
 >>
-Rule 64 (If pos and len are not scalar, and input has multiple dimensions, then shape of pos and len must align with the first dimension of input)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0 then shape(v_2,0) = shape(v_1, 0) ∧ shape(v_3, 0) = shape(v_1, 0)
+Rule 28 (Avoid out of range pos and len values by checking against string length)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then true else ∀i ∈ [0, shape(v_1, 0) - 1] : min(v_2) ≥ -100 ∧ max(v_2) < 1000 ∧ max(v_3) < 1000
 >>
-Rule 73 (If input is scalar, both pos and len should be scalar)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then (ndim(v_2) = 0 ∧ ndim(v_3) = 0)
+Rule 32 (pos and len must have compatible shapes for broadcasting, or be scalar)
+{v_2 : tensor, v_3 : tensor} |= (ndim(v_2) = 0 ∧ ndim(v_3) = 0) ∨ (ndim(v_2) > 0 ∧ ndim(v_3) > 0 ∧ (if ndim(v_2) = 0 then ndim(v_3) = 0 else if ndim(v_3) = 0 then ndim(v_2) = 0 else (ndim(v_2) ≤ 2 ∧ ndim(v_3) ≤ 2)))
+>>
+Rule 33 (Ensure valid range for pos relative to string length to prevent InvalidArgumentError)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then true else ∀i ∈ [0, shape(v_1, 0) - 1] : min(v_2) ≥ -1000
+>>
+Rule 34 (Ensure valid range for len, also avoid negative lengths)
+{v_3 : tensor} |= if ndim(v_3) = 0 then true else min(v_3) >= 0
+>>
+Rule 37 (pos and len must have compatible shapes for broadcasting, and same rank or be scalar)
+{v_2 : tensor, v_3 : tensor} |=  (ndim(v_2) = ndim(v_3)) ∨ (ndim(v_2) = 0) ∨ (ndim(v_3) = 0)
+>>
+Rule 38 (Avoid out of range pos values)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then true else ∀i ∈ [0, shape(v_1, 0) - 1] : min(v_2) > -2000 ∧ max(v_2) < 2000
+>>
+Rule 39 (Avoid out of range len values and negative lengths)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then true else  min(v_3) ≥ 0 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : max(v_3) < 2000
+>>
+Rule 41 (Broadcasting of pos and len tensors, scalar or same rank)
+{v_2 : tensor, v_3 : tensor} |= (ndim(v_2) = ndim(v_3)) ∨ (ndim(v_2) = 0) ∨ (ndim(v_3) = 0)
+>>
+Rule 43 (Avoid negative and very large len values)
+{v_3 : tensor} |= if ndim(v_3) = 0 then v_3 ≥ 0 else min(v_3) ≥ 0 ∧ ∀i ∈ [0, shape(v_3, 0) - 1] : v_3 < 2000
+>>
+Rule 45 (pos and len must have broadcast compatible shapes)
+{v_2 : tensor, v_3 : tensor} |=  (ndim(v_2) = ndim(v_3)) ∨ (ndim(v_2) = 0) ∨ (ndim(v_3) = 0) ∨ (ndim(v_2) ≤ 2 ∧ ndim(v_3) ≤ 2)
+>>
+Rule 46 (Avoid out-of-bounds pos values)
+{v_2 : tensor} |= if ndim(v_2) = 0 then v_2 ≥ -2000 else ∀i ∈ [0, shape(v_2, 0) - 1] : v_2 ≥ -2000
+>>
+Rule 51 (Avoid negative and very large len values)
+{v_3 : tensor} |= if ndim(v_3) = 0 then v_3 ≥ 0 else ∀i ∈ [0, shape(v_3, 0) - 1] : v_3 ≥ 0 ∧ v_3 < 2000
+>>
+Rule 57 (Shapes of pos and len tensors should broadcast or both scalars)
+{v_2 : tensor, v_3 : tensor} |= (ndim(v_2) = ndim(v_3)) ∨ (ndim(v_2) = 0 ∧ ndim(v_3) = 0)
+>>
+Rule 59 (len value is valid.)
+{v_3 : tensor} |= if ndim(v_3) = 0 then v_3 > 0 else ∀i ∈ [0, shape(v_3, 0) - 1] : v_3 > 0 ∧ v_3 < 2000
+>>
+Rule 66 (pos value prevents out of bounds errors by avoiding large negative values)
+{v_2 : tensor} |= if ndim(v_2) = 0 then v_2 ≥ (-100) else ∀i ∈ [0, shape(v_2, 0) - 1] : v_2 ≥ (-100)
+>>
+Rule 67 (Ensure validity of length - avoid negative, zero, and extremely large values that create issues)
+{v_3 : tensor} |= if ndim(v_3) = 0 then v_3 > 0 ∧ v_3 < 2000 else ∀i ∈ [0, shape(v_3, 0) - 1] : v_3 > 0 ∧ v_3 < 2000
+>>
+Rule 68 (Data types validation: input, pos, and len)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = 12 ∧ ((dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4)) ∧ ((dtype_(v_3) = 3) ∨ (dtype_(v_3) = 4))
+>>
+Rule 71 (Length restrictions)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 then v_3 > 0 ∧ v_3 < 2000 else ∀i ∈ [0, shape(v_3, 0) - 1] : v_3 > 0 ∧ v_3 < 2000 ∧ min(v_3) < shape(v_1, i)
+>>
+Rule 73 (Shape requirements: pos and len must broadcast or be scalars.)
+{v_2 : tensor, v_3 : tensor} |= (ndim(v_2) = ndim(v_3)) ∨ (ndim(v_2) = 0 ∧ ndim(v_3) = 0) ∨ (ndim(v_2) <= 2 ∧ ndim(v_3) <= 2)
+>>
+Rule 77 (Shapes of the two tensors - pos and len - should either follow broadcasting rules or be scalars.)
+{v_2 : tensor, v_3 : tensor} |= (ndim(v_2) = ndim(v_3)) ∨ (ndim(v_2) = 0 ∧ ndim(v_3) = 0)  ∨ (ndim(v_2) <= 2 ∧ ndim(v_3) <= 2)
+>>
+Rule 79 (Length should be > 0 and prevent issues with very large strings)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 then v_3 > 0 ∧ v_3 < 2000 else ∀i ∈ [0, shape(v_3, 0) - 1] : v_3 > 0 ∧ v_3 < 2000 ∧ v_3 <= shape(v_1,0)
+>>
+Rule 83 (Length validation)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 then v_3 > 0 ∧ v_3 < 2000 else ∀i ∈ [0, shape(v_3, 0) - 1] : v_3 > 0 ∧ v_3 < 2000 ∧ max(v_3) ≤ shape(v_1, 0)
+>>
+Rule 85 (Shape Compatibility - pos and len)
+{v_2 : tensor, v_3 : tensor} |= (ndim(v_2) = ndim(v_3)) ∨ (ndim(v_2) = 0 ∧ ndim(v_3) = 0) ∨ (ndim(v_2) ≤ 2 ∧ ndim(v_3) ≤ 2)
+>>
+Rule 86 (Valid values for pos to avoid out of bounds, non scalar)
+{v_2 : tensor} |= if ndim(v_2) = 0 then v_2 > -100 else ∀i ∈ [0, shape(v_2, 0) - 1] : v_2 > -100 ∧ v_2 < 2000
+>>
+Rule 87 (Len > 0 and not excessively large to prevent errors)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 then v_3 > 0  else ∀i ∈ [0, shape(v_3, 0) - 1] : v_3 > 0 ∧ v_3 < 2000 ∧ max(v_3) ≤ shape(v_1, 0)

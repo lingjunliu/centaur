@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# dtype must be valid based on the input tensor (Rule 4)
+# axis is a valid integer when v_1 is a tensor (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 1, Or(Or(Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 2), v["arg2_value"] == 3), v["arg2_value"] == 4), v["arg2_value"] == 5), If(v["arg1_dtype"] == 6, Or(Or(v["arg2_value"] == 6, v["arg2_value"] == 7), v["arg2_value"] == 8), If(v["arg1_dtype"] == 7, Or(v["arg2_value"] == 7, v["arg2_value"] == 8), If(v["arg1_dtype"] == 8, v["arg2_value"] == 8, False))))) if n else
-          If(v["arg1_dtype"] == 1, Or(Or(Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 2), v["arg2_value"] == 3), v["arg2_value"] == 4), v["arg2_value"] == 5), If(v["arg1_dtype"] == 6, Or(Or(v["arg2_value"] == 6, v["arg2_value"] == 7), v["arg2_value"] == 8), If(v["arg1_dtype"] == 7, Or(v["arg2_value"] == 7, v["arg2_value"] == 8), If(v["arg1_dtype"] == 8, v["arg2_value"] == 8, False)))))
+    s.add(Not(Or([And(i < (v["arg1_ndim"] - 1 + 1), v["arg2_value"] == i) for i in range(6)])) if n else
+          Or([And(i < (v["arg1_ndim"] - 1 + 1), v["arg2_value"] == i) for i in range(6)]))
 )
 
 def rule_4_func(arg1, arg2, solver=None, neg=False):
@@ -20,22 +20,22 @@ def rule_4_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_ndim = Int('arg1_ndim')
         arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 4
-        rule_4(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
+        rule_4(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_4(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)
+        rule_4(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

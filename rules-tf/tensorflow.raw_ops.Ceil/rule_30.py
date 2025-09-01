@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The number of dimensions of x must be less than or equal to 5 (Rule 30)
+# A tensor with dimension sizes equal to 1, must have min and max value within a certain small range (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] <= 5) if n else
-          v["arg1_ndim"] <= 5)
+    s.add(Not(If(Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 1) for i in range(6)]), Select(v["arg1_range"], 1) - Select(v["arg1_range"], 0) < 10, True)) if n else
+          If(Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 1) for i in range(6)]), Select(v["arg1_range"], 1) - Select(v["arg1_range"], 0) < 10, True))
 )
 
 def rule_30_func(arg1, solver=None, neg=False):
@@ -23,14 +23,20 @@ def rule_30_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 30
-        rule_30(solver, {'arg1_ndim': arg1_ndim})
+        rule_30(solver, {'arg1_shape': arg1_shape, 'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_30(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_30(solver, {'arg1_shape': arg1['shape'], 'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)

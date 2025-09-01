@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If s is close to the maximum value for an integer, it should not be used (Rule 36)
+# s must be an integer divisible by 4 if positive (Rule 36)
 
 rule_36 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 2147483640) if n else
-          v["arg1_value"] < 2147483640)
+    s.add(Not(If(v["arg1_value"] > 0, v["arg1_value"] % 4 == 0, True)) if n else
+          If(v["arg1_value"] > 0, v["arg1_value"] % 4 == 0, True))
 )
 
 def rule_36_func(arg1, solver=None, neg=False):

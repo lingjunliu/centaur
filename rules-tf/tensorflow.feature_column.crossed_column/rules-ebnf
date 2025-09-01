@@ -1,63 +1,39 @@
 >>
-Rule 1 (The length of keys must be greater than or equal to 2)
-{v_1 : list(str) ⊎ list(tensor)} |= v_1.len ≥ 2
->>
-Rule 2 (hash_bucket_size must be an integer greater than 1)
+Rule 1 (hash_bucket_size must be greater than 1)
 {v_1 : int} |= v_1 > 1
 >>
-Rule 3 (Elements in keys can be either string or CategoricalColumn(represented as tensor for simplicity))
-{v_1 : list(str) ⊎ list(tensor)} |= ∀i ∈ [0, v_1.len - 1] : true
+Rule 2 (keys must be a list with length greater than 1)
+{v_1 : list(str) ⊎ list(tensor)} |= v_1.len > 1
 >>
-Rule 4 (The hash_key should be non-negative)
-{v_1 : int} |= v_1 ≥ 0
+Rule 9 (keys must be a list with length greater than 1)
+{v_1 : list(str), v_2 : list(tensor)} |= v_1.len > 1 ∨ v_2.len > 1
 >>
-Rule 6 (Check that hash_bucket_size is a positive integer)
-{v_1 : int} |= v_1 > 0
+Rule 10 (hash_key should not be an empty string)
+{v_1 : str} |= v_1 ≠ ""
 >>
-Rule 7 (Combination rule for hash_bucket_size and number of keys)
-{v_1 : int, v_2 : list(str) ⊎ list(tensor)} |= v_1 > 0 ∧ v_2.len ≥ 2
+Rule 13 (Elements of keys should be string or categorical column, categorical column is assumed to be a tensor here)
+{v_1 : list(str ⊎ tensor)} |= ∀i ∈ [0, v_1.len - 1] : true
 >>
-Rule 8 (Demonstrate string usage with keys, even though arbitrary strings are allowed)
+Rule 15 (keys must be a list with length greater than 1)
+{v_1 : list(str), v_2 : list(tensor)} |= v_1.len + v_2.len > 1
+>>
+Rule 18 (keys must be a list with length greater than 1)
+{v_1 : list(str ⊎ tensor)} |= v_1.len > 1
+>>
+Rule 19 (keys must be a list of strings or tensors, but cannot be a hashed categorical column (represented as bool for simplicity))
+{v_1 : list(str ⊎ tensor ⊎ bool)} |= ∀i ∈ [0, v_1.len - 1] : if v_1[i] = true then false
+>>
+Rule 25 (The elements of keys must be a string or a tensor, cannot be a HashedCategoricalColumn, which we represent with a bool type)
+{v_1 : list(bool)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] = false
+>>
+Rule 31 (If keys is a list of strings, all strings must be non-empty)
 {v_1 : list(str)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ ""
 >>
-Rule 9 (Relating hash_bucket_size with hypothetical tensor shape based on keys)
-{v_1: int, v_2: list(str) ⊎ list(tensor)} |= if v_2.len = 2 then v_1 > 10
+Rule 34 (hash_bucket_size should be a positive integer)
+{v_1 : int} |= v_1 ≥ 1 ∧ v_1 ≠ 0
 >>
-Rule 10 (Ensure hash key is within a reasonable range)
-{v_1 : int} |= v_1 < 1000000000
+Rule 37 (If keys is a list, then the hash_bucket_size must be large enough relative to the length of keys)
+{v_1 : list(str ⊎ tensor), v_2 : int} |= v_2 > v_1.len
 >>
-Rule 17 (If keys contain categorical columns (tensor), then hash_bucket_size is reasonably large with respect to the total shape)
-{v_1 : list(tensor), v_2: int} |= if v_1.len = 1 then v_2 > 1 else if v_1.len = 2 then v_2 > 10
->>
-Rule 19 (Combined rule: keys length and hash_bucket_size)
-{v_1 : list(str) ⊎ list(tensor), v_2 : int} |= v_1.len ≥ 2 ∧ v_2 > 1
->>
-Rule 22 (If keys is a tensor, ensure hash_bucket_size is appropriate)
-{v_1: tensor, v_2: int} |= if ndim(v_1) > 0 then v_2 > 1
->>
-Rule 26 (hash_bucket_size must be greater than one)
-{v_1: int} |= v_1 > 1
->>
-Rule 27 (if hash_key is supplied, hash_bucket_size must be supplied, also)
-{v_1: int, v_2: int} |= if v_1 > 0 then v_2 > 1
->>
-Rule 28 (If hash_key is present, hash_bucket_size must be greater than one)
-{v_1 : int, v_2 : int} |= if v_1 ≠ 0 then v_2 > 1
->>
-Rule 29 (The keys list must not be empty)
-{v_1 : list(str) ⊎ list(tensor)} |= v_1.len > 0
->>
-Rule 33 (If the dtype is not an integer (1-5), hash_bucket_size should be bigger)
-{v_1: dtype, v_2: int} |= if 1 ≤ v_1 ∧ v_1 ≤ 5 then v_2 > 1 else v_2 > 10
->>
-Rule 35 (hash_bucket_size should be large if keys have many elements)
-{v_1: list(str) ⊎ list(tensor), v_2: int} |= if v_1.len > 5 then v_2 > 1000 else v_2 > 1
->>
-Rule 37 (The number of keys should not be too big)
-{v_1: list(str) ⊎ list(tensor)} |= v_1.len < 10
->>
-Rule 39 (If hash_key is a negative number, then it's invalid)
-{v_1: int} |= v_1 ≥ 0
->>
-Rule 41 (If dtype is a string, it has to be one of a specified set of strings)
-{v_1: dtype, v_2: list(str)} |= ∃i ∈ [0, v_2.len - 1]: v_1 = i+12
+Rule 46 (If hash_key is provided, then keys must all be strings)
+{v_1 : list(str ⊎ tensor), v_2 : str} |= if v_2 ≠ "" then ∀i ∈ [0, v_1.len - 1] : if v_1[i] = "string" then true else false

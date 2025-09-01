@@ -1,69 +1,69 @@
 >>
-Rule 2 (shift should be a tensor with the same dtype as x or None)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 1 (axes values should be valid indices for the input tensor x)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1)
 >>
-Rule 6 (if shift is not None, its number of dimensions must be less than or equal to the number of dimensions of x)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≤ ndim(v_1)
+Rule 2 (shift tensor should have the same dtype as the input tensor x, or be None)
+{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3)
 >>
-Rule 8 (axes should be a list of integers, if the list is not empty each element should be an int)
-{v_1 : list(int)} |= if v_1.len > 0 then true
+Rule 4 (axes list must have a non-negative length)
+{v_2 : list(int)} |= v_2.len ≥ 0
 >>
-Rule 12 (axes elements must be non-negative and less than ndim of x, if axes list is not empty)
-{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+Rule 5 (shift tensor x must have a floating-point dtype: 6–8 if specified)
+{v_3: tensor} |= 6 ≤ dtype_(v_3) ∧ dtype_(v_3) ≤ 8
 >>
-Rule 13 (If shift is a scalar, its dtype should match the input tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then dtype_(v_1) = dtype_(v_2)
+Rule 6 (keepdims must be a boolean value)
+{v_4 : bool} |= v_4 = true ∨ v_4 = false
 >>
-Rule 14 (x and shift should have compatible shapes for broadcasting if shift exists)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ∃i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i)) ∨ (shape(v_2, i) = 1)
+Rule 7 (if shift is not None, its shape should be broadcastable to x's shape)
+{v_1 : tensor, v_3 : tensor} |= (ndim(v_3) ≤ ndim(v_1))
 >>
-Rule 18 (if shift is not None, the dtype of shift and x should match)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_1) = dtype_(v_2)
+Rule 8 (input tensor x must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 20 (if the axes list is not empty, it must contain valid axes of x)
-{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1)
+Rule 9 (axes list can be empty, meaning reduction over all axes)
+{v_2 : list(int)} |=  v_2.len ≥ 0
 >>
-Rule 21 (keepdims can only be true or false)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 12 (axes values should be unique to avoid redundant calculations)
+{v_2: list(int)} |= ∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j]
 >>
-Rule 22 (if shift exists and is a scalar, it must have the same dtype as the tensor x)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 ∧ ndim(v_2) > 0 then dtype_(v_1) = dtype_(v_2)
+Rule 13 (If shift is not None, it should have compatible shape with x)
+{v_1 : tensor, v_3 : tensor} |= if v_3 ≠ false then ndim(v_3) ≤ ndim(v_1)
 >>
-Rule 23 (the length of axes cannot exceed the number of dimensions of x)
+Rule 16 (axes values must be within reasonable bounds)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)
+>>
+Rule 17 (axes values must be within reasonable bounds, using multiplication)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > (0 - (1 * ndim(v_1))) ∧ v_2[i] < ndim(v_1)
+>>
+Rule 18 (axes values must be within reasonable bounds, using parentheses for negative ndim)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > (0 - (ndim(v_1))) ∧ v_2[i] < ndim(v_1)
+>>
+Rule 19 (axes values must be within reasonable bounds, checking positive and negative separately)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1)) ∨ (v_2[i] < 0 ∧ v_2[i] ≥ (0 - ndim(v_1)))
+>>
+Rule 20 (axes values must not exceed the total number of dimensions)
 {v_1 : tensor, v_2 : list(int)} |= v_2.len ≤ ndim(v_1)
 >>
-Rule 24 (If shift is not None, its number of dimensions is less than or equal to the number of dimensions of x)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ndim(v_2) ≤ ndim(v_1)
+Rule 21 (axes values within allowed range)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1))
 >>
-Rule 25 (if the axes list is not empty, it must contain valid axes of x, and no duplicates)
-{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1) ∧ ∀j ∈ [i+1, v_2.len - 1]: v_2[i] ≠ v_2[j]
+Rule 22 (Empty axes list is acceptable)
+{v_2 : list(int)} |= v_2.len = 0 ∨ v_2.len > 0
 >>
-Rule 29 (If axes is not None, the number of unique elements should be equal to the length of axes)
-{v_1 : list(int)} |= if v_1.len > 0 then ∃i ∈ [0, v_1.len -1]: true
+Rule 53 (axes values should be valid indices for the input tensor x and axes must have a length.)
+{v_1 : tensor, v_2 : list(int)} |= (v_2.len > 0) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1))
 >>
-Rule 33 (If axes are specified, each axis should have size greater than 0)
-{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len -1]: shape(v_1, v_2[i]) > 0
+Rule 54 (If shift is specified, it should have a compatible dtype to the input tensor)
+{v_1 : tensor, v_3 : tensor} |= if v_3 ≠ false then dtype_(v_1) = dtype_(v_3)
 >>
-Rule 35 (axes elements must be unique, i.e., axes should not have duplicated dimensions.)
-{v_1 : list(int)} |= if v_1.len > 0 then ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i+1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+Rule 57 (axes values should be within reasonable bounds - improved)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : v_2[i] > (0 - (1 * ndim(v_1))) ∧ v_2[i] < ndim(v_1)
 >>
-Rule 36 (If shift is a tensor and not a scalar, the dtype of x and shift must be the same)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ ndim(v_2) ≠ 0 then dtype_(v_1) = dtype_(v_2)
+Rule 63 (axes values should be valid and the tensor shouldn't be empty)
+{v_1 : tensor, v_2 : list(int)} |= (ndim(v_1) > 0) ∧ (v_2.len >= 0) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1))
 >>
-Rule 39 (if the axes list is not empty, elements should be unique and valid axes for tensor x)
-{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1) ∧ ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j]
+Rule 64 (axes values should be valid and the tensor shouldn't be empty and the number of axes should not exceed dimensions)
+{v_1 : tensor, v_2 : list(int)} |= (ndim(v_1) > 0) ∧ (v_2.len >= 0) ∧ (v_2.len <= ndim(v_1)) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1))
 >>
-Rule 41 (if shift is provided, shift must be broadcastable to x after reduction)
-{v_1 : tensor, v_2 : tensor, v_3 : list(int)} |= if ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : (∃j ∈ [0, v_3.len - 1] : v_3[j] = i) ∨ (shape(v_1, i) = shape(v_2, i)) ∨ (shape(v_2, i) = 1)
->>
-Rule 43 (If x is a scalar, shift must also be a scalar if provided)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
->>
-Rule 49 (If x is a scalar and shift is not None, shift must also be a scalar with the same dtype.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0 ∧ dtype_(v_1) = dtype_(v_2)
->>
-Rule 59 (If shift is not None, each of its dimensions has to be broadcastable to x)
-{v_1 : tensor, v_2 : tensor, v_3 : list(int)} |= if ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_2) - 1] : (∃j ∈ [0, v_3.len - 1] : v_3[j] = i) ∨ (shape(v_1, i) = shape(v_2, i)) ∨ (shape(v_2, i) = 1)
->>
-Rule 60 (If the axes parameters is None, which is encoded as an empty list, return True)
-{v_1 : list(int)} |= if v_1.len = 0 then true
+Rule 70 (If the tensor is not empty and if there are axes then its elements should not cause index out of range.)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) > 0 then (v_2.len=0) ∨ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1))

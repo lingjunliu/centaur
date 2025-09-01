@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Input should be of valid type, in range of allowed dtypes (0-12 (Rule 6)
+# n argument should be small enough to avoid memory issues (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(And(0 <= v["arg1_value"], v["arg1_value"] <= 12)) if n else
-          And(0 <= v["arg1_value"], v["arg1_value"] <= 12))
+    s.add(Not(v["arg1_value"] < 10000) if n else
+          v["arg1_value"] < 10000)
 )
 
 def rule_6_func(arg1, solver=None, neg=False):

@@ -1,198 +1,117 @@
 >>
-Rule 1 (handle must be a string tensor)
-{v_1 : tensor} |= dtype_(v_1) = 11
+Rule 3 (handle should be a tensor with mutable string dtype)
+{handle : tensor} |= dtype_(handle) = 11
 >>
-Rule 2 (handle should be a valid tensor with at least one dimension.)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 4 (name should be a valid string from the allowed list)
+{name : str} |= name = "ii" ∨ name = "ii->i" ∨ name = "i,j->ij" ∨ name = "bij,bjk->bik" ∨ name = "...ij->...ji" ∨ name = "bn,anm,bm->ba" ∨ name = "none" ∨ name = "sum" ∨ name = "max" ∨ name = "min" ∨ name = "prod" ∨ name = "relu" ∨ name = "tanh" ∨ name = "sigmoid" ∨ name = "softmax" ∨ name = "elu" ∨ name = "selu" ∨ name = "gelu" ∨ name = "swish" ∨ name = "softplus" ∨ name = "linear" ∨ name = "valid" ∨ name = "same" ∨ name = "causal" ∨ name = "channels_last" ∨ name = "channels_first"
 >>
-Rule 3 (handle must be a tensor and its dimensions should be positive)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 5 (handle should be a tensor with ndim = 0)
+{handle : tensor} |= ndim(handle) = 0
 >>
-Rule 4 (handle must be a non-empty string tensor)
-{v_1 : tensor} |= dtype_(v_1) = 11 ∧ shape(v_1, 0) > 0
+Rule 6 (name should be a string with length greater than 0)
+{name : str} |= name.len > 0
 >>
-Rule 5 (shape of handle should be 1D)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 7 (handle and name cannot be the same string)
+{handle : tensor, name : str} |= handle ≠ name
 >>
-Rule 7 (handle must be a tensor)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 8 (name must be a valid string or empty)
+{name : str} |= name = "" ∨ name = "ii" ∨ name = "ii->i" ∨ name = "i,j->ij" ∨ name = "bij,bjk->bik" ∨ name = "...ij->...ji" ∨ name = "bn,anm,bm->ba" ∨ name = "none" ∨ name = "sum" ∨ name = "max" ∨ name = "min" ∨ name = "prod" ∨ name = "relu" ∨ name = "tanh" ∨ name = "sigmoid" ∨ name = "softmax" ∨ name = "elu" ∨ name = "selu" ∨ name = "gelu" ∨ name = "swish" ∨ name = "softplus" ∨ name = "linear" ∨ name = "valid" ∨ name = "same" ∨ name = "causal" ∨ name = "channels_last" ∨ name = "channels_first"
 >>
-Rule 9 (Handle should be a string-typed tensor with non-zero elements)
-{v_1 : tensor} |= dtype_(v_1) = 11 ∧ min(v_1) ≠ ""
+Rule 9 (if name is given, then it has valid characters)
+{name : str} |= if name ≠ "" then ∀i ∈ [0, name.len - 1] : (name[i] ≥ "a" ∧ name[i] ≤ "z") ∨ (name[i] ≥ "A" ∧ name[i] ≤ "Z") ∨ (name[i] ≥ "0" ∧ name[i] ≤ "9") ∨ name[i] = "_"
 >>
-Rule 11 (Shape should be a scalar if handle is scalar string tensor)
-{v_1 : tensor} |= if ndim(v_1) = 0 then true else false
+Rule 10 (handle is a scalar string tensor)
+{handle : tensor} |= ndim(handle) = 0 ∧ dtype_(handle) = 11
 >>
-Rule 12 (handle tensor cannot have negative dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 13 (handle and name can't both be empty strings)
+{handle : tensor, name : str} |= if handle = "" then name ≠ ""
 >>
-Rule 14 (if handle is not a string tensor, the program may crash)
-{v_1 : tensor} |= if dtype_(v_1) ≠ 11 then false
+Rule 17 (if name is present, then handle must be present)
+{handle : tensor, name : str} |= if name ≠ "" then handle ≠ ""
 >>
-Rule 16 (handle should be a scalar string tensor)
-{v_1 : tensor} |= ndim(v_1) = 0
+Rule 18 (if name is the default name, then it must be of a certain format)
+{name : str} |= if name = "QueueIsClosed" then name[0] = "Q" ∧ name[1] = "u" ∧ name[2] = "e" ∧ name[3] = "u" ∧ name[4] = "e"
 >>
-Rule 17 (shape must be positive integer)
-{v_1 : tensor} |= (dtype_(v_1) = 11)
+Rule 19 (If name is provided then it should start with an alphabet or underscore)
+{name: str} |= if name ≠ "" then (name[0] ≥ "a" ∧ name[0] ≤ "z") ∨ (name[0] ≥ "A" ∧ name[0] ≤ "Z") ∨ (name[0] = "_")
 >>
-Rule 20 (If the tensor is a matrix, the first dimension should be string dtype)
-{v_1 : tensor} |= if ndim(v_1) > 1 then dtype_(v_1) = 11
+Rule 21 (if handle is not a tensor, then throw an error)
+{handle : tensor ⊎ str} |= if dtype_(handle) = 11 then true else false
 >>
-Rule 21 (If not scalar tensor, must be one dimensional)
-{v_1 : tensor} |= if ndim(v_1) ≠ 0 then ndim(v_1) = 1
+Rule 23 (if name has some value, then the length should be less than some upper bound)
+{name:str} |= if name ≠ "" then name.len < 255
 >>
-Rule 24 (handle must be a tensor, and if it is a matrix, then its first dimension must be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 0) > 0
+Rule 24 (If name consists of valid characters, no characters should be repeated more than once.)
+{name: str} |= if name ≠ "" then ∀i ∈ [0, name.len -1] : ∃j ∈ [i+1, name.len-1] : name[i] ≠ name[j]
 >>
-Rule 27 (Handle must be a string tensor of shape [])
-{v_1 : tensor} |= dtype_(v_1) = 11 ∧ ndim(v_1) = 0
+Rule 25 (If name consists of valid characters, characters should not be repeated)
+{name: str} |= if name ≠ "" then ∀i ∈ [0, name.len - 1] : ∀j ∈ [i + 1, name.len - 1] : name[i] ≠ name[j]
 >>
-Rule 29 (tensor shape must be a scalar if the number of dimensions are 0)
-{v_1 : tensor} |= if (ndim(v_1) = 0) then true else (∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) ≥ 0)
+Rule 26 (name must be ASCII characters)
+{name: str} |= if name ≠ "" then ∀i ∈ [0, name.len - 1]: name[i] ≥ " " ∧ name[i] ≤ "~"
 >>
-Rule 32 (If the tensor has dimensions, all dimensions must be greater than zero)
-{v_1 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) > 0)
+Rule 27 (If name is a certain string, it can't contain an underscore.)
+{name:str} |= if name = "default_queue" then ∀i ∈ [0, name.len - 1]: name[i] ≠ "_"
 >>
-Rule 33 (Handle must be a string, and all dimensions must be positive.)
-{v_1 : tensor} |= (dtype_(v_1) = 11) ∧ (if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) > 0))
+Rule 28 (the length of name string must be same as the length of handle's string value)
+{name : str, handle : tensor} |= if name ≠ "" then name.len = handle.len
 >>
-Rule 34 (handle has at least 0 dimensions)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 31 (the handle must be a valid resource handle)
+{handle: tensor} |= ∃queue_resource ∈ [0, 0]: handle = queue_resource
 >>
-Rule 38 (handle needs to be a 0-dimensional tensor of type string.)
-{v_1: tensor} |= ndim(v_1) = 0 ∧ dtype_(v_1) = 11
+Rule 32 (the handle must be a valid resource handle)
+{handle: tensor} |= ∃queue_resource ∈ [0, 100]: handle = queue_resource
 >>
-Rule 40 (Shape of tensor is valid)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 33 (the handle must be a valid resource handle)
+{handle: tensor} |= ∃queue_resource ∈ [0, 1]: handle = queue_resource
 >>
-Rule 42 (Handle must be a valid string tensor and ndim must be non-negative)
-{v_1 : tensor} |= (dtype_(v_1) = 11) ∧ (ndim(v_1) ≥ 0)
+Rule 37 (handle is string tensor and its value must be one of the valid queue handles.)
+{handle: tensor} |= dtype_(handle) = 11 ∧ (handle = "valid_queue_1" ∨ handle = "valid_queue_2" ∨ handle = "valid_queue_3")
 >>
-Rule 44 (Tensor must be a string type and have shape dimensions of positive integers)
-{v_1 : tensor} |= dtype_(v_1) = 11 ∧ (if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) > 0))
+Rule 38 (If name is a certain string, then name cannot start with "queue")
+{name:str} |= if name = "QueueIsClosed" then name[0] ≠ "q" ∧ name[1] ≠ "u" ∧ name[2] ≠ "e" ∧ name[3] ≠ "u" ∧ name[4] ≠ "e" ∧ name[5] ≠ "_"
 >>
-Rule 46 (If the tensor has more than one dimension, all dimensions must be a positive integer)
-{v_1: tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0)
+Rule 39 (If name is "QueueIsClosed" then handle must exist)
+{name:str, handle : tensor} |= if name = "QueueIsClosed" then handle ≠ ""
 >>
-Rule 47 (Handle is a string type with at least zero dimensions)
-{v_1 : tensor} |= dtype_(v_1) = 11 ∧ ndim(v_1) ≥ 0
+Rule 41 (If name is present, then handle should point to some queue)
+{name:str, handle : tensor} |= if name ≠ "" then (handle = "queue_1" ∨ handle = "queue_2" ∨ handle = "queue_3")
 >>
-Rule 48 (The handle needs to be a string type tensor and has more than 0 dimensions)
-{v_1: tensor} |= dtype_(v_1) = 11 ∧ ndim(v_1) > 0
+Rule 42 (handle must exist)
+{handle: tensor} |= handle ≠ ""
 >>
-Rule 49 (shape of handle must be a positive integer.)
-{v_1 : tensor} |= (if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0)
+Rule 43 (handle must exist and be non-empty)
+{handle: tensor} |= handle ≠ "" ∧ handle ≠ "none"
 >>
-Rule 50 (if the handle has more than 0 dimensions, it needs to be a string tensor)
-{v_1: tensor} |= if (ndim(v_1) > 0) then dtype_(v_1) = 11
+Rule 44 (the handle must not be a reserved keyword in TensorFlow)
+{handle: tensor} |= handle ≠ "tf" ∧ handle ≠ "keras" ∧ handle ≠ "numpy"
 >>
-Rule 51 (the handle tensor has a valid number of dimensions and dtype)
-{v_1 : tensor} |= (ndim(v_1) ≥ 0) ∧ (dtype_(v_1) = 11)
+Rule 45 (The name must not be a reserved keyword if the handle is a default queue)
+{name:str, handle: tensor} |= if handle = "default_queue" then name ≠ "tf" ∧ name ≠ "keras" ∧ name ≠ "numpy"
 >>
-Rule 54 (String tensor must have non zero size)
-{v_1 : tensor} |= dtype_(v_1) = 11 ∧ (if ndim(v_1) > 0 then (∃i ∈ [0, ndim(v_1)-1]: shape(v_1, i) > 0))
+Rule 47 (If handle is not a string tensor, then it should not be passed to ndim)
+{handle: tensor ⊎ str} |= if handle = "ii" ∨ handle = "ii->i" ∨ handle = "i,j->ij" ∨ handle = "bij,bjk->bik" ∨ handle = "...ij->...ji" ∨ handle = "bn,anm,bm->ba" ∨ handle = "none" ∨ handle = "sum" ∨ handle = "max" ∨ handle = "min" ∨ handle = "prod" ∨ handle = "relu" ∨ handle = "tanh" ∨ handle = "sigmoid" ∨ handle = "softmax" ∨ handle = "elu" ∨ handle = "selu" ∨ handle = "gelu" ∨ handle = "swish" ∨ handle = "softplus" ∨ handle = "linear" ∨ handle = "valid" ∨ handle = "same" ∨ handle = "causal" ∨ handle = "channels_last" ∨ handle = "channels_first" then true else ndim(handle) ≥ 0
 >>
-Rule 56 (Handle should be of type mutable string with a valid shape)
-{v_1 : tensor} |= dtype_(v_1) = 11 ∧ (ndim(v_1) ≥ 0)
+Rule 48 (If handle is a string tensor and its len is zero or not, name should reflect that)
+{name: str, handle: tensor} |= if handle.len = 0 then name = "" else name ≠ ""
 >>
-Rule 57 (handle needs to be string dtype and has a shape with positive values if shape is more than 0)
-{v_1 : tensor} |= dtype_(v_1) = 11 ∧ (if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0))
+Rule 49 (If handle is string tensor and its len is zero or not, name's presence should reflect that)
+{name: str, handle: tensor} |= if dtype_(handle) = 11 then if handle.len = 0 then name = "" else name ≠ ""
 >>
-Rule 59 (Handle should be a tensor with string datatype and ndim less than 2)
-{v_1 : tensor} |= dtype_(v_1) = 11 ∧ ndim(v_1) < 2
+Rule 50 (If the queue is shared then the name must be same across processes)
+{name : str, handle : tensor} |= if ∃shared_queue ∈ ["shared_queue_1", "shared_queue_2"]: handle = shared_queue then ∃shared_name ∈ ["shared_name_1", "shared_name_2"]: name = shared_name
 >>
-Rule 60 (The handle must have a string type and the shape must have at least one element)
-{v_1 : tensor} |= dtype_(v_1) = 11 ∧ ndim(v_1) > -1
+Rule 51 (If the handle is present but the name is not, the queue was created without a name)
+{name: str, handle: tensor} |= if name = "" then handle = "unnamed_queue"
 >>
-Rule 63 (The handle should be of type string and not be empty if the number of dimensions are zero)
-{v_1 : tensor} |= dtype_(v_1) = 11 ∧ (if ndim(v_1) = 0 then min(v_1) ≠ "")
+Rule 52 (If a name is specified it can't be an empty tensor)
+{name: str, handle: tensor} |= if name ≠ "" then dtype_(handle) = 11
 >>
-Rule 65 (If it's a tensor of string type, then it must have elements)
-{v_1: tensor} |= if (dtype_(v_1) = 11) then true else false
+Rule 53 (If name is "" handle has to have a default value)
+{name: str, handle: tensor} |= if name = "" then handle = "default_queue" ∨ handle = "unnamed_queue"
 >>
-Rule 68 (If the tensor is rank zero, then it must be a valid string.)
-{v_1: tensor} |= if ndim(v_1) = 0 then dtype_(v_1) = 11
+Rule 56 (if handle is the default queue, then name must be a string)
+{handle: tensor} |= if handle = "default_queue" then true
 >>
-Rule 69 (If handle has more than 0 dim, then it has elements and the tensor should be of type string)
-{v_1: tensor} |= if (ndim(v_1) > 0) then (dtype_(v_1) = 11)
->>
-Rule 70 (shape dimensions must be positive integers)
-{v_1 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0)
->>
-Rule 72 (The shape of handle must not be empty)
-{v_1 : tensor} |= if (ndim(v_1) > 0) then ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0
->>
-Rule 75 (If it is a matrix or vector, all dimensions must be positive integers and of type string)
-{v_1: tensor} |= if (ndim(v_1) > 0) then ((∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0) ∧ (dtype_(v_1) = 11))
->>
-Rule 77 (Handle should be of type string with at least 1 dimension, if it's a tensor.)
-{v_1 : tensor} |= dtype_(v_1) = 11 ∧ (if ndim(v_1) > 0 then ndim(v_1) ≥ 1)
->>
-Rule 79 (Handle should be of type string, and number of dimensions is at least zero)
-{v_1 : tensor} |= dtype_(v_1) = 11 ∧ ndim(v_1) >= 0
->>
-Rule 81 (If the data type is string and has at least one dimension, then dimension should be positive)
-{v_1: tensor} |= if (dtype_(v_1) = 11) then (if (ndim(v_1) > 0) then (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0))
->>
-Rule 82 (If dimensions are positive, then the type is string.)
-{v_1: tensor} |= if (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0) then (dtype_(v_1) = 11)
->>
-Rule 83 (The handle variable must have valid dimensions, and be of type string)
-{v_1: tensor} |= dtype_(v_1) = 11
->>
-Rule 85 (If shape is available, elements must be valid, and tensor should be string type.)
-{v_1: tensor} |= if ndim(v_1) > 0 then ((∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0) ∧ dtype_(v_1) = 11)
->>
-Rule 87 (Handle must be a string tensor, and must have a valid shape.)
-{v_1: tensor} |= dtype_(v_1) = 11 ∧ (if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0))
->>
-Rule 88 (Shape of the handle should be greater or equal to zero and of type string tensor.)
-{v_1: tensor} |= (if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) >= 0)) ∧ (dtype_(v_1) = 11)
->>
-Rule 90 (If the number of dimensions is greater than 0, must be type string)
-{v_1 : tensor} |= if (ndim(v_1) > 0) then dtype_(v_1) = 11
->>
-Rule 91 (If has positive integers, its datatype must be string.)
-{v_1: tensor} |= if (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0) then (dtype_(v_1) = 11)
->>
-Rule 92 (The provided handle must be a string tensor, and shape must be a non-negative integer)
-{v_1: tensor} |= (dtype_(v_1) = 11) ∧ (if (ndim(v_1) > 0) then (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) >= 0))
->>
-Rule 93 (if shape is greater than 0, it is of datatype string, otherwise, the statement can be false)
-{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0) then dtype_(v_1) = 11
->>
-Rule 94 (tensor must have a rank, and data-type must be string)
-{v_1 : tensor} |= (if (ndim(v_1) > 0) then dtype_(v_1) = 11)
->>
-Rule 95 (must be of type string and if it contains any shapes then it can't be negative)
-{v_1: tensor} |= (if (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0) then (dtype_(v_1) = 11))
->>
-Rule 100 (If it is of type string then min(v_1) can't be "" , and have non negative dimensions)
-{v_1: tensor} |= if (dtype_(v_1) = 11) then min(v_1) ≠ ""
->>
-Rule 102 (If the handle has some shape, its elements must be greater than 0)
-{v_1: tensor} |= if (ndim(v_1) > 0) then (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0)
->>
-Rule 103 (String tensor needs to have at least one element)
-{v_1 : tensor} |= if (dtype_(v_1) = 11) then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 104 (If there is no tensor, then name is optional, else must follow tensor string rules)
-{v_1: tensor} |= dtype_(v_1) = 11 ∧ (ndim(v_1) >= 0)
->>
-Rule 105 (The dimensions of string tensor, if greater than 0, must have positive elements and the dtype must be string.)
-{v_1 : tensor} |= if (ndim(v_1) > 0) then ((∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0) ∧ (dtype_(v_1) = 11))
->>
-Rule 106 (If it has more than 1 element, then dtype must be a string, if tensor)
-{v_1: tensor} |= if (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0) then dtype_(v_1) = 11
->>
-Rule 107 (shape can't be negative, if the data is a string)
-{v_1: tensor} |= if dtype_(v_1) = 11 then (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) >= 0)
->>
-Rule 112 (If a tensor of type string has some dimensions, then those dimensions should be non-negative)
-{v_1: tensor} |= if (dtype_(v_1) = 11) then (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) >= 0)
->>
-Rule 114 (If rank is > 0, must be of type string and all elements should be non-negative)
-{v_1: tensor} |= if ndim(v_1) > 0 then (dtype_(v_1) = 11 ∧ (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) >= 0))
->>
-Rule 115 (the string tensor handle needs to have more than one char.)
-{v_1: tensor} |= if (dtype_(v_1) = 11) then (min(v_1) ≠ "")
+Rule 60 (handle should be created by tf.queue)
+{handle: tensor} |= if ∃q ∈ [1,10]: handle = "created_queue_" + q then true

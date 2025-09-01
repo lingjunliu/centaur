@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# All color values should be in range [0, 1] (Rule 15)
+# colors tensor's last dimension should be 4 (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (Select(v["arg1_shape"], 0) - 1 + 1), And([Implies(j < (Select(v["arg1_shape"], 1) - 1 + 1), And(0 <= Select(v["arg1_shape"], 0), Select(v["arg1_shape"], 0) <= 1)) for j in range(6)])) for i in range(6)])) if n else
-          And([Implies(i < (Select(v["arg1_shape"], 0) - 1 + 1), And([Implies(j < (Select(v["arg1_shape"], 1) - 1 + 1), And(0 <= Select(v["arg1_shape"], 0), Select(v["arg1_shape"], 0) <= 1)) for j in range(6)])) for i in range(6)]))
+    s.add(Not(Select(v["arg1_shape"], 1) == 4) if n else
+          Select(v["arg1_shape"], 1) == 4)
 )
 
 def rule_15_func(arg1, solver=None, neg=False):

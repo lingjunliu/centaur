@@ -1,90 +1,252 @@
 >>
-Rule 1 (dtype of the output tensor should be the same as the input tensor if not specified.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 12 then true else dtype_(v_1) = v_2
+Rule 1 (Order must be 'C' or 'F' or 'A' or 'K')
+{v_1 : str} |= v_1 = "C" ∨ v_1 = "F" ∨ v_1 = "A" ∨ v_1 = "K"
 >>
-Rule 2 (fill_value must be consistent with the dtype of the input tensor)
-{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) = 0 then (v_2 = 0 ∨ v_2 = 1)
+Rule 2 (fill_value and input tensor must have compatible dtypes.  Here we assert that if dtype is specified, it must match fill_value)
+{v_1 : tensor, v_2 : dtype, v_3 : tensor} |= dtype_(v_1) = v_2 ∨ dtype_(v_3) = v_2
 >>
-Rule 3 (shape of the output tensor should be the same as the input tensor)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 3 (subok must be a boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 5 (dtype is valid)
-{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 12
+Rule 4 (The shape argument must be a tuple with non-negative integer dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 6 (fill_value must be a number if dtype of tensor is int or float.)
-{v_1 : tensor} |= if dtype_(v_1) > 0 ∧ dtype_(v_1) < 9 then true
+Rule 5 (If fill_value is a scalar, its type should be compatible with the dtype.)
+{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
 >>
-Rule 7 (If dtype is specified, it must be a valid dtype value)
-{v_1 : dtype} |= v_1 ≥ 0 ∧ v_1 ≤ 12
+Rule 6 (Shape should have at least one dimension)
+{v_1 : tuple(int)} |= v_1.len > 0
 >>
-Rule 8 (The tensor must be a valid tensor)
+Rule 7 (If the input is a boolean tensor, fill_value must also be a boolean)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0
+>>
+Rule 8 (ndim of input must be smaller than some threshold.)
+{v_1 : tensor} |= ndim(v_1) < 10
+>>
+Rule 10 (If the input tensor is a float type tensor, the fill_value must also be a float)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 12 (fill_value must be a scalar tensor)
+{v_1 : tensor} |= ndim(v_1) = 0
+>>
+Rule 14 (The shape argument must be a tuple and have non-negative dimensions or be None - represent none with -1)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∨ v_1[i] = -1
+>>
+Rule 17 (If the input is a boolean tensor, fill_value can be a boolean or an integer representing boolean)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0 ∨ (dtype_(v_2) = 1 ∧ (min(v_2)=0) ∧ (max(v_2)=1))
+>>
+Rule 18 (ndim of input and output tensors should be the same if shape is not specified.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+>>
+Rule 19 (If the input tensor is an integer type tensor, the fill_value must also be an integer)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5
+>>
+Rule 23 (If shape is specified, the rank of fill_value cannot be greater than shape's length)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) ≤ v_2.len
+>>
+Rule 26 (If the input tensor's dtype is complex, fill_value must also be complex.)
+{v_1 : tensor, v_2: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+>>
+Rule 27 (order should only be one character long)
+{v_1 : str} |= v_1.len = 1
+>>
+Rule 29 (If shape is given it must have positive values)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 30 (If input tensor has more than zero dimension, fill_value should be compatible to be broadcasted.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then ndim(v_2) <= ndim(v_1)
+>>
+Rule 33 (if the shape argument is not empty, all elements of the shape argument must be integers)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] = v_1[i]
+>>
+Rule 34 (If input and fill_value have the same ndim, their shape at each dimension should match)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 35 (fill_value must have compatible type to input)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∨ (dtype_(v_1) = 0 ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 0)) ∨ (dtype_(v_2) = 0 ∧ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 0))
+>>
+Rule 36 (If the fill_value tensor is not a scalar, the shape of the output tensor must at least match shape of the fill value)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ndim(v_1) ≥ ndim(v_2)
+>>
+Rule 39 (If the fill_value is a boolean, dtype should be boolean, integer, or float)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 0 then v_2 = 0 ∨ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5 ∨ v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8
+>>
+Rule 40 (The size of the shape tuple should not be greater than 32)
+{v_1 : tuple(int)} |= v_1.len <= 32
+>>
+Rule 43 (dtype should be a valid dtype, checking the index is within range.)
+{v_1 : dtype} |= 0 <= v_1 ∧ v_1 <= 12
+>>
+Rule 44 (If fill_value's dtype is string, the shape must be scalar.)
+{v_1 : tensor} |= if dtype_(v_1) = 11 then ndim(v_1) = 0
+>>
+Rule 45 (if input dtype is string, fill_value's dtype must also be string)
+{v_1 : tensor, v_2: tensor} |= if dtype_(v_1) = 11 then dtype_(v_2) = 11
+>>
+Rule 46 (If the shape is given the resulting output shape must match that)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) > 0
+>>
+Rule 47 (If a dtype is specified, the fill_value tensor must be compatible with that dtype.)
+{v_1 : dtype, v_2 : tensor} |= dtype_(v_2) = v_1
+>>
+Rule 48 (if fill_value is an integer, the dtype of the output tensor must be at least an integer)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) >= 1 ∧ dtype_(v_2) <=5 then dtype_(v_1) >= 1 ∧ dtype_(v_1) <= 10
+>>
+Rule 50 (Order must be one of the supported characters)
+{v_1 : str} |= v_1 = "C" ∨  v_1 = "F" ∨ v_1 = "A" ∨ v_1 = "K"
+>>
+Rule 53 (If the input is a bool, then fill_value must also be a bool, int (0 or 1), or float (0.0 or 1.0))
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0 ∨ (dtype_(v_2) >=1 ∧ dtype_(v_2) <= 5 ∧ (min(v_2) = 0 ∨ min(v_2) = 1) ∧ (max(v_2) = 0 ∨ max(v_2) = 1)) ∨ (dtype_(v_2) >= 6 ∧ dtype_(v_2) <= 8 ∧ (min(v_2) = 0.0 ∨ min(v_2) = 1.0) ∧ (max(v_2) = 0.0 ∨ max(v_2) = 1.0))
+>>
+Rule 54 (If fill_value's type is complex, dtype must also be complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 then dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 56 (If fill_value's shape is not equal to the shape of the first argument, it needs to be broadcastable, here simply checking size should not be larger.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) <= shape(v_1, i)
+>>
+Rule 57 (if the input and fill_value are of different type then the smaller value should not be greater than the larger value to avoid overflow issues)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < dtype_(v_2) then max(v_1) <= min(v_2)
+>>
+Rule 59 (The shape of output should be the same as the shape that's provided.)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧  ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) > 0
+>>
+Rule 60 (Input must be a tensor)
 {v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 9 (If a fill value is specified, it has to be compatible with the dtype)
-{v_1 : tensor, v_2 : int ⊎ float ⊎ bool} |= if dtype_(v_1) = 0 then (v_2 = true ∨ v_2 = false)
+Rule 63 (If dtype is provided it should be one of the supported dtypes.)
+{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 11 ∨ v_1 = 12
 >>
-Rule 10 (If fill_value is specified, it has to be compatible with the dtype and within the valid range.)
-{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) = 1 then (v_2 ≥ -128 ∧ v_2 ≤ 127) else if dtype_(v_1) = 5 then (v_2 ≥ 0 ∧ v_2 ≤ 255)
+Rule 65 (If input tensor has a string dtype, fill_value should be a string with ndim = 0)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 11 then dtype_(v_2) = 11 ∧ ndim(v_2) = 0
 >>
-Rule 11 (Dtype cannot be string)
-{v_1: dtype} |= v_1 ≠ 11
+Rule 66 (if shape is explicitly provided, the shape dimensions should not exceed 2^31 - 1)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 2147483647
 >>
-Rule 12 (The number of dimensions of the input tensor cannot exceed a certain limit)
-{v_1: tensor} |= ndim(v_1) < 10
+Rule 67 (When shape parameter is used the ndim of fill_value is less or equal to shape's dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_2) <= v_1.len
 >>
-Rule 14 (Shape must have positive values)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0
+Rule 68 (If input tensor is complex then fill_value should be of complex or real dtype)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) then (dtype_(v_2) = 6) ∨ (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8) ∨ (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10)
 >>
-Rule 15 (If a specific dtype is set, fill value should be of the corresponding type)
-{v_1 : dtype, v_2: int ⊎ float ⊎ bool} |= if v_1 = 0 then (v_2 = true ∨ v_2 = false)
+Rule 69 (If input tensor is bool, the fill value should be either bool or int)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then (dtype_(v_2) = 0) ∨ (dtype_(v_2) >= 1 ∧ dtype_(v_2) <= 5)
 >>
-Rule 16 (If dtype is complex, then fill_value must be specified.)
-{v_1: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true
+Rule 70 (If input is an integer tensor, then fill_value can be int, float or bool but not complex)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) >= 1) ∧ (dtype_(v_1) <= 5) then (dtype_(v_2) = 0) ∨ (dtype_(v_2) >= 1 ∧ dtype_(v_2) <= 8)
 >>
-Rule 18 (fill_value and tensor should have compatible dtypes)
-{v_1: tensor, v_2: int ⊎ float ⊎ bool} |= if dtype_(v_1) = 0 then (v_2 = true ∨ v_2 = false) else if dtype_(v_1) > 0 ∧ dtype_(v_1) < 9 then true else false
+Rule 73 (Check if the fill_value can be broadcasted with respect to input.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_2) = 0) ∨ (ndim(v_1) ≥ ndim(v_2) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_2, i) = 1)
 >>
-Rule 19 (fill_value must have a valid value for the given data type)
-{v_1: tensor, v_2: int ⊎ float ⊎ bool} |= if dtype_(v_1) = 1 then (v_2 ≥ -128 ∧ v_2 ≤ 127) else if dtype_(v_1) = 2 then (v_2 ≥ -32768 ∧ v_2 ≤ 32767) else if dtype_(v_1) = 3 then (v_2 ≥ -2147483648 ∧ v_2 ≤ 2147483647) else if dtype_(v_1) = 4 then (v_2 ≥ -9223372036854775808 ∧ v_2 ≤ 9223372036854775807) else if dtype_(v_1) = 5 then (v_2 ≥ 0 ∧ v_2 ≤ 255)
+Rule 75 (If fill_value's dtype is integer, the output tensor dtype should also be an integer type.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) >= 1) ∧ (dtype_(v_2) <= 5) then (dtype_(v_1) >= 1) ∧ (dtype_(v_1) <= 5)
 >>
-Rule 20 (fill_value must be within the range of the specified dtype)
-{v_1: tensor, v_2: int ⊎ float} |= if dtype_(v_1) = 6 then (v_2 ≥ -65504 ∧ v_2 ≤ 65504)
+Rule 76 (If input is a floating point tensor then fill_value has to be either a bool, an integer, or floating point.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) >= 6) ∧ (dtype_(v_1) <= 8) then (dtype_(v_2) = 0) ∨ ((dtype_(v_2) >= 1) ∧ (dtype_(v_2) <= 8))
 >>
-Rule 22 (The shape of the tensor should be limited by maximum value)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 100000
+Rule 79 (If the input dtype is integer, the fill_value cannot be complex)
+{v_1 : tensor, v_2: tensor} |= if (dtype_(v_1) >=1) ∧ (dtype_(v_1) <=5) then (dtype_(v_2) < 9) ∨ (dtype_(v_2) > 10)
 >>
-Rule 23 (If dtype is float16, then fill_value must be representable as a float16)
-{v_1: tensor} |= if dtype_(v_1) = 6 then true
+Rule 83 (If the shape argument is explicitly specified, the number of dimensions in a should match.)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len
 >>
-Rule 24 (The maximum dimensions of tensor cannot be larger than 32)
-{v_1 : tensor} |= ndim(v_1) < 32
+Rule 84 (If input is a complex tensor, the fill value cannot be bool, integer or float, it has to be complex as well.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) >= 9) ∧ (dtype_(v_1) <= 10) then (dtype_(v_2) >= 9) ∧ (dtype_(v_2) <= 10)
 >>
-Rule 26 (If dtype is not specified, it should default to the dtype of the input tensor)
-{v_1: tensor, v_2: dtype} |= if v_2 = 12 then true else dtype_(v_1) = v_2
+Rule 85 (The dtype needs to be compatible with the fill value, if the fill value is a string, the dtype should also be string)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 11 then v_2 = 11
 >>
-Rule 29 (Tensor must have at least one dimension.)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 88 (If the input tensor is integer type then fill_value can't be of string type.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) >= 1) ∧ (dtype_(v_1) <= 5) then dtype_(v_2) ≠ 11
 >>
-Rule 31 (If dtype is bool, then fill_value must be a bool.)
-{v_1: tensor} |= if dtype_(v_1) = 0 then true
+Rule 89 (If input tensor is of floating point dtype, then fill_value can be float, int, bool but not complex or string)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) >=6) ∧ (dtype_(v_1) <=8) then (dtype_(v_2) <=8) ∨ (dtype_(v_2) = 0)
 >>
-Rule 34 (If fill value is given then the type of the fill value should match the type of the tensor.)
-{v_1: tensor, v_2: int ⊎ float ⊎ bool} |= if dtype_(v_1) = 0 then (v_2 = true ∨ v_2 = false)
+Rule 90 (If dtype_ is specified as a boolean, then fill_value can only be a boolean 0 or 1 value, or an integer 0 or 1, or a float 0.0, 1.0)
+{v_1 : dtype, v_2 : tensor} |= if v_1 = 0 then (dtype_(v_2) = 0) ∨ ((dtype_(v_2) >= 1 ∧ dtype_(v_2) <= 5) ∧ (min(v_2) = 0 ∨ min(v_2) = 1) ∧ (max(v_2) = 0 ∨ max(v_2) = 1)) ∨ ((dtype_(v_2) >= 6 ∧ dtype_(v_2) <= 8) ∧ (min(v_2) = 0.0 ∨ min(v_2) = 1.0) ∧ (max(v_2) = 0.0 ∨ max(v_2) = 1.0))
 >>
-Rule 36 (shape must be positive)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 94 (Fill_value size can be 1 if there is a shape provided and if broadcasting is supported, otherwise it has to be ndim=0)
+{v_1 : tensor, v_2 : tuple(int)} |= (ndim(v_1) = 0) ∨ (ndim(v_1) = 1 ∧ shape(v_1, 0) = 1) ∨ (v_2.len>0)
 >>
-Rule 37 (Dtype must be valid for the specified fill value.)
-{v_1: tensor, v_2: int ⊎ float ⊎ bool} |= if dtype_(v_1) = 0 then (v_2 = true ∨ v_2 = false) else if dtype_(v_1) = 1 then (v_2 ≥ -128 ∧ v_2 ≤ 127) else if dtype_(v_1) = 2 then (v_2 ≥ -32768 ∧ v_2 ≤ 32767) else if dtype_(v_1) = 3 then (v_2 ≥ -2147483648 ∧ v_2 ≤ 2147483647) else if dtype_(v_1) = 4 then (v_2 ≥ -9223372036854775808 ∧ v_2 ≤ 9223372036854775807) else if dtype_(v_1) = 5 then (v_2 ≥ 0 ∧ v_2 ≤ 255) else if dtype_(v_1) = 6 then (v_2 ≥ -65504 ∧ v_2 ≤ 65504)
+Rule 95 (If input_tensor is a string, the fill_value needs to be a string as well, and needs to be a scalar (ndim=0))
+{v_1 : tensor, v_2: tensor} |= if (dtype_(v_1) = 11) then (dtype_(v_2) = 11) ∧ (ndim(v_2) = 0)
 >>
-Rule 41 (If dtype is float, then fill value should be float.)
-{v_1: tensor} |= if dtype_(v_1) > 5 ∧ dtype_(v_1) < 9 then true
+Rule 96 (if fill value is complex 64, output should also be complex 64)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 9 then dtype_(v_1) = 9
 >>
-Rule 42 (Tensor can not be string type)
-{v_1: tensor} |= dtype_(v_1) ≠ 11
+Rule 97 (Dtype and input tensor must be compatible, if dtype is float then input has to be int float or bool, but not string or complex)
+{v_1 : dtype, v_2 : tensor} |= if (v_1>=6 ∧ v_1<=8) then (dtype_(v_2) <= 8) ∨ (dtype_(v_2) = 0)
 >>
-Rule 43 (Tensor's shape cannot have negative values)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 98 (If shape is explicitly provided then ndim of input_tensor should equal to length of provided shape, if not then the two ndims must be equal)
+{v_1 : tensor, v_2 : tensor, v_3 : tuple(int)} |= if v_3.len > 0 then ndim(v_1) = v_3.len else ndim(v_1) = ndim(v_2)
 >>
-Rule 46 (When the fill value is not specified, default fill value for different dtypes should be in a valid range)
-{v_1: tensor} |= if dtype_(v_1) = 1 then (-128 ≤ 0 ∧ 0 ≤ 127) else if dtype_(v_1) = 2 then (-32768 ≤ 0 ∧ 0 ≤ 32767) else if dtype_(v_1) = 3 then (-2147483648 ≤ 0 ∧ 0 ≤ 2147483647) else if dtype_(v_1) = 4 then (-9223372036854775808 ≤ 0 ∧ 0 ≤ 9223372036854775807) else if dtype_(v_1) = 5 then (0 ≥ 0 ∧ 0 ≤ 255) else if dtype_(v_1) = 6 then (-65504 ≤ 0 ∧ 0 ≤ 65504)
+Rule 99 (If fill_value is bool, then output can only be an integer, float, or bool)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 0 then (dtype_(v_1) <= 8) ∨ (dtype_(v_1) = 0)
+>>
+Rule 100 (Order must be a supported character and the length should be just one)
+{v_1 : str} |= (v_1 = "C" ∨ v_1 = "F" ∨ v_1 = "A" ∨ v_1 = "K") ∧ (v_1.len = 1)
+>>
+Rule 103 (If a dtype is specified, and input_tensor is of integer type, fill_value's type also has to be an integer or boolean)
+{v_1 : tensor, v_2: dtype} |= if (1 <= dtype_(v_1) ∧ dtype_(v_1) <=5) then (v_2 = 0) ∨ (1 <= v_2 ∧ v_2 <=5)
+>>
+Rule 116 (if fill value is complex 64, output should also be complex 64, similarly for other complex types. Covers both complex64 and complex128)
+{v_1 : tensor} |= (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)
+>>
+Rule 119 (Shape and Input cannot be of None type.)
+{v_1: tensor} |= ndim(v_1) >=0
+>>
+Rule 120 (If the input tensor and the output tensor are both floating-point types, their dtypes should be the same.)
+{v_1 : tensor, v_2: tensor} |= if (dtype_(v_1) >= 6) ∧ (dtype_(v_1) <= 8) then (dtype_(v_2) = dtype_(v_1))
+>>
+Rule 123 (If the dtype parameter is explicitly passed then that should be same as input. Here also checking for broadcasting capabilities)
+{v_1 : tensor, v_2: tensor, v_3: dtype} |= if (ndim(v_2) = 0) then (dtype_(v_1) = v_3) else (ndim(v_1) = ndim(v_2)) ∧ (dtype_(v_1) = v_3)
+>>
+Rule 124 (If fill value can be an integer or a float or complex , input dtype needs to be either integer or float or complex )
+{v_1 : tensor} |= (dtype_(v_1) >= 1) ∧ (dtype_(v_1) <= 10)
+>>
+Rule 125 (if shape is specified as a list, it shouldn't contain any nan value, and must be non-negative)
+{v_1 : list(float) ⊎ list(int)} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] = v_1[i]) ∧ (v_1[i] >= 0)
+>>
+Rule 126 (if fill value is complex 64, output should also be complex 64, similarly for other complex types. Covers both complex64 and complex128, using dtype_ func check.)
+{v_1 : tensor, v_2: tensor} |= if (dtype_(v_1) >=9 ∧ dtype_(v_1) <=10) then (dtype_(v_2)>=9 ∧ dtype_(v_2)<=10)
+>>
+Rule 127 (If output is explicitly set for floating point tensors the fill value needs to be either bool, integer or floating point number. If the output type is an integer then the fill_value cannot be a floating point)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) >= 6 ∧ dtype_(v_1) <= 8) then (dtype_(v_2) = 0 ∨ (dtype_(v_2) >=1 ∧ dtype_(v_2) <=8)) else if(dtype_(v_1) >= 1 ∧ dtype_(v_1) <= 5) then (dtype_(v_2) = 0 ∨ (dtype_(v_2) >=1 ∧ dtype_(v_2) <= 5))
+>>
+Rule 128 (For shape to be valid, the product of elements should not exceed the size of largest data type.)
+{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 136 (The dtype should be consistent between input and output. Dtype is specified as argument to function)
+{v_1 : dtype, v_2: tensor} |= (v_1 <=8 ∧ (dtype_(v_2) <= 8) ∧ (dtype_(v_2) = v_1)) ∨ (v_1 = 0 ∧ dtype_(v_2) = 0) ∨ (v_1>=9 ∧ v_1<=10 ∧ dtype_(v_2) = v_1)
+>>
+Rule 138 (Ensure that if input is a floating number or int, then it needs to have a limited range, and they shouldn't exceed each other.)
+{v_1 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then (max(v_1) < 2147483647) else if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then (max(v_1) < 3.4028235e+38)
+>>
+Rule 139 (Checks both the shapes are consistent with one another.)
+{v_1 : tensor, v_2: tensor, v_3: tuple(int)} |= (ndim(v_1) >=0) ∧ (v_3.len = 0 ∨ ndim(v_1) = v_3.len) ∧ (shape(v_1, 0) >=0 ∨ shape(v_2, 0)>=0)
+>>
+Rule 140 (for order, only C, F, A and K strings are valid)
+{v_1 : str} |= (v_1 = "C") ∨ (v_1 = "F") ∨ (v_1 = "A") ∨ (v_1 = "K")
+>>
+Rule 144 (If shape is explicitly given then the len of the shape must be less than 32)
+{v_1: tuple(int)} |= (v_1.len < 32) ∧ (v_1.len > 0)
+>>
+Rule 147 (If output is explicitly set for string tensors then the fill value also has to be a string and has to be scalar)
+{v_1 : tensor, v_2 : tensor} |= if(dtype_(v_1) = 11) then (dtype_(v_2) = 11) ∧ (ndim(v_2) = 0)
+>>
+Rule 148 (Ensure that if input is a floating number or int, then it needs to have a limited range, and they shouldn't exceed each other (limiting it by max value which is int))
+{v_1 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then (max(v_1) < 2147483647) else if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then (max(v_1) < 2147483647)
+>>
+Rule 149 (Checks both the shapes are consistent with one another: shapes have to be the same if shape tuple is not specified.)
+{v_1 : tensor, v_2: tensor, v_3: tuple(int)} |= (ndim(v_1) >=0) ∧ (v_3.len = 0 ∨ ndim(v_1) = v_3.len) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 150 (If the shape is a tuple then each entry of tuple should have a value above or equal to 0)
+{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i]>=0
+>>
+Rule 153 (If the dtype parameter is explicitly passed then that should be same as input. Here also checking for broadcasting capabilities, and use dtype_ func.)
+{v_1 : tensor, v_2: dtype} |= if (ndim(v_1) = 0) then (dtype_(v_1) = v_2)
+>>
+Rule 156 (Ensure that if input is a floating number or int, then it needs to have a limited range, and they shouldn't exceed each other; Checking just the range of int for simplicity. Limiting the fill_value and hence checking it using max(v_2))
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then (max(v_2) < 2147483647) else if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then (max(v_2) < 2147483647)
+>>
+Rule 157 (Checks both the shapes are consistent with one another for broadcasting capabilities when shapes have dim > 0, shape is equal or any shape is 1 )
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1)>0 ∧ ndim(v_2)>0) then  ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i -1 < 0) ∨ (ndim(v_2) - i -1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))

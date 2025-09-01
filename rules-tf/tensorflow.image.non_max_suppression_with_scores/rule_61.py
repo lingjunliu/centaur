@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Boxes and scores tensor must have compatible data types. (Rule 61)
+# If soft_nms_sigma is greater than 0.0, iou_threshold is not used, otherwise iou_threshold must be between 0 and 1 (Rule 61)
 
 rule_61 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7)) if n else
-          And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7))
+    s.add(Not(If(v["arg2_value"] > 0.0, True, And(v["arg1_value"] >= 0, v["arg1_value"] <= 1))) if n else
+          If(v["arg2_value"] > 0.0, True, And(v["arg1_value"] >= 0, v["arg1_value"] <= 1)))
 )
 
 def rule_61_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_61_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, (float, np.floating)):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not isinstance(arg2, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_value = Real('arg1_value')
+        arg2_value = Real('arg2_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 61
-        rule_61(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_61(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_61(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_61(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the first tensor has ndim=2 and the second tensor has ndim=2, the resulting tensor has ndim=2. (Rule 11)
+# If one tensor has ndim=1, the other should have ndim>=2 (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If((And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 2)), True, False)) if n else
-          If((And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 2)), True, False))
+    s.add(Not(If(v["arg1_ndim"] == 1, v["arg2_ndim"] >= 2, If(v["arg2_ndim"] == 1, v["arg1_ndim"] >= 2, True))) if n else
+          If(v["arg1_ndim"] == 1, v["arg2_ndim"] >= 2, If(v["arg2_ndim"] == 1, v["arg1_ndim"] >= 2, True)))
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

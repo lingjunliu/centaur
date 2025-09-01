@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Number of dimensions should be reasonable. (Rule 40)
+# Check for finiteness by comparing against max and min values specific to each supported dtype. (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] < 7) if n else
-          v["arg1_ndim"] < 7)
+    s.add(Not(If(v["arg1_dtype"] == 1, And(Select(v["arg1_range"], 0) >= -128, Select(v["arg1_range"], 1) <= 127), If(v["arg1_dtype"] == 2, And(Select(v["arg1_range"], 0) >= -32768, Select(v["arg1_range"], 1) <= 32767), If(v["arg1_dtype"] == 3, And(Select(v["arg1_range"], 0) >= -2147483648, Select(v["arg1_range"], 1) <= 2147483647), If(v["arg1_dtype"] == 4, And(Select(v["arg1_range"], 0) >= -9223372036854775808, Select(v["arg1_range"], 1) <= 9223372036854775807), If(v["arg1_dtype"] == 5, And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 255), If(v["arg1_dtype"] == 6, And(Select(v["arg1_range"], 0) > -65504, Select(v["arg1_range"], 1) < 65504), If(v["arg1_dtype"] == 7, And(Select(v["arg1_range"], 0) > -3.4028235e+38, Select(v["arg1_range"], 1) < 3.4028235e+38), If(v["arg1_dtype"] == 8, And(Select(v["arg1_range"], 0) > -1.7976931348623157e+308, Select(v["arg1_range"], 1) < 1.7976931348623157e+308), If(v["arg1_dtype"] == 9, And(Select(v["arg1_range"], 0) > -3.4028235e+38, Select(v["arg1_range"], 1) < 3.4028235e+38), And(Select(v["arg1_range"], 0) > -1.7976931348623157e+308, Select(v["arg1_range"], 1) < 1.7976931348623157e+308))))))))))) if n else
+          If(v["arg1_dtype"] == 1, And(Select(v["arg1_range"], 0) >= -128, Select(v["arg1_range"], 1) <= 127), If(v["arg1_dtype"] == 2, And(Select(v["arg1_range"], 0) >= -32768, Select(v["arg1_range"], 1) <= 32767), If(v["arg1_dtype"] == 3, And(Select(v["arg1_range"], 0) >= -2147483648, Select(v["arg1_range"], 1) <= 2147483647), If(v["arg1_dtype"] == 4, And(Select(v["arg1_range"], 0) >= -9223372036854775808, Select(v["arg1_range"], 1) <= 9223372036854775807), If(v["arg1_dtype"] == 5, And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 255), If(v["arg1_dtype"] == 6, And(Select(v["arg1_range"], 0) > -65504, Select(v["arg1_range"], 1) < 65504), If(v["arg1_dtype"] == 7, And(Select(v["arg1_range"], 0) > -3.4028235e+38, Select(v["arg1_range"], 1) < 3.4028235e+38), If(v["arg1_dtype"] == 8, And(Select(v["arg1_range"], 0) > -1.7976931348623157e+308, Select(v["arg1_range"], 1) < 1.7976931348623157e+308), If(v["arg1_dtype"] == 9, And(Select(v["arg1_range"], 0) > -3.4028235e+38, Select(v["arg1_range"], 1) < 3.4028235e+38), And(Select(v["arg1_range"], 0) > -1.7976931348623157e+308, Select(v["arg1_range"], 1) < 1.7976931348623157e+308)))))))))))
 )
 
 def rule_40_func(arg1, solver=None, neg=False):
@@ -22,15 +22,18 @@ def rule_40_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 40
-        rule_40(solver, {'arg1_ndim': arg1_ndim})
+        rule_40(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_40(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_40(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)

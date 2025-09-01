@@ -1,66 +1,78 @@
 >>
-Rule 1 (input tensor must be of a supported type)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 1 (x must be a tensor with a supported dtype)
+{x : tensor} |= (dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) ∨ (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) ∨ (dtype_(x) = 9) ∨ (dtype_(x) = 10) ∨ (dtype_(x) = 0)
 >>
-Rule 3 (input tensor must be of a supported type represented as its dtype index)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 3 (The reciprocal of x should not result in overflow or infinity values if x is close to zero.)
+{x : tensor} |= min(x) > 0.0000001 ∨ max(x) < -0.0000001
 >>
-Rule 4 (input tensor cannot contain zero values when the data type is integer)
-{v_1 : tensor} |= if dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ 0
+Rule 6 (The dimensions of x must be greater than zero)
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
 >>
-Rule 5 (input tensor should not have any NaN values when the data type is float or complex)
-{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = "NaN"
+Rule 8 (x must have at least one dimension)
+{x : tensor} |= ndim(x) > 0
 >>
-Rule 7 (if the input tensor is complex, real and imaginary parts should not be both zero)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] = 0) ∨ (v_1[i] ≠ 0)
+Rule 9 (if x is complex, then imaginary part should not be too large compared to real part.)
+{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then max(x) < 10000000000.0
 >>
-Rule 8 (If any element is zero then the tensor is not valid.)
-{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0
+Rule 12 (If x is an integer tensor, it should not contain zero to avoid division by zero errors.)
+{x : tensor} |= if (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) then min(x) ≠ 0 ∧ max(x) ≠ 0
 >>
-Rule 9 (If any element is zero then the tensor is not valid when dtype is integer)
-{v_1 : tensor} |= if dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0
+Rule 13 (x must be a tensor with a supported dtype and avoid division by zero.)
+{x : tensor} |= ((dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) ∨ (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) ∨ (dtype_(x) = 9) ∨ (dtype_(x) = 10) ∨ (dtype_(x) = 0)) ∧ if (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) then min(x) ≠ 0 ∧ max(x) ≠ 0
 >>
-Rule 11 (When the dtype is complex64 or complex128, any element should not be zero.)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ 0
+Rule 15 (x must be a tensor with a supported dtype and avoid division by zero for integer types. Additionally, the dimensions must be positive)
+{x : tensor} |= ((dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) ∨ (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) ∨ (dtype_(x) = 9) ∨ (dtype_(x) = 10) ∨ (dtype_(x) = 0)) ∧ if (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) then min(x) ≠ 0 ∧ max(x) ≠ 0 ∧ ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
 >>
-Rule 13 (When the dtype is float or complex, the absolute value of any element should be greater than a small number)
-{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ∀i ∈ [0, shape(v_1, 0) - 1] : 0 < 1e-6
+Rule 16 (If the dtype is bfloat16 or half, the tensor should not contain NaN or Inf values.)
+{x : tensor} |= if (dtype_(x) = 6) ∨ (dtype_(x) = 7) then min(x) > -10000000000.0 ∧ max(x) < 10000000000.0
 >>
-Rule 14 (When the dtype is float or complex, no element should be zero.)
-{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ 0
+Rule 18 (If the dtype is int8, int16, int32, or int64, the tensor should not contain zero values)
+{x : tensor} |= if (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) then ∃i ∈ [0, ndim(x) - 1] : shape(x, i) > 0 ∧ ∀j ∈ [0, shape(x, i) - 1]: x[j] ≠ 0
 >>
-Rule 15 (The minimum value of input tensor must be greater than zero.)
-{v_1 : tensor} |= min(v_1) > 0
+Rule 21 (If the dtype is int8, int16, int32, or int64, the tensor should not contain zero values or near zero values if the tensor dtype is float.)
+{x : tensor} |= if (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1]: x[j] ≠ 0 else if (dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1]: x[j] > 0.0000001 ∨ x[j] < -0.0000001
 >>
-Rule 16 (The input must be a tensor with a supported dtype.)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 22 (Shape of the tensor x should be valid (positive))
+{x : tensor} |= ndim(x) > 0 ∧ ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
 >>
-Rule 17 (When the input tensor is int8, int16, int32, or int64, all element values should be within a safe range to avoid overflow during reciprocal calculation.)
-{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ -1 ∧ v_1[i] ≠ 0 ∧ v_1[i] ≠ 1
+Rule 23 (x must be a tensor with a supported dtype. Additionally, the dimensions must be positive)
+{x : tensor} |= ((dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) ∨ (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) ∨ (dtype_(x) = 9) ∨ (dtype_(x) = 10) ∨ (dtype_(x) = 0)) ∧ ndim(x) > 0 ∧ ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
 >>
-Rule 18 (When the dtype is float16, float32, or float64, the tensor should not contain inf values.)
-{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = "inf"
+Rule 25 (For complex types, the magnitude should be within a reasonable bound)
+{x : tensor} |= if (dtype_(x) = 9) ∨ (dtype_(x) = 10) then min(x) > -100000.0 ∧ max(x) < 100000.0
 >>
-Rule 20 (When the dtype is float16, float32, or float64, the tensor should not contain inf or nan values.)
-{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then ∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] ≠ "inf") ∧ (v_1[i] ≠ "NaN")
+Rule 27 (If the dtype is int8, int16, int32, or int64, the tensor should not contain zero values. If the tensor dtype is float, ensure no near-zero values to prevent division by zero.Shape must be greater than 0.)
+{x : tensor} |= if (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1]: x[j] ≠ 0 else if (dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1]: x[j] > 0.0000001 ∨ x[j] < -0.0000001 ∧ ndim(x) > 0 ∧ ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
 >>
-Rule 21 (The shape of the output tensor should be the same as the input tensor.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, i)
+Rule 31 (Magnitude check for complex types)
+{x : tensor} |= if (dtype_(x) = 9) ∨ (dtype_(x) = 10) then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1] : (x[j] * x[j]) < 10000000000.0
 >>
-Rule 22 (The operation is not defined for boolean tensors.)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 32 (x must be a tensor with a supported dtype, shape must be greater than 0, and for complex types, magnitude within bounds.)
+{x : tensor} |= ((dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) ∨ (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) ∨ (dtype_(x) = 9) ∨ (dtype_(x) = 10) ∨ (dtype_(x) = 0)) ∧ ndim(x) > 0 ∧ ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0 ∧ if (dtype_(x) = 9) ∨ (dtype_(x) = 10) then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1] : (x[j] * x[j]) < 10000000000.0
 >>
-Rule 23 (When dtype is bfloat16 or half, no element should be zero.)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ 0
+Rule 35 (Prevent division by zero for integer or float types. Magnitude check for complex types)
+{x : tensor} |= if (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1]: x[j] ≠ 0 else if (dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1]: x[j] > 0.0000001 ∨ x[j] < -0.0000001 else if (dtype_(x) = 9) ∨ (dtype_(x) = 10) then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1] : (x[j] * x[j]) < 10000000000.0
 >>
-Rule 24 (The input tensor is valid.)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 36 (x must be a tensor with a supported dtype.)
+{x : tensor} |= ((dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) ∨ (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) ∨ (dtype_(x) = 9) ∨ (dtype_(x) = 10) ∨ (dtype_(x) = 0))
 >>
-Rule 25 (When dtype is half, no element should be zero.)
-{v_1 : tensor} |= if dtype_(v_1) = 1 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ 0
+Rule 41 (x must be a tensor with a supported dtype,valid shape, and prevents zero/near-zero values based on the dtype)
+{x : tensor} |= ((dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) ∨ (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) ∨ (dtype_(x) = 9) ∨ (dtype_(x) = 10) ∨ (dtype_(x) = 0)) ∧ ndim(x) > 0 ∧ ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0 ∧ if (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1]: x[j] ≠ 0 else if (dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1]: x[j] > 0.0000001 ∨ x[j] < -0.0000001 else if (dtype_(x) = 9) ∨ (dtype_(x) = 10) then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1] : (x[j] * x[j]) < 10000000000.0
 >>
-Rule 27 (For floating point dtypes, large values will lead to low precision)
-{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then max(v_1) < 1000000
+Rule 43 (If dtype is half or bfloat16, ensure the tensor does not contain extremely large values, which would lead to overflow. )
+{x : tensor} |= if (dtype_(x) = 6) ∨ (dtype_(x) = 7) then min(x) > -10000000.0 ∧ max(x) < 10000000.0
 >>
-Rule 28 (For integer dtypes, absolute values of elements should be less than a limit to avoid overflow)
-{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then max(v_1) < 1000000
+Rule 44 (x must be a tensor with a supported dtype, valid shape, and value constraints to prevent division by zero and overflow)
+{x : tensor} |= ((dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) ∨ (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) ∨ (dtype_(x) = 9) ∨ (dtype_(x) = 10) ∨ (dtype_(x) = 0)) ∧ ndim(x) > 0 ∧ ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0 ∧ (if (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1]: x[j] ≠ 0 else if (dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1]: x[j] > 0.0000001 ∨ x[j] < -0.0000001 else if (dtype_(x) = 9) ∨ (dtype_(x) = 10) then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1] : (x[j] * x[j]) < 10000000000.0) ∧ (if (dtype_(x) = 6) ∨ (dtype_(x) = 7) then min(x) > -10000000.0 ∧ max(x) < 10000000.0)
+>>
+Rule 46 (x must be a tensor of supported type, dimension size must be > 0)
+{x : tensor} |= ((dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) ∨ (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) ∨ (dtype_(x) = 9) ∨ (dtype_(x) = 10) ∨ (dtype_(x) = 0)) ∧ ndim(x) > 0
+>>
+Rule 55 (x:tensor shape should have positive dimension size)
+{x : tensor} |=  ndim(x) > 0 ∧ ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
+>>
+Rule 59 (x: tensor must have non-zero values to prevent divide by zero, appropriate magnitude to prevent overflow)
+{x : tensor} |= if (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1]: x[j] ≠ 0 else if (dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1]: x[j] > 0.0000001 ∨ x[j] < -0.0000001 else if (dtype_(x) = 9) ∨ (dtype_(x) = 10) then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1] : (x[j] * x[j]) < 10000000000.0 else if (dtype_(x) = 6) ∨ (dtype_(x) = 7) then min(x) > -10000000.0 ∧ max(x) < 10000000.0
+>>
+Rule 61 (x: tensor has supported data type and prevents zero division)
+{x : tensor} |= ((dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) ∨ (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) ∨ (dtype_(x) = 9) ∨ (dtype_(x) = 10) ∨ (dtype_(x) = 0)) ∧ if (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1]: x[j] ≠ 0 else if (dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1]: x[j] > 0.0000001 ∨ x[j] < -0.0000001 else if (dtype_(x) = 9) ∨ (dtype_(x) = 10) then ∀i ∈ [0, ndim(x) - 1] : ∀j ∈ [0, shape(x, i) - 1] : (x[j] * x[j]) < 10000000000.0

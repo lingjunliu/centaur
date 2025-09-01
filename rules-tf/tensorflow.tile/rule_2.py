@@ -8,8 +8,8 @@ from z3 import *
 # length of multiples must be the same as the number of dimensions in input (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg2_shape"], 0) == v["arg1_ndim"]) if n else
-          Select(v["arg2_shape"], 0) == v["arg1_ndim"])
+    s.add(Not(v["arg1_ndim"] == Select(v["arg2_shape"], 0)) if n else
+          v["arg1_ndim"] == Select(v["arg2_shape"], 0))
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

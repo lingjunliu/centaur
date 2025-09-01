@@ -5,40 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Number of scales used is the length of the power_factors list (Rule 10)
+# power_factors should have a length within reasonable bounds, e.g., <= 10 (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_length"] > 0, v["arg1_length"] <= Select(v["arg2_shape"], v["arg2_ndim"] - 1))) if n else
-          And(v["arg1_length"] > 0, v["arg1_length"] <= Select(v["arg2_shape"], v["arg2_ndim"] - 1)))
+    s.add(Not(v["arg1_length"] <= 10) if n else
+          v["arg1_length"] <= 10)
 )
 
-def rule_10_func(arg1, arg2, solver=None, neg=False):
+def rule_10_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all(isinstance(e, (float, np.floating)) for e in arg1)):
-            return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg1, tuple) and all(isinstance(e, (float, np.floating)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_length = Int('arg1_length')
-        arg2_ndim = Int('arg2_ndim')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_length == len(arg1))
-        solver.add(arg2_ndim == arg2.ndim)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 10
-        rule_10(solver, {'arg1_length': arg1_length, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape})
+        rule_10(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_10(solver, {'arg1_length': arg1['length'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']}, neg)
+        rule_10(solver, {'arg1_length': arg1['length']}, neg)

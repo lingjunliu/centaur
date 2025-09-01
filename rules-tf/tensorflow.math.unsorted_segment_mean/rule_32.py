@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if data has shape [d1, d2, ...] then segment_ids should have shape [d1, d2, ... dk], where k<= number of dimensions in data (Rule 32)
+# If segment_ids has rank > 1, then require data rank to be at least 3 to avoid potential reshape issues (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_ndim"] <= v["arg1_ndim"]) if n else
-          v["arg2_ndim"] <= v["arg1_ndim"])
+    s.add(Not(If(v["arg2_ndim"] > 1, v["arg1_ndim"] > 2, True)) if n else
+          If(v["arg2_ndim"] > 1, v["arg1_ndim"] > 2, True))
 )
 
 def rule_32_func(arg1, arg2, solver=None, neg=False):

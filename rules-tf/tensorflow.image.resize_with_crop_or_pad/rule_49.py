@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the image is 3D, the sum of height and width should be greater than 0 (Rule 49)
+# Limiting height, width, and channels of the input image to reasonable values. (Rule 49)
 
 rule_49 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) + Select(v["arg1_shape"], 1) > 0, False)) if n else
-          If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) + Select(v["arg1_shape"], 1) > 0, False))
+    s.add(Not(And(And(Select(v["arg1_shape"], v["arg1_ndim"] - 3) < 2048, Select(v["arg1_shape"], v["arg1_ndim"] - 2) < 2048), Select(v["arg1_shape"], v["arg1_ndim"] - 1) < 512)) if n else
+          And(And(Select(v["arg1_shape"], v["arg1_ndim"] - 3) < 2048, Select(v["arg1_shape"], v["arg1_ndim"] - 2) < 2048), Select(v["arg1_shape"], v["arg1_ndim"] - 1) < 512))
 )
 
 def rule_49_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_49_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 49
-        rule_49(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_49(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_49(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_49(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

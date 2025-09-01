@@ -5,37 +5,48 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# features dtype and out_type dtype must be a quantized type (Rule 8)
+# features, min_features, max_features should have compatible shapes for quantization (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(And(Or(Or(Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 5), v["arg2_value"] == 3), v["arg2_value"] == 2), v["arg2_value"] == 14), Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 5), v["arg1_dtype"] == 3), v["arg1_dtype"] == 2), v["arg1_dtype"] == 14))) if n else
-          And(Or(Or(Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 5), v["arg2_value"] == 3), v["arg2_value"] == 2), v["arg2_value"] == 14), Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 5), v["arg1_dtype"] == 3), v["arg1_dtype"] == 2), v["arg1_dtype"] == 14)))
+    s.add(Not(And(And(And((v["arg1_ndim"] == v["arg2_ndim"]), (v["arg1_ndim"] == v["arg3_ndim"])), (Select(v["arg2_shape"], 0) == 1)), (Select(v["arg3_shape"], 0) == 1))) if n else
+          And(And(And((v["arg1_ndim"] == v["arg2_ndim"]), (v["arg1_ndim"] == v["arg3_ndim"])), (Select(v["arg2_shape"], 0) == 1)), (Select(v["arg3_shape"], 0) == 1)))
 )
 
-def rule_8_func(arg1, arg2, solver=None, neg=False):
+def rule_8_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
+        if not isinstance(arg2, np.ndarray):
+            return False
+        if not isinstance(arg3, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_value = Int('arg2_value')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_ndim = Int('arg2_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg3_ndim = Int('arg3_ndim')
+        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg3_ndim == arg3.ndim)
+        for i in range(arg3.ndim):
+            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
 
         # Constraints for rule 8
-        rule_8(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
+        rule_8(solver, {'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_shape': arg3_shape, 'arg3_ndim': arg3_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_8(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)
+        rule_8(solver, {'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_shape': arg3['shape'], 'arg3_ndim': arg3['ndim']}, neg)

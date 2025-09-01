@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If indices.shape[-1] > tensor.rank, the condition is false. (Rule 14)
+# The rank of indices must be less than or equal to the rank of tensor + 1 (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg2_shape"], v["arg2_ndim"] - 1) > v["arg1_ndim"], False, False)) if n else
-          If(Select(v["arg2_shape"], v["arg2_ndim"] - 1) > v["arg1_ndim"], False, False))
+    s.add(Not(v["arg2_ndim"] <= v["arg1_ndim"] + 1) if n else
+          v["arg2_ndim"] <= v["arg1_ndim"] + 1)
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):
@@ -27,18 +27,15 @@ def rule_14_func(arg1, arg2, solver=None, neg=False):
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
         arg2_ndim = Int('arg2_ndim')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
         solver.add(arg2_ndim == arg2.ndim)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 14
-        rule_14(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape})
+        rule_14(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_14(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']}, neg)
+        rule_14(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)

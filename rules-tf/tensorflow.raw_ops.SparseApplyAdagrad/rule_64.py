@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if indices are provided and update_slots is false raise exception (Rule 64)
+# if var and indices are tensors, and grad is a scalar, then indices must have int32 or int64 dtype (Rule 64)
 
 rule_64 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] == 1, v["arg2_value"] == False), False, False)) if n else
-          If(And(v["arg1_ndim"] == 1, v["arg2_value"] == False), False, False))
+    s.add(Not(If(v["arg1_ndim"] == 0, (Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 4)), True)) if n else
+          If(v["arg1_ndim"] == 0, (Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 4)), True))
 )
 
 def rule_64_func(arg1, arg2, solver=None, neg=False):
@@ -20,22 +20,22 @@ def rule_64_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, bool):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg2_value = Bool('arg2_value')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_value == arg2)
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 64
-        rule_64(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_64(solver, {'arg1_ndim': arg1_ndim, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_64(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)
+        rule_64(solver, {'arg1_ndim': arg1['ndim'], 'arg2_dtype': arg2['dtype']}, neg)

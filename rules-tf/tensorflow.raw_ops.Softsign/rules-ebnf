@@ -1,87 +1,108 @@
 >>
-Rule 1 (features should have a valid dtype)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 1 (features must be of type float16, float32, or float64, which are types 6, 7, and 8 respectively)
+{features : tensor} |= dtype_(features) = 6 ∨ dtype_(features) = 7 ∨ dtype_(features) = 8
 >>
-Rule 2 (features should have a valid dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12
+Rule 3 (The output tensor has the same dtype as the input tensor 'features')
+{features : tensor} |= dtype_(features) = dtype_(features)
 >>
-Rule 3 (features must be at least rank 0)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 5 (feature tensor must have more than zero dimensions)
+{features : tensor} |= ndim(features) > 0
 >>
-Rule 5 (feature dtype cannot be int or bool)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
+Rule 6 (features must be of type float16, float32, float64 or bfloat16 - type 14)
+{features : tensor} |= dtype_(features) = 6 ∨ dtype_(features) = 7 ∨ dtype_(features) = 8 ∨ dtype_(features) = 14
 >>
-Rule 6 (features shape should be positive)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 7 (The shape of feature tensor cannot be empty)
+{features : tensor} |= ∀i ∈ [0, ndim(features) - 1] : shape(features, i) > 0
 >>
-Rule 7 (if features is rank 0, then the shape is 1)
-{v_1 : tensor} |= if ndim(v_1) = 0 then shape(v_1, 0) = 1
+Rule 9 (The shape of feature tensor must be defined, i.e., each dimension must be greater than 0 or unknown (-1))
+{features : tensor} |= ∀i ∈ [0, ndim(features) - 1] : shape(features, i) > 0 ∨ shape(features, i) = -1
 >>
-Rule 8 (If features is float16, the min/max is within range)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > -65504 ∧ max(v_1) < 65504
+Rule 10 (features must be of type float16, bfloat16, float32, or float64 - type 6, 14, 7, 8 respectively)
+{features : tensor} |= dtype_(features) = 6 ∨ dtype_(features) = 14 ∨ dtype_(features) = 7 ∨ dtype_(features) = 8
 >>
-Rule 9 (shape of features must be less than 8 dimensions)
-{v_1 : tensor} |= ndim(v_1) < 8
+Rule 11 (feature tensor must have at least one dimension)
+{features : tensor} |= ndim(features) ≥ 1
 >>
-Rule 10 (features can be a scalar)
-{v_1 : tensor} |= ndim(v_1) = 0 ∨ (ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+Rule 13 (If the feature tensor has a shape defined, then the product of the shape must not be zero)
+{features : tensor} |= if ndim(features) > 0 then ∃i ∈ [0, ndim(features) - 1] : shape(features, i) > 0
 >>
-Rule 11 (feature's minimum value must be less than or equal to the maximum value)
-{v_1 : tensor} |= min(v_1) ≤ max(v_1)
+Rule 15 (The feature tensor's dimensions cannot all be unknown if a shape is defined)
+{features : tensor} |= if ndim(features) > 0 then ∃i ∈ [0, ndim(features) - 1] : shape(features, i) ≠ -1
 >>
-Rule 12 (if feature's dtype is bfloat16, then min/max must be in its range)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > -3.3895313878570575e+38 ∧ max(v_1) < 3.3895313878570575e+38
+Rule 17 (The shape of the features tensor should be less than or equal to 8 dimensions)
+{features : tensor} |= ndim(features) ≤ 8
 >>
-Rule 13 (if feature's dtype is float32, then min/max must be in its range)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then min(v_1) > -3.4028234663852886e+38 ∧ max(v_1) < 3.4028234663852886e+38
+Rule 19 (if the features tensor is a scalar, the shape is an empty list)
+{features : tensor} |= if ndim(features) = 0 then ∀i ∈ [0, ndim(features)-1] : false
 >>
-Rule 14 (if feature's dtype is float64, then min/max must be in its range)
-{v_1 : tensor} |= if dtype_(v_1) = 8 then min(v_1) > -1.7976931348623157e+308 ∧ max(v_1) < 1.7976931348623157e+308
+Rule 21 (if features tensor has at least one dimension, then all dimensions must be greater than 0)
+{features : tensor} |= if ndim(features) ≥ 1 then ∀i ∈ [0, ndim(features) - 1] : shape(features, i) > 0
 >>
-Rule 15 (if feature's dtype is not float16, bfloat16, float32, or float64 then it's false)
-{v_1 : tensor} |= if dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 then false
+Rule 25 (The shape of the features tensor must be smaller than 2^31)
+{features : tensor} |= ∀i ∈ [0, ndim(features) - 1] : shape(features, i) < 2147483648
 >>
-Rule 16 (check if all elements in features are finite)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∨ min(v_1) ≠ "inf" ∧ max(v_1) ≠ "inf" ∧ min(v_1) ≠ "-inf" ∧ max(v_1) ≠ "-inf"
+Rule 27 (If the feature tensor has unknown dimensions then its rank is greater than or equal to 0)
+{features : tensor} |= ndim(features) ≥ 0
 >>
-Rule 17 (if features contains NaN, the result will be NaN)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ (min(v_1) = "nan" ∨ max(v_1) = "nan")
+Rule 31 (If features tensor is not scalar, then all dimensions must be defined)
+{features : tensor} |= if ndim(features) ≠ 0 then ∀i ∈ [0, ndim(features) - 1] : shape(features, i) ≠ -1
 >>
-Rule 18 (check that features is not a complex number)
-{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Rule 33 (The dimensions of the features tensor must be a valid integer number)
+{features : tensor} |= ∀i ∈ [0, ndim(features) - 1] : shape(features, i) ≥ -10000000 ∧ shape(features, i) ≤ 10000000
 >>
-Rule 19 (check if features contains Inf, the result will be 1 or -1)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ ((min(v_1) = "inf" ∨ max(v_1) = "inf") ∨ (min(v_1) = "-inf" ∨ max(v_1) = "-inf"))
+Rule 35 (If the shape of features is fully defined, then the product of the dimensions must fit in int64)
+{features : tensor} |= if ndim(features) > 0 ∧ ∀i ∈ [0, ndim(features) - 1] : shape(features, i) ≠ -1 then true
 >>
-Rule 20 (features cannot be bool)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 41 (If feature is of type bfloat16, the hardware must support it.)
+{features: tensor} |= if dtype_(features) = 14 then true
 >>
-Rule 21 (features cannot be int)
-{v_1 : tensor} |= dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
+Rule 47 (The features tensor must not have a dimension size equal to zero)
+{features: tensor} |= (∀i ∈ [0, ndim(features)-1] : shape(features, i) ≠ 0) ∨ ndim(features) = 0
 >>
-Rule 22 (features cannot be string)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
+Rule 49 (If features tensor is not scalar, then it should not be empty i.e. product of dimension > 0)
+{features: tensor} |= if ndim(features) > 0 then ∃i ∈ [0, ndim(features) - 1] : shape(features, i) > 0
 >>
-Rule 23 (features cannot be dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 12
+Rule 51 (if features tensor has rank 0, then all shape dimensions are undefined)
+{features : tensor} |= if ndim(features) = 0 then true
 >>
-Rule 24 (If features is empty tensor, then min and max are undefined)
-{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then min(v_1) = 0 ∧ max(v_1) = 0
+Rule 55 (The rank of features tensor must be in the range 0 to 8)
+{features : tensor} |= 0 ≤ ndim(features) ∧ ndim(features) ≤ 8
 >>
-Rule 26 (features cannot be list)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then true else if dtype_(v_1) = 1 then true else if dtype_(v_1) = 2 then true else if dtype_(v_1) = 3 then true else if dtype_(v_1) = 4 then true else if dtype_(v_1) = 5 then true else if dtype_(v_1) = 6 then true else if dtype_(v_1) = 7 then true else if dtype_(v_1) = 8 then true else if dtype_(v_1) = 9 then true else if dtype_(v_1) = 10 then true else if dtype_(v_1) = 11 then true else if dtype_(v_1) = 12 then true else false
+Rule 57 (If the features tensor has dimensions defined, then the number of elements must be representable as an int64)
+{features : tensor} |= if ndim(features) > 0 ∧ ∀i ∈ [0, ndim(features)-1] : shape(features,i) ≠ -1 then true
 >>
-Rule 28 (output tensor has same dtype as input)
-{v_1 : tensor} |= dtype_(v_1) = dtype_(v_1)
+Rule 59 (If the shape of the feature tensor is not fully known, at least one dimension must be defined)
+{features: tensor} |= if ndim(features) > 0 then ∃i ∈ [0, ndim(features) - 1] : shape(features, i) ≠ -1
 >>
-Rule 29 (if rank is 0, dtype must be specified)
-{v_1 : tensor} |= if ndim(v_1) = 0 then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 63 (If features tensor has a rank > 0, and the shape is defined, the number of elements must be at least 1.)
+{features : tensor} |= if (ndim(features) > 0) ∧ (∀i ∈ [0, ndim(features)-1] : shape(features, i) ≠ -1) then ∃i ∈ [0, ndim(features) - 1] : shape(features, i) > 0
 >>
-Rule 32 (features has no dimensions with size zero)
-{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∨ ndim(v_1) = 0
+Rule 65 (If all dimensions of features tensor are known and not scalar, total size must not be zero)
+{features: tensor} |= if ndim(features) > 0 ∧ ∀i ∈ [0, ndim(features) - 1] : shape(features, i) > 0 then true else if ndim(features) = 0 then true
 >>
-Rule 33 (feature values cannot be negative infinity for safe division)
-{v_1 : tensor} |= min(v_1) ≠ "-inf"
+Rule 67 (The size of each dimension should not exceed limit)
+{features: tensor} |= ∀i ∈ [0, ndim(features) - 1] : shape(features, i) < 2147483647
 >>
-Rule 34 (feature values cannot be positive infinity for safe division)
-{v_1 : tensor} |= max(v_1) ≠ "inf"
+Rule 69 (If the shape of the features is known, then all dimensions must be greater or equal than -1)
+{features: tensor} |= if ndim(features) > 0 then ∀i ∈ [0, ndim(features) - 1] : shape(features, i) ≥ -1
+>>
+Rule 71 (If features tensor has a rank > 0, the product of the defined dimensions cannot overflow)
+{features : tensor} |= if (ndim(features) > 0) ∧ (∀i ∈ [0, ndim(features)-1] : shape(features, i) ≠ -1) then true
+>>
+Rule 75 (If features tensor has at least one dimension and if the first dimension is defined, then its size must be greater than zero)
+{features : tensor} |= if ndim(features) > 0 then if shape(features, 0) ≠ -1 then shape(features, 0) > 0
+>>
+Rule 77 (If features tensor has at least one dimension and all are defined to be non-negative, at least one must be positive)
+{features : tensor} |= if (ndim(features) > 0) ∧ (∀i ∈ [0, ndim(features)-1] : shape(features, i) ≥ 0) then ∃i ∈ [0, ndim(features) - 1] : shape(features, i) > 0
+>>
+Rule 81 (Shape of the features tensor must be defined and must not be NaN)
+{features : tensor} |= ∀i ∈ [0, ndim(features) - 1] : shape(features, i) = shape(features, i)
+>>
+Rule 83 (If features tensor has any dimensions defined, they all should be defined )
+{features : tensor} |= if ∃i ∈ [0, ndim(features) - 1] : shape(features, i) ≠ -1 then ∀i ∈ [0, ndim(features) - 1] : shape(features, i) ≠ -1
+>>
+Rule 89 (feature must be a real tensor)
+{features : tensor} |= dtype_(features) ≠ 9 ∧ dtype_(features) ≠ 10
+>>
+Rule 93 (if features is rank > 0 then all dimensions should be defined, and the rank shouldn't be greater than 8)
+{features : tensor} |= if ndim(features) > 0 then (∀i ∈ [0, ndim(features) - 1] : shape(features, i) ≠ -1) ∧ ndim(features) ≤ 8

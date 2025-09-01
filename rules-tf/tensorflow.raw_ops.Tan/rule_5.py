@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If tensor dtype is complex, then the real part must also be a float-compatible type (Rule 5)
+# x must be a bfloat16, half, float32, float64, complex64, or complex128 which corresponds to indices 6, 7, 8, 9, 10 (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), False)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), False))
+    s.add(Not(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)) if n else
+          Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10))
 )
 
 def rule_5_func(arg1, solver=None, neg=False):

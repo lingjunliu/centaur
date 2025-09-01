@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Number of buckets cannot exceed maximum integer value (Rule 29)
+# num_buckets should be significantly smaller than the number of possible strings (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 2147483647) if n else
-          v["arg1_value"] < 2147483647)
+    s.add(Not(v["arg1_value"] < 1000000000) if n else
+          v["arg1_value"] < 1000000000)
 )
 
 def rule_29_func(arg1, solver=None, neg=False):

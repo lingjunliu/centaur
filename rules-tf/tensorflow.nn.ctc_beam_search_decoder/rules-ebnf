@@ -1,93 +1,183 @@
 >>
-Rule 1 (inputs tensor must be 3-dimensional)
-{v_1 : tensor} |= ndim(v_1) = 3
+Rule 1 (sequence_length's length should be equal to batch_size)
+{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) = shape(v_1, 1)
 >>
-Rule 2 (sequence_length tensor must be 1-dimensional)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 2 (beam_width must be at least 1)
+{v_1 : int} |= v_1 ≥ 1
 >>
-Rule 3 (beam_width must be non-negative)
+Rule 3 (top_paths must be greater than or equal to 0)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 5 (top_paths must be less than or equal to beam_width)
+Rule 4 (top_paths must be less than or equal to beam_width)
 {v_1 : int, v_2 : int} |= v_1 ≤ v_2
 >>
-Rule 6 (sequence_length must be of type int32)
+Rule 5 (inputs must be a 3-dimensional tensor)
+{v_1 : tensor} |= ndim(v_1) = 3
+>>
+Rule 6 (sequence_length must be a 1-dimensional tensor)
+{v_1 : tensor} |= ndim(v_1) = 1
+>>
+Rule 7 (sequence_length must have int32 dtype)
 {v_1 : tensor} |= dtype_(v_1) = 3
 >>
-Rule 7 (inputs must be of type float)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 8 (inputs must be a float tensor)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 8 (batch size of inputs and sequence_length must match)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = shape(v_2, 0)
->>
-Rule 9 (number of classes must be greater than 0)
+Rule 9 (inputs shape[2] must be greater than 0)
 {v_1 : tensor} |= shape(v_1, 2) > 0
 >>
-Rule 10 (The maximum time of the input tensor must be greater than 0)
+Rule 10 (inputs shape[0] must be greater than 0)
 {v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 11 (batch size of the input tensor must be greater than 0)
+Rule 11 (inputs shape[1] must be greater than 0)
 {v_1 : tensor} |= shape(v_1, 1) > 0
 >>
-Rule 12 (Number of classes in inputs tensor must be greater than 1)
-{v_1 : tensor} |= shape(v_1, 2) > 1
->>
-Rule 13 (sequence length must be less or equal to max_time of the input tensor)
-{v_1 : tensor, v_2 : tensor} |= max(v_2) ≤ shape(v_1, 0)
->>
-Rule 14 (beam_width must be greater than 0)
-{v_1 : int} |= v_1 > 0
->>
-Rule 15 (sequence length cannot be an empty tensor)
-{v_1 : tensor} |= ndim(v_1) > 0 ∧ shape(v_1, 0) > 0
->>
-Rule 16 (top_paths cannot be greater than the batch size)
-{v_1 : int, v_2 : tensor} |= v_1 ≤ shape(v_2, 1)
->>
-Rule 17 (batch size must be greater than 0 for both input and sequence_length)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) > 0 ∧ shape(v_2, 0) > 0
->>
-Rule 20 (sequence length values must be non-negative)
-{v_1 : tensor} |= min(v_1) ≥ 0
->>
-Rule 21 (top_paths can be zero only if beam_width is also zero)
-{v_1 : int, v_2 : int} |= if v_1 = 0 then v_2 = 0
->>
-Rule 24 (sequence length should be a vector of int32)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ dtype_(v_1) = 3
->>
-Rule 25 (inputs must be a 3-D tensor of floats)
-{v_1 : tensor} |= ndim(v_1) = 3 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
->>
-Rule 27 (if top_paths is greater than zero, then beam_width must also be greater than zero)
-{v_1 : int, v_2 : int} |= if v_1 > 0 then v_2 > 0
->>
-Rule 28 (max_time should be greater than or equal to 1)
-{v_1 : tensor} |= shape(v_1, 0) ≥ 1
->>
-Rule 29 (number of classes should be greater than or equal to 1)
-{v_1 : tensor} |= shape(v_1, 2) ≥ 1
->>
-Rule 30 (top_paths must be less than or equal to the batch size)
-{v_1 : int, v_2 : tensor} |= v_1 ≤ shape(v_2, 0)
->>
-Rule 31 (all sequence lengths must be less than or equal to max_time)
+Rule 12 (sequence_length values must be less than or equal to max_time)
 {v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ shape(v_1, 0)
 >>
-Rule 36 (if beam_width is 1, then it is equivalent to greedy search)
-{v_1 : int} |= if v_1 = 1 then true
+Rule 13 (sequence_length values must be non-negative)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
 >>
-Rule 40 (sequence_length must be a 1-D tensor with int32 values and non-negative elements)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ dtype_(v_1) = 3 ∧ min(v_1) ≥ 0
+Rule 14 (sequence_length's values must be of integer type)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
 >>
-Rule 41 (inputs tensor must be 3-D with float type and shape [max_time, batch_size, num_classes])
-{v_1 : tensor} |= ndim(v_1) = 3 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+Rule 15 (top_paths should be a positive integer)
+{v_1 : int} |= v_1 > 0
 >>
-Rule 42 (inputs is a 3D tensor, sequence_length is a 1D tensor, and batch size matches)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 3 ∧ ndim(v_2) = 1 ∧ shape(v_1, 1) = shape(v_2, 0)
+Rule 19 (beam_width and top_paths should be positive)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
 >>
-Rule 43 (if sequence_length is all zeros, then return the blank token only)
-{v_1 : tensor} |= if max(v_1) = 0 then true
+Rule 20 (inputs has a valid shape)
+{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
 >>
-Rule 46 (top_paths must be less than or equal to beam_width and beam_width must be less or equal to batch_size)
-{v_1 : int, v_2 : int, v_3 : tensor} |= v_1 ≤ v_2 ∧ v_2 <= shape(v_3, 1)
+Rule 22 (inputs shape[1] (batch_size) should match the sequence_length shape[0])
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = shape(v_2, 0)
+>>
+Rule 23 (beam_width must be less than or equal to the number of classes)
+{v_1 : int, v_2 : tensor} |= v_1 ≤ shape(v_2, 2)
+>>
+Rule 26 (top_paths should not be a very large number)
+{v_1 : int} |= v_1 < 100000
+>>
+Rule 28 (inputs must be a 3-D tensor with float32 or float64 dtype)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 35 (No rule can suppress this error. ValueError: Number of outputs is too big: -1. top_paths does not directly affect this error, but is included to avoid a 'redundant variables' error.)
+{top_paths: int} |= top_paths ≥ 0
+>>
+Rule 38 (No rule can suppress this error. ValueError: Number of outputs is too big: -1. Includes all parameters to satisfy grammar, even though only top_paths could possibly be relevant, but in reality it is probably an internal error.)
+{inputs: tensor, sequence_length: tensor, beam_width: int, top_paths: int} |= top_paths ≥ 0 ∧ ndim(inputs) > 0 ∧ ndim(sequence_length) > 0 ∧ beam_width ≥ 0
+>>
+Rule 39 (No rule can truly suppress this error. ValueError: Number of outputs is too big: -1. Includes all parameters to satisfy grammar but doesn't actually address the error)
+{inputs: tensor, sequence_length: tensor, beam_width: int, top_paths: int} |= ndim(inputs) = 3 ∧ ndim(sequence_length) = 1 ∧ beam_width > 0 ∧ top_paths ≥ 0
+>>
+Rule 40 (No rule can truly suppress this error. ValueError: Number of outputs is too big: -1. This is a last resort, as there's no feasible rule.)
+{inputs: tensor, sequence_length: tensor, beam_width: int, top_paths: int} |= ndim(inputs) > 0 ∧ shape(sequence_length, 0) > 0 ∧ beam_width > 0 ∧ top_paths ≥ 0 ∧ top_paths ≤ beam_width
+>>
+Rule 41 (sequence_length's length should be equal to batch_size)
+{inputs: tensor, sequence_length: tensor} |= shape(sequence_length, 0) = shape(inputs, 1)
+>>
+Rule 42 (beam_width must be at least 1)
+{beam_width: int} |= beam_width ≥ 1
+>>
+Rule 43 (top_paths must be greater than or equal to 0 and less than or equal to beam_width)
+{beam_width: int, top_paths: int} |= top_paths ≥ 0 ∧ top_paths ≤ beam_width
+>>
+Rule 44 (inputs must be a 3-dimensional tensor)
+{inputs: tensor} |= ndim(inputs) = 3
+>>
+Rule 45 (sequence_length must be a 1-dimensional tensor)
+{sequence_length: tensor} |= ndim(sequence_length) = 1
+>>
+Rule 46 (sequence_length must have int32 dtype)
+{sequence_length: tensor} |= dtype_(sequence_length) = 3
+>>
+Rule 47 (inputs must be a float tensor)
+{inputs: tensor} |= dtype_(inputs) = 7 ∨ dtype_(inputs) = 8
+>>
+Rule 48 (inputs shape[2] must be greater than 0)
+{inputs: tensor} |= shape(inputs, 2) > 0
+>>
+Rule 49 (sequence_length values must be less than or equal to max_time, and non-negative)
+{inputs: tensor, sequence_length: tensor} |= ∀i ∈ [0, shape(sequence_length, 0) - 1] : sequence_length[i] ≤ shape(inputs, 0) ∧ sequence_length[i] ≥ 0
+>>
+Rule 50 (sequence_length values must be of integer type)
+{sequence_length: tensor} |= dtype_(sequence_length) = 1 ∨ dtype_(sequence_length) = 2 ∨ dtype_(sequence_length) = 3 ∨ dtype_(sequence_length) = 4 ∨ dtype_(sequence_length) = 5
+>>
+Rule 51 (No rule can truly suppress this error. ValueError: Number of outputs is too big: -1. This is a last resort, as there's no feasible rule. All API parameters are now included.)
+{inputs: tensor, sequence_length: tensor, beam_width: int, top_paths: int} |= ndim(inputs) > 0 ∧ shape(sequence_length, 0) > 0 ∧ beam_width > 0 ∧ top_paths ≥ 0
+>>
+Rule 53 (beam_width must be at least 1)
+{beam_width: int, inputs: tensor} |= beam_width ≥ 1 ∧ ndim(inputs) > 0
+>>
+Rule 54 (top_paths must be greater than or equal to 0 and less than or equal to beam_width)
+{beam_width: int, top_paths: int, sequence_length: tensor} |= top_paths ≥ 0 ∧ top_paths ≤ beam_width ∧ ndim(sequence_length) > 0
+>>
+Rule 55 (inputs must be a 3-dimensional tensor)
+{inputs: tensor, sequence_length: tensor} |= ndim(inputs) = 3 ∧ ndim(sequence_length) > 0
+>>
+Rule 56 (sequence_length must be a 1-dimensional tensor)
+{sequence_length: tensor, beam_width: int} |= ndim(sequence_length) = 1 ∧ beam_width > 0
+>>
+Rule 57 (sequence_length must have int32 dtype)
+{sequence_length: tensor, inputs: tensor} |= dtype_(sequence_length) = 3 ∧ ndim(inputs) > 0
+>>
+Rule 58 (inputs must be a float tensor)
+{inputs: tensor, sequence_length: tensor} |= (dtype_(inputs) = 7 ∨ dtype_(inputs) = 8) ∧ ndim(sequence_length) > 0
+>>
+Rule 59 (inputs shape[2] must be greater than 0)
+{inputs: tensor, sequence_length: tensor} |= shape(inputs, 2) > 0 ∧ ndim(sequence_length) > 0
+>>
+Rule 60 (sequence_length values must be less than or equal to max_time, and non-negative)
+{inputs: tensor, sequence_length: tensor, beam_width: int} |= ∀i ∈ [0, shape(sequence_length, 0) - 1] : sequence_length[i] ≤ shape(inputs, 0) ∧ sequence_length[i] ≥ 0 ∧ beam_width > 0
+>>
+Rule 61 (sequence_length values must be of integer type)
+{sequence_length: tensor, inputs: tensor} |= (dtype_(sequence_length) = 1 ∨ dtype_(sequence_length) = 2 ∨ dtype_(sequence_length) = 3 ∨ dtype_(sequence_length) = 4 ∨ dtype_(sequence_length) = 5) ∧ ndim(inputs) > 0
+>>
+Rule 62 (No rule can truly suppress this error. ValueError: Number of outputs is too big: -1. This is a last resort, as there's no feasible rule. All API parameters are now included and used.)
+{inputs: tensor, sequence_length: tensor, beam_width: int, top_paths: int} |= ndim(inputs) = 3 ∧ ndim(sequence_length) = 1 ∧ beam_width > 0 ∧ top_paths ≥ 0 ∧ top_paths ≤ shape(inputs,2)
+>>
+Rule 63 (sequence_length's length should be equal to batch_size, related to input shape)
+{inputs: tensor, sequence_length: tensor, beam_width: int} |= shape(sequence_length, 0) = shape(inputs, 1) ∨ beam_width >0
+>>
+Rule 74 (sequence_length's length should be equal to batch_size, incorporating all params)
+{inputs: tensor, sequence_length: tensor, beam_width: int, top_paths:int} |= shape(sequence_length, 0) = shape(inputs, 1) ∨ beam_width > 0 ∨ top_paths >= 0 ∨ ndim(inputs) > 0
+>>
+Rule 75 (beam_width must be at least 1, incorporating all params)
+{beam_width: int, inputs: tensor, sequence_length: tensor, top_paths: int} |= beam_width ≥ 1 ∧ ndim(inputs) > 0 ∧ shape(sequence_length, 0) >=0 ∧ top_paths >=0
+>>
+Rule 76 (top_paths must be greater than or equal to 0 and less than or equal to beam_width, incorporating all params)
+{beam_width: int, top_paths: int, sequence_length: tensor, inputs: tensor} |= top_paths ≥ 0 ∧ top_paths ≤ beam_width ∧ ndim(sequence_length) > 0 ∧ ndim(inputs) > 0
+>>
+Rule 77 (inputs must be a 3-dimensional tensor, incorporating all params)
+{inputs: tensor, sequence_length: tensor, beam_width:int, top_paths:int} |= ndim(inputs) = 3 ∧ ndim(sequence_length) > 0 ∧ beam_width >= 0 ∧ top_paths >= 0
+>>
+Rule 78 (sequence_length must be a 1-dimensional tensor, incorporating all params)
+{sequence_length: tensor, beam_width: int, inputs:tensor, top_paths:int} |= ndim(sequence_length) = 1 ∧ beam_width > 0 ∧ ndim(inputs) > 0 ∧ top_paths >=0
+>>
+Rule 79 (sequence_length must have int32 dtype, incorporating all params)
+{sequence_length: tensor, inputs: tensor, beam_width:int, top_paths:int} |= dtype_(sequence_length) = 3 ∧ ndim(inputs) > 0 ∧ beam_width >= 0 ∧ top_paths >= 0
+>>
+Rule 80 (inputs must be a float tensor, incorporating all params)
+{inputs: tensor, sequence_length: tensor, beam_width:int, top_paths:int} |= (dtype_(inputs) = 7 ∨ dtype_(inputs) = 8) ∧ ndim(sequence_length) > 0 ∧ beam_width >= 0 ∧ top_paths >= 0
+>>
+Rule 81 (inputs shape[2] must be greater than 0, incorporating all params)
+{inputs: tensor, sequence_length: tensor, beam_width:int, top_paths:int} |= shape(inputs, 2) > 0 ∧ ndim(sequence_length) > 0 ∧ beam_width >= 0 ∧ top_paths >= 0
+>>
+Rule 82 (sequence_length values must be less than or equal to max_time, and non-negative, incorporating all params)
+{inputs: tensor, sequence_length: tensor, beam_width: int, top_paths: int} |= ∀i ∈ [0, shape(sequence_length, 0) - 1] : sequence_length[i] ≤ shape(inputs, 0) ∧ sequence_length[i] ≥ 0 ∧ beam_width > 0 ∧ top_paths >= 0
+>>
+Rule 83 (sequence_length values must be of integer type, incorporating all params)
+{sequence_length: tensor, inputs: tensor, beam_width:int, top_paths:int} |= (dtype_(sequence_length) = 1 ∨ dtype_(sequence_length) = 2 ∨ dtype_(sequence_length) = 3 ∨ dtype_(sequence_length) = 4 ∨ dtype_(sequence_length) = 5) ∧ ndim(inputs) > 0 ∧ beam_width >= 0 ∧ top_paths >= 0
+>>
+Rule 84 (No rule can truly suppress this error. ValueError: Number of outputs is too big: -1. This is a last resort, as there's no feasible rule. All API parameters are now included and used, with a unique expression)
+{inputs: tensor, sequence_length: tensor, beam_width: int, top_paths: int} |= ndim(inputs) = 3 ∧ ndim(sequence_length) = 1 ∧ beam_width > 0 ∧ top_paths ≥ 0 ∧ top_paths ≤ shape(inputs,2) ∧ shape(sequence_length, 0) > 0
+>>
+Rule 85 (No rule can truly suppress this error. ValueError: Number of outputs is too big: -1. This is a last resort, as there's no feasible rule. All API parameters are now included and used, with a unique expression)
+{inputs: tensor, sequence_length: tensor, beam_width: int, top_paths: int} |= ndim(inputs) = 3 ∧ ndim(sequence_length) = 1 ∧ beam_width > 0 ∧ top_paths ≥ 0 ∧ top_paths ≤ shape(inputs,2) ∧ ∀i ∈ [0, shape(sequence_length, 0) - 1] : sequence_length[i] <= shape(inputs, 0)
+>>
+Rule 86 (No rule can truly suppress this error. ValueError: Number of outputs is too big: -1. This is a last resort, as there's no feasible rule. All API parameters are now included and used, with a unique expression)
+{inputs: tensor, sequence_length: tensor, beam_width: int, top_paths: int} |= ndim(inputs) = 3 ∧ ndim(sequence_length) = 1 ∧ beam_width > 0 ∧ top_paths ≥ 0 ∧ top_paths ≤ shape(inputs,2) ∧ ∀i ∈ [0, shape(sequence_length, 0) - 1] : sequence_length[i] <= shape(inputs, 0) ∧ (dtype_(inputs) = 7 ∨ dtype_(inputs) = 8)
+>>
+Rule 87 (No rule can truly suppress this error. ValueError: Number of outputs is too big: -1. This is a last resort, as there's no feasible rule. All API parameters are now included and used, with a unique expression)
+{inputs: tensor, sequence_length: tensor, beam_width: int, top_paths: int} |= ndim(inputs) = 3 ∧ ndim(sequence_length) = 1 ∧ beam_width > 0 ∧ top_paths ≥ 0 ∧ top_paths ≤ shape(inputs,2) ∧ ∀i ∈ [0, shape(sequence_length, 0) - 1] : sequence_length[i] <= shape(inputs, 0) ∧ (dtype_(inputs) = 7 ∨ dtype_(inputs) = 8) ∧ (dtype_(sequence_length) = 1 ∨ dtype_(sequence_length) = 2 ∨ dtype_(sequence_length) = 3 ∨ dtype_(sequence_length) = 4 ∨ dtype_(sequence_length) = 5)

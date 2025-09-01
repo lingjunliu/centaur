@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The absolute value of all tensor elements must be less than or equal to 1000 (Rule 63)
+# If the tensor is of half type then its elements should not be very large so that underflow/overflow does not occur (Rule 63)
 
 rule_63 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(x < (Select(v["arg1_range"], 1) + 1), And(x >= -1000, x <= 1000)) for x in range(6)])) if n else
-          And([Implies(x < (Select(v["arg1_range"], 1) + 1), And(x >= -1000, x <= 1000)) for x in range(6)]))
+    s.add(Not(If(v["arg1_dtype"] == 6, And(Select(v["arg1_range"], 0) > -65500, Select(v["arg1_range"], 1) < 65500), True)) if n else
+          If(v["arg1_dtype"] == 6, And(Select(v["arg1_range"], 0) > -65500, Select(v["arg1_range"], 1) < 65500), True))
 )
 
 def rule_63_func(arg1, solver=None, neg=False):
@@ -22,16 +22,18 @@ def rule_63_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_dtype = Int('arg1_dtype')
         arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 63
-        rule_63(solver, {'arg1_range': arg1_range})
+        rule_63(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_63(solver, {'arg1_range': arg1['range']}, neg)
+        rule_63(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)

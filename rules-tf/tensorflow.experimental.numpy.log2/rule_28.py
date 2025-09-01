@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input dtype is np.int64, input values should be positive and less than 2**63 (Rule 28)
+# Values close to zero in float16 may lead to large negative values (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 4, And(Select(v["arg1_range"], 0) > 0, Select(v["arg1_range"], 1) < 9223372036854775808), False)) if n else
-          If(v["arg1_dtype"] == 4, And(Select(v["arg1_range"], 0) > 0, Select(v["arg1_range"], 1) < 9223372036854775808), False))
+    s.add(Not(If(v["arg1_dtype"] == 7, Select(v["arg1_range"], 0) > 0.00006103515625, True)) if n else
+          If(v["arg1_dtype"] == 7, Select(v["arg1_range"], 0) > 0.00006103515625, True))
 )
 
 def rule_28_func(arg1, solver=None, neg=False):

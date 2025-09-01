@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# n and m must both be greater than k. (Rule 9)
+# If k is positive, then N and M must be positive (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] > v["arg3_value"], v["arg2_value"] > v["arg3_value"])) if n else
-          And(v["arg1_value"] > v["arg3_value"], v["arg2_value"] > v["arg3_value"]))
+    s.add(Not(If(v["arg3_value"] > 0, And(v["arg1_value"] > 0, v["arg2_value"] > 0), True)) if n else
+          If(v["arg3_value"] > 0, And(v["arg1_value"] > 0, v["arg2_value"] > 0), True))
 )
 
 def rule_9_func(arg1, arg2, arg3, solver=None, neg=False):

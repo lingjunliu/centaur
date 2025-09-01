@@ -1,99 +1,174 @@
 >>
-Rule 5 (x must have positive values)
-{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
+Rule 1 (x must be a tensor with allowed data types)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
 >>
-Rule 6 (x must be a tensor)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 3 (x must be a tensor and its elements must be finite if it is float)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) > 0) ∧ (min(v_1) > -1000 ∧ max(v_1) < 1000))
 >>
-Rule 7 (x must have a floating-point dtype, explicitly checking each allowed type)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
->>
-Rule 8 (check that all elements are non-negative)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
->>
-Rule 9 (check that tensor has at least one element)
-{v_1 : tensor} |= shape(v_1, 0) > 0
->>
-Rule 12 (check that all elements are non-negative, using a different approach by checking min)
-{v_1 : tensor} |= min(v_1) ≥ 0
->>
-Rule 13 (check that tensor has at least one element in each dimension)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 19 (check that tensor is not complex)
-{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
->>
-Rule 20 (x must be a tensor with floating-point dtype and non-negative elements)
-{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ min(v_1) ≥ 0
->>
-Rule 21 (name can be a string or None)
-{v_2 : str ⊎ dtype} |= v_2 = "none"
->>
-Rule 22 (Check that all elements are not NaN or Inf)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 10000000000 ∧ v_1[i] > -10000000000
->>
-Rule 24 (If x is a half-precision float, certain conditions may apply in downstream ops)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then true
->>
-Rule 25 (Check the tensor's shape properties)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
->>
-Rule 26 (name is optional, thus can be "none")
-{v_2 : str} |= v_2 = "none"
->>
-Rule 27 (Check that elements are not too large)
-{v_1 : tensor} |= max(v_1) < 1000
->>
-Rule 29 (x must have a floating-point dtype)
-{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
->>
-Rule 31 (Check that all elements are greater than a small negative number to avoid domain errors near zero.)
-{v_1 : tensor} |= min(v_1) > -0.00001
->>
-Rule 36 (x must be a tensor with floating-point dtype, and each dimension must have a positive size)
-{v_1 : tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
->>
-Rule 37 (All elements of tensor x should be greater than a small negative number, but also less than a large positive number to avoid overflow)
-{v_1 : tensor} |= min(v_1) > -0.00001 ∧ max(v_1) < 10000
->>
-Rule 38 (If x is half-precision, then the output will also be half-precision. This implies a limitation on the size/value of x to avoid overflow in subsequent calculations)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then max(v_1) < 100
->>
-Rule 42 (Check for NaN values which cause issues)
-{v_1 : tensor} |= ∃i ∈ [0, shape(v_1,0) - 1] : v_1[i] ≠ "NaN"
->>
-Rule 43 (Check for inf values which cause issues)
-{v_1 : tensor} |= ∃i ∈ [0, shape(v_1,0) - 1] : v_1[i] ≠ "inf"
->>
-Rule 44 (x must be a floating-point tensor with positive dimensions and reasonable range)
-{v_1 : tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (min(v_1) > -0.00001 ∧ max(v_1) < 10000)
->>
-Rule 46 (Check for NaN values)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ "NaN"
->>
-Rule 49 (x must be a tensor with floating-point dtype, positive dimensions, reasonable range, and no NaNs or Infs)
-{v_1 : tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (min(v_1) > -0.00001 ∧ max(v_1) < 10000) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ "NaN") ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ "inf")
->>
-Rule 52 (If x is half-precision, its values must be smaller, and also greater than zero to avoid errors close to zero)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then (max(v_1) < 100 ∧ min(v_1) > 0)
->>
-Rule 56 (elements of x must not be NaN or inf)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ "NaN" ∧ v_1[i] ≠ "inf"
->>
-Rule 58 (x must be a tensor with float16, float32, or float64 dtype, positive dimensions, a reasonable range, no NaNs or Infs, and if float16, values must be small and positive)
-{v_1 : tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (min(v_1) > -0.00001 ∧ max(v_1) < 10000) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ "NaN" ∧ v_1[i] ≠ "inf") ∧ if dtype_(v_1) = 6 then (max(v_1) < 100 ∧ min(v_1) > 0)
->>
-Rule 60 (x must be a tensor with a valid floating-point dtype (6, 7, or 8), all dimensions must have positive lengths, and its values must fall within a reasonable range that avoids numerical instability.)
-{v_1 : tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (min(v_1) > -0.00001 ∧ max(v_1) < 10000) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ "NaN" ∧ v_1[i] ≠ "inf")
->>
-Rule 61 (x must be greater than zero to prevent domain errors)
+Rule 4 (x must be a tensor and all elements should be positive.)
 {v_1 : tensor} |= min(v_1) > 0
 >>
-Rule 67 (If x is specifically float16, its values must be smaller and non-negative)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then (max(v_1) < 100 ∧ min(v_1) ≥ 0)
+Rule 8 (If the tensor is half type, the minimum value should be greater than zero.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > 0
 >>
-Rule 69 (x elements must be within a reasonable range and not NaN or Inf)
-{v_1 : tensor} |= (min(v_1) > -0.00001 ∧ max(v_1) < 10000) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ "NaN" ∧ v_1[i] ≠ "inf")
+Rule 10 (If the tensor is half type, the minimum value should be greater than zero or equal)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) ≥ 0
 >>
-Rule 71 (if x is non-negative everywhere, certain mathematical properties used to optimize the function hold)
-{v_1 : tensor} |= min(v_1) >=0
+Rule 11 (x must be a tensor with allowed data types (float32 or float64), and all elements must be less than 100)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ max(v_1) < 100
+>>
+Rule 12 (x must be a tensor, and its rank should be less than or equal to 5)
+{v_1 : tensor} |= ndim(v_1) ≤ 5
+>>
+Rule 14 (If the tensor is float16 type, the elements should be in range [0.001, 1000])
+{v_1 : tensor} |= if dtype_(v_1) = 6 then (min(v_1) ≥ 0.001 ∧ max(v_1) ≤ 1000)
+>>
+Rule 15 (x must be a tensor, and its elements must not be NaN)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "NaN"
+>>
+Rule 16 (x must be a tensor and not contain inf)
+{v_1 : tensor} |= max(v_1) ≠ "inf" ∧ min(v_1) ≠ "-inf"
+>>
+Rule 18 (If the tensor is float16 type, the absolute value of elements should be less than 1000)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) > -1000 ∧ max(v_1) < 1000
+>>
+Rule 19 (x must be a tensor, and if its a floating point tensor, it should not have NaN values)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "NaN"
+>>
+Rule 20 (If the tensor is float32 or float64 type, it should have non-negative values)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) ≥ 0
+>>
+Rule 21 (x must be a tensor with allowed data types)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 22 (If x is half, the absolute value of its elements should be between 0 and 1000)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) ≥ 0 ∧ max(v_1) ≤ 1000
+>>
+Rule 23 (If x is float32 or float64, its values should be greater than 0)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) > 0
+>>
+Rule 24 (The number of elements in x must be greater than 0)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 26 (If x is float16, all its elements should be non-negative and less than a large number)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ min(v_1) ≥ 0 ∧ max(v_1) < 10000
+>>
+Rule 27 (The input tensor x should have a dimension greater than zero.)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 28 (The shape of the tensor should be less than 100 in all dimensions.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 100
+>>
+Rule 30 (If x is a floating point tensor, then its minimum value must be a number and its maximum value must be a number)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "NaN"
+>>
+Rule 31 (x must be a tensor, the values must be non-negative and not infinite)
+{v_1 : tensor} |= min(v_1) ≥ 0 ∧ max(v_1) ≠ "inf"
+>>
+Rule 32 (The input tensor should be non-empty and not contain infinite values.)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ min(v_1) ≠ "-inf" ∧ max(v_1) ≠ "inf"
+>>
+Rule 34 (If the tensor is float16 type, then its values should be in the range (0, inf))
+{v_1 : tensor} |= if dtype_(v_1) = 6 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) > 0
+>>
+Rule 35 (If x is float32 or float64, then no element should be infinite.)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (min(v_1) ≠ "-inf" ∧ max(v_1) ≠ "inf")
+>>
+Rule 38 (If x is float16, its elements must be greater than zero and finite)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then (min(v_1) > 0 ∧ max(v_1) < "inf")
+>>
+Rule 39 (If x is float32 or float64, it should not have -inf values)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) ≠ "-inf"
+>>
+Rule 40 (The tensor x should not contain NaN or infinite numbers.)
+{v_1 : tensor} |=  min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "inf" ∧ max(v_1) ≠ "-inf"
+>>
+Rule 43 (If x is float32 or float64, elements cannot be infinite.)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (max(v_1) ≠ "inf" ∧ min(v_1) ≠ "-inf")
+>>
+Rule 44 (If x is a floating point tensor, it should not have any NaN values)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "NaN"
+>>
+Rule 48 (x must have elements which are not NaN, -inf or inf)
+{v_1 : tensor} |= (min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "NaN") ∧ (min(v_1) ≠ "-inf" ∧ max(v_1) ≠ "inf")
+>>
+Rule 51 (x must not contain any -inf, inf or NaN values)
+{v_1 : tensor} |= (min(v_1) ≠ "-inf" ∧ max(v_1) ≠ "inf") ∧ (min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "NaN")
+>>
+Rule 52 (For float16, elements must not be infinite.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then (max(v_1) ≠ "inf" ∧ min(v_1) ≠ "-inf")
+>>
+Rule 54 (For float16, ensure the elements are not infinite)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then max(v_1) ≠ "inf" ∧ min(v_1) ≠ "-inf"
+>>
+Rule 58 (If x is float16, ensure it has no infinite values and is greater than 0)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then max(v_1) ≠ "inf" ∧ min(v_1) > 0
+>>
+Rule 59 (The tensor x should not contain NaN or infinite numbers, for float16, float32, and float64 types)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (min(v_1) ≠ "-inf" ∧ max(v_1) ≠ "inf") ∧ (min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "NaN")
+>>
+Rule 62 (If x is float16, ensure it is positive and finite)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > 0 ∧ max(v_1) < "inf"
+>>
+Rule 64 (If the values in x are very large, the computation could be unstable.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then max(v_1) < 1000
+>>
+Rule 66 (If x is float16, then the values must be in the range of (0, some_large_number))
+{v_1 : tensor} |= if dtype_(v_1) = 6 then (min(v_1) > 0 ∧ max(v_1) < 10000)
+>>
+Rule 68 (If the dtypes are float 32 and 64, values need to be positive and not equal to inf)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) > 0 ∧ max(v_1) != "inf"
+>>
+Rule 70 (If x is float16, then ensure the minimum value is positive, and values must be not infinite)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > 0 ∧ max(v_1) != "inf" ∧ min(v_1) != "-inf"
+>>
+Rule 71 (If dtypes are float32 and float64 ensure all values are non-NaN.)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "NaN")
+>>
+Rule 72 (If any of the types of the x tensor match the allowed types, no element of x can equal infinity)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) ≠ "inf" ∧ max(v_1) ≠ "-inf")
+>>
+Rule 76 (If x's dtype is not float16, make sure its minimum value is zero or more)
+{v_1 : tensor} |= if dtype_(v_1) ≠ 6 then min(v_1) >= 0
+>>
+Rule 78 (If the tensor's dtype is float16, ensure the elements are positive and finite.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > 0 ∧ max(v_1) < "inf" ∧ min(v_1) != "-inf"
+>>
+Rule 80 (For float32/64 types, restrict max to a range for stability )
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then max(v_1) < 1000
+>>
+Rule 84 (if x's dtype is not float16, ensure that it is not negative infinity)
+{v_1 : tensor} |= if dtype_(v_1) ≠ 6 then min(v_1) != "-inf"
+>>
+Rule 88 (If x's dtype is float32 or float64, its values must not be infinite)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then max(v_1) != "inf" ∧ min(v_1) != "-inf"
+>>
+Rule 90 (For x with dtype float16, all elements must be positive and not infinite.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ (min(v_1) > 0 ∧ max(v_1) < "inf" ∧ min(v_1) != "-inf")
+>>
+Rule 92 (For float32/64 types, limit maximum value)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then max(v_1) < 10000
+>>
+Rule 100 (the values of the tensor have to be positive for float16)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then  min(v_1) > 0
+>>
+Rule 103 (if it is float32 and 64 the maximum element cant be too big)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then  max(v_1) < 10000
+>>
+Rule 112 (the magnitude of tensor can't be too high for any type)
+{v_1 : tensor} |=  max(v_1) < 10000
+>>
+Rule 116 (The tensor values should not be too large )
+{v_1 : tensor} |=  max(v_1) < 100000
+>>
+Rule 119 (The input values have to be positive for float16, and all elements are not NaN, -inf or inf.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ min(v_1) > 0 ∧ min(v_1) ≠ "-inf" ∧ max(v_1) ≠ "inf" ∧ min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "NaN"
+>>
+Rule 127 (The element values of float16 tensor should be positive)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ (min(v_1) > 0)
+>>
+Rule 128 (The magnitude of the values needs to be reasonable)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (max(v_1) < 10000 ∧ min(v_1) > -10000)
+>>
+Rule 132 (Reasonable magnitude for calculations.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then max(v_1) < 10000

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input is complex, decimals must be zero or None (Rule 2)
+# decimals should be less than or equal to the precision of the input tensor's data type if the data type is float16, float32, or float64. (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(If((Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11)), v["arg2_value"] == 0, False)) if n else
-          If((Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11)), v["arg2_value"] == 0, False))
+    s.add(Not(If(Or(Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8)), (v["arg1_dtype"] == 9)), v["arg2_value"] <= 10, True)) if n else
+          If(Or(Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8)), (v["arg1_dtype"] == 9)), v["arg2_value"] <= 10, True))
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

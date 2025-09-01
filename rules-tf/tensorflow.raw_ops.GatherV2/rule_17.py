@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# batch_dims must be less than or equal to the minimum of the ranks of params and indices, using if statement (Rule 17)
+# If batch_dims is not zero then params.shape[:batch_dims] must match indices.shape[:batch_dims] (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] <= v["arg2_ndim"], v["arg3_value"] <= v["arg1_ndim"], v["arg3_value"] <= v["arg2_ndim"])) if n else
-          If(v["arg1_ndim"] <= v["arg2_ndim"], v["arg3_value"] <= v["arg1_ndim"], v["arg3_value"] <= v["arg2_ndim"]))
+    s.add(Not(If(v["arg3_value"] != 0, (And([Implies(i < (v["arg3_value"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])), True)) if n else
+          If(v["arg3_value"] != 0, (And([Implies(i < (v["arg3_value"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])), True))
 )
 
 def rule_17_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -28,19 +28,21 @@ def rule_17_func(arg1, arg2, arg3, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_ndim = Int('arg2_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
         arg3_value = Int('arg3_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
         solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 17
-        rule_17(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg3_value': arg3_value})
+        rule_17(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_17(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg3_value': arg3['value']}, neg)
+        rule_17(solver, {'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape'], 'arg3_value': arg3['value']}, neg)

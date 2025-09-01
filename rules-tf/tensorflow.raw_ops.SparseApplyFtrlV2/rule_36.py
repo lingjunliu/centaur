@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# var and l2 should have same dtype (Rule 36)
+# If indices is int64, then var, accum, linear, grad, lr, l1, l2, l2_shrinkage, lr_power must be int64, float64 or complex128. (Rule 36)
 
 rule_36 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
-          v["arg1_dtype"] == v["arg2_dtype"])
+    s.add(Not(If(v["arg1_dtype"] == 4, Or(Or(v["arg2_dtype"] == 4, v["arg2_dtype"] == 8), v["arg2_dtype"] == 10), True)) if n else
+          If(v["arg1_dtype"] == 4, Or(Or(v["arg2_dtype"] == 4, v["arg2_dtype"] == 8), v["arg2_dtype"] == 10), True))
 )
 
 def rule_36_func(arg1, arg2, solver=None, neg=False):

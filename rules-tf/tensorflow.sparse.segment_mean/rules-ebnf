@@ -1,174 +1,150 @@
 >>
-Rule 2 (indices must be a 1-D tensor)
-{v_2 : tensor} |= ndim(v_2) = 1
+Rule 1 (data tensor must be of allowed dtype)
+{data : tensor} |= dtype_(data) = "float16" ∨ dtype_(data) = "float32" ∨ dtype_(data) = "float64"
 >>
-Rule 3 (segment_ids must be a 1-D tensor)
-{v_3 : tensor} |= ndim(v_3) = 1
+Rule 2 (indices tensor must be a vector)
+{indices : tensor} |= ndim(indices) = 1
 >>
-Rule 4 (indices and segment_ids should have the same rank)
-{v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_3)
+Rule 3 (segment_ids tensor must be a vector)
+{segment_ids : tensor} |= ndim(segment_ids) = 1
 >>
-Rule 5 (num_segments must be a non-negative integer)
-{v_4 : int} |= v_4 ≥ 0
+Rule 4 (num_segments must be greater than or equal to zero)
+{num_segments : int} |= num_segments ≥ 0
 >>
-Rule 7 (The length of indices must be less than or equal to the size of the first dimension of data)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) ≤ shape(v_1, 0)
+Rule 5 (length of indices and segment_ids should be the same)
+{indices : tensor, segment_ids : tensor} |= shape(indices, 0) = shape(segment_ids, 0)
 >>
-Rule 8 (data's dtype should be float or int)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 6 (indices values must be within the data's dimension 0)
+{data : tensor, indices : tensor} |= min(indices) ≥ 0 ∧ max(indices) < shape(data, 0)
 >>
-Rule 9 (length of segment_ids must be the same as indices)
-{v_2 : tensor, v_3 : tensor} |= shape(v_2, 0) = shape(v_3, 0)
+Rule 7 (segment_ids should be sorted)
+{segment_ids : tensor} |= ∀i ∈ [0, shape(segment_ids, 0) - 2] : segment_ids[i] ≤ segment_ids[i + 1]
 >>
-Rule 10 (if num_segments is given, it must be greater or equal to the max value in segment_ids)
-{v_3 : tensor, v_4 : int} |= if v_4 > 0 then v_4 ≥ max(v_3)
+Rule 8 (sparse_gradient must be true or false)
+{sparse_gradient : bool} |= sparse_gradient = true ∨ sparse_gradient = false
 >>
-Rule 11 (indices must be a 1-D tensor)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 9 (indices must be int32 or int64)
+{indices : tensor} |= dtype_(indices) = "int32" ∨ dtype_(indices) = "int64"
 >>
-Rule 13 (indices and segment_ids should have the same rank)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 10 (segment_ids must be int32 or int64)
+{segment_ids : tensor} |= dtype_(segment_ids) = "int32" ∨ dtype_(segment_ids) = "int64"
 >>
-Rule 14 (num_segments must be a non-negative integer)
-{v_1 : int} |= v_1 ≥ 0
+Rule 15 (num_segments must be greater than or equal to zero, and less than or equal to max segment_ids + 1)
+{num_segments : int, segment_ids : tensor} |= num_segments ≥ 0 ∧ num_segments ≤ max(segment_ids) + 1
 >>
-Rule 17 (length of segment_ids must be the same as indices)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 22 (num_segments must be greater than max segment_ids)
+{num_segments : int, segment_ids : tensor} |= num_segments > max(segment_ids)
 >>
-Rule 18 (if num_segments is given, it must be greater or equal to the max value in segment_ids)
-{v_1 : tensor, v_2 : int} |= if v_2 > 0 then v_2 ≥ max(v_1)
+Rule 27 (indices values must be within the data's dimension 0)
+{data : tensor, indices : tensor} |= (min(indices) ≥ 0) ∧ (max(indices) < shape(data, 0))
 >>
-Rule 19 (dtype of indices and segment_ids should be int32 or int64)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4)
+Rule 32 (The first dimension of data should be greater than 0)
+{data : tensor} |= shape(data, 0) > 0
 >>
-Rule 20 (if num_segments is zero, data must have first dimension of size 0)
-{v_1 : tensor, v_2 : int} |= if v_2 = 0 then shape(v_1, 0) = 0
+Rule 33 (segment_ids should not have negative values)
+{segment_ids : tensor} |= min(segment_ids) >= 0
 >>
-Rule 23 (The length of indices must be less than or equal to the size of the first dimension of data, and data is not empty)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) ≤ shape(v_1, 0) ∧ shape(v_1, 0) > 0
+Rule 34 (indices and segment_ids tensors must have compatible dtypes)
+{indices : tensor, segment_ids : tensor} |= dtype_(indices) = dtype_(segment_ids)
 >>
-Rule 26 (if num_segments is zero, data must have first dimension of size 0 or indices is empty)
-{v_1 : tensor, v_2 : int, v_3 : tensor} |= if v_2 = 0 then shape(v_1, 0) = 0 ∨ shape(v_3,0) = 0
+Rule 35 (indices values should fall within valid bounds of data dimension 0)
+{data : tensor, indices : tensor} |= max(indices) < shape(data,0)
 >>
-Rule 27 (indices values must be non-negative)
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 36 (indices and segment_ids tensors should have the same length)
+{indices : tensor, segment_ids : tensor} |= shape(indices,0) = shape(segment_ids,0)
 >>
-Rule 29 (segment_ids values must be sorted)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 2] : v_1[i] ≤ v_1[i+1]
+Rule 42 (num_segments should be a non-negative integer and consistent with segment_ids)
+{num_segments : int, segment_ids : tensor} |= num_segments ≥ 0 ∧ (num_segments > max(segment_ids) ∨ (∃i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] = num_segments -1))
 >>
-Rule 30 (indices values must be less than the first dimension of data)
-{v_1 : tensor, v_2 : tensor} |= max(v_1) < shape(v_2, 0)
+Rule 43 (data tensor should be of allowed dtype)
+{data : tensor} |= dtype_(data) = "bfloat16" ∨ dtype_(data) = "float16" ∨ dtype_(data) = "float32" ∨ dtype_(data) = "float64"
 >>
-Rule 31 (data and indices must have dimension 1)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1
+Rule 47 (Values in indices should be within the valid range of data's first dimension)
+{data : tensor, indices : tensor} |= ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0 ∧ indices[i] < shape(data, 0)
 >>
-Rule 32 (indices values must be less than the first dimension of data)
-{v_1 : tensor, v_2 : tensor} |= max(v_2) < shape(v_1, 0)
+Rule 52 (data tensor must have allowed dtype - cover error message related to 'T' attribute)
+{data : tensor} |= dtype_(data) = "bfloat16" ∨ dtype_(data) = "half" ∨ dtype_(data) = "float32" ∨ dtype_(data) = "float64"
 >>
-Rule 33 (segment_ids values must be sorted and non-negative)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 2] : v_1[i] ≤ v_1[i+1] ∧ min(v_1) ≥ 0
+Rule 54 (segment_ids tensor must be a vector of the same length as indices)
+{indices : tensor, segment_ids : tensor} |= ndim(segment_ids) = 1 ∧ shape(indices, 0) = shape(segment_ids, 0)
 >>
-Rule 34 (if num_segments is given, then num_segments is an integer and greater than or equal to max(segment_ids)+1)
-{v_1 : int, v_2 : tensor} |= if v_1 > 0 then v_1 ≥ max(v_2) + 1
+Rule 59 (num_segments should be at least 1)
+{num_segments : int} |= num_segments >= 1
 >>
-Rule 35 (dtype of indices and segment_ids should be int32 or int64, and they should be the same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
+Rule 60 (The max value of segment_ids should be less than num_segments)
+{segment_ids: tensor, num_segments: int} |= num_segments > max(segment_ids)
 >>
-Rule 39 (if num_segments is zero, then indices and segment_ids must be empty)
-{v_1 : int, v_2 : tensor} |= if v_1 = 0 then shape(v_2, 0) = 0
+Rule 61 (The values of indices should be less than the first dimension of data)
+{data: tensor, indices: tensor} |= max(indices) < shape(data, 0)
 >>
-Rule 40 (length of indices must be less than or equal to the first dimension of data and greater than or equal to 0)
-{v_1: tensor, v_2: tensor} |= shape(v_2, 0) <= shape(v_1, 0) ∧ shape(v_2, 0) >= 0
+Rule 65 (Ensure indices are within the bounds of the data tensor's first dimension)
+{data : tensor, indices : tensor} |= (min(indices) >= 0) ∧ (max(indices) < shape(data, 0))
 >>
-Rule 41 (data and indices must have dimension 1 and the same dtype)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ dtype_(v_1) = dtype_(v_2)
+Rule 69 (num_segments should be non-negative)
+{num_segments : int} |= num_segments >= 0
 >>
-Rule 44 (if num_segments is given, then num_segments is an integer and greater than or equal to max(segment_ids)+1 and it's non negative)
-{v_1 : int, v_2 : tensor} |= if v_1 > 0 then v_1 ≥ max(v_2) + 1 ∧ v_1 >= 0 else v_1 >= 0
+Rule 70 (segment_ids tensor should have monotonically increasing values)
+{segment_ids : tensor} |= ∀i ∈ [0, if shape(segment_ids, 0) > 1 then shape(segment_ids, 0) - 2 else 0] : segment_ids[i] <= segment_ids[i+1]
 >>
-Rule 45 (dtype of indices and segment_ids should be int32 or int64 and the length should be positive)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ shape(v_1, 0) > 0
+Rule 71 (num_segments should be greater than the largest value in segment_ids or if segment_ids is empty, greater or equal to 0)
+{num_segments: int, segment_ids: tensor} |= if shape(segment_ids, 0) > 0 then num_segments > max(segment_ids) else num_segments >= 0
 >>
-Rule 46 (if num_segments is zero, then indices and segment_ids must be empty, and num_segments must be a non negative int)
-{v_1 : int, v_2 : tensor} |= if v_1 = 0 then shape(v_2, 0) = 0 else v_1 >=0
+Rule 72 (Data type of the data tensor must be one of the allowed types.)
+{data : tensor} |= dtype_(data) = "bfloat16" ∨ dtype_(data) = "half" ∨ dtype_(data) = "float" ∨ dtype_(data) = "double"
 >>
-Rule 47 (length of indices must be less than or equal to the first dimension of data and greater than or equal to 0 and data should have dtype of float or int)
-{v_1: tensor, v_2: tensor} |= shape(v_2, 0) <= shape(v_1, 0) ∧ shape(v_2, 0) >= 0 ∧ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+Rule 76 (Values in indices must be within the bounds of data's first dimension.)
+{data : tensor, indices : tensor} |= ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] >= 0 ∧ indices[i] < shape(data, 0)
 >>
-Rule 48 (if data has a shape of zero in its first dimension, then indices and segment_ids should also have a shape of zero.)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) = 0 then shape(v_2, 0) = 0
+Rule 77 (Segment_ids must be sorted in ascending order.)
+{segment_ids : tensor} |= ∀i ∈ [0, if shape(segment_ids, 0) > 1 then shape(segment_ids, 0) - 2 else 0] : segment_ids[i] <= segment_ids[i + 1]
 >>
-Rule 49 (the maximum value of indices should be less than or equal to the maximum value of the indices of data)
-{v_1 : tensor, v_2: tensor} |= max(v_2) <= shape(v_1,0)
+Rule 85 (Ensure that the largest index does not exceed data's dimension 0 size)
+{data: tensor, indices: tensor} |= if shape(indices, 0) > 0 then max(indices) < shape(data, 0)
 >>
-Rule 50 (if indices is empty then segment_ids must also be empty)
-{v_1: tensor, v_2: tensor} |= if shape(v_1, 0) = 0 then shape(v_2, 0) = 0
+Rule 90 (Number of segments has to be greater or equal to 0.)
+{num_segments: int} |= num_segments >= 0
 >>
-Rule 52 (indices values must be less than the first dimension of data and must be non negative)
-{v_1 : tensor, v_2 : tensor} |= max(v_2) < shape(v_1, 0) ∧ min(v_2) >= 0
+Rule 91 (Indices should have values greater or equal to zero.)
+{indices: tensor} |= min(indices) >= 0
 >>
-Rule 53 (segment_ids values must be sorted and non-negative)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 2] : v_1[i] ≤ v_1[i+1] ∧ min(v_1) >= 0
+Rule 92 (The first dimension of data must be defined.)
+{data : tensor} |= ndim(data) > 0
 >>
-Rule 55 (dtype of indices and segment_ids should be int32 or int64 and they should have a positive length)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ shape(v_1,0) > 0
+Rule 93 (The first dimension of data must have a shape greater than zero.)
+{data: tensor} |= shape(data, 0) > 0
 >>
-Rule 56 (if num_segments is zero, then indices and segment_ids must be empty, and num_segments must be a non negative int)
-{v_1 : int, v_2 : tensor, v_3 : tensor} |= if v_1 = 0 then shape(v_2, 0) = 0 ∧ shape(v_3, 0) = 0
+Rule 97 (Indices must be within the bounds of the data tensor's first dimension.)
+{data : tensor, indices : tensor} |= ∀i ∈ [0, if shape(indices, 0) > 0 then shape(indices, 0)-1 else 0] : indices[i] >= 0 ∧ indices[i] < shape(data, 0)
 >>
-Rule 57 (length of indices must be less than or equal to the first dimension of data and greater than or equal to 0 and data should have dtype of float or int)
-{v_1: tensor, v_2: tensor} |= shape(v_2, 0) <= shape(v_1, 0) ∧ shape(v_2, 0) >= 0 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+Rule 98 (segment_ids must be sorted in ascending order.)
+{segment_ids : tensor} |= ∀i ∈ [0, if shape(segment_ids, 0) > 1 then shape(segment_ids, 0)-2 else 0] : segment_ids[i] <= segment_ids[i + 1]
 >>
-Rule 58 (if data has a shape of zero in its first dimension, then indices and segment_ids should also have a shape of zero.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if shape(v_1, 0) = 0 then shape(v_2, 0) = 0 ∧ shape(v_3, 0) = 0
+Rule 102 (segment_ids should be less than or equal to num_segments if num_segments is explicitly given)
+{segment_ids : tensor, num_segments : int} |= max(segment_ids) < num_segments
 >>
-Rule 60 (segment_ids must have integer dtype)
-{v_1: tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 112 (if num_segments is provided, then it must be greater than the maximum segment id)
+{segment_ids : tensor, num_segments : int} |= if shape(segment_ids, 0) > 0 then num_segments > max(segment_ids) else num_segments >= 0
 >>
-Rule 61 (data and indices must have dimension 1, segment_ids must be int type)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4
+Rule 116 (The values in indices must be within the bounds of data's first dimension AND min value should be >= 0.)
+{data : tensor, indices : tensor} |= max(indices) < shape(data, 0)
 >>
-Rule 62 (indices values must be less than the first dimension of data and must be non negative, all tensors must have positive shape)
-{v_1 : tensor, v_2 : tensor} |= max(v_2) < shape(v_1, 0) ∧ min(v_2) >= 0 ∧ shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0
+Rule 121 (If indices tensor is not empty then it must be within data's dimensions.)
+{data : tensor, indices : tensor} |= if shape(indices, 0) > 0 then max(indices) < shape(data, 0)
 >>
-Rule 63 (segment_ids values must be sorted and non-negative, the indices and segment_ids should have the same length)
-{v_1 : tensor, v_2: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 2] : v_1[i] ≤ v_1[i+1] ∧ min(v_1) >= 0 ∧ shape(v_1, 0) = shape(v_2, 0)
+Rule 130 (Ensure the data tensor has at least one dimension.)
+{data: tensor} |= ndim(data) >= 1
 >>
-Rule 64 (if num_segments is given, then num_segments is an integer and greater than or equal to max(segment_ids)+1 or less then zero)
-{v_1 : int, v_2 : tensor} |= if v_1 > 0 then v_1 ≥ max(v_2) + 1 else v_1 <= 0
+Rule 132 (The maximum segment_id should be less than num_segments)
+{segment_ids : tensor, num_segments : int} |= if shape(segment_ids, 0) > 0 then max(segment_ids) < num_segments else num_segments >= 0
 >>
-Rule 65 (dtype of indices and segment_ids should be int32 or int64 and data must be float or int)
-{v_1 : tensor, v_2 : tensor, v_3:tensor} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (dtype_(v_3) = 7 ∨ dtype_(v_3) = 8)
+Rule 136 (The values in the indices tensor must be within the valid range of the data tensor's dimension 0)
+{data : tensor, indices : tensor} |= if shape(indices, 0) > 0 then (min(indices) >= 0 ∧ max(indices) < shape(data, 0))
 >>
-Rule 68 (if data has a shape of zero in its first dimension, then indices and segment_ids should also have a shape of zero, data must be float or int)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if shape(v_1, 0) = 0 then shape(v_2, 0) = 0 ∧ shape(v_3, 0) = 0 else (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+Rule 141 (The segment IDs shouldn't be negative as segment indices don't start from negative values)
+{segment_ids: tensor} |= min(segment_ids) >= 0
 >>
-Rule 69 (if sparse_gradient is true, then the data tensor must be float)
-{v_1: bool, v_2: tensor} |= if v_1 = true then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+Rule 146 (indices values must be within the 0th dimension's bounds of the data tensor to avoid index out of range issues.)
+{data : tensor, indices : tensor} |= ∀i ∈ [0, if shape(indices, 0) > 0 then shape(indices, 0)-1 else 0] : (indices[i] >= 0 ∧ indices[i] < shape(data, 0))
 >>
-Rule 70 (the value of num_segments should be less than 2^31 -1)
-{v_1: int} |= v_1 < 2147483647
->>
-Rule 71 (data and indices must have dimension 1, all shapes must be positive, indices must have integer type)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0 ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4)
->>
-Rule 72 (indices values must be less than the first dimension of data and must be non negative, the first dimension of data should be positive)
-{v_1 : tensor, v_2 : tensor} |= max(v_2) < shape(v_1, 0) ∧ min(v_2) >= 0 ∧ shape(v_1,0) > 0
->>
-Rule 73 (segment_ids values must be sorted and non-negative and must have integer type)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 2] : v_1[i] ≤ v_1[i+1] ∧ min(v_1) >= 0 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
->>
-Rule 75 (dtype of indices and segment_ids should be int32 or int64 and data must be float or int and less than 11)
-{v_1 : tensor, v_2 : tensor, v_3:tensor} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5) ∧ dtype_(v_3) < 11
->>
-Rule 76 (if num_segments is zero, then indices and segment_ids must be empty, the shape of data should be non zero)
-{v_1 : int, v_2 : tensor, v_3 : tensor, v_4: tensor} |= if v_1 = 0 then shape(v_2, 0) = 0 ∧ shape(v_3, 0) = 0 ∧ shape(v_4,0) >= 0
->>
-Rule 77 (data should have dtype of float or int or complex)
-{v_1: tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
->>
-Rule 79 (if sparse_gradient is true, then the data tensor must be float or complex)
-{v_1: bool, v_2: tensor} |= if v_1 = true then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
->>
-Rule 80 (the length of segment_ids should be greater than zero)
-{v_1 : tensor} |= shape(v_1,0) > 0
+Rule 151 (Num_segments argument must be more than the maximum of all segment ids, if segment id is defined)
+{num_segments : int, segment_ids : tensor} |= if shape(segment_ids, 0) > 0 then num_segments > max(segment_ids) else num_segments >= 0

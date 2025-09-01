@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If on_value or off_value provided dtype can not be string type (Rule 69)
+# If on_value/off_value is provided, and dtype is not, then on_value and off_value's dtype must match indices' dtype if indices is of integer type (Rule 69)
 
 rule_69 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), v["arg3_value"] != 12, False)) if n else
-          If(Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), v["arg3_value"] != 12, False))
+    s.add(Not(If((Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5)), (And(v["arg2_dtype"] == v["arg1_dtype"], v["arg3_dtype"] == v["arg1_dtype"])), True)) if n else
+          If((Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5)), (And(v["arg2_dtype"] == v["arg1_dtype"], v["arg3_dtype"] == v["arg1_dtype"])), True))
 )
 
 def rule_69_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -23,24 +23,24 @@ def rule_69_func(arg1, arg2, arg3, solver=None, neg=False):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
-        if not (isinstance(arg3, torch.dtype) or isinstance(arg3, tf.dtypes.DType)):
+        if not isinstance(arg3, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_ndim = Int('arg2_ndim')
-        arg3_value = Int('arg3_value')
+        arg1_dtype = Int('arg1_dtype')
+        arg2_dtype = Int('arg2_dtype')
+        arg3_dtype = Int('arg3_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_ndim == arg2.ndim)
-        solver.add(arg3_value == list_of_available_dtypes.index(np_dtype(arg3)))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
 
         # Constraints for rule 69
-        rule_69(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg3_value': arg3_value})
+        rule_69(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_69(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg3_value': arg3['value']}, neg)
+        rule_69(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype']}, neg)

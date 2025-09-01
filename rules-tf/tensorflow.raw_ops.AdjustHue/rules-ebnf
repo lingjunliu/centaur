@@ -1,81 +1,192 @@
 >>
-Rule 1 (images should have at least 3 dimensions)
-{v_1 : tensor} |= ndim(v_1) ≥ 3
+Rule 1 (images tensor must have at least 3 dimensions)
+{images : tensor} |= ndim(images) ≥ 3
 >>
-Rule 2 (the last dimension of images should be 3)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) = 3
+Rule 2 (images tensor's last dimension must be equal to 3)
+{images : tensor} |= shape(images, ndim(images) - 1) = 3
 >>
-Rule 3 (images dtype should be half or float32)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7
+Rule 3 (images tensor must have dtype of float16 or float32)
+{images : tensor} |= dtype_(images) = 6 ∨ dtype_(images) = 7
 >>
-Rule 4 (delta dtype should be float32)
-{v_1 : tensor} |= dtype_(v_1) = 7
+Rule 4 (delta tensor must be a scalar)
+{delta : tensor} |= ndim(delta) = 0
 >>
-Rule 6 (delta must be a scalar)
-{v_1 : tensor} |= ndim(v_1) = 0
+Rule 5 (delta tensor's dtype must be float32)
+{delta : tensor} |= dtype_(delta) = 7
 >>
-Rule 7 (if images is half, delta should be small)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then min(v_2) ≥ -10 ∧ max(v_2) ≤ 10
+Rule 6 (images tensor shape should not contain zero except the first dimension)
+{images : tensor} |= ∀i ∈ [1, ndim(images) - 1] : shape(images, i) ≠ 0
 >>
-Rule 12 (images and delta should have compatible shapes for broadcasting)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then true else if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_2, i) = 1 else false
+Rule 7 (delta tensor value should be between -1 and 1)
+{delta : tensor} |= min(delta) ≥ -1 ∧ max(delta) ≤ 1
 >>
-Rule 14 (if images is half, delta should be small)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then min(v_2) ≥ -1 ∧ max(v_2) ≤ 1
+Rule 8 (images tensor must have non-negative values)
+{images : tensor} |= min(images) ≥ 0
 >>
-Rule 15 (images and delta's types should be compatible)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7)
+Rule 9 (delta tensor must be a finite number)
+{delta : tensor} |= max(delta) < 1000000 ∧ min(delta) > -1000000
 >>
-Rule 16 (images and delta should have compatible shapes)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≤ ndim(v_1)
+Rule 10 (images tensor cannot have NaN values)
+{images : tensor} |= max(images) = max(images)
 >>
-Rule 17 (If delta has dimension, it must be broadcastable)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_2, i) = 1)
+Rule 11 (if images has half type, delta must be within a smaller range)
+{images : tensor, delta : tensor} |= if dtype_(images) = 6 then min(delta) >= -10 ∧ max(delta) <= 10
 >>
-Rule 20 (images and delta should have compatible shapes for broadcasting)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then true else if ndim(v_1) ≥ ndim(v_2) then ∀i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_2, i) = 1) else false
+Rule 12 (images tensor's shape must have positive values)
+{images : tensor} |= ∀i ∈ [0, ndim(images) - 1] : shape(images, i) > 0
 >>
-Rule 21 (delta must be a scalar or a tensor with compatible dimensions)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 0 ∨ (ndim(v_2) > 0 ∧ ndim(v_2) ≤ ndim(v_1))
+Rule 13 (images' last dimension shape must be greater than 0)
+{images : tensor} |= shape(images, ndim(images) - 1) > 0
 >>
-Rule 24 (images and delta should have compatible types)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7) ∧ dtype_(v_2) = 7
+Rule 14 (if images has float16 type, delta should be within a specific range)
+{images : tensor, delta : tensor} |= if dtype_(images) = 6 then min(delta) >= -5 ∧ max(delta) <= 5
 >>
-Rule 25 (delta must be scalar or have broadcastable shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 0 ∨ (ndim(v_2) > 0 ∧ ndim(v_2) ≤ ndim(v_1) ∧ (∀i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_2, i) = 1)))
+Rule 15 (delta tensor cannot be infinite)
+{delta : tensor} |= max(delta) ≠ 10000000000.0 ∧ min(delta) ≠ -10000000000.0
 >>
-Rule 33 (image and delta types relation)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 7 ∧ min(v_2) ≥ -1 ∧ max(v_2) ≤ 1 else dtype_(v_2) = 7
+Rule 16 (The shape of images tensor should be within reasonable bounds)
+{images : tensor} |= ∀i ∈ [0, ndim(images) - 1] : shape(images, i) < 10000
 >>
-Rule 39 (delta float32, image half values bounded)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_2) = 7 ∧ if dtype_(v_1) = 6 then min(v_2) ≥ -1 ∧ max(v_2) ≤ 1
+Rule 17 (if images is half, delta's magnitude should be less than 1)
+{images : tensor, delta : tensor} |= if dtype_(images) = 6 then min(delta) ≥ -1 ∧ max(delta) ≤ 1
 >>
-Rule 50 (images and delta are compatible)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7) ∧ dtype_(v_2) = 7 ∧ (ndim(v_2) = 0 ∨ (ndim(v_2) > 0 ∧ ndim(v_2) ≤ ndim(v_1) ∧ (∀i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_2, i) = 1))))
+Rule 18 (delta's value should be reasonable)
+{delta : tensor} |= min(delta) > -100 ∧ max(delta) < 100
 >>
-Rule 54 (delta is float32 and bounded if image is float16 and broadcastable)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_2) = 7 ∧ (if dtype_(v_1) = 6 then min(v_2) ≥ -1 ∧ max(v_2) ≤ 1) ∧ (ndim(v_2) = 0 ∨ (ndim(v_2) > 0 ∧ ndim(v_2) ≤ ndim(v_1) ∧ (∀i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_2, i) = 1))))
+Rule 19 (Images cannot be complex types)
+{images: tensor} |= dtype_(images) ≠ 9 ∧ dtype_(images) ≠ 10
 >>
-Rule 55 (images has 3 channels and at least 3 dimensions)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) = 3 ∧ ndim(v_1) ≥ 3
+Rule 20 (images and delta must have compatible dtypes. If images is half, delta can be float32.)
+{images : tensor, delta : tensor} |= if dtype_(images) = 6 then dtype_(delta) = 7 else dtype_(images) = dtype_(delta)
 >>
-Rule 56 (Images type and properties)
-{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7) ∧ shape(v_1, ndim(v_1) - 1) = 3 ∧ ndim(v_1) ≥ 3
+Rule 21 (images tensor values must be within a certain range)
+{images : tensor} |= min(images) >= -2 ∧ max(images) <= 2
 >>
-Rule 57 (Delta type and broadcasting)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_2) = 7 ∧ (ndim(v_2) = 0 ∨ (ndim(v_2) > 0 ∧ ndim(v_2) ≤ ndim(v_1) ∧ (∀i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_2, i) = 1))))
+Rule 22 (images and delta should have compatible shapes)
+{images : tensor, delta : tensor} |= (ndim(delta) = 0) ∨ (ndim(delta) = ndim(images) ∧ ∀i ∈ [0, ndim(images) - 1] : shape(images, i) = shape(delta, i))
 >>
-Rule 63 (Images requirements)
-{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7) ∧ (shape(v_1, ndim(v_1) - 1) = 3) ∧ (ndim(v_1) ≥ 3)
+Rule 23 (Images shape's product must be less than a limit)
+{images : tensor} |= if ndim(images) = 3 then shape(images, 0) * shape(images, 1) * shape(images, 2) < 1000000 else if ndim(images) = 4 then shape(images, 0) * shape(images, 1) * shape(images, 2) * shape(images, 3) < 1000000
 >>
-Rule 64 (Delta type and broadcast compatibility with images, range is limited if image is half)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_2) = 7 ∧ (ndim(v_2) = 0 ∨ (ndim(v_2) > 0 ∧ ndim(v_2) ≤ ndim(v_1) ∧ (∀i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_2, i) = 1)))) ∧ (if dtype_(v_1) = 6 then min(v_2) ≥ -1 ∧ max(v_2) ≤ 1)
+Rule 24 (if images has half type, delta should be float32 only)
+{images : tensor, delta : tensor} |= if dtype_(images) = 6 then dtype_(delta) = 7
 >>
-Rule 65 (Images: type, dims, channels)
-{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7) ∧ (ndim(v_1) ≥ 3) ∧ (shape(v_1, ndim(v_1) - 1) = 3)
+Rule 25 (images should have small values)
+{images : tensor} |= max(images) < 50 ∧ min(images) > -50
 >>
-Rule 67 (All requirements on Images and Delta)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7) ∧ (ndim(v_1) ≥ 3) ∧ (shape(v_1, ndim(v_1) - 1) = 3) ∧ dtype_(v_2) = 7 ∧ (ndim(v_2) = 0 ∨ (ndim(v_2) > 0 ∧ ndim(v_2) ≤ ndim(v_1) ∧ (∀i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_2, i) = 1)))) ∧ (if dtype_(v_1) = 6 then min(v_2) ≥ -1 ∧ max(v_2) ≤ 1)
+Rule 26 (images tensor cannot have a shape with very large values)
+{images : tensor} |= ∃i ∈ [0, ndim(images) - 1] : shape(images, i) < 5000
 >>
-Rule 68 (All requirements on Images and Delta)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7) ∧ (ndim(v_1) ≥ 3) ∧ (shape(v_1, ndim(v_1) - 1) = 3) ∧ (dtype_(v_2) = 7) ∧ (ndim(v_2) = 0 ∨ (ndim(v_2) > 0 ∧ ndim(v_2) ≤ ndim(v_1) ∧ (∀i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_2, i) = 1)))) ∧ (if dtype_(v_1) = 6 then min(v_2) ≥ -1 ∧ max(v_2) ≤ 1)
+Rule 27 (delta tensor values must be finite)
+{delta : tensor} |= ∃i ∈ [0, ndim(delta) - 1]: delta = delta
+>>
+Rule 28 (If images contains only zeros, delta must be zero)
+{images : tensor, delta : tensor} |= if max(images) = 0 ∧ min(images) = 0 then max(delta) = 0 ∧ min(delta) = 0
+>>
+Rule 29 (Images tensor values should not be too small)
+{images: tensor} |= min(images) > -1000
+>>
+Rule 30 (delta tensor values should not be too large)
+{delta: tensor} |= max(delta) < 1000
+>>
+Rule 31 (Images tensor values should not be too large)
+{images: tensor} |= max(images) < 1000
+>>
+Rule 32 (If delta is a scalar, it should be within a reasonable range)
+{delta: tensor} |= if ndim(delta) = 0 then min(delta) > -500 ∧ max(delta) < 500
+>>
+Rule 33 (if delta is a scalar, its value should be close to zero)
+{delta: tensor} |= if ndim(delta) = 0 then min(delta) > -1 ∧ max(delta) < 1
+>>
+Rule 35 (Images tensor should have a reasonable number of elements)
+{images : tensor} |= if ndim(images) = 3 then shape(images, 0) * shape(images, 1) * shape(images, 2) ≤ 1000000 else if ndim(images) = 4 then shape(images, 0) * shape(images, 1) * shape(images, 2) * shape(images, 3) <= 1000000
+>>
+Rule 36 (If the images tensor has zero elements, the delta tensor must also have zero elements or be zero.)
+{images : tensor, delta : tensor} |= if ∃i ∈ [0, ndim(images) - 1] : shape(images, i) = 0 then (∃j ∈ [0, ndim(delta) - 1] : shape(delta, j) = 0) ∨ (min(delta) = 0 ∧ max(delta) = 0)
+>>
+Rule 37 (images and delta should be of same rank or delta can be scalar)
+{images: tensor, delta: tensor} |= ndim(images) = ndim(delta) ∨ ndim(delta) = 0
+>>
+Rule 38 (delta tensor's shape should be a scalar or match all dimensions of images except the last one)
+{images: tensor, delta: tensor} |= (ndim(delta) = 0) ∨ (ndim(delta) = ndim(images) ∧ ∀i ∈ [0, ndim(images) - 2]: shape(images, i) = shape(delta, i))
+>>
+Rule 39 (If images's last dimension is not 3, raise an error)
+{images : tensor} |= if ndim(images) >= 3 then shape(images, ndim(images) - 1) = 3 else false
+>>
+Rule 40 (Check if the image is not empty)
+{images : tensor} |= ∃i ∈ [0, ndim(images) - 1] : shape(images, i) > 0
+>>
+Rule 41 (If delta is not a scalar, then images and delta need to have the same shape)
+{images : tensor, delta : tensor} |= if ndim(delta) ≠ 0 then ∀i ∈ [0, ndim(images) - 1] : shape(images, i) = shape(delta, i)
+>>
+Rule 43 (images tensor values must be within a valid range)
+{images : tensor} |= min(images) ≥ -10000 ∧ max(images) ≤ 10000
+>>
+Rule 44 (if images has less than 3 dims then it should not run)
+{images : tensor} |= ndim(images) >= 3
+>>
+Rule 46 (If delta is scalar, then delta should have same dtype as image)
+{images : tensor, delta : tensor} |= if ndim(delta) = 0 then dtype_(delta) = dtype_(images)
+>>
+Rule 47 (All elements of image tensor should be finite and not NaN)
+{images: tensor} |= ∀i ∈ [0, ndim(images) -1] : shape(images, i) = shape(images, i)
+>>
+Rule 48 (delta can't be inf)
+{delta : tensor} |= max(delta) ≠ 1.0/0.0 ∧ min(delta) ≠ -1.0/0.0
+>>
+Rule 49 (images should have a rank between 3 and 5)
+{images: tensor} |= 3 <= ndim(images) ∧ ndim(images) <= 5
+>>
+Rule 50 (Delta's elements should be finite)
+{delta : tensor} |= ∀i ∈ [0, ndim(delta) - 1] : shape(delta, i) = shape(delta, i)
+>>
+Rule 51 (If images contains NaNs, delta must be zero)
+{images: tensor, delta : tensor} |= if max(images) ≠ max(images) then (min(delta) = 0 ∧ max(delta) = 0)
+>>
+Rule 52 (Last dimension of image should always be 3)
+{images: tensor} |= shape(images, ndim(images) - 1) = 3
+>>
+Rule 53 (images should not have infinite values)
+{images : tensor} |= max(images) != 1.0/0.0 ∧ min(images) != -1.0/0.0
+>>
+Rule 54 (Delta tensor values should not be NaN)
+{delta : tensor} |= max(delta) = max(delta)
+>>
+Rule 55 (If images tensor is of type half, delta should also be half)
+{images : tensor, delta : tensor} |= if dtype_(images) = 6 then dtype_(delta) = 6
+>>
+Rule 56 ( Images and delta's dtypes can only be half or float32 )
+{images : tensor, delta : tensor} |= (dtype_(images) = 6 ∧ dtype_(delta) = 7) ∨ (dtype_(images) = 7 ∧ dtype_(delta) = 7) ∨ (dtype_(images) = 6 ∧ dtype_(delta) = 6)
+>>
+Rule 57 (if images is not finite then delta should be zero)
+{images : tensor, delta : tensor} |= if max(images) ≠ max(images) then min(delta) = 0 ∧ max(delta) = 0
+>>
+Rule 58 (images' values should be within the range -2 to 2)
+{images: tensor} |= min(images) >= -2 ∧ max(images) <= 2
+>>
+Rule 59 (Images should have reasonable shape)
+{images : tensor} |= ∃i ∈ [0, ndim(images) -1] : shape(images, i) < 2048
+>>
+Rule 60 (Delta should have reasonable values)
+{delta : tensor} |= min(delta) > -10000 ∧ max(delta) < 10000
+>>
+Rule 62 (The number of elements in images tensor should be positive)
+{images : tensor} |= if ndim(images) = 3 then shape(images, 0) * shape(images, 1) * shape(images, 2) > 0 else if ndim(images) = 4 then shape(images, 0) * shape(images, 1) * shape(images, 2) * shape(images, 3) > 0 else if ndim(images) = 5 then shape(images, 0) * shape(images, 1) * shape(images, 2) * shape(images, 3) * shape(images, 4) > 0
+>>
+Rule 63 (Images can not have inf as one of its shapes)
+{images: tensor} |= ∀i ∈ [0, ndim(images) -1] : shape(images, i) ≠ 1.0/0.0
+>>
+Rule 64 (Images tensor should not have dimensions with zero size)
+{images : tensor} |= ∀i ∈ [0, ndim(images) - 1] : shape(images, i) ≠ 0
+>>
+Rule 65 (If images tensor has a zero element, the minimum and maximum should be zero)
+{images : tensor} |= if ∃i ∈ [0, ndim(images) - 1] : shape(images, i) = 0 then min(images) = 0 ∧ max(images) = 0
+>>
+Rule 66 (if images has only negative values, delta should be zero)
+{images : tensor, delta : tensor} |= if max(images) < 0 then min(delta) = 0 ∧ max(delta) = 0
+>>
+Rule 67 (Images and delta should have the same dtype)
+{images: tensor, delta: tensor} |= dtype_(images) = dtype_(delta)
+>>
+Rule 69 (images and delta shapes should have the same number of elements)
+{images : tensor, delta : tensor} |= if ndim(images) = ndim(delta) then (shape(images, 0) * shape(images, 1) * shape(images, 2)) = (shape(delta, 0) * shape(delta, 1) * shape(delta, 2))

@@ -1,108 +1,162 @@
 >>
-Rule 1 (t must be a float type (float16, float32, float64, bfloat16, half))
+Rule 1 (The data type of the input tensor t must be half, bfloat16, float32, or float64)
 {t : tensor} |= dtype_(t) = 6 ∨ dtype_(t) = 7 ∨ dtype_(t) = 8
 >>
-Rule 2 (t must have at least one dimension)
-{t : tensor} |= ndim(t) ≥ 1
+Rule 3 (If the input tensor's data type is float32, the output tensor's data type is also float32)
+{t : tensor} |= if dtype_(t) = 7 then true
 >>
-Rule 3 (dtype of t should be float16, bfloat16, float32, or float64)
-{t : tensor} |= dtype_(t) = 6 ∨ dtype_(t) = 7 ∨ dtype_(t) = 8 ∨ dtype_(t) = 13
->>
-Rule 4 (if t is float64, the operation must be supported on the hardware)
-{t : tensor} |= if dtype_(t) = 8 then true
->>
-Rule 6 (t should have shape defined)
+Rule 5 (The input tensor t should have at least one dimension.)
 {t : tensor} |= ndim(t) > 0
 >>
-Rule 7 (All dimensions of t must be positive)
-{t : tensor} |= ∀i ∈ [0, ndim(t) - 1] : shape(t, i) > 0
+Rule 6 (The L2Loss op requires the input tensor to contain non-negative elements only.)
+{t : tensor} |= min(t) >= 0
 >>
-Rule 9 (If t is bfloat16, the operation must be supported on the hardware)
-{t : tensor} |= if dtype_(t) = 13 then true
->>
-Rule 10 (If t is half, the operation must be supported on the hardware)
-{t : tensor} |= if dtype_(t) = 6 then true
->>
-Rule 14 (name should not be too long)
-{name: str} |= name.len < 256
->>
-Rule 17 (Tensor t must have a rank less than or equal to 5)
-{t: tensor} |= ndim(t) ≤ 5
->>
-Rule 18 (Tensor t must have at least one element)
+Rule 7 (The L2Loss op's input tensor can't have all zero dimensions.)
 {t : tensor} |= ∃i ∈ [0, ndim(t) - 1] : shape(t, i) > 0
 >>
-Rule 19 (The tensor's dtype must be known)
-{t : tensor} |= dtype_(t) ≠ 0
+Rule 8 (The L2Loss op's input tensor cannot have any dimension with size 0)
+{t : tensor} |= ∀i ∈ [0, ndim(t) - 1] : shape(t, i) ≠ 0
 >>
-Rule 21 (If the tensor has more than one dimension, then at least one dimension must be greater than 1)
-{t: tensor} |= if ndim(t) > 1 then ∃i ∈ [0, ndim(t) - 1] : shape(t, i) > 1
->>
-Rule 22 (If the tensor has a dimension of size zero, all dimensions must be greater than zero, or the L2 Loss is zero)
-{t: tensor} |= (∃i ∈ [0, ndim(t) - 1] : shape(t, i) = 0) ∨ (∀i ∈ [0, ndim(t) - 1] : shape(t, i) > 0)
->>
-Rule 25 (t must be a 2D tensor)
-{t: tensor} |= ndim(t) = 2
->>
-Rule 26 (If the tensor is 2D, the first dimension must be less than or equal to the second dimension)
-{t: tensor} |= if ndim(t) = 2 then shape(t, 0) ≤ shape(t, 1)
->>
-Rule 27 (The product of the tensor's dimensions must be less than a certain number)
+Rule 10 (The L2Loss op requires the input tensor to have shape dimensions within reasonable bounds. Here, we set an arbitrary upper bound of 1000 for each dimension.)
 {t : tensor} |= ∀i ∈ [0, ndim(t) - 1] : shape(t, i) < 1000
 >>
-Rule 28 (If the tensor has more than one dimension, the shape of each dimension must be positive)
-{t : tensor} |= if ndim(t) > 1 then (∀i ∈ [0, ndim(t) - 1] : shape(t, i) > 0)
+Rule 11 (The input tensor 't' should not have NaN (Not a Number) values.)
+{t : tensor} |= max(t) ≠ "NaN" ∧ min(t) ≠ "NaN"
 >>
-Rule 29 (If the tensor is a matrix (2D), the rows and columns cannot both be zero)
-{t : tensor} |= if ndim(t) = 2 then (shape(t, 0) > 0 ∨ shape(t, 1) > 0)
+Rule 12 (The input tensor 't' must have a rank (number of dimensions) that is less than or equal to 5. This is a practical limitation to prevent excessive computation.)
+{t : tensor} |= ndim(t) <= 5
 >>
-Rule 30 (The tensor's data type must be known and must be a floating-point type (limited to 6, 7, 8, 13))
-{t: tensor} |= dtype_(t) = 6 ∨ dtype_(t) = 7 ∨ dtype_(t) = 8 ∨ dtype_(t) = 13
+Rule 13 (The shape of the input tensor `t` must not contain unreasonably large values which might lead to overflow during computation of the L2 Loss.)
+{t : tensor} |= ∀i ∈ [0, ndim(t) - 1] : shape(t, i) < 2048
 >>
-Rule 31 (The tensor's data type must be half, bfloat16, float32, or float64)
-{t: tensor} |= dtype_(t) = 6 ∨ dtype_(t) = 13 ∨ dtype_(t) = 7 ∨ dtype_(t) = 8
+Rule 14 (The L2Loss Op's input tensor must not contain Infinite values.)
+{t : tensor} |= max(t) ≠ "inf" ∧ min(t) ≠ "-inf"
 >>
-Rule 32 (Tensor 't' cannot have complex dtypes)
-{t: tensor} |= dtype_(t) ≠ 9 ∧ dtype_(t) ≠ 10
+Rule 16 (The input tensor's data type must be a floating-point type, and can't be complex)
+{t: tensor} |= dtype_(t) = 6 ∨ dtype_(t) = 7 ∨ dtype_(t) = 8
 >>
-Rule 33 (Minimum value of the tensor must be less than or equal to maximum value)
-{t : tensor} |= min(t) ≤ max(t)
+Rule 20 (Input tensor 't' should not contain mixed precision (e.g., some values as float16 and some as float32))
+{t : tensor} |= true
 >>
-Rule 34 (If tensor t is 1D, its shape must be greater than 0)
-{t: tensor} |= if ndim(t) = 1 then shape(t, 0) > 0
+Rule 21 (If input tensor `t` is a scalar, ensure it is also a valid floating point number, i.e., not NaN, -inf or inf)
+{t : tensor} |= if ndim(t) = 0 then min(t) ≠ "inf" ∧ max(t) ≠ "inf" ∧ min(t) ≠ "-inf" ∧ max(t) ≠ "NaN"
 >>
-Rule 35 (If tensor t has a shape of [1,1], then the L2 Loss would be equivalent to half of the tensor's element squared)
-{t : tensor} |= if ndim(t) = 2 then if shape(t,0) = 1 ∧ shape(t, 1) = 1 then true
+Rule 23 (If input tensor `t` is a scalar, ensure it is a finite number.)
+{t : tensor} |= if ndim(t) = 0 then max(t) < 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 >>
-Rule 36 (If the tensor is a scalar (0D), its L2 Loss would be half of the tensor's element squared)
-{t : tensor} |= if ndim(t) = 0 then true
+Rule 25 (The L2Loss' input tensor `t` must not be a complex data type)
+{t : tensor} |= dtype_(t) ≠ 10 ∧ dtype_(t) ≠ 11
 >>
-Rule 37 (If the tensor has at least one dimension, its shape must be defined for all dimensions)
-{t: tensor} |= if ndim(t) >= 1 then (∀i ∈ [0, ndim(t) - 1] : shape(t, i) > 0)
+Rule 27 (If input tensor `t` contains `bfloat16`, `half`, `float32` or `float64`, then the values must be within a valid range to prevent overflows when calculating the L2 norm.)
+{t : tensor} |= if dtype_(t) = 6 then min(t) > -65504 ∧ max(t) < 65504 else if dtype_(t) = 7 then min(t) > -3.4e38 ∧ max(t) < 3.4e38 else if dtype_(t) = 8 then min(t) > -1.7e308 ∧ max(t) < 1.7e308
 >>
-Rule 38 (If tensor t has dimensions greater than zero, then all elements must have a positive value for half l2 loss to be valid)
-{t: tensor} |= if ndim(t) > 0 then max(t) > 0
+Rule 29 (If the input tensor `t` is empty, the output will be zero. Hence, the empty input should be a valid input.)
+{t : tensor} |= if ∃i ∈ [0, ndim(t) - 1] : shape(t, i) = 0 then true
 >>
-Rule 39 (Tensor 't' cannot have NaN values)
-{t: tensor} |= if dtype_(t) = 6 ∨ dtype_(t) = 7 ∨ dtype_(t) = 8 ∨ dtype_(t) = 13 then true
+Rule 30 (The L2Loss Op's input tensor must not have dimensions with exceedingly large size, which can lead to memory issues.)
+{t : tensor} |= ∀i ∈ [0, ndim(t) - 1] : shape(t, i) < 4096
 >>
-Rule 40 (Name should not be none)
-{name : str} |= name ≠ "none"
+Rule 31 (For L2Loss calculation, it's crucial to ensure numerical stability by checking if the input tensor `t` contains extremely small numbers close to zero, potentially causing underflow.)
+{t: tensor} |= min(t) > -1e-10 ∧ max(t) < 1e-10
 >>
-Rule 41 (Tensor t must have fewer than 256 dimensions)
-{t: tensor} |= ndim(t) < 256
+Rule 32 (For numerical stability, L2Loss' input tensor `t` should not contain extremely large numbers which could lead to overflow.)
+{t: tensor} |= min(t) > -1e+10 ∧ max(t) < 1e+10
 >>
-Rule 43 (If tensor t's first dimension is greater than zero, its second dimension must also be greater than zero)
-{t: tensor} |= if shape(t, 0) > 0 then shape(t,1) > 0
+Rule 33 (If input tensor `t`'s dtype is float16, there must not be any `NaN` value.)
+{t: tensor} |= if dtype_(t) = 6 then min(t) ≠ "NaN" ∧ max(t) ≠ "NaN"
 >>
-Rule 44 (If the tensor has at least two dimensions and its first dimension is greater than zero, its second dimension must also be greater than zero)
-{t: tensor} |= if ndim(t) >= 2 then if shape(t, 0) > 0 then shape(t,1) > 0
+Rule 35 (To avoid underflow, the L2Loss op requires that if any dimension size is one, then the maximum value in the tensor must exceed a small threshold, e.g., 1e-12)
+{t : tensor} |= if ∃i ∈ [0, ndim(t) - 1] : shape(t, i) = 1 then max(t) > 1e-12
 >>
-Rule 45 (If the tensor has more than one dimension, then its minimum value must be less than its maximum value)
-{t: tensor} |= if ndim(t) > 1 then min(t) < max(t)
+Rule 37 (If the L2Loss Op receives zero dimension tensor, then return 0.)
+{t : tensor} |= if ndim(t) = 0 then min(t) = 0 ∧ max(t) = 0
 >>
-Rule 46 (If tensor 't' has one or more dimension its values must be finite)
-{t: tensor} |= if ndim(t) >= 1 then true
+Rule 38 (If the input tensor `t` is a scalar, it shouldn't be exceptionally small to prevent underflow issues.)
+{t : tensor} |= if ndim(t) = 0 then min(t) > 1e-30
 >>
-Rule 48 (If tensor 't' has a bfloat16 type, its dimensions must be less than 1000)
-{t: tensor} |= if dtype_(t) = 13 then (∀i ∈ [0, ndim(t) - 1] : shape(t, i) < 1000)
+Rule 40 (If the input tensor 't' has float16 type, then it must be within the valid float16 range)
+{t: tensor} |= if dtype_(t) = 6 then min(t) > -65504 ∧ max(t) < 65504
+>>
+Rule 42 (The input tensor to L2Loss should not be a boolean tensor.)
+{t: tensor} |= dtype_(t) ≠ 0
+>>
+Rule 43 (For L2Loss op, if tensor `t` is of `bfloat16` datatype, then the values must be within range to prevent overflow problems.)
+{t: tensor} |= if dtype_(t) = 7 then min(t) > -65504 ∧ max(t) < 65504
+>>
+Rule 44 (The input tensor 't' should have a rank greater than or equal to zero.)
+{t : tensor} |= ndim(t) >= 0
+>>
+Rule 45 (For the case of 0-dimensional tensor, its value should be in a reasonable range to avoid underflow or overflow)
+{t: tensor} |= if ndim(t) = 0 then -1000 < min(t) ∧ max(t) < 1000
+>>
+Rule 46 (If the rank of input tensor is greater than 0, its minimum and maximum value should be finite. i.e., not -inf or inf.)
+{t: tensor} |= if ndim(t) > 0 then min(t) ≠ "-inf" ∧ max(t) ≠ "inf"
+>>
+Rule 47 (If the shape contains any `inf` or `-inf`, then return an exception)
+{t: tensor} |= ∀i ∈ [0, ndim(t) - 1]: shape(t, i) ≠ "inf" ∧ shape(t, i) ≠ "-inf"
+>>
+Rule 48 (For numerical stability, if tensor `t`'s datatype is float16, then its values's scale shouldn't be excessively small, or will cause underflow)
+{t: tensor} |= if dtype_(t) = 6 then min(t) > -1e-5 ∧ max(t) < 1e-5
+>>
+Rule 51 (To avoid the risk of overflow, the elements in the input tensor to L2Loss must be within a specific range)
+{t: tensor} |= if dtype_(t) = 6 then min(t) > -1e4 ∧ max(t) < 1e4 else if dtype_(t) = 7 then min(t) > -1e38 ∧ max(t) < 1e38 else if dtype_(t) = 8 then min(t) > -1e308 ∧ max(t) < 1e308
+>>
+Rule 53 (For stability, ensure the input tensor does not contain numbers so close to zero that squaring leads to zero-values and inaccurate results.)
+{t: tensor} |= if dtype_(t) = 6 then min(t) < -1e-6 ∨ max(t) > 1e-6 else if dtype_(t) = 7 then min(t) < -1e-6 ∨ max(t) > 1e-6 else if dtype_(t) = 8 then min(t) < -1e-6 ∨ max(t) > 1e-6
+>>
+Rule 54 (For the L2 Loss operation, the input tensor should not contain any integer type data.)
+{t : tensor} |= dtype_(t) ≠ 1 ∧ dtype_(t) ≠ 2 ∧ dtype_(t) ≠ 3 ∧ dtype_(t) ≠ 4 ∧ dtype_(t) ≠ 5
+>>
+Rule 55 (To prevent numerical instability, if `t`'s datatype is `float64`, its values shouldn't be infinite)
+{t: tensor} |= if dtype_(t) = 8 then min(t) ≠ "-inf" ∧ max(t) ≠ "inf"
+>>
+Rule 57 (If all elements are less than a certain small number, there is a risk of underflow causing calculation errors. Must contain a element greater than small constant)
+{t: tensor} |= if dtype_(t) = 6 then max(t) > 1e-7 else if dtype_(t) = 7 then max(t) > 1e-7 else if dtype_(t) = 8 then max(t) > 1e-7
+>>
+Rule 58 (If the L2Loss input tensor's dtype is bfloat16, check the range of maximum value to prevent overflow )
+{t: tensor} |= if dtype_(t) = 7 then max(t) < 10000
+>>
+Rule 60 (If the input tensor `t` is a scalar and its dtype is half, it can not be larger than the maximum value to avoid overflow)
+{t: tensor} |= if ndim(t) = 0 ∧ dtype_(t) = 6 then max(t) < 65504
+>>
+Rule 62 (If any value in the L2Loss input tensor exceeds the valid range, it would result in overflow)
+{t: tensor} |= if dtype_(t) = 6 then max(t) < 10000 else if dtype_(t) = 7 then max(t) < 1e38 else if dtype_(t) = 8 then max(t) < 1e308
+>>
+Rule 64 (For the input tensor, the value should be small enough to avoid the result being infinity. i.e., large value * large value = infinity)
+{t: tensor} |= if dtype_(t) = 6 then min(t) > -1e4 else if dtype_(t) = 7 then min(t) > -1e19 else if dtype_(t) = 8 then min(t) > -1e154
+>>
+Rule 65 (If `t` is an empty tensor, then min and max element in it are 0 to avoid calculation errors)
+{t : tensor} |= if ∃i ∈ [0, ndim(t) - 1] : shape(t, i) = 0 then min(t) = 0 ∧ max(t) = 0
+>>
+Rule 68 (The input tensor to L2Loss should not contain infinity to prevent numerical errors)
+{t: tensor} |= min(t) ≠ "-inf" ∧ max(t) ≠ "inf"
+>>
+Rule 70 (The L2Loss input tensor t needs to be a finite valued tensor to give meaningful results.)
+{t: tensor} |= ∃i ∈ [0, ndim(t) - 1] : shape(t, i) > 0
+>>
+Rule 73 ( The elements in input tensor to L2Loss should be large enough to avoid underflow, which means they are within certain a range)
+{t: tensor} |= if dtype_(t) = 6 then min(t) > -1e-6 ∧ max(t) < 1e6 else if dtype_(t) = 7 then min(t) > -1e-38 ∧ max(t) < 1e38 else if dtype_(t) = 8 then min(t) > -1e-308 ∧ max(t) < 1e308
+>>
+Rule 75 (To prevent overflow, if input tensor t has a bfloat16 type, its values cannot be greater than approximately 65504 )
+{t: tensor} |= if dtype_(t) = 7 then min(t) > -60000 ∧ max(t) < 60000
+>>
+Rule 76 (If the input tensor is a `float16` type, then it must not contain value `inf` to prevent overflow in the L2Loss calculation.)
+{t: tensor} |= if dtype_(t) = 6 then max(t) ≠ "inf"
+>>
+Rule 79 (Values in the L2Loss input tensor should be in reasonable limits to avoid over flow due to squaring)
+{t: tensor} |= if dtype_(t) = 6 then min(t) > -1e3 ∧ max(t) < 1e3 else if dtype_(t) = 7 then min(t) > -1e19 ∧ max(t) < 1e19 else if dtype_(t) = 8 then min(t) > -1e154 ∧ max(t) < 1e154
+>>
+Rule 80 (The L2Loss input tensor t should be large enough to prevent potential underflow, i.e. it shouldn't be very close to 0 )
+{t: tensor} |= if dtype_(t) = 6 then min(t) > -1e-7 ∧ max(t) < 1e7 else if dtype_(t) = 7 then min(t) > -1e-7 ∧ max(t) < 1e-7 else if dtype_(t) = 8 then min(t) > -1e-7 ∧ max(t) < 1e-7
+>>
+Rule 83 (L2Loss op's input tensor must not contain values which are Not a Number, since these values will result in indeterminate output.)
+{t : tensor} |= min(t) ≠ "NaN" ∧ max(t) ≠ "NaN"
+>>
+Rule 85 (The L2Loss op expects the input tensor should have valid values, should check the tensor not contains a value too large since it can lead to numerical overflow when squaring elements.)
+{t: tensor} |= if dtype_(t) = 6 then max(t) < 10000 else if dtype_(t) = 7 then max(t) < 1000000 else if dtype_(t) = 8 then max(t) < 100000000000
+>>
+Rule 87 (If the input tensor `t` is a `bfloat16` tensor and some of its values are either zero or very small numbers, the L2Loss result will likely have zero value, hence will cause some calculation errors)
+{t : tensor} |= if dtype_(t) = 7 then max(t) > 1e-6
+>>
+Rule 89 (To avoid numerical instability issues due to excessive values, If the input tensor values is very large will return inf)
+{t: tensor} |= if dtype_(t) = 6 then max(t) < 1e3 else if dtype_(t) = 7 then max(t) < 1e12 else if dtype_(t) = 8 then max(t) < 1e70

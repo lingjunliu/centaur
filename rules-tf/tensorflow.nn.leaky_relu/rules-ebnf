@@ -1,60 +1,228 @@
 >>
-Rule 2 (features must have a supported dtype: float16, float32, float64, int32, int64)
-{features : tensor} |= dtype_(features) = 6 ∨ dtype_(features) = 7 ∨ dtype_(features) = 8 ∨ dtype_(features) = 3 ∨ dtype_(features) = 4
+Rule 1 (features tensor should have a valid dtype)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
 >>
-Rule 4 (alpha must be greater than or equal to zero)
-{alpha : float} |= alpha ≥ 0
+Rule 2 (alpha should be non-negative)
+{v_2 : float} |= v_2 ≥ 0.0
 >>
-Rule 6 (features must have at least one dimension)
-{features : tensor} |= ndim(features) ≥ 1
+Rule 3 (features tensor's ndim should be greater than 0)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 7 (alpha is between 0 and 1)
-{alpha : float} |= 0 ≤ alpha ∧ alpha ≤ 1
+Rule 4 (alpha should not be too large to avoid overflow)
+{v_2 : float} |= v_2 < 1000.0
 >>
-Rule 13 (features dtype is int32)
-{features : tensor} |= dtype_(features) = 3
+Rule 5 (name should not be an empty string to avoid naming conflict)
+{v_3 : str} |= v_3 ≠ ""
 >>
-Rule 14 (features dtype is int64)
-{features : tensor} |= dtype_(features) = 4
+Rule 6 (features tensor's minimum value should be small if alpha is small)
+{v_1 : tensor, v_2 : float} |= if v_2 < 0.01 then min(v_1) > -10.0
 >>
-Rule 15 (features dtype is float16)
-{features : tensor} |= dtype_(features) = 6
+Rule 14 (If any dimension is zero, the tensor can be all zeros.)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 ∨ (min(v_1) ≠ max(v_1) ∨ min(v_1) = 0)
 >>
-Rule 16 (features dtype is float32)
-{features : tensor} |= dtype_(features) = 7
+Rule 15 (The shape of the features tensor should not be too large to prevent OOM)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 4096
 >>
-Rule 17 (features dtype is float64)
-{features : tensor} |= dtype_(features) = 8
+Rule 16 (Alpha should be less than 1 if the input tensor contains negative values)
+{v_1 : tensor, v_2 : float} |= if min(v_1) < 0 then v_2 ≤ 1.0
 >>
-Rule 18 (alpha is less than 1)
-{alpha : float} |= alpha < 1
+Rule 17 (If the name is "default", alpha should also be the default value)
+{v_2 : float, v_3 : str} |= if v_3 = "default" then v_2 = 0.2
 >>
-Rule 30 (alpha is greater than -1)
-{alpha : float} |= alpha > -1
+Rule 18 (If features tensor has a large dynamic range, use a smaller alpha)
+{v_1 : tensor, v_2 : float} |= if max(v_1) - min(v_1) > 100 then v_2 < 0.5
 >>
-Rule 38 (features has a valid dtype)
-{features : tensor} |= dtype_(features) = 3 ∨ dtype_(features) = 4 ∨ dtype_(features) = 6 ∨ dtype_(features) = 7 ∨ dtype_(features) = 8
+Rule 19 (If the features tensor has only positive values, alpha has less impact)
+{v_1 : tensor, v_2 : float} |= if min(v_1) ≥ 0 then v_2 < 10.0
 >>
-Rule 42 (if features is of integer type, alpha is non-negative)
-{features : tensor, alpha : int ⊎ float} |= if dtype_(features) = 3 ∨ dtype_(features) = 4 then alpha ≥ 0
+Rule 20 (If alpha is 0, all negative values in the tensor should be zero after the operation, which might be undesirable)
+{v_1 : tensor, v_2 : float} |= if v_2 = 0.0 then min(v_1) ≥ 0
 >>
-Rule 45 (if features has an int dtype, alpha can be an int that is less than the max int value)
-{features : tensor, alpha : int} |= if dtype_(features) = 3 ∨ dtype_(features) = 4 then alpha < 2147483647
+Rule 21 (Prevent NaN by checking if the input tensor contains inf or -inf, only for float types)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 then max(v_1) < 1000000000.0 ∧ min(v_1) > -1000000000.0
 >>
-Rule 47 (if features is of integer type, alpha is non-negative)
-{features : tensor, alpha : float ⊎ int} |= if dtype_(features) = 3 ∨ dtype_(features) = 4 then alpha ≥ 0
+Rule 24 (If the input tensor is a vector, alpha should be small)
+{v_1 : tensor, v_2 : float} |= if ndim(v_1) = 1 then v_2 < 0.5
 >>
-Rule 48 (features has a valid dtype and alpha is a float)
-{features : tensor} |= if dtype_(features) = 6 ∨ dtype_(features) = 7 ∨ dtype_(features) = 8 then true else false
+Rule 25 (The product of the shape dimensions of the features tensor must be within a reasonable range)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
 >>
-Rule 49 (features has a valid dtype and alpha is int or float)
-{features : tensor} |= if dtype_(features) = 3 ∨ dtype_(features) = 4 then true else false
+Rule 26 (if alpha is very small the tensor cannot contain very big values)
+{v_1 : tensor, v_2 : float} |= if v_2 < 0.0001 then max(v_1) < 1000
 >>
-Rule 53 (features can't have a complex dtype)
-{features : tensor} |= dtype_(features) ≠ 9 ∧ dtype_(features) ≠ 10
+Rule 30 (If the input tensor is a vector and contains negative value, alpha must be positive)
+{v_1 : tensor, v_2 : float} |= if ndim(v_1) = 1 ∧ min(v_1) < 0 then v_2 > 0
 >>
-Rule 64 (alpha is greater than -2)
-{alpha : float ⊎ int} |= alpha > -2
+Rule 32 (Alpha should be close to 0 if the tensor has mostly small values)
+{v_1 : tensor, v_2 : float} |= if max(v_1) < 1 then v_2 < 0.3
 >>
-Rule 68 (features can't have a boolean dtype)
-{features: tensor} |= dtype_(features) ≠ 0
+Rule 33 (If the input tensor has only two unique values alpha should be zero)
+{v_1 : tensor, v_2 : float} |= if (max(v_1) ≠ min(v_1)) ∧ (∃x ∈ [0, ndim(v_1) - 1] : shape(v_1, x) = 2) then v_2 = 0.0
+>>
+Rule 34 (The product of the shape dimensions of the features tensor must be smaller than a certain value if the tensor is not a scalar)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 100)
+>>
+Rule 36 (If the input tensor has only two unique values alpha should be zero)
+{v_1 : tensor, v_2 : float} |= if (max(v_1) ≠ min(v_1)) ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 2) then v_2 = 0.0
+>>
+Rule 38 (Alpha must be 0 if the tensor has only one unique value)
+{v_1 : tensor, v_2 : float} |= if max(v_1) = min(v_1) then v_2 = 0.0
+>>
+Rule 40 (The tensor's shape cannot be a scalar value if the tensor contains different values)
+{v_1 : tensor} |= if max(v_1) = min(v_1) then ndim(v_1) = 0 else ndim(v_1) > 0
+>>
+Rule 42 (The alpha value must be very small if the max values in the tensor are close to zero)
+{v_1 : tensor, v_2 : float} |= if max(v_1) < 0.01 then v_2 < 0.01
+>>
+Rule 44 (The alpha value must be very small if the max values in the tensor are close to zero and there is a large dynamic range)
+{v_1 : tensor, v_2 : float} |= if max(v_1) < 0.01 ∧ max(v_1) - min(v_1) > 0.1 then v_2 < 0.01
+>>
+Rule 45 (Avoid overflow by setting appropriate alpha value)
+{v_1: tensor, v_2: float} |= if dtype_(v_1) = 7 then v_2 < 10.0 else if dtype_(v_1) = 8 then v_2 < 1000.0 else if dtype_(v_1) = 9 then v_2 < 100000.0
+>>
+Rule 48 (If the shape has one dimension that is zero alpha should be zero)
+{v_1: tensor, v_2: float} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then v_2 = 0.0
+>>
+Rule 49 (If the tensor is a boolean then alpha should be zero)
+{v_1: tensor, v_2: float} |= if dtype_(v_1) = 0 then v_2 = 0.0
+>>
+Rule 50 (The shape cannot be empty if alpha isn't zero)
+{v_1: tensor, v_2: float} |= if v_2 ≠ 0.0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 51 (The name parameter should not be one of the reserved keywords.)
+{v_3 : str} |= v_3 ≠ "relu" ∧ v_3 ≠ "tanh" ∧ v_3 ≠ "sigmoid" ∧ v_3 ≠ "softmax"
+>>
+Rule 55 (If there's a large difference between the max and min value and we are working with float16, we need to reduce alpha)
+{v_1: tensor, v_2: float} |= if dtype_(v_1) = 6 ∧ (max(v_1) - min(v_1) > 100) then v_2 < 0.1
+>>
+Rule 56 (If the tensor is a boolean or int then alpha should be zero)
+{v_1: tensor, v_2: float} |= if dtype_(v_1) = 0 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then v_2 = 0.0
+>>
+Rule 57 (If the shape has one dimension that is zero alpha should be zero or name must be none)
+{v_1: tensor, v_2: float, v_3: str} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then v_2 = 0.0 ∨ v_3 = "none"
+>>
+Rule 59 (The alpha must be 0 or 1 if the dtype is an integer)
+{v_1: tensor, v_2: float} |= if dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then v_2 = 0.0 ∨ v_2 = 1.0
+>>
+Rule 60 (If the shape has one dimension that is zero name has to be none)
+{v_1: tensor, v_3: str} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then v_3 = "none"
+>>
+Rule 61 (For int8 and uint8 tensors, alpha should be 1.0)
+{v_1: tensor, v_2: float} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 then v_2 = 1.0
+>>
+Rule 62 (The alpha value should not be 1.0 if the min and max values are close to zero, because this will lead to very small outputs)
+{v_1: tensor, v_2: float} |= if (max(v_1) < 0.1) ∧ (min(v_1) > -0.1) then v_2 ≠ 1.0
+>>
+Rule 63 (The alpha value should be greater than 0.0 if the values are only negative)
+{v_1: tensor, v_2: float} |= if max(v_1) <= 0.0 then v_2 > 0.0
+>>
+Rule 64 (For int32 and int64 tensors, alpha should be smaller than one)
+{v_1: tensor, v_2: float} |= if dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then v_2 < 1.0
+>>
+Rule 65 (The alpha value should not be 1.0 if the min and max values are close to zero, because this will lead to very small outputs and the tensor is int)
+{v_1: tensor, v_2: float} |= if (max(v_1) < 0.1) ∧ (min(v_1) > -0.1) ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) then v_2 ≠ 1.0
+>>
+Rule 66 (If the shape has one dimension that is zero name has to be none or empty string.)
+{v_1: tensor, v_3: str} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then v_3 = "none" ∨ v_3 = ""
+>>
+Rule 67 (Alpha value should be limited with respect to dtype and shape)
+{v_1: tensor, v_2: float} |= if dtype_(v_1) = 6 ∧ (ndim(v_1) > 2) then v_2 < 0.5
+>>
+Rule 68 (If the alpha value is zero, then the minimum value of the tensor must be greater or equal to zero.)
+{v_1: tensor, v_2: float} |= if v_2 = 0.0 then min(v_1) ≥ 0.0
+>>
+Rule 69 (If the tensor's maximum absolute value is very big, use a small alpha to prevent overflow)
+{v_1: tensor, v_2: float} |= if max(v_1) > 1000 ∨ min(v_1) < -1000 then v_2 < 0.1
+>>
+Rule 70 (It's not a good idea to use different alphas for different channels. Check shape and make a condition based on dtype_)
+{v_1: tensor, v_2: float} |= if (dtype_(v_1) = 7) ∧ (ndim(v_1) > 1) ∧ (shape(v_1, 0) > 1) then v_2 < 0.8
+>>
+Rule 72 (Alpha should be default value, if it is floating point tensor)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 then v_2 = 0.2
+>>
+Rule 73 (If tensor contains zero values, alpha should not be zero to avoid zero gradients)
+{v_1: tensor, v_2: float} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then v_2 ≠ 0.0
+>>
+Rule 74 (Alpha should be default value, if it is floating point tensor with enough values)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 then (∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) > 1) ∧ (v_2 = 0.2)
+>>
+Rule 75 (If tensor contains negative values and is int64, alpha should not be zero to avoid zero gradients)
+{v_1: tensor, v_2: float} |= if min(v_1) < 0 ∧ (dtype_(v_1) = 4) then v_2 ≠ 0.0
+>>
+Rule 76 (If the dtype is int32 or int64 then the max value can not be very high)
+{v_1: tensor} |= if dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then max(v_1) < 1000
+>>
+Rule 77 (If the alpha value is zero, then the product of the shape must be zero )
+{v_1: tensor, v_2: float} |= if v_2 = 0.0 then (∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) = 0)
+>>
+Rule 78 (Alpha should be default value, or tensor dimensions must be greater than 2, if it is floating point tensor.)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 then (ndim(v_1) > 2) ∨ (v_2 = 0.2)
+>>
+Rule 79 (If tensor contains negative and large values then, if it is of float16, then make sure alpha value is very very small)
+{v_1: tensor, v_2: float} |= if (min(v_1) < -100) ∧ (dtype_(v_1) = 6) then (v_2 < 0.001)
+>>
+Rule 80 (The alpha value must not be negative)
+{v_2: float} |= v_2 ≥ 0.0
+>>
+Rule 81 (If dtype is float64 alpha cannot be much larger, for stability reasons)
+{v_1: tensor, v_2: float} |= if dtype_(v_1) = 8 then v_2 < 1000.0
+>>
+Rule 82 (Alpha must have a small positive value if the tensor's values are mostly negative and near zero.)
+{v_1: tensor, v_2: float} |= if max(v_1) < 0.01 then v_2 > 0.0 ∧ v_2 < 0.1
+>>
+Rule 83 (Check, if the tensor is a constant tensor (e.g., created with tf.constant), the gradient is zero.)
+{v_1: tensor, v_2: float} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0 ∨ v_2 = 0.2
+>>
+Rule 84 (Alpha must be small if tensor contains small values, and is of float16 dtype)
+{v_1: tensor, v_2: float} |= if (max(v_1) < 5) ∧ (dtype_(v_1) = 6) then v_2 < 0.3
+>>
+Rule 86 (The name should not be similar to a possible existing tensor name. To avoid this, should be none or empty string)
+{v_1: tensor, v_3: str} |= if shape(v_1,0) > 10 then v_3 = "none" ∨ v_3 = ""
+>>
+Rule 87 (If tensor is bfloat16 or float16, alpha value cannot be extremely high)
+{v_1: tensor, v_2: float} |= if (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) then v_2 < 100
+>>
+Rule 88 (If the tensor values are close to 1, no need for leaky relu)
+{v_1: tensor} |= if (min(v_1) > 0.9) ∧ (max(v_1) < 1.1) then false
+>>
+Rule 89 (The name should not be similar to a possible existing tensor name. To avoid this, should be none or empty string)
+{v_1: tensor, v_3: str} |= if ndim(v_1) > 0 ∧ shape(v_1,0) > 10 then v_3 = "none" ∨ v_3 = ""
+>>
+Rule 91 (It's a bad idea to use leakyRelu if the tensor's min and max values are close to zero. Setting the name to "linear" would be more appropriate.)
+{v_1: tensor, v_3: str} |= if (min(v_1) > -0.01) ∧ (max(v_1) < 0.01) then v_3 = "linear"
+>>
+Rule 92 (Very large tensor should not have a custom name, for performance reasons)
+{v_1: tensor, v_3: str} |= if ndim(v_1) > 0 ∧ shape(v_1, 0) > 1000 then v_3 = "none" ∨ v_3 = ""
+>>
+Rule 93 (If alpha is set, name should be different than 'linear')
+{v_2: float, v_3: str} |= if v_2 ≠ 0.2 then v_3 ≠ "linear"
+>>
+Rule 94 (It's a bad idea to use leakyRelu if the tensor's min and max values are close to zero and the alpha value is different than the default. The tensor should not contain noise)
+{v_1: tensor, v_2: float} |= if (min(v_1) > -0.01) ∧ (max(v_1) < 0.01) then v_2 = 0.2
+>>
+Rule 95 (If the shape of the tensor has a very large dimension, then it is not a good idea to choose a small alpha value (0.01). For optimization reasons.)
+{v_1: tensor, v_2: float} |= if (∃i ∈ [0, ndim(v_1)-1]: shape(v_1, i) > 100000) then v_2 > 0.1
+>>
+Rule 96 (If the name is not set, it will be set to "LeakyRelu" so name must not conflict if already exists)
+{v_3 : str} |= v_3 ≠ "LeakyRelu"
+>>
+Rule 97 (LeakyRelu effect is neglectable, if tensor contains just zero and positive values and the alpha is small. No need to use it)
+{v_1: tensor, v_2: float} |= if (min(v_1) >= 0) ∧ (max(v_1) < 0.1) then v_2 = 0.0
+>>
+Rule 98 (If the name is not set, and we are working on int32 or int64 then alpha value must be default 0.2 to avoid problems with performance.)
+{v_1: tensor, v_2: float, v_3: str} |= if (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (v_3 = "none" ∨ v_3 = "") then v_2 = 0.2
+>>
+Rule 99 (If the minimum value is 0, it's probably the output of a ReLU, so using Leaky ReLU may not be useful. Alpha needs to be zero.)
+{v_1: tensor, v_2: float} |= if min(v_1) = 0.0 then v_2 = 0.0
+>>
+Rule 100 (It is a bad idea to use leakyRelu on tensors that are outputs from normalization layers (batchnorm, layerNorm etc.). Set name to none, to improve performance.)
+{v_1: tensor, v_3: str} |= if ndim(v_1) > 0 ∧ (shape(v_1, ndim(v_1) -1) > 10) then v_3 = "none" ∨ v_3 = ""
+>>
+Rule 105 (The product of the dimension of input tensor needs to have a threshold, so the performance is not affected, or leaky relu is not needed)
+{v_1: tensor, v_2: float} |= if (∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) = 1) then v_2 = 0.0
+>>
+Rule 106 (If shape has one dimension less than 1, then alpha must be default, or name must be none to be default for performance.)
+{v_1: tensor, v_2: float, v_3: str} |= if (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 1) then (v_2 = 0.2) ∨ (v_3 = "none")
+>>
+Rule 113 (Alpha must not be very big if dtype is float16 or any dimensions is very large)
+{v_1: tensor, v_2: float} |= if (dtype_(v_1) = 6) ∨ (∃i ∈ [0, ndim(v_1)-1]: shape(v_1, i) > 1000) then v_2 < 10.0

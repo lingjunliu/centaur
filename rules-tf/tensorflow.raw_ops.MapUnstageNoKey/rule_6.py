@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# capacity should be less than or equal to memory_limit if both are specified (Rule 6)
+# If capacity is 0 then memory_limit should also be 0 (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_value"] >= 0, v["arg2_value"] >= 0), v["arg1_value"] <= v["arg2_value"], False)) if n else
-          If(And(v["arg1_value"] >= 0, v["arg2_value"] >= 0), v["arg1_value"] <= v["arg2_value"], False))
+    s.add(Not(If(v["arg1_value"] == 0, v["arg2_value"] == 0, True)) if n else
+          If(v["arg1_value"] == 0, v["arg2_value"] == 0, True))
 )
 
 def rule_6_func(arg1, arg2, solver=None, neg=False):

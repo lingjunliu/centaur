@@ -1,39 +1,66 @@
 >>
-Rule 2 (unit must be either "BYTE" or "UTF8_CHAR")
-{v_2 : str} |= v_2 = "BYTE" ∨ v_2 = "UTF8_CHAR"
->>
-Rule 3 (input tensor cannot be empty)
-{v_1 : tensor} |= ndim(v_1) > 0
->>
-Rule 4 (The shape of the input tensor must be greater than zero)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 5 (input must be a tensor of string type)
+Rule 1 (input tensor should be of string type)
 {v_1 : tensor} |= dtype_(v_1) = 11
 >>
-Rule 9 (Input tensor should be 1 dimensional)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 2 (unit string must be either "BYTE" or "UTF8_CHAR")
+{v_1 : str} |= v_1 = "BYTE" ∨ v_1 = "UTF8_CHAR"
 >>
-Rule 10 (unit is not an empty string)
-{v_2 : str} |= v_2 ≠ ""
+Rule 3 (input tensor should have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 12 (If input is an empty tensor, the output is also an empty tensor of int32)
-{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then true
+Rule 6 (input tensor must have positive dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 13 (If unit is UTF8_CHAR, input should be valid UTF-8, always true)
-{v_2 : str} |= if v_2 = "UTF8_CHAR" then true
+Rule 8 (Input tensor cannot have unknown rank)
+{v_1 : tensor} |= ndim(v_1) ≠ -1
 >>
-Rule 18 (If input is an empty tensor, the output will be an empty tensor)
+Rule 10 (if unit is UTF8_CHAR, input strings must be valid UTF-8 - cannot express this with current grammar, so defaulting to true.)
+{v_1 : str} |= if v_1 = "UTF8_CHAR" then true
+>>
+Rule 14 (Shape of the output tensor is the same as the shape of the input tensor)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, i)
+>>
+Rule 15 (If the input tensor is a scalar, the output tensor is a scalar)
 {v_1 : tensor} |= if ndim(v_1) = 0 then true
 >>
-Rule 24 (String length should be non-negative based on dimensions)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 16 (If the input tensor is a scalar, the output tensor is a scalar)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, i)
 >>
-Rule 28 (If the input is a vector of strings, the output is a vector of int32 with the same length)
-{v_1 : tensor} |= if ndim(v_1) = 1 then true
+Rule 20 (input is a tensor of strings, and output is a tensor of int32, and the shapes are the same)
+{v_1 : tensor} |= dtype_(v_1) = 11 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, i)
 >>
-Rule 32 (Input and Output tensors should have same shape if input is not scalar)
-{v_1 : tensor} |= if ndim(v_1) > 0 then true
+Rule 24 (The output tensor is a tensor of int32)
+{v_1 : tensor} |= dtype_(v_1) = 3
 >>
-Rule 45 (The input tensor's elements must be strings if the unit is UTF8_CHAR.)
-{v_1 : tensor, v_2 : str} |= if v_2 = "UTF8_CHAR" then dtype_(v_1) = 11
+Rule 29 (Input tensor must be a string tensor)
+{v_1: tensor} |= dtype_(v_1) = 11
+>>
+Rule 30 (if the input is a scalar, the output is a scalar)
+{v_1: tensor} |= if ndim(v_1) = 0 then true
+>>
+Rule 31 (If the input is not a scalar, the output has the same shape as the input)
+{v_1: tensor} |= if ndim(v_1) ≠ 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, i)
+>>
+Rule 32 (Either BYTE or UTF8_CHAR can be chosen as a unit string)
+{v_1: str} |= v_1 = "BYTE" ∨ v_1 = "UTF8_CHAR"
+>>
+Rule 39 (Output tensor has the same number of dimensions as the input)
+{v_1 : tensor} |= ndim(v_1) = ndim(v_1)
+>>
+Rule 43 (If unit is 'BYTE' then compute the number of bytes in each string)
+{v_1: str} |= if v_1 = "BYTE" then true
+>>
+Rule 46 (If the unit string is 'BYTE', it will compute the number of bytes, otherwise, the behavior is undefined)
+{v_1: str} |= if v_1 = "BYTE" then true else v_1 = "UTF8_CHAR"
+>>
+Rule 50 (output shape matches input shape)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1,i) = shape(v_1,i)
+>>
+Rule 51 (If unit string is specified and equals to UTF8_CHAR, then the input tensor strings are valid UTF-8 strings)
+{v_1: str} |= if v_1 = "UTF8_CHAR" then true else v_1 = "BYTE"
+>>
+Rule 54 (if input tensor is empty, output tensor is also empty)
+{v_1: tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 58 (if input is a string tensor with ndim=N, then the output is an int32 tensor with ndim=N and same shape)
+{v_1: tensor} |= dtype_(v_1) = 11 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, i)

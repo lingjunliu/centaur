@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# image must have at least 3 dimensions to be a valid RGB image (Rule 14)
+# max_delta is within valid range (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] >= 3) if n else
-          v["arg1_ndim"] >= 3)
+    s.add(Not(And(0 <= v["arg1_value"], v["arg1_value"] <= 0.5)) if n else
+          And(0 <= v["arg1_value"], v["arg1_value"] <= 0.5))
 )
 
 def rule_14_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_14_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_value = Real('arg1_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 14
-        rule_14(solver, {'arg1_ndim': arg1_ndim})
+        rule_14(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_14(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_14(solver, {'arg1_value': arg1['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The square of the max absolute value should not result in overflow (Rule 41)
+# Input tensor should not have extremely small values to avoid underflow during squaring. (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 1, Select(v["arg1_range"], 1) * Select(v["arg1_range"], 1) < 127, If(v["arg1_dtype"] == 2, Select(v["arg1_range"], 1) * Select(v["arg1_range"], 1) < 32767, If(v["arg1_dtype"] == 3, Select(v["arg1_range"], 1) * Select(v["arg1_range"], 1) < 2147483647, False)))) if n else
-          If(v["arg1_dtype"] == 1, Select(v["arg1_range"], 1) * Select(v["arg1_range"], 1) < 127, If(v["arg1_dtype"] == 2, Select(v["arg1_range"], 1) * Select(v["arg1_range"], 1) < 32767, If(v["arg1_dtype"] == 3, Select(v["arg1_range"], 1) * Select(v["arg1_range"], 1) < 2147483647, False))))
+    s.add(Not(If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), Select(v["arg1_range"], 0) > -1e-5, True)) if n else
+          If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), Select(v["arg1_range"], 0) > -1e-5, True))
 )
 
 def rule_41_func(arg1, solver=None, neg=False):

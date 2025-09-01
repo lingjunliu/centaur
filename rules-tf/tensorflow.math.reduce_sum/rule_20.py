@@ -5,19 +5,22 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If axis is None then the reduced tensor will have only one element. (Rule 20)
+# axis should be a valid integer or None, if axis is not None and input_tensor has dimension, axis should be between -ndim and ndim (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 0, True, False)) if n else
-          If(v["arg1_ndim"] == 0, True, False))
+    s.add(Not(If(And(v["arg2_value"] != 6, v["arg1_ndim"] > 0), And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] <= v["arg1_ndim"]), True)) if n else
+          If(And(v["arg2_value"] != 6, v["arg1_ndim"] > 0), And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] <= v["arg1_ndim"]), True))
 )
 
-def rule_20_func(arg1, solver=None, neg=False):
+def rule_20_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
+            return False
+        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)) or isinstance(arg2, str)):
             return False
 
         # Variable declarations
@@ -28,9 +31,9 @@ def rule_20_func(arg1, solver=None, neg=False):
         solver.add(arg1_ndim == arg1.ndim)
 
         # Constraints for rule 20
-        rule_20(solver, {'arg1_ndim': arg1_ndim})
+        rule_20(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_20(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_20(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

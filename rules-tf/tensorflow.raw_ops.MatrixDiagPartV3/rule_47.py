@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The last two dimensions of input must be greater than zero (Rule 47)
+# If k has dimension 1, then the shape should be 2 (Rule 47)
 
 rule_47 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0)) if n else
-          And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0))
+    s.add(Not(If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) == 2, True)) if n else
+          If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) == 2, True))
 )
 
 def rule_47_func(arg1, solver=None, neg=False):

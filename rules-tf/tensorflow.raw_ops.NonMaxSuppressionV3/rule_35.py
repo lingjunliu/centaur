@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if iou_threshold is float16, score_threshold should be float16 too (Rule 35)
+# the number of boxes in boxes should be greater than or equal to max_output_size (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, False)) if n else
-          If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, False))
+    s.add(Not(Select(v["arg1_shape"], 0) >= v["arg2_value"]) if n else
+          Select(v["arg1_shape"], 0) >= v["arg2_value"])
 )
 
 def rule_35_func(arg1, arg2, solver=None, neg=False):
@@ -20,22 +20,23 @@ def rule_35_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 35
-        rule_35(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_35(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_35(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_35(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)

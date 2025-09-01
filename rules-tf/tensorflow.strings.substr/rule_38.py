@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# pos and len must have the same shape or at least one of them should be scalar (Rule 38)
+# Avoid out of range pos values (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), True, Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0))) if n else
-          If(Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), True, Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)))
+    s.add(Not(If(v["arg1_ndim"] == 0, True, And([Implies(i < (Select(v["arg1_shape"], 0) - 1 + 1), And(Select(v["arg2_range"], 0) > -2000, Select(v["arg2_range"], 1) < 2000)) for i in range(6)]))) if n else
+          If(v["arg1_ndim"] == 0, True, And([Implies(i < (Select(v["arg1_shape"], 0) - 1 + 1), And(Select(v["arg2_range"], 0) > -2000, Select(v["arg2_range"], 1) < 2000)) for i in range(6)])))
 )
 
 def rule_38_func(arg1, arg2, solver=None, neg=False):
@@ -27,21 +27,19 @@ def rule_38_func(arg1, arg2, solver=None, neg=False):
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_ndim = Int('arg2_ndim')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_ndim == arg2.ndim)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 38
-        rule_38(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape})
+        rule_38(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_range': arg2_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_38(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']}, neg)
+        rule_38(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_range': arg2['range']}, neg)

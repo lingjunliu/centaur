@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# orig_input must be of type float32, float64, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64 (Rule 4)
+# ksize must have int32 as its dtype (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 3), v["arg1_dtype"] == 6), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 4)) if n else
-          Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 3), v["arg1_dtype"] == 6), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 4))
+    s.add(Not(v["arg1_dtype"] == 3) if n else
+          v["arg1_dtype"] == 3)
 )
 
 def rule_4_func(arg1, solver=None, neg=False):

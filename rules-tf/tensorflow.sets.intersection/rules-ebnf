@@ -1,63 +1,102 @@
 >>
-Rule 1 (a and b must have the same type)
+Rule 1 (Tensors a and b must have the same type)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 2 (a and b must have the same rank)
+Rule 2 (All but the last dimension of tensors a and b must match to prevent Mismatched shapes)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 3 (validate_indices should be a boolean value)
+{v_3 : bool} |= v_3 = true ∨ v_3 = false
+>>
+Rule 4 (a and b must have at least one dimension to access the last dimension)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1
+>>
+Rule 5 (The dtype of tensor a must be in the supported dtypes)
+{v_1 : tensor} |= dtype_(v_1) = "int32" ∨ dtype_(v_1) = "uint8" ∨ dtype_(v_1) = "int16" ∨ dtype_(v_1) = "int8" ∨ dtype_(v_1) = "string" ∨ dtype_(v_1) = "int64" ∨ dtype_(v_1) = "uint16"
+>>
+Rule 6 (Tensors a and b should not be boolean to prevent type errors)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ "bool" ∧ dtype_(v_2) ≠ "bool"
+>>
+Rule 7 (If a is int16, then b should also be int16 to avoid type mismatch)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "int16" then dtype_(v_2) = "int16"
+>>
+Rule 8 (If b is int16, then a should also be int16 to avoid type mismatch)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = "int16" then dtype_(v_1) = "int16"
+>>
+Rule 9 (Data types of a and b should be among the allowed types to prevent dtype error)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = "int32" ∨ dtype_(v_1) = "uint8" ∨ dtype_(v_1) = "int16" ∨ dtype_(v_1) = "int8" ∨ dtype_(v_1) = "string" ∨ dtype_(v_1) = "int64" ∨ dtype_(v_1) = "uint16") ∧ (dtype_(v_2) = "int32" ∨ dtype_(v_2) = "uint8" ∨ dtype_(v_2) = "int16" ∨ dtype_(v_2) = "int8" ∨ dtype_(v_2) = "string" ∨ dtype_(v_2) = "int64" ∨ dtype_(v_2) = "uint16")
+>>
+Rule 10 (If dtype of a is bool, the expression will evaluate to false to avoid the error.)
+{v_1 : tensor} |= if dtype_(v_1) = "bool" then false
+>>
+Rule 11 (Shape of a and shape of b must be such that the all dimensions except the last one are equal)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 12 (To avoid shape mismatch, the tensors should have the same rank.)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 3 (All but the last dimension of a and b must match)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1) ∧ ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i)
+Rule 13 (If tensors don't have the same number of dimensions, return false to avoid shape issues.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then false
 >>
-Rule 4 (validate_indices must be a bool)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 15 (If dtype of b is bool, the expression will evaluate to false to avoid the error.)
+{v_2 : tensor} |= if dtype_(v_2) = "bool" then false
 >>
-Rule 6 (Number of dimensions must be at least 1)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 17 (To prevent mismatched shapes error, either the shapes of a and b should match except for the last dimension, or the tensors should have different ranks.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≠ ndim(v_2)) ∨ (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 7 (If validate indices is true, the indices must be validated)
-{v_1 : bool} |= if v_1 = true then true
+Rule 18 (To prevent shape errors, if the tensors have the same rank, all dimensions except the last must be the same.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 10 (a and b's dtypes must be one of int8, int16, int32, int64, uint8, float16, float32, float64)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+Rule 20 (To prevent mismatched shapes, if tensors a and b have different ranks, then the last dimension of the tensor with lower rank must be 1.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then shape(v_1, ndim(v_1) - 1) = 1 else if ndim(v_2) < ndim(v_1) then shape(v_2, ndim(v_2) - 1) = 1
 >>
-Rule 11 (Rank of a and b must be less than or equal to 5)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≤ 5 ∧ ndim(v_2) ≤ 5
+Rule 23 (If ndim(a) and ndim(b) differ by more than 1, it is usually problematic. No function calls allowed for compare expression!)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) - ndim(v_2) > 1 then false else if ndim(v_2) - ndim(v_1) > 1 then false
 >>
-Rule 12 (If rank of a and b is 1, then shape(a, 0) can not be zero)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 then shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0
+Rule 24 (If the rank difference of a and b is greater than 1, then it is likely to cause issues, so this expression will be false)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) - ndim(v_2) > 1 then false else if ndim(v_2) - ndim(v_1) > -1 then true else false
 >>
-Rule 13 (a and b must have at least one element if ndim is at least 1)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1 then (shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0)
+Rule 25 (If the rank of a and b differ by more than 1, this is likely problematic, so set validate_indices to false)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if ndim(v_1) - ndim(v_2) > 1 then v_3 = false else if ndim(v_2) - ndim(v_1) > 1 then v_3 = false
 >>
-Rule 14 (If validate_indices is true, then a and b's last dimension can not be zero.)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then shape(v_2, ndim(v_2) - 1) > 0 ∧ shape(v_3, ndim(v_3) - 1) > 0
+Rule 26 (For tensors with different number of dimensions, if the smaller tensor's shape is not 1, set validate_indices to false)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if (ndim(v_1) < ndim(v_2) ∧ shape(v_1, ndim(v_1) - 1) ≠ 1) then v_3 = false else if (ndim(v_2) < ndim(v_1) ∧ shape(v_2, ndim(v_2) - 1) ≠ 1) then v_3 = false
 >>
-Rule 16 (if ndim(a) = 0, then ndim(b) must be zero.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+Rule 27 (Tensors a and b must have number of dimensions greater than 0.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
 >>
-Rule 21 (If validate_indices is false, then it's ok for the last dimension to be 0.)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = false then true else shape(v_2, ndim(v_2) - 1) > 0 ∧ shape(v_3, ndim(v_3) - 1) > 0
+Rule 28 (To prevent shape mismatches, if the tensors have different ranks, at least one should have shape 1 in its last dimension.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then (shape(v_1, ndim(v_1) - 1) = 1 ∨ shape(v_2, ndim(v_2) - 1) = 1)
 >>
-Rule 24 (if ndim(a) > 0 and ndim(b) > 0, then all dimensions except last must match)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then ∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1 -1] : shape(v_1, i) = shape(v_2, i)
+Rule 30 (For tensors a and b where ndim(a) != ndim(b), set validate_indices to false if shape of the smaller dimension isn't 1)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if ndim(v_1) < ndim(v_2) then (if shape(v_1, ndim(v_1)-1) = 1 then true else v_3=false) else if ndim(v_2) < ndim(v_1) then (if shape(v_2, ndim(v_2)-1) = 1 then true else v_3=false)
 >>
-Rule 26 (If validate_indices is defined and true, then indices in a and b must be within valid range, and in row-major order)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then (min(v_2) ≥ 0 ∧ min(v_3) ≥ 0) ∧ (max(v_2) < 1000 ∧ max(v_3) < 1000)
+Rule 31 (If the dtypes do not match set validate_indices to false to potentially avoid errors during the operation)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if dtype_(v_1) ≠ dtype_(v_2) then v_3 = false
 >>
-Rule 27 (If validate_indices is true, then the shape of the sparse tensor a and b must be the same)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)
+Rule 33 (If a is bool, validate_indices must be false to prevent errors)
+{v_1 : tensor, v_3 : bool} |= if dtype_(v_1) = "bool" then v_3 = false
 >>
-Rule 30 (a and b cannot have zero dimensions, if validate_indices is set to true)
-{v_1: bool, v_2: tensor, v_3: tensor} |= if v_1 = true then (ndim(v_2) > 0 ∧ ndim(v_3) > 0)
+Rule 34 (If b is bool, validate_indices must be false to prevent errors.)
+{v_2 : tensor, v_3 : bool} |= if dtype_(v_2) = "bool" then v_3 = false
 >>
-Rule 31 (If validate_indices is defined and true, and the rank > 1 then for any given index, the set size must be less than a maximum value)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true ∧ ndim(v_2) > 1 ∧ ndim(v_3) > 1 then max(v_2) < 100
+Rule 35 (If a or b has an invalid dtype, validate_indices must be false)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if dtype_(v_1) = "bool" ∨ dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128" then v_3 = false else if dtype_(v_2) = "bool" ∨ dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" ∨ dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128" then v_3 = false
 >>
-Rule 33 (If validate_indices is defined and True then all indices in sparse tensors 'a' and 'b' should have positive values)
-{v_1 : bool, v_2 : tensor, v_3: tensor} |= if v_1 = true then (min(v_2) >= 0 ∧ min(v_3) >= 0)
+Rule 36 (If b is an unsupported dtype, set validate_indices to false.)
+{v_2 : tensor, v_3 : bool} |= if dtype_(v_2) = "bool" ∨ dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" ∨ dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128" then v_3 = false
 >>
-Rule 34 (If validate_indices is defined and True, indices in a and b must be less than corresponding dimensions)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then (max(v_2) < shape(v_2, 0) ∧ max(v_3) < shape(v_3, 0))
+Rule 37 (if a or b is an unsupported dtype set validate_indices to false)
+{v_1: tensor, v_2: tensor, v_3 : bool} |= if dtype_(v_1) = "bool" ∨ dtype_(v_2) = "bool" then v_3 = false else if dtype_(v_1) = "float16" ∨ dtype_(v_2) = "float16" then v_3 = false else if dtype_(v_1) = "float32" ∨ dtype_(v_2) = "float32" then v_3 = false else if dtype_(v_1) = "float64" ∨ dtype_(v_2) = "float64" then v_3 = false else if dtype_(v_1) = "complex64" ∨ dtype_(v_2) = "complex64" then v_3 = false else if dtype_(v_1) = "complex128" ∨ dtype_(v_2) = "complex128" then v_3 = false
 >>
-Rule 35 (Shape of result tensor is same except last dimension, and last dimension will have at most the size of minimum last dimension between a and b.)
-{v_1: tensor, v_2: tensor} |= (ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1) - 2]: shape(v_1, i) = shape(v_2, i))
+Rule 38 (Set validate_indices to false if type mismatch int16 vs bool will occur)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if dtype_(v_1) = "int16" ∧ dtype_(v_2) = "bool" then v_3 = false else if dtype_(v_1) = "bool" ∧ dtype_(v_2) = "int16" then v_3 = false
+>>
+Rule 39 (If Types don't match and dtype is int16 vs bool, set validate_indices to false)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if (dtype_(v_1) = "int16" ∧ dtype_(v_2) = "bool") ∨ (dtype_(v_1) = "bool" ∧ dtype_(v_2) = "int16") then v_3 = false
+>>
+Rule 42 (Use `if` expression instead of `->`)
+{v_1: tensor, v_2: tensor, v_3 : bool} |= if (dtype_(v_1) = "bool" ∨ dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128" ∨ dtype_(v_2) = "bool" ∨ dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" ∨ dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128") then v_3 = false else v_3 = true
+>>
+Rule 43 (If a or b has a dtype that isn't allowed, set validate_indices to False)
+{v_1: tensor, v_2: tensor, v_3 : bool} |= if (dtype_(v_1) = "bool") ∨ (dtype_(v_1) = "float16") ∨ (dtype_(v_1) = "float32") ∨ (dtype_(v_1) = "float64") ∨ (dtype_(v_1) = "complex64") ∨ (dtype_(v_1) = "complex128") ∨ (dtype_(v_2) = "bool") ∨ (dtype_(v_2) = "float16") ∨ (dtype_(v_2) = "float32") ∨ (dtype_(v_2) = "float64") ∨ (dtype_(v_2) = "complex64") ∨ (dtype_(v_2) = "complex128") then v_3 = false

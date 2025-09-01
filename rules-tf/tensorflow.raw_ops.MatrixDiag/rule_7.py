@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The shape of diagonal should not exceed 2048 in any dimension. (Rule 7)
+# The last two dimensions of the output tensor are equal if diagonal has rank k (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) <= 2048) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) <= 2048) for i in range(6)]))
+    s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"]) == Select(v["arg1_shape"], v["arg1_ndim"] - 1)) if n else
+          Select(v["arg1_shape"], v["arg1_ndim"]) == Select(v["arg1_shape"], v["arg1_ndim"] - 1))
 )
 
 def rule_7_func(arg1, solver=None, neg=False):

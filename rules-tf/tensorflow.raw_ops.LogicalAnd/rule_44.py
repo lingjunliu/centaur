@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if both inputs are scalar tensors, then data type should be boolean. (Rule 44)
+# If either x or y is a scalar, the other must also be a boolean scalar (Rule 44)
 
 rule_44 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), And(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0), False)) if n else
-          If(And(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), And(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0), False))
+    s.add(Not(If(Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), And(And(And(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), v["arg1_dtype"] == 0), v["arg2_dtype"] == 0), True)) if n else
+          If(Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), And(And(And(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), v["arg1_dtype"] == 0), v["arg2_dtype"] == 0), True))
 )
 
 def rule_44_func(arg1, arg2, solver=None, neg=False):
@@ -37,9 +37,9 @@ def rule_44_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 44
-        rule_44(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim, 'arg2_dtype': arg2_dtype, 'arg2_ndim': arg2_ndim})
+        rule_44(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_44(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim'], 'arg2_dtype': arg2['dtype'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_44(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']}, neg)

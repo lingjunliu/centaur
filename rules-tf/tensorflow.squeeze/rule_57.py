@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Each element specified by axis should have dimension 1. (Rule 57)
+# The dimension size at each specified axis must be 1 when axis is a list (Rule 57)
 
 rule_57 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_length"] > 0, (And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg1_shape"], Select(v["arg2_values"], i)) == 1) for i in range(6)])), False)) if n else
-          If(v["arg2_length"] > 0, (And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg1_shape"], Select(v["arg2_values"], i)) == 1) for i in range(6)])), False))
+    s.add(Not(And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg1_shape"], Select(v["arg2_values"], i)) == 1) for i in range(6)])) if n else
+          And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg1_shape"], Select(v["arg2_values"], i)) == 1) for i in range(6)]))
 )
 
 def rule_57_func(arg1, arg2, solver=None, neg=False):

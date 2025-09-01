@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the shape is an empty tuple (Rule 23)
+# size elements should be non-negative and small, avoiding InvalidArgumentError and ResourceExhaustedError (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_length"] == 0) if n else
-          v["arg1_length"] == 0)
+    s.add(Not(If(v["arg1_length"] > 0, And(And(And(v["arg1_length"] <= 6, (And([Implies(i < (v["arg1_length"] - 1 + 1), And(Select(v["arg1_values"], i) >= 0, Select(v["arg1_values"], i) < 2000)) for i in range(6)]))), (Or(v["arg1_length"] == 1, Select(v["arg1_values"], 0) < 10000000000000000))), (And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) < 10000000000000000 / Select(v["arg1_values"], i - 1)) for i in range(6)]))), True)) if n else
+          If(v["arg1_length"] > 0, And(And(And(v["arg1_length"] <= 6, (And([Implies(i < (v["arg1_length"] - 1 + 1), And(Select(v["arg1_values"], i) >= 0, Select(v["arg1_values"], i) < 2000)) for i in range(6)]))), (Or(v["arg1_length"] == 1, Select(v["arg1_values"], 0) < 10000000000000000))), (And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) < 10000000000000000 / Select(v["arg1_values"], i - 1)) for i in range(6)]))), True))
 )
 
 def rule_23_func(arg1, solver=None, neg=False):
@@ -23,14 +23,17 @@ def rule_23_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_length = Int('arg1_length')
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_length == len(arg1))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 23
-        rule_23(solver, {'arg1_length': arg1_length})
+        rule_23(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_23(solver, {'arg1_length': arg1['length']}, neg)
+        rule_23(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length']}, neg)

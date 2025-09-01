@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if input is bool, dtype must be bool if specified (Rule 14)
+# If dtype is string, the input must also be string (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 0, Or(v["arg2_value"] == 0, v["arg2_value"] == 12), False)) if n else
-          If(v["arg1_dtype"] == 0, Or(v["arg2_value"] == 0, v["arg2_value"] == 12), False))
+    s.add(Not(If(v["arg2_value"] == 11, v["arg1_dtype"] == 11, True)) if n else
+          If(v["arg2_value"] == 11, v["arg1_dtype"] == 11, True))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):

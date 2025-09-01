@@ -1,57 +1,294 @@
 >>
-Rule 2 (a must be a tensor)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 2 (axis should be within the valid range of dimensions of input array)
+{v_1 : tensor, v_3 : int} |= v_3 ≥ 0 ∧ v_3 < ndim(v_1)
 >>
-Rule 3 (indices must be non-negative)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
+Rule 3 (indices should have integer datatype)
+{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 1
 >>
-Rule 6 (mode is always clip so is redundant, indices must be a tensor of integers or booleans)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 0
+Rule 5 (mode string can be only clip, wrap, or raise, but our API only supports clip, so checking for valid strings would suffice)
+{v_5 : str} |= v_5 = "clip"
 >>
-Rule 9 (indices must be an integer tensor)
-{v_1 : tensor} |= dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
->>
-Rule 15 (if axis is specified, it must be within the number of a's dimensions)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
->>
-Rule 19 (a must be a tensor with at least one dimension)
+Rule 6 (check the dimension of tensor a)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 23 (Index tensor must have at least one element)
-{v_1: tensor} |= shape(v_1, 0) > 0
+Rule 8 (indices must not be of floating or complex type)
+{v_2 : tensor} |= dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8 ∧ dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10
 >>
-Rule 24 (If a's dimensions is 0 take is invalid)
+Rule 10 (check that the number of dimensions is non-negative, axis value should also be smaller than max possible dimensions)
+{v_1 : tensor, v_3 : int} |= ndim(v_1) ≥ 0 ∧ v_3 < 32
+>>
+Rule 11 (Check if axis is negative and within range when negative)
+{v_1 : tensor, v_3 : int} |= if v_3 < 0 then v_3 ≥ (0 - ndim(v_1))
+>>
+Rule 12 (Check that the number of elements in the indices tensor is non-zero, by checking the product of its shape)
+{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+>>
+Rule 13 (indices tensor cannot have a non-integer dtype that we don't support)
+{v_2 : tensor} |= dtype_(v_2) ≠ 6 ∧ dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8 ∧ dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11 ∧ dtype_(v_2) ≠ 12
+>>
+Rule 15 (axis should be within the valid range of dimensions of input array)
+{v_1 : tensor, v_3 : int} |= v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
+>>
+Rule 16 (indices should have integer datatype)
+{v_2 : tensor} |= dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5
+>>
+Rule 17 (The number of dimensions of indices tensor should be at least 1)
+{v_2 : tensor} |= ndim(v_2) ≥ 1
+>>
+Rule 21 (indices must not be of floating or complex type)
+{v_2 : tensor} |= dtype_(v_2) ≠ 6 ∧ dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8 ∧ dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10
+>>
+Rule 22 (check that the number of elements is at least 1 across axis dimension)
+{v_2 : tensor, v_3 : int} |= if v_3 ≥ 0 ∧ v_3 < ndim(v_2) then shape(v_2, v_3) > 0
+>>
+Rule 24 (indices tensor cannot have a non-integer dtype that we don't support)
+{v_2 : tensor} |= dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 6 ∧ dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8 ∧ dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11 ∧ dtype_(v_2) ≠ 12
+>>
+Rule 25 (out argument is not supported, so it should be None. Suppress this error by checking if the "out" argument has ndim greater than 0, which means it is likely a tensor and violates the constraint)
+{v_4 : tensor} |= ndim(v_4) = 0
+>>
+Rule 26 (axis should be within the valid range of dimensions of input array)
+{v_1 : tensor, v_3 : int} |= if ndim(v_1) > 0 then v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
+>>
+Rule 28 (The number of dimensions of indices tensor should be less than or equal to the dimension of input tensor + 1)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≤ ndim(v_1) + 1
+>>
+Rule 31 (axis should be integer to avoid type errors during the actual computation)
+{v_3: int ⊎ float} |= if v_3 > 0 then v_3 % 1 = 0
+>>
+Rule 32 (The shape of indices tensor must be non-empty.)
+{v_2: tensor} |= ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+>>
+Rule 33 (out argument is not supported, so it should be None. Suppress by checking if dtype of out is defined, implying the user passed something)
+{v_4 : tensor} |= dtype_(v_4) = 12
+>>
+Rule 34 (axis should be within the valid range of dimensions of input array, even if input is a scalar)
+{v_1 : tensor, v_3 : int} |= if ndim(v_1) = 0 then v_3 = 0 else v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
+>>
+Rule 35 (indices should have integer datatype and be non-negative values)
+{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0 ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
+>>
+Rule 37 (prevent incompatible shapes and datatypes for operation)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
+>>
+Rule 40 (indices tensor shape should be compatible with the input tensor shape along given axis.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 >= 0 ∧ v_3 < ndim(v_1) then shape(v_2, 0) ≤ shape(v_1, v_3)
+>>
+Rule 41 (indices tensor can't be a string)
+{v_2 : tensor} |= dtype_(v_2) ≠ 11
+>>
+Rule 42 (Input array can't be a boolean)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 46 (Indices dtype cannot be boolean)
+{v_2 : tensor} |= dtype_(v_2) ≠ 0
+>>
+Rule 47 (indices values must be within tensor bounds if the input tensor has at least one dimension.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) > 0 then min(v_2) ≥ 0 ∧ max(v_2) < shape(v_1, v_3)
+>>
+Rule 51 (Input array must have at least one element, so at least one dimension must have a size greater than zero)
+{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0
+>>
+Rule 52 (The index tensor must have dimensions that are not empty)
+{v_2 : tensor} |= ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+>>
+Rule 53 (out argument is not supported, checking if out has a string datatype indicates that it is being incorrectly used)
+{v_4 : tensor} |= dtype_(v_4) ≠ 11
+>>
+Rule 54 (When axis is negative, must be a valid dimension, but axis can be greater than 0)
+{v_1 : tensor, v_3 : int} |= if v_3 < 0 then v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < 0
+>>
+Rule 55 (indices tensor has the correct datatype)
+{v_2 : tensor} |= (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 5)
+>>
+Rule 56 (Mode must be a valid string option. Although only clip is supported in take, other functions may use different modes, so it's not incorrect grammar)
+{v_5 : str} |= v_5 = "clip" ∨ v_5 = "wrap" ∨ v_5 = "raise"
+>>
+Rule 57 (The index tensor must not have more dimensions than the input tensor)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) <= ndim(v_1) + 1
+>>
+Rule 59 (axis must be less than the number of dimension, but not less than zero)
+{v_1 : tensor, v_3 : int} |= v_3 < ndim(v_1) ∧ v_3 ≥ (0 - ndim(v_1))
+>>
+Rule 62 (The shape of input tensor must be positive along the axis dimension)
+{v_1 : tensor, v_3 : int} |= if v_3 < ndim(v_1) ∧ v_3 >= (0-ndim(v_1)) then shape(v_1, v_3) > 0
+>>
+Rule 64 (Indices values must fall within the input tensor when the mode is clip)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_5 : str} |= if v_5 = "clip" then min(v_2) ≥ 0 ∧ max(v_2) < shape(v_1, v_3)
+>>
+Rule 65 (Axis should be an integer)
+{v_3 : tensor} |= dtype_(v_3) ≠ 1 ∧ dtype_(v_3) ≠ 2 ∧ dtype_(v_3) ≠ 3 ∧ dtype_(v_3) ≠ 4 ∧ dtype_(v_3) ≠ 5
+>>
+Rule 66 (Input tensor should not be string.)
+{v_1: tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 67 (Indices tensor should be of integer type to correctly index tensor)
+{v_2 : tensor} |= (dtype_(v_2) >=1 ∧ dtype_(v_2) <= 5)
+>>
+Rule 68 (out argument is not supported; ensure that out's dtype is not int, indicating an incorrect assignment)
+{v_4: tensor} |= dtype_(v_4) ≠ 1 ∧ dtype_(v_4) ≠ 2 ∧ dtype_(v_4) ≠ 3 ∧ dtype_(v_4) ≠ 4 ∧ dtype_(v_4) ≠ 5
+>>
+Rule 70 (When the axis is specified, its value must fall inside the tensor's dimension range)
+{v_1: tensor, v_3: int} |= (ndim(v_1) > 0) ∧ (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1))
+>>
+Rule 71 (Ensure indices' data type corresponds to tensor and is non-negative for indexing)
+{v_2: tensor} |= (dtype_(v_2) >= 1 ∧ dtype_(v_2) <= 5)
+>>
+Rule 73 (out argument is not supported: prevent out from being a tensor with a defined dtype, so user will not pass it incorrectly)
+{v_4: tensor} |= dtype_(v_4) = 12
+>>
+Rule 74 (The axis can't exceed or go below the tensor's dimensions if ndim > 0)
+{v_1 : tensor, v_3 : int} |= if ndim(v_1) > 0 then (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1))
+>>
+Rule 75 (Indices data type must be tensor with integer values for tensor access.)
+{v_2: tensor} |= dtype_(v_2) >= 1 ∧ dtype_(v_2) <= 5
+>>
+Rule 76 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) >= 1 ∧ dtype_(v_1) <= 10) ∧ (dtype_(v_2) >= 1 ∧ dtype_(v_2) <= 5)
+>>
+Rule 77 (out is not supported, so ensure out is not a tensor with a valid shape)
+{v_4: tensor} |= ndim(v_4) = 0
+>>
+Rule 78 (Axis integer cannot be too large, should be at most 31)
+{v_3 : int} |= v_3 < 32
+>>
+Rule 79 (The input array must have at least one dimension)
 {v_1: tensor} |= ndim(v_1) > 0
 >>
-Rule 25 (indices data type should be valid)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Rule 80 (the number of axes must be less than 32)
+{v_1 : tensor} |= ndim(v_1) < 32
 >>
-Rule 33 (indices must have positive values)
-{v_1 : tensor} |= min(v_1) >= 0
+Rule 83 (The axis cannot be greater than or less than 32)
+{v_3 : int} |= v_3 > -33 ∧ v_3 < 33
 >>
-Rule 46 (indices shape should be valid)
-{v_1 : tensor} |= ndim(v_1) < 8
+Rule 84 (The input array cannot be complex)
+{v_1: tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
 >>
-Rule 48 (if axis is None a must be flattened)
-{v_1 : tensor, v_2 : int} |= if v_2 = 0 then ndim(v_1) = 1
+Rule 85 (Indices must be an integer tensor)
+{v_2 : tensor} |= dtype_(v_2) >= 1 ∧ dtype_(v_2) <= 5
 >>
-Rule 54 (indices and a should be different tensors)
-{v_1 : tensor, v_2 : tensor} |= v_1 ≠ v_2
+Rule 88 (The axis cannot be greater or smaller than tensor shape)
+{v_1 : tensor, v_3 : int} |= v_3 < ndim(v_1) ∧ v_3 >= (0 - ndim(v_1))
 >>
-Rule 63 (The indices values must fit in int32)
-{v_1 : tensor} |= max(v_1) < 2147483647 ∧ min(v_1) > -2147483648
+Rule 89 (The input array cannot be bool or string)
+{v_1: tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 11
 >>
-Rule 64 (check indices ndim.)
-{v_1: tensor} |= ndim(v_1) < 8
+Rule 96 (indices and array shape should align within reasonable bounds, by checking for shapes greater or equal to zero and axis' reasonable bounds)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) then shape(v_1, v_3) ≥ 0 ∧ shape(v_2, 0) ≥ 0
 >>
-Rule 72 (indices must be within a's bounds)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < shape(v_1, 0)
+Rule 99 (The index values cannot exceed the max of float64 to prevent integer overflow)
+{v_2: tensor} |= max(v_2) < 1.7976931348623157e+308
 >>
-Rule 78 (indices must be within a's bounds if axis is None)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then false else ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < shape(v_1, 0) ∧ v_2[i] >= 0
+Rule 101 (Index tensor must have a valid shape)
+{v_2 : tensor} |= ndim(v_2) > 0
 >>
-Rule 79 (if indices contains nan then error)
-{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 6 then ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ "nan"
+Rule 104 (Indices must be int, not float data type.)
+{v_2 : tensor} |= dtype_(v_2) != 7 ∧ dtype_(v_2) != 8 ∧ dtype_(v_2) != 6
 >>
-Rule 84 (indices values must be within a's shape along the specified axis, after clipping)
-{v_1 : tensor, v_2 : tensor, v_3: int} |= if ndim(v_2) = 0 then true else ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < shape(v_1, (v_3 % ndim(v_1))) ∧ v_2[i] >= 0
+Rule 105 (indices values must not exceed max or min values)
+{v_2 : tensor} |= max(v_2) < 2147483647 ∧ min(v_2) > -2147483648
+>>
+Rule 110 (the input must be float data types or int)
+{v_1 : tensor} |= dtype_(v_1) >= 1 ∧ dtype_(v_1) <= 8
+>>
+Rule 111 (out is not supported; ensure dtype is not supported (11 and 12) (string/dtype))
+{v_4: tensor} |= dtype_(v_4) ≠ 11 ∧ dtype_(v_4) ≠ 12
+>>
+Rule 113 (If the indices are of bool type, they will not be used)
+{v_2 : tensor} |= dtype_(v_2) != 0
+>>
+Rule 115 (if the input tensor has shape, we validate the index range. Since we don't use axis, we check along dimension 0)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then max(v_2) <= shape(v_1, 0)
+>>
+Rule 117 (the index values cannot be negative)
+{v_2 : tensor} |= min(v_2) >= 0
+>>
+Rule 118 (index values must be less than the shape of the tensor)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) > 0 then max(v_2) < shape(v_1, v_3)
+>>
+Rule 119 (Indices cannot be complex datatypes.)
+{v_2 : tensor} |= dtype_(v_2) != 9 ∧ dtype_(v_2) != 10
+>>
+Rule 122 (Indices values must not exceed or fall behind a limit by the mode "clip")
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_5 : str} |= if v_5 = "clip" then max(v_2) < shape(v_1, v_3) ∧ min(v_2) >= 0
+>>
+Rule 124 (Index values must be non string dtype)
+{v_2: tensor} |= dtype_(v_2) != 11
+>>
+Rule 125 (Axis value should be within a valid range to perform the operation.)
+{v_1 : tensor, v_3 : int} |= if ndim(v_1) > 0 then v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
+>>
+Rule 126 (out is not supported, so prevent it being a tensor by checking dtype != 12)
+{v_4 : tensor} |= dtype_(v_4) != 12
+>>
+Rule 127 (Indices should be non-negative, and input tensor must have more or equal than 0. Otherwise, it throws OOR)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) > 0 then min(v_2) >= 0 ∧ v_3 >= 0
+>>
+Rule 128 (Tensor cannot be any of these non supported datatypes)
+{v_1 : tensor} |= dtype_(v_1) != 9 ∧ dtype_(v_1) != 10 ∧ dtype_(v_1) != 11 ∧ dtype_(v_1) != 0
+>>
+Rule 130 (The max value must be smaller or equal to 255)
+{v_2 : tensor} |= max(v_2) <= 255
+>>
+Rule 131 (Indices range cannot exceed max for that datatype)
+{v_2 : tensor} |= max(v_2) < 2147483647
+>>
+Rule 133 (When axis is defined, index maximum must be smaller or equal to shape)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= max(v_2) < shape(v_1, v_3) + 1
+>>
+Rule 134 (indices values must not exceed min values for indices.)
+{v_2 : tensor} |= min(v_2) >= -2147483648
+>>
+Rule 137 (Index cannot have shapes larger than int32)
+{v_2 : tensor} |= max(v_2) < 2147483647 ∧ min(v_2) >= -2147483648
+>>
+Rule 139 (If the input data has no shape, or is a scalar, axis should be zero, other wise it should be within bounds)
+{v_1 : tensor, v_3 : int} |= if ndim(v_1) = 0 then v_3 = 0 else v_3 < ndim(v_1) ∧ v_3 >= (0 - ndim(v_1))
+>>
+Rule 140 (out is not supported, should not be a tensor of certain dtype such as string which is unsupported)
+{v_4: dtype} |= v_4 ≠ 11 ∧ v_4 ≠ 12
+>>
+Rule 143 (index tensor's values must not be floats, ints are valid.)
+{v_2 : tensor} |= dtype_(v_2) < 6
+>>
+Rule 149 (We should be able to handle tensors to a size of 200)
+{v_1 : tensor, v_3 : int} |= if ndim(v_1) > 0 then v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) ∧ ndim(v_1) < 200
+>>
+Rule 150 (out must not be float in order to cause error, or out should not have ndim more than 0)
+{v_4 : tensor} |= dtype_(v_4) != 7 ∧ dtype_(v_4) != 8 ∧ dtype_(v_4) != 6
+>>
+Rule 152 (For indices tensor's shape to make sense, it must be no bigger than 10000)
+{v_2 : tensor} |= shape(v_2, 0) < 10000
+>>
+Rule 153 (Indices dtype should be from reasonable int set and valid with tensor index)
+{v_2 : tensor} |= dtype_(v_2) > 0 ∧ dtype_(v_2) < 6
+>>
+Rule 156 (The indices needs to be of integer type, and should not be of float datatype )
+{v_2 : tensor} |= dtype_(v_2) != 6 ∧ dtype_(v_2) != 7 ∧ dtype_(v_2) != 8 ∧ dtype_(v_2) != 9 ∧ dtype_(v_2) != 10
+>>
+Rule 160 (Out must be nothing so can't be float and must have no dimension to suppress error msg)
+{v_4 : tensor} |= ndim(v_4) = 0 ∧ dtype_(v_4) != 7 ∧ dtype_(v_4) != 8 ∧ dtype_(v_4) != 6
+>>
+Rule 161 (For calculation's sake, min axis has to be at most 33 )
+{v_3 : int} |= v_3 > -33
+>>
+Rule 162 (The values must be from an integer datatypes)
+{v_2 : tensor} |= dtype_(v_2) >=1 ∧ dtype_(v_2) <= 5
+>>
+Rule 163 (Axis values must in reasonable boundaries from 0-33 )
+{v_3 : int} |= v_3 < 33
+>>
+Rule 168 (If the main array has more than dimension 0, we need to validate against the dim)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) > 0 then max(v_2) < shape(v_1, v_3) + 1
+>>
+Rule 170 (to suppress the out error, we need to ensure user does not enter an empty string)
+{v_4: str} |= v_4 != ""
+>>
+Rule 171 (The index needs to be of an int dtype , and we need to make sure the shape is not of bool)
+{v_2 : tensor} |= dtype_(v_2) >= 1 ∧ dtype_(v_2) <= 5 ∧ dtype_(v_2) != 0
+>>
+Rule 173 (The axis needs to be an integer so it must not be a float tensor type or complex)
+{v_3 : tensor} |= dtype_(v_3) != 7 ∧ dtype_(v_3) != 8 ∧ dtype_(v_3) != 6 ∧ dtype_(v_3) != 9 ∧ dtype_(v_3) != 10
+>>
+Rule 174 (For shape values to be valid for slicing, the shape should be non zero)
+{v_1 : tensor, v_3 : int} |= if ndim(v_1) > 0 then shape(v_1, v_3) > 0

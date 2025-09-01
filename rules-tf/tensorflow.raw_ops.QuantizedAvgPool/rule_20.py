@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# min_input is less than max_input (Rule 20)
+# The length of ksize must be equal to the number of dimensions in input tensor (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) < Select(v["arg2_range"], 1)) if n else
-          Select(v["arg1_range"], 0) < Select(v["arg2_range"], 1))
+    s.add(Not(v["arg2_length"] == v["arg1_ndim"]) if n else
+          v["arg2_length"] == v["arg1_ndim"])
 )
 
 def rule_20_func(arg1, arg2, solver=None, neg=False):
@@ -20,24 +20,22 @@ def rule_20_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg2_length = Int('arg2_length')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_length == len(arg2))
 
         # Constraints for rule 20
-        rule_20(solver, {'arg1_range': arg1_range, 'arg2_range': arg2_range})
+        rule_20(solver, {'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_20(solver, {'arg1_range': arg1['range'], 'arg2_range': arg2['range']}, neg)
+        rule_20(solver, {'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length']}, neg)

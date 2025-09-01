@@ -1,57 +1,126 @@
 >>
-Rule 1 (library_location should be a valid string)
+Rule 1 (library_location should not be an empty string to avoid file not found error)
 {v_1 : str} |= v_1 ≠ ""
 >>
-Rule 2 (library_location should not be None)
+Rule 2 (library_location should not be None to avoid file not found error)
 {v_1 : str} |= v_1 ≠ "none"
 >>
-Rule 3 (library_location cannot be an empty string)
-{v_1 : str} |= if v_1 = "" then false
+Rule 3 (library_location should be a valid string)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ "/"
 >>
-Rule 4 (library_location string is not a numerical string)
-{v_1 : str} |= if v_1 = "0" ∨ v_1 = "1" ∨ v_1 = "2" ∨ v_1 = "3" ∨ v_1 = "4" ∨ v_1 = "5" ∨ v_1 = "6" ∨ v_1 = "7" ∨ v_1 = "8" ∨ v_1 = "9" then false
+Rule 4 (library_location should be a valid string to avoid file not found error)
+{v_1 : str} |= v_1.len > 0
 >>
-Rule 5 (library_location string must have .so or .dll extension if it is a file)
-{v_1 : str} |= if v_1 = "none" then true else if (v_1.len > 3) then (v_1[v_1.len - 3] = "." ∧ v_1[v_1.len - 2] = "s" ∧ v_1[v_1.len - 1] = "o") ∨ (v_1[v_1.len - 3] = "d" ∧ v_1[v_1.len - 2] = "l" ∧ v_1[v_1.len - 1] = "l")
+Rule 5 (library_location should not be a symbolic link)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] ≠ "~"
 >>
-Rule 8 (library_location string must have .so or .dll extension if it is a file and not "none")
-{v_1 : str} |= if v_1 ≠ "none" ∧ v_1.len > 3 then (v_1[v_1.len - 3] = "." ∧ v_1[v_1.len - 2] = "s" ∧ v_1[v_1.len - 1] = "o") ∨ (v_1[v_1.len - 3] = "." ∧ v_1[v_1.len - 2] = "d" ∧ v_1[v_1.len - 1] = "l" ∧ v_1[v_1.len - 2] = "l")
+Rule 7 (library_location must have a valid length)
+{v_1 : str} |= v_1.len < 255
 >>
-Rule 11 (library_location must be an absolute path or relative path starting with . or ..)
-{v_1 : str} |= if v_1 ≠ "none" ∧ v_1.len > 0 then v_1[0] = "/" ∨ v_1[0] = "\\" ∨ (v_1[0] = "." ∧ (v_1[1] = "/" ∨ v_1[1] = "\\" ∨ (v_1[1] = "." ∧ (v_1[2] = "/" ∨ v_1[2] = "\\"))))
+Rule 10 (library_location should be an absolute path)
+{v_1 : str} |= v_1[0] = "/"
 >>
-Rule 14 (library_location string should not be too long)
-{v_1 : str} |= v_1.len < 256
+Rule 11 (library_location should contain .so extension to be a valid shared object)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] = "."
 >>
-Rule 15 (library_location must have a directory separator if not file extension and not "none" - attempt 2)
-{v_1 : str} |= if v_1 ≠ "none" ∧ v_1.len > 0 then if (v_1[v_1.len - 3] = "." ∧ v_1[v_1.len - 2] = "s" ∧ v_1[v_1.len - 1] = "o") ∨ (v_1[v_1.len - 3] = "." ∧ v_1[v_1.len - 2] = "d" ∧ v_1[v_1.len - 1] = "l") then true else (∃i ∈ [0, v_1.len - 1] : v_1[i] = "/") ∨ (∃i ∈ [0, v_1.len - 1] : v_1[i] = "\\")
+Rule 12 (library_location should not start with ./ to avoid relative paths)
+{v_1 : str} |= if v_1.len > 1 then v_1[0] ≠ "." ∨ v_1[1] ≠ "/"
 >>
-Rule 18 (library_location must contain valid filename characters.)
-{v_1: str} |= if v_1 = "none" then true else ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = "." ∨ v_1[i] = "_" ∨ v_1[i] = "/" ∨ v_1[i] = "\\"
+Rule 13 (library_location should be an existing file)
+{v_1 : str} |= ∃i ∈ [0, 12] : v_1[v_1.len - i - 1] = "o"
 >>
-Rule 19 (library_location string must contain at least one character if not "none")
-{v_1 : str} |= if v_1 ≠ "none" then v_1.len > 0
+Rule 14 (library_location string length should be within reasonable bounds)
+{v_1 : str} |= v_1.len < 1024
 >>
-Rule 20 (library_location string should not end with a space or period)
-{v_1 : str} |= if v_1 ≠ "none" ∧ v_1.len > 0 then v_1[v_1.len - 1] ≠ " " ∧ v_1[v_1.len - 1] ≠ "."
+Rule 16 (library_location must contain a slash)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] = "/"
 >>
-Rule 21 (library_location should not start with a space)
-{v_1 : str} |= if v_1 ≠ "none" ∧ v_1.len > 0 then v_1[0] ≠ " "
+Rule 17 (library_location should be an existing file ending with .so, .dll, or .dylib)
+{v_1 : str} |= (∃i ∈ [0, 3] : v_1[v_1.len - i - 1] = "o") ∨ (∃i ∈ [0, 3] : v_1[v_1.len - i - 1] = "l") ∨ (∃i ∈ [0, 5] : v_1[v_1.len - i - 1] = "i")
 >>
-Rule 23 (library_location must not contain consecutive forward slashes "//")
-{v_1 : str} |= if v_1 ≠ "none" ∧ v_1.len > 1 then ∀i ∈ [0, v_1.len - 2] : (v_1[i] = "/" ∧ v_1[i+1] = "/") = false
+Rule 22 (library_location should not be a directory)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] ≠ "/"
 >>
-Rule 24 (library_location must contain valid extension after last period)
-{v_1 : str} |= if v_1 ≠ "none" ∧ v_1.len > 4 then if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "." then (v_1[v_1.len - 1] ≥ "a" ∧ v_1[v_1.len - 1] ≤ "z") ∧ (v_1[v_1.len - 2] ≥ "a" ∧ v_1[v_1.len - 2] ≤ "z") ∧ (v_1[v_1.len - 3] ≥ "a" ∧ v_1[v_1.len - 3] ≤ "z")
+Rule 29 (library_location should be an absolute path if not a directory)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "/" then true else v_1[0] = "/"
 >>
-Rule 25 (library_location must not contain invalid characters for filenames on Windows)
-{v_1 : str} |= if v_1 ≠ "none" then ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ "<" ∧ v_1[i] ≠ ">" ∧ v_1[i] ≠ ":" ∧ v_1[i] ≠ "\"" ∧ v_1[i] ≠ "/" ∧ v_1[i] ≠ "\\" ∧ v_1[i] ≠ "|" ∧ v_1[i] ≠ "?" ∧ v_1[i] ≠ "*"
+Rule 30 (library_location must have a valid file name component)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ "*" ∧ v_1[i] ≠ "?" ∧ v_1[i] ≠ "<" ∧ v_1[i] ≠ ">" ∧ v_1[i] ≠ "|"
 >>
-Rule 26 (library_location string should not contain control characters)
-{v_1 : str} |= if v_1 ≠ "none" then ∀i ∈ [0, v_1.len - 1] : v_1[i] > "\u001F" ∨ v_1[i] = "\t"
+Rule 35 (library_location should have a length within acceptable bounds)
+{v_1 : str} |= v_1.len < 2048
 >>
-Rule 28 (library_location must be a valid filename or directory name - attempt 2.)
-{v_1 : str} |= if v_1 ≠ "none" then (∃i ∈ [0, v_1.len - 1] : v_1[i] = "/") ∨ (v_1.len > 4 ∧ v_1[v_1.len-1] = "o" ∧ v_1[v_1.len-2] = "s" ∧ v_1[v_1.len-3] = ".") ∨ (v_1.len > 4 ∧ v_1[v_1.len - 1] = "l" ∧ v_1[v_1.len - 2] = "l" ∧ v_1[v_1.len - 3] = "d" ∧ v_1[v_1.len - 4] = ".")
+Rule 36 (library_location must not contain shell metacharacters which could lead to command injection)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ "$" ∧ v_1[i] ≠ "`"
 >>
-Rule 29 (If library_location refers to a file, it must have a valid shared object file extension)
-{v_1 : str} |= if v_1 ≠ "none" ∧ (∃i ∈ [0, v_1.len - 1] : v_1[i] ≠ "/") then (v_1.len > 3 ∧ v_1[v_1.len - 1] = "o" ∧ v_1[v_1.len - 2] = "s" ∧ v_1[v_1.len - 3] = ".") ∨ (v_1.len > 3 ∧ v_1[v_1.len - 1] = "l" ∧ v_1[v_1.len - 2] = "l" ∧ v_1[v_1.len - 3] = "d" ∧ v_1[v_1.len - 4] = ".")
+Rule 40 (library_location should not contain control characters which could lead to unexpected behavior)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > " "
+>>
+Rule 42 (library_location must start with '/' or './' or '../')
+{v_1 : str} |= v_1[0] = "/" ∨ (v_1.len > 1 ∧ v_1[0] = "." ∧ v_1[1] = "/") ∨ (v_1.len > 2 ∧ v_1[0] = "." ∧ v_1[1] = "." ∧ v_1[2] = "/")
+>>
+Rule 43 (library_location must end with '.so', '.dll', or '.dylib')
+{v_1 : str} |= (v_1.len > 2 ∧ v_1[v_1.len - 3] = "." ∧ v_1[v_1.len - 2] = "s" ∧ v_1[v_1.len - 1] = "o") ∨ (v_1.len > 3 ∧ v_1[v_1.len - 4] = "." ∧ v_1[v_1.len - 3] = "d" ∧ v_1[v_1.len - 2] = "l" ∧ v_1[v_1.len - 1] = "l") ∨ (v_1.len > 5 ∧ v_1[v_1.len - 6] = "." ∧ v_1[v_1.len - 5] = "d" ∧ v_1[v_1.len - 4] = "y" ∧ v_1[v_1.len - 3] = "l" ∧ v_1[v_1.len - 2] = "i" ∧ v_1[v_1.len - 1] = "b")
+>>
+Rule 44 (library_location must not contain invalid characters like backspace or newline)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ "\b" ∧ v_1[i] ≠ "\n" ∧ v_1[i] ≠ "\r"
+>>
+Rule 46 (library_location should not be too long)
+{v_1 : str} |= v_1.len < 4096
+>>
+Rule 50 (library_location must not contain only whitespace)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] > " "
+>>
+Rule 54 (library_location must not start with a scheme (e.g., http://))
+{v_1 : str} |= if v_1.len > 4 then v_1[0] ≠ "h" ∨ v_1[1] ≠ "t" ∨ v_1[2] ≠ "t" ∨ v_1[3] ≠ "p"
+>>
+Rule 56 (library_location must only contains valid characters)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > " " ∧ v_1[i] < "~"
+>>
+Rule 66 (library_location must not start with a scheme (e.g., http://))
+{v_1 : str} |= if v_1.len > 4 then if v_1[0] = "h" ∧ v_1[1] = "t" ∧ v_1[2] = "t" ∧ v_1[3] = "p" then false
+>>
+Rule 67 (library_location must not contain path traversal sequences)
+{v_1 : str} |= if v_1.len > 1 then if ∃i ∈ [0, v_1.len - 2] : (v_1[i] = "." ∧ v_1[i+1] = ".") then false
+>>
+Rule 71 (library_location must not contain path traversal sequences ".../")
+{v_1 : str} |= if v_1.len > 2 then if ∃i ∈ [0, v_1.len - 2] : (v_1[i] = "." ∧ v_1[i+1] = "." ∧ v_1[i+2] = "/") then false
+>>
+Rule 72 (library_location must have a valid extension if it's a file)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 1] : (v_1[i] = ".") then ((v_1.len > 2 ∧ v_1[v_1.len - 2] = "s" ∧ v_1[v_1.len - 1] = "o") ∨ (v_1.len > 3 ∧ v_1[v_1.len - 3] = "d" ∧ v_1[v_1.len - 2] = "l" ∧ v_1[v_1.len - 1] = "l") ∨ (v_1.len > 5 ∧ v_1[v_1.len - 5] = "d" ∧ v_1[v_1.len - 4] = "y" ∧ v_1[v_1.len - 3] = "l" ∧ v_1[v_1.len - 2] = "i" ∧ v_1[v_1.len - 1] = "b"))
+>>
+Rule 75 (library_location must not contain path traversal sequences ".../" more than once)
+{v_1 : str} |= if v_1.len > 5 then if ∃i ∈ [0, v_1.len - 6] : (v_1[i] = "." ∧ v_1[i+1] = "." ∧ v_1[i+2] = "/" ∧ v_1[i+3] = "." ∧ v_1[i+4] = "." ∧ v_1[i+5] = "/") then false
+>>
+Rule 88 (library_location must point to an existing file if it contains a file extension)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 1] : (v_1[i] = ".") then true
+>>
+Rule 92 (library_location must have a valid extension for shared object if it's a file)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "." then ((v_1.len > 2 ∧ v_1[v_1.len - 2] = "s" ∧ v_1[v_1.len - 1] = "o") ∨ (v_1.len > 3 ∧ v_1[v_1.len - 3] = "d" ∧ v_1[v_1.len - 2] = "l" ∧ v_1[v_1.len - 1] = "l") ∨ (v_1.len > 5 ∧ v_1[v_1.len - 5] = "d" ∧ v_1[v_1.len - 4] = "y" ∧ v_1[v_1.len - 3] = "l" ∧ v_1[v_1.len - 2] = "i" ∧ v_1[v_1.len - 1] = "b"))
+>>
+Rule 95 (library_location must resolve to a valid file path)
+{v_1 : str} |= ∃i ∈ [0, v_1.len -1] : v_1[i] = "/" ∨ ∃i ∈ [0, v_1.len -1] : v_1[i] = "."
+>>
+Rule 99 (library_location must resolve to a valid file path)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] = "/" ∨ (∃i ∈ [0, v_1.len - 1] : v_1[i] = "." ∧ v_1.len > 1)
+>>
+Rule 100 (library_location must be an accessible existing file if specified with filename and ext)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "." then true else if  ∃i ∈ [0, v_1.len - 1] : v_1[i] = "/" then true
+>>
+Rule 103 (library_location should resolve to a valid file path (must have file seperator or file extension for file))
+{v_1 : str} |= (∃i ∈ [0, v_1.len - 1] : v_1[i] = "/") ∨ (∃i ∈ [0, v_1.len - 1] : v_1[i] = ".")
+>>
+Rule 107 (library_location should resolve to a valid shared object or directory)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] = "/" ∨ (∃i ∈ [0, v_1.len - 1] : v_1[i] = "." ∧ v_1.len > 2)
+>>
+Rule 111 (library_location should refer to a path, either absolute or relative)
+{v_1 : str} |= if v_1.len > 0 then v_1[0] = "/" ∨ v_1[0] = "."
+>>
+Rule 115 (library_location must point to a valid shared object or directory (either name or path given))
+{v_1 : str} |= (∃i ∈ [0, v_1.len - 1] : v_1[i] = "/" ) ∨ (∃i ∈ [0, v_1.len - 1] : v_1[i] = "." )
+>>
+Rule 119 (library_location must point to an actual shared object or a directory)
+{v_1 : str} |= (∃i ∈ [0, v_1.len - 1] : v_1[i] = "/") ∨ (∃i ∈ [0, v_1.len - 1] : v_1[i] = "." ∧ v_1.len > 1)
+>>
+Rule 139 (library_location should represent a valid file path, containing either forward slash or period)
+{v_1 : str} |= (∃i ∈ [0, v_1.len - 1] : v_1[i] = "/" ) ∨ (∃i ∈ [0, v_1.len - 1] : v_1[i] = "." ∧ v_1.len > 1)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Output has the same number of dimensions as the input (Rule 27)
+# The tensor cannot have more than 5 dimensions (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] == v["arg1_ndim"]) if n else
-          v["arg1_ndim"] == v["arg1_ndim"])
+    s.add(Not(v["arg1_ndim"] <= 5) if n else
+          v["arg1_ndim"] <= 5)
 )
 
 def rule_27_func(arg1, solver=None, neg=False):

@@ -1,210 +1,99 @@
 >>
-Rule 1 (The size tensor must have a rank equal to the rank of the value tensor)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = ndim(v_1)
->>
-Rule 2 (Each dimension of the size tensor must be less than or equal to the corresponding dimension of the value tensor)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_2, i) ≤ shape(v_1, i)
->>
-Rule 3 (The seed tensor must have a shape of [2])
-{v_3 : tensor} |= ndim(v_3) = 1 ∧ shape(v_3, 0) = 2
->>
-Rule 4 (The seed tensor must have dtype int32 or int64)
-{v_3 : tensor} |= dtype_(v_3) = 3 ∨ dtype_(v_3) = 4
->>
-Rule 5 (The value tensor should have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
->>
-Rule 6 (The size tensor should have all dimensions greater than 0)
-{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
->>
-Rule 7 (Value tensor can have at most 5 dimensions)
-{v_1 : tensor} |= ndim(v_1) ≤ 5
->>
-Rule 8 (if the value tensor is a scalar, then the size tensor must also be scalar and equal to 1)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0 ∧ shape(v_2,0) = 1
->>
-Rule 9 (the value tensor should not have negative shape)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
->>
-Rule 10 (if value is empty, then the rule is false)
-{v_1 : tensor} |= if ndim(v_1) = 0 then false
->>
-Rule 11 (The seed tensor's elements must be non-negative)
-{v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : v_3[i] ≥ 0
->>
-Rule 12 (If value is a scalar, size should also be scalar and equal to [1])
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 1 ∧ shape(v_2, 0) = 1
->>
-Rule 13 (The size tensor must be a 1-D tensor.)
-{v_2 : tensor} |= ndim(v_2) = 1
->>
-Rule 15 (Each dimension of size must be an integer)
-{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : v_2[i] ≥ 0
->>
-Rule 16 (The seed tensor's length must be exactly 2)
+Rule 1 (seed must have shape [2])
 {v_3 : tensor} |= shape(v_3, 0) = 2
 >>
-Rule 17 (The shape of the value tensor must be non-zero for all dimensions if size is not a scalar)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 2 (value.shape must be greater than or equal to size)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ shape(v_2, i)
 >>
-Rule 18 (Shape of the value cannot be negative)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) ≥ 0
+Rule 3 (seed must have dtype int32 or int64)
+{v_3 : tensor} |= dtype_(v_3) = 3 ∨ dtype_(v_3) = 4
 >>
-Rule 19 (if value is a 3D tensor, then size also has to be a 3D tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 then ndim(v_2) = 1 ∧ shape(v_2,0) = 3
+Rule 4 (size must have dimension equal to rank of value)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 1 ∧ shape(v_2, 0) = ndim(v_1)
 >>
-Rule 20 (Shape of value and size should be same)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then shape(v_1,0) = shape(v_2,0)
+Rule 5 (size must be a 1-D tensor)
+{v_2 : tensor} |= ndim(v_2) = 1
 >>
-Rule 21 (If the input value is a vector, the size should be a vector of length one)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then ndim(v_2) = 1 ∧ shape(v_2, 0) = 1
+Rule 6 (value and size must have compatible shapes for slicing)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 23 (The size tensor can never have a dimension with size zero)
-{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] > 0
+Rule 7 (all dimensions of size must be positive)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, i) > 0
 >>
-Rule 25 (The seed tensor should have integer values)
-{v_3 : tensor} |= dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5
+Rule 8 (seed must be a tensor of type int32 when using XLA)
+{v_3: tensor} |= if "XLA" = "XLA" then dtype_(v_3) = 3
 >>
-Rule 26 (value and size tensors must have at least one common shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
+Rule 10 (value.shape >= size for each dimension)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ shape(v_2, 0)
 >>
-Rule 27 (If the value tensor is 2D, the size tensor also has to be of size 2)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then shape(v_2, 0) = 2
+Rule 11 (seed must have the correct shape)
+{v_3 : tensor} |= ndim(v_3) = 1 ∧ shape(v_3, 0) = 2
 >>
-Rule 28 (The seed tensor should contain positive values)
-{v_3 : tensor} |= ∀i ∈ [0, 1] : v_3[i] > 0
+Rule 12 (size must be less than or equal to value's shape)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_2, 0) = ndim(v_1) ∧ shape(v_1, i) ≥ shape(v_2, i)
 >>
-Rule 29 (Value tensor dimensions must be greater or equal to size dimensions)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, i) ≥ v_2[i]
+Rule 14 (Each dimension of size must not exceed the corresponding dimension of value)
+{v_1 : tensor, v_2 : tensor} |= shape(v_2,0) = ndim(v_1) ∧ ∀i ∈ [0, shape(v_2,0) -1] : shape(v_1, i) ≥ shape(v_2, i)
 >>
-Rule 30 (size tensor can be a 1-D tensor with max length 3)
-{v_2 : tensor} |= ndim(v_2) = 1 ∧ shape(v_2,0) ≤ 3
+Rule 15 (Seed must be a 1D tensor of size 2 with int32 or int64 dtype)
+{v_3 : tensor} |= ndim(v_3) = 1 ∧ shape(v_3, 0) = 2 ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4)
 >>
-Rule 31 (Value and size must have the same rank if value is not a scalar)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ 0 then ndim(v_1) = ndim(v_2)
+Rule 16 (size must be 1-D tensor and value.shape >= size)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 1 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ shape(v_2, i)
 >>
-Rule 33 (The value tensor should have positive dimensions if seed is a valid tensor.)
-{v_1 : tensor, v_3 : tensor} |= if shape(v_3,0) = 2 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 17 (value and size must have the same number of dimensions, and each dimension of value must be >= the corresponding dimension of size)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ shape(v_2, i)
 >>
-Rule 34 (If value has dimension 0, size must also have 0 dimensions)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+Rule 18 (The size argument must be a 1-D tensor whose length is equal to the rank of the value argument, and value.shape >= size)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 1 ∧ shape(v_2, 0) = ndim(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ shape(v_2, i)
 >>
-Rule 36 (Size tensor elements cannot be floating point values)
-{v_2 : tensor} |= dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5
+Rule 19 (The seed tensor must be 1D of size 2, size must be 1D of length equal to the rank of value, and each dimension of value must be greater than or equal to the respective dimension of size.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_3) = 1 ∧ shape(v_3, 0) = 2 ∧ ndim(v_2) = 1 ∧ shape(v_2, 0) = ndim(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ shape(v_2, i)
 >>
-Rule 37 (If the size tensor is smaller than the value tensor, padding occurs)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) < ndim(v_1) then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_2, 0) < shape(v_1, i)
+Rule 20 (Value and Size must be tensors with matching dimensions where value's dimensions are greater than or equal to size, Seed must be a tensor with shape [2], and Seed must be of type int32 or int64)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ shape(v_2, i) ∧ shape(v_3, 0) = 2 ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4)
 >>
-Rule 38 (The seed tensor can't be empty)
-{v_3 : tensor} |= shape(v_3,0) > 0
+Rule 21 (Value and Size must have the same rank, seed must be 1D tensor of size 2 with int32 or int64, and value dimensions are >= size dimensions)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ shape(v_2, i) ∧ ndim(v_3) = 1 ∧ shape(v_3, 0) = 2 ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4)
 >>
-Rule 39 (At least one dimension of the value tensor must be greater or equal to one)
-{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) ≥ 1
+Rule 22 (size dimensions must be less than or equal to value dimensions. Value and size must have same rank. Seed must be shape [2] and int32 or int64)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ shape(v_2, i)) ∧ ndim(v_3) = 1 ∧ shape(v_3, 0) = 2 ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4)
 >>
-Rule 43 (Size tensor dtype must be numerical)
-{v_2 : tensor} |= dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
+Rule 23 (General Rule encompassing all constraints: Value and Size are tensors of same rank with value's shape >= size's shape, and Seed is a [2]-shaped tensor of int32 or int64 type)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ shape(v_2, i)) ∧ (ndim(v_3) = 1 ∧ shape(v_3, 0) = 2) ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4)
 >>
-Rule 44 (The dimensions of value and size must match if value is not scalar)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ 0 then shape(v_1, 0) = shape(v_2, 0)
+Rule 24 (Sufficient Condition Rule: If Size is 1D, and Seed is [2] tensor with int32/int64 dtype, then Value must have rank equal to Size's length, and Value's shape must be >= Size's shape)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_3, 0) = 2 ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4) then ndim(v_1) = shape(v_2, 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ shape(v_2, i))
 >>
-Rule 45 (Seed values are at most int64)
-{v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : v_3[i] ≤ 9223372036854775807
+Rule 25 (The seed must be a 1D tensor with shape[0]=2 and dtype either int32 or int64. Size must be a 1D tensor. And every dimension of value must be greater than or equal to the corresponding dimension of size.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_3) = 1 ∧ shape(v_3, 0) = 2 ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4)) ∧ ndim(v_2) = 1 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ shape(v_2, i)
 >>
-Rule 46 (If size is scalar, value should be scalar)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then ndim(v_1) = 0
+Rule 28 (This rule ensures proper shape and dtype for seed. And that if value and size have the same rank, each dimension of value is >= each of size)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_3) = 1 ∧ shape(v_3, 0) = 2 ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4)) ∧ if ndim(v_1) = ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ shape(v_2, i)) else false
 >>
-Rule 47 (The size tensor and value tensor must be tensors of the same type)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 29 (Combined Valid Parameter Check: Size must have valid shape, Seed must have valid shape and dtype, Value must have at least as big shape as Size.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_2) = 1 ∧ shape(v_2, 0) = ndim(v_1)) ∧ (ndim(v_3) = 1 ∧ shape(v_3, 0) = 2 ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ shape(v_2, i))
 >>
-Rule 48 (Shape of the seed should not be zero)
-{v_3 : tensor} |= if shape(v_3, 0) = 0 then false
+Rule 32 (Parameters are invalid if any of the following are true: seed has incorrect shape or dtype, size is not a 1D tensor, or any dimension of size is greater than corresponding dimension of value)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_3) ≠ 1 ∨ shape(v_3, 0) ≠ 2 ∨ (dtype_(v_3) ≠ 3 ∧ dtype_(v_3) ≠ 4)) ∨ ndim(v_2) ≠ 1 ∨ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < shape(v_2, i)) then false
 >>
-Rule 49 (value tensor cannot be boolean)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 33 (Parameters are deemed invalid if seed lacks valid shape OR seed lacks valid dtype OR size is not 1D OR exists a dimension where size > value)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_3) ≠ 1 ∨ shape(v_3, 0) ≠ 2) ∨ (dtype_(v_3) ≠ 3 ∧ dtype_(v_3) ≠ 4) ∨ (ndim(v_2) ≠ 1) ∨ (∃i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : shape(v_1, i) < shape(v_2, i)) then false
 >>
-Rule 50 (If any element in size is greater than the shape of value, the rule is false)
-{v_1: tensor, v_2 : tensor} |= if shape(v_2,0) > shape(v_1,0) then false
+Rule 34 (If Value and Size have the same rank AND Seed is valid, then for all dimensions i, shape(value, i) >= shape(size, i) must be true)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) = ndim(v_2)) ∧ (ndim(v_3) = 1 ∧ shape(v_3, 0) = 2 ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4)) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ shape(v_2, i))
 >>
-Rule 51 (Size tensor must have the same length as value tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) = shape(v_2, 0)
+Rule 35 (Deeming parameters VALID only when ALL conditions are met: Seed has valid shape and dtype, Size has valid rank, Value has rank greater than or equal to Size, AND each dimension of Size is <= Value.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_3) = 1 ∧ shape(v_3, 0) = 2 ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4)) ∧ (ndim(v_2) = 1 ∧ shape(v_2, 0) = ndim(v_1)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ shape(v_2, i))
 >>
-Rule 52 (size tensor cannot be boolean)
-{v_2 : tensor} |= dtype_(v_2) ≠ 0
+Rule 36 (All parameters MUST be valid: Seed must be [2] tensor with int32/int64; Size must be 1D; Value must have rank equal to Size's length; Every Value shape dimension must be >= Size shape dimension)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_3) = 1 ∧ shape(v_3, 0) = 2 ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4)) ∧ (ndim(v_2) = 1) ∧ (ndim(v_1) = shape(v_2, 0)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ shape(v_2, i))
 >>
-Rule 53 (If seed is empty, it is invalid)
-{v_3 : tensor} |= shape(v_3, 0) > 0
+Rule 37 (Validity Rule: Size has valid rank IMPLIES Seed must have valid shape & dtype AND each dim of Value must be >= Size)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_2) = 1 ∧ shape(v_2, 0) = ndim(v_1)) then ((ndim(v_3) = 1 ∧ shape(v_3, 0) = 2 ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ shape(v_2, i)))
 >>
-Rule 54 (Value has dimension one or greater if size has values)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) > 0 then ndim(v_1) ≥ 1
+Rule 38 (This is the conjunction of all parameter properties: Seed has valid shape AND dtype, and Size has valid rank AND each dimension of Value is >= the corresponding dimension of Size.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_3) = 1 ∧ shape(v_3, 0) = 2 ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4)) ∧ (ndim(v_2) = 1 ∧ shape(v_2, 0) = ndim(v_1)) ∧ (∀i ∈ [0, if ndim(v_1) < shape(v_2, 0) then ndim(v_1) else shape(v_2, 0) - 1] : shape(v_1, i) ≥ shape(v_2, i))
 >>
-Rule 55 (Check seed size when seed is provided)
-{v_3 : tensor} |= if ndim(v_3) > 0 then shape(v_3, 0) = 2
->>
-Rule 56 (Dtype of seed is numerical)
-{v_3 : tensor} |= dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5 ∨ dtype_(v_3) = 6 ∨ dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 9 ∨ dtype_(v_3) = 10 ∨ dtype_(v_3) = 11
->>
-Rule 57 (Value tensor has some numerical dtype)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
->>
-Rule 58 (Shape[i] value >= shape[i] size)
-{v_1: tensor, v_2: tensor} |= ∀i ∈ [0, shape(v_2, 0) -1] : shape(v_1,i) ≥ shape(v_2, i)
->>
-Rule 59 (If value is a vector, size must have length one)
-{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 1 then shape(v_2, 0) = 1
->>
-Rule 60 (Shape values have to be greater or equal to zero)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1,i) ≥ 0
->>
-Rule 61 (If value dimension is more than 0, value dim == size dim, otherwise size dim should be empty list )
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) = shape(v_2, 0) else shape(v_2,0) = 0
->>
-Rule 62 (Value's dimensions must be positive and size must exist)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2,0) > 0 ∧  ∀i ∈ [0, ndim(v_1)-1] : shape(v_1,i) > 0
->>
-Rule 64 (Check the boundaries for value shape compared to size)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, shape(v_2,0) - 1] : shape(v_2, i) ≤ shape(v_1, i)
->>
-Rule 65 (Check sizes are positive)
-{v_2 : tensor} |= if ndim(v_2) > 0 then  ∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_2, i) > 0
->>
-Rule 66 (Size must have dimension one if the value is something)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then ndim(v_2) = 1
->>
-Rule 67 (Dimension of value should be equal or greater than dimension of size and must be non zero)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ndim(v_1) ≥ ndim(v_2)
->>
-Rule 68 (Value Dtype must match size dtype when they are numerical)
-{v_1: tensor, v_2: tensor} |= if 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11 then dtype_(v_1) = dtype_(v_2)
->>
-Rule 69 (shape of seed should be [2])
-{v_3: tensor} |= shape(v_3, 0) = 2
->>
-Rule 70 (Shape of the value should be within a reasonable bound)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) ≤ 1024
->>
-Rule 71 (The seed elements must be int32 when using XLA)
-{v_3 : tensor} |= if "XLA" = "XLA" then dtype_(v_3) = 3
->>
-Rule 72 (Size dimension is always positive or greater than 0)
-{v_2 : tensor} |= if shape(v_2,0) > 0 then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] > 0
->>
-Rule 73 (The value must be greater than zero if size is a tensor with length of one)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2,0) = 1 then min(v_1) > 0
->>
-Rule 74 (Value must have shape that is not zero when seed is valid)
-{v_1: tensor, v_3: tensor} |= if shape(v_3,0) = 2 then shape(v_1,0) > 0
->>
-Rule 75 (Size's values cannot be zero when seed exists)
-{v_2: tensor, v_3 : tensor} |= if shape(v_3, 0) = 2 then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] > 0
->>
-Rule 76 (The minimum value in seed must be greater than 0)
-{v_3: tensor} |= min(v_3) > 0
->>
-Rule 77 (If size's dimension is three then the dimension of the value should be three)
-{v_1: tensor, v_2: tensor} |= if shape(v_2, 0) = 3 then ndim(v_1) = 3
->>
-Rule 78 (Size tensor and value tensor cannot have string type )
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_2) ≠ 11
->>
-Rule 80 (The value tensor must have more than two elements if it has more than one dimension.)
-{v_1 : tensor} |= if ndim(v_1) > 1 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 2
+Rule 41 (When the Size tensor is well-defined, then both Seed and Value tensors need to satisfy some criteria)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 1 then (ndim(v_3) = 1 ∧ shape(v_3, 0) = 2 ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4)) ∧ ndim(v_1) = shape(v_2, 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ shape(v_2, i))

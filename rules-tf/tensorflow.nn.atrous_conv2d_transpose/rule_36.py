@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Rate should have a reasonable upper bound, let's say less than 10 (Rule 36)
+# Avoid crash if rate is undefined (Rule 36)
 
 rule_36 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 10) if n else
-          v["arg1_value"] < 10)
+    s.add(Not(v["arg1_value"] >= 0) if n else
+          v["arg1_value"] >= 0)
 )
 
 def rule_36_func(arg1, solver=None, neg=False):

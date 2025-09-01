@@ -1,99 +1,93 @@
 >>
-Rule 1 (input tensor must have at least two dimensions)
+Rule 1 (input tensor must have a supported dtype to avoid InvalidArgumentError)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+>>
+Rule 2 (input tensor must have at least 2 dimensions to form a matrix)
 {v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 2 (input tensor's last two dimensions must be equal, forming a square matrix)
+Rule 3 (inner-most 2 dimensions of the input tensor must be square matrices to avoid Input matrix must be square error)
 {v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
 >>
-Rule 3 (input tensor's dtype must be half, float32, float64, complex64, or complex128 which are types 6, 7, 8, 9, 10 respectively)
+Rule 6 (input tensor dtype must be one of the allowed types)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 7 (input tensor dtype must be float16, float32, float64, complex64, or complex128)
 {v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 4 (shape of input tensor should be greater than 0)
+Rule 8 (input tensor must have shape [..., M, M])
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0
+>>
+Rule 11 (input tensor must be a float16, float32, float64 to avoid NotFoundError)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 12 (input tensor can be float16 and run only on GPU to avoid NotFoundError)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then false
+>>
+Rule 13 (input tensor must be a complex64 or complex128 when run on GPU)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true else false
+>>
+Rule 15 (if the input tensor is of type half, it should not be run on CPU to avoid NotFoundError)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then 0 = 1
+>>
+Rule 16 (Avoid NotFoundError when using float16 on CPU)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then ∃i ∈ [0, 0] : shape(v_1, i) = -1
+>>
+Rule 17 (Shape dimensions should be greater than 0)
 {v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 5 (If the input tensor is a complex type, the output should also be a complex type.)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true
+Rule 19 (Shape dimensions cannot be zero)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
 >>
-Rule 6 (The determinant of a 0x0 matrix is 1)
-{v_1 : tensor} |= if shape(v_1, ndim(v_1) - 1) = 0 then shape(v_1, ndim(v_1) - 2) = 0
+Rule 20 (Last two dimensions cannot be 0.)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) ≠ 0 ∧ shape(v_1, ndim(v_1) - 2) ≠ 0
 >>
-Rule 8 (If input is complex64, the minimum value of the real part must be less than the maximum value of the real part.)
-{v_1 : tensor} |= if dtype_(v_1) = 9 then min(v_1) ≤ max(v_1)
+Rule 23 (input tensor's last dimension must not be unknown to avoid errors)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) ≠ -1
 >>
-Rule 9 (If input is complex128, the minimum value of the real part must be less than the maximum value of the real part.)
-{v_1 : tensor} |= if dtype_(v_1) = 10 then min(v_1) ≤ max(v_1)
+Rule 24 (If input's dtype is float16, the last dimension's size must be known)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then shape(v_1, ndim(v_1) - 1) ≠ -1
 >>
-Rule 10 (The tensor should not have NaN values.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) -1] : shape(v_1, i) ≥ 0
+Rule 25 (Input tensor must not have unknown last two dimensions when dtype is float16)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then (shape(v_1, ndim(v_1) - 1) ≠ -1 ∧ shape(v_1, ndim(v_1) - 2) ≠ -1)
 >>
-Rule 11 (If input is complex64, the output should be complex64)
-{v_1 : tensor} |= if dtype_(v_1) = 9 then true
+Rule 26 (If the input is half type, the input should run on GPU.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then true
 >>
-Rule 12 (If input is complex128, the output should be complex128)
-{v_1 : tensor} |= if dtype_(v_1) = 10 then true
+Rule 27 (Name argument should be a valid string from the string list)
+{v_2 : str} |= v_2 = "ii" ∨ v_2 = "ii->i" ∨ v_2 = "i,j->ij" ∨ v_2 = "bij,bjk->bik" ∨ v_2 = "...ij->...ji" ∨ v_2 = "bn,anm,bm->ba" ∨ v_2 = "none" ∨ v_2 = "sum" ∨ v_2 = "max" ∨ v_2 = "min" ∨ v_2 = "prod" ∨ v_2 = "relu" ∨ v_2 = "tanh" ∨ v_2 = "sigmoid" ∨ v_2 = "softmax" ∨ v_2 = "elu" ∨ v_2 = "selu" ∨ v_2 = "gelu" ∨ v_2 = "swish" ∨ v_2 = "softplus" ∨ v_2 = "linear" ∨ v_2 = "valid" ∨ v_2 = "same" ∨ v_2 = "causal" ∨ v_2 = "channels_last" ∨ v_2 = "channels_first"
 >>
-Rule 14 (Determinant should not be zero for positive-definite matrices)
-{v_1 : tensor} |= if min(v_1) > 0 then min(v_1) > 0
+Rule 34 (input tensor must have at least 2 dimensions and be square to avoid Input matrix must be square error)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
 >>
-Rule 16 (If the input tensor has a batch dimension, each matrix in the batch must be square)
-{v_1 : tensor} |= ∀i ∈ [0, if ndim(v_1) - 3 < 0 then 0 else ndim(v_1) - 3] : shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
+Rule 35 (input tensor must have a supported dtype, have at least 2 dimensions and be square to avoid errors)
+{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
 >>
-Rule 17 (The shape of the input should have rank >= 2.)
+Rule 39 (Input tensor must be a square matrix of supported type)
+{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ if ndim(v_1) ≥ 2 then shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2) else false
+>>
+Rule 40 (Input tensor must be a matrix with supported type and be square)
+{v_1 : tensor} |= if ndim(v_1) < 2 then false else (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
+>>
+Rule 41 (Properties of the input tensor)
+{v_1 : tensor} |= ndim(v_1) < 2 ∨ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
+>>
+Rule 43 (Invalid Input Tensor)
+{v_1 : tensor} |= ndim(v_1) < 2 ∨ (dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10) ∨ shape(v_1, ndim(v_1) - 1) ≠ shape(v_1, ndim(v_1) - 2)
+>>
+Rule 45 (Invalid if ndim < 2)
+{v_1 : tensor} |= ndim(v_1) < 2
+>>
+Rule 46 (Invalid if not square)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) ≠ shape(v_1, ndim(v_1) - 2)
+>>
+Rule 47 (Valid dtypes)
+{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 49 (Shape should not be zero.)
+{v_1 :tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1,i) = 0
+>>
+Rule 53 (The last two dimensions must be equal if ndim >= 2)
+{v_1 : tensor} |= if ndim(v_1) ≥ 2 then shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
+>>
+Rule 55 (Minimum rank of 2)
 {v_1 : tensor} |= ndim(v_1) >= 2
->>
-Rule 18 (if input tensor has float16, then the values must be in a specific range.)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > -65500 ∧ max(v_1) < 65500
->>
-Rule 19 (if any shape is zero, the other must be)
-{v_1 : tensor} |= if shape(v_1, ndim(v_1) - 1) = 0 then shape(v_1, ndim(v_1) - 2) = 0 else if shape(v_1, ndim(v_1) - 2) = 0 then shape(v_1, ndim(v_1) - 1) = 0
->>
-Rule 20 (if the input tensor's dtype is float16, then values must not be infinite)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then ∀i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : shape(v_1, i) ≥ 0
->>
-Rule 22 (if the tensor is a complex type, then the imaginary parts also conform to some valid range)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) > -1000 ∧ max(v_1) < 1000
->>
-Rule 23 (when the shape contains at least one dimension of value 1, the determinant result is either 1 or -1)
-{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1 then true
->>
-Rule 28 (If the input tensor's dtype is float16, then values must be a valid number)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "NaN"
->>
-Rule 29 (If the matrix is diagonal-dominant, then the determinant must not be zero, considering the absolute value of the elements when dtype is float or int)
-{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then true
->>
-Rule 33 (Determinant only exists when the last two dimensions are equal)
-{v_1 : tensor} |= shape(v_1, ndim(v_1)-1) = shape(v_1, ndim(v_1)-2)
->>
-Rule 34 (if the tensor is a complex type, then values cannot be infinite or NaN)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "NaN"
->>
-Rule 37 (The rank of the input tensor must not exceed a certain limit)
-{v_1 : tensor} |= ndim(v_1) ≤ 10
->>
-Rule 39 (If the shape of the last two dimensions are the same, then we should be able to compute the determinant)
-{v_1 : tensor} |= if shape(v_1, ndim(v_1)-1) = shape(v_1, ndim(v_1)-2) then true else false
->>
-Rule 42 (if the tensor is a floating point type, then values cannot be infinite or NaN)
-{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "NaN"
->>
-Rule 43 (When the rank is greater than two, we need to ensure that all the inner most matrices are square.)
-{v_1 : tensor} |= if ndim(v_1) > 2 then ∀i ∈ [0, if ndim(v_1) - 3 < 0 then 0 else ndim(v_1) - 3] : shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
->>
-Rule 44 (Check if the input's dimension are valid)
-{v_1 : tensor} |= 2 ≤ ndim(v_1) ∧ ndim(v_1) ≤ 10
->>
-Rule 46 (For complex tensors, ensure that the real part and the imaginary part should have a similar scale.)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) ≥ -10000 ∧ max(v_1) <= 10000
->>
-Rule 47 (The shape of the matrix cannot be too large, i.e, each dimension is less than 2048)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2048
->>
-Rule 53 (If the dtype is float16, float32 or float64, the values in the tensor cannot be infinite or NaN. We only check the maximum and minimum)
-{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) ≠ "Inf" ∧ min(v_1) ≠ "-Inf" ∧ min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "Inf" ∧ max(v_1) ≠ "-Inf" ∧ max(v_1) ≠ "NaN"
->>
-Rule 55 (If the inner matrix is too large it would lead to out of memory)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) < 2048 ∧ shape(v_1, 1) < 2048
->>
-Rule 59 (If the inner matrix dimensions are too large, this could lead to OOM)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) < 4096 ∧ shape(v_1, 1) < 4096 else if ndim(v_1) > 2 then shape(v_1, ndim(v_1)-1) < 4096 ∧ shape(v_1, ndim(v_1) - 2) < 4096

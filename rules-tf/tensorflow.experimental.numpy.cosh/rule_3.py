@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# input tensor's dtype is not None (Rule 3)
+# The elements of the input tensor must be real numbers (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 6) if n else
-          v["arg1_dtype"] != 6)
+    s.add(Not(And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10)) if n else
+          And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10))
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

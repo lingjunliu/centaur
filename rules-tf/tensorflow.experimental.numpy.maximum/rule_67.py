@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the dimension of both tensors is not same then none of them can be bool (Rule 67)
+# If one tensor has dimension 0, then it's minimum and maximum should be same (Rule 67)
 
 rule_67 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] != v["arg2_ndim"], And(v["arg1_dtype"] != 0, v["arg2_dtype"] != 0), False)) if n else
-          If(v["arg1_ndim"] != v["arg2_ndim"], And(v["arg1_dtype"] != 0, v["arg2_dtype"] != 0), False))
+    s.add(Not(If(v["arg1_ndim"] == 0, Select(v["arg1_range"], 0) == Select(v["arg1_range"], 1), If(v["arg2_ndim"] == 0, Select(v["arg2_range"], 0) == Select(v["arg2_range"], 1), True))) if n else
+          If(v["arg1_ndim"] == 0, Select(v["arg1_range"], 0) == Select(v["arg1_range"], 1), If(v["arg2_ndim"] == 0, Select(v["arg2_range"], 0) == Select(v["arg2_range"], 1), True)))
 )
 
 def rule_67_func(arg1, arg2, solver=None, neg=False):
@@ -26,20 +26,22 @@ def rule_67_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
         arg2_ndim = Int('arg2_ndim')
-        arg2_dtype = Int('arg2_dtype')
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
         solver.add(arg2_ndim == arg2.ndim)
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 67
-        rule_67(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim, 'arg2_dtype': arg2_dtype, 'arg2_ndim': arg2_ndim})
+        rule_67(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg2_range': arg2_range, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_67(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim'], 'arg2_dtype': arg2['dtype'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_67(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg2_range': arg2['range'], 'arg2_ndim': arg2['ndim']}, neg)

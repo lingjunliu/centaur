@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If a tensor is integer type, then max should be less than 2^31 -1 (Rule 40)
+# If the tensor's dtype is np.uint8 then its values must be non-negative and less than or equal to 255 to be represented in int64. (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), Select(v["arg1_range"], 1) < 2147483647, False)) if n else
-          If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), Select(v["arg1_range"], 1) < 2147483647, False))
+    s.add(Not(If(v["arg1_dtype"] == 5, And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 255), True)) if n else
+          If(v["arg1_dtype"] == 5, And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 255), True))
 )
 
 def rule_40_func(arg1, solver=None, neg=False):

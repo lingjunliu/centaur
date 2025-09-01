@@ -1,138 +1,153 @@
 >>
-Rule 1 (a, b, and x must have the same shape)
+Rule 1 (Type constraint for a, b, and x to be float32 or float64)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
+>>
+Rule 2 (Shape compatibility of a, b, and x)
 {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_1) = shape(v_2) ∧ shape(v_1) = shape(v_3)
 >>
-Rule 3 (a and b must have positive values)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) > 0 ∧ min(v_2) > 0
+Rule 4 (Shape constraint for a to be greater than 0)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 4 (x must be between 0 and 1 inclusive)
-{v_1 : tensor} |= min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
+Rule 5 (Shape constraint for b to be greater than 0)
+{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
 >>
-Rule 6 (a, b, and x must have the same shape)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_1) = shape(v_2) ∧ shape(v_2) = shape(v_3)
+Rule 6 (Value constraint for x to be between 0 and 1)
+{v_3 : tensor} |= ∀i ∈ [0, ndim(v_3) - 1] : 0 ≤ v_3[i] ∧ v_3[i] ≤ 1
 >>
-Rule 7 (a's dtype must be either float32 or float64)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 7 (Type constraint for tensors and constants)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 7 then v_2 = 0.0 ∨ v_2 = 1.0 else if dtype_(v_1) = 8 then v_2 = 0.0 ∨ v_2 = 1.0 else false
 >>
-Rule 8 (b's dtype must be either float32 or float64)
-{v_2 : tensor} |= dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+Rule 8 (Combined Shape and Type constraint of tensors)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_2) = dtype_(v_3) ∧ ndim(v_1) = ndim(v_2) ∧ ndim(v_2) = ndim(v_3)
 >>
-Rule 9 (x's dtype must be either float32 or float64)
-{v_3 : tensor} |= dtype_(v_3) = 7 ∨ dtype_(v_3) = 8
+Rule 9 (The minimum value for a tensor should be greater than 0)
+{v_1 : tensor} |= min(v_1) > 0
 >>
-Rule 12 (a, b and x datatypes must match)
+Rule 10 (The minimum value for a tensor should be greater than 0)
+{v_2 : tensor} |= min(v_2) > 0
+>>
+Rule 18 (The minimum value for a tensor 'a' should be greater or equal to 0)
+{v_1 : tensor} |= min(v_1) ≥ 0
+>>
+Rule 19 (The minimum value for a tensor 'b' should be greater or equal to 0)
+{v_2 : tensor} |= min(v_2) ≥ 0
+>>
+Rule 20 (Check that a, b, and x have the same type)
 {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_2) = dtype_(v_3)
 >>
-Rule 13 (The shapes of a, b, and x should be broadcastable)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∃i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : shape(v_1, i) ≠ shape(v_2, i) ∧ shape(v_1, i) ≠ 1 ∧ shape(v_2, i) ≠ 1 ∨ ∃i ∈ [0, if ndim(v_1) > ndim(v_3) then ndim(v_1) - 1 else ndim(v_3) - 1] : shape(v_1, i) ≠ shape(v_3, i) ∧ shape(v_1, i) ≠ 1 ∧ shape(v_3, i) ≠ 1 ∨ ∃i ∈ [0, if ndim(v_2) > ndim(v_3) then ndim(v_2) - 1 else ndim(v_3) - 1] : shape(v_2, i) ≠ shape(v_3, i) ∧ shape(v_2, i) ≠ 1 ∧ shape(v_3, i) ≠ 1
->>
-Rule 14 (a and b should have the same number of elements)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1) = shape(v_2)
->>
-Rule 15 (Elements of x should be between 0 and 1)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : (min(v_1) >= 0 ∧ max(v_1) <= 1)
->>
-Rule 16 (a's shape must be at least rank 1)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
->>
-Rule 17 (b's shape must be at least rank 1)
-{v_2 : tensor} |= ndim(v_2) ≥ 1
->>
-Rule 18 (x's shape must be at least rank 1)
-{v_3 : tensor} |= ndim(v_3) ≥ 1
->>
-Rule 19 (If any dimension of a is zero, then b and x must have the same shape.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then shape(v_2) = shape(v_3)
->>
-Rule 20 (a, b, x must have the same number of dimensions)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_2) = ndim(v_3)
->>
-Rule 21 (if any element in a is zero then x should be zero)
-{v_1 : tensor, v_3 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : min(v_1) = 0 then min(v_3) = 0
->>
-Rule 22 (if any element in b is zero then x should be one)
-{v_2 : tensor, v_3 : tensor} |= if ∃i ∈ [0, ndim(v_2) - 1] : min(v_2) = 0 then max(v_3) = 1
->>
-Rule 24 (if a is scalar, b and x must be scalar too)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0 ∧ ndim(v_3) = 0
->>
-Rule 25 (if b is scalar, a and x must be scalar too)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 0 then ndim(v_1) = 0 ∧ ndim(v_3) = 0
->>
-Rule 26 (if x is scalar, a and b must be scalar too)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 then ndim(v_1) = 0 ∧ ndim(v_2) = 0
->>
-Rule 27 (check if a and b are scalars)
-{v_1: tensor, v_2: tensor} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0
->>
-Rule 28 (if a and b shapes do not match, a should be broadcastable to b)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1) ≠ shape(v_2) then (∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = shape(v_1, ndim(v_1) - i - 1))
->>
-Rule 29 (if shape of a is [x, y, z], then b must be [x, y, z])
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1) ∧ shape(v_1, 2) = shape(v_2, 2)
->>
-Rule 30 (if shape of a is [x, y, z], then x must be between 0 and 1)
-{v_1 : tensor} |= if ndim(v_1) = 1 then (min(v_1) >= 0 ∧ max(v_1) <= 1)
->>
-Rule 31 (if shape of a is [x, y, z], then b must be positive numbers)
-{v_1 : tensor} |= if ndim(v_1) = 1 then min(v_1) > 0
->>
-Rule 32 (If a's dtype is float32, then b's dtype also float32)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7
->>
-Rule 33 (If a's dtype is float64, then b's dtype also float64)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = 8
->>
-Rule 34 (if x has zero values, then a and b cannot be infinitely large)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if min(v_3) = 0 then max(v_1) ≠ "inf" ∧ max(v_2) ≠ "inf"
->>
-Rule 35 (if x has one values, then a and b cannot be infinitely small)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if max(v_3) = 1 then min(v_1) ≠ "-inf" ∧ min(v_2) ≠ "-inf"
->>
-Rule 36 (a and b should not have NaN values)
-{v_1 : tensor, v_2 : tensor} |= max(v_1) ≠ "NaN" ∧ max(v_2) ≠ "NaN"
->>
-Rule 37 (if any value in x is close to 0, then a should not be extremely large)
-{v_1 : tensor, v_3 : tensor} |= if min(v_3) < 0.000001 then max(v_1) < 1000000
->>
-Rule 38 (if any value in x is close to 1, then b should not be extremely large)
-{v_2 : tensor, v_3 : tensor} |= if max(v_3) > 0.999999 then max(v_2) < 1000000
->>
-Rule 39 (shapes of a, b, and x should be equal)
-{v_1: tensor, v_2: tensor, v_3: tensor} |= shape(v_1) = shape(v_2) ∧ shape(v_2) = shape(v_3)
->>
-Rule 40 (if x's values are all 0, then output will be 0)
-{v_3 : tensor} |= if max(v_3) = 0 then true
->>
-Rule 41 (if x's values are all 1, then output will be 1)
-{v_3 : tensor} |= if min(v_3) = 1 then true
->>
-Rule 42 (if a and b are scalar, and x is tensor, then x should be between 0 and 1)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then (min(v_3) ≥ 0 ∧ max(v_3) ≤ 1)
->>
-Rule 45 (a, b, x must not be complex tensors)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11 ∧ dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11 ∧ dtype_(v_3) ≠ 10 ∧ dtype_(v_3) ≠ 11
->>
-Rule 46 (if x has all same values then result should be same values)
-{v_3 : tensor} |= min(v_3) = max(v_3)
->>
-Rule 47 (if a and b are the same then the result should be simple)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1) = shape(v_2) ∧ dtype_(v_1) = dtype_(v_2)
->>
-Rule 49 (if x is a scalar and equal to 0, then result is 0)
-{v_3 : tensor} |= if ndim(v_3) = 0 then v_3 = 0
->>
-Rule 50 (if x is a scalar and equal to 1, then result is 1)
-{v_3 : tensor} |= if ndim(v_3) = 0 then v_3 = 1
->>
-Rule 53 (The dtypes of a, b, and x should be float32 or float64)
+Rule 21 (Type constraint for a, b, and x to be float32 or float64)
 {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) ∧ (dtype_(v_3) = 7 ∨ dtype_(v_3) = 8)
 >>
-Rule 57 (If a and b are scalars, x must be within [0, 1])
-{v_1: tensor, v_2: tensor, v_3: tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then min(v_3) ≥ 0 ∧ max(v_3) ≤ 1
+Rule 22 (Shape compatibility of a and b)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1) = shape(v_2)
 >>
-Rule 58 (A and B must be positive.)
+Rule 23 (Shape compatibility of a and x)
+{v_1 : tensor, v_3 : tensor} |= shape(v_1) = shape(v_3)
+>>
+Rule 24 (Value constraint for x to be between 0 and 1 when a and b are 1)
+{v_3 : tensor, v_1 : tensor, v_2 : tensor} |= if (min(v_1) = 1) ∧ (min(v_2) = 1) then ∀i ∈ [0, ndim(v_3) - 1] : 0 ≤ v_3[i] ∧ v_3[i] ≤ 1
+>>
+Rule 28 (The maximum value for a tensor 'x' should be less or equal than 1)
+{v_3 : tensor} |= max(v_3) ≤ 1
+>>
+Rule 29 (The tensors a and b should have dimension greater than zero)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
+>>
+Rule 30 (Tensor x should have dimension greater than zero)
+{v_3 : tensor} |= ndim(v_3) > 0
+>>
+Rule 31 (Type constraint for a, b, and x to be float32 or float64)
+{v_1 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 34 (Value constraint for x to be between 0 and 1 when a and b are close to 1)
+{v_3 : tensor, v_1 : tensor, v_2 : tensor} |= if (min(v_1) > 0.9) ∧ (min(v_2) > 0.9) then ∀i ∈ [0, ndim(v_3) - 1] : 0 ≤ v_3[i] ∧ v_3[i] ≤ 1
+>>
+Rule 35 (All tensors a, b, x, have the same data type)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
+>>
+Rule 41 (Type constraint for a, b, and x to be float32 or float64)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) ∧ (dtype_(v_3) = 7 ∨ dtype_(v_3) = 8) ∧ (dtype_(v_1) = dtype_(v_2)) ∧ (dtype_(v_1) = dtype_(v_3))
+>>
+Rule 44 (Non-negativity of a and b)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) ≥ 0 ∧ min(v_2) ≥ 0
+>>
+Rule 45 (All input tensors have dimension greater than zero)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0
+>>
+Rule 46 (If a and b have small shapes, x also need to have a small shape)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) ≤ 2 ∧ ndim(v_2) ≤ 2 then ndim(v_3) ≤ 2
+>>
+Rule 49 (The maximum value of the 'a' tensor must be finite to avoid INF values in gradient calculation)
+{v_1 : tensor} |= max(v_1) < 100000
+>>
+Rule 50 (The maximum value of the 'b' tensor must be finite to avoid INF values in gradient calculation)
+{v_2 : tensor} |= max(v_2) < 100000
+>>
+Rule 52 (Shape constraint of a, b and x)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_1, i) = shape(v_3, i)
+>>
+Rule 57 (The tensors a, b and x have similar value ranges)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= max(v_1) - min(v_1) < 1000 ∧ max(v_2) - min(v_2) < 1000 ∧ max(v_3) - min(v_3) < 1000
+>>
+Rule 61 (Type constraint for a, b, and x to be float32 or float64)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 65 (The minimum value of the a and b tensor needs to be zero)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) >= 0 ∧ min(v_2) >= 0
+>>
+Rule 68 (The values for tensors a and b should be within a reasonable range)
+{v_1 : tensor, v_2 : tensor} |= max(v_1) - min(v_1) < 1000 ∧ max(v_2) - min(v_2) < 1000
+>>
+Rule 90 (Elements of x must be finite.)
+{v_3 : tensor} |= ∀i ∈ [0, ndim(v_3) - 1] : v_3[i] < 100000
+>>
+Rule 95 (The maximum value of the 'a' and 'b' tensor must be finite to avoid INF values in gradient calculation)
+{v_1 : tensor, v_2 : tensor} |= max(v_1) < 100000 ∧ max(v_2) < 100000
+>>
+Rule 98 (The tensors a, b and x have elements within a reasonable range)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= max(v_1) < 100000 ∧ max(v_2) < 100000 ∧ max(v_3) < 100000
+>>
+Rule 100 (Tensors x should have values less than 1 to return a result)
+{v_3 : tensor} |= max(v_3) <=1
+>>
+Rule 105 (Elements should be finite)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : v_1[i] < 100000 ∧ v_2[i] < 100000 ∧ v_3[i] < 100000
+>>
+Rule 106 (Elements of x must be finite and not equal to infinity to avoid NaN)
+{v_3 : tensor} |= ∀i ∈ [0, ndim(v_3) - 1] : v_3[i] ≠ 1000000000 ∧ v_3[i] > -1000000000
+>>
+Rule 108 (a and b should be greater than 0)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) > 0 ∧ min(v_2) > 0
+>>
+Rule 116 (Check tensor 'a' is not a scalar value)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 117 (Check tensor 'b' is not a scalar value)
+{v_2 : tensor} |= ndim(v_2) > 0
+>>
+Rule 119 (Values for tensors a and b must be non-zero.)
 {v_1: tensor, v_2: tensor} |= min(v_1) > 0 ∧ min(v_2) > 0
 >>
-Rule 61 (if a, b and x are vectors of length n, then all elements of x should be between 0 and 1)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_2, 0) = shape(v_3, 0) then (∀i ∈ [0, shape(v_3, 0) - 1] : min(v_3) >= 0 ∧ max(v_3) <= 1)
+Rule 122 (Shape constraint of a, b and x - must all be the same and not zero for any dimension)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_1, i) = shape(v_3, i) ∧ shape(v_1, i) > 0
+>>
+Rule 130 (For correct beta calculation, the tensors 'a' and 'b' should not be empty and dimension greater than 0 )
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0 ∧ ∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) > 0
+>>
+Rule 132 (Shape constraint of a, b and x - must all be the same and not zero for any dimension)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ (∀i ∈ [0, if ndim(v_1) > 0 then ndim(v_1) - 1 else 0] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_1, i) = shape(v_3, i))
+>>
+Rule 133 (Value constraint for x elements to be between 0 and 1)
+{v_3 : tensor} |= ∀i ∈ [0, if ndim(v_3) > 0 then ndim(v_3) - 1 else 0] : 0 ≤ v_3[i] ∧ v_3[i] ≤ 1
+>>
+Rule 135 (Elements should be finite for a,b and x tensor to prevent out of bound memory exception)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, if ndim(v_1) > 0 then ndim(v_1) - 1 else 0] : v_1[i] < 100000 ∧ v_2[i] < 100000 ∧ v_3[i] < 100000
+>>
+Rule 139 (Tensors a and b must be positive)
+{v_1 : tensor, v_2: tensor} |= min(v_1) > 0 ∧ min(v_2) > 0
+>>
+Rule 142 (Shape constraint of a, b and x - must all be the same and non-empty)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ (∀i ∈ [0, if ndim(v_1) > 0 then ndim(v_1) - 1 else 0] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_1, i) = shape(v_3, i) ∧ shape(v_1, i) > 0)
+>>
+Rule 149 (X's range must be less than 1, since it is an integral range.)
+{v_3 : tensor} |= max(v_3) <= 1

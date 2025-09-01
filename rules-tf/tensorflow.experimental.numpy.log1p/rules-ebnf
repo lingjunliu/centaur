@@ -1,105 +1,159 @@
 >>
-Rule 3 (input tensor must be non-empty)
-{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 1 (Input tensor should have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 4 (the number of dimensions of input tensor should not exceed 5)
-{v_1 : tensor} |= ndim(v_1) ≤ 5
+Rule 2 (Input tensor should have a valid shape, i.e., all shape values should be non-negative)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 5 (check if all elements of tensor are non-negative)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0)-1] : v_1[i] ≥ -1
+Rule 3 (The dtype of the tensor should be float or complex for meaningful result)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 7 (input tensor must have a numerical dtype: integer or floating-point or complex)
-{v_1 : tensor} |= if 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 then true else if 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10 then true else false
+Rule 4 (Input tensor should not be empty, i.e., at least one element)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 8 (input tensor must have a floating-point or complex dtype to avoid integer overflow issue)
-{v_1 : tensor} |= if 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 then true else if 9 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10 then true else false
+Rule 5 (The minimum value of input tensor must be greater than -1 for real-valued logarithm result)
+{v_1 : tensor} |= min(v_1) > -1
 >>
-Rule 11 (check if all elements of tensor are greater than or equal to -1 for numerical stability)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ -1
+Rule 6 (If the tensor has float16 dtype, it may lead to reduced precision)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then true else false
 >>
-Rule 12 (If the dtype of v_1 is complex, the computation is only well-defined if all elements are greater or equal to -1)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ∀i ∈ [0, shape(v_1,0) - 1] : v_1[i] ≥ -1
+Rule 7 (The maximum value of input tensor must be less than infinity to avoid overflow.)
+{v_1 : tensor} |= max(v_1) < 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
 >>
-Rule 13 (input tensor must have a numerical dtype: integer or floating-point or complex)
-{v_1 : tensor} |= (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5) ∨ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10)
+Rule 8 (If any element in the tensor is NaN, the result will also be NaN)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) -1] : v_1[j] = "NaN"
 >>
-Rule 14 (input tensor must have a floating-point or complex dtype to avoid integer overflow issue)
-{v_1 : tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∨ (9 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10)
+Rule 9 (Large tensor may lead to slow computation.)
+{v_1 : tensor} |= (shape(v_1, 0) * shape(v_1, 1)) < 1000000000
 >>
-Rule 15 (input tensor's shape cannot contain zero)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+Rule 10 (If input dtype is complex, the imaginary part should be small to avoid overflow after adding 1.)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then max(v_1) < 100000
 >>
-Rule 21 (input tensor's shape cannot contain zero)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
+Rule 11 (If input tensor is boolean, it should be converted to a numerical type before applying log1p.)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then false
 >>
-Rule 22 (check the data type)
-{v_1 : tensor} |= dtype_(v_1) ≠ 12
+Rule 12 (The values in the input tensor should be close to zero for better precision)
+{v_1 : tensor} |= max(v_1) < 100 ∧ min(v_1) > -1
 >>
-Rule 23 (Check if the minimum value is -1)
-{v_1 : tensor} |= min(v_1) ≥ -1
+Rule 13 (If the dtype is integer, convert it to float for more accurate results)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then false
 >>
-Rule 24 (input tensor must have a numerical dtype: integer or floating-point or complex, and not string)
-{v_1 : tensor} |= (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11) ∧ dtype_(v_1) ≠ 12
+Rule 14 (Values in input tensor shouldn't lead to overflow after applying log1p function)
+{v_1 : tensor} |= max(v_1) < 10e+30
 >>
-Rule 25 (If the tensor is of integer type, it should be greater than or equal to -1)
-{v_1 : tensor} |= if (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5) then min(v_1) >= -1
+Rule 15 (If the shape of the input tensor contains very large values, it could lead to memory issues.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2000000000
 >>
-Rule 26 (If the tensor is of float type, it should be greater than or equal to -1)
-{v_1 : tensor} |= if (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) then min(v_1) >= -1
+Rule 16 (Input tensor should be finite, containing no inf values)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) -1] : v_1[j] ≠ "inf" ∧ v_1[j] ≠ "-inf"
 >>
-Rule 27 (If the tensor is of complex type, it should be greater than or equal to -1)
-{v_1 : tensor} |= if (9 <= dtype_(v_1) ∧ dtype_(v_1) <= 10) then min(v_1) >= -1
+Rule 17 (Check that the input tensor does not contain extremely small negative numbers (close to -1), which can cause large errors due to precision limitations.)
+{v_1 : tensor} |= min(v_1) > -0.999999
 >>
-Rule 28 (If the tensor is boolean type, it should be only boolean values)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = true ∨ v_1[i] = false
+Rule 18 (The number of dimensions of the input should be less than a certain threshold to prevent issues related to computational complexity)
+{v_1 : tensor} |= ndim(v_1) < 6
 >>
-Rule 29 (input tensor must have a numerical dtype: integer, floating-point or complex, and not string or boolean)
-{v_1 : tensor} |= (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11) ∧ dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 12
+Rule 19 (If the input tensor has a complex dtype, its values should be checked for overflow, underflow or NaN after the log1p computation.)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) -1] : (v_1[j] ≠ "inf" ∧ v_1[j] ≠ "-inf" ∧ v_1[j] ≠ "NaN")
 >>
-Rule 33 (Check the input tensor contains no NaN values.)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ "nan"
+Rule 20 (For very small positive values in the input tensor, log1p is more accurate than log(1 + x))
+{v_1 : tensor} |= max(v_1) < 0.0001
 >>
-Rule 35 (The minimum value of input tensor should be greater than or equal to -1 to avoid DomainError, when input tensor is numerical type)
-{v_1 : tensor} |= if (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 10) then min(v_1) >= -1
+Rule 21 (Input tensor should have positive values if integer dtype)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then min(v_1) >= 0
 >>
-Rule 37 (Check if all elements in input tensor are finite)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ "inf" ∧ v_1[i] ≠ "-inf"
+Rule 22 (Large negative values can cause precision issues even with log1p)
+{v_1 : tensor} |= min(v_1) > -1e5
 >>
-Rule 38 (Input tensor must be non-empty, at least one element)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 24 (Shape should be small enough to prevent integer overflow in calculations.)
+{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) < 32768
 >>
-Rule 39 (Input tensor must have a numerical dtype: integer, floating-point or complex)
-{v_1 : tensor} |= (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11)
+Rule 26 (If the input tensor contains very large values, log1p may not improve the precision compared to log(x).)
+{v_1 : tensor} |= max(v_1) > 1e10
 >>
-Rule 41 (Check if all elements in input tensor are finite and not NaN)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ "inf" ∧ v_1[i] ≠ "-inf" ∧ v_1[i] ≠ "nan"
+Rule 27 (log1p might not provide noticeable accuracy boost for already high precision dtypes.)
+{v_1 : tensor} |= if dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 then false
 >>
-Rule 43 (Check if any element is less than -1, it might cause Domain Error)
-{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < -1
+Rule 28 (If input dtype is bfloat16, it might be better to cast to float32 first for more accuracy.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 13
 >>
-Rule 47 (If the input tensor is complex, then real part and imaginary part should be finite)
-{v_1 : tensor} |= if (9 <= dtype_(v_1) ∧ dtype_(v_1) <= 10) then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ "inf" ∧ v_1[i] ≠ "-inf" ∧ v_1[i] ≠ "nan"
+Rule 29 (For elements close to -1, the function's approximation becomes less accurate.)
+{v_1 : tensor} |= min(v_1) > -0.9
 >>
-Rule 48 (Check if the tensor is scalar, then its value should be greather or equal to -1)
-{v_1 : tensor} |= if ndim(v_1) = 0 then v_1 >= -1
+Rule 30 (If the tensor has complex dtype, the real part should be greater than -1)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) > -1
 >>
-Rule 50 (The minimum value of input tensor should be greater than or equal to -1, to avoid DomainError, when input tensor is of integer, float or complex type)
-{v_1 : tensor} |= if (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 10) then min(v_1) ≥ -1
+Rule 31 (For complex tensors, the imaginary component shouldn't be too large.)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then max(v_1) < 10000
 >>
-Rule 52 (Check if the tensor is scalar, then its value should be greather or equal to -1)
-{v_1 : tensor} |= if ndim(v_1) = 0 then v_1 ≥ -1
+Rule 32 (The input should not be a scalar, it needs to be a tensor)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 53 (If dtype is bool, values can be only 0 or 1)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0 ∨ v_1[i] = 1
+Rule 33 (If the input is a complex tensor, then we need to make sure that the imaginary part is small to prevent overflows when exponentiating)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] < 1000
 >>
-Rule 54 (Input tensor must have a numerical dtype: integer, floating-point or complex and boolean)
-{v_1 : tensor} |= (0 <= dtype_(v_1) ∧ dtype_(v_1) <= 11)
+Rule 34 (For better numerical stability and avoidance of cancellation errors, make sure input values close to zero have sufficiently high precision)
+{v_1 : tensor} |= if max(v_1) < 0.1 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 58 (input can not be string)
-{v_1: tensor} |= dtype_(v_1) ≠ 11
+Rule 35 (If there's a risk of underflow in calculating the logarithm, scaling the input tensor might be beneficial.)
+{v_1 : tensor} |= min(v_1) < 1e-30
 >>
-Rule 59 (Input tensor must have a numerical dtype: integer, floating-point or complex and boolean and not string)
-{v_1 : tensor} |= (0 <= dtype_(v_1) ∧ dtype_(v_1) <= 10)
+Rule 36 (If tensor contains zero values, then log1p results in log(1) = 0)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : v_1[j] = 0
 >>
-Rule 63 (If the maximum value in the tensor is too large, it can overflow)
-{v_1 : tensor} |= max(v_1) < 1000000
+Rule 37 (For higher precision, ensure that the values around 0 have higher precisions.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : if v_1[j] > -0.1 ∧ v_1[j] < 0.1 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 38 (If the input is quantized type then, we cannot accurately determine the results.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 6
+>>
+Rule 39 (For large shape tensors, make sure enough memory is available)
+{v_1 : tensor} |= if (dtype_(v_1) = 7) then shape(v_1, 0)*shape(v_1, 1) < 1000000 else if (dtype_(v_1) = 8) then shape(v_1, 0)*shape(v_1, 1) < 500000
+>>
+Rule 40 (The tensor must contain representable floating point numbers i.e., not infinite, or NaN)
+{v_1 : tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≠ "inf" ∧ v_1[j] ≠ "-inf" ∧ v_1[j] ≠ "NaN"
+>>
+Rule 41 (if input has 0 dimension, then the function will return 0.)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else false
+>>
+Rule 42 (Check for inf values in complex part if complex tensor, as this leads to issues)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then  ∀i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≠ "inf" ∧ v_1[j] ≠ "-inf"
+>>
+Rule 43 (For security reasons, prevent very large tensors that can cause denial of service.)
+{v_1 : tensor} |= (shape(v_1, 0) * shape(v_1, 1)) < 20000000
+>>
+Rule 44 (Complex numbers, may result in loss of information (imaginary part). Check if imaginary part is zero before proceeding if you are not expecting a loss)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true else false
+>>
+Rule 45 (Avoid using log1p on bfloat16, may be inaccurate and not suitable for high precision applications without casting.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 6
+>>
+Rule 46 (For very large tensors, enable memory mapping or other memory saving strategies.)
+{v_1 : tensor} |= if (shape(v_1, 0) * shape(v_1, 1)) > 100000000 then true else false
+>>
+Rule 47 (If you require high-performance, avoid using log1p with complex dtypes)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then false
+>>
+Rule 48 (If the input tensor contains only negative numbers and zeros, make sure it is handled correctly, and output a complex or NaN array.)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : v_1[j] < 0
+>>
+Rule 50 (Check for potential underflow and overflow issues by scaling or clipping if minimum is too close to -1 or maximum value is too large)
+{v_1 : tensor} |= if min(v_1) < -0.999 ∨ max(v_1) > 100000 then true else false
+>>
+Rule 51 (If data is sparse, Log1p does not preserve sparsitiy.)
+{v_1 : tensor} |=  ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : v_1[j] = 0
+>>
+Rule 52 (Input tensor shape shouldn't be too small to avoid underutilization of resources)
+{v_1 : tensor} |= shape(v_1,0) > 4
+>>
+Rule 53 (Large values in the shape can lead to overflow. Check if size of tensor can cause 32bit overflow, then avoid dtype lower than 6)
+{v_1 : tensor} |=  if (shape(v_1, 0) * shape(v_1, 1)) > 2147483647 then dtype_(v_1) > 5
+>>
+Rule 54 (If values are outside [-1,inf], it causes a crash. Add protection for out-of-range values, clamp if possible)
+{v_1 : tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≥ -1
+>>
+Rule 55 (For large inputs, use log1p with double-precision to improve accuracy)
+{v_1 : tensor} |= if max(v_1) > 100000 then dtype_(v_1) = 8
+>>
+Rule 57 (If values of tensor are symmetrical around zero, log1p might not be the optimal transform. Consider other transforms like arcsinh)
+{v_1 : tensor} |= min(v_1) = (0 - max(v_1))

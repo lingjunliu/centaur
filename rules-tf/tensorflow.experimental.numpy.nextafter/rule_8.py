@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# At least one of the inputs must be a floating-point type (Rule 8)
+# if x1 is float64, then x2 cannot be complex64 (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg2_dtype"] == 7), v["arg2_dtype"] == 8)) if n else
-          Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg2_dtype"] == 7), v["arg2_dtype"] == 8))
+    s.add(Not(If(v["arg1_dtype"] == 9, v["arg2_dtype"] != 10, True)) if n else
+          If(v["arg1_dtype"] == 9, v["arg2_dtype"] != 10, True))
 )
 
 def rule_8_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# image_size tensor must have 4 elements (Rule 59)
+# grads must have non-zero depth (Rule 59)
 
 rule_59 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) == 4) if n else
-          Select(v["arg1_shape"], 0) == 4)
+    s.add(Not(Select(v["arg1_shape"], 3) > 0) if n else
+          Select(v["arg1_shape"], 3) > 0)
 )
 
 def rule_59_func(arg1, solver=None, neg=False):

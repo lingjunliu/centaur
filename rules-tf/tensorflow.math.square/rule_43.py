@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input is int16 then max value can't be too high  (Rule 43)
+# If x is int8, int16, int32, int64, uint8, uint16, uint32, uint64, the values must be representable within the range (Rule 43)
 
 rule_43 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 2, Select(v["arg1_range"], 1) < 1000, False)) if n else
-          If(v["arg1_dtype"] == 2, Select(v["arg1_range"], 1) < 1000, False))
+    s.add(Not(If(v["arg1_dtype"] == 2, And(Select(v["arg1_range"], 0) >= -128, Select(v["arg1_range"], 1) <= 127), If(v["arg1_dtype"] == 3, And(Select(v["arg1_range"], 0) >= -32768, Select(v["arg1_range"], 1) <= 32767), If(v["arg1_dtype"] == 4, And(Select(v["arg1_range"], 0) >= -2147483648, Select(v["arg1_range"], 1) <= 2147483647), If(v["arg1_dtype"] == 5, And(Select(v["arg1_range"], 0) >= -9223372036854775808, Select(v["arg1_range"], 1) <= 9223372036854775807), If(v["arg1_dtype"] == 6, And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 255), True)))))) if n else
+          If(v["arg1_dtype"] == 2, And(Select(v["arg1_range"], 0) >= -128, Select(v["arg1_range"], 1) <= 127), If(v["arg1_dtype"] == 3, And(Select(v["arg1_range"], 0) >= -32768, Select(v["arg1_range"], 1) <= 32767), If(v["arg1_dtype"] == 4, And(Select(v["arg1_range"], 0) >= -2147483648, Select(v["arg1_range"], 1) <= 2147483647), If(v["arg1_dtype"] == 5, And(Select(v["arg1_range"], 0) >= -9223372036854775808, Select(v["arg1_range"], 1) <= 9223372036854775807), If(v["arg1_dtype"] == 6, And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 255), True))))))
 )
 
 def rule_43_func(arg1, solver=None, neg=False):

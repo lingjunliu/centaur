@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The total size of the tensor in bytes should be less than a certain limit (Rule 34)
+# Input tensor 'input' must be complex64 or complex128, have rank >=3, and have valid dimensions if rank >= 3. (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 10, Select(v["arg1_shape"], v["arg1_ndim"] - 1) * Select(v["arg1_shape"], v["arg1_ndim"] - 2) * Select(v["arg1_shape"], v["arg1_ndim"] - 3) * 8 < 2000000000, Select(v["arg1_shape"], v["arg1_ndim"] - 1) * Select(v["arg1_shape"], v["arg1_ndim"] - 2) * Select(v["arg1_shape"], v["arg1_ndim"] - 3) * 16 < 2000000000)) if n else
-          If(v["arg1_dtype"] == 10, Select(v["arg1_shape"], v["arg1_ndim"] - 1) * Select(v["arg1_shape"], v["arg1_ndim"] - 2) * Select(v["arg1_shape"], v["arg1_ndim"] - 3) * 8 < 2000000000, Select(v["arg1_shape"], v["arg1_ndim"] - 1) * Select(v["arg1_shape"], v["arg1_ndim"] - 2) * Select(v["arg1_shape"], v["arg1_ndim"] - 3) * 16 < 2000000000))
+    s.add(Not(And((Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11)), (And(v["arg1_ndim"] >= 3, (If(v["arg1_ndim"] >= 3, (And([Implies(i < (2 + 1), Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i) > 0) for i in range(6)])), True)))))) if n else
+          And((Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11)), (And(v["arg1_ndim"] >= 3, (If(v["arg1_ndim"] >= 3, (And([Implies(i < (2 + 1), Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i) > 0) for i in range(6)])), True))))))
 )
 
 def rule_34_func(arg1, solver=None, neg=False):
@@ -33,9 +33,9 @@ def rule_34_func(arg1, solver=None, neg=False):
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 34
-        rule_34(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_34(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_34(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_34(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype']}, neg)

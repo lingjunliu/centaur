@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If ksize is a list, its length must be 1, 3 or 5 (Rule 3)
+# ksize should be a list of length 1, 3, or 5 (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
     s.add(Not(Or(Or(v["arg1_length"] == 1, v["arg1_length"] == 3), v["arg1_length"] == 5)) if n else

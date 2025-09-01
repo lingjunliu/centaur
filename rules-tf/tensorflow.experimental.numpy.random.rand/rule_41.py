@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the user specified shape explicitly as a tuple, the resulting size should be smaller than max int and each value should be positive (Rule 41)
+# Prevent very large positive size values from causing OOM during tensor creation (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), And((Select(v["arg1_values"], i) < 2147483647), (Select(v["arg1_values"], i) > 0))) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_length"] - 1 + 1), And((Select(v["arg1_values"], i) < 2147483647), (Select(v["arg1_values"], i) > 0))) for i in range(6)]))
+    s.add(Not(If(v["arg1_value"] > 0, v["arg1_value"] < 100000000, True)) if n else
+          If(v["arg1_value"] > 0, v["arg1_value"] < 100000000, True))
 )
 
 def rule_41_func(arg1, solver=None, neg=False):
@@ -17,23 +17,20 @@ def rule_41_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 41
-        rule_41(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length})
+        rule_41(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_41(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length']}, neg)
+        rule_41(solver, {'arg1_value': arg1['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If shape is a tuple, its elements must be integers and each must also be reasonable size, less than 2048 (Rule 18)
+# The absolute value of size must be reasonable (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) <= 2048) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) <= 2048) for i in range(6)]))
+    s.add(Not(If(v["arg1_value"] < 0, v["arg1_value"] > -1000000, v["arg1_value"] < 1000000000)) if n else
+          If(v["arg1_value"] < 0, v["arg1_value"] > -1000000, v["arg1_value"] < 1000000000))
 )
 
 def rule_18_func(arg1, solver=None, neg=False):
@@ -17,23 +17,20 @@ def rule_18_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 18
-        rule_18(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length})
+        rule_18(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_18(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length']}, neg)
+        rule_18(solver, {'arg1_value': arg1['value']}, neg)

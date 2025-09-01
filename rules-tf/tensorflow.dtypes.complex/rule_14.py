@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if one input is float32, the other must also be float32 (Rule 14)
+# if dtype of real is not float32, then imag must not be float32 (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, False)) if n else
-          If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, False))
+    s.add(Not(If(v["arg1_dtype"] != 7, v["arg2_dtype"] != 7, True)) if n else
+          If(v["arg1_dtype"] != 7, v["arg2_dtype"] != 7, True))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):

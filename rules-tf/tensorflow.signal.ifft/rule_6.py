@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Input tensor must have compatible data type with complex64 (Rule 6)
+# if input tensor is complex64, then the output tensor will also be complex64. if input tensor is complex128, then the output tensor will also be complex128 (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 10, True, False)) if n else
-          If(v["arg1_dtype"] == 10, True, False))
+    s.add(Not(If(v["arg1_dtype"] == 9, True, If(v["arg1_dtype"] == 10, True, False))) if n else
+          If(v["arg1_dtype"] == 9, True, If(v["arg1_dtype"] == 10, True, False)))
 )
 
 def rule_6_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If one of them are scalar tensor and other non scalar, the scalar tensor must have boolean type (Rule 64)
+# If x and y have the same number of dimensions which is greater than 0, they should be of the same type (Rule 64)
 
 rule_64 = lambda s, v, n=False: (
-    s.add(Not(If((Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0)), (If((v["arg1_ndim"] == 0), (v["arg1_dtype"] == 0), (v["arg2_dtype"] == 0))), False)) if n else
-          If((Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0)), (If((v["arg1_ndim"] == 0), (v["arg1_dtype"] == 0), (v["arg2_dtype"] == 0))), False))
+    s.add(Not(If(And(v["arg1_ndim"] == v["arg2_ndim"], v["arg1_ndim"] > 0), v["arg1_dtype"] == v["arg2_dtype"], True)) if n else
+          If(And(v["arg1_ndim"] == v["arg2_ndim"], v["arg1_ndim"] > 0), v["arg1_dtype"] == v["arg2_dtype"], True))
 )
 
 def rule_64_func(arg1, arg2, solver=None, neg=False):
@@ -37,9 +37,9 @@ def rule_64_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 64
-        rule_64(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim, 'arg2_dtype': arg2_dtype, 'arg2_ndim': arg2_ndim})
+        rule_64(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_64(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim'], 'arg2_dtype': arg2['dtype'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_64(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Shape values cannot be negative except -1 (Rule 9)
+# The shape list should have non-negative dimensions if it is not empty. (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) >= -1) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) >= -1) for i in range(6)]))
+    s.add(Not(Or((v["arg1_length"] == 0), (And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) >= -1) for i in range(6)])))) if n else
+          Or((v["arg1_length"] == 0), (And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) >= -1) for i in range(6)]))))
 )
 
 def rule_9_func(arg1, solver=None, neg=False):
@@ -17,7 +17,7 @@ def rule_9_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations

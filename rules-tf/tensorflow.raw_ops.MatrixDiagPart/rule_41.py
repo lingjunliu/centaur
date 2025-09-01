@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If tensor has ndim=4 then product of shape[0] and shape[1] must be equal to product of shape[2] and shape[3] (Rule 41)
+# If the tensor has more than 2 dimensions, the batch dimensions must all be non-zero (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 4, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) == Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3), False)) if n else
-          If(v["arg1_ndim"] == 4, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) == Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3), False))
+    s.add(Not(If(v["arg1_ndim"] > 2, And([Implies(i < (v["arg1_ndim"] - 2 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), True)) if n else
+          If(v["arg1_ndim"] > 2, And([Implies(i < (v["arg1_ndim"] - 2 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), True))
 )
 
 def rule_41_func(arg1, solver=None, neg=False):

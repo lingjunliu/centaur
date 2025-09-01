@@ -1,96 +1,108 @@
 >>
-Rule 1 (input_encoding and output_encoding should not be the same)
-{v_1 : str, v_2 : str} |= v_1 ≠ v_2
->>
-Rule 2 (errors must be one of "strict", "replace", or "ignore")
-{v_1 : str} |= v_1 = "strict" ∨ v_1 = "replace" ∨ v_1 = "ignore"
->>
-Rule 3 (output_encoding must be one of "UTF-8", "UTF-16-BE", or "UTF-32-BE")
+Rule 1 (output_encoding must be one of the allowed values.)
 {v_1 : str} |= v_1 = "UTF-8" ∨ v_1 = "UTF-16-BE" ∨ v_1 = "UTF-32-BE"
 >>
-Rule 4 (replacement_char must be a valid unicode codepoint, greater or equal to 0)
+Rule 2 (errors must be one of the allowed values.)
+{v_1 : str} |= v_1 = "strict" ∨ v_1 = "replace" ∨ v_1 = "ignore"
+>>
+Rule 3 (replacement_char must be a non-negative integer.)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 5 (replace_control_characters must be a boolean value)
+Rule 4 (replace_control_characters must be a boolean value.)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 13 (The length of input tensor must be positive.)
-{v_1 : tensor} |= ndim(v_1) > 0
->>
-Rule 14 (If errors is replace, replacement_char must be specified)
-{v_1 : str, v_2 : int} |= if v_1 = "replace" then v_2 ≥ 0
->>
-Rule 15 (If replace_control_characters is true, replacement_char should be specified)
-{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 ≥ 0
->>
-Rule 17 (The shape of input tensor should not be empty)
-{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 18 (If errors is strict, replacement_char is not relevant)
-{v_1: str, v_2: int} |= if v_1 = "strict" then true else v_2 ≥ 0
->>
-Rule 19 (The replacement_char must be a valid integer even if errors is ignore)
-{v_1: str, v_2: int} |= if v_1 = "ignore" then v_2 ≥ 0
->>
-Rule 21 (The output encoding being UTF-8 requires replacement_char <= 255.)
-{v_1 : str, v_2 : int} |= if v_1 = "UTF-8" then v_2 ≤ 255
->>
-Rule 23 (If errors is strict, replace_control_characters should be false)
-{v_1: str, v_2: bool} |= if v_1 = "strict" then v_2 = false
->>
-Rule 24 (If replace_control_characters is true, input_encoding must be compatible with ASCII)
-{v_1: bool, v_2: str} |= if v_1 = true then v_2 = "US ASCII" ∨ v_2 = "UTF-8"
->>
-Rule 27 (If output_encoding is UTF-16-BE or UTF-32-BE, replacement_char should be within valid range)
-{v_1: str, v_2: int} |= if v_1 = "UTF-16-BE" ∨ v_1 = "UTF-32-BE" then v_2 ≥ 0 ∧ v_2 ≤ 65535
->>
-Rule 28 (The input tensor must be of string dtype.)
-{v_1 : tensor} |= dtype_(v_1) = 11
->>
-Rule 29 (If errors is ignore and replace_control_characters is true is not a useful combination.)
-{v_1: str, v_2: bool} |= if v_1 = "ignore" then v_2 = false
->>
-Rule 33 (The input_encoding parameter cannot be empty string.)
+Rule 5 (input_encoding must not be an empty string)
 {v_1 : str} |= v_1 ≠ ""
 >>
-Rule 37 (replacement_char being 0 can cause problems. Should be avoided.)
-{v_1 : int} |= v_1 ≠ 0
+Rule 6 (input must be a tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 38 (The product of the shape of input tensor should not overflow)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483647
+Rule 7 (Ensure that errors is set to replace when replacement_char is not the default value)
+{v_1 : str, v_2 : int} |= if v_2 ≠ 65533 then v_1 = "replace"
 >>
-Rule 39 (Input tensor should have less than 8 dimensions)
-{v_1 : tensor} |= ndim(v_1) < 8
+Rule 8 (output_encoding and input_encoding must be different)
+{v_1 : str, v_2 : str} |= v_1 ≠ v_2
 >>
-Rule 40 (replacement_char should be smaller than maximum unicode codepoint)
-{v_1: int} |= v_1 < 1114112
+Rule 9 (replacement_char should be less than or equal to the maximum unicode codepoint)
+{v_1 : int} |= v_1 ≤ 1114111
 >>
-Rule 41 (If output encoding is UTF-8, replacement_char should be representable in one byte.)
-{v_1 : str, v_2: int} |= if v_1 = "UTF-8" then v_2 ≤ 255
+Rule 10 (input_encoding should be a valid encoding.)
+{v_1 : str} |= v_1 = "UTF-16" ∨ v_1 = "US ASCII" ∨ v_1 = "UTF-8"
 >>
-Rule 43 (replace_control_characters should be false if replacement_char is a control character.)
-{v_1: bool, v_2: int} |= if v_2 < 32 then v_1 = false
+Rule 11 (If replace_control_characters is true, then errors should be replace)
+{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 = "replace"
 >>
-Rule 44 (If the input tensor's shape has a zero, all other dimensions will be ignored.)
-{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then true
+Rule 12 (If errors is strict, replace_control_characters must be false)
+{v_1 : str, v_2 : bool} |= if v_1 = "strict" then v_2 = false
 >>
-Rule 49 (If replace_control_characters is true, errors should not be strict)
-{v_1: bool, v_2: str} |= if v_1 = true then v_2 ≠ "strict"
+Rule 13 (If replace_control_characters is True, then replacement_char cannot be 0.)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 ≠ 0
 >>
-Rule 52 (If output encoding is UTF-16 or UTF-32, replacement_char should be within the BMP.)
-{v_1 : str, v_2 : int} |= if v_1 = "UTF-16-BE" ∨ v_1 = "UTF-32-BE" then v_2 < 65536
+Rule 14 (If the input_encoding is UTF-8, the replacement_char should be expressible in 1 byte to preserve alignment)
+{v_1 : str, v_2 : int} |= if v_1 = "UTF-8" then v_2 ≤ 255
 >>
-Rule 54 (If errors is replace, replacement_char must be a valid unicode codepoint)
-{v_1 : str, v_2 : int} |= if v_1 = "replace" then v_2 ≥ 0 ∧ v_2 < 1114112
+Rule 15 (If output_encoding is UTF-16-BE or UTF-32-BE, replacement_char should be expressible in 2 bytes.)
+{v_1 : str, v_2 : int} |= if v_1 = "UTF-16-BE" ∨ v_1 = "UTF-32-BE" then v_2 ≤ 65535
 >>
-Rule 55 (replacement_char must be within valid unicode range, but not a surrogate code point)
-{v_1 : int} |= v_1 ≥ 0 ∧ v_1 < 55296 ∨ v_1 > 57343 ∧ v_1 < 1114112
+Rule 17 (If input_encoding has explicit endianness, then the replacement_char is preserved in the output and doesn't affect alignment.)
+{v_1 : str} |= (v_1 = "UTF-16-BE" ∨ v_1 = "UTF-16-LE" ∨ v_1 = "UTF-32-BE" ∨ v_1 = "UTF-32-LE")
 >>
-Rule 56 (If replace_control_characters is false, replacement_char shouldn't be a control character)
-{v_1 : bool, v_2 : int} |= if v_1 = false then v_2 > 31
+Rule 20 (Input must be a string tensor)
+{v_1 : tensor} |= dtype_(v_1) = 11
 >>
-Rule 57 (replacement_char must be representable in the output encoding)
-{v_1 : str, v_2 : int} |= if v_1 = "UTF-8" then v_2 ≤ 255 else if v_1 = "UTF-16-BE" then v_2 < 65536
+Rule 22 (If input is a NumPy array, the conversion to a Tensor will only succeed if it's a string dtype.)
+{v_1 : dtype} |= v_1 = 11
 >>
-Rule 58 (The error parameter has influence on the replace_control_characters and replacement_char)
-{v_1 : str, v_2 : bool, v_3 : int} |= if v_1 = "strict" then v_2 = false else if v_2 = true then v_3 ≥ 0
+Rule 23 (If the input is a NumPy array, the conversion to a Tensor will fail if it's an unsupported dtype like bool.)
+{v_1 : dtype} |= v_1 ≠ 0
+>>
+Rule 24 (If input is a NumPy array, the conversion to a Tensor will fail if it's an unsupported dtype.)
+{v_1 : dtype} |= v_1 ≠ 0 ∧ v_1 ≠ 1 ∧ v_1 ≠ 2 ∧ v_1 ≠ 3 ∧ v_1 ≠ 4 ∧ v_1 ≠ 5 ∧ v_1 ≠ 6 ∧ v_1 ≠ 7 ∧ v_1 ≠ 8 ∧ v_1 ≠ 9 ∧ v_1 ≠ 10
+>>
+Rule 25 (If input is a NumPy array, the conversion to a Tensor will fail if it's an unsupported dtype. Enumerate all supported dtypes.)
+{v_1 : dtype} |= v_1 = 11 ∨ v_1 = 12
+>>
+Rule 26 (If input is a NumPy array with unsupported dtype, conversion to Tensor will fail.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+>>
+Rule 28 (If errors is ignore, replacement_char is not applicable and any value is permitted)
+{v_1 : str} |= if v_1 = "ignore" then true
+>>
+Rule 29 (If errors is ignore, replacement_char is not applicable.)
+{v_1 : str} |= if v_1 = "ignore" then true else v_1 = "strict" ∨ v_1 = "replace"
+>>
+Rule 32 (replace_control_characters should be false when input_encoding is not supported.)
+{v_1 : str, v_2 : bool} |= if v_1 ≠ "UTF-16" ∧ v_1 ≠ "US ASCII" ∧ v_1 ≠ "UTF-8" then v_2 = false
+>>
+Rule 35 (replace_control_characters must be false when errors is strict)
+{v_1 : bool, v_2 : str} |= if v_2 = "strict" then v_1 = false
+>>
+Rule 36 (replace_control_characters is only meaningful when errors='replace' and replacement_char is not the default.)
+{v_1 : bool, v_2 : str, v_3 : int} |= if v_1 = true then v_2 = "replace" ∧ v_3 ≠ 65533
+>>
+Rule 38 (If errors is 'ignore', replace_control_characters is ignored.)
+{v_1 : str} |= if v_1 = "ignore" then true else v_1="replace" ∨ v_1="strict"
+>>
+Rule 39 (replace_control_characters is not used when errors is ignore, the value must be the default)
+{v_1 : bool, v_2 : str} |= if v_2 = "ignore" then v_1 = false
+>>
+Rule 40 (replace_control_characters is irrelevant if errors is 'ignore')
+{v_1 : str, v_2 : bool} |= v_1 ≠ "ignore" ∨ v_2 = false
+>>
+Rule 41 (if input_encoding is "", the function call will fail)
+{v_1: str} |= v_1 ≠ ""
+>>
+Rule 43 (output_encoding must be specified and valid)
+{v_1: str} |= v_1 = "UTF-8" ∨ v_1 = "UTF-16-BE" ∨ v_1 = "UTF-32-BE"
+>>
+Rule 46 (input tensor must have string dtype.)
+{v1: tensor} |= dtype_(v1) = 11
+>>
+Rule 48 (A numpy array used as input tensor must have a supported dtype)
+{v1 : dtype} |= v1=11 ∨ v1 = 12
+>>
+Rule 49 (If replace_control_characters is specified, input_encoding should exist)
+{v_1: str, v_2: bool} |= if v_2=true then v_1≠""
+>>
+Rule 50 (If replace_control_characters is specified, replacement_char should be specified)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 ≠ 65533

@@ -5,32 +5,42 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Output dtype cannot be string or bool (Rule 72)
+# x must be a valid 1D tensor, and out_idx constraints depend on the type of x (Rule 72)
 
 rule_72 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] != 11, v["arg1_value"] != 0)) if n else
-          And(v["arg1_value"] != 11, v["arg1_value"] != 0))
+    s.add(Not(And(And((v["arg1_ndim"] == 1), (Select(v["arg1_shape"], 0) > 0)), (If(Or(Or((v["arg1_dtype"] == 0), (v["arg1_dtype"] == 9)), (v["arg1_dtype"] == 10)), (v["arg2_value"] == 3), (Or((v["arg2_value"] == 3), (v["arg2_value"] == 4))))))) if n else
+          And(And((v["arg1_ndim"] == 1), (Select(v["arg1_shape"], 0) > 0)), (If(Or(Or((v["arg1_dtype"] == 0), (v["arg1_dtype"] == 9)), (v["arg1_dtype"] == 10)), (v["arg2_value"] == 3), (Or((v["arg2_value"] == 3), (v["arg2_value"] == 4)))))))
 )
 
-def rule_72_func(arg1, solver=None, neg=False):
+def rule_72_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
+        if not isinstance(arg1, np.ndarray):
+            return False
+        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
 
         # Constraints for rule 72
-        rule_72(solver, {'arg1_value': arg1_value})
+        rule_72(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_72(solver, {'arg1_value': arg1['value']}, neg)
+        rule_72(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

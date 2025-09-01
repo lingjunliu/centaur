@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# targets tensor must be rank 1 (Rule 5)
+# targets must be a 1D tensor (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
     s.add(Not(v["arg1_ndim"] == 1) if n else

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# strides list must contain only integer values greater than 0 (Rule 76)
+# Dilations values should be positive integers and have the constraint dilations[0] = dilations[3] = 1 (Rule 76)
 
 rule_76 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)]))
+    s.add(Not(And([Implies(i < (v["arg1_length"] - 2 + 1), And(And(And(Select(v["arg1_values"], i) > 0, v["arg1_length"] == 4), Select(v["arg1_values"], 0) == 1), Select(v["arg1_values"], 3) == 1)) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_length"] - 2 + 1), And(And(And(Select(v["arg1_values"], i) > 0, v["arg1_length"] == 4), Select(v["arg1_values"], 0) == 1), Select(v["arg1_values"], 3) == 1)) for i in range(6)]))
 )
 
 def rule_76_func(arg1, solver=None, neg=False):

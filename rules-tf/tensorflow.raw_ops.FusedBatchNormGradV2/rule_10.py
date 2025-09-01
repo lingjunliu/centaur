@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# epsilon must be greater than or equal to zero (Rule 10)
+# is_training must be a boolean (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] >= 0.0) if n else
-          v["arg1_value"] >= 0.0)
+    s.add(Not(Or(v["arg1_value"] == True, v["arg1_value"] == False)) if n else
+          Or(v["arg1_value"] == True, v["arg1_value"] == False))
 )
 
 def rule_10_func(arg1, solver=None, neg=False):
@@ -17,12 +17,12 @@ def rule_10_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
+        if not isinstance(arg1, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
+        arg1_value = Bool('arg1_value')
 
         # Value assignments
         solver.add(arg1_value == arg1)

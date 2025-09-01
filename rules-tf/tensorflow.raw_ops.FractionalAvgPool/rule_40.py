@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if overlapping is true, pooling ratio cannot exceed the size of the original dimension (Rule 40)
+# if seed or seed2 is set, then pseudo_random should be true (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, And(Select(v["arg3_values"], 1) <= Select(v["arg2_shape"], 1), Select(v["arg3_values"], 2) <= Select(v["arg2_shape"], 2)), False)) if n else
-          If(v["arg1_value"] == True, And(Select(v["arg3_values"], 1) <= Select(v["arg2_shape"], 1), Select(v["arg3_values"], 2) <= Select(v["arg2_shape"], 2)), False))
+    s.add(Not(If(Or(v["arg1_value"] != 0, v["arg2_value"] != 0), v["arg3_value"] == True, True)) if n else
+          If(Or(v["arg1_value"] != 0, v["arg2_value"] != 0), v["arg3_value"] == True, True))
 )
 
 def rule_40_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -19,30 +19,28 @@ def rule_40_func(arg1, arg2, arg3, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
-        if not (isinstance(arg3, list) and all(isinstance(e, (float, np.floating)) for e in arg3)):
+        if not isinstance(arg3, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
-        arg3_values = Array('arg3_values', IntSort(), RealSort())
+        arg1_value = Int('arg1_value')
+        arg2_value = Int('arg2_value')
+        arg3_value = Bool('arg3_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
-        for i in range(len(arg3)):
-            arg3_values = Store(arg3_values, i, arg3[i])
+        solver.add(arg1_value == int(arg1))
+        solver.add(arg2_value == int(arg2))
+        solver.add(arg3_value == arg3)
 
         # Constraints for rule 40
-        rule_40(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg3_values': arg3_values})
+        rule_40(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_40(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg3_values': arg3['values']}, neg)
+        rule_40(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)

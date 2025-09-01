@@ -1,6 +1,162 @@
 >>
-Rule 1 (shape should be a 1D tensor of integers)
-{v_2 : tensor} |= ndim(v_2) = 1 ∧ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Rule 6 (check that the shape tensor is of type int32 or int64)
+{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
 >>
-Rule 7 (shape should be a 1D tensor of integers)
+Rule 11 (shape tensor must be a 1-D tensor)
+{v_2 : tensor} |= ndim(v_2) = 1
+>>
+Rule 18 (check that the product of dimensions in shape remains in valid range to avoid overflow)
+{v_2 : tensor} |= (v_2[0] * v_2[1] * v_2[2] * v_2[3]) < 4611686018427387903
+>>
+Rule 22 (shape tensor must have a reasonable number of elements to avoid overflow)
+{v_2 : tensor} |= shape(v_2, ".len") < 64
+>>
+Rule 23 (shapes are compatible for broadcasting, checking number of dimensions, padding with 1s if needed)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < shape(v_2, ".len") then ∀i ∈ [0, shape(v_2, ".len") - ndim(v_1) - 1] : v_2[i] = 1
+>>
+Rule 24 (at least one dimension should be positive)
+{v_2 : tensor} |= ∃i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] > 0
+>>
+Rule 27 (check that the product of dimensions in shape remains in valid range to avoid overflow - simplified)
+{v_2 : tensor} |= v_2[0] < 4611686018427387903
+>>
+Rule 28 (check that input tensor and the target shape are broadcastable when input tensor has smaller dimensions)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < shape(v_2, ".len") then ∀i ∈ [ndim(v_1), shape(v_2, ".len") - 1] : v_2[i] = 1
+>>
+Rule 30 (all elements in v_2 must be greater than or equal to -2147483647)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] ≥ -2147483647
+>>
+Rule 38 (check for compatibility: ndim of input <= length of shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≤ shape(v_2, ".len")
+>>
+Rule 39 (check if the total number of elements is less than or equal to the maximum representable)
+{v_2 : tensor} |= if shape(v_2, ".len") > 0 then (v_2[0] * v_2[shape(v_2, ".len") -1]) < 9223372036854775807
+>>
+Rule 46 (check if the total number of elements is less than or equal to the maximum representable - first 5 dimensions only)
+{v_2 : tensor} |= if shape(v_2, ".len") > 4 then (v_2[0] * v_2[1] * v_2[2] * v_2[3] * v_2[4]) < 9223372036854775807
+>>
+Rule 47 (target shape element cannot be smaller than 0)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] ≥ 0
+>>
+Rule 49 (if shape tensor is empty then input can have arbitrary shape)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, ".len") = 0 then true else (ndim(v_1) = 0) ∨ (∃i ∈ [0, ndim(v_1)-1]: shape(v_1, i) = 0)
+>>
+Rule 53 (check input and output dimensions for broadcasting compatibility)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≤ shape(v_2, ".len") then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = v_2[shape(v_2, ".len") - ndim(v_1) + i] ∨ shape(v_1, i) = 1 ∨ v_2[shape(v_2, ".len") - ndim(v_1) + i] = 1
+>>
+Rule 54 (check that input tensor and target shape dimensions are compatible or 1)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > shape(v_2, ".len") then false else ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = v_2[shape(v_2, ".len") - ndim(v_1) + i] ∨ shape(v_1, i) = 1 ∨ v_2[shape(v_2, ".len") - ndim(v_1) + i] = 1
+>>
+Rule 55 (check that if ndim of input shape is less than target shape, then pad the missing dimensions to the left with 1)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < shape(v_2, ".len") then ∀i ∈ [0, shape(v_2, ".len") - ndim(v_1) -1] : v_2[i] = 1
+>>
+Rule 57 (target shape tensor must be a 1-D tensor of int32 or int64)
 {v_2 : tensor} |= ndim(v_2) = 1 ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4)
+>>
+Rule 59 (check input and output dimensions for broadcasting compatibility, broadcast from right to left)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≤ shape(v_2, ".len") then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, ndim(v_1) - 1 - i) = v_2[shape(v_2, ".len") - 1 - i] ∨ shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ v_2[shape(v_2, ".len") - 1 - i] = 1
+>>
+Rule 61 (check total number of element, to avoid overflow)
+{v_2 : tensor} |= if shape(v_2, ".len") = 1 then true else (v_2[0] * v_2[shape(v_2, ".len") -1]) < 9223372036854775807
+>>
+Rule 62 (handle zero dimensions in the target shape tensor: either all dimensions in shape should be zero, or any of them can be broadcast to it)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] = 0) then (∀i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] = 0) ∨ (∃j ∈ [0, ndim(v_1) - 1] : shape(v_1, j) = 0)
+>>
+Rule 68 (verify that all elements in shape are valid int32 or int64 and greater than or equal to the minimum representable int32 value)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] ≥ -2147483648
+>>
+Rule 70 (Check that the input tensor can be broadcast to some valid shape)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0
+>>
+Rule 72 (check input and output dimensions for broadcasting compatibility, broadcast from right to left. Pad with 1)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < shape(v_2, ".len") then ∀i ∈ [0, shape(v_2, ".len") - ndim(v_1) -1] : v_2[i] = 1 else ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, ndim(v_1) - 1 - i) = v_2[shape(v_2, ".len") - 1 - i] ∨ shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ v_2[shape(v_2, ".len") - 1 - i] = 1
+>>
+Rule 73 (check that total number of elements will not cause int32 overflow, only checking first two elements)
+{v_2 : tensor} |= if shape(v_2, ".len") < 2 then true else (v_2[0] * v_2[1]) < 2147483647
+>>
+Rule 75 (check if broadcast is possible if shape vector is not empty)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, ".len") > 0 then ∃j ∈ [0, shape(v_2, ".len") -1] : true else ndim(v_1) = 0
+>>
+Rule 77 (check input and output dimensions for broadcasting compatibility, broadcast from right to left. If input dimension doesn't exist, pad it with 1.)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, ".len") - 1] : if i < shape(v_2, ".len") - ndim(v_1) then v_2[i] = 1 else shape(v_1, ndim(v_1) - (shape(v_2, ".len")- i)) = v_2[i] ∨ shape(v_1, ndim(v_1) - (shape(v_2, ".len") - i)) = 1 ∨ v_2[i] = 1
+>>
+Rule 80 (Shape cannot be explicitly defined, use empty list which implies v_1 is a scalar and the shape can take any shape)
+{v_1 : tensor, v_2 : tensor} |= if (shape(v_2, ".len") = 0) then ndim(v_1) = 0
+>>
+Rule 81 (check that the product of dimensions in shape remains in valid range, to avoid integer overflow error.)
+{v_2 : tensor} |= if shape(v_2, ".len") > 5 then true else if shape(v_2, ".len") > 0 then v_2[0] * v_2[1] * v_2[2] * v_2[3] * v_2[4] < 4611686018427387903
+>>
+Rule 83 (check input and output dimensions for broadcasting compatibility, broadcast from right to left. If input dimension doesn't exist, pad it with 1.)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, ".len") - 1] : if i < shape(v_2, ".len") - ndim(v_1) then v_2[i] = 1 else shape(v_1, ndim(v_1) - (shape(v_2, ".len") - i)) = v_2[i] ∨ shape(v_1, ndim(v_1) - (shape(v_2, ".len") - i)) = 1 ∨ v_2[i] = 1
+>>
+Rule 84 (check that total number of elements will not cause int32 overflow)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, ".len") -1] : if v_2[i] > 2147483647 then false
+>>
+Rule 89 (check that total number of elements will not cause int32 overflow)
+{v_2 : tensor} |= if shape(v_2, ".len") > 1 then if (v_2[0] > 0 ∧ v_2[1] > 0) then (v_2[0] * v_2[1]) < 2147483647
+>>
+Rule 90 (if shape is too large, then shape elements must be one)
+{v_2: tensor} |= if shape(v_2, ".len") > 80 then ∀i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] = 1
+>>
+Rule 91 (Check is shape values are too large, to avoid integer overflow.)
+{v_2: tensor} |= ∀i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] < 3495253707323153920
+>>
+Rule 92 (Input dimensions match the target shape dimensions.)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, ".len") = 0 then ndim(v_1) = 0 else if ndim(v_1) > shape(v_2, ".len") then false
+>>
+Rule 95 (check that total number of elements will not cause int32 overflow by checking that at least one dim < 2147483647)
+{v_2 : tensor} |=  ∃i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] < 2147483647
+>>
+Rule 96 (Check is shape values are not negative)
+{v_2: tensor} |= ∀i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] ≥ 0
+>>
+Rule 98 (check is the largest possible shape value remains below 3495253707323153920 to avoid error in underlying library)
+{v_2: tensor} |=  ∃i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] < 3495253707323153920
+>>
+Rule 99 (At least one element must exist in the resulting tensor)
+{v_2 : tensor} |= ∃i ∈ [0, shape(v_2, ".len") - 1] : true
+>>
+Rule 102 (check that total number of elements will not cause int32 overflow by checking each dim < 2147483647 )
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] < 2147483647
+>>
+Rule 103 (Check is shape values are non-negative and smaller than max int)
+{v_2: tensor} |= ∀i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] ≥ 0 ∧ v_2[i] < 3495253707323153920
+>>
+Rule 104 (Input dimensions should be less or equal to the target shape dimensions to avoid size errors during broadcasting)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, ".len") > 0 then ndim(v_1) <= shape(v_2, ".len")
+>>
+Rule 105 (if at least one dimension in target shape is zero, then shape cannot be broadcast due to invalid dimension size)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] = 0) then (∀j ∈ [0, shape(v_2, ".len") - 1] : v_2[j] = 0) ∨ (∃k ∈ [0, ndim(v_1) - 1] : shape(v_1, k) = 0)
+>>
+Rule 108 (Input dimensions should be less or equal to the target shape dimensions to avoid size errors during broadcasting)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) <= shape(v_2, ".len")
+>>
+Rule 110 (Each element of the shape must be non-negative int32)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] >= 0 ∧ v_2[i] < 2147483647
+>>
+Rule 111 (Check values for overflow, checking only a single shape dimension value to trigger the error)
+{v_2 : tensor} |= ∃i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] < 3495253707323153920
+>>
+Rule 113 (check input and output dimensions for broadcasting compatibility, broadcast from right to left. If input dimension doesn't exist, pad it with 1.)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, ".len") - 1] : if i < shape(v_2, ".len") - ndim(v_1) then v_2[i] = 1 else shape(v_1, ndim(v_1) - (shape(v_2, ".len")- 1 - i)) = v_2[shape(v_2, ".len")- 1 - i] ∨ shape(v_1, ndim(v_1) - (shape(v_2, ".len") - 1 - i)) = 1 ∨ v_2[shape(v_2, ".len")- 1 - i] = 1
+>>
+Rule 114 (Check is shape values are not negative or extremely large)
+{v_2: tensor} |= ∀i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] >= 0 ∧ v_2[i] < 3495253707323153920
+>>
+Rule 117 (At least one dimension exists, or input and target shape are null tensors)
+{v_1 : tensor, v_2 : tensor} |= (shape(v_2, ".len") > 0) ∨ (ndim(v_1) = 0 ∧ shape(v_2, ".len") = 0)
+>>
+Rule 120 (Each element of the shape must be a valid int32/int64)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] < 2147483647 ∧ v_2[i] >= 0
+>>
+Rule 126 (check that broadcasting properties hold with respect to shape vector length and shape compatibility.)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, ".len") - 1] : if i < shape(v_2, ".len") - ndim(v_1) then v_2[i] = 1 else (shape(v_1, ndim(v_1) - (shape(v_2, ".len")- 1 - i)) = v_2[shape(v_2, ".len")- 1 - i] ∨ shape(v_1, ndim(v_1) - (shape(v_2, ".len") - 1 - i)) = 1 ∨ v_2[shape(v_2, ".len")- 1 - i] = 1)
+>>
+Rule 127 (Check shape vector values must allow the broadcast function to succeed and be bounded.)
+{v_2: tensor} |= ∀i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] < 3495253707323153920 ∧ v_2[i] >= -2147483648
+>>
+Rule 130 (check that broadcasting properties hold with respect to shape vector length and shape compatibility.)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, ".len") - 1] : if i < shape(v_2, ".len") - ndim(v_1) then v_2[i] = 1 else (ndim(v_1) > 0 ∧ (shape(v_1, ndim(v_1) - (shape(v_2, ".len")- 1 - i)) = v_2[shape(v_2, ".len")- 1 - i] ∨ shape(v_1, ndim(v_1) - (shape(v_2, ".len") - 1 - i)) = 1 ∨ v_2[shape(v_2, ".len")- 1 - i] = 1))
+>>
+Rule 131 (Check shape vector values are valid int32's to prevent errors of the form Dimension -2147483648 must be >= 0)
+{v_2: tensor} |= ∀i ∈ [0, shape(v_2, ".len") - 1] : v_2[i] >= -2147483648

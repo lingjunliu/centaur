@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input is uint64, output must not be smaller than int32 (Rule 40)
+# Size of dtypes must be a multiple of each other (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 8, v["arg2_value"] >= 3, False)) if n else
-          If(v["arg1_dtype"] == 8, v["arg2_value"] >= 3, False))
+    s.add(Not(Or(((v["arg1_dtype"] * 8) % (v["arg2_value"] * 8) == 0), ((v["arg2_value"] * 8) % (v["arg1_dtype"] * 8) == 0))) if n else
+          Or(((v["arg1_dtype"] * 8) % (v["arg2_value"] * 8) == 0), ((v["arg2_value"] * 8) % (v["arg1_dtype"] * 8) == 0)))
 )
 
 def rule_40_func(arg1, arg2, solver=None, neg=False):

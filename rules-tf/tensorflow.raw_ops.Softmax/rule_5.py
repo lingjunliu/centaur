@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# num_classes must be greater than 0 (Rule 5)
+# logits tensor's second dimension must be greater than zero (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
     s.add(Not(Select(v["arg1_shape"], 1) > 0) if n else

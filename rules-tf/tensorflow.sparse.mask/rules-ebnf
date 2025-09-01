@@ -1,111 +1,120 @@
 >>
-Rule 2 (The minimum value of mask_indices should be non-negative)
-{v_2 : tensor} |= min(v_2) ≥ 0
+Rule 1 (a.indices should be a tensor)
+{a : tensor} |= ndim(a) > 0
 >>
-Rule 3 (input tensor (v_1)'s indices should have the same type with mask indices (v_2))
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 2 (mask_indices should be a tensor)
+{mask_indices : tensor} |= ndim(mask_indices) > 0
 >>
-Rule 4 (length of mask_indices should be less than the number of slices in a)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) ≤ shape(v_1, 0)
+Rule 3 (mask_indices should be an integer tensor)
+{mask_indices : tensor} |= dtype_(mask_indices) = 3 ∨ dtype_(mask_indices) = 4
 >>
-Rule 5 (The max value of mask_indices should be less than the number of slices in a)
-{v_1 : tensor, v_2 : tensor} |= max(v_2) < shape(v_1, 0)
+Rule 4 (a.indices and mask_indices should not overlap in values completely)
+{a : tensor, mask_indices : tensor} |= ∃i ∈ [0, shape(a,0) - 1] : ∃j ∈ [0, shape(mask_indices,0) -1] : a[i] ≠ mask_indices[j]
 >>
-Rule 6 (The input tensor (v_1) should have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 9 (a.indices and mask_indices should not overlap in values completely if a is not empty)
+{a : tensor, mask_indices : tensor} |= if shape(a, 0) > 0 then (∃i ∈ [0, shape(a,0) - 1] : ∃j ∈ [0, shape(mask_indices,0) -1] : a[i] ≠ mask_indices[j])
 >>
-Rule 7 (mask_indices (v_2) should not be empty.)
-{v_2 : tensor} |= shape(v_2, 0) > 0
+Rule 10 (mask_indices must have less or equal number of elements than the first dimension of a.)
+{a : tensor, mask_indices : tensor} |= shape(mask_indices, 0) <= shape(a, 0)
 >>
-Rule 9 (mask_indices (v_2) should be a 1D tensor of integers)
-{v_2 : tensor} |= ndim(v_2) = 1 ∧ (dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6)
+Rule 11 (a and mask_indices should be tensors, and mask_indices should be an integer tensor)
+{a : tensor, mask_indices : tensor} |= ndim(a) > 0 ∧ ndim(mask_indices) > 0 ∧ (dtype_(mask_indices) = 3 ∨ dtype_(mask_indices) = 4)
 >>
-Rule 16 (v_2 should be a tensor of integers)
-{v_2 : tensor} |= dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5
+Rule 14 (a and mask_indices should be tensors with valid properties)
+{a : tensor, mask_indices : tensor} |= ndim(a) > 0 ∧ ndim(mask_indices) > 0 ∧ (dtype_(mask_indices) = 3 ∨ dtype_(mask_indices) = 4) ∧ shape(mask_indices, 0) <= shape(a, 0)
 >>
-Rule 18 (shape of input tensor a (v_1) must be greater than 0)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 16 (a and mask_indices should be tensors with valid properties and a's indices should be valid)
+{a : tensor, mask_indices : tensor} |= ndim(a) > 0 ∧ ndim(mask_indices) > 0 ∧ (dtype_(mask_indices) = 3 ∨ dtype_(mask_indices) = 4) ∧ shape(mask_indices, 0) <= shape(a, 0) ∧ ∀i ∈ [0, shape(a,0) - 1] : a[i] ≥ 0
 >>
-Rule 19 (data type of mask indices cannot be boolean)
-{v_2 : tensor} |= dtype_(v_2) ≠ 0
+Rule 17 (If a is not empty, the values of a indices should be within reasonable bounds)
+{a : tensor} |= if shape(a, 0) > 0 then (∀i ∈ [0, shape(a,0) - 1] : a[i] < 1000)
 >>
-Rule 21 (The number of mask indices should be non-negative)
-{v_2 : tensor} |= shape(v_2, 0) ≥ 0
+Rule 18 (a and mask_indices should be tensors with valid properties, a's indices should be valid and non-negative, and mask_indices values must be within a reasonable range.)
+{a : tensor, mask_indices : tensor} |= ndim(a) > 0 ∧ ndim(mask_indices) > 0 ∧ (dtype_(mask_indices) = 3 ∨ dtype_(mask_indices) = 4) ∧ shape(mask_indices, 0) <= shape(a, 0) ∧ ∀i ∈ [0, shape(a,0) - 1] : a[i] ≥ 0 ∧ ∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] < 1000 ∧ ∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] >= 0
 >>
-Rule 22 (Dtype of mask_indices should be integer.)
-{v_2: tensor} |= dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6
+Rule 21 (The rank of a's values should be less than or equal to 2)
+{a: tensor} |= ndim(a) <= 2
 >>
-Rule 23 (mask_indices (v_2) must be a tensor)
-{v_2 : tensor} |= ndim(v_2) ≥ 1
+Rule 23 (The values in mask_indices should be valid indices of a)
+{a : tensor, mask_indices : tensor} |= ∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] < shape(a,0) ∧ ∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] >= 0
 >>
-Rule 29 (mask_indices (v_2) must be a 1D tensor with non-negative values and its shape[0] less than input's shape[0])
-{v_1: tensor, v_2: tensor} |= ndim(v_2) = 1 ∧ shape(v_2, 0) >= 0 ∧ shape(v_2, 0) <= shape(v_1, 0)
+Rule 25 (The values in mask_indices should be valid indices of a and mask_indices should have unique values)
+{a : tensor, mask_indices : tensor} |= ∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] < shape(a,0) ∧ ∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] >= 0 ∧ (∀i ∈ [0, shape(mask_indices, 0) - 1] : ∀k ∈ [0, shape(mask_indices, 0) - 1] : if i ≠ k then mask_indices[i] ≠ mask_indices[k])
 >>
-Rule 30 (If dtype of input tensor is float, then mask indices cannot be complex number type)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 then dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11
+Rule 27 (The values in a's indices should be non-negative and the values in mask_indices should be valid indices of a and mask_indices should have unique values)
+{a : tensor, mask_indices : tensor} |= ∀i ∈ [0, shape(a,0) - 1] : a[i] ≥ 0 ∧ ∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] < shape(a,0) ∧ ∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] >= 0 ∧ (∀i ∈ [0, shape(mask_indices, 0) - 1] : ∀k ∈ [0, shape(mask_indices, 0) - 1] : if i ≠ k then mask_indices[i] ≠ mask_indices[k])
 >>
-Rule 31 (elements of mask_indices (v_2) should be less than shape of input tensor v_1)
-{v_1: tensor, v_2: tensor} |= max(v_2) < shape(v_1, 0)
+Rule 29 (a and mask_indices should be tensors with valid properties, and mask_indices values should be valid)
+{a : tensor, mask_indices : tensor} |= ndim(a) > 0 ∧ ndim(mask_indices) > 0 ∧ (dtype_(mask_indices) = 3 ∨ dtype_(mask_indices) = 4) ∧ shape(mask_indices, 0) <= shape(a, 0)  ∧ (∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] < shape(a,0) ∧ ∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] >= 0)
 >>
-Rule 32 (mask_indices (v_2) must be a 1D tensor and all its values should be non-negative and less than number of slices)
-{v_1: tensor, v_2: tensor} |= ndim(v_2) = 1 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0 ∧ v_2[i] < shape(v_1, 0)
+Rule 30 (a's indices should be non-negative and mask_indices should have unique values)
+{a : tensor, mask_indices : tensor} |= ∀i ∈ [0, shape(a,0) - 1] : a[i] ≥ 0 ∧ (∀i ∈ [0, shape(mask_indices, 0) - 1] : ∀k ∈ [0, shape(mask_indices, 0) - 1] : if i ≠ k then mask_indices[i] ≠ mask_indices[k])
 >>
-Rule 34 (The input tensor (v_1) should be at least a 1D tensor.)
-{v_1: tensor} |= ndim(v_1) >= 1
+Rule 32 (The tensors should satisfy more properties.)
+{a : tensor, mask_indices : tensor} |= (∀i ∈ [0, shape(a,0) - 1] : a[i] ≥ 0) ∧ (∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] < shape(a,0) ∧ ∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] >= 0) ∧ (∀i ∈ [0, shape(mask_indices, 0) - 1] : ∀k ∈ [0, shape(mask_indices, 0) - 1] : if i ≠ k then mask_indices[i] ≠ mask_indices[k])
 >>
-Rule 36 (The shape of mask_indices cannot be greater than input tensor)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2,0) <= shape(v_1, 0)
+Rule 34 (The values in a's indices must be non-negative, valid indices of a, and mask_indices must have unique values.)
+{a : tensor, mask_indices : tensor} |= (∀i ∈ [0, shape(a,0) - 1] : a[i] ≥ 0) ∧ (∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] < shape(a,0) ∧ mask_indices[j] >= 0 ∧ (∀i ∈ [0, shape(mask_indices, 0) - 1] : ∀k ∈ [0, shape(mask_indices, 0) - 1] : if i ≠ k then mask_indices[i] ≠ mask_indices[k]))
 >>
-Rule 37 (Minimum value of v_2 should be non-negative)
-{v_2 : tensor} |= min(v_2) >= 0
+Rule 37 (All properties of input tensors)
+{a : tensor, mask_indices : tensor} |= ndim(a) > 0 ∧ ndim(mask_indices) > 0 ∧ (dtype_(mask_indices) = 3 ∨ dtype_(mask_indices) = 4) ∧ shape(mask_indices, 0) <= shape(a, 0) ∧ (∀i ∈ [0, shape(a,0) - 1] : a[i] ≥ 0) ∧ (∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] < shape(a,0) ∧ mask_indices[j] >= 0 ∧ (∀i ∈ [0, shape(mask_indices, 0) - 1] : ∀k ∈ [0, shape(mask_indices, 0) - 1] : if i ≠ k then mask_indices[i] ≠ mask_indices[k]))
 >>
-Rule 38 (mask_indices (v_2) must be a 1D tensor and each element of mask_indices should be an integer)
-{v_2: tensor} |= ndim(v_2) = 1 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6)
+Rule 38 (All properties of input tensors)
+{a : tensor, mask_indices : tensor} |= ndim(a) > 0 ∧ ndim(mask_indices) > 0 ∧ (dtype_(mask_indices) = 3 ∨ dtype_(mask_indices) = 4) ∧ shape(mask_indices, 0) <= shape(a, 0) ∧ (∀i ∈ [0, shape(a,0) - 1] : a[i] ≥ 0) ∧ (∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] < shape(a,0) ∧ mask_indices[j] >= 0 ∧ (∀i ∈ [0, shape(mask_indices, 0) - 1] : ∀k ∈ [0, shape(mask_indices, 0) - 1] : if i ≠ k then mask_indices[i] ≠ mask_indices[k])) ∧ dtype_(a) = 3 ∨ dtype_(a) = 4 ∨ dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8
 >>
-Rule 40 (The maximum value of the mask_indices (v_2) should not be negative one when shape(v_2, 0) is greater than zero)
-{v_2: tensor} |= if shape(v_2, 0) > 0 then max(v_2) >= 0
+Rule 39 (All properties of input tensors, combined into one rule)
+{a : tensor, mask_indices : tensor} |= ndim(a) > 0 ∧ ndim(mask_indices) > 0 ∧ (dtype_(mask_indices) = 3 ∨ dtype_(mask_indices) = 4) ∧ shape(mask_indices, 0) <= shape(a, 0) ∧ (∀i ∈ [0, shape(a,0) - 1] : a[i] ≥ 0) ∧ (∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] < shape(a,0) ∧ mask_indices[j] >= 0 ∧ (∀i ∈ [0, shape(mask_indices, 0) - 1] : ∀k ∈ [0, shape(mask_indices, 0) - 1] : if i ≠ k then mask_indices[i] ≠ mask_indices[k])) ∧ (dtype_(a) = 3 ∨ dtype_(a) = 4 ∨ dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8) ∧ ndim(a) <= 2
 >>
-Rule 41 (mask_indices (v_2) must be a 1D tensor and each element of mask_indices should be an integer and non-negative and less than shape of input tensor)
-{v_1: tensor, v_2: tensor} |= ndim(v_2) = 1 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6) ∧ v_2[i] >= 0 ∧ v_2[i] < shape(v_1, 0)
+Rule 40 (All properties of input tensors, combined into one rule)
+{a : tensor, mask_indices : tensor} |= ndim(a) > 0 ∧ ndim(mask_indices) > 0 ∧ (dtype_(mask_indices) = 3 ∨ dtype_(mask_indices) = 4) ∧ shape(mask_indices, 0) <= shape(a, 0) ∧ (∀i ∈ [0, shape(a,0) - 1] : a[i] ≥ 0) ∧ (∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] < shape(a,0) ∧ mask_indices[j] >= 0 ∧ (∀i ∈ [0, shape(mask_indices, 0) - 1] : ∀k ∈ [0, shape(mask_indices, 0) - 1] : if i ≠ k then mask_indices[i] ≠ mask_indices[k])) ∧ (dtype_(a) = 3 ∨ dtype_(a) = 4 ∨ dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8) ∧ ndim(a) <= 2 ∧ dtype_(a) = 3 ∨ dtype_(a) = 4
 >>
-Rule 42 (If input tensor is of type bool, then mask_indices cannot be a floating type)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 0 then (dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8 ∧ dtype_(v_2) ≠ 9)
+Rule 41 (All properties of input tensors, combined into one rule to prevent duplication)
+{a : tensor, mask_indices : tensor} |= ndim(a) > 0 ∧ ndim(mask_indices) > 0 ∧ (dtype_(mask_indices) = 3 ∨ dtype_(mask_indices) = 4) ∧ shape(mask_indices, 0) <= shape(a, 0) ∧ (∀i ∈ [0, shape(a,0) - 1] : a[i] ≥ 0) ∧ (∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] < shape(a,0) ∧ mask_indices[j] >= 0 ∧ (∀i ∈ [0, shape(mask_indices, 0) - 1] : ∀k ∈ [0, shape(mask_indices, 0) - 1] : if i ≠ k then mask_indices[i] ≠ mask_indices[k])) ∧ (dtype_(a) = 3 ∨ dtype_(a) = 4 ∨ dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8) ∧ ndim(a) <= 2 ∧ (dtype_(a) = 3 ∨ dtype_(a) = 4) ∧ ndim(a) = 1
 >>
-Rule 43 (If mask indices shape is 0, input tensor shape must be 0)
-{v_1: tensor, v_2: tensor} |= if shape(v_2, 0) = 0 then shape(v_1, 0) = 0
+Rule 42 (All properties of input tensors, combined into one rule to prevent duplication)
+{a : tensor, mask_indices : tensor} |= ndim(a) > 0 ∧ ndim(mask_indices) > 0 ∧ (dtype_(mask_indices) = 3 ∨ dtype_(mask_indices) = 4) ∧ shape(mask_indices, 0) <= shape(a, 0) ∧ (∀i ∈ [0, shape(a,0) - 1] : a[i] ≥ 0) ∧ (∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] < shape(a,0) ∧ mask_indices[j] >= 0 ∧ (∀i ∈ [0, shape(mask_indices, 0) - 1] : ∀k ∈ [0, shape(mask_indices, 0) - 1] : if i ≠ k then mask_indices[i] ≠ mask_indices[k])) ∧ (dtype_(a) = 3 ∨ dtype_(a) = 4 ∨ dtype_(a) = 6 ∨ dtype_(a) = 7 ∨ dtype_(a) = 8) ∧ ndim(a) <= 2 ∧ (dtype_(a) = 3 ∨ dtype_(a) = 4) ∧ ndim(a) = 1 ∧ shape(a, 0) > 0
 >>
-Rule 44 (If input tensor is complex type, mask indices must be integer type)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6)
+Rule 43 (All properties of input tensors for sparse mask)
+{a : tensor, mask_indices : tensor} |= ndim(a) = 1 ∧ dtype_(a) = 3 ∨ dtype_(a) = 4 ∧ ndim(mask_indices) > 0 ∧ (dtype_(mask_indices) = 3 ∨ dtype_(mask_indices) = 4) ∧ shape(mask_indices, 0) <= shape(a, 0) ∧ shape(a, 0) > 0 ∧ (∀i ∈ [0, shape(a,0) - 1] : a[i] ≥ 0) ∧ (∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] < shape(a,0) ∧ mask_indices[j] >= 0 ∧ (∀i ∈ [0, shape(mask_indices, 0) - 1] : ∀k ∈ [0, shape(mask_indices, 0) - 1] : if i ≠ k then mask_indices[i] ≠ mask_indices[k]))
 >>
-Rule 45 (If the first dimension of input tensor (v_1) is zero, then length of mask_indices (v_2) should be zero)
-{v_1: tensor, v_2: tensor} |= if shape(v_1, 0) = 0 then shape(v_2, 0) = 0
+Rule 44 (All properties of input tensors for sparse mask)
+{a : tensor, mask_indices : tensor} |= ndim(a) = 1 ∧ (dtype_(a) = 3 ∨ dtype_(a) = 4) ∧ ndim(mask_indices) > 0 ∧ (dtype_(mask_indices) = 3 ∨ dtype_(mask_indices) = 4) ∧ shape(mask_indices, 0) <= shape(a, 0) ∧ shape(a, 0) > 0 ∧ (∀i ∈ [0, shape(a,0) - 1] : a[i] ≥ 0) ∧ (∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] < shape(a,0) ∧ mask_indices[j] >= 0 ∧ (∀i ∈ [0, shape(mask_indices, 0) - 1] : ∀k ∈ [0, shape(mask_indices, 0) - 1] : if i ≠ k then mask_indices[i] ≠ mask_indices[k]))
 >>
-Rule 46 (If input tensor is complex type, mask indices must be integer type, and each element is not negative and smaller than shape.)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then (ndim(v_2) = 1 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6) ∧ v_2[i] >= 0 ∧ v_2[i] < shape(v_1, 0))
+Rule 48 (a and mask_indices dtypes must be integer-compatible)
+{a : tensor, mask_indices: tensor} |= (dtype_(a) = 3 ∨ dtype_(a) = 4) ∧ (dtype_(mask_indices) = 3 ∨ dtype_(mask_indices) = 4)
 >>
-Rule 47 (dtype of input tensor a (v_1) should not be string or dtype)
-{v_1: tensor} |= dtype_(v_1) ≠ 12 ∧ dtype_(v_1) ≠ 13
+Rule 50 (a is a 1D integer tensor)
+{a : tensor} |= ndim(a) = 1 ∧ (dtype_(a) = 3 ∨ dtype_(a) = 4)
 >>
-Rule 48 (If input tensor is complex type, mask indices must be integer type, and each element is not negative and smaller than shape. The first dimension of mask cannot be greater than v_1)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then (ndim(v_2) = 1 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6) ∧ v_2[i] >= 0 ∧ v_2[i] < shape(v_1, 0)) ∧ shape(v_2, 0) <= shape(v_1, 0)
+Rule 51 (mask_indices is a 1D integer tensor)
+{mask_indices : tensor} |= ndim(mask_indices) = 1 ∧ (dtype_(mask_indices) = 3 ∨ dtype_(mask_indices) = 4)
 >>
-Rule 49 (If mask_indices has values, then maximum of mask indices should be less than first dimension of v_1.)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) > 0 then max(v_2) < shape(v_1, 0)
+Rule 52 (mask_indices values are within the bounds of a)
+{a: tensor, mask_indices : tensor} |=  ∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] < shape(a,0)
 >>
-Rule 51 (mask indices must be integer compatible and 1D)
-{v_2:tensor} |= ndim(v_2) = 1 ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6)
+Rule 53 (a and mask_indices must be 1D integer tensors)
+{a : tensor, mask_indices : tensor} |= ndim(a) = 1 ∧ (dtype_(a) = 3 ∨ dtype_(a) = 4) ∧ ndim(mask_indices) = 1 ∧ (dtype_(mask_indices) = 3 ∨ dtype_(mask_indices) = 4)
 >>
-Rule 53 (If input is of type float, then mask indices type must be in integer.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6)
+Rule 54 (mask_indices values are valid non-negative indices for a)
+{a: tensor, mask_indices : tensor} |=  ∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] < shape(a,0) ∧ mask_indices[j] >= 0
 >>
-Rule 55 (If input is boolean, mask must be integer.)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 0 then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6)
+Rule 55 (a and mask_indices must be 1D integer tensors with correct shape)
+{a : tensor, mask_indices : tensor} |= ndim(a) = 1 ∧ (dtype_(a) = 3 ∨ dtype_(a) = 4) ∧ ndim(mask_indices) = 1 ∧ (dtype_(mask_indices) = 3 ∨ dtype_(mask_indices) = 4) ∧ shape(mask_indices, 0) <= shape(a, 0)
 >>
-Rule 57 (mask indices must be integer compatible and 1D, and elements should be non-negative and smaller than input shape)
-{v_1: tensor, v_2:tensor} |= ndim(v_2) = 1 ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6) ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] >= 0 ∧ v_2[i] < shape(v_1, 0)
+Rule 57 (All required properties of a and mask_indices tensors)
+{a : tensor, mask_indices : tensor} |= ndim(a) = 1 ∧ (dtype_(a) = 3 ∨ dtype_(a) = 4) ∧ ndim(mask_indices) = 1 ∧ (dtype_(mask_indices) = 3 ∨ dtype_(mask_indices) = 4) ∧ shape(mask_indices, 0) <= shape(a, 0) ∧ (∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] < shape(a,0) ∧ mask_indices[j] >= 0)
 >>
-Rule 58 (mask indices should not be empty when input shape is not empty.)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) > 0 then shape(v_2, 0) > 0
+Rule 60 (a is 1D)
+{a : tensor} |= ndim(a) = 1
 >>
-Rule 59 (If input dtype is string or dtype, then it is invalid)
-{v_1 : tensor} |= dtype_(v_1) ≠ 12 ∧ dtype_(v_1) ≠ 13
+Rule 61 (mask_indices is 1D)
+{mask_indices : tensor} |= ndim(mask_indices) = 1
+>>
+Rule 62 (a is an integer tensor)
+{a : tensor} |= (dtype_(a) = 3 ∨ dtype_(a) = 4)
+>>
+Rule 63 (mask_indices is an integer tensor)
+{mask_indices : tensor} |= (dtype_(mask_indices) = 3 ∨ dtype_(mask_indices) = 4)
+>>
+Rule 65 (All elements of mask_indices are non-negative)
+{mask_indices : tensor} |= ∀j ∈ [0, shape(mask_indices, 0) - 1] : mask_indices[j] >= 0

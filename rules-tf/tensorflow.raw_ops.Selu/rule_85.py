@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If number of dimensions is greater than 3, then the shape of the first dimension must be greater than the shape of the third dimension. (Rule 85)
+# Features can not have dimensions greater than or equal to 65536 (Rule 85)
 
 rule_85 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 3, Select(v["arg1_shape"], 0) > Select(v["arg1_shape"], 2), False)) if n else
-          If(v["arg1_ndim"] > 3, Select(v["arg1_shape"], 0) > Select(v["arg1_shape"], 2), False))
+    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 65536) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 65536) for i in range(6)]))
 )
 
 def rule_85_func(arg1, solver=None, neg=False):

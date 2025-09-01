@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If s is a float, its absolute value must be less than a large number (Rule 10)
+# s must be convertible to a 32 bit integer (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] < 0, -1 * v["arg1_value"] < 4294967296.0, v["arg1_value"] < 4294967296.0)) if n else
-          If(v["arg1_value"] < 0, -1 * v["arg1_value"] < 4294967296.0, v["arg1_value"] < 4294967296.0))
+    s.add(Not(v["arg1_value"] < 2147483648) if n else
+          v["arg1_value"] < 2147483648)
 )
 
 def rule_10_func(arg1, solver=None, neg=False):
@@ -17,15 +17,15 @@ def rule_10_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 10
         rule_10(solver, {'arg1_value': arg1_value})

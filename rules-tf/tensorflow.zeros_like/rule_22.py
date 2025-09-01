@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input is int8, int16, int32, int64 then the dtype should not be bool if specified (Rule 22)
+# If dtype is complex64 or complex128, the input must also be of a complex type (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg2_value"] != 0, False)) if n else
-          If(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg2_value"] != 0, False))
+    s.add(Not(If(Or(v["arg2_value"] == 9, v["arg2_value"] == 10), Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), True)) if n else
+          If(Or(v["arg2_value"] == 9, v["arg2_value"] == 10), Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), True))
 )
 
 def rule_22_func(arg1, arg2, solver=None, neg=False):

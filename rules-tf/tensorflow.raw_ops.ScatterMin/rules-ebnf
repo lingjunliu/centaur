@@ -1,132 +1,165 @@
 >>
-Rule 1 (ref tensor must be of a supported type (half, bfloat16, float32, float64, int32, int64))
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Rule 1 (ref tensor must be of type half, bfloat16, float32, float64, int32, or int64)
+{ref : tensor} |= dtype_(ref) = 6 ∨ dtype_(ref) = 8 ∨ dtype_(ref) = 7 ∨ dtype_(ref) = 9 ∨ dtype_(ref) = 4 ∨ dtype_(ref) = 5
 >>
-Rule 2 (indices tensor must be of a supported type (int32, int64))
-{v_2 : tensor} |= dtype_(v_2) = 4 ∨ dtype_(v_2) = 5
+Rule 2 (indices tensor must be of type int32 or int64)
+{indices : tensor} |= dtype_(indices) = 4 ∨ dtype_(indices) = 5
 >>
 Rule 3 (updates tensor must have the same type as ref tensor)
-{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3)
+{ref : tensor, updates : tensor} |= dtype_(ref) = dtype_(updates)
 >>
-Rule 4 (updates.shape = indices.shape + ref.shape[1:])
-{v_2 : tensor, v_3 : tensor, v_1 : tensor} |= (ndim(v_3) = ndim(v_2) + ndim(v_1) - 1) ∨ (ndim(v_3) = 0)
+Rule 4 (updates tensor's shape must be compatible with indices and ref tensors)
+{ref : tensor, indices : tensor, updates : tensor} |= ndim(updates) = ndim(indices) + ndim(ref) - 1 ∨ ndim(updates) = 0
 >>
-Rule 5 (use_locking is a boolean value)
-{v_4 : bool} |= v_4 = true ∨ v_4 = false
+Rule 5 (use_locking must be a boolean)
+{use_locking : bool} |= use_locking = true ∨ use_locking = false
 >>
-Rule 6 (indices tensor must have ndim > 0)
-{v_2 : tensor} |= ndim(v_2) > 0
+Rule 6 (number of dimensions of indices must be less than or equal to ref)
+{ref : tensor, indices : tensor} |= ndim(indices) ≤ ndim(ref)
 >>
-Rule 7 (updates tensor must be a tensor)
-{v_3 : tensor} |= ndim(v_3) ≥ 0
+Rule 7 (indices must have at least one dimension if ref has more than one dimension)
+{ref : tensor, indices : tensor} |= if ndim(ref) > 1 then ndim(indices) ≥ 1
 >>
-Rule 8 (ref tensor must be a tensor)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 8 (if updates is a scalar, the condition is always true.)
+{updates : tensor} |= if ndim(updates) = 0 then true
 >>
-Rule 9 (if updates.shape is not [], then updates.shape must match indices.shape + ref.shape[1:])
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) ≠ 0 then ndim(v_3) = ndim(v_2) + ndim(v_1) - 1
+Rule 9 (ref tensor must have at least one dimension)
+{ref : tensor} |= ndim(ref) ≥ 1
 >>
-Rule 10 (name is a string)
-{v_5 : str} |= v_5 = "ii" ∨ v_5 = "ii->i" ∨ v_5 = "i,j->ij" ∨ v_5 = "bij,bjk->bik" ∨ v_5 = "...ij->...ji" ∨ v_5 = "bn,anm,bm->ba" ∨ v_5 = "none" ∨ v_5 = "mean" ∨ v_5 = "sum" ∨ v_5 = "max" ∨ v_5 = "min" ∨ v_5 = "prod" ∨ v_5 = "relu" ∨ v_5 = "tanh" ∨ v_5 = "sigmoid" ∨ v_5 = "softmax" ∨ v_5 = "elu" ∨ v_5 = "selu" ∨ v_5 = "gelu" ∨ v_5 = "swish" ∨ v_5 = "constant" ∨ v_5 = "linear" ∨ v_5 = "softplus" ∨ true
+Rule 10 (indices tensor must have at least one dimension if updates is a tensor)
+{indices : tensor, updates : tensor} |= if ndim(updates) > 0 then ndim(indices) ≥ 1
 >>
-Rule 11 (updates shape 0 if updates is scalar)
-{v_3 : tensor} |= if ndim(v_3) = 0 then shape(v_3,0) = 0
+Rule 11 (updates tensor is a scalar if indices is empty)
+{indices : tensor, updates : tensor} |= if (∃i ∈ [0, ndim(indices) - 1] : shape(indices, i) = 0) then ndim(updates) = 0
 >>
-Rule 12 (If updates.shape is [], then indices and ref can have any shape)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 then true else ndim(v_3) = ndim(v_2) + ndim(v_1) - 1
+Rule 12 (ref shape must be greater than or equal to indices shape)
+{ref : tensor, indices : tensor} |= ndim(ref) ≥ ndim(indices)
 >>
-Rule 13 (If ref is a scalar, indices must be a scalar)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+Rule 13 (If updates is not a scalar, then updates shape should follow indices shape + ref shape from the second dimension.)
+{ref : tensor, indices : tensor, updates : tensor} |= if ndim(updates) > 0 then (∀i ∈ [0, ndim(indices) - 1] : shape(indices, i) = shape(updates, i)) ∧ (∀i ∈ [1, ndim(ref) - 1] : shape(ref, i) = shape(updates, ndim(indices) + i - 1))
 >>
-Rule 14 (If ref is a vector, indices can be a scalar or a vector)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 1 then (ndim(v_2) = 0 ∨ ndim(v_2) = 1) ∧ (dtype_(v_1) = dtype_(v_3))
+Rule 14 (The ref and updates must be of numeric type)
+{ref : tensor, updates : tensor} |= dtype_(ref) ≠ 0 ∧ dtype_(updates) ≠ 0 ∧ dtype_(ref) ≠ 11
 >>
-Rule 18 (If ndim(updates) > 0, then updates.shape[0] must equal shape(indices, 0) if indices is a vector.)
-{v_2 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 ∧ ndim(v_2) = 1 then shape(v_3, 0) = shape(v_2, 0)
+Rule 15 (Indices must be of integer type)
+{indices : tensor} |= dtype_(indices) ≠ 0 ∧ dtype_(indices) ≠ 6 ∧ dtype_(indices) ≠ 7 ∧ dtype_(indices) ≠ 8 ∧ dtype_(indices) ≠ 9 ∧ dtype_(indices) ≠ 10
 >>
-Rule 19 (If ndim(updates) > 0, then updates.shape[0] must equal shape(indices, 0) if indices is a matrix.)
-{v_2 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 ∧ ndim(v_2) = 2 then shape(v_3, 0) = shape(v_2, 0)
+Rule 16 (name must be a string)
+{name : str} |= name = "none" ∨ name = "sum" ∨ name = "max" ∨ name = "min" ∨ name = "prod" ∨ name = "relu" ∨ name = "tanh" ∨ name = "sigmoid" ∨ name = "softmax" ∨ name = "elu" ∨ name = "selu" ∨ name = "gelu" ∨ name = "swish" ∨ name = "softplus" ∨ name = "linear" ∨ name = "valid" ∨ name = "same" ∨ name = "causal" ∨ name = "channels_last" ∨ name = "channels_first" ∨ name = "ii" ∨ name = "ii->i" ∨ name = "i,j->ij" ∨ name = "bij,bjk->bik" ∨ name = "...ij->...ji" ∨ name = "bn,anm,bm->ba"
 >>
-Rule 20 (If ndim(indices) > 1 and ndim(updates) > 0, then shape(updates, i) = shape(indices, i) for all dimensions of indices except the last.)
-{v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 1 ∧ ndim(v_3) > 0 then ∀i ∈ [0, ndim(v_2) - 2] : shape(v_3, i) = shape(v_2, i)
+Rule 18 (If ref tensor is a vector, the max value of indices must be less than the shape of the ref tensor.)
+{ref : tensor, indices : tensor} |= if ndim(ref) = 1 then max(indices) < shape(ref, 0)
 >>
-Rule 21 (ref and updates should have same rank if indices is scalar and updates not scalar)
-{v_1 : tensor, v_3 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 ∧ ndim(v_3) > 0 then ndim(v_1) = ndim(v_3)
+Rule 21 (updates tensor should be scalar if indices shape is [].)
+{indices : tensor, updates : tensor} |= if ndim(indices) = 0 then ndim(updates) = 0
 >>
-Rule 22 (If indices is a scalar and updates is not a scalar, then shape of updates from 1 to end must match shape of ref from 1 to end)
-{v_1 : tensor, v_3 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 ∧ ndim(v_3) > 0 then (ndim(v_3) - 1) = (ndim(v_1) - 1) ∧ (∀i ∈ [1, ndim(v_1) - 1] : shape(v_3, i) = shape(v_1, i))
+Rule 23 (The first dimension of updates must match the size of indices if indices is not scalar)
+{indices : tensor, updates : tensor} |= if ndim(indices) > 0 then shape(updates, 0) = shape(indices, 0)
 >>
-Rule 23 (If indices is a vector and updates is not a scalar, then shape of updates from 1 to end must match shape of ref from 1 to end)
-{v_1 : tensor, v_3 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 ∧ ndim(v_3) > 0 then (ndim(v_3) - 1) = (ndim(v_1) - 1) ∧ (∀i ∈ [1, ndim(v_1) - 1] : shape(v_3, i) = shape(v_1, i))
+Rule 25 (Shape of updates must be empty if indices shape is empty and ref's rank is at least 1)
+{ref : tensor, indices : tensor, updates : tensor} |= if (∃i ∈ [0, ndim(indices) - 1] : shape(indices, i) = 0) ∧ ndim(ref) ≥ 1 then ndim(updates) = 0
 >>
-Rule 24 (If indices is a matrix and updates is not a scalar, then shape of updates from 2 to end must match shape of ref from 1 to end)
-{v_1 : tensor, v_3 : tensor, v_2 : tensor} |= if ndim(v_2) = 2 ∧ ndim(v_3) > 0 then (ndim(v_3) - 2) = (ndim(v_1) - 1) ∧ (∀i ∈ [1, ndim(v_1) - 1] : shape(v_3, i + 1) = shape(v_1, i))
+Rule 26 (If ref has shape [x,y,z] and indices has shape [i,j] and updates has shape [i,j,y,z]  then updates.shape = indices.shape + ref.shape[1:])
+{ref : tensor, indices : tensor, updates : tensor} |= if (ndim(ref) > 1 ∧ ndim(indices) > 0 ∧ ndim(updates) > 0) then (∀i ∈ [0, ndim(indices)-1]: shape(indices, i) = shape(updates,i)) ∧ (∀i ∈ [1, ndim(ref)-1]: shape(ref,i) = shape(updates, ndim(indices)+i-1))
 >>
-Rule 25 (If any shape in ref from 1 to the end is equal to zero, then shape in updates should also respect this)
-{v_1 : tensor, v_3 : tensor, v_2 : tensor} |= if ∃i ∈ [1, ndim(v_1) - 1] : shape(v_1, i) = 0 then ∃j ∈ [1, ndim(v_3) - ndim(v_2) + 1] : shape(v_3, j) = 0
+Rule 27 (Updates rank must be zero if shape of indices tensor is empty)
+{indices : tensor, updates : tensor} |= if (∃i ∈ [0, ndim(indices)-1] : shape(indices, i) = 0) then ndim(updates) = 0
 >>
-Rule 26 (If indices is higher rank and updates is higher rank, last shape dims must correspond)
-{v_1 : tensor, v_3 : tensor, v_2 : tensor} |= if ndim(v_2) > 1 ∧ ndim(v_3) > 1 then (ndim(v_1) -1) = (ndim(v_3) - ndim(v_2)) ∧ (∀i ∈ [1, ndim(v_1)-1] : shape(v_3, i + ndim(v_2)-1) = shape(v_1, i))
+Rule 28 (If ref is a scalar, indices must also be a scalar)
+{ref : tensor, indices : tensor} |= if ndim(ref) = 0 then ndim(indices) = 0
 >>
-Rule 27 (If ndim(updates) > 0 and indices is scalar, the number of dimensions should be same for ref and update )
-{v_1 : tensor, v_3 : tensor, v_2 : tensor} |= if ndim(v_3) > 0 ∧ ndim(v_2) = 0 then ndim(v_1) = ndim(v_3)
+Rule 31 (If ref has only 1 dimension and indices is not a scalar, the maximum of indices must be less than the shape of the ref tensor.)
+{ref : tensor, indices : tensor} |= if (ndim(ref) = 1 ∧ ndim(indices) > 0) then max(indices) < shape(ref, 0)
 >>
-Rule 28 (If any of updates or ref have zero dimension, make sure indices isn't too large)
-{v_1 : tensor, v_3 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∃j ∈ [0, ndim(v_3) - 1] : shape(v_3, j) = 0) then max(v_2) < shape(v_1, 0)
+Rule 33 (If ref and indices are scalars, updates must also be scalar)
+{ref : tensor, indices : tensor, updates : tensor} |= if (ndim(ref) = 0 ∧ ndim(indices) = 0) then ndim(updates) = 0
 >>
-Rule 29 (indices tensor values must be within the valid range of the ref tensor's first dimension)
-{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ max(v_2) < shape(v_1, 0)
+Rule 34 (The number of dimensions of updates must be equal to the number of dimensions of indices plus the number of dimensions of ref minus 1, unless updates is a scalar)
+{ref : tensor, indices : tensor, updates : tensor} |= if ndim(updates) > 0 then ndim(updates) = ndim(indices) + ndim(ref) - 1
 >>
-Rule 30 (indices cannot exceed number of elements in ref's first dimension)
-{v_1 : tensor, v_2 : tensor} |= max(v_2) < shape(v_1, 0) ∧ min(v_2) ≥ 0
+Rule 35 (if ref and indices and updates are not scalars and ref ndim >1, the number of dimensions of updates after the first should be equal to the number of dimension of ref minus one.)
+{ref : tensor, indices : tensor, updates : tensor} |= if (ndim(ref) > 1 ∧ ndim(indices) > 0 ∧ ndim(updates) > 0) then ndim(updates) - ndim(indices) = ndim(ref) - 1
 >>
-Rule 31 (The indices values should be a valid indices.)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0 ∧ v_2[i] < shape(v_1, 0)
+Rule 37 (If ref is a scalar, then updates and indices must also be a scalar)
+{ref : tensor, indices : tensor, updates : tensor} |= if ndim(ref) = 0 then ndim(indices) = 0 ∧ ndim(updates) = 0
 >>
-Rule 32 (If updates is a scalar, ensure updates is comparable with ref tensor elements via dtype)
-{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5)
+Rule 38 (If ref is not a scalar, and indices is a scalar, then updates must be a tensor and updates must have the same shape as ref after removing the first dimension.)
+{ref : tensor, indices : tensor, updates : tensor} |= if (ndim(ref) > 0 ∧ ndim(indices) = 0) then (ndim(updates) = ndim(ref) - 1 ∧ ∀i ∈ [1, ndim(ref) - 1] : shape(ref, i) = shape(updates, i - 1))
 >>
-Rule 34 (If the ref is vector, then elements from indices tensor should exist in range of ref)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then (min(v_2) >= 0 ∧ max(v_2) < shape(v_1,0))
+Rule 39 (If updates is a scalar then updates dtype should be the same as ref dtype)
+{ref : tensor, updates : tensor} |= if ndim(updates) = 0 then dtype_(ref) = dtype_(updates)
 >>
-Rule 35 (ref, indices and updates must have same data type family)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) = 4 ∧ dtype_(v_2) = 4 ∧ dtype_(v_3) = 4) ∨ (dtype_(v_1) = 5 ∧ dtype_(v_2) = 5 ∧ dtype_(v_3) = 5) ∨ (dtype_(v_1) = 6 ∧ dtype_(v_2) = 4 ∧ dtype_(v_3) = 6) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_2) = 4 ∧ dtype_(v_3) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 4 ∧ dtype_(v_3) = 8)
+Rule 40 (indices values must be within valid range)
+{ref : tensor, indices : tensor} |= ∀i ∈ [0, shape(indices,0)-1] : indices[i] ≥ 0 ∧ indices[i] < shape(ref,0)
 >>
-Rule 36 (updates and ref should be a valid dtype)
-{v_1 : tensor, v_3 : tensor} |= (dtype_(v_1) = 6 ∧ dtype_(v_3) = 6) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_3) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_3) = 8) ∨ (dtype_(v_1) = 4 ∧ dtype_(v_3) = 4) ∨ (dtype_(v_1) = 5 ∧ dtype_(v_3) = 5)
+Rule 41 (if the shape of indices is [A,B,C], then A*B*C must be less than or equal to the shape of ref)
+{ref : tensor, indices : tensor} |= if ndim(indices) > 0 then (∃i ∈ [0, ndim(indices) - 1] : shape(indices, i) = 0) ∨ (max(indices) ≤ shape(ref, 0) - 1)
 >>
-Rule 38 (If indices is scalar, updates should be 0-d tensor)
-{v_2: tensor, v_3: tensor} |= if ndim(v_2) = 0 then ndim(v_3) = 0
+Rule 43 (The indices must be within the bounds of the ref tensor, for all dimensions)
+{ref : tensor, indices : tensor} |= if ndim(indices) > 0 then (∀k ∈ [0, ndim(indices)-1]: ∀i ∈ [0, shape(indices,k)-1] : indices[i] ≥ 0 ∧ indices[i] < shape(ref, 0))
 >>
-Rule 39 (ref, indices, updates must be tensor)
-{v_1: tensor, v_2: tensor, v_3: tensor} |= ndim(v_1) >= 0 ∧ ndim(v_2) >= 0 ∧ ndim(v_3) >= 0
+Rule 44 (If updates has more than zero dimensions, all of indices elements should fall within ref boundaries.)
+{ref : tensor, indices : tensor, updates : tensor} |= if ndim(updates) > 0 then (∀k ∈ [0, ndim(indices)-1]: ∀i ∈ [0, shape(indices,k)-1] : indices[i] ≥ 0 ∧ indices[i] < shape(ref, 0))
 >>
-Rule 40 (updates and ref tensors should be scalar or have more than 0 dimension)
-{v_1 : tensor, v_3 : tensor} |= (ndim(v_1) = 0 ∨ ndim(v_1) > 0) ∧ (ndim(v_3) = 0 ∨ ndim(v_3) > 0)
+Rule 46 (If ndim(indices) > 0 and ndim(updates) > 0, all dimensions of indices must be smaller than corresponding dimension of ref (except 0th dimension))
+{ref : tensor, indices : tensor} |= if ndim(indices) > 0 then (∀k ∈ [0, ndim(indices)-1]: ∀i ∈ [0, shape(indices,k)-1] : indices[i] < shape(ref,0))
 >>
-Rule 41 (If indices is a matrix and updates is not a scalar, ndim of ref must be >= 1)
-{v_1 : tensor, v_3 : tensor, v_2: tensor} |= if ndim(v_2) = 2 ∧ ndim(v_3) > 0 then ndim(v_1) >= 1
+Rule 47 (If use_locking is false, the update is not protected)
+{use_locking: bool} |= if use_locking = false then true
 >>
-Rule 42 (Updates must be scalar or have at least 1 dimension)
-{v_3 : tensor} |= (ndim(v_3) = 0) ∨ (ndim(v_3) > 0)
+Rule 50 (If ref and indices are not scalar, updates should be the same rank as indices plus ref rank minus 1)
+{ref : tensor, indices : tensor, updates : tensor} |= if (ndim(ref) > 0 ∧ ndim(indices) > 0) then ndim(updates) = ndim(indices) + ndim(ref) - 1
 >>
-Rule 43 (If updates tensor has dimension greater than 0, all the shapes must be greater than 0.)
-{v_3 : tensor} |= if ndim(v_3) > 0 then ∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) > 0
+Rule 52 (If ref is not scalar and indices is scalar and updates is not scalar, updates should have ndim ref -1.)
+{ref : tensor, indices : tensor, updates : tensor} |= if (ndim(ref) > 0 ∧ ndim(indices) = 0 ∧ ndim(updates) > 0) then ndim(updates) = ndim(ref) - 1
 >>
-Rule 45 (indices tensor must be 1D if ref tensor is a vector)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then ndim(v_2) = 1
+Rule 53 (If ref is not a scalar, and indices is a scalar, and updates is not a scalar, the shapes of the updates after reshaping it to (ref.shape[1:]), needs to be equal to ref shape from the second dimension on wards)
+{ref : tensor, indices : tensor, updates : tensor} |= if (ndim(ref) > 0 ∧ ndim(indices) = 0 ∧ ndim(updates) > 0) then (∀i ∈ [1, ndim(ref)-1]: shape(ref, i) = shape(updates, i-1))
 >>
-Rule 46 (If indices is 2D tensor, then shape(indices,1) can be at most 1.)
-{v_2 : tensor} |= if ndim(v_2) = 2 then shape(v_2, 1) ≤ 1
+Rule 55 (Updates tensor should have the same dtype as the ref tensor)
+{ref : tensor, updates : tensor} |= dtype_(updates) = dtype_(ref)
 >>
-Rule 47 (If indices is a matrix then the updates shape[1:] must match ref shape[1:])
-{v_1 : tensor, v_3 : tensor, v_2 : tensor} |= if ndim(v_2) = 2 then (∀i ∈ [1, ndim(v_1) -1] : shape(v_3, i) = shape(v_1, i))
+Rule 56 (if ref has only one dimension, max(indices) must be less than the shape of ref along its first dimension.)
+{ref: tensor, indices: tensor} |= if ndim(ref) = 1 then max(indices) < shape(ref, 0)
 >>
-Rule 48 (ref and indices can not be both scalar)
-{v_1: tensor, v_2: tensor} |= (ndim(v_1) > 0) ∨ (ndim(v_2) > 0)
+Rule 58 (If ref is of shape [A,B,C,...] and indices is of shape [I,J,K,...], then updates must have shape [I,J,K,...,B,C,...] or [] if any of I,J,K,... are 0 )
+{ref : tensor, indices : tensor, updates : tensor} |= if (∃i ∈ [0, ndim(indices) - 1] : shape(indices, i) = 0) then ndim(updates) = 0 else (∀k ∈ [0, ndim(indices)-1]: shape(indices, k) = shape(updates,k)) ∧ (∀l ∈ [1, ndim(ref)-1]: shape(ref,l) = shape(updates, ndim(indices) - 1 + l))
 >>
-Rule 49 (Updates must be scalar or must have ndim >= ndim(indices))
-{v_2 : tensor, v_3 : tensor} |= (ndim(v_3) = 0) ∨ (ndim(v_3) >= ndim(v_2))
+Rule 59 (if ref is of shape [A,B,C,...] and indices is of shape scalar, then updates tensor needs to be of shape [B,C,...])
+{ref : tensor, indices : tensor, updates : tensor} |= if (ndim(indices) = 0) then (∀l ∈ [1, ndim(ref)-1]: shape(ref,l) = shape(updates, l-1)) ∧ ndim(updates) = ndim(ref) -1
 >>
-Rule 50 (if ref and indices are not scalar, ref must have greater ndim than indices)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then ndim(v_1) ≥ ndim(v_2)
+Rule 60 (If ref and indices are tensors and if indices are within the bounds of ref, the scatter min occurs.)
+{ref : tensor, indices : tensor} |= (ndim(ref) > 0) ∧ (ndim(indices) > 0) ∧ (∀k ∈ [0, ndim(indices)-1]: ∀i ∈ [0, shape(indices,k)-1] : indices[i] < shape(ref, 0))
+>>
+Rule 61 (If ref and indices are tensors and if indices is not within the bounds of ref, then an error happens)
+{ref : tensor, indices : tensor} |= if (ndim(ref) > 0) ∧ (ndim(indices) > 0) then ∃k ∈ [0, ndim(indices)-1] : ∃i ∈ [0, shape(indices,k)-1] : indices[i] ≥ shape(ref, 0)
+>>
+Rule 62 (if the updates' shape is [] or shape(updates,0) matches shape(indices,0), the operation is valid. Otherwise it is invalid.)
+{indices : tensor, updates : tensor} |= (ndim(updates) = 0) ∨ ((ndim(indices) > 0) ∧ (ndim(updates) > 0) ∧ (shape(updates,0) = shape(indices,0)))
+>>
+Rule 63 (the update is protected if use_locking is true)
+{use_locking : bool} |= if use_locking = true then true
+>>
+Rule 64 (The indices tensor values must be within the valid range for ref tensor's first dimension, i.e., [0, ref.shape[0] - 1].)
+{ref : tensor, indices : tensor} |= if ndim(indices) > 0 then min(indices) ≥ 0 ∧ max(indices) ≤ shape(ref, 0) - 1
+>>
+Rule 65 (If ref is a scalar, then indices and updates should also be scalar)
+{ref : tensor, indices : tensor, updates : tensor} |= if (ndim(ref) = 0) then (ndim(indices) = 0) ∧ (ndim(updates) = 0)
+>>
+Rule 67 (Either updates is scalar or the first dimension of updates and indices matches)
+{indices : tensor, updates : tensor} |= (ndim(updates) = 0) ∨ (shape(indices, 0) = shape(updates, 0))
+>>
+Rule 68 (For every index specified by indices, that element should be updated using min operation )
+{ref : tensor, indices : tensor, updates : tensor} |= (ndim(indices) > 0) ∧ (ndim(updates) > 0) ∧ (dtype_(ref) = dtype_(updates))
+>>
+Rule 69 (If ref is a float type, updates should be of the same float type)
+{ref : tensor, updates : tensor} |= if (dtype_(ref) = 6) ∨ (dtype_(ref) = 7) ∨ (dtype_(ref) = 8) ∨ (dtype_(ref) = 9) then (dtype_(updates) = 6) ∨ (dtype_(updates) = 7) ∨ (dtype_(updates) = 8) ∨ (dtype_(updates) = 9)
+>>
+Rule 70 (If ref is an int type, updates should be of the same int type)
+{ref : tensor, updates : tensor} |= if (dtype_(ref) = 4) ∨ (dtype_(ref) = 5) then (dtype_(updates) = 4) ∨ (dtype_(updates) = 5)
+>>
+Rule 74 (If indices tensor's shape is an empty list, then updates tensor's shape is also an empty list)
+{indices : tensor, updates : tensor} |= if (∃i ∈ [0, ndim(indices) - 1] : shape(indices, i) = 0) then (ndim(updates) = 0)
+>>
+Rule 75 (Valid dtypes of ref are 6, 8, 7, 9, 4, 5 and updates must have the same dtype as ref)
+{ref : tensor, updates: tensor} |= ((dtype_(ref) = 6) ∨ (dtype_(ref) = 8) ∨ (dtype_(ref) = 7) ∨ (dtype_(ref) = 9) ∨ (dtype_(ref) = 4) ∨ (dtype_(ref) = 5)) ∧ (dtype_(updates) = dtype_(ref))

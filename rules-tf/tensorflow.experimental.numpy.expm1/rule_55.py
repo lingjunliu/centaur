@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the tensor has a floating-point dtype, its absolute values should not be extremely large. (Rule 55)
+# The tensor's elements should be large enough to provide a stable calculation result if the tensor dtype is float16 (Rule 55)
 
 rule_55 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), And(Select(v["arg1_range"], 1) < 1000, Select(v["arg1_range"], 0) > -1000), False)) if n else
-          If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), And(Select(v["arg1_range"], 1) < 1000, Select(v["arg1_range"], 0) > -1000), False))
+    s.add(Not(If(v["arg1_dtype"] == 6, Or(Select(v["arg1_range"], 0) > -0.01, Select(v["arg1_range"], 1) < 0.01), True)) if n else
+          If(v["arg1_dtype"] == 6, Or(Select(v["arg1_range"], 0) > -0.01, Select(v["arg1_range"], 1) < 0.01), True))
 )
 
 def rule_55_func(arg1, solver=None, neg=False):

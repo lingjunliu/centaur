@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If value is int32, bias can be int32 or float32 (Rule 4)
+# If data_format is N...C/None, value should have at least 2 dimensions (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 4, (Or(v["arg2_dtype"] == 4, v["arg2_dtype"] == 7)), False)) if n else
-          If(v["arg1_dtype"] == 4, (Or(v["arg2_dtype"] == 4, v["arg2_dtype"] == 7)), False))
+    s.add(Not(If(Or(v["arg2_value"] == 24, v["arg2_value"] == 6), v["arg1_ndim"] >= 2, True)) if n else
+          If(Or(v["arg2_value"] == 24, v["arg2_value"] == 6), v["arg1_ndim"] >= 2, True))
 )
 
 def rule_4_func(arg1, arg2, solver=None, neg=False):
@@ -20,22 +20,22 @@ def rule_4_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not isinstance(arg2, str):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_value = String('arg2_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_value == list_of_string_values_tf.index(arg2))
 
         # Constraints for rule 4
-        rule_4(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_4(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_4(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_4(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

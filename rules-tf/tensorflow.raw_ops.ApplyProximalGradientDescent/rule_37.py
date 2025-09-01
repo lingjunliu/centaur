@@ -5,16 +5,19 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If var is an integer type, delta must also be an integer type. (Rule 37)
+# if var's dtype is int32, then alpha, l1, l2, and delta should have dtype float32 to prevent overflow/underflow errors (Rule 37)
 
 rule_37 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 6), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 4), v["arg1_dtype"] == 12), v["arg1_dtype"] == 13), v["arg1_dtype"] == 14), v["arg1_dtype"] == 16), v["arg1_dtype"] == 17), v["arg1_dtype"] == 18), v["arg1_dtype"] == 20), v["arg1_dtype"] == 21), Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 6), v["arg2_dtype"] == 2), v["arg2_dtype"] == 1), v["arg2_dtype"] == 4), v["arg2_dtype"] == 12), v["arg2_dtype"] == 13), v["arg2_dtype"] == 14), v["arg2_dtype"] == 16), v["arg2_dtype"] == 17), v["arg2_dtype"] == 18), v["arg2_dtype"] == 20), v["arg2_dtype"] == 21), False)) if n else
-          If(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 6), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 4), v["arg1_dtype"] == 12), v["arg1_dtype"] == 13), v["arg1_dtype"] == 14), v["arg1_dtype"] == 16), v["arg1_dtype"] == 17), v["arg1_dtype"] == 18), v["arg1_dtype"] == 20), v["arg1_dtype"] == 21), Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 6), v["arg2_dtype"] == 2), v["arg2_dtype"] == 1), v["arg2_dtype"] == 4), v["arg2_dtype"] == 12), v["arg2_dtype"] == 13), v["arg2_dtype"] == 14), v["arg2_dtype"] == 16), v["arg2_dtype"] == 17), v["arg2_dtype"] == 18), v["arg2_dtype"] == 20), v["arg2_dtype"] == 21), False))
+    s.add(Not(If(v["arg1_dtype"] == 3, And(And(And(v["arg2_dtype"] == 7, v["arg3_dtype"] == 7), v["arg4_dtype"] == 7), v["arg5_dtype"] == 7), True)) if n else
+          If(v["arg1_dtype"] == 3, And(And(And(v["arg2_dtype"] == 7, v["arg3_dtype"] == 7), v["arg4_dtype"] == 7), v["arg5_dtype"] == 7), True))
 )
 
-def rule_37_func(arg1, arg2, solver=None, neg=False):
+def rule_37_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
+    arg4 = next(iter(arg4.values()))
+    arg5 = next(iter(arg5.values()))
 
     # Invariant learning phase
     if not solver:
@@ -22,20 +25,32 @@ def rule_37_func(arg1, arg2, solver=None, neg=False):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
+        if not isinstance(arg3, np.ndarray):
+            return False
+        if not isinstance(arg4, np.ndarray):
+            return False
+        if not isinstance(arg5, np.ndarray):
+            return False
 
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
         arg2_dtype = Int('arg2_dtype')
+        arg3_dtype = Int('arg3_dtype')
+        arg4_dtype = Int('arg4_dtype')
+        arg5_dtype = Int('arg5_dtype')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
+        solver.add(arg4_dtype == list_of_available_dtypes.index(arg4.dtype))
+        solver.add(arg5_dtype == list_of_available_dtypes.index(arg5.dtype))
 
         # Constraints for rule 37
-        rule_37(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_37(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype, 'arg4_dtype': arg4_dtype, 'arg5_dtype': arg5_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_37(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_37(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype'], 'arg4_dtype': arg4['dtype'], 'arg5_dtype': arg5['dtype']}, neg)

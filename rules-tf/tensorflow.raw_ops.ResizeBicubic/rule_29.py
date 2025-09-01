@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Images must have at least one channel (Rule 29)
+# images batch size dimension should be positive (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 3) >= 1) if n else
-          Select(v["arg1_shape"], 3) >= 1)
+    s.add(Not(Select(v["arg1_shape"], 0) > 0) if n else
+          Select(v["arg1_shape"], 0) > 0)
 )
 
 def rule_29_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# default_value should not be greater than or equal to num_buckets (Rule 28)
+# The valid range of default_value and num_buckets should be constrained. (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < v["arg2_value"]) if n else
-          v["arg1_value"] < v["arg2_value"])
+    s.add(Not(And(And(v["arg2_value"] > 1, v["arg1_value"] >= 0), v["arg1_value"] < v["arg2_value"])) if n else
+          And(And(v["arg2_value"] > 1, v["arg1_value"] >= 0), v["arg1_value"] < v["arg2_value"]))
 )
 
 def rule_28_func(arg1, arg2, solver=None, neg=False):

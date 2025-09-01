@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If beta is greater than 0, then alpha must also be greater than 0 (Rule 100)
+# if alpha is extremely high bias must be high to prevent div by zero (Rule 100)
 
 rule_100 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] > 0, v["arg1_value"] > 0, False)) if n else
-          If(v["arg2_value"] > 0, v["arg1_value"] > 0, False))
+    s.add(Not(If(v["arg2_value"] > 100, v["arg1_value"] > 5, True)) if n else
+          If(v["arg2_value"] > 100, v["arg1_value"] > 5, True))
 )
 
 def rule_100_func(arg1, arg2, solver=None, neg=False):

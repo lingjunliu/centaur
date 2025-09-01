@@ -1,237 +1,147 @@
 >>
-Rule 1 (dtype must be a valid tensorflow dtype)
-{v_1 : dtype} |= v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 3 ∨ v_1 = 6 ∨ v_1 = 2 ∨ v_1 = 1 ∨ v_1 = 10 ∨ v_1 = 4 ∨ v_1 = 0 ∨ v_1 = 9 ∨ v_1 = 13
+Rule 2 (shape should be a list of integers with non-negative values or an empty list)
+{shape : list(int)} |= (shape.len = 0) ∨ (∀i ∈ [0, shape.len - 1] : shape[i] ≥ 0)
 >>
-Rule 2 (shape must be a tuple of integers, non-negative)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+Rule 3 (reduction_type should be "MEAN" or "SUM")
+{reduction_type : str} |= reduction_type = "MEAN" ∨ reduction_type = "SUM"
 >>
-Rule 3 (reduction_type must be either "MEAN" or "SUM")
-{v_1 : str} |= v_1 = "mean" ∨ v_1 = "sum"
+Rule 7 (The shape list should not exceed a maximum length)
+{shape : list(int)} |= shape.len ≤ 10
 >>
-Rule 6 (shape can be an empty tuple)
-{v_1 : tuple(int)} |= v_1.len ≥ 0
+Rule 8 (If dtype is int32 or int64, the accumulator can only sum up to a certain limit based on the shape and machine precision)
+{dtype: dtype, shape: list(int)} |= if dtype = 3 ∨ dtype = 4 then (∀i ∈ [0, shape.len - 1] : shape[i] ≤ 1000000)
 >>
-Rule 7 (dtype must be a valid tensorflow dtype and be a numerical type)
-{v_1 : dtype} |= v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 3 ∨ v_1 = 2 ∨ v_1 = 1 ∨ v_1 = 10
+Rule 9 (dtype should be one of the allowed tf.DType values)
+{dtype : dtype} |= dtype = 7 ∨ dtype = 8 ∨ dtype = 3 ∨ dtype = 6 ∨ dtype = 2 ∨ dtype = 1 ∨ dtype = 10 ∨ dtype = 4 ∨ dtype = 13 ∨ dtype = 14 ∨ dtype = 5 ∨ dtype = 16 ∨ dtype = 17
 >>
-Rule 8 (shape must be a tuple of integers, and its length should be less than 10)
-{v_1 : tuple(int)} |= v_1.len < 10
+Rule 14 (dtype should be one of the allowed tf.DType values, using a more concise representation)
+{dtype : dtype} |= dtype = 7 ∨ dtype = 8 ∨ dtype = 3 ∨ dtype = 6 ∨ dtype = 2 ∨ dtype = 1 ∨ dtype = 10 ∨ dtype = 4 ∨ dtype = 16
 >>
-Rule 9 (If container is not empty, then shared_name must also not be empty)
-{v_1 : str, v_2 : str} |= if v_1 ≠ "" then v_2 ≠ ""
+Rule 15 (Shape must be a valid list (length <=10) of non-negative integers or empty list)
+{shape : list(int)} |= (shape.len = 0) ∨ (shape.len ≤ 10 ∧ ∀i ∈ [0, shape.len - 1] : shape[i] ≥ 0)
 >>
-Rule 10 (The first element of shape tuple must be less than 100)
-{v_1 : tuple(int)} |= if v_1.len > 0 then v_1[0] < 100
+Rule 16 (If shape is empty, then number of dimensions must be 0.)
+{shape : list(int)} |= if shape.len = 0 then true else shape.len > 0
 >>
-Rule 11 (If shape is an empty tuple, the dtype must be float32 or float64)
-{v_1 : tuple(int), v_2 : dtype} |= if v_1.len = 0 then v_2 = 7 ∨ v_2 = 8
+Rule 18 (If reduction_type is not specified, the default value should be "MEAN")
+{reduction_type : str} |= if reduction_type = "" then true else reduction_type = "MEAN" ∨ reduction_type = "SUM"
 >>
-Rule 14 (If reduction type is sum, dtype should be an integer)
-{v_1 : str, v_2 : dtype} |= if v_1 = "sum" then v_2 = 3 ∨ v_2 = 2 ∨ v_2 = 1 ∨ v_2 = 4
+Rule 21 (If shape is empty, then number of dimensions must be 0 - redundant because of shape property)
+{shape : list(int)} |= if shape.len = 0 then true
 >>
-Rule 15 (If the container name is specified, it must be a valid string - no commas)
-{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] ≠ ","
+Rule 22 (if shape is not empty, then dtype should be float or int)
+{dtype : dtype, shape : list(int)} |= if shape.len ≠ 0 then (dtype = 7 ∨ dtype = 8 ∨ dtype = 3 ∨ dtype = 6 ∨ dtype = 2 ∨ dtype = 1 ∨ dtype = 4 ∨ dtype = 16)
 >>
-Rule 17 (shape elements must be less than 2^31)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 2147483648
+Rule 23 (container value must be shorter than 255 characters)
+{container : str} |= container.len ≤ 255
 >>
-Rule 18 (If the dtype is complex64 or complex128, then the reduction type must be mean)
-{v_1 : dtype, v_2 : str} |= if v_1 = 9 ∨ v_1 = 10 then v_2 = "mean"
+Rule 24 (shared_name value must be shorter than 255 characters)
+{shared_name : str} |= shared_name.len ≤ 255
 >>
-Rule 19 (If shared_name is specified, it must be a valid PRIMVAR name)
-{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = "_"
+Rule 29 (If shape is empty, then dtype should be float)
+{dtype : dtype, shape : list(int)} |= if shape.len = 0 then (dtype = 7 ∨ dtype = 8 ∨ dtype = 10 ∨ dtype = 16)
 >>
-Rule 21 (If shape is an empty tuple, the reduction type must be mean)
-{v_1 : tuple(int), v_2 : str} |= if v_1.len = 0 then v_2 = "mean"
+Rule 30 (Valid dtypes - shorter expression)
+{dtype : dtype} |= dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 10 ∨ dtype = 16
 >>
-Rule 22 (If the dtype is bool, reduction_type must be mean)
-{v_1 : dtype, v_2 : str} |= if v_1 = 0 then v_2 = "mean"
+Rule 32 (If shape is not empty, the product of dimensions should be less than 10^9)
+{shape : list(int)} |= if shape.len > 0 then (∃i ∈ [0, shape.len - 1] : shape[i] > 0)
 >>
-Rule 23 (The container name cannot contain '/')
-{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] ≠ "/"
+Rule 34 (name length should be less than 255)
+{name : str} |= name.len < 255
 >>
-Rule 25 (If the shape contains more than 5 elements, the dtype should be float32 or float64)
-{v_1 : tuple(int), v_2 : dtype} |= if v_1.len > 5 then v_2 = 7 ∨ v_2 = 8
+Rule 37 (If shape contains at least one element, dtype must be compatible to int or float)
+{dtype : dtype, shape : list(int)} |= if shape.len > 0 then (dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 10 ∨ dtype = 16)
 >>
-Rule 27 (If the container or shared name are specified, they must start with an alphabet character)
-{v_1 : str} |= if v_1 ≠ "" then (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z")
+Rule 39 (If container is given, then shared_name should also be given)
+{container:str, shared_name: str} |= if container.len > 0 then shared_name.len > 0
 >>
-Rule 28 (If the container name is the same as shared name, then they can't be empty)
-{v_1 : str, v_2 : str} |= if v_1 = v_2 then v_1 ≠ ""
+Rule 42 (if reduction_type is "MEAN", then dtype cannot be integer.)
+{reduction_type: str, dtype: dtype} |= if reduction_type = "MEAN" then (dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 10 ∨ dtype = 16)
 >>
-Rule 29 (If dtype is int8 or uint8, then reduction type must be sum)
-{v_1 : dtype, v_2 : str} |= if v_1 = 1 ∨ v_1 = 5 then v_2 = "sum"
+Rule 44 (if shared_name is given, container should be given)
+{shared_name : str, container : str} |= if shared_name.len > 0 then container.len > 0
 >>
-Rule 30 (if container is provided shared_name must start with the container string)
-{v_1: str, v_2:str} |= if v_1 != "" then ∃i ∈ [0, if v_1.len < v_2.len then v_1.len - 1 else v_2.len - 1] : v_1[i] = v_2[i]
+Rule 47 (Name must be a string and have length less than or equal to 255.)
+{name : str} |= name.len ≤ 255
 >>
-Rule 31 (If dtype is bfloat16, reduction type must be mean or sum)
-{v_1 : dtype, v_2 : str} |= if v_1 = 11 then v_2 = "mean" ∨ v_2 = "sum"
+Rule 52 (If reduction_type is MEAN, then the dtype should be float or complex)
+{reduction_type : str, dtype : dtype} |= if reduction_type = "MEAN" then (dtype = 7 ∨ dtype = 8 ∨ dtype = 10 ∨ dtype = 16)
 >>
-Rule 32 (If shape is specified and reduction_type is sum, dtype must be int32, int64, float32 or float64)
-{v_1 : tuple(int), v_2 : str, v_3 : dtype} |= if v_1.len > 0 ∧ v_2 = "sum" then v_3 = 3 ∨ v_3 = 4 ∨ v_3 = 7 ∨ v_3 = 8
+Rule 54 (If reduction_type is SUM, then shape must not be empty.)
+{reduction_type : str, shape : list(int)} |= if reduction_type = "SUM" then shape.len > 0
 >>
-Rule 33 (If shape is not specified, then dtype can be anything)
-{v_1 : tuple(int), v_2 : dtype} |= if v_1.len = 0 then true else false ∨ v_2 = 0 ∨ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5 ∨ v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 11 ∨ v_2 = 12 ∨ v_2 = 13
+Rule 55 (Dtype is valid - Shorter)
+{dtype: dtype} |= dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 10 ∨ dtype = 16
 >>
-Rule 34 (If the dtype is float16, reduction type can be mean only)
-{v_1 : dtype, v_2 : str} |= if v_1 = 6 then v_2 = "mean"
+Rule 56 (Shape list contains valid dimensions - Shorter)
+{shape: list(int)} |= (shape.len = 0) ∨ (shape.len ≤ 10 ∧ ∀i ∈ [0, shape.len - 1] : shape[i] ≥ 0)
 >>
-Rule 35 (If dtype is uint16, uint32, or uint64 reduction type must be sum)
-{v_1 : dtype, v_2 : str} |= if v_1 = 14 ∨ v_1 = 17 ∨ v_1 = 18 then v_2 = "sum"
+Rule 57 (Reduction type must be valid)
+{reduction_type: str} |= reduction_type = "MEAN" ∨ reduction_type = "SUM"
 >>
-Rule 36 (if the shape is known the dtype must be specified)
-{v_1 : tuple(int), v_2 : dtype} |= if v_1.len > 0 then true else v_2 = 0 ∨ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5 ∨ v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 11 ∨ v_2 = 12 ∨ v_2 = 13
+Rule 58 (If shared_name is given, then container must also be given)
+{shared_name: str, container: str} |= if shared_name.len > 0 then container.len > 0
 >>
-Rule 37 (The shape length must be less than or equal to 8)
-{v_1 : tuple(int)} |= v_1.len ≤ 8
+Rule 59 (if the dtype is a complex number, shape must not be empty)
+{dtype: dtype, shape: list(int)} |= if dtype = 10 ∨ dtype = 16 then shape.len > 0
 >>
-Rule 38 (If the dtype is qint8, quint8, qint16, quint16, qint32 then reduction_type must be sum)
-{v_1 : dtype, v_2 : str} |= if v_1 = 15 ∨ v_1 = 16 ∨ v_1 = 12 ∨ v_1 = 13 then v_2 = "sum"
+Rule 62 (If reduction_type is MEAN and shape is specified, then dtype should be float or complex)
+{reduction_type : str, dtype : dtype, shape : list(int)} |= if reduction_type = "MEAN" ∧ shape.len > 0 then (dtype = 7 ∨ dtype = 8 ∨ dtype = 10 ∨ dtype = 16)
 >>
-Rule 39 (The container name length should not be greater than 255)
-{v_1 : str} |= v_1.len ≤ 255
+Rule 63 (If dtype is int, then reduction_type must be SUM.)
+{dtype: dtype, reduction_type: str} |= if dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 then reduction_type = "SUM"
 >>
-Rule 41 (if dtype is half or bfloat16, elements of shape must be multiple of 2)
-{v_1 : tuple(int), v_2 : dtype} |= if v_2 = 11 ∨ v_2 = 15 then ∀i ∈ [0, v_1.len - 1] : v_1[i] % 2 = 0
+Rule 64 (If shape is given, at least one dimension should be positive, if dtype isn't complex)
+{shape: list(int), dtype: dtype} |= if shape.len > 0 ∧ (dtype ≠ 10 ∧ dtype ≠ 16) then (∃i ∈ [0, shape.len - 1] : shape[i] > 0)
 >>
-Rule 42 (If reduction_type is specified it should not contain any space.)
-{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] ≠ " "
+Rule 68 (if dtype is int, then reduction_type must be SUM, container and shared_name must be empty.)
+{dtype: dtype, reduction_type: str, container: str, shared_name: str} |= if dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 then (reduction_type = "SUM" ∧ container.len = 0 ∧ shared_name.len = 0)
 >>
-Rule 43 (shape must have at least one element if dtype is bool, int8, int16, int32, int64)
-{v_1 : tuple(int), v_2 : dtype} |= if v_2 = 0 ∨ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 then v_1.len > 0
+Rule 72 (If container is specified, then the shared_name has to be specified)
+{container: str, shared_name: str} |= if container.len > 0 then shared_name.len > 0
 >>
-Rule 44 (The shape elements must be small to prevent overflow during sum reduction)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 1000000
+Rule 74 (if dtype is int, then reduction_type must be SUM, and shape must not be empty.)
+{dtype: dtype, reduction_type: str, shape: list(int)} |= if dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 then (reduction_type = "SUM" ∧ shape.len > 0)
 >>
-Rule 45 (container or shared name should not be a reserved keyword like "None", "Mean", "Sum")
-{v_1 : str} |= v_1 ≠ "none" ∧ v_1 ≠ "mean" ∧ v_1 ≠ "sum"
+Rule 79 (If shape length is > 0 and any of the dimensions is equal to 0, then the number of dimensions has to be 0)
+{shape: list(int)} |= if shape.len > 0 then (∀i ∈ [0, shape.len-1]: shape[i] ≠ 0)
 >>
-Rule 46 (shape can be max rank 5, if dtype is complex then must be mean reduction type)
-{v_1: tuple(int), v_2: dtype, v_3: str} |= if v_2 = 9 ∨ v_2 = 10 then v_1.len <= 5 ∧ v_3 = "mean" else v_1.len <= 5
+Rule 83 (shared_name should only be used if a container has been specified)
+{container: str, shared_name: str} |= if shared_name.len > 0 then container.len > 0
 >>
-Rule 47 (If reduction type is mean, then dtype must be float32, float64, complex64, complex128, or bfloat16)
-{v_1 : str, v_2 : dtype} |= if v_1 = "mean" then v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 11
+Rule 84 (If shape has at least one positive dimension and dtype is integer, reduction type should be SUM)
+{dtype: dtype, reduction_type: str, shape: list(int)} |= if (dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4) ∧ shape.len > 0 ∧ (∃i ∈ [0, shape.len - 1] : shape[i] > 0) then reduction_type = "SUM"
 >>
-Rule 48 (If container name is specified, it must not contain characters outside ASCII range)
-{v_1: str} |= ∀i ∈ [0, v_1.len - 1]: (v_1[i] ≥ " " ∧ v_1[i] <= "~")
+Rule 89 (Shape must not be empty if the reduction_type is SUM.)
+{shape : list(int), reduction_type : str} |= if reduction_type = "SUM" then shape.len > 0
 >>
-Rule 50 (If the shape length is greater than 0, then sum of all elements must be greater than 0.)
-{v_1 : tuple(int)} |= if v_1.len > 0 then ∃i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 92 (If container has a length, then so must the shared_name)
+{container : str, shared_name : str} |= if container.len > 0 then shared_name.len > 0
 >>
-Rule 51 (The shape elements must be smaller than the maximum int32 value / 10 to avoid overflow)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 214748364
+Rule 98 (If reduction_type is not "SUM" and a shape list exists, then the Dtype must be a floating-point or complex number)
+{reduction_type : str, dtype : dtype, shape : list(int)} |= if reduction_type ≠ "SUM" ∧ shape.len > 0 then (dtype = 7 ∨ dtype = 8 ∨ dtype = 10 ∨ dtype = 16)
 >>
-Rule 52 (The first char of container name should be upper case alphabet character)
-{v_1: str} |= if v_1 != "" then v_1[0] ≥ "A" ∧ v_1[0] <= "Z"
+Rule 109 (If a shape dimension is 0, then reduction_type must be MEAN)
+{shape: list(int), reduction_type: str} |= if (∃i ∈ [0, shape.len - 1]: shape[i] = 0) then reduction_type = "MEAN"
 >>
-Rule 54 (If shape is 1D, then the reduction type should be sum if dtype is integer)
-{v_1 : tuple(int), v_2 : dtype, v_3 : str} |= if v_1.len = 1 ∧ (v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4) then v_3 = "sum"
+Rule 114 (if the product of all dimensions inside the shape is above a certain number, the dtype should be complex)
+{dtype: dtype, shape: list(int)} |= if (shape.len > 0 ∧ (∀i ∈ [0, shape.len -1] : shape[i] > 0) ∧ (∃i ∈ [0, shape.len - 1] : shape[i] > 100000) ) then (dtype=10 ∨ dtype=16) else True
 >>
-Rule 55 (If reduction type is sum and dtype is float16 then shape.len should be 0)
-{v_1 : str, v_2 : dtype, v_3 : tuple(int)} |= if v_1 = "sum" ∧ v_2 = 6 then v_3.len = 0
+Rule 119 (If reduction type is MEAN, the shape should have at least one non-zero dimension.)
+{reduction_type : str, shape : list(int)} |= if reduction_type = "MEAN" then (shape.len > 0 ∧ (∃i ∈ [0, shape.len - 1] : shape[i] > 0))
 >>
-Rule 56 (Container and Shared Name values should not be the same)
-{v_1: str, v_2:str} |= v_1 != v_2
+Rule 124 (if reduction_type isn't SUM, then shape must not have a dimension of 0.)
+{reduction_type : str, shape : list(int)} |= if reduction_type ≠ "SUM" then (shape.len = 0 ∨ (∀i ∈ [0, shape.len-1] : shape[i] > 0))
 >>
-Rule 57 (Shape must be an empty tuple or elements are less than 1024)
-{v_1: tuple(int)} |= (v_1.len = 0) ∨ (∀i ∈ [0, v_1.len - 1]: v_1[i] < 1024)
+Rule 129 (If reduction_type isn't SUM, each dimension inside shape should have a value larger than 0)
+{shape: list(int), reduction_type: str} |= if reduction_type ≠ "SUM" then (shape.len = 0 ∨ (∀i ∈ [0, shape.len-1] : shape[i] > 0))
 >>
-Rule 58 (If shape has len > 0, dtype cannot be type "str")
-{v_1: tuple(int), v_2: dtype} |= if v_1.len > 0 then v_2 != 12
+Rule 134 (If the shape's length > 0 and dtype is numeric, at least one element must be larger than 0)
+{shape: list(int), dtype: dtype} |= if shape.len > 0 ∧ (dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8) then (∃i ∈ [0, shape.len - 1]: shape[i] > 0)
 >>
-Rule 59 (If reduction type is sum and dtype is complex64/complex128, then shape.len should be 0)
-{v_1 : str, v_2 : dtype, v_3 : tuple(int)} |= if v_1 = "sum" ∧ (v_2 = 9 ∨ v_2 = 10) then v_3.len = 0
+Rule 139 (If you accumulate integers using the SUM reduction and the shape exists, then the sum of the dimensions shouldn't be very large)
+{dtype: dtype, reduction_type: str, shape: list(int)} |= if (dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4) ∧ reduction_type = "SUM" ∧ shape.len > 0 then (∀i ∈ [0, shape.len-1] : shape[i] ≤ 1000000)
 >>
-Rule 60 (If dtype is bool, shape must have at least one element.)
-{v_1 : dtype, v_2 : tuple(int)} |= if v_1 = 0 then v_2.len > 0
->>
-Rule 61 (The product of elements in shape tuple should not be greater than max int32)
-{v_1 : tuple(int)} |= if v_1.len > 0 then ∀i ∈ [0, v_1.len -1] : ∃j ∈ [0, v_1.len - 1] : v_1[i] * v_1[j] <= 2147483647
->>
-Rule 62 (If a container name is specified, shape.len must be 0)
-{v_1 : str, v_2 : tuple(int)} |= if v_1 != "" then v_2.len = 0
->>
-Rule 64 (container or shared_name should not contains special character (such as !@#$%) )
-{v_1: str} |= ∀i ∈ [0, v_1.len - 1]: (v_1[i] ≥ "0" ∧ v_1[i] <= "9") ∨ (v_1[i] ≥ "A" ∧ v_1[i] <= "Z") ∨ (v_1[i] >= "a" ∧ v_1[i] <= "z") ∨ (v_1[i] = "_")
->>
-Rule 65 (If reduction_type is specified it should be in lower case)
-{v_1: str} |= v_1 = "mean" ∨ v_1 = "sum"
->>
-Rule 67 (If shared_name is specified, then shape.len must be 0)
-{v_1 : str, v_2 : tuple(int)} |= if v_1 ≠ "" then v_2.len = 0
->>
-Rule 68 (container or shared_name should not contains special character (such as !@#$%) )
-{v_1: str} |= ∀i ∈ [0, v_1.len - 1]: (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] >= "a" ∧ v_1[i] <= "z") ∨ (v_1[i] = "_")
->>
-Rule 70 (If shape.len == 0, then dtype can be float16, float32, float64, complex64, complex128, bfloat16, half, uint32, uint64.)
-{v_1: tuple(int), v_2: dtype} |= if v_1.len = 0 then v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 11 ∨ v_2 = 15 ∨ v_2 = 17 ∨ v_2 = 18
->>
-Rule 72 (If shape.len == 0, then dtype cannot be type bool, int8, int16, int32, int64, uint8, qint8, quint8, qint16, quint16, qint32, or str)
-{v_1: tuple(int), v_2: dtype} |= if v_1.len = 0 then v_2 ≠ 0 ∧ v_2 ≠ 1 ∧ v_2 ≠ 2 ∧ v_2 ≠ 3 ∧ v_2 ≠ 4 ∧ v_2 ≠ 5 ∧ v_2 ≠ 12 ∧ v_2 ≠ 15 ∧ v_2 ≠ 16 ∧ v_2 ≠ 13 ∧ v_2 ≠ 14
->>
-Rule 73 (container and shared_name should have the same length)
-{v_1:str, v_2:str} |= v_1.len = v_2.len
->>
-Rule 74 (If there is shape then there should be either sum or mean reduction type)
-{v_1: tuple(int), v_2: str} |= if v_1.len > 0 then v_2 = "mean" ∨ v_2 = "sum"
->>
-Rule 76 (If shape.len == 0, then dtype can be float16, float32, float64, complex64, complex128, bfloat16, half, uint16, uint32, uint64.)
-{v_1: tuple(int), v_2: dtype} |= if v_1.len = 0 then v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 11 ∨ v_2 = 15 ∨ v_2 = 14 ∨ v_2 = 17 ∨ v_2 = 18
->>
-Rule 77 (If container and shared_name are equal then their length must be zero.)
-{v_1:str, v_2:str} |= if v_1 = v_2 then v_1.len = 0
->>
-Rule 78 (If there is shape, the first element of shape must be smaller than 2048)
-{v_1: tuple(int)} |= if v_1.len > 0 then v_1[0] < 2048
->>
-Rule 80 (If shape.len == 0, then dtype can be float16, float32, float64, complex64, complex128, bfloat16, half, uint16, uint32, uint64)
-{v_1: tuple(int), v_2: dtype} |= if v_1.len = 0 then v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 11 ∨ v_2 = 14 ∨ v_2 = 15 ∨ v_2 = 17 ∨ v_2 = 18
->>
-Rule 81 (If container and shared_name are empty, they are equal)
-{v_1:str, v_2:str} |= if v_1.len = 0 then v_2.len = 0
->>
-Rule 82 (If there is a shape and dtype is int64 the first element of shape should be less than 2^31)
-{v_1: tuple(int), v_2: dtype} |= if v_1.len > 0 ∧ v_2 = 4 then v_1[0] < 2147483648
->>
-Rule 83 (reduction_type must be "MEAN" or "SUM")
-{v_1: str} |= v_1 = "MEAN" ∨ v_1 = "SUM"
->>
-Rule 84 (If shape.len == 0, then dtype can be float16, float32, float64, complex64, complex128, bfloat16, half, uint16, uint32, uint64, and string is also okay)
-{v_1: tuple(int), v_2: dtype} |= if v_1.len = 0 then v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 11 ∨ v_2 = 14 ∨ v_2 = 15 ∨ v_2 = 17 ∨ v_2 = 18 ∨ v_2 = 12
->>
-Rule 85 (If container and shared_name are different, their length must be >0 )
-{v_1:str, v_2:str} |= if v_1 ≠ v_2 then v_1.len > 0 ∧ v_2.len > 0
->>
-Rule 86 (If there is a shape and dtype is uint32 or uint64 then the first element of shape should be smaller than 2^32)
-{v_1: tuple(int), v_2: dtype} |= if v_1.len > 0 ∧ (v_2 = 17 ∨ v_2 = 18) then v_1[0] < 4294967296
->>
-Rule 88 (If shape.len == 0 and shared_name is not empty, then dtype can be float16, float32, float64, complex64, complex128, bfloat16, half, uint16, uint32, uint64, and string is also okay)
-{v_1: tuple(int), v_2: dtype, v_3 : str} |= if v_1.len = 0 ∧ v_3 ≠ "" then v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 11 ∨ v_2 = 14 ∨ v_2 = 15 ∨ v_2 = 17 ∨ v_2 = 18 ∨ v_2 = 12
->>
-Rule 89 (container and shared_name both specified, can only contain alphabets, numbers, and underscores, and must start with alphabet)
-{v_1:str, v_2:str} |= if v_1 != "" ∧ v_2 != "" then ( (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z") ∨ (v_1[0] >= "a" ∧ v_1[0] <= "z")) ∧ (∀i ∈ [0, v_1.len - 1]: (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] >= "a" ∧ v_1[i] <= "z") ∨ (v_1[i] = "_")) ∧ ((v_2[0] ≥ "A" ∧ v_2[0] ≤ "Z") ∨ (v_2[0] >= "a" ∧ v_2[0] <= "z")) ∧ (∀i ∈ [0, v_2.len - 1]: (v_2[i] ≥ "0" ∧ v_2[i] ≤ "9") ∨ (v_2[i] ≥ "A" ∧ v_2[i] ≤ "Z") ∨ (v_2[i] >= "a" ∧ v_2[i] <= "z") ∨ (v_2[i] = "_"))
->>
-Rule 90 (if reduction type is sum then dtype must be in [1,5])
-{v_1: str, v_2: dtype} |= if v_1 = "SUM" then v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
->>
-Rule 92 (If shape.len == 0, then dtype can be float16, float32, float64, complex64, complex128, bfloat16, half, string, uint16, uint32, uint64 and bool)
-{v_1: tuple(int), v_2: dtype} |= if v_1.len = 0 then v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 11 ∨ v_2 = 14 ∨ v_2 = 15 ∨ v_2 = 17 ∨ v_2 = 18 ∨ v_2 = 12 ∨ v_2 = 0
->>
-Rule 93 (If shape.len > 0, then reduction_type must not be empty "")
-{v_1: tuple(int), v_2: str} |= if v_1.len > 0 then v_2 ≠ ""
->>
-Rule 96 (If shape.len == 0 and shared_name is NOT "" and container is NOT "" then dtype can be float16, float32, float64, complex64, complex128, bfloat16, half, string, uint16, uint32, uint64 and bool)
-{v_1: tuple(int), v_2: dtype, v_3 : str, v_4:str} |= if v_1.len = 0 ∧ v_3 ≠ "" ∧ v_4 ≠ "" then v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 11 ∨ v_2 = 14 ∨ v_2 = 15 ∨ v_2 = 17 ∨ v_2 = 18 ∨ v_2 = 12 ∨ v_2 = 0
->>
-Rule 97 (If there is shape, then the product of shape elements must not exceed the maximum int value)
-{v_1: tuple(int)} |= if v_1.len > 0 then ∀i ∈ [0, v_1.len - 1] : ∃j ∈ [0, v_1.len - 1] : v_1[i] * v_1[j] <= 2147483647
->>
-Rule 98 (If there is shape and dtype is uint32 or uint64 then the first element of shape should be smaller than 2^32 and is not 0)
-{v_1: tuple(int), v_2: dtype} |= if v_1.len > 0 ∧ (v_2 = 17 ∨ v_2 = 18) then v_1[0] < 4294967296 ∧ v_1[0] > 0
->>
-Rule 101 (If there is shape, then the product of shape elements must not be greater than 2^20 )
-{v_1: tuple(int)} |= if v_1.len > 0 then ∃i ∈ [0, v_1.len - 1] : ∃j ∈ [0, v_1.len - 1] : v_1[i] * v_1[j] <= 1048576
->>
-Rule 102 (If shape.len > 0 and dtype is uint32 or uint64 then the first element of shape should be smaller than 2^16)
-{v_1: tuple(int), v_2: dtype} |= if v_1.len > 0 ∧ (v_2 = 17 ∨ v_2 = 18) then v_1[0] < 65536
+Rule 149 (If dtype is a quantized type (13, 14, or 15), then shape must be present)
+{dtype: dtype, shape: list(int)} |= if dtype = 13 ∨ dtype = 14 ∨ dtype = 15 then shape.len > 0

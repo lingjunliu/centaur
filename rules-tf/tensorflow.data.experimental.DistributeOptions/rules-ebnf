@@ -1,84 +1,87 @@
 >>
-Rule 1 (auto_shard_policy should be an integer, specifically 0, 1, or 2 representing OFF, DATA, FILE respectively)
-{v_1 : int} |= (v_1 = 0) ∨ (v_1 = 1) ∨ (v_1 = 2)
->>
-Rule 2 (If auto_shard_policy is DATA (1) or FILE (2), then a experimental_threading.max_intra_op_parallelism needs to be greater than 1)
-{v_1 : int, v_2 : int} |= if (v_1 = 1) ∨ (v_1 = 2) then v_2 > 1
->>
-Rule 3 (num_replicas_in_sync should be a positive integer.)
-{v_1 : int} |= v_1 > 0
->>
-Rule 4 (If a custom sharding function is used, it must return a boolean value)
-{v_1 : tensor} |= dtype_(v_1) = 0
->>
-Rule 6 (Dataset id must be an integer value)
+Rule 1 (auto_shard_policy must be an integer greater than or equal to 0)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 7 (The element_length_func must return a non-negative integer)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Rule 2 (cross_device_ops_copy_device must be a string and not equal to "none")
+{v_1 : str} |= v_1 ≠ "none"
 >>
-Rule 9 (experimental_external_state_policy must be an integer 0 or 1)
-{v_1 : int} |= (v_1 = 0) ∨ (v_1 = 1)
+Rule 3 (enable_tf_data_service must be a boolean value: true or false)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 10 (Boolean variable that represents whether to ignore order.)
-{v_1 : bool} |= (v_1 = true) ∨ (v_1 = false)
+Rule 4 (dataset_id must be an integer and greater than 0)
+{v_1 : int} |= v_1 > 0
 >>
-Rule 24 (String value must be selected from given list)
-{v_1 : str} |= (v_1 = "ii") ∨ (v_1 = "ii->i") ∨ (v_1 = "i,j->ij") ∨ (v_1 = "bij,bjk->bik") ∨ (v_1 = "...ij->...ji") ∨ (v_1 = "bn,anm,bm->ba") ∨ (v_1 = "none") ∨ (v_1 = "mean") ∨ (v_1 = "sum") ∨ (v_1 = "max") ∨ (v_1 = "min") ∨ (v_1 = "prod") ∨ (v_1 = "relu") ∨ (v_1 = "tanh") ∨ (v_1 = "sigmoid") ∨ (v_1 = "softmax") ∨ (v_1 = "elu") ∨ (v_1 = "selu") ∨ (v_1 = "gelu") ∨ (v_1 = "swish") ∨ (v_1 = "constant") ∨ (v_1 = "linear") ∨ (v_1 = "softplus")
+Rule 7 (bytes_per_repilca must be an integer and a power of 2)
+{v_1 : int} |= v_1 > 0 ∧ ∃i ∈ [0, 31] : v_1 = 2 * i
 >>
-Rule 25 (Tensor shape must be a valid tuple of positive integers if specified.)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 9 (service_type must be a string and should be selected from available options)
+{v_1 : str} |= v_1 = "grpc" ∨ v_1 = "remote" ∨ v_1 = "localhost"
 >>
-Rule 27 (Tensor dimension size must be smaller than a constant value.)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) < v_2
+Rule 10 (transfer_compression must be a string from available options)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "gzip"
 >>
-Rule 28 (If `num_devices` is specified, `global_batch_size` should be divisible by `num_devices`)
-{v_1 : int, v_2 : int} |= if v_2 > 0 then (v_1 % v_2) = 0
+Rule 11 (transfer_compression_level should be an integer in the range [-1,9])
+{v_1 : int} |= v_1 ≥ -1 ∧ v_1 ≤ 9
 >>
-Rule 34 (The shard_hint must be a string value)
-{v_1 : str} |= (v_1 = "ii") ∨ (v_1 = "ii->i") ∨ (v_1 = "i,j->ij") ∨ (v_1 = "bij,bjk->bik") ∨ (v_1 = "...ij->...ji") ∨ (v_1 = "bn,anm,bm->ba") ∨ (v_1 = "none") ∨ (v_1 = "mean") ∨ (v_1 = "sum") ∨ (v_1 = "max") ∨ (v_1 = "min") ∨ (v_1 = "prod") ∨ (v_1 = "relu") ∨ (v_1 = "tanh") ∨ (v_1 = "sigmoid") ∨ (v_1 = "softmax") ∨ (v_1 = "elu") ∨ (v_1 = "selu") ∨ (v_1 = "gelu") ∨ (v_1 = "swish") ∨ (v_1 = "constant") ∨ (v_1 = "linear") ∨ (v_1 = "softplus") ∨ (v_1="")
+Rule 12 (service_type must be a string and should be selected from available options)
+{v_1 : str} |= v_1 = "grpc" ∨ v_1 = "remote"
 >>
-Rule 35 (If global_batch_size is less than num_replicas_in_sync, then raise an exception)
-{v_1 : int, v_2 : int} |= if v_1 < v_2 then false
+Rule 14 (transfer_compression_level should be an integer in the range [0,9])
+{v_1 : int} |= v_1 ≥ 0 ∧ v_1 ≤ 9
 >>
-Rule 36 (get_next_timeout should be a positive float number)
-{v_1 : float} |= v_1 > 0
+Rule 16 (job_name must be a string and cannot be empty)
+{v_1 : str} |= v_1 ≠ ""
 >>
-Rule 41 (A tensor passed to a function like min or max must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 20 (auto_shard_policy can be only 0 or 1)
+{v_1: int} |= v_1 = 0 ∨ v_1 = 1
 >>
-Rule 43 (The auto shard policy type should be an integer and must have a related max number of intra op threads set)
-{v_1 : int, v_2 : int} |= if v_1 > 0 then v_2 > 1
+Rule 21 (GetNextTimeoutMs should be an integer and greater or equal than 0)
+{v_1 : int} |= v_1 >= 0
 >>
-Rule 44 (Tuple length must be less than 5)
-{v_1 : tuple(int)} |= v_1.len < 5
+Rule 27 (GetNextTimeoutMs should be an integer and divisible by 1000)
+{v_1 : int} |= v_1 % 1000 = 0 ∧ v_1 >= 0
 >>
-Rule 45 (dtype value must be one of the supported datatypes)
-{v_1 : dtype} |= (v_1 = 0) ∨ (v_1 = 1) ∨ (v_1 = 2) ∨ (v_1 = 3) ∨ (v_1 = 4) ∨ (v_1 = 5) ∨ (v_1 = 6) ∨ (v_1 = 7) ∨ (v_1 = 8) ∨ (v_1 = 9) ∨ (v_1 = 10) ∨ (v_1 = 11) ∨ (v_1 = 12)
+Rule 28 (num_workers must be an integer and greater than or equal to 1)
+{v_1 : int} |= v_1 >= 1
 >>
-Rule 46 (For a dataset consisting of tuples, the tuple lengths must be the same.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0)
+Rule 31 (max_reconstruction_time_ms must be an integer and greater or equal than 0)
+{v_1: int} |= v_1 >= 0
 >>
-Rule 47 (Threading max intra op parallelism can be set only when experimental threading is set true)
-{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 0
+Rule 32 (use_num_if_ops must be a bool)
+{v_1: bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 48 (Tensor should have a certain rank defined in the metadata, rank should be a positive integer)
-{v_1 : tensor, v_2: int} |= ndim(v_1) = v_2 ∧ v_2 > 0
+Rule 35 (cross_device_ops_cache_size_bytes must be a int and greater or equal than -1)
+{v_1 : int} |= v_1 >= -1
 >>
-Rule 49 (A list used for specifying device assignments should have a valid tensor dtype)
-{v_1 : list(dtype)} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] = 0) ∨ (v_1[i] = 1) ∨ (v_1[i] = 2) ∨ (v_1[i] = 3) ∨ (v_1[i] = 4) ∨ (v_1[i] = 5) ∨ (v_1[i] = 6) ∨ (v_1[i] = 7) ∨ (v_1[i] = 8) ∨ (v_1[i] = 9) ∨ (v_1[i] = 10) ∨ (v_1[i] = 11) ∨ (v_1[i] = 12)
+Rule 37 (start_index must be an integer and less than 2^31)
+{v_1: int} |= v_1 < 2147483648
 >>
-Rule 50 (If a list of devices is provided for the execution, then it must be a non-empty list)
-{v_1 : list(str)} |= v_1.len > 0
+Rule 38 (max_split_size must be an integer and greater than 0)
+{v_1: int} |= v_1 > 0
 >>
-Rule 52 (the inter_op_parallelism must be equal to intra_op_parallelism when specified)
-{v_1: int, v_2: int} |= v_1 = v_2
+Rule 61 (auto_shard_policy must be within allowed range (0,1,2,3))
+{v_1: int} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3
 >>
-Rule 53 (If a list of devices is provided for the execution, then it must be a non-empty list and each device spec must be a valid string representation)
-{v_1 : list(str)} |= v_1.len > 0 ∧ ∀i ∈ [0, v_1.len - 1]: (v_1[i] = "ii") ∨ (v_1[i] = "ii->i") ∨ (v_1[i] = "i,j->ij") ∨ (v_1[i] = "bij,bjk->bik") ∨ (v_1[i] = "...ij->...ji") ∨ (v_1[i] = "bn,anm,bm->ba") ∨ (v_1[i] = "none") ∨ (v_1[i] = "mean") ∨ (v_1[i] = "sum") ∨ (v_1[i] = "max") ∨ (v_1[i] = "min") ∨ (v_1[i] = "prod") ∨ (v_1[i] = "relu") ∨ (v_1[i] = "tanh") ∨ (v_1[i] = "sigmoid") ∨ (v_1[i] = "softmax") ∨ (v_1[i] = "elu") ∨ (v_1[i] = "selu") ∨ (v_1[i] = "gelu") ∨ (v_1[i] = "swish") ∨ (v_1[i] = "constant") ∨ (v_1[i] = "linear") ∨ (v_1[i] = "softplus") ∨ (v_1[i] = "")
+Rule 66 (data_transfer_protocol must be a string, can be chosen from "grpc", "rpc")
+{v_1 : str} |= v_1 = "grpc" ∨ v_1 = "rpc"
 >>
-Rule 55 (The data type should be a valid dtype, in range of the provided list)
-{v_1 : dtype} |= (v_1 ≥ 0) ∧ (v_1 ≤ 12)
+Rule 67 (max_chunk_size_bytes must be an integer and greater or equal than -1)
+{v_1: int} |= v_1 >= -1
 >>
-Rule 57 (The data type should be a valid dtype, in range of the provided list, and should be assignable to the tensor)
-{v_1 : dtype, v_2 : tensor} |= (v_1 ≥ 0) ∧ (v_1 ≤ 12) ∧ dtype_(v_2) = v_1
+Rule 101 (device_placement_policy must be selected from allowed values (0, 1, 2))
+{v_1 : int} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2
+>>
+Rule 117 (num_workers must be an integer and less than or equal to 10000)
+{v_1 : int} |= v_1 <= 10000
+>>
+Rule 118 (max_concurrent_writers must be an int and between 0 and 1000 inclusive)
+{v_1 : int} |= v_1 >= 0 ∧ v_1 <= 1000
+>>
+Rule 122 (worker_iter must be a int and must be less than 1000)
+{v_1 : int} |= v_1 < 1000
+>>
+Rule 125 (data_set_split_mode must be an integer between (0, 3) included)
+{v_1 : int} |= v_1 >= 0 ∧ v_1 <= 3
+>>
+Rule 128 (worker_address_policy must be a str and "DISTRIBUTE_ALL_REMOTE_WORKERS")
+{v_1 : str} |= v_1 = "DISTRIBUTE_ALL_REMOTE_WORKERS"

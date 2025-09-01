@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# rhs should be a tensor with at least 1 dimension and the last dimension should be greater than 0 (Rule 28)
+# bands tensor K and M dimensions must be positive (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] >= 1, Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0)) if n else
-          And(v["arg1_ndim"] >= 1, Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0))
+    s.add(Not(And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0)) if n else
+          And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0))
 )
 
 def rule_28_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_28_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 28
-        rule_28(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_28(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_28(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_28(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

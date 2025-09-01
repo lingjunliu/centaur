@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the image already has the target size, the offset must be zero (Rule 57)
+# If image dimensions are 3, and the height dimension is -1, set offset and target height/width to 0. (Rule 57)
 
 rule_57 = lambda s, v, n=False: (
-    s.add(Not(If(And(Select(v["arg1_shape"], 0) == v["arg4_value"], Select(v["arg1_shape"], 1) == v["arg5_value"]), And(v["arg2_value"] == 0, v["arg3_value"] == 0), False)) if n else
-          If(And(Select(v["arg1_shape"], 0) == v["arg4_value"], Select(v["arg1_shape"], 1) == v["arg5_value"]), And(v["arg2_value"] == 0, v["arg3_value"] == 0), False))
+    s.add(Not(If(And(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) == -1), And(And(And(v["arg2_value"] == 0, v["arg3_value"] == 0), v["arg4_value"] == 0), v["arg5_value"] == 0), True)) if n else
+          If(And(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) == -1), And(And(And(v["arg2_value"] == 0, v["arg3_value"] == 0), v["arg4_value"] == 0), v["arg5_value"] == 0), True))
 )
 
 def rule_57_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
@@ -34,6 +34,7 @@ def rule_57_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_value = Int('arg2_value')
         arg3_value = Int('arg3_value')
@@ -41,6 +42,7 @@ def rule_57_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
         arg5_value = Int('arg5_value')
 
         # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg2_value == int(arg2))
@@ -49,9 +51,9 @@ def rule_57_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
         solver.add(arg5_value == int(arg5))
 
         # Constraints for rule 57
-        rule_57(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_value': arg3_value, 'arg4_value': arg4_value, 'arg5_value': arg5_value})
+        rule_57(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value, 'arg3_value': arg3_value, 'arg4_value': arg4_value, 'arg5_value': arg5_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_57(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value'], 'arg4_value': arg4['value'], 'arg5_value': arg5['value']}, neg)
+        rule_57(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value'], 'arg4_value': arg4['value'], 'arg5_value': arg5['value']}, neg)

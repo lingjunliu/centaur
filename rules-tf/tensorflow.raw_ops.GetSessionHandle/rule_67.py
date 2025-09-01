@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Tensor shape product should not exceed 1000000 if it's not a scalar (Rule 67)
+# All dimensions of Value should be less than or equal to 2048 (Rule 67)
 
 rule_67 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 0, And((Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 1000) for i in range(6)]))), False)) if n else
-          If(v["arg1_ndim"] > 0, And((Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 1000) for i in range(6)]))), False))
+    s.add(Not(And([Implies(i < (If(v["arg1_ndim"] > 0, v["arg1_ndim"] - 1, 0) + 1), Select(v["arg1_shape"], i) <= 2048) for i in range(6)])) if n else
+          And([Implies(i < (If(v["arg1_ndim"] > 0, v["arg1_ndim"] - 1, 0) + 1), Select(v["arg1_shape"], i) <= 2048) for i in range(6)]))
 )
 
 def rule_67_func(arg1, solver=None, neg=False):

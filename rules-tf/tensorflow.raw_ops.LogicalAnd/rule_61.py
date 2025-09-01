@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# scalar tensors must be boolean (Rule 61)
+# x and y should be the same boolean tensor type (Rule 61)
 
 rule_61 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_ndim"] == 0), And(v["arg1_dtype"] == 0, If((v["arg2_ndim"] == 0), v["arg2_dtype"] == 0, False)), False)) if n else
-          If((v["arg1_ndim"] == 0), And(v["arg1_dtype"] == 0, If((v["arg2_ndim"] == 0), v["arg2_dtype"] == 0, False)), False))
+    s.add(Not(And(And(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0), v["arg1_dtype"] == v["arg2_dtype"])) if n else
+          And(And(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0), v["arg1_dtype"] == v["arg2_dtype"]))
 )
 
 def rule_61_func(arg1, arg2, solver=None, neg=False):
@@ -25,21 +25,17 @@ def rule_61_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
         arg1_dtype = Int('arg1_dtype')
-        arg2_ndim = Int('arg2_ndim')
         arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_ndim == arg2.ndim)
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 61
-        rule_61(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim, 'arg2_dtype': arg2_dtype, 'arg2_ndim': arg2_ndim})
+        rule_61(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_61(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim'], 'arg2_dtype': arg2['dtype'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_61(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

@@ -1,81 +1,117 @@
 >>
-Rule 1 (logits tensor must be float16, float32, or float64, corresponding to dtype 6, 7, or 8)
+Rule 1 (logits must be of type half, float32, or float64)
 {v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 3 (axis must be less than the number of dimensions of logits)
-{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
+Rule 2 (axis must be within the valid range based on the number of dimensions of logits)
+{v_1 : tensor, v_2 : int} |= -1 ≤ v_2 ∧ v_2 < ndim(v_1)
 >>
-Rule 4 (logits tensor must have at least one dimension)
+Rule 3 (logits must not be empty, ensuring at least one dimension has a size greater than 0)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 4 (axis can be -1, indicating the last dimension)
+{v_2 : int} |= v_2 = -1
+>>
+Rule 9 (axis can be negative one indicating last dimension)
+{v_1 : tensor, v_2 : int} |= v_2 = -1 ∨ (v_2 ≥ 0 ∧ v_2 < ndim(v_1))
+>>
+Rule 10 (The shape of logits must be defined)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 5 (axis can be -1 if provided)
-{v_1 : int} |= v_1 = -1 ∨ v_1 ≥ 0
+Rule 13 (logits must not be empty, requiring at least one dimension to have a size greater than 0)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 6 (axis must be greater than or equal to -1 times the number of dimensions)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ -1 * ndim(v_1)
+Rule 15 (minimum shape size for logits)
+{v_1: tensor} |= shape(v_1, 0) > 0
 >>
-Rule 7 (If axis is not -1, it must be non-negative.)
-{v_1 : int} |= if v_1 ≠ -1 then v_1 ≥ 0
+Rule 17 (axis must be within the valid range based on the number of dimensions of logits)
+{v_1 : tensor, v_2 : int} |= (v_2 ≥ (0 - ndim(v_1))) ∧ (v_2 < ndim(v_1))
 >>
-Rule 12 (logits can not be a boolean tensor)
-{v_1: tensor} |= dtype_(v_1) ≠ 0
+Rule 19 (Shape should have positive values.)
+{v_1 : tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 13 (logits tensor must have a shape that is not empty - at least 1 dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 20 (ensure axis does not exceed the number of dimensions)
+{v_1 : tensor, v_2 : int} |= (v_2 < ndim(v_1))
 >>
-Rule 16 (logits tensor must be of type float16, float32, or float64)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
+Rule 22 (axis must be within the valid range based on the number of dimensions of logits)
+{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
 >>
-Rule 18 (axis must be less than or equal to ndim(logits) - 1)
-{v_1 : tensor, v_2 : int} |= v_2 ≤ ndim(v_1) - 1
+Rule 23 (ensure axis value does not cause out of bounds access)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then (0 - ndim(v_1)) ≤ v_2 else v_2 < ndim(v_1)
 >>
-Rule 23 (If axis is negative, its absolute value must be less than or equal to the rank of the logits tensor)
-{v_1 : tensor, v_2 : int} |= if v_2 < 0 then 0 ≤ ndim(v_1) + v_2
+Rule 24 (Ensure Logits is not a scalar)
+{v_1: tensor} |= ndim(v_1) > 0
 >>
-Rule 24 (The logits tensor can't have a bool dtype.)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 28 (ensure axis value does not cause out of bounds access, checking positive and negative ranges)
+{v_1 : tensor, v_2 : int} |= (v_2 ≥ 0 ∧ v_2 < ndim(v_1)) ∨ (v_2 < 0 ∧ v_2 ≥ (0 - ndim(v_1)))
 >>
-Rule 27 (If axis is not -1, it must be a valid dimension for logits)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then v_2 ≥ 0 ∧ v_2 < ndim(v_1)
+Rule 35 (Logits must have floating point type.)
+{v_1: tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
 >>
-Rule 29 (logits must have floating point type.)
-{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+Rule 39 (Ensure logits is a tensor and not a scalar)
+{v_1: tensor} |= ndim(v_1) >= 1
 >>
-Rule 33 (If the logits tensor is of type float16, then the tensor must be at least of rank 1 and axis argument type has to be an int.)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then ndim(v_1) ≥ 1
+Rule 41 (logits must be of type half, float32, or float64 and have appropriate dimensions)
+{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ ndim(v_1) > 0
 >>
-Rule 34 (Check valid range of axis based on ndim(logits), when axis is not -1.)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then 0 ≤ v_2 ∧ v_2 < ndim(v_1)
->>
-Rule 39 (If axis is provided and is non-negative, it must be less than the number of dimensions of the logits tensor.)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then v_2 < ndim(v_1)
->>
-Rule 45 (Logits can not be an empty tensor.)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 49 (The shape of the logits must be greater than 0 for each dimension)
+Rule 43 (ensure all shape values for logits are greater than 0)
 {v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 50 (If axis is provided, it must be within the valid range.)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then v_2 < ndim(v_1) else 0 <= (ndim(v_1) + v_2)
+Rule 44 (axis can be negative one indicating last dimension)
+{v_1 : tensor, v_2 : int} |=  v_2 ≥ (0 - ndim(v_1))
 >>
-Rule 51 (Check datatype to be from allowed list of logits)
-{v_1: tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 49 (If axis is specified, make sure that is less than ndim of tensor)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
 >>
-Rule 56 (If the axis is negative, then the result from (ndim(logits) + axis) must be non-negative)
-{v_1 : tensor, v_2 : int} |= if v_2 < 0 then (ndim(v_1) + v_2) >= 0
+Rule 50 (If axis is specified, make sure that is greater than negative ndim of tensor)
+{v_1 : tensor, v_2 : int} |= v_2 >= (0 - ndim(v_1))
 >>
-Rule 59 (When axis is provided, its value must be within the valid range of the number of dimensions in the logits tensor.)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then v_2 < ndim(v_1) else (0 <= (ndim(v_1) + v_2))
+Rule 51 (logits must be of type half, float32, or float64 and have positive dimensions)
+{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
 >>
-Rule 60 (logits tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) >= 1
+Rule 55 (Minimum shape size for logits should be 1)
+{v_1: tensor} |= shape(v_1, 0) >= 1
 >>
-Rule 61 (If axis is greater than or equal to zero, then v_2 < ndim(v_1))
-{v_1 : tensor, v_2 : int} |= if v_2 >= 0 then v_2 < ndim(v_1)
+Rule 56 (logits must be of type half, float32, or float64, must be a tensor of correct rank and appropriate dimensions)
+{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (ndim(v_1) > 0)
 >>
-Rule 62 (The shape elements cannot be negative, so that we can avoid having empty tensors.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0
+Rule 58 (Minimum shape size for logits should be 1, each shape should contain at least 1 element)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) >= 1
 >>
-Rule 63 (The logits tensor's dtype must be float16, float32, or float64.)
-{v_1 : tensor} |= 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8
+Rule 60 (Axis should not be smaller than the negative dimension)
+{v_1 : tensor, v_2 : int} |= v_2 >= (0-ndim(v_1))
+>>
+Rule 61 (logits must be of type half, float32, or float64 and must be a tensor)
+{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 82 (axis must be within the valid range based on the number of dimensions of logits to avoid dimension errors)
+{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) <= v_2 ∧ v_2 < ndim(v_1)
+>>
+Rule 83 (The input tensor can not be empty, it must have elements.)
+{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) >= 1
+>>
+Rule 91 (logits must be of type half, float32, or float64 with valid dimensions)
+{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (ndim(v_1) > 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) >= 1)
+>>
+Rule 93 (if the axis equals zero, then that is a valid condition)
+{v_2: int} |= v_2 = 0
+>>
+Rule 94 (Each dimensions element in the tensor must be greater than 0)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) >= 1
+>>
+Rule 96 (logits must be of type half, float32, or float64, and a tensor with at least one element)
+{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) >= 1)
+>>
+Rule 106 (logits must be of type half, float32, or float64, and it needs to be a valid tensor with all the dimensions correct)
+{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (ndim(v_1) > 0)
+>>
+Rule 111 (logits must be of type half, float32, or float64, it can't be an empty tensor with zero dimension to avoid dtype errors)
+{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (ndim(v_1) > 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 115 (Logits tensor must be of type half, float32, or float64, must be not empty to perform the calculation)
+{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (ndim(v_1) > 0)
+>>
+Rule 122 (Dtype must be a float)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
+>>
+Rule 126 (Logits needs to have a valid shape, with greater than zero and valid dimension)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (ndim(v_1) > 0)

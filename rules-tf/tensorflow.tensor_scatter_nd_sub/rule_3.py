@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# indices.shape[-1] <= tensor.rank (Rule 3)
+# indices.shape[-1] <= tensor.ndim to avoid errors related to indices out of bound (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg2_shape"], v["arg2_ndim"] - 1) <= v["arg1_ndim"]) if n else
-          Select(v["arg2_shape"], v["arg2_ndim"] - 1) <= v["arg1_ndim"])
+    s.add(Not(And(v["arg2_ndim"] > 0, Select(v["arg2_shape"], v["arg2_ndim"] - 1) <= v["arg1_ndim"])) if n else
+          And(v["arg2_ndim"] > 0, Select(v["arg2_shape"], v["arg2_ndim"] - 1) <= v["arg1_ndim"]))
 )
 
 def rule_3_func(arg1, arg2, solver=None, neg=False):
@@ -36,9 +36,9 @@ def rule_3_func(arg1, arg2, solver=None, neg=False):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 3
-        rule_3(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape})
+        rule_3(solver, {'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_3(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']}, neg)
+        rule_3(solver, {'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']}, neg)

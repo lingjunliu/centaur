@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# limit cannot be a negative integer (Rule 5)
+# limit must be less than a maximum value, e.g., 2^31-1 (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] >= 0) if n else
-          v["arg1_value"] >= 0)
+    s.add(Not(v["arg1_value"] < 2147483647) if n else
+          v["arg1_value"] < 2147483647)
 )
 
 def rule_5_func(arg1, solver=None, neg=False):

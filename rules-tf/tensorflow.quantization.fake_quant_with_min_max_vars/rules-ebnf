@@ -1,48 +1,234 @@
 >>
-Rule 1 (inputs, min, max must be float32 tensors (type 7).)
+Rule 1 (inputs, min and max must be float32 tensors)
 {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 7 ∧ dtype_(v_3) = 7
 >>
 Rule 2 (num_bits must be between 2 and 16 inclusive)
-{v_1 : int} |= 2 ≤ v_1 ∧ v_1 ≤ 16
+{v_1 : int} |= v_1 ≥ 2 ∧ v_1 ≤ 16
 >>
-Rule 3 (min must be less than or equal to max)
-{v_1 : float, v_2 : float} |= v_1 ≤ v_2
->>
-Rule 4 (If narrow_range is true, then num_bits must be greater than 1)
-{v_1 : bool, v_2 : int} |= if v_1 then v_2 > 1
->>
-Rule 6 (min, max should be finite numbers)
-{v_1 : float, v_2 : float} |= v_1 ≠ "inf" ∧ v_1 ≠ "-inf" ∧ v_2 ≠ "inf" ∧ v_2 ≠ "-inf"
->>
-Rule 8 (min can't be NaN)
-{v_1: float} |= v_1 ≠ "NaN"
->>
-Rule 17 (ndim of input must be greater than 0)
-{v_1 : tensor} |= ndim(v_1) > 0
->>
-Rule 22 (ndim of min and max must be 0)
+Rule 3 (min and max must be scalar tensors (rank 0))
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0
 >>
-Rule 23 (inputs must have positive number of elements in each dimension)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 4 (min must be less than or equal to max)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) ≤ max(v_2)
 >>
-Rule 24 (if min is positive, then 0 < min < max)
-{v_1 : float, v_2 : float} |= if v_1 > 0 then v_1 < v_2
->>
-Rule 25 (if max is negative, then min < max < 0)
-{v_1 : float, v_2 : float} |= if v_2 < 0 then v_1 < v_2
->>
-Rule 26 (inputs must be a float32 tensor (type 7).)
+Rule 5 (inputs tensor must be a float32 tensor)
 {v_1 : tensor} |= dtype_(v_1) = 7
 >>
-Rule 50 (If min and max are equal then all values in the input tensor must be equal)
-{v_1 : float, v_2 : float, v_3 : tensor} |= if v_1 = v_2 then min(v_3) = v_1 ∧ max(v_3) = v_1
+Rule 6 (min and max must be float32)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 7
 >>
-Rule 59 (inputs, min and max are different tensors.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= v_1 ≠ v_2 ∧ v_1 ≠ v_3 ∧ v_2 ≠ v_3
+Rule 7 (narrow_range must be a boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 66 (The difference between max and min must be greater than 0.)
-{v_1 : float, v_2 : float} |= (v_2 - v_1) > 0
+Rule 9 (name must be a string)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear" ∨ ∀i ∈ [0, 24] : v_1 ≠ ""
 >>
-Rule 90 (If min is negative and max is positive, then min <= 0 <= max)
-{v_1 : float, v_2 : float} |= if v_1 < 0 ∧ v_2 > 0 then v_1 <= 0 ∧ v_2 >= 0
+Rule 10 (if min > max, then swap min and max )
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) > max(v_2) then false
+>>
+Rule 11 (The shape of inputs should be same as the shape of output.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_3, 1) ∧ ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3)
+>>
+Rule 12 (min and max should be different.)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) ≠ max(v_2)
+>>
+Rule 13 (num_bits should be an integer)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 14 (inputs must be a tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 16 (inputs and min have same dtype if min is a tensor)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 17 (name must be a string if provided)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min"
+>>
+Rule 19 (input tensor must have at least one dimension if min and max are provided)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+>>
+Rule 20 (If narrow_range is true, num_bits should be greater than 1)
+{v_1 : int, v_2 : bool} |= if v_2 = true then v_1 > 1
+>>
+Rule 21 (min must be less than max)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) < max(v_2)
+>>
+Rule 22 (num_bits should not be zero)
+{v_1 : int} |= v_1 ≠ 0
+>>
+Rule 23 (input tensor should have a dimension greater than zero)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0
+>>
+Rule 25 (If 0 < min, then min_adj = 0)
+{v_1 : tensor} |= if 0 < min(v_1) then true
+>>
+Rule 26 (input tensor's dtype should be float16, float32, or float64)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 27 (min and max should have compatible dtypes)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∧ dtype_(v_2) = 6) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 8)
+>>
+Rule 30 (If min is positive, then there will be unexpected behavior)
+{v_1 : tensor} |= if min(v_1) > 0 then false
+>>
+Rule 31 (If max is positive and min is negative, then absolute value of min must be less than or equal to the absolute value of max)
+{v_1 : tensor, v_2 : tensor} |= if max(v_2) > 0 ∧ min(v_1) < 0 then min(v_1) ≥ (max(v_2) * -1)
+>>
+Rule 33 (max should be greater than 0 if min is 0)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) = 0 then max(v_2) > 0
+>>
+Rule 34 (min should be less than 0 if max is 0)
+{v_1 : tensor, v_2 : tensor} |= if max(v_2) = 0 then min(v_1) < 0
+>>
+Rule 35 (If min is not provided, then it defaults to -max)
+{v_1 : tensor, v_2 : tensor} |= if v_1 = v_2 then true
+>>
+Rule 37 (If narrow_range is false, then the quantization range is [0; 2^num_bits - 1])
+{v_1 : bool, v_2 : int} |= if v_1 = false then v_2 > 1
+>>
+Rule 38 (If narrow_range is true, then the quantization range is [1; 2^num_bits - 1])
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 1
+>>
+Rule 40 (min and max must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ ndim(v_1) = ndim(v_2)
+>>
+Rule 41 (num_bits should be of integer type)
+{v_1 : int} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5
+>>
+Rule 42 (inputs should be float and min/max should also be float with rank zero.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 7 ∧ dtype_(v_3) = 7 ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 0
+>>
+Rule 43 (num_bits must be greater than or equal to 2)
+{v_1 : int} |= v_1 ≥ 2
+>>
+Rule 45 (inputs tensor must have non-zero dimensions.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 46 (Check string name exists in string list)
+{v_1:str} |= v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min"
+>>
+Rule 47 (Narrow range can either be true or false.)
+{v_1 : bool} |=  v_1 = true ∨ v_1 = false
+>>
+Rule 48 (The shape of the input tensor and the output tensor should be equal.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 49 (inputs must be float32 when min and max are provided)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 0 ∧ ndim(v_3) = 0 then dtype_(v_1) = 7
+>>
+Rule 50 (If 0 is not between min and max, there might be unexpected behaviour.)
+{v_1: tensor, v_2: tensor} |= if min(v_1) > 0 ∨ max(v_2) < 0 then false
+>>
+Rule 51 (min and max should be different, otherwise, it may be a problem)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) = max(v_2) then false
+>>
+Rule 53 (Input, min and max should have float types)
+{v_1 : tensor, v_2: tensor, v_3: tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 7 ∧ dtype_(v_3) = 7
+>>
+Rule 54 (If min is greater than max, result becomes reversed)
+{v_1: tensor, v_2: tensor} |= min(v_1) ≤ max(v_2)
+>>
+Rule 55 (num_bits must be integer datatype)
+{v_1 : int} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+>>
+Rule 56 (min and max must be scalar tensor datatypes)
+{v_1 : tensor, v_2: tensor} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0
+>>
+Rule 57 (name should be either none or a string in the list, if provided)
+{v_1: str} |= v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear" ∨ v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "causal" ∨ v_1 = "channels_last" ∨ v_1 = "channels_first"
+>>
+Rule 58 (check narrow_range if it is a boolean datatype.)
+{v_1: bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 59 (Check the shape of input tensor is same as output tensor)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i)
+>>
+Rule 60 ( If max is negative, the behavior is not as expected.)
+{v_1: tensor} |= if max(v_1) < 0 then false
+>>
+Rule 63 (If min is positive, then unexpected results may occur )
+{v_1: tensor} |= if min(v_1) > 0 then false
+>>
+Rule 64 (num_bits must be an integer greater than 1)
+{v_1: int} |= v_1 > 1
+>>
+Rule 65 (if min and max are provided then input dtype should be float32)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then dtype_(v_1) = 7
+>>
+Rule 66 (min and max must have same dtype, when both are given)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 67 (Check if num_bits is not zero and less than equal to 16, if narrow_range is false.)
+{v_1 : int, v_2 : bool} |= if v_2 = false then v_1 ≠ 0 ∧ v_1 ≤ 16
+>>
+Rule 68 (Check num_bits, narrow_range and min value for correct range and scale)
+{v_1 : int, v_2 : bool, v_3 : tensor} |= if v_2 = true then v_1 > 1 ∧ min(v_3) < 0
+>>
+Rule 69 (If min value is very large, then result is clamped to that value)
+{v_1: tensor} |= if min(v_1) > 1000 then false
+>>
+Rule 70 (If max value is very small, then result is clamped to that value)
+{v_1: tensor} |= if max(v_1) < -1000 then false
+>>
+Rule 71 (If num_bits is 2, then only four quantization levels are available)
+{v_1: int} |= if v_1 = 2 then true
+>>
+Rule 72 (min and max should be finite)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) ≠ "inf" ∧ max(v_2) ≠ "inf" ∧ min(v_1) ≠ "-inf" ∧ max(v_2) ≠ "-inf" ∧ min(v_1) ≠ "NaN" ∧ max(v_2) ≠ "NaN"
+>>
+Rule 73 (If min is zero, then behavior may differ from expected.)
+{v_1: tensor} |= if min(v_1) = 0 then false
+>>
+Rule 74 (If max is zero, then behavior may differ from expected.)
+{v_1: tensor} |= if max(v_1) = 0 then false
+>>
+Rule 75 (If min and max are equal to zero behavior might be unexpected)
+{v_1: tensor, v_2: tensor} |= if min(v_1) = 0 ∧ max(v_2) = 0 then false
+>>
+Rule 76 (Number of bits should be less than 17)
+{v_1: int} |= v_1 < 17
+>>
+Rule 77 (min and max tensors should have number data type)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∧ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 80 (If narrow_range is true, then range between min and max will be small)
+{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then max(v_3) - min(v_2) < 1000
+>>
+Rule 82 (If narrow_range is false, the zero should be in the range of min and max)
+{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = false then min(v_2) ≤ 0 ∧ max(v_3) ≥ 0
+>>
+Rule 83 ( If narrow range is true, then num bits should always be greater than 1 )
+{v_1: bool, v_2 : int} |= if v_1 = true then v_2 > 1
+>>
+Rule 84 ( If inputs, min, max tensors are used, then min and max tensor rank should be 0)
+{v_1: tensor, v_2: tensor, v_3: tensor} |= if dtype_(v_1) = 7 then ndim(v_2) = 0 ∧ ndim(v_3) = 0
+>>
+Rule 85 (min should be less than 0 and max greater than zero for reasonable results)
+{v_1: tensor, v_2: tensor} |= min(v_1) < 0 ∧ max(v_2) > 0
+>>
+Rule 86 (Min and Max must be floating point values.)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∧ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 87 (min and max must be different from infinity and NaN if used for float values)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) ≠ "inf" ∧ min(v_1) ≠ "-inf" ∧ min(v_1) ≠ "NaN" ∧ max(v_2) ≠ "inf" ∧ max(v_2) ≠ "-inf" ∧ max(v_2) ≠ "NaN"
+>>
+Rule 89 (num_bits cannot be grater than zero and less than 17 at the same time)
+{v_1 : int} |=  v_1 ≥ 2 ∧ v_1 ≤ 16
+>>
+Rule 90 (if min/max is provided then their datatype should be a number, but their rank should be 0.)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∧ ndim(v_1) = 0 ∧ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∧ ndim(v_2) = 0
+>>
+Rule 91 (if min is provided then rank should be 0)
+{v_1: tensor} |= if true then ndim(v_1) = 0
+>>
+Rule 93 (min must be a scalar tensor (rank 0))
+{v_1 : tensor} |= ndim(v_1) = 0
+>>
+Rule 95 (inputs must be a tensor and have a floating-point dtype)
+{v_1: tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 96 (min must be a float32 scalar tensor (rank 0))
+{v_1 : tensor} |= ndim(v_1) = 0 ∧ dtype_(v_1) = 7
+>>
+Rule 97 (If max tensor is given, then min tensor must have rank 0)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then ndim(v_1) = 0

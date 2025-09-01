@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input is complex128, Tout defaults to float64 (Rule 10)
+# input tensor's complex type and Tout float type are compatible (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 11, (If(v["arg2_value"] == -1, True, v["arg2_value"] == 9)), False)) if n else
-          If(v["arg1_dtype"] == 11, (If(v["arg2_value"] == -1, True, v["arg2_value"] == 9)), False))
+    s.add(Not(If(v["arg1_dtype"] == 10, v["arg2_value"] == 8, If(v["arg1_dtype"] == 11, v["arg2_value"] == 9, False))) if n else
+          If(v["arg1_dtype"] == 10, v["arg2_value"] == 8, If(v["arg1_dtype"] == 11, v["arg2_value"] == 9, False)))
 )
 
 def rule_10_func(arg1, arg2, solver=None, neg=False):

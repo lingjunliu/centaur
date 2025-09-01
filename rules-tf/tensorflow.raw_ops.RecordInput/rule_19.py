@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# file_buffer_size should be greater than or equal to batch_size (Rule 19)
+# file_parallelism and batch_size relation, the ratio should be positive (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] >= v["arg2_value"]) if n else
-          v["arg1_value"] >= v["arg2_value"])
+    s.add(Not(v["arg1_value"] / v["arg2_value"] > 0) if n else
+          v["arg1_value"] / v["arg2_value"] > 0)
 )
 
 def rule_19_func(arg1, arg2, solver=None, neg=False):

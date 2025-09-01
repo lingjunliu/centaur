@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If shape is a tuple and its not empty, then all the dimensions should be greater than -2 (Rule 58)
+# There shouldn't be mixed values in shape, either -1 or a proper shape value (Rule 58)
 
 rule_58 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_length"] > 0, And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > -2) for i in range(6)]), False)) if n else
-          If(v["arg1_length"] > 0, And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > -2) for i in range(6)]), False))
+    s.add(Not(If(Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) == -1) for i in range(6)]), And([Implies(j < (v["arg1_length"] - 1 + 1), Or((Select(v["arg1_values"], j) == -1), True)) for j in range(6)]), True)) if n else
+          If(Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) == -1) for i in range(6)]), And([Implies(j < (v["arg1_length"] - 1 + 1), Or((Select(v["arg1_values"], j) == -1), True)) for j in range(6)]), True))
 )
 
 def rule_58_func(arg1, solver=None, neg=False):
@@ -17,7 +17,7 @@ def rule_58_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations

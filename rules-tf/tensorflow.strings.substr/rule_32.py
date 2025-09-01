@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# input and position must have same ndim or position ndim should be zero. (Rule 32)
+# pos and len must have compatible shapes for broadcasting, or be scalar (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg2_ndim"] == 0, v["arg1_ndim"] == v["arg2_ndim"])) if n else
-          Or(v["arg2_ndim"] == 0, v["arg1_ndim"] == v["arg2_ndim"]))
+    s.add(Not(Or((And(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0)), (And(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), (If(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0, If(v["arg2_ndim"] == 0, v["arg1_ndim"] == 0, (And(v["arg1_ndim"] <= 2, v["arg2_ndim"] <= 2))))))))) if n else
+          Or((And(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0)), (And(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), (If(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0, If(v["arg2_ndim"] == 0, v["arg1_ndim"] == 0, (And(v["arg1_ndim"] <= 2, v["arg2_ndim"] <= 2)))))))))
 )
 
 def rule_32_func(arg1, arg2, solver=None, neg=False):

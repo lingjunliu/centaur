@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Features and labels dimensions should be consistent with shape (Rule 51)
+# If features has ndim = 2 labels must have ndim = 2 and the batch size must match (Rule 51)
 
 rule_51 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 2), Select(v["arg1_shape"], 0) > 0), Select(v["arg1_shape"], 1) > 0), Select(v["arg2_shape"], 0) > 0), Select(v["arg2_shape"], 1) > 0)) if n else
-          And(And(And(And(And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 2), Select(v["arg1_shape"], 0) > 0), Select(v["arg1_shape"], 1) > 0), Select(v["arg2_shape"], 0) > 0), Select(v["arg2_shape"], 1) > 0))
+    s.add(Not(If(v["arg1_ndim"] == 2, (And(v["arg2_ndim"] == 2, Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0))), True)) if n else
+          If(v["arg1_ndim"] == 2, (And(v["arg2_ndim"] == 2, Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0))), True))
 )
 
 def rule_51_func(arg1, arg2, solver=None, neg=False):

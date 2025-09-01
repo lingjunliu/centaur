@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if fast is false, l2_regularizer type must be float32 or float64 (Rule 26)
+# If any of the dimensions are not found or are not defined, then an exception occurs (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == False, Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), False)) if n else
-          If(v["arg1_value"] == False, Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), False))
+    s.add(Not(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0)) if n else
+          And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0))
 )
 
 def rule_26_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_26_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not isinstance(arg1, np.ndarray):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_ndim = Int('arg2_ndim')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 26
-        rule_26(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype})
+        rule_26(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_26(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_26(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)

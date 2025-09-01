@@ -1,135 +1,90 @@
 >>
-Rule 1 (Input tensor must have a rank between 3 and 5 inclusive)
-{v_1 : tensor} |= ndim(v_1) ≥ 3 ∧ ndim(v_1) ≤ 5
+Rule 1 (Input tensor's rank must be >= num_spatial_dims + 2)
+{input : tensor, v_1 : int} |= ndim(input) ≥ v_1 + 2
 >>
-Rule 2 (Filters tensor must have a rank of N+2 where N is the spatial dimension)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = ndim(v_1)
+Rule 2 (num_spatial_dims must be 1, 2, or 3)
+{v_1 : int} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3
 >>
-Rule 3 (Padding must be either VALID or SAME)
-{v_1 : str} |= v_1 = "VALID" ∨ v_1 = "SAME"
+Rule 3 (dilations should be of length 1, 2 or N (N spatial dims))
+{dilations : list(int), v_1 : int} |= dilations.len = 1 ∨ dilations.len = 2 ∨ dilations.len = v_1
 >>
-Rule 4 (Strides must be a list of ints with length N where N+2 is the rank of the input)
-{v_1 : list(int), v_2 : tensor} |= v_1.len = ndim(v_2) - 2 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 1
+Rule 4 (strides should be of length 1, 2 or N (N spatial dims))
+{strides : list(int), v_1 : int} |= strides.len = 1 ∨ strides.len = 2 ∨ strides.len = v_1
 >>
-Rule 6 (If any stride is greater than 1, all dilations must be 1)
-{v_1 : list(int), v_2 : list(int)} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] = 1) ∨ (∀i ∈ [0, v_2.len - 1] : v_2[i] = 1)
+Rule 5 (strides elements should be >= 1)
+{strides : list(int)} |= ∀i ∈ [0, strides.len - 1] : strides[i] ≥ 1
 >>
-Rule 7 (Data format must be a valid string based on N)
-{v_1 : str, v_2 : tensor} |= if ndim(v_2) = 3 then v_1 = "NWC" ∨ v_1 = "NCW" else if ndim(v_2) = 4 then v_1 = "NHWC" ∨ v_1 = "NCHW" else if ndim(v_2) = 5 then v_1 = "NDHWC" ∨ v_1 = "NCDHW"
+Rule 6 (dilations elements should be >= 1)
+{dilations : list(int)} |= ∀i ∈ [0, dilations.len - 1] : dilations[i] ≥ 1
 >>
-Rule 8 (Input and filter tensors must have the same data type)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 7 (padding must be VALID or SAME)
+{padding : str} |= padding = "valid" ∨ padding = "same"
 >>
-Rule 9 (Spatial filter shape must be non-empty)
-{v_1 : tensor} |= ndim(v_1) > 2
+Rule 8 (data_format must be NWC, NCW, NHWC, NCHW, NDHWC, NCDHW or None (empty string))
+{data_format : str} |= data_format = "nwc" ∨ data_format = "ncw" ∨ data_format = "nhwc" ∨ data_format = "nchw" ∨ data_format = "ndhwc" ∨ data_format = "ncdhw" ∨ data_format = ""
 >>
-Rule 10 (Strides list should have the same length as the spatial dimensions of input tensor)
-{v_1 : tensor, v_2 : list(int)} |= v_2.len = ndim(v_1) - 2
+Rule 9 (If any dilation_rate is > 1, then all strides must be 1)
+{dilations : list(int), strides : list(int)} |= (∀i ∈ [0, dilations.len - 1] : dilations[i] = 1) ∨ (∀i ∈ [0, strides.len - 1] : strides[i] = 1)
 >>
-Rule 12 (If data format does not start with NC, the last dimension of input must match the in_channels dimension of filters)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NWC" ∨ v_3 = "NHWC" ∨ v_3 = "NDHWC" ∨ v_3 = "none" then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2)
+Rule 10 (If any stride is > 1, then all dilations must be 1)
+{dilations : list(int), strides : list(int)} |= (∀i ∈ [0, strides.len - 1] : strides[i] = 1) ∨ (∀i ∈ [0, dilations.len - 1] : dilations[i] = 1)
 >>
-Rule 13 (If data format starts with NC, the second dimension of input must match the in_channels dimension of filters)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NCW" ∨ v_3 = "NCHW" ∨ v_3 = "NCDHW" then shape(v_1, 1) = shape(v_2, ndim(v_2) - 2)
+Rule 11 (input and filters tensors should have same dtype)
+{input : tensor, filters : tensor} |= dtype_(input) = dtype_(filters)
 >>
-Rule 15 (Spatial dimensions must be greater than 0)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 2 - 1] : shape(v_1, i + 1) > 0
+Rule 12 (Number of input channels must be divisible by the number of output filters)
+{input : tensor, filters : tensor, v_1 : int} |= shape(input, v_1) % shape(filters, ndim(filters) - 1) = 0
 >>
-Rule 16 (Number of input channels in filter must be greater than zero)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 2) > 0
+Rule 13 (The number of spatial dimensions should between 1 and 3)
+{v_1 : int} |= v_1 ≥ 1 ∧ v_1 ≤ 3
 >>
-Rule 17 (Number of output channels in filter must be greater than zero)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0
+Rule 14 (dilations should be of length 1, 1 or 3 or 5)
+{dilations : list(int), v_1 : int} |= dilations.len = 1 ∨ dilations.len = v_1 ∨ dilations.len = 3 ∨ dilations.len = 5
 >>
-Rule 18 (If data format starts with "NC", spatial dimensions start from index 2)
-{v_1 : str, v_2 : tensor} |= if v_1 = "NCW" ∨ v_1 = "NCHW" ∨ v_1 = "NCDHW" then ∀i ∈ [2, ndim(v_2) - 1] : shape(v_2, i) > 0
+Rule 15 (strides should be of length 1, 1 or 3 or 5)
+{strides : list(int), v_1 : int} |= strides.len = 1 ∨ strides.len = v_1 ∨ strides.len = 3 ∨ strides.len = 5
 >>
-Rule 19 (If data format does not start with "NC", spatial dimensions start from index 1)
-{v_1 : str, v_2 : tensor} |= if v_1 = "NWC" ∨ v_1 = "NHWC" ∨ v_1 = "NDHWC" ∨ v_1 = "none" then ∀i ∈ [1, ndim(v_2) - 2] : shape(v_2, i) > 0
+Rule 16 (dilations should be of length 1, 2 or 4)
+{dilations : list(int), v_1 : int} |= dilations.len = 1 ∨ dilations.len = 2 ∨ dilations.len = v_1 ∨ dilations.len = 4
 >>
-Rule 20 (If strides list is defined, each value should be integer type)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : true
+Rule 17 (strides should be of length 1, 2 or 4)
+{strides : list(int), v_1 : int} |= strides.len = 1 ∨ strides.len = 2 ∨ strides.len = v_1 ∨ strides.len = 4
 >>
-Rule 22 (If strides > 1, dilations should be all 1)
-{v_1 : list(int), v_2 : list(int)} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] > 1 then ∀j ∈ [0, v_2.len - 1] : v_2[j] = 1
+Rule 18 (Input tensor's rank must be >= than num_spatial_dims + 2, input shape check)
+{input : tensor, v_1 : int} |= ndim(input) = v_1 + 2
 >>
-Rule 23 (If strides list is defined, each value should be greater than 0)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 19 (strides elements should be positive)
+{strides : list(int)} |= ∀i ∈ [0, strides.len - 1] : strides[i] > 0
 >>
-Rule 25 (The filter's spatial dimensions should be smaller or equal to the input's)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 2 - 1] : shape(v_2, i) ≤ shape(v_1, i + 1)
+Rule 20 (dilations elements should be positive)
+{dilations : list(int)} |= ∀i ∈ [0, dilations.len - 1] : dilations[i] > 0
 >>
-Rule 26 (The in_channels of the filter cannot be larger than the input channels)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, ndim(v_2) - 2) ≤ shape(v_1, ndim(v_1)-1)
+Rule 22 (Input channels must be divisible by output filters)
+{input : tensor, filters : tensor} |= shape(input, ndim(input) - 1) % shape(filters, ndim(filters) - 2) = 0
 >>
-Rule 27 (Strides list must contain positive integers)
-{v_1 : list(int)} |= v_1.len > 0 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 24 (Filters shape should have at least 2 dimensions)
+{filters : tensor} |= ndim(filters) >= 2
 >>
-Rule 31 (Check for N=1 data format validity)
-{v_1 : str, v_2 : tensor} |= if ndim(v_2) = 3 then v_1 = "NWC" ∨ v_1 = "NCW"
+Rule 25 (Input shape should have at least 2 dimensions)
+{input : tensor} |= ndim(input) >= 2
 >>
-Rule 32 (Strides list should be defined when strides are used)
-{v_1 : list(int), v_2 : tensor} |= v_1.len = ndim(v_2) - 2
+Rule 26 (Input channels and output filters dimension match in filters)
+{input : tensor, filters : tensor} |= shape(input, ndim(input) - 1) = shape(filters, ndim(filters) - 2)
 >>
-Rule 35 (Filter must have at least 3 dimensions)
-{v_1 : tensor} |= ndim(v_1) >= 3
+Rule 29 (num_spatial_dims should be an integer)
+{v_1 : int ⊎ float ⊎ bool ⊎ str ⊎ tensor ⊎ dtype ⊎ list(int) ⊎ tuple(int)} |= (v_1 = 0) ∨ (v_1 = 1) ∨ (v_1 = 2) ∨ (v_1 = 3) ∨ (v_1 = 4) ∨ (v_1 = 5) ∨ (v_1 = 6) ∨ (v_1 = 7) ∨ (v_1 = 8) ∨ (v_1 = 9)
 >>
-Rule 37 (If strides is defined, dilations is not)
-{v_1 : list(int), v_2 : list(int)} |= (v_1.len > 0 ∧ v_2.len = 0) ∨ (v_1.len = 0 ∧ v_2.len > 0) ∨ (v_1.len = 0 ∧ v_2.len = 0)
+Rule 32 (num_spatial_dims should be an integer between 1 and 3)
+{v_1 : int ⊎ float ⊎ bool ⊎ str ⊎ tensor ⊎ dtype ⊎ list(int) ⊎ tuple(int)} |= if v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 then true else false
 >>
-Rule 40 (Filter's in_channels must be same as input tensor's channels if data_format is None or does not start with 'NC')
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "none" ∨ v_3 = "NWC" ∨ v_3 = "NHWC" ∨ v_3 = "NDHWC" then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2)
+Rule 34 (num_spatial_dims should be an integer between 1 and 3)
+{num_spatial_dims : int ⊎ float ⊎ bool ⊎ str ⊎ tensor ⊎ dtype ⊎ list(int) ⊎ tuple(int)} |= if num_spatial_dims = 1 ∨ num_spatial_dims = 2 ∨ num_spatial_dims = 3 then true else false
 >>
-Rule 42 (The number of spatial filter dimensions must correspond to the number of input spatial dimensions)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) - 2 = ndim(v_1) - 2
+Rule 35 (num_spatial_dims must be an integer, check value)
+{num_spatial_dims : int ⊎ float ⊎ bool ⊎ str ⊎ tensor ⊎ dtype ⊎ list(int) ⊎ tuple(int)} |= num_spatial_dims = 1 ∨ num_spatial_dims = 2 ∨ num_spatial_dims = 3
 >>
-Rule 43 (If the data_format is NWC, the input tensor must have rank 3)
-{v_1 : str, v_2 : tensor} |= if v_1 = "NWC" then ndim(v_2) = 3
+Rule 36 (num_spatial_dims must be an integer and 1 <= N <=3)
+{num_spatial_dims : int} |= num_spatial_dims ≥ 1 ∧ num_spatial_dims ≤ 3
 >>
-Rule 44 (If the data_format is NHWC, the input tensor must have rank 4)
-{v_1 : str, v_2 : tensor} |= if v_1 = "NHWC" then ndim(v_2) = 4
->>
-Rule 45 (If the data_format is NCDHW, the input tensor must have rank 5)
-{v_1 : str, v_2 : tensor} |= if v_1 = "NCDHW" then ndim(v_2) = 5
->>
-Rule 46 (If the data_format is NCW, the input tensor must have rank 3)
-{v_1 : str, v_2 : tensor} |= if v_1 = "NCW" then ndim(v_2) = 3
->>
-Rule 47 (If the data_format is NCHW, the input tensor must have rank 4)
-{v_1 : str, v_2 : tensor} |= if v_1 = "NCHW" then ndim(v_2) = 4
->>
-Rule 49 (If the data_format is NDHWC, the input tensor must have rank 5)
-{v_1 : str, v_2 : tensor} |= if v_1 = "NDHWC" then ndim(v_2) = 5
->>
-Rule 52 (Spatial dimensions must be > 0)
-{v_1 : tensor} |= if ndim(v_1) >= 3 then (∀i ∈ [1, ndim(v_1) - 2] : shape(v_1, i) > 0)
->>
-Rule 55 (Filter's spatial dimensions (excluding in/out channels) must be less than or equal to the input spatial dimensions, when data format is NWC/NHWC/NDHWC)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "none" ∨ v_3 = "NWC" ∨ v_3 = "NHWC" ∨ v_3 = "NDHWC" then (∀i ∈ [0, ndim(v_1) - 2 - 1] : shape(v_2, i) ≤ shape(v_1, i + 1))
->>
-Rule 56 (Filter's spatial dimensions (excluding in/out channels) must be less than or equal to the input spatial dimensions, when data format is NCW/NCHW/NCDHW)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NCW" ∨ v_3 = "NCHW" ∨ v_3 = "NCDHW" then (∀i ∈ [0, ndim(v_1) - 2 - 1] : shape(v_2, i) ≤ shape(v_1, i + 2))
->>
-Rule 57 (If dilations list has length > 0, strides list must have length 0)
-{v_1 : list(int), v_2 : list(int)} |= if v_1.len > 0 then v_2.len = 0
->>
-Rule 59 (The last two dimensions of the filter tensor must be greater than 0)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0
->>
-Rule 61 (Either strides or dilations list can be defined, but not both at the same time)
-{v_1 : list(int), v_2 : list(int)} |= (v_1.len = 0 ∧ v_2.len ≥ 0) ∨ (v_1.len ≥ 0 ∧ v_2.len = 0)
->>
-Rule 62 (If any of strides is > 1 then all dilations values must be 1 and vice versa)
-{v_1 : list(int), v_2 : list(int)} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] = 1) ∨ (∀j ∈ [0, v_2.len - 1] : v_2[j] = 1)
->>
-Rule 63 (Input channels should not be larger than the filter's input channels)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1)-1) ≤ shape(v_2, ndim(v_2)-2)
->>
-Rule 64 (The filter's spatial dimensions should be no greater than input spatial dimensions if no data_format)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 2 then (∀i ∈ [1, ndim(v_1) - 2] : shape(v_2, i-1) ≤ shape(v_1, i))
->>
-Rule 65 (When strides or dilations are defined, the filter's spatial dimensions can't be larger than input after accounting for dilation rate)
-{v_1 : tensor, v_2 : tensor, v_3 : list(int)} |= if v_3.len > 0 then (∀i ∈ [0, ndim(v_1) - 2 - 1] : shape(v_2, i) ≤ shape(v_1, i + 1))
->>
-Rule 68 (If data format starts with NC, shape of first dimension of the input tensor must be number of batches)
-{v_1 : str, v_2 : tensor} |= if v_1 = "NCW" ∨ v_1 = "NCHW" ∨ v_1 = "NCDHW" then shape(v_2, 0) > 0
+Rule 37 (num_spatial_dims must be an integer and should be one of the valid integers)
+{num_spatial_dims : int ⊎ float ⊎ bool ⊎ str ⊎ tensor ⊎ dtype ⊎ list(int) ⊎ tuple(int)} |= (num_spatial_dims = 1) ∨ (num_spatial_dims = 2) ∨ (num_spatial_dims = 3)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the provided axis is out of bounds for the tensor, the function should throw an error (Rule 34)
+# Negative axis value should be such that adding it to the number of dimensions yields a non-negative index (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg2_value"] < (0 - v["arg1_ndim"]), v["arg2_value"] >= v["arg1_ndim"]), False, False)) if n else
-          If(Or(v["arg2_value"] < (0 - v["arg1_ndim"]), v["arg2_value"] >= v["arg1_ndim"]), False, False))
+    s.add(Not(If(v["arg2_value"] < 0, (v["arg1_ndim"] + v["arg2_value"]) >= 0, True)) if n else
+          If(v["arg2_value"] < 0, (v["arg1_ndim"] + v["arg2_value"]) >= 0, True))
 )
 
 def rule_34_func(arg1, arg2, solver=None, neg=False):

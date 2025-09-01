@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input tensor is a vector, the first element should be greater than 0 (Rule 32)
+# If input is a matrix, the number of columns must be less than or equal to the number of rows (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) > 0, False)) if n else
-          If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) > 0, False))
+    s.add(Not(If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 1) <= Select(v["arg1_shape"], 0), True)) if n else
+          If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 1) <= Select(v["arg1_shape"], 0), True))
 )
 
 def rule_32_func(arg1, solver=None, neg=False):

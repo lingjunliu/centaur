@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Shape of logits must be defined (non-negative (Rule 68)
+# The number of elements in logits must be positive. (Rule 68)
 
 rule_68 = lambda s, v, n=False: (
-    s.add(Not(And((And(Select(v["arg1_shape"], 0) >= 0, Select(v["arg1_shape"], 1) >= 0)), (Or(Select(v["arg1_shape"], 0) > 0, Select(v["arg1_shape"], 1) > 0)))) if n else
-          And((And(Select(v["arg1_shape"], 0) >= 0, Select(v["arg1_shape"], 1) >= 0)), (Or(Select(v["arg1_shape"], 0) > 0, Select(v["arg1_shape"], 1) > 0))))
+    s.add(Not(Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) > 0) if n else
+          Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) > 0)
 )
 
 def rule_68_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if timeout_ms is specified, then it should be greater than or equal to 0 (Rule 44)
+# If a timeout is specified it cannot be excessively large (Rule 44)
 
 rule_44 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] >= 0) if n else
-          v["arg1_value"] >= 0)
+    s.add(Not(v["arg1_value"] < 2000000) if n else
+          v["arg1_value"] < 2000000)
 )
 
 def rule_44_func(arg1, solver=None, neg=False):

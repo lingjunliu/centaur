@@ -1,171 +1,342 @@
 >>
-Rule 1 (Input tensor must be float16, float32, or float64)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 1 (input and filter tensors must have the same type)
+{input : tensor, filter : tensor} |= dtype_(input) = dtype_(filter)
 >>
-Rule 3 (strides must be a list of ints with length 5)
-{v_1 : list(int)} |= v_1.len = 5
+Rule 2 (input tensor must be 5-dimensional)
+{input : tensor} |= ndim(input) = 5
 >>
-Rule 4 (strides[0] and strides[4] must be 1)
-{v_1 : list(int)} |= v_1[0] = 1 ∧ v_1[4] = 1
+Rule 3 (filter tensor must be 5-dimensional)
+{filter : tensor} |= ndim(filter) = 5
 >>
-Rule 5 (padding must be "SAME" or "VALID")
-{v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID"
+Rule 4 (strides must be a list of integers with length greater than or equal to 5)
+{strides : list(int)} |= strides.len ≥ 5
 >>
-Rule 6 (data_format must be "NDHWC" or "NCDHW")
-{v_1 : str} |= v_1 = "NDHWC" ∨ v_1 = "NCDHW"
+Rule 5 (strides[0] and strides[4] must be 1)
+{strides : list(int)} |= strides[0] = 1 ∧ strides[4] = 1
 >>
-Rule 8 (dilations[0] and dilations depth dimension (depends on data_format) must be 1)
-{v_1 : list(int), v_2 : str} |= if v_2 = "NDHWC" then v_1[0] = 1 ∧ v_1[1] = 1 else v_1[0] = 1 ∧ v_1[2] = 1
+Rule 6 (padding must be either "SAME" or "VALID")
+{padding : str} |= padding = "SAME" ∨ padding = "VALID"
 >>
-Rule 9 (in_channels must match between input and filter tensors)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 4) = shape(v_2, 3)
+Rule 7 (data_format must be either "NDHWC" or "NCDHW")
+{data_format : str} |= data_format = "NDHWC" ∨ data_format = "NCDHW"
 >>
-Rule 10 (input tensor must have 5 dimensions)
-{v_1 : tensor} |= ndim(v_1) = 5
+Rule 8 (dilations must be a list of integers with length 5)
+{dilations : list(int)} |= dilations.len = 5
 >>
-Rule 12 (input and filter tensors must have same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 9 (dilations[0] and dilations[4] must be 1)
+{dilations : list(int)} |= dilations[0] = 1 ∧ dilations[4] = 1
 >>
-Rule 13 (strides must have non-negative values)
-{v_1 : list(int)} |= ∀i ∈ [0, 4] : v_1[i] ≥ 0
+Rule 10 (in_channels of input and filter must match when data_format is NDHWC)
+{input : tensor, filter : tensor, data_format : str} |= if data_format = "NDHWC" then shape(input, 4) = shape(filter, 3)
 >>
-Rule 14 (dilations must have positive values)
-{v_1 : list(int)} |= ∀i ∈ [0, 4] : v_1[i] > 0
+Rule 11 (in_channels of input and filter must match when data_format is NCDHW)
+{input : tensor, filter : tensor, data_format : str} |= if data_format = "NCDHW" then shape(input, 1) = shape(filter, 3)
 >>
-Rule 15 (input shape must be positive)
-{v_1 : tensor} |=  ∀i ∈ [0, 4] : shape(v_1, i) > 0
+Rule 12 (input tensor must be of type half, bfloat16, float32, or float64)
+{input : tensor} |= dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8
 >>
-Rule 17 (filter depth must be positive)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 13 (filter tensor must be of type half, bfloat16, float32, or float64)
+{filter : tensor} |= dtype_(filter) = 6 ∨ dtype_(filter) = 7 ∨ dtype_(filter) = 8
 >>
-Rule 18 (filter height must be positive)
-{v_1 : tensor} |= shape(v_1, 1) > 0
+Rule 14 (shape of input tensor must have positive dimensions)
+{input : tensor} |= ∀i ∈ [0, ndim(input) - 1] : shape(input, i) > 0
 >>
-Rule 19 (filter width must be positive)
-{v_1 : tensor} |= shape(v_1, 2) > 0
+Rule 15 (shape of filter tensor must have positive dimensions)
+{filter : tensor} |= ∀i ∈ [0, ndim(filter) - 1] : shape(filter, i) > 0
 >>
-Rule 20 (strides length is greater than or equal to 5)
-{v_1 : list(int)} |= v_1.len ≥ 5
+Rule 16 (strides must be a list of positive integers)
+{strides : list(int)} |= ∀i ∈ [0, strides.len - 1] : strides[i] > 0
 >>
-Rule 22 (If data_format is NCDHW, then input shape's second dimension must be positive)
-{v_1 : tensor, v_2 : str} |= if v_2 = "NCDHW" then shape(v_1, 1) > 0
+Rule 17 (dilations must be a list of positive integers)
+{dilations : list(int)} |= ∀i ∈ [0, dilations.len - 1] : dilations[i] > 0
 >>
-Rule 23 (If data_format is NDHWC, then input shape's fifth dimension must be positive)
-{v_1 : tensor, v_2 : str} |= if v_2 = "NDHWC" then shape(v_1, 4) > 0
+Rule 18 (If data_format is NCDHW, then batch dimension of input is shape(input, 0))
+{input : tensor, data_format : str} |= if data_format = "NCDHW" then shape(input, 0) > 0
 >>
-Rule 25 (If data_format is NCDHW, then filter shape's fourth dimension must be positive)
-{v_1 : tensor, v_2 : str} |= if v_2 = "NCDHW" then shape(v_1, 4) > 0
+Rule 19 (If data_format is NDHWC, then batch dimension of input is shape(input, 0))
+{input : tensor, data_format : str} |= if data_format = "NDHWC" then shape(input, 0) > 0
 >>
-Rule 26 (If data_format is NDHWC, then filter shape's fourth dimension must be positive)
-{v_1 : tensor, v_2 : str} |= if v_2 = "NDHWC" then shape(v_1, 3) > 0
+Rule 20 (The length of strides list must be 5)
+{strides : list(int)} |= strides.len = 5
 >>
-Rule 29 (strides elements should be integers)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] = v_1[i]
+Rule 22 (If padding is VALID, input dimensions affect output dimensions differently than if padding is SAME)
+{padding : str, input : tensor, filter : tensor} |= if padding = "VALID" then shape(input,1) ≥ shape(filter,0) ∧ shape(input,2) ≥ shape(filter,1) ∧ shape(input,3) ≥ shape(filter,2)
 >>
-Rule 35 (data format can only be NCDHW if input has 5 dimensions)
-{v_1 : str, v_2 : tensor} |= if v_1 = "NCDHW" then ndim(v_2) = 5
+Rule 24 (If input and filter have the same type, it must be one of the allowed types)
+{input : tensor, filter : tensor} |= (dtype_(input) = dtype_(filter)) ∧ (dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8)
 >>
-Rule 36 (data format can only be NDHWC if input has 5 dimensions)
-{v_1 : str, v_2 : tensor} |= if v_1 = "NDHWC" then ndim(v_2) = 5
+Rule 30 (If padding is SAME, then shape of input tensor must be greater than or equal to shape of filter tensor.)
+{padding : str, input : tensor, filter : tensor} |= if padding = "SAME" then shape(input,1) ≥ shape(filter,0) ∧ shape(input,2) ≥ shape(filter,1) ∧ shape(input,3) ≥ shape(filter,2)
 >>
-Rule 37 (dilations[0] equals 1)
-{v_1 : list(int)} |= v_1[0] = 1
+Rule 31 (The filter's in_channels dimension should be positive)
+{filter : tensor} |= shape(filter, 3) > 0
 >>
-Rule 38 (If data_format is NCDHW, dilations[2] equals 1)
-{v_1 : list(int), v_2 : str} |= if v_2 = "NCDHW" then v_1[2] = 1
+Rule 32 (The input's in_channels dimension should be positive)
+{input : tensor} |= shape(input, 4) > 0
 >>
-Rule 39 (If data_format is NDHWC, dilations[1] equals 1)
-{v_1 : list(int), v_2 : str} |= if v_2 = "NDHWC" then v_1[1] = 1
+Rule 33 (if data_format is NCDHW, input channels must be positive)
+{input : tensor, data_format : str} |= if data_format = "NCDHW" then shape(input, 1) > 0
 >>
-Rule 40 (dilations[4] equals 1)
-{v_1 : list(int)} |= v_1[4] = 1
+Rule 34 (if data_format is NDHWC, filter out_channels must be positive)
+{filter : tensor, data_format : str} |= if data_format = "NDHWC" then shape(filter, 4) > 0
 >>
-Rule 41 (Shape of filter, dimension 3 (in_channels) must be greater than 0)
-{v_1 : tensor} |= shape(v_1, 3) > 0
+Rule 37 (strides[0] and strides[4] must be equal)
+{strides : list(int)} |= strides[0] = strides[4]
 >>
-Rule 42 (Shape of filter, dimension 4 (out_channels) must be greater than 0)
-{v_1 : tensor} |= shape(v_1, 4) > 0
+Rule 38 (dilations[0] and dilations[4] must be equal)
+{dilations : list(int)} |= dilations[0] = dilations[4]
 >>
-Rule 44 (Padding cannot be empty string)
-{v_1 : str} |= v_1 ≠ ""
+Rule 39 (Check if strides are valid based on input dimensions when padding is VALID)
+{input: tensor, filter: tensor, strides: list(int), padding: str} |= if padding = "VALID" then shape(input, 1) > (shape(filter, 0) -1) * strides[1]  ∧ shape(input, 2) > (shape(filter, 1) -1) * strides[2] ∧ shape(input, 3) > (shape(filter, 2) -1) * strides[3]
 >>
-Rule 45 (Shape of input, dimension 1 (in_depth) must be greater than 0 if data format is NDHWC)
-{v_1 : tensor, v_2 : str} |= if v_2 = "NDHWC" then shape(v_1, 1) > 0
+Rule 40 (Check if dilations are valid based on filter dimensions)
+{filter: tensor, dilations: list(int)} |= (shape(filter, 0) -1 )* (dilations[1]-1) >= 0 ∧  (shape(filter, 1) -1 )* (dilations[2]-1) >= 0 ∧ (shape(filter, 2) -1 )* (dilations[3]-1) >= 0
 >>
-Rule 46 (Shape of input, dimension 2 (in_height) must be greater than 0 if data format is NDHWC)
-{v_1 : tensor, v_2 : str} |= if v_2 = "NDHWC" then shape(v_1, 2) > 0
+Rule 41 (If data_format is NDHWC, in_depth dimension of input tensor should be positive)
+{input : tensor, data_format : str} |= if data_format = "NDHWC" then shape(input, 1) > 0
 >>
-Rule 49 (Shape of input, dimension 2 (in_depth) must be greater than 0 if data format is NCDHW)
-{v_1 : tensor, v_2 : str} |= if v_2 = "NCDHW" then shape(v_1, 2) > 0
+Rule 45 (Check strides[0] and strides[4] values)
+{strides: list(int)} |= strides[0] = 1 ∧ strides[4] = 1
 >>
-Rule 50 (Shape of input, dimension 3 (in_height) must be greater than 0 if data format is NCDHW)
-{v_1 : tensor, v_2 : str} |= if v_2 = "NCDHW" then shape(v_1, 3) > 0
+Rule 47 (If data_format is NCDHW, in_depth dimension of input tensor should be positive)
+{input : tensor, data_format : str} |= if data_format = "NCDHW" then shape(input, 2) > 0
 >>
-Rule 57 (If data_format is NCDHW, Shape of input, dimension 0 (batch) must be greater than 0)
-{v_1 : tensor, v_2 : str} |= if v_2 = "NCDHW" then shape(v_1, 0) > 0
+Rule 48 (Check filter dimensions)
+{filter: tensor} |= shape(filter, 0) > 0 ∧ shape(filter, 1) > 0 ∧ shape(filter, 2) > 0
 >>
-Rule 58 (If data_format is NDHWC, Shape of input, dimension 0 (batch) must be greater than 0)
-{v_1 : tensor, v_2 : str} |= if v_2 = "NDHWC" then shape(v_1, 0) > 0
+Rule 49 (Check input dimensions)
+{input: tensor} |= shape(input, 1) > 0 ∧ shape(input, 2) > 0 ∧ shape(input, 3) > 0
 >>
-Rule 63 (If data_format is NCDHW, the in_channels dimension of the input tensor must match in_channels of filter)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NCDHW" then shape(v_1, 1) = shape(v_2, 3)
+Rule 51 (Strides length should be equal to the input tensor's ndim)
+{strides : list(int), input : tensor} |= strides.len = ndim(input)
 >>
-Rule 64 (If data_format is NDHWC, the in_channels dimension of the input tensor must match in_channels of filter)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NDHWC" then shape(v_1, 4) = shape(v_2, 3)
+Rule 52 (dilations length should be equal to the input tensor's ndim)
+{dilations : list(int), input : tensor} |= dilations.len = ndim(input)
 >>
-Rule 65 (If padding is SAME, then filter_depth must be positive.)
-{v_1 : str, v_2 : tensor} |= if v_1 = "SAME" then shape(v_2, 0) > 0
+Rule 53 (If the data format is NDHWC, batch size and in_channels must be positive.)
+{input : tensor, data_format : str} |= if data_format = "NDHWC" then shape(input, 0) > 0 ∧ shape(input, 4) > 0
 >>
-Rule 66 (If padding is SAME, then filter_height must be positive.)
-{v_1 : str, v_2 : tensor} |= if v_1 = "SAME" then shape(v_2, 1) > 0
+Rule 54 (If the data format is NCDHW, batch size and in_channels must be positive.)
+{input : tensor, data_format : str} |= if data_format = "NCDHW" then shape(input, 0) > 0 ∧ shape(input, 1) > 0
 >>
-Rule 67 (If padding is SAME, then filter_width must be positive.)
-{v_1 : str, v_2 : tensor} |= if v_1 = "SAME" then shape(v_2, 2) > 0
+Rule 56 (Filter out_channels dimension should be positive.)
+{filter : tensor} |= shape(filter, 4) > 0
 >>
-Rule 68 (strides must be a list of length greater or equal than the number of dimensions of the input tensor)
-{v_1 : list(int), v_2: tensor} |= v_1.len ≥ ndim(v_2)
+Rule 57 (Shape of filter depth dimension should be positive)
+{filter: tensor} |= shape(filter, 0) > 0
 >>
-Rule 70 (If padding is VALID, no restrictions apply on the filter shape)
-{v_1 : str} |= if v_1 = "VALID" then true
+Rule 58 (Shape of filter height dimension should be positive)
+{filter: tensor} |= shape(filter, 1) > 0
 >>
-Rule 71 (If data_format is NCDHW, the filter height dimension should be greater than 0)
-{v_1: tensor, v_2: str} |= if v_2 = "NCDHW" then shape(v_1, 1) > 0
+Rule 59 (Shape of filter width dimension should be positive)
+{filter: tensor} |= shape(filter, 2) > 0
 >>
-Rule 72 (If data_format is NCDHW, the filter width dimension should be greater than 0)
-{v_1: tensor, v_2: str} |= if v_2 = "NCDHW" then shape(v_1, 2) > 0
+Rule 61 (Check dilations values)
+{dilations: list(int)} |= dilations[0] = 1 ∧ dilations[4] = 1
 >>
-Rule 73 (If padding is SAME, and data_format is NCDHW, the input in_channels dimension must be greater than 0)
-{v_1 : str, v_2 : tensor, v_3: str} |= if v_1 = "SAME" ∧ v_3 = "NCDHW" then shape(v_2, 1) > 0
+Rule 64 (When data_format is NDHWC, input height dimension of input tensor should be positive)
+{input : tensor, data_format : str} |= if data_format = "NDHWC" then shape(input, 2) > 0
 >>
-Rule 74 (If padding is SAME, and data_format is NDHWC, the input in_channels dimension must be greater than 0)
-{v_1 : str, v_2 : tensor, v_3: str} |= if v_1 = "SAME" ∧ v_3 = "NDHWC" then shape(v_2, 4) > 0
+Rule 65 (When data_format is NCDHW, input height dimension of input tensor should be positive)
+{input : tensor, data_format : str} |= if data_format = "NCDHW" then shape(input, 3) > 0
 >>
-Rule 81 (If padding is SAME, the data_format is NCDHW, the in_depth dimension should be greater than 0)
-{v_1 : str, v_2: tensor, v_3:str} |= if v_1="SAME" ∧ v_3 = "NCDHW" then shape(v_2, 2) > 0
+Rule 66 (When data_format is NDHWC, input width dimension of input tensor should be positive)
+{input : tensor, data_format : str} |= if data_format = "NDHWC" then shape(input, 3) > 0
 >>
-Rule 82 (If padding is SAME, the data_format is NDHWC, the in_depth dimension should be greater than 0)
-{v_1 : str, v_2: tensor, v_3:str} |= if v_1="SAME" ∧ v_3 = "NDHWC" then shape(v_2, 1) > 0
+Rule 67 (When data_format is NCDHW, input width dimension of input tensor should be positive)
+{input : tensor, data_format : str} |= if data_format = "NCDHW" then shape(input, 4) > 0
 >>
-Rule 83 (If padding is SAME, the data_format is NCDHW, the in_height dimension should be greater than 0)
-{v_1 : str, v_2: tensor, v_3:str} |= if v_1="SAME" ∧ v_3 = "NCDHW" then shape(v_2, 3) > 0
+Rule 68 (When using VALID padding, shape of the filters must not exceed the input shape for any spatial dimension.)
+{input: tensor, filter: tensor, padding: str} |= if padding = "VALID" then shape(input,1) ≥ shape(filter,0) ∧ shape(input,2) ≥ shape(filter,1) ∧ shape(input,3) ≥ shape(filter,2)
 >>
-Rule 84 (If padding is SAME, the data_format is NDHWC, the in_height dimension should be greater than 0)
-{v_1 : str, v_2: tensor, v_3:str} |= if v_1="SAME" ∧ v_3 = "NDHWC" then shape(v_2, 2) > 0
+Rule 72 (The first dilation must be one)
+{dilations : list(int)} |= dilations[0] = 1
 >>
-Rule 85 (If padding is SAME, the data_format is NCDHW, the in_width dimension should be greater than 0)
-{v_1 : str, v_2: tensor, v_3:str} |= if v_1="SAME" ∧ v_3 = "NCDHW" then shape(v_2, 4) > 0
+Rule 73 (The last dilation must be one)
+{dilations : list(int)} |= dilations[4] = 1
 >>
-Rule 86 (If padding is SAME, the data_format is NDHWC, the in_width dimension should be greater than 0)
-{v_1 : str, v_2: tensor, v_3:str} |= if v_1="SAME" ∧ v_3 = "NDHWC" then shape(v_2, 3) > 0
+Rule 74 (All dilation must be greater or equal to 1)
+{dilations : list(int)} |= ∀i ∈ [0, dilations.len - 1] : dilations[i] ≥ 1
 >>
-Rule 87 (If padding is VALID, the data_format is NCDHW, the input in_channels dimension must match in_channels of filter)
-{v_1 : str, v_2 : tensor, v_3 : tensor, v_4 : str} |= if v_1 = "VALID" ∧ v_4 = "NCDHW" then shape(v_2, 1) = shape(v_3, 3)
+Rule 75 (All strides must be greater or equal to 1)
+{strides : list(int)} |= ∀i ∈ [0, strides.len - 1] : strides[i] ≥ 1
 >>
-Rule 88 (If padding is VALID, the data_format is NDHWC, the input in_channels dimension must match in_channels of filter)
-{v_1 : str, v_2 : tensor, v_3 : tensor, v_4 : str} |= if v_1 = "VALID" ∧ v_4 = "NDHWC" then shape(v_2, 4) = shape(v_3, 3)
+Rule 81 (Strides must be non-negative)
+{strides : list(int)} |= ∀i ∈ [0, 4] : strides[i] ≥ 0
 >>
-Rule 91 (If padding is VALID, the data_format is NCDHW, the in_depth dimension of the input should be greater than 0)
-{v_1 : str, v_2 : tensor, v_3:str} |= if v_1="VALID" ∧ v_3 = "NCDHW" then shape(v_2, 2) > 0
+Rule 82 (Dilations must be non-negative)
+{dilations : list(int)} |= ∀i ∈ [0, 4] : dilations[i] ≥ 0
 >>
-Rule 92 (If padding is VALID, the data_format is NDHWC, the in_depth dimension of the input should be greater than 0)
-{v_1 : str, v_2 : tensor, v_3:str} |= if v_1="VALID" ∧ v_3 = "NDHWC" then shape(v_2, 1) > 0
+Rule 83 (The type of input and filter should be half, bfloat16, float32, or float64.)
+{input: tensor, filter: tensor} |= (dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8) ∧ (dtype_(filter) = 6 ∨ dtype_(filter) = 7 ∨ dtype_(filter) = 8)
+>>
+Rule 84 (If data format is NCDHW then the input shape should have a positive channel)
+{input: tensor, data_format: str} |= if data_format = "NCDHW" then shape(input,1) > 0
+>>
+Rule 85 (If data format is NDHWC then the input shape should have a positive channel)
+{input: tensor, data_format: str} |= if data_format = "NDHWC" then shape(input,4) > 0
+>>
+Rule 86 (When padding is SAME and data_format is NDHWC, input dimensions should be positive)
+{input: tensor, padding: str, data_format: str} |= if padding = "SAME" ∧ data_format = "NDHWC" then shape(input, 1) > 0 ∧ shape(input, 2) > 0 ∧ shape(input, 3) > 0
+>>
+Rule 87 (When padding is SAME and data_format is NCDHW, input dimensions should be positive)
+{input: tensor, padding: str, data_format: str} |= if padding = "SAME" ∧ data_format = "NCDHW" then shape(input, 2) > 0 ∧ shape(input, 3) > 0 ∧ shape(input, 4) > 0
+>>
+Rule 88 (When data_format is NDHWC, input and filter dtypes must match and be valid)
+{input: tensor, filter: tensor, data_format: str} |= if data_format = "NDHWC" then dtype_(input) = dtype_(filter) ∧ (dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8)
+>>
+Rule 89 (When data_format is NCDHW, input and filter dtypes must match and be valid)
+{input: tensor, filter: tensor, data_format: str} |= if data_format = "NCDHW" then dtype_(input) = dtype_(filter) ∧ (dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8)
+>>
+Rule 90 (If padding is VALID and any stride is 0, then it will cause a division by zero and it is forbidden)
+{strides: list(int), padding: str} |= if padding = "VALID" then ∀i ∈ [0, 4] : strides[i] ≠ 0
+>>
+Rule 91 (Shape of input depth dimension should be positive)
+{input: tensor} |= shape(input, 1) > 0
+>>
+Rule 92 (Shape of input height dimension should be positive)
+{input: tensor} |= shape(input, 2) > 0
+>>
+Rule 93 (Shape of input width dimension should be positive)
+{input: tensor} |= shape(input, 3) > 0
+>>
+Rule 94 (Data format string must be one of the allowed strings)
+{data_format: str} |= data_format = "NDHWC" ∨ data_format = "NCDHW"
+>>
+Rule 98 (If using VALID padding, check the relation between the input size, filter size and strides values)
+{input: tensor, filter: tensor, strides: list(int), padding: str} |= if padding = "VALID" then shape(input, 1) ≥ (shape(filter, 0) -1) * strides[1]  ∧ shape(input, 2) ≥ (shape(filter, 1) -1) * strides[2] ∧ shape(input, 3) ≥ (shape(filter, 2) -1) * strides[3]
+>>
+Rule 99 (The dtype of input must be one of the supported dtypes)
+{input: tensor} |= dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8
+>>
+Rule 100 (The dtype of filter must be one of the supported dtypes)
+{filter: tensor} |= dtype_(filter) = 6 ∨ dtype_(filter) = 7 ∨ dtype_(filter) = 8
+>>
+Rule 101 (Check if the first stride is equal to 1.)
+{strides : list(int)} |= strides[0] = 1
+>>
+Rule 102 (Check if the last stride is equal to 1.)
+{strides : list(int)} |= strides[4] = 1
+>>
+Rule 103 (If dilation is 1 then no cells are skipped)
+{dilations : list(int)} |= ∀i ∈ [0, 4] : dilations[i] ≥ 1
+>>
+Rule 106 (Shape of filter out_channels dimension should be positive)
+{filter: tensor} |= shape(filter, 4) > 0
+>>
+Rule 107 (Shape of input batch dimension should be positive)
+{input: tensor} |= shape(input, 0) > 0
+>>
+Rule 108 (Check if padding parameter is allowed string)
+{padding: str} |= padding = "SAME" ∨ padding = "VALID"
+>>
+Rule 109 (Strides values must be greater than 0)
+{strides : list(int)} |= ∀i ∈ [0, 4] : strides[i] > 0
+>>
+Rule 111 (The channel dimension of the input tensor must be positive if data_format is NCDHW)
+{input: tensor, data_format: str} |= if data_format = "NCDHW" then shape(input, 1) > 0
+>>
+Rule 112 (The in_channels of input must equal in_channels of filter given NDHWC dataformat)
+{input: tensor, filter: tensor, data_format: str} |= if data_format = "NDHWC" then shape(input, 4) = shape(filter, 3)
+>>
+Rule 113 (The in_channels of input must equal in_channels of filter given NCDHW dataformat)
+{input: tensor, filter: tensor, data_format: str} |= if data_format = "NCDHW" then shape(input, 1) = shape(filter, 3)
+>>
+Rule 114 (The dilation value cannot be zero in any of the spacial dimensions.)
+{dilations : list(int)} |= ∀i ∈ [1, 3] : dilations[i] > 0
+>>
+Rule 115 (if input or filter has the bfloat16 datatype, then bfloat16 has to be enabled first)
+{input : tensor, filter : tensor} |= if dtype_(input) = 7 ∨ dtype_(filter) = 7 then true
+>>
+Rule 119 (If the data format is NCDHW, the in_depth dimension of the input tensor should be positive)
+{input: tensor, data_format : str} |= if data_format = "NCDHW" then shape(input, 2) > 0
+>>
+Rule 120 (If data_format is NDHWC and padding is SAME, the filter dimensions must be less than or equal to the respective input dimensions.)
+{input: tensor, filter: tensor, padding: str, data_format : str} |= if data_format = "NDHWC" ∧ padding = "SAME" then shape(filter, 0) ≤ shape(input, 1) ∧ shape(filter, 1) ≤ shape(input, 2) ∧ shape(filter, 2) ≤ shape(input, 3)
+>>
+Rule 121 (If data_format is NCDHW and padding is SAME, the filter dimensions must be less than or equal to the respective input dimensions.)
+{input: tensor, filter: tensor, padding: str, data_format : str} |= if data_format = "NCDHW" ∧ padding = "SAME" then shape(filter, 0) ≤ shape(input, 2) ∧ shape(filter, 1) ≤ shape(input, 3) ∧ shape(filter, 2) ≤ shape(input, 4)
+>>
+Rule 122 (If data_format is NDHWC and padding is VALID, shape[1], shape[2] and shape[3] of input must be greater than or equal to shape[0], shape[1] and shape[2] of filter respectively.)
+{input: tensor, filter: tensor, padding: str, data_format : str} |= if data_format = "NDHWC" ∧ padding = "VALID" then shape(input, 1) ≥ shape(filter, 0) ∧ shape(input, 2) ≥ shape(filter, 1) ∧ shape(input, 3) ≥ shape(filter, 2)
+>>
+Rule 123 (If data_format is NCDHW and padding is VALID, shape[2], shape[3] and shape[4] of input must be greater than or equal to shape[0], shape[1] and shape[2] of filter respectively.)
+{input: tensor, filter: tensor, padding: str, data_format : str} |= if data_format = "NCDHW" ∧ padding = "VALID" then shape(input, 2) ≥ shape(filter, 0) ∧ shape(input, 3) ≥ shape(filter, 1) ∧ shape(input, 4) ≥ shape(filter, 2)
+>>
+Rule 124 (If the input dtype is half or bfloat16, then the filter dtype must also be the same)
+{input : tensor, filter : tensor} |= if dtype_(input) = 6 ∨ dtype_(input) = 7 then dtype_(input) = dtype_(filter)
+>>
+Rule 125 (If input tensor has dimension equals to 5, then the last dimension must be positive)
+{input: tensor} |= if ndim(input) = 5 then shape(input, 4) > 0
+>>
+Rule 126 (The shape of the filter tensor must be positive)
+{filter : tensor} |= ∀i ∈ [0, 4] : shape(filter, i) > 0
+>>
+Rule 131 (Filter in channels must have positive value)
+{filter : tensor} |= shape(filter,3) > 0
+>>
+Rule 135 (Shape of input tensor must be positive)
+{input : tensor} |= ∀i ∈ [0, 4] : shape(input, i) > 0
+>>
+Rule 141 (Shape of input depth dimension must be greater than 0)
+{input : tensor} |= shape(input, 1) > 0
+>>
+Rule 142 (Shape of input height dimension must be greater than 0)
+{input : tensor} |= shape(input, 2) > 0
+>>
+Rule 143 (Shape of input width dimension must be greater than 0)
+{input : tensor} |= shape(input, 3) > 0
+>>
+Rule 149 (The filter depth dimension should be positive)
+{filter : tensor} |= shape(filter, 0) > 0
+>>
+Rule 150 (The filter height dimension should be positive)
+{filter : tensor} |= shape(filter, 1) > 0
+>>
+Rule 151 (The filter width dimension should be positive)
+{filter : tensor} |= shape(filter, 2) > 0
+>>
+Rule 152 (shape of input tensor should be positive)
+{input: tensor} |= shape(input, 0) > 0 ∧ shape(input, 1) > 0 ∧ shape(input, 2) > 0 ∧ shape(input, 3) > 0 ∧ shape(input, 4) > 0
+>>
+Rule 155 (Padding must be from the allowed list of strings)
+{padding: str} |= padding = "VALID" ∨ padding = "SAME"
+>>
+Rule 157 (Filter in channels must be positive)
+{filter: tensor} |= shape(filter, 3) > 0
+>>
+Rule 159 (If dataformat is NCDHW, filter shape[4] must be positive)
+{filter : tensor, data_format : str} |= if data_format = "NCDHW" then shape(filter, 4) > 0
+>>
+Rule 162 (If the data format is NDHWC, the input channel dimension must be greater than zero)
+{input : tensor, data_format : str} |= if data_format = "NDHWC" then shape(input, 4) > 0
+>>
+Rule 169 (If padding is SAME, the input depth, height, width dimensions must be positive.)
+{input: tensor, padding: str} |= if padding = "SAME" then shape(input, 1) > 0 ∧ shape(input, 2) > 0 ∧ shape(input, 3) > 0
+>>
+Rule 170 (The filter depth, height and width dimensions must be positive.)
+{filter : tensor} |= shape(filter, 0) > 0 ∧ shape(filter, 1) > 0 ∧ shape(filter, 2) > 0
+>>
+Rule 171 (If the data_format is NCDHW, and padding is VALID, the in_depth dimension must be greater than or equal to filter depth)
+{input: tensor, filter: tensor, data_format: str, padding: str} |= if data_format = "NCDHW" ∧ padding = "VALID" then shape(input, 2) ≥ shape(filter, 0)
+>>
+Rule 172 (If the data_format is NDHWC, and padding is VALID, the in_depth dimension must be greater than or equal to filter depth)
+{input: tensor, filter: tensor, data_format: str, padding: str} |= if data_format = "NDHWC" ∧ padding = "VALID" then shape(input, 1) ≥ shape(filter, 0)
+>>
+Rule 174 (Input and filter must have the same dtype and the dtype must be supported)
+{input: tensor, filter: tensor} |= dtype_(input) = dtype_(filter) ∧ (dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8)
+>>
+Rule 176 (If the data_format is NCDHW, and padding is VALID, the in_height dimension must be greater than or equal to filter height)
+{input: tensor, filter: tensor, data_format: str, padding: str} |= if data_format = "NCDHW" ∧ padding = "VALID" then shape(input, 3) ≥ shape(filter, 1)
+>>
+Rule 177 (If the data_format is NDHWC, and padding is VALID, the in_height dimension must be greater than or equal to filter height)
+{input: tensor, filter: tensor, data_format: str, padding: str} |= if data_format = "NDHWC" ∧ padding = "VALID" then shape(input, 2) ≥ shape(filter, 1)
+>>
+Rule 178 (If the data_format is NCDHW, and padding is VALID, the in_width dimension must be greater than or equal to filter width)
+{input: tensor, filter: tensor, data_format: str, padding: str} |= if data_format = "NCDHW" ∧ padding = "VALID" then shape(input, 4) ≥ shape(filter, 2)
+>>
+Rule 179 (The stride value must not be zero)
+{strides : list(int)} |= ∀i ∈ [0, 4] : strides[i] ≠ 0
+>>
+Rule 180 (Dilation value cannot be 0)
+{dilations : list(int)} |= ∀i ∈ [0, 4] : dilations[i] ≠ 0

@@ -1,129 +1,132 @@
 >>
-Rule 1 (target_height and target_width must be positive integers)
-{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Rule 1 (target_height must be greater than 0 to avoid ValueError)
+{v_2 : int} |= v_2 > 0
 >>
-Rule 2 (image must be a tensor with at least 3 dimensions)
-{v_1 : tensor} |= ndim(v_1) ≥ 3
+Rule 2 (target_width must be greater than 0 to avoid ValueError)
+{v_3 : int} |= v_3 > 0
 >>
-Rule 3 (height dimension of image must be greater than 0)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 3) > 0
->>
-Rule 4 (width dimension of image must be greater than 0)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 2) > 0
->>
-Rule 5 (number of channels must be greater than 0)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0
->>
-Rule 6 (image can be 3D or 4D)
+Rule 3 (image must have either 3 or 4 dimensions to avoid ValueError)
 {v_1 : tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
 >>
-Rule 7 (target_height should be less than or equal to maximum integer.)
-{v_1 : int} |= v_1 ≤ 2147483647
+Rule 4 (inner 3 dims of image.shape must be > 0 to avoid ValueError, covering height dimension)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 3) > 0
 >>
-Rule 9 (target_height should be less than or equal to height of image if image is 3D.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 then v_2 ≤ shape(v_1, 0)
+Rule 5 (inner 3 dims of image.shape must be > 0 to avoid ValueError, covering width dimension)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 2) > 0
 >>
-Rule 10 (target_width should be less than or equal to width of image if image is 3D.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 then v_2 ≤ shape(v_1, 1)
+Rule 6 (inner 3 dims of image.shape must be > 0 to avoid ValueError, covering channels dimension)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0
 >>
-Rule 11 (target_height should be less than or equal to height of image if image is 4D.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then v_2 ≤ shape(v_1, 1)
+Rule 8 (Avoid overflow during padding calculation, width * height should be less than MAX_INT - A large number. This rule only uses the image tensor.)
+{v_1 : tensor} |= shape(v_1, ndim(v_1)-3) * shape(v_1, ndim(v_1)-2) < 1073741823
 >>
-Rule 12 (target_width should be less than or equal to width of image if image is 4D.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then v_2 ≤ shape(v_1, 2)
+Rule 9 (Avoid overflow during padding calculation, also considering the target height and width)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (shape(v_1, ndim(v_1)-3) + v_2) * (shape(v_1, ndim(v_1)-2) + v_3) < 1073741823
 >>
-Rule 13 (ensure target_height and target_width have a reasonable upper bound relative to image dimensions)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 3 then v_2 ≤ shape(v_1, 0) * 2 ∧ v_3 ≤ shape(v_1, 1) * 2 else if ndim(v_1) = 4 then v_2 ≤ shape(v_1, 1) * 2 ∧ v_3 ≤ shape(v_1, 2) * 2 else false
+Rule 10 (Avoid potential resource exhaustion by limiting the target height and width relative to the image dimensions. The constant factor is tuned to fit within a reasonable memory constraint)
+{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 ≤ shape(v_1, ndim(v_1) - 3) * 4 ∧ v_3 ≤ shape(v_1, ndim(v_1) - 2) * 4
 >>
-Rule 14 (If image is 4D, batch size should be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 0) > 0
+Rule 11 (Considering dtype and max value to prevent overflow, restricting to int32)
+{v_1 : tensor} |= dtype_(v_1) ≤ 4
 >>
-Rule 15 (If image is 4D, number of channels should be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 3) > 0 else if ndim(v_1) = 3 then shape(v_1, 2) > 0 else false
+Rule 12 (Target height and width should not be excessively larger than the original image height and width.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 ≤ shape(v_1, ndim(v_1) - 3) * 10 ∧ v_3 ≤ shape(v_1, ndim(v_1) - 2) * 10
 >>
-Rule 16 (target_height and target_width sum should be smaller than maximum integer)
-{v_1 : int, v_2 : int} |= v_1 + v_2 < 2147483647
+Rule 13 (Check that the image dimensions are reasonable to prevent memory allocation errors)
+{v_1 : tensor} |= shape(v_1, ndim(v_1)-3) * shape(v_1, ndim(v_1)-2) * shape(v_1, ndim(v_1)-1) < 200000000
 >>
-Rule 17 (The product of target_height and target_width is reasonable)
-{v_1 : int, v_2 : int} |= v_1 * v_2 < 1000000000
+Rule 14 (Further restricting the product of target height and width to prevent OOM errors)
+{v_2 : int, v_3 : int} |= v_2 * v_3 < 5000000
 >>
-Rule 18 (The image should not be a scalar)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 15 (Combine the restrictions of image size, target size, and dtype to prevent resource exhaustion during padding.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= dtype_(v_1) ≤ 5 ∧ shape(v_1, ndim(v_1)-3) * shape(v_1, ndim(v_1)-2) * shape(v_1, ndim(v_1)-1) < 100000000 ∧ v_2 * v_3 < 2500000
 >>
-Rule 21 (If the height of the image is less than target_height, the width of the image should be less than the target_width)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if (ndim(v_1) = 3 ∧ shape(v_1, 0) < v_2) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 1) < v_2) then (ndim(v_1) = 3 ∧ shape(v_1, 1) < v_3) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 2) < v_3)
+Rule 16 (Target height and width together should be smaller than a max value to avoid OOM)
+{v_2 : int, v_3 : int} |= v_2 + v_3 < 10000
 >>
-Rule 23 (Number of channels should be limited)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 2) < 1024 else if ndim(v_1) = 4 then shape(v_1, 3) < 1024
+Rule 17 (Further restricting the size to avoid overflow for the target size and original size)
+{v_1 : tensor, v_2 : int, v_3 : int} |= shape(v_1, ndim(v_1)-3) + v_2 < 5000 ∧ shape(v_1, ndim(v_1)-2) + v_3 < 5000
 >>
-Rule 24 (target_height must be an integer greater than or equal to zero)
-{v_1 : int} |= v_1 ≥ 0
+Rule 18 (Image size times channels must be less than a value)
+{v_1 : tensor} |= shape(v_1, ndim(v_1)-3) * shape(v_1, ndim(v_1)-2) * shape(v_1, ndim(v_1)-1) < 5000000
 >>
-Rule 26 (If the height of the image is less than target_height, the width of the image should be less than or equal to the target_width)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if (ndim(v_1) = 3 ∧ shape(v_1, 0) < v_2) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 1) < v_2) then (ndim(v_1) = 3 ∧ shape(v_1, 1) ≤ v_3) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 2) ≤ v_3)
+Rule 19 (Avoid very large channel sizes that may cause memory issues. Enforce a max on number of channels)
+{v_1 : tensor} |= shape(v_1, ndim(v_1)-1) < 2048
 >>
-Rule 27 (If the image is 3D, ensure that the target height and target width do not exceed twice the size of original height and width)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 3 then v_2 ≤ 2 * shape(v_1, 0) ∧ v_3 ≤ 2 * shape(v_1, 1)
+Rule 21 (Combining image dimensions to control total memory size. This version only uses the image, to avoid the previous error.)
+{v_1: tensor} |= shape(v_1, ndim(v_1) - 3) * shape(v_1, ndim(v_1) - 2) * shape(v_1, ndim(v_1) - 1) * (if ndim(v_1) = 4 then shape(v_1,0) else 1) < 200000000
 >>
-Rule 28 (If the image is 4D, ensure that the target height and target width do not exceed twice the size of the original height and width)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 4 then v_2 ≤ 2 * shape(v_1, 1) ∧ v_3 ≤ 2 * shape(v_1, 2)
+Rule 22 (Checking the combined size of input image and target sizes)
+{v_1: tensor, v_2: int, v_3: int} |= (shape(v_1, ndim(v_1) - 3) + v_2) * (shape(v_1, ndim(v_1) - 2) + v_3) < 1000000
 >>
-Rule 30 (If the image is 3D, the sum of target height and target width must be greater than zero)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 3 then v_2 + v_3 > 0
+Rule 23 (Checking the combined size of input image and target sizes while limiting the image batch size)
+{v_1: tensor, v_2: int, v_3: int} |= (shape(v_1, ndim(v_1) - 3) + v_2) * (shape(v_1, ndim(v_1) - 2) + v_3) < 1000000 ∧ (if ndim(v_1) = 4 then shape(v_1,0) else 1) <= 32
 >>
-Rule 31 (If the image is 4D, the sum of target height and target width must be greater than zero)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 4 then v_2 + v_3 > 0
+Rule 24 (Avoiding multiplication overflow during pad calculation)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (shape(v_1, ndim(v_1) - 3) < 1000 ∧ v_2 < 1000) ∧ (shape(v_1, ndim(v_1) - 2) < 1000 ∧ v_3 < 1000)
 >>
-Rule 32 (If the image is 3D and the target height is greater than the original height, the output height is equal to target height)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 ∧ v_2 > shape(v_1, 0) then true
+Rule 25 (Restricting image dimensions and channels to fit in a limited memory budget)
+{v_1 : tensor} |= shape(v_1, ndim(v_1)-3) * shape(v_1, ndim(v_1)-2) * shape(v_1, ndim(v_1)-1)  < 15000000
 >>
-Rule 33 (If the image is 4D and the target height is greater than the original height, the output height is equal to target height)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 ∧ v_2 > shape(v_1, 1) then true
+Rule 26 (Check for potential integer overflow in the shape)
+{v_1 : tensor} |= shape(v_1, ndim(v_1)-3) < 65535 ∧ shape(v_1, ndim(v_1)-2) < 65535
 >>
-Rule 34 (Target height and width should not both be zero)
-{v_1 : int, v_2 : int} |= (v_1 = 0 ∧ v_2 = 0) = false
+Rule 28 (Limiting the target sizes to prevent excessive padding)
+{v_2 : int, v_3 : int} |= v_2 < 2048 ∧ v_3 < 2048
 >>
-Rule 39 (Target height and width must be non-negative)
-{v_1 : int, v_2 : int} |= v_1 ≥ 0 ∧ v_2 ≥ 0
+Rule 29 (Limiting the maximum of target_height and target_width to a reasonable range to avoid resource exhaustion.)
+{v_2 : int, v_3 : int} |= max(v_2, v_3) < 2048
 >>
-Rule 45 (If the image is 3D, the number of channels must be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 2) > 0
+Rule 30 (Limiting the maximum of target_height and target_width to a smaller value to further reduce resource exhaustion.)
+{v_2 : int, v_3 : int} |= max(v_2, v_3) < 1024
 >>
-Rule 46 (If the image is 4D, the number of channels must be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 3) > 0
+Rule 31 (Restricting the minimum of target_height and target_width, and original height/width to avoid extremely small sizes that might also cause issues.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= min(v_2, v_3) > 0 ∧ shape(v_1, ndim(v_1)-3) > 0 ∧ shape(v_1, ndim(v_1)-2) > 0
 >>
-Rule 47 (If the image is 3D and the target height is less than the original height then cropping will occur)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 ∧ v_2 < shape(v_1, 0) then true
+Rule 32 (target height and width cannot be negative)
+{v_2 : int, v_3 : int} |= v_2 ≥ 0 ∧ v_3 ≥ 0
 >>
-Rule 48 (If the image is 4D and the target height is less than the original height, then cropping will occur)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 ∧ v_2 < shape(v_1, 1) then true
+Rule 34 (Either target height or target width has to be positive)
+{v_2 : int, v_3 : int} |= v_2 > 0 ∨ v_3 > 0
 >>
-Rule 49 (If the image is 3D, the sum of height and width should be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) + shape(v_1, 1) > 0
+Rule 35 (If target height is 0, then target width should be less than or equal to original width, or vice versa to avoid an error)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 = 0 then v_3 ≤ shape(v_1, ndim(v_1) - 2) else if v_3 = 0 then v_2 ≤ shape(v_1, ndim(v_1) - 3)
 >>
-Rule 50 (If the image is 4D, the sum of height and width should be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 1) + shape(v_1, 2) > 0
+Rule 36 (target height cannot be greater than max int divided by target width)
+{v_2 : int, v_3 : int} |= v_2 < 2147483647 / v_3
 >>
-Rule 51 (If the image is 3D, the height of the image should be smaller than maximum integer)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) < 2147483647
+Rule 37 (combined size limit considering a safety factor to prevent OOM)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (shape(v_1, ndim(v_1) - 3) + v_2) * (shape(v_1, ndim(v_1) - 2) + v_3) * shape(v_1, ndim(v_1) - 1)  < 10000000
 >>
-Rule 52 (If the image is 4D, the height of the image should be smaller than maximum integer)
-{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 1) < 2147483647
+Rule 38 (Restricting target_height and target_width to be less than or equal to original height/width to avoid excessive memory use if the original image is small)
+{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 ≤ shape(v_1, ndim(v_1) - 3) ∧ v_3 ≤ shape(v_1, ndim(v_1) - 2)
 >>
-Rule 53 (If the image is 3D, the width of the image should be smaller than maximum integer)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 1) < 2147483647
+Rule 39 (If original height or width is 0 then the corresponding target height or width must also be 0 to prevent errors)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if shape(v_1, ndim(v_1) - 3) = 0 then v_2 = 0 else if shape(v_1, ndim(v_1) - 2) = 0 then v_3 = 0
 >>
-Rule 55 (If the image is 4D, the width of the image should be smaller than maximum integer)
-{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 2) < 2147483647
+Rule 40 (Height and width restrictions to prevent overflow in pad calculation)
+{v_1 : tensor, v_2 : int, v_3 : int} |= shape(v_1, ndim(v_1) - 3) + v_2 < 16384 ∧ shape(v_1, ndim(v_1) - 2) + v_3 < 16384
 >>
-Rule 56 (The target height should not be greater than maximum integer.)
-{v_1 : int} |= v_1 < 2147483647
+Rule 42 (Checking dimension and channels to limit memory and compute - specific case for 3D tensors using just the tensor.)
+{v_1: tensor} |= ndim(v_1) = 3 ∧ shape(v_1, 0) * shape(v_1, 1) < 500000 ∧ shape(v_1, 2) < 1024
 >>
-Rule 58 (If the image is 3D, height + width + channel counts should be reasonable)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) + shape(v_1, 1) + shape(v_1, 2) < 5000
+Rule 43 (Checking dimension and channels to limit memory and compute - specific case for 4D tensors)
+{v_1: tensor} |= ndim(v_1) = 4 ∧ shape(v_1, 1) * shape(v_1, 2) < 500000 ∧ shape(v_1, 3) < 1024
 >>
-Rule 60 (The sum of target height and target width must be non-negative)
-{v_1 : int, v_2 : int} |= v_1 + v_2 ≥ 0
+Rule 44 (Checking dimension and channels to limit memory and compute - specific case for 4D tensors - this one excludes target size limitations)
+{v_1: tensor} |= ndim(v_1) = 4 ∧ shape(v_1, 1) * shape(v_1, 2) *shape(v_1, 0) < 500000 ∧ shape(v_1, 3) < 1024
 >>
-Rule 61 (The difference between target height and target width must be smaller than maximum integer)
-{v_1 : int, v_2 : int} |= v_1 - v_2 < 2147483647
+Rule 45 (Checking dimension and channels to limit memory and compute - specific case for 4D tensors using tensor, and limit batch size separately to avoid it exploding if the other parameters are high.)
+{v_1: tensor} |= ndim(v_1) = 4 ∧ shape(v_1, 1) * shape(v_1, 2) < 500000 ∧ shape(v_1, 3) < 1024 ∧ shape(v_1, 0) < 64
+>>
+Rule 46 (Checking dimension and channels to limit memory and compute for all tensor shapes- channels less than 1024)
+{v_1: tensor} |= shape(v_1, ndim(v_1)-1) < 1024
+>>
+Rule 47 (For preventing overflow in memory calculation, the image dimensions multiplied by number of channels should be reasonably bounded.)
+{v_1 : tensor} |= shape(v_1, ndim(v_1)-3) * shape(v_1, ndim(v_1)-2) * shape(v_1, ndim(v_1)-1) < 15000000
+>>
+Rule 48 (For Preventing overflow during padding, limit image dimensions and the combined target dimension)
+{v_1 : tensor, v_2 : int, v_3 : int} |= shape(v_1, ndim(v_1) - 3) + v_2 < 4096 ∧ shape(v_1, ndim(v_1) - 2) + v_3 < 4096 ∧ shape(v_1, ndim(v_1) - 1) < 1024
+>>
+Rule 49 (Limiting height, width, and channels of the input image to reasonable values.)
+{v_1 : tensor} |= shape(v_1, ndim(v_1)-3) < 2048 ∧ shape(v_1, ndim(v_1)-2) < 2048 ∧ shape(v_1, ndim(v_1)-1) < 512

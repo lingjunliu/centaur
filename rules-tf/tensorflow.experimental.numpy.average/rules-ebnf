@@ -1,105 +1,171 @@
 >>
-Rule 1 (The weight tensor must have the same number of dimensions as the input tensor, or be a scalar)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∨ ndim(v_2) = 0
+Rule 1 (Axis must be an integer)
+{v_1 : int} |= v_1 ≥ -100 ∧ v_1 ≤ 100
 >>
-Rule 3 (If weights are provided, their shape must match the shape of the array along the specified axis)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_1, v_3) = shape(v_2, v_3) ∨ ndim(v_2) = 0
+Rule 2 (If weights are provided, they must be a tensor)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 4 (If weights are provided and are not a scalar, they must have the same dtype as the input array)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) ≠ 0 then dtype_(v_1) = dtype_(v_2)
+Rule 3 (If weights are provided, their shape along the axis must match the input tensor)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= shape(v_1, v_2) = shape(v_3, v_2)
 >>
-Rule 5 (Axis must be an integer.)
-{v_1 : int ⊎ float} |= v_1 % 1 = 0
+Rule 4 (Axis must be within the valid range for the input tensor's dimensions)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 ∧ v_2 < ndim(v_1)
 >>
-Rule 6 (The weight tensor cannot have negative values.)
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 5 (Weights tensor must have the same shape as the input tensor, or be 1D with length matching axis)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, v_3))
 >>
-Rule 7 (The input tensor must have at least one element to calculate the average.)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 8 (If weights are provided, they should have compatible dimensions with input tensor along the axis.)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= (ndim(v_3) = 1 ∧ shape(v_3, 0) = shape(v_1, v_2)) ∨ (ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : if i = v_2 then true else shape(v_1, i) = shape(v_3, i))
 >>
-Rule 8 (If axis is none then weights also should be none.)
-{v_1 : str, v_2 : tensor} |= if v_1 = "none" then ndim(v_2) = 0
+Rule 10 (If weights are provided, the shapes must align for averaging)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (ndim(v_1) = ndim(v_2)) ∨ (shape(v_2,0) = shape(v_1, v_3))
 >>
-Rule 9 (Dtype parameter should be within the valid range)
-{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 12
+Rule 11 (Axis must be an integer within reasonable bounds)
+{v_1 : tensor, v_2 : int} |= v_2 > -1 * ndim(v_1) ∧ v_2 < ndim(v_1)
 >>
-Rule 11 (If axis is specified, it should be a valid axis for the input tensor)
+Rule 13 (Returned must be a boolean value - simplified)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 15 (Weights must be a tensor if provided)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1
+>>
+Rule 17 (Weights and input tensor must have compatible data types)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 19 (If axis is provided, it must be less than the number of dimensions of the tensor)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
+>>
+Rule 20 (If weights are provided, dimensions must be appropriate for reduction)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= ndim(v_2) = 0 ∨ shape(v_1, v_3) = shape(v_2, 0)
+>>
+Rule 21 (Axis must be an integer within reasonable bounds)
 {v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 19 (Input and weights must have compatible dtypes for arithmetic operations.)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ ndim(v_2) = 0)
+Rule 27 (Weights and input tensor must have compatible data types if weights are provided)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 20 (If axis is None, weights must also be None, or a scalar)
-{v_1 : str, v_2 : tensor} |= if v_1 = "none" then (ndim(v_2) = 0 ∨ v_2 = "none")
+Rule 29 (If weights are provided, they must be broadcastable to the input tensor)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 0 ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 21 (If weights are not None, they must have a compatible shape with the input tensor based on the axis.)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_2 ≠ "none" then (shape(v_1, v_3) = shape(v_2, 0) ∨ ndim(v_2) = 0)
+Rule 31 (If weights are provided, and axis is provided, then weights must be a 1D tensor with size equal to the dimension of the input along axis)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_2) > 0 ∧ v_3 ≥ 0 ∧ v_3 < ndim(v_1) then ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, v_3)
 >>
-Rule 22 (If the result dtype is specified, it must be a floating-point or complex type)
-{v_1 : dtype} |= if v_1 ≠ 12 then (v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10)
+Rule 33 (If weights are provided, and axis is not provided then weights must be broadcastable to input)
+{v_1 : tensor, v_2 : tensor, v_3: int} |= if ndim(v_2) > 0 ∧ v_3 < 0 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 23 (If the weights are provided, the input array must have the same size as the weights along the given axis)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_2) > 0 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, v_3) = shape(v_2, i))
+Rule 35 (If weights are provided, and axis is provided, then weights must be a 1D tensor with size equal to the dimension of the input along axis, OR it can be a scalar)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, v_3)) ∨ ndim(v_2) = 0
 >>
-Rule 24 (If weights is not None, its dtype must be numerical)
-{v_1 : tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 38 (Axis must be an integer and less than max size)
+{v_1 : int} |= v_1 < 200
 >>
-Rule 31 (If weights is not None and the input tensor is integer, then the weight should also be integer)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≤ 5 ∧ ndim(v_2) > 0 then dtype_(v_2) ≤ 5
+Rule 39 (If weights are provided, and axis is provided, then weights must be a 1D tensor with size equal to the dimension of the input along axis, OR it can be a scalar, or weights must have same dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, v_3)) ∨ ndim(v_2) = 0 ∨ dtype_(v_1) = dtype_(v_2)
 >>
-Rule 32 (If the result dtype is specified, it should be different from the input dtype)
-{v_1 : dtype, v_2 : tensor} |= if v_1 ≠ 12 then v_1 ≠ dtype_(v_2)
+Rule 41 (If weights are provided, then shape must be valid)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 0 ∨ (ndim(v_1) = ndim(v_2))
 >>
-Rule 33 (If weights are provided and have more than 0 dimensions, their size must match the input array.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 43 (If weights are provided, and axis is provided, then weights must be a 1D tensor with size equal to the dimension of the input along axis, OR it can be a scalar, or weights must have same dtype, weights ndim should be valid)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, v_3)) ∨ ndim(v_2) = 0 ∨ dtype_(v_1) = dtype_(v_2) ∨ ndim(v_2) ≥ 0
 >>
-Rule 38 (If weights is not None and the input tensor is integer, then the weight should also be integer or float)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≤ 5 ∧ ndim(v_2) > 0 then (dtype_(v_2) ≤ 5 ∨ dtype_(v_2) ≥ 6 ∧ dtype_(v_2) <= 8)
+Rule 45 (If weights are provided, then shape must be valid and dimensions must allow broadcast)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 0 ∨ (ndim(v_1) = ndim(v_2)) ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, 0))
 >>
-Rule 39 (If the input array has a complex dtype then the output dtype must also be a complex dtype.)
-{v_1: tensor, v_2: dtype} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_2 = 9 ∨ v_2 = 10
+Rule 47 (If weights are provided, and axis is provided, then weights must be a 1D tensor with size equal to the dimension of the input along axis, OR it can be a scalar, weights must have valid dimensions)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, v_3)) ∨ ndim(v_2) = 0 ∨ ndim(v_2) > 0
 >>
-Rule 40 (Weights cannot be boolean.)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 49 (If weights are provided, then shape must be valid)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 0 ∨ (ndim(v_1) = ndim(v_2)) ∨ (ndim(v_2) = 1)
 >>
-Rule 43 (If the result dtype is specified and the input is integer then output should be integer or float)
-{v_1 : dtype, v_2: tensor} |= if v_1 ≠ 12 ∧ dtype_(v_2) <= 5 then (v_1 <=5 ∨ (v_1 >= 6 ∧ v_1 <= 8))
+Rule 51 (If weights are provided, and axis is provided, then weights must be a 1D tensor with size equal to the dimension of the input along axis, OR it can be a scalar and must be same or higher type)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, v_3)) ∨ ndim(v_2) = 0 ∨ dtype_(v_1) ≤ dtype_(v_2)
 >>
-Rule 44 (If the weights are provided, the input array's relevant shape must be equal to one of weight's shape)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_2) > 0 then (∃i ∈ [0, ndim(v_2) - 1] : shape(v_1, v_3) = shape(v_2, i))
+Rule 53 (If weights are provided, then shape must be valid and dimensions must allow broadcast. It cannot be 0.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 0 ∨ (ndim(v_1) = ndim(v_2)) ∨ (ndim(v_2) = 1) ∨ ndim(v_2) > 0
 >>
-Rule 45 (If axis is not None, it should be an integer)
-{v_1 : str, v_2 : int} |= if v_1 ≠ "none" then v_2 % 1 = 0
+Rule 54 (Axis must be an integer and a small number)
+{v_1 : int} |= v_1 > -100 ∧ v_1 < 100
 >>
-Rule 46 (If weights are provided, their dimensions should be less or equal to the number of axes)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ndim(v_2) ≤ ndim(v_1)
+Rule 55 (If weights are provided, and axis is provided, then weights must be a 1D tensor with size equal to the dimension of the input along axis, OR it can be a scalar, and its shape should be valid)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, v_3)) ∨ ndim(v_2) = 0 ∨ (ndim(v_2) > 0 ∧ (ndim(v_1) = ndim(v_2) ∨ ndim(v_2)=1))
 >>
-Rule 47 (If input is complex then the weights should not be an integer type)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) > 5
+Rule 57 (if axis is not provided, then weights and a must have the same shape if weights is not a scaler.)
+{v_1 : tensor, v_2 : tensor, v_3: int} |= if v_3 < 0 ∧ ndim(v_2) > 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i))
 >>
-Rule 49 (If weights are not None, then dimension of weights tensor should be less than or equal to dimension of input tensor)
-{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ "none" then (ndim(v_2) ≤ ndim(v_1))
+Rule 61 (if axis is not provided, then weights and a must have the same shape if weights is not a scaler, otherwise broadcasting should work)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_2) = 0) ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_2) = 1)
 >>
-Rule 54 (If axis is specified and weights are provided, ensure that the shapes match along that axis)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) ∧ v_2 ≠ "none" then shape(v_1, v_3) = shape(v_2, 0)
+Rule 62 (Axis must be an integer within a reasonable range)
+{v_1 : int} |= v_1 > -200 ∧ v_1 < 200
 >>
-Rule 56 (If weights are given, the shapes of weights must correspond to the input array, specifically along the specified axis)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_2 ≠ "none" then (∃i ∈ [0, ndim(v_2) - 1] : shape(v_1, v_3) = shape(v_2, i))
+Rule 65 (If the axis is specified the weight must be of the same size)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 >= 0 then shape(v_1, v_3) = shape(v_2, 0)
 >>
-Rule 57 (The output dtype should only be a floating point, complex or dtype)
-{v_1 : dtype} |= (v_1 >= 6 ∧ v_1 <= 10) ∨ v_1 = 12
+Rule 67 (If weights are provided, then the shape of the weight must work or not exists.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (ndim(v_2) = 0) ∨ (v_3 < 0) ∨ (shape(v_1, v_3) = shape(v_2, 0) ∧ ndim(v_2) = 1)
 >>
-Rule 58 (If axis is given, it should be a valid axis value.)
-{v_1 : str, v_2 : int, v_3 : tensor} |= if v_1 ≠ "none" then v_2 ≥ (0 - ndim(v_3)) ∧ v_2 < ndim(v_3)
+Rule 69 (Tensors should have valid data types or should be empty.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 59 (If the input tensor has a complex dtype, the weight must not be integer.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) > 8 then dtype_(v_2) > 5
+Rule 70 (Axis must be an integer and not an invalid value.)
+{v_1 : int} |= v_1 ≠ -101
 >>
-Rule 60 (Weights cannot be all zeros.)
-{v_1 : tensor} |= max(v_1) > min(v_1)
+Rule 71 (If weights are provided, its shape must align the dimension of interest or must be a scalar value)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 ≥ 0 then shape(v_1, v_3) = shape(v_2, 0) ∨ ndim(v_2) = 0
 >>
-Rule 61 (If weights are provided then weights tensor should be numerical values)
-{v_1 : tensor} |= (dtype_(v_1) >= 1 ∧ dtype_(v_1) <= 10)
+Rule 75 (If weights are provided, its shape must align the dimension of interest or must be a scalar value, otherwise weights ndim must be either 0, or broadcastable)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (if v_3 ≥ 0 then shape(v_1, v_3) = shape(v_2, 0) ∨ ndim(v_2) = 0 else (ndim(v_2) = 0) ∨ (ndim(v_1) = ndim(v_2)))
 >>
-Rule 69 (If weights are provided, its dimension should be less than or equal to input array's dimension)
-{v_1: tensor, v_2: tensor} |= if ndim(v_2) > 0 then ndim(v_2) <= ndim(v_1)
+Rule 77 (If the first argument isn't a tensor, this is bad.)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 79 (If weights are provided, then its shape must align the dimension of interest (if axis is provided), or must be broadcastable to the input tensor, or must be a scalar)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (ndim(v_2) = 0) ∨ (v_3 ≥ 0 ∧ shape(v_1, v_3) = shape(v_2, 0) ∧ ndim(v_2) = 1) ∨ (ndim(v_1) = ndim(v_2))
+>>
+Rule 82 (Axis must be an integer and must be valid dimension.)
+{v_1 : tensor, v_2 : int} |= v_2 > -100 ∧ v_2 < 100 ∧ v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+>>
+Rule 85 (If no axis, then Weights shape should match data or must have dim 0.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 < 0 then (ndim(v_2) = 0 ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i)))
+>>
+Rule 87 (If weights are provided, its shape must conform with dimension of interest (if axis is provided), or conforms with the input, or it is a scalar)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (ndim(v_2) = 0) ∨ (v_3 ≥ 0 ∧ shape(v_1, v_3) = shape(v_2, 0) ∧ ndim(v_2) = 1) ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i))
+>>
+Rule 89 (if no axis is available, and if weights are provided, the weights must have number of dimensions or either it must be zero.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 < 0 then ndim(v_2) = 0 ∨ ndim(v_2) = ndim(v_1)
+>>
+Rule 91 (If weights are provided, weights shape must be aligned with input such that either weight has dimension 0, weight has 1 dim with size matching reduction dim, weights are broadcastable to data)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (ndim(v_2) = 0) ∨ (ndim(v_2) = 1 ∧ shape(v_1, v_3) = shape(v_2, 0) ) ∨ (ndim(v_1) = ndim(v_2))
+>>
+Rule 93 (If axis not specified and weights are specified then weights have the same dimension and each shape are equal.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 < 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i))
+>>
+Rule 95 (If weights are provided, shape consistency check, it can either conform to the axis dimension or conform to the whole tensor )
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (ndim(v_2) = 0) ∨ (ndim(v_2) = 1 ∧ shape(v_1, v_3) = shape(v_2, 0) ) ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i))
+>>
+Rule 99 (If weights are provided and axis is specified, shapes are conformant. If no axis, weights must be scalar or have same shape as the original)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 >= 0 then ndim(v_2) = 0 ∨ (shape(v_1, v_3) = shape(v_2, 0) ∧ ndim(v_2) = 1) else (ndim(v_2) = 0 ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i)))
+>>
+Rule 106 (Axis must be an integer type and within reasonable limits given number of dimensions of input. Axis can also be assumed negative)
+{v_1 : tensor, v_2 : int} |= v_2 > (0 - ndim(v_1)) - 1 ∧ v_2 < 100
+>>
+Rule 111 (The weights must either be a scaler, or the shape must conform with axis. There must be a valid weight dtype if weights exist.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (ndim(v_2) = 0) ∨ (v_3 ≥ 0 ∧ shape(v_1, v_3) = shape(v_2, 0) ∧ ndim(v_2) = 1 ) ∨ dtype_(v_1) = dtype_(v_2)
+>>
+Rule 113 (If no axis is there the Weights shape should match the input data shape or weights must be a scaler)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 < 0 then ndim(v_2) = 0 ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i))
+>>
+Rule 114 (Axis must be an integer within valid tensor dimension range)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) - 1 ∧ v_2 < ndim(v_1)
+>>
+Rule 118 (Axis must be an integer within a valid range of input, which should also be an integer.)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) - 1 ∧ v_2 < 100
+>>
+Rule 119 (If weights provided shape of data, weight, and axis should conform)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (ndim(v_2) = 0) ∨ (shape(v_1, v_3) = shape(v_2, 0) ∧ ndim(v_2) = 1) ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i))
+>>
+Rule 123 (Weight has 3 possible cases- not exist, conforming axis dimension or input shape)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (ndim(v_2) = 0) ∨ (shape(v_1, v_3) = shape(v_2, 0) ∧ ndim(v_2) = 1 ∧ v_3 >= 0) ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i))
+>>
+Rule 125 (Weights if passed must have valid types, namely it must match tensor or it will give back errors.)
+{v_1 : tensor, v_2 : tensor} |= (if ndim(v_2) > 0 then dtype_(v_1) = dtype_(v_2))

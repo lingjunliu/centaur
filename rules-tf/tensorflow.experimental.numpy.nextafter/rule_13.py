@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the first input is complex64 then the second input must be complex64 (Rule 13)
+# If x1 is float16, then x2 has to be float16, float32, or float64 (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9, False)) if n else
-          If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9, False))
+    s.add(Not(If(v["arg1_dtype"] == 6, Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), True)) if n else
+          If(v["arg1_dtype"] == 6, Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), True))
 )
 
 def rule_13_func(arg1, arg2, solver=None, neg=False):

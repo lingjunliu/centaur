@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Weights tensor shape must be less than or equal to 2 (Rule 21)
+# size tensor must be a scalar with a single element, no shape (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] <= 2) if n else
-          v["arg1_ndim"] <= 2)
+    s.add(Not(v["arg1_ndim"] == 0) if n else
+          v["arg1_ndim"] == 0)
 )
 
 def rule_21_func(arg1, solver=None, neg=False):

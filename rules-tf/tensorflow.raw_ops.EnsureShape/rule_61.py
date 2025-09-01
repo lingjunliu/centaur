@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input tensor is a matrix, the shape tuple should have length 2 (Rule 61)
+# if tensor has specific dimensions, check at least shape parameter is not empty (Rule 61)
 
 rule_61 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 2, v["arg2_length"] == 2, False)) if n else
-          If(v["arg1_ndim"] == 2, v["arg2_length"] == 2, False))
+    s.add(Not(If(v["arg1_ndim"] > 0, v["arg2_length"] >= 0, True)) if n else
+          If(v["arg1_ndim"] > 0, v["arg2_length"] >= 0, True))
 )
 
 def rule_61_func(arg1, arg2, solver=None, neg=False):
@@ -20,7 +20,7 @@ def rule_61_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
 
         # Variable declarations

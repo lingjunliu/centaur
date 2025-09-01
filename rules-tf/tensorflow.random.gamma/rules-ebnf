@@ -1,123 +1,96 @@
 >>
-Rule 1 (alpha and beta must have the same dtype)
-{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= dtype_(v_1) = v_3 ∧ dtype_(v_2) = v_3
->>
-Rule 2 (shape must be a 1-D integer Tensor or Python array and non-negative)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ ∀i ∈ [0, ndim(v_1) - 1] : v_1[i] ≥ 0
->>
-Rule 3 (alpha and beta must be broadcastable and have at least one dimension if they are tensors)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1
->>
-Rule 4 (dtype must be float16, float32, or float64 represented by indices 6,7,8)
+Rule 1 (dtype must be float16, float32, or float64)
 {v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
 >>
-Rule 5 (alpha must be greater than 0)
-{v_1 : tensor} |= min(v_1) > 0
+Rule 2 (shape must be a 1-D integer Tensor)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (∃i ∈ [0, ndim(v_1) - 1] : dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5)
 >>
-Rule 7 (check shape parameter type is int)
-{v_1 : tensor} |= dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 3 (alpha and beta must have the same dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= dtype_(v_1) = v_3 ∧ dtype_(v_2) = v_3
 >>
-Rule 8 (If shape is a single integer, it must be non-negative)
+Rule 4 (alpha and beta must be broadcastable)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0
+>>
+Rule 5 (seed must be non-negative)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 9 (alpha and beta tensors must have compatible shapes)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∨ (shape(v_1,0) = shape(v_2,0))
+Rule 6 (alpha must be greater than zero)
+{v_1 : tensor} |= min(v_1) > 0
 >>
-Rule 10 (alpha values must be finite)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : v_1[i] < 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
+Rule 7 (shape elements must be non-negative)
+{v_1 : tensor} |= min(v_1) >= 0
 >>
-Rule 13 (shape and alpha's dimensions must match after concatenation)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) + ndim(v_2) ≤ 5
+Rule 8 (alpha and beta shapes must be compatible)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) > 0 ∧ if ndim(v_2) > 0 then shape(v_2, 0) > 0
 >>
-Rule 15 (alpha and beta must have same shape)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 10 (alpha and beta should have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 16 (check shape parameter type is int and non-negative)
-{v_1 : tensor} |= dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∧ ∀i ∈ [0, ndim(v_1) - 1] : v_1[i] ≥ 0
+Rule 11 (alpha and beta's shape combined with shape tensor must not result in an invalid tensor shape)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= min(v_1) > 0 ∧ min(v_2) > 0 ∧ min(v_3) > 0
 >>
-Rule 18 (alpha tensor should not be empty)
+Rule 13 (alpha must be a tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 15 (shape must have integer dtype)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+>>
+Rule 16 (alpha and beta must have dtype float16, float32 or float64)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 17 (if alpha is a scalar, beta also needs to be a scalar or a tensor that is broadcastable to a scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then (ndim(v_2) = 0 ∨ ndim(v_2) = 1)
+>>
+Rule 18 (shape must be a 1D tensor of integers)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5)
+>>
+Rule 19 (If dtype is specified, alpha and beta must have that dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= if v_3 = 6 then dtype_(v_1) = 6 ∧ dtype_(v_2) = 6 else if v_3 = 7 then dtype_(v_1) = 7 ∧ dtype_(v_2) = 7 else if v_3 = 8 then dtype_(v_1) = 8 ∧ dtype_(v_2) = 8
+>>
+Rule 20 (shape tensor elements must be greater than 0)
 {v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 20 (alpha and dtype must be compatible - only float types are allowed)
-{v_1 : tensor, v_2 : dtype} |= (v_2 = 6 ∧ dtype_(v_1) = 6) ∨ (v_2 = 7 ∧ dtype_(v_1) = 7) ∨ (v_2 = 8 ∧ dtype_(v_1) = 8)
+Rule 22 (If dtype is float16, 32, or 64, shape must be integer tensor)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5)
 >>
-Rule 22 (shape must be a 1-D integer Tensor or Python array)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 23 (seed must be a positive integer)
+{v_1 : int} |= v_1 >= 0
 >>
-Rule 23 (alpha and beta must be broadcastable to the same shape)
-{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) ∨ ndim(v_1) = 0 ∨ ndim(v_2) = 0
->>
-Rule 24 (alpha and beta must have compatible dtypes)
-{v_1 : tensor, v_2 : tensor, v_3: dtype} |= dtype_(v_1) = v_3 ∧ dtype_(v_2) = v_3
->>
-Rule 25 (dtype cannot be bool)
-{v_1 : dtype} |= v_1 ≠ 0
->>
-Rule 26 (alpha is a scalar)
-{v_1 : tensor} |= ndim(v_1) = 0
->>
-Rule 31 (alpha and beta must be broadcastable to the same shape or one of them has dim 0)
-{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1)-1 else ndim(v_2)-1] : (if i < ndim(v_1) ∧ i < ndim(v_2) then shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)) ∨ ndim(v_1) = 0 ∨ ndim(v_2) = 0
->>
-Rule 33 (dtype cannot be bool or string)
-{v_1 : dtype} |= v_1 ≠ 0 ∧ v_1 ≠ 11
->>
-Rule 34 (alpha values must be non-negative)
-{v_1 : tensor} |= min(v_1) ≥ 0
->>
-Rule 40 (alpha values must be non-negative if not scalar)
-{v_1 : tensor} |= if ndim(v_1) > 0 then min(v_1) ≥ 0
->>
-Rule 44 (shape elements must be greater than zero when shape is tensor)
-{v_1 : tensor} |= if ndim(v_1) = 1 then (∀i ∈ [0, ndim(v_1) - 1] : v_1[i] > 0)
->>
-Rule 45 (if shape is 0 dimension, alpha and beta must be 0 dimension as well)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
->>
-Rule 46 (shape must be a 1-D integer Tensor or Python array and cannot be empty)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ ∀i ∈ [0, ndim(v_1) - 1] : v_1[i] > 0
->>
-Rule 48 (alpha values must be positive and finite if not a scalar)
-{v_1 : tensor} |= if ndim(v_1) > 0 then (min(v_1) > 0 ∧ max(v_1) < 100000)
->>
-Rule 50 (if shape is a single integer, it must be positive)
-{v_1 : int} |= v_1 > 0
->>
-Rule 51 (alpha and beta must have compatible dtypes. Either all float16, float32, or float64)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∧ dtype_(v_2) = 6) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 8)
->>
-Rule 53 (shape must have small elements, each dimension is less than 1000)
-{v_1 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : v_1[i] < 1000)
->>
-Rule 57 (alpha and beta must have the same number of dimensions if they are tensors)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then ndim(v_1) = ndim(v_2)
->>
-Rule 59 (if beta is scalar, then alpha must be scalar too)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then ndim(v_1) = 0
->>
-Rule 60 (alpha must have a float type)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
->>
-Rule 62 (shape must have small elements, each dimension is less than 1000)
-{v_1 : tensor} |= if ndim(v_1) = 1 then (∀i ∈ [0, ndim(v_1) - 1] : v_1[i] < 1000)
->>
-Rule 63 (alpha and beta cannot have different dtypes)
+Rule 24 (alpha and beta must have the same type)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 64 (alpha values must be positive if not a scalar and finite)
-{v_1 : tensor} |= if ndim(v_1) > 0 then min(v_1) > 0 ∧ max(v_1) < 100000
+Rule 25 (if alpha and beta are not scalars, their shapes must match, or at least be broadcastable)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then true
 >>
-Rule 66 (If shape tensor's elements are large then at least alpha or beta has to be a scalar)
-{v_1 : tensor, v_2: tensor, v_3: tensor} |= if ndim(v_1) = 1 ∧ (∃i ∈ [0, ndim(v_1) - 1] : v_1[i] > 500) then ndim(v_2) = 0 ∨ ndim(v_3) = 0
+Rule 26 (alpha and beta can't be complex numbers)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 9) ∧ (dtype_(v_1) ≠ 10) ∧ (dtype_(v_2) ≠ 9) ∧ (dtype_(v_2) ≠ 10)
 >>
-Rule 71 (alpha and beta must have the same dtype if not a scalar)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then dtype_(v_1) = dtype_(v_2)
+Rule 28 (shape can't have zero dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
 >>
-Rule 75 (Output values must also be in the floating point range)
-{v_1 : dtype} |=  v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+Rule 29 (The dtype must be a valid dtype)
+{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 12
 >>
-Rule 76 (If alpha and beta are zero dimensional then the output should also be zero dimensional)
-{v_1 : tensor, v_2 : tensor, v_3: tensor} |= if ndim(v_2) = 0 ∧ ndim(v_3) = 0 then ndim(v_1) = 0
+Rule 30 (If dtype is an integer, alpha and beta must be an integer)
+{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= if v_3 = 1 ∨ v_3 = 2 ∨ v_3 = 3 ∨ v_3 = 4 ∨ v_3 = 5 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
 >>
-Rule 77 (If shape is a tensor then alpha and beta cannot have different sizes)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then shape(v_1,0) = shape(v_2,0)
+Rule 31 (if alpha and beta are tensors of different rank, the smaller rank tensor needs to be broadcastable)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then true
+>>
+Rule 33 (if alpha is provided, dtype needs to be compatible with alpha)
+{v_1 : tensor, v_2 : dtype} |= (v_2 = 6 ∧ dtype_(v_1) = 6) ∨ (v_2 = 7 ∧ dtype_(v_1) = 7) ∨ (v_2 = 8 ∧ dtype_(v_1) = 8)
+>>
+Rule 36 (shape dtype has to be in int32 or int64 to avoid type error)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+>>
+Rule 37 (If no dtype is provided, and alpha is integer, beta must be an integer)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
+>>
+Rule 38 (If no dtype is provided and beta is integer, alpha must be integer)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5)
+>>
+Rule 39 (The shape tensor elements has to be lower than a limit)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 100000
+>>
+Rule 40 (If alpha is provided, dtype needs to be float or int)
+{v_1: tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8

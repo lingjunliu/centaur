@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Dimension must be positive and less than 1000 (Rule 21)
+# dimension must be greater than 0 and less than 1000 (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
     s.add(Not(And(v["arg1_value"] > 0, v["arg1_value"] < 1000)) if n else

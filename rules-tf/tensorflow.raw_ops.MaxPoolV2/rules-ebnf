@@ -1,300 +1,345 @@
 >>
 Rule 1 (ksize and strides must have the same length)
-{ksize : tensor, strides : tensor} |= shape(ksize, 0) = shape(strides, 0)
+{ksize : tensor, strides : tensor} |= ndim(ksize) = ndim(strides) ∧ ∀i ∈ [0, ndim(ksize) - 1] : shape(ksize, i) = shape(strides, i)
 >>
-Rule 2 (ksize and strides must be greater than zero in all dimensions)
-{ksize : tensor, strides : tensor} |= (∀i ∈ [0, shape(ksize, 0) - 1] : ksize[i] > 0) ∧ (∀i ∈ [0, shape(strides, 0) - 1] : strides[i] > 0)
+Rule 2 (padding must be either VALID or SAME)
+{padding : str} |= padding = "VALID" ∨ padding = "SAME"
 >>
-Rule 3 (The rank of input tensor must be 4)
-{input : tensor} |= ndim(input) = 4
->>
-Rule 4 (ksize and strides tensors should have int32 type)
-{ksize : tensor, strides : tensor} |= dtype_(ksize) = 3 ∧ dtype_(strides) = 3
->>
-Rule 5 (padding string must be either "SAME" or "VALID")
-{padding : str} |= padding = "SAME" ∨ padding = "VALID"
->>
-Rule 6 (data_format string must be either "NHWC", "NCHW", or "NCHW_VECT_C")
+Rule 3 (data_format must be either NHWC, NCHW or NCHW_VECT_C)
 {data_format : str} |= data_format = "NHWC" ∨ data_format = "NCHW" ∨ data_format = "NCHW_VECT_C"
 >>
-Rule 7 (Shape of ksize should be less than or equal to the input tensor shape)
-{input : tensor, ksize : tensor} |= shape(ksize, 0) ≤ ndim(input)
+Rule 4 (ksize and strides dimensions should be at least 2)
+{ksize : tensor, strides : tensor} |= ndim(ksize) ≥ 2 ∧ ndim(strides) ≥ 2
 >>
-Rule 8 (Batch size should be greater than 0)
-{input : tensor} |= shape(input, 0) > 0
+Rule 5 (input tensor's dimension should be 4)
+{input : tensor} |= ndim(input) = 4
 >>
-Rule 9 (Channel size should be greater than 0, assuming NHWC format)
-{input : tensor, data_format : str} |= if data_format = "NHWC" then shape(input, 3) > 0
+Rule 6 (ksize values must be positive)
+{ksize : tensor} |= ∀i ∈ [0, ndim(ksize) - 1] : min(ksize) > 0
 >>
-Rule 10 (Channel size should be greater than 0, assuming NCHW format)
-{input : tensor, data_format : str} |= if data_format = "NCHW" then shape(input, 1) > 0
+Rule 7 (strides values must be positive)
+{strides : tensor} |= ∀i ∈ [0, ndim(strides) - 1] : min(strides) > 0
 >>
-Rule 11 (input tensor's data type must be in allowed types)
-{input : tensor} |= dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 4 ∨ dtype_(input) = 5
+Rule 8 (dtype of ksize and strides must be int32)
+{ksize : tensor, strides : tensor} |= dtype_(ksize) = 3 ∧ dtype_(strides) = 3
 >>
-Rule 12 (ksize and strides shape must be a vector of length equal to the number of input dimensions when data format is NHWC)
-{input : tensor, ksize : tensor, strides : tensor, data_format : str} |= if data_format = "NHWC" then shape(ksize, 0) = ndim(input) ∧ shape(strides, 0) = ndim(input)
+Rule 9 (when padding is VALID, ksize should be less than or equal to input's spatial dimensions)
+{input : tensor, ksize : tensor, padding : str} |= if padding = "VALID" then shape(ksize, 1) ≤ shape(input, 1) ∧ shape(ksize, 2) ≤ shape(input, 2)
 >>
-Rule 14 (If padding is VALID, then ksize should be less than or equal to the corresponding input dimension)
-{input : tensor, ksize : tensor, padding : str} |= if padding = "VALID" then (∀i ∈ [0, shape(ksize, 0) - 1] : ksize[i] ≤ shape(input, i))
+Rule 10 (When data_format is NCHW, channel dimension of input is different)
+{input : tensor, ksize : tensor, data_format: str} |= if data_format = "NCHW" then shape(ksize, 1) ≤ shape(input, 2) ∧ shape(ksize, 2) ≤ shape(input, 3)
 >>
-Rule 15 (ksize values must be positive)
-{ksize : tensor} |= ∀i ∈ [0, shape(ksize, 0) - 1] : ksize[i] > 0
+Rule 11 (Input tensor must be one of the allowed dtypes)
+{input : tensor} |= dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 4 ∨ dtype_(input) = 5 ∨ dtype_(input) = 6 ∨ dtype_(input) = 2 ∨ dtype_(input) = 1 ∨ dtype_(input) = 3
 >>
-Rule 16 (strides values must be positive)
-{strides : tensor} |= ∀i ∈ [0, shape(strides, 0) - 1] : strides[i] > 0
+Rule 12 (ksize and strides tensors must have dimension equal to the number of dimensions of the input tensor.)
+{input : tensor, ksize : tensor, strides : tensor} |= ndim(ksize) = ndim(input) ∧ ndim(strides) = ndim(input)
 >>
-Rule 17 (ksize shape must be a vector of length equal to the number of input dimensions when data format is NCHW)
-{input : tensor, ksize : tensor, data_format : str} |= if data_format = "NCHW" then shape(ksize, 0) = ndim(input)
+Rule 14 (ksize and strides shapes are the same)
+{ksize : tensor, strides : tensor} |= shape(ksize, 0) = shape(strides, 0) ∧ shape(ksize, 1) = shape(strides, 1) ∧ shape(ksize, 2) = shape(strides, 2) ∧ shape(ksize, 3) = shape(strides, 3)
 >>
-Rule 18 (strides shape must be a vector of length equal to the number of input dimensions when data format is NCHW)
-{input : tensor, strides : tensor, data_format : str} |= if data_format = "NCHW" then shape(strides, 0) = ndim(input)
+Rule 15 (ksize dimensions greater or equal to 1)
+{ksize : tensor} |= shape(ksize,0) ≥ 1 ∧ shape(ksize,1) ≥ 1 ∧ shape(ksize,2) ≥ 1 ∧ shape(ksize,3) ≥ 1
 >>
-Rule 19 (Input tensor data type should not be complex)
-{input : tensor} |= dtype_(input) ≠ 10 ∧ dtype_(input) ≠ 11
+Rule 16 (When padding is SAME, input dimensions and strides affect output size; input dimensions and stride sizes are non-zero.)
+{input : tensor, strides : tensor, padding : str} |= if padding = "SAME" then shape(input, 1) > 0 ∧ shape(input, 2) > 0 ∧ shape(strides, 1) > 0 ∧ shape(strides, 2) > 0
 >>
-Rule 20 (ksize must have rank 1)
-{ksize : tensor} |= ndim(ksize) = 1
+Rule 17 (The first and last dimensions of ksize and strides should be 1)
+{ksize : tensor, strides : tensor} |= shape(ksize, 0) = 1 ∧ shape(strides, 0) = 1 ∧ shape(ksize, 3) = 1 ∧ shape(strides, 3) = 1
 >>
-Rule 21 (strides must have rank 1)
-{strides : tensor} |= ndim(strides) = 1
+Rule 18 (If data format is NCHW, channel dimension should be considered in ksize)
+{input : tensor, ksize : tensor, data_format : str} |= if data_format = "NCHW" then shape(ksize, 1) ≤ shape(input, 1)
 >>
-Rule 24 (ksize values should be int32 and positive)
-{ksize : tensor} |= (∀i ∈ [0, shape(ksize, 0) - 1] : ksize[i] > 0) ∧ dtype_(ksize) = 3
->>
-Rule 25 (strides values should be int32 and positive)
-{strides : tensor} |= (∀i ∈ [0, shape(strides, 0) - 1] : strides[i] > 0) ∧ dtype_(strides) = 3
->>
-Rule 26 (Input tensor dimension 1,2,3 should be positive when data_format is NHWC)
-{input : tensor, data_format : str} |= if data_format = "NHWC" then shape(input, 1) > 0 ∧ shape(input, 2) > 0
->>
-Rule 28 (ksize and strides must have at least one dimension)
-{ksize : tensor, strides : tensor} |= shape(ksize, 0) ≥ 1 ∧ shape(strides, 0) ≥ 1
->>
-Rule 29 (If padding is SAME, then strides must be less than or equal to ksize)
-{padding : str, ksize : tensor, strides : tensor} |= if padding = "SAME" then ∀i ∈ [0, shape(ksize, 0) - 1] : strides[i] ≤ ksize[i]
->>
-Rule 31 (ksize and strides must have the same datatype)
-{ksize : tensor, strides : tensor} |= dtype_(ksize) = dtype_(strides)
->>
-Rule 32 (When padding is VALID, the output size is a function of input size, kernel size and stride)
-{input : tensor, ksize : tensor, strides : tensor, padding : str} |= if padding = "VALID" then ∀i ∈ [0, shape(ksize, 0) - 1] : (shape(input, i+1) - ksize[i]) / strides[i] + 1 > 0
->>
-Rule 33 (When padding is SAME, the output size is a function of input size and stride)
-{input : tensor, strides : tensor, padding : str} |= if padding = "SAME" then ∀i ∈ [0, shape(strides, 0) - 1] : shape(input, i+1) / strides[i] > 0
->>
-Rule 35 (If data_format is NCHW_VECT_C then channel dimension must be divisible by some number)
-{input : tensor, data_format : str} |= if data_format = "NCHW_VECT_C" then shape(input, 1) % 4 = 0
->>
-Rule 36 (The ksize and strides tensors must have a length of 4)
-{ksize : tensor, strides : tensor} |= shape(ksize, 0) = 4 ∧ shape(strides, 0) = 4
->>
-Rule 37 (ksize and strides cannot be all ones if padding is VALID)
-{ksize : tensor, strides : tensor, padding : str} |= if padding = "VALID" then ∃i ∈ [0, shape(ksize, 0) - 1] : ksize[i] ≠ 1 ∨ strides[i] ≠ 1
->>
-Rule 38 (If data_format is NHWC, then the last dimension of ksize and strides must be 1)
-{ksize : tensor, strides : tensor, data_format : str} |= if data_format = "NHWC" then ksize[3] = 1 ∧ strides[3] = 1
->>
-Rule 39 (If data_format is NCHW, then the second dimension of ksize and strides must be 1)
-{ksize : tensor, strides : tensor, data_format : str} |= if data_format = "NCHW" then ksize[1] = 1 ∧ strides[1] = 1
->>
-Rule 40 (Input data type must be either half, bfloat16, float32, float64, int32, int64, uint8, int16, int8, uint16, or qint8)
-{input : tensor} |= dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 4 ∨ dtype_(input) = 5 ∨ dtype_(input) = 9 ∨ dtype_(input) = 2 ∨ dtype_(input) = 1
->>
-Rule 41 (When the data format is NCHW_VECT_C, ksize and strides second dimension must be 1)
-{ksize : tensor, strides : tensor, data_format : str} |= if data_format = "NCHW_VECT_C" then ksize[1] = 1 ∧ strides[1] = 1
->>
-Rule 43 (Input tensor shape must be greater than or equal to ksize values)
-{input : tensor, ksize : tensor} |= ∀i ∈ [0, shape(ksize, 0) - 1] : shape(input, i) ≥ ksize[i]
->>
-Rule 44 (Strides values cannot be greater than the corresponding input dimension size)
-{input : tensor, strides : tensor} |= ∀i ∈ [0, shape(strides, 0) - 1] : shape(input, i) ≥ strides[i]
->>
-Rule 45 (if data_format is NHWC or NCHW_VECT_C the second and third dimensions of ksize and strides must be less than the input tensor's second and third dimensions.)
-{input : tensor, ksize : tensor, strides : tensor, data_format : str} |= if data_format = "NHWC" ∨ data_format = "NCHW_VECT_C" then shape(input, 1) ≥ ksize[1] ∧ shape(input, 1) ≥ strides[1] ∧ shape(input, 2) ≥ ksize[2] ∧ shape(input, 2) ≥ strides[2]
->>
-Rule 46 (if data_format is NCHW, then the third and fourth dimensions of ksize and strides must be less than the input tensor's third and fourth dimensions.)
-{input : tensor, ksize : tensor, strides : tensor, data_format : str} |= if data_format = "NCHW" then shape(input, 2) ≥ ksize[2] ∧ shape(input, 2) ≥ strides[2] ∧ shape(input, 3) ≥ ksize[3] ∧ shape(input, 3) ≥ strides[3]
->>
-Rule 49 (The first two values of ksize and strides must be 1 when using NCHW_VECT_C)
-{ksize: tensor, strides: tensor, data_format: str} |= if data_format = "NCHW_VECT_C" then ksize[0] = 1 ∧ ksize[1] = 1 ∧ strides[0] = 1 ∧ strides[1] = 1
->>
-Rule 50 (If padding is VALID, the output size calculation must be positive)
-{input : tensor, ksize : tensor, strides : tensor, padding : str} |= if padding = "VALID" then ∀i ∈ [0, shape(ksize, 0) - 1] : (shape(input, i) - ksize[i]) / strides[i] + 1 > 0
->>
-Rule 51 (If data format is NCHW_VECT_C, input channels must be divisible by 4)
-{input: tensor, data_format: str} |= if data_format = "NCHW_VECT_C" then shape(input,1) % 4 = 0
->>
-Rule 52 (If data_format is NCHW, input batch dimension must be greater than 0)
-{input: tensor, data_format: str} |= if data_format = "NCHW" then shape(input, 0) > 0
->>
-Rule 53 (if data_format is NHWC, input batch dimension must be greater than 0)
-{input: tensor, data_format: str} |= if data_format = "NHWC" then shape(input, 0) > 0
->>
-Rule 55 (ksize and stride dimensions must be equal if padding is SAME or VALID)
-{ksize : tensor, strides : tensor, padding : str} |= if padding = "SAME" ∨ padding = "VALID" then shape(ksize, 0) = shape(strides, 0)
->>
-Rule 56 (If padding is SAME, then output height and width dimensions are a function of the input dimensions and stride)
-{input : tensor, strides : tensor, padding : str} |= if padding = "SAME" then (shape(input, 1) + strides[1] - 1) / strides[1] > 0 ∧ (shape(input, 2) + strides[2] - 1) / strides[2] > 0
->>
-Rule 57 (If padding is VALID, then ksize should not be larger than input dimensions.)
-{input : tensor, ksize : tensor, padding : str} |= if padding = "VALID" then shape(input, 1) ≥ ksize[1] ∧ shape(input, 2) ≥ ksize[2]
->>
-Rule 58 (If strides are greater than input dimensions, it is invalid.)
-{input : tensor, strides : tensor} |= shape(input, 1) ≥ strides[1] ∧ shape(input, 2) ≥ strides[2]
->>
-Rule 59 (The strides value cannot be zero)
-{strides : tensor} |= ∀i ∈ [0, shape(strides, 0) - 1] : strides[i] ≠ 0
->>
-Rule 60 (The ksize value cannot be zero)
-{ksize : tensor} |= ∀i ∈ [0, shape(ksize, 0) - 1] : ksize[i] ≠ 0
->>
-Rule 61 (If data_format is not specified, default is NHWC, so the last dimension of ksize and strides must be 1)
-{ksize : tensor, strides : tensor} |= ksize[3] = 1 ∧ strides[3] = 1
->>
-Rule 63 (For NHWC format, ksize[1] and strides[1] represent height, and ksize[2] and strides[2] represent width)
-{ksize : tensor, strides : tensor, data_format : str} |= if data_format = "NHWC" then ksize[1] > 0 ∧ strides[1] > 0 ∧ ksize[2] > 0 ∧ strides[2] > 0
->>
-Rule 64 (For NCHW format, ksize[2] and strides[2] represent height, and ksize[3] and strides[3] represent width)
-{ksize : tensor, strides : tensor, data_format : str} |= if data_format = "NCHW" then ksize[2] > 0 ∧ strides[2] > 0 ∧ ksize[3] > 0 ∧ strides[3] > 0
->>
-Rule 65 (For NCHW_VECT_C, ksize[2] and strides[2] represent height and ksize[3] and strides[3] represent width)
-{ksize : tensor, strides : tensor, data_format : str} |= if data_format = "NCHW_VECT_C" then ksize[2] > 0 ∧ strides[2] > 0 ∧ ksize[3] > 0 ∧ strides[3] > 0
->>
-Rule 66 (If NHWC is used, the innermost dimension must be smaller or equal to input's dimension)
-{input: tensor, ksize: tensor, strides: tensor, data_format: str} |= if data_format = "NHWC" then shape(input, 3) >= ksize[3] ∧ shape(input, 3) >= strides[3]
->>
-Rule 67 (ksize and strides tensors should not have negative values)
-{ksize : tensor, strides : tensor} |= (∀i ∈ [0, shape(ksize, 0) - 1] : ksize[i] ≥ 0) ∧ (∀i ∈ [0, shape(strides, 0) - 1] : strides[i] ≥ 0)
->>
-Rule 68 (If padding is VALID, then (input_size - ksize + 1) must be greater than 0)
-{input: tensor, ksize: tensor, padding: str} |= if padding = "VALID" then shape(input, 1) - ksize[1] + 1 > 0 ∧ shape(input, 2) - ksize[2] + 1 > 0
->>
-Rule 69 (The first dimension of ksize and strides cannot be zero)
-{ksize : tensor, strides : tensor} |= ksize[0] ≠ 0 ∧ strides[0] ≠ 0
->>
-Rule 71 (ksize and strides must have the same type as input)
-{input : tensor, ksize : tensor, strides : tensor} |= dtype_(input) = dtype_(ksize) ∨ dtype_(input) = dtype_(strides)
->>
-Rule 72 (If padding is SAME, output height and width must greater than 0)
-{input : tensor, strides : tensor, padding : str} |= if padding = "SAME" then shape(input, 1) / strides[1] > 0 ∧ shape(input, 2) / strides[2] > 0
->>
-Rule 73 (If data_format is NCHW_VECT_C, input channel dimension must be a multiple of 4)
-{input: tensor, data_format : str} |= if data_format = "NCHW_VECT_C" then shape(input, 1) % 4 = 0
->>
-Rule 74 (Input tensor must have at least 2 dimensions)
-{input: tensor} |= ndim(input) ≥ 2
->>
-Rule 75 (If data_format is NHWC, channel dimension must be the last dimension)
-{input : tensor, data_format : str} |= if data_format = "NHWC" then ndim(input) > 0
->>
-Rule 76 (If the data format is NCHW, then the batch dimension should be the first dimension.)
-{input : tensor, data_format : str} |= if data_format = "NCHW" then ndim(input) > 0
->>
-Rule 78 (Input tensor's datatype must be a valid datatype)
-{input : tensor} |= dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 4 ∨ dtype_(input) = 5 ∨ dtype_(input) = 9 ∨ dtype_(input) = 2 ∨ dtype_(input) = 1 ∨ dtype_(input) = 0
->>
-Rule 79 (For NCHW_VECT_C, the first dimension is batch size, second is channels/vector_size, third is height, and fourth is width)
-{input: tensor, data_format: str} |= if data_format = "NCHW_VECT_C" then ndim(input) = 4
->>
-Rule 80 (If padding is SAME, then the output size will be input_size / stride (rounded up) and must be a valid size)
-{input: tensor, strides: tensor, padding: str} |= if padding = "SAME" then shape(input, 1) > 0 ∧ shape(input, 2) > 0 ∧ strides[1] > 0 ∧ strides[2] > 0
->>
-Rule 81 (For VALID padding, the output height is equal to ceiling((input_height - filter_height + 1) / strides_height))
-{input: tensor, ksize: tensor, strides: tensor, padding: str} |= if padding = "VALID" then (shape(input, 1) - ksize[1] + 1) / strides[1] > 0
->>
-Rule 82 (For VALID padding, the output width is equal to ceiling((input_width - filter_width + 1) / strides_width))
-{input: tensor, ksize: tensor, strides: tensor, padding: str} |= if padding = "VALID" then (shape(input, 2) - ksize[2] + 1) / strides[2] > 0
->>
-Rule 83 (ksize cannot have a dimension greater than the respective input dimension if padding is VALID)
-{input : tensor, ksize : tensor, padding : str} |= if padding = "VALID" then shape(input, 1) ≥ ksize[1] ∧ shape(input, 2) ≥ ksize[2] ∧ shape(input, 3) ≥ ksize[3]
->>
-Rule 84 (If using NCHW data format the channel dimension should be greater than or equal to ksize and stride channel dimensions)
-{input : tensor, ksize : tensor, strides : tensor, data_format : str} |= if data_format = "NCHW" then shape(input, 1) ≥ ksize[1] ∧ shape(input, 1) ≥ strides[1]
->>
-Rule 85 (If using NHWC data format, the channel dimension should be greater or equal to the ksize and stride channel dimensions)
-{input : tensor, ksize : tensor, strides : tensor, data_format : str} |= if data_format = "NHWC" then shape(input, 3) ≥ ksize[3] ∧ shape(input, 3) ≥ strides[3]
->>
-Rule 86 (if data format is NCHW or NCHW_VECT_C then channel dimensions cannot be equal zero)
-{input : tensor, data_format : str} |= if data_format = "NCHW" ∨ data_format = "NCHW_VECT_C" then shape(input, 1) > 0
->>
-Rule 88 (when the data format is NHWC_VECT_C, then channels cannot be zero)
-{input: tensor, data_format : str} |= if data_format = "NCHW_VECT_C" then shape(input, 1) > 0
->>
-Rule 89 (When padding is SAME, stride cannot be greater than input dimensions)
-{input : tensor, strides : tensor, padding : str} |= if padding = "SAME" then shape(input, 1) ≥ strides[1] ∧ shape(input, 2) ≥ strides[2]
->>
-Rule 93 (If data_format is NCHW_VECT_C then the channel should be divisible by 4)
-{input: tensor, data_format: str} |= if data_format = "NCHW_VECT_C" then shape(input, 1) % 4 = 0
->>
-Rule 94 (For valid padding input size - ksize should be a multiple of strides)
-{input : tensor, ksize : tensor, strides : tensor, padding : str} |= if padding = "VALID" then (shape(input, 1) - ksize[1]) % strides[1] = 0 ∧ (shape(input, 2) - ksize[2]) % strides[2] = 0
->>
-Rule 95 (If data_format is NCHW, the number of dimensions of ksize and strides should be 4)
-{ksize : tensor, strides : tensor, data_format : str} |= if data_format = "NCHW" then shape(ksize, 0) = 4 ∧ shape(strides, 0) = 4
->>
-Rule 97 (If data_format is NCHW, then the height and width must be greater than 0)
-{input : tensor, data_format : str} |= if data_format = "NCHW" then shape(input, 2) > 0 ∧ shape(input, 3) > 0
->>
-Rule 98 (if padding is SAME then the output dimensions can be calculated.)
-{input: tensor, strides: tensor, padding: str} |= if padding = "SAME" then (shape(input,1) + strides[1] - 1) / strides[1] > 0 ∧ (shape(input, 2) + strides[2] -1 ) / strides[2] > 0
->>
-Rule 99 (When the first dimension of ksize and stride equal to 1 then the input cannot be zero)
-{input: tensor, ksize: tensor, strides: tensor} |= if ksize[0] = 1 ∧ strides[0] = 1 then shape(input, 0) > 0 ∧ shape(input, 1) > 0 ∧ shape(input, 2) > 0 ∧ shape(input, 3) > 0
->>
-Rule 103 ( ksize must have the same shape for all dimensions, when padding is VALID)
-{input: tensor, ksize: tensor, padding: str} |= if padding = "VALID" then ∀i ∈ [0, shape(ksize, 0) - 1] : shape(input, i) ≥ ksize[i]
->>
-Rule 104 (if strides is less than or equal to 0 it should throw an error.)
-{strides: tensor} |= ∀i ∈ [0, shape(strides, 0) - 1] : strides[i] > 0
->>
-Rule 105 (If data_format is NCHW_VECT_C, the 2,3 dimensions in ksize and strides have values greater than zero)
-{ksize : tensor, strides : tensor, data_format : str} |= if data_format = "NCHW_VECT_C" then ksize[2] > 0 ∧ ksize[3] > 0 ∧ strides[2] > 0 ∧ strides[3] > 0
->>
-Rule 106 (If ksize has a shape different than strides, then padding must not be VALID)
-{ksize : tensor, strides : tensor, padding : str} |= if shape(ksize,0) ≠ shape(strides, 0) then padding ≠ "VALID"
->>
-Rule 108 (if the data_format is either NCHW or NHWC then strides[0] and ksize[0] must be 1.)
-{ksize : tensor, strides : tensor, data_format : str} |= if data_format = "NCHW" ∨ data_format = "NHWC" then ksize[0] = 1 ∧ strides[0] = 1
->>
-Rule 110 (When the channel dimension is 1, we need to make the filter dimensions also 1, dataformat NHWC.)
-{input: tensor, ksize: tensor, data_format: str} |= if data_format = "NHWC" ∧ shape(input, 3) = 1 then ksize[1] = 1 ∧ ksize[2] = 1
->>
-Rule 111 (If padding is SAME then strides must be less than or equal to ksize in height and width dimensions)
-{ksize : tensor, strides : tensor, padding : str} |= if padding = "SAME" then strides[1] ≤ ksize[1] ∧ strides[2] ≤ ksize[2]
->>
-Rule 112 (if data format is NHWC, input channel size >=1)
-{input : tensor, data_format: str} |= if data_format = "NHWC" then shape(input,3) > 0
->>
-Rule 113 (If data_format is NCHW, then ksize[2], ksize[3], strides[2], strides[3] > 0 )
-{ksize: tensor, strides: tensor, data_format: str} |= if data_format = "NCHW" then ksize[2] > 0 ∧ ksize[3] > 0 ∧ strides[2] > 0 ∧ strides[3] > 0
->>
-Rule 114 (the number of input's dimensions must be positive integers)
-{input : tensor} |= ∀i ∈ [0, ndim(input) - 1] : shape(input, i) > 0
->>
-Rule 116 (ksize and strides cannot be all zeros)
-{ksize: tensor, strides: tensor} |= ∃i ∈ [0, shape(ksize, 0) - 1] : ksize[i] ≠ 0 ∨ strides[i] ≠ 0
->>
-Rule 117 (if data_format is NCHW and input channel size is 1 then ksize[2] and ksize[3], strides[2], strides[3] should be 1)
-{ksize: tensor, strides: tensor, data_format: str, input: tensor} |= if data_format = "NCHW" ∧ shape(input, 1) = 1 then ksize[2] = 1 ∧ ksize[3] = 1 ∧ strides[2] = 1 ∧ strides[3] = 1
->>
-Rule 118 (when the data format is not specified, batch, height, and width must be within range.)
-{input: tensor} |= shape(input, 0) > 0 ∧ shape(input, 1) > 0 ∧ shape(input, 2) > 0
->>
-Rule 119 (When ksize or strides values are zero a error should be raised.)
-{ksize: tensor, strides: tensor} |= ∀i ∈ [0, shape(ksize, 0) - 1] : ksize[i] > 0 ∧ strides[i] > 0
->>
-Rule 120 (For NCHW input tensor shape must be (N, C, H, W).)
+Rule 20 (If data format is NCHW, the input should have compatible dimensions for channel first format.)
 {input : tensor, data_format : str} |= if data_format = "NCHW" then ndim(input) = 4
 >>
-Rule 121 (when data format is NHWC, ksize second and third dimmension values needs to be a positive int)
-{ksize: tensor, data_format: str} |= if data_format = "NHWC" then ksize[1] > 0 ∧ ksize[2] > 0
+Rule 21 (If data format is NCHW, the strides' channel dimension must be greater than zero.)
+{strides : tensor, data_format : str} |= if data_format = "NCHW" then shape(strides, 1) > 0
 >>
-Rule 122 (ksize and strides must have int32 data type.)
-{ksize: tensor, strides: tensor} |= dtype_(ksize) = 3 ∧ dtype_(strides) = 3
+Rule 22 (If data format is NCHW_VECT_C, channel dimension of input should be multiple of some vector C)
+{input : tensor, data_format : str} |= if data_format = "NCHW_VECT_C" then shape(input, 1) % 2 = 0
 >>
-Rule 123 (Ksize must not have values less than or equal to 0.)
-{ksize: tensor} |= ∀i ∈ [0, shape(ksize, 0) - 1] : ksize[i] > 0
+Rule 23 (If data format is NCHW_VECT_C, ksize should also respect vector C)
+{ksize : tensor, data_format : str} |= if data_format = "NCHW_VECT_C" then shape(ksize, 1) % 2 = 0
 >>
-Rule 125 (For a valid maxpool, ksize and strides cannot be 0 when dataformat is NCHW )
-{ksize: tensor, strides: tensor, data_format:str} |= if data_format = "NCHW" then ksize[1] > 0 ∧ strides[1] > 0
+Rule 24 (if data_format is NCHW_VECT_C, then ksize and strides need to have compatible dimension)
+{input : tensor, ksize : tensor, strides : tensor, data_format : str} |= if data_format = "NCHW_VECT_C" then shape(ksize, 1) ≤ shape(input,1) ∧ shape(strides,1) > 0
+>>
+Rule 27 (ksize tensor's values must be int32, and greater than 0.)
+{ksize : tensor} |= dtype_(ksize) = 3 ∧ ∀i ∈ [0, ndim(ksize) - 1] : shape(ksize, i) > 0
+>>
+Rule 28 (strides tensor's values must be int32, and greater than 0.)
+{strides : tensor} |= dtype_(strides) = 3 ∧ ∀i ∈ [0, ndim(strides) - 1] : shape(strides, i) > 0
+>>
+Rule 29 (padding string should be valid even if data format is NCHW.)
+{padding : str, data_format : str} |= if data_format = "NCHW" then padding = "VALID" ∨ padding = "SAME"
+>>
+Rule 30 (If the padding is VALID and stride is 1, then the ksize should be less than input size)
+{input: tensor, ksize: tensor, strides: tensor, padding: str} |= if padding = "VALID" ∧ shape(strides, 1) = 1 ∧ shape(strides, 2) = 1 then shape(ksize, 1) <= shape(input, 1) ∧ shape(ksize, 2) <= shape(input, 2)
+>>
+Rule 31 (If padding is SAME, the spatial output dimensions must be greater than 0.)
+{input : tensor, padding : str} |= if padding = "SAME" then shape(input, 1) > 0 ∧ shape(input, 2) > 0
+>>
+Rule 32 (Ksize must be specified when data_format is NCHW_VECT_C)
+{ksize : tensor, data_format : str} |= if data_format = "NCHW_VECT_C" then ndim(ksize) = 4
+>>
+Rule 33 (Strides must be specified when data_format is NCHW_VECT_C)
+{strides : tensor, data_format : str} |= if data_format = "NCHW_VECT_C" then ndim(strides) = 4
+>>
+Rule 34 (When data format is NCHW, ksize spatial dimension should be less or equal to input's)
+{input : tensor, ksize : tensor, data_format : str} |= if data_format = "NCHW" then shape(ksize, 2) <= shape(input, 2) ∧ shape(ksize, 3) <= shape(input, 3)
+>>
+Rule 35 (Ksize and Stride cannot be zero)
+{ksize : tensor, strides: tensor} |= min(ksize) > 0 ∧ min(strides) > 0
+>>
+Rule 36 (Input tensor's channel dimension should be positive)
+{input : tensor} |= shape(input, 3) > 0
+>>
+Rule 37 (Ksize dimensions cannot be greater than input dimensions, when the padding is VALID)
+{input : tensor, ksize : tensor, padding: str} |= if padding = "VALID" then shape(ksize, 1) ≤ shape(input, 1) ∧ shape(ksize, 2) ≤ shape(input, 2)
+>>
+Rule 38 (If the data format is NCHW_VECT_C and padding is VALID, then the spatial output dimensions must be positive)
+{input : tensor, data_format : str, padding : str} |= if data_format = "NCHW_VECT_C" ∧ padding = "VALID" then shape(input, 2) > 0 ∧ shape(input, 3) > 0
+>>
+Rule 39 (Ksize and stride tensors cannot have negative shape dimensions)
+{ksize : tensor, strides : tensor} |= ∀i ∈ [0, ndim(ksize) - 1] : shape(ksize, i) > 0 ∧ ∀i ∈ [0, ndim(strides) - 1] : shape(strides, i) > 0
+>>
+Rule 41 (If padding is VALID, then the output size must be at least 1)
+{input : tensor, ksize : tensor, strides : tensor, padding : str} |= if padding = "VALID" then (shape(input, 1) - shape(ksize, 1) + 1) / shape(strides, 1) ≥ 1 ∧ (shape(input, 2) - shape(ksize, 2) + 1) / shape(strides, 2) ≥ 1
+>>
+Rule 42 (The input tensor cannot have a zero shape dimension unless the data_format is "NCHW" and the channel dim is zero)
+{input : tensor, data_format: str} |= if data_format = "NCHW" then true else ∀i ∈ [0, ndim(input) - 1] : shape(input, i) > 0
+>>
+Rule 44 (If input tensor is int32 or int64 then ksize and stride values should be less than the max value of the corresponding datatype)
+{input : tensor, ksize : tensor, strides : tensor} |= if dtype_(input) = 4 then max(ksize) < 2147483647 ∧ max(strides) < 2147483647 else if dtype_(input) = 5 then max(ksize) < 9223372036854775807 ∧ max(strides) < 9223372036854775807
+>>
+Rule 45 (Strides must not be greater than the input dimensions.)
+{input : tensor, strides : tensor} |= shape(strides, 1) <= shape(input, 1) ∧ shape(strides, 2) <= shape(input, 2)
+>>
+Rule 46 (When data_format is NCHW and padding is VALID the second and third dimensions must be greater than or equal to the ksize)
+{input : tensor, ksize : tensor, data_format : str, padding: str} |= if data_format = "NCHW" ∧ padding = "VALID" then shape(input, 2) ≥ shape(ksize, 2) ∧ shape(input, 3) ≥ shape(ksize, 3)
+>>
+Rule 47 (Strides shape must be 4 if the input tensor is 4-dimensional.)
+{input : tensor, strides : tensor} |= if ndim(input) = 4 then ndim(strides) = 4
+>>
+Rule 48 (Ksize shape must be 4 if the input tensor is 4-dimensional.)
+{input : tensor, ksize : tensor} |= if ndim(input) = 4 then ndim(ksize) = 4
+>>
+Rule 49 (When Data format is NCHW_VECT_C Ksize[1] has to divide the Input[1])
+{input : tensor, ksize: tensor, data_format : str} |= if data_format = "NCHW_VECT_C" then shape(input, 1) % shape(ksize, 1) = 0
+>>
+Rule 50 (When Data format is NCHW_VECT_C Strides[1] must divide the Input[1] and be > 0)
+{input : tensor, strides: tensor, data_format : str} |= if data_format = "NCHW_VECT_C" then shape(input, 1) % shape(strides, 1) = 0 ∧ shape(strides, 1) > 0
+>>
+Rule 51 (When data_format is NCHW_VECT_C the channel dimension in strides and ksize must be greater or equal than 1)
+{ksize: tensor, strides:tensor, data_format:str} |= if data_format = "NCHW_VECT_C" then shape(ksize, 1) ≥ 1 ∧ shape(strides, 1) ≥ 1
+>>
+Rule 52 (Input should be of dimension 4 when data_format is given)
+{input: tensor, data_format: str} |= if data_format = "NHWC" ∨ data_format = "NCHW" ∨ data_format = "NCHW_VECT_C" then ndim(input) = 4
+>>
+Rule 53 (Ksize values are less than or equal to input values when padding is VALID and the format is not NCHW)
+{input : tensor, ksize: tensor, padding : str, data_format:str} |= if padding = "VALID" ∧ data_format = "NHWC" then shape(ksize, 1) <= shape(input, 1) ∧ shape(ksize, 2) <= shape(input, 2)
+>>
+Rule 54 (The strides and the ksize values cannot be higher than the maximum int32 value.)
+{ksize: tensor, strides: tensor} |= max(ksize) < 2147483647 ∧ max(strides) < 2147483647
+>>
+Rule 55 (Input can not be empty when padding is SAME)
+{input: tensor, padding:str} |= if padding = "SAME" then ∀i ∈ [0, ndim(input) - 1]: shape(input, i) > 0
+>>
+Rule 56 (If format is NCHW_VECT_C, shape(ksize,1) and shape(strides, 1) must be even.)
+{ksize : tensor, strides : tensor, data_format: str} |= if data_format = "NCHW_VECT_C" then shape(ksize, 1) % 2 = 0 ∧ shape(strides, 1) % 2 = 0
+>>
+Rule 57 (If the format is NHWC or NCHW the Channel dimension in the ksize and strides should be 1)
+{ksize: tensor, strides:tensor, data_format:str} |= if data_format = "NHWC" ∨ data_format = "NCHW" then shape(ksize, 3) = 1 ∧ shape(strides, 3) = 1
+>>
+Rule 59 (If format is NCHW then the first dimension in ksize and stride should be 1)
+{ksize: tensor, strides:tensor, data_format:str} |= if data_format = "NCHW" then shape(ksize, 0) = 1 ∧ shape(strides, 0) = 1
+>>
+Rule 60 (If format is NCHW, shape of strides in dimension 1 can't be greater than shape of input in dimension 1)
+{input: tensor, strides:tensor, data_format:str} |= if data_format = "NCHW" then shape(strides, 1) ≤ shape(input, 1)
+>>
+Rule 61 (Strides tensor must have int32 datatype)
+{strides : tensor} |= dtype_(strides) = 3
+>>
+Rule 62 (Ksize tensor must have int32 datatype)
+{ksize : tensor} |= dtype_(ksize) = 3
+>>
+Rule 64 (If using SAME padding strides should be at least 1.)
+{strides : tensor, padding : str} |= if padding = "SAME" then shape(strides, 1) ≥ 1 ∧ shape(strides, 2) ≥ 1
+>>
+Rule 65 (The batch dimension for ksize and strides should be 1.)
+{ksize: tensor, strides: tensor} |= shape(ksize, 0) = 1 ∧ shape(strides, 0) = 1
+>>
+Rule 66 (Ksize and Strides, at least the spatial dimensions, have to be positive)
+{ksize: tensor, strides: tensor} |= shape(ksize, 1) > 0 ∧ shape(ksize, 2) > 0 ∧ shape(strides, 1) > 0 ∧ shape(strides, 2) > 0
+>>
+Rule 67 (Strides must be one of the allowed dtypes)
+{strides: tensor} |= dtype_(strides) = 3
+>>
+Rule 68 (Ksize must be one of the allowed dtypes)
+{ksize: tensor} |= dtype_(ksize) = 3
+>>
+Rule 69 (The data format has to be one of the allowed values)
+{data_format: str} |= data_format = "NHWC" ∨ data_format = "NCHW" ∨ data_format = "NCHW_VECT_C"
+>>
+Rule 70 (The data format cannot be none)
+{data_format: str} |= data_format ≠ "none"
+>>
+Rule 71 (If the data_format is specified then the input tensor must be 4D)
+{input : tensor, data_format : str} |= if data_format = "NHWC" ∨ data_format = "NCHW" ∨ data_format = "NCHW_VECT_C" then ndim(input) = 4
+>>
+Rule 73 (The allowed input data types must be either half, bfloat16, float32, float64, int32, int64, uint8, int16, int8, uint16, or qint8.)
+{input : tensor} |= dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 4 ∨ dtype_(input) = 5 ∨ dtype_(input) = 6 ∨ dtype_(input) = 2 ∨ dtype_(input) = 1 ∨ dtype_(input) = 3
+>>
+Rule 74 (Padding should be a valid value)
+{padding : str} |= padding = "SAME" ∨ padding = "VALID"
+>>
+Rule 75 (If format is NHWC then the last dimension in ksize and stride should be 1)
+{ksize : tensor, strides:tensor, data_format :str} |= if data_format = "NHWC" then shape(ksize, 3) = 1 ∧ shape(strides, 3) = 1
+>>
+Rule 76 (If the data_format is NCHW and padding is SAME, the output height and width should be positive)
+{input : tensor, strides : tensor, data_format : str, padding : str} |= if data_format = "NCHW" ∧ padding = "SAME" then (shape(input, 2) + shape(strides, 2) - 1) / shape(strides, 2) > 0 ∧ (shape(input, 3) + shape(strides, 3) - 1) / shape(strides, 3) > 0
+>>
+Rule 80 (When data format is NCHW, ksize and stride cannot be greater than the input's corresponding spatial dimension)
+{input: tensor, ksize: tensor, strides: tensor, data_format : str} |= if data_format = "NCHW" then shape(ksize, 2) ≤ shape(input, 2) ∧ shape(ksize, 3) ≤ shape(input, 3) ∧ shape(strides, 2) <= shape(input, 2) ∧ shape(strides, 3) <= shape(input, 3)
+>>
+Rule 81 (When format is NCHW, strides and ksize spatial dimensions can't be zero)
+{ksize : tensor, strides : tensor, data_format: str} |= if data_format = "NCHW" then shape(ksize, 2) > 0 ∧ shape(ksize, 3) > 0 ∧ shape(strides, 2) > 0 ∧ shape(strides, 3) > 0
+>>
+Rule 82 (If input tensor's dtype is int32, then ksize and stride values must be in the valid range for int32)
+{input: tensor, ksize: tensor, strides: tensor} |= if dtype_(input) = 4 then min(ksize) >= -2147483648 ∧ max(ksize) <= 2147483647 ∧ min(strides) >= -2147483648 ∧ max(strides) <= 2147483647
+>>
+Rule 83 (If input tensor's dtype is int64, then ksize and stride values must be in the valid range for int64)
+{input: tensor, ksize: tensor, strides: tensor} |= if dtype_(input) = 5 then min(ksize) >= -9223372036854775808 ∧ max(ksize) <= 9223372036854775807 ∧ min(strides) >= -9223372036854775808 ∧ max(strides) <= 9223372036854775807
+>>
+Rule 84 (Ksize and Strides cannot be of complex datatype)
+{ksize : tensor, strides : tensor} |= dtype_(ksize) ≠ 10 ∧ dtype_(ksize) ≠ 11 ∧ dtype_(strides) ≠ 10 ∧ dtype_(strides) ≠ 11
+>>
+Rule 86 (If the data format is NHWC or NCHW the channel dimension in the input should be greater than 0.)
+{input: tensor, data_format:str} |= if data_format = "NHWC" then shape(input, 3) > 0 else if data_format = "NCHW" then shape(input, 1) > 0
+>>
+Rule 87 (ksize and strides must have the same dtype as each other)
+{ksize: tensor, strides: tensor} |= dtype_(ksize) = dtype_(strides)
+>>
+Rule 88 (When padding is VALID, ksize's height and width should not exceed the input's height and width)
+{input : tensor, ksize : tensor, padding : str} |= if padding = "VALID" then shape(ksize, 1) <= shape(input, 1) ∧ shape(ksize, 2) <= shape(input, 2)
+>>
+Rule 89 (Strides can't be lower than one.)
+{strides: tensor} |= shape(strides, 1) >= 1 ∧ shape(strides, 2) >= 1
+>>
+Rule 90 (When the data format is NCHW the channel dimension can be greater than one but spatial have to be one)
+{input: tensor, data_format: str} |= if data_format = "NCHW" then shape(input, 1) ≥ 1 ∧ shape(input, 0) = 1 ∧ shape(input, 3) > 0 ∧ shape(input, 2) > 0
+>>
+Rule 91 (If the data_format is NCHW_VECT_C the number of channels on the input tensor must be divisible by a certain number)
+{input: tensor, data_format: str} |= if data_format = "NCHW_VECT_C" then shape(input, 1) % 2 = 0
+>>
+Rule 92 (If the data_format is NCHW_VECT_C ksize must be divisible by two)
+{ksize: tensor, data_format: str} |= if data_format = "NCHW_VECT_C" then shape(ksize, 1) % 2 = 0
+>>
+Rule 93 (If the data_format is NCHW_VECT_C, then ksize[1] <= input[1])
+{input: tensor, ksize: tensor, data_format: str} |= if data_format = "NCHW_VECT_C" then shape(ksize, 1) ≤ shape(input, 1)
+>>
+Rule 94 (If the data format is NHWC or NCHW, the batch and channel dimensions of ksize have to be 1)
+{ksize: tensor, data_format: str} |= if data_format = "NHWC" ∨ data_format = "NCHW" then shape(ksize, 0) = 1 ∧ shape(ksize, 3) = 1
+>>
+Rule 95 (The padding must be a valid enum)
+{padding: str} |= padding = "SAME" ∨ padding = "VALID"
+>>
+Rule 96 (Padding cannot be none)
+{padding: str} |= padding ≠ "none"
+>>
+Rule 97 (Data format can not be channels_last/channels_first)
+{data_format : str} |= data_format ≠ "channels_last" ∧ data_format ≠ "channels_first"
+>>
+Rule 98 (Strides can't be one of the reserved keywords.)
+{strides : tensor} |= dtype_(strides) ≠ 12
+>>
+Rule 99 (Ksize can't be one of the reserved keywords.)
+{ksize : tensor} |= dtype_(ksize) ≠ 12
+>>
+Rule 101 (If format is NCHW_VECT_C shape of strides in dimension 1 has to be different than 0)
+{strides:tensor, data_format:str} |= if data_format = "NCHW_VECT_C" then shape(strides, 1) ≠ 0
+>>
+Rule 102 (If using SAME padding the output size is given by ceil(input_size / stride).)
+{input: tensor, strides: tensor, padding:str} |= if padding = "SAME" then shape(strides, 1) > 0 ∧ shape(strides, 2) > 0 ∧ shape(input, 1) > 0 ∧ shape(input, 2) > 0
+>>
+Rule 103 (When padding is SAME, then strides must divide the input size (dimensions 1 and 2))
+{input : tensor, strides : tensor, padding : str} |= if padding = "SAME" then shape(input, 1) % shape(strides, 1) = 0 ∧ shape(input, 2) % shape(strides, 2) = 0
+>>
+Rule 104 (If data_format is NCHW then shape(ksize, 0) has to be equal to 1)
+{ksize : tensor, data_format: str} |= if data_format = "NCHW" then shape(ksize, 0) = 1
+>>
+Rule 105 (If data_format is NCHW then shape(strides, 0) has to be equal to 1)
+{strides : tensor, data_format: str} |= if data_format = "NCHW" then shape(strides, 0) = 1
+>>
+Rule 106 (If the data_format is NCHW the shape of the first dimension has to be one)
+{input: tensor, data_format:str} |= if data_format = "NCHW" then shape(input, 0) = 1
+>>
+Rule 108 (Ksize has to be less than or equal the input if using VALID padding in either of the spatial dimensions)
+{input: tensor, ksize: tensor, padding: str} |= if padding = "VALID" then shape(ksize, 1) ≤ shape(input, 1) ∧ shape(ksize, 2) ≤ shape(input, 2)
+>>
+Rule 109 (Stride shape has to be at least 1 when data format is NCHW.)
+{strides: tensor, data_format: str} |= if data_format = "NCHW" then shape(strides, 2) ≥ 1 ∧ shape(strides, 3) ≥ 1
+>>
+Rule 110 (If padding is SAME the input dimensions have to be greater than 0.)
+{input: tensor, padding: str} |= if padding = "SAME" then shape(input, 1) > 0 ∧ shape(input, 2) > 0
+>>
+Rule 111 (Input tensor should be non-empty when using NCHW_VECT_C)
+{input: tensor, data_format: str} |= if data_format = "NCHW_VECT_C" then ∀i ∈ [0, ndim(input) - 1] : shape(input, i) > 0
+>>
+Rule 112 (Ksize and Stride tensors have all the same dimensions)
+{ksize: tensor, strides: tensor} |= shape(ksize, 0) = shape(strides, 0) ∧ shape(ksize, 1) = shape(strides, 1) ∧ shape(ksize, 2) = shape(strides, 2) ∧ shape(ksize, 3) = shape(strides, 3)
+>>
+Rule 113 (If padding is VALID and strides > 1, then (input_size - ksize + 1) / strides should be greater than 0 for dimension 1.)
+{input: tensor, ksize: tensor, strides: tensor, padding: str} |= if padding = "VALID" ∧ shape(strides, 1) > 1 then (shape(input, 1) - shape(ksize, 1) + 1) / shape(strides, 1) > 0
+>>
+Rule 114 (If padding is VALID and strides > 1, then (input_size - ksize + 1) / strides should be greater than 0 for dimension 2.)
+{input: tensor, ksize: tensor, strides: tensor, padding: str} |= if padding = "VALID" ∧ shape(strides, 2) > 1 then (shape(input, 2) - shape(ksize, 2) + 1) / shape(strides, 2) > 0
+>>
+Rule 115 (If the data_format is NCHW, then the input's dimensions should be [1, channel, height, width])
+{input: tensor, data_format: str} |= if data_format = "NCHW" then ndim(input) = 4
+>>
+Rule 116 (If strides are equal to 1 and padding is valid then ksize must be less or equal to the input)
+{input: tensor, ksize: tensor, strides: tensor, padding: str} |= if shape(strides, 1) = 1 ∧ shape(strides, 2) = 1 ∧ padding = "VALID" then shape(ksize, 1) <= shape(input, 1) ∧ shape(ksize, 2) <= shape(input, 2)
+>>
+Rule 117 (All dimensions of ksize have to be positive or equal to 1)
+{ksize: tensor} |= shape(ksize, 0) ≥ 1 ∧ shape(ksize, 1) ≥ 1 ∧ shape(ksize, 2) ≥ 1 ∧ shape(ksize, 3) ≥ 1
+>>
+Rule 118 (All dimensions of strides have to be positive or equal to 1)
+{strides: tensor} |= shape(strides, 0) ≥ 1 ∧ shape(strides, 1) ≥ 1 ∧ shape(strides, 2) ≥ 1 ∧ shape(strides, 3) ≥ 1
+>>
+Rule 119 (If format is NHWC, ksize[1] and ksize[2] have to be less or equal to the input)
+{input: tensor, ksize: tensor, data_format: str} |= if data_format = "NHWC" then shape(ksize, 1) ≤ shape(input, 1) ∧ shape(ksize, 2) ≤ shape(input, 2)
+>>
+Rule 120 (If format is NHWC, strides[1] and strides[2] have to be positive.)
+{strides: tensor, data_format: str} |= if data_format = "NHWC" then shape(strides, 1) > 0 ∧ shape(strides, 2) > 0
+>>
+Rule 121 (If data_format is NCHW and padding is SAME, then the output height and width dimensions must be at least one)
+{input : tensor, strides : tensor, data_format : str, padding : str} |= if data_format = "NCHW" ∧ padding = "SAME" then (shape(input, 2) + shape(strides, 2) - 1) / shape(strides, 2) ≥ 1 ∧ (shape(input, 3) + shape(strides, 3) - 1) / shape(strides, 3) ≥ 1
+>>
+Rule 122 (If using VALID padding, the output size can be calculated based on the formula. If it's less than 1, the Ksize is too large or the input is too small)
+{input: tensor, ksize: tensor, strides: tensor, padding: str} |= if padding = "VALID" then (shape(input, 1) - shape(ksize, 1)) / shape(strides, 1) + 1 > 0 ∧ (shape(input, 2) - shape(ksize, 2)) / shape(strides, 2) + 1 > 0
+>>
+Rule 123 (When data format is NCHW or NHWC, dimensions 0 and 3 or 1 respectively need to be one)
+{ksize: tensor, data_format: str} |= if data_format = "NCHW" then shape(ksize, 0) = 1 else if data_format = "NHWC" then shape(ksize, 3) = 1
+>>
+Rule 124 (When data format is NCHW or NHWC, dimension 0 and 3 or 1 respectively in the strides tensor need to be one)
+{strides: tensor, data_format: str} |= if data_format = "NCHW" then shape(strides, 0) = 1 else if data_format = "NHWC" then shape(strides, 3) = 1
+>>
+Rule 128 (If NHWC, the spatial dimensions must be positive, and also less than the input size (if VALID padding).)
+{input: tensor, ksize: tensor, strides: tensor, data_format: str, padding: str} |= if data_format = "NHWC" ∧ padding = "VALID" then shape(strides, 1) > 0 ∧ shape(strides, 2) > 0 ∧ shape(ksize, 1) <= shape(input, 1) ∧ shape(ksize, 2) <= shape(input, 2)
+>>
+Rule 129 (Ksize has to be positive (Dimensions 1 and 2).)
+{ksize : tensor} |= shape(ksize, 1) > 0 ∧ shape(ksize, 2) > 0
+>>
+Rule 130 (Strides has to be positive (Dimensions 1 and 2).)
+{strides : tensor} |= shape(strides, 1) > 0 ∧ shape(strides, 2) > 0
+>>
+Rule 131 (If using the VALID padding the output dimensions must be greater than 0)
+{input: tensor, ksize: tensor, strides: tensor, padding: str} |= if padding = "VALID" then ((shape(input, 1) - shape(ksize, 1) + shape(strides, 1)) / shape(strides, 1)) > 0 ∧ ((shape(input, 2) - shape(ksize, 2) + shape(strides, 2)) / shape(strides, 2)) > 0
+>>
+Rule 132 (If data_format is NHWC input's dimensions should be in order of [batch, height, width, channel])
+{input: tensor, data_format: str} |= if data_format = "NHWC" then ndim(input) = 4
+>>
+Rule 133 (Strides should be less or equal to the input dimensions.)
+{input: tensor, strides: tensor} |= shape(strides, 1) ≤ shape(input, 1) ∧ shape(strides, 2) ≤ shape(input, 2)

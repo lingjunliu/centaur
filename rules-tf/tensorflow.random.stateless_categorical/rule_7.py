@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# number of classes should be greater than 1 (Rule 7)
+# num_classes must be greater than 0 (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 1) > 1) if n else
-          Select(v["arg1_shape"], 1) > 1)
+    s.add(Not(Select(v["arg1_shape"], 1) > 0) if n else
+          Select(v["arg1_shape"], 1) > 0)
 )
 
 def rule_7_func(arg1, solver=None, neg=False):

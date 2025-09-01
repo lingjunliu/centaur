@@ -5,43 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If num_rows and num_cols are specified, at least one should be greater than k[0] and k[1] offsets (Rule 56)
+# diagonal and k have same datatype (Rule 56)
 
 rule_56 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_value"] > Select(v["arg3_values"], 0), v["arg2_value"] > Select(v["arg3_values"], 1))) if n else
-          Or(v["arg1_value"] > Select(v["arg3_values"], 0), v["arg2_value"] > Select(v["arg3_values"], 1)))
+    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
+          v["arg1_dtype"] == v["arg2_dtype"])
 )
 
-def rule_56_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_56_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
-            return False
-        if not (isinstance(arg3, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg3)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_value = Int('arg2_value')
-        arg3_values = Array('arg3_values', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        solver.add(arg2_value == int(arg2))
-        for i in range(len(arg3)):
-            arg3_values = Store(arg3_values, i, arg3[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 56
-        rule_56(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_values': arg3_values})
+        rule_56(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_56(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_values': arg3['values']}, neg)
+        rule_56(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The total number of elements in the input tensor should be less than or equal to 2^20, a reasonable limit to avoid memory explosion (Rule 16)
+# if input tensor is a scalar, its rank must be 0 (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 0, True, (If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) <= 1048576, (If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) <= 1048576, (If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) <= 1048576, (If(v["arg1_ndim"] == 4, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3) <= 1048576, (If(v["arg1_ndim"] == 5, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3) * Select(v["arg1_shape"], 4) <= 1048576, False)))))))))))) if n else
-          If(v["arg1_ndim"] == 0, True, (If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) <= 1048576, (If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) <= 1048576, (If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) <= 1048576, (If(v["arg1_ndim"] == 4, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3) <= 1048576, (If(v["arg1_ndim"] == 5, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3) * Select(v["arg1_shape"], 4) <= 1048576, False))))))))))))
+    s.add(Not(If(Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) != 1) for i in range(6)]), v["arg1_ndim"] == 0, True)) if n else
+          If(Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) != 1) for i in range(6)]), v["arg1_ndim"] == 0, True))
 )
 
 def rule_16_func(arg1, solver=None, neg=False):

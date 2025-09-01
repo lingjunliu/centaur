@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if the input is a tensor and is of uint8 type, return true (Rule 44)
+# Check that dtype is a valid dtype (Rule 44)
 
 rule_44 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == 5) if n else
-          v["arg1_dtype"] == 5)
+    s.add(Not(And(v["arg1_dtype"] >= 0, v["arg1_dtype"] <= 13)) if n else
+          And(v["arg1_dtype"] >= 0, v["arg1_dtype"] <= 13))
 )
 
 def rule_44_func(arg1, solver=None, neg=False):

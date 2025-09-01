@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The tensor should have fewer than 5 dimensions, if first dim >10 it should be a matrix (Rule 115)
+# if there is one shape value, it should not exceed MAX value (Rule 115)
 
 rule_115 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] < 5, If(Select(v["arg1_shape"], 0) > 10, v["arg1_ndim"] == 2, False))) if n else
-          And(v["arg1_ndim"] < 5, If(Select(v["arg1_shape"], 0) > 10, v["arg1_ndim"] == 2, False)))
+    s.add(Not(If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) <= 2147483647, True)) if n else
+          If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) <= 2147483647, True))
 )
 
 def rule_115_func(arg1, solver=None, neg=False):

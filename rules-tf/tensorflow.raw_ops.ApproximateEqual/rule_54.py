@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If x is a float64, then y is a float64 (Rule 54)
+# if x and y are quantized, tolerance must not be supplied (Rule 54)
 
 rule_54 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, False)) if n else
-          If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, False))
+    s.add(Not(If((Or(Or(Or(Or(v["arg1_dtype"] == 11, v["arg1_dtype"] == 12), v["arg1_dtype"] == 13), v["arg1_dtype"] == 14), v["arg1_dtype"] == 15)), (Or(Or(Or(Or(v["arg2_dtype"] == 11, v["arg2_dtype"] == 12), v["arg2_dtype"] == 13), v["arg2_dtype"] == 14), v["arg2_dtype"] == 15)), True)) if n else
+          If((Or(Or(Or(Or(v["arg1_dtype"] == 11, v["arg1_dtype"] == 12), v["arg1_dtype"] == 13), v["arg1_dtype"] == 14), v["arg1_dtype"] == 15)), (Or(Or(Or(Or(v["arg2_dtype"] == 11, v["arg2_dtype"] == 12), v["arg2_dtype"] == 13), v["arg2_dtype"] == 14), v["arg2_dtype"] == 15)), True))
 )
 
 def rule_54_func(arg1, arg2, solver=None, neg=False):

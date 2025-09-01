@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If a and b are scalar, x must be between 0 and 1 (Rule 23)
+# if dtype of a is float32 or float64, then b and x must also be float32 or float64, and a > 0 and b > 0 and 0 <= x <= 1  (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), And(Select(v["arg3_range"], 0) >= 0, Select(v["arg3_range"], 1) <= 1), False)) if n else
-          If(And(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), And(Select(v["arg3_range"], 0) >= 0, Select(v["arg3_range"], 1) <= 1), False))
+    s.add(Not(If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), And(And(And(And(And(v["arg2_dtype"] == v["arg1_dtype"], v["arg3_dtype"] == v["arg1_dtype"]), Select(v["arg1_range"], 0) > 0), Select(v["arg2_range"], 0) > 0), Select(v["arg3_range"], 0) >= 0), Select(v["arg3_range"], 1) <= 1), True)) if n else
+          If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), And(And(And(And(And(v["arg2_dtype"] == v["arg1_dtype"], v["arg3_dtype"] == v["arg1_dtype"]), Select(v["arg1_range"], 0) > 0), Select(v["arg2_range"], 0) > 0), Select(v["arg3_range"], 0) >= 0), Select(v["arg3_range"], 1) <= 1), True))
 )
 
 def rule_23_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -28,20 +28,28 @@ def rule_23_func(arg1, arg2, arg3, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_ndim = Int('arg2_ndim')
+        arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg2_dtype = Int('arg2_dtype')
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg3_dtype = Int('arg3_dtype')
         arg3_range = Array('arg3_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
         arg3_range = Store(arg3_range, 0, int(np.min(arg3)))
         arg3_range = Store(arg3_range, 1, int(np.max(arg3)))
 
         # Constraints for rule 23
-        rule_23(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg3_range': arg3_range})
+        rule_23(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype, 'arg2_range': arg2_range, 'arg2_dtype': arg2_dtype, 'arg3_range': arg3_range, 'arg3_dtype': arg3_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_23(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg3_range': arg3['range']}, neg)
+        rule_23(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype'], 'arg2_range': arg2['range'], 'arg2_dtype': arg2['dtype'], 'arg3_range': arg3['range'], 'arg3_dtype': arg3['dtype']}, neg)

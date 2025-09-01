@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# input must have valid shape - non-zero (Rule 21)
+# ksize[2] should be greater than 0 (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(And(And(Select(v["arg1_shape"], 1) > 0, Select(v["arg1_shape"], 2) > 0), Select(v["arg1_shape"], 3) > 0)) if n else
-          And(And(Select(v["arg1_shape"], 1) > 0, Select(v["arg1_shape"], 2) > 0), Select(v["arg1_shape"], 3) > 0))
+    s.add(Not(Select(v["arg1_values"], 2) > 0) if n else
+          Select(v["arg1_values"], 2) > 0)
 )
 
 def rule_21_func(arg1, solver=None, neg=False):
@@ -17,21 +17,21 @@ def rule_21_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 21
-        rule_21(solver, {'arg1_shape': arg1_shape})
+        rule_21(solver, {'arg1_values': arg1_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_21(solver, {'arg1_shape': arg1['shape']}, neg)
+        rule_21(solver, {'arg1_values': arg1['values']}, neg)

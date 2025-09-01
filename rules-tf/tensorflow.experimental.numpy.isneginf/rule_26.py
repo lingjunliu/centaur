@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# tensor must be of dimension >= 1 (Rule 26)
+# The input tensor must have a dtype and that dtype must be a floating or complex point dtype (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] >= 1) if n else
-          v["arg1_ndim"] >= 1)
+    s.add(Not(If(v["arg1_dtype"] == 6, True, If(v["arg1_dtype"] == 7, True, If(v["arg1_dtype"] == 8, True, If(v["arg1_dtype"] == 9, True, If(v["arg1_dtype"] == 10, True, False)))))) if n else
+          If(v["arg1_dtype"] == 6, True, If(v["arg1_dtype"] == 7, True, If(v["arg1_dtype"] == 8, True, If(v["arg1_dtype"] == 9, True, If(v["arg1_dtype"] == 10, True, False))))))
 )
 
 def rule_26_func(arg1, solver=None, neg=False):
@@ -22,15 +22,15 @@ def rule_26_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 26
-        rule_26(solver, {'arg1_ndim': arg1_ndim})
+        rule_26(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_26(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_26(solver, {'arg1_dtype': arg1['dtype']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# a, b, x must not be complex tensors (Rule 45)
+# All input tensors have dimension greater than zero (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(And(v["arg1_dtype"] != 10, v["arg1_dtype"] != 11), v["arg2_dtype"] != 10), v["arg2_dtype"] != 11), v["arg3_dtype"] != 10), v["arg3_dtype"] != 11)) if n else
-          And(And(And(And(And(v["arg1_dtype"] != 10, v["arg1_dtype"] != 11), v["arg2_dtype"] != 10), v["arg2_dtype"] != 11), v["arg3_dtype"] != 10), v["arg3_dtype"] != 11))
+    s.add(Not(And(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), v["arg3_ndim"] > 0)) if n else
+          And(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), v["arg3_ndim"] > 0))
 )
 
 def rule_45_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -28,19 +28,19 @@ def rule_45_func(arg1, arg2, arg3, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
-        arg3_dtype = Int('arg3_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_ndim = Int('arg2_ndim')
+        arg3_ndim = Int('arg3_ndim')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg3_ndim == arg3.ndim)
 
         # Constraints for rule 45
-        rule_45(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype})
+        rule_45(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg3_ndim': arg3_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_45(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype']}, neg)
+        rule_45(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg3_ndim': arg3['ndim']}, neg)

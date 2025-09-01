@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# input array must be a tensor with at least 1 dimension (Rule 1)
+# ary must have at least one dimension (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
     s.add(Not(v["arg1_ndim"] >= 1) if n else

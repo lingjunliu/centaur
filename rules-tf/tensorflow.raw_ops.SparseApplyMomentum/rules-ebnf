@@ -1,117 +1,129 @@
 >>
-Rule 1 (var and accum should have the same data type)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 1 (var, accum, lr, and grad must have the same dtype)
+{var : tensor, accum : tensor, lr : tensor, grad : tensor} |= dtype_(var) = dtype_(accum) ∧ dtype_(var) = dtype_(lr) ∧ dtype_(var) = dtype_(grad)
 >>
-Rule 2 (lr must be a scalar)
-{v_1 : tensor} |= ndim(v_1) = 0
+Rule 2 (indices must be int32 or int64)
+{indices : tensor} |= dtype_(indices) = 2 ∨ dtype_(indices) = 4
 >>
-Rule 7 (indices must be a vector of int32 or int64)
-{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 3 (momentum must have the same dtype as var)
+{var : tensor, momentum : tensor} |= dtype_(var) = dtype_(momentum)
 >>
-Rule 8 (shape of indices must be 1)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 4 (lr and momentum must be scalar tensors)
+{lr : tensor, momentum : tensor} |= ndim(lr) = 0 ∧ ndim(momentum) = 0
 >>
-Rule 9 (if use_locking is present, then it should be a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 5 (var and accum shapes must be the same)
+{var : tensor, accum : tensor} |= ndim(var) = ndim(accum) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(accum, i)
 >>
-Rule 11 (var, accum, lr, and grad must have the same shape)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ndim(v_1) = ndim(v_4) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_1, i) = shape(v_3, i) ∧ shape(v_1, i) = shape(v_4, i)
+Rule 6 (var must be of a valid type)
+{var : tensor} |= dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 10 ∨ dtype_(var) = 4 ∨ dtype_(var) = 13 ∨ dtype_(var) = 14 ∨ dtype_(var) = 15 ∨ dtype_(var) = 16 ∨ dtype_(var) = 9 ∨ dtype_(var) = 17 ∨ dtype_(var) = 18
 >>
-Rule 12 (var and accum should have the same shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 7 (use_locking must be a boolean)
+{use_locking : bool} |= use_locking = true ∨ use_locking = false
 >>
-Rule 13 (var, accum, lr and momentum must have the same dtype)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3) ∧ dtype_(v_1) = dtype_(v_4)
+Rule 8 (use_nesterov must be a boolean)
+{use_nesterov : bool} |= use_nesterov = true ∨ use_nesterov = false
 >>
-Rule 14 (indices values must be within the bounds of var's first dimension)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0 ∧ v_2[i] < shape(v_1, 0)
+Rule 10 (indices shape[0] should be equal to grad shape[0])
+{indices : tensor, grad : tensor} |= shape(indices, 0) = shape(grad, 0)
 >>
-Rule 15 (lr should be non-negative)
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 11 (var rank should be greater than or equal to 1)
+{var : tensor} |= ndim(var) ≥ 1
 >>
-Rule 16 (momentum should be within [0, 1])
-{v_1 : tensor} |= min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
+Rule 12 (indices values should be within the valid range of var's first dimension)
+{var : tensor, indices : tensor} |= max(indices) < shape(var, 0)
 >>
-Rule 17 (if var is float32, then lr and momentum should also be float32)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∧ dtype_(v_3) = 7
+Rule 13 (indices must be a vector)
+{indices : tensor} |= ndim(indices) = 1
 >>
-Rule 18 (if var is float64, then lr and momentum should also be float64)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = 8 ∧ dtype_(v_3) = 8
+Rule 14 (minimum value of indices should be greater than or equal to 0)
+{indices : tensor} |= min(indices) ≥ 0
 >>
-Rule 19 (if var is complex64, then lr and momentum should also be complex64)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 9 then dtype_(v_2) = 9 ∧ dtype_(v_3) = 9
+Rule 15 (grad shape must be consistent with var shape beyond the first dimension)
+{var : tensor, grad : tensor, indices : tensor} |= ndim(var) = ndim(grad) ∧ (shape(indices, 0) = shape(grad, 0)) ∧ ∀i ∈ [1, ndim(var) - 1] : shape(var, i) = shape(grad, i)
 >>
-Rule 20 (if var is complex128, then lr and momentum should also be complex128)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 10 ∧ dtype_(v_3) = 10
+Rule 18 (indices dtype must be either int32 or int64)
+{indices : tensor} |= dtype_(indices) = 3 ∨ dtype_(indices) = 4
 >>
-Rule 21 (The first dimension of var must be greater than or equal to the number of indices)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) ≥ shape(v_2, 0)
+Rule 19 (if indices is int32, var first dimension size must be less than 2^31)
+{indices : tensor, var : tensor} |= if dtype_(indices) = 3 then shape(var, 0) < 2147483648
 >>
-Rule 22 (The dtype of var can only be float32, float64, int32, uint8, int16, int8, complex64, int64, bfloat16, complex128, half, uint32, uint64)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 12 ∨ dtype_(v_1) = 10
+Rule 20 (if indices is int64, var first dimension size must be less than 2^63)
+{indices : tensor, var : tensor} |= if dtype_(indices) = 4 then shape(var, 0) < 9223372036854775808
 >>
-Rule 27 (var, accum, lr, grad and momentum should have compatible types: if var is int, other variable should be int)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor} |= if dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 4 then dtype_(v_2) = dtype_(v_1) ∧ dtype_(v_3) = dtype_(v_1) ∧ dtype_(v_4) = dtype_(v_1) ∧ dtype_(v_5) = dtype_(v_1)
+Rule 21 (var, accum, lr, grad, and momentum must all have the same shape)
+{var : tensor, accum : tensor, lr : tensor, grad : tensor, momentum : tensor} |= ndim(var) = ndim(accum) ∧ ndim(var) = ndim(lr) ∧ ndim(var) = ndim(grad) ∧ ndim(var) = ndim(momentum) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(accum, i) ∧ shape(var, i) = shape(grad, i)
 >>
-Rule 33 (var, accum and grad should have same number of dimensions)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3)
+Rule 22 (lr and momentum must be scalar tensors and their values must be non-negative)
+{lr : tensor, momentum : tensor} |= ndim(lr) = 0 ∧ ndim(momentum) = 0 ∧ min(lr) ≥ 0 ∧ min(momentum) ≥ 0
 >>
-Rule 34 (accum and grad should have same number of dimensions)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 24 (grad and accum shapes must be consistent with var shape beyond the first dimension)
+{var : tensor, grad : tensor, accum : tensor, indices : tensor} |= ndim(var) = ndim(grad) ∧ ndim(var) = ndim(accum) ∧ (shape(indices, 0) = shape(grad, 0)) ∧ (shape(indices, 0) = shape(accum, 0)) ∧ ∀i ∈ [1, ndim(var) - 1] : shape(var, i) = shape(grad, i) ∧ shape(var, i) = shape(accum, i)
 >>
-Rule 35 (var must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 25 (minimum value of indices should be greater than or equal to 0 and maximum value less than the size of var's first dimension)
+{var : tensor, indices : tensor} |= min(indices) ≥ 0 ∧ max(indices) < shape(var, 0)
 >>
-Rule 38 (var, accum, lr, grad and momentum must have the same shape if they have more than 0 dimension)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0 ∧ ndim(v_4) > 0 ∧ ndim(v_5) > 0 then ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ndim(v_1) = ndim(v_4) ∧ ndim(v_1) = ndim(v_5) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_1, i) = shape(v_3, i) ∧ shape(v_1, i) = shape(v_4, i) ∧ shape(v_1, i) = shape(v_5, i)
+Rule 26 (var, accum, lr, grad, and momentum must all be of type float32, float64, complex64, or complex128.)
+{var : tensor, accum : tensor, lr : tensor, grad : tensor, momentum : tensor} |= (dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 9 ∨ dtype_(var) = 10) ∧ (dtype_(accum) = 7 ∨ dtype_(accum) = 8 ∨ dtype_(accum) = 9 ∨ dtype_(accum) = 10) ∧ (dtype_(lr) = 7 ∨ dtype_(lr) = 8 ∨ dtype_(lr) = 9 ∨ dtype_(lr) = 10) ∧ (dtype_(grad) = 7 ∨ dtype_(grad) = 8 ∨ dtype_(grad) = 9 ∨ dtype_(grad) = 10) ∧ (dtype_(momentum) = 7 ∨ dtype_(momentum) = 8 ∨ dtype_(momentum) = 9 ∨ dtype_(momentum) = 10)
 >>
-Rule 41 (var must have floating point or integer type)
-{v_1 : tensor} |= (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5) ∨ (dtype_(v_1) ≥ 7 ∧ dtype_(v_1) ≤ 10) ∨ dtype_(v_1) = 12
+Rule 27 (If var's dtype is int32, int64, uint8, int16 or int8, indices's dtype must be int32)
+{var : tensor, indices : tensor} |= if (dtype_(var) = 3 ∨ dtype_(var) = 4 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1) then dtype_(indices) = 3
 >>
-Rule 46 (If var is integer, then accum, lr, grad and momentum should also be integer)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor} |= if (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 5) then (dtype_(v_2) = dtype_(v_1)) ∧ (dtype_(v_3) = dtype_(v_1)) ∧ (dtype_(v_4) = dtype_(v_1)) ∧ (dtype_(v_5) = dtype_(v_1))
+Rule 28 (If var's dtype is uint32, uint64, quint8, qint8, qint32, bfloat16, qint16 or quint16, indices's dtype must be int32 or int64)
+{var : tensor, indices : tensor} |= if (dtype_(var) = 17 ∨ dtype_(var) = 18 ∨ dtype_(var) = 5 ∨ dtype_(var) = 13 ∨ dtype_(var) = 14 ∨ dtype_(var) = 15 ∨ dtype_(var) = 16) then (dtype_(indices) = 3 ∨ dtype_(indices) = 4)
 >>
-Rule 47 (If var is float, then accum, lr, grad and momentum should also be float)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor} |= if (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) ∨ (dtype_(v_1) = 6) then (dtype_(v_2) = dtype_(v_1)) ∧ (dtype_(v_3) = dtype_(v_1)) ∧ (dtype_(v_4) = dtype_(v_1)) ∧ (dtype_(v_5) = dtype_(v_1))
+Rule 29 (If var's dtype is complex64, complex128, half, float16, float32, or float64 indices's dtype must be int32 or int64)
+{var : tensor, indices : tensor} |= if (dtype_(var) = 9 ∨ dtype_(var) = 10 ∨ dtype_(var) = 6 ∨ dtype_(var) = 7 ∨ dtype_(var) = 8) then (dtype_(indices) = 3 ∨ dtype_(indices) = 4)
 >>
-Rule 48 (If var is bfloat16, then accum, lr, grad and momentum should also be bfloat16)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor} |= if dtype_(v_1) = 12 then (dtype_(v_2) = dtype_(v_1)) ∧ (dtype_(v_3) = dtype_(v_1)) ∧ (dtype_(v_4) = dtype_(v_1)) ∧ (dtype_(v_5) = dtype_(v_1))
+Rule 30 (if indices is int64, var first dimension size must be less than max int64)
+{indices : tensor, var : tensor} |= if dtype_(indices) = 4 then shape(var, 0) ≤ 9223372036854775807
 >>
-Rule 57 (If var is of type int8, int16, int32, int64, uint8, uint16, uint32 or uint64, accum, lr, grad and momentum should have the same type)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor} |= if (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) then (dtype_(v_2) = dtype_(v_1)) ∧ (dtype_(v_3) = dtype_(v_1)) ∧ (dtype_(v_4) = dtype_(v_1)) ∧ (dtype_(v_5) = dtype_(v_1))
+Rule 31 (if indices is int32, var first dimension size must be less than max int32)
+{indices : tensor, var : tensor} |= if dtype_(indices) = 3 then shape(var, 0) ≤ 2147483647
 >>
-Rule 58 (If var is of type float16, float32, float64, complex64, complex128 or bfloat16, accum, lr, grad and momentum should have the same type)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor} |= if (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) ∨ (dtype_(v_1) = 12) then (dtype_(v_2) = dtype_(v_1)) ∧ (dtype_(v_3) = dtype_(v_1)) ∧ (dtype_(v_4) = dtype_(v_1)) ∧ (dtype_(v_5) = dtype_(v_1))
+Rule 32 (var, accum, lr, grad and momentum are all of type bfloat16, then indices must be int32)
+{var : tensor, accum : tensor, lr : tensor, grad : tensor, momentum : tensor, indices : tensor} |= if (dtype_(var) = 13 ∧ dtype_(accum) = 13 ∧ dtype_(lr) = 13 ∧ dtype_(grad) = 13 ∧ dtype_(momentum) = 13) then dtype_(indices) = 3
 >>
-Rule 59 (var must be a tensor)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 33 (var, accum, lr, grad and momentum are all of type float16, then indices must be int32)
+{var : tensor, accum : tensor, lr : tensor, grad : tensor, momentum : tensor, indices : tensor} |= if (dtype_(var) = 6 ∧ dtype_(accum) = 6 ∧ dtype_(lr) = 6 ∧ dtype_(grad) = 6 ∧ dtype_(momentum) = 6) then dtype_(indices) = 3
 >>
-Rule 66 (var must have a valid dtype)
-{v_1 : tensor} |= (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 5) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 12)
+Rule 34 (var, accum, lr, grad and momentum are all of type float32, then indices must be int32)
+{var : tensor, accum : tensor, lr : tensor, grad : tensor, momentum : tensor, indices : tensor} |= if (dtype_(var) = 7 ∧ dtype_(accum) = 7 ∧ dtype_(lr) = 7 ∧ dtype_(grad) = 7 ∧ dtype_(momentum) = 7) then dtype_(indices) = 3
 >>
-Rule 69 (number of indices should be less than the size of the first dimension of var)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) ≤ shape(v_1, 0)
+Rule 35 (var, accum, lr, grad and momentum are all of type float64, then indices must be int32 or int64)
+{var : tensor, accum : tensor, lr : tensor, grad : tensor, momentum : tensor, indices : tensor} |= if (dtype_(var) = 8 ∧ dtype_(accum) = 8 ∧ dtype_(lr) = 8 ∧ dtype_(grad) = 8 ∧ dtype_(momentum) = 8) then (dtype_(indices) = 3 ∨ dtype_(indices) = 4)
 >>
-Rule 73 (all tensors should be at least rank 0)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0 ∧ ndim(v_3) ≥ 0 ∧ ndim(v_4) ≥ 0 ∧ ndim(v_5) ≥ 0
+Rule 36 (var, accum, lr, grad and momentum are all of type complex64 or complex128, then indices must be int32 or int64)
+{var : tensor, accum : tensor, lr : tensor, grad : tensor, momentum : tensor, indices : tensor} |= if (dtype_(var) = 9 ∨ dtype_(var) = 10 ∧ dtype_(accum) = 9 ∨ dtype_(accum) = 10 ∧ dtype_(lr) = 9 ∨ dtype_(lr) = 10 ∧ dtype_(grad) = 9 ∨ dtype_(grad) = 10 ∧ dtype_(momentum) = 9 ∨ dtype_(momentum) = 10) then (dtype_(indices) = 3 ∨ dtype_(indices) = 4)
 >>
-Rule 83 (grad, lr and momentum must be scalar)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 0
+Rule 56 (If var is of type int32, indices type must be int32)
+{var : tensor, indices : tensor} |= if (dtype_(var) = 3) then dtype_(indices) = 3
 >>
-Rule 101 (If the var is floating points types.)
-{v_1 : tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) ∨ (dtype_(v_1) = 12)
+Rule 57 (If var is of type int64, indices type must be int64)
+{var : tensor, indices : tensor} |= if (dtype_(var) = 4) then dtype_(indices) = 4
 >>
-Rule 102 (var, accum, lr, grad and momentum must be scalar or have same shape)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor} |= (ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 0 ∧ ndim(v_4) = 0 ∧ ndim(v_5) = 0) ∨ (ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ndim(v_1) = ndim(v_4) ∧ ndim(v_1) = ndim(v_5) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_1, i) = shape(v_3, i) ∧ shape(v_1, i) = shape(v_4, i) ∧ shape(v_1, i) = shape(v_5, i))
+Rule 58 (If var is of type float32, indices type must be int32 or int64)
+{var : tensor, indices : tensor} |= if (dtype_(var) = 7) then (dtype_(indices) = 3 ∨ dtype_(indices) = 4)
 >>
-Rule 103 (var, accum, lr, grad and momentum must have the same dtype)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3) ∧ dtype_(v_1) = dtype_(v_4) ∧ dtype_(v_1) = dtype_(v_5)
+Rule 59 (If var is of type float64, indices type must be int32 or int64)
+{var : tensor, indices : tensor} |= if (dtype_(var) = 8) then (dtype_(indices) = 3 ∨ dtype_(indices) = 4)
 >>
-Rule 112 (var and accum must have compatible dtypes. If var is int, accum must be int. If var is float, accum must be float. If var is other type, accum must also have the same type as var.)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5) ∨ (dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 10) ∨ dtype_(v_1) = 12 then dtype_(v_1) = dtype_(v_2) else false
+Rule 60 (if var is a qint8 or quint8 or qint32 or bfloat16 or qint16 or quint16 or uint16 or uint32 or uint64 then the lr and momentum values should not be negative)
+{var : tensor, lr : tensor, momentum : tensor} |= if (dtype_(var) = 13 ∨ dtype_(var) = 5 ∨ dtype_(var) = 14 ∨ dtype_(var) = 15 ∨ dtype_(var) = 16 ∨ dtype_(var) = 17 ∨ dtype_(var) = 18) then (min(lr) ≥ 0 ∧ min(momentum) ≥ 0)
 >>
-Rule 118 (indices must be a 1D tensor of type int32 or int64.)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
+Rule 61 (If var is of integer type, the grad values must also be integers)
+{var : tensor, grad : tensor} |= if (dtype_(var) = 1 ∨ dtype_(var) = 2 ∨ dtype_(var) = 3 ∨ dtype_(var) = 4 ∨ dtype_(var) = 5) then (dtype_(grad) = 1 ∨ dtype_(grad) = 2 ∨ dtype_(grad) = 3 ∨ dtype_(grad) = 4 ∨ dtype_(grad) = 5)
 >>
-Rule 121 (var and accum must be rank >= 1)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1
+Rule 62 (If var is complex64 then accum, lr, grad, momentum also have to be complex64)
+{var : tensor, accum : tensor, lr : tensor, grad : tensor, momentum : tensor} |= if (dtype_(var) = 9) then (dtype_(accum) = 9 ∧ dtype_(lr) = 9 ∧ dtype_(grad) = 9 ∧ dtype_(momentum) = 9)
+>>
+Rule 63 (If the var is a half type (6) it cannot be used with int8 or int16)
+{var : tensor} |= if (dtype_(var) = 6) then true
+>>
+Rule 64 (If var is complex128 then accum, lr, grad, and momentum must also be complex128)
+{var : tensor, accum : tensor, lr : tensor, grad : tensor, momentum : tensor} |= if (dtype_(var) = 10) then (dtype_(accum) = 10 ∧ dtype_(lr) = 10 ∧ dtype_(grad) = 10 ∧ dtype_(momentum) = 10)
+>>
+Rule 65 (If var is of type half, then accum, lr, grad and momentum must also be half)
+{var : tensor, accum : tensor, lr : tensor, grad : tensor, momentum : tensor} |= if (dtype_(var) = 6) then (dtype_(accum) = 6 ∧ dtype_(lr) = 6 ∧ dtype_(grad) = 6 ∧ dtype_(momentum) = 6)
+>>
+Rule 66 (If lr and momentum are float32, then grad must be float32 as well)
+{lr : tensor, momentum : tensor, grad : tensor} |= if (dtype_(lr) = 7 ∧ dtype_(momentum) = 7) then dtype_(grad) = 7

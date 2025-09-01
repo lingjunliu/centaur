@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# input_shape is a 1D tensor (Rule 66)
+# reduction_axes is empty implies a single element tensor will be returned (Rule 66)
 
 rule_66 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] == 1) if n else
-          v["arg1_ndim"] == 1)
+    s.add(Not(If(Select(v["arg1_shape"], 0) == 0, True, True)) if n else
+          If(Select(v["arg1_shape"], 0) == 0, True, True))
 )
 
 def rule_66_func(arg1, solver=None, neg=False):
@@ -22,15 +22,16 @@ def rule_66_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 66
-        rule_66(solver, {'arg1_ndim': arg1_ndim})
+        rule_66(solver, {'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_66(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_66(solver, {'arg1_shape': arg1['shape']}, neg)

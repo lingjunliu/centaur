@@ -1,147 +1,78 @@
 >>
-Rule 1 (inputs, min, and max must be tensors of type float32)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = 8 ∧ dtype_(v_2) = 8 ∧ dtype_(v_3) = 8
+Rule 2 (inputs, min, and max tensors must have float32 dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 7 ∧ dtype_(v_3) = 7
 >>
-Rule 2 (num_bits must be an integer between 2 and 16 inclusive)
-{v_1 : int} |= v_1 ≥ 2 ∧ v_1 ≤ 16
+Rule 3 (num_bits must be within the range [2, 16])
+{v_1 : int} |= 2 ≤ v_1 ∧ v_1 ≤ 16
 >>
-Rule 3 (min and max must have the same shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0)
->>
-Rule 4 (inputs tensor can have specific shapes [d], [b, d], [b, h, w, d] given min/max have shape [d])
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 1 ∧ (ndim(v_1) = 1 ∨ ndim(v_1) = 2 ∨ ndim(v_1) = 4) ∧ (if ndim(v_1) = 1 then shape(v_1, 0) = shape(v_2, 0) else if ndim(v_1) = 2 then shape(v_1, 1) = shape(v_2, 0) else if ndim(v_1) = 4 then shape(v_1, 3) = shape(v_2, 0))
->>
-Rule 5 (narrow_range must be a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
->>
-Rule 6 (min value of tensor should be less than or equal to max value)
+Rule 4 (min should be less than or equal to max)
 {v_1 : tensor, v_2 : tensor} |= min(v_1) ≤ max(v_2)
 >>
-Rule 7 (min and max tensors must have positive shape)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0
+Rule 5 (Shape of min and max should match the last dimension of input if input is not a vector.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 then shape(v_1, ndim(v_1) - 1) = shape(v_2, 0)
 >>
-Rule 8 (min tensor has to have min value less than or equal to 0 and max tensor has to have max value greater or equal to 0)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) <= 0 ∧ max(v_2) >= 0
+Rule 6 (min and max must be rank 1)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 1) ∧ (ndim(v_2) = 1)
 >>
-Rule 9 (inputs tensor's values must be within the min and max range)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= min(v_1) ≥ min(v_2) ∧ max(v_1) ≤ max(v_3)
+Rule 10 (Shape of min and max should match the last dimension of input if input is not a vector.  Min and max should have the same shape.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |=  (ndim(v_1) > 1 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_2, 0) ∧ shape(v_2,0) = shape(v_3,0)) ∨ (ndim(v_1) ≤ 1)
 >>
-Rule 10 (if narrow_range is true, then the num_bits cannot be 1)
-{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 1
->>
-Rule 11 (if num_bits is at the extremum, the narrow_range must be the default)
-{v_1 : int, v_2 : bool} |= if v_1 = 2 ∨ v_1 = 16 then v_2 = false
->>
-Rule 12 (min and max tensors must have different values)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) < max(v_2)
->>
-Rule 13 (If inputs is 2D, at least one dimension should be greater than 1)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 1 ∨ shape(v_1, 1) > 1
->>
-Rule 14 (Check if all the elements of min tensor are less than 0)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 0
->>
-Rule 15 (Check if all the elements of max tensor are greater than 0)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
->>
-Rule 16 (If inputs is 1D, min and max should have the same shape as inputs)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) = shape(v_3, 0)
->>
-Rule 17 (If inputs is 2D, min and max should have the same shape as the channel dimension of inputs)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 1) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_3, 0)
->>
-Rule 18 (If inputs is 4D, min and max should have the same shape as the channel dimension of inputs)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 3) = shape(v_2, 0) ∧ shape(v_1, 3) = shape(v_3, 0)
->>
-Rule 19 (Check that the number of elements in min and max is not zero)
-{v_1 : tensor} |= shape(v_1, 0) > 0
->>
-Rule 21 (num_bits cannot be less than 2)
-{v_1 : int} |= v_1 ≥ 2
->>
-Rule 22 (num_bits cannot be greater than 16)
-{v_1 : int} |= v_1 ≤ 16
->>
-Rule 24 (The dtype of inputs, min and max must be same)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
->>
-Rule 25 (min and max must be scalar or 1D tensor)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≤ 1 ∧ ndim(v_2) ≤ 1
->>
-Rule 26 (if narrow_range is true, then min and max should not be zero)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then min(v_2) ≠ 0 ∧ max(v_3) ≠ 0
->>
-Rule 30 (If input is a scalar, min and max must be scalar)
+Rule 12 (If input is a scalar then min and max are also scalars.)
 {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0 ∧ ndim(v_3) = 0
 >>
-Rule 31 (If any dimension of inputs tensor is zero, then min and max tensors should have zero elements)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then (min(v_2) = 0 ∧ max(v_3) = 0)
+Rule 13 (Shape of min and max should match the last dimension of input if input is not a vector.  Min and max should have the same shape.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |=  (ndim(v_1) > 1 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_2, 0) ∧ shape(v_2,0) = shape(v_3,0)) ∨ (ndim(v_1) ≤ 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1)
 >>
-Rule 32 (if narrow range is false, the minimum quantized value will be 0)
-{v_1 : bool} |= if v_1 = false then true
+Rule 14 (narrow_range is boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 33 (if narrow range is true, the minimum quantized value will be 1)
-{v_1 : bool} |= if v_1 = true then true
->>
-Rule 34 (check if the difference between max and min value is large enough)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= max(v_1) - min(v_2) > 1 / (2 * v_3)
->>
-Rule 38 (The type of name argument should be string)
-{v_1 : str} |= v_1 = "none" ∨ v_1 ≠ "none"
->>
-Rule 39 (If input is complex, min and max should be complex)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) ∧ (dtype_(v_3) = 9 ∨ dtype_(v_3) = 10)
->>
-Rule 40 (min and max tensors should be within the range of float32)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) ≥ -3.4028235e+38 ∧ max(v_2) ≤ 3.4028235e+38
->>
-Rule 42 (If the narrow_range is true, the min tensor must be greater than or equal to 0)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then min(v_2) >= 0
->>
-Rule 43 (The product of shape of input and min must be greater than 0)
-{v_1 : tensor, v_2 : tensor} |= (shape(v_1, 0) * shape(v_2, 0)) > 0
->>
-Rule 44 (if min > 0, then all input values must be bigger than 0)
-{v_1 : tensor, v_2 : tensor} |= if min(v_2) > 0 then min(v_1) >= 0
->>
-Rule 45 (if max < 0, then all input values must be less than 0)
-{v_1 : tensor, v_2 : tensor} |= if max(v_2) < 0 then max(v_1) <= 0
->>
-Rule 46 (if min is a positive value, then the input tensor must only contains positive values)
-{v_1 : tensor, v_2 : tensor} |= if min(v_2) > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] >= 0
->>
-Rule 47 (if max is a negative value, then the input tensor must only contains negative values)
-{v_1 : tensor, v_2 : tensor} |= if max(v_2) < 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] <= 0
->>
-Rule 48 (If narrow_range is enabled then min and max can't have same sign)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then (min(v_2) <= 0 ∧ max(v_3) >= 0)
->>
-Rule 49 (min and max must not contain NaN values)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) ≠ "NaN" ∧ max(v_2) ≠ "NaN"
->>
-Rule 50 (if num_bits is close to its upper bound, then the precision error should be low.)
-{v_1 : int, v_2 : tensor, v_3 : tensor} |= if v_1 > 14 then max(v_3) - min(v_2) < 1
->>
-Rule 51 (inputs tensor should have a valid dtype)
+Rule 15 (inputs must be a float32 tensor)
 {v_1 : tensor} |= dtype_(v_1) = 7
 >>
-Rule 56 (min tensor must be a finite number)
-{v_1 : tensor} |= min(v_1) < 3.4028235e+38
+Rule 23 (Shape of min and max should match the last dimension of input if input is not a vector.  Min and max should have the same shape.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |=  (ndim(v_1) > 1 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_2, 0) ∧ shape(v_2,0) = shape(v_3,0)) ∨ (ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1)
 >>
-Rule 57 (max tensor must be a finite number)
-{v_1 : tensor} |= max(v_1) > -3.4028235e+38
+Rule 27 (Min and max should be float32 tensors)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 7
 >>
-Rule 58 (If num_bits is 2, then the scale should be greater than 0)
-{v_1 : int, v_2 : tensor, v_3 : tensor} |= if v_1 = 2 then (max(v_3) - min(v_2)) / 3 > 0
+Rule 33 (name is a string)
+{v_1 : str} |= v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "causal" ∨ v_1 = "channels_last" ∨ v_1 = "channels_first" ∨ v_1 = "none" ∨ v_1 = "linear"
 >>
-Rule 59 (if num_bits is 16 then the scale should be small)
-{v_1 : int, v_2 : tensor, v_3 : tensor} |= if v_1 = 16 then (max(v_3) - min(v_2)) / 65535 < 1
+Rule 37 (Shape of min and max should match the last dimension of input if input is not a vector.  Min and max should have the same shape.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |=  (ndim(v_1) > 1 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_2, 0) ∧ shape(v_2,0) = shape(v_3,0)) ∨ (ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1) ∨ (ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 0)
 >>
-Rule 63 (if min and max are equal then input has a single value)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if min(v_2) = max(v_3) then ∀i ∈ [0, shape(v_1, 0) - 1]: v_1[i] = min(v_2)
+Rule 40 (min and max must be rank 1 to avoid the InvalidArgumentError: `min` must be rank 1 but is rank 2)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1
 >>
-Rule 65 (Inputs tensor's values should be between min and max tensors' values)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, shape(v_1,0) -1]: v_2[0] <= v_1[i] ∧ v_1[i] <= v_3[0]
+Rule 49 (If min and max are not rank 1, then inputs must be rank 0)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) ≠ 1 ∧ ndim(v_3) ≠ 1 then ndim(v_1) = 0
 >>
-Rule 70 (Inputs tensor's values should be between min and max tensors' values)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, shape(v_1,0) -1]: v_2[0] ≤ v_1[i] ∧ v_1[i] ≤ v_3[0]
+Rule 64 (Min and Max should be float32)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 7
+>>
+Rule 69 (Shape of min and max should match the last dimension of input if input is not a vector, OR the input is a scalar)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_1) > 1 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_2, 0) ∧ shape(v_2,0) = shape(v_3,0)) ∨ (ndim(v_1) ≤ 1)
+>>
+Rule 75 (Shape of min and max should match the last dimension of input if input is not a vector, OR the input is a scalar, and min and max must have the same rank)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_1) > 1 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_2, 0) ∧ shape(v_2,0) = shape(v_3,0)) ∨ (ndim(v_1) ≤ 1 ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 0)  ∨ (ndim(v_1) ≤ 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1)
+>>
+Rule 81 (Shape of min and max should match the last dimension of input if input is not a vector, OR the input is a scalar, and min and max have compatible dimensions)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_1) > 1 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_2, 0) ∧ shape(v_2,0) = shape(v_3,0)) ∨ (ndim(v_1) ≤ 1 ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 0)  ∨ (ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1) ∨ (ndim(v_1)=0 ∧ ndim(v_2)=0 ∧ ndim(v_3) = 0)
+>>
+Rule 87 (min and max must be rank 1 to avoid the InvalidArgumentError: `min` must be rank 1 but is rank 2, or they must both be rank 0, as inputs could be a scalar)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 1 ∧ ndim(v_2) = 1) ∨ (ndim(v_1) = 0 ∧ ndim(v_2) = 0)
+>>
+Rule 96 (All tensors must have dtype float32)
+{v_1 : tensor, v_2: tensor, v_3: tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 7 ∧ dtype_(v_3) = 7
+>>
+Rule 111 (If the input is a vector, min and max must be vectors, and the lengths should be equal)
+{v_1 : tensor, v_2: tensor} |= if ndim(v_1) = 1 then ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 116 (Shape of min and max should match the last dimension of input if input is not a vector, OR the input is a scalar, and if the input is a vector, it matches the dimensions of the other vectors)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_1) > 1 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_2, 0) ∧ shape(v_2,0) = shape(v_3,0)) ∨ (ndim(v_1) ≤ 1 ∧ ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 0)  ∨ (ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1)
+>>
+Rule 124 (If the input is a vector, min and max must be vectors, and the lengths should be equal, otherwise, if the inputs are > 1 dimensions the appropriate axis must align.)
+{v_1 : tensor, v_2: tensor, v_3 : tensor} |= if ndim(v_1) = 1 then ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_2,0) = shape(v_3,0) else if ndim(v_1) > 1 then shape(v_1, ndim(v_1) - 1) = shape(v_2, 0) ∧ shape(v_2, 0) = shape(v_3, 0)
+>>
+Rule 129 (Shape of min and max should match the last dimension of input if input is not a vector, OR the input is a scalar. Also they need to have the same number of dimensions.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_1) > 1 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_2, 0) ∧ shape(v_2,0) = shape(v_3,0)) ∨ (ndim(v_1) ≤ 1 ∧ ndim(v_2) = ndim(v_3))

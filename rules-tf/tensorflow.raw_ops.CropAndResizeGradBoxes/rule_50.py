@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Image width must be positive (Rule 50)
+# The number of boxes must be positive (Rule 50)
 
 rule_50 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 2) > 0) if n else
-          Select(v["arg1_shape"], 2) > 0)
+    s.add(Not(Select(v["arg1_shape"], 0) > 0) if n else
+          Select(v["arg1_shape"], 0) > 0)
 )
 
 def rule_50_func(arg1, solver=None, neg=False):

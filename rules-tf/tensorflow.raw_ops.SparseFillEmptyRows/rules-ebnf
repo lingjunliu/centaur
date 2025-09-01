@@ -1,102 +1,42 @@
 >>
-Rule 1 (indices must be a 2D tensor of int64)
-{v_1 : tensor} |= ndim(v_1) = 2 ∧ dtype_(v_1) = 4
+Rule 1 (indices tensor should be 2-dimensional)
+{indices : tensor} |= ndim(indices) = 2
 >>
-Rule 2 (dense_shape must be a 1D tensor of int64)
-{v_3 : tensor} |= ndim(v_3) = 1 ∧ dtype_(v_3) = 4
+Rule 2 (dense_shape tensor should be 1-dimensional)
+{dense_shape : tensor} |= ndim(dense_shape) = 1
 >>
-Rule 3 (default_value must be a 0D tensor)
-{v_4 : tensor} |= ndim(v_4) = 0
+Rule 3 (length of dense_shape should be equal to the rank of indices)
+{indices : tensor, dense_shape : tensor} |= ndim(indices) = dense_shape.len
 >>
-Rule 4 (values and default_value must have the same dtype)
-{v_2 : tensor, v_4 : tensor} |= dtype_(v_2) = dtype_(v_4)
+Rule 4 (the default value's type should be the same as the values' type)
+{values : tensor, default_value : tensor} |= dtype_(values) = dtype_(default_value)
 >>
-Rule 5 (indices must have the same number of columns as the rank of dense_shape)
-{v_1 : tensor, v_3 : tensor} |= shape(v_1, 1) = shape(v_3, 0)
+Rule 5 (the first dimension of indices must be less than or equal to the first element of dense_shape)
+{indices : tensor, dense_shape : tensor} |= shape(indices, 0) ≤ shape(dense_shape, 0)
 >>
-Rule 6 (dense_shape[0] should be greater than 0)
-{v_3 : tensor} |= shape(v_3, 0) > 0
+Rule 6 (all values in dense_shape must be greater than or equal to 0)
+{dense_shape : tensor} |= ∀i ∈ [0, dense_shape.len - 1] : shape(dense_shape, i) ≥ 0
 >>
-Rule 7 (number of rows in indices should be less than or equal to the product of dense_shape dimensions)
-{v_1 : tensor, v_3 : tensor} |= shape(v_1, 0) ≤ (∀i ∈ [0, shape(v_3,0)-1] : shape(v_3, i))
+Rule 7 (all values in indices must be greater than or equal to 0)
+{indices : tensor} |= ∀i ∈ [0, indices.len - 1] : indices[i] ≥ 0
 >>
-Rule 8 (indices values must be non-negative)
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 8 (shape of values must be equal to the first dimension of the indices)
+{indices : tensor, values : tensor} |= shape(indices, 0) = shape(values, 0)
 >>
-Rule 17 (Maximum index value in each column should be less than the corresponding dimension in dense_shape)
-{v_1 : tensor, v_3 : tensor} |= max(v_1, 0) < shape(v_3, 0) ∧ max(v_1, 1) < shape(v_3, 1)
+Rule 9 (the indices tensor must have int64 as its dtype)
+{indices : tensor} |= dtype_(indices) = 4
 >>
-Rule 19 (Indices values should not exceed the maximum possible value)
-{v_1 : tensor, v_3 : tensor} |= max(v_1) < max(v_3)
+Rule 10 (the dense_shape tensor must have int64 as its dtype)
+{dense_shape : tensor} |= dtype_(dense_shape) = 4
 >>
-Rule 20 (The product of dense_shape's dimensions should be less than int64's max)
-{v_3 : tensor} |= (∀i ∈ [0, shape(v_3, 0) - 1] : shape(v_3, i)) < 9223372036854775807
+Rule 11 (values tensor should not be empty)
+{values : tensor} |= ∀i ∈ [0, ndim(values) - 1] : shape(values, i) > 0
 >>
-Rule 21 (dense_shape dimensions must be small enough to prevent index overflow)
-{v_3 : tensor} |= shape(v_3, 0) < 46340 ∧ shape(v_3, 1) < 46340
+Rule 12 (indices and dense_shape must have compatible shapes)
+{indices : tensor, dense_shape : tensor} |= shape(indices, 1) = shape(dense_shape, 0)
 >>
-Rule 22 (dense_shape dimensions must be small enough to prevent index overflow - single dimension check)
-{v_3 : tensor} |= shape(v_3, 0) < 65536
+Rule 13 (default_value must be a scalar)
+{default_value : tensor} |= ndim(default_value) = 0
 >>
-Rule 23 (default_value should not be NaN)
-{v_4 : tensor} |= if dtype_(v_4) = 6 then true else if dtype_(v_4) = 7 then true else if dtype_(v_4) = 8 then true
->>
-Rule 24 (Number of dimensions of dense_shape cannot exceed 2)
-{v_3 : tensor} |= ndim(v_3) ≤ 2
->>
-Rule 25 (Indices should have the same dtype as reverse_index_map and dense_shape)
-{v_1 : tensor} |= dtype_(v_1) = 4
->>
-Rule 26 (dense_shape should have rank between 1 and 2)
-{v_3 : tensor} |= 1 <= ndim(v_3) ∧ ndim(v_3) <= 2
->>
-Rule 27 (Indices shape[1] (number of columns) should equal rank of dense_shape)
-{v_1 : tensor, v_3 : tensor} |= shape(v_1, 1) = ndim(v_3)
->>
-Rule 28 (Values should be 1 dimensional)
-{v_2 : tensor} |= ndim(v_2) = 1
->>
-Rule 29 (Length of values should match the number of rows in indices)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) = shape(v_1, 0)
->>
-Rule 30 (Values cannot be empty if Indices is not empty)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) > 0 then shape(v_2, 0) > 0
->>
-Rule 33 (dense_shape's first dimension should not be too large)
-{v_3 : tensor} |= shape(v_3, 0) < 2147483647
->>
-Rule 34 (indices shape 0 should be smaller than int32 max)
-{v_1 : tensor} |= shape(v_1, 0) < 2147483647
->>
-Rule 35 (If dense_shape has rank 1, then indices should have shape[1]==1)
-{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) = 1 then shape(v_1, 1) = 1
->>
-Rule 36 (If dense_shape has rank 2, then indices should have shape[1]==2)
-{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) = 2 then shape(v_1, 1) = 2
->>
-Rule 37 (if dense_shape has at least one dimension, values must be not empty)
-{v_2: tensor, v_3 : tensor} |= if shape(v_3, 0) > 0 then shape(v_2, 0) > 0
->>
-Rule 38 (If dense_shape is 1D, its size must match max index in Indices)
-{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) = 1 then max(v_1) < shape(v_3, 0)
->>
-Rule 39 (If dense_shape is 2D, indices[i,0] < dense_shape[0] and indices[i,1] < dense_shape[1])
-{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) = 2 then (max(v_1,0) < shape(v_3, 0) ∧ max(v_1,1) < shape(v_3, 1))
->>
-Rule 41 (Values dtype should be int if default value is int)
-{v_2 : tensor, v_4 : tensor} |= if dtype_(v_4) = 1 ∨ dtype_(v_4) = 2 ∨ dtype_(v_4) = 3 ∨ dtype_(v_4) = 4 ∨ dtype_(v_4) = 5 then dtype_(v_2) = dtype_(v_4)
->>
-Rule 42 (Values dtype should be float if default value is float)
-{v_2 : tensor, v_4 : tensor} |= if dtype_(v_4) = 6 ∨ dtype_(v_4) = 7 ∨ dtype_(v_4) = 8 then dtype_(v_2) = dtype_(v_4)
->>
-Rule 43 (Values dtype should be bool if default value is bool)
-{v_2 : tensor, v_4 : tensor} |= if dtype_(v_4) = 0 then dtype_(v_2) = dtype_(v_4)
->>
-Rule 44 (Values dtype should be str if default value is str)
-{v_2 : tensor, v_4 : tensor} |= if dtype_(v_4) = 11 then dtype_(v_2) = dtype_(v_4)
->>
-Rule 45 (If dense_shape has rank 1, then max of indices[:,0] must be less than dense_shape[0])
-{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) = 1 then max(v_1, 0) < shape(v_3, 0)
->>
-Rule 46 (If dense_shape is 2D, then max of indices[:,0] < dense_shape[0] and max of indices[:,1] < dense_shape[1])
-{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) = 2 then (max(v_1, 0) < shape(v_3, 0) ∧ max(v_1, 1) < shape(v_3, 1))
+Rule 23 (values tensor is not empty implies indices and dense_shape are also not empty)
+{indices : tensor, values : tensor, dense_shape : tensor} |= if shape(values, 0) > 0 then shape(indices,0) > 0 ∧ shape(dense_shape,0) > 0

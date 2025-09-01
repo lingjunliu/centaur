@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if images tensor is a 4D tensor, first two dimensions of images and scale must be the same (Rule 57)
+# Images and scale should have compatible shapes, scale can be a scalar or broadcastable to image shapes except for the channel dimension (Rule 57)
 
 rule_57 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] == 4, v["arg2_ndim"] != 0), (And(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 1))), False)) if n else
-          If(And(v["arg1_ndim"] == 4, v["arg2_ndim"] != 0), (And(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 1))), False))
+    s.add(Not(Or(Or(v["arg2_ndim"] == 0, (And(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 2 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])))), (And(v["arg2_ndim"] == 1, Select(v["arg2_shape"], 0) == 1)))) if n else
+          Or(Or(v["arg2_ndim"] == 0, (And(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 2 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])))), (And(v["arg2_ndim"] == 1, Select(v["arg2_shape"], 0) == 1))))
 )
 
 def rule_57_func(arg1, arg2, solver=None, neg=False):

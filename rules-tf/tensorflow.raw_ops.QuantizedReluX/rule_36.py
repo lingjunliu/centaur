@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If features is qint32, min_features should have a reasonable value (Rule 36)
+# if min_features is a scalar then make it > 0 if features and out_type is quint8. (Rule 36)
 
 rule_36 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 3, Select(v["arg2_range"], 0) < 10000, False)) if n else
-          If(v["arg1_dtype"] == 3, Select(v["arg2_range"], 0) < 10000, False))
+    s.add(Not(If(v["arg1_dtype"] == 5, Select(v["arg2_range"], 0) >= 0, True)) if n else
+          If(v["arg1_dtype"] == 5, Select(v["arg2_range"], 0) >= 0, True))
 )
 
 def rule_36_func(arg1, arg2, solver=None, neg=False):

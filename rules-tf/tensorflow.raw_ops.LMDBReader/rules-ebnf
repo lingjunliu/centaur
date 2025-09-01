@@ -1,57 +1,204 @@
 >>
-Rule 5 (container and shared_name can be different)
+Rule 1 (container string must be non-empty)
+{v_1 : str} |= v_1 ≠ ""
+>>
+Rule 5 (container and shared_name should not be the same)
 {v_1 : str, v_2 : str} |= v_1 ≠ v_2
 >>
-Rule 7 (container and shared_name cannot be the same string, unless both are empty)
-{v_1 : str, v_2 : str} |= if v_1 ≠ "" then v_1 ≠ v_2 else if v_2 ≠ "" then v_1 ≠ v_2
+Rule 7 (container string length must be less than or equal to 256)
+{v_1 : str} |= v_1.len ≤ 256
 >>
-Rule 8 (If container is specified, it should be a valid name)
-{v_1 : str} |= if v_1 ≠ "" then true
->>
-Rule 11 (container, shared_name and name can't all be the same non-empty string)
-{v_1 : str, v_2 : str, v_3 : str} |= if v_1 ≠ "" then (v_1 ≠ v_2 ∨ v_1 ≠ v_3 ∨ v_2 ≠ v_3)
->>
-Rule 12 (If name is specified, it should have a reasonable length)
-{v_1 : str} |= if v_1 ≠ "" then v_1.len < 256
->>
-Rule 13 (If both container and shared_name are non-empty, they should satisfy certain naming conventions (e.g. start with a letter))
-{v_1 : str, v_2 : str} |= if v_1 ≠ "" ∧ v_2 ≠ "" then true
->>
-Rule 14 (If container is the same as the node name, shared_name must be empty)
-{v_1 : str, v_2 : str} |= if v_1 = v_2 then v_1 = ""
->>
-Rule 18 (The name, container and shared_name cannot have overlapping characters. If name contains 'abc', container and shared_name cannot contain "abc")
-{v_1 : str, v_2 : str, v_3 : str} |= if v_1 ≠ "" ∧ v_2 ≠ "" ∧ v_3 ≠ "" then true
->>
-Rule 19 (If the container is specified, it must be different from the operation name, otherwise a default one would be used implicitly)
-{v_1 : str, v_2 : str} |= if v_1 ≠ "" then v_1 ≠ v_2
->>
-Rule 26 (If the container is not specified, shared_name should not be specified)
+Rule 9 (If container is empty, shared_name must also be empty)
 {v_1 : str, v_2 : str} |= if v_1 = "" then v_2 = ""
 >>
-Rule 29 (If the shared_name starts with "_" then the container must start with "_")
-{v_1 : str, v_2 : str} |= if v_1 ≠ "" ∧ v_1[0] = "_" then v_2 ≠ "" ∧ v_2[0] = "_"
+Rule 15 (If the container is equal to "default_container", then the shared_name must be "default_shared_name")
+{v_1 : str, v_2 : str} |= if v_1 = "default_container" then v_2 = "default_shared_name"
 >>
-Rule 31 (if container and shared_name are same, name should not be specified)
-{v_1 : str, v_2 : str, v_3 : str} |= if v_1 = v_2 ∧ v_1 ≠ "" then v_3 = ""
+Rule 16 (The length of the container string must be a multiple of 2)
+{v_1 : str} |= v_1.len % 2 = 0
 >>
-Rule 32 (The shared name should be a uuid)
-{v_1: str} |= if v_1 ≠ "" then true
+Rule 17 (If container is not empty, it should contain only alphanumeric characters)
+{v_1 : str} |= if v_1 ≠ "" then ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9")
 >>
-Rule 38 (If shared_name is the same, container must be the same, or both should be empty)
-{v_1: str, v_2: str} |= if v_1 = v_2 then true
+Rule 20 (container string should not contain any special characters)
+{v_1 : str} |= if v_1 ≠ "" then ∀i ∈ [0, v_1.len - 1] : (v_1[i] = "_" ) ∨ (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9")
 >>
-Rule 44 (If shared_name is used, the container must exist and be accessible.)
-{v_1: str, v_2:str} |= if v_1 ≠ "" then v_2 ≠ ""
+Rule 22 (If container is not empty, the first character must be a letter)
+{v_1 : str} |= if v_1 ≠ "" then (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z")
 >>
-Rule 49 (name should not exceed a maximum length of characters)
-{v_1 : str} |= if v_1 ≠ "" then v_1.len < 100
+Rule 25 (If container is empty, shared_name cannot be "non_default")
+{v_1 : str, v_2 : str} |= if v_1 = "" then v_2 ≠ "non_default"
 >>
-Rule 52 (Shared name should not be very long, to prevent issues)
-{v_1: str} |= if v_1 ≠ "" then v_1.len < 100
+Rule 26 (If container is "default", then shared_name must be "default_name")
+{v_1 : str, v_2 : str} |= if v_1 = "default" then v_2 = "default_name"
 >>
-Rule 53 (if shared_name and container are given, then the user should have write permissions on that directory)
-{v_1: str, v_2: str} |= if v_1 ≠ "" ∧ v_2 ≠ "" then true
+Rule 27 (If name is not empty, then container and shared_name should also not be empty)
+{v_1 : str, v_2 : str, v_3 : str} |= if v_3 ≠ "" then v_1 ≠ "" ∧ v_2 ≠ ""
 >>
-Rule 58 (Name length must be less than tensorflow's maximum op name length, otherwise tensorflow will truncate)
-{v_1:str} |= if v_1 ≠ "" then v_1.len < 255
+Rule 31 (The container string can only contain lowercase letters, numbers, and underscores)
+{v_1 : str} |= if v_1 ≠ "" then ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = "_")
+>>
+Rule 34 (if the shared name is equal to the container name, the name must be empty)
+{v_1 : str, v_2 : str, v_3 : str} |= if v_1 = v_2 then v_3 = ""
+>>
+Rule 35 (The container string cannot be "reserved_name")
+{v_1 : str} |= v_1 ≠ "reserved_name"
+>>
+Rule 37 (If the container is not empty, it must start with a letter and can only contain letters, numbers and underscores)
+{v_1 : str} |= if v_1 ≠ "" then (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z") ∧ ∀i ∈ [1, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = "_")
+>>
+Rule 40 (The container length should be less than or equal to the shared_name length)
+{v_1 : str, v_2 : str} |= v_1.len ≤ v_2.len
+>>
+Rule 41 (If name is specified and container is also specified, they must be different)
+{v_1 : str, v_2 : str} |= if v_1 ≠ "" ∧ v_2 ≠ "" then v_1 ≠ v_2
+>>
+Rule 42 (If the container is the empty string, then the shared_name and name should have the same value.)
+{v_1 : str, v_2 : str, v_3 : str} |= if v_1 = "" then v_2 = v_3
+>>
+Rule 43 (If the container is not the empty string, then at least one of shared_name or name should be different from the container.)
+{v_1 : str, v_2 : str, v_3 : str} |= if v_1 ≠ "" then v_2 ≠ v_1 ∨ v_3 ≠ v_1
+>>
+Rule 44 (The characters in the container string must be valid for file system paths.)
+{v_1 : str} |= if v_1 ≠ "" then ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≠ "/") ∧ (v_1[i] ≠ "\\") ∧ (v_1[i] ≠ ":") ∧ (v_1[i] ≠ "*") ∧ (v_1[i] ≠ "?") ∧ (v_1[i] ≠ "\"") ∧ (v_1[i] ≠ "<") ∧ (v_1[i] ≠ ">") ∧ (v_1[i] ≠ "|")
+>>
+Rule 47 (If the container is not empty, it should not be equal to the shared_name or name.)
+{v_1 : str, v_2 : str, v_3 : str} |= if v_1 ≠ "" then v_1 ≠ v_2 ∧ v_1 ≠ v_3
+>>
+Rule 48 (If the shared_name is not empty, it should not be equal to the name.)
+{v_1 : str, v_2 : str} |= if v_1 ≠ "" then v_1 ≠ v_2
+>>
+Rule 50 (If the container contains the character 'a', the shared_name must also contain the character 'a')
+{v_1 : str, v_2 : str} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "a" then ∃j ∈ [0, v_2.len - 1] : v_2[j] = "a"
+>>
+Rule 51 (If the container length is greater than 5, then the shared_name length must be at least 2)
+{v_1 : str, v_2 : str} |= if v_1.len > 5 then v_2.len ≥ 2
+>>
+Rule 52 (If the container and shared_name are equal, the name must be the default name.)
+{v_1 : str, v_2 : str, v_3 : str} |= if v_1 = v_2 then v_3 = "default_name"
+>>
+Rule 53 (If the container or shared_name is an empty string, the name must also be an empty string.)
+{v_1 : str, v_2 : str, v_3 : str} |= if v_1 = "" ∨ v_2 = "" then v_3 = ""
+>>
+Rule 54 (If the container is "abc", the shared_name must be "def")
+{v_1 : str, v_2 : str} |= if v_1 = "abc" then v_2 = "def"
+>>
+Rule 56 (If the container starts with 'a', the shared name must also start with 'a')
+{v_1 : str, v_2 : str} |= if v_1.len > 0 ∧ v_1[0] = "a" then v_2.len > 0 ∧ v_2[0] = "a"
+>>
+Rule 57 (The name must not be one of the reserved names: "con", "prn", "aux", "nul", "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9", "lpt1", "lpt2", "lpt3", "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9")
+{v_1 : str} |= (v_1 ≠ "con") ∧ (v_1 ≠ "prn") ∧ (v_1 ≠ "aux") ∧ (v_1 ≠ "nul") ∧ (v_1 ≠ "com1") ∧ (v_1 ≠ "com2") ∧ (v_1 ≠ "com3") ∧ (v_1 ≠ "com4") ∧ (v_1 ≠ "com5") ∧ (v_1 ≠ "com6") ∧ (v_1 ≠ "com7") ∧ (v_1 ≠ "com8") ∧ (v_1 ≠ "com9") ∧ (v_1 ≠ "lpt1") ∧ (v_1 ≠ "lpt2") ∧ (v_1 ≠ "lpt3") ∧ (v_1 ≠ "lpt4") ∧ (v_1 ≠ "lpt5") ∧ (v_1 ≠ "lpt6") ∧ (v_1 ≠ "lpt7") ∧ (v_1 ≠ "lpt8") ∧ (v_1 ≠ "lpt9")
+>>
+Rule 58 (If container starts with a number, then shared_name should also start with a number)
+{v_1 : str, v_2 : str} |= if v_1.len > 0 ∧ v_1[0] ≥ "0" ∧ v_1[0] ≤ "9" then v_2.len > 0 ∧ v_2[0] ≥ "0" ∧ v_2[0] ≤ "9"
+>>
+Rule 59 (If the name has length greater than 3, the container must also have length greater than 3)
+{v_1 : str, v_2 : str} |= if v_1.len > 3 then v_2.len > 3
+>>
+Rule 60 (If the shared_name is 'abc', the container must be 'abc' or 'xyz')
+{v_1 : str, v_2 : str} |= if v_1 = "abc" then v_2 = "abc" ∨ v_2 = "xyz"
+>>
+Rule 61 (If the container length is even, the shared_name length must also be even)
+{v_1 : str, v_2 : str} |= if v_1.len % 2 = 0 then v_2.len % 2 = 0
+>>
+Rule 62 (If name is not empty, its length must be less than the sum of container and shared_name lengths)
+{v_1 : str, v_2 : str, v_3 : str} |= if v_3 ≠ "" then v_3.len < v_1.len + v_2.len
+>>
+Rule 63 (If the container and shared_name are empty, the name must be empty)
+{v_1 : str, v_2 : str, v_3 : str} |= if v_1 = "" ∧ v_2 = "" then v_3 = ""
+>>
+Rule 65 (The sum of the lengths of container, shared_name and name must be less than 512)
+{v_1 : str, v_2 : str, v_3 : str} |= v_1.len + v_2.len + v_3.len < 512
+>>
+Rule 66 (The number of underscores in container must be less than or equal to the number of underscores in shared_name)
+{v_1 : str, v_2 : str} |= (∃c ∈ [0, v_1.len-1] : v_1[c] = "_") ∧ (∃s ∈ [0, v_2.len-1] : v_2[s] = "_")
+>>
+Rule 67 (If the name is not empty, the product of the ascii values of its characters must be greater than 1000)
+{v_1 : str} |= if v_1 ≠ "" then (∃p ∈ [1000, 1000000] : p > 1000)
+>>
+Rule 68 (The length of shared_name must be at least half the length of container, rounded down)
+{v_1 : str, v_2 : str} |= v_2.len ≥ v_1.len / 2
+>>
+Rule 69 (If name is an empty string, then container and shared_name must either both be empty or both non-empty)
+{v_1 : str, v_2 : str, v_3 : str} |= if v_3 = "" then (v_1 = "" ∧ v_2 = "") ∨ (v_1 ≠ "" ∧ v_2 ≠ "")
+>>
+Rule 71 (If the name contains the word "test", the container must contain the word "prod")
+{v_1 : str, v_2 : str} |= if ∃i ∈ [0, v_1.len - 3] : v_1[i] = "t" ∧ v_1[i+1] = "e" ∧ v_1[i+2] = "s" ∧ v_1[i+3] = "t" then ∃j ∈ [0, v_2.len -3] : v_2[j] = "p" ∧ v_2[j+1] = "r" ∧ v_2[j+2] = "o" ∧ v_2[j+3] = "d"
+>>
+Rule 74 (If the container string's length is a prime number, then name's length must be even)
+{v_1:str, v_2:str} |= if (v_1.len = 2) ∨ (v_1.len = 3) ∨ (v_1.len = 5) ∨ (v_1.len = 7) ∨ (v_1.len = 11) then (v_2.len % 2 = 0)
+>>
+Rule 76 (If the first letter of container and shared_name is the same, the lengths of container and shared_name must be equal)
+{v_1: str, v_2: str} |= if (v_1.len > 0 ∧ v_2.len > 0 ∧ v_1[0] = v_2[0]) then (v_1.len = v_2.len)
+>>
+Rule 77 (If the name string, if not empty, must contain exactly one occurrence of the character '_')
+{v_1: str} |= if v_1 ≠ "" then (∃i ∈ [0, v_1.len - 1] : v_1[i] = "_") ∧ (∀j ∈ [0, v_1.len - 1] : if i ≠ j then v_1[j] ≠ "_")
+>>
+Rule 78 (The ascii value of the first character of the container string must be greater than the ascii value of the first character of the shared_name string)
+{v_1:str, v_2:str} |= if (v_1.len > 0) ∧ (v_2.len > 0) then (v_1[0] > v_2[0])
+>>
+Rule 79 (If the length of the container string is greater than 5, then the length of the shared name must be greater than 2 and less than 10)
+{v_1:str, v_2: str} |= if (v_1.len > 5) then (v_2.len > 2) ∧ (v_2.len < 10)
+>>
+Rule 81 (If the container contains a digit, the shared_name must contain a letter)
+{v_1:str, v_2:str} |= if ∃i ∈ [0, v_1.len - 1]: v_1[i] ≥ "0" ∧ v_1[i] ≤ "9" then ∃j ∈ [0, v_2.len - 1]: (v_2[j] ≥ "a" ∧ v_2[j] ≤ "z") ∨ (v_2[j] ≥ "A" ∧ v_2[j] ≤ "Z")
+>>
+Rule 83 (If container is empty, then shared_name and name must have the same length)
+{v_1 : str, v_2 : str, v_3 : str} |= if v_1 = "" then v_2.len = v_3.len
+>>
+Rule 84 (If the name is longer than container or shared_name, then container and shared_name must be equal)
+{v_1 : str, v_2 : str, v_3 : str} |= if v_3.len > v_1.len ∨ v_3.len > v_2.len then v_1 = v_2
+>>
+Rule 85 (If the first character of container is the same as the last character of shared_name then the name should be empty)
+{v_1:str, v_2:str, v_3:str} |= if (v_1.len > 0) ∧ (v_2.len > 0) ∧ (v_1[0] = v_2[v_2.len-1]) then (v_3 = "")
+>>
+Rule 87 (If container and shared_name starts with the same letter then name must start with a different letter.)
+{v_1:str, v_2:str, v_3: str} |= if (v_1.len > 0) ∧ (v_2.len > 0) ∧ (v_1[0] = v_2[0]) then (v_3.len > 0 ∧ v_3[0] ≠ v_1[0])
+>>
+Rule 88 (If the container is longer than 10 characters, the shared name must contain at least 2 digits)
+{v_1:str, v_2:str} |= if v_1.len > 10 then (∃i ∈ [0, v_2.len -1]: v_2[i] ≥ "0" ∧ v_2[i] ≤ "9") ∧ (∃j ∈ [i+1, v_2.len -1]: v_2[j] ≥ "0" ∧ v_2[j] ≤ "9")
+>>
+Rule 90 (If the name starts with the same letter as the last letter of the container string, the length of the shared_name string must be a multiple of 3.)
+{v_1:str, v_2:str, v_3:str} |= if (v_1.len > 0) ∧ (v_3.len > 0) ∧ (v_3[0] = v_1[v_1.len - 1]) then (v_2.len % 3 = 0)
+>>
+Rule 91 (If shared_name is equal to name, the container must be an empty string)
+{v_1 : str, v_2 : str, v_3 : str} |= if v_2 = v_3 then v_1 = ""
+>>
+Rule 96 (If the first two characters of the container are the same, then last two characters of shared name should be the same)
+{v_1: str, v_2: str} |= if v_1.len > 1 ∧ v_1[0] = v_1[1] then v_2.len > 1 ∧ v_2[v_2.len - 1] = v_2[v_2.len - 2]
+>>
+Rule 97 (If name is equal to "default_name" then both container and shared_name should start with the letter "d")
+{v_1:str, v_2:str, v_3:str} |= if v_3 = "default_name" then (v_1.len > 0 ∧ v_1[0] = "d") ∧ (v_2.len > 0 ∧ v_2[0] = "d")
+>>
+Rule 98 (If the container string's length is odd, then the shared name string's length must be even, or vice versa)
+{v_1: str, v_2: str} |= (v_1.len % 2 = 0 ∧ v_2.len % 2 ≠ 0) ∨ (v_1.len % 2 ≠ 0 ∧ v_2.len % 2 = 0)
+>>
+Rule 101 (If both container and shared name are non-empty and contain 'a', the lengths of both strings should be same)
+{v_1:str, v_2:str} |= if ∃i ∈ [0, v_1.len - 1]: v_1[i] = "a" ∧ ∃j ∈ [0, v_2.len - 1]: v_2[j] = "a" then v_1.len = v_2.len
+>>
+Rule 102 (If container is not equal to default, then name cannot be default_name)
+{v_1 : str, v_2 : str} |= if v_1 ≠ "default" then v_2 ≠ "default_name"
+>>
+Rule 103 (If the length of name is less than 3, the length of container cannot exceed 5)
+{v_1: str, v_2: str} |= if v_1.len < 3 then v_2.len <= 5
+>>
+Rule 110 (If the container name starts with "test" and ends with "prod", then shared_name must contain "dev")
+{v_1:str, v_2:str} |= if v_1.len > 3 ∧ v_1[0] = "t" ∧ v_1[1] = "e" ∧ v_1[2] = "s" ∧ v_1[3] = "t" ∧  v_1.len > 3 ∧ v_1[v_1.len - 1] = "d" ∧ v_1[v_1.len - 2] = "o" ∧ v_1[v_1.len - 3] = "r" ∧ v_1[v_1.len - 4] = "p" then (∃i ∈ [0, v_2.len -2] : v_2[i] = "d" ∧ v_2[i+1] = "e" ∧ v_2[i+2] = "v" )
+>>
+Rule 112 (If the container is "abc", the shared_name must be "def", and the name must be "ghi")
+{v_1 : str, v_2 : str, v_3 : str} |= if v_1 = "abc" then v_2 = "def" ∧ v_3 = "ghi"
+>>
+Rule 113 (If the shared_name is equal to the container name, the length of the name must be equal to the length of shared_name string)
+{v_1: str, v_2: str, v_3: str} |= if v_1 = v_2 then v_3.len = v_2.len
+>>
+Rule 115 (If shared_name's length is a multiple of 5, the sum of ascii values of container's first and last char must be divisible by 3)
+{v_1: str, v_2:str} |= if (v_2.len % 5 = 0) ∧ (v_1.len > 0) then true
+>>
+Rule 116 (If the first and second characters of the container are same, then the name should not contain any digits)
+{v_1 : str, v_2 : str} |= if v_1.len > 1 ∧ v_1[0] = v_1[1] then ∀i ∈ [0, v_2.len-1] : v_2[i] < "0" ∨ v_2[i] > "9"
+>>
+Rule 120 (If container and shared_name have length 3, the name must also have length 3.)
+{v_1:str, v_2:str, v_3: str} |= if (v_1.len = 3) ∧ (v_2.len = 3) then v_3.len = 3
+>>
+Rule 121 (If container is default, then shared name must contain the underscore character)
+{v_1:str, v_2: str} |= if (v_1 = "default") then (∃i ∈ [0, v_2.len - 1] : v_2[i] = "_" )

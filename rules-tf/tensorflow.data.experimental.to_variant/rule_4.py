@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Dataset cannot be empty (Rule 4)
+# dataset should not be a string (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] > 0) if n else
-          v["arg1_ndim"] > 0)
+    s.add(Not(v["arg1_dtype"] != 11) if n else
+          v["arg1_dtype"] != 11)
 )
 
 def rule_4_func(arg1, solver=None, neg=False):
@@ -22,15 +22,15 @@ def rule_4_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 4
-        rule_4(solver, {'arg1_ndim': arg1_ndim})
+        rule_4(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_4(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_4(solver, {'arg1_dtype': arg1['dtype']}, neg)

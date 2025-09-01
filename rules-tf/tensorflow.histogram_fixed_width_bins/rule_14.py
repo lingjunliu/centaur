@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# dtype parameter (v_4 (Rule 14)
+# dtype must be a valid dtype. Only considering int32 and int64 for simplicity. (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(And(And(0 <= v["arg1_value"], v["arg1_value"] <= 12), v["arg1_value"] != 11)) if n else
-          And(And(0 <= v["arg1_value"], v["arg1_value"] <= 12), v["arg1_value"] != 11))
+    s.add(Not(Or(v["arg1_value"] == 3, v["arg1_value"] == 4)) if n else
+          Or(v["arg1_value"] == 3, v["arg1_value"] == 4))
 )
 
 def rule_14_func(arg1, solver=None, neg=False):

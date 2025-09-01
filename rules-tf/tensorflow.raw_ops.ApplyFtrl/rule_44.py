@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# lr_power can be of type float32 or float64 (Rule 44)
+# if var tensor is uint8, uint16, uint32, uint64, then values cannot be negative (Rule 44)
 
 rule_44 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)) if n else
-          Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8))
+    s.add(Not(If(Or(Or(Or(v["arg1_dtype"] == 5, v["arg1_dtype"] == 15), v["arg1_dtype"] == 17), v["arg1_dtype"] == 19), Select(v["arg1_range"], 0) >= 0, True)) if n else
+          If(Or(Or(Or(v["arg1_dtype"] == 5, v["arg1_dtype"] == 15), v["arg1_dtype"] == 17), v["arg1_dtype"] == 19), Select(v["arg1_range"], 0) >= 0, True))
 )
 
 def rule_44_func(arg1, solver=None, neg=False):
@@ -23,14 +23,17 @@ def rule_44_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 44
-        rule_44(solver, {'arg1_dtype': arg1_dtype})
+        rule_44(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_44(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_44(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)

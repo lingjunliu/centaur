@@ -1,108 +1,213 @@
 >>
-Rule 1 (SparseTensors sp_a and sp_b must have the same shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 2 (sp_a and sp_b should have the same shape to avoid broadcasting)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1) = shape(v_2)
 >>
-Rule 2 (SparseTensor sp_a's dtype must be real)
+Rule 3 (dtype of sp_a should be real)
 {v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 9
 >>
-Rule 3 (SparseTensor sp_b's dtype must be real)
-{v_2 : tensor} |= dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 9
+Rule 4 (indices of sp_a should be lexicographically ordered - difficult to express directly but can check that indices are a tensor of integers)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
 >>
-Rule 4 (SparseTensors sp_a and sp_b's dtypes must be the same)
+Rule 6 (sp_a and sp_b should be SparseTensors which implies they have dense_shape attribute. Since SparseTensors must have at least one dimension, we check for ndim > 0)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
+>>
+Rule 8 (dtype of sp_a should be real)
+{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 12 (name should be a string and not empty)
+{v_1 : str} |= v_1 ≠ ""
+>>
+Rule 13 (data types of sp_a and sp_b should match)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 5 (SparseTensor sp_a and sp_b must have at least one dimension)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1
+Rule 14 (ensure tensors have at least one element, which is a necessary condition for having a dense shape)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) ≠ max(v_1) ∨ min(v_2) ≠ max(v_2)
 >>
-Rule 6 (The number of dimensions in sparse tensors should be less than a reasonable upper bound to avoid excessive computation.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≤ 8 ∧ ndim(v_2) ≤ 8
+Rule 18 (ensure tensors have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 7 (Shape of sp_a must be a tuple of positive integers)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 19 (check that the shape of tensor v_1 is defined, by checking that all dimensions are non-negative.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 8 (Shape of sp_b must be a tuple of positive integers)
-{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+Rule 22 (check that the shape of tensor v_1 is defined, by checking that all dimensions are non-negative and the product of shape is greater than zero)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0 ∧ (shape(v_1,0) * shape(v_1,0) > 0)
 >>
-Rule 9 (If sp_a has a dimension of size 1, then sp_b must also have a corresponding dimension)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = 1) ∨ (∃j ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, j))
+Rule 24 (check that number of elements of v_1 and v_2 are greater than 0)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) < max(v_1) ∧ min(v_2) < max(v_2)
 >>
-Rule 10 (If sp_b has a dimension of size 1, then sp_a must also have a corresponding dimension)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : (shape(v_2, i) = 1) ∨ (∃j ∈ [0, ndim(v_1) - 1] : shape(v_2, i) = shape(v_1, j))
+Rule 25 (check that the shape of tensor v_1 is defined, by checking that all dimensions are non-negative and the product of shape dimensions is greater than zero)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 11 (The rank of the sparse tensors must be less than a maximum value.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) < 5 ∧ ndim(v_2) < 5
+Rule 27 (check that the tensors are of compatible data types for element-wise minimum operation. In this case, checking to see if they're at least numerical values)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 12 ∧ dtype_(v_2) ≠ 12
 >>
-Rule 12 (If sp_a's shape is empty, sp_b's shape must also be empty)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_2) > 0)
+Rule 29 (the product of all shape dimensions must be greater than zero to avoid an empty tensor with potential issues)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 13 (If sp_b's shape is empty, sp_a's shape must also be empty)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_2) = 0) ∨ (ndim(v_1) > 0)
+Rule 30 (check that the tensors are of compatible data types for element-wise minimum operation. In this case, checking to see if they're at least numerical values. Only applicable to int, float and bool)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8
 >>
-Rule 14 (Check for positive values in sparse tensor shapes.)
+Rule 31 (check that the shape of tensor v_1 is defined, by checking that product of all its dimensions is greater than 0.)
+{v_1 : tensor} |= if ndim(v_1) = 0 then false else (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 34 (check that the shape of tensor v_1 is defined, by ensuring it's not a scalar)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 35 (Check indices of sp_a and sp_b are lexicographically ordered. This is difficult to encode directly. check they're non-negative)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) >= 0 ∧ min(v_2) >=0
+>>
+Rule 40 (Check sp_a is sparse)
+{v_1 : tensor} |= min(v_1) = 0
+>>
+Rule 41 (Check sp_b is sparse)
+{v_2 : tensor} |= min(v_2) = 0
+>>
+Rule 43 (Check indices of sp_a and sp_b are valid range)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) ≥ 0 ∧ min(v_2) ≥ 0
+>>
+Rule 44 (Check that tensors have dimension > 0)
+{v_1: tensor} |= ndim(v_1) > 0
+>>
+Rule 45 (Values should have a valid rank > 0)
+{v_2 : tensor} |= ndim(v_2) > 0
+>>
+Rule 47 (Ensure all dimensions of sp_b are non-negative so that shape can be defined, dense_shape can exist.)
+{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) ≥ 0
+>>
+Rule 48 (If ndim of sp_a is zero, then ndim of sp_b must also be zero, otherwise can't calculate element-wise min)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+>>
+Rule 53 (Indices are lexicographically ordered, checking that the min is within a valid range to some extent)
+{v_1: tensor} |= min(v_1) ≥ -1000 ∧ min(v_1) ≤ 1000
+>>
+Rule 54 (Ensure they are not boolean values)
+{v_1: tensor, v_2 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0
+>>
+Rule 58 (Tensors should have indices)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
+>>
+Rule 59 (indices should be integer)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = 3 ∧ dtype_(v_2) = 3
+>>
+Rule 62 (Check that tensors have valid shape - must have at least one non-zero dimension for dense shape to be defined)
+{v_1: tensor, v_2: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+>>
+Rule 64 (indices should be valid in sp_a)
+{v_1: tensor} |= min(v_1) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : max(v_1) ≤ shape(v_1, i)
+>>
+Rule 65 (indices should be valid in sp_b)
+{v_2: tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : max(v_2) ≤ shape(v_2, i)
+>>
+Rule 66 (Check that the minimum of the value is 0, sparse tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) = 0 ∧ min(v_2) = 0
+>>
+Rule 68 (Values can't be of type string)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) ≠ 12 ∧ dtype_(v_2) ≠ 12
+>>
+Rule 69 (Values can't be of type string)
+{v_1: tensor, v_2: tensor} |= 0 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11 ∧ 0 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 11
+>>
+Rule 70 (At least one dim should exist in both tensors to avoid attribute error)
+{v_1: tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
+>>
+Rule 71 (indices should have correct range in both tensors so it is not an empty tensor)
+{v_1: tensor, v_2: tensor} |= min(v_1) > -1000 ∧ max(v_1) < 1000 ∧ min(v_2) > -1000 ∧ max(v_2) < 1000
+>>
+Rule 73 (All dimensions of the shapes have to be positive to ensure shape is well defined. Checking for sp_a)
 {v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 15 (Sparse tensor values cannot be NaN)
-{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 74 (All dimensions of the shapes have to be positive to ensure shape is well defined. Checking for sp_b)
+{v_2: tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
 >>
-Rule 16 (Sparse tensor shapes should not exceed maximum size)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000000
+Rule 75 (If rank > 0, then must have values greater than min values)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 0 then min(v_1) < max(v_1) ∧ if ndim(v_2) > 0 then min(v_2) < max(v_2)
 >>
-Rule 17 (Sparse tensors cannot have dimensions exceeding integer limits)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483647
+Rule 79 (The number of non-zero elements must be at least 1 to be sparse tensor, for both)
+{v_1: tensor, v_2: tensor} |= min(v_1) < max(v_1) ∧ min(v_2) < max(v_2)
 >>
-Rule 18 (The dtype of the sparse tensor must be one of the allowed real dtypes.)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 81 (At least it must have some valid dimension to be not throw attribute error - sp_b)
+{v_2: tensor} |= ndim(v_2) > 0
 >>
-Rule 19 (Values within sparse tensor must not be infinite.)
-{v_1: tensor} |= max(v_1) < 10000000000 ∧ min(v_1) > -10000000000
+Rule 82 (Check that min value is 0, since only element-wise min is supported by sparse tensor)
+{v_1: tensor, v_2: tensor} |= min(v_1) = 0 ∧ min(v_2) = 0
 >>
-Rule 20 (The sparse tensors must have at least one element.)
-{v_1: tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+Rule 83 (Ensure all values are not bool)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0
 >>
-Rule 22 (SparseTensor shapes should be reasonably small to avoid memory issues)
-{v_1 : tensor, v_2:tensor} |= (shape(v_1,0) * shape(v_1,1) < 1000000) ∧ (shape(v_2,0) * shape(v_2,1) < 1000000)
+Rule 84 (At least must have more than 1 element so that dense shape can exist)
+{v_1: tensor, v_2: tensor} |= shape(v_1,0) > 0 ∧ shape(v_2,0) > 0
 >>
-Rule 23 (If either sparse tensor is boolean, the other must also be boolean.)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 0 ∧ dtype_(v_2) = 0) ∨ (dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0)
+Rule 85 (If it is of a valid rank then all values are not all zero, min and max should not be the same)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 0 then min(v_1) ≠ max(v_1) ∧ if ndim(v_2) > 0 then min(v_2) ≠ max(v_2)
 >>
-Rule 24 (The sparse tensors must have compatible data types.)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 1 ∧ dtype_(v_2) = 1) ∨ (dtype_(v_1) = 2 ∧ dtype_(v_2) = 2) ∨ (dtype_(v_1) = 3 ∧ dtype_(v_2) = 3) ∨ (dtype_(v_1) = 4 ∧ dtype_(v_2) = 4) ∨ (dtype_(v_1) = 5 ∧ dtype_(v_2) = 5) ∨ (dtype_(v_1) = 6 ∧ dtype_(v_2) = 6) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 8)
+Rule 86 (If indices are specified then at least it has some valid shape.)
+{v_1: tensor, v_2: tensor} |= shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0
 >>
-Rule 26 (SparseTensor shapes should be reasonably small to avoid memory issues)
-{v_1 : tensor, v_2:tensor} |= (ndim(v_1) < 3 ∧ ndim(v_2) < 3) ∧ (if ndim(v_1) > 1 then shape(v_1,0) * shape(v_1,1) < 1000000 else shape(v_1,0) < 1000000) ∧ (if ndim(v_2) > 1 then shape(v_2,0) * shape(v_2,1) < 1000000 else shape(v_2, 0) < 1000000)
+Rule 87 (At least must be numeric, exclude strings)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) < 12 ∧ dtype_(v_2) < 12
 >>
-Rule 30 (SparseTensor shapes should be reasonably small to avoid memory issues)
-{v_1 : tensor, v_2:tensor} |= ndim(v_1) < 3 ∧ ndim(v_2) < 3 ∧ (if ndim(v_1) = 2 then shape(v_1,0) * shape(v_1,1) < 1000000 else if ndim(v_1) = 1 then shape(v_1,0) < 1000000) ∧ (if ndim(v_2) = 2 then shape(v_2,0) * shape(v_2,1) < 1000000 else if ndim(v_2) = 1 then shape(v_2, 0) < 1000000)
+Rule 88 (Check if tensors are valid, they should have more than 0 dimension AND indices have to be lexicographically ordered)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ min(v_1) ≥ 0 ∧ min(v_2) ≥ 0
 >>
-Rule 31 (If either sparse tensor is boolean, the other must also be boolean)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0 else if dtype_(v_2) = 0 then dtype_(v_1) = 0
+Rule 89 (It must be numerical tensors)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) < 9 ∧ dtype_(v_2) < 9
 >>
-Rule 32 (The data types of the two sparse tensors should be the same if they are not boolean)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ 0 then dtype_(v_1) = dtype_(v_2)
+Rule 90 (Values needs to be specified)
+{v_1: tensor} |= min(v_1) < max(v_1)
 >>
-Rule 38 (SparseTensor shapes should be reasonably small to avoid memory issues)
-{v_1 : tensor, v_2:tensor} |= (ndim(v_1) < 3 ∧ ndim(v_2) < 3) ∧ ((ndim(v_1) = 2 ∧ shape(v_1,0) * shape(v_1,1) < 1000000) ∨ (ndim(v_1) = 1 ∧ shape(v_1,0) < 1000000) ∨ (ndim(v_1) = 0)) ∧ ((ndim(v_2) = 2 ∧ shape(v_2,0) * shape(v_2,1) < 1000000) ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) < 1000000) ∨ (ndim(v_2) = 0))
+Rule 91 (All values has to be positive so its not all zeros and avoid error)
+{v_1: tensor, v_2: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
 >>
-Rule 40 (Data types must be the same unless one is boolean.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0 then dtype_(v_1) = dtype_(v_2)
+Rule 96 (Shape of both tensors have to have at least 1 non-zero dim for dense shape to not throw attribute error AND tensors have to have at least 1 element.)
+{v_1: tensor, v_2: tensor} |= shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0 ∧ min(v_1) < max(v_1) ∧ min(v_2) < max(v_2)
 >>
-Rule 42 (SparseTensor shapes must be of reasonable size to prevent memory exhaustion.)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) < 3 ∧ ndim(v_2) < 3) ∧ ((ndim(v_1) = 2 ∧ shape(v_1,0) * shape(v_1,1) < 1000000) ∨ (ndim(v_1) = 1 ∧ shape(v_1,0) < 1000000) ∨ (ndim(v_1) = 0)) ∧ ((ndim(v_2) = 2 ∧ shape(v_2,0) * shape(v_2,1) < 1000000) ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) < 1000000) ∨ (ndim(v_2) = 0))
+Rule 98 (Must have a value, not all zero for sp_b)
+{v_2: tensor} |= min(v_2) < max(v_2)
 >>
-Rule 43 (Enforce dtype compatibility; if either is boolean, both must be, otherwise, dtypes must match.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0 else dtype_(v_1) = dtype_(v_2)
+Rule 99 (For calculations to be element-wise valid, there needs to be the same rank)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 44 (The minimum value in sparse tensors must be smaller or equal than the maximum value)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) ≤ max(v_1) ∧ min(v_2) ≤ max(v_2)
+Rule 100 (For calculations to be valid, it can't be of string type, tensor sp_a)
+{v_1: tensor} |= dtype_(v_1) ≠ 12
 >>
-Rule 46 (Prevent excessive memory usage by limiting the product of dimensions.)
-{v_1: tensor, v_2: tensor} |= (ndim(v_1) < 3 ∧ ndim(v_2) < 3) ∧ ((ndim(v_1) = 2 ∧ shape(v_1, 0) * shape(v_1, 1) < 1000000) ∨ (ndim(v_1) = 1 ∧ shape(v_1, 0) < 1000000) ∨ (ndim(v_1) = 0)) ∧ ((ndim(v_2) = 2 ∧ shape(v_2, 0) * shape(v_2, 1) < 1000000) ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) < 1000000) ∨ (ndim(v_2) = 0))
+Rule 101 (For calculations to be valid, it can't be of string type, tensor sp_b)
+{v_2: tensor} |= dtype_(v_2) ≠ 12
 >>
-Rule 47 (Boolean tensors must both be boolean; otherwise, dtypes must match.)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0 else dtype_(v_1) = dtype_(v_2)
+Rule 103 (Must be element-wise operable, same number of elements)
+{v_1: tensor, v_2: tensor} |= shape(v_1) = shape(v_2)
 >>
-Rule 48 (The minimum and maximum values of the sparse tensors should be within reasonable bounds to avoid overflow issues.)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) > -10000 ∧ max(v_1) < 10000 ∧ min(v_2) > -10000 ∧ max(v_2) < 10000
+Rule 104 (At least 1 dimension values is positive so dense shape is well defined.)
+{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 51 (Boolean tensors must both be boolean; if not boolean dtypes must match)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0 else if dtype_(v_2) = 0 then dtype_(v_1) = 0 else dtype_(v_1) = dtype_(v_2)
+Rule 108 (The dtypes have to match so you can calculate the minimum between two tensors)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 110 (If last dim value is something then it needs to be positive)
+{v_1: tensor} |= if ndim(v_1) > 0 then shape(v_1, ndim(v_1) - 1) > 0
+>>
+Rule 111 (If last dim value is something then it needs to be positive for the other tensor also)
+{v_2: tensor} |= if ndim(v_2) > 0 then shape(v_2, ndim(v_2) - 1) > 0
+>>
+Rule 112 (check all tensors must be positive)
+{v_1: tensor} |= min(v_1) ≥ 0
+>>
+Rule 116 (If the minimum value is zero it must be sparse, which can have valid shape or dense shape)
+{v_1: tensor} |= min(v_1) = 0
+>>
+Rule 117 (If the name was passed, its a string and not an empty value)
+{v_1: str} |= v_1 ≠ ""
+>>
+Rule 118 (Must be element-wise operable, same number of elements)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 119 (SparseTensor requires tensor values to be int, float or complex)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_1) ≠ 12 ∧ dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 5 ∧ dtype_(v_2) ≠ 12
+>>
+Rule 123 (Tensor 2 should have at least one value)
+{v_2: tensor} |= ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+>>
+Rule 124 (At least have one element so indices tensor can work, tensor v1 )
+{v_1: tensor} |= shape(v_1, 0) > 0
+>>
+Rule 125 (At least have one element so indices tensor can work, tensor v2)
+{v_2: tensor} |= shape(v_2, 0) > 0

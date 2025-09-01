@@ -1,105 +1,300 @@
 >>
-Rule 1 (a and b must have the same type)
+Rule 1 (Input tensors must have the same dtype)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 2 (a and b must have the same rank)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 2 (Input tensors must be of supported dtypes, not bool)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 3 (all but the last dimension of a and b must match)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i)
+Rule 3 (All but the last dimension of input tensors must match)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i))
 >>
 Rule 4 (validate_indices must be a boolean)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 5 (a and b's rank should be greater than or equal to 1)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1
+Rule 5 (Tensors must have the same rank)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 6 (If validate_indices is true, then the indices must be sorted)
+Rule 6 (Input tensors 'a' and 'b' should have compatible shapes excluding the last dimension)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i) else false
+>>
+Rule 7 (Type of tensor 'a' must be one of the supported dtypes)
+{v_1 : tensor} |= dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 12
+>>
+Rule 10 (If ranks are different, the expression returns false.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) ≠ ndim(v_2) then false
+>>
+Rule 11 (Shape of tensor a is valid.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 13 (If tensors have different number of dimensions, the shorter one's shape must be a prefix of the longer one's)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = shape(v_2, i) else if ndim(v_1) > ndim(v_2) then ∃i ∈ [0, ndim(v_2)-1] : shape(v_2, i) = shape(v_1, i)
+>>
+Rule 14 (Check if validate_indices is a boolean)
+{v_1 : bool} |= (v_1 = true) ∨ (v_1 = false)
+>>
+Rule 15 (Ensure tensor a is of integer or string type)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 11
+>>
+Rule 16 (The rank of tensors a and b cannot be negative)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0
+>>
+Rule 17 (If one tensor is scalar, the other must also be a scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+>>
+Rule 18 (Tensors 'a' and 'b' must have at least one dimension)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) >= 1 ∧ ndim(v_2) >= 1
+>>
+Rule 19 (The number of dimensions of tensor 'a' must be less than or equal to 5)
+{v_1: tensor} |= ndim(v_1) <= 5
+>>
+Rule 22 (If the number of dimensions is greater than 1, all dimensions must be greater than 0)
+{v_1: tensor} |= if ndim(v_1) > 1 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 25 (Ensure that at least one dimension of the tensor 'a' is non-zero)
+{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0
+>>
+Rule 26 (If one of the tensors is 1D, ensure that all dimensions of the other tensor, except for the last, are equal to 1)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 1 then (if ndim(v_2) > 1 then (∀i ∈ [0, ndim(v_2) - 2] : shape(v_2, i) = 1)) else if ndim(v_2) = 1 then (if ndim(v_1) > 1 then (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = 1))
+>>
+Rule 27 (If a tensor is a matrix, its dimensions should be less than a limit)
+{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) < 100 ∧ shape(v_1, 1) < 100
+>>
+Rule 28 (Check the upper bound for dtype)
+{v_1:tensor} |= dtype_(v_1) < 13
+>>
+Rule 29 (If validate indices is true, then ensure the sparse tensors are sorted in row-major order.)
 {v_1 : bool} |= if v_1 = true then true
 >>
-Rule 7 (shape of a should not be empty)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 30 (Last dimension should have compatible size, or either be zero)
+{v_1 : tensor, v_2 : tensor} |= (shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_2, ndim(v_2) - 1) > 0) ∨ shape(v_1, ndim(v_1) - 1) = 0 ∨ shape(v_2, ndim(v_2) - 1) = 0
 >>
-Rule 8 (If ndim of a is one, then the shape of a must be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 0
+Rule 31 (If any dimension is zero, the rest of the dimensions are ignored.)
+{v_1: tensor} |= if (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 0) then true
 >>
-Rule 9 (The dtype of a should be in a specific range)
-{v_1 : dtype} |= v_1 ≥ 1 ∧ v_1 ≤ 11
+Rule 32 (Check if the tensor 'a' is a valid sparse tensor.)
+{v_1: tensor} |= if (ndim(v_1) > 0) then true else false
 >>
-Rule 10 (If validate_indices is false then no need to check indices)
+Rule 34 (If validate_indices is enabled, ensure that tensors have at least two dimensions)
+{v_1: bool, v_2: tensor} |= if v_1 = true then ndim(v_2) >= 2
+>>
+Rule 36 (If 'validate_indices' is true, then the rank of tensors a and b must be greater or equal to 1.)
+{v_1: bool, v_2: tensor} |= if v_1 = true then ndim(v_2) >= 1
+>>
+Rule 37 (The dtype of tensor 'a' must be of type int8, int16, int32, int64, uint8, uint16, or string.)
+{v_1: tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 12
+>>
+Rule 38 (If the number of dimensions are equal and validate_indices is enabled, the shapes must match all but the last)
+{v_1: bool, v_2: tensor, v_3: tensor} |= if (ndim(v_2) = ndim(v_3) ∧ v_1 = true) then (∀i ∈ [0, ndim(v_2) - 2] : shape(v_2, i) = shape(v_3, i))
+>>
+Rule 39 (If tensors have different ranks, the rank of the lower-dimensional tensor must be less than the larger one.)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) < ndim(v_2)) then true else if (ndim(v_1) > ndim(v_2)) then true
+>>
+Rule 40 (If the dtypes are mismatched, the rule will ensure to flag it to prevent the TypeError.)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) ≠ dtype_(v_2) then false
+>>
+Rule 41 (If tensor 'a' is of type string, then tensor 'b' must also be of type string.)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 12 then dtype_(v_2) = 12
+>>
+Rule 43 (The dtype of the input tensors should not be complex64 or complex128.)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 ∧ dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10
+>>
+Rule 44 (The last dimension of both tensors should be greater than 0 or equal to 0.)
+{v_1: tensor, v_2: tensor} |= (shape(v_1, ndim(v_1) - 1) >= 0) ∧ (shape(v_2, ndim(v_2) - 1) >= 0)
+>>
+Rule 45 (If one of the tensors has zero dimensions, the other tensor must not exist.)
+{v_1: tensor, v_2: tensor} |= if (ndim(v_1) = 0) then true else if (ndim(v_2) = 0) then true
+>>
+Rule 47 (If number of dimensions of tensors are not the same, tensors must be padded with dimensions of size one.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) ≠ ndim(v_2) then true
+>>
+Rule 48 (If the rank of one tensor is zero, then the other tensor must also have a rank of zero.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0 else if ndim(v_2) = 0 then ndim(v_1) = 0
+>>
+Rule 50 (The dtype of input tensors must not be float16, float32, float64.)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 ∧ dtype_(v_2) ≠ 6 ∧ dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8
+>>
+Rule 51 (If validate_indices is true, then both the ranks of tensors 'a' and 'b' should be the same.)
+{v_1: bool, v_2: tensor, v_3: tensor} |= if v_1 = true then (ndim(v_2) = ndim(v_3))
+>>
+Rule 53 (Tensors 'a' and 'b' should have fewer than 7 dimensions each)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) < 7 ∧ ndim(v_2) < 7
+>>
+Rule 54 (If the number of dimensions of tensor 'a' is greater than 0, then ensure that its last dimension is greater than 0)
+{v_1: tensor} |= if ndim(v_1) > 0 then shape(v_1, ndim(v_1)-1) > 0
+>>
+Rule 55 (The input tensors must have a valid shape i.e each dimensions should be positive integers)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+>>
+Rule 56 (If validate_indices is true, then ensure there aren't duplicate entries in indices for a and b)
+{v_1: bool} |= if v_1 = true then true
+>>
+Rule 57 (If tensors are of type string, ensure that their string values are valid UTF-8.)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 11 then true else if dtype_(v_2) = 11 then true
+>>
+Rule 58 (If tensors have mismatched shapes, broadcasting must be possible.)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) ≠ ndim(v_2)) then true else if (∃i ∈ [0, ndim(v_1)-2] : shape(v_1, i) ≠ shape(v_2, i)) then true
+>>
+Rule 59 (The input tensors should not be quantized data types)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) ≠ 5 ∧ dtype_(v_2) ≠ 5
+>>
+Rule 60 (Shape of tensors must not exceed MAX_INT)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483647 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) < 2147483647
+>>
+Rule 62 (The input tensors are rank zero tensors.)
+{v_1: tensor, v_2: tensor} |= (ndim(v_1) = 0) ∧ (ndim(v_2) = 0)
+>>
+Rule 65 (If validate_indices is false, tensors can be either Sparse or Dense)
 {v_1 : bool} |= if v_1 = false then true
 >>
-Rule 12 (If the rank of a and b are the same, the last dimension can be different)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then true else false
+Rule 66 (If any of the tensors has dimensions greater than 1, then the other tensors must also be specified)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 0 then ndim(v_2) > 0
 >>
-Rule 13 (Elements along the last dimension should be positive)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, ndim(v_1) -1) -1]: v_1[i] > 0
+Rule 70 (Tensors cannot have boolean dtype)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0
 >>
-Rule 15 (If rank of a and b are different, then rank(a) - rank(b) should be one or vice versa)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) - ndim(v_2) = 1) ∨ (ndim(v_2) - ndim(v_1) = 1)
+Rule 71 (Tensors should not have unsupported dtypes)
+{v_1: tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 16 (If the last dimension's shape is equal, the min value of tensor a should be less than or equal max value of tensor b)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1, ndim(v_1)-1) = shape(v_2, ndim(v_2)-1) then min(v_1) ≤ max(v_2)
+Rule 72 (If tensors are not of the same rank, the smaller rank tensor should have all the other dimensions except the last dimension as 1)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) < ndim(v_2) then (∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = shape(v_2, i)) else if ndim(v_2) < ndim(v_1) then (∀i ∈ [0, ndim(v_2)-1] : shape(v_2, i) = shape(v_1, i))
 >>
-Rule 17 (If the shapes of a and b are equal then a and b should be equal)
-{v_1 : tensor, v_2 : tensor} |= if ∀i ∈ [0, ndim(v_1) -1]: shape(v_1, i) = shape(v_2, i) then v_1 = v_2
+Rule 73 (If the shapes are mismatched and not broadcastable, flag it to prevent InvalidArgumentError)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = ndim(v_2) then (∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = shape(v_2,i))
 >>
-Rule 18 (If the validate indices is false then a and b should have same values)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then v_1 = v_2
+Rule 74 (Validate_indices cannot be None)
+{v_1: bool} |= (v_1 = true) ∨ (v_1 = false)
 >>
-Rule 19 (The rank of the output tensor should be same as rank of a)
-{v_1:tensor} |= ndim(v_1) > 0
+Rule 76 (The tensors must have the same number of dimensions and their shapes match except for the last dimension)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 20 (If the rank of a is greater than 1 then the shape of last dimension of a should be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, ndim(v_1) -1) > 0
+Rule 77 (If the number of dimensions is greater than zero, the shapes must not be None.)
+{v_1 : tensor} |= if ndim(v_1) > 0 then true
 >>
-Rule 21 (If validate_indices is true then rank of a and b should be greater than 0)
-{v_1: bool, v_2: tensor, v_3: tensor} |= if v_1 = true then ndim(v_2) > 0 ∧ ndim(v_3) > 0
+Rule 79 (If validate indices is false, the indices do not need to be sorted in row major order.)
+{v_1: bool} |= if v_1 = false then true
 >>
-Rule 22 (If the shape of last dimension is same for a and b then max value should be greater than min value for tensor a and b)
-{v_1: tensor, v_2: tensor} |= if shape(v_1, ndim(v_1) -1) = shape(v_2, ndim(v_2) -1) then max(v_1) > min(v_2)
+Rule 80 (If the tensors are of a supported type, then their values must fall within their range.)
+{v_1: tensor} |= if dtype_(v_1) = 1 then min(v_1) >= -128 ∧ max(v_1) <= 127
 >>
-Rule 23 (If validate_indices is true then the max value in the tensor should be less than 100)
-{v_1: bool, v_2: tensor} |= if v_1 = true then max(v_2) < 100
+Rule 82 (Tensors cannot have different dtypes.)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 24 (If validate_indices is true then shape of tensor should be greater than 1)
-{v_1: bool, v_2: tensor} |= if v_1 = true then shape(v_2, ndim(v_2)-1) > 1
+Rule 84 (If number of dimensions of a tensor is less than the number of dimensions of other tensor, the shape of lower dimension tensor should be a prefix of higher dimensional tensor.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) < ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) else if ndim(v_2) < ndim(v_1) then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, i))
 >>
-Rule 25 (The type of tensor must be int or float)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 85 (Tensors should have valid rank, which should be greater than -1)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) > -1 ∧ ndim(v_2) > -1
 >>
-Rule 26 (If validate_indices is true then the min value in the tensor should be greater than -1)
-{v_1: bool, v_2: tensor} |= if v_1 = true then min(v_2) > -1
+Rule 88 (Validate that last dimensions of two tensors are of compatible types.)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) = 12) ∧ (dtype_(v_2) = 12)
 >>
-Rule 27 (If rank of a is greater than 1 then shape of last dimension of a should be less than 1000)
-{v_1: tensor} |= if ndim(v_1) > 1 then shape(v_1, ndim(v_1) -1) < 1000
+Rule 89 (Validating shapes must account for broadcasting of dimensions)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ ndim(v_2) then true else if ndim(v_2) ≥ ndim(v_1) then true else false
 >>
-Rule 28 (If validate_indices is true then dtype of tensor must be integer)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5
+Rule 90 (If validate indices is false, tensors can have different ranks.)
+{v_1: bool, v_2: tensor, v_3: tensor} |= if v_1 = false then (ndim(v_2) ≠ ndim(v_3))
 >>
-Rule 29 (If validate_indices is true then minimum shape among all dimension must be greater than 0)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+Rule 91 (If number of dimensions of tensors are same and validate_indices is enabled, all the shapes must be same except last dimension.)
+{v_1: bool, v_2: tensor, v_3: tensor} |= if v_1 = true then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)
 >>
-Rule 30 (If rank of a and b is 1, then shape of both tensors should be same)
-{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 then shape(v_1, 0) = shape(v_2, 0)
+Rule 93 (Shapes are fully defined if validate indices is set to true)
+{v_1 : bool, v_2 : tensor, v_3: tensor} |= if v_1 = true then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) ∧ (∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) > 0)
 >>
-Rule 33 (if validate indices is true and dtype of a is int then b dtype should be int)
-{v_1: bool, v_2: tensor, v_3 : tensor} |= if v_1 = true ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) then (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5)
+Rule 94 (Validates indices for both tensors and they both should be in range)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3= true then (min(v_1) ≥ 0) ∧ (max(v_1) ≤ 2147483647) ∧ (min(v_2) ≥ 0) ∧ (max(v_2) ≤ 2147483647)
 >>
-Rule 34 (If rank is greater than 2, and all but last dimensions are same, then last dimensions must be positive)
-{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 2 ∧ ndim(v_2) > 2 ∧ ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i) then shape(v_1, ndim(v_1) -1) > 0 ∧ shape(v_2, ndim(v_2) -1) > 0
+Rule 95 (Validates data type)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 12 ∨ dtype_(v_1) = 1
 >>
-Rule 37 (If a and b are sparse tensors, and validate_indices is true, then their indices should be valid, but checking this is outside the capabilities of this limited grammar as it requires tensor indices as input.)
-{v_1 : bool} |= v_1 = true
+Rule 96 (Tensors shapes must be comparable, but also one is not greater than other)
+{v_1: tensor, v_2: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ shape(v_2, i) ∧ ∃i ∈ [0, ndim(v_2)-1] : shape(v_2, i) ≥ shape(v_1, i)
 >>
-Rule 39 (If shape of last dimension of a and b is greater than 1 then product of max and min should be positive)
-{v_1: tensor, v_2: tensor} |= if shape(v_1, ndim(v_1)-1) > 1 ∧ shape(v_2, ndim(v_2)-1) > 1 then (max(v_1) * min(v_1) > 0) ∧ (max(v_2) * min(v_2) > 0)
+Rule 98 (The dtype of tensors should be string when using string values)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 11 then true else if dtype_(v_2) = 11 then true else false
 >>
-Rule 40 (If a or b is bool type and validate_indices is set to true then rank must be equal to one)
-{v_1: tensor, v_2: tensor, v_3 : bool} |= if (dtype_(v_1) = 0 ∨ dtype_(v_2) = 0) ∧ v_3 = true then ndim(v_1) = 1 ∧ ndim(v_2) = 1
+Rule 101 (Shape must have valid values which must be a non negative integer. )
+{v_1: tensor, v_2: tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) ≥ 0 ∧  ∀i ∈ [0, ndim(v_2)-1] : shape(v_2, i) ≥ 0
 >>
-Rule 45 (If the number of elements of the last dimension in tensor a is different from the number of elements of the last dimension in tensor b then those elements have to have a certain type, e.g. integer)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1, ndim(v_1) -1) ≠ shape(v_2, ndim(v_2) -1) then dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∧ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5
+Rule 103 (If validate indices is enabled, the ranks should be same for tensors.)
+{v_1: bool, v_2: tensor, v_3: tensor} |= if v_1 = true then ndim(v_2) = ndim(v_3)
 >>
-Rule 46 (If a or b is bool type and validate_indices is set to true then at least one of a or b elements must be positive)
-{v_1: tensor, v_2: tensor, v_3 : bool} |= if (dtype_(v_1) = 0 ∨ dtype_(v_2) = 0) ∧ v_3 = true then min(v_1) ≥ 0 ∨ min(v_2) ≥ 0
+Rule 104 (If one of the tensors has ndim zero then other tensor also has to have zero, if ndim of either tensor exceeds zero then their dtypes has to be same )
+{v_1: tensor, v_2 : tensor} |= if (ndim(v_1) = 0) then (ndim(v_2) = 0) else if (ndim(v_2) = 0) then (ndim(v_1) = 0) else (dtype_(v_1) = dtype_(v_2))
+>>
+Rule 105 (The input tensor should have at least 1 dimension, but can not support tensors of rank > 5)
+{v_1: tensor} |= ndim(v_1) >= 1 ∧ ndim(v_1) <= 5
+>>
+Rule 108 (If rank of tensor a is different from b, all dimensions except the last one must be 1)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) ≠ ndim(v_2) then (∀i ∈ [0, ndim(v_1)-2] : shape(v_1, i) = 1) ∧ (∀i ∈ [0, ndim(v_2)-2] : shape(v_2, i) = 1)
+>>
+Rule 109 (If tensors don't have the same shape, they have to be broadcastable)
+{v_1: tensor, v_2: tensor} |= if shape(v_1, ndim(v_1)-1) ≠ shape(v_2, ndim(v_2)-1) then true
+>>
+Rule 110 (Tensors need to have a certain shape based on other operation)
+{v_1: tensor} |= shape(v_1, ndim(v_1)-1) > 0
+>>
+Rule 112 (The type of the tensors and their values, must be type compatible.)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 12 ∧ dtype_(v_2) = 12) then true else if (dtype_(v_1) = 5 ∧ dtype_(v_2) = 5) then true else if (dtype_(v_1) = 1 ∧ dtype_(v_2) = 1) then true else if (dtype_(v_1) = 2 ∧ dtype_(v_2) = 2) then true else if (dtype_(v_1) = 3 ∧ dtype_(v_2) = 3) then true else if (dtype_(v_1) = 4 ∧ dtype_(v_2) = 4) then true else false
+>>
+Rule 114 (Shape of the tensor dimensions needs to be positive.)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0
+>>
+Rule 115 (It should be of integer type)
+{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5
+>>
+Rule 117 (If the dtypes doesn't match, raise an exception to prevent downstream errors)
+{v_1 : tensor, v_2: tensor} |= if dtype_(v_1) ≠ dtype_(v_2) then false
+>>
+Rule 119 (if dtype of first is string dtype of second is also string)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 12) then (dtype_(v_2) = 12)
+>>
+Rule 120 (Number of dimension for tensors has to be less than 6)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) < 6 ∧ ndim(v_2) < 6
+>>
+Rule 122 (If one of the tensor has 0 dimensions, the other must have zero dimensions and same data type)
+{v_1: tensor, v_2: tensor} |= if (ndim(v_1) = 0) then (ndim(v_2) = 0 ∧ dtype_(v_1) = dtype_(v_2)) else if (ndim(v_2) = 0) then (ndim(v_1) = 0 ∧ dtype_(v_1) = dtype_(v_2))
+>>
+Rule 123 (Validate Indices must be either True or False)
+{v_1 : bool} |= if v_1 = true then true else if v_1= false then true else false
+>>
+Rule 124 (If both tensors are of same type, the last dimension can be of any shape provided ranks are equal)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = dtype_(v_2) then (if ndim(v_1) = ndim(v_2) then true else false) else false
+>>
+Rule 125 (Validate tensor should contain single type elements, and no other values apart from the defined dtype)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = v_2 then true else false
+>>
+Rule 126 (Validate rank should be between zero and five if validate_indices is set to false)
+{v_1: bool, v_2: tensor} |= if v_1 = false then ndim(v_2) >= 0 ∧ ndim(v_2) <= 5
+>>
+Rule 127 (String tensors have to have valid utf-8 strings)
+{v_1: tensor} |= dtype_(v_1) ≠ 12
+>>
+Rule 129 (String tensors have to have valid unicode strings)
+{v_1: tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 130 (Tensors with dimension zero, should also have same dtypes)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 0 then (dtype_(v_1) = dtype_(v_2))
+>>
+Rule 131 (Validate shape of first dimension for first tensor for valid operation)
+{v_1: tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) ≥ 0
+>>
+Rule 133 (Shape validation for last element has to be one)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) ≠ ndim(v_2) then shape(v_1, ndim(v_1)-1) = 1 ∧ shape(v_2, ndim(v_2)-1) = 1
+>>
+Rule 134 (Validation shapes along all the dimensions)
+{v_1: tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 135 (Validate tensors should have only integer type and not boolean)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) > 0 ∧ dtype_(v_2) > 0
+>>
+Rule 136 (Tensor 'a' must have elements greater than the lower bound)
+{v_1: tensor} |= min(v_1) > -2147483648
+>>
+Rule 137 (Tensor 'a' must have elements less than the upper bound)
+{v_1: tensor} |= max(v_1) < 2147483647
+>>
+Rule 138 (If tensors don't have the same rank and validate_indices is false, the minimum rank tensor must be one)
+{v_1: bool, v_2: tensor, v_3: tensor} |= if v_1 = false then (if ndim(v_2) < ndim(v_3) then ndim(v_2) = 1 else if ndim(v_3) < ndim(v_2) then ndim(v_3) = 1)
+>>
+Rule 140 (If there is any dimension equal to zero, other values are to be ignored.)
+{v_1: tensor} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 0

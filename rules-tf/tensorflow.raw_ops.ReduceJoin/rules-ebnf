@@ -1,69 +1,90 @@
 >>
-Rule 2 (reduction_indices must be a tensor of int32)
-{v_1 : tensor} |= dtype_(v_1) = 3
+Rule 1 (reduction_indices should have a rank of 1 if specified.)
+{v_2 : tensor} |= ndim(v_2) = 1
 >>
-Rule 5 (reduction_indices must be within the valid range of input's dimensions if not empty)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_2) = 0) ∨ (∀i ∈ [0, shape(v_2, 0) - 1] : -1 * ndim(v_1) ≤ shape(v_2, 0) ∧ shape(v_2, 0) ≤ ndim(v_1) -1)
+Rule 2 (The elements in reduction_indices should be within the range [-n, n-1] where n is the rank of inputs.)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, 0) * -1 ≤ v_2[i] ∧ v_2[i] ≤ shape(v_1, 0) - 1
 >>
-Rule 6 (reduction_indices's shape must be 1D)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 3 (keep_dims should be either true or false)
+{v_3 : bool} |= v_3 = true ∨ v_3 = false
 >>
-Rule 8 (inputs must be a tensor of strings)
+Rule 5 (if reduction indices is empty, the rank of input cannot be zero.)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) = 0 then ndim(v_1) ≠ 0
+>>
+Rule 6 (inputs tensor should be of type string)
 {v_1 : tensor} |= dtype_(v_1) = 12
 >>
-Rule 12 (The reduction indices should be within the range [-n, n-1] where n is the rank of the input tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_2, i) ≥ -1 * ndim(v_1) ∧ shape(v_2, i) ≤ ndim(v_1) -1)
+Rule 12 (Reduction indices dtype should be int32)
+{v_2 : tensor} |= dtype_(v_2) = 3
 >>
-Rule 14 (reduction_indices must be a tensor of int32 if it exists and the rank of reduction_indices must be 1)
-{v_1 : tensor} |= if ndim(v_1) > 0 then dtype_(v_1) = 3 ∧ ndim(v_1) = 1
+Rule 13 (reduction_indices values should not have duplicates)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : ∀j ∈ [i + 1, shape(v_2, 0) - 1] : v_2[i] ≠ v_2[j]
 >>
-Rule 16 (The reduction indices should be within the range [-n, n-1] where n is the rank of the input tensor. Also, reduction indices cannot be None)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_2, i) ≥ -1 * ndim(v_1) ∧ shape(v_2, i) ≤ ndim(v_1) -1) else false
+Rule 14 (If keep_dims is true then the output tensor ndim is same as the input tensor.)
+{v_1 : tensor, v_3 : bool} |= if v_3 = true then ndim(v_1) = ndim(v_1)
 >>
-Rule 21 (reduction_indices must be a tensor of int32 if it exists and the rank of reduction_indices must be 1, and each element must be a valid dimension of the input tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_2) = 3 ∧ ndim(v_2) = 1 ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_2, i) ≥ -1 * ndim(v_1) ∧ shape(v_2, i) ≤ ndim(v_1) -1)
+Rule 15 (reduction_indices cannot exceed the rank of the input tensor)
+{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) ≤ ndim(v_1)
 >>
-Rule 22 (If reduction_indices exists, it must have non-zero size)
-{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) > 0
+Rule 16 (If reduction indices is not specified, then the product of input's shape should not be zero.)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) = 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
 >>
-Rule 27 (Inputs must have non-zero size in the reduction dimension if reduction_indices exists)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, shape(v_2, i)) > 0)
+Rule 17 (If keep_dims is false then the output tensor ndim is reduced by the number of dimensions in reduction_indices.)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then ndim(v_1) - shape(v_2, 0) ≥ 0
 >>
-Rule 32 (If reduction_indices exists and is non-empty, inputs must have non-zero size in the reduction dimension)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ shape(v_2,0) > 0 then (∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, shape(v_2, i)) > 0)
+Rule 18 (If reduction_indices contains negative indices, they must be converted to positive indices before use.)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : if v_2[i] < 0 then v_2[i] + shape(v_1, 0) ≥ 0
 >>
-Rule 35 (If reduction_indices exists and is non-empty, each element must be a valid dimension of the input tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ shape(v_2, 0) > 0 then (∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_2, i) ≥ -1 * ndim(v_1) ∧ shape(v_2, i) ≤ ndim(v_1) -1)
+Rule 19 (The rank of reduction_indices must be less than or equal to the rank of inputs.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≤ ndim(v_1)
 >>
-Rule 36 (If reduction_indices exists and is non-empty, inputs must have non-zero size in the reduction dimension)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ shape(v_2, 0) > 0 then (∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, shape(v_2, i)) > 0)
+Rule 20 (The separator must be a string from the allowed list or a generic string.)
+{v_4 : str} |= v_4 = "ii" ∨ v_4 = "ii->i" ∨ v_4 = "i,j->ij" ∨ v_4 = "bij,bjk->bik" ∨ v_4 = "...ij->...ji" ∨ v_4 = "bn,anm,bm->ba" ∨ v_4 = "none" ∨ v_4 = "sum" ∨ v_4 = "max" ∨ v_4 = "min" ∨ v_4 = "prod" ∨ v_4 = "relu" ∨ v_4 = "tanh" ∨ v_4 = "sigmoid" ∨ v_4 = "softmax" ∨ v_4 = "elu" ∨ v_4 = "selu" ∨ v_4 = "gelu" ∨ v_4 = "swish" ∨ v_4 = "softplus" ∨ v_4 = "linear" ∨ v_4 = "valid" ∨ v_4 = "same" ∨ v_4 = "causal" ∨ v_4 = "channels_last" ∨ v_4 = "channels_first" ∨ true
 >>
-Rule 39 (If reduction_indices exists, it must be a tensor of int32 and the rank of reduction_indices must be 1 and non-empty and each element must be a valid dimension of the input tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ shape(v_2, 0) > 0 then dtype_(v_2) = 3 ∧ ndim(v_2) = 1 ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_2, i) ≥ -1 * ndim(v_1) ∧ shape(v_2, i) ≤ ndim(v_1) -1)
+Rule 21 (If reduction indices are specified, they must be unique.)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : ∀j ∈ [i+1, shape(v_2, 0) - 1] : v_2[i] ≠ v_2[j]
 >>
-Rule 44 (If reduction_indices exists, it must be a tensor of int32 and the rank of reduction_indices must be 1 and non-empty and each element must be a valid dimension of the input tensor and inputs must have non-zero size in the reduction dimension)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ shape(v_2, 0) > 0 then dtype_(v_2) = 3 ∧ ndim(v_2) = 1 ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_2, i) ≥ -1 * ndim(v_1) ∧ shape(v_2, i) ≤ ndim(v_1) -1) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, shape(v_2, i)) > 0)
+Rule 23 (if reduction_indices are specified, their values should be within valid range)
+{v_1: tensor, v_2: tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
 >>
-Rule 53 (If reduction_indices is specified, it must satisfy certain conditions.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_2) = 3 ∧ ndim(v_2) = 1 ∧ shape(v_2, 0) > 0 ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_2, i) ≥ -1 * ndim(v_1) ∧ shape(v_2, i) ≤ ndim(v_1) -1) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, shape(v_2, i)) > 0)
+Rule 24 (If reduction indices are not specified, the product of input's shape should not be zero.)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) = 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 57 (If reduction_indices is specified, it must be a valid tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (dtype_(v_2) = 3 ∧ ndim(v_2) = 1 ∧ shape(v_2, 0) > 0 ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_2, i) ≥ -1 * ndim(v_1) ∧ shape(v_2, i) ≤ ndim(v_1) -1) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, shape(v_2, i)) > 0))
+Rule 26 (The size of each reduced dimension must be greater than zero)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, v_2[i]) > 0
 >>
-Rule 73 (If reduction_indices is provided, its dtype must be int32)
-{v_1 : tensor} |= if ndim(v_1) > 0 then dtype_(v_1) = 3
+Rule 29 (If the shape of any of the dimensions specified in reduction_indices is 0, the output should also have a shape of 0 in that dimension if keep_dims is false.)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then ∀i ∈ [0, shape(v_2, 0) - 1] : if shape(v_1, v_2[i]) = 0 then ∃j ∈ [0, shape(v_2, 0) - 1]: shape(v_1, v_2[j]) = 0
 >>
-Rule 74 (If reduction_indices is provided, its rank must be 1)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ndim(v_1) = 1
+Rule 33 (Elements in reduction_indices must be within valid range [-rank(input), rank(input)-1])
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : (0 - ndim(v_1)) <= v_2[i] ∧ v_2[i] < ndim(v_1)
 >>
-Rule 75 (If reduction_indices is provided, its values must be within the valid range of input dimensions)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_2, i) ≥ -1 * ndim(v_1) ∧ shape(v_2, i) ≤ ndim(v_1) - 1)
+Rule 39 (If keep_dims is true and reduction_indices is empty, output and input tensor shapes will be equal.)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true ∧ shape(v_2, 0) = 0 then ndim(v_1) = ndim(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, i)
 >>
-Rule 78 (reduction_indices must be a tensor of int32, rank 1 and valid dimensions of the input tensor if reduction_indices is provided)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (dtype_(v_2) = 3 ∧ ndim(v_2) = 1 ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_2, i) ≥ -1 * ndim(v_1) ∧ shape(v_2, i) ≤ ndim(v_1) - 1))
+Rule 40 (If keep_dims is false, and reduction indices is not empty, output tensor will have dimensions less or equal to input tensor.)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false ∧ shape(v_2, 0) ≠ 0 then ndim(v_1) - shape(v_2, 0) ≥ 0
 >>
-Rule 88 (if reduction_indices is provided, it must be a tensor of int32, it should be of rank 1, values must be within the range and input tensor must have non-zero size at those dimensions)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (dtype_(v_2) = 3 ∧ ndim(v_2) = 1 ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_2, i) ≥ -1 * ndim(v_1) ∧ shape(v_2, i) ≤ ndim(v_1) - 1) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, shape(v_2, i)) > 0))
+Rule 41 (If keep_dims is true and reduction_indices reduces all dimensions, the output is a scalar string tensor)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true ∧ shape(v_2, 0) = ndim(v_1) then ndim(v_1) = 0
 >>
-Rule 94 (If reduction_indices is specified, its dtype must be int32, it must be of rank 1, and its values must be within the valid dimension range of inputs and reduce dimensions have non-zero size.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_2) = 3 ∧ ndim(v_2) = 1 ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_2, i) ≥ -1 * ndim(v_1) ∧ shape(v_2, i) ≤ ndim(v_1) - 1) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, shape(v_2, i)) > 0)
+Rule 42 (If any element in reduction indices is out of range, this is an error)
+{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] < (0 - ndim(v_1))) ∨ (v_2[i] ≥ ndim(v_1))
+>>
+Rule 45 (The reduction indices values should be within the allowed range.)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)
+>>
+Rule 48 (If reduction indices is empty, it defaults to reduce all dimensions, thus output is a scalar.)
+{v_2 : tensor} |= if shape(v_2, 0) = 0 then true
+>>
+Rule 52 (If reduction indices are empty and keep dims is false, then rank of output is zero)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if shape(v_2, 0) = 0 ∧ v_3 = false then ndim(v_1) = 0
+>>
+Rule 53 (reduction_indices tensor must contain only integer values which can be positive or negative)
+{v_2 : tensor} |= ∃i ∈ [0, shape(v_2, 0) - 1]: dtype_(v_2) = 3
+>>
+Rule 55 (If any of the dimensions specified in reduction_indices has value 0, and keep_dims is set to False, the output has at least one dimension with value 0)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then ∃i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, v_2[i]) = 0
+>>
+Rule 56 (When keep_dims is False, the shape of the reduced dimensions is not present in the output shape)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then ∀i ∈ [0, shape(v_2, 0) - 1] : ∃j ∈ [0, ndim(v_1) - 1] : v_2[i] ≠ j

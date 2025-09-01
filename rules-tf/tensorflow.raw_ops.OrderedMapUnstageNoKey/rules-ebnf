@@ -1,102 +1,243 @@
 >>
-Rule 1 (capacity must be non-negative)
-{v_1 : int} |= v_1 ≥ 0
+Rule 1 (capacity should be non-negative)
+{capacity : int} |= capacity ≥ 0
 >>
-Rule 3 (indices must be of int32 type)
-{v_1 : tensor} |= dtype_(v_1) = 3
+Rule 2 (memory_limit should be non-negative)
+{memory_limit : int} |= memory_limit ≥ 0
 >>
-Rule 4 (dtypes list should not be empty)
-{v_1 : list(dtype)} |= v_1.len > 0
+Rule 3 (length of dtypes should be at least 1)
+{dtypes : list(dtype)} |= dtypes.len ≥ 1
 >>
-Rule 5 (indices must have a valid shape)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 4 (indices should be a tensor of int32)
+{indices : tensor} |= dtype_(indices) = 2 ∧ ndim(indices) ≥ 0
 >>
-Rule 6 (indices must be a tensor)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 5 (indices should be a tensor and capacity should be greater than 0 then indices' shape[0] should be less than capacity.)
+{indices : tensor, capacity : int} |= if capacity > 0 then shape(indices, 0) ≤ capacity
 >>
-Rule 7 (memory_limit should be greater than capacity if both are provided)
-{v_1 : int, v_2 : int} |= if v_1 > 0 then v_2 ≥ v_1
+Rule 6 (indices tensor must not be empty)
+{indices : tensor} |= ndim(indices) > 0 ∧ shape(indices, 0) > 0
 >>
-Rule 10 (dtypes must be a list of valid dtypes from the specified integer mapping)
-{v_1 : list(dtype)} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] = 0 ∨ v_1[i] = 1 ∨ v_1[i] = 2 ∨ v_1[i] = 3 ∨ v_1[i] = 4 ∨ v_1[i] = 5 ∨ v_1[i] = 6 ∨ v_1[i] = 7 ∨ v_1[i] = 8 ∨ v_1[i] = 9 ∨ v_1[i] = 10 ∨ v_1[i] = 12)
+Rule 12 (indices should be a tensor of int32)
+{indices : tensor} |= dtype_(indices) = 2
 >>
-Rule 11 (capacity must be less than a certain maximum value if dtypes are provided)
-{v_1 : int, v_2 : list(dtype)} |= if v_2.len > 0 then v_1 ≤ 1024
+Rule 14 (dtypes should be a list and all elements inside should be a valid dtype)
+{dtypes : list(dtype)} |= ∀i ∈ [0, dtypes.len - 1] : dtypes[i] ≥ 0 ∧ dtypes[i] ≤ 12
 >>
-Rule 12 (If capacity is zero, memory limit must also be zero)
-{v_1 : int, v_2 : int} |= if v_1 = 0 then v_2 = 0
+Rule 15 (capacity and memory_limit cannot both be zero when indices is empty)
+{capacity : int, memory_limit : int, indices : tensor} |= if ndim(indices) = 0 then capacity > 0 ∨ memory_limit > 0
 >>
-Rule 13 (The number of dtypes provided should not exceed a maximum value)
-{v_1 : list(dtype)} |= v_1.len ≤ 16
+Rule 16 (If capacity is greater than zero, then memory_limit should be less or equal than capacity)
+{capacity : int, memory_limit : int} |= if capacity > 0 then memory_limit ≤ capacity
 >>
-Rule 14 (If memory limit is set, capacity must also be explicitly defined)
-{v_1 : int, v_2 : int} |= if v_2 > 0 then v_1 ≥ 0
+Rule 20 (If indices has shape, then its elements should be less than or equal to capacity)
+{indices : tensor, capacity : int} |= if ndim(indices) > 0 ∧ capacity > 0 then ∀i ∈ [0, shape(indices, 0) -1] : indices[i] < capacity
 >>
-Rule 15 (If a container is specified, a shared name must also be specified)
-{v_1 : str, v_2 : str} |= if v_1 ≠ "" then v_2 ≠ ""
+Rule 21 (Indices's elements must be less than or equal to capacity if capacity is positive, and indices is not empty)
+{indices : tensor, capacity : int} |= if capacity > 0 ∧ ndim(indices) > 0 then ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] < capacity
 >>
-Rule 16 (indices' dtype must be int32)
-{v_1: tensor} |= dtype_(v_1) = 3
+Rule 22 (if memory limit is 0 then capacity must be bigger than 0)
+{memory_limit : int, capacity : int} |= if memory_limit = 0 then capacity > 0
 >>
-Rule 19 (If container is specified, it has to be a valid string)
-{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "constant" ∨ v_1 = "linear" ∨ v_1 = "softplus" ∨ v_1 = ""
+Rule 24 (if indices is empty, then both capacity and memory_limit should be bigger than 0)
+{indices : tensor, capacity : int, memory_limit : int} |= if ndim(indices) = 0 then capacity > 0 ∧ memory_limit > 0
 >>
-Rule 21 (container and shared_name cannot both be non-empty and different)
-{v_1 : str, v_2 : str} |= if v_1 ≠ "" ∧ v_2 ≠ "" then v_1 = v_2
+Rule 25 (If memory_limit is positive, then capacity must be positive)
+{memory_limit : int, capacity : int} |= if memory_limit > 0 then capacity > 0
 >>
-Rule 23 (If memory_limit is specified, then capacity needs to be greater than 0)
-{v_1 : int, v_2 : int} |= if v_2 > 0 then v_1 > 0
+Rule 26 (The number of dimensions of indices cannot be greater than 1)
+{indices : tensor} |= ndim(indices) ≤ 1
 >>
-Rule 25 (The indices tensor shape must correspond to the dtypes list length.)
-{v_1 : tensor, v_2 : list(dtype)} |= shape(v_1, 0) = v_2.len
+Rule 27 (if memory_limit is zero, then capacity must be non-zero)
+{memory_limit : int, capacity : int} |= if memory_limit = 0 then capacity ≠ 0
 >>
-Rule 26 (memory_limit must be less than or equal to the maximum allowed memory)
-{v_1 : int} |= v_1 ≤ 2147483647
+Rule 28 (if the shape of indices is not zero, then the type of indices should be int32.)
+{indices : tensor} |= if ndim(indices) > 0 then dtype_(indices) = 2
 >>
-Rule 30 (The dtypes list elements should be valid dtypes.)
-{v_1 : list(dtype)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 12
+Rule 29 (If the shape of indices is not zero, then the elements of indices should be less than the capacity)
+{indices : tensor, capacity : int} |= if ndim(indices) > 0 ∧ capacity > 0 then ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] < capacity
 >>
-Rule 31 (If capacity is specified, it must be an integer.)
-{v_1 : int ⊎ float} |= v_1 = (v_1 / 1)
+Rule 30 (If dtypes is of length 1, then it should be a valid dtype)
+{dtypes : list(dtype)} |= if dtypes.len = 1 then dtypes[0] ≥ 0 ∧ dtypes[0] ≤ 12
 >>
-Rule 33 (The number of dimensions of indices tensor cannot exceed 2)
-{v_1 : tensor} |= ndim(v_1) ≤ 2
+Rule 31 (If the container is not empty, then shared_name should not be empty)
+{container : str, shared_name : str} |= if container ≠ "" then shared_name ≠ ""
 >>
-Rule 35 (If memory_limit is zero, then capacity must also be zero.)
-{v_1: int, v_2: int} |= if v_2 = 0 then v_1 = 0
+Rule 32 (If capacity is zero, then memory_limit should be zero)
+{capacity : int, memory_limit : int} |= if capacity = 0 then memory_limit = 0
 >>
-Rule 36 (If capacity is specified, memory_limit has to be specified.)
-{v_1 : int, v_2 : int} |= if v_1 > 0 then v_2 ≥ 0
+Rule 33 (If shared_name is not empty, then container should not be empty)
+{shared_name : str, container : str} |= if shared_name ≠ "" then container ≠ ""
 >>
-Rule 37 (If shared name is an empty string, container must also be an empty string.)
-{v_1 : str, v_2 : str} |= if v_2 = "" then v_1 = ""
+Rule 34 (The dtypes should be valid tf.DType)
+{dtypes : list(dtype)} |= ∀i ∈ [0, dtypes.len - 1] : dtypes[i] = 0 ∨ dtypes[i] = 1 ∨ dtypes[i] = 2 ∨ dtypes[i] = 3 ∨ dtypes[i] = 4 ∨ dtypes[i] = 5 ∨ dtypes[i] = 6 ∨ dtypes[i] = 7 ∨ dtypes[i] = 8 ∨ dtypes[i] = 9 ∨ dtypes[i] = 10 ∨ dtypes[i] = 11 ∨ dtypes[i] = 12
 >>
-Rule 38 (All dtypes in the dtypes list should be valid)
-{v_1 : list(dtype)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] = 0 ∨ v_1[i] = 1 ∨ v_1[i] = 2 ∨ v_1[i] = 3 ∨ v_1[i] = 4 ∨ v_1[i] = 5 ∨ v_1[i] = 6 ∨ v_1[i] = 7 ∨ v_1[i] = 8 ∨ v_1[i] = 9 ∨ v_1[i] = 10 ∨ v_1[i] = 11 ∨ v_1[i] = 12
+Rule 35 (if the indices tensor is not empty, then the capacity must be large enough to contain it)
+{indices : tensor, capacity : int} |= if ndim(indices) > 0 then max(indices) < capacity
 >>
-Rule 41 (The number of dtypes in the dtypes list must correspond to the last dimension of the indices tensor.)
-{v_1 : tensor, v_2 : list(dtype)} |= if ndim(v_1) = 2 then shape(v_1, 1) = v_2.len
+Rule 36 (memory_limit must be less or equal to capacity)
+{memory_limit : int, capacity : int} |= memory_limit <= capacity
 >>
-Rule 43 (If memory limit is not specified, then capacity must be zero.)
-{v_1 : int, v_2 : int} |= if v_2 = 0 then true else v_1 > 0
+Rule 37 (If indices is a scalar then capacity must be equal to 1 if it is not zero)
+{indices : tensor, capacity : int} |= if ndim(indices) = 0 then if capacity ≠ 0 then capacity = 1
 >>
-Rule 44 (If capacity and memory_limit are both specified, then memory_limit should be greater than or equal to capacity)
-{v_1 : int, v_2 : int} |= if v_1 > 0 ∧ v_2 > 0 then v_2 ≥ v_1
+Rule 40 (If memory limit is positive, then it must be less than or equal to capacity.)
+{memory_limit : int, capacity : int} |= if memory_limit > 0 then memory_limit ≤ capacity
 >>
-Rule 47 (If indices is a 2D tensor, its first dimension should be greater than 0)
-{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 0
+Rule 41 (If the indices tensor has a shape dimension then its values must be in the range of 0 to capacity - 1)
+{indices : tensor, capacity : int} |= if ndim(indices) > 0 then ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0 ∧ indices[i] < capacity
 >>
-Rule 49 (if container is specified and is not an empty string, shared_name cannot be an empty string)
-{v_1: str, v_2: str} |= if v_1 ≠ "" then v_2 ≠ ""
+Rule 42 (The dtypes list length must match the number of values that are unstage)
+{dtypes: list(dtype)} |= dtypes.len >= 1
 >>
-Rule 50 (If container and shared_name are both not empty strings, then they must be equal.)
-{v_1: str, v_2: str} |= if v_1 ≠ "" ∧ v_2 ≠ "" then v_1 = v_2
+Rule 43 (if capacity is greater than 0 and indices is a vector, then the values in indices should be unique)
+{indices : tensor, capacity : int} |= if capacity > 0 ∧ ndim(indices) = 1 then ∀i ∈ [0, shape(indices, 0) - 1] : ∀j ∈ [i+1, shape(indices, 0) -1] : indices[i] ≠ indices[j]
 >>
-Rule 51 (If indices is specified as a 1D tensor, its length must be less or equal to 16)
-{v_1: tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) ≤ 16
+Rule 44 (if capacity is non-zero then memory_limit must also be non-zero)
+{capacity: int, memory_limit: int} |= if capacity > 0 then memory_limit > 0
 >>
-Rule 54 (If container is empty string, shared_name must also be an empty string.)
-{v_1: str, v_2: str} |= if v_1 = "" then v_2 = ""
+Rule 47 (if the container is empty, the shared_name should also be empty)
+{container: str, shared_name: str} |= if container = "" then shared_name = ""
 >>
-Rule 55 (If indices is a 2D tensor, shape of first dimension * shape of second dimension must be less than maximum allowed size.)
-{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) ≤ 1024
+Rule 48 (If any value of indices tensor is greater or equal than capacity, return false.)
+{indices: tensor, capacity: int} |= if ndim(indices) > 0 then ∀i ∈ [0, shape(indices, 0)-1] : indices[i] < capacity
+>>
+Rule 50 (if the shape of the indices tensor is 0 then capacity must be 0 or memory_limit must be 0)
+{indices : tensor, capacity : int, memory_limit : int} |= if ndim(indices) = 0 then capacity = 0 ∨ memory_limit = 0
+>>
+Rule 52 (If both capacity and memory_limit are 0, then the indices tensor should be of shape 0)
+{indices : tensor, capacity : int, memory_limit : int} |= if capacity = 0 ∧ memory_limit = 0 then ndim(indices) = 0
+>>
+Rule 53 (If memory_limit is set, then capacity should be set too.)
+{memory_limit: int, capacity: int} |= if memory_limit > 0 then capacity > 0
+>>
+Rule 54 (if shared_name is set then the container should be set too.)
+{shared_name: str, container: str} |= if shared_name != "" then container != ""
+>>
+Rule 55 (if shared_name is an empty string then the container must also be an empty string)
+{shared_name: str, container: str} |= if shared_name = "" then container = ""
+>>
+Rule 58 (If capacity and memory_limit is zero then the number of dimensions of indices should be zero)
+{indices: tensor, capacity: int, memory_limit: int} |= if capacity = 0 ∧ memory_limit = 0 then ndim(indices) = 0
+>>
+Rule 59 (If capacity equals to zero, memory_limit should be zero)
+{capacity:int, memory_limit:int} |= if capacity = 0 then memory_limit = 0
+>>
+Rule 60 (indices tensor must be of dtype int32)
+{indices: tensor} |= dtype_(indices) = 2
+>>
+Rule 61 (If the shared_name is specified, the container must also be specified)
+{shared_name: str, container: str} |= if shared_name ≠ "" then container ≠ ""
+>>
+Rule 62 (if memory_limit is specified the dtype list should match the number of tensors)
+{memory_limit: int, dtypes: list(dtype)} |= if memory_limit > 0 then dtypes.len > 0
+>>
+Rule 64 (the container and shared_name must either be both empty, or both non-empty)
+{container: str, shared_name: str} |= (container = "" ∧ shared_name = "") ∨ (container ≠ "" ∧ shared_name ≠ "")
+>>
+Rule 66 (if the indices tensor is not empty, the values must be non negative)
+{indices: tensor} |= if ndim(indices) > 0 then ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] >= 0
+>>
+Rule 67 (if capacity > 0 and memory_limit > 0, memory_limit should not be greater than capacity)
+{capacity: int, memory_limit: int} |= if capacity > 0 ∧ memory_limit > 0 then memory_limit ≤ capacity
+>>
+Rule 69 (If container is specified, shared_name must also be specified)
+{container: str, shared_name:str} |= if container != "" then shared_name != ""
+>>
+Rule 70 (If the shape of the indices tensor is 0, then the memory_limit and capacity must both be 0)
+{indices: tensor, capacity: int, memory_limit: int} |= if ndim(indices) = 0 then capacity = 0 ∧ memory_limit = 0
+>>
+Rule 72 (If indices tensor is empty then dtypes list length must be greater than zero)
+{indices: tensor, dtypes: list(dtype)} |= if ndim(indices) = 0 then dtypes.len > 0
+>>
+Rule 73 (If capacity and memory_limit are not zero, then indices's elements must be inside of range of capacity.)
+{capacity:int, memory_limit: int, indices: tensor} |= if capacity > 0 ∧ memory_limit > 0 ∧ ndim(indices) > 0 then ∀i ∈ [0, shape(indices, 0)-1] : indices[i] >= 0 ∧ indices[i] < capacity
+>>
+Rule 75 (if memory_limit is greater than 0, then capacity must be greater than 0)
+{capacity: int, memory_limit: int} |= if memory_limit > 0 then capacity > 0
+>>
+Rule 76 (The number of elements of indices should not be greater than the capacity)
+{indices: tensor, capacity: int} |= if ndim(indices) > 0 then shape(indices, 0) <= capacity
+>>
+Rule 77 (If memory_limit is non zero, then it should be less than capacity)
+{capacity: int, memory_limit: int} |= if memory_limit > 0 then memory_limit <= capacity
+>>
+Rule 78 (If capacity is zero, then all elements from indices tensor should be zero.)
+{capacity: int, indices: tensor} |= if capacity = 0 ∧ ndim(indices) > 0 then ∀i ∈ [0, shape(indices, 0)-1] : indices[i] = 0
+>>
+Rule 79 (if capacity is 0 and memory_limit is 0, the indices tensor must be of size 0, that is, it is an empty tensor)
+{capacity: int, memory_limit: int, indices: tensor} |= if capacity = 0 ∧ memory_limit = 0 then ndim(indices) = 0
+>>
+Rule 80 (if the container is not empty, the shared_name cannot be an empty string)
+{container: str, shared_name: str} |= if container ≠ "" then shared_name ≠ ""
+>>
+Rule 82 (If indices is a scalar, then the capacity must be greater than zero.)
+{indices: tensor, capacity:int} |= if ndim(indices) = 0 then capacity > 0
+>>
+Rule 83 (If indices tensor has more than one dimension it is wrong)
+{indices: tensor} |= ndim(indices) ≤ 1
+>>
+Rule 84 (If the capacity is greater than 0, then for every value in the indices tensor it must be between 0 and capacity -1)
+{indices: tensor, capacity: int} |= if capacity > 0 ∧ ndim(indices) > 0 then ∀i ∈ [0, shape(indices, 0) -1] : indices[i] ≥ 0 ∧ indices[i] < capacity
+>>
+Rule 85 (if capacity is 0 and memory_limit is not 0 is incorrect. Both should be zero)
+{capacity: int, memory_limit: int} |= if capacity = 0 then memory_limit = 0
+>>
+Rule 86 (The elements inside list dtypes should be valid dtypes represented by a number between 0 and 12 included)
+{dtypes: list(dtype)} |= ∀i ∈ [0, dtypes.len - 1] : dtypes[i] >= 0 ∧ dtypes[i] <= 12
+>>
+Rule 87 (If there is an indices tensor then capacity should be greater or equal to 0.)
+{indices: tensor, capacity: int} |= if ndim(indices) > 0 then capacity >= 0
+>>
+Rule 88 (if the capacity is greater than 0, then the dtype list should have at least one element.)
+{capacity: int, dtypes: list(dtype)} |= if capacity > 0 then dtypes.len >= 1
+>>
+Rule 89 (if capacity equals 0 then memory_limit must equal 0.)
+{capacity: int, memory_limit:int} |= if capacity = 0 then memory_limit = 0
+>>
+Rule 90 (If capacity is greater than 0, then each element in the indices should be smaller than capacity)
+{indices:tensor, capacity:int} |= if ndim(indices) > 0 then ∀i ∈ [0, shape(indices, 0) -1] : indices[i] < capacity
+>>
+Rule 92 (if capacity is not zero and has a value indices, then all values in indices should be less than capacity)
+{capacity: int, indices: tensor} |= if capacity > 0 ∧ ndim(indices) > 0 then ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] < capacity
+>>
+Rule 93 (If capacity is equal to 0 and you pass the container, you are doing something bad)
+{capacity: int, container: str} |= if capacity = 0 then container = ""
+>>
+Rule 94 (if you have capacity, then the memory limit must be smaller or equal than capacity)
+{capacity: int, memory_limit:int} |= if capacity > 0 then memory_limit <= capacity
+>>
+Rule 95 (If the container is specified, then the shared_name is also required)
+{container: str, shared_name:str} |= if container ≠ "" then shared_name ≠ ""
+>>
+Rule 96 (If capacity is less than memory_limit, it is an invalid input)
+{capacity:int, memory_limit:int} |= capacity ≥ memory_limit
+>>
+Rule 98 (if there are values in indices tensor, and capacity is defined, indices values should be less than capacity)
+{capacity: int, indices: tensor} |= if ndim(indices) > 0 ∧ capacity > 0 then ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] < capacity
+>>
+Rule 99 (if capacity and memory_limit are 0, the indice should be an empty tensor)
+{indices:tensor, capacity:int, memory_limit: int} |= if capacity = 0 ∧ memory_limit = 0 then ndim(indices) = 0
+>>
+Rule 100 (If dtypes is of length one, it must be a valid dtype)
+{dtypes: list(dtype)} |= if dtypes.len = 1 then dtypes[0] ≥ 0 ∧ dtypes[0] ≤ 12
+>>
+Rule 101 (if memory limit is non zero capacity must be non zero)
+{capacity: int, memory_limit:int} |= if memory_limit ≠ 0 then capacity ≠ 0
+>>
+Rule 102 (if the indices tensor is a vector then every number must be between 0 and capacity-1)
+{indices: tensor, capacity: int} |= if ndim(indices) = 1 ∧ capacity > 0 then ∀i ∈ [0, shape(indices, 0) -1] : indices[i] ≥ 0 ∧ indices[i] < capacity
+>>
+Rule 103 (memory_limit must be less than or equal to capacity)
+{capacity: int, memory_limit: int} |= memory_limit ≤ capacity
+>>
+Rule 104 (If capacity is defined then dtypes should have the same length of the number of values unstaged which is greater or equal to 1)
+{capacity: int, dtypes: list(dtype)} |= if capacity > 0 then dtypes.len ≥ 1
+>>
+Rule 105 (If indices is defined then it must be a vector of int32)
+{indices:tensor} |= ndim(indices) ≤ 1 ∧ dtype_(indices) = 2
+>>
+Rule 106 (The length of dtypes should be bigger or equal than 1)
+{dtypes: list(dtype)} |= dtypes.len ≥ 1
+>>
+Rule 108 (If capacity is not zero, then memory_limit should not be greater than capacity.)
+{capacity: int, memory_limit: int} |= if capacity ≠ 0 then memory_limit ≤ capacity

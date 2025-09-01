@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the tensor is complex, the real and imaginary parts should have similar magnitudes (Rule 17)
+# If input tensor is complex64, then max value must be less than representable complex64 max (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), And(Select(v["arg1_range"], 0) > -100, Select(v["arg1_range"], 1) < 100), False)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), And(Select(v["arg1_range"], 0) > -100, Select(v["arg1_range"], 1) < 100), False))
+    s.add(Not(If(v["arg1_dtype"] == 9, Select(v["arg1_range"], 1) < 3.4028235e+38, True)) if n else
+          If(v["arg1_dtype"] == 9, Select(v["arg1_range"], 1) < 3.4028235e+38, True))
 )
 
 def rule_17_func(arg1, solver=None, neg=False):

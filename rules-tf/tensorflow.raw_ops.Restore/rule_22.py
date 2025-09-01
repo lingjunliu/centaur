@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# dt should be a valid dtype - based on index (Rule 22)
+# Dtype must not be a list (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] <= 12)) if n else
-          And(v["arg1_value"] >= 0, v["arg1_value"] <= 12))
+    s.add(Not(v["arg1_value"] != 12) if n else
+          v["arg1_value"] != 12)
 )
 
 def rule_22_func(arg1, solver=None, neg=False):

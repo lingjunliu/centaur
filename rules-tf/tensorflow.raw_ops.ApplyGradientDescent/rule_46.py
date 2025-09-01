@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if var is of integer family, alpha has to be between 0 and 1 (Rule 46)
+# If var is not a scalar, delta must have the same shape as var (Rule 46)
 
 rule_46 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), And(Select(v["arg2_range"], 0) >= 0, Select(v["arg2_range"], 1) <= 1), False)) if n else
-          If(Or(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), And(Select(v["arg2_range"], 0) >= 0, Select(v["arg2_range"], 1) <= 1), False))
+    s.add(Not(If(v["arg1_ndim"] != 0, (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])), True)) if n else
+          If(v["arg1_ndim"] != 0, (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])), True))
 )
 
 def rule_46_func(arg1, arg2, solver=None, neg=False):
@@ -25,18 +25,21 @@ def rule_46_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 46
-        rule_46(solver, {'arg1_dtype': arg1_dtype, 'arg2_range': arg2_range})
+        rule_46(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_46(solver, {'arg1_dtype': arg1['dtype'], 'arg2_range': arg2['range']}, neg)
+        rule_46(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape']}, neg)

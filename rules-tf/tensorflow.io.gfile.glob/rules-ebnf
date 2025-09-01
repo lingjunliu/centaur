@@ -1,144 +1,105 @@
 >>
-Rule 2 (pattern should be a string or iterable of strings, check if the length of the string pattern is positive)
+Rule 2 (pattern cannot be an empty string)
 {v_1 : str} |= v_1.len > 0
 >>
-Rule 3 (string pattern should not be empty)
-{v_1 : str} |= v_1 ≠ ""
+Rule 6 (pattern length must be within reasonable bounds)
+{v_1 : str} |= v_1.len < 256
 >>
-Rule 4 (string pattern should not be null)
-{v_1 : str} |= v_1 ≠ "null"
+Rule 7 (pattern cannot contain only wildcards)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] ≠ "*" ∧ v_1[i] ≠ "?"
 >>
-Rule 5 (string pattern should not be none)
-{v_1 : str} |= v_1 ≠ "none"
->>
-Rule 6 (iterable of strings pattern should not be empty list)
-{v_1 : list(str)} |= v_1.len > 0
->>
-Rule 8 (iterable of strings pattern, each element string should not be empty)
-{v_1 : list(str)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ ""
->>
-Rule 9 (pattern should be a string or iterable of strings, here check if the input is a string)
-{v_1 : str} |= v_1 = v_1
->>
-Rule 15 (If the input is a list of string, each element should not be null)
-{v_1 : list(str)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ "null"
->>
-Rule 16 (String pattern shouldn't contain invalid characters)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ "\\" ∧ v_1[i] ≠ "["
->>
-Rule 17 (If list is provided then each element in the list should be a valid string)
-{v_1 : list(str)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] = v_1[i]
->>
-Rule 18 (if string contains *, the length should be greater than zero.)
-{v_1: str} |= if v_1 = "*" then v_1.len > 0
->>
-Rule 19 (string is a valid file extension such as .txt, .py, .md)
-{v_1 : str} |= if v_1[0] = "." then v_1.len > 1
->>
-Rule 20 (if pattern contains question mark, at least one)
-{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] = "?"
->>
-Rule 23 (String pattern must not start with '/')
+Rule 8 (pattern should not start with a slash)
 {v_1 : str} |= if v_1.len > 0 then v_1[0] ≠ "/"
 >>
-Rule 26 (String pattern cannot contain only a single backslash character)
-{v_1 : str} |= v_1 ≠ "\\"
+Rule 9 (pattern should not end with a slash)
+{v_1 : str} |= if v_1.len > 0 then v_1[v_1.len - 1] ≠ "/"
 >>
-Rule 29 (If pattern is an iterable, string element should not be "*")
-{v_1 : list(str)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ "*"
+Rule 10 (pattern should not contain consecutive slashes)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 2] : v_1[i] = "/" ∧ v_1[i+1] = "/"
 >>
-Rule 30 (If pattern is an iterable, string element should not be "?")
-{v_1 : list(str)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ "?"
+Rule 11 (pattern should not contain invalid escape sequences)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : if v_1[i] = "\\" then (i + 1 < v_1.len)
 >>
-Rule 31 (String pattern is not just a sequence of '*')
-{v_1 : str} |= if v_1.len > 1 then ∃i ∈ [0, v_1.len - 1] : v_1[i] ≠ "*"
+Rule 12 (pattern cannot start with ']')
+{v_1 : str} |= if v_1.len > 0 then v_1[0] ≠ "]"
 >>
-Rule 32 (String pattern is not just a sequence of '?')
-{v_1 : str} |= if v_1.len > 1 then ∃i ∈ [0, v_1.len - 1] : v_1[i] ≠ "?"
+Rule 13 (pattern cannot end with '[')
+{v_1 : str} |= if v_1.len > 0 then v_1[v_1.len - 1] ≠ "["
 >>
-Rule 34 (If string contains '[', then it contains ']')
-{v_1 : str} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "[" then ∃i ∈ [0, v_1.len - 1] : v_1[i] = "]"
+Rule 14 (If pattern contains '[', it must be closed with ']')
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : if v_1[i] = "[" then (∃j ∈ [i+1, v_1.len - 1] : v_1[j] = "]")
 >>
-Rule 35 (If string contains ']', then it contains '[')
-{v_1 : str} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "]" then ∃i ∈ [0, v_1.len - 1] : v_1[i] = "["
+Rule 15 (If pattern contains ']', it must be preceded by '[')
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : if v_1[i] = "]" then (∃j ∈ [0, i-1] : v_1[j] = "[")
 >>
-Rule 38 (String pattern can only have '*' or '?' or character or character range)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] = "*" ∨ v_1[i] = "?" ∨ (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9"))
+Rule 16 (pattern character range must have valid range definition)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 2] : if v_1[i+1] = "-" then v_1[i] < v_1[i+2]
 >>
-Rule 39 (String pattern should start with character or '*' or '?')
-{v_1 : str} |= if v_1.len > 0 then ( (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z") ∨ (v_1[0] ≥ "0" ∧ v_1[0] ≤ "9") ∨ v_1[0] = "*" ∨ v_1[0] = "?" )
+Rule 17 (patterns with '*' and '?' should be combined with other characters for specific matches)
+{v_1 : str} |= if v_1.len > 1 then true else false
 >>
-Rule 40 (If the last character is \, the pattern contains more characters)
-{v_1 : str} |= if v_1.len > 0 then if v_1[v_1.len - 1] = "\\" then v_1.len > 1
+Rule 18 (Pattern with character ranges should not have empty match-list)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : if v_1[i] = "[" then (i+1 < v_1.len ∧ v_1[i+1] ≠ "]")
 >>
-Rule 41 (If a string starts with a char range '[', it must ends with ']')
-{v_1: str} |= if v_1.len > 0 then if v_1[0] = "[" then v_1[v_1.len -1] = "]"
+Rule 19 (Pattern should not contain control characters)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > " "
 >>
-Rule 42 (If a string contains '-' it should be in character range format.)
-{v_1: str} |= ∀i ∈ [0, v_1.len - 1]: if v_1[i] = "-" then i > 0 ∧ i < v_1.len -1
+Rule 24 (If the pattern is an iterable, all elements must be strings)
+{v_1 : list(str) ⊎ tuple(str)} |= ∀i ∈ [0, v_1.len - 1]: true
 >>
-Rule 43 (If string pattern contains backslash, then it is followed by a character)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 2] : if v_1[i] = "\\" then true
+Rule 26 (Pattern should have valid character ranges)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : if v_1[i] = "[" then (∀j ∈ [i+1, v_1.len -1] : if v_1[j] = "-" then (i + 1 < j ∧ j + 1 < v_1.len ∧ v_1[i+1] ≤ v_1[j+1]))
 >>
-Rule 44 (If the string contains a character range, ensure that the start character is smaller than the end char.)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : if v_1[i] = "-" then v_1[i - 1] < v_1[i + 1]
+Rule 27 (If backslash is used, the following character must be *, ?, [, \, ])
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : if v_1[i] = "\\" then (i + 1 < v_1.len ∧ (v_1[i+1] = "*" ∨ v_1[i+1] = "?" ∨ v_1[i+1] = "[" ∨ v_1[i+1] = "\\"))
 >>
-Rule 45 (If the string starts with char range '[^', it must ends with ']')
-{v_1: str} |= if v_1.len > 1 then if v_1[0] = "[" ∧ v_1[1] = "^" then v_1[v_1.len -1] = "]"
+Rule 30 (The range in a character class must be a single character or an escaped character)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : if v_1[i] = "[" then (∀j ∈ [i+1, v_1.len - 1] : if v_1[j] = "-" then (j-i = 2 ∨ (v_1[i+1] = "\\" ∧ v_1[j+1] = "\\")))
 >>
-Rule 46 (If starts with '[', it must contain at least one char in it)
-{v_1: str} |= if v_1[0] = "[" then v_1.len > 2
+Rule 31 (If '^' is present in the character class, it must be the first character after '[')
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : if v_1[i] = "[" then (if i+1 < v_1.len then (v_1[i+1] = "^" ∨ v_1[i+1] ≠ "^"))
 >>
-Rule 47 (String must not be None)
-{v_1: str} |= v_1 ≠ "None"
+Rule 32 (The escape character '\\' cannot be the last character in the pattern)
+{v_1 : str} |= if v_1.len > 0 then v_1[v_1.len -1] ≠ "\\"
 >>
-Rule 48 (string pattern doesn't start with a period unless it's followed by a filename)
-{v_1 : str} |= if v_1.len > 0 then if v_1[0] = "." then v_1.len > 1
+Rule 33 (A ']' character cannot appear immediately after a '[' character)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : if v_1[i] = "[" then (if i+1 < v_1.len then v_1[i+1] ≠ "]")
 >>
-Rule 49 (If there is character range '[...]', the char cannot be '*' or '?')
-{v_1 : str} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "[" then ∀j ∈ [i + 1, v_1.len - 2] : v_1[j] ≠ "*" ∧ v_1[j] ≠ "?"
+Rule 34 (Character range cannot have the closing square bracket as the first element)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : if v_1[i] = "[" then (if i + 1 < v_1.len then v_1[i+1] ≠ "]")
 >>
-Rule 50 (If there is character range '[...]', the char cannot be '\')
-{v_1 : str} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "[" then ∀j ∈ [i + 1, v_1.len - 2] : v_1[j] ≠ "\\"
+Rule 38 (Character range should not have '-' as first or last character *within the bracket*)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : if v_1[i] = "[" then (if i + 1 < v_1.len then v_1[i+1] ≠ "-" ∧ ∃k ∈ [i+1, v_1.len-1] : if v_1[k] = "]" then (k > i+1 ∧ v_1[k-1] ≠ "-") )
 >>
-Rule 51 (If there is character range '[...]', the char cannot be '[')
-{v_1 : str} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "[" then ∀j ∈ [i + 1, v_1.len - 2] : v_1[j] ≠ "["
+Rule 39 (If '^' is used within the square bracket, it should be the immediate next one)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : if v_1[i] = "[" then (if i + 1 < v_1.len then if v_1[i+1] = "^" then true)
 >>
-Rule 52 (If a string contain '^' then it is after '[' immediately)
-{v_1 : str} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "^" then v_1[i - 1] = "["
+Rule 40 (Pattern should not be too complex to cause stack overflow)
+{v_1 : str} |= v_1.len < 100
 >>
-Rule 53 (If string contains '-', it must be within a character range)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : if v_1[i] = "-" then v_1[i-1] = "]" ∨ v_1[i+1] = "["
+Rule 43 (The iterable of patterns should not be empty)
+{v_1 : list(str) ⊎ tuple(str)} |= v_1.len > 0
 >>
-Rule 54 (String shouldn't be just '*')
-{v_1 : str} |= v_1 ≠ "*"
+Rule 56 (The pattern, if representing a path, should have a reasonable length)
+{v_1 : str} |= v_1.len < 1000
 >>
-Rule 55 (String shouldn't be just '?')
-{v_1 : str} |= v_1 ≠ "?"
+Rule 65 (If a list of patterns is provided, its length must be reasonable to avoid excessive processing time.)
+{v_1: list(str) ⊎ tuple(str)} |= v_1.len < 50
 >>
-Rule 56 (list(string) cannot contain ' ' as a element)
-{v_1 : list(str)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ " "
+Rule 97 (Avoid extremely long filenames which can cause buffer overflows.)
+{v_1 : str} |= v_1.len < 4096
 >>
-Rule 57 (list(string) each element should not be None)
-{v_1 : list(str)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ "None"
+Rule 109 (Ensure that all file paths specified by the pattern exist)
+{v_1: str} |= ∃i ∈ [0, v_1.len -1]: true
 >>
-Rule 58 (String should have a file extension with valid characters (e.g., .txt, .py).)
-{v_1:str} |= if v_1.len > 0 then if v_1[0] = "." then ∀i ∈ [1, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9")
+Rule 111 (Pattern must include filename extension)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] = "."
 >>
-Rule 60 (List of string shouldn't have duplicate elements.)
-{v_1 : list(str)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i + 1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+Rule 112 (If the pattern contains a "*", it needs to be the only character, or have characters preceding and following)
+{v_1 : str} |= if v_1.len = 1 then v_1[0] = "*"
 >>
-Rule 62 (List element cannot be a single asterisk)
-{v_1: list(str)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ "*"
+Rule 113 (Pattern must not be a list with one element that is only a wildcard)
+{v_1 : list(str)} |= if v_1.len = 1 then v_1[0] ≠ "*" ∧ v_1[0] ≠ "?"
 >>
-Rule 68 (String if there is '\\', then there should be at least one character following that)
-{v_1: str} |= ∀i ∈ [0, v_1.len - 2] : if v_1[i] = "\\" then true
->>
-Rule 70 (If the string ends with '\', it must be escaped as '\\')
-{v_1 : str} |= if v_1.len > 0 then if v_1[v_1.len - 1] = "\\" then v_1.len > 1 ∧ v_1[v_1.len-2] = "\\"
->>
-Rule 71 (String ending with ? is valid pattern)
-{v_1:str} |= if v_1.len > 0 then if v_1[v_1.len - 1] = "?" then true
->>
-Rule 72 (String ending with * is valid pattern)
-{v_1:str} |= if v_1.len > 0 then if v_1[v_1.len - 1] = "*" then true
+Rule 114 (Pattern needs to have at least one character before and after any "*")
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : if v_1[i] = "*" then (i > 0 ∧ i < v_1.len - 1)

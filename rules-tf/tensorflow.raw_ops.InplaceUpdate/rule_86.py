@@ -5,33 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Each element of i tensor must not be larger than largest possible int32 value (Rule 86)
+# If x is a matrix, then i can have at most one index (Rule 86)
 
 rule_86 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 1) < 2147483647) if n else
-          Select(v["arg1_range"], 1) < 2147483647)
+    s.add(Not(If(v["arg1_ndim"] == 2, v["arg2_ndim"] <= 1, True)) if n else
+          If(v["arg1_ndim"] == 2, v["arg2_ndim"] <= 1, True))
 )
 
-def rule_86_func(arg1, solver=None, neg=False):
+def rule_86_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
+        if not isinstance(arg2, np.ndarray):
+            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg2_ndim = Int('arg2_ndim')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 86
-        rule_86(solver, {'arg1_range': arg1_range})
+        rule_86(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_86(solver, {'arg1_range': arg1['range']}, neg)
+        rule_86(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)

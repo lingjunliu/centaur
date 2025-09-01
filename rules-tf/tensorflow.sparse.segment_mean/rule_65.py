@@ -5,17 +5,16 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# dtype of indices and segment_ids should be int32 or int64 and data must be float or int (Rule 65)
+# Ensure indices are within the bounds of the data tensor's first dimension (Rule 65)
 
 rule_65 = lambda s, v, n=False: (
-    s.add(Not(And(And((Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4)), (Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 4))), (Or(v["arg3_dtype"] == 7, v["arg3_dtype"] == 8)))) if n else
-          And(And((Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4)), (Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 4))), (Or(v["arg3_dtype"] == 7, v["arg3_dtype"] == 8))))
+    s.add(Not(And((Select(v["arg2_range"], 0) >= 0), (Select(v["arg2_range"], 1) < Select(v["arg1_shape"], 0)))) if n else
+          And((Select(v["arg2_range"], 0) >= 0), (Select(v["arg2_range"], 1) < Select(v["arg1_shape"], 0))))
 )
 
-def rule_65_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_65_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
@@ -23,24 +22,22 @@ def rule_65_func(arg1, arg2, arg3, solver=None, neg=False):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
-        if not isinstance(arg3, np.ndarray):
-            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
-        arg3_dtype = Int('arg3_dtype')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 65
-        rule_65(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype})
+        rule_65(solver, {'arg1_shape': arg1_shape, 'arg2_range': arg2_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_65(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype']}, neg)
+        rule_65(solver, {'arg1_shape': arg1['shape'], 'arg2_range': arg2['range']}, neg)

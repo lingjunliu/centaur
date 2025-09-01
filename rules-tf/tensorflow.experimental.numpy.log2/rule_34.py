@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If input dtype is np.uint8, input values should be positive and less than 2**8 (Rule 34)
+# If values close to zero are present in float32, the result will be a very big negative number (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 5, Select(v["arg1_range"], 1) < 256, False)) if n else
-          If(v["arg1_dtype"] == 5, Select(v["arg1_range"], 1) < 256, False))
+    s.add(Not(If(v["arg1_dtype"] == 8, Select(v["arg1_range"], 0) > 0.0000000000000001, True)) if n else
+          If(v["arg1_dtype"] == 8, Select(v["arg1_range"], 0) > 0.0000000000000001, True))
 )
 
 def rule_34_func(arg1, solver=None, neg=False):

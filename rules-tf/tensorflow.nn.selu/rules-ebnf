@@ -1,165 +1,132 @@
 >>
-Rule 1 (features must be of type half, bfloat16, float32, or float64, represented by dtypes 6, 7, 8)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 1 (features must be of a valid dtype: half, bfloat16, float32, float64)
+{features : tensor} |= dtype_(features) = 6 ∨ dtype_(features) = 7 ∨ dtype_(features) = 8
 >>
-Rule 3 (The output tensor has the same type as features)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 3 (features tensor must be of float16, float32, or float64 if min value is below -1)
+{features : tensor} |= if min(features) < -1 then dtype_(features) = 6 ∨ dtype_(features) = 7 ∨ dtype_(features) = 8
 >>
-Rule 5 (ndim of input must be at least 1)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 7 (features tensor cannot have boolean dtype)
+{features : tensor} |= dtype_(features) ≠ 0
 >>
-Rule 6 (All values in features are non-negative)
-{v_1 : tensor} |= min(v_1) >= 0
+Rule 8 (features tensor cannot have int8 dtype)
+{features : tensor} |= dtype_(features) ≠ 1
 >>
-Rule 7 (All values in features are non-positive)
-{v_1 : tensor} |= max(v_1) <= 0
+Rule 10 (features tensor cannot have int16 dtype)
+{features : tensor} |= dtype_(features) ≠ 2
 >>
-Rule 11 (input tensor cannot be an empty tensor, represented by all dimensions being positive)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 11 (features tensor cannot have int32 dtype)
+{features : tensor} |= dtype_(features) ≠ 3
 >>
-Rule 13 (minimum value should be less than maximum value)
-{v_1 : tensor} |= min(v_1) < max(v_1)
+Rule 12 (features tensor cannot have int64 dtype)
+{features : tensor} |= dtype_(features) ≠ 4
 >>
-Rule 15 (If the input tensor's dtype is float16, the minimum value must be greater than -1)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > -1
+Rule 13 (features tensor cannot have uint8 dtype)
+{features : tensor} |= dtype_(features) ≠ 5
 >>
-Rule 16 (If the input tensor's dtype is bfloat16, the minimum value must be greater than -1)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then min(v_1) > -1
+Rule 15 (features tensor cannot have complex64 dtype)
+{features : tensor} |= dtype_(features) ≠ 9
 >>
-Rule 17 (If the input tensor's dtype is float32, the minimum value must be greater than -1)
-{v_1 : tensor} |= if dtype_(v_1) = 8 then min(v_1) > -1
+Rule 16 (features tensor cannot have complex128 dtype)
+{features : tensor} |= dtype_(features) ≠ 10
 >>
-Rule 18 (The shape of the input tensor should not contain extremely large values)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 10000
+Rule 17 (features tensor cannot have string dtype)
+{features : tensor} |= dtype_(features) ≠ 11
 >>
-Rule 19 (Check for NaN values in the input tensor)
-{v_1 : tensor} |= max(v_1) ≠ max(v_1)
+Rule 18 (features tensor cannot have generic dtype)
+{features : tensor} |= dtype_(features) ≠ 12
 >>
-Rule 21 (The input tensor should not contain infinite values)
-{v_1 : tensor} |= max(v_1) ≠ max(v_1) ∨ min(v_1) ≠ min(v_1)
+Rule 22 (if features is of dtype float16, then max(features) cannot exceed max float16 value)
+{features : tensor} |= if dtype_(features) = 6 then max(features) < 65500
 >>
-Rule 22 (The range of the input values should be reasonable)
-{v_1 : tensor} |= max(v_1) - min(v_1) < 1000
+Rule 23 (if features is of dtype float32, then max(features) cannot exceed max float32 value)
+{features : tensor} |= if dtype_(features) = 7 then max(features) < 3.4028235e+38
 >>
-Rule 23 (If the input is float64, then max must be greater than min)
-{v_1 : tensor} |= if dtype_(v_1) = 8 then max(v_1) > min(v_1)
+Rule 25 (if features is of dtype float64, then max(features) cannot exceed max float64 value)
+{features : tensor} |= if dtype_(features) = 8 then max(features) < 1.7976931348623157e+308
 >>
-Rule 24 (The sum of all the elements in the tensor should be finite)
-{v_1 : tensor} |= min(v_1) < 10000000000.0 ∧ max(v_1) > -10000000000.0
+Rule 26 (features tensor must have at least one element)
+{features: tensor} |= ∀i ∈ [0, ndim(features) - 1] : shape(features, i) > 0
 >>
-Rule 26 (If the input is float16, then shape(v1,0) must be > 0)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then shape(v_1, 0) > 0
+Rule 28 (features must have a rank)
+{features : tensor} |= ndim(features) > 0
 >>
-Rule 27 (Check that all input values are within a reasonable range)
-{v_1 : tensor} |= min(v_1) > -1000 ∧ max(v_1) < 1000
+Rule 29 (if the minimum value in features is negative, dtype cannot be uint8)
+{features : tensor} |= if min(features) < 0 then dtype_(features) ≠ 5
 >>
-Rule 28 (If the ndim of input is 1, the shape must be greater than zero)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 0
+Rule 31 (if features is of dtype float16, then it must be within the representable range)
+{features: tensor} |= if dtype_(features) = 6 then min(features) > -65500 ∧ max(features) < 65500
 >>
-Rule 29 (The data in the tensor must be of a non-complex type)
-{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+Rule 32 (if features is of dtype float32, then it must be within the representable range)
+{features: tensor} |= if dtype_(features) = 7 then min(features) > -3.4028235e+38 ∧ max(features) < 3.4028235e+38
 >>
-Rule 31 (If the input is float16, then the max value should not be too high)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then max(v_1) < 1000
+Rule 37 (features cannot be of type bool, int8, int16, int32, int64, uint8, complex64, complex128, str, or dtype)
+{features : tensor} |= dtype_(features) ≠ 0 ∧ dtype_(features) ≠ 1 ∧ dtype_(features) ≠ 2 ∧ dtype_(features) ≠ 3 ∧ dtype_(features) ≠ 4 ∧ dtype_(features) ≠ 5 ∧ dtype_(features) ≠ 9 ∧ dtype_(features) ≠ 10 ∧ dtype_(features) ≠ 11 ∧ dtype_(features) ≠ 12
 >>
-Rule 32 (If the input is bfloat16, then the max value should not be too high)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then max(v_1) < 1000
+Rule 50 (features must not be a boolean tensor)
+{features : tensor} |= if dtype_(features) = 0 then false
 >>
-Rule 33 (If the input is float32, then the max value should not be too high)
-{v_1 : tensor} |= if dtype_(v_1) = 8 then max(v_1) < 1000
+Rule 55 (features cannot be of type int8)
+{features : tensor} |= if dtype_(features) = 1 then false
 >>
-Rule 34 (if ndim is greater than 1 then shape of the first dimension must be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 0) > 0
+Rule 56 (features cannot be of type int16)
+{features : tensor} |= if dtype_(features) = 2 then false
 >>
-Rule 36 (If input is float16, shape of first dim must be within a reasonable range)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then shape(v_1, 0) < 1000
+Rule 57 (features cannot be of type int32)
+{features : tensor} |= if dtype_(features) = 3 then false
 >>
-Rule 37 (If input is bfloat16, shape of first dim must be within a reasonable range)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then shape(v_1, 0) < 1000
+Rule 58 (features cannot be of type int64)
+{features : tensor} |= if dtype_(features) = 4 then false
 >>
-Rule 38 (If input is float32, shape of first dim must be within a reasonable range)
-{v_1 : tensor} |= if dtype_(v_1) = 8 then shape(v_1, 0) < 1000
+Rule 59 (features cannot be of type uint8)
+{features : tensor} |= if dtype_(features) = 5 then false
 >>
-Rule 39 (If the tensor is more than one dimension, then all dimensions other than the first must also be greater than zero)
-{v_1 : tensor} |= if ndim(v_1) > 1 then ∀i ∈ [1, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 61 (features cannot be a bool, int8, int16, int32, int64, or uint8 tensor)
+{features : tensor} |= if dtype_(features) = 0 ∨ dtype_(features) = 1 ∨ dtype_(features) = 2 ∨ dtype_(features) = 3 ∨ dtype_(features) = 4 ∨ dtype_(features) = 5 then false
 >>
-Rule 41 (If dtype is not one of the allowed dtypes, the rule should be false)
-{v_1 : tensor} |= if dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 then false
+Rule 72 (features must not be a boolean tensor)
+{features: tensor} |= dtype_(features) ≠ 0
 >>
-Rule 42 (For valid dropout, the input should not have large values)
-{v_1 : tensor} |= max(v_1) < 1000
+Rule 77 (features must not be a boolean or integer tensor)
+{features : tensor} |= if dtype_(features) = 0 then false else if dtype_(features) = 1 then false else if dtype_(features) = 2 then false else if dtype_(features) = 3 then false else if dtype_(features) = 4 then false else if dtype_(features) = 5 then false
 >>
-Rule 43 (For valid dropout, the input should not have small values)
-{v_1 : tensor} |= min(v_1) > -1000
+Rule 79 (features tensor must not have an invalid dtype)
+{features : tensor} |= if dtype_(features) = 0 ∨ dtype_(features) = 1 ∨ dtype_(features) = 2 ∨ dtype_(features) = 3 ∨ dtype_(features) = 4 ∨ dtype_(features) = 5 ∨ dtype_(features) = 9 ∨ dtype_(features) = 10 ∨ dtype_(features) = 11 ∨ dtype_(features) = 12 then false
 >>
-Rule 44 (The output dtype should be one of half, bfloat16, float32, or float64)
-{v_2 : tensor} |= dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+Rule 85 (features tensor must not be a boolean, integer, complex, string, or generic dtype)
+{features: tensor} |= if (dtype_(features) = 0) ∨ (dtype_(features) >= 1 ∧ dtype_(features) <= 5) ∨ (dtype_(features) >= 9 ∧ dtype_(features) <= 12) then false
 >>
-Rule 46 (If the dtype is float16 then all values must be finite)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then ∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) < 10000 ∧ min(v_1) ≠ min(v_1)
+Rule 87 (features must have valid dtype)
+{features : tensor} |= (dtype_(features) ≠ 0) ∧ (dtype_(features) < 1 ∨ dtype_(features) > 5) ∧ (dtype_(features) < 9 ∨ dtype_(features) > 12)
 >>
-Rule 47 (If the dtype is bfloat16 then all values must be finite)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then ∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) < 10000 ∧ min(v_1) ≠ min(v_1)
+Rule 89 (features tensor cannot be of type bool, int, complex, str, or dtype)
+{features : tensor} |= if dtype_(features) = 0 ∨ (dtype_(features) >= 1 ∧ dtype_(features) <= 5) ∨ (dtype_(features) >= 9 ∧ dtype_(features) <= 12) then false
 >>
-Rule 48 (If the dtype is float32 then all values must be finite)
-{v_1 : tensor} |= if dtype_(v_1) = 8 then ∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) < 10000 ∧ min(v_1) ≠ min(v_1)
+Rule 90 (features tensor must have a floating point dtype)
+{features : tensor} |= (dtype_(features) = 6) ∨ (dtype_(features) = 7) ∨ (dtype_(features) = 8)
 >>
-Rule 49 (if any value is negative the min must not be too low)
-{v_1 : tensor} |= if min(v_1) < 0 then min(v_1) > -10000
+Rule 93 (features tensor must not be boolean, integer, complex, string or generic)
+{features : tensor} |= if (dtype_(features) = 0) ∨ (dtype_(features) ≥ 1 ∧ dtype_(features) ≤ 5) ∨ (dtype_(features) ≥ 9 ∧ dtype_(features) ≤ 12) then false
 >>
-Rule 51 (If the tensor is a matrix, then the number of rows should be greater than 1)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 1
+Rule 95 (features tensor dtype must be a valid supported type)
+{features : tensor} |= (dtype_(features) ≠ 0) ∧ ((dtype_(features) < 1) ∨ (dtype_(features) > 5)) ∧ ((dtype_(features) < 9) ∨ (dtype_(features) > 12))
 >>
-Rule 52 (If the tensor is a matrix, then the number of columns should be greater than 1)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 1) > 1
+Rule 97 (features tensor dtype must not be of an unsupported type)
+{features : tensor} |= if (dtype_(features) = 0) then false else if (dtype_(features) = 1) then false else if (dtype_(features) = 2) then false else if (dtype_(features) = 3) then false else if (dtype_(features) = 4) then false else if (dtype_(features) = 5) then false else if (dtype_(features) = 9) then false else if (dtype_(features) = 10) then false else if (dtype_(features) = 11) then false else if (dtype_(features) = 12) then false
 >>
-Rule 53 (If the ndim is more than two, then shape of the second and third dimensions must not be zero)
-{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+Rule 102 (features tensor must be at least one-dimensional if not a scalar)
+{features : tensor} |= ndim(features) ≥ 0
 >>
-Rule 54 (The output tensor and the input tensor must have the same shape.)
-{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 103 (if features is of type half, max value must be less than representable maximum)
+{features : tensor} |= if dtype_(features) = 6 then max(features) < 65504
 >>
-Rule 56 (If tensor has less than 3 dimensions and dtype is float 16, the the max must be less than 1000)
-{v_1: tensor} |= if ndim(v_1) < 3 ∧ dtype_(v_1) = 6 then max(v_1) < 1000
+Rule 105 (if features is float16, then the values must be within the valid range for float16)
+{features : tensor} |= if dtype_(features) = 6 then (min(features) ≥ -65504 ∧ max(features) ≤ 65504)
 >>
-Rule 57 (If tensor has less than 3 dimensions and dtype is bfloat 16, the the max must be less than 1000)
-{v_1: tensor} |= if ndim(v_1) < 3 ∧ dtype_(v_1) = 7 then max(v_1) < 1000
+Rule 107 (if the dtype is not in the allowed list, it's invalid)
+{features : tensor} |= if (dtype_(features) = 6) ∨ (dtype_(features) = 7) ∨ (dtype_(features) = 8) then true else false
 >>
-Rule 58 (If tensor has less than 3 dimensions and dtype is float 32, the the max must be less than 1000)
-{v_1: tensor} |= if ndim(v_1) < 3 ∧ dtype_(v_1) = 8 then max(v_1) < 1000
+Rule 109 (If features is of type other than valid, then fail)
+{features : tensor} |= if ((dtype_(features) = 6) ∨ (dtype_(features) = 7) ∨ (dtype_(features) = 8)) then true else false
 >>
-Rule 59 (If the tensor is a 3D tensor, then first, second and third dimensions shape must be > 0)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
->>
-Rule 61 (If the dtype is float16, the values should be normally distributed)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > -5 ∧ max(v_1) < 5
->>
-Rule 62 (If the dtype is bfloat16, the values should be normally distributed)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then min(v_1) > -5 ∧ max(v_1) < 5
->>
-Rule 63 (If the dtype is float32, the values should be normally distributed)
-{v_1 : tensor} |= if dtype_(v_1) = 8 then min(v_1) > -5 ∧ max(v_1) < 5
->>
-Rule 64 (If tensor is one dimension then the shape must be less than 1000)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) < 1000
->>
-Rule 66 (If dtype is float16, bfloat16 or float32, all shapes must be less than 10,000)
-{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then ∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) < 10000
->>
-Rule 67 (If dtype is float64 all values must be between a range)
-{v_1 : tensor} |= if dtype_(v_1) = 9 then min(v_1) > -10000 ∧ max(v_1) < 10000
->>
-Rule 68 (If dtype is float16, then min of input should be greater than -1000)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > -1000
->>
-Rule 69 (If dtype is bfloat16, then min of input should be greater than -1000)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then min(v_1) > -1000
->>
-Rule 72 (If dtype is float32 then all values must be non-zero)
-{v_1: tensor} |= if dtype_(v_1) = 8 then min(v_1) ≠ 0 ∧ max(v_1) ≠ 0
->>
-Rule 73 (If dtype is bfloat16 and ndim is > 2, then shape[1] and shape[2] > 0)
-{v_1: tensor} |= if dtype_(v_1) = 7 ∧ ndim(v_1) > 2 then shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
->>
-Rule 74 (If dtype is float16 and ndim is > 2, then shape[1] and shape[2] > 0)
-{v_1: tensor} |= if dtype_(v_1) = 6 ∧ ndim(v_1) > 2 then shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+Rule 115 (Check that features isn't one of the invalid dtypes)
+{features: tensor} |= (dtype_(features) ≠ 0) ∧ (dtype_(features) ≠ 1) ∧ (dtype_(features) ≠ 2) ∧ (dtype_(features) ≠ 3) ∧ (dtype_(features) ≠ 4) ∧ (dtype_(features) ≠ 5) ∧ (dtype_(features) ≠ 9) ∧ (dtype_(features) ≠ 10) ∧ (dtype_(features) ≠ 11) ∧ (dtype_(features) ≠ 12)

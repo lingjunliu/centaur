@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If both inputs are boolean tensors, the result should be a boolean tensor of trues (Rule 5)
+# x1 and x2 should have compatible dtypes for division (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0), And(And(And(Select(v["arg1_range"], 0) == True, Select(v["arg1_range"], 1) == True), Select(v["arg2_range"], 0) == True), Select(v["arg2_range"], 1) == True), False)) if n else
-          If(And(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0), And(And(And(Select(v["arg1_range"], 0) == True, Select(v["arg1_range"], 1) == True), Select(v["arg2_range"], 0) == True), Select(v["arg2_range"], 1) == True), False))
+    s.add(Not(And((And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 11)), (And(v["arg2_dtype"] >= 6, v["arg2_dtype"] <= 11)))) if n else
+          And((And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 11)), (And(v["arg2_dtype"] >= 6, v["arg2_dtype"] <= 11))))
 )
 
 def rule_5_func(arg1, arg2, solver=None, neg=False):
@@ -26,22 +26,16 @@ def rule_5_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
         arg2_dtype = Int('arg2_dtype')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 5
-        rule_5(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype, 'arg2_range': arg2_range, 'arg2_dtype': arg2_dtype})
+        rule_5(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_5(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype'], 'arg2_range': arg2['range'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_5(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

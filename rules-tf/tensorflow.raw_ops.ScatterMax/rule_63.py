@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Requires updates.shape = indices.shape + ref.shape[1:] or updates.shape = [] (Rule 63)
+# If ref is a scalar, then indices and updates must also be scalars or empty. (Rule 63)
 
 rule_63 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg3_ndim"] == 0, True, v["arg3_ndim"] == v["arg2_ndim"] + v["arg1_ndim"] - 1)) if n else
-          If(v["arg3_ndim"] == 0, True, v["arg3_ndim"] == v["arg2_ndim"] + v["arg1_ndim"] - 1))
+    s.add(Not(If(v["arg1_ndim"] == 0, (And(v["arg2_ndim"] == 0, v["arg3_ndim"] == 0)), True)) if n else
+          If(v["arg1_ndim"] == 0, (And(v["arg2_ndim"] == 0, v["arg3_ndim"] == 0)), True))
 )
 
 def rule_63_func(arg1, arg2, arg3, solver=None, neg=False):

@@ -1,81 +1,99 @@
 >>
-Rule 1 (clip_norm should be a scalar tensor)
-{v_2 : tensor} |= ndim(v_2) = 0
+Rule 1 (t must be a floating point or complex type)
+{t : tensor} |= dtype_(t) = 6 ∨ dtype_(t) = 7 ∨ dtype_(t) = 8 ∨ dtype_(t) = 9 ∨ dtype_(t) = 10
 >>
 Rule 2 (clip_norm must be greater than 0)
-{v_2 : tensor} |= v_2 > 0
+{clip_norm : tensor} |= clip_norm > 0
 >>
-Rule 3 (input tensor should be of floating point type or complex type)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 3 (clip_norm must be a scalar)
+{clip_norm : tensor} |= ndim(clip_norm) = 0
 >>
-Rule 4 (axes must be a 1D tensor of int32)
-{v_3 : tensor} |= ndim(v_3) = 1 ∧ dtype_(v_3) = 3
+Rule 4 (axes must be 1D if present)
+{axes : tensor} |= ndim(axes) = 1
 >>
-Rule 5 (each element in axes should be a valid dimension)
-{v_1 : tensor, v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : 0 ≤ v_3[i] ∧ v_3[i] < ndim(v_1)
+Rule 5 (elements of axes must be int32)
+{axes : tensor} |= dtype_(axes) = 3
 >>
-Rule 6 (If axes is None, all dimensions are used)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then true else ∀i ∈ [0, shape(v_2, 0) - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+Rule 6 (t and clip_norm must have compatible dtypes for multiplication)
+{t : tensor, clip_norm : tensor} |= (dtype_(t) = 6 ∧ dtype_(clip_norm) = 6) ∨ (dtype_(t) = 7 ∧ dtype_(clip_norm) = 7) ∨ (dtype_(t) = 8 ∧ dtype_(clip_norm) = 8) ∨ (dtype_(t) = 9 ∧ dtype_(clip_norm) = 9) ∨ (dtype_(t) = 10 ∧ dtype_(clip_norm) = 10)
 >>
-Rule 7 (t and clip_norm must have the same floating point dtype)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∧ dtype_(v_2) = 6) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 8) ∨ (dtype_(v_1) = 9 ∧ dtype_(v_2) = 9) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_2) = 10)
+Rule 8 (Axes values should be unique)
+{axes : tensor} |= ∀i ∈ [0, ndim(axes) - 1] : ∀j ∈ [i + 1, ndim(axes) - 1] : axes[i] ≠ axes[j]
 >>
-Rule 8 (The input 't' tensor must have at least one dimension if axes is not None)
-{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then ndim(v_1) > 0
+Rule 13 (elements of axes must be int32)
+{axes : tensor} |= ndim(axes) > 0 ∧ ∀i ∈ [0, ndim(axes) - 1] : axes[i] ≥ -2147483648 ∧ axes[i] ≤ 2147483647
 >>
-Rule 9 (axes tensor cannot be empty)
-{v_3 : tensor} |= if ndim(v_3) > 0 then shape(v_3, 0) > 0
+Rule 16 (t cannot be boolean)
+{t : tensor} |= dtype_(t) ≠ 0
 >>
-Rule 10 (clip_norm can be zero if axes is None)
-{v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 then v_2 ≥ 0 else v_2 > 0
+Rule 22 (t and clip_norm are either both float or both complex)
+{t : tensor, clip_norm : tensor} |= ((dtype_(t) = 6 ∨ dtype_(t) = 7 ∨ dtype_(t) = 8) ∧ (dtype_(clip_norm) = 6 ∨ dtype_(clip_norm) = 7 ∨ dtype_(clip_norm) = 8)) ∨ ((dtype_(t) = 9 ∨ dtype_(t) = 10) ∧ (dtype_(clip_norm) = 9 ∨ dtype_(clip_norm) = 10))
 >>
-Rule 12 (If axes is None, then clip_norm can be zero)
-{v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 then v_2 ≥ 0
+Rule 23 (Axes values should be within the valid range for reduction and not duplicate)
+{t : tensor, axes : tensor} |= ndim(axes) = 1 ∧ ∀i ∈ [0, ndim(axes) - 1] : (axes[i] ≥ 0 ∧ axes[i] < ndim(t)) ∧ (∀j ∈ [i+1, ndim(axes) -1] : axes[i] ≠ axes[j])
 >>
-Rule 13 (The axes tensor can only contain unique values)
-{v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : ∀j ∈ [i + 1, shape(v_3, 0) - 1] : v_3[i] ≠ v_3[j]
+Rule 29 (axes must be 1D if present and elements are unique)
+{axes : tensor, t: tensor} |= ndim(axes) = 1 ∧ ∀i ∈ [0, ndim(axes) - 1] : (axes[i] ≥ 0 ∧ axes[i] < ndim(t)) ∧ (∀j ∈ [i+1, ndim(axes) -1] : axes[i] ≠ axes[j])
 >>
-Rule 14 (axes should be int32)
-{v_3 : tensor} |= if ndim(v_3) > 0 then dtype_(v_3) = 3
+Rule 31 (The shapes of tensor t and clip_norm should be broadcastable)
+{t : tensor, clip_norm : tensor} |= (ndim(t) = ndim(clip_norm)) ∨ (ndim(clip_norm) = 0)
 >>
-Rule 16 (When axes are specified, the number of axes must be less than or equal to the rank of the input tensor)
-{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then shape(v_3, 0) ≤ ndim(v_1)
+Rule 34 (clip_norm must be a positive scalar)
+{clip_norm : tensor} |= ndim(clip_norm) = 0 ∧ clip_norm > 0
 >>
-Rule 18 (If axes is None, t and clip_norm datatypes should be the same)
-{v_1 : tensor, v_2 : tensor, v_3:tensor} |= if ndim(v_3) = 0 then dtype_(v_1) = dtype_(v_2)
+Rule 35 (axes must be a valid 1D tensor containing unique axis indices)
+{axes : tensor, t : tensor} |= if ndim(axes) > 0 then (ndim(axes) = 1 ∧ ∀i ∈ [0, ndim(axes) - 1] : (axes[i] ≥ 0 ∧ axes[i] < ndim(t)) ∧ (∀j ∈ [i+1, ndim(axes) - 1] : axes[i] ≠ axes[j]))
 >>
-Rule 19 (axes values should be non-negative)
-{v_3 : tensor} |= if ndim(v_3) > 0 then ∀i ∈ [0, shape(v_3, 0) - 1] : v_3[i] ≥ 0
+Rule 36 (t and clip_norm must have the same dtype)
+{t : tensor, clip_norm : tensor} |= dtype_(t) = dtype_(clip_norm)
 >>
-Rule 20 (axes values should be less than the rank of input tensor)
-{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then ∀i ∈ [0, shape(v_3, 0) - 1] : v_3[i] < ndim(v_1)
+Rule 38 (If axes is empty, t cannot be a scalar.)
+{t : tensor, axes : tensor} |= if ndim(axes) = 0 then ndim(t) > 0
 >>
-Rule 21 (if clip_norm is negative and axes is None, it's the same as zero)
-{v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 ∧ v_2 < 0 then v_2 = 0
+Rule 44 (axes cannot contain duplicate dimensions)
+{axes : tensor} |= if ndim(axes) > 0 then ∀i ∈ [0, ndim(axes) - 1] : ∀j ∈ [i+1, ndim(axes) - 1] : axes[i] ≠ axes[j]
 >>
-Rule 22 (The tensor 't' should not be an empty tensor)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 47 (axes must be a valid 1D int32 tensor with unique elements representing reduction axes, if provided)
+{axes : tensor, t : tensor} |= if ndim(axes) > 0 then (ndim(axes) = 1 ∧ dtype_(axes) = 3 ∧ ∀i ∈ [0, ndim(axes) - 1] : (axes[i] ≥ 0 ∧ axes[i] < ndim(t)) ∧ (∀j ∈ [i+1, ndim(axes) - 1] : axes[i] ≠ axes[j]))
 >>
-Rule 23 (axes values should be unique)
-{v_3 : tensor} |= if ndim(v_3) > 0 then ∀i ∈ [0, shape(v_3, 0) - 1] : ∀j ∈ [i+1, shape(v_3, 0) - 1] : v_3[i] ≠ v_3[j]
+Rule 55 (If axes are provided, then it must be a valid reduction)
+{t: tensor, axes: tensor} |= if ndim(axes) > 0 then ∀i ∈ [0, ndim(axes) - 1] : axes[i] < ndim(t) ∧ axes[i] ≥ (0 - ndim(t))
 >>
-Rule 25 (If axes is specified, then it has to be one dimensional)
-{v_3 : tensor} |= if ndim(v_3) > 0 then ndim(v_3) = 1
+Rule 62 (axes elements are within valid range for reduction)
+{t : tensor, axes : tensor} |= if ndim(axes) > 0 then ∀i ∈ [0, ndim(axes) - 1] : (axes[i] >= (0 - ndim(t)) ∧ axes[i] < ndim(t))
 >>
-Rule 26 (clip_norm should be a float tensor when axes is specified)
-{v_2 : tensor, v_3:tensor} |= if ndim(v_3) > 0 then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+Rule 68 (Axes should not contain duplicate values)
+{axes: tensor} |= if ndim(axes) > 0 then ∀i ∈ [0, ndim(axes) - 1] : ∀j ∈ [i+1, ndim(axes) - 1] : axes[i] ≠ axes[j]
 >>
-Rule 27 (If input is IndexedSlices, the clip_norm must still be a scalar.)
-{v_2: tensor} |= ndim(v_2) = 0
+Rule 71 (axes must be a valid 1D int32 tensor with unique, non-repeating elements representing valid reduction axes, or be omitted entirely)
+{axes : tensor, t : tensor} |= if ndim(axes) > 0 then (ndim(axes) = 1 ∧ dtype_(axes) = 3 ∧ (∀i ∈ [0, ndim(axes) - 1] : (axes[i] ≥ 0 ∧ axes[i] < ndim(t))) ∧ (∀i ∈ [0, ndim(axes) - 1] : (∀j ∈ [i+1, ndim(axes) - 1] : axes[i] ≠ axes[j])))
 >>
-Rule 28 (If input is IndexedSlices, clip_norm must be a float or complex tensor)
-{v_2: tensor} |= (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+Rule 80 (If the product of the shapes of 't' and 'clip_norm' are taken, shapes must be broadcastable)
+{t: tensor, clip_norm: tensor} |= (ndim(clip_norm) = 0) ∨ (∀i ∈ [0, if ndim(t) ≥ ndim(clip_norm) then ndim(t) - 1 else ndim(clip_norm) - 1] : (if ndim(t) - i - 1 < 0 then true else if ndim(clip_norm) - i - 1 < 0 then true else shape(t, ndim(t) - i - 1) = 1 ∨ shape(clip_norm, ndim(clip_norm) - i - 1) = 1 ∨ shape(t, ndim(t) - i - 1) = shape(clip_norm, ndim(clip_norm) - i - 1)))
 >>
-Rule 29 (If axes is None, input tensor and clip_norm should have the same type)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 then dtype_(v_1) = dtype_(v_2)
+Rule 83 (Axes must be valid for tensor 't' or axes is none)
+{axes : tensor, t : tensor} |= if ndim(axes) > 0 then (ndim(axes) = 1 ∧ dtype_(axes) = 3 ∧ (∀i ∈ [0, ndim(axes) - 1] : (axes[i] ≥ 0 ∧ axes[i] < ndim(t))) ∧ (∀a ∈ [0, ndim(axes) - 1] : (∀b ∈ [a+1, ndim(axes) - 1] : axes[a] ≠ axes[b])))
 >>
-Rule 30 (When axes is specified, the values should fall within allowed range)
-{v_1 : tensor, v_3: tensor} |= if ndim(v_3) > 0 then ∀i ∈ [0, shape(v_3, 0) - 1] : v_3[i] ≥ 0 ∧ v_3[i] < ndim(v_1)
+Rule 86 (Shapes must be compatible for broadcasting to avoid incompatible shapes during multiplication.)
+{t: tensor, clip_norm: tensor} |= if ndim(clip_norm) ≠ 0 then ∀i ∈ [0, if ndim(t) ≥ ndim(clip_norm) then ndim(t) - 1 else ndim(clip_norm) - 1] : (if ndim(t) - i - 1 < 0 then true else if ndim(clip_norm) - i - 1 < 0 then true else shape(t, ndim(t) - i - 1) = 1 ∨ shape(clip_norm, ndim(clip_norm) - i - 1) = 1 ∨ shape(t, ndim(t) - i - 1) = shape(clip_norm, ndim(clip_norm) - i - 1))
 >>
-Rule 31 (clip_norm should be non-negative)
-{v_2 : tensor} |= v_2 ≥ 0
+Rule 92 (Shapes of t and clip_norm must be broadcastable)
+{t : tensor, clip_norm : tensor} |= if ndim(clip_norm) ≠ 0 then (∀i ∈ [0, if ndim(t) ≥ ndim(clip_norm) then ndim(t) - 1 else ndim(clip_norm) - 1] : (if ndim(t) - i - 1 < 0 then true else if ndim(clip_norm) - i - 1 < 0 then true else (shape(t, ndim(t) - i - 1) = 1 ∨ shape(clip_norm, ndim(clip_norm) - i - 1) = 1 ∨ shape(t, ndim(t) - i - 1) = shape(clip_norm, ndim(clip_norm) - i - 1))))
+>>
+Rule 93 (Axes values should be int32)
+{axes: tensor} |= if ndim(axes) > 0 then dtype_(axes) = 3
+>>
+Rule 99 (If shapes of 't' and 'clip_norm' are taken into account, shapes should be broadcastable to prevent incompatible shapes during multiplication.)
+{t: tensor, clip_norm: tensor} |= (ndim(clip_norm) = 0) ∨ (∀i ∈ [0, if ndim(t) ≥ ndim(clip_norm) then ndim(t) - 1 else ndim(clip_norm) - 1] : (if ndim(t) - i - 1 < 0 then true else if ndim(clip_norm) - i - 1 < 0 then true else (shape(t, ndim(t) - i - 1) = 1 ∨ shape(clip_norm, ndim(clip_norm) - i - 1) = 1 ∨ shape(t, ndim(t) - i - 1) = shape(clip_norm, ndim(clip_norm) - i - 1))))
+>>
+Rule 100 (t must have a floating point or complex dtype that is allowed for the Sqrt op to prevent InvalidArgumentError)
+{t: tensor} |= dtype_(t) = 6 ∨ dtype_(t) = 7 ∨ dtype_(t) = 8 ∨ dtype_(t) = 9 ∨ dtype_(t) = 10
+>>
+Rule 113 (Shape of 't' and 'clip_norm' must be broadcastable, incompatible shapes cause 'Mul' error)
+{t: tensor, clip_norm: tensor} |= if ndim(clip_norm) ≠ 0 then (∀i ∈ [0, if ndim(t) ≥ ndim(clip_norm) then ndim(t) - 1 else ndim(clip_norm) - 1] : (if ndim(t) - i - 1 < 0 then true else if ndim(clip_norm) - i - 1 < 0 then true else (shape(t, ndim(t) - i - 1) = 1 ∨ shape(clip_norm, ndim(clip_norm) - i - 1) = 1 ∨ shape(t, ndim(t) - i - 1) = shape(clip_norm, ndim(clip_norm) - i - 1))))
+>>
+Rule 114 (If axes is not present the rank of 't' must be greater than or equal to 1)
+{t: tensor, axes: tensor} |= if ndim(axes) = 0 then ndim(t) > 0
+>>
+Rule 121 (If axes is provided, axes values must be in range [-rank(t), rank(t)) for reduction)
+{t : tensor, axes : tensor} |= if ndim(axes) > 0 then (∀i ∈ [0, ndim(axes) - 1] : (axes[i] ≥ (0-ndim(t)) ∧ axes[i] < ndim(t)))

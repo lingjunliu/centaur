@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if axis is specified, it must be within the number of a's dimensions (Rule 15)
+# axis should be within the valid range of dimensions of input array (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
     s.add(Not(And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"])) if n else

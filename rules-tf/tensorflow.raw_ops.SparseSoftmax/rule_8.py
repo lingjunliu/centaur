@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Shape must have at least two dimensions (Rule 8)
+# length of sp_shape must be greater than or equal to 2 (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
     s.add(Not(Select(v["arg1_shape"], 0) >= 2) if n else

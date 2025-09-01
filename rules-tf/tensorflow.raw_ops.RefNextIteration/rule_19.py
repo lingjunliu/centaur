@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Data tensor shape cannot be too large (Rule 19)
+# data tensor's shape should not have too many dimensions with size 1 (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 10000) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 10000) for i in range(6)]))
+    s.add(Not(Or((Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) != 1) for i in range(6)])), v["arg1_ndim"] < 4)) if n else
+          Or((Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) != 1) for i in range(6)])), v["arg1_ndim"] < 4))
 )
 
 def rule_19_func(arg1, solver=None, neg=False):

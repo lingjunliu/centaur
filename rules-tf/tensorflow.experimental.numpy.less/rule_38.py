@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If dtype of v_1 is bool then the max of v_2 should be true (Rule 38)
+# String comparison (dtype 11 (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 0, Select(v["arg2_range"], 1) == True, False)) if n else
-          If(v["arg1_dtype"] == 0, Select(v["arg2_range"], 1) == True, False))
+    s.add(Not(If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, True)) if n else
+          If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, True))
 )
 
 def rule_38_func(arg1, arg2, solver=None, neg=False):
@@ -26,17 +26,16 @@ def rule_38_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 38
-        rule_38(solver, {'arg1_dtype': arg1_dtype, 'arg2_range': arg2_range})
+        rule_38(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_38(solver, {'arg1_dtype': arg1['dtype'], 'arg2_range': arg2['range']}, neg)
+        rule_38(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

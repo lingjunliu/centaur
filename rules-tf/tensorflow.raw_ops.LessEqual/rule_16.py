@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Broadcasting is valid: all dimensions must be equal or one of them must be 1 (Rule 16)
+# at least one of the tensors should have elements or be scalar (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (If(v["arg1_ndim"] > v["arg2_ndim"], v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), Or(Or((If(v["arg1_ndim"] - 1 - i >= 0, Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i), 1)) == (If(v["arg2_ndim"] - 1 - i >= 0, Select(v["arg2_shape"], v["arg2_ndim"] - 1 - i), 1)), (If(v["arg1_ndim"] - 1 - i >= 0, Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i), 1)) == 1), (If(v["arg2_ndim"] - 1 - i >= 0, Select(v["arg2_shape"], v["arg2_ndim"] - 1 - i), 1)) == 1)) for i in range(6)])) if n else
-          And([Implies(i < (If(v["arg1_ndim"] > v["arg2_ndim"], v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), Or(Or((If(v["arg1_ndim"] - 1 - i >= 0, Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i), 1)) == (If(v["arg2_ndim"] - 1 - i >= 0, Select(v["arg2_shape"], v["arg2_ndim"] - 1 - i), 1)), (If(v["arg1_ndim"] - 1 - i >= 0, Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i), 1)) == 1), (If(v["arg2_ndim"] - 1 - i >= 0, Select(v["arg2_shape"], v["arg2_ndim"] - 1 - i), 1)) == 1)) for i in range(6)]))
+    s.add(Not(Or(Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), (And([Implies(i < ((If(v["arg1_ndim"] > v["arg2_ndim"], v["arg1_ndim"], v["arg2_ndim"])) - 1 + 1), And((If(i < v["arg1_ndim"], Select(v["arg1_shape"], i) > 0, True)), (If(i < v["arg2_ndim"], Select(v["arg2_shape"], i) > 0, True)))) for i in range(6)])))) if n else
+          Or(Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), (And([Implies(i < ((If(v["arg1_ndim"] > v["arg2_ndim"], v["arg1_ndim"], v["arg2_ndim"])) - 1 + 1), And((If(i < v["arg1_ndim"], Select(v["arg1_shape"], i) > 0, True)), (If(i < v["arg2_ndim"], Select(v["arg2_shape"], i) > 0, True)))) for i in range(6)]))))
 )
 
 def rule_16_func(arg1, arg2, solver=None, neg=False):

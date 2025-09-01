@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If either of tensor have dim > 0, and both are not same, then shape of tensor with larger dimension should start with 1's so that it can be broadcast. (Rule 53)
+# If x and y are not scalar, and have the same number of dimensions, then shapes should match for each dimension (Rule 53)
 
 rule_53 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] != v["arg2_ndim"], (Or(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0))), (If(v["arg1_ndim"] > v["arg2_ndim"], (And([Implies(i < (v["arg1_ndim"] - v["arg2_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 1) for i in range(6)])), (And([Implies(i < (v["arg2_ndim"] - v["arg1_ndim"] - 1 + 1), Select(v["arg2_shape"], i) == 1) for i in range(6)])))), False)) if n else
-          If(And(v["arg1_ndim"] != v["arg2_ndim"], (Or(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0))), (If(v["arg1_ndim"] > v["arg2_ndim"], (And([Implies(i < (v["arg1_ndim"] - v["arg2_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 1) for i in range(6)])), (And([Implies(i < (v["arg2_ndim"] - v["arg1_ndim"] - 1 + 1), Select(v["arg2_shape"], i) == 1) for i in range(6)])))), False))
+    s.add(Not(If(And(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), v["arg1_ndim"] == v["arg2_ndim"]), And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]), True)) if n else
+          If(And(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), v["arg1_ndim"] == v["arg2_ndim"]), And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]), True))
 )
 
 def rule_53_func(arg1, arg2, solver=None, neg=False):

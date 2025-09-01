@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# check if tensor has at least 2 dimensions (Rule 17)
+# input tensor must have a valid shape (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] >= 2) if n else
-          v["arg1_ndim"] >= 2)
+    s.add(Not(v["arg1_ndim"] < 10) if n else
+          v["arg1_ndim"] < 10)
 )
 
 def rule_17_func(arg1, solver=None, neg=False):

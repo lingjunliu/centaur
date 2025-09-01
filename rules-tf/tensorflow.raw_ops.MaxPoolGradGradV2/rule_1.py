@@ -8,8 +8,8 @@ from z3 import *
 # orig_input, orig_output, and grad must have the same dtype (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] == v["arg2_dtype"], v["arg2_dtype"] == v["arg3_dtype"])) if n else
-          And(v["arg1_dtype"] == v["arg2_dtype"], v["arg2_dtype"] == v["arg3_dtype"]))
+    s.add(Not(And(v["arg1_dtype"] == v["arg2_dtype"], v["arg1_dtype"] == v["arg3_dtype"])) if n else
+          And(v["arg1_dtype"] == v["arg2_dtype"], v["arg1_dtype"] == v["arg3_dtype"]))
 )
 
 def rule_1_func(arg1, arg2, arg3, solver=None, neg=False):

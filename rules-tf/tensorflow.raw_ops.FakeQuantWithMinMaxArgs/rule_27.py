@@ -5,33 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The shape of input tensor must be greater or equal to 1 (Rule 27)
+# If max is 0 and min is less than 0 then max_adj will be equal to max (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) >= 1) if n else
-          Select(v["arg1_shape"], 0) >= 1)
+    s.add(Not(If(And(v["arg2_value"] == 0, v["arg1_value"] < 0), v["arg2_value"] == v["arg2_value"], True)) if n else
+          If(And(v["arg2_value"] == 0, v["arg1_value"] < 0), v["arg2_value"] == v["arg2_value"], True))
 )
 
-def rule_27_func(arg1, solver=None, neg=False):
+def rule_27_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, (float, np.floating)):
+            return False
+        if not isinstance(arg2, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_value = Real('arg1_value')
+        arg2_value = Real('arg2_value')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 27
-        rule_27(solver, {'arg1_shape': arg1_shape})
+        rule_27(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_27(solver, {'arg1_shape': arg1['shape']}, neg)
+        rule_27(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

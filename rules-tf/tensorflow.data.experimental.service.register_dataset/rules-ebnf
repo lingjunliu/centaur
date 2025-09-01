@@ -1,63 +1,240 @@
 >>
-Rule 3 (compression parameter must be a string or None, represented by an empty string)
-{v_1 : str} |= v_1 = "AUTO" ∨ v_1 = ""
+Rule 1 (compression must be one of ['AUTO', None], represented by a string, so ensure it's not a disallowed value like "SNAPPY")
+{v_1 : str} |= v_1 ≠ "SNAPPY"
 >>
-Rule 5 (if dataset_id is provided, it must be a non-empty string)
-{v_1 : str} |= if v_1 = "" then true else v_1.len > 0
+Rule 2 (service must be a non-empty string)
+{v_1 : str} |= v_1.len > 0
 >>
-Rule 7 (dataset tensor must have at least one element)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 8 (compression parameter must be a valid string)
-{v_1 : str} |= v_1 = "AUTO" ∨ v_1 = "none" ∨ v_1 = ""
->>
-Rule 9 (if service is a tuple, protocol should match address)
-{v_1 : tuple(str)} |= if v_1.len = 2 then true else false
->>
-Rule 10 (service must be a string or a tuple of two strings)
-{v_1 : str ⊎ tuple(str)} |= if v_1.len = 2 ∨ v_1.len = 0 then true else false
->>
-Rule 11 (dataset tensor must have a valid data type)
-{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 13
->>
-Rule 18 (dataset tensor must have a valid rank)
+Rule 4 (dataset must be a valid tensor, so ndim must be greater than or equal to 0)
 {v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 20 (service must be a string or a tuple of length 2)
-{v_1 : str ⊎ tuple(str)} |= if v_1.len = 2 then true else if v_1.len = 0 then true else false
+Rule 5 (Check if dimension 0 of dataset's shape is greater than 0)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ shape(v_1, 0) > 0
 >>
-Rule 21 (dataset tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 6 (compression must be either "AUTO" or None, represented by a string, so ensure it's either "AUTO" or an empty string)
+{v_1 : str} |= v_1 = "AUTO" ∨ v_1 = ""
 >>
-Rule 22 (dataset_id must be a non-empty string if it is provided)
-{v_1 : str} |= v_1.len ≥ 0
+Rule 7 (service must be a valid string representing a network address, containing '://')
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 3] : v_1[i] = ":" ∧ v_1[i+1] = "/" ∧ v_1[i+2] = "/"
 >>
-Rule 27 (dataset tensor must have at least one dimension and positive shapes)
-{v_1 : tensor} |= ndim(v_1) ≥ 1 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 8 (dataset dimensions must be smaller than a limit - in this case 5)
+{v_1 : tensor} |= ndim(v_1) < 5
 >>
-Rule 28 (dataset_id must be a string)
-{v_1: str} |= v_1.len ≥ 0
+Rule 9 (The dataset_id string, if present, should not contain characters that cause issues - let's say no commas)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ ","
 >>
-Rule 30 (dataset tensor must have a valid dtype)
-{v_1 : tensor} |= 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 13
+Rule 11 (service should not be a very long string, preventing potential buffer overflows)
+{v_1 : str} |= v_1.len < 256
 >>
-Rule 36 (Dataset tensor must have a valid shape)
-{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+Rule 12 (dataset should not have dimensions exceeding a certain limit, say 10)
+{v_1 : tensor} |= ndim(v_1) ≤ 10
 >>
-Rule 37 (If dataset_id is given, it must be a string with a non-zero length)
-{v_1 : str} |= v_1.len >= 0
+Rule 13 (If dataset_id is provided, it should be a valid string consisting of alphanumeric characters)
+{v_1 : str} |= (v_1.len = 0) ∨ (∀i ∈ [0, v_1.len - 1] : ((v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9")))
 >>
-Rule 39 (Dataset tensor must be non-empty)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+Rule 14 (compression must be either "AUTO" or None, explicitly check for "AUTO" or None string)
+{v_1 : str} |= v_1 = "AUTO" ∨ v_1 = "none"
 >>
-Rule 42 (Dataset tensor must have a positive rank)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 16 (dataset should have a shape with maximum size less than 1000 for each dimension)
+{v_1 : tensor} |= ndim(v_1) = 0 ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000)
 >>
-Rule 46 (Dataset tensor must be non-empty along all dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+Rule 17 (Dataset ID can be an empty string for auto-generation)
+{v_1 : str} |= v_1 = "" ∨ (v_1.len > 0)
 >>
-Rule 52 (Dataset tensor must have a defined dtype)
-{v_1 : tensor} |= 1 <= dtype_(v_1) ∧ dtype_(v_1) <=13
+Rule 19 (Service must start with a valid protocol)
+{v_1: str} |= v_1[0] = "h" ∨ v_1[0] = "g" ∨ v_1[0] = "f"
 >>
-Rule 61 (Dataset tensor must have a valid rank)
-{v_1 : tensor} |= ndim(v_1) >= 0
+Rule 20 (dataset should have a shape with each dimension less than 1000 or be a scalar)
+{v_1 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000)
+>>
+Rule 21 (Dataset ID should not be too long)
+{v_1 : str} |= v_1.len < 100
+>>
+Rule 22 (compression argument must be either AUTO or explicitly None string)
+{v_1 : str} |= v_1 = "AUTO" ∨ v_1 = "None"
+>>
+Rule 23 (Service string should have at least a protocol and address)
+{v_1: str} |= v_1.len > 5
+>>
+Rule 25 (dataset must have consistent dtypes throughout the tensor)
+{v_1 : tensor} |= if ndim(v_1) > 0 then true
+>>
+Rule 27 (Service address string cannot contain invalid characters like semicolons)
+{v_1: str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ ";"
+>>
+Rule 28 (dataset dimensions should all be positive integers)
+{v_1 : tensor} |= ndim(v_1) = 0 ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 29 (dataset_id length is limited to 63 characters)
+{v_1 : str} |= v_1.len < 64
+>>
+Rule 31 (Service string contains a valid protocol prefix)
+{v_1: str} |= v_1[0] = "h" ∨ v_1[0] = "g"
+>>
+Rule 32 (dataset must have at least one dimension if not scalar)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else ndim(v_1) >= 1
+>>
+Rule 33 (dataset_id can contain only alphanumeric characters, underscores, or hyphens)
+{v_1 : str} |= (v_1.len = 0) ∨ (∀i ∈ [0, v_1.len - 1] : ((v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = "_") ∨ (v_1[i] = "-")))
+>>
+Rule 35 (Service string contains :// to identify it as a proper address)
+{v_1: str} |= ∃i ∈ [0, v_1.len - 2] : v_1[i] = ":" ∧ v_1[i+1] = "/" ∧ v_1[i+2] = "/"
+>>
+Rule 37 (Dataset id cannot be just whitespace.)
+{v_1: str} |= (v_1.len = 0) ∨ (∃i ∈ [0, v_1.len - 1] : (v_1[i] ≠ " "))
+>>
+Rule 39 (Service must be a valid url)
+{v_1: str} |= ∃i ∈ [0, v_1.len - 7]: (v_1[i] = "h" ∧ v_1[i+1] = "t" ∧ v_1[i+2] = "t" ∧ v_1[i+3] = "p" ∧ v_1[i+4] = ":" ∧ v_1[i+5] = "/" ∧ v_1[i+6] = "/") ∨ (v_1[i] = "g" ∧ v_1[i+1] = "r" ∧ v_1[i+2] = "p" ∧ v_1[i+3] = "c" ∧ v_1[i+4] = ":" ∧ v_1[i+5] = "/" ∧ v_1[i+6] = "/")
+>>
+Rule 40 (dataset should not have too many elements total)
+{v_1 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 100)
+>>
+Rule 41 (Dataset id is only alphanumeric)
+{v_1: str} |= (v_1.len = 0) ∨ (∀i ∈ [0, v_1.len - 1]: ((v_1[i] >= "a" ∧ v_1[i] <= "z") ∨ (v_1[i] >= "A" ∧ v_1[i] <= "Z") ∨ (v_1[i] >= "0" ∧ v_1[i] <= "9")))
+>>
+Rule 43 (Service string should be of reasonable length)
+{v_1: str} |= v_1.len < 200
+>>
+Rule 44 (Dataset must not have zero dimensions unless its a scalar)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+>>
+Rule 45 (Dataset ID should start with a letter or a number if not empty)
+{v_1: str} |= (v_1.len = 0) ∨ ((v_1[0] >= "a" ∧ v_1[0] <= "z") ∨ (v_1[0] >= "A" ∧ v_1[0] <= "Z") ∨ (v_1[0] >= "0" ∧ v_1[0] <= "9"))
+>>
+Rule 48 (The product of dataset dimensions should not cause an overflow.)
+{v_1 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) < 1000)
+>>
+Rule 49 (dataset ID must be a valid DNS name segment to ensure proper routing)
+{v_1 : str} |= (v_1.len = 0) ∨ (∀i ∈ [0, v_1.len - 1]: ((v_1[i] >= "a" ∧ v_1[i] <= "z") ∨ (v_1[i] >= "0" ∧ v_1[i] <= "9") ∨ (v_1[i] = "-")))
+>>
+Rule 51 (The service url must be a certain format ex: http://...)
+{v_1: str} |= ∃i ∈ [0, v_1.len - 1]: v_1[i] = ":" ∧ v_1[i+1] = "/" ∧ v_1[i+2] = "/"
+>>
+Rule 52 (The elements of a dataset of type int must be integers in a specified range.)
+{v_1: tensor} |= (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5)
+>>
+Rule 53 (The dataset id must not contain periods.)
+{v_1: str} |= (v_1.len = 0) ∨ (∀i ∈ [0, v_1.len - 1]: (v_1[i] ≠ "."))
+>>
+Rule 55 (Service string must contain http, grpc, or file followed by :// )
+{v_1: str} |= ∃i ∈ [0, v_1.len - 7] : (v_1[i] = "h" ∧ v_1[i+1] = "t" ∧ v_1[i+2] = "t" ∧ v_1[i+3] = "p" ∧ v_1[i+4] = ":" ∧ v_1[i+5] = "/" ∧ v_1[i+6] = "/") ∨ (v_1[i] = "g" ∧ v_1[i+1] = "r" ∧ v_1[i+2] = "p" ∧ v_1[i+3] = "c" ∧ v_1[i+4] = ":" ∧ v_1[i+5] = "/" ∧ v_1[i+6] = "/") ∨ (v_1[i] = "f" ∧ v_1[i+1] = "i" ∧ v_1[i+2] = "l" ∧ v_1[i+3] = "e" ∧ v_1[i+4] = ":" ∧ v_1[i+5] = "/" ∧ v_1[i+6] = "/")
+>>
+Rule 56 (Dataset dimension size should have the same number across all dimensions)
+{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 0) = shape(v_1, ndim(v_1) -1)
+>>
+Rule 57 (The dataset ID must not contain any special characters other than hyphens)
+{v_1: str} |= (v_1.len = 0) ∨ (∀i ∈ [0, v_1.len - 1]: ((v_1[i] >= "a" ∧ v_1[i] <= "z") ∨ (v_1[i] >= "A" ∧ v_1[i] <= "Z") ∨ (v_1[i] >= "0" ∧ v_1[i] <= "9") ∨ (v_1[i] = "-")))
+>>
+Rule 59 (Service string has at least a protocol and address after)
+{v_1: str} |= v_1.len > 8
+>>
+Rule 60 (Dataset must not have dimensions larger than allowed.)
+{v_1: tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 2000)
+>>
+Rule 61 (The dataset id must not start with a number)
+{v_1: str} |= (v_1.len = 0) ∨ (v_1[0] >= "a" ∧ v_1[0] <= "z") ∨ (v_1[0] >= "A" ∧ v_1[0] <= "Z")
+>>
+Rule 63 (Service string must contain a valid protocol, and a valid address.)
+{v_1: str} |= (∃i ∈ [0, v_1.len - 7]: (v_1[i] = "h" ∧ v_1[i+1] = "t" ∧ v_1[i+2] = "t" ∧ v_1[i+3] = "p" ∧ v_1[i+4] = ":" ∧ v_1[i+5] = "/" ∧ v_1[i+6] = "/")) ∨ (∃i ∈ [0, v_1.len - 7]: (v_1[i] = "g" ∧ v_1[i+1] = "r" ∧ v_1[i+2] = "p" ∧ v_1[i+3] = "c" ∧ v_1[i+4] = ":" ∧ v_1[i+5] = "/" ∧ v_1[i+6] = "/")) ∨ (∃i ∈ [0, v_1.len - 7]: (v_1[i] = "f" ∧ v_1[i+1] = "i" ∧ v_1[i+2] = "l" ∧ v_1[i+3] = "e" ∧ v_1[i+4] = ":" ∧ v_1[i+5] = "/" ∧ v_1[i+6] = "/"))
+>>
+Rule 65 (The dataset id must not be empty, and also must not contain a forward slash.)
+{v_1: str} |= (v_1.len = 0) ∨ (∀i ∈ [0, v_1.len - 1]: (v_1[i] ≠ "/"))
+>>
+Rule 68 (Each dimensions of Dataset should not be more than max size 100)
+{v_1: tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 100)
+>>
+Rule 69 (The dataset ID should not contain a space in the front or end.)
+{v_1: str} |= (v_1.len = 0) ∨ (v_1[0] ≠ " " ∧ v_1[v_1.len - 1] ≠ " ")
+>>
+Rule 71 (Service should be a string with '://' and at least one char after it)
+{v_1: str} |= ∃i ∈ [0, v_1.len -2] : v_1[i] = ":" ∧ v_1[i+1] = "/" ∧ v_1[i+2] = "/"
+>>
+Rule 72 (Ensure the Dataset type is valid, by checking dtype)
+{v_1: tensor} |= (dtype_(v_1) = 0) ∨ (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) ∨ (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) ∨ (dtype_(v_1) = 11) ∨ (dtype_(v_1) = 12)
+>>
+Rule 73 (dataset ID must have a reasonable length to prevent memory errors)
+{v_1: str} |= v_1.len < 128
+>>
+Rule 75 (Service must contain protocol prefix and be shorter than max length)
+{v_1: str} |= (∃i ∈ [0, v_1.len - 7]: (v_1[i] = "h" ∧ v_1[i+1] = "t" ∧ v_1[i+2] = "t" ∧ v_1[i+3] = "p" ∧ v_1[i+4] = ":" ∧ v_1[i+5] = "/" ∧ v_1[i+6] = "/")) ∨ (∃i ∈ [0, v_1.len - 7]: (v_1[i] = "g" ∧ v_1[i+1] = "r" ∧ v_1[i+2] = "p" ∧ v_1[i+3] = "c" ∧ v_1[i+4] = ":" ∧ v_1[i+5] = "/" ∧ v_1[i+6] = "/")) ∨ (∃i ∈ [0, v_1.len - 7]: (v_1[i] = "f" ∧ v_1[i+1] = "i" ∧ v_1[i+2] = "l" ∧ v_1[i+3] = "e" ∧ v_1[i+4] = ":" ∧ v_1[i+5] = "/" ∧ v_1[i+6] = "/")) ∧ (v_1.len < 200)
+>>
+Rule 76 (Dataset dimensions cannot exceed a max value 1000)
+{v_1: tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) < 1000)
+>>
+Rule 77 (Dataset id has a valid DNS character set and does not start with a hyphen)
+{v_1: str} |= (v_1.len = 0) ∨ (v_1[0] >= "a" ∧ v_1[0] <= "z") ∨ (v_1[0] >= "A" ∧ v_1[0] <= "Z") ∨ (v_1[0] >= "0" ∧ v_1[0] <= "9") ∨ ((∀i ∈ [0, v_1.len - 1]: (v_1[i] >= "a" ∧ v_1[i] <= "z") ∨ (v_1[i] >= "A" ∧ v_1[i] <= "Z") ∨ (v_1[i] >= "0" ∧ v_1[i] <= "9") ∨ (v_1[i] = "-")) ∧ v_1[0] ≠ "-")
+>>
+Rule 79 (Service address should be a valid URL that begins with an accepted protocol.)
+{v_1 : str} |= (∃i ∈ [0, v_1.len - 1] : (v_1[i] = ":" ∧ v_1[i+1] = "/" ∧ v_1[i+2] = "/"))
+>>
+Rule 80 (Dataset Dimensions all positive integer values)
+{v_1: tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) > 0)
+>>
+Rule 81 (Dataset id cannot contain a '+' to maintain compatibility)
+{v_1: str} |= (v_1.len = 0) ∨ (∀i ∈ [0, v_1.len - 1]: (v_1[i] ≠ "+"))
+>>
+Rule 84 (Dataset dimensions should have at least one dimension)
+{v_1: tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_1) >= 1)
+>>
+Rule 85 (Dataset ID needs to be URI safe, so exclude reserved characters like '[', ']')
+{v_1 : str} |= (v_1.len = 0) ∨ (∀i ∈ [0, v_1.len - 1]: (v_1[i] ≠ "[") ∧ (v_1[i] ≠ "]"))
+>>
+Rule 87 (Service string must include a valid scheme (http, grpc, file) and a resource identifier)
+{v_1: str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] = ":" ∧ v_1[i+1] = "/" ∧ v_1[i+2] = "/"
+>>
+Rule 88 (dataset's shape should be less then or equal to some maximum size)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000
+>>
+Rule 89 (The dataset id must contain only alphanumeric chars, '_', or '-')
+{v_1: str} |= (v_1.len = 0) ∨ (∀i ∈ [0, v_1.len - 1]: ((v_1[i] >= "a" ∧ v_1[i] <= "z") ∨ (v_1[i] >= "A" ∧ v_1[i] <= "Z") ∨ (v_1[i] >= "0" ∧ v_1[i] <= "9") ∨ v_1[i] = "_" ∨ v_1[i] = "-"))
+>>
+Rule 92 (Dataset rank needs to be withing reasonable limits 0 to 15)
+{v_1 : tensor} |= if ndim(v_1) >= 0 then (ndim(v_1) <= 15) else false
+>>
+Rule 93 (The dataset ID cannot include backslashes)
+{v_1: str} |= (v_1.len = 0) ∨ (∀i ∈ [0, v_1.len - 1]: (v_1[i] ≠ "\\"))
+>>
+Rule 96 (Dataset should not exceed maximum allowed dimensions)
+{v_1: tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) < 100000
+>>
+Rule 97 (The dataset ID shouldn't include any shell-sensitive characters e.g. '$')
+{v_1 : str} |= (v_1.len = 0) ∨ (∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ "$")
+>>
+Rule 100 (Dataset: should have some non-zero dimensions)
+{v_1: tensor} |= (ndim(v_1) = 0) ∨ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 101 (Dataset id: cannot contain control chars)
+{v_1 : str} |= (v_1.len = 0) ∨ (∀i ∈ [0, v_1.len - 1]: (v_1[i] ≥ " " ∧ v_1[i] <= "~"))
+>>
+Rule 103 (service needs '://', meaning length should be at least 3)
+{v_1: str} |= v_1.len >= 3
+>>
+Rule 104 (Dataset elements should not exceed max data type size for safety)
+{v_1: tensor} |= (dtype_(v_1) < 11)
+>>
+Rule 109 (The dataset id can't have any invalid file system characters.)
+{v_1 : str} |= (v_1.len = 0) ∨ (∀i ∈ [0, v_1.len - 1]: ((v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] <= "Z") ∨ (v_1[i] >= "0" ∧ v_1[i] <= "9") ∨ (v_1[i] = "-") ∨ (v_1[i] = "_")))
+>>
+Rule 112 (Dataset: elements should not exceed max int)
+{v_1 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 100000)
+>>
+Rule 113 (Dataset ID should not contain < or > to avoid potential HTML injection)
+{v_1: str} |= (v_1.len = 0) ∨ (∀i ∈ [0, v_1.len - 1]: (v_1[i] ≠ "<" ∧ v_1[i] ≠ ">"))
+>>
+Rule 116 (All dataset dims, if they exist, need to have some elements)
+{v_1: tensor} |= (ndim(v_1) = 0) ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 117 (Dataset ID is DNS safe.  Limited to alphanumeric, '.' and '-' chars.)
+{v_1 : str} |= (v_1.len = 0) ∨ (∀i ∈ [0, v_1.len - 1] : (((v_1[i] >= "a") ∧ (v_1[i] <= "z")) ∨ ((v_1[i] >= "A") ∧ (v_1[i] <= "Z")) ∨ ((v_1[i] >= "0") ∧ (v_1[i] <= "9")) ∨ (v_1[i] = "-") ∨ (v_1[i] = ".")))
+>>
+Rule 119 (Service starts with a valid protocol and contains :// after)
+{v_1 : str} |= (v_1[0] = "h" ∧ v_1[1] = "t" ∧ v_1[2] = "t" ∧ v_1[3] = "p" ∧ v_1[4] = ":" ∧ v_1[5] = "/" ∧ v_1[6] = "/") ∨ (v_1[0] = "g" ∧ v_1[1] = "r" ∧ v_1[2] = "p" ∧ v_1[3] = "c" ∧ v_1[4] = ":" ∧ v_1[5] = "/" ∧ v_1[6] = "/") ∨ (v_1[0] = "f" ∧ v_1[1] = "i" ∧ v_1[2] = "l" ∧ v_1[3] = "e" ∧ v_1[4] = ":" ∧ v_1[5] = "/" ∧ v_1[6] = "/")
+>>
+Rule 120 (Dataset cannot have more than 15 dimensions)
+{v_1: tensor} |= ndim(v_1) <= 15
+>>
+Rule 121 (The dataset ID should not contain `\` because this is invalid in Windows filenames.)
+{v_1: str} |= (v_1.len = 0) ∨ (∀i ∈ [0, v_1.len - 1]: v_1[i] ≠ "\\")
+>>
+Rule 125 (Dataset ID shouldn't include ':' as this can cause problems during parsing)
+{v_1: str} |= (v_1.len = 0) ∨ (∀i ∈ [0, v_1.len - 1]: (v_1[i] ≠ ":"))

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if the input is complex, its imaginary part is checked (Rule 13)
+# If x is complex, the output will also be complex (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), True, False)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), True, False))
+    s.add(Not(If(v["arg1_dtype"] == 9, True, If(v["arg1_dtype"] == 10, True, True))) if n else
+          If(v["arg1_dtype"] == 9, True, If(v["arg1_dtype"] == 10, True, True)))
 )
 
 def rule_13_func(arg1, solver=None, neg=False):

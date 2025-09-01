@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if the input is an int32 or int64 tensor, the result tensor is also an int32 or int64 tensor (Rule 23)
+# Complex input returns float (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 3, v["arg1_dtype"] == 3, If(v["arg1_dtype"] == 4, v["arg1_dtype"] == 4, False))) if n else
-          If(v["arg1_dtype"] == 3, v["arg1_dtype"] == 3, If(v["arg1_dtype"] == 4, v["arg1_dtype"] == 4, False)))
+    s.add(Not(If(v["arg1_dtype"] == 9, True, If(v["arg1_dtype"] == 10, True, True))) if n else
+          If(v["arg1_dtype"] == 9, True, If(v["arg1_dtype"] == 10, True, True)))
 )
 
 def rule_23_func(arg1, solver=None, neg=False):

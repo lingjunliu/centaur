@@ -1,48 +1,183 @@
 >>
 Rule 1 (rtol should be non-negative)
-{v_1 : float} |= v_1 ≥ 0.0
+{v_1 : float} |= v_1 ≥ 0
 >>
-Rule 4 (input tensors should have the same dtype if equal_nan is false)
+Rule 3 (a and b should have same dtype if equal_nan is false)
 {v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 5 (input tensors should have the same shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 4 (a and b should have at least one dimension if equal_nan is true)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1
 >>
-Rule 7 (shapes should be compatible if one of the tensors has dimension 0)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∨ ndim(v_2) = 0 then true
+Rule 5 (if rtol is zero, atol must be greater than zero)
+{v_1 : float, v_2 : float} |= if v_1 = 0 then v_2 > 0
 >>
-Rule 8 (If one tensor has dimension 0, the other must also have dimension 0, or be broadcastable)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then (ndim(v_2) = 0 ∨ ndim(v_2) > 0)
+Rule 6 (a and b must have same shape if equal_nan is false)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then shape(v_1) = shape(v_2)
 >>
-Rule 9 (If the shapes of the tensors are different, they must be broadcastable)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (if (ndim(v_1) - i - 1) < 0 then shape(v_2, ndim(v_2) - i - 1) = 1 else if (ndim(v_2) - i - 1) < 0 then shape(v_1, ndim(v_1) - i - 1) = 1 else shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1) ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1))
+Rule 7 (rtol should be less than a large number)
+{v_1 : float} |= v_1 < 1000000
 >>
-Rule 10 (equal_nan must be a boolean)
+Rule 8 (If equal_nan is true, then atol and rtol must be non-negative)
+{v_1 : float, v_2 : float, v_3 : bool} |= if v_3 = true then v_1 ≥ 0 ∧ v_2 ≥ 0
+>>
+Rule 9 (shapes of a and b should be broadcastable)
+{v_1 : tensor, v_2 : tensor} |=  ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) else ndim(v_2)] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1)
+>>
+Rule 10 (equal_nan should be either true or false)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 12 (If either input is complex, the other input must also be complex.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+Rule 11 (a and b should have compatible dtypes)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = "float32") ∨ (dtype_(v_1) = "float64") ∨ (dtype_(v_2) = "float32") ∨ (dtype_(v_2) = "float64")
 >>
-Rule 16 (If the shapes of the tensors are different, they must be broadcastable or at least one of them must be a scalar.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∨ ndim(v_2) = 0 then true else (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (if (ndim(v_1) - i - 1) < 0 then shape(v_2, ndim(v_2) - i - 1) = 1 else if (ndim(v_2) - i - 1) < 0 then shape(v_1, ndim(v_1) - i - 1) = 1 else shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1) ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1))
+Rule 12 (a and b have same dtype if equal_nan is true)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 18 (The shapes of the two tensors must be broadcastable.)
-{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (if (ndim(v_1) - i - 1) < 0 then shape(v_2, ndim(v_2) - i - 1) = 1 else if (ndim(v_2) - i - 1) < 0 then shape(v_1, ndim(v_1) - i - 1) = 1 else shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1) ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1))
+Rule 15 (if atol is zero, rtol should be less than 1)
+{v_1 : float, v_2 : float} |= if v_1 = 0 then v_2 < 1
 >>
-Rule 19 (rtol and atol must be non-negative)
+Rule 16 (if shapes of a and b are the same, then dtypes must also be the same if equal_nan is false)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if (shape(v_1) = shape(v_2)) ∧ (v_3 = false) then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 17 (if atol is positive, then rtol should be less than 10)
+{v_1 : float, v_2 : float} |= if v_1 > 0 then v_2 < 10
+>>
+Rule 18 (a and b should have compatible dtypes such as float32 or float64)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = "float32" ∧ dtype_(v_2) = "float32") ∨ (dtype_(v_1) = "float64" ∧ dtype_(v_2) = "float64") ∨ (dtype_(v_1) = "float32" ∧ dtype_(v_2) = "float64") ∨ (dtype_(v_1) = "float64" ∧ dtype_(v_2) = "float32")
+>>
+Rule 19 (If equal_nan is true, a and b should be floating point tensors)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then (dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64") ∧ (dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64")
+>>
+Rule 20 (If a and b are 0 dimensional, then equal_nan should not be true)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if (ndim(v_1) = 0) ∧ (ndim(v_2) = 0) then v_3 = false
+>>
+Rule 21 (atol should be less than 100)
+{v_1 : float} |= v_1 < 100
+>>
+Rule 22 (if rtol is positive, tensors must be at least 1D)
+{v_1 : float, v_2 : tensor, v_3 : tensor} |= if v_1 > 0 then ndim(v_2) ≥ 1 ∧ ndim(v_3) ≥ 1
+>>
+Rule 23 (atol and rtol should not both be zero)
+{v_1 : float, v_2 : float} |= v_1 > 0 ∨ v_2 > 0
+>>
+Rule 24 (if equal_nan is true, the tensors should have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then ndim(v_1) = ndim(v_2)
+>>
+Rule 25 (if tensors are scalars, atol must be strictly positive)
+{v_1 : tensor, v_2 : tensor, v_3 : float} |= if (ndim(v_1) = 0) ∧ (ndim(v_2) = 0) then v_3 > 0
+>>
+Rule 26 (atol and rtol cannot be negative)
 {v_1 : float, v_2 : float} |= v_1 ≥ 0 ∧ v_2 ≥ 0
 >>
-Rule 22 (If one of the inputs is a scalar, its dtype should match the other one.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then dtype_(v_1) = dtype_(v_2) else if ndim(v_2) = 0 then dtype_(v_2) = dtype_(v_1)
+Rule 27 (if equal_nan is true, both tensors must be float or complex)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then (dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128") ∧ (dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" ∨ dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128")
 >>
-Rule 24 (If equal_nan is true, both tensors must have a floating point or complex dtype.)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+Rule 28 (rtol must be representable as float32)
+{v_1 : float} |= v_1 < 3.4028235e+38
 >>
-Rule 26 (When equal_nan is set to True, at least one of the inputs must have a floating point or complex dtype.)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+Rule 30 (If the tensors have different dtypes and equal_nan is false, both must be castable to the higher precision dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if (dtype_(v_1) ≠ dtype_(v_2)) ∧ (v_3 = false) then (dtype_(v_1) = "float32" ∧ dtype_(v_2) = "float64") ∨ (dtype_(v_1) = "float64" ∧ dtype_(v_2) = "float32")
 >>
-Rule 27 (If inputs have different floating point precision, higher precision should be used)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 6 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 6 ∧ dtype_(v_2) = 8) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_2) = 8) then true
+Rule 32 (if rtol is 0 and atol is 0, then tensors should be exactly the same)
+{v_1 : tensor, v_2 : tensor, v_3 : float, v_4 : float} |= if v_3 = 0 ∧ v_4 = 0 then shape(v_1) = shape(v_2) ∧ dtype_(v_1) = dtype_(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 28 (If inputs are of different type, and equal_nan is False, conversion is required. Conversion to complex is not allowed)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then false else if (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) ∧ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then false
+Rule 33 (if equal_nan is false, and dtypes differ, at least one must be a float)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if (dtype_(v_1) ≠ dtype_(v_2)) ∧ (v_3 = false) then (dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64")
+>>
+Rule 34 (atol must not be infinite)
+{v_1 : float} |= v_1 < 1e10
+>>
+Rule 36 (if equal_nan is true, then atol and rtol should be less than 1000)
+{v_1 : float, v_2 : float, v_3 : bool} |= if v_3 = true then v_1 < 1000 ∧ v_2 < 1000
+>>
+Rule 37 (if atol is 0, tensors must have the same shape and equal_nan must be false)
+{v_1 : tensor, v_2 : tensor, v_3 : float, v_4 : bool} |= if v_3 = 0 then shape(v_1) = shape(v_2) ∧ v_4 = false
+>>
+Rule 38 (if equal_nan is true, atol and rtol must be non-negative and the tensors should be either float32, float64, complex64, or complex128)
+{v_1 : tensor, v_2 : tensor, v_3 : float, v_4 : float, v_5 : bool} |= if v_5 = true then v_3 ≥ 0 ∧ v_4 ≥ 0 ∧ (dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128") ∧ (dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" ∨ dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128")
+>>
+Rule 39 (if a and b are different dtypes, equal_nan must be false)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if dtype_(v_1) ≠ dtype_(v_2) then v_3 = false
+>>
+Rule 40 (rtol and atol should be positive if the tensors have complex types)
+{v_1 : tensor, v_2 : tensor, v_3 : float, v_4 : float} |= if (dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128") ∧ (dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128") then v_3 > 0 ∧ v_4 > 0
+>>
+Rule 41 (if a and b are int tensors, equal_nan must be false)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if (dtype_(v_1) = "int" ∨ dtype_(v_1) = "int32" ∨ dtype_(v_1) = "int64") ∧ (dtype_(v_2) = "int" ∨ dtype_(v_2) = "int32" ∨ dtype_(v_2) = "int64") then v_3 = false
+>>
+Rule 42 (if atol is greater than 0, equal_nan must be false)
+{v_1 : float, v_2 : bool} |= if v_1 > 0 then v_2 = false
+>>
+Rule 43 (if equal_nan is true, dtypes must be either both complex or both real numbers)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then ((dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128") ∧ (dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128")) ∨ ((dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64") ∧ (dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64"))
+>>
+Rule 44 (rtol must be less than 1)
+{v_1 : float} |= v_1 < 1
+>>
+Rule 46 (if a and b are empty tensors, equal_nan must be false)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∧ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0) then v_3 = false
+>>
+Rule 47 (if a and b are both scalars, equal_nan should be false)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then v_3 = false
+>>
+Rule 49 (if rtol = 0 and atol = 0 and equal_nan = false, then the tensors must be identical)
+{v_1 : tensor, v_2 : tensor, v_3 : float, v_4 : float, v_5 : bool} |= if v_3 = 0 ∧ v_4 = 0 ∧ v_5 = false then dtype_(v_1) = dtype_(v_2) ∧ shape(v_1) = shape(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 50 (if atol is zero, tensors can't have different shape)
+{v_1 : tensor, v_2 : tensor, v_3 : float} |= if v_3 = 0 then shape(v_1) = shape(v_2)
+>>
+Rule 51 (if tensors have the same shape and equal_nan is false, they should have the same dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if shape(v_1) = shape(v_2) ∧ v_3 = false then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 53 (atol cannot be too large if rtol is 0)
+{v_1 : float, v_2 : float} |= if v_2 = 0 then v_1 < 1e5
+>>
+Rule 54 (rtol cannot be too large if atol is 0)
+{v_1 : float, v_2 : float} |= if v_1 = 0 then v_2 < 1e5
+>>
+Rule 55 (if equal_nan is false, tensors must have broadcasting compatibility or have the same shape and dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) else ndim(v_2)] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1)) ∨ (shape(v_1) = shape(v_2) ∧ dtype_(v_1) = dtype_(v_2))
+>>
+Rule 56 (atol and rtol must not be NaN)
+{v_1 : float, v_2 : float} |= v_1 ≠ "NaN" ∧ v_2 ≠ "NaN"
+>>
+Rule 57 (if equal_nan is true, a and b can't be integers)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then (dtype_(v_1) ≠ "int8" ∧ dtype_(v_1) ≠ "int16" ∧ dtype_(v_1) ≠ "int32" ∧ dtype_(v_1) ≠ "int64") ∧ (dtype_(v_2) ≠ "int8" ∧ dtype_(v_2) ≠ "int16" ∧ dtype_(v_2) ≠ "int32" ∧ dtype_(v_2) ≠ "int64")
+>>
+Rule 62 (if equal_nan is true and dtypes differ, dtypes should be float32 and float64)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true ∧ dtype_(v_1) ≠ dtype_(v_2) then (dtype_(v_1) = "float32" ∧ dtype_(v_2) = "float64") ∨ (dtype_(v_1) = "float64" ∧ dtype_(v_2) = "float32")
+>>
+Rule 63 (if dtypes of tensors are the same, then equal_nan should be false)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if dtype_(v_1) = dtype_(v_2) then v_3 = false
+>>
+Rule 66 (if tensors have integer dtypes then rtol should be 0)
+{v_1 : tensor, v_2 : tensor, v_3 : float} |= if (dtype_(v_1) = "int8" ∨ dtype_(v_1) = "int16" ∨ dtype_(v_1) = "int32" ∨ dtype_(v_1) = "int64") ∧ (dtype_(v_2) = "int8" ∨ dtype_(v_2) = "int16" ∨ dtype_(v_2) = "int32" ∨ dtype_(v_2) = "int64") then v_3 = 0
+>>
+Rule 69 (rtol should be representable by dtype of the tensor)
+{v_1 : tensor, v_2 : float} |= (dtype_(v_1) = "float32" ∧ v_2 < 3.4028235e+38) ∨ (dtype_(v_1) = "float64" ∧ v_2 < 1.7976931348623157e+308)
+>>
+Rule 71 (if tensors have integer dtypes then rtol should be 0 and atol cannot be negative)
+{v_1 : tensor, v_2 : tensor, v_3 : float, v_4 : float} |= if (dtype_(v_1) = "int8" ∨ dtype_(v_1) = "int16" ∨ dtype_(v_1) = "int32" ∨ dtype_(v_1) = "int64") ∧ (dtype_(v_2) = "int8" ∨ dtype_(v_2) = "int16" ∨ dtype_(v_2) = "int32" ∨ dtype_(v_2) = "int64") then v_3 = 0 ∧ v_4 ≥ 0
+>>
+Rule 72 (if equal_nan is true and dtypes differ, dtypes should be float32 and float64, and shapes must be same)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true ∧ dtype_(v_1) ≠ dtype_(v_2) then (dtype_(v_1) = "float32" ∧ dtype_(v_2) = "float64" ∧ shape(v_1) = shape(v_2)) ∨ (dtype_(v_1) = "float64" ∧ dtype_(v_2) = "float32" ∧ shape(v_1) = shape(v_2))
+>>
+Rule 73 (rtol should be representable by dtype of the most precise tensor)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = "float32" then v_2 < 3.4028235e+38 else if dtype_(v_1) = "float64" then v_2 < 1.7976931348623157e+308
+>>
+Rule 75 (if tensors have integer dtypes then equal_nan must be false)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if (dtype_(v_1) = "int8" ∨ dtype_(v_1) = "int16" ∨ dtype_(v_1) = "int32" ∨ dtype_(v_1) = "int64") ∧ (dtype_(v_2) = "int8" ∨ dtype_(v_2) = "int16" ∨ dtype_(v_2) = "int32" ∨ dtype_(v_2) = "int64") then v_3 = false
+>>
+Rule 76 (if atol is negative, then equal_nan should be false)
+{v_1 : float, v_2 : bool} |= if v_1 < 0 then v_2 = false
+>>
+Rule 78 (rtol should be representable by the tensor with the lowest precision)
+{v_1 : tensor, v_2 : tensor, v_3 : float} |= if dtype_(v_1) = "float32" ∨ dtype_(v_2) = "float32" then v_3 < 3.4028235e+38 else if dtype_(v_1) = "float64" ∨ dtype_(v_2) = "float64" then v_3 < 1.7976931348623157e+308
+>>
+Rule 80 (if a or b is complex, then equal_nan should be true)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if (dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128") ∨ (dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128") then v_3 = true
+>>
+Rule 83 (rtol should be representable by the tensor with the lowest precision)
+{v_1 : tensor, v_2 : tensor, v_3 : float} |= (dtype_(v_1) = "float32" ∨ dtype_(v_2) = "float32") ∧ v_3 < 3.4028235e+38 ∨ (dtype_(v_1) = "float64" ∨ dtype_(v_2) = "float64") ∧ v_3 < 1.7976931348623157e+308
+>>
+Rule 88 (rtol should be representable by dtype of the less precise tensor)
+{v_1 : tensor, v_2 : tensor, v_3 : float} |= ((dtype_(v_1) = "float32") ∨ (dtype_(v_2) = "float32")) ∧ v_3 < 3.4028235e+38 ∨ ((dtype_(v_1) = "float64") ∨ (dtype_(v_2) = "float64")) ∧ v_3 < 1.7976931348623157e+308

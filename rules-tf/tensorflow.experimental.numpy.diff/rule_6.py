@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if the order is greater than or equal to the number of dimensions of the input tensor, then the order becomes the number of dimensions of input tensor. (Rule 6)
+# axis must be within the valid range for the tensor's dimensions (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] >= v["arg1_ndim"], v["arg2_value"] == v["arg1_ndim"], False)) if n else
-          If(v["arg2_value"] >= v["arg1_ndim"], v["arg2_value"] == v["arg1_ndim"], False))
+    s.add(Not(And(v["arg2_value"] >= 0 - v["arg1_ndim"], v["arg2_value"] < v["arg1_ndim"])) if n else
+          And(v["arg2_value"] >= 0 - v["arg1_ndim"], v["arg2_value"] < v["arg1_ndim"]))
 )
 
 def rule_6_func(arg1, arg2, solver=None, neg=False):

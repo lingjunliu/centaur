@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Input tensor should have a valid dtype. (Rule 6)
+# input num must be a tensor of rank greater than or equal to 2 (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] >= 0, v["arg1_dtype"] <= 12)) if n else
-          And(v["arg1_dtype"] >= 0, v["arg1_dtype"] <= 12))
+    s.add(Not(v["arg1_ndim"] >= 2) if n else
+          v["arg1_ndim"] >= 2)
 )
 
 def rule_6_func(arg1, solver=None, neg=False):
@@ -22,15 +22,15 @@ def rule_6_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_ndim = Int('arg1_ndim')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
 
         # Constraints for rule 6
-        rule_6(solver, {'arg1_dtype': arg1_dtype})
+        rule_6(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_6(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_6(solver, {'arg1_ndim': arg1['ndim']}, neg)

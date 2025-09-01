@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The number of dimensions of the input tensor must be less than or equal to 32 (Rule 49)
+# The number of dimension of input tensor should be less than max limit (Rule 49)
 
 rule_49 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] <= 32) if n else
-          v["arg1_ndim"] <= 32)
+    s.add(Not(v["arg1_ndim"] < 32) if n else
+          v["arg1_ndim"] < 32)
 )
 
 def rule_49_func(arg1, solver=None, neg=False):

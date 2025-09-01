@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check if num_buckets is a power of 2 or a multiple of 3 (Rule 54)
+# num_buckets must be positive (Rule 54)
 
 rule_54 = lambda s, v, n=False: (
-    s.add(Not(Or((And((v["arg1_value"] > 0), ((And(v["arg1_value"], (v["arg1_value"] - 1))) == 0))), (v["arg1_value"] % 3 == 0))) if n else
-          Or((And((v["arg1_value"] > 0), ((And(v["arg1_value"], (v["arg1_value"] - 1))) == 0))), (v["arg1_value"] % 3 == 0)))
+    s.add(Not(0 < v["arg1_value"]) if n else
+          0 < v["arg1_value"])
 )
 
 def rule_54_func(arg1, solver=None, neg=False):

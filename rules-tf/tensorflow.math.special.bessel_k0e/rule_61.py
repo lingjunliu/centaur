@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Number of dimension must be smaller than 5 (Rule 61)
+# Input tensor must be non-empty (Rule 61)
 
 rule_61 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] < 5) if n else
-          v["arg1_ndim"] < 5)
+    s.add(Not(v["arg1_ndim"] > 0) if n else
+          v["arg1_ndim"] > 0)
 )
 
 def rule_61_func(arg1, solver=None, neg=False):

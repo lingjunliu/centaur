@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the tensor is of type int8, int16, int32, int64, and the tensor is zero then it can have issues with Inv. (Rule 26)
+# If the dtype is complex64 or complex128, the real and imaginary parts must not both be zero (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 3)), (v["arg1_dtype"] == 4)), Or(Select(v["arg1_range"], 0) != 0, Select(v["arg1_range"], 1) != 0), False)) if n else
-          If(Or(Or(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 3)), (v["arg1_dtype"] == 4)), Or(Select(v["arg1_range"], 0) != 0, Select(v["arg1_range"], 1) != 0), False))
+    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), And(Select(v["arg1_range"], 0) != 0, Select(v["arg1_range"], 1) != 0), True)) if n else
+          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), And(Select(v["arg1_range"], 0) != 0, Select(v["arg1_range"], 1) != 0), True))
 )
 
 def rule_26_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_26_func(arg1, solver=None, neg=False):
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 26
-        rule_26(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_26(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_26(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_26(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the dtype is complex, ensure it is either complex64 or complex128 (Rule 24)
+# if input tensor is complex, the real and imaginary part must have same precision (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), (Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), False)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), (Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), False))
+    s.add(Not(If(v["arg1_dtype"] == 9, And(v["arg1_dtype"] == 6, v["arg1_dtype"] == 6), If(v["arg1_dtype"] == 10, And(v["arg1_dtype"] == 7, v["arg1_dtype"] == 7), True))) if n else
+          If(v["arg1_dtype"] == 9, And(v["arg1_dtype"] == 6, v["arg1_dtype"] == 6), If(v["arg1_dtype"] == 10, And(v["arg1_dtype"] == 7, v["arg1_dtype"] == 7), True)))
 )
 
 def rule_24_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The output data type should be at least as precise as the input data types (Rule 19)
+# x1 and x2 should have compatible dtypes, if one is complex, the other should also be (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If((And(v["arg1_dtype"] < 6, v["arg2_dtype"] > 5)), False, False)) if n else
-          If((And(v["arg1_dtype"] < 6, v["arg2_dtype"] > 5)), False, False))
+    s.add(Not(If((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), True)) if n else
+          If((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), True))
 )
 
 def rule_19_func(arg1, arg2, solver=None, neg=False):

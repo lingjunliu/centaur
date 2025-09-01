@@ -1,66 +1,198 @@
 >>
-Rule 1 (input and filter tensors must be 4D)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4
+Rule 3 (strides list must have length 4 and contain integers)
+{strides : list(int)} |= strides.len = 4
 >>
-Rule 2 (min_input, max_input, min_filter, max_filter must be scalar floats)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 0 ∧ ndim(v_4) = 0
+Rule 4 (dilations list must have length 4 and contain integers, and dilations in batch and depth dimensions must be 1)
+{dilations : list(int)} |= dilations.len = 4 ∧ dilations[0] = 1 ∧ dilations[3] = 1
 >>
-Rule 4 (padding must be either "SAME" or "VALID")
-{v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID"
+Rule 5 (padding must be either "SAME" or "VALID")
+{padding : str} |= padding = "SAME" ∨ padding = "VALID"
 >>
-Rule 6 (dilations in the batch and depth dimensions must be 1)
-{v_1 : list(int)} |= v_1[0] = 1 ∧ v_1[3] = 1
+Rule 6 (out_type must be a quantized dtype if specified)
+{out_type : dtype} |= 1 ≤ out_type ∧ out_type ≤ 5
 >>
-Rule 7 (input_depth dimension of filter must match input's depth dimension)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 1) = shape(v_1, 3)
+Rule 7 (the filter's input_depth dimension must match input's depth dimension, assuming both are 4D tensors)
+{input : tensor, filter : tensor} |= if ndim(input) = 4 ∧ ndim(filter) = 4 then shape(filter, 2) = shape(input, 3)
 >>
-Rule 8 (min_input should be less than max_input)
-{v_1 : tensor, v_2 : tensor} |= v_1 < v_2
+Rule 8 (min_input, max_input must be scalar tensors)
+{min_input : tensor, max_input : tensor} |= ndim(min_input) = 0 ∧ ndim(max_input) = 0
 >>
-Rule 12 (out_type must be a quantized type)
-{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 5 ∨ v_1 = 3 ∨ v_1 = 2 ∨ v_1 = 16
+Rule 9 (min_filter, max_filter must be scalar tensors)
+{min_filter : tensor, max_filter : tensor} |= ndim(min_filter) = 0 ∧ ndim(max_filter) = 0
 >>
-Rule 13 (input type must be a quantized type)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 16
+Rule 10 (elements of strides list must be positive)
+{strides : list(int)} |= ∀i ∈ [0, strides.len - 1] : strides[i] > 0
 >>
-Rule 17 (strides must be a list of integers with length 4)
-{v_1 : list(int)} |= v_1.len = 4
+Rule 11 (elements of dilations list must be positive)
+{dilations : list(int)} |= ∀i ∈ [0, dilations.len - 1] : dilations[i] > 0
 >>
-Rule 24 (strides must be greater than 0)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 12 (input tensor must be 4 dimensional)
+{input : tensor} |= ndim(input) = 4
 >>
-Rule 30 (min_input and max_input should not be equal)
-{v_1 : tensor, v_2 : tensor} |= v_1 ≠ v_2
+Rule 13 (filter tensor must be 4 dimensional)
+{filter : tensor} |= ndim(filter) = 4
 >>
-Rule 32 (if padding is VALID, strides must be less than or equal to the input dimensions)
-{v_1 : str, v_2 : tensor, v_3 : list(int)} |= if v_1 = "VALID" then v_3[1] ≤ shape(v_2, 1) ∧ v_3[2] ≤ shape(v_2, 2)
+Rule 14 (input and filter tensors must have quantized dtypes)
+{input : tensor, filter : tensor} |= (1 ≤ dtype_(input) ∧ dtype_(input) ≤ 5) ∧ (1 ≤ dtype_(filter) ∧ dtype_(filter) ≤ 5)
 >>
-Rule 34 (if the dilation rate is not 1, then the padding must be VALID)
-{v_1 : list(int), v_2 : str} |= if v_1[1] ≠ 1 ∨ v_1[2] ≠ 1 then v_2 = "VALID"
+Rule 15 (min_input, max_input, min_filter, max_filter must have float32 dtype)
+{min_input : tensor, max_input : tensor, min_filter : tensor, max_filter : tensor} |= dtype_(min_input) = 7 ∧ dtype_(max_input) = 7 ∧ dtype_(min_filter) = 7 ∧ dtype_(max_filter) = 7
 >>
-Rule 40 (min_input must be less than or equal to max_input)
-{v_1 : tensor, v_2 : tensor} |= v_1 ≤ v_2
+Rule 27 (input and filter tensors must have quantized dtypes and the same quantized type)
+{input : tensor, filter : tensor} |= (1 ≤ dtype_(input) ∧ dtype_(input) ≤ 5) ∧ (1 ≤ dtype_(filter) ∧ dtype_(filter) ≤ 5) ∧ dtype_(input) = dtype_(filter)
 >>
-Rule 42 (if dilations[1] != 1 then strides[1] must be 1.)
-{v_1 : list(int), v_2 : list(int)} |= if v_1[1] ≠ 1 then v_2[1] = 1
+Rule 28 (min_input and max_input must have float32 dtype and min_input < max_input)
+{min_input : tensor, max_input : tensor} |= dtype_(min_input) = 7 ∧ dtype_(max_input) = 7 ∧ min(min_input) < max(max_input)
 >>
-Rule 43 (if dilations[2] != 1 then strides[2] must be 1.)
-{v_1 : list(int), v_2 : list(int)} |= if v_1[2] ≠ 1 then v_2[2] = 1
+Rule 29 (min_filter and max_filter must have float32 dtype and min_filter < max_filter)
+{min_filter : tensor, max_filter : tensor} |= dtype_(min_filter) = 7 ∧ dtype_(max_filter) = 7 ∧ min(min_filter) < max(max_filter)
 >>
-Rule 44 (input and filter should be tensors.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1
+Rule 30 (strides list must have length 4 and contain integers, and strides in batch and depth dimensions must be 1)
+{strides : list(int)} |= strides.len = 4 ∧ strides[0] = 1 ∧ strides[3] = 1
 >>
-Rule 47 (if padding is SAME, input and filter shape should be non-zero)
-{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "SAME" then shape(v_2, 1) > 0 ∧ shape(v_2, 2) > 0 ∧ shape(v_3, 1) > 0 ∧ shape(v_3, 2) > 0
+Rule 31 (out_type must be a quantized dtype if specified and must be int32)
+{out_type : dtype} |= 1 ≤ out_type ∧ out_type ≤ 5 ∧ out_type = 3
 >>
-Rule 54 (strides and dilations length must be 4)
-{v_1 : list(int), v_2 : list(int)} |= v_1.len = 4 ∧ v_2.len = 4
+Rule 37 (if out_type is specified, it must be a quantized dtype)
+{out_type : dtype} |= out_type = 0 ∨ (1 ≤ out_type ∧ out_type ≤ 5)
 >>
-Rule 56 (if padding is SAME, input and filter shape should be non-zero for height and width)
-{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "SAME" then shape(v_2, 1) > 0 ∧ shape(v_2, 2) > 0 ∧ shape(v_3, 0) > 0 ∧ shape(v_3, 1) > 0
+Rule 45 (min_input must be less than max_input)
+{min_input : tensor, max_input : tensor} |= min(min_input) < max(max_input)
 >>
-Rule 65 (padding should be either VALID or SAME)
-{v_1 : str} |= v_1 = "VALID" ∨ v_1 = "SAME"
+Rule 46 (min_filter must be less than max_filter)
+{min_filter : tensor, max_filter : tensor} |= min(min_filter) < max(max_filter)
 >>
-Rule 113 (Strides must be a list of integers of length 4, and all elements should be > 0)
-{v_1 : list(int)} |= v_1.len = 4 ∧ ∀i ∈ [0, 3] : v_1[i] > 0
+Rule 47 (input and filter tensors must have quantized dtypes, different variables)
+{v_1 : tensor, v_2 : tensor} |= (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5) ∧ (1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5)
+>>
+Rule 48 (min_input, max_input must have float32 dtype, different variables)
+{v_3 : tensor, v_4 : tensor} |= dtype_(v_3) = 7 ∧ dtype_(v_4) = 7
+>>
+Rule 49 (min_filter, max_filter must have float32 dtype, different variables)
+{v_5 : tensor, v_6 : tensor} |= dtype_(v_5) = 7 ∧ dtype_(v_6) = 7
+>>
+Rule 50 (strides list must have length 4, correct check)
+{strides : list(int)} |= strides.len = 4 ∧ ∀i ∈ [0, strides.len - 1] : strides[i] > 0 ∧ strides[0] = 1 ∧ strides[3] = 1
+>>
+Rule 51 (dilations list must have length 4, correct check)
+{dilations : list(int)} |= dilations.len = 4 ∧ ∀i ∈ [0, dilations.len - 1] : dilations[i] > 0 ∧ dilations[0] = 1 ∧ dilations[3] = 1
+>>
+Rule 52 (padding must be either "SAME" or "VALID", other way)
+{padding : str} |= padding = "VALID" ∨ padding = "SAME"
+>>
+Rule 53 (if out_type is specified, it must be a quantized dtype, check is needed.)
+{out_type : dtype} |= if out_type ≠ 0 then (1 ≤ out_type ∧ out_type ≤ 5)
+>>
+Rule 54 (input and filter dimensions must match at the correct axis if the tensors are 4D)
+{input : tensor, filter : tensor} |= if ndim(input) = 4 ∧ ndim(filter) = 4 then shape(input, 3) = shape(filter, 2)
+>>
+Rule 55 (min_input is a scalar and less than max_input)
+{min_input : tensor, max_input : tensor} |= ndim(min_input) = 0 ∧ ndim(max_input) = 0 ∧ min(min_input) < max(max_input)
+>>
+Rule 56 (min_filter is a scalar and less than max_filter)
+{min_filter : tensor, max_filter : tensor} |= ndim(min_filter) = 0 ∧ ndim(max_filter) = 0 ∧ min(min_filter) < max(max_filter)
+>>
+Rule 57 (input and filter tensors must have quantized dtypes, specific types)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1) ∨ (dtype_(v_2) = 2) ∨ (dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4) ∨ (dtype_(v_2) = 5)
+>>
+Rule 58 (min_input, max_input have float32 and min_input < max_input)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 7 ∧ min(v_1) < max(v_2)
+>>
+Rule 59 (min_filter, max_filter have float32 and min_filter < max_filter)
+{v_3 : tensor, v_4 : tensor} |= dtype_(v_3) = 7 ∧ dtype_(v_4) = 7 ∧ min(v_3) < max(v_4)
+>>
+Rule 60 (strides list elements must be 1 or greater, and length is 4)
+{strides : list(int)} |= strides.len = 4 ∧ ∀i ∈ [0, 3] : strides[i] ≥ 1
+>>
+Rule 61 (dilations list elements must be 1 or greater, first and last must be 1, and length is 4)
+{dilations : list(int)} |= dilations.len = 4 ∧ dilations[0] = 1 ∧ dilations[3] = 1 ∧ ∀i ∈ [0, 3] : dilations[i] ≥ 1
+>>
+Rule 63 (if out_type is given, must be valid)
+{out_type : dtype} |= if out_type ≠ 0 then (out_type = 1 ∨ out_type = 2 ∨ out_type = 3 ∨ out_type = 4 ∨ out_type = 5)
+>>
+Rule 65 (input tensor must have quantized dtype)
+{input : tensor} |= (dtype_(input) = 1) ∨ (dtype_(input) = 2) ∨ (dtype_(input) = 3) ∨ (dtype_(input) = 4) ∨ (dtype_(input) = 5)
+>>
+Rule 66 (filter tensor must have quantized dtype)
+{filter : tensor} |= (dtype_(filter) = 1) ∨ (dtype_(filter) = 2) ∨ (dtype_(filter) = 3) ∨ (dtype_(filter) = 4) ∨ (dtype_(filter) = 5)
+>>
+Rule 67 (min_input, max_input have float32)
+{min_input : tensor, max_input : tensor} |= dtype_(min_input) = 7 ∧ dtype_(max_input) = 7
+>>
+Rule 68 (min_filter, max_filter have float32)
+{min_filter : tensor, max_filter : tensor} |= dtype_(min_filter) = 7 ∧ dtype_(max_filter) = 7
+>>
+Rule 81 (the length of dilations list must be 4)
+{dilations : list(int)} |= dilations.len = 4
+>>
+Rule 89 (dilations[0] and dilations[3] must be 1)
+{dilations : list(int)} |= dilations[0] = 1 ∧ dilations[3] = 1
+>>
+Rule 90 (Input dtype must be a valid quantized type)
+{input : tensor} |= dtype_(input) = 1 ∨ dtype_(input) = 2 ∨ dtype_(input) = 3 ∨ dtype_(input) = 4 ∨ dtype_(input) = 5
+>>
+Rule 91 (Filter dtype must be a valid quantized type)
+{filter : tensor} |= dtype_(filter) = 1 ∨ dtype_(filter) = 2 ∨ dtype_(filter) = 3 ∨ dtype_(filter) = 4 ∨ dtype_(filter) = 5
+>>
+Rule 94 (strides must have length 4 and be positive)
+{strides : list(int)} |= strides.len = 4 ∧ ∀i ∈ [0, 3] : strides[i] > 0
+>>
+Rule 95 (dilations must have length 4, first and last equal to 1, and positive)
+{dilations : list(int)} |= dilations.len = 4 ∧ dilations[0] = 1 ∧ dilations[3] = 1 ∧ ∀i ∈ [0, 3] : dilations[i] > 0
+>>
+Rule 97 (If out_type is given, it must be a quantized dtype)
+{out_type : dtype} |= (out_type = 0) ∨ (out_outtype = 1 ∨ out_type = 2 ∨ out_type = 3 ∨ out_type = 4 ∨ out_type = 5)
+>>
+Rule 103 (Input dtype must be a valid quantized type, short form)
+{input : tensor} |= 1 ≤ dtype_(input) ∧ dtype_(input) ≤ 5
+>>
+Rule 104 (Filter dtype must be a valid quantized type, short form)
+{filter : tensor} |= 1 ≤ dtype_(filter) ∧ dtype_(filter) ≤ 5
+>>
+Rule 105 (min_input, max_input, min_filter, max_filter must be float32 and be scalars, min < max)
+{min_input : tensor, max_input : tensor, min_filter : tensor, max_filter : tensor} |= dtype_(min_input) = 7 ∧ dtype_(max_input) = 7 ∧ dtype_(min_filter) = 7 ∧ dtype_(max_filter) = 7 ∧ ndim(min_input) = 0 ∧ ndim(max_input) = 0 ∧ ndim(min_filter) = 0 ∧ ndim(max_filter) = 0 ∧ min(min_input) < max(max_input) ∧ min(min_filter) < max(max_filter)
+>>
+Rule 106 (strides must have length 4 and be positive, batch and depth must be one)
+{strides : list(int)} |= strides.len = 4 ∧ ∀i ∈ [0, 3] : strides[i] > 0 ∧ strides[0] = 1 ∧ strides[3] = 1
+>>
+Rule 107 (dilations must have length 4, be positive, batch and depth must be one)
+{dilations : list(int)} |= dilations.len = 4 ∧ ∀i ∈ [0, 3] : dilations[i] > 0 ∧ dilations[0] = 1 ∧ dilations[3] = 1
+>>
+Rule 109 (if out_type is given, it must be a quantized dtype)
+{out_type : dtype} |= if out_type ≠ 0 then 1 ≤ out_type ∧ out_type ≤ 5
+>>
+Rule 114 (strides must have length 4 and be positive, and batch and depth must be one)
+{strides : list(int)} |= strides.len = 4 ∧ strides[0] = 1 ∧ strides[3] = 1 ∧ ∀i ∈ [0, 3] : strides[i] > 0
+>>
+Rule 117 (if out_type is given, it must be a quantized dtype or zero)
+{out_type : dtype} |= (out_type = 0) ∨ (1 ≤ out_type ∧ out_type ≤ 5)
+>>
+Rule 121 (Input and filter dtypes must be valid quantized types)
+{input : tensor, filter : tensor} |= 1 ≤ dtype_(input) ∧ dtype_(input) ≤ 5 ∧ 1 ≤ dtype_(filter) ∧ dtype_(filter) ≤ 5
+>>
+Rule 130 (Input and filter dtypes must be valid quantized types, different names)
+{in_tensor : tensor, fil_tensor : tensor} |= 1 ≤ dtype_(in_tensor) ∧ dtype_(in_tensor) ≤ 5 ∧ 1 ≤ dtype_(fil_tensor) ∧ dtype_(fil_tensor) ≤ 5
+>>
+Rule 131 (min/max tensors: float32, scalars, min < max, different names)
+{min_in : tensor, max_in : tensor, min_fi : tensor, max_fi : tensor} |= dtype_(min_in) = 7 ∧ dtype_(max_in) = 7 ∧ dtype_(min_fi) = 7 ∧ dtype_(max_fi) = 7 ∧ ndim(min_in) = 0 ∧ ndim(max_in) = 0 ∧ ndim(min_fi) = 0 ∧ ndim(max_fi) = 0 ∧ min(min_in) < max(max_in) ∧ min(min_fi) < max(max_fi)
+>>
+Rule 136 (If input and filter are 4D, channels match)
+{input_t : tensor, filter_t : tensor} |= if ndim(input_t) = 4 ∧ ndim(filter_t) = 4 then shape(input_t, 3) = shape(filter_t, 2)
+>>
+Rule 137 (The value of dilations[1] and dilations[2] can not be zero.)
+{dilations: list(int)} |= dilations[1] ≠ 0 ∧ dilations[2] ≠ 0
+>>
+Rule 138 (Input and filter quantized dtypes)
+{input_t : tensor, filter_t : tensor} |= 1 ≤ dtype_(input_t) ∧ dtype_(input_t) ≤ 5 ∧ 1 ≤ dtype_(filter_t) ∧ dtype_(filter_t) ≤ 5
+>>
+Rule 145 (strides non zero)
+{strides: list(int)} |= ∀i ∈ [0, strides.len - 1] : strides[i] ≠ 0
+>>
+Rule 146 (dilations non zero)
+{dilations: list(int)} |= ∀i ∈ [0, dilations.len - 1] : dilations[i] ≠ 0
+>>
+Rule 154 (If input and filter are 4D, the number of batches and output channels must be more than 0.)
+{input_t : tensor, filter_t : tensor} |= if ndim(input_t) = 4 ∧ ndim(filter_t) = 4 then shape(input_t, 0) > 0 ∧ shape(filter_t, 1) > 0
+>>
+Rule 155 (The product of strides is greater than 0.)
+{strides: list(int)} |= strides[0] * strides[1] * strides[2] * strides[3] > 0

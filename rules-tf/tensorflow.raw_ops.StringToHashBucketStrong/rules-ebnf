@@ -2,149 +2,254 @@
 Rule 1 (num_buckets must be greater than or equal to 1)
 {v_1 : int} |= v_1 ≥ 1
 >>
-Rule 2 (key must be a list of ints)
+Rule 2 (key must be a list of ints with length 2)
 {v_1 : list(int)} |= v_1.len = 2
 >>
-Rule 3 (input tensor must have a non-negative number of dimensions)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
->>
-Rule 4 (key elements must be non-negative)
-{v_1 : list(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] ≥ 0
->>
-Rule 5 (key elements must be less than a certain maximum value - simulating uint64 bounds)
-{v_1 : list(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] < 18446744073709551615
->>
-Rule 6 (shape of a tensor must be non-empty when number of buckets is greater than 10)
-{v_1 : tensor, v_2 : int} |= v_2 > 10 ∧ ndim(v_1) > 0
->>
-Rule 7 (If number of buckets is 1, the hash is essentially 0)
-{v_1 : int} |= if v_1 = 1 then true
->>
-Rule 8 (Check dtype of a tensor)
+Rule 3 (input must be a string tensor)
 {v_1 : tensor} |= dtype_(v_1) = 11
 >>
-Rule 10 (input tensor's first element should be a string)
+Rule 4 (key elements should be non-negative)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+>>
+Rule 5 (num_buckets must be a positive integer less than a maximum value)
+{v_1 : int} |= v_1 > 0 ∧ v_1 < 2147483647
+>>
+Rule 6 (key list values must be within a valid range)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_1[i] < 18446744073709551615
+>>
+Rule 7 (input tensor should have at least one element)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) -1]: shape(v_1, i) ≥ 1
+>>
+Rule 8 (key elements must be of int64 type)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ -9223372036854775808 ∧ v_1[i] ≤ 9223372036854775807
+>>
+Rule 9 (The input tensor cannot be empty.)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 11 (The number of buckets should be a positive integer)
+Rule 11 (input tensor cannot have more than 6 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≤ 6
+>>
+Rule 12 (Check if the list key is actually a list and not empty)
+{v_1 : list(int)} |= v_1.len > 0
+>>
+Rule 13 (num_buckets cannot be zero.)
+{v_1 : int} |= v_1 ≠ 0
+>>
+Rule 14 (Key elements must be integers.)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] < 2147483647) ∧ (v_1[i] > -2147483648)
+>>
+Rule 20 (The num_buckets value should be a reasonable positive integer.)
+{v_1 : int} |= v_1 > 0 ∧ v_1 < 1000000
+>>
+Rule 21 (If num_buckets is 1, every string hashes to the same bucket)
+{v_1 : int} |= if v_1 = 1 then true
+>>
+Rule 22 (The key list can only contains integer type values which are int32 or int64)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ -2147483648 ∧ v_1[i] ≤ 2147483647) ∨ (v_1[i] ≥ -9223372036854775808 ∧ v_1[i] ≤ 9223372036854775807)
+>>
+Rule 24 (The input tensor cannot have dimensions with size zero)
+{v_1 : tensor} |=  (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 25 (The num_buckets value should be a reasonable positive integer.)
+{v_1 : int} |= v_1 > 0 ∧ v_1 < 1000000000
+>>
+Rule 29 (num_buckets is a relatively small number)
+{v_1: int} |= v_1 < 10000
+>>
+Rule 30 (The input tensor's shape should be less than or equal to 5)
+{v_1 : tensor} |= ndim(v_1) <= 5
+>>
+Rule 31 (The key should be provided as a list.)
+{v_1: list(int)} |= v_1.len > 0
+>>
+Rule 32 (The key list can only contain integer type values and num_buckets must be greater than zero)
+{v_1 : list(int), v_2 : int} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ -9223372036854775808 ∧ v_1[i] ≤ 9223372036854775807) ∧ (v_2 > 0)
+>>
+Rule 33 (The input tensor's shape can be any non-negative value, if tensor is not empty)
+{v_1 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) >= 0)
+>>
+Rule 34 (The key is a list with length 2 and num_buckets is greater than zero)
+{v_1: list(int), v_2: int} |= v_1.len = 2 ∧ v_2 > 0
+>>
+Rule 35 (String type tensors are only accepted)
+{v_1: tensor} |= dtype_(v_1) = 11
+>>
+Rule 36 (Number of buckets cannot be too big)
+{v_1 : int} |= v_1 < 20000
+>>
+Rule 37 (The product of the shape of the input tensor must be less than a limit)
+{v_1 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) >= 0) ∧ (shape(v_1, 0) * (if ndim(v_1) > 1 then shape(v_1, 1) else 1) * (if ndim(v_1) > 2 then shape(v_1, 2) else 1) * (if ndim(v_1) > 3 then shape(v_1, 3) else 1) * (if ndim(v_1) > 4 then shape(v_1, 4) else 1)) < 1000000
+>>
+Rule 38 (The elements inside key must be smaller than some bound)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 10000
+>>
+Rule 40 (The number of buckets should not be too small.)
+{v_1 : int} |= v_1 > 1
+>>
+Rule 41 (The input tensor must be a string tensor with some dimensions)
+{v_1 : tensor} |= dtype_(v_1) = 11 ∧ ndim(v_1) > 0
+>>
+Rule 42 (Elements inside the key list must have specific maximum value.)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 9223372036854775807
+>>
+Rule 44 (The key list should contain ints.)
+{v_1 : list(int)} |= v_1.len > 0 ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] > -2147483648 ∧ v_1[i] < 2147483647)
+>>
+Rule 47 (Each element of the key must be an integer which is smaller than a fixed number.)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 2147483647
+>>
+Rule 48 (The number of buckets must be positive)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 15 (key[0] and key[1] can't be equal)
-{v_1 : list(int)} |= v_1.len = 2 ∧ v_1[0] ≠ v_1[1]
+Rule 52 (The number of buckets needs to be a relatively small number)
+{v_1: int} |= v_1 < 50000
 >>
-Rule 16 (If num_buckets is greater than 1, then key must have certain values)
-{v_1 : int, v_2 : list(int)} |= if v_1 > 1 then v_2.len = 2
+Rule 53 (The sum of the values inside of key list can't be very big.)
+{v_1: list(int)} |= (v_1[0] + v_1[1]) < 1000000
 >>
-Rule 17 (The key must be a list of integers)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ -2147483648 ∧ v_1[i] ≤ 2147483647
+Rule 55 (key elements must be non-negative and num_buckets should be positive)
+{v_1 : list(int), v_2 : int} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0) ∧ v_2 > 0
 >>
-Rule 18 (If num_buckets is 1, shape doesn't matter)
-{v_1 : tensor, v_2 : int} |= if v_2 = 1 then true else ndim(v_1) ≥ 0
+Rule 57 (Input should have dtype of string, and num_buckets positive.)
+{v_1 : tensor, v_2 : int} |= dtype_(v_1) = 11 ∧ v_2 > 0
 >>
-Rule 19 (If num_buckets is 1, the key doesn't affect the result)
-{v_1 : int, v_2 : list(int)} |= if v_1 = 1 then v_2.len = 2
+Rule 58 (Each element of key must not be negative )
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] >= 0
 >>
-Rule 20 (Input tensor must have at least one element if num_buckets is greater than 1)
-{v_1 : tensor, v_2 : int} |= if v_2 > 1 then shape(v_1, 0) > 0
+Rule 59 (The size of key needs to be two, and also the number of buckets has to be valid )
+{v_1 : list(int), v_2: int} |= v_1.len = 2 ∧ v_2 > 0
 >>
-Rule 21 (The key values have impact on hash)
-{v_1 : list(int)} |= v_1.len = 2 ∧ (v_1[0] > 0 ∨ v_1[1] > 0)
+Rule 62 (The values inside the key list must not be greater than max int64 number.)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] <= 9223372036854775807
 >>
-Rule 23 (num_buckets must be an integer)
-{v_1 : int ⊎ float} |= if v_1 = v_1 then true else false
+Rule 63 (The number of buckets should not be a negative integer.)
+{v_1 : int} |= v_1 >= 0
 >>
-Rule 24 (If input tensor is empty, then the output tensor is also empty - shape property)
-{v_1 : tensor} |= if ndim(v_1) = 0 then true
+Rule 64 (Key has to be the correct size and buckets has to be greater than 1.)
+{v_1 : list(int), v_2 : int} |= v_1.len = 2 ∧ v_2 > 1
 >>
-Rule 25 (If num_buckets is greater than 1, key values cannot be both zero)
-{v_1 : int, v_2 : list(int)} |= if v_1 > 1 then v_2[0] > 0 ∨ v_2[1] > 0
+Rule 67 (The elements of the key must be smaller than maximum value and should be greater than the minimum value.)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] <= 2147483647 ∧ v_1[i] >= -2147483648
 >>
-Rule 26 (if key[0] is zero, then key[1] should be positive)
-{v_1 : list(int)} |= if v_1[0] = 0 then v_1[1] > 0
+Rule 71 (num_buckets value should not be less than 1)
+{v_1: int} |= v_1 >= 1
 >>
-Rule 27 (If num_buckets is greater than 1 and input tensor has ndim > 0, then its first shape should be positive)
-{v_1 : tensor, v_2 : int} |= if v_2 > 1 ∧ ndim(v_1) > 0 then shape(v_1, 0) > 0
+Rule 72 (Each element of the key has to have the value less than the max integer value and the number of buckets has to be less than some value)
+{v_1 : list(int), v_2 : int} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] <= 2147483647) ∧ (v_2 < 100000)
 >>
-Rule 28 (If the key is the same, results will be the same)
-{v_1 : list(int), v_2 : list(int)} |= if v_1[0] = v_2[0] ∧ v_1[1] = v_2[1] then true
+Rule 74 (List of key needs to have exactly two elements with values higher than zero)
+{v_1 : list(int)} |= (v_1.len = 2) ∧ (v_1[0] > 0) ∧ (v_1[1] > 0)
 >>
-Rule 29 (If input is a scalar string and num_buckets > 1, key values must be set)
-{v_1 : tensor, v_2 : int, v_3 : list(int)} |= if ndim(v_1) = 0 ∧ v_2 > 1 then v_3.len = 2 ∧ (v_3[0] ≠ 0 ∨ v_3[1] ≠ 0)
+Rule 75 (The number of buckets should be positive, key should be valid list)
+{v_1: int, v_2: list(int)} |= (v_1 >= 1) ∧ (v_2.len = 2)
 >>
-Rule 30 (If ndim of the input is greater than zero then each string in the tensor is not empty)
-{v_1 : tensor} |= if ndim(v_1) > 0 then true
+Rule 77 (All Elements in the key must be integer numbers.)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -2147483648 ∧ v_1[i] < 2147483647
 >>
-Rule 31 (If num_buckets is greater than 1, then the first element of key is a non negative integer)
-{v_1 : int, v_2 : list(int)} |= if v_1 > 1 then v_2[0] ≥ 0
+Rule 78 (Number of buckets can not be a very big number.)
+{v_1 : int} |= v_1 <= 100000
 >>
-Rule 32 (The second element of the key is a non-negative integer)
-{v_1 : list(int)} |= if v_1.len = 2 then v_1[1] ≥ 0
+Rule 79 (The elements of key must not be negative and must contain exactly two elements.)
+{v_1 : list(int)} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] >= 0) ∧ (v_1.len = 2)
 >>
-Rule 33 (The key should not be empty)
-{v_1 : list(int)} |= v_1.len = 2 ∧ v_1[0] + v_1[1] ≠ 0
+Rule 82 (Each member of the key should be less than MAX_INT, greater than MIN_INT and num_buckets is positive.)
+{v_1: list(int), v_2 : int} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] < 2147483647 ∧ v_1[i] > -2147483648) ∧ (v_2 > 0)
 >>
-Rule 34 (if input tensor has only one element and num_buckets>1, then sum of elements of key >0)
-{v_1 : tensor, v_2 : int, v_3 : list(int)} |= if shape(v_1,0)=1 ∧ v_2>1 then v_3[0]+v_3[1]>0
+Rule 83 (The value of bucket size has to be less than MAX_INT .)
+{v_1 : int} |= v_1 < 2147483647
 >>
-Rule 35 (If the key is the same as [0,0], num_buckets must be 1)
-{v_1 : list(int), v_2 : int} |= if v_1[0] = 0 ∧ v_1[1] = 0 then v_2 = 1
+Rule 84 (The list of key needs to have two elements and all elements must be positive. )
+{v_1: list(int)} |= (v_1.len = 2) ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0)
 >>
-Rule 36 (If the key has non-zero elements, num_buckets must be greater than 1)
-{v_1 : list(int), v_2 : int} |= if v_1[0] ≠ 0 ∨ v_1[1] ≠ 0 then v_2 > 1
+Rule 86 (Key must be a list of two integers where the first int > second int )
+{v_1 : list(int)} |= (v_1.len = 2) ∧ (v_1[0] > v_1[1])
 >>
-Rule 37 (If input is a list, the key has to have specific value range)
-{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 1 then ∀i ∈ [0, v_1.len -1] : v_2[0] > -100 ∧ v_2[1] < 100
+Rule 87 (The key has to be a list of integers between certain value.)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] < 2147483647) ∧ (v_1[i] > -2147483648)
 >>
-Rule 39 (If the tensor is a scalar string, then the key parameters must have certain value)
-{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 0 then v_2[0] + v_2[1] > 0
+Rule 89 (Key length =2 AND elements must be greater or equal to 0 )
+{v_1 : list(int)} |= (v_1.len = 2) ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] >= 0)
 >>
-Rule 40 (key elements should be less than a certain minimum value - simulating int bounds)
-{v_1 : list(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > -2147483648
+Rule 94 (The input list for key MUST contain 2 elements and first element MUST be less than 1000)
+{v_1: list(int)} |= (v_1.len = 2) ∧ (v_1[0] < 1000)
 >>
-Rule 41 (if num_buckets is 1, key[0] must be 0)
-{v_1 : int, v_2 : list(int)} |= if v_1 = 1 then v_2[0] = 0
+Rule 97 (Each number in key should be non negative and less than or equal to max int number.)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] >= 0) ∧ (v_1[i] <= 2147483647)
 >>
-Rule 42 (if num_buckets is 1, key[1] must be 0)
-{v_1 : int, v_2 : list(int)} |= if v_1 = 1 then v_2[1] = 0
+Rule 98 (Num buckets has to be greater than 1.)
+{v_1: int} |= v_1 > 1
 >>
-Rule 44 (if number of dimensions of input > 2, then first and second elements of key cannot be 0)
-{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) > 2 then v_2[0] + v_2[1] > 0
+Rule 99 (Key length must be 2 AND each number in key is different.)
+{v_1 : list(int)} |= (v_1.len = 2) ∧ (v_1[0] ≠ v_1[1])
 >>
-Rule 45 (if ndim of input = 0 and num_buckets =1)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 ∧ v_2 = 1 then true
+Rule 101 (Key list needs to contain 2 items.)
+{v_1: list(int)} |= v_1.len = 2
 >>
-Rule 46 (if ndim of input is greater than 0 then num_buckets should be greater than zero)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 > 0
+Rule 102 (Each of the keys needs to be in the int64 format)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] <= 9223372036854775807 ∧ v_1[i] >= -9223372036854775808
 >>
-Rule 48 (the product of the key elements cannot be zero, if num_buckets>1)
-{v_1 : int, v_2 : list(int)} |= if v_1 > 1 then v_2[0] * v_2[1] ≠ 0
+Rule 103 (Number of buckets needs to be a small number)
+{v_1: int} |= v_1 < 5000
 >>
-Rule 49 (If num_buckets is a large number and key is [0,0] then the operation may be slow)
-{v_1 : int, v_2 : list(int)} |= if v_1 > 1000 ∧ v_2[0] = 0 ∧ v_2[1] = 0 then true
+Rule 104 (Key must have length equal to 2 and element [0] needs to be greater than or equals to element [1])
+{v_1: list(int)} |= (v_1.len = 2) ∧ (v_1[0] >= v_1[1])
 >>
-Rule 50 (If the input tensor has more than one dimension then the key values should be greater than 0)
-{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) > 1 then v_2[0] + v_2[1] > 0
+Rule 107 (The key must be a list that has 2 elements with any values AND, number of buckets must be positive!)
+{v_1 : list(int), v_2: int} |= (v_1.len = 2) ∧ (v_2 > 0)
 >>
-Rule 51 (the key cannot be all positive if num_buckets is a very small number)
-{v_1 : int, v_2 : list(int)} |= if v_1 < 5 ∧ v_2[0] > 0 ∧ v_2[1] > 0 then false
+Rule 108 (Num Buckets parameter must be with in specific bounds)
+{v_1 : int} |= (v_1 < 2147483647) ∧ (v_1 > 0)
 >>
-Rule 52 (Number of dimensions of input tensor can not exceed 5)
-{v_1 : tensor} |= ndim(v_1) ≤ 5
+Rule 112 (The key must contain exactly two numbers AND num_buckets must not be zero )
+{v_1 : list(int), v_2: int} |= (v_1.len = 2) ∧ (v_2 ≠ 0)
 >>
-Rule 53 (If the input tensor is a vector, the key values should not be large)
-{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 1 then v_2[0] < 1000 ∧ v_2[1] < 1000
+Rule 113 (num_buckets can't be a negative number and the values inside of key must not be negative.)
+{v_1 : int, v_2 : list(int)} |= (v_1 > 0) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] >= 0)
 >>
-Rule 54 (If number of dimensions is more than 3 then key[0] must be different from key[1])
-{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) > 3 then v_2[0] ≠ v_2[1]
+Rule 114 (Key length = 2 AND elements must be in int64 format.)
+{v_1 : list(int)} |= (v_1.len = 2) ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] <= 9223372036854775807 ∧ v_1[i] >= -9223372036854775808)
 >>
-Rule 55 (If number of buckets equals to maximum integer value and key is not [0,0], it may cause unexpected behaviour)
-{v_1 : int, v_2 : list(int)} |= if v_1 = 2147483647 ∧ (v_2[0] ≠ 0 ∨ v_2[1] ≠ 0) then true
+Rule 117 (All values in the key should be greater than -1)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -1
 >>
-Rule 56 (If input is scalar then key elements should be 0 for deterministic behaviour)
-{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 0 then v_2[0] = 0 ∧ v_2[1] = 0
+Rule 119 (Each number in key has to be greater or equal to 0 AND should be different than each other)
+{v_1 : list(int)} |= (v_1.len = 2) ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] >= 0) ∧ (v_1[0] ≠ v_1[1])
 >>
-Rule 57 (key cannot contain negative values if number of buckets is really large.)
-{v_1 : int, v_2 : list(int)} |= if v_1 > 1000000 then v_2[0] ≥ 0 ∧ v_2[1] ≥ 0
+Rule 122 (Every member in the input key needs to be a positive number greater than or equal to zero with integer precision. )
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] >= 0) ∧ (v_1[i] < 2147483647)
 >>
-Rule 58 (If number of dimensions equals to 2 then, key[0] must be greater than 0)
-{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 2 then v_2[0] > 0
+Rule 127 (Ensure each key is in the right format and bucket size is in the right range and number of buckets need to be positive.)
+{v_1 : list(int), v_2 : int} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] < 2147483647 ∧ v_1[i] > -2147483648) ∧ (v_2 > 1)
+>>
+Rule 128 (NumBuckets value has to be different from zero )
+{v_1: int} |= v_1 ≠ 0
+>>
+Rule 129 (The length of the key MUST be 2 and the first value MUST be equal to the number of buckets)
+{v_1 : list(int), v_2 : int} |= (v_1.len = 2) ∧ (v_1[0] = v_2)
+>>
+Rule 137 (Keys are within the valid range)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] >= -9223372036854775808) ∧ (v_1[i] <= 9223372036854775807)
+>>
+Rule 138 (Number of buckets value should be valid.)
+{v_1: int} |= v_1 > 0 ∧ v_1 < 10000000
+>>
+Rule 139 (The two provided keys have to be different)
+{v_1: list(int)} |= (v_1.len = 2) ∧ (v_1[0] ≠ v_1[1])
+>>
+Rule 142 (Check that all numbers in the list has a value that is positive and less than a threshold.)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] >= 0) ∧ (v_1[i] <= 65535)
+>>
+Rule 144 (The provided two Keys need to be different AND num buckets has to be valid)
+{v_1 : list(int), v_2: int} |= (v_1.len = 2) ∧ (v_1[0] ≠ v_1[1]) ∧ (v_2 > 0)
+>>
+Rule 147 (The key MUST have two different, non-negative values within integer bound.)
+{v_1 : list(int)} |= (v_1.len = 2) ∧ (v_1[0] ≠ v_1[1]) ∧ (∀i ∈ [0, v_1.len - 1] : (v_1[i] >= 0) ∧ (v_1[i] <= 2147483647))
+>>
+Rule 152 (Check valid numbers within the given key)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] >= -2147483648) ∧ (v_1[i] <= 2147483647)
+>>
+Rule 154 (The two provided keys must have different values and positive numbers (greater or equal than zero. ))
+{v_1 : list(int)} |= (v_1.len = 2) ∧ (v_1[0] ≠ v_1[1]) ∧ (∀i ∈ [0, v_1.len - 1] : (v_1[i] >= 0))
+>>
+Rule 157 (Check valid key list and that number of buckets is greater than zero to actually run the code)
+{v_1: list(int), v_2: int} |= (v_1.len = 2) ∧ (∀i ∈ [0, v_1.len - 1] : (v_1[i] >= 0) ∧ (v_1[i] <= 2147483647)) ∧ (v_2 > 0)

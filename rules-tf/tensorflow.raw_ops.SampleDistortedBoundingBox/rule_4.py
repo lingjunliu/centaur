@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# bounding_boxes last dimension must be 4 (Rule 4)
+# bounding_boxes last dimension should have 4 elements (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
     s.add(Not(Select(v["arg1_shape"], 2) == 4) if n else

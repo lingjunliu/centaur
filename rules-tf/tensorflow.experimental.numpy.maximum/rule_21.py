@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the first tensor is complex, the second must also be complex (Rule 21)
+# At least one of the tensors should be a number. (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), False)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), False))
+    s.add(Not(Or((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 10)), (And(v["arg2_dtype"] >= 1, v["arg2_dtype"] <= 10)))) if n else
+          Or((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 10)), (And(v["arg2_dtype"] >= 1, v["arg2_dtype"] <= 10))))
 )
 
 def rule_21_func(arg1, arg2, solver=None, neg=False):

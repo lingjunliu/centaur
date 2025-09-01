@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the dtype is bool, then the elements will be either 0 or 1 (Rule 15)
+# dtype should be a valid enumerated integer representing a data type, not a string (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 0, True, False)) if n else
-          If(v["arg1_value"] == 0, True, False))
+    s.add(Not(And(v["arg1_value"] != 12, Or([And(i < (11 + 1), Or(v["arg1_value"] == i, v["arg1_value"] == 13)) for i in range(6)]))) if n else
+          And(v["arg1_value"] != 12, Or([And(i < (11 + 1), Or(v["arg1_value"] == i, v["arg1_value"] == 13)) for i in range(6)])))
 )
 
 def rule_15_func(arg1, solver=None, neg=False):

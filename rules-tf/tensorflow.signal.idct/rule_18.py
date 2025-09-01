@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If norm is none the shape of input should be positive (Rule 18)
+# n must be -1 if axis is also -1 (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 6, Select(v["arg2_shape"], v["arg2_ndim"] - 1) > 0, False)) if n else
-          If(v["arg1_value"] == 6, Select(v["arg2_shape"], v["arg2_ndim"] - 1) > 0, False))
+    s.add(Not(If(v["arg2_value"] == -1, v["arg1_value"] == -1, True)) if n else
+          If(v["arg2_value"] == -1, v["arg1_value"] == -1, True))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):
@@ -18,27 +18,24 @@ def rule_18_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, str):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
-        arg2_ndim = Int('arg2_ndim')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg1_value = Int('arg1_value')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values_tf.index(arg1))
-        solver.add(arg2_ndim == arg2.ndim)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg1_value == int(arg1))
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 18
-        rule_18(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape})
+        rule_18(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_18(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']}, neg)
+        rule_18(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

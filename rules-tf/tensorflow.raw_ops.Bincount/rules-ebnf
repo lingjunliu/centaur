@@ -1,105 +1,255 @@
 >>
-Rule 1 (arr must be of type int32, represented by type index 3)
-{v_1 : dtype} |= v_1 = 3
->>
-Rule 2 (size must be a non-negative integer)
-{v_1 : int} |= v_1 ≥ 0
->>
-Rule 3 (weights must be one of int32, int64, float32, or float64, corresponding to types 3, 4, 7, and 8)
-{v_1 : dtype} |= v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 7 ∨ v_1 = 8
->>
-Rule 4 (arr and weights should have the same shape, or weights can be length 0)
-{v_1 : tensor, v_2 : tensor} |= (shape(v_1, 0) = shape(v_2, 0) ∧ ndim(v_1) = ndim(v_2)) ∨ shape(v_2, 0) = 0
->>
-Rule 6 (output dtype should be the same as weights' dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
->>
-Rule 7 (arr and size are int32 and weights can be int32, int64, float32, or float64)
-{v_1 : dtype, v_2 : dtype, v_3 : dtype} |= v_1 = 3 ∧ (v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 7 ∨ v_2 = 8) ∧ v_3 = 3
->>
-Rule 8 (arr's dimension should be 1)
-{v_1 : tensor} |= ndim(v_1) = 1
->>
-Rule 13 (if weights is length 0, then size must be greater than or equal to 0.)
-{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) = 0 then v_2 ≥ 0
->>
-Rule 17 (arr and weights should have compatible dtypes)
-{v_1 : dtype, v_2 : dtype} |= (v_1 = 3) ∧ (v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 7 ∨ v_2 = 8)
->>
-Rule 18 (size must be less than or equal to max value of int32)
-{v_1 : int} |= v_1 ≤ 2147483647
->>
-Rule 19 (If size is 0, then weights must have length of zero too)
-{v_1 : int, v_2 : tensor} |= if v_1 = 0 then shape(v_2, 0) = 0
->>
-Rule 20 (arr dtype must be int32)
+Rule 1 (arr tensor must have int32 dtype)
 {v_1 : tensor} |= dtype_(v_1) = 3
 >>
-Rule 21 (weights' dimension should be less than or equal to 1)
-{v_1 : tensor} |= ndim(v_1) ≤ 1
+Rule 2 (size tensor must be a non-negative scalar int32)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∧ ndim(v_1) = 0 ∧ v_1 ≥ 0
 >>
-Rule 22 (If weights is not length 0, then weights and arr must have same dimension)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) ≠ 0 then ndim(v_1) = ndim(v_2)
+Rule 4 (weights tensor must have dtype int32, int64, float32, or float64)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 23 (If weights is not length 0, then weights and arr must have same shape)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) ≠ 0 then shape(v_1, 0) = shape(v_2, 0)
+Rule 5 (size tensor's value must be greater than the maximum value in arr)
+{v_1 : tensor, v_2 : tensor} |= max(v_1) < v_2
 >>
-Rule 24 (arr values must be less than size.)
-{v_1 : tensor, v_2 : int} |= max(v_1) < v_2
+Rule 6 (arr tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
 >>
-Rule 25 (weights can't contain NaN)
-{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = v_1[i]
->>
-Rule 26 (arr values must be greater than or equal to zero.)
+Rule 8 (arr tensor's minimum value must be non-negative)
 {v_1 : tensor} |= min(v_1) ≥ 0
 >>
-Rule 27 (If arr is empty, then size can be zero)
-{v_1 : tensor, v_2 : int} |= if shape(v_1,0) = 0 then v_2 = 0
+Rule 9 (weights tensor must have the same shape as arr if non-empty)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then (ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i))
 >>
-Rule 29 (size must be greater or equal to max value of arr plus 1)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ max(v_1) + 1
+Rule 10 (if weights is length-0, treat it as all weights equal to 1, so its type can be anything)
+{v_2 : tensor} |= if shape(v_2, 0) = 0 then true else (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
 >>
-Rule 30 (if weights have elements, arr has elements too)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) ≠ 0 then shape(v_1, 0) ≠ 0
+Rule 11 (output tensor has the same dtype as weights)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) = 0 then true else (dtype_(v_1) = dtype_(v_2))
 >>
-Rule 31 (arr cannot contain negative values if size is zero)
-{v_1 : tensor, v_2 : int} |= if v_2 = 0 then min(v_1) ≥ 0
+Rule 12 (size must be greater than or equal to zero)
+{v_1 : tensor} |= v_1 ≥ 0
 >>
-Rule 33 (If weights is empty then the dtype of the output should be int32)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) = 0 then dtype_(v_1) = 3
+Rule 13 (arr's element's data type must be int32)
+{v_1: tensor} |= dtype_(v_1) = 3
 >>
-Rule 34 (If weights are specified, then the output's shape should be equal to size)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if shape(v_2, 0) ≠ 0 then shape(v_1, 0) = v_3
->>
-Rule 35 (If size is greater than zero, at least one element in arr is within [0, size))
-{v_1 : tensor, v_2 : int} |= if v_2 > 0 then ∃i ∈ [0, shape(v_1, 0) - 1] : 0 ≤ v_1[i] ∧ v_1[i] < v_2
->>
-Rule 37 (Output dtype is the same as weights dtype if weights are specified)
+Rule 15 (weights tensor must have the same dtype as arr if weights is not empty)
 {v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) ≠ 0 then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 38 (weights can not be bool type)
-{v_1 : dtype} |= v_1 ≠ 0
->>
-Rule 40 (weights' dtype should be int32, int64, float32, or float64 if weights is not empty)
-{v_1 : tensor, v_2 : dtype} |= if shape(v_1, 0) ≠ 0 then v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 7 ∨ v_2 = 8
->>
-Rule 41 (size should be a scalar tensor)
+Rule 16 (size tensor must be scalar)
 {v_1 : tensor} |= ndim(v_1) = 0
 >>
-Rule 42 (if weights is empty, output dtype should be int32, int64, float32, float64)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) = 0 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 17 (arr tensor's values are less than size tensor's value)
+{v_1 : tensor, v_2 : tensor} |= max(v_1) < v_2 ∨ max(v_1) = v_2
 >>
-Rule 45 (size must be greater than the maximum element in arr)
-{v_1 : tensor, v_2 : int} |= v_2 > max(v_1)
+Rule 18 (if weights is empty, output is int32)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) = 0 then dtype_(v_1) = 3
 >>
-Rule 46 (if arr is not empty then size has to be greater than or equal to min value of arr and max value of arr)
-{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) ≠ 0 then v_2 ≥ min(v_1) ∧ v_2 ≥ max(v_1)
+Rule 20 (arr and weights must have the same rank when weights is not empty)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) ≠ 0 then ndim(v_1) = ndim(v_2)
 >>
-Rule 47 (if arr is not empty, all elements in arr must be less than size)
-{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) ≠ 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < v_2
+Rule 21 (if weights is not empty then arr and weights must have same shapes)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) ≠ 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 50 (If size is greater than zero, there should be an element in array that is less than size)
-{v_1 : tensor, v_2 : int} |= if v_2 > 0 then ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < v_2
+Rule 22 (size must be a non-negative scalar)
+{v_1 : tensor} |= ndim(v_1) = 0 ∧ v_1 ≥ 0
 >>
-Rule 51 (If weights is a scalar, then output dtype equals weight dtype)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then dtype_(v_1) = dtype_(v_2)
+Rule 23 (if weights is empty, output's dtype is int32, otherwise the same as weights)
+{v_1 : tensor, v_3 : tensor} |= if shape(v_3, 0) = 0 then dtype_(v_1) = 3 else dtype_(v_1) = dtype_(v_3)
+>>
+Rule 24 (if weights is empty, the output dtype must be int32)
+{v_1: tensor, v_2: tensor} |= if shape(v_2, 0) = 0 then dtype_(v_1) = 3
+>>
+Rule 25 (If weights is not empty, the output dtype must match weights dtype)
+{v_1: tensor, v_2: tensor} |= if shape(v_2, 0) ≠ 0 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 26 (arr's values must be within the range [0, size))
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < v_2
+>>
+Rule 31 (If size is 0, the output shape is [0])
+{v_1: tensor, v_2: tensor} |= if v_2 = 0 then shape(v_1, 0) = 0
+>>
+Rule 32 (If size is greater than 0, the output shape is [size])
+{v_1: tensor, v_2: tensor} |= if v_2 > 0 then shape(v_1, 0) = v_2
+>>
+Rule 33 (Values in arr must be smaller than size)
+{v_1: tensor, v_2: tensor} |= max(v_1) < v_2 ∨ max(v_1) = v_2
+>>
+Rule 34 (If size is provided, then min of arr should be >= 0)
+{v_1 : tensor} |= min(v_1) >= 0
+>>
+Rule 35 (If weights has any values then arr and weights should have same shape)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) > 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 38 (If weights tensor is not empty, its values can't be negative)
+{v_1 : tensor} |= if shape(v_1, 0) > 0 then min(v_1) >= 0
+>>
+Rule 39 (if size is a scalar and also zero, weights shape has to be zero)
+{v_1 : tensor, v_2 : tensor} |= if v_1 = 0 then shape(v_2, 0) = 0
+>>
+Rule 40 (if size is a scalar and is positive, the weights shape has to greater than zero)
+{v_1: tensor, v_2: tensor} |= if v_1 > 0 then shape(v_2,0) >= 0
+>>
+Rule 43 (If weights is provided (not empty) then its dtype should be one of int32, int64, float32, float64.)
+{v_1 : tensor} |= if shape(v_1, 0) > 0 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 44 (If weights is not empty, arr's dtype must be int32)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) > 0 then dtype_(v_1) = 3
+>>
+Rule 45 (size must be greater or equal than zero)
+{v_1 : tensor} |= v_1 >= 0
+>>
+Rule 46 (arr values cannot be negative)
+{v_1: tensor} |= min(v_1) >= 0
+>>
+Rule 50 (if size == 0, then shape of the output tensor is (0,))
+{v_1 : tensor, v_2 : tensor} |= if v_2 = 0 then shape(v_1, 0) = 0
+>>
+Rule 51 (arr tensor's values should be in the range [0, size))
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1,0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < v_2
+>>
+Rule 52 (if weights is empty then output is int32)
+{v_1: tensor, v_2: tensor} |= if shape(v_2,0) = 0 then dtype_(v_1) = 3
+>>
+Rule 53 (if the weights tensor is not empty, the arr and weights tensor must have the same dtype initially.)
+{v_1: tensor, v_2: tensor} |= if shape(v_2, 0) > 0 then dtype_(v_1) = 3
+>>
+Rule 54 (If size is less than min(arr) then an error will be thrown.)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) < v_2 ∨ min(v_1) = v_2
+>>
+Rule 55 (size must be a scalar, with dtype int32, and greater than 0)
+{v_1: tensor} |= ndim(v_1) = 0 ∧ dtype_(v_1) = 3 ∧ v_1 >= 0
+>>
+Rule 56 (size must be greater than max(arr), to prevent out of bounds access)
+{v_1: tensor, v_2: tensor} |= v_2 > max(v_1)
+>>
+Rule 58 (if size is a scalar and it is 0 then weight must be zero)
+{v_1: tensor, v_2: tensor} |= if v_1 = 0 then shape(v_2, 0) = 0
+>>
+Rule 59 (arr values should be in range [0, size -1])
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] >= 0 ∧ v_1[i] <= (v_2 -1)
+>>
+Rule 60 (The weights tensor's shape and arr tensor's shape must match)
+{v_1: tensor, v_2: tensor} |= if shape(v_2, 0) > 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 61 (Weights must be a vector or scalar)
+{v_1: tensor} |= ndim(v_1) <=1
+>>
+Rule 62 (If size tensor is greater than 0, the output tensor shape will be [size])
+{v_1 : tensor, v_2 : tensor} |= if v_2 > 0 then shape(v_1, 0) = v_2
+>>
+Rule 63 (If weights is provided, its dtype must be one of the allowed types)
+{v_1 : tensor} |= if shape(v_1, 0) > 0 then (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 64 (If arr's values are out of range [0, size), they will be ignored)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1,0) - 1] : v_1[i] >= 0 ∧ v_1[i] < v_2
+>>
+Rule 66 (The weights tensor's data type should be a valid type.)
+{v_1: tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 67 (The arr tensor must be one dimensional)
+{v_1: tensor} |= ndim(v_1) = 1
+>>
+Rule 70 (Values inside arr must be between 0 and size (exclusive))
+{v_1: tensor, v_2: tensor} |= ∀i ∈ [0, shape(v_1, 0)-1] : v_1[i] >= 0 ∧ v_1[i] < v_2
+>>
+Rule 72 (If weights is not empty, then its rank must be the same as arr)
+{v_1: tensor, v_2: tensor} |= if shape(v_2, 0) > 0 then ndim(v_1) = ndim(v_2)
+>>
+Rule 74 (If the weights are provided (not empty) then the output dtype should be the same as weights data type.)
+{v_1: tensor, v_2: tensor} |= if shape(v_2, 0) > 0 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 75 (If weights are provided, they should be non-negative numbers)
+{v_1: tensor} |= if shape(v_1, 0) > 0 then min(v_1) >= 0
+>>
+Rule 76 (The arr values must be smaller or equal to size - 1.)
+{v_1: tensor, v_2: tensor} |= max(v_1) <= v_2 - 1
+>>
+Rule 77 (The size must have shape [])
+{v_1: tensor} |= ndim(v_1) = 0
+>>
+Rule 78 (When size = 0, the shape of output should be [0])
+{v_1: tensor, v_2: tensor} |= if v_2 = 0 then shape(v_1,0) = 0
+>>
+Rule 79 (if weights tensor is provided, the weights tensor must be one of the allowed data types.)
+{v_1: tensor} |= if shape(v_1,0) > 0 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 80 (if arr values are not in range, those values are ignored)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0)-1] : if v_1[i] >= 0 ∧ v_1[i] < v_2 then true
+>>
+Rule 85 (weights can only be a scalar or a vector.)
+{v_1 : tensor} |= ndim(v_1) <= 1
+>>
+Rule 86 (arr's values must be smaller than or equal to size minus 1)
+{v_1:tensor, v_2: tensor} |= max(v_1) <= (v_2 - 1)
+>>
+Rule 87 (the size must be greater or equal to the maximum value of arr plus one.)
+{v_1: tensor, v_2: tensor} |= v_2 >= (max(v_1) + 1)
+>>
+Rule 88 (If weights is a scalar, its dtype can be int32, int64, float32, float64.)
+{v_1: tensor} |= if ndim(v_1) = 0 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 90 (If the size argument is a negative value, then an error will be generated.)
+{v_1: tensor} |= v_1 >= 0
+>>
+Rule 92 (weights values should be non-negative values)
+{v_1:tensor} |= if shape(v_1, 0) > 0 then min(v_1) >= 0
+>>
+Rule 93 (the size must be of data type int32)
+{v_1:tensor} |= dtype_(v_1) = 3
+>>
+Rule 94 (weights should be 1D or scalar)
+{v_1:tensor} |= ndim(v_1) <= 1
+>>
+Rule 95 (If weight is one dimentional, its shape needs to match with the arr shape)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 1 then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 96 (arr's elements need to be smaller than size, but greater or equal to zero.)
+{v_1:tensor, v_2: tensor} |= ∀i ∈ [0, shape(v_1, 0)-1] : v_1[i] < v_2 ∧ v_1[i] >= 0
+>>
+Rule 97 (If the output and weight tensors are not empty their data type must match)
+{v_1: tensor, v_2: tensor} |= if shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 98 (The size tensor should be a scalar and it needs to be non-negative value)
+{v_1: tensor} |= ndim(v_1) = 0 ∧ v_1 >= 0
+>>
+Rule 103 (when weight tensor has zero dimension, the shape of output tensor is 0)
+{v_1: tensor, v_2: tensor} |= if shape(v_2,0) = 0 then shape(v_1, 0) = 0
+>>
+Rule 105 (The output must have same dtype as weights if weights are not empty, otherwise output must be int32)
+{v_1: tensor, v_2: tensor} |= if shape(v_2, 0) > 0 then dtype_(v_1) = dtype_(v_2) else dtype_(v_1) = 3
+>>
+Rule 107 (weights must be vector or a scalar)
+{v_1: tensor} |= ndim(v_1) <= 1
+>>
+Rule 109 (the weight can be scalar, if it so, the dtype can only be int32, int64, float32, float64)
+{v_1: tensor} |= if ndim(v_1) = 0 then (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 112 (If weights is not empty and has shape>0 then it needs to have the same shape as arr, or to be scalar. If weights is empty shape = 0 then skip)
+{v_1: tensor, v_2: tensor} |= if shape(v_2, 0) > 0 then (ndim(v_1) = ndim(v_2) ∧ ( (ndim(v_2)=0) ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))) )
+>>
+Rule 114 (Values in the arr must be less than the size value and greater or equal to 0)
+{v_1: tensor, v_2: tensor} |= max(v_1) < v_2
+>>
+Rule 115 (If the arr values are outside of range [0, size), they will be ignored)
+{v_1: tensor, v_2: tensor} |= ∃i ∈ [0, shape(v_1, 0)-1] : v_1[i] < v_2 ∧ v_1[i] >= 0
+>>
+Rule 116 (Size must be greater than or equal to max value + 1 of arr tensor, but be non-negative)
+{v_1:tensor, v_2: tensor} |= v_2 >= (max(v_1)+1) ∧ v_2 >= 0
+>>
+Rule 118 (arr must contain only non negative numbers)
+{v_1:tensor} |= min(v_1) >=0
+>>
+Rule 119 (The size must be a scalar value (0 dimension))
+{v_1:tensor} |= ndim(v_1) = 0
+>>
+Rule 126 (Weights dtype must be valid and be the same as the output dtype)
+{v_1: tensor, v_2:tensor} |= (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) ∧ dtype_(v_1) = dtype_(v_2)
+>>
+Rule 127 (Size is greater or equals to maximum value in arr)
+{v_1: tensor, v_2 : tensor} |= v_2 >= max(v_1) ∨ v_2 = max(v_1)
+>>
+Rule 128 (arr tensor should not contain any negative value, if there are then that value should be ignored)
+{v_1: tensor} |= ∀i ∈ [0, shape(v_1,0) - 1] : v_1[i] >= 0
+>>
+Rule 129 (weights needs to be scalar if its shape is zero. If shape is not zero it has to be a vector.)
+{v_1: tensor} |= if shape(v_1, 0) = 0 then ndim(v_1) = 0 else ndim(v_1) <= 1

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The value must have the same shape and data type as `ref` (Rule 48)
+# ref tensor and value tensor must have compatible dtypes (Rule 48)
 
 rule_48 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), v["arg1_dtype"] == v["arg2_dtype"])) if n else
-          And(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), v["arg1_dtype"] == v["arg2_dtype"]))
+    s.add(Not(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or((And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7)), (And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8))), (And(v["arg1_dtype"] == 3, v["arg2_dtype"] == 3))), (And(v["arg1_dtype"] == 5, v["arg2_dtype"] == 5))), (And(v["arg1_dtype"] == 2, v["arg2_dtype"] == 2))), (And(v["arg1_dtype"] == 1, v["arg2_dtype"] == 1))), (And(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9))), (And(v["arg1_dtype"] == 4, v["arg2_dtype"] == 4))), (And(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10))), (And(v["arg1_dtype"] == 6, v["arg2_dtype"] == 6))), (And(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11))), (And(v["arg1_dtype"] == 17, v["arg2_dtype"] == 17))), (And(v["arg1_dtype"] == 18, v["arg2_dtype"] == 18))), (And(v["arg1_dtype"] == 12, v["arg2_dtype"] == 12))), (And(v["arg1_dtype"] == 13, v["arg2_dtype"] == 13))), (And(v["arg1_dtype"] == 14, v["arg2_dtype"] == 14))), (And(v["arg1_dtype"] == 15, v["arg2_dtype"] == 15))), (And(v["arg1_dtype"] == 16, v["arg2_dtype"] == 16)))) if n else
+          Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or((And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7)), (And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8))), (And(v["arg1_dtype"] == 3, v["arg2_dtype"] == 3))), (And(v["arg1_dtype"] == 5, v["arg2_dtype"] == 5))), (And(v["arg1_dtype"] == 2, v["arg2_dtype"] == 2))), (And(v["arg1_dtype"] == 1, v["arg2_dtype"] == 1))), (And(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9))), (And(v["arg1_dtype"] == 4, v["arg2_dtype"] == 4))), (And(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10))), (And(v["arg1_dtype"] == 6, v["arg2_dtype"] == 6))), (And(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11))), (And(v["arg1_dtype"] == 17, v["arg2_dtype"] == 17))), (And(v["arg1_dtype"] == 18, v["arg2_dtype"] == 18))), (And(v["arg1_dtype"] == 12, v["arg2_dtype"] == 12))), (And(v["arg1_dtype"] == 13, v["arg2_dtype"] == 13))), (And(v["arg1_dtype"] == 14, v["arg2_dtype"] == 14))), (And(v["arg1_dtype"] == 15, v["arg2_dtype"] == 15))), (And(v["arg1_dtype"] == 16, v["arg2_dtype"] == 16))))
 )
 
 def rule_48_func(arg1, arg2, solver=None, neg=False):
@@ -25,23 +25,17 @@ def rule_48_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg1_dtype = Int('arg1_dtype')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
         arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 48
-        rule_48(solver, {'arg1_dtype': arg1_dtype, 'arg1_shape': arg1_shape, 'arg2_dtype': arg2_dtype, 'arg2_shape': arg2_shape})
+        rule_48(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_48(solver, {'arg1_dtype': arg1['dtype'], 'arg1_shape': arg1['shape'], 'arg2_dtype': arg2['dtype'], 'arg2_shape': arg2['shape']}, neg)
+        rule_48(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If all elements of the first padding are greater than 0, then tensor's elements must be greater than 0 (Rule 62)
+# If data format is channels last, the pointwise filter should have height and width equal to 1 (Rule 62)
 
 rule_62 = lambda s, v, n=False: (
-    s.add(Not(If(And(Select(v["arg1_values"], 0) > 0, Select(v["arg1_values"], 1) > 0), Select(v["arg2_range"], 0) > 0, False)) if n else
-          If(And(Select(v["arg1_values"], 0) > 0, Select(v["arg1_values"], 1) > 0), Select(v["arg2_range"], 0) > 0, False))
+    s.add(Not(If(v["arg2_value"] == 24, And(Select(v["arg1_shape"], 0) == 1, Select(v["arg1_shape"], 1) == 1), True)) if n else
+          If(v["arg2_value"] == 24, And(Select(v["arg1_shape"], 0) == 1, Select(v["arg1_shape"], 1) == 1), True))
 )
 
 def rule_62_func(arg1, arg2, solver=None, neg=False):
@@ -18,26 +18,25 @@ def rule_62_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not isinstance(arg2, str):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_value = String('arg2_value')
 
         # Value assignments
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg2_value == list_of_string_values_tf.index(arg2))
 
         # Constraints for rule 62
-        rule_62(solver, {'arg1_values': arg1_values, 'arg2_range': arg2_range})
+        rule_62(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_62(solver, {'arg1_values': arg1['values'], 'arg2_range': arg2['range']}, neg)
+        rule_62(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)

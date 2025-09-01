@@ -1,105 +1,105 @@
 >>
-Rule 1 (The input to indicator_column must be a CategoricalColumn, meaning its ndim must be 1)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 2 (Shape of tensor should not be negative)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 2 (shape of CategoricalColumn must be > 0)
+Rule 3 (Dtype of the tensor should not be a string, aiming to prevent string conversion errors)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 4 (Dtype of the tensor should not be bool, aiming to prevent bool conversion errors)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 5 (If the shape of input tensor is zero, the indicator column should be an empty tensor)
+{v_1 : tensor} |= if shape(v_1, 0) = 0 then shape(v_1, 0) = 0
+>>
+Rule 6 (categorical column should have positive vocabulary size)
 {v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 3 (CategoricalColumn's dtype must be integer or string.)
-{v_1 : tensor} |= dtype_(v_1) = 12 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Rule 7 (categorical column shape should not exceed max limit)
+{v_1 : tensor} |= shape(v_1, 0) < 100000
 >>
-Rule 5 (CategoricalColumn's data type must be compatible with index data type)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 1 then v_2 = 1 else if dtype_(v_1) = 2 then v_2 = 2 else if dtype_(v_1) = 3 then v_2 = 3 else if dtype_(v_1) = 4 then v_2 = 4 else if dtype_(v_1) = 5 then v_2 = 5
+Rule 8 (categorical column's dtype should be int or str)
+{v_1 : tensor} |= dtype_(v_1) = 11 ∨ (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5)
 >>
-Rule 6 (Ensure that the CategoricalColumn contains unique elements)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j]
+Rule 9 (categorical column shouldn't have dimensions > 2)
+{v_1 : tensor} |= ndim(v_1) <= 2
 >>
-Rule 7 (The minimum value in CategoricalColumn should be greater than or equal to 0 when its data type is int)
-{v_1 : tensor} |= if dtype_(v_1) ≠ 12 then min(v_1) ≥ 0
+Rule 10 (categorical column min value should not be less than -100000)
+{v_1 : tensor} |= min(v_1) >= -100000
 >>
-Rule 9 (Ensure that the number of unique elements is less than or equal to a predefined maximum)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) ≤ v_2
+Rule 11 (categorical column should not have NaN values)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, i)
 >>
-Rule 10 (If the categorical column is crossed, the number of hash buckets must be greater than zero.)
-{v_1 : int} |= v_1 > 0
+Rule 12 (categorical column dtype should not be complex)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
 >>
-Rule 12 (If dtype is float, the max value in CategoricalColumn should be less than or equal to a float upperbound.)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then max(v_1) ≤ v_2
+Rule 13 (If a string is given, it should exist in the vocabulary)
+{v_1 : tensor, v_2 : str} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_2 = v_1[i]
 >>
-Rule 17 (The categorical column should not have NaN values if its dtype is float)
-{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then ∀i ∈ [0, shape(v_1,0) -1 ] : v_1[i] = v_1[i]
+Rule 15 (Categorical column shape should have less than 3 elements)
+{v_1 : tensor} |= ndim(v_1) < 3
 >>
-Rule 18 (if CategoricalColumn's dtype is string, each element should be a non-empty string)
-{v_1 : tensor} |= if dtype_(v_1) = 12 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ ""
+Rule 19 (Vocabulary size should not be excessively large)
+{v_1 : tensor} |= shape(v_1, 0) < 1000000
 >>
-Rule 22 (If the categorical column is crossed, ensure all input columns are valid.)
-{v_1 : tensor, v_2: tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1
+Rule 20 (Shape of the categorical feature must not be unknown during graph construction)
+{v_1 : tensor} |= shape(v_1, 0) ≠ -1
 >>
-Rule 30 (if CategoricalColumn's dtype is string, each element should be a non-empty string and a valid UTF-8 string)
-{v_1 : tensor} |= if dtype_(v_1) = 12 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ "" ∧ true
+Rule 21 (The maximum value of categorical column should not be a very large number)
+{v_1 : tensor} |= max(v_1) < 1000000000
 >>
-Rule 34 (If vocabulary list is used, the vocabulary list should have a positive length)
-{v_1 : list(str)} |= v_1.len > 0
+Rule 22 (Categorical column must contain finite values)
+{v_1 : tensor} |= min(v_1) > -1000000000 ∧ max(v_1) < 1000000000
 >>
-Rule 37 (Ensure that the number of unique elements is less than or equal to a predefined maximum vocabulary size, and also less than a max threshold)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) ≤ v_2 ∧ shape(v_1, 0) < 100000
+Rule 25 (Categorical column should not contain very small numbers)
+{v_1 : tensor} |= min(v_1) > -10000000
 >>
-Rule 38 (The embedding dimension should be a positive integer, and should not be too large)
-{v_1 : int} |= v_1 > 0 ∧ v_1 < 1024
+Rule 26 (Categorical column should not contain mix of strings and ints)
+{v_1: tensor} |= (dtype_(v_1) = 11) ∨ (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5)
 >>
-Rule 39 (If dtype is float, the max value in CategoricalColumn should be less than or equal to a float upperbound and greater than lower bound.)
-{v_1 : tensor, v_2 : float, v_3: float} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then max(v_1) ≤ v_2 ∧ min(v_1) >= v_3
+Rule 28 (If categorical column has a large vocabulary, then it should not contain complex numbers.)
+{v_1: tensor} |= if shape(v_1,0) > 1000 then dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
 >>
-Rule 40 (the input values should not contain infinity or NaN)
-{v_1: tensor} |=  ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = v_1[i] ∧ (v_1[i] > 0 ∨ v_1[i] < 0 ∨ v_1[i] = 0)
+Rule 29 (Categorical column's shape should be valid)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 1) > 0
 >>
-Rule 41 (check that dimension of input categorical column has at least one element.)
-{v_1: tensor} |= shape(v_1,0) > 0
+Rule 30 (If categorical column has shape [None], reject it)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) ≠ -1
 >>
-Rule 45 (If dtype is float, the max value in CategoricalColumn should be less than or equal to a float upperbound and greater than lower bound.)
-{v_1 : tensor, v_2 : float, v_3: float} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then max(v_1) ≤ v_2 ∧ min(v_1) ≥ v_3
+Rule 31 (For Wide model, `indicator_column` should not have extremely large dimensions to prevent memory explosion.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000000
 >>
-Rule 46 (the input values should not contain infinity or NaN)
-{v_1: tensor} |=  ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = v_1[i]
+Rule 32 (Categorical column must contain valid string if of type string)
+{v_1 : tensor} |= if dtype_(v_1) = 11 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ ""
 >>
-Rule 53 (The vocabulary file must have a positive number of lines)
-{v_1: str} |= v_1 ≠ ""
+Rule 33 (If using indicator column with a crossed column, ensure crossed column has limited number of buckets)
+{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 1) < 10000
 >>
-Rule 54 (If the categorical column has a default value, the default value must be within the vocabulary)
-{v_1 : str, v_2 : list(str)} |= ∀i ∈ [0, v_2.len - 1] : v_1 ≠ v_2[i]
+Rule 34 (If embedding column is not used, indicator column requires vocab list)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 55 (If keys are provided, the number of keys must match the number of values)
-{v_1 : list(str), v_2 : list(str)} |= v_1.len = v_2.len
+Rule 35 (If the categorical column is of boolean type, should contain either zero or one.)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then (min(v_1) = 0 ∧ max(v_1) = 1)
 >>
-Rule 56 (For weighted categorical columns, weights must have the same dimension as the input tensor)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 37 (Categorical column should not have too small dimensions to prevent underfitting)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1
 >>
-Rule 57 (for embedding columns, the embedding dimension must be smaller or equal to the number of categories)
-{v_1 : int, v_2 : tensor} |= v_1 ≤ shape(v_2,0)
+Rule 38 (If the shape of the categorical column is greater than one, min and max values should not be equal)
+{v_1 : tensor} |= if shape(v_1, 0) > 1 then min(v_1) ≠ max(v_1)
 >>
-Rule 58 (if CategoricalColumn's dtype is integer and a vocabulary list is present, all elements must exist inside the vocabulary.)
-{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, shape(v_1, 0) - 1] : ∃j ∈ [0, v_2.len -1] : v_1[i] = v_2[j]
+Rule 39 (If embedding column isn't used, categorical column's values shouldn't have duplicates.)
+{v_1 : tensor} |= if ndim(v_1) = 1 then ∃i ∈ [0, shape(v_1, 0) - 1]: ∀j ∈ [i + 1, shape(v_1, 0) - 1]: v_1[i] ≠ v_1[j]
 >>
-Rule 59 (If the categorical column has a default value, the default value must be within the vocabulary)
-{v_1 : str, v_2 : list(str)} |= ∃i ∈ [0, v_2.len - 1] : v_1 = v_2[i]
+Rule 40 (If embedding column isn't used, categorical column's values shouldn't have extreme range)
+{v_1 : tensor} |= (max(v_1) - min(v_1)) < 10000
 >>
-Rule 64 (Vocabulary size from a vocabulary file must be positive)
-{v_1: str} |= shape(v_1, 0) > 0
+Rule 41 (If categorical column has float dtype, require values between 0 and 1)
+{v_1 : tensor} |= if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then (min(v_1) ≥ 0 ∧ max(v_1) ≤ 1)
 >>
-Rule 65 (If using a bucketized column, the boundaries must be sorted in ascending order)
-{v_1: list(float)} |= ∀i ∈ [0, v_1.len - 2] : v_1[i] ≤ v_1[i + 1]
+Rule 42 (If indicator column has one hot encoding with length greater than 1000, it should use int8 or int16)
+{v_1 : tensor} |= if shape(v_1, 0) > 1000 then dtype_(v_1) = 1 ∨ dtype_(v_1) = 2
 >>
-Rule 66 (If using a weighted categorical column, the weights cannot be all zeros)
-{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ 0
+Rule 43 (categorical_column should not have a zero value when using vocabulary_list)
+{v_1 : tensor} |= min(v_1) > 0
 >>
-Rule 68 (String length should not exceed the limit)
-{v_1: str} |= shape(v_1, 0) < 512
->>
-Rule 70 (If using a bucketized column, the boundaries must be sorted in ascending order and not infinite)
-{v_1: list(float)} |= ∀i ∈ [0, v_1.len - 2] : v_1[i] ≤ v_1[i + 1] ∧ ∀j ∈ [0, v_1.len - 1] : v_1[j] = v_1[j]
->>
-Rule 71 (If using a weighted categorical column, the weights cannot be all zeros or NaN)
-{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ 0 ∧ v_1[i] = v_1[i]
->>
-Rule 73 (The number of elements in id weights needs to be greater than zero)
-{v_1 : tensor} |= shape(v_1,0) > 0
+Rule 44 (If feature crosses are used, the number of crossed features must be limited)
+{v_1 : tensor} |= if ndim(v_1) > 1 then ∃i ∈ [1, ndim(v_1) - 1] : shape(v_1, i) < 100

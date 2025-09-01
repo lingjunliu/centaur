@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input tensor's dtype is float16 then min(v_1 (Rule 20)
+# If the input tensor is real the imaginary part of input should be near 0. (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, Select(v["arg1_range"], 0) > -65500, False)) if n else
-          If(v["arg1_dtype"] == 6, Select(v["arg1_range"], 0) > -65500, False))
+    s.add(Not(If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), And(Select(v["arg1_range"], 0) > -0.00001, Select(v["arg1_range"], 1) < 0.00001), True)) if n else
+          If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), And(Select(v["arg1_range"], 0) > -0.00001, Select(v["arg1_range"], 1) < 0.00001), True))
 )
 
 def rule_20_func(arg1, solver=None, neg=False):

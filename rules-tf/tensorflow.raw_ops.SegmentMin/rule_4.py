@@ -8,8 +8,8 @@ from z3 import *
 # size of segment_ids must equal the first dimension of data (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)) if n else
-          Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0))
+    s.add(Not(Select(v["arg2_shape"], 0) == Select(v["arg1_shape"], 0)) if n else
+          Select(v["arg2_shape"], 0) == Select(v["arg1_shape"], 0))
 )
 
 def rule_4_func(arg1, arg2, solver=None, neg=False):

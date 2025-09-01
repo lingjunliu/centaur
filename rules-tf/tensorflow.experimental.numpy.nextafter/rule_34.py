@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If one input is int16, the other input must be int16 (Rule 34)
+# If x2 is a scalar, then x1 must be a number type (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 2, v["arg2_dtype"] == 2, If(v["arg2_dtype"] == 2, v["arg1_dtype"] == 2, False))) if n else
-          If(v["arg1_dtype"] == 2, v["arg2_dtype"] == 2, If(v["arg2_dtype"] == 2, v["arg1_dtype"] == 2, False)))
+    s.add(Not(If(v["arg2_ndim"] == 0, (And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 11)), True)) if n else
+          If(v["arg2_ndim"] == 0, (And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 11)), True))
 )
 
 def rule_34_func(arg1, arg2, solver=None, neg=False):
@@ -26,16 +26,16 @@ def rule_34_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
+        arg2_ndim = Int('arg2_ndim')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 34
-        rule_34(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_34(solver, {'arg1_dtype': arg1_dtype, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_34(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_34(solver, {'arg1_dtype': arg1['dtype'], 'arg2_ndim': arg2['ndim']}, neg)

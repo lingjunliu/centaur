@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Tensor values should have a reasonable range and not be NaN (Rule 26)
+# For float tensors, values should not underflow to 0 (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(Select(v["arg1_range"], 0) > -1e10, Select(v["arg1_range"], 0) == Select(v["arg1_range"], 0)), Select(v["arg1_range"], 1) < 1e10), Select(v["arg1_range"], 1) == Select(v["arg1_range"], 1))) if n else
-          And(And(And(Select(v["arg1_range"], 0) > -1e10, Select(v["arg1_range"], 0) == Select(v["arg1_range"], 0)), Select(v["arg1_range"], 1) < 1e10), Select(v["arg1_range"], 1) == Select(v["arg1_range"], 1)))
+    s.add(Not(If(v["arg1_dtype"] == 6, Or(Select(v["arg1_range"], 0) > -1.18e-38, Select(v["arg1_range"], 1) < 1.18e-38), If(v["arg1_dtype"] == 7, Or(Select(v["arg1_range"], 0) > -2.23e-308, Select(v["arg1_range"], 1) < 2.23e-308), If(v["arg1_dtype"] == 8, Or(Select(v["arg1_range"], 0) > -2.23e-308, Select(v["arg1_range"], 1) < 2.23e-308), True)))) if n else
+          If(v["arg1_dtype"] == 6, Or(Select(v["arg1_range"], 0) > -1.18e-38, Select(v["arg1_range"], 1) < 1.18e-38), If(v["arg1_dtype"] == 7, Or(Select(v["arg1_range"], 0) > -2.23e-308, Select(v["arg1_range"], 1) < 2.23e-308), If(v["arg1_dtype"] == 8, Or(Select(v["arg1_range"], 0) > -2.23e-308, Select(v["arg1_range"], 1) < 2.23e-308), True))))
 )
 
 def rule_26_func(arg1, solver=None, neg=False):
@@ -22,16 +22,18 @@ def rule_26_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_dtype = Int('arg1_dtype')
         arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 26
-        rule_26(solver, {'arg1_range': arg1_range})
+        rule_26(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_26(solver, {'arg1_range': arg1['range']}, neg)
+        rule_26(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)

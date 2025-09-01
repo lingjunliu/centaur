@@ -1,48 +1,117 @@
 >>
-Rule 2 (log_mel_spectrograms must have a positive number of mel bins)
+Rule 1 (log_mel_spectrograms must have positive number of mel bins to avoid ValueError)
 {v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0
 >>
-Rule 4 (log_mel_spectrograms must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 2 (log_mel_spectrograms must have float32 or float64 dtype to avoid TypeError regarding real/imag components)
+{v_1 : tensor} |= dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
 >>
-Rule 6 (log_mel_spectrograms must be a float32 or float64 tensor)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 3 (log_mel_spectrograms dimension can not be zero to avoid InvalidArgumentError)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 12 (If log_mel_spectrograms is float32 then mfccs will also be float32)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then true
+Rule 5 (log_mel_spectrograms must have at least two dimensions to be processed correctly by underlying RFFT)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 30 (If the dtype is float64, result is float64)
-{v_1 : tensor} |= if dtype_(v_1) = 8 then true
+Rule 7 (Ensure the last dimension of the input tensor is large enough given the error message example)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) ≥ 38
 >>
-Rule 35 (If the input is float32 the output is also float32, if the input is float64 the output is also float64)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then true else if dtype_(v_1) = 8 then true else false
+Rule 8 (The input tensor can not be boolean to avoid type error)
+{v_1: tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 44 (Dtype of the output is the same as the input dtype)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_1) = dtype_(v_1) else if dtype_(v_1) = 8 then dtype_(v_1) = dtype_(v_1) else false
+Rule 10 (log_mel_spectrograms should not be complex128 when num_mel_bins is zero to avoid ValueError)
+{v_1 : tensor} |= if shape(v_1, ndim(v_1) - 1) = 0 then dtype_(v_1) ≠ 11
 >>
-Rule 45 (Minimum value of the input tensor is a finite number)
-{v_1 : tensor} |= min(v_1) > -1000000000.0
+Rule 14 (If dtype is float16, raise a TypeError)
+{v_1: tensor} |= dtype_(v_1) ≠ 7
 >>
-Rule 49 (The maximum value of the input tensor must be a finite number)
-{v_1 : tensor} |= max(v_1) < 1000000000.0
+Rule 17 (log_mel_spectrograms's last dimension can not be zero if dtype is complex to avoid ValueError)
+{v_1 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then shape(v_1, ndim(v_1) - 1) > 0
 >>
-Rule 59 (If log_mel_spectrograms has float32 dtype, the output has float32 dtype)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_1) = dtype_(v_1)
+Rule 19 (Raise ValueError when num_mel_bins is not positive and tensor is complex)
+{v_1 : tensor} |= if shape(v_1, ndim(v_1) - 1) ≤ 0 then dtype_(v_1) ≠ 8 ∧ dtype_(v_1) ≠ 9
 >>
-Rule 60 (If log_mel_spectrograms has float64 dtype, the output has float64 dtype)
-{v_1 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_1) = dtype_(v_1)
+Rule 21 (Raise ValueError when num_mel_bins is not positive, avoid duplicated rules)
+{v_1 : tensor} |= if shape(v_1, ndim(v_1) - 1) ≤ 0 then (dtype_(v_1) ≠ 8 ∧ dtype_(v_1) ≠ 9) ∧ (dtype_(v_1) ≠ 7)
 >>
-Rule 64 (The values in log_mel_spectrograms should be finite)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, ndim(v_1) - 1) - 1] : min(v_1) < 100000.0 ∧ max(v_1) > -100000.0
+Rule 22 (The shape of log_mel_spectrograms can not contain zero if the type is not float32 or float64)
+{v_1 : tensor} |= if (dtype_(v_1) ≠ 8) ∧ (dtype_(v_1) ≠ 9) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 70 (All shape values of input must be greater than 0)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 24 (Avoid TypeError: cannot convert 0.0 to EagerTensor of type bool if last dimension shape equals to zero.)
+{v_1 : tensor} |= if shape(v_1, ndim(v_1) - 1) = 0 then false
 >>
-Rule 79 (Output dtype matches input dtype if the input is float32 or float64)
-{v_1 : tensor} |= (dtype_(v_1) = 7 ∧ dtype_(v_1) = dtype_(v_1)) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_1) = dtype_(v_1))
+Rule 25 (Avoid TypeError: cannot convert 0.0 to EagerTensor of type bool if last dimension shape equals to zero.)
+{v_1 : tensor} |= if shape(v_1, ndim(v_1) - 1) = 0 then dtype_(v_1) ≠ 0
 >>
-Rule 84 (The input tensor must not contain NaN values)
-{v_1 : tensor} |= min(v_1) = min(v_1) ∧ max(v_1) = max(v_1)
+Rule 26 (log_mel_spectrograms should not be complex if num_mel_bins equals to zero.)
+{v_1 : tensor} |= if shape(v_1, ndim(v_1) - 1) = 0 then dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
 >>
-Rule 90 (The shape of dimension `i` must not be zero)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 ∧ v_2 < ndim(v_1) then shape(v_1, v_2) > 0
+Rule 27 (To avoid TypeError: Cannot convert 0.0 to EagerTensor of dtype bool)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 28 (The last dimension should be greater than zero when not using float32 or float64)
+{v_1 : tensor} |= if dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 then true else shape(v_1, ndim(v_1) - 1) > 0
+>>
+Rule 31 (To avoid InvalidArgumentError, number of dimension of the input must be greater than 1)
+{v_1 : tensor} |= ndim(v_1) > 1
+>>
+Rule 33 (To avoid InvalidArgumentError, last dimension size should be equal or greater than 38 if ndim equals 3)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 2) ≥ 38
+>>
+Rule 36 (When input is complex type and last dimension is zero, it should not throw ValueError)
+{v_1: tensor} |= if shape(v_1, ndim(v_1) - 1) = 0 then dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 40 (To avoid the real/imag TypeError, input dtype should not be float16.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 7
+>>
+Rule 45 (To avoid InvalidArgumentError, if dimension is 3, last dimension size should be >=38. if dimension is not 3, the rule is always true.)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, ndim(v_1) - 1) ≥ 38
+>>
+Rule 48 (If last dimension size is zero then type should not be complex64 or complex128)
+{v_1: tensor} |= if shape(v_1, ndim(v_1) - 1) = 0 then (dtype_(v_1) ≠ 10) ∧ (dtype_(v_1) ≠ 11)
+>>
+Rule 50 (If input is complex, to prevent the ValueError, shape of last dimension should be greater than 0)
+{v_1: tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then shape(v_1, ndim(v_1) - 1) > 0
+>>
+Rule 51 (For a 3D tensor, the last dimension must be of size at least 38, but this constraint is only applied when the tensor is not complex)
+{v_1 : tensor} |= if (dtype_(v_1) = 10) ∨ (dtype_(v_1) = 11) then true else if ndim(v_1) = 3 then shape(v_1, 2) ≥ 38
+>>
+Rule 53 (To avoid the real/imag TypeError, input dtype must be either float32 or float64.)
+{v_1 : tensor} |= (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9)
+>>
+Rule 54 (If num_mel_bins is not positive a ValueError will be thrown)
+{v_1: tensor} |= shape(v_1, ndim(v_1)-1) > 0
+>>
+Rule 55 (To prevent the ValueError, if the shape of the last dimension is 0 then the type can not be complex)
+{v_1: tensor} |= if shape(v_1, ndim(v_1)-1) = 0 then (dtype_(v_1) ≠ 10) ∧ (dtype_(v_1) ≠ 11)
+>>
+Rule 59 (if the dtype is complex, then ensure that shape of the last dimension > 0, otherwise, a ValueError will occur.)
+{v_1 : tensor} |= if (dtype_(v_1) = 10) ∨ (dtype_(v_1) = 11) then shape(v_1, ndim(v_1)-1) > 0
+>>
+Rule 60 (If ndim is 3, we should check that last dim is greater or equal than 38, and input dtype should not be bool)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 2) ≥ 38 ∧ dtype_(v_1) ≠ 0 else dtype_(v_1) ≠ 0
+>>
+Rule 61 (Input tensor should not be bool, float16 or complex. In other words, input tensor dtype should be a union of (np.int8, np.int16, np.int32, np.int64, np.uint8, np.float32, np.float64))
+{v_1 : tensor} |= (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9)
+>>
+Rule 63 (If the input tensor is complex, the last dimension (num_mel_bins) should be positive to avoid ValueError)
+{v_1: tensor} |= if (dtype_(v_1) = 10) ∨ (dtype_(v_1) = 11) then shape(v_1, ndim(v_1) - 1) > 0
+>>
+Rule 66 (Last dimension should be positive if the tensor is complex, to prevent the ValueError)
+{v_1 : tensor} |= if (dtype_(v_1) = 10) ∨ (dtype_(v_1) = 11) then shape(v_1, ndim(v_1) - 1) > 0
+>>
+Rule 67 (If input tensor is 3D, its last dimension should be at least 38 if the tensor is not of complex type)
+{v_1 : tensor} |= if ndim(v_1) = 3 then if (dtype_(v_1) = 10) ∨ (dtype_(v_1) = 11) then true else shape(v_1, 2) ≥ 38
+>>
+Rule 69 (If the shape of the last dimension is zero then input tensor's data type must not be a complex number)
+{v_1 : tensor} |= if shape(v_1, ndim(v_1) - 1) = 0 then (dtype_(v_1) ≠ 10) ∧ (dtype_(v_1) ≠ 11)
+>>
+Rule 75 (Data type of the input should either be float32, float64 or complex, so that we don't get a TypeError)
+{v_1 : tensor} |= (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) ∨ (dtype_(v_1) = 11)
+>>
+Rule 76 (When the input's number of dimensions is 3, the number of mel bins should be at least 38)
+{v_1: tensor} |= if ndim(v_1) = 3 then shape(v_1, ndim(v_1) - 1) ≥ 38
+>>
+Rule 78 (The dtype should be a valid type, for float32/64: TypeError for complex, for others: ValueError if num_mel_bin <=0 )
+{v_1 : tensor} |= if (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) then true else if (dtype_(v_1) = 10) ∨ (dtype_(v_1) = 11) then shape(v_1, ndim(v_1) - 1) > 0 else (dtype_(v_1) ≠ 0) ∧ (dtype_(v_1) ≠ 7)
+>>
+Rule 85 (Prevent InvalidArgumentError and TypeError)
+{v_1 : tensor} |= if ndim(v_1) = 3 then if (dtype_(v_1) = 10) ∨ (dtype_(v_1) = 11) then true else shape(v_1, 2) ≥ 38 ∧ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) ∨ (dtype_(v_1) = 11)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the base is complex, then exponent must be real. (Rule 33)
+# At least one of the tensors should not have a dtype of string (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_dtype"] >= 10), (v["arg2_dtype"] < 9), False)) if n else
-          If((v["arg1_dtype"] >= 10), (v["arg2_dtype"] < 9), False))
+    s.add(Not(And(v["arg1_dtype"] != 11, v["arg2_dtype"] != 11)) if n else
+          And(v["arg1_dtype"] != 11, v["arg2_dtype"] != 11))
 )
 
 def rule_33_func(arg1, arg2, solver=None, neg=False):

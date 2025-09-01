@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If Values is a non-empty tensor, the indices tensor must have at least one row. (Rule 59)
+# Values must exist if number of indices is greater than 0 (Rule 59)
 
 rule_59 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_shape"], 0) > 0, Select(v["arg2_shape"], 0) > 0, False)) if n else
-          If(Select(v["arg1_shape"], 0) > 0, Select(v["arg2_shape"], 0) > 0, False))
+    s.add(Not(If(Select(v["arg1_shape"], 0) > 0, Select(v["arg2_shape"], 0) > 0, True)) if n else
+          If(Select(v["arg1_shape"], 0) > 0, Select(v["arg2_shape"], 0) > 0, True))
 )
 
 def rule_59_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# dilations[0] equals 1 (Rule 37)
+# strides[0] and strides[4] must be equal (Rule 37)
 
 rule_37 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_values"], 0) == 1) if n else
-          Select(v["arg1_values"], 0) == 1)
+    s.add(Not(Select(v["arg1_values"], 0) == Select(v["arg1_values"], 4)) if n else
+          Select(v["arg1_values"], 0) == Select(v["arg1_values"], 4))
 )
 
 def rule_37_func(arg1, solver=None, neg=False):

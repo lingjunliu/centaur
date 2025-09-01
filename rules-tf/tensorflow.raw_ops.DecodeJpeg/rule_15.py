@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Combining channels and ratio (Rule 15)
+# If try_recover_truncated is true, then acceptable_fraction should be less than or equal to 1 (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(And((Or(Or(v["arg1_value"] == 0, v["arg1_value"] == 1), v["arg1_value"] == 3)), (Or(Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 2), v["arg2_value"] == 4), v["arg2_value"] == 8)))) if n else
-          And((Or(Or(v["arg1_value"] == 0, v["arg1_value"] == 1), v["arg1_value"] == 3)), (Or(Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 2), v["arg2_value"] == 4), v["arg2_value"] == 8))))
+    s.add(Not(If(v["arg1_value"] == True, v["arg2_value"] <= 1, True)) if n else
+          If(v["arg1_value"] == True, v["arg2_value"] <= 1, True))
 )
 
 def rule_15_func(arg1, arg2, solver=None, neg=False):
@@ -18,19 +18,19 @@ def rule_15_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, bool):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_value = Int('arg2_value')
+        arg1_value = Bool('arg1_value')
+        arg2_value = Real('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 15
         rule_15(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})

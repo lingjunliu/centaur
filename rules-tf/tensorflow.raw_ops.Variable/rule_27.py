@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the shape argument is a list, it can not be an empty list. (Rule 27)
+# If the shape has more than one element, the product must fit in int64 (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_length"] > 0) if n else
-          v["arg1_length"] > 0)
+    s.add(Not(If(v["arg1_length"] > 1, Or([And(p < (v["arg1_length"] - 1 + 1), True) for p in range(6)]), True)) if n else
+          If(v["arg1_length"] > 1, Or([And(p < (v["arg1_length"] - 1 + 1), True) for p in range(6)]), True))
 )
 
 def rule_27_func(arg1, solver=None, neg=False):

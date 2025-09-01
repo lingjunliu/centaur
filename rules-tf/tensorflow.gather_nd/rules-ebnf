@@ -1,99 +1,93 @@
 >>
-Rule 1 (indices must be an integer tensor)
-{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5
->>
-Rule 2 (batch_dims must be a non-negative integer if it exists)
+Rule 1 (batch_dims must be non-negative)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 5 (bad_indices_policy must be a string)
-{v_1 : str} |= v_1 = "DEFAULT" ∨ v_1 = "IGNORE" ∨ v_1 = "ERROR"
+Rule 2 (batch_dims must be less than the rank of params)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
 >>
-Rule 11 (if batch_dims > 0, params and indices must have same batch_dims leading dimensions)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 > 0 then ∀i ∈ [0, v_3 - 1] : shape(v_1, i) = shape(v_2, i)
->>
-Rule 16 (index_depth <= params.shape.rank, index_depth is shape of indices at the last dimension)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, ndim(v_2) - 1) ≤ ndim(v_1)
->>
-Rule 19 (if batch_dims is 0, index tensor's last dimension should not exceed the rank of input tensor)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = 0 then shape(v_2, ndim(v_2) - 1) ≤ ndim(v_1)
->>
-Rule 20 (params and indices should not be the same tensor)
-{v_1 : tensor, v_2 : tensor} |= v_1 ≠ v_2
->>
-Rule 21 (if params is a scalar, indices must be empty)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
->>
-Rule 22 (if bad_indices_policy is ERROR, indices must be within bounds)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "ERROR" then ∀i ∈ [0, ndim(v_2)-1]: min(v_2) >= 0 ∧ max(v_2) < shape(v_1, i)
->>
-Rule 23 (if params is empty indices should be too)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) = 0 then shape(v_2, 0) = 0
->>
-Rule 24 (batch_dims should be less than or equal to the number of dimensions of params and indices)
-{v_1 : int, v_2 : tensor, v_3 : tensor} |= v_1 ≤ ndim(v_2) ∧ v_1 ≤ ndim(v_3)
->>
-Rule 25 (if bad_indices_policy is not IGNORE, indices should not contain out-of-bounds values)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 ≠ "IGNORE" then ∀i ∈ [0, ndim(v_2) - 1] : min(v_2) ≥ 0 ∧ max(v_2) < shape(v_1, i)
->>
-Rule 27 (if the index depth equals params rank, then result shape is indices[:-1])
-{v_1 : tensor, v_2 : tensor} |= if shape(v_2, ndim(v_2) - 1) = ndim(v_1) then true
->>
-Rule 28 (indices dtype must be int32 or int64)
+Rule 3 (indices must be int32 or int64)
 {v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
 >>
-Rule 29 (batch_dims must be less than or equal to rank of params)
-{v_1 : int, v_2 : tensor} |= v_1 ≤ ndim(v_2)
+Rule 4 (bad_indices_policy must be from the predefined list)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod"
 >>
-Rule 30 (if bad_indices_policy is not IGNORE, indices should not contain out-of-bounds values)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 ≠ "IGNORE" then ∀i ∈ [0, shape(v_2, ndim(v_2) -1) - 1] : min(v_2) ≥ 0 ∧ max(v_2) < shape(v_1, i)
+Rule 5 (params and indices must have the same batch_dims leading dimensions)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= ∀i ∈ [0, v_3 - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 36 (if params has leading batch dimensions and indices has batch dimensions the shapes should be the same)
-{v_1: tensor, v_2: tensor, v_3: int} |= if v_3 > 0 then ∀i ∈ [0, v_3 -1] : shape(v_1, i) = shape(v_2, i)
+Rule 6 (indices shape[-1] must be less than or equal to params rank)
+{v_1 : tensor, v_2 : tensor} |= shape(v_2, ndim(v_2) - 1) ≤ ndim(v_1)
 >>
-Rule 37 (if index_depth equals params rank, then the last axis of indices is removed from the output shape)
-{v_1: tensor, v_2: tensor} |= if shape(v_2, ndim(v_2) - 1) = ndim(v_1) then true
+Rule 11 (bad_indices_policy must be from the predefined list)
+{v_1 : str} |= v_1 = "DEFAULT" ∨ v_1 = "IGNORE" ∨ v_1 = "ERROR" ∨ v_1 = ""
 >>
-Rule 38 (Indices must be int32 or int64 tensors)
-{v_1: tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 12 (params and indices must have the same batch_dims leading dimensions)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 > 0 then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 39 (Batch dims must be less than or equal to number of params and indices dims)
-{v_1: int, v_2: tensor, v_3: tensor} |= v_1 <= ndim(v_2) ∧ v_1 <= ndim(v_3)
+Rule 14 (rank of params must be greater than 0)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 40 (if bad_indices_policy is ERROR then indices values should be valid )
-{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "ERROR" then ∀i ∈ [0, shape(v_2, ndim(v_2) - 1) - 1] : 0 <= min(v_2) ∧ max(v_2) < shape(v_1, i)
+Rule 16 (If batch_dims is greater than zero, then params and indices must have same shape up to batch_dims)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 > 0 then ∀i ∈ [0, v_3 - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 41 (if batch_dims is greater than zero indices shape should be greater than 0 )
-{v_1: tensor, v_2: int} |= if v_2 > 0 then shape(v_1, 0) > 0
+Rule 17 (indices's last dimension indicates the depth of the gathered slices and must be positive)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0
 >>
-Rule 43 (indices must have rank >= 1)
-{v_1: tensor} |= ndim(v_1) >= 1
+Rule 19 (batch_dims must be less than or equal to the rank of both params and indices)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= v_3 ≤ ndim(v_1) ∧ v_3 ≤ ndim(v_2)
 >>
-Rule 44 (params and output tensor should have the same data type)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 23 (params and indices should be tensors)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0
 >>
-Rule 49 (index_depth should not exceed the rank of params even with batch dims)
-{v_1: tensor, v_2: tensor, v_3: int} |= shape(v_2, ndim(v_2) - 1) <= ndim(v_1) - v_3
+Rule 24 (batch_dims must be less than or equal to the rank of both params and indices and non-negative)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= v_3 ≤ ndim(v_1) ∧ v_3 ≤ ndim(v_2) ∧ v_3 ≥ 0
 >>
-Rule 52 (batch_dims must be less than or equal to the number of dimensions in indices)
-{v_1: int, v_2: tensor} |= v_1 <= ndim(v_2)
+Rule 25 (indices's last dimension must be less or equal to the params's rank minus batch_dims)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_2, ndim(v_2) - 1) ≤ ndim(v_1) - v_3
 >>
-Rule 53 (The rank of params must be greater than or equal to index_depth )
-{v_1: tensor, v_2: tensor} |= ndim(v_1) >= shape(v_2, ndim(v_2) - 1)
+Rule 31 (If batch_dims is equal to rank of params, indices's last dim must equal 0)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = ndim(v_1) then shape(v_2, ndim(v_2) -1 ) = 0
 >>
-Rule 54 (if params is a scalar tensor then indices must be a scalar tensor)
-{v_1 : tensor, v_2: tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+Rule 33 (batch_dims must be non-negative and less than or equal to the rank of both params and indices.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= v_3 ≥ 0 ∧ v_3 ≤ ndim(v_1) ∧ v_3 ≤ ndim(v_2)
 >>
-Rule 55 (indices should not have a dimension of size zero)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) ≠ 0
+Rule 34 (If batch_dims is equal to the rank of params, then the last dimension of indices must be zero.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = ndim(v_1) then shape(v_2, ndim(v_2) - 1) = 0
 >>
-Rule 56 (index depth must be less than or equal to the rank of params when batch_dims is not specified)
-{v_1: tensor, v_2: tensor, v_3: int} |= if v_3 = 0 then shape(v_2, ndim(v_2) - 1) <= ndim(v_1)
+Rule 35 (If bad_indices_policy is ERROR, accelerator is not supported)
+{v_1 : str} |= if v_1 = "ERROR" then false
 >>
-Rule 61 (if index_depth is greater than 0, then the last dimension in indices should not be greater than number of params dimensions plus batch_dims)
-{v_1: tensor, v_2: tensor, v_3: int} |= if shape(v_2, ndim(v_2) - 1) > 0 then shape(v_2, ndim(v_2) - 1) <= ndim(v_1) + v_3
+Rule 37 (batch_dims must be non-negative and less than the rank of params)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 ∧ v_2 < ndim(v_1)
 >>
-Rule 63 (if batch_dims is specified and is greater than the number of dimensions in params the api call is illegal)
-{v_1: tensor, v_2: int} |= v_2 <= ndim(v_1)
+Rule 39 (If bad_indices_policy is ERROR, accelerator is not supported)
+{v_1 : str} |= v_1 ≠ "ERROR"
 >>
-Rule 66 (if index_depth is greater than 0, then the last dimension in indices should not be greater than number of params dimensions plus batch_dims)
-{v_1: tensor, v_2: tensor, v_3: int} |= if shape(v_2, ndim(v_2) - 1) > 0 then shape(v_2, ndim(v_2) - 1) ≤ ndim(v_1) + v_3
+Rule 44 (batch_dims must be less than the rank of params and indices must have matching shape until the batch_dims)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= v_3 < ndim(v_1) ∧ (v_3 ≤ 0 ∨ ∀i ∈ [0, v_3 - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 47 (The last dimension of indices should match the rank of params if we want to gather scalar values)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if shape(v_2, ndim(v_2) - 1) = ndim(v_1) then true else false
+>>
+Rule 48 (If batch_dims is equal to the rank of params and indices, the last dimension of indices must equal 0)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = ndim(v_1) ∧ v_3 = ndim(v_2) then shape(v_2, ndim(v_2) - 1) = 0
+>>
+Rule 54 (bad_indices_policy should be one of the defined strings)
+{v_1 : str} |= v_1 = "" ∨ v_1 = "DEFAULT" ∨ v_1 = "IGNORE" ∨ v_1 = "ERROR"
+>>
+Rule 55 (If bad_indices_policy is not an empty string, then it should be one of DEFAULT, IGNORE, or ERROR)
+{v_1 : str} |= if v_1 ≠ "" then v_1 = "DEFAULT" ∨ v_1 = "IGNORE" ∨ v_1 = "ERROR"
+>>
+Rule 56 (indices' last dimension plus batch_dims should be less than or equal to params' rank)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_2, ndim(v_2) - 1) + v_3 ≤ ndim(v_1)
+>>
+Rule 57 (batch_dims plus the last dimension of indices cannot exceed the rank of params)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= v_3 + shape(v_2, ndim(v_2) - 1) ≤ ndim(v_1)
+>>
+Rule 59 (params and indices must have at least batch_dims number of dimensions)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= ndim(v_1) ≥ v_3 ∧ ndim(v_2) ≥ v_3
+>>
+Rule 64 (batch_dims must not be greater than the rank of params)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ ndim(v_1)
+>>
+Rule 70 (The last dimension of indices should not be greater than the params's rank)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) > 0 ∧ shape(v_2, ndim(v_2) - 1) ≤ ndim(v_1)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Shape of the tensor must be greater than 1 in both dimensions (Rule 11)
+# input tensor's last two dimensions cannot be zero (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) > 1), Select(v["arg1_shape"], 1) > 1)) if n else
-          And(And(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) > 1), Select(v["arg1_shape"], 1) > 1))
+    s.add(Not(If(v["arg1_ndim"] >= 2, And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0), True)) if n else
+          If(v["arg1_ndim"] >= 2, And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0), True))
 )
 
 def rule_11_func(arg1, solver=None, neg=False):

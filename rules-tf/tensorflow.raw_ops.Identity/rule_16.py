@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If ndim is 2, then shape[0] must be greater than shape[1] (Rule 16)
+# if the input tensor has dimension 1, the shape is not zero. (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) > Select(v["arg1_shape"], 1), False)) if n else
-          If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) > Select(v["arg1_shape"], 1), False))
+    s.add(Not(If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) > 0, True)) if n else
+          If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) > 0, True))
 )
 
 def rule_16_func(arg1, solver=None, neg=False):

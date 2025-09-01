@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# predictions tensor must be at least rank 2 (Rule 4)
+# predictions must be a 2D tensor (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] >= 2) if n else
-          v["arg1_ndim"] >= 2)
+    s.add(Not(v["arg1_ndim"] == 2) if n else
+          v["arg1_ndim"] == 2)
 )
 
 def rule_4_func(arg1, solver=None, neg=False):

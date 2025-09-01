@@ -5,40 +5,33 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check if all elements in list(float (Rule 66)
+# Tensor size should not be greater than a max value (Rule 66)
 
 rule_66 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) <= v["arg2_value"]) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) <= v["arg2_value"]) for i in range(6)]))
+    s.add(Not(Select(v["arg1_shape"], 0) < 10000) if n else
+          Select(v["arg1_shape"], 0) < 10000)
 )
 
-def rule_66_func(arg1, arg2, solver=None, neg=False):
+def rule_66_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all(isinstance(e, (float, np.floating)) for e in arg1)):
-            return False
-        if not isinstance(arg2, (float, np.floating)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg1_values = Array('arg1_values', IntSort(), RealSort())
-        arg2_value = Real('arg2_value')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
-        solver.add(arg2_value == arg2)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 66
-        rule_66(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length, 'arg2_value': arg2_value})
+        rule_66(solver, {'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_66(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length'], 'arg2_value': arg2['value']}, neg)
+        rule_66(solver, {'arg1_shape': arg1['shape']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Tuple of strings represents keys and all keys are unique (Rule 24)
+# structure is a tensor, it must have a valid dtype (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), And([Implies(j < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) != Select(v["arg1_values"], j)) for j in range(6)])) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_length"] - 1 + 1), And([Implies(j < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) != Select(v["arg1_values"], j)) for j in range(6)])) for i in range(6)]))
+    s.add(Not(And(v["arg1_dtype"] >= 0, v["arg1_dtype"] <= 12)) if n else
+          And(v["arg1_dtype"] >= 0, v["arg1_dtype"] <= 12))
 )
 
 def rule_24_func(arg1, solver=None, neg=False):
@@ -17,23 +17,20 @@ def rule_24_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, tuple) and all(isinstance(e, str) for e in arg1)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg1_values = Array('arg1_values', IntSort(), StringSort())
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 24
-        rule_24(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length})
+        rule_24(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_24(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length']}, neg)
+        rule_24(solver, {'arg1_dtype': arg1['dtype']}, neg)

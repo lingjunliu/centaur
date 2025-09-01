@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The input cannot be a half type (Rule 51)
+# Input tensor must have a valid dtype which is either float32 or float64. (Rule 51)
 
 rule_51 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 6) if n else
-          v["arg1_dtype"] != 6)
+    s.add(Not(Or((v["arg1_dtype"] == 8), (v["arg1_dtype"] == 4))) if n else
+          Or((v["arg1_dtype"] == 8), (v["arg1_dtype"] == 4)))
 )
 
 def rule_51_func(arg1, solver=None, neg=False):

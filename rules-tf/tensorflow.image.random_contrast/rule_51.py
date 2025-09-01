@@ -5,47 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Image dimensions are valid and lower and upper bounds are valid and Seed is valid (Rule 51)
+# seed must be a valid integer value, positive (Rule 51)
 
 rule_51 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(v["arg1_ndim"] >= 3, v["arg3_value"] > v["arg2_value"]), v["arg2_value"] >= 0), v["arg4_value"] >= 0), v["arg4_value"] < 2147483647)) if n else
-          And(And(And(And(v["arg1_ndim"] >= 3, v["arg3_value"] > v["arg2_value"]), v["arg2_value"] >= 0), v["arg4_value"] >= 0), v["arg4_value"] < 2147483647))
+    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] < 2147483647)) if n else
+          And(v["arg1_value"] >= 0, v["arg1_value"] < 2147483647))
 )
 
-def rule_51_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
+def rule_51_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
-    arg4 = next(iter(arg4.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
-            return False
-        if not isinstance(arg2, (float, np.floating)):
-            return False
-        if not isinstance(arg3, (float, np.floating)):
-            return False
-        if not (isinstance(arg4, (int, np.integer)) and not isinstance(arg4, bool)):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_value = Real('arg2_value')
-        arg3_value = Real('arg3_value')
-        arg4_value = Int('arg4_value')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_value == arg2)
-        solver.add(arg3_value == arg3)
-        solver.add(arg4_value == int(arg4))
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 51
-        rule_51(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value, 'arg3_value': arg3_value, 'arg4_value': arg4_value})
+        rule_51(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_51(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value'], 'arg4_value': arg4['value']}, neg)
+        rule_51(solver, {'arg1_value': arg1['value']}, neg)

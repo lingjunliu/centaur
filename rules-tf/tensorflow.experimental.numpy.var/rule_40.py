@@ -5,37 +5,47 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input dtype is bool, the output dtype must be float or complex (Rule 40)
+# If axis is given, and keepdims is false, then out ndim should be one less than input ndim (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 0, Or(Or(Or(v["arg2_value"] == 7, v["arg2_value"] == 8), v["arg2_value"] == 9), v["arg2_value"] == 10), False)) if n else
-          If(v["arg1_dtype"] == 0, Or(Or(Or(v["arg2_value"] == 7, v["arg2_value"] == 8), v["arg2_value"] == 9), v["arg2_value"] == 10), False))
+    s.add(Not(If(And(And(v["arg3_value"] >= -1 * v["arg1_ndim"], v["arg3_value"] < v["arg1_ndim"]), v["arg4_value"] == False), v["arg2_ndim"] == v["arg1_ndim"] - 1, True)) if n else
+          If(And(And(v["arg3_value"] >= -1 * v["arg1_ndim"], v["arg3_value"] < v["arg1_ndim"]), v["arg4_value"] == False), v["arg2_ndim"] == v["arg1_ndim"] - 1, True))
 )
 
-def rule_40_func(arg1, arg2, solver=None, neg=False):
+def rule_40_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
+    arg4 = next(iter(arg4.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
+        if not isinstance(arg2, np.ndarray):
+            return False
+        if not (isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool)):
+            return False
+        if not isinstance(arg4, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_value = Int('arg2_value')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_ndim = Int('arg2_ndim')
+        arg3_value = Int('arg3_value')
+        arg4_value = Bool('arg4_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg3_value == int(arg3))
+        solver.add(arg4_value == arg4)
 
         # Constraints for rule 40
-        rule_40(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
+        rule_40(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg3_value': arg3_value, 'arg4_value': arg4_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_40(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)
+        rule_40(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg3_value': arg3['value'], 'arg4_value': arg4['value']}, neg)

@@ -5,33 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The minimum value of the tensor should be greater than the maximum value divided by 2 (Rule 35)
+# If input tensor is complex, no name provided (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) > Select(v["arg1_range"], 1) / 2) if n else
-          Select(v["arg1_range"], 0) > Select(v["arg1_range"], 1) / 2)
+    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg2_value"] == 6, True)) if n else
+          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg2_value"] == 6, True))
 )
 
-def rule_35_func(arg1, solver=None, neg=False):
+def rule_35_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
+        if not isinstance(arg2, str):
+            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
+        arg2_value = String('arg2_value')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_value == list_of_string_values_tf.index(arg2))
 
         # Constraints for rule 35
-        rule_35(solver, {'arg1_range': arg1_range})
+        rule_35(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_35(solver, {'arg1_range': arg1['range']}, neg)
+        rule_35(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

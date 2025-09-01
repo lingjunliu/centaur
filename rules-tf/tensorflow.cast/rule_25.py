@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If x is a float, then dtype is int or float (Rule 25)
+# If casting to a complex type, the input tensor must also be a numeric type (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), Or(Or(Or(Or(Or(Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 2), v["arg2_value"] == 3), v["arg2_value"] == 4), v["arg2_value"] == 5), v["arg2_value"] == 6), v["arg2_value"] == 7), v["arg2_value"] == 8), False)) if n else
-          If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), Or(Or(Or(Or(Or(Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 2), v["arg2_value"] == 3), v["arg2_value"] == 4), v["arg2_value"] == 5), v["arg2_value"] == 6), v["arg2_value"] == 7), v["arg2_value"] == 8), False))
+    s.add(Not(If(Or(v["arg2_value"] == 9, v["arg2_value"] == 10), (And(v["arg1_dtype"] >= 0, v["arg1_dtype"] <= 8)), True)) if n else
+          If(Or(v["arg2_value"] == 9, v["arg2_value"] == 10), (And(v["arg1_dtype"] >= 0, v["arg1_dtype"] <= 8)), True))
 )
 
 def rule_25_func(arg1, arg2, solver=None, neg=False):

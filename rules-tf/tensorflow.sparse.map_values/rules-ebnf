@@ -1,108 +1,36 @@
 >>
-Rule 3 (If multiple SparseTensors are provided, their dense shapes must be equal)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
->>
-Rule 4 (op function should not be none)
-{v_1 : str} |= v_1 ≠ "none"
->>
-Rule 5 (If args contain multiple SparseTensors, then the dtypes must be same)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
->>
-Rule 9 (If the op is division, the denominator tensor should not contain zero values)
-{v_1 : tensor} |= min(v_1) > 0
->>
-Rule 10 (If a string op is provided, it should be one of the allowed values)
-{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "constant" ∨ v_1 = "linear" ∨ v_1 = "softplus"
->>
-Rule 11 (If the op is a reduction, the reduction dimensions should be within the tensor's dimension range)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1)
->>
-Rule 12 (Sparse Tensors must have at least one dimension)
+Rule 1 (args should contain at least one SparseTensor)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 14 (If the shapes are equal, then the indices of the tensors should be the same)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) then true
+Rule 2 (If there are multiple SparseTensors, their indices should be equal)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 19 (If op is element-wise division, ensure denominator is not zero)
-{v_1 : tensor} |= min(v_1) > 0 ∨ max(v_1) < 0
+Rule 3 (If there are multiple SparseTensors, their dense_shapes should be equal)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [1, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 21 (If the op function is minimum, then the first argument must be smaller than second one)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) ≤ max(v_2)
+Rule 6 (op should preserve the shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 24 (If op is addition/subtraction and one of the tensors has boolean dtype, convert it to int/float before operation)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 0 ∨ dtype_(v_2) = 0) then true
+Rule 7 (If multiple tensors are passed, their dtypes should be comparable)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) > 0 ∧ dtype_(v_2) > 0
 >>
-Rule 25 (The output tensor's shape should be the same as the input SparseTensor when applying 'op')
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 9 (If multiple tensors are passed, their dtypes should be comparable)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) < 13 ∧ dtype_(v_2) < 13
 >>
-Rule 27 (If the input tensor has a dimension size of zero, the output tensor should also have a dimension size of zero)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
+Rule 13 (There must be at least one tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 31 (If the dtypes are the same, then op should maintain same datatype.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = dtype_(v_2) then true
+Rule 15 (There must be at least one tensor in args)
+{v_1 : tensor} |= true ∧ ndim(v_1) ≥ 0
 >>
-Rule 36 (Sparse tensors should not contain NaN values)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "NaN"
+Rule 25 (There must be at least one SparseTensor in arguments)
+{v_1 : tensor} |= ndim(v_1) > -1
 >>
-Rule 39 (If op performs matrix multiplication and inputs have incompatible shapes, throw error)
-{v_1: tensor, v_2: tensor} |= if (ndim(v_1) > 1 ∧ ndim(v_2) > 1 ∧ shape(v_1, ndim(v_1) - 1) ≠ shape(v_2, ndim(v_2) - 2)) then false
+Rule 27 (At least one argument should be a SparseTensor)
+{v_1 : tensor} |= ∃ i ∈ [0,0] : shape(v_1,0) > -1
 >>
-Rule 40 (If the op is a softmax, the input tensor should be at least 1D)
-{v_1 : tensor, v_2 : str} |= if v_2 = "softmax" then ndim(v_1) ≥ 1
+Rule 46 (Check that there is at least one tensor)
+{ v1: tensor} |= shape(v1, 0) ≥ 0
 >>
-Rule 41 (If the op is relu then input must be a float or int)
-{v_1:tensor, v_2:str} |= if v_2="relu" then dtype_(v_1) ≠ 0
->>
-Rule 44 (If the op is element-wise power, the base cannot be negative if the exponent is non-integer)
-{v_1: tensor, v_2: float} |= if v_2 % 1 ≠ 0.0 then min(v_1) ≥ 0
->>
-Rule 48 (If the op is multiplication/division, the tensor should not be boolean.)
-{v_1:tensor} |= dtype_(v_1) ≠ 0
->>
-Rule 49 (If op is division, divisor tensor cannot have explicit zero values. )
-{v_1: tensor} |= min(v_1) > 0 ∨ max(v_1) < 0
->>
-Rule 50 (If op increases the magnitude of the tensor values, check for overflow)
-{v_1: tensor, v_2:tensor} |= min(v_1) ≤ max(v_2)
->>
-Rule 52 (If the dtype is bool, then op should result in boolean tensor.)
-{v_1:tensor} |= if dtype_(v_1) = 0 then true
->>
-Rule 53 (If the rank is greater than 2, then we can apply "...ij->...ji" or any other function)
-{v_1: tensor, v_2: str} |= if ndim(v_1) > 2 then v_2 = "...ij->...ji"
->>
-Rule 54 (If performing tf.clip_by_value, ensure clip_value_min <= clip_value_max)
-{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
->>
-Rule 55 (If the op is linear, input tensor should have shape compatible with a matrix.)
-{v_1 : tensor, v_2:str} |= if v_2="linear" then ndim(v_1) = 2
->>
-Rule 56 (If the dimension of the tensor is 2, then the rank of the values tensor is 1)
-{v_1 : tensor} |= if ndim(v_1) = 2 then true
->>
-Rule 57 (If the dense_shape is provided, it should have a valid length)
-{v_1:tuple(int)} |= v_1.len > 0
->>
-Rule 59 (If the values tensor is bool, the result of op on the values must be bool.)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 0 then v_2 = 0
->>
-Rule 60 (If the op is a reduction along specific dimensions, the specified dimensions must be less than the rank of the tensor)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < ndim(v_1)
->>
-Rule 65 (If the rank of values tensor is greater than the one, then it is a multidimensional tensor.)
-{v_1: tensor} |= ndim(v_1) > 1
->>
-Rule 66 (If the op is a trigonometric function, then the dtype should be float or complex.)
-{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11)
->>
-Rule 71 (If the op is used to calculate exponential value of each elements of tensor, then tensor datatype must be float.)
-{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
->>
-Rule 72 (If the op requires normalized inputs, ensure the input tensor's values fall within the expected range, e.g., [0, 1] or [-1, 1])
-{v_1 : tensor} |= (min(v_1) ≥ 0 ∧ max(v_1) ≤ 1) ∨ (min(v_1) ≥ -1 ∧ max(v_1) ≤ 1)
->>
-Rule 74 (If op is a square root, elements should be non-negative)
-{v_1: tensor} |= min(v_1) ≥ 0
->>
-Rule 75 (If the op will be tanh or sigmoid ensure tensor is float.)
-{v_1 : tensor, v_2 : str} |= if v_2 = "tanh" ∨ v_2 = "sigmoid" then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+Rule 48 (There must be at least one tensor as input)
+{v_1:tensor} |= ndim(v_1) ≥ 0

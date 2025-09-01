@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The shape of input tensor along the last dimension should be less than or equal 1024. (Rule 38)
+# The number of elements in the tensor should be less than the maximum value of int32 (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 1) <= 1024) if n else
-          Select(v["arg1_shape"], v["arg1_ndim"] - 1) <= 1024)
+    s.add(Not(If(v["arg1_ndim"] == 0, Select(v["arg1_shape"], 0) < 2147483647, If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) < 2147483647, If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) < 2147483647, If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) < 2147483647, True))))) if n else
+          If(v["arg1_ndim"] == 0, Select(v["arg1_shape"], 0) < 2147483647, If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) < 2147483647, If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) < 2147483647, If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) < 2147483647, True)))))
 )
 
 def rule_38_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_38_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 38
-        rule_38(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_38(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_38(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_38(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

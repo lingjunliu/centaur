@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# When padding is used, the tensor's dimensions must be strictly positive (Rule 48)
+# if the pad is true, shape of the output tensor must be such that last element is multiple of 4 (Rule 48)
 
 rule_48 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), False)) if n else
-          If(v["arg2_value"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), False))
+    s.add(Not(If(v["arg2_value"] == True, (And(v["arg1_ndim"] > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 1) % 4 == 0)), True)) if n else
+          If(v["arg2_value"] == True, (And(v["arg1_ndim"] > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 1) % 4 == 0)), True))
 )
 
 def rule_48_func(arg1, arg2, solver=None, neg=False):

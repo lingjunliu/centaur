@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Tensor should not be boolean (Rule 30)
+# Input tensor dtype must be defined before checking is_floating (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 0) if n else
-          v["arg1_dtype"] != 0)
+    s.add(Not(v["arg1_dtype"] != None) if n else
+          v["arg1_dtype"] != None)
 )
 
 def rule_30_func(arg1, solver=None, neg=False):

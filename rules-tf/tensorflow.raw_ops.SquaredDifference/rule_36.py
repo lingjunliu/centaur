@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Complex tensors require the same complex type (Rule 36)
+# x and y's dtypes must be both integer, both float or both complex (Rule 36)
 
 rule_36 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, False))) if n else
-          If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, False)))
+    s.add(Not(Or(Or((And(v["arg1_dtype"] < 5, v["arg2_dtype"] < 5)), (And(And(And(5 < v["arg1_dtype"], v["arg1_dtype"] < 9), 5 < v["arg2_dtype"]), v["arg2_dtype"] < 9))), (And(v["arg1_dtype"] > 8, v["arg2_dtype"] > 8)))) if n else
+          Or(Or((And(v["arg1_dtype"] < 5, v["arg2_dtype"] < 5)), (And(And(And(5 < v["arg1_dtype"], v["arg1_dtype"] < 9), 5 < v["arg2_dtype"]), v["arg2_dtype"] < 9))), (And(v["arg1_dtype"] > 8, v["arg2_dtype"] > 8))))
 )
 
 def rule_36_func(arg1, arg2, solver=None, neg=False):

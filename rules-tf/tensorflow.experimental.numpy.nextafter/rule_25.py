@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# inputs should not be string. (Rule 25)
+# if v2 is int8, then v1 must also be int8. (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] != 11, v["arg2_dtype"] != 11)) if n else
-          And(v["arg1_dtype"] != 11, v["arg2_dtype"] != 11))
+    s.add(Not(If(v["arg2_dtype"] == 1, v["arg1_dtype"] == 1, True)) if n else
+          If(v["arg2_dtype"] == 1, v["arg1_dtype"] == 1, True))
 )
 
 def rule_25_func(arg1, arg2, solver=None, neg=False):

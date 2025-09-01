@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# the total number of elements in the tensor should not exceed 2^30 (Rule 37)
+# The values of the x tensor cannot all be NaN (Rule 37)
 
 rule_37 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_range"], 0) < 1073741824, Select(v["arg1_range"], 1) > -1073741824)) if n else
-          And(Select(v["arg1_range"], 0) < 1073741824, Select(v["arg1_range"], 1) > -1073741824))
+    s.add(Not(Select(v["arg1_range"], 0) != Select(v["arg1_range"], 1)) if n else
+          Select(v["arg1_range"], 0) != Select(v["arg1_range"], 1))
 )
 
 def rule_37_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The type of the tensor a must be either float32 or float64, represented as index 7 or 8 in type. (Rule 7)
+# The number of axes for a and b must be equal when axes is a list or Tensor. (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)) if n else
-          Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8))
+    s.add(Not(v["arg1_length"] > 0) if n else
+          v["arg1_length"] > 0)
 )
 
 def rule_7_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_7_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_length = Int('arg1_length')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_length == len(arg1))
 
         # Constraints for rule 7
-        rule_7(solver, {'arg1_dtype': arg1_dtype})
+        rule_7(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_7(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_7(solver, {'arg1_length': arg1['length']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If tensor t has dimensions greater than zero, then all elements must have a positive value for half l2 loss to be valid (Rule 38)
+# If the input tensor `t` is a scalar, it shouldn't be exceptionally small to prevent underflow issues. (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 0, Select(v["arg1_range"], 1) > 0, False)) if n else
-          If(v["arg1_ndim"] > 0, Select(v["arg1_range"], 1) > 0, False))
+    s.add(Not(If(v["arg1_ndim"] == 0, Select(v["arg1_range"], 0) > 1e-30, True)) if n else
+          If(v["arg1_ndim"] == 0, Select(v["arg1_range"], 0) > 1e-30, True))
 )
 
 def rule_38_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The component_index should be less than a maximum allowed value (Rule 8)
+# Component index should be smaller than a maximum allowed value, e.g., 10 (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 1024) if n else
-          v["arg1_value"] < 1024)
+    s.add(Not(v["arg1_value"] < 10) if n else
+          v["arg1_value"] < 10)
 )
 
 def rule_8_func(arg1, solver=None, neg=False):

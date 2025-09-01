@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Tout must be complex64 or complex128 (Rule 5)
+# Tout must be either complex64 or complex128 (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
     s.add(Not(Or(v["arg1_value"] == 10, v["arg1_value"] == 11)) if n else

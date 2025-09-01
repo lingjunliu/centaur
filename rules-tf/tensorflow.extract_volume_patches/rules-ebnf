@@ -1,141 +1,162 @@
 >>
-Rule 1 (input tensor must be 5-dimensional)
-{v_1 : tensor} |= ndim(v_1) = 5
+Rule 1 (ksizes list must have length greater than or equal to 5)
+{ksizes : list(int)} |= ksizes.len ≥ 5
 >>
-Rule 2 (input tensor dtype must be one of the allowed types)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 4
+Rule 2 (strides list must have length greater than or equal to 5)
+{strides : list(int)} |= strides.len ≥ 5
 >>
-Rule 3 (ksizes must be a list of integers with length >= 5)
-{v_2 : list(int)} |= v_2.len ≥ 5
+Rule 3 (strides list must have first and last elements equal to 1)
+{strides : list(int)} |= strides.len ≥ 2 ∧ strides[0] = 1 ∧ strides[strides.len - 1] = 1
 >>
-Rule 4 (strides must be a list of integers with length >= 5)
-{v_3 : list(int)} |= v_3.len ≥ 5
+Rule 4 (ksizes list must have first and last elements equal to 1)
+{ksizes : list(int)} |= ksizes.len ≥ 2 ∧ ksizes[0] = 1 ∧ ksizes[ksizes.len - 1] = 1
 >>
-Rule 5 (strides[0] and strides[4] must be 1)
-{v_3 : list(int)} |= v_3[0] = 1 ∧ v_3[4] = 1
+Rule 5 (padding must be either "SAME" or "VALID")
+{padding : str} |= padding = "SAME" ∨ padding = "VALID"
 >>
-Rule 6 (ksizes[0] and ksizes[4] must be 1)
-{v_2 : list(int)} |= v_2[0] = 1 ∧ v_2[4] = 1
+Rule 6 (input tensor must be of rank 5)
+{input : tensor} |= ndim(input) = 5
 >>
-Rule 7 (padding must be either "SAME" or "VALID")
-{v_4 : str} |= v_4 = "SAME" ∨ v_4 = "VALID"
+Rule 7 (input tensor must be of allowed data types)
+{input : tensor} |= dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 3 ∨ dtype_(input) = 5 ∨ dtype_(input) = 2 ∨ dtype_(input) = 1 ∨ dtype_(input) = 4 ∨ dtype_(input) = 20 ∨ dtype_(input) = 19 ∨ dtype_(input) = 18 ∨ dtype_(input) = 21 ∨ dtype_(input) = 22
 >>
-Rule 8 (all elements in ksizes must be greater than 0)
-{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+Rule 8 (ksizes elements must be greater than 0)
+{ksizes : list(int)} |= ∀i ∈ [0, ksizes.len - 1] : ksizes[i] > 0
 >>
-Rule 9 (all elements in strides must be greater than 0)
-{v_3 : list(int)} |= ∀i ∈ [0, v_3.len - 1] : v_3[i] > 0
+Rule 9 (strides elements must be greater than 0)
+{strides : list(int)} |= ∀i ∈ [0, strides.len - 1] : strides[i] > 0
 >>
-Rule 10 (ksizes and strides are lists of the same length)
-{v_2 : list(int), v_3 : list(int)} |= v_2.len = v_3.len
+Rule 10 (shape of input tensor should be greater than or equal to ksizes)
+{input : tensor, ksizes : list(int)} |= ndim(input) = ksizes.len ∧ ∀i ∈ [0, ndim(input) - 1] : shape(input, i) ≥ ksizes[i]
 >>
-Rule 11 (ksizes[1] through ksizes[3] are greater than 0)
-{v_2 : list(int)} |= v_2[1] > 0 ∧ v_2[2] > 0 ∧ v_2[3] > 0
+Rule 11 (shape of input tensor should be greater than or equal to strides)
+{input : tensor, strides : list(int)} |= ndim(input) = strides.len ∧ ∀i ∈ [0, ndim(input) - 1] : shape(input, i) ≥ strides[i]
 >>
-Rule 12 (strides[1] through strides[3] are greater than 0)
-{v_3 : list(int)} |= v_3[1] > 0 ∧ v_3[2] > 0 ∧ v_3[3] > 0
+Rule 12 (ksizes and strides should have the same length)
+{ksizes : list(int), strides : list(int)} |= ksizes.len = strides.len
 >>
-Rule 13 (input tensor dtype must be a valid dtype)
-{v_1 : tensor} |= 7 = dtype_(v_1) ∨ 8 = dtype_(v_1) ∨ 3 = dtype_(v_1) ∨ 5 = dtype_(v_1) ∨ 2 = dtype_(v_1) ∨ 1 = dtype_(v_1) ∨ 4 = dtype_(v_1) ∨ 6 = dtype_(v_1)
+Rule 13 (ksizes and strides second and fourth elements must be positive)
+{ksizes : list(int), strides : list(int)} |= ksizes.len ≥ 4 ∧ strides.len ≥ 4 ∧ ksizes[1] > 0 ∧ ksizes[3] > 0 ∧ strides[1] > 0 ∧ strides[3] > 0
 >>
-Rule 14 (ksizes list elements should be of integer type and non-negative)
-{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+Rule 14 (if padding is VALID, then strides must be less than or equal to ksizes)
+{padding : str, strides : list(int), ksizes : list(int)} |= if padding = "VALID" then (strides.len = ksizes.len ∧ ∀i ∈ [0, strides.len - 1] : strides[i] ≤ ksizes[i])
 >>
-Rule 15 (strides list elements should be of integer type and non-negative)
-{v_3 : list(int)} |= ∀i ∈ [0, v_3.len - 1] : v_3[i] ≥ 0
+Rule 15 (input tensor data type should not be bool)
+{input : tensor} |= dtype_(input) ≠ 0
 >>
-Rule 16 (planes kernel size must be less or equal to input planes size)
-{v_1 : tensor, v_2 : list(int)} |= v_2[1] ≤ shape(v_1, 1)
+Rule 16 (strides second and fourth elements must be less than or equal to corresponding input shape)
+{input : tensor, strides : list(int)} |= strides.len ≥ 4 ∧ strides[1] ≤ shape(input, 1) ∧ strides[3] ≤ shape(input, 3)
 >>
-Rule 17 (rows kernel size must be less or equal to input rows size)
-{v_1 : tensor, v_2 : list(int)} |= v_2[2] ≤ shape(v_1, 2)
+Rule 17 (ksizes second and fourth elements must be less than or equal to corresponding input shape)
+{input : tensor, ksizes : list(int)} |= ksizes.len ≥ 4 ∧ ksizes[1] ≤ shape(input, 1) ∧ ksizes[3] ≤ shape(input, 3)
 >>
-Rule 18 (cols kernel size must be less or equal to input cols size)
-{v_1 : tensor, v_2 : list(int)} |= v_2[3] ≤ shape(v_1, 3)
+Rule 18 (batch and depth dimensions of strides must be 1)
+{strides : list(int)} |= strides.len ≥ 5 ∧ strides[0] = 1 ∧ strides[4] = 1
 >>
-Rule 19 (planes stride must be less or equal to input planes size)
-{v_1 : tensor, v_3 : list(int)} |= v_3[1] ≤ shape(v_1, 1)
+Rule 19 (batch and depth dimensions of ksizes must be 1)
+{ksizes : list(int)} |= ksizes.len ≥ 5 ∧ ksizes[0] = 1 ∧ ksizes[4] = 1
 >>
-Rule 20 (rows stride must be less or equal to input rows size)
-{v_1 : tensor, v_3 : list(int)} |= v_3[2] ≤ shape(v_1, 2)
+Rule 20 (If input is int32, strides and ksizes must also be int32 compatible.)
+{input : tensor, strides : list(int), ksizes : list(int)} |= if dtype_(input) = 3 then (∀i ∈ [0, strides.len - 1] : strides[i] ≥ -2147483648 ∧ strides[i] ≤ 2147483647) ∧ (∀i ∈ [0, ksizes.len - 1] : ksizes[i] ≥ -2147483648 ∧ ksizes[i] ≤ 2147483647)
 >>
-Rule 21 (cols stride must be less or equal to input cols size)
-{v_1 : tensor, v_3 : list(int)} |= v_3[3] ≤ shape(v_1, 3)
+Rule 21 (If input is uint8, strides and ksizes must also be uint8 compatible.)
+{input : tensor, strides : list(int), ksizes : list(int)} |= if dtype_(input) = 5 then (∀i ∈ [0, strides.len - 1] : strides[i] ≥ 0 ∧ strides[i] ≤ 255) ∧ (∀i ∈ [0, ksizes.len - 1] : ksizes[i] ≥ 0 ∧ ksizes[i] ≤ 255)
 >>
-Rule 22 (if padding is VALID, ksize should be less or equal to the corresponding input dimension)
-{v_1 : tensor, v_2 : list(int), v_4 : str} |= if v_4 = "VALID" then v_2[1] ≤ shape(v_1, 1) ∧ v_2[2] ≤ shape(v_1, 2) ∧ v_2[3] ≤ shape(v_1, 3)
+Rule 22 (If input is int16, strides and ksizes must also be int16 compatible.)
+{input : tensor, strides : list(int), ksizes : list(int)} |= if dtype_(input) = 2 then (∀i ∈ [0, strides.len - 1] : strides[i] ≥ -32768 ∧ strides[i] ≤ 32767) ∧ (∀i ∈ [0, ksizes.len - 1] : ksizes[i] ≥ -32768 ∧ ksizes[i] ≤ 32767)
 >>
-Rule 23 (depth kernel size must be 1)
-{v_2 : list(int)} |= v_2[4] = 1
+Rule 23 (If input is int8, strides and ksizes must also be int8 compatible.)
+{input : tensor, strides : list(int), ksizes : list(int)} |= if dtype_(input) = 1 then (∀i ∈ [0, strides.len - 1] : strides[i] ≥ -128 ∧ strides[i] ≤ 127) ∧ (∀i ∈ [0, ksizes.len - 1] : ksizes[i] ≥ -128 ∧ ksizes[i] ≤ 127)
 >>
-Rule 24 (batch kernel size must be 1)
-{v_2 : list(int)} |= v_2[0] = 1
+Rule 26 (If input is uint16, strides and ksizes must also be uint16 compatible.)
+{input : tensor, strides : list(int), ksizes : list(int)} |= if dtype_(input) = 19 then (∀i ∈ [0, strides.len - 1] : strides[i] ≥ 0 ∧ strides[i] ≤ 65535) ∧ (∀i ∈ [0, ksizes.len - 1] : ksizes[i] ≥ 0 ∧ ksizes[i] ≤ 65535)
 >>
-Rule 25 (depth stride must be 1)
-{v_3 : list(int)} |= v_3[4] = 1
+Rule 27 (If input is int64, strides and ksizes must be within valid range)
+{input : tensor} |= if dtype_(input) = 4 then true
 >>
-Rule 26 (batch stride must be 1)
-{v_3 : list(int)} |= v_3[0] = 1
+Rule 28 (If input is bfloat16, then it is valid)
+{input : tensor} |= if dtype_(input) = 20 then true
 >>
-Rule 27 (planes, rows and cols kernel sizes should be less than or equal to corresponding strides when padding is VALID)
-{v_2 : list(int), v_3 : list(int), v_4 : str} |= if v_4 = "VALID" then v_2[1] ≤ v_3[1] ∧ v_2[2] ≤ v_3[2] ∧ v_2[3] ≤ v_3[3]
+Rule 29 (If input is int64, strides and ksizes must be within valid range)
+{input : tensor} |= if dtype_(input) = 4 then (min(input) ≥ -9223372036854775808 ∧ max(input) ≤ 9223372036854775807)
 >>
-Rule 28 (input tensor must have positive shape dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, 4] : shape(v_1, i) > 0
+Rule 31 (If input is bfloat16, then strides and ksizes are valid ranges)
+{input : tensor, strides : list(int), ksizes : list(int)} |= if dtype_(input) = 20 then (∀i ∈ [0, strides.len - 1] : strides[i] ≥ -3.4028235e+38 ∧ strides[i] ≤ 3.4028235e+38) ∧ (∀i ∈ [0, ksizes.len - 1] : ksizes[i] ≥ -3.4028235e+38 ∧ ksizes[i] ≤ 3.4028235e+38)
 >>
-Rule 29 (strides list must have 5 elements)
-{v_3 : list(int)} |= v_3.len = 5
+Rule 32 (If input is bfloat16, then strides and ksizes are within valid ranges)
+{input : tensor, strides : list(int), ksizes : list(int)} |= if dtype_(input) = 20 then (∀i ∈ [0, strides.len - 1] : strides[i] ≥ -65504 ∧ strides[i] ≤ 65504) ∧ (∀i ∈ [0, ksizes.len - 1] : ksizes[i] ≥ -65504 ∧ ksizes[i] ≤ 65504)
 >>
-Rule 30 (ksizes list must have 5 elements)
-{v_2 : list(int)} |= v_2.len = 5
+Rule 33 (If input is uint32, strides and ksizes must also be uint32 compatible.)
+{input : tensor, strides : list(int), ksizes : list(int)} |= if dtype_(input) = 21 then (∀i ∈ [0, strides.len - 1] : strides[i] ≥ 0 ∧ strides[i] ≤ 4294967295) ∧ (∀i ∈ [0, ksizes.len - 1] : ksizes[i] ≥ 0 ∧ ksizes[i] ≤ 4294967295)
 >>
-Rule 31 (If padding is SAME, then strides must be smaller than or equal to ksizes)
-{v_2 : list(int), v_3 : list(int), v_4 : str} |= if v_4 = "SAME" then v_3[1] ≤ v_2[1] ∧ v_3[2] ≤ v_2[2] ∧ v_3[3] ≤ v_2[3]
+Rule 35 (If input is uint64, strides and ksizes must also be within valid range)
+{input : tensor} |= if dtype_(input) = 22 then True else True
 >>
-Rule 32 (Planes ksize cannot be larger than input planes)
-{v_1: tensor, v_2: list(int)} |= v_2[1] ≤ shape(v_1, 1)
+Rule 36 (If input is uint64, strides and ksizes must also be within valid range)
+{input : tensor} |= if dtype_(input) = 22 then (min(input) ≥ 0 ∧ max(input) ≤ 18446744073709551615)
 >>
-Rule 33 (Rows ksize cannot be larger than input rows)
-{v_1: tensor, v_2: list(int)} |= v_2[2] ≤ shape(v_1, 2)
+Rule 37 (If input is uint64, strides and ksizes must also be within valid range)
+{input : tensor, strides : list(int), ksizes : list(int)} |= if dtype_(input) = 22 then (∀i ∈ [0, strides.len - 1] : strides[i] ≥ 0 ∧ strides[i] ≤ 18446744073709551615) ∧ (∀i ∈ [0, ksizes.len - 1] : ksizes[i] ≥ 0 ∧ ksizes[i] ≤ 18446744073709551615)
 >>
-Rule 34 (Cols ksize cannot be larger than input cols)
-{v_1: tensor, v_2: list(int)} |= v_2[3] ≤ shape(v_1, 3)
+Rule 38 (Input tensor and output tensor should have same dtype)
+{input : tensor} |= dtype_(input) = dtype_(input)
 >>
-Rule 35 (Planes stride cannot be larger than input planes)
-{v_1: tensor, v_3: list(int)} |= v_3[1] ≤ shape(v_1, 1)
+Rule 40 (half data type not allowed)
+{input : tensor} |= dtype_(input) ≠ 18
 >>
-Rule 36 (Rows stride cannot be larger than input rows)
-{v_1: tensor, v_3: list(int)} |= v_3[2] ≤ shape(v_1, 2)
+Rule 41 (half data type not allowed for ksizes and strides)
+{input: tensor} |= if dtype_(input) = 18 then false
 >>
-Rule 37 (Cols stride cannot be larger than input cols)
-{v_1: tensor, v_3: list(int)} |= v_3[3] ≤ shape(v_1, 3)
+Rule 42 (strides and ksizes must be integer type)
+{input : tensor, ksizes : list(int), strides: list(int)} |= (dtype_(input) ≠ 7 ∧ dtype_(input) ≠ 8) ∨ (∀i ∈ [0, ksizes.len - 1]: ksizes[i] = ksizes[i]) ∧ (∀i ∈ [0, strides.len - 1]: strides[i] = strides[i])
 >>
-Rule 38 (If padding is VALID, then kernel sizes must be less than or equal to corresponding shape dimensions)
-{v_1: tensor, v_2: list(int), v_4: str} |= if v_4 = "VALID" then v_2[1] ≤ shape(v_1, 1) ∧ v_2[2] ≤ shape(v_1, 2) ∧ v_2[3] ≤ shape(v_1, 3)
+Rule 43 (ksizes and strides must be int type)
+{input: tensor, ksizes: list(int), strides: list(int)} |= ((dtype_(input) = 7 ∨ dtype_(input) = 8) ∧ (∀i ∈ [0, ksizes.len - 1]: ksizes[i] = ksizes[i]) ∧ (∀i ∈ [0, strides.len - 1]: strides[i] = strides[i]))
 >>
-Rule 39 (Input must be of type float32, float64, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, or uint64)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 0 ∨ dtype_(v_1) = 9
+Rule 44 (Input must be a 5-D tensor)
+{input: tensor} |= ndim(input) = 5
 >>
-Rule 47 (If padding is SAME and a stride is greater than 1, then the corresponding ksize should be greater than 1)
-{v_2 : list(int), v_3 : list(int), v_4 : str} |= if v_4 = "SAME" then (v_3[1] > 1 ∧ v_2[1] > 1) ∧ (v_3[2] > 1 ∧ v_2[2] > 1) ∧ (v_3[3] > 1 ∧ v_2[3] > 1)
+Rule 45 (All ksizes elements must be positive)
+{ksizes: list(int)} |= ∀i ∈ [0, ksizes.len - 1]: ksizes[i] > 0
 >>
-Rule 48 (ksizes and input tensor must have compatible dtypes, only consider the first few valid dtypes)
-{v_1 : tensor, v_2 : list(int)} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3) ∧ ∀i ∈ [0, v_2.len - 1] : true
+Rule 46 (All strides elements must be positive)
+{strides: list(int)} |= ∀i ∈ [0, strides.len - 1]: strides[i] > 0
 >>
-Rule 50 (ksizes cannot be an empty list)
-{v_2 : list(int)} |= v_2.len > 0
+Rule 47 (The length of strides must match the rank of the input tensor)
+{input: tensor, strides: list(int)} |= ndim(input) = strides.len
 >>
-Rule 51 (strides cannot be an empty list)
-{v_3 : list(int)} |= v_3.len > 0
+Rule 48 (The length of ksizes must match the rank of the input tensor)
+{input: tensor, ksizes: list(int)} |= ndim(input) = ksizes.len
 >>
-Rule 52 (If input is integer, then ksizes and strides should contain only non-negative values)
-{v_1 : tensor, v_2 : list(int), v_3 : list(int)} |= if dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 4 then (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0) ∧ (∀i ∈ [0, v_3.len - 1] : v_3[i] ≥ 0)
+Rule 49 (If padding is SAME then the output size can be computed)
+{padding: str, input: tensor, ksizes: list(int), strides: list(int)} |= if padding = "SAME" then (strides.len = ksizes.len ∧ ndim(input) = strides.len ∧ ∀i ∈ [0, ndim(input) - 1]: shape(input, i) > 0 ∧ ksizes[i] > 0 ∧ strides[i] > 0)
 >>
-Rule 55 (If input has integer dtype, then the elements in ksizes must be integers)
-{v_1 : tensor, v_2 : list(int)} |= if dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 4 then ∀i ∈ [0, v_2.len - 1] : true
+Rule 50 (If padding is VALID then the output size can be computed)
+{padding: str, input: tensor, ksizes: list(int), strides: list(int)} |= if padding = "VALID" then (strides.len = ksizes.len ∧ ndim(input) = strides.len ∧ ∀i ∈ [0, ndim(input) - 1]: shape(input, i) ≥ ksizes[i] ∧ ksizes[i] > 0 ∧ strides[i] > 0)
 >>
-Rule 56 (If input has floating point dtype, then the elements in ksizes and strides must be integers)
-{v_1 : tensor, v_2 : list(int), v_3 : list(int)} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (∀i ∈ [0, v_2.len - 1] : true) ∧ (∀i ∈ [0, v_3.len - 1] : true)
+Rule 51 (If padding is not SAME or VALID it must throw an error)
+{padding: str} |= padding = "SAME" ∨ padding = "VALID"
 >>
-Rule 57 (If the input tensor's dtype is bfloat16, then the ksizes and strides elements must be representable as integers)
-{v_1 : tensor, v_2 : list(int), v_3 : list(int)} |= if dtype_(v_1) = 6 then (∀i ∈ [0, v_2.len - 1] : true) ∧ (∀i ∈ [0, v_3.len - 1] : true)
+Rule 54 (if dtype of input tensor is float32 or float64 then ksizes and strides can be float or int.)
+{input: tensor} |= if dtype_(input) = 7 ∨ dtype_(input) = 8 then true
+>>
+Rule 55 (If input tensor is float, then ksizes and strides should have at least minimum 5 elements)
+{input : tensor, ksizes : list(float) ⊎ list(int), strides : list(float) ⊎ list(int)} |= if dtype_(input) = 7 ∨ dtype_(input) = 8 then ksizes.len ≥ 5 ∧ strides.len ≥ 5 else True
+>>
+Rule 57 (If ksizes or strides list contains float then input must be float32 or float64)
+{input : tensor, ksizes : list(float) ⊎ list(int), strides : list(float) ⊎ list(int)} |= if (∃i ∈ [0, ksizes.len - 1]: ksizes[i] ≠ ksizes[i] ∧ ksizes.len > 0) ∨ (∃i ∈ [0, strides.len - 1]: strides[i] ≠ strides[i] ∧ strides.len > 0) then (dtype_(input) = 7 ∨ dtype_(input) = 8) else True
+>>
+Rule 58 (If ksizes or strides list contains float then input must be float32 or float64)
+{input : tensor, ksizes : list(float) ⊎ list(int), strides : list(float) ⊎ list(int)} |= if ((∃i ∈ [0, if ksizes.len > 0 then ksizes.len - 1 else 0]: ksizes[i] ≠ ksizes[i])) ∨ ((∃i ∈ [0, if strides.len > 0 then strides.len - 1 else 0]: strides[i] ≠ strides[i])) then (dtype_(input) = 7 ∨ dtype_(input) = 8) else True
+>>
+Rule 60 (If ksizes or strides list contains float then input must be float32 or float64)
+{input : tensor, ksizes : list(float) ⊎ list(int), strides : list(float) ⊎ list(int)} |= if ((∃i ∈ [0, if ksizes.len > 0 then ksizes.len - 1 else 0]: ksizes[i] * 1.0 ≠ ksizes[i]) ) ∨ ((∃i ∈ [0, if strides.len > 0 then strides.len - 1 else 0]: strides[i] * 1.0 ≠ strides[i])) then (dtype_(input) = 7 ∨ dtype_(input) = 8) else True
+>>
+Rule 61 (If ksizes or strides list contains float then input must be float32 or float64)
+{input : tensor, ksizes : list(float) ⊎ list(int), strides : list(float) ⊎ list(int)} |= if ((∃i ∈ [0, if ksizes.len > 0 then ksizes.len - 1 else -1]: (ksizes[i] * 1.0) - ksizes[i] ≠ 0)) ∨ ((∃i ∈ [0, if strides.len > 0 then strides.len - 1 else -1]: (strides[i] * 1.0) - strides[i] ≠ 0)) then (dtype_(input) = 7 ∨ dtype_(input) = 8) else True
+>>
+Rule 62 (If ksizes or strides list contains float then input must be float32 or float64)
+{input : tensor, ksizes : list(float) ⊎ list(int), strides : list(float) ⊎ list(int)} |= if ((∃i ∈ [0, if ksizes.len > 0 then ksizes.len - 1 else -1]: (ksizes[i] * 1.0) - (ksizes[i] * 1.0) = 0)) ∨ ((∃i ∈ [0, if strides.len > 0 then strides.len - 1 else -1]: (strides[i] * 1.0) - (strides[i] * 1.0) = 0)) then (dtype_(input) = 7 ∨ dtype_(input) = 8) else True
+>>
+Rule 63 (If ksizes or strides list contains float then input must be float32 or float64)
+{input : tensor, ksizes : list(float) ⊎ list(int), strides : list(float) ⊎ list(int)} |= if ((∃i ∈ [0, if ksizes.len > 0 then ksizes.len - 1 else -1]: ((ksizes[i] * 1.0) - (ksizes[i] * 1.0)) ≠ 0)) ∨ ((∃i ∈ [0, if strides.len > 0 then strides.len - 1 else -1]: ((strides[i] * 1.0) - (strides[i] * 1.0)) ≠ 0)) then (dtype_(input) = 7 ∨ dtype_(input) = 8)

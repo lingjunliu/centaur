@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If scalar is uint, then x cannot be complex (Rule 78)
+# x must be a tensor, and if scalar is not boolean, x must also not be boolean. (Rule 78)
 
 rule_78 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 5, And(v["arg2_dtype"] != 9, v["arg2_dtype"] != 10), False)) if n else
-          If(v["arg1_dtype"] == 5, And(v["arg2_dtype"] != 9, v["arg2_dtype"] != 10), False))
+    s.add(Not(Or((And(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0)), (And(v["arg1_dtype"] != 0, (Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5), v["arg2_dtype"] == 6), v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)))))) if n else
+          Or((And(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0)), (And(v["arg1_dtype"] != 0, (Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5), v["arg2_dtype"] == 6), v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10))))))
 )
 
 def rule_78_func(arg1, arg2, solver=None, neg=False):

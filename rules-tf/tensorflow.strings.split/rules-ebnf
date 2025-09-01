@@ -1,87 +1,204 @@
 >>
-Rule 1 (maxsplit must be a non-negative integer)
-{v_1 : int} |= v_1 ≥ 0
+Rule 2 (maxsplit must be a non-negative integer)
+{maxsplit : int} |= maxsplit ≥ 0
 >>
-Rule 3 (input must be a tensor of strings)
-{v_1 : tensor} |= dtype_(v_1) = "str"
+Rule 3 (input tensor must have a string dtype)
+{input : tensor} |= dtype_(input) = 12
 >>
-Rule 4 (sep must not be None)
-{v_1 : str} |= v_1 ≠ "none"
+Rule 4 (sep tensor must be a scalar)
+{sep : tensor} |= ndim(sep) = 0
 >>
-Rule 5 (if maxsplit is provided, the input tensor should not be empty)
-{v_1 : tensor, v_2 : int} |= if v_2 > 0 then shape(v_1, 0) > 0
+Rule 7 (maxsplit must be less than the length of input to avoid redundant computation)
+{input : tensor, maxsplit : int} |= maxsplit ≤ shape(input, 0)
 >>
-Rule 6 (maxsplit should be less than the maximum length of the strings in the input tensor)
-{v_1 : tensor, v_2 : int} |= if v_2 > 0 then v_2 < max(v_1)
+Rule 8 (sep must not be None when input is empty)
+{input : tensor, sep : tensor} |= if shape(input, 0) = 0 then shape(sep, 0) > 0
 >>
-Rule 13 (input must be a tensor of strings)
-{v_1 : tensor} |= dtype_(v_1) = 12
+Rule 9 (input and sep must have compatible dtypes. Both must be strings)
+{input : tensor, sep : tensor} |= dtype_(input) = 12 ∧ dtype_(sep) = 12
 >>
-Rule 14 (if sep is empty and input has leading/trailing whitespace, maxsplit doesn't affect the outcome if maxsplit=0)
-{v_1 : str, v_2 : tensor, v_3:int} |= if v_1 = "" ∧ (v_2[0] = " " ∨ v_2[-1] = " ") then if v_3 = 0 then true
+Rule 10 (maxsplit should not be excessively large)
+{maxsplit : int} |= maxsplit < 10000
 >>
-Rule 15 (sep must be a 0-D tensor)
-{v_1 : tensor} |= ndim(v_1) = 0
+Rule 11 (sep must be a string tensor to avoid ValueError during conversion from NumPy array)
+{sep : tensor} |= dtype_(sep) = 12
 >>
-Rule 16 (If maxsplit is negative, it is treated as no limit)
-{v_1 : int} |= v_1 < 0 ∨ v_1 ≥ 0
+Rule 16 (sep cannot be an empty string tensor if input is not a scalar)
+{input : tensor, sep : tensor} |= if ndim(input) > 0 then shape(sep, 0) > 0
 >>
-Rule 18 (sep and input cannot be the same)
-{v_1 : tensor, v_2 : str} |= v_2 ≠ v_1
+Rule 18 (input should have a valid number of dimensions)
+{input : tensor} |= ndim(input) ≥ 0
 >>
-Rule 19 (If sep is none or "", then the input should not start or end with whitespace.)
-{v_1 : tensor, v_2 : str} |= if v_2 = "none" ∨ v_2 = "" then ∃i ∈ [0, shape(v_1,0) -1] : v_1[i] ≠ " " ∧ v_1[shape(v_1,0)-1-i] ≠ " "
+Rule 20 (check the size of input, it should not be too large)
+{input : tensor} |= shape(input, 0) < 1000
 >>
-Rule 25 (If sep is "none", the input must contain at least one non-whitespace character)
-{v_1 : str, v_2 : tensor} |= if v_1 = "none" then ∃i ∈ [0, shape(v_2,0) -1] : v_2[i] ≠ " "
+Rule 26 (Prevent maxsplit overflow during computations)
+{maxsplit : int} |= maxsplit < 2147483647
 >>
-Rule 28 (sep cannot be an empty string if the input string contains only whitespaces)
-{v_1 : tensor, v_2 : str} |= if v_2 = "" then ∃i ∈ [0, shape(v_1,0) -1] : v_1[i] ≠ " "
+Rule 27 (input tensor shape should be reasonable)
+{input : tensor} |= shape(input,0) < 10000
 >>
-Rule 29 (maxsplit must be non negative if specified.)
-{v_1: int} |= v_1 >= 0
+Rule 28 (sep string must have a reasonable length)
+{sep : tensor} |= shape(sep,0) < 256
 >>
-Rule 32 (input must be a tensor of strings and should be a 1D tensor)
-{v_1 : tensor} |= dtype_(v_1) = 12 ∧ ndim(v_1) = 1
+Rule 29 (input tensor must have a valid dimension.)
+{input: tensor} |= ndim(input) >= 0
 >>
-Rule 34 (If maxsplit is -1, it represents unlimited splits)
-{v_1: int} |= v_1 = -1 ∨ v_1 ≥ 0
+Rule 30 (The value of maxsplit should be less than a limit to avoid out of memory)
+{maxsplit: int} |= maxsplit < 1024
 >>
-Rule 39 (If the input tensor is empty, then the result is an empty RaggedTensor irrespective of sep and maxsplit)
-{v_1 : tensor} |= if shape(v_1, 0) = 0 then true
+Rule 35 (If sep is not None, it cannot be an empty string)
+{sep : tensor} |= shape(sep,0) > 0
 >>
-Rule 40 (Sep cannot be none if input has elements)
-{v_1 : tensor, v_2: str} |= if shape(v_1,0) > 0 then v_2 != "none"
+Rule 37 (Input tensor cannot have dimensions greater than a limit to prevent memory issues)
+{input: tensor} |= ndim(input) < 5
 >>
-Rule 41 (If sep is not none then sep must be non empty string)
-{v_1 : str} |= v_1 != "none" ∧ v_1 != ""
+Rule 39 (maxsplit is not greater than max int value)
+{maxsplit: int} |= maxsplit < 2147483647
 >>
-Rule 42 (Sep cannot be an empty string if input string contains leading or trailing whitespaces, since it won't remove whitespace from the start or end.)
-{v_1: tensor, v_2: str} |= if v_2 = "" then ∃i ∈ [0, shape(v_1,0) - 1] : (v_1[0] = " ") ∨ (v_1[shape(v_1,0) -1] = " ")
+Rule 45 (If sep is provided, it should not be excessively long)
+{sep : tensor} |= shape(sep, 0) < 100
 >>
-Rule 48 (Sep cannot be an empty string if input string contains leading or trailing whitespaces, since it won't remove whitespace from the start or end.)
-{v_1: tensor, v_2: str} |= if v_2 = "" then ∃i ∈ [0, shape(v_1,0) - 1] : (v_1[i] = " ") ∨ (v_1[shape(v_1,0) -1] = " ")
+Rule 47 (Input tensor's shape should not be too large to prevent memory issues)
+{input : tensor} |= shape(input, 0) < 5000
 >>
-Rule 49 (Sep cannot be the same with any element from the input tensor.)
-{v_1 : tensor, v_2 : str} |= ∀i ∈ [0, shape(v_1,0) - 1] : v_1[i] ≠ v_2
+Rule 55 (The input tensor should not have an extremely large number of dimensions to avoid memory issues)
+{input : tensor} |= ndim(input) < 6
 >>
-Rule 52 (If sep is an empty string then there should be no leading and trailing whitespace in the input)
-{v_1: tensor, v_2: str} |= if v_2 = "" then ∃i ∈ [0, shape(v_1,0) - 1] : v_1[i] != " " ∧ v_1[shape(v_1,0) -1 - i] != " "
+Rule 56 (The sep tensor should not have an extremely large shape)
+{sep : tensor} |= shape(sep, 0) < 256
 >>
-Rule 53 (Maxsplit must be non-negative or -1)
-{v_1: int} |= v_1 >= 0 ∨ v_1 = -1
+Rule 57 (maxsplit should be of reasonable magnitude)
+{maxsplit : int} |= maxsplit < 2048
 >>
-Rule 61 (if maxsplit is greater than 0, it must be a positive integer)
-{v_1: int} |= v_1 > 0 ∨ v_1 = -1 ∨ v_1 = 0
+Rule 58 (The input tensor should have a reasonable shape)
+{input : tensor} |= shape(input, 0) < 4096
 >>
-Rule 62 (Sep cannot be an empty string if input string contains leading or trailing whitespaces, since it won't remove whitespace from the start or end. If the input is empty, sep can be empty.)
-{v_1: tensor, v_2: str} |= if shape(v_1, 0) > 0 then if v_2 = "" then ∃i ∈ [0, shape(v_1,0) - 1] : (v_1[i] = " ") ∨ (v_1[shape(v_1,0) -1 - i] = " ")
+Rule 59 (sep value needs to be a string.)
+{sep: tensor} |= dtype_(sep) = 12
 >>
-Rule 66 (If sep is none, then the input should contain more than one word)
-{v_1: tensor, v_2: str} |= if v_2 = "none" then shape(v_1, 0) > 1
+Rule 60 (maxsplit must be a non-negative number)
+{maxsplit : int} |= maxsplit >= 0
 >>
-Rule 71 ( If input has only one string sep cannot be none or empty)
-{v_1: tensor, v_2:str} |= if shape(v_1, 0) = 1 then v_2 != "none" ∧ v_2 != ""
+Rule 65 (sep cannot have a shape greater than 1 to prevent issues during processing)
+{sep : tensor} |= shape(sep,0) < 2
 >>
-Rule 76 (If sep is specified (not 'none'), it must be a string)
-{v_1: str} |= v_1 != "none"
+Rule 66 (sep should have non-negative shape)
+{sep: tensor} |= shape(sep, 0) >= 0
+>>
+Rule 67 (The input tensor must have a valid shape, preventing errors during computations)
+{input : tensor} |= shape(input, 0) >= 0
+>>
+Rule 68 (Maxsplit should not be extremely huge)
+{maxsplit: int} |= maxsplit < 65536
+>>
+Rule 70 (Ensure the input tensor's number of dimensions is within reasonable bounds)
+{input : tensor} |= ndim(input) < 8
+>>
+Rule 76 (The number of dimensions in sep should not exceed a reasonable limit)
+{sep : tensor} |= ndim(sep) < 3
+>>
+Rule 77 (The maximum number of splits must be a small number to prevent performance degradation)
+{input : tensor, maxsplit : int} |= maxsplit < shape(input, 0) * 2
+>>
+Rule 78 (If maxsplit is zero, then the shape of input cannot be zero)
+{input : tensor, maxsplit : int} |= if maxsplit = 0 then shape(input,0) > 0
+>>
+Rule 80 (Input values are strings)
+{input: tensor} |= dtype_(input) = 12
+>>
+Rule 85 (The sep string length must be within range)
+{sep : tensor} |= shape(sep, 0) < 50
+>>
+Rule 86 (Shape of input cannot be negative.)
+{input: tensor} |= shape(input, 0) >=0
+>>
+Rule 88 (maxsplit should not be close to maximum value)
+{maxsplit: int} |= maxsplit < 1048576
+>>
+Rule 89 (Check the tensor's dimension size.)
+{input : tensor} |= ndim(input) < 10
+>>
+Rule 95 (sep should not be empty tensor)
+{sep : tensor} |= shape(sep, 0) > 0
+>>
+Rule 96 (The shape of the input should not be excessively large. If input's shape is large, consider not splitting)
+{input : tensor} |= shape(input, 0) < 8192
+>>
+Rule 97 (maxsplit must not be excessively large)
+{maxsplit: int} |= maxsplit < 32768
+>>
+Rule 98 (dimension of sep should be less than 2)
+{sep : tensor} |= ndim(sep) < 2
+>>
+Rule 99 (dimension of input should be positive)
+{input : tensor} |= ndim(input) >= 0
+>>
+Rule 100 (If the dimension of the input is 0, then sep must also be zero)
+{input : tensor, sep: tensor} |= if ndim(input) = 0 then ndim(sep) = 0
+>>
+Rule 105 (Name cannot be an empty string)
+{name: str} |= shape(name, 0) > 0
+>>
+Rule 109 (If the input is a scalar, then sep has to be too)
+{input: tensor, sep: tensor} |= if ndim(input) = 0 then ndim(sep) = 0
+>>
+Rule 110 (if the dimension of sep is not zero, there must be data within it.)
+{sep: tensor} |= if ndim(sep) != 0 then shape(sep, 0) > 0
+>>
+Rule 115 (If maxsplit equals zero, input's length needs to be valid to prevent no operation from happening.)
+{input: tensor, maxsplit: int} |= if maxsplit = 0 then shape(input, 0) > 0
+>>
+Rule 118 (maxsplit should not be excessively huge compared to the string to avoid long runtime)
+{input : tensor, maxsplit : int} |= maxsplit < shape(input, 0) * 10
+>>
+Rule 125 (Ensure that maxsplit is reasonable)
+{maxsplit: int} |= maxsplit < 500000
+>>
+Rule 126 (Check the length of the sep to be smaller than 1000)
+{sep: tensor} |= shape(sep, 0) < 1000
+>>
+Rule 130 (input must have shape.)
+{input: tensor} |= shape(input, 0) >= 0
+>>
+Rule 135 (If the dimension of the input is zero, sep can not be empty.)
+{input: tensor, sep: tensor} |= if ndim(input) = 0 then shape(sep, 0) > 0
+>>
+Rule 136 (limit maxsplit value)
+{maxsplit: int} |= maxsplit < 1000000
+>>
+Rule 137 (Check the number of dimensions of input is below 6.)
+{input: tensor} |= ndim(input) < 6
+>>
+Rule 139 (If input is empty tensor, then sep should not be empty tensor as well)
+{input : tensor, sep : tensor} |= if shape(input,0) = 0 then shape(sep,0) > 0
+>>
+Rule 140 (The shape of sep needs to be not very large)
+{sep: tensor} |= shape(sep, 0) < 2048
+>>
+Rule 145 (sep's length should be within a limit)
+{sep: tensor} |= shape(sep, 0) < 100
+>>
+Rule 147 (Maxsplit needs to be a reasonable integer)
+{maxsplit: int} |= maxsplit < 60000
+>>
+Rule 148 (If input has shape 0, the shape of sep must have some data)
+{input: tensor, sep: tensor} |= if shape(input, 0) = 0 then shape(sep, 0) > 0
+>>
+Rule 155 (If input is string, sep must not be boolean)
+{input : tensor, sep: tensor} |= if dtype_(input) = 12 then dtype_(sep) != 0
+>>
+Rule 159 (the shape of maxsplit must be more than zero.)
+{maxsplit: int} |= maxsplit >= 0
+>>
+Rule 166 (maxsplit has an upper limit to avoid overflow.)
+{maxsplit: int} |= maxsplit < 100000
+>>
+Rule 168 (If the dimension of sep is not zero, its first dimension must also be valid.)
+{sep: tensor} |= if ndim(sep) != 0 then shape(sep, 0) >= 0
+>>
+Rule 169 (limit shape of input)
+{input: tensor} |= shape(input, 0) < 4096
+>>
+Rule 170 (If sep is zero dimesional the shape has to be a valid string)
+{sep : tensor} |= if ndim(sep) = 0 then dtype_(sep) = 12

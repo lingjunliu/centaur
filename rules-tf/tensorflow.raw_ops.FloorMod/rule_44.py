@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# x and y dtypes must both be float types. (Rule 44)
+# if x is bfloat16/float16/float32/float64, y must be of the same family (Rule 44)
 
 rule_44 = lambda s, v, n=False: (
-    s.add(Not(And((And(7 <= v["arg1_dtype"], v["arg1_dtype"] <= 9)), (And(7 <= v["arg2_dtype"], v["arg2_dtype"] <= 9)))) if n else
-          And((And(7 <= v["arg1_dtype"], v["arg1_dtype"] <= 9)), (And(7 <= v["arg2_dtype"], v["arg2_dtype"] <= 9))))
+    s.add(Not(If((Or(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), (Or(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8)), True)) if n else
+          If((Or(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), (Or(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8)), True))
 )
 
 def rule_44_func(arg1, arg2, solver=None, neg=False):

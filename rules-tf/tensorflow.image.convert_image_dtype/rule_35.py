@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if input tensor is of integer type and the saturate argument is false, all values in the tensor must be representable by the output dtype (Rule 35)
+# If saturate is true and converting to an integer, the floating point inputs should be in the range [0, 255] (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(If(And(And((Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5)), (Or(Or(Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 2), v["arg2_value"] == 3), v["arg2_value"] == 4), v["arg2_value"] == 5))), v["arg3_value"] == False), (And(Select(v["arg1_range"], 0) >= -128, Select(v["arg1_range"], 1) <= 127)), False)) if n else
-          If(And(And((Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5)), (Or(Or(Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 2), v["arg2_value"] == 3), v["arg2_value"] == 4), v["arg2_value"] == 5))), v["arg3_value"] == False), (And(Select(v["arg1_range"], 0) >= -128, Select(v["arg1_range"], 1) <= 127)), False))
+    s.add(Not(If(And(And(v["arg3_value"] == True, (Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8))), (Or(Or(Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 2), v["arg2_value"] == 3), v["arg2_value"] == 4), v["arg2_value"] == 5))), And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 255), True)) if n else
+          If(And(And(v["arg3_value"] == True, (Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8))), (Or(Or(Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 2), v["arg2_value"] == 3), v["arg2_value"] == 4), v["arg2_value"] == 5))), And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 255), True))
 )
 
 def rule_35_func(arg1, arg2, arg3, solver=None, neg=False):

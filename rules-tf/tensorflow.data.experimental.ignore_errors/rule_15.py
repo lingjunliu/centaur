@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if log_warning, then a warning will be logged (Rule 15)
+# log_warning is a boolean, but always resolves to true (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, 1 == 1, 0 == 0)) if n else
-          If(v["arg1_value"] == True, 1 == 1, 0 == 0))
+    s.add(Not(Or((v["arg1_value"] == True), True)) if n else
+          Or((v["arg1_value"] == True), True))
 )
 
 def rule_15_func(arg1, solver=None, neg=False):

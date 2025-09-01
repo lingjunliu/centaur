@@ -1,126 +1,78 @@
 >>
-Rule 2 (x and y must have ndim >= 2)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2
+Rule 1 (x and y must have the same type)
+{x : tensor, y : tensor} |= dtype_(x) = dtype_(y)
+>>
+Rule 2 (x and y must be at least 2-dimensional)
+{x : tensor, y : tensor} |= ndim(x) ≥ 2 ∧ ndim(y) ≥ 2
 >>
 Rule 3 (adj_x is a boolean)
-{v_1 : bool} |= (v_1 = true) ∨ (v_1 = false)
+{adj_x : bool} |= adj_x = true ∨ adj_x = false
 >>
-Rule 8 (x and y must have the same type)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 4 (adj_y is a boolean)
+{adj_y : bool} |= adj_y = true ∨ adj_y = false
 >>
-Rule 10 (adj_x is a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 5 (grad_x is a boolean)
+{grad_x : bool} |= grad_x = true ∨ grad_x = false
 >>
-Rule 14 (x's dtype must be one of the allowed types)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 0 ∨ dtype_(v_1) = 1
+Rule 6 (grad_y is a boolean)
+{grad_y : bool} |= grad_y = true ∨ grad_y = false
 >>
-Rule 17 (x ndim must be less than or equal to 5)
-{v_1 : tensor} |= ndim(v_1) ≤ 5
+Rule 8 (if x is bfloat16, half, float32, float64, int32, int64, complex64 or complex128 then y is also)
+{x : tensor, y : tensor} |= (dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 4 ∨ dtype_(x) = 5 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10 ∨ dtype_(x) = 0) ∧ (dtype_(y) = 6 ∨ dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 4 ∨ dtype_(y) = 5 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10 ∨ dtype_(y) = 0)
 >>
-Rule 19 (if adj_x is true, the last two dimensions of x must be swappable, i.e. shape(x, ndim(x) - 2) = shape(y, ndim(y) -1) if adj_y = false)
-{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4 : bool} |= if v_3 = true ∧ v_4 = false then shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 1)
+Rule 16 (If adj_x is true then last two dimensions of x need to be swaped, r_x and c_x)
+{x : tensor, adj_x : bool} |= if adj_x = true then shape(x, ndim(x)-1) = shape(x, ndim(x)-2)
 >>
-Rule 21 (if adj_x is true, and adj_y is false, last two dims of x and y have a relation)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 1)
+Rule 17 (If adj_y is true then last two dimensions of y need to be swaped, r_y and c_y)
+{y : tensor, adj_y : bool} |= if adj_y = true then shape(y, ndim(y)-1) = shape(y, ndim(y)-2)
 >>
-Rule 22 (ndim of x must be greater than or equal to 2.)
-{v_1 : tensor} |= ndim(v_1) ≥ 2
+Rule 19 (Data types for x can only be a specific set.)
+{x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 4 ∨ dtype_(x) = 5 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10 ∨ dtype_(x) = 0
 >>
-Rule 24 (If adj_y is true, and adj_x is false, last two dims of x and y have a relation)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then shape(v_2, ndim(v_2) - 2) = shape(v_1, ndim(v_1) - 1)
+Rule 22 (x and y must have the same leading dimensions)
+{x : tensor, y : tensor} |= ∀i ∈ [0, if ndim(x) < ndim(y) then ndim(x) - 2 else ndim(y) - 2] : shape(x, i) = shape(y, i)
 >>
-Rule 27 (if adj_x is true, last two dimensions of x must be at least of size 1)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0
+Rule 23 (adj_x and adj_y are either true or false)
+{adj_x : bool, adj_y : bool} |= (adj_x = true ∨ adj_x = false) ∧ (adj_y = true ∨ adj_y = false)
 >>
-Rule 29 (x and y must have same number of dimensions if their batch dimensions need to match)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 30 (grad_x and grad_y are either true or false)
+{grad_x : bool, grad_y : bool} |= (grad_x = true ∨ grad_x = false) ∧ (grad_y = true ∨ grad_y = false)
 >>
-Rule 32 (if adj_x and adj_y are true, dimensions should meet the size condition for matrix multiplication)
-{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4 : bool} |= if v_3 = true ∧ v_4 = true then shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 2)
+Rule 31 (x and y must have the same leading dimensions, and be at least of length 1 if ndim > 2)
+{x : tensor, y : tensor} |= ∀i ∈ [0, if ndim(x) < ndim(y) then (if ndim(x) > 2 then ndim(x) - 2 else 0) else (if ndim(y) > 2 then ndim(y) - 2 else 0)] : shape(x, i) = shape(y, i)
 >>
-Rule 35 (last dimensions should be greater than 0)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_2, ndim(v_2) - 1) > 0
+Rule 39 (The inner-most dimensions must be compatible for matrix multiplication based on adj_x and adj_y flags, uses only the flag variables)
+{adj_x : bool, adj_y : bool, x : tensor, y : tensor} |= if adj_x = true ∧ adj_y = true then shape(x, ndim(x) - 2) = shape(y, ndim(y) - 1) else if adj_x = true ∧ adj_y = false then shape(x, ndim(x) - 2) = shape(y, ndim(y) - 2) else if adj_x = false ∧ adj_y = true then shape(x, ndim(x) - 1) = shape(y, ndim(y) - 1) else shape(x, ndim(x) - 1) = shape(y, ndim(y) - 2)
 >>
-Rule 36 (penultimate dimensions should be greater than 0)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_2, ndim(v_2) - 2) > 0
+Rule 50 (Data type of x and y must match and be valid)
+{x : tensor, y : tensor} |= dtype_(x) = dtype_(y) ∧ (dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 4 ∨ dtype_(x) = 5 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10 ∨ dtype_(x) = 0)
 >>
-Rule 37 (if not adjointed, last dim of x must be equal to the second last dimension of y)
-{v_1 : tensor, v_2 : tensor, v_3: bool, v_4: bool} |= if v_3 = false ∧ v_4 = false then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2)
+Rule 58 (grad_x, grad_y, adj_x, adj_y are booleans)
+{grad_x : bool, grad_y : bool, adj_x : bool, adj_y : bool} |= (grad_x = true ∨ grad_x = false) ∧ (grad_y = true ∨ grad_y = false) ∧ (adj_x = true ∨ adj_x = false) ∧ (adj_y = true ∨ adj_y = false)
 >>
-Rule 38 (x and y should have the same number of batch dimensions)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 2 ∧ ndim(v_2) > 2 then ndim(v_1) - 2 = ndim(v_2) - 2
+Rule 64 (Compatibility of inner-most dimensions of x and y based on adj_x and adj_y.)
+{x : tensor, y : tensor, adj_x : bool, adj_y : bool} |= if adj_x = true ∧ adj_y = true then shape(x, ndim(x) - 2) = shape(y, ndim(y) - 1) else if adj_x = true ∧ adj_y = false then shape(x, ndim(x) - 2) = shape(y, ndim(y) - 2) else if adj_x = false ∧ adj_y = true then shape(x, ndim(x) - 1) = shape(y, ndim(y) - 1) else shape(x, ndim(x) - 1) = shape(y, ndim(y) - 2)
 >>
-Rule 39 (x and y should have same shape for batch dimensions)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 2 ∧ ndim(v_2) > 2 then ∀i ∈ [0, ndim(v_1) - 3] : shape(v_1, i) = shape(v_2, i)
+Rule 68 (adj_x, adj_y, grad_x, and grad_y are valid booleans)
+{adj_x : bool, adj_y : bool, grad_x : bool, grad_y : bool} |= (adj_x = true ∨ adj_x = false) ∧ (adj_y = true ∨ adj_y = false) ∧ (grad_x = true ∨ grad_x = false) ∧ (grad_y = true ∨ grad_y = false)
 >>
-Rule 40 (if not adjointed, last dim of x must be equal to the second last dimension of y when the number of dimension of both tensors are greater than 1)
-{v_1 : tensor, v_2 : tensor, v_3: bool, v_4: bool} |= if v_3 = false ∧ v_4 = false ∧ ndim(v_1) > 1 ∧ ndim(v_2) > 1 then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2)
+Rule 70 (Data type for x and y must be valid)
+{x : tensor, y: tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 4 ∨ dtype_(x) = 5 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10 ∨ dtype_(x) = 0
 >>
-Rule 43 (if adjointed x and y, second last dim of x must be equal to the last but one dimension of y when the number of dimension of both tensors are greater than 1)
-{v_1 : tensor, v_2 : tensor, v_3: bool, v_4: bool} |= if v_3 = true ∧ v_4 = true ∧ ndim(v_1) > 1 ∧ ndim(v_2) > 1 then shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 2)
+Rule 71 (x and y rank must be at least 2)
+{x : tensor, y: tensor} |= ndim(x) ≥ 2 ∧ ndim(y) ≥ 2
 >>
-Rule 44 (if no adjoint and tensor x and y have only 2 dimensions, the inner dimensions of the matrix must match)
-{v_1 : tensor, v_2 : tensor, v_3: bool, v_4: bool} |= if v_3 = false ∧ v_4 = false ∧ ndim(v_1) = 2 ∧ ndim(v_2) = 2 then shape(v_1, 1) = shape(v_2, 0)
+Rule 74 (Compatibility of inner-most dimensions of x and y depending on adj flags)
+{adj_x : bool, adj_y : bool, x : tensor, y: tensor} |= if adj_x = true ∧ adj_y = true then shape(x, ndim(x) - 2) = shape(y, ndim(y) - 1) else if adj_x = true ∧ adj_y = false then shape(x, ndim(x) - 2) = shape(y, ndim(y) - 2) else if adj_x = false ∧ adj_y = true then shape(x, ndim(x) - 1) = shape(y, ndim(y) - 1) else shape(x, ndim(x) - 1) = shape(y, ndim(y) - 2)
 >>
-Rule 46 (if adjointed x, second last dim of x must be equal to the last dimension of y when the number of dimension of both tensors are greater than 1)
-{v_1 : tensor, v_2 : tensor, v_3: bool} |= if v_3 = true ∧ ndim(v_1) > 1 ∧ ndim(v_2) > 1 then shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 1)
+Rule 77 (Batch dimensions should line up when possible)
+{x : tensor, y: tensor} |= ∀i ∈ [0, if ndim(x) < ndim(y) then (if ndim(x) > 2 then ndim(x) - 2 else 0) else (if ndim(y) > 2 then ndim(y) - 2 else 0)] : shape(x, i) = shape(y, i)
 >>
-Rule 47 (if adjointed y, last dim of x must be equal to the second last dimension of x when the number of dimension of both tensors are greater than 1)
-{v_1 : tensor, v_2 : tensor, v_4: bool} |= if v_4 = true ∧ ndim(v_1) > 1 ∧ ndim(v_2) > 1 then shape(v_2, ndim(v_2) - 2) = shape(v_1, ndim(v_1) - 1)
+Rule 83 (Shape compatibility based on adjoint flags, binding only the flags)
+{adj_x : bool, adj_y : bool, x: tensor, y : tensor} |= if adj_x = true ∧ adj_y = true then shape(x, ndim(x) - 2) = shape(y, ndim(y) - 1) else if adj_x = true ∧ adj_y = false then shape(x, ndim(x) - 2) = shape(y, ndim(y) - 2) else if adj_x = false ∧ adj_y = true then shape(x, ndim(x) - 1) = shape(y, ndim(y) - 1) else shape(x, ndim(x) - 1) = shape(y, ndim(y) - 2)
 >>
-Rule 55 (if adj_x is true and adj_y is false, the last two dimension of x and y must be at least of size 1)
-{v_1 : tensor, v_2 : bool, v_3 : bool} |= if v_2 = true ∧ v_3 = false then shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_2) - 1) > 0 ∧ shape(v_2, ndim(v_2) - 2) > 0
+Rule 89 (Requires a valid and matching dtype for the input tensors)
+{x : tensor, y : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 4 ∨ dtype_(x) = 5 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10 ∨ dtype_(x) = 0
 >>
-Rule 57 (If no adjoint and the number of dimension is greater than 1, the output shape should have the same batch size with inputs)
-{v_1 : tensor, v_2 : tensor, v_3: tensor, v_4: bool, v_5: bool} |= if v_4 = false ∧ v_5 = false ∧ ndim(v_1) > 1 ∧ ndim(v_2) > 1 then ∀i ∈ [0, ndim(v_1) - 3] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_1, i) = shape(v_3, i)
->>
-Rule 58 (if both adj_x and adj_y are false, then the output last two dimension are determined by the last two dimensions of the input)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4: bool, v_5: bool} |= if v_4 = false ∧ v_5 = false ∧ ndim(v_1) > 1 ∧ ndim(v_2) > 1 then shape(v_3, ndim(v_3) - 2) = shape(v_1, ndim(v_1) - 2) ∧ shape(v_3, ndim(v_3) - 1) = shape(v_2, ndim(v_2) - 1)
->>
-Rule 59 (if adj_x is true and adj_y is false, then the output last two dimension are determined by the last two dimensions of the input)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4: bool, v_5: bool} |= if v_4 = true ∧ v_5 = false ∧ ndim(v_1) > 1 ∧ ndim(v_2) > 1 then shape(v_3, ndim(v_3) - 2) = shape(v_1, ndim(v_1) - 1) ∧ shape(v_3, ndim(v_3) - 1) = shape(v_2, ndim(v_2) - 1)
->>
-Rule 60 (if adj_x is false and adj_y is true, then the output last two dimension are determined by the last two dimensions of the input)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4: bool, v_5: bool} |= if v_4 = false ∧ v_5 = true ∧ ndim(v_1) > 1 ∧ ndim(v_2) > 1 then shape(v_3, ndim(v_3) - 2) = shape(v_1, ndim(v_1) - 2) ∧ shape(v_3, ndim(v_3) - 1) = shape(v_2, ndim(v_2) - 2)
->>
-Rule 62 (if both adj_x and adj_y are false, and number of dimension is greater than 1, the output shape should have the same batch size with inputs)
-{v_1 : tensor, v_2 : tensor, v_3: tensor, v_4: bool, v_5: bool} |= if v_4 = false ∧ v_5 = false ∧ ndim(v_1) > 1 ∧ ndim(v_2) > 1 ∧ ndim(v_3) > 1 then ∀i ∈ [0, ndim(v_1) - 3] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_1, i) = shape(v_3, i)
->>
-Rule 63 (if both adj_x and adj_y are false, and number of dimension is greater than 1, then the output last two dimension are determined by the last two dimensions of the input)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4: bool, v_5: bool} |= if v_4 = false ∧ v_5 = false ∧ ndim(v_1) > 1 ∧ ndim(v_2) > 1 ∧ ndim(v_3) > 1 then shape(v_3, ndim(v_3) - 2) = shape(v_1, ndim(v_1) - 2) ∧ shape(v_3, ndim(v_3) - 1) = shape(v_2, ndim(v_2) - 1)
->>
-Rule 64 (if adj_x is true and adj_y is false, and number of dimension is greater than 1, then the output last two dimension are determined by the last two dimensions of the input)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4: bool, v_5: bool} |= if v_4 = true ∧ v_5 = false ∧ ndim(v_1) > 1 ∧ ndim(v_2) > 1 ∧ ndim(v_3) > 1 then shape(v_3, ndim(v_3) - 2) = shape(v_1, ndim(v_1) - 1) ∧ shape(v_3, ndim(v_3) - 1) = shape(v_2, ndim(v_2) - 1)
->>
-Rule 65 (if adj_x is false and adj_y is true, and number of dimension is greater than 1, then the output last two dimension are determined by the last two dimensions of the input)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4: bool, v_5: bool} |= if v_4 = false ∧ v_5 = true ∧ ndim(v_1) > 1 ∧ ndim(v_2) > 1 ∧ ndim(v_3) > 1 then shape(v_3, ndim(v_3) - 2) = shape(v_1, ndim(v_1) - 2) ∧ shape(v_3, ndim(v_3) - 1) = shape(v_2, ndim(v_2) - 2)
->>
-Rule 66 (The output tensor has the same dtype as input tensor x and y)
-{v_1 : tensor, v_2 : tensor, v_3: tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
->>
-Rule 67 (if both adj_x and adj_y are false, and number of dimension is greater than 1, the output shape should have the same batch size with inputs)
-{v_1 : tensor, v_2 : tensor, v_3: tensor, v_4: bool, v_5: bool} |= if v_4 = false ∧ v_5 = false ∧ ndim(v_1) > 2 ∧ ndim(v_2) > 2 ∧ ndim(v_3) > 2 then ∀i ∈ [0, ndim(v_1) - 3] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_1, i) = shape(v_3, i)
->>
-Rule 68 (if both adj_x and adj_y are false, and number of dimension is greater than 1, then the output last two dimension are determined by the last two dimensions of the input)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4: bool, v_5: bool} |= if v_4 = false ∧ v_5 = false ∧ ndim(v_1) > 2 ∧ ndim(v_2) > 2 ∧ ndim(v_3) > 2 then shape(v_3, ndim(v_3) - 2) = shape(v_1, ndim(v_1) - 2) ∧ shape(v_3, ndim(v_3) - 1) = shape(v_2, ndim(v_2) - 1)
->>
-Rule 69 (if adj_x is true and adj_y is false, and number of dimension is greater than 1, then the output last two dimension are determined by the last two dimensions of the input)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4: bool, v_5: bool} |= if v_4 = true ∧ v_5 = false ∧ ndim(v_1) > 2 ∧ ndim(v_2) > 2 ∧ ndim(v_3) > 2 then shape(v_3, ndim(v_3) - 2) = shape(v_1, ndim(v_1) - 1) ∧ shape(v_3, ndim(v_3) - 1) = shape(v_2, ndim(v_2) - 1)
->>
-Rule 70 (if adj_x is false and adj_y is true, and number of dimension is greater than 1, then the output last two dimension are determined by the last two dimensions of the input)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4: bool, v_5: bool} |= if v_4 = false ∧ v_5 = true ∧ ndim(v_1) > 2 ∧ ndim(v_2) > 2 ∧ ndim(v_3) > 2 then shape(v_3, ndim(v_3) - 2) = shape(v_1, ndim(v_1) - 2) ∧ shape(v_3, ndim(v_3) - 1) = shape(v_2, ndim(v_2) - 2)
->>
-Rule 71 (output tensor ndim is same as input tensors when number of dimension is greater than 1)
-{v_1 : tensor, v_2 : tensor, v_3: tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 1 then ndim(v_1) = ndim(v_2) ∧ ndim(v_2) = ndim(v_3)
->>
-Rule 76 (if both adj_x and adj_y are false and the output is also a tensor, the inner dimension must match)
-{v_1 : tensor, v_2 : tensor, v_3: tensor, v_4: bool, v_5: bool} |= if v_4 = false ∧ v_5 = false ∧ ndim(v_1) > 1 ∧ ndim(v_2) > 1 ∧ ndim(v_3) > 1 then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2)
->>
-Rule 77 (if adj_x is true and the number of dimension is greater than 1, the last two dimension shape of x should not be equal to zero)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true ∧ ndim(v_1) > 1 then shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0
->>
-Rule 80 (if adj_y is true, and number of dimension is greater than 1, the shape condition should be satisfied)
-{v_1 : tensor, v_2 : tensor, v_3: bool} |= if v_3 = true ∧ ndim(v_1) > 1 ∧ ndim(v_2) > 1 then shape(v_2, ndim(v_2) - 2) = shape(v_1, ndim(v_1) - 1)
->>
-Rule 81 (output tensor ndim is same as input tensors when number of dimension is greater than 1)
-{v_1 : tensor, v_2 : tensor, v_3: tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 1 ∧ ndim(v_3) > 1 then ndim(v_1) = ndim(v_2) ∧ ndim(v_2) = ndim(v_3)
+Rule 92 (Compatibility of inner-most dimensions based only on adjoint flags)
+{adj_x : bool, adj_y : bool, x: tensor, y: tensor} |= if adj_x = true ∧ adj_y = true then shape(x, ndim(x) - 2) = shape(y, ndim(y) - 1) else if adj_x = true ∧ adj_y = false then shape(x, ndim(x) - 2) = shape(y, ndim(y) - 2) else if adj_x = false ∧ adj_y = true then shape(x, ndim(x) - 1) = shape(y, ndim(y) - 1) else shape(x, ndim(x) - 1) = shape(y, ndim(y) - 2)

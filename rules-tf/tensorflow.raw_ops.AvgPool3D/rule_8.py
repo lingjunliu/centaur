@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# input tensor has ndim = 5 (Rule 8)
+# input tensor must have 5 dimensions (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
     s.add(Not(v["arg1_ndim"] == 5) if n else

@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# first and last elements of pooling_ratio must be 1.0 (Rule 3)
+# first and last element of pooling_ratio must be 1.0 (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
     s.add(Not(And(Select(v["arg1_values"], 0) == 1.0, Select(v["arg1_values"], v["arg1_length"] - 1) == 1.0)) if n else
@@ -31,9 +31,9 @@ def rule_3_func(arg1, solver=None, neg=False):
             arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 3
-        rule_3(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length})
+        rule_3(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_3(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length']}, neg)
+        rule_3(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)

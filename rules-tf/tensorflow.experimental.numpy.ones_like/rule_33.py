@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If a tensor has at least one dimension, its max value must be non-zero (Rule 33)
+# If a dtype is specified as an integer, it cannot be 4 which represents torch.int64, which cannot be interpreted as a data type (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 0, Select(v["arg1_range"], 1) != 0, False)) if n else
-          If(v["arg1_ndim"] > 0, Select(v["arg1_range"], 1) != 0, False))
+    s.add(Not(If(v["arg1_value"] < 11, v["arg1_value"] != 4, True)) if n else
+          If(v["arg1_value"] < 11, v["arg1_value"] != 4, True))
 )
 
 def rule_33_func(arg1, solver=None, neg=False):
@@ -17,23 +17,20 @@ def rule_33_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
 
         # Constraints for rule 33
-        rule_33(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
+        rule_33(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_33(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_33(solver, {'arg1_value': arg1['value']}, neg)

@@ -1,189 +1,105 @@
 >>
-Rule 1 (num_true should be greater than 0)
-{v_1 : int} |= v_1 > 0
+Rule 1 (num_sampled should be at least 1)
+{v_1 : int} |= v_1 ≥ 1
 >>
-Rule 4 (distortion should be a non-negative float)
-{v_1 : float} |= v_1 ≥ 0
->>
-Rule 5 (num_shards should be greater than 0 if shard is also defined)
-{v_1 : int, v_2 : int} |= if v_2 > 0 then v_1 > 0
->>
-Rule 6 (shard should be non-negative and less than num_shards if num_shards is defined)
-{v_1 : int, v_2 : int} |= if v_1 > 0 then v_2 ≥ 0 ∧ v_2 < v_1
->>
-Rule 7 (Either vocab_file or unigrams should be provided, but not both, based on string length of vocab_file)
-{v_1 : str, v_2 : list(float)} |= (v_1 = "" ∧ (∃i ∈ [0, 0] : shape(v_2, i) > 0)) ∨ (v_1 ≠ "" ∧ (∀i ∈ [0, 0] : shape(v_2, i) = 0))
->>
-Rule 8 (true_classes tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
->>
-Rule 9 (true_classes must be of type int64)
-{v_1 : tensor} |= dtype_(v_1) = 4
->>
-Rule 10 (seed should be non-negative)
+Rule 4 (shard should be non-negative)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 11 (Unique should be boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 5 (shard should be less than num_shards if num_shards > 1)
+{v_1 : int, v_2 : int} |= if v_2 > 1 then v_1 < v_2
 >>
-Rule 12 (The length of the unigrams list should be a positive integer)
-{v_1 : list(float)} |= ∀i ∈ [0, 0] : shape(v_1, i) > 0
+Rule 7 (true_classes tensor should have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 13 (num_true must be less than or equal to the first dimension of true_classes if true_classes has only one dimension)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 ≤ shape(v_1, 0)
+Rule 8 (distortion should not be too large)
+{v_1 : float} |= v_1 < 1000
 >>
-Rule 14 (Check if num_true*batch_size is greater than range_max)
-{v_1 : int, v_2 : int, v_3 : tensor} |= if ndim(v_3) > 0 then v_1*shape(v_3, 0) ≤ v_2
+Rule 11 (num_sampled should be at least 1)
+{v_1 : int} |= v_1 > 0
 >>
-Rule 15 (The size of unigrams array must be equal to range_max.)
-{v_1 : list(float), v_2 : int} |= (∀i ∈ [0, 0] : shape(v_1, i) > 0) ∧ shape(v_1, 0) = v_2
+Rule 14 (shard should be non-negative and less than num_shards)
+{v_1 : int, v_2 : int} |= v_1 ≥ 0 ∧ v_1 < v_2
 >>
-Rule 17 (num_shards should be positive if shard is not zero)
-{v_1 : int, v_2 : int} |= if v_2 ≠ 0 then v_1 > 0
+Rule 16 (Exactly one of vocab_file and unigrams should be passed.  vocab_file is empty string when unigrams is non-empty.)
+{v_1 : str, v_2 : list(float)} |= if v_2.len > 0 then v_1 = ""
 >>
-Rule 18 (if vocab_file is specified, then unigrams must not be specified.)
-{v_1 : str, v_2 : list(float)} |= if v_1 ≠ "" then (∀i ∈ [0, 0] : shape(v_2, i) = 0)
+Rule 17 (Exactly one of vocab_file and unigrams should be passed.  unigrams is empty list when vocab_file is non-empty.)
+{v_1 : str, v_2 : list(float)} |= if v_1 ≠ "" then v_2.len = 0
 >>
-Rule 19 (If unigrams is specified, then vocab_file must not be specified)
-{v_1 : str, v_2 : list(float)} |= if (∃i ∈ [0, 0] : shape(v_2, i) > 0) then v_1 = ""
+Rule 18 (true_classes tensor should have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 20 (range_max must be greater than num_reserved_ids)
-{v_1 : int, v_2 : int} |= v_1 > v_2
+Rule 19 (distortion should not be too large or too small)
+{v_1 : float} |= v_1 > -1000 ∧ v_1 < 1000
 >>
-Rule 21 (If unigrams are provided, their elements should be non-negative)
-{v_1 : list(float)} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
+Rule 22 (num_sampled should fit in int32 range)
+{v_1 : int} |= v_1 < 2147483647 ∧ v_1 > -2147483648
 >>
-Rule 22 (if unique is true, then num_sampled must be less than or equal to range_max.)
-{v_1 : bool, v_2 : int, v_3 : int} |= if v_1 = true then v_2 ≤ v_3
+Rule 26 (shard should be a non-negative integer and less than num_shards if num_shards > 1)
+{v_1 : int, v_2 : int} |= v_1 ≥ 0 ∧ (if v_2 > 1 then v_1 < v_2)
 >>
-Rule 23 (true_classes tensor should contain only non-negative values)
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 27 (Exactly one of vocab_file and unigrams should be passed)
+{v_1 : str, v_2 : list(float)} |= (v_1 ≠ "") ≠ (v_2.len > 0)
 >>
-Rule 24 (true_classes shape[1] should equal num_true if ndim(true_classes) > 1)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 1 then shape(v_1, 1) = v_2
->>
-Rule 25 (If shard and num_shards are given then 0 <= shard < num_shards)
-{v_1: int, v_2: int} |= if v_1 > 0 ∧ v_2 > 0 then v_2 > 0 ∧ v_1 > v_2
->>
-Rule 26 (num_sampled must be less than range_max)
-{v_1 : int, v_2 : int} |= v_1 ≤ v_2
->>
-Rule 27 (If num_reserved_ids is specified, then it must be less than range_max)
+Rule 35 (shard should be less than num_shards)
 {v_1 : int, v_2 : int} |= v_1 < v_2
 >>
-Rule 31 (if num_reserved_ids is given, unigrams size must be range_max - num_reserved_ids)
-{v_1 : int, v_2 : int, v_3 : list(float)} |= if v_1 > 0 then shape(v_3, 0) = v_2 - v_1
+Rule 37 (If unigrams is specified, it should have length range_max)
+{v_1 : list(float), v_2 : int} |= if v_1.len > 0 then v_1.len = v_2
 >>
-Rule 32 (Distortion has some relationship with unigrams)
-{v_1 : list(float), v_2 : float} |= if (∃i ∈ [0, 0] : shape(v_1, i) > 0) then true else v_2 = 0.0
+Rule 39 (num_true should be less or equal than range_max)
+{v_1 : int, v_2 : int} |= v_1 <= v_2
 >>
-Rule 34 (Checking condition between num_true and num_sampled)
-{v_1 : int, v_2 : int} |=  v_1 ≥ 0 ∧ v_2 ≥ 0
+Rule 41 (num_sampled should be a smallish number to fit into memory)
+{v_1 : int} |= v_1 < 1000000
 >>
-Rule 36 (if vocab_file is defined, num_reserved_ids must be valid)
-{v_1 : str, v_2 : int, v_3 : int} |= if v_1 ≠ "" then v_2 ≥ 0 ∧ v_2 < v_3
+Rule 42 (range_max should not be too large)
+{v_1 : int} |= v_1 < 1000000000
 >>
-Rule 37 (the unigrams list length is valid)
-{v_1 : list(float), v_2 : int, v_3 : int} |= if (∃i ∈ [0, 0] : shape(v_1, i) > 0) then shape(v_1,0) = v_2 - v_3
+Rule 45 (num_sampled should be positive and less than range_max)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_1 < v_2
 >>
-Rule 38 (true_classes's shape[0] should be related with batch_size which can affect other hyperparameter)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 46 (Exactly one of vocab_file and unigrams should be specified)
+{v_1 : str, v_2 : list(float)} |= (v_1 = "") = (v_2.len = 0)
 >>
-Rule 39 (relationship between num_sampled and range_max when unique is set to false)
-{v_1 : bool, v_2 : int, v_3 : int} |= if v_1 = false then v_2 > 0 ∧ v_3 > 0
+Rule 48 (num_true cannot exceed range_max)
+{v_1 : int, v_2 : int} |= v_1 ≤ v_2
 >>
-Rule 41 (If num_shard = 1, then shard must be zero.)
-{v_1 : int, v_2 : int} |= if v_1 = 1 then v_2 = 0
->>
-Rule 43 (if unigrams is empty, then distortion should be 0.)
-{v_1: list(float), v_2: float} |= if (∀i ∈ [0, 0] : shape(v_1,i) = 0) then v_2 = 0.0
->>
-Rule 45 (Check that the shape of unigrams is less than int64 max size)
-{v_1 : list(float)} |= shape(v_1, 0) < 9223372036854775807
->>
-Rule 46 (If the true_classes tensor is not empty, then shape[0] must be greater than 0)
-{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then shape(v_1, 0) > 0
->>
-Rule 49 (if unigrams is not provided, range_max must not be zero)
-{v_1 : list(float), v_2 : int} |= if (∀i ∈ [0, 0] : shape(v_1, i) = 0) then v_2 > 0
->>
-Rule 50 (distortion is between 0 and 1 if unigrams is not empty)
-{v_1 : list(float), v_2 : float} |= if (∃i ∈ [0, 0] : shape(v_1, i) > 0) then v_2 ≥ 0 ∧ v_2 ≤ 1
->>
-Rule 51 (unigram list must be a valid list to access, therefore must have at least one element.)
-{v_1 : list(float)} |= ndim(v_1) = 1
->>
-Rule 52 (if shard is not zero, num_shards must be positive)
-{v_1: int, v_2: int} |= if v_1 ≠ 0 then v_2 > 0
->>
-Rule 53 (shape of true_classes must be greater than num_true)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then shape(v_1,0) ≥ v_2
->>
-Rule 54 (If num_shards > 1 then true_classes shape must be divisible by num_shards)
-{v_1 : tensor, v_2 : int} |= if v_2 > 1 then shape(v_1, 0) % v_2 = 0
->>
-Rule 56 (Relationship between num_sampled and range_max based on unique parameter.)
-{v_1 : bool, v_2 : int, v_3 : int} |= if v_1 = true then v_2 ≤ v_3 else v_2 > 0 ∧ v_3 > 0
->>
-Rule 57 (If vocab_file or unigrams is not provided, it will throw exception)
-{v_1:str, v_2: list(float)} |= (v_1 ≠ "") ∨ (∃i ∈ [0, 0]: shape(v_2, i) > 0)
->>
-Rule 59 (When shard and num_shards are used together, they should have particular property such as 0 <= shard < num_shards)
-{v_1 : int, v_2 : int} |= if v_1 > 1 then v_2 ≥ 0 ∧ v_2 < v_1
->>
-Rule 61 (unigrams and vocab_file must be mutually exclusive.)
-{v_1 : str, v_2 : list(float)} |= (v_1 = "" ∧ (∃i ∈ [0, 0]: shape(v_2, i) > 0)) ∨ ((v_1 ≠ "") ∧ (∀i ∈ [0, 0]: shape(v_2, i) = 0))
->>
-Rule 62 ( distortion must be between [0, 1], and must not be empty)
-{v_1 : float} |= v_1 >= 0 ∧ v_1 <=1
->>
-Rule 66 (When unigrams list is provided, range_max must be greater or equal to length of unigrams)
-{v_1 : list(float), v_2 : int} |= if (∃i ∈ [0, 0] : shape(v_1, i) > 0) then v_2 ≥ shape(v_1, 0)
->>
-Rule 67 (number of samples to sample must be valid if unique is enabled)
-{v_1 : bool, v_2 : int, v_3 : int} |= if v_1 = true then v_2 > 0 ∧ v_2 ≤ v_3
->>
-Rule 68 (if shard !=0 then num_shards should not be 0 and should be consistent)
-{v_1 : int, v_2 : int} |= if v_1 ≠ 0 then v_2 > 1
->>
-Rule 69 (If true_classes is provided as input, its shape must have valid values in all dimensions)
-{v_1: tensor} |= ndim(v_1) > 0 ∧ (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0)
->>
-Rule 71 (If there are reserved IDs, the distortion cannot be too skewed)
-{v_1 : int, v_2 : float} |= if v_1 > 0 then v_2 > -1000
->>
-Rule 72 (unigrams list values are probabilities so must be less or equal to one.)
-{v_1 : list(float)} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≤ 1
->>
-Rule 73 (unigrams must be a valid tensor to be accessed in code.)
-{v_1 : list(float)} |= shape(v_1, 0) > 0
->>
-Rule 77 (Check to make sure num_true does not exceed maximum limit of integer)
+Rule 50 (num_sampled cannot be too big and cause int32 overflow)
 {v_1 : int} |= v_1 < 2147483647
 >>
-Rule 79 (Check to make sure unigrams values are probabilities, so they should be less than or equal to one and greater than or equal to 0)
-{v_1 : list(float)} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≤ 1 ∧ v_1[i] ≥ 0
+Rule 75 (num_sampled should be a valid int32 value)
+{v_1 : int} |= v_1 ≥ 1 ∧ v_1 < 2147483647
 >>
-Rule 81 (Shape of true_classes must have dimension zero greater than zero)
-{v_1 : tensor} |= shape(v_1,0) > 0
+Rule 78 (shard should be a non-negative int32 value)
+{v_1 : int} |= v_1 ≥ 0 ∧ v_1 < 2147483647
 >>
-Rule 84 (num_sampled must be a valid value, which is number of samples to sample and also it should not exceed range_max.)
-{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_1 <= v_2
+Rule 80 (shard must be less than num_shards and both should be positive)
+{v_1 : int, v_2 : int} |= v_1 < v_2 ∧ v_1 >= 0 ∧ v_2 >= 1
 >>
-Rule 85 (The seed cannot be larger than max int64 value.)
-{v_1 : int} |= v_1 < 9223372036854775807
+Rule 83 (num_sampled must be a valid positive int32)
+{v_1 : int} |= v_1 > 0 ∧ v_1 < 2147483647
 >>
-Rule 86 (If unigrams values are given, the sum of all values must be positive)
-{v_1 : list(float)} |= (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0)
+Rule 88 (shard must be less than num_shards and num_shards at least 1)
+{v_1 : int, v_2 : int} |= v_1 < v_2 ∧ v_2 ≥ 1 ∧ v_1 ≥ 0
 >>
-Rule 87 (If a shard is specified, num_shards must also be specified)
-{v_1 : int, v_2 : int} |= if v_1 > -1 then v_2 > 0
+Rule 89 (Either vocab_file or unigrams must be specified but not both)
+{v_1 : str, v_2 : list(float)} |= (v_1 = "" ∧ v_2.len > 0) ∨ (v_1 ≠ "" ∧ v_2.len = 0)
 >>
-Rule 92 (If vocab_file is specified then it must not have zero length)
-{v_1 : str} |= v_1 ≠ ""
+Rule 96 (shard should be less than num_shards if num_shards > 1, and shard needs to be non-negative)
+{v_1 : int, v_2 : int} |= (if v_2 > 1 then v_1 < v_2) ∧ v_1 ≥ 0
 >>
-Rule 94 (When partitioning, shard value must be within range max)
-{v_1 : int, v_2: int} |= if v_1 > 0 then v_2 < 2147483647
+Rule 105 (shard must be less than num_shards if num_shards > 1, and shard needs to be non-negative, and num_shards at least 1)
+{v_1 : int, v_2 : int} |= (if v_2 > 1 then v_1 < v_2) ∧ v_1 ≥ 0 ∧ v_2 ≥ 1
 >>
-Rule 95 (if unigrams is used, at least one value in the list must be greater than zero)
-{v_1: list(float)} |= (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0)
+Rule 106 (Exactly one of vocab_file or unigrams must be specified)
+{v_1 : str, v_2 : list(float)} |= (v_1 = "") ≠ (v_2.len = 0)
+>>
+Rule 115 (shard must be less than num_shards, both non-negative, and num_shards at least 1)
+{v_1 : int, v_2 : int} |= v_1 < v_2 ∧ v_1 ≥ 0 ∧ v_2 ≥ 1
+>>
+Rule 120 (num_shards should be greater than shard)
+{v_1 : int, v_2 : int} |= v_1 > v_2
+>>
+Rule 140 (true_classes must be a tensor of type int64)
+{v_1 : tensor} |= dtype_(v_1) = 4

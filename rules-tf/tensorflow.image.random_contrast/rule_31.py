@@ -5,42 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# image must be a tensor with at least 3 dimensions, lower and upper are floats and upper > lower, lower >=0. (Rule 31)
+# lower must be less than a reasonable value (Rule 31)
 
 rule_31 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_ndim"] >= 3, v["arg3_value"] > v["arg2_value"]), v["arg2_value"] >= 0)) if n else
-          And(And(v["arg1_ndim"] >= 3, v["arg3_value"] > v["arg2_value"]), v["arg2_value"] >= 0))
+    s.add(Not(v["arg1_value"] < 1000) if n else
+          v["arg1_value"] < 1000)
 )
 
-def rule_31_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_31_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
-            return False
-        if not isinstance(arg2, (float, np.floating)):
-            return False
-        if not isinstance(arg3, (float, np.floating)):
+        if not isinstance(arg1, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_value = Real('arg2_value')
-        arg3_value = Real('arg3_value')
+        arg1_value = Real('arg1_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_value == arg2)
-        solver.add(arg3_value == arg3)
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 31
-        rule_31(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
+        rule_31(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_31(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)
+        rule_31(solver, {'arg1_value': arg1['value']}, neg)

@@ -1,111 +1,141 @@
 >>
-Rule 1 (input and filters must have the same dtype)
-{input : tensor, filters : tensor} |= dtype_(input) = dtype_(filters)
+Rule 1 (data_format should be either NHWC or NCHW)
+{v_1 : str} |= v_1 = "NHWC" ∨ v_1 = "NCHW"
 >>
-Rule 2 (output_shape must be a 1-D tensor)
-{output_shape : tensor} |= ndim(output_shape) = 1
+Rule 2 (dilations should be of length 1, 2 or 4)
+{v_1 : list(int)} |= v_1.len = 1 ∨ v_1.len = 2 ∨ v_1.len = 4
 >>
-Rule 4 (If strides is a list, it must have length 1, 2 or 4)
-{strides : list(int)} |= shape(strides, 0) = 1 ∨ shape(strides, 0) = 2 ∨ shape(strides, 0) = 4
+Rule 4 (padding should be either SAME or VALID if it is string)
+{v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID"
 >>
-Rule 5 (padding must be "SAME" or "VALID" or a list of lists of ints)
-{padding : str ⊎ list(list(int))} |= padding = "SAME" ∨ padding = "VALID"
+Rule 5 (output_shape should be of length 1)
+{v_1 : tensor} |= ndim(v_1) = 1
 >>
-Rule 6 (If padding is a list of lists, it has to have shape (4,2))
-{padding : list(list(int))} |= shape(padding, 0) = 4 ∧ shape(padding, 1) = 2
+Rule 6 (data_format should not be empty)
+{v_1 : str} |= v_1 ≠ ""
 >>
-Rule 7 (data_format must be 'NHWC' or 'NCHW')
-{data_format : str} |= data_format = "NHWC" ∨ data_format = "NCHW"
+Rule 7 (input and filters must have the same type)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 9 (If dilations is a list, it must have length 1, 2 or 4)
-{dilations : list(int)} |= shape(dilations, 0) = 1 ∨ shape(dilations, 0) = 2 ∨ shape(dilations, 0) = 4
+Rule 8 (strides must be a list of positive integers)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 10 (input must be a 4-D tensor)
-{input : tensor} |= ndim(input) = 4
+Rule 9 (The number of input channels should be equal to filter's in_channels)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NHWC" then shape(v_1, 3) = shape(v_2, 3) else shape(v_1, 1) = shape(v_2, 3)
 >>
-Rule 11 (filters must be a 4-D tensor)
-{filters : tensor} |= ndim(filters) = 4
+Rule 10 (The height and width of filters should be positive)
+{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
 >>
-Rule 12 (output shape last two dimensions must be greater than 0)
-{output_shape : tensor} |= output_shape[1] > 0 ∧ output_shape[2] > 0
+Rule 11 (The input tensor must be 4-D)
+{v_1 : tensor} |= ndim(v_1) = 4
 >>
-Rule 13 (the in_channels dimension of filters must match that of input)
-{input : tensor, filters : tensor, data_format : str} |= if data_format = "NHWC" then shape(filters, 3) = shape(input, 3) else shape(filters, 3) = shape(input, 1)
+Rule 15 (output_shape should have positive values)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1,0)-1]: v_1[i] > 0
 >>
-Rule 14 (dilations in batch and depth dimensions, if a 4-d tensor, must be 1)
-{dilations : list(int)} |= dilations[0] = 1 ∧ dilations[3] = 1
+Rule 16 (The filter's in_channels dimension must match that of input)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NHWC" then shape(v_1, 3) = shape(v_2, 3) else shape(v_1, 1) = shape(v_2, 1)
 >>
-Rule 15 (input tensor must be float)
-{input : tensor} |= dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 6
+Rule 19 (input tensor must have height and width dimensions greater than 0)
+{v_1: tensor} |= shape(v_1,1) > 0 ∧ shape(v_1,2) > 0
 >>
-Rule 25 (output shape last two dimensions must be greater than 0)
-{output_shape : tensor} |= shape(output_shape, 0) > 0 ∧ shape(output_shape, 1) > 0
+Rule 20 (filters tensor must have height and width dimensions greater than 0)
+{v_1: tensor} |= shape(v_1,0) > 0 ∧ shape(v_1,1) > 0
 >>
-Rule 27 (dilations in batch and depth dimensions, if a 4-d tensor, must be 1)
-{dilations : list(int)} |= dilations[0] = 1 ∧ dilations[ndim(dilations)-1] = 1
+Rule 21 (The filter's in_channels dimension must match that of input when data_format is NHWC)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NHWC" then shape(v_1, 3) = shape(v_2, 3)
 >>
-Rule 30 (strides must be positive)
-{strides: int} |= strides > 0
+Rule 22 (The filter's in_channels dimension must match that of input when data_format is NCHW)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NCHW" then shape(v_1, 1) = shape(v_2, 1)
 >>
-Rule 31 (dilations must be positive)
-{dilations: int} |= dilations > 0
+Rule 25 (output_shape should have length equal to the number of spatial dimensions, which is 2)
+{v_1 : tensor} |= shape(v_1, 0) = 2
 >>
-Rule 33 (Output shape values must be positive)
-{output_shape : tensor} |= ∀i ∈ [0, ndim(output_shape) -1] : output_shape[i] > 0
+Rule 27 (The output_shape must be a 1D tensor of positive integers)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
 >>
-Rule 34 (Output shape must be positive.)
-{output_shape : tensor} |= ∀i ∈ [0, ndim(output_shape) - 1] : output_shape[i] > 0
+Rule 28 (strides elements must be integers)
+{v_1 : list(float) ⊎ list(int)} |=  ∀i ∈ [0, v_1.len - 1] : v_1[i] = (v_1[i])
 >>
-Rule 36 (If dilations is an integer, it must be positive.)
-{dilations : int} |= dilations > 0
+Rule 29 (If padding is explicit, its length should equal to the number of dimensions in input)
+{v_1 : list(list(int)), v_2 : tensor} |= if v_1.len > 0 then v_1.len = ndim(v_2)
 >>
-Rule 37 (If strides is an integer, it must be positive.)
-{strides : int} |= strides > 0
+Rule 30 (if dilations is a list, its length should equal to the number of dimensions in input)
+{v_1 : list(int), v_2 : tensor} |= if v_1.len > 0 then v_1.len = ndim(v_2)
 >>
-Rule 43 (The height and width of the filters must be positive.)
-{filters : tensor} |= shape(filters, 0) > 0 ∧ shape(filters, 1) > 0
+Rule 32 (strides elements must be integers)
+{v_1 : list(float) ⊎ list(int)} |=  ∀i ∈ [0, v_1.len - 1] : (v_1[i] - (v_1[i] % 1)) = 0
 >>
-Rule 45 (If the strides is a list, the first and last elements should be 1)
-{strides : list(int)} |= strides[0] = 1 ∧ strides[shape(strides, 0) - 1] = 1
+Rule 35 (Filter's height and width should not exceed the input's height and width)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NHWC" then shape(v_2, 0) ≤ shape(v_1, 1) ∧ shape(v_2, 1) ≤ shape(v_1, 2) else shape(v_2, 0) ≤ shape(v_1, 2) ∧ shape(v_2, 1) ≤ shape(v_1, 3)
 >>
-Rule 46 (If the dilations is a list, the first and last elements should be 1)
-{dilations : list(int)} |= dilations[0] = 1 ∧ dilations[shape(dilations, 0) - 1] = 1
+Rule 37 (strides elements must be integers)
+{v_1 : list(float) ⊎ list(int)} |=  ∀i ∈ [0, v_1.len - 1] : (v_1[i] % 1) = 0
 >>
-Rule 47 (Filters last dimension must be greater than zero)
-{filters : tensor} |= shape(filters, ndim(filters) - 1) > 0
+Rule 38 (output_shape should be of a certain range)
+{v_1 : tensor, v_2 : tensor, v_3 : list(int)} |= shape(v_1,0) > 0 ∧ shape(v_1,1) > 0 ∧ if v_3.len = 1 then shape(v_1,1) ≤ shape(v_2,0)*(v_3[0]) else if v_3.len = 2 then shape(v_1,1) ≤ shape(v_2,0)*(v_3[0]) ∧ shape(v_1,0) ≤ shape(v_2,1)*(v_3[1]) else if v_3.len = 4 then shape(v_1,1) ≤ shape(v_2,0)*(v_3[1]) ∧ shape(v_1,0) ≤ shape(v_2,1)*(v_3[2]) else false
 >>
-Rule 48 (Output Shape tensor must be of integer type)
-{output_shape : tensor} |= dtype_(output_shape) = 1 ∨ dtype_(output_shape) = 2 ∨ dtype_(output_shape) = 3 ∨ dtype_(output_shape) = 4 ∨ dtype_(output_shape) = 5
+Rule 39 (data_format should be from the list of valid values)
+{v_1: str} |= v_1 = "NHWC" ∨ v_1 = "NCHW"
 >>
-Rule 50 (If the strides is a list, all elements must be positive)
-{strides : list(int)} |= ∀i ∈ [0, shape(strides, 0) - 1] : strides[i] > 0
+Rule 40 (padding should be from the list of valid values)
+{v_1: str} |= v_1 = "SAME" ∨ v_1 = "VALID"
 >>
-Rule 51 (If the dilations is a list, all elements must be positive)
-{dilations : list(int)} |= ∀i ∈ [0, shape(dilations, 0) - 1] : dilations[i] > 0
+Rule 42 (strides elements must be integers)
+{v_1 : list(float) ⊎ list(int)} |=  ∀i ∈ [0, v_1.len - 1] : if (v_1[i] - (v_1[i] % 1)) = 0 then true else false
 >>
-Rule 57 (The number of output channels in filters must be greater than zero)
-{filters : tensor} |= shape(filters, 2) > 0
+Rule 48 (If data_format is NCHW, the filter's channel dimension must match the input's)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NCHW" then shape(v_1, 1) = shape(v_2, 3)
 >>
-Rule 58 (The number of input channels in filters must be greater than zero)
-{filters : tensor} |= shape(filters, 3) > 0
+Rule 50 (Dilations values in the batch and depth dimension must be 1)
+{v_1 : list(int), v_2 : str} |= if v_1.len = 4 ∧ v_2 = "NHWC" then v_1[0] = 1 ∧ v_1[3] = 1 else if v_1.len = 4 ∧ v_2 = "NCHW" then v_1[0] = 1 ∧ v_1[1] = 1
 >>
-Rule 65 (If strides is an integer, the input's height and width dimensions must be divisible by it.)
-{input : tensor, strides : int, data_format : str} |= if data_format = "NHWC" then shape(input, 1) % strides = 0 ∧ shape(input, 2) % strides = 0 else shape(input, 2) % strides = 0 ∧ shape(input, 3) % strides = 0
+Rule 55 (Dilations values in the batch and depth dimension must be 1)
+{v_1 : list(int), v_2 : tensor, v_3 : str} |= if v_1.len = ndim(v_2) then (if v_3 = "NHWC" then v_1[0] = 1 ∧ v_1[3] = 1 else if v_3 = "NCHW" then v_1[0] = 1 ∧ v_1[1] = 1)
 >>
-Rule 66 (If dilations is an integer, its value must be greater than or equal to 1.)
-{dilations : int} |= dilations ≥ 1
+Rule 57 (If data_format is NCHW, the filter's height and width must be smaller than the input tensor's.)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NCHW" then shape(v_2, 1) ≤ shape(v_1, 2) ∧ shape(v_2, 0) ≤ shape(v_1, 3)
 >>
-Rule 67 (The filter height must be less than or equal to the input height)
-{input : tensor, filters : tensor, data_format : str} |= if data_format = "NHWC" then shape(filters, 0) ≤ shape(input, 1) else shape(filters, 0) ≤ shape(input, 2)
+Rule 58 (If data_format is NHWC, the filter's height and width must be smaller than the input tensor's.)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NHWC" then shape(v_2, 0) ≤ shape(v_1, 1) ∧ shape(v_2, 1) ≤ shape(v_1, 2)
 >>
-Rule 68 (The filter width must be less than or equal to the input width)
-{input : tensor, filters : tensor, data_format : str} |= if data_format = "NHWC" then shape(filters, 1) ≤ shape(input, 2) else shape(filters, 1) ≤ shape(input, 3)
+Rule 60 (Output channels must be positive)
+{v_1: tensor} |= shape(v_1,0) > 0
 >>
-Rule 70 (If strides is an integer, the output shape’s height and width must be divisible by it given NHWC format)
-{output_shape : tensor, strides : int} |= shape(output_shape, 1) % strides = 0 ∧ shape(output_shape, 2) % strides = 0
+Rule 67 (Output channels should be positive, i.e. 4th dimension of filters should be positive)
+{v_1 : tensor} |= shape(v_1, 3) > 0
 >>
-Rule 72 (The number of input channels in filters must be the same as the number of channels in the input, when data format is NHWC)
-{input : tensor, filters : tensor} |= shape(input, 3) = shape(filters, 3)
+Rule 70 (The filter's output_channels dimension must be positive)
+{v_1: tensor} |= shape(v_1,2) > 0
 >>
-Rule 73 (If the data format is NCHW, the number of input channels in filters must be the same as the number of channels in the input)
-{input : tensor, filters : tensor} |= shape(input, 1) = shape(filters, 3)
+Rule 73 (If strides is of length 1, replicate it)
+{v_1 : list(int)} |= if v_1.len = 1 then v_1[0] > 0
+>>
+Rule 75 (Output channels (3rd dimension of the filter) should be positive)
+{v_1: tensor} |= shape(v_1, 2) > 0
+>>
+Rule 77 (Strides should be integer)
+{v_1 : list(float) ⊎ list(int)} |=  ∀i ∈ [0, v_1.len - 1] : ((v_1[i] - (v_1[i] % 1)) = 0)
+>>
+Rule 80 (Dilations values in the batch and depth dimension must be 1 when data format is NHWC)
+{v_1 : list(int), v_2 : tensor, v_3 : str} |= if (v_1.len = ndim(v_2)) ∧ v_3 = "NHWC" then (v_1[0] = 1 ∧ v_1[3] = 1)
+>>
+Rule 83 (If data_format is NCHW, the filter's height and width must be smaller than the input tensor's.)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NCHW" then shape(v_2, 0) ≤ shape(v_1, 2) ∧ shape(v_2, 1) ≤ shape(v_1, 3)
+>>
+Rule 85 (If dilations is a list of 4 elements, values at the batch and depth dimension must be 1 when data format is NHWC)
+{v_1 : list(int), v_2 : str} |= if (v_1.len = 4) ∧ (v_2 = "NHWC") then (v_1[0] = 1 ∧ v_1[3] = 1)
+>>
+Rule 87 (The number of input channels must be equal to filter's in_channels according to data format.)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NHWC" then shape(v_1,3) = shape(v_2,3) else shape(v_1, 1) = shape(v_2,3)
+>>
+Rule 90 (Output channels (3rd dimension of the filter when data format is NHWC, 1st dimension of filter when data format is NCHW) should be positive)
+{v_1: tensor, v_2 : str} |= if v_2 = "NHWC" then shape(v_1, 2) > 0 else shape(v_1, 3) > 0
+>>
+Rule 92 (Output channels should be positive, i.e. 4th dimension of filters when data format is NHWC and 1st dimension of filter when data format is NCHW should be positive)
+{v_1: tensor, v_2 : str} |= if v_2 = "NHWC" then shape(v_1,3) > 0 else shape(v_1, 2) > 0
+>>
+Rule 98 (Dilations values in the batch and depth dimension must be 1 when the tensor is 4D.)
+{v_1 : list(int), v_2 : tensor, v_3 : str} |= if (ndim(v_2) = 4) ∧ (v_3 = "NHWC") then (v_1[0] = 1 ∧ v_1[3] = 1) else if (ndim(v_2) = 4) ∧ (v_3 = "NCHW") then (v_1[0] = 1 ∧ v_1[1] = 1)
+>>
+Rule 100 (Input and filter tensors should have the same data type)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the image is grayscale, then the last dimension must be 1 (Rule 24)
+# images must have positive shape (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 1, True, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 3)) if n else
-          If(Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 1, True, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 3))
+    s.add(Not(And([Implies(i < (If(v["arg1_ndim"] > 0, v["arg1_ndim"] - 1, 0) + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])) if n else
+          And([Implies(i < (If(v["arg1_ndim"] > 0, v["arg1_ndim"] - 1, 0) + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]))
 )
 
 def rule_24_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_24_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 24
-        rule_24(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_24(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_24(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_24(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

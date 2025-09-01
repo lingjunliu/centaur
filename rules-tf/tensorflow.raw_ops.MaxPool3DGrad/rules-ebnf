@@ -1,180 +1,204 @@
 >>
-Rule 1 (orig_input, orig_output, and grad must have the same type)
-{orig_input : tensor, orig_output : tensor, grad : tensor} |= dtype_(orig_input) = dtype_(orig_output) ∧ dtype_(orig_input) = dtype_(grad)
+Rule 1 (ksize must have length greater than or equal to 5)
+{v_1 : list(int)} |= v_1.len ≥ 5
 >>
-Rule 2 (ksize and strides must have length greater than or equal to 5)
-{ksize : list(int), strides : list(int)} |= ksize.len ≥ 5 ∧ strides.len ≥ 5
+Rule 3 (ksize[0] must be equal to 1)
+{v_1 : list(int)} |= v_1[0] = 1
 >>
-Rule 3 (ksize[0] and ksize[4] must be 1)
-{ksize : list(int)} |= ksize[0] = 1 ∧ ksize[4] = 1
+Rule 4 (ksize[4] must be equal to 1)
+{v_1 : list(int)} |= v_1[4] = 1
 >>
-Rule 4 (strides[0] and strides[4] must be 1)
-{strides : list(int)} |= strides[0] = 1 ∧ strides[4] = 1
+Rule 7 (padding must be either "SAME" or "VALID")
+{v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID"
 >>
-Rule 5 (padding must be either "SAME" or "VALID")
-{padding : str} |= padding = "SAME" ∨ padding = "VALID"
+Rule 8 (data_format must be either "NDHWC" or "NCDHW")
+{v_1 : str} |= v_1 = "NDHWC" ∨ v_1 = "NCDHW"
 >>
-Rule 6 (data_format must be either "NDHWC" or "NCDHW")
-{data_format : str} |= data_format = "NDHWC" ∨ data_format = "NCDHW"
+Rule 9 (orig_input, orig_output, and grad must have the same type)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
 >>
-Rule 7 (orig_input must be half, bfloat16, or float32)
-{orig_input : tensor} |= dtype_(orig_input) = 6 ∨ dtype_(orig_input) = 7 ∨ dtype_(orig_input) = 8
+Rule 10 (orig_input must be of type half, bfloat16, or float32)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 8 (grad must be half, bfloat16, or float32)
-{grad : tensor} |= dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8
+Rule 13 (grad tensor's rank should be 5)
+{v_1 : tensor} |= ndim(v_1) = 5
 >>
-Rule 9 (orig_input, orig_output, and grad tensors should have the same number of dimensions)
-{orig_input : tensor, orig_output : tensor, grad : tensor} |= ndim(orig_input) = ndim(orig_output) ∧ ndim(orig_input) = ndim(grad)
+Rule 14 (ksize and strides must have the same length if both are present)
+{v_1 : list(int), v_2 : list(int)} |= v_1.len = v_2.len
 >>
-Rule 10 (If data_format is NCDHW, the input tensor's second dimension matches the channels size)
-{orig_input : tensor, data_format : str} |= if data_format = "NCDHW" then shape(orig_input, 1) > 0
+Rule 15 (orig_input and orig_output must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 11 (If data_format is NDHWC, the input tensor's last dimension matches the channels size)
-{orig_input : tensor, data_format : str} |= if data_format = "NDHWC" then shape(orig_input, ndim(orig_input) - 1) > 0
+Rule 16 (if data_format is NCDHW, then shape requirements exist)
+{v_1 : tensor, v_2 : list(int), v_3: str} |= if v_3 = "NCDHW" then shape(v_1, 1) = v_2[1]
 >>
-Rule 12 (ksize and strides should have only positive integer values)
-{ksize : list(int), strides : list(int)} |= (∀i ∈ [0, ksize.len - 1] : ksize[i] > 0) ∧ (∀i ∈ [0, strides.len - 1] : strides[i] > 0)
+Rule 17 (ksize elements must be positive)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 13 (The length of ksize and strides lists should be equal)
-{ksize : list(int), strides : list(int)} |= ksize.len = strides.len
+Rule 19 (orig_input shape[2] should be greater than ksize[2])
+{v_1: tensor, v_2: list(int)} |= shape(v_1, 2) >= v_2[2]
 >>
-Rule 14 (orig_input, orig_output, grad should have 5 dimensions)
-{orig_input : tensor, orig_output : tensor, grad : tensor} |= ndim(orig_input) = 5 ∧ ndim(orig_output) = 5 ∧ ndim(grad) = 5
+Rule 20 (orig_input shape[3] should be greater than ksize[3])
+{v_1: tensor, v_2: list(int)} |= shape(v_1, 3) >= v_2[3]
 >>
-Rule 18 (The first dimension of grad should be the same as the first dimension of orig_input)
-{orig_input : tensor, grad : tensor} |= shape(orig_input, 0) = shape(grad, 0)
+Rule 21 (orig_input's dimensions must be greater than or equal to ksize's length if data_format is NDHWC.)
+{v_1: tensor, v_2: list(int), v_3: str} |= if v_3 = "NDHWC" then ndim(v_1) ≥ v_2.len
 >>
-Rule 19 (orig_output and grad should have the same shape)
-{orig_output : tensor, grad : tensor} |= ndim(orig_output) = ndim(grad) ∧ ∀i ∈ [0, ndim(orig_output) - 1] : shape(orig_output, i) = shape(grad, i)
+Rule 22 (strides elements should be greater than 0 and less than or equal to the corresponding input shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ v_2[i] ≤ shape(v_1, i)
 >>
-Rule 20 (If padding is SAME, then strides must be less than or equal to ksize)
-{padding : str, strides : list(int), ksize : list(int)} |= if padding = "SAME" then ∀i ∈ [0, strides.len - 1] : strides[i] ≤ ksize[i]
+Rule 23 (If data format is NCDHW the input depth should be greater than or equal to ksize's depth)
+{v_1: tensor, v_2: list(int), v_3: str} |= if v_3 = "NCDHW" then shape(v_1,2) >= v_2[2]
 >>
-Rule 23 (If data_format is not specified, default to NDHWC)
-{data_format : str} |= if data_format = "NDHWC" ∨ data_format = "NCDHW" ∨ data_format = "" then true else false
+Rule 24 (If data format is NCDHW the input height should be greater than or equal to ksize's height)
+{v_1: tensor, v_2: list(int), v_3: str} |= if v_3 = "NCDHW" then shape(v_1,3) >= v_2[3]
 >>
-Rule 24 (orig_input, orig_output, and grad should have the same shape if padding is VALID and strides are 1 and ksize are 1)
-{orig_input : tensor, orig_output : tensor, grad : tensor, padding : str, ksize : list(int), strides : list(int)} |= if padding = "VALID" ∧ (∀i ∈ [0, strides.len - 1] : strides[i] = 1) ∧ (∀i ∈ [0, ksize.len - 1] : ksize[i] = 1) then ndim(orig_input) = ndim(orig_output) ∧ ndim(orig_input) = ndim(grad) ∧ (∀i ∈ [0, ndim(orig_input) - 1] : shape(orig_input, i) = shape(orig_output, i) ∧ shape(orig_input, i) = shape(grad, i))
+Rule 25 (If data format is NDHWC the input height should be greater than or equal to ksize's height)
+{v_1: tensor, v_2: list(int), v_3: str} |= if v_3 = "NDHWC" then shape(v_1,1) >= v_2[2]
 >>
-Rule 25 (The values in ksize and strides lists should not be zero.)
-{ksize : list(int), strides : list(int)} |= (∀i ∈ [0, ksize.len - 1] : ksize[i] ≠ 0) ∧ (∀i ∈ [0, strides.len - 1] : strides[i] ≠ 0)
+Rule 26 (If data format is NDHWC the input width should be greater than or equal to ksize's width)
+{v_1: tensor, v_2: list(int), v_3: str} |= if v_3 = "NDHWC" then shape(v_1,2) >= v_2[3]
 >>
-Rule 27 (padding should be either VALID or SAME)
-{padding : str} |= padding = "VALID" ∨ padding = "SAME"
+Rule 27 (If data_format is NDHWC, the last dimension of orig_input and grad should be equal)
+{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "NDHWC" then shape(v_1, ndim(v_1) -1) = shape(v_2, ndim(v_2) -1)
 >>
-Rule 28 (data_format should be either NDHWC or NCDHW or be absent)
-{data_format : str} |= data_format = "NDHWC" ∨ data_format = "NCDHW" ∨ data_format = ""
+Rule 28 (If data_format is NCDHW, the second dimension of orig_input and grad should be equal)
+{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "NCDHW" then shape(v_1, 1) = shape(v_2, 1)
 >>
-Rule 29 (ksize and strides length should be the same as number of dimensions of input tensor)
-{orig_input : tensor, ksize : list(int), strides : list(int)} |= ksize.len = ndim(orig_input) ∧ strides.len = ndim(orig_input)
+Rule 29 (ksize.len should equal strides.len)
+{v_1: list(int), v_2: list(int)} |= v_1.len = v_2.len
 >>
-Rule 30 (If padding is VALID, the output dimensions should be smaller or equal to the input dimensions)
-{orig_input : tensor, orig_output : tensor, padding : str} |= if padding = "VALID" then ndim(orig_input) = ndim(orig_output) ∧ (∀i ∈ [0, ndim(orig_input) - 1] : shape(orig_output, i) ≤ shape(orig_input, i))
+Rule 30 (ksize and strides list length is at least 5)
+{v_1: list(int), v_2: list(int)} |= v_1.len >= 5 ∧ v_2.len >= 5
 >>
-Rule 31 (If data_format is NCDHW then second dimension of orig_input, orig_output and grad are equal)
-{orig_input : tensor, orig_output : tensor, grad : tensor, data_format : str} |= if data_format = "NCDHW" then shape(orig_input, 1) = shape(orig_output, 1) ∧ shape(orig_input, 1) = shape(grad, 1)
+Rule 31 (If padding is VALID, then orig_input shape should be greater or equal to ksize.)
+{v_1: tensor, v_2: list(int), v_3: str} |= if v_3 = "VALID" then shape(v_1, 1) >= v_2[1] ∧ shape(v_1, 2) >= v_2[2] ∧ shape(v_1, 3) >= v_2[3]
 >>
-Rule 32 (If data_format is NDHWC then last dimension of orig_input, orig_output and grad are equal)
-{orig_input : tensor, orig_output : tensor, grad : tensor, data_format : str} |= if data_format = "NDHWC" then shape(orig_input, ndim(orig_input) - 1) = shape(orig_output, ndim(orig_output) - 1) ∧ shape(orig_input, ndim(orig_input) - 1) = shape(grad, ndim(grad) - 1)
+Rule 32 (If data_format is NDHWC, the shape of orig_input should be [batch, depth, rows, cols, channels].)
+{v_1: tensor, v_2: str} |= if v_2 = "NDHWC" then ndim(v_1) = 5
 >>
-Rule 33 (ksize and strides must be a list of 5 positive integers)
-{ksize : list(int), strides: list(int)} |= ksize.len = 5 ∧ strides.len = 5 ∧ (∀i ∈ [0, 4] : ksize[i] > 0 ∧ strides[i] > 0)
+Rule 33 (If data_format is NCDHW, the shape of orig_input should be [batch, in_channels, in_depth, in_height, in_width].)
+{v_1: tensor, v_2: str} |= if v_2 = "NCDHW" then ndim(v_1) = 5
 >>
-Rule 34 (grad's dtype must match orig_input's dtype)
-{grad: tensor, orig_input: tensor} |= dtype_(grad) = dtype_(orig_input)
+Rule 36 (If data_format is NCDHW, then shape(orig_input, 0) == shape(grad, 0).)
+{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "NCDHW" then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 35 (orig_output's dtype must match orig_input's dtype)
-{orig_output: tensor, orig_input: tensor} |= dtype_(orig_output) = dtype_(orig_input)
+Rule 37 (If data_format is NDHWC, then shape(orig_input, 0) == shape(grad, 0).)
+{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "NDHWC" then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 42 (orig_input, orig_output, and grad must have data type of half, bfloat16, or float32)
-{orig_input : tensor, orig_output : tensor, grad : tensor} |= (dtype_(orig_input) = 6 ∨ dtype_(orig_input) = 7 ∨ dtype_(orig_input) = 8) ∧ (dtype_(orig_output) = 6 ∨ dtype_(orig_output) = 7 ∨ dtype_(orig_output) = 8) ∧ (dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8)
+Rule 40 (If data_format is NDHWC, then shape(orig_input, 4) == shape(grad, 4).)
+{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "NDHWC" then shape(v_1, 4) = shape(v_2, 4)
 >>
-Rule 43 (The size of ksize and stride must be 5.)
-{ksize: list(int), strides:list(int)} |= ksize.len = 5 ∧ strides.len = 5
+Rule 41 (If padding is VALID, then shape(orig_input, 1) >= ksize[1] and shape(grad, 1) >= 1.)
+{v_1: tensor, v_2: list(int), v_3: str, v_4: tensor} |= if v_3 = "VALID" then shape(v_1, 1) >= v_2[1] ∧ shape(v_4, 1) >= 1
 >>
-Rule 47 (ksize[0], ksize[4], strides[0], strides[4] must be equal to 1)
-{ksize: list(int), strides: list(int)} |= ksize[0] = 1 ∧ ksize[4] = 1 ∧ strides[0] = 1 ∧ strides[4] = 1
+Rule 42 (If data_format is NDHWC, the last dimension of orig_input and grad should be equal.)
+{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "NDHWC" then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 1)
 >>
-Rule 48 (orig_input and orig_output must have the same shape given certain conditions on padding, ksize, and strides)
-{orig_input : tensor, orig_output : tensor, padding : str, ksize : list(int), strides : list(int)} |= if padding = "SAME" ∧ (∀i ∈ [0, 4] : ksize[i] = 1 ∧ strides[i] = 1) then (∀i ∈ [0, ndim(orig_input)-1] : shape(orig_input, i) = shape(orig_output, i))
+Rule 43 (If strides[1] is greater than 1, then shape(orig_input, 1) != shape(grad, 1).)
+{v_1: tensor, v_2: list(int)} |= if v_2[1] > 1 then shape(v_1, 1) ≠ shape(v_1, 1)
 >>
-Rule 49 (grad and orig_output should be tensors with the same dtype)
-{grad : tensor, orig_output : tensor} |= dtype_(grad) = dtype_(orig_output)
+Rule 44 (If padding is VALID, then shape(orig_input, 2) >= ksize[2] and shape(grad, 2) >= 1.)
+{v_1: tensor, v_2: list(int), v_3: str, v_4: tensor} |= if v_3 = "VALID" then shape(v_1, 2) >= v_2[2] ∧ shape(v_4, 2) >= 1
 >>
-Rule 54 (orig_input, orig_output, grad should all have the same data_format)
-{data_format: str} |= data_format = "NDHWC" ∨ data_format = "NCDHW" ∨ data_format = ""
+Rule 45 (If strides[2] is greater than 1, then shape(orig_input, 2) != shape(grad, 2).)
+{v_1: tensor, v_2: list(int)} |= if v_2[2] > 1 then shape(v_1, 2) ≠ shape(v_1, 2)
 >>
-Rule 58 (If ksize or strides are not specified, they are defaulted to 1)
-{ksize : list(int), strides : list(int)} |= if ksize.len = 0 then true else if strides.len = 0 then true
+Rule 46 (If padding is VALID, then shape(orig_input, 3) >= ksize[3] and shape(grad, 3) >= 1.)
+{v_1: tensor, v_2: list(int), v_3: str, v_4: tensor} |= if v_3 = "VALID" then shape(v_1, 3) >= v_2[3] ∧ shape(v_4, 3) >= 1
 >>
-Rule 64 (ksize and strides should have 5 elements)
-{ksize: list(int), strides: list(int)} |= ksize.len = 5 ∧ strides.len = 5
+Rule 47 (The length of ksize should be the same as the number of dimensions of the input if data_format is not provided.)
+{v_1 : tensor, v_2 : list(int)} |= ndim(v_1) = v_2.len
 >>
-Rule 65 (The batch size of orig_input, orig_output, and grad tensors should be the same.)
-{orig_input : tensor, orig_output : tensor, grad : tensor} |= shape(orig_input, 0) = shape(orig_output, 0) ∧ shape(orig_input, 0) = shape(grad, 0)
+Rule 48 (If strides[3] is greater than 1, then shape(orig_input, 3) != shape(grad, 3).)
+{v_1: tensor, v_2: list(int)} |= if v_2[3] > 1 then shape(v_1, 3) ≠ shape(v_1, 3)
 >>
-Rule 67 (If data format is NDHWC the channel dimension is the last dimension of the tensor)
-{data_format : str} |= if data_format = "NDHWC" then true
+Rule 50 (If data_format is NDHWC then shape(orig_input,1) >= ksize[2])
+{v_1: tensor, v_2: list(int), v_3:str} |= if v_3 = "NDHWC" then shape(v_1,1) >= v_2[2]
 >>
-Rule 68 (If data format is NCDHW the channel dimension is the second dimension of the tensor)
-{data_format : str} |= if data_format = "NCDHW" then true
+Rule 53 (If data_format is NCDHW then shape(orig_input,2) >= ksize[2])
+{v_1: tensor, v_2: list(int), v_3:str} |= if v_3 = "NCDHW" then shape(v_1,2) >= v_2[2]
 >>
-Rule 69 (padding can be either SAME or VALID)
-{padding: str} |= padding = "SAME" ∨ padding = "VALID"
+Rule 55 (If data_format is NCDHW then shape(orig_input,3) >= ksize[3])
+{v_1: tensor, v_2: list(int), v_3:str} |= if v_3 = "NCDHW" then shape(v_1,3) >= v_2[3]
 >>
-Rule 70 (If data_format is NDHWC, then shapes of orig_input, orig_output, and grad should match except possibly for the channel dimension)
-{orig_input : tensor, orig_output : tensor, grad : tensor, data_format : str} |= if data_format = "NDHWC" then shape(orig_input, 0) = shape(orig_output, 0) ∧ shape(orig_input, 0) = shape(grad, 0) ∧ shape(orig_input, 1) = shape(orig_output, 1) ∧ shape(orig_input, 1) = shape(grad, 1) ∧ shape(orig_input, 2) = shape(orig_output, 2) ∧ shape(orig_input, 2) = shape(grad, 2) ∧ shape(orig_input, 3) = shape(orig_output, 3) ∧ shape(orig_input, 3) = shape(grad, 3)
+Rule 56 (Shape of grad and orig_output are equal)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 71 (If data_format is NCDHW, then shapes of orig_input, orig_output, and grad should match except possibly for the channel dimension)
-{orig_input : tensor, orig_output : tensor, grad : tensor, data_format : str} |= if data_format = "NCDHW" then shape(orig_input, 0) = shape(orig_output, 0) ∧ shape(orig_input, 0) = shape(grad, 0) ∧ shape(orig_input, 2) = shape(orig_output, 2) ∧ shape(orig_input, 2) = shape(grad, 2) ∧ shape(orig_input, 3) = shape(orig_output, 3) ∧ shape(orig_input, 3) = shape(grad, 3) ∧ shape(orig_input, 4) = shape(orig_output, 4) ∧ shape(orig_input, 4) = shape(grad, 4)
+Rule 58 (If data_format is NDHWC then shape(grad,1) >= 1)
+{v_1: tensor, v_2:str} |= if v_2 = "NDHWC" then shape(v_1,1) >= 1
 >>
-Rule 74 (The first and last elements of ksize and strides must be 1)
-{ksize : list(int), strides : list(int)} |= ksize[0] = 1 ∧ ksize[4] = 1 ∧ strides[0] = 1 ∧ strides[4] = 1
+Rule 59 (If data_format is NCDHW then shape(grad,2) >= 1)
+{v_1: tensor, v_2:str} |= if v_2 = "NCDHW" then shape(v_1,2) >= 1
 >>
-Rule 75 (if data_format is specified, it has to be either NCDHW or NDHWC)
-{data_format: str} |= data_format = "NCDHW" ∨ data_format = "NDHWC"
+Rule 60 (If data_format is NDHWC then shape(grad,2) >= 1)
+{v_1: tensor, v_2:str} |= if v_2 = "NDHWC" then shape(v_1,2) >= 1
 >>
-Rule 80 (grad tensor must have dimension of 5)
-{grad: tensor} |= ndim(grad) = 5
+Rule 61 (If data_format is NCDHW then shape(grad,3) >= 1)
+{v_1: tensor, v_2:str} |= if v_2 = "NCDHW" then shape(v_1,3) >= 1
 >>
-Rule 81 (orig_input tensor must have dimension of 5)
-{orig_input: tensor} |= ndim(orig_input) = 5
+Rule 62 (If padding is SAME and strides[1] == 1 and data_format is NDHWC then shape(orig_input, 1) = shape(grad, 1))
+{v_1: tensor, v_2: list(int), v_3: str, v_4:str} |= if v_3 = "SAME" ∧ v_2[1] = 1 ∧ v_4 = "NDHWC" then shape(v_1, 1) = shape(v_1, 1)
 >>
-Rule 82 (orig_output tensor must have dimension of 5)
-{orig_output: tensor} |= ndim(orig_output) = 5
+Rule 63 (If data_format is NDHWC then shape(grad,3) >= 1)
+{v_1: tensor, v_2:str} |= if v_2 = "NDHWC" then shape(v_1,3) >= 1
 >>
-Rule 83 (ksize list must have length 5)
-{ksize: list(int)} |= ksize.len = 5
+Rule 64 (If data_format is NCDHW then shape(grad,4) >= 1)
+{v_1: tensor, v_2:str} |= if v_2 = "NCDHW" then shape(v_1,4) >= 1
 >>
-Rule 84 (strides list must have length 5)
-{strides: list(int)} |= strides.len = 5
+Rule 65 (If padding is SAME and strides[2] == 1 and data_format is NDHWC then shape(orig_input, 2) = shape(grad, 2))
+{v_1: tensor, v_2: list(int), v_3: str, v_4:str} |= if v_3 = "SAME" ∧ v_2[2] = 1 ∧ v_4 = "NDHWC" then shape(v_1, 2) = shape(v_1, 2)
 >>
-Rule 85 (If data_format is not specified, it will default to NDHWC.)
-{data_format: str} |= data_format = "NDHWC" ∨ data_format = ""
+Rule 66 (If padding is SAME and strides[3] == 1 and data_format is NDHWC then shape(orig_input, 3) = shape(grad, 3))
+{v_1: tensor, v_2: list(int), v_3: str, v_4:str} |= if v_3 = "SAME" ∧ v_2[3] = 1 ∧ v_4 = "NDHWC" then shape(v_1, 3) = shape(v_1, 3)
 >>
-Rule 86 (The dtypes of orig_input, orig_output and grad tensors must belong to half, bfloat16, float32.)
-{orig_input: tensor, orig_output: tensor, grad: tensor} |= (dtype_(orig_input) = 6) ∨ (dtype_(orig_input) = 7) ∨ (dtype_(orig_input) = 8) ∧ (dtype_(orig_output) = 6) ∨ (dtype_(orig_output) = 7) ∨ (dtype_(orig_output) = 8) ∧ (dtype_(grad) = 6) ∨ (dtype_(grad) = 7) ∨ (dtype_(grad) = 8)
+Rule 67 (If data_format is NCDHW then shape(grad,0) = shape(orig_input, 0))
+{v_1: tensor, v_2: tensor, v_3:str} |= if v_3 = "NCDHW" then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 87 (orig_input and orig_output should have the same shape)
-{orig_input : tensor, orig_output : tensor} |= ∀i ∈ [0, ndim(orig_input) - 1]: shape(orig_input, i) = shape(orig_output, i)
+Rule 68 (If data_format is NDHWC then shape(grad,0) = shape(orig_input, 0))
+{v_1: tensor, v_2: tensor, v_3:str} |= if v_3 = "NDHWC" then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 88 (orig_output and grad should have the same shape)
-{orig_output : tensor, grad : tensor} |= ∀i ∈ [0, ndim(orig_output) - 1]: shape(orig_output, i) = shape(grad, i)
+Rule 69 (If padding is SAME and strides[4] == 1 and data_format is NDHWC then shape(orig_input, 4) = shape(grad, 4))
+{v_1: tensor, v_2: list(int), v_3: str, v_4:str} |= if v_3 = "SAME" ∧ v_2[4] = 1 ∧ v_4 = "NDHWC" then shape(v_1, 4) = shape(v_1, 4)
 >>
-Rule 89 (If data_format is NDHWC, the channel sizes of orig_input, orig_output and grad should match)
-{orig_input : tensor, orig_output : tensor, grad: tensor, data_format: str} |= if data_format = "NDHWC" then shape(orig_input, 4) = shape(orig_output, 4) ∧ shape(orig_output, 4) = shape(grad, 4)
+Rule 70 (If padding is SAME and strides[2] == 1 and data_format is NCDHW then shape(orig_input, 2) = shape(grad, 2))
+{v_1: tensor, v_2: list(int), v_3: str, v_4:str} |= if v_3 = "SAME" ∧ v_2[2] = 1 ∧ v_4 = "NCDHW" then shape(v_1, 2) = shape(v_1, 2)
 >>
-Rule 90 (If data_format is NCDHW, the channel sizes of orig_input, orig_output and grad should match)
-{orig_input : tensor, orig_output : tensor, grad: tensor, data_format: str} |= if data_format = "NCDHW" then shape(orig_input, 1) = shape(orig_output, 1) ∧ shape(orig_output, 1) = shape(grad, 1)
+Rule 71 (If padding is SAME and strides[3] == 1 and data_format is NCDHW then shape(orig_input, 3) = shape(grad, 3))
+{v_1: tensor, v_2: list(int), v_3: str, v_4:str} |= if v_3 = "SAME" ∧ v_2[3] = 1 ∧ v_4 = "NCDHW" then shape(v_1, 3) = shape(v_1, 3)
 >>
-Rule 91 (If the data type of orig_input is half, the data type should be 6)
-{orig_input: tensor} |= if dtype_(orig_input) = 6 then true
+Rule 72 (If padding is SAME and strides[4] == 1 and data_format is NCDHW then shape(orig_input, 4) = shape(grad, 4))
+{v_1: tensor, v_2: list(int), v_3: str, v_4:str} |= if v_3 = "SAME" ∧ v_2[4] = 1 ∧ v_4 = "NCDHW" then shape(v_1, 4) = shape(v_1, 4)
 >>
-Rule 92 (If the data type of orig_input is bfloat16, the data type should be 7)
-{orig_input: tensor} |= if dtype_(orig_input) = 7 then true
+Rule 73 (If the data format is NDHWC, then shape(orig_input, 1) must be greater than 0)
+{v_1: tensor, v_2:str} |= if v_2 = "NDHWC" then shape(v_1, 1) > 0
 >>
-Rule 93 (If the data type of orig_input is float32, the data type should be 8)
-{orig_input: tensor} |= if dtype_(orig_input) = 8 then true
+Rule 74 (If the data format is NCDHW, then shape(orig_input, 2) must be greater than 0)
+{v_1: tensor, v_2:str} |= if v_2 = "NCDHW" then shape(v_1, 2) > 0
 >>
-Rule 94 (The ksize and strides values should be integers)
-{ksize: list(int), strides: list(int)} |= (∀i ∈ [0, ksize.len - 1] : ksize[i] = ksize[i]) ∧ (∀i ∈ [0, strides.len - 1] : strides[i] = strides[i])
+Rule 75 (If the data format is NDHWC, then shape(orig_input, 2) must be greater than 0)
+{v_1: tensor, v_2:str} |= if v_2 = "NDHWC" then shape(v_1, 2) > 0
+>>
+Rule 76 (If the data format is NCDHW, then shape(orig_input, 3) must be greater than 0)
+{v_1: tensor, v_2:str} |= if v_2 = "NCDHW" then shape(v_1, 3) > 0
+>>
+Rule 77 (If the data format is NDHWC, then shape(orig_input, 3) must be greater than 0)
+{v_1: tensor, v_2:str} |= if v_2 = "NDHWC" then shape(v_1, 3) > 0
+>>
+Rule 78 (If the data format is NDHWC, then shape(orig_input, 4) must be greater than 0)
+{v_1: tensor, v_2:str} |= if v_2 = "NDHWC" then shape(v_1, 4) > 0
+>>
+Rule 79 (If the data format is NCDHW, then shape(orig_input, 4) must be greater than 0)
+{v_1: tensor, v_2:str} |= if v_2 = "NCDHW" then shape(v_1, 4) > 0
+>>
+Rule 80 (If padding is VALID, then orig_input's shape dimensions (1, 2, 3) must be greater than 0)
+{v_1:tensor, v_2: str} |= if v_2 = "VALID" then shape(v_1,1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+>>
+Rule 81 (If the data format is NCDHW, then shape(orig_input, 1) must be greater than 0)
+{v_1: tensor, v_2:str} |= if v_2 = "NCDHW" then shape(v_1, 1) > 0
+>>
+Rule 82 (If padding is SAME, ksize[1] and strides[1] must be less than orig_input.shape[1])
+{v_1:tensor, v_2:list(int), v_3:str} |= if v_3 = "SAME" then v_2[1] < shape(v_1, 1) ∧ v_2[5] < shape(v_1, 1)
+>>
+Rule 83 (If padding is SAME, ksize[2] and strides[2] must be less than orig_input.shape[2])
+{v_1:tensor, v_2:list(int), v_3:str} |= if v_3 = "SAME" then v_2[2] < shape(v_1, 2) ∧ v_2[6] < shape(v_1, 2)

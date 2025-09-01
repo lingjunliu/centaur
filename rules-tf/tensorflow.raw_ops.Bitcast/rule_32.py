@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If Input is complex128, output cannot be bool, int or float (Rule 32)
+# If the input is quantized, then the type must be quantized, and vice versa (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 10, And(And(And(And(And(And(And(v["arg2_value"] != 0, v["arg2_value"] != 1), v["arg2_value"] != 2), v["arg2_value"] != 3), v["arg2_value"] != 4), v["arg2_value"] != 6), v["arg2_value"] != 7), v["arg2_value"] != 8), False)) if n else
-          If(v["arg1_dtype"] == 10, And(And(And(And(And(And(And(v["arg2_value"] != 0, v["arg2_value"] != 1), v["arg2_value"] != 2), v["arg2_value"] != 3), v["arg2_value"] != 4), v["arg2_value"] != 6), v["arg2_value"] != 7), v["arg2_value"] != 8), False))
+    s.add(Not((Or(Or(Or(Or(v["arg1_dtype"] == 13, v["arg1_dtype"] == 14), v["arg1_dtype"] == 15), v["arg1_dtype"] == 16), v["arg1_dtype"] == 17)) == (Or(Or(Or(Or(v["arg2_value"] == 13, v["arg2_value"] == 14), v["arg2_value"] == 15), v["arg2_value"] == 16), v["arg2_value"] == 17))) if n else
+          (Or(Or(Or(Or(v["arg1_dtype"] == 13, v["arg1_dtype"] == 14), v["arg1_dtype"] == 15), v["arg1_dtype"] == 16), v["arg1_dtype"] == 17)) == (Or(Or(Or(Or(v["arg2_value"] == 13, v["arg2_value"] == 14), v["arg2_value"] == 15), v["arg2_value"] == 16), v["arg2_value"] == 17)))
 )
 
 def rule_32_func(arg1, arg2, solver=None, neg=False):

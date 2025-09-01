@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Input tensor must have dtype float32 or float64, represented as a numerical value (Rule 21)
+# If x is half, the device must be GPU. (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 7, True, v["arg1_dtype"] == 8)) if n else
-          If(v["arg1_dtype"] == 7, True, v["arg1_dtype"] == 8))
+    s.add(Not(If(v["arg1_dtype"] == 1, False, True)) if n else
+          If(v["arg1_dtype"] == 1, False, True))
 )
 
 def rule_21_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# power_factors length should be less than or equal to img1's smallest dimension amongst the first ndim-3, if ndim > 3 (Rule 26)
+# The number of power_factors should not be greater than the smallest spatial dimension of the images. (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_ndim"] > 3, v["arg1_length"] <= Select(v["arg2_shape"], 0), False)) if n else
-          If(v["arg2_ndim"] > 3, v["arg1_length"] <= Select(v["arg2_shape"], 0), False))
+    s.add(Not(And(v["arg1_length"] <= Select(v["arg2_shape"], v["arg2_ndim"] - 3), v["arg1_length"] <= Select(v["arg2_shape"], v["arg2_ndim"] - 2))) if n else
+          And(v["arg1_length"] <= Select(v["arg2_shape"], v["arg2_ndim"] - 3), v["arg1_length"] <= Select(v["arg2_shape"], v["arg2_ndim"] - 2)))
 )
 
 def rule_26_func(arg1, arg2, solver=None, neg=False):
@@ -18,7 +18,7 @@ def rule_26_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all(isinstance(e, (float, np.floating)) for e in arg1)):
+        if not (isinstance(arg1, tuple) and all(isinstance(e, (float, np.floating)) for e in arg1)):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
@@ -36,9 +36,9 @@ def rule_26_func(arg1, arg2, solver=None, neg=False):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 26
-        rule_26(solver, {'arg1_length': arg1_length, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape})
+        rule_26(solver, {'arg1_length': arg1_length, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_26(solver, {'arg1_length': arg1['length'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']}, neg)
+        rule_26(solver, {'arg1_length': arg1['length'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']}, neg)

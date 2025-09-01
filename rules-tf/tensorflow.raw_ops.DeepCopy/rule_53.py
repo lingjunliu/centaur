@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if input is int64 then min value should be -9223372036854775808 and max value should be 9223372036854775807 (Rule 53)
+# If the tensor is of float type, then max must be less than infinity and min must be more than -infinity (Rule 53)
 
 rule_53 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 4, And(Select(v["arg1_range"], 0) == -9223372036854775808, Select(v["arg1_range"], 1) == 9223372036854775807), False)) if n else
-          If(v["arg1_dtype"] == 4, And(Select(v["arg1_range"], 0) == -9223372036854775808, Select(v["arg1_range"], 1) == 9223372036854775807), False))
+    s.add(Not(If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), And(Select(v["arg1_range"], 1) < 3.4028235e+38, Select(v["arg1_range"], 0) > -3.4028235e+38), True)) if n else
+          If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), And(Select(v["arg1_range"], 1) < 3.4028235e+38, Select(v["arg1_range"], 0) > -3.4028235e+38), True))
 )
 
 def rule_53_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_53_func(arg1, solver=None, neg=False):
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 53
-        rule_53(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_53(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_53(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_53(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)

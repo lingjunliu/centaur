@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# x and y must have the same type (Rule 8)
+# if x is bfloat16, half, float32, float64, int32, int64, complex64 or complex128 then y is also (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
-          v["arg1_dtype"] == v["arg2_dtype"])
+    s.add(Not(And((Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 0)), (Or(Or(Or(Or(Or(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), v["arg2_dtype"] == 0)))) if n else
+          And((Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 0)), (Or(Or(Or(Or(Or(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), v["arg2_dtype"] == 0))))
 )
 
 def rule_8_func(arg1, arg2, solver=None, neg=False):

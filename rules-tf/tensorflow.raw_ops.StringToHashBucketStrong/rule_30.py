@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If ndim of the input is greater than zero then each string in the tensor is not empty (Rule 30)
+# The input tensor's shape should be less than or equal to 5 (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 0, True, False)) if n else
-          If(v["arg1_ndim"] > 0, True, False))
+    s.add(Not(v["arg1_ndim"] <= 5) if n else
+          v["arg1_ndim"] <= 5)
 )
 
 def rule_30_func(arg1, solver=None, neg=False):

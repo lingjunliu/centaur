@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The number of dimensions of input should be less than or equal to 7 (Rule 50)
+# If the input rank is 0, the result will be a scalar 0. (Rule 50)
 
 rule_50 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] <= 7) if n else
-          v["arg1_ndim"] <= 7)
+    s.add(Not(If(v["arg1_ndim"] == 0, True, True)) if n else
+          If(v["arg1_ndim"] == 0, True, True))
 )
 
 def rule_50_func(arg1, solver=None, neg=False):

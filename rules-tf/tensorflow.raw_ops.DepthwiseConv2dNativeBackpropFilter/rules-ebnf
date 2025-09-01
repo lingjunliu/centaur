@@ -1,126 +1,243 @@
 >>
-Rule 1 (input and out_backprop must have the same data type)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 1 (input, filter_sizes and out_backprop tensors must have the same type)
+{input : tensor, out_backprop : tensor} |= dtype_(input) = dtype_(out_backprop)
 >>
-Rule 2 (filter_sizes must be a 1-D tensor)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 2 (filter_sizes tensor must be 1-dimensional)
+{filter_sizes : tensor} |= ndim(filter_sizes) = 1
 >>
-Rule 3 (strides must be a list of integers with length 4)
-{v_1 : list(int)} |= v_1.len = 4
+Rule 3 (data_format string must be either "NHWC" or "NCHW")
+{data_format : str} |= data_format = "NHWC" ∨ data_format = "NCHW"
 >>
-Rule 6 (padding must be one of the specified strings)
-{v_1 : str} |= v_1 = "SAME" ∨ v_1 = "VALID" ∨ v_1 = "EXPLICIT"
+Rule 4 (padding string must be either "SAME", "VALID", or "EXPLICIT")
+{padding : str} |= padding = "SAME" ∨ padding = "VALID" ∨ padding = "EXPLICIT"
 >>
-Rule 7 (data_format must be one of the specified strings)
-{v_1 : str} |= v_1 = "NHWC" ∨ v_1 = "NCHW"
+Rule 5 (dilations list must have length 4)
+{dilations : list(int)} |= dilations.len = 4
 >>
-Rule 8 (filter_sizes must have all positive values)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 6 (input tensor must be 4-dimensional)
+{input : tensor} |= ndim(input) = 4
 >>
-Rule 9 (input must be a 4D tensor)
-{v_1 : tensor} |= ndim(v_1) = 4
+Rule 7 (out_backprop tensor must be 4-dimensional)
+{out_backprop : tensor} |= ndim(out_backprop) = 4
 >>
-Rule 12 (filter_sizes must be a 1-D tensor with all positive values)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 8 (strides list must have length greater than or equal to 1)
+{strides : list(int)} |= strides.len ≥ 1
 >>
-Rule 13 (strides must be a list of integers with length 4 and all positive values)
-{v_1 : list(int)} |= v_1.len = 4 ∧ ∀i ∈ [0, 3] : v_1[i] > 0
+Rule 9 (explicit_paddings list must have length greater than or equal to 0)
+{explicit_paddings : list(int)} |= explicit_paddings.len ≥ 0
 >>
-Rule 16 (input and out_backprop have same shape[0])
-{v_1 : tensor, v_2 : tensor} |= shape(v_1,0) = shape(v_2,0)
+Rule 10 (input tensor dtype must be half, bfloat16, float32, or float64)
+{input : tensor} |= dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8
 >>
-Rule 17 (dilations must be a list of integers with length 4 and first and last element equal to 1)
-{v_1 : list(int)} |= v_1.len = 4 ∧ v_1[0] = 1 ∧ v_1[3] = 1
+Rule 11 (filter_sizes tensor dtype must be int32)
+{filter_sizes : tensor} |= dtype_(filter_sizes) = 3
 >>
-Rule 18 (explicit paddings length should be even when padding is EXPLICIT)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "EXPLICIT" then v_2.len % 2 = 0
+Rule 12 (dilations values must be greater than or equal to 1)
+{dilations : list(int)} |= ∀i ∈ [0, dilations.len - 1] : dilations[i] ≥ 1
 >>
-Rule 19 (out_backprop shape[1] and shape[2] should be positive.)
-{v_1 : tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+Rule 13 (batch and depth dilations must be 1 for NHWC data format)
+{data_format : str, dilations : list(int)} |= if data_format = "NHWC" then dilations[0] = 1 ∧ dilations[3] = 1
 >>
-Rule 20 (input and out_backprop must have the same shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 14 (batch and channel dilations must be 1 for NCHW data format)
+{data_format : str, dilations : list(int)} |= if data_format = "NCHW" then dilations[0] = 1 ∧ dilations[1] = 1
 >>
-Rule 21 (filter_sizes must be a 1-D tensor with int32 data type)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ dtype_(v_1) = 3
+Rule 15 (Number of strides must match the number of dimensions based on data_format)
+{strides : list(int), data_format : str} |= if data_format = "NHWC" then strides.len = 4 else if data_format = "NCHW" then strides.len = 4 else false
 >>
-Rule 25 (shape of filter_sizes must be 4)
-{v_1 : tensor} |= shape(v_1, 0) = 4
+Rule 16 (Number of explicit paddings must be even when padding is explicit)
+{padding : str, explicit_paddings : list(int)} |= if padding = "EXPLICIT" then explicit_paddings.len % 2 = 0
 >>
-Rule 26 (input and out_backprop must be of type float16, float32 or float64)
-{v_1: tensor, v_2 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∧ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+Rule 17 (Filter sizes first two dimensions must be greater than zero)
+{filter_sizes : tensor} |= shape(filter_sizes, 0) > 0 ∧ shape(filter_sizes, 1) > 0
 >>
-Rule 27 (shape of input tensor's dimension 1,2,3 must be positive)
-{v_1 : tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+Rule 18 (The last dimension of filter_sizes must be greater than zero)
+{filter_sizes : tensor} |= shape(filter_sizes, ndim(filter_sizes)-1) > 0
 >>
-Rule 29 (filter_sizes must be a 1-D tensor with int32 data type and length is 4)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ dtype_(v_1) = 3 ∧ shape(v_1, 0) = 4
+Rule 19 (Strides must be greater than zero)
+{strides : list(int)} |= ∀i ∈ [0, strides.len - 1] : strides[i] > 0
 >>
-Rule 36 (The number of channels of input and out_backprop should be the same when data_format is NHWC.)
-{v_1 : tensor, v_2 : tensor, v_3: str} |= if v_3 = "NHWC" then shape(v_1, 3) = shape(v_2, 3)
+Rule 20 (If padding is explicit, explicit_paddings should have length equal to twice the number of spatial dimensions)
+{padding: str, explicit_paddings: list(int), data_format: str} |= if padding = "EXPLICIT" then if data_format = "NHWC" then explicit_paddings.len = 4 else if data_format = "NCHW" then explicit_paddings.len = 4 else false
 >>
-Rule 37 (input and out_backprop must have the same data type and be float16, float32, or float64)
-{v_1: tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+Rule 21 (Filter sizes tensor length should be 4)
+{filter_sizes : tensor} |= shape(filter_sizes, 0) = 4
 >>
-Rule 45 (input and out_backprop must have the same shape[0])
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 22 (data format must be a valid string)
+{data_format : str} |= data_format = "channels_last" ∨ data_format = "channels_first"
 >>
-Rule 46 (The number of channels of input and out_backprop should be the same when data_format is NCHW.)
-{v_1 : tensor, v_2 : tensor, v_3: str} |= if v_3 = "NCHW" then shape(v_1, 1) = shape(v_2, 1)
+Rule 23 (padding must be a valid string)
+{padding : str} |= padding = "valid" ∨ padding = "same"
 >>
-Rule 48 (filter_sizes first two dimensions should be greater than 0)
-{v_1 : tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 0) > 0
+Rule 24 (check for valid tensor dimensions based on data format and strides)
+{input : tensor, data_format : str, strides : list(int)} |= if data_format = "NHWC" then shape(input, 1) * strides[1] > 0 ∧ shape(input, 2) * strides[2] > 0 else if data_format = "NCHW" then shape(input, 2) * strides[2] > 0 ∧ shape(input, 3) * strides[3] > 0
 >>
-Rule 52 (input tensor must have dtype 6, 7, or 8)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 25 (Check that number of channels is consistent between input and filter_sizes when data_format is NHWC)
+{input: tensor, filter_sizes: tensor, data_format: str} |= if data_format = "NHWC" then shape(input, 3) = shape(filter_sizes,2)
 >>
-Rule 55 (The number of channels of input and out_backprop should be the same when data_format is NCHW or NHWC)
-{v_1 : tensor, v_2 : tensor, v_3: str} |= if v_3 = "NCHW" then shape(v_1, 1) = shape(v_2, 1) else if v_3 = "NHWC" then shape(v_1, 3) = shape(v_2, 3)
+Rule 26 (Check that number of channels is consistent between input and filter_sizes when data_format is NCHW)
+{input: tensor, filter_sizes: tensor, data_format: str} |= if data_format = "NCHW" then shape(input, 1) = shape(filter_sizes,2)
 >>
-Rule 56 (input tensor must have dtype 6, 7, or 8 and out_backprop has the same dtype)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ dtype_(v_1) = dtype_(v_2)
+Rule 27 (if padding is SAME, explicit_paddings list should be empty)
+{padding : str, explicit_paddings : list(int)} |= if padding = "SAME" then explicit_paddings.len = 0
 >>
-Rule 57 (filter_sizes data type must be int32)
-{v_1 : tensor} |= dtype_(v_1) = 3
+Rule 28 (if padding is VALID, explicit_paddings list should be empty)
+{padding : str, explicit_paddings : list(int)} |= if padding = "VALID" then explicit_paddings.len = 0
 >>
-Rule 64 (filter_sizes data type must be int32 and has size 4)
-{v_1 : tensor} |= dtype_(v_1) = 3 ∧ shape(v_1, 0) = 4
+Rule 30 (Check that the first two elements of dilations is 1)
+{dilations : list(int)} |= dilations[0] = 1 ∧ dilations[1] = 1
 >>
-Rule 72 (input and out_backprop tensors must have the same shape)
-{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = shape(v_2, i)
+Rule 31 (out_backprop tensor shape compatibility with input tensor based on padding)
+{input : tensor, out_backprop : tensor, padding : str} |= ndim(input) = ndim(out_backprop) ∧ (padding = "SAME" ∨ padding = "VALID")
 >>
-Rule 73 (filter_sizes data type must be int32 and the tensor must have dimensions [filter_height, filter_width, in_channels, depthwise_multiplier])
-{v_1 : tensor} |= dtype_(v_1) = 3 ∧ ndim(v_1) = 1 ∧ shape(v_1, 0) = 4
+Rule 32 (shape of filter_sizes must be greater than 0)
+{filter_sizes : tensor} |= min(filter_sizes) > 0
 >>
-Rule 81 (Explicit paddings list must be non-negative)
-{v_1: list(int)} |= ∀i ∈ [0, v_1.len-1] : v_1[i] ≥ 0
+Rule 34 (explicit paddings must be non-negative)
+{explicit_paddings : list(int)} |= ∀i ∈ [0, explicit_paddings.len - 1] : explicit_paddings[i] ≥ 0
 >>
-Rule 84 (out_backprop tensor must have dtype 6, 7, or 8 and be the same dtype as input)
-{v_1: tensor, v_2: tensor} |= (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) ∧ dtype_(v_1) = dtype_(v_2)
+Rule 37 (If explicit padding is used, then strides and dilations must have length equal to the number of spatial dimensions plus 2)
+{padding: str, data_format: str, strides: list(int), dilations: list(int)} |= if padding = "EXPLICIT" then if data_format = "NHWC" then strides.len = 4 ∧ dilations.len = 4 else if data_format = "NCHW" then strides.len = 4 ∧ dilations.len = 4
 >>
-Rule 91 (input and out_backprop tensors must have matching dtypes, and these dtypes must be float16, float32, or float64.)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+Rule 39 (The length of filter_sizes must be 4)
+{filter_sizes: tensor} |= filter_sizes.len = 4
 >>
-Rule 98 (If the data_format is NCHW, the channel dimension must match)
-{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "NCHW" then shape(v_1, 1) = shape(v_2, 1)
+Rule 41 (input and out_backprop tensors have the same number of channels when data_format is NCHW)
+{input : tensor, out_backprop : tensor, data_format : str} |= if data_format = "NCHW" then shape(input, 1) = shape(out_backprop, 1)
 >>
-Rule 99 (If the data_format is NHWC, the channel dimension must match)
-{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "NHWC" then shape(v_1, 3) = shape(v_2, 3)
+Rule 42 (input and out_backprop tensors have the same number of channels when data_format is NHWC)
+{input : tensor, out_backprop : tensor, data_format : str} |= if data_format = "NHWC" then shape(input, 3) = shape(out_backprop, 3)
 >>
-Rule 101 (filter_sizes data type must be int32 and the tensor must have the correct dimensions.)
-{v_1 : tensor} |= dtype_(v_1) = 3 ∧ shape(v_1, 0) = 4 ∧ ndim(v_1) = 1
+Rule 44 (strides must be greater than or equal to 1)
+{strides : list(int)} |= ∀i ∈ [0, strides.len - 1] : strides[i] ≥ 1
 >>
-Rule 109 (input and out_backprop tensors must have matching dtypes of float16, float32, or float64, and be 4 dimensional.)
-{v_1: tensor, v_2: tensor} |= (dtype_(v_1) = dtype_(v_2)) ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (ndim(v_1) = 4) ∧ (ndim(v_2) = 4)
+Rule 45 (If padding is EXPLICIT then explicit_paddings.len must be equal to twice the number of spatial dimensions)
+{padding: str, explicit_paddings: list(int), data_format:str} |= if padding = "EXPLICIT" then if data_format = "NHWC" then explicit_paddings.len = 4 else if data_format = "NCHW" then explicit_paddings.len = 4 else false
 >>
-Rule 115 (If padding is EXPLICIT, then the explicit padding list length must be even and non-negative)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "EXPLICIT" then v_2.len % 2 = 0 ∧ ∀i ∈ [0, v_2.len-1] : v_2[i] ≥ 0
+Rule 47 (If the input tensor is type half or bfloat16, dilations are not supported.)
+{input : tensor, dilations: list(int)} |= if dtype_(input) = 6 ∨ dtype_(input) = 7 then dilations[0] = 1 ∧ dilations[1] = 1 ∧ dilations[2] = 1 ∧ dilations[3] = 1
 >>
-Rule 117 (Input shape[1], shape[2], and shape[3] must be positive)
-{v_1: tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+Rule 49 (If padding is EXPLICIT the length of explicit paddings must be even.)
+{padding: str, explicit_paddings: list(int)} |= if padding = "EXPLICIT" then explicit_paddings.len % 2 = 0
 >>
-Rule 118 (Input tensor must have dtype 6, 7 or 8, and the output backprop must have the same dtype)
-{v_1: tensor, v_2: tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ dtype_(v_1) = dtype_(v_2)
+Rule 50 (The filter_sizes tensor must have all positive elements)
+{filter_sizes : tensor} |= ∀i ∈ [0, filter_sizes.len -1] : filter_sizes[i] > 0
 >>
-Rule 144 (The shape of the input tensor must be [batch, in_height, in_width, in_channels] when data_format is NHWC)
-{v_1 : tensor, v_2: str} |= if v_2 = "NHWC" then ndim(v_1) = 4
+Rule 51 (When padding is explicit and data format is NHWC, the explicit paddings values should be less than or equal to the input height and width plus filter height and width.)
+{padding: str, explicit_paddings: list(int), input: tensor, filter_sizes: tensor, data_format:str} |= if padding = "EXPLICIT" ∧ data_format = "NHWC" then explicit_paddings[0] ≤ shape(input, 1) + shape(filter_sizes, 0) ∧ explicit_paddings[1] ≤ shape(input, 1) + shape(filter_sizes, 0) ∧ explicit_paddings[2] ≤ shape(input, 2) + shape(filter_sizes, 1) ∧ explicit_paddings[3] ≤ shape(input, 2) + shape(filter_sizes, 1)
+>>
+Rule 52 (When padding is explicit and data format is NCHW, the explicit paddings values should be less than or equal to the input height and width plus filter height and width.)
+{padding: str, explicit_paddings: list(int), input: tensor, filter_sizes: tensor, data_format:str} |= if padding = "EXPLICIT" ∧ data_format = "NCHW" then explicit_paddings[0] ≤ shape(input, 2) + shape(filter_sizes, 0) ∧ explicit_paddings[1] ≤ shape(input, 2) + shape(filter_sizes, 0) ∧ explicit_paddings[2] ≤ shape(input, 3) + shape(filter_sizes, 1) ∧ explicit_paddings[3] ≤ shape(input, 3) + shape(filter_sizes, 1)
+>>
+Rule 53 (If the input and out_backprop tensors have float64 type, explicit padding must be zero)
+{input : tensor, out_backprop : tensor, explicit_paddings : list(int), padding : str} |= if dtype_(input) = 8 ∧ dtype_(out_backprop) = 8 ∧ padding = "EXPLICIT" then ∀i ∈ [0, explicit_paddings.len - 1] : explicit_paddings[i] = 0
+>>
+Rule 54 (If dilations are not 1, then strides must be 1)
+{dilations : list(int), strides : list(int)} |= if dilations[0] ≠ 1 ∨ dilations[1] ≠ 1 ∨ dilations[2] ≠ 1 ∨ dilations[3] ≠ 1 then strides[0] = 1 ∧ strides[1] = 1 ∧ strides[2] = 1 ∧ strides[3] = 1
+>>
+Rule 55 (If strides are not 1 then dilations must be 1)
+{strides : list(int), dilations : list(int)} |= if strides[0] ≠ 1 ∨ strides[1] ≠ 1 ∨ strides[2] ≠ 1 ∨ strides[3] ≠ 1 then dilations[0] = 1 ∧ dilations[1] = 1 ∧ dilations[2] = 1 ∧ dilations[3] = 1
+>>
+Rule 56 (The dimensions of filter_sizes should be less than or equal to dimensions of input)
+{input : tensor, filter_sizes : tensor} |= shape(filter_sizes,0) <= shape(input,1) ∧ shape(filter_sizes,1) <= shape(input,2)
+>>
+Rule 57 (When data_format is NHWC, the filter_sizes tensor must have the correct number of input channels)
+{filter_sizes : tensor, input : tensor, data_format: str} |= if data_format = "NHWC" then shape(filter_sizes, 2) = shape(input, 3)
+>>
+Rule 58 (When data_format is NCHW, the filter_sizes tensor must have the correct number of input channels)
+{filter_sizes : tensor, input : tensor, data_format: str} |= if data_format = "NCHW" then shape(filter_sizes, 2) = shape(input, 1)
+>>
+Rule 59 (When data_format is NHWC, the output channels must be consistent with out_backprop)
+{data_format: str, out_backprop: tensor, filter_sizes: tensor} |= if data_format = "NHWC" then shape(out_backprop,3) = shape(filter_sizes,2) * shape(filter_sizes,3)
+>>
+Rule 60 (When data_format is NCHW, the output channels must be consistent with out_backprop)
+{data_format: str, out_backprop: tensor, filter_sizes: tensor} |= if data_format = "NCHW" then shape(out_backprop,1) = shape(filter_sizes,2) * shape(filter_sizes,3)
+>>
+Rule 61 (strides dimension must match input dimension when data_format is NHWC)
+{input : tensor, strides : list(int), data_format : str} |= if data_format = "NHWC" then strides.len = ndim(input)
+>>
+Rule 62 (strides dimension must match input dimension when data_format is NCHW)
+{input : tensor, strides : list(int), data_format : str} |= if data_format = "NCHW" then strides.len = ndim(input)
+>>
+Rule 63 (dilations dimension must match input dimension when data_format is NHWC)
+{input : tensor, dilations : list(int), data_format : str} |= if data_format = "NHWC" then dilations.len = ndim(input)
+>>
+Rule 64 (dilations dimension must match input dimension when data_format is NCHW)
+{input : tensor, dilations : list(int), data_format : str} |= if data_format = "NCHW" then dilations.len = ndim(input)
+>>
+Rule 65 (The depthwise_multiplier dimension of filter_sizes cannot be zero.)
+{filter_sizes : tensor} |= shape(filter_sizes, 3) > 0
+>>
+Rule 67 (When padding is EXPLICIT then strides.len, dilations.len must be equal to input.ndim AND explicit_paddings.len must be even.)
+{padding: str, input: tensor, filter_sizes: tensor, strides: list(int), dilations: list(int), explicit_paddings: list(int)} |= if padding = "EXPLICIT" then strides.len = ndim(input) ∧ dilations.len = ndim(input) ∧ explicit_paddings.len % 2 = 0 ∧ shape(filter_sizes, 0) > 0 ∧ shape(filter_sizes, 1) > 0
+>>
+Rule 68 (When explicit padding is used, the values in it should be non-negative)
+{padding: str, explicit_paddings: list(int)} |= if padding = "EXPLICIT" then ∀i ∈ [0, explicit_paddings.len - 1] : explicit_paddings[i] ≥ 0
+>>
+Rule 71 (When data_format is NHWC and padding is SAME, the spatial dimensions of out_backprop are the same as the spatial dimensions of the input)
+{input: tensor, out_backprop: tensor, data_format: str, padding: str} |= if data_format = "NHWC" ∧ padding = "SAME" then shape(input, 1) = shape(out_backprop, 1) ∧ shape(input, 2) = shape(out_backprop, 2)
+>>
+Rule 72 (When data_format is NCHW and padding is SAME, the spatial dimensions of out_backprop are the same as the spatial dimensions of the input)
+{input: tensor, out_backprop: tensor, data_format: str, padding: str} |= if data_format = "NCHW" ∧ padding = "SAME" then shape(input, 2) = shape(out_backprop, 2) ∧ shape(input, 3) = shape(out_backprop, 3)
+>>
+Rule 73 (If data_format is NHWC and padding is VALID, then the height and width dimensions of out_backprop are computed as (input_height - filter_height + 1 + (dilation_height - 1) * (filter_height - 1))/stride_height)
+{input: tensor, out_backprop: tensor, filter_sizes: tensor, strides: list(int), dilations: list(int), padding: str, data_format: str} |= if data_format = "NHWC" ∧ padding = "VALID" then shape(out_backprop, 1) = (shape(input, 1) - shape(filter_sizes, 0) + 1 + (dilations[1] - 1)*(shape(filter_sizes, 0)-1))/strides[1] ∧ shape(out_backprop, 2) = (shape(input, 2) - shape(filter_sizes, 1) + 1 + (dilations[2] - 1)*(shape(filter_sizes, 1)-1))/strides[2]
+>>
+Rule 74 (If data_format is NCHW and padding is VALID, then the height and width dimensions of out_backprop are computed as (input_height - filter_height + 1 + (dilation_height - 1) * (filter_height - 1))/stride_height)
+{input: tensor, out_backprop: tensor, filter_sizes: tensor, strides: list(int), dilations: list(int), padding: str, data_format: str} |= if data_format = "NCHW" ∧ padding = "VALID" then shape(out_backprop, 2) = (shape(input, 2) - shape(filter_sizes, 0) + 1 + (dilations[2] - 1)*(shape(filter_sizes, 0)-1))/strides[2] ∧ shape(out_backprop, 3) = (shape(input, 3) - shape(filter_sizes, 1) + 1 + (dilations[3] - 1)*(shape(filter_sizes, 1)-1))/strides[3]
+>>
+Rule 77 (If data_format is NHWC and padding is EXPLICIT, then the height and width dimensions of out_backprop are computed as floor((input_height + explicit_paddings[0] + explicit_paddings[1] - ((dilation_height - 1) * (filter_height - 1) + filter_height) + stride_height - 1) / stride_height))
+{input: tensor, out_backprop: tensor, filter_sizes: tensor, strides: list(int), dilations: list(int), padding: str, data_format: str, explicit_paddings: list(int)} |= if data_format = "NHWC" ∧ padding = "EXPLICIT" then shape(out_backprop, 1) = (shape(input, 1) + explicit_paddings[0] + explicit_paddings[1] - ((dilations[1] - 1) * (shape(filter_sizes, 0) - 1) + shape(filter_sizes, 0)) + strides[1] - 1) / strides[1] ∧ shape(out_backprop, 2) = (shape(input, 2) + explicit_paddings[2] + explicit_paddings[3] - ((dilations[2] - 1) * (shape(filter_sizes, 1) - 1) + shape(filter_sizes, 1)) + strides[2] - 1) / strides[2]
+>>
+Rule 78 (If data_format is NCHW and padding is EXPLICIT, then the height and width dimensions of out_backprop are computed as floor((input_height + explicit_paddings[0] + explicit_paddings[1] - ((dilation_height - 1) * (filter_height - 1) + filter_height) + stride_height - 1) / stride_height))
+{input: tensor, out_backprop: tensor, filter_sizes: tensor, strides: list(int), dilations: list(int), padding: str, data_format: str, explicit_paddings: list(int)} |= if data_format = "NCHW" ∧ padding = "EXPLICIT" then shape(out_backprop, 2) = (shape(input, 2) + explicit_paddings[0] + explicit_paddings[1] - ((dilations[2] - 1) * (shape(filter_sizes, 0) - 1) + shape(filter_sizes, 0)) + strides[2] - 1) / strides[2] ∧ shape(out_backprop, 3) = (shape(input, 3) + explicit_paddings[2] + explicit_paddings[3] - ((dilations[3] - 1) * (shape(filter_sizes, 1) - 1) + shape(filter_sizes, 1)) + strides[3] - 1) / strides[3]
+>>
+Rule 79 (The filter height and width should be less than or equal to the input height and width)
+{input : tensor, filter_sizes : tensor} |= shape(filter_sizes, 0) ≤ shape(input, 1) ∧ shape(filter_sizes, 1) ≤ shape(input, 2)
+>>
+Rule 80 (The channel dimensions of input and out_backprop should align with the channels dimension of the filter)
+{input : tensor, out_backprop : tensor, filter_sizes: tensor, data_format: str} |= if data_format="NHWC" then shape(input,3) = shape(filter_sizes,2) ∧ shape(out_backprop,3) = shape(filter_sizes,2)*shape(filter_sizes,3) else if data_format="NCHW" then shape(input,1) = shape(filter_sizes,2) ∧ shape(out_backprop,1) = shape(filter_sizes,2)*shape(filter_sizes,3)
+>>
+Rule 81 (When padding is VALID, explicit_paddings should not be defined)
+{padding: str, explicit_paddings: list(int)} |= if padding="VALID" then explicit_paddings.len = 0
+>>
+Rule 82 (When padding is SAME, explicit_paddings should not be defined)
+{padding: str, explicit_paddings: list(int)} |= if padding="SAME" then explicit_paddings.len = 0
+>>
+Rule 83 (If data_format is NHWC, and padding is EXPLICIT, out_backprop batch size must be same as input batch size)
+{padding: str, data_format: str, input: tensor, out_backprop: tensor} |= if data_format="NHWC" ∧ padding="EXPLICIT" then shape(input,0) = shape(out_backprop,0)
+>>
+Rule 84 (If data_format is NCHW, and padding is EXPLICIT, out_backprop batch size must be same as input batch size)
+{padding: str, data_format: str, input: tensor, out_backprop: tensor} |= if data_format="NCHW" ∧ padding="EXPLICIT" then shape(input,0) = shape(out_backprop,0)
+>>
+Rule 85 (For NHWC data format, when padding is EXPLICIT, the output channel size must be same as that for input)
+{padding: str, data_format: str, input: tensor, out_backprop: tensor} |= if data_format="NHWC" ∧ padding="EXPLICIT" then shape(input,3) = shape(out_backprop,3)
+>>
+Rule 86 (For NCHW data format, when padding is EXPLICIT, the output channel size must be same as that for input)
+{padding: str, data_format: str, input: tensor, out_backprop: tensor} |= if data_format="NCHW" ∧ padding="EXPLICIT" then shape(input,1) = shape(out_backprop,1)
+>>
+Rule 87 (If data_format is NHWC and padding is EXPLICIT, then number of channels in input is same as the third dimension of filter_sizes.)
+{padding: str, data_format: str, input: tensor, filter_sizes:tensor} |= if data_format="NHWC" ∧ padding="EXPLICIT" then shape(input,3) = shape(filter_sizes,2)
+>>
+Rule 88 (If data_format is NCHW and padding is EXPLICIT, then number of channels in input is same as the second dimension of filter_sizes.)
+{padding: str, data_format: str, input: tensor, filter_sizes:tensor} |= if data_format="NCHW" ∧ padding="EXPLICIT" then shape(input,1) = shape(filter_sizes,2)
+>>
+Rule 90 (For EXPLICIT padding, output tensor spatial dimensions must be greater than 0)
+{data_format: str, padding: str, explicit_paddings: list(int), input: tensor, filter_sizes: tensor, strides: list(int), dilations: list(int)} |= if padding = "EXPLICIT" then if data_format = "NHWC" then (shape(input, 1) + explicit_paddings[0] + explicit_paddings[1] - (dilations[1] - 1)*(shape(filter_sizes, 0) - 1) - shape(filter_sizes, 0) + strides[1]) / strides[1] > 0 ∧ (shape(input, 2) + explicit_paddings[2] + explicit_paddings[3] - (dilations[2] - 1)*(shape(filter_sizes, 1) - 1) - shape(filter_sizes, 1) + strides[2]) / strides[2] > 0 else if data_format = "NCHW" then (shape(input, 2) + explicit_paddings[0] + explicit_paddings[1] - (dilations[2] - 1)*(shape(filter_sizes, 0) - 1) - shape(filter_sizes, 0) + strides[2]) / strides[2] > 0 ∧ (shape(input, 3) + explicit_paddings[2] + explicit_paddings[3] - (dilations[3] - 1)*(shape(filter_sizes, 1) - 1) - shape(filter_sizes, 1) + strides[3]) / strides[3] > 0
+>>
+Rule 91 (The last dimension of filter_sizes must be consistent with the number of output channels in out_backprop when data_format is NHWC)
+{filter_sizes: tensor, out_backprop: tensor, data_format: str} |= if data_format = "NHWC" then shape(filter_sizes,2) * shape(filter_sizes,3) = shape(out_backprop,3)
+>>
+Rule 92 (The last dimension of filter_sizes must be consistent with the number of output channels in out_backprop when data_format is NCHW)
+{filter_sizes: tensor, out_backprop: tensor, data_format: str} |= if data_format = "NCHW" then shape(filter_sizes,2) * shape(filter_sizes,3) = shape(out_backprop,1)
+>>
+Rule 93 (When data_format is NHWC and padding is EXPLICIT, the height and width dimensions must be at least 1)
+{data_format: str, padding: str, input: tensor, filter_sizes: tensor, strides: list(int), dilations: list(int), explicit_paddings: list(int)} |= if data_format = "NHWC" ∧ padding = "EXPLICIT" then (shape(input, 1) + explicit_paddings[0] + explicit_paddings[1] - (dilations[1] - 1)*(shape(filter_sizes, 0) - 1) - shape(filter_sizes, 0) + strides[1] -1)/strides[1] >= 1 ∧ (shape(input, 2) + explicit_paddings[2] + explicit_paddings[3] - (dilations[2] - 1)*(shape(filter_sizes, 1) - 1) - shape(filter_sizes, 1) + strides[2] - 1)/strides[2] >= 1
+>>
+Rule 94 (When data_format is NCHW and padding is EXPLICIT, the height and width dimensions must be at least 1)
+{data_format: str, padding: str, input: tensor, filter_sizes: tensor, strides: list(int), dilations: list(int), explicit_paddings: list(int)} |= if data_format = "NCHW" ∧ padding = "EXPLICIT" then (shape(input, 2) + explicit_paddings[0] + explicit_paddings[1] - (dilations[2] - 1)*(shape(filter_sizes, 0) - 1) - shape(filter_sizes, 0) + strides[2] - 1)/strides[2] >= 1 ∧ (shape(input, 3) + explicit_paddings[2] + explicit_paddings[3] - (dilations[3] - 1)*(shape(filter_sizes, 1) - 1) - shape(filter_sizes, 1) + strides[3] - 1)/strides[3] >= 1
+>>
+Rule 95 (if data_format is NHWC, dilations[0] must be 1)
+{data_format:str, dilations: list(int)} |= if data_format="NHWC" then dilations[0] = 1
+>>
+Rule 96 (if data_format is NCHW, dilations[0] must be 1)
+{data_format:str, dilations: list(int)} |= if data_format="NCHW" then dilations[0] = 1

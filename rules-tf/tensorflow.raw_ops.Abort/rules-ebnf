@@ -1,96 +1,189 @@
 >>
-Rule 3 (error_msg should not be empty)
-{v_1 : str} |= v_1 ≠ ""
->>
-Rule 4 (exit_without_error cannot be true if error_msg is empty)
-{v_1 : str, v_2 : bool} |= if v_1 = "" then v_2 = false
->>
-Rule 5 (If exit_without_error is true, then error_msg should be one of predefined strings to indicate successful exit)
-{v_1 : str, v_2 : bool} |= if v_2 = true then v_1 = "none" ∨ v_1 = "constant" ∨ v_1 = "linear"
->>
-Rule 6 (error_msg should be a string from the predefined list)
-{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "constant" ∨ v_1 = "linear" ∨ v_1 = "softplus"
->>
-Rule 7 (If exit_without_error is true, error_msg must be empty string)
-{v_1 : str, v_2 : bool} |= if v_2 = true then v_1 = ""
->>
-Rule 8 (exit_without_error must be true or false)
+Rule 1 (exit_without_error should be a boolean)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 9 (If error_msg is not empty, it should have length less than 100)
-{v_1 : str} |= if v_1 ≠ "" then v_1.len < 100
+Rule 3 (error_msg should not be an empty string)
+{v_1 : str} |= v_1 ≠ ""
 >>
-Rule 10 (error_msg should only contain alphanumeric characters)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = " "
+Rule 5 (If exit_without_error is true, then error_msg is not needed)
+{v_1 : bool, v_2 : str} |= if v_1 = true then true else v_2 ≠ ""
 >>
-Rule 11 (error_msg should not be too similar to a previous error message)
-{v_1 : str} |= v_1 ≠ "An error occurred." ∧ v_1 ≠ "Something went wrong."
+Rule 7 (error_msg is a non-empty string when exit_without_error is false)
+{v_1 : bool, v_2 : str} |= if v_1 = false then v_2 ≠ ""
 >>
-Rule 12 (If exit_without_error is true, the error_msg must be "none")
-{v_1 : str, v_2 : bool} |= if v_2 = true then v_1 = "none"
+Rule 8 (error_msg string's length is limited)
+{v_1 : str} |= v_1.len < 256
 >>
-Rule 15 (If error_msg is "none", then exit_without_error must be true)
-{v_1 : str, v_2 : bool} |= if v_1 = "none" then v_2 = true
+Rule 9 (exit_without_error can only be true or false.)
+{v_1: bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 16 (error_msg should not contain profanity)
-{v_1 : str} |= v_1 ≠ "damn" ∧ v_1 ≠ "shit" ∧ v_1 ≠ "fuck" ∧ v_1 ≠ "bitch"
+Rule 10 (error_msg should not be longer than 100 characters if exit_without_error is false)
+{v_1 : bool, v_2 : str} |= if v_1 = false then v_2.len ≤ 100
 >>
-Rule 17 (If error_msg is not empty, exit_without_error should be false)
+Rule 13 (error_msg must have length less than 512)
+{v_1 : str} |= v_1.len < 512
+>>
+Rule 14 (if error_msg is not empty, exit_without_error must be false)
+{v_1: str, v_2: bool} |= if v_1 ≠ "" then v_2 = false
+>>
+Rule 15 (error_msg is not allowed to be one of the restricted words)
+{v_1 : str} |= v_1 ≠ "Error" ∧ v_1 ≠ "Abort" ∧ v_1 ≠ "Exception"
+>>
+Rule 18 (The error message should contain at least one alphabetic character if exit_without_error is false)
+{v_1: bool, v_2: str} |= if v_1 = false then ∃i ∈ [0, v_2.len -1]: (v_2[i] ≥ "a" ∧ v_2[i] ≤ "z") ∨ (v_2[i] ≥ "A" ∧ v_2[i] ≤ "Z")
+>>
+Rule 20 (exit_without_error and error_msg should not both be default values)
+{v_1 : bool, v_2 : str} |= (v_1 = true) ∨ (v_2 ≠ "")
+>>
+Rule 21 (The error message should contain at least one alphabetic character if exit_without_error is false)
+{v_1: bool, v_2: str} |= if v_1 = false then ∃i ∈ [0, v_2.len -1] : (v_2[i] >="a" ∧ v_2[i] <="z") ∨ (v_2[i] >="A" ∧ v_2[i] <="Z")
+>>
+Rule 28 (The error message should not be a profanity)
+{v_1 : str} |= v_1 ≠ "badword1" ∧ v_1 ≠ "badword2" ∧ v_1 ≠ "badword3"
+>>
+Rule 29 (error_msg should be a string no longer than 1000 characters)
+{v_1 : str} |= v_1.len < 1000
+>>
+Rule 30 (Exit without error cannot be simultaneously true while the error message is specified as "Success.")
+{v_1 : bool, v_2: str} |= if v_1 = true then v_2 ≠ "Success"
+>>
+Rule 31 (error_msg should not be a generic message like "Error" or "Failed")
+{v_1 : str} |= v_1 ≠ "Error" ∧ v_1 ≠ "Failed"
+>>
+Rule 32 (if exit_without_error is true, then error_msg should be an empty string.)
+{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 = ""
+>>
+Rule 33 (The error message cannot be solely composed of numbers if exit_without_error is false.)
+{v_1 : bool, v_2 : str} |= if v_1 = false then ∃i ∈ [0, v_2.len-1] : (v_2[i] < "0" ∨ v_2[i] > "9")
+>>
+Rule 34 (error_msg should not contain control characters)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ " "
+>>
+Rule 36 (If exit without error is false, the message must be at least 5 characters long.)
+{v_1 : bool, v_2: str} |= if v_1 = false then v_2.len ≥ 5
+>>
+Rule 39 (error_msg should not be the same as the default Abort message.)
+{v_1: str} |= v_1 ≠ "Aborting due to an unrecoverable error."
+>>
+Rule 40 (error_msg should consist of ASCII characters)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≤ "z" ∧ v_1[i] ≥ " "
+>>
+Rule 41 (exit_without_error is only true when the message contains 'success')
+{v_1 : bool, v_2 : str} |= if v_1 = true then ∃i ∈ [0, v_2.len-1] : v_2[i] = "s" ∧ v_2[i+1] = "u" ∧ v_2[i+2] = "c" ∧ v_2[i+3] = "c" ∧ v_2[i+4] = "e" ∧ v_2[i+5] = "s" ∧ v_2[i+6] = "s"
+>>
+Rule 42 (error_msg cannot start with a whitespace character)
+{v_1 : str} |= if v_1.len > 0 then v_1[0] ≠ " "
+>>
+Rule 43 (If exit_without_error is set to true, error_msg should not be used to describe an error)
+{v_1: bool, v_2 : str} |= if v_1 = true then ∃i ∈ [0, v_2.len -1] : v_2[i] ≠ "e" ∧  v_2[i] ≠ "r" ∧  v_2[i] ≠ "o"
+>>
+Rule 44 (If exit_without_error is False, the error message can not contain 'Success')
+{v_1 : bool, v_2: str} |= if v_1 = false then ∃i ∈ [0, v_2.len-1] : v_2[i] ≠ "S" ∧ v_2[i] ≠ "u" ∧ v_2[i] ≠ "c" ∧ v_2[i] ≠ "c" ∧ v_2[i] ≠ "e" ∧ v_2[i] ≠ "s" ∧ v_2[i] ≠ "s"
+>>
+Rule 45 (error_msg cannot contain escape characters)
+{v_1: str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ "\\"
+>>
+Rule 46 (if exit_without_error is true, then the error_msg should start with a capital letter or be an empty string)
+{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 = "" else if v_2.len > 0 then v_2[0] ≥ "A" ∧ v_2[0] ≤ "Z"
+>>
+Rule 47 (error_msg string cannot have length greater than 0 if exit_without_error is false and name is provided)
+{v_1: bool, v_2: str, v_3: str} |= if v_1 = false ∧ v_3 ≠ "" then v_2.len > 0
+>>
+Rule 48 (error_msg cannot start or end with a newline character)
+{v_1 : str} |= (v_1.len = 0) ∨ (v_1[0] ≠ "\n" ∧ v_1[v_1.len - 1] ≠ "\n")
+>>
+Rule 49 (exit_without_error can be true only if the error_msg is less than 10 characters)
+{v_1 : bool, v_2: str} |= if v_1 = true then v_2.len < 10
+>>
+Rule 50 (The error message must have a specific format if the name is provided)
+{v_1 : str, v_2 : str} |= if v_2 ≠ "" then ∃i ∈ [0, v_1.len-1] : (v_1[i] = "O" ∧ v_1[i+1] = "p" ∧ v_1[i+2] = "e" ∧ v_1[i+3] = "r" ∧ v_1[i+4] = "a" ∧ v_1[i+5] = "t" ∧ v_1[i+6] = "i" ∧ v_1[i+7] = "o" ∧ v_1[i+8] = "n" ∧ v_1[i+9] = " ")
+>>
+Rule 51 (error_msg cannot contain backticks)
+{v_1: str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ "`"
+>>
+Rule 52 (If exit_without_error is true, the error message should be empty, or contain only the word "Success".)
+{v_1: bool, v_2: str} |= if v_1 = true then v_2 = "" ∨ v_2 = "Success"
+>>
+Rule 53 (If exit_without_error is False and a name is provided, the error message can not be empty)
+{v_1: bool, v_2: str, v_3: str} |= if v_1 = false ∧ v_3 ≠ "" then v_2 ≠ ""
+>>
+Rule 54 (error_msg cannot contain HTML tags.)
+{v_1: str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ "<" ∧ v_1[i] ≠ ">"
+>>
+Rule 55 (if exit_without_error is true, then error_msg should not explain a specific error but be an empty string or "Success")
+{v_1 : bool, v_2 : str} |= if v_1 = true then (v_2 = "") ∨ (v_2 = "Success")
+>>
+Rule 56 (if name is given, exit_without_error should default to False if not explicited specified)
 {v_1 : str, v_2 : bool} |= if v_1 ≠ "" then v_2 = false
 >>
-Rule 18 (If exit_without_error is true, then error_msg cannot be one of the error messages)
-{v_1 : str, v_2 : bool} |= if v_2 = true then v_1 ≠ "Error A" ∧ v_1 ≠ "Error B" ∧ v_1 ≠ "Error C"
+Rule 57 (If error_msg contains the word 'memory', exit_without_error should be false)
+{v_1: str, v_2: bool} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "m" ∧ v_1[i+1] = "e" ∧ v_1[i+2] = "m" ∧ v_1[i+3] = "o" ∧ v_1[i+4] = "r" ∧ v_1[i+5] = "y" then v_2 = false
 >>
-Rule 19 (The exit_without_error flag can be set to only true, if the error_msg is 'none' or '' string.)
-{v_1 : str, v_2 : bool} |= if v_2 = true then v_1 = "none" ∨ v_1 = ""
+Rule 58 (if exit_without_error is true, the error_msg should not include a specific file name)
+{v_1: bool, v_2: str} |= if v_1 = true then ∃i ∈ [0, v_2.len - 1] : v_2[i] ≠ "." ∧ v_2[i] ≠ "/" ∧ v_2[i] ≠ "\\"
 >>
-Rule 20 (If error_msg contains specific keywords, exit_without_error should be false)
-{v_1 : str, v_2 : bool} |= if (v_1 = "memory error") ∨ (v_1 = "illegal access") then v_2 = false
+Rule 59 (if name is provided, error_msg should be related to this operation)
+{v_1: str, v_2: str} |= if v_2 ≠ "" then ∃i ∈ [0, v_1.len - 1] : v_1[i] = v_2[0]
 >>
-Rule 21 (error_msg should not be too long, greater than 50 will not be permitted)
-{v_1 : str} |= if v_1.len > 0 then v_1.len ≤ 50
+Rule 60 (The error message must not be a placeholder like "TODO")
+{v_1 : str} |= v_1 ≠ "TODO"
 >>
-Rule 22 (If error_msg is an IOError or ValueError string, exit_without_error must be false)
-{v_1 : str, v_2 : bool} |= if (v_1 = "IOError") ∨ (v_1 = "ValueError") then v_2 = false
+Rule 61 (If exit_without_error is true, then the error_msg must not contain hints of error.)
+{v_1: bool, v_2: str} |= if v_1 = true then ∃i ∈ [0, v_2.len -1] : v_2[i] ≠ "e" ∧ v_2[i] ≠ "E" ∧ v_2[i] ≠ "f" ∧ v_2[i] ≠ "F"
 >>
-Rule 23 (If exit_without_error is true, then error_msg should be selected from the list including only "none", "constant", "linear", or "")
-{v_1 : str, v_2 : bool} |= if v_2 = true then v_1 = "none" ∨ v_1 = "constant" ∨ v_1 = "linear" ∨ v_1 = ""
+Rule 62 (If a name is provided, error_msg must contain the name)
+{v_1 : str, v_2 : str} |= if v_2 ≠ "" then ∃i ∈ [0, v_1.len - 1] : v_1[i] = v_2[0]
 >>
-Rule 24 (If error_msg is "linear", exit_without_error must be false. Similarly, if "constant", exit_without_error is also false)
-{v_1 : str, v_2 : bool} |= if (v_1 = "linear") ∨ (v_1 = "constant") then v_2 = false
+Rule 63 (error_msg cannot be only whitespace)
+{v_1 : str} |= ∃i ∈ [0, v_1.len-1] : v_1[i] ≠ " "
 >>
-Rule 26 (if error_msg is "sigmoid" or "softmax", then exit_without_error must be false)
-{v_1 : str, v_2 : bool} |= if (v_1 = "sigmoid") ∨ (v_1 = "softmax") then v_2 = false
+Rule 64 (if exit_without_error is true, error_msg should not start with lowercase characters)
+{v_1: bool, v_2: str} |= if v_1 = true then (v_2 = "") ∨ (v_2.len > 0 ∧ v_2[0] ≥ "A" ∧ v_2[0] ≤ "Z")
 >>
-Rule 27 (If error_msg string is longer than zero and exit_without_error set to true, return false.)
-{v_1 : str, v_2 : bool} |= if v_1.len > 0 then v_2 = false
+Rule 65 (if name is provided and exit_without_error is False, error_msg should be longer than the name)
+{v_1 : str, v_2 : str, v_3: bool} |= if v_2 ≠ "" ∧ v_3 = false then v_1.len > v_2.len
 >>
-Rule 29 (If the error_msg contains 'unsupported', then exit_without_error must be false)
-{v_1 : str, v_2 : bool} |= if v_1 = "unsupported" then v_2 = false
+Rule 66 (error_msg cannot contain the word 'deprecated')
+{v_1 : str} |= ∃i ∈ [0, v_1.len-1] : v_1[i] ≠ "d" ∧ v_1[i] ≠ "e" ∧ v_1[i] ≠ "p" ∧ v_1[i] ≠ "r" ∧ v_1[i] ≠ "c" ∧ v_1[i] ≠ "a" ∧ v_1[i] ≠ "t"
 >>
-Rule 30 (If the error_msg is one of "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", exit_without_error must be false)
-{v_1 : str, v_2 : bool} |= if (v_1 = "relu") ∨ (v_1 = "tanh") ∨ (v_1 = "sigmoid") ∨ (v_1 = "softmax") ∨ (v_1 = "elu") ∨ (v_1 = "selu") ∨ (v_1 = "gelu") ∨ (v_1 = "swish") then v_2 = false
+Rule 67 (If exit_without_error is true, then error_msg should consist of only alphanumeric characters and spaces and can also be the empty string)
+{v_1 : bool, v_2 : str} |= if v_1 = true then (v_2 = "") ∨ (∀i ∈ [0, v_2.len-1] : (v_2[i] ≥ "a" ∧ v_2[i] ≤ "z") ∨ (v_2[i] ≥ "A" ∧ v_2[i] ≤ "Z") ∨ (v_2[i] ≥ "0" ∧ v_2[i] ≤ "9") ∨ (v_2[i] = " "))
 >>
-Rule 31 (If the error_msg is "bn,anm,bm->ba", "...ij->...ji", "bij,bjk->bik", "i,j->ij", "ii->i", exit_without_error must be false)
-{v_1 : str, v_2 : bool} |= if (v_1 = "bn,anm,bm->ba") ∨ (v_1 = "...ij->...ji") ∨ (v_1 = "bij,bjk->bik") ∨ (v_1 = "i,j->ij") ∨ (v_1 = "ii->i") then v_2 = false
+Rule 68 (If the name is a certain value the error_msg must contain a specific message)
+{v_1 : str, v_2: str} |= if v_1 = "MyOp" then v_2 = "This is an expected error for MyOp"
 >>
-Rule 32 (If exit_without_error is set to false and error_msg has length zero, return false)
-{v_1 : str, v_2 : bool} |= if v_2 = false then v_1.len > 0
+Rule 69 (error_msg cannot be a very long string with mostly repeating character)
+{v_1 : str} |= v_1.len < 100 ∨ (∃i ∈ [10, v_1.len-1] : v_1[0] ≠ v_1[i])
 >>
-Rule 33 (exit_without_error can be true only if error_msg is "none" or "")
-{v_1 : str, v_2 : bool} |= if v_2 = true then (v_1 = "none") ∨ (v_1 = "")
+Rule 70 (if exit_without_error is set to true, error_msg must not contain information leading to security vulnerability)
+{v_1: bool, v_2: str} |= if v_1 = true then ∃i ∈ [0, v_2.len-1] : (v_2[i] ≠ "p") ∧ (v_2[i] ≠ "w") ∧ (v_2[i] ≠ "d")
 >>
-Rule 35 (If error_msg is any string from the list except "none", exit_without_error must be false.)
-{v_1 : str, v_2 : bool} |= if v_1 ≠ "none" then v_2 = false
+Rule 71 (If name is provided, error_msg must be different from name)
+{v_1: str, v_2: str} |= v_1 ≠ v_2
 >>
-Rule 36 (If exit_without_error is false, the error_msg cannot be from the success list ("constant", "linear", "none"))
-{v_1 : str, v_2 : bool} |= if v_2 = false then (v_1 ≠ "constant") ∧ (v_1 ≠ "linear") ∧ (v_1 ≠ "none")
+Rule 72 (error_msg should not be a path)
+{v_1: str} |= ∃i ∈ [0, v_1.len-1] : v_1[i] ≠ "/" ∧ v_1[i] ≠ "\\"
 >>
-Rule 37 (If error_msg is any string other than "none", "" and selected from ["constant", "linear"] , exit_without_error must be false.)
-{v_1 : str, v_2 : bool} |= if (v_1 ≠ "none") ∧ (v_1 ≠ "") ∧ (v_1 ≠ "constant") ∧ (v_1 ≠ "linear") then v_2 = false
+Rule 74 (if name is provided, error_msg can not contain parts of the 'name' but can contain the entire 'name')
+{v_1 : str, v_2: str} |= if v_2 ≠ "" then ∃i ∈ [0, v_1.len - v_2.len +1 ] : (v_1[i] = v_2[0] ∧ v_1[i+v_2.len-1]=v_2[v_2.len-1])
 >>
-Rule 38 (If exit_without_error is false, then error_msg must be in the error cases)
-{v_1 : str, v_2 : bool} |= if v_2 = false then (v_1 = "ii") ∨ (v_1 = "ii->i") ∨ (v_1 = "i,j->ij") ∨ (v_1 = "bij,bjk->bik") ∨ (v_1 = "...ij->...ji") ∨ (v_1 = "bn,anm,bm->ba") ∨ (v_1 = "mean") ∨ (v_1 = "sum") ∨ (v_1 = "max") ∨ (v_1 = "min") ∨ (v_1 = "prod") ∨ (v_1 = "relu") ∨ (v_1 = "tanh") ∨ (v_1 = "sigmoid") ∨ (v_1 = "softmax") ∨ (v_1 = "elu") ∨ (v_1 = "selu") ∨ (v_1 = "gelu") ∨ (v_1 = "swish") ∨ (v_1 = "linear") ∨ (v_1 = "constant") ∨ (v_1 = "softplus")
+Rule 75 (error_msg should not be a valid python identifier)
+{v_1: str} |= ∃i ∈ [0, v_1.len - 1] : (v_1[i] < "0" ∨ v_1[i] > "9") ∧ (v_1[i] < "A" ∨ v_1[i] > "Z") ∧ (v_1[i] < "a" ∨ v_1[i] > "z") ∧ v_1[i] ≠ "_"
 >>
-Rule 39 (if exit_without_error is false, then error_msg must be selected from the list of string)
-{v_1 : str, v_2 : bool} |= if v_2 = false then (v_1 = "ii") ∨ (v_1 = "ii->i") ∨ (v_1 = "i,j->ij") ∨ (v_1 = "bij,bjk->bik") ∨ (v_1 = "...ij->...ji") ∨ (v_1 = "bn,anm,bm->ba") ∨ (v_1 = "none") ∨ (v_1 = "mean") ∨ (v_1 = "sum") ∨ (v_1 = "max") ∨ (v_1 = "min") ∨ (v_1 = "prod") ∨ (v_1 = "relu") ∨ (v_1 = "tanh") ∨ (v_1 = "sigmoid") ∨ (v_1 = "softmax") ∨ (v_1 = "elu") ∨ (v_1 = "selu") ∨ (v_1 = "gelu") ∨ (v_1 = "swish") ∨ (v_1 = "constant") ∨ (v_1 = "linear") ∨ (v_1 = "softplus")
+Rule 76 (If exit_without_error is true, then error_msg cannot contain question marks)
+{v_1: bool, v_2: str} |= if v_1 = true then ∃i ∈ [0, v_2.len -1] : v_2[i] ≠ "?"
+>>
+Rule 77 (If name is provided, error_msg must contain at least one digit)
+{v_1 : str, v_2: str} |= if v_2 ≠ "" then ∃i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9")
+>>
+Rule 79 (If exit_without_error is false, then error_msg must contain at least one vowel)
+{v_1: bool, v_2: str} |= if v_1 = false then ∃i ∈ [0, v_2.len -1] : (v_2[i] = "a") ∨ (v_2[i] = "e") ∨ (v_2[i] = "i") ∨ (v_2[i] = "o") ∨ (v_2[i] = "u") ∨ (v_2[i] = "A") ∨ (v_2[i] = "E") ∨ (v_2[i] = "I") ∨ (v_2[i] = "O") ∨ (v_2[i] = "U")
+>>
+Rule 81 (error_msg should not be the same as the name, ignoring case)
+{v_1 : str, v_2: str} |= v_1 ≠ v_2
+>>
+Rule 83 (If a name is provided and exit_without_error is false, error_msg cannot be composed only of the characters of the name)
+{v_1 : str, v_2: str, v_3: bool} |= if v_2 ≠ "" ∧ v_3 = false then ∀i ∈ [0, v_1.len -1] : ∃j ∈ [0, v_2.len-1] : v_1[i] ≠ v_2[j]
+>>
+Rule 85 (If exit_without_error is true, then error_msg must not be excessively long)
+{v_1: bool, v_2: str} |= if v_1 = true then v_2.len < 256

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if dtype of ref is qint8, quint8, qint32, qint16 or quint16, then dtype of value should be the same (Rule 56)
+# if ref is uint8, then value must have the same type or can be casted (Rule 56)
 
 rule_56 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(Or(Or(v["arg1_dtype"] == 5, v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg2_dtype"] == v["arg1_dtype"], False)) if n else
-          If(Or(Or(Or(Or(v["arg1_dtype"] == 5, v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg2_dtype"] == v["arg1_dtype"], False))
+    s.add(Not(If(v["arg1_dtype"] == 5, Or(v["arg2_dtype"] == 5, v["arg2_dtype"] == 3), True)) if n else
+          If(v["arg1_dtype"] == 5, Or(v["arg2_dtype"] == 5, v["arg2_dtype"] == 3), True))
 )
 
 def rule_56_func(arg1, arg2, solver=None, neg=False):

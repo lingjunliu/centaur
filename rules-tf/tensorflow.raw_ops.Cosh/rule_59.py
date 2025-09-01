@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input tensor has dimension 0, then it is a scalar. (Rule 59)
+# if it is float32, the output is also float32 (Rule 59)
 
 rule_59 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 0, True, False)) if n else
-          If(v["arg1_ndim"] == 0, True, False))
+    s.add(Not(If(v["arg1_dtype"] == 8, True, False)) if n else
+          If(v["arg1_dtype"] == 8, True, False))
 )
 
 def rule_59_func(arg1, solver=None, neg=False):
@@ -22,15 +22,15 @@ def rule_59_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 59
-        rule_59(solver, {'arg1_ndim': arg1_ndim})
+        rule_59(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_59(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_59(solver, {'arg1_dtype': arg1['dtype']}, neg)

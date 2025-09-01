@@ -1,27 +1,78 @@
 >>
-Rule 3 (padding must be a string that is either "VALID" or "SAME")
-{v_1 : str} |= v_1 = "VALID" ∨ v_1 = "SAME"
->>
-Rule 4 (data_format must be a string that is either "NDHWC" or "NCDHW")
+Rule 1 (data_format should be either "NDHWC" or "NCDHW")
 {v_1 : str} |= v_1 = "NDHWC" ∨ v_1 = "NCDHW"
 >>
-Rule 5 (input tensor must be 5-dimensional)
-{v_1 : tensor} |= ndim(v_1) = 5
+Rule 2 (padding should be either "VALID" or "SAME")
+{v_1 : str} |= v_1 = "VALID" ∨ v_1 = "SAME"
 >>
-Rule 6 (If ksize is a list, its elements must be greater than zero)
+Rule 3 (ksize should have length 1, 3, or 5)
+{v_1 : list(int)} |= v_1.len = 1 ∨ v_1.len = 3 ∨ v_1.len = 5
+>>
+Rule 5 (ksize elements should be positive)
 {v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 8 (ksize should be an integer greater than 0)
-{v_1 : int} |= v_1 > 0
+Rule 7 (input tensor must have 5 dimensions if data_format is NCDHW or NDHWC)
+{v_1 : tensor, v_2 : str} |= if v_2 = "NDHWC" ∨ v_2 = "NCDHW" then ndim(v_1) = 5
 >>
-Rule 10 (if data_format is NCDHW, then the second dimension of input should be greater than 0)
-{v_1 : tensor, v_2 : str} |= if v_2 = "NCDHW" then shape(v_1, 1) > 0
+Rule 12 (ksize list length check)
+{v_1 : list(int)} |= (v_1.len = 1) ∨ (v_1.len = 3) ∨ (v_1.len = 5)
 >>
-Rule 21 (If ksize is a list, the number of dimensions must match the input tensor.)
-{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 1 then v_2.len = ndim(v_1)
+Rule 14 (ksize elements are non-negative)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 1
 >>
-Rule 35 (If data_format is NCDHW, batch dimension shape should be equal)
-{v_1: tensor, v_2: str} |= if v_2 = "NCDHW" then shape(v_1, 0) > 0
+Rule 17 (If ksize length is 1, all elements are equal)
+{v_1 : list(int)} |= if v_1.len = 1 then ∀i ∈ [1, 4] : v_1[0] = v_1[i]
 >>
-Rule 46 (If ksize is a list with length greater than 1, the number of dimensions must be 5)
-{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 1 then ndim(v_1) = 5
+Rule 25 (ksize and stride lists have same length if both are not 1)
+{v_1 : list(int), v_2 : list(int)} |= if v_1.len ≠ 1 ∧ v_2.len ≠ 1 then v_1.len = v_2.len
+>>
+Rule 34 (If data_format is NDHWC, the channel dimension should be less than the input dimension)
+{v_1 : tensor, v_2 : str} |= if v_2 = "NDHWC" then shape(v_1, 4) < shape(v_1,0)
+>>
+Rule 43 (ksize and strides have the same length when data format is NDHWC or NCDHW)
+{v_1 : list(int), v_2 : list(int), v_3 : str} |= if (v_3 = "NDHWC" ∨ v_3 = "NCDHW") ∧ v_1.len ≠ 1 ∧ v_2.len ≠ 1 then v_1.len = v_2.len
+>>
+Rule 52 (ksize and strides have the same length when data format is NDHWC or NCDHW)
+{v_1 : list(int), v_2 : list(int), v_3 : str} |= if (v_3 = "NDHWC" ∨ v_3 = "NCDHW") then if v_1.len ≠ 1 ∧ v_2.len ≠ 1 then v_1.len = v_2.len
+>>
+Rule 60 (ksize and strides have the same length when data format is NDHWC or NCDHW if length is not 1)
+{v_1 : list(int), v_2 : list(int), v_3 : str} |= if (v_3 = "NDHWC" ∨ v_3 = "NCDHW") ∧ (v_1.len ≠ 1) ∧ (v_2.len ≠ 1) then v_1.len = v_2.len
+>>
+Rule 61 (If data format is NCDHW, the channel dimension should be less than the input dimension)
+{v_1 : tensor, v_2 : str} |= if v_2 = "NCDHW" then shape(v_1, 1) < shape(v_1,0)
+>>
+Rule 69 (If ksize and strides list length is 1, then all elements are equal)
+{v_1 : list(int), v_2: list(int)} |= if v_1.len = 1 ∧ v_2.len = 1 then true else ∀i ∈ [0,0]: v_1[0] = v_2[0]
+>>
+Rule 78 (If input tensor has less than 5 dimensions, data format should not be specified)
+{v_1 : tensor, v_2: str} |= if ndim(v_1) < 5 then v_2 = ""
+>>
+Rule 92 (If input tensor has less than 5 dimensions, data format should not be specified)
+{v_1 : tensor, v_2: str} |= if ndim(v_1) ≠ 5 then v_2 = "NDHWC"
+>>
+Rule 100 (Data format must be specified if input tensor has 5 dimensions)
+{v_1 : tensor, v_2 : str} |= if ndim(v_1) = 5 then v_2 = "NDHWC" ∨ v_2 = "NCDHW"
+>>
+Rule 101 (If ksize and strides list length is 1, then values in the list have to be same)
+{v_1 : list(int), v_2: list(int)} |= if v_1.len = 1 ∧ v_2.len = 1 then  v_1[0] = v_2[0]
+>>
+Rule 103 (If ksize and strides list length is 1, then values in the list have to be same when data_format is NDHWC or NCDHW)
+{v_1 : list(int), v_2: list(int), v_3 : str} |= if (v_3 = "NDHWC" ∨ v_3 = "NCDHW") ∧ (v_1.len = 1 ∧ v_2.len = 1) then  v_1[0] = v_2[0]
+>>
+Rule 104 (If ksize and strides list length is 1, then values in the list have to be same under data_format NDHWC or NCDHW, else both values should be 1.)
+{v_1 : list(int), v_2: list(int), v_3 : str} |= if (v_3 = "NDHWC" ∨ v_3 = "NCDHW") ∧ (v_1.len = 1 ∧ v_2.len = 1) then  v_1[0] = v_2[0] else if (v_1.len = 1 ∧ v_2.len = 1) then v_1[0] = 1 ∧ v_2[0] = 1
+>>
+Rule 111 (If data format is specified, input tensor must have 5 dimensions, else input tensor should have any number of dimensions)
+{v_1 : tensor, v_2 : str} |= if (v_2 = "NDHWC" ∨ v_2 = "NCDHW") then ndim(v_1) = 5 else ndim(v_1) > 0
+>>
+Rule 112 (If data_format is specified, and the ksize is not 1, at least depth and height should exist)
+{v_1 : tensor, v_2 : str, v_3 : list(int)} |= if (v_2 = "NDHWC" ∨ v_2 = "NCDHW") ∧ (v_3.len ≠ 1) then ndim(v_1) ≥ 3
+>>
+Rule 119 (If the length of data_format is specified, it should not be an empty string)
+{v_1 : str} |= if v_1.len > 0 then v_1 = "NDHWC" ∨ v_1 = "NCDHW"
+>>
+Rule 122 (ksize and strides list length compatibility)
+{v_1 : list(int), v_2: list(int), v_3 : str} |= if (v_3 = "NDHWC" ∨ v_3 = "NCDHW") then (v_1.len = v_2.len) ∨ (v_1.len = 1) ∨ (v_2.len = 1)
+>>
+Rule 128 (ksize values are same when list length is 1 and data_format is set to default)
+{v_1 : list(int), v_2: str} |= if (v_2 = "NDHWC" ∨ v_2 = "NCDHW")  ∧ (v_1.len = 1) then (v_1[0] > 0)

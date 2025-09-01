@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check if the diagonal offset 'k' is non-zero (Rule 54)
+# Another limit for n as well to handle large values. (Rule 54)
 
 rule_54 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != 0) if n else
-          v["arg1_value"] != 0)
+    s.add(Not(v["arg1_value"] < 150000) if n else
+          v["arg1_value"] < 150000)
 )
 
 def rule_54_func(arg1, solver=None, neg=False):

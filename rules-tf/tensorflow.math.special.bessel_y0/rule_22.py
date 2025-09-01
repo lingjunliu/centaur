@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If dtype of x is float64, then the max should be smaller than 100.0 (Rule 22)
+# If input tensor is half type, its minimum value should be greater than -10000 (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 8, Select(v["arg1_range"], 1) < 100.0, False)) if n else
-          If(v["arg1_dtype"] == 8, Select(v["arg1_range"], 1) < 100.0, False))
+    s.add(Not(If(v["arg1_dtype"] == 6, Select(v["arg1_range"], 0) > -10000, True)) if n else
+          If(v["arg1_dtype"] == 6, Select(v["arg1_range"], 0) > -10000, True))
 )
 
 def rule_22_func(arg1, solver=None, neg=False):

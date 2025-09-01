@@ -1,75 +1,213 @@
 >>
-Rule 1 (shape must be int32 or int64)
+Rule 1 (shape tensor must be int32 or int64)
 {v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
 >>
-Rule 2 (dtype must be half, bfloat16, float32, or float64)
-{v_2 : dtype} |= v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8
+Rule 2 (dtype must be half, bfloat16, float32, or float64 which are encoded by 6, 7, 8, and 9 respectively)
+{v_2 : dtype} |= v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9
 >>
-Rule 3 (seed must be a non-negative integer)
-{v_3 : int} |= v_3 ≥ 0
+Rule 3 (seed and seed2 are non-negative integers)
+{v_3 : int, v_4 : int} |= v_3 ≥ 0 ∧ v_4 ≥ 0
 >>
-Rule 4 (seed2 must be a non-negative integer)
-{v_4 : int} |= v_4 ≥ 0
+Rule 4 (The shape of the output tensor should have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 5 (shape tensor must have positive dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 5 (If shape tensor is not empty, all dimensions must be positive.)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 6 (shape tensor ndim > 0)
+Rule 6 (seed can not be equal to seed2)
+{v_3 : int, v_4 : int} |= v_3 ≠ v_4
+>>
+Rule 8 (If seed is non-zero, seed2 can not be zero)
+{v_3 : int, v_4 : int} |= if v_3 > 0 then v_4 > 0
+>>
+Rule 9 (If seed2 is non-zero, seed can not be zero)
+{v_3 : int, v_4 : int} |= if v_4 > 0 then v_3 > 0
+>>
+Rule 18 (Check tensor's shape is not a scalar)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 7 (shape must be a 0-D or 1-D tensor)
-{v_1 : tensor} |= ndim(v_1) = 0 ∨ ndim(v_1) = 1
+Rule 19 (shape tensor must be int32 or int64 and have positive dimensions)
+{v_1 : tensor} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (ndim(v_1) > 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
 >>
-Rule 8 (if shape is 0-D, the size must be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) = 0 then v_1 > 0
+Rule 21 (seed and seed2 are non-negative integers and not the same)
+{v_3 : int, v_4 : int} |= (v_3 ≥ 0) ∧ (v_4 ≥ 0) ∧ (v_3 ≠ v_4)
 >>
-Rule 9 (if shape is 1-D, all elements of shape must be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) = 1 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
->>
-Rule 10 (Dtype cannot be boolean)
-{v_2 : dtype} |= v_2 ≠ 0
->>
-Rule 11 (Dtype cannot be string)
-{v_2 : dtype} |= v_2 ≠ 11
->>
-Rule 12 (Dtype cannot be a complex type)
-{v_2 : dtype} |= v_2 ≠ 9 ∧ v_2 ≠ 10
->>
-Rule 13 (If seed and seed2 are both set, they must be different)
-{v_3 : int, v_4 : int} |= if v_3 ≠ 0 ∧ v_4 ≠ 0 then v_3 ≠ v_4
->>
-Rule 14 (Shape cannot be a tuple with zero dimension)
-{v_1 : tensor} |= if ndim(v_1) = 1 then (∃i ∈ [0, shape(v_1, 0) - 1] : shape(v_1, i) ≠ 0)
->>
-Rule 15 (If shape is a tensor of integers)
-{v_1 : tensor} |= (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4)
->>
-Rule 17 (shape tensor cannot contain negative values)
-{v_1 : tensor} |= if ndim(v_1) = 1 then (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0)
->>
-Rule 35 (Shape tensor rank must be less than or equal to 1)
-{v_1 : tensor} |= ndim(v_1) ≤ 1
->>
-Rule 36 (if seed2 is provided, seed must also be provided)
-{v_3 : int, v_4 : int} |= if v_4 ≠ 0 then v_3 ≠ 0
->>
-Rule 37 (if seed is zero, seed2 must be zero)
+Rule 22 (If seed and seed2 are both zero, then the condition is met)
 {v_3 : int, v_4 : int} |= if v_3 = 0 then v_4 = 0
 >>
-Rule 38 (If shape is zero dimensional, it must be equal to 1)
-{v_1 : tensor} |= if ndim(v_1) = 0 then v_1 = 1
+Rule 24 (if seed2 is zero, then seed must be zero)
+{v_3 : int, v_4 : int} |= if v_4 = 0 then v_3 = 0
 >>
-Rule 40 (If seed is not zero, then shape must be a tensor)
-{v_1 : tensor, v_3 : int} |= if v_3 ≠ 0 then ndim(v_1) > 0
+Rule 27 (seed and seed2 are non-negative integers)
+{v_3 : int, v_4 : int} |= (v_3 ≥ 0) ∧ (v_4 ≥ 0)
 >>
-Rule 41 (if seed2 is not zero, then shape must be a tensor)
-{v_1 : tensor, v_4 : int} |= if v_4 ≠ 0 then ndim(v_1) > 0
+Rule 28 (If seed and seed2 are both zero, then the random seed is used)
+{v_3 : int, v_4 : int} |= (v_3 = 0) ∧ (v_4 = 0)
 >>
-Rule 44 (if seed or seed2 are provided, the output dtype cannot be bool)
-{v_2 : dtype, v_3 : int, v_4 : int} |= if v_3 ≠ 0 ∨ v_4 ≠ 0 then v_2 ≠ 0
+Rule 29 (If seed is provided, seed2 must also be provided)
+{v_3 : int, v_4 : int} |= if v_3 ≠ 0 then v_4 ≠ 0
 >>
-Rule 48 (If the shape tensor is of rank 1, its first element should be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 0
+Rule 30 (The dimensions of the shape tensor must be positive integers)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 56 (If dtype is float64, then at least one seed value should be specified)
-{v_2 : dtype, v_3 : int, v_4 : int} |= if v_2 = 8 then v_3 > 0 ∨ v_4 > 0
+Rule 31 (shape can be 1D with size greater than 0)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) > 0
+>>
+Rule 32 (Shape tensor must be int32 or int64 and have positive dimensions)
+{v_1 : tensor} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 34 (If seed is zero, seed2 is ignored, if seed is not zero, seed2 must be non zero)
+{v_3 : int, v_4 : int} |= if v_3 = 0 then true else v_4 ≠ 0
+>>
+Rule 37 (if shape's ndim is zero, the op generates a scalar)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 43 (seed and seed2 are less than max int)
+{v_3 : int, v_4 : int} |= v_3 < 2147483647 ∧ v_4 < 2147483647
+>>
+Rule 44 (ndim should be less than 7)
+{v_1 : tensor} |= ndim(v_1) < 7
+>>
+Rule 45 (Shape tensor must be int32 or int64 and all dimensions must be positive)
+{v_1 : tensor} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 48 (Ensure shape has at least one element, if not scalar)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 50 (if ndim is zero, shape becomes scalar)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else (ndim(v_1) > 0)
+>>
+Rule 51 (The dtype of the output tensor should be one of the allowed dtypes)
+{v_1: tensor, v_2: dtype} |= if dtype_(v_1) = 6 then v_2 = 6 else if dtype_(v_1) = 7 then v_2 = 7 else if dtype_(v_1) = 8 then v_2 = 8 else if dtype_(v_1) = 9 then v_2 = 9 else false
+>>
+Rule 52 (Shape tensor must be int32 or int64 and each dimension should be smaller than max int)
+{v_1 : tensor} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483647)
+>>
+Rule 54 (If seed is specified, seed2 must be specified. Both seed must be smaller than maximum integer)
+{v_3 : int, v_4 : int} |= if v_3 ≠ 0 then v_4 ≠ 0 ∧ v_3 < 2147483647 ∧ v_4 < 2147483647
+>>
+Rule 55 (If product of dimension values in shape is greater than the maximum allowed tensor size, raise exception)
+{v_1: tensor} |= if ndim(v_1) = 0 then true else ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+>>
+Rule 56 (shape can have at most 8 dimensions.)
+{v_1: tensor} |= ndim(v_1) ≤ 8
+>>
+Rule 57 (if shape is scalar, dtype must be one of the allowed ones)
+{v_1: tensor, v_2: dtype} |= if ndim(v_1) = 0 then v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9
+>>
+Rule 58 (Shape tensor must be int32 or int64 and all dimensions must be positive and smaller than max int)
+{v_1 : tensor} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ shape(v_1, i) < 2147483647)
+>>
+Rule 60 (If seed is specified, seed2 must be specified and both are within the integer range)
+{v_3 : int, v_4 : int} |= if v_3 ≠ 0 then v_4 ≠ 0 ∧ (v_3 > -2147483648 ∧ v_3 < 2147483647) ∧ (v_4 > -2147483648 ∧ v_4 < 2147483647)
+>>
+Rule 61 (The dimensions of the shape tensor must be non-negative)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+>>
+Rule 62 (if the number of dimensions of shape is 0, shape is scalar)
+{v_1: tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 63 (dtype value is valid)
+{v_2 : dtype} |= v_2 ≥ 0 ∧ v_2 < 13
+>>
+Rule 64 (Shape tensor's number of dimensions must be less or equal than 8)
+{v_1: tensor} |= ndim(v_1) <= 8
+>>
+Rule 67 (If seed is specified, seed2 must be specified and both are within the integer range and non-negative)
+{v_3 : int, v_4 : int} |= if v_3 ≠ 0 then v_4 ≠ 0 ∧ (v_3 > -2147483648 ∧ v_3 < 2147483647) ∧ (v_4 > -2147483648 ∧ v_4 < 2147483647) ∧ (v_3 >= 0) ∧ (v_4 >= 0)
+>>
+Rule 68 (The dimensions of the shape tensor must be non-negative integers)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+>>
+Rule 69 (Shape can be scalar)
+{v_1: tensor} |= if ndim(v_1) = 0 then true else (ndim(v_1) >= 0)
+>>
+Rule 70 (The shape tensor must have a valid number of dimensions)
+{v_1: tensor} |= ndim(v_1) >= 0 ∧ ndim(v_1) <= 8
+>>
+Rule 71 (The seed values cannot be equal if both provided)
+{v_3: int, v_4: int} |= if (v_3 != 0) ∧ (v_4 != 0) then v_3 != v_4
+>>
+Rule 72 (Shape tensor must be int32 or int64, dimensions should be positive and smaller than max int)
+{v_1 : tensor} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ shape(v_1, i) < 2147483647
+>>
+Rule 73 (Dtype of output tensor should be half, bfloat16, float32, or float64)
+{v_5 : dtype} |= v_5 = 6 ∨ v_5 = 7 ∨ v_5 = 8 ∨ v_5 = 9
+>>
+Rule 74 (If seed is specified, seed2 must be specified; seed and seed2 must be valid integers)
+{v_3 : int, v_4 : int} |= if v_3 ≠ 0 then v_4 ≠ 0 ∧ v_3 > -2147483648 ∧ v_3 < 2147483647 ∧ v_4 > -2147483648 ∧ v_4 < 2147483647
+>>
+Rule 76 (Shape can have zero dimension, indicating scalar output)
+{v_1: tensor} |= ndim(v_1) >= 0
+>>
+Rule 77 (shape must have a valid number of dimensions (0-8))
+{v_1: tensor} |= ndim(v_1) <= 8 ∧ ndim(v_1) >= 0
+>>
+Rule 78 (If shape has zero dimensions, dtype parameter must match)
+{v_1: tensor, v_5: dtype} |= if ndim(v_1) = 0 then v_5 = 6 ∨ v_5 = 7 ∨ v_5 = 8 ∨ v_5 = 9
+>>
+Rule 83 (If shape is scalar, dtype must match allowed values and shape should have valid ndim (0))
+{v_1: tensor, v_5: dtype} |= if ndim(v_1) = 0 then v_5 = 6 ∨ v_5 = 7 ∨ v_5 = 8 ∨ v_5 = 9 ∧ ndim(v_1) >= 0
+>>
+Rule 85 (If seed and seed2 are equal, they should both be zero)
+{v_3: int, v_4: int} |= if (v_3 = v_4) then v_3 = 0 ∧ v_4 = 0
+>>
+Rule 92 (If shape is not scalar, ensure each dimension is positive.)
+{v_1: tensor} |= if ndim(v_1) != 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 97 (If shape is a scalar)
+{v_1: tensor} |= ndim(v_1) = 0
+>>
+Rule 99 (If seed equals seed2, both must be zero)
+{v_3: int, v_4: int} |= if v_3 = v_4 then v_3 = 0 ∧ v_4 = 0
+>>
+Rule 100 (Shape tensor: int32 or int64, +ve dimensions < max int; shape dimensions must be non-negative)
+{v_1 : tensor} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ shape(v_1, i) < 2147483647 ∧ shape(v_1, i) ≥ 0)
+>>
+Rule 105 (Both seed and seed2 should be zero or Both shouldn't be zero)
+{v_3: int, v_4: int} |= (v_3 = 0 ∧ v_4 = 0) ∨ (v_3 ≠ 0 ∧ v_4 ≠ 0)
+>>
+Rule 113 (If shape ndim = 0, output type is valid)
+{v_1: tensor, v_5:dtype} |= if (ndim(v_1) = 0) then (v_5 = 6 ∨ v_5 = 7 ∨ v_5 = 8 ∨ v_5 = 9)
+>>
+Rule 120 (shape not scalar implies > 0 dimension, otherwise seed and seed2 are zero.)
+{v_1: tensor, v_3: int, v_4: int} |= if ndim(v_1) > 0 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 else v_3 = 0 ∧ v_4 = 0
+>>
+Rule 121 (Shape is int32/int64; +ve, < max int, non-negative dimensions; ndim <= 8)
+{v_1 : tensor} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ shape(v_1, i) < 2147483647 ∧ shape(v_1, i) ≥ 0) ∧ (ndim(v_1) <= 8)
+>>
+Rule 124 (Shape Scalar: seed and seed2 must be 0)
+{v_1: tensor, v_3: int, v_4:int} |= if ndim(v_1) = 0 then (v_3 = 0 ∧ v_4 = 0)
+>>
+Rule 126 (If shape ndim = 0, dtype should one of the supported ones)
+{v_1: tensor, v_5: dtype} |= if (ndim(v_1) = 0) then (v_5 = 6 ∨ v_5 = 7 ∨ v_5 = 8 ∨ v_5 = 9)
+>>
+Rule 133 (If ndim != 0, each dimension must be positive)
+{v_1: tensor} |= if (ndim(v_1) != 0) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 140 (If Shape ndim != 0, the dtype_ should be 3 or 4.)
+{v_1: tensor} |= if (ndim(v_1) != 0) then (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
+>>
+Rule 141 (Shape: int32/int64; dimensions +ve & < max int; and <= 8 dimensions)
+{v_1 : tensor} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ shape(v_1, i) < 2147483647) ∧ (ndim(v_1) <= 8)
+>>
+Rule 145 (Shape not a scalar => > 0 dimension)
+{v_1: tensor} |= if (ndim(v_1) != 0) then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 146 (Both seed and seed2 are positive or both are not positive)
+{v_3 : int, v_4 : int} |= (v_3 > 0 ∧ v_4 > 0) ∨ (v_3 ≤ 0 ∧ v_4 ≤ 0)
+>>
+Rule 151 (If Shape has more than 0 dimensions, each must be +ve. If seed == seed2, they must be zero.)
+{v_1: tensor, v_3: int, v_4: int} |= if (ndim(v_1) != 0) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) else (v_3=0 ∧ v_4=0)
+>>
+Rule 152 (seed values should be within integer range)
+{v_3 : int, v_4 : int} |= (v_3 > -2147483648 ∧ v_3 < 2147483647) ∧ (v_4 > -2147483648 ∧ v_4 < 2147483647)
+>>
+Rule 156 (If shape is a scalar, the seed and seed2 should be 0)
+{v_3: int, v_4:int} |= if ndim(v_1) = 0 then (v_3 = 0 ∧ v_4 = 0)
+>>
+Rule 157 (shape dimensions should be positive if shape is not scalar and should be more than 0)
+{v_1: tensor} |= if (ndim(v_1) != 0) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 159 (shape is not scalar imposes restrictions, if it is, there are no restrictions)
+{v_1 : tensor} |= if (ndim(v_1) != 0) then (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if input tensor has complex64 dtype, then the maximum value should not be large (Rule 37)
+# The maximum value in float32 input must not be too large, to prevent overflow (Rule 37)
 
 rule_37 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 9, Select(v["arg1_range"], 1) < 10, False)) if n else
-          If(v["arg1_dtype"] == 9, Select(v["arg1_range"], 1) < 10, False))
+    s.add(Not(If(v["arg1_dtype"] == 7, Select(v["arg1_range"], 1) < 88.0, True)) if n else
+          If(v["arg1_dtype"] == 7, Select(v["arg1_range"], 1) < 88.0, True))
 )
 
 def rule_37_func(arg1, solver=None, neg=False):

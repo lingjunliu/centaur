@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The filters in_channels and value in_channels need to match (Rule 54)
+# If value and filter have complete shape the in channel count must be compatible or output depth causes error (Rule 54)
 
 rule_54 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 3) == Select(v["arg2_shape"], 3)) if n else
-          Select(v["arg1_shape"], 3) == Select(v["arg2_shape"], 3))
+    s.add(Not(If(And((And(And(And(Select(v["arg1_shape"], 0) > 0, Select(v["arg1_shape"], 1) > 0), Select(v["arg1_shape"], 2) > 0), Select(v["arg1_shape"], 3) > 0)), (And(And(And(Select(v["arg2_shape"], 0) > 0, Select(v["arg2_shape"], 1) > 0), Select(v["arg2_shape"], 2) > 0), Select(v["arg2_shape"], 3) > 0))), Select(v["arg1_shape"], 3) == Select(v["arg2_shape"], 3), True)) if n else
+          If(And((And(And(And(Select(v["arg1_shape"], 0) > 0, Select(v["arg1_shape"], 1) > 0), Select(v["arg1_shape"], 2) > 0), Select(v["arg1_shape"], 3) > 0)), (And(And(And(Select(v["arg2_shape"], 0) > 0, Select(v["arg2_shape"], 1) > 0), Select(v["arg2_shape"], 2) > 0), Select(v["arg2_shape"], 3) > 0))), Select(v["arg1_shape"], 3) == Select(v["arg2_shape"], 3), True))
 )
 
 def rule_54_func(arg1, arg2, solver=None, neg=False):

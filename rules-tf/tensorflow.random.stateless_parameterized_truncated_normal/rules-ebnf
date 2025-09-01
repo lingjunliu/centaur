@@ -1,81 +1,126 @@
 >>
-Rule 1 (seed must have shape [2])
-{v_2 : tensor} |= shape(v_2, 0) = 2
+Rule 1 (seed must be an integer tensor of shape [2])
+{seed : tensor} |= ndim(seed) = 1 ∧ shape(seed, 0) = 2
 >>
-Rule 2 (seed must have dtype int32 or int64)
-{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Rule 2 (means, stddevs, minvals, and maxvals must have the same dtype if they are tensors)
+{means : tensor, stddevs : tensor, minvals : tensor, maxvals : tensor} |= dtype_(means) = dtype_(stddevs) ∧ dtype_(stddevs) = dtype_(minvals) ∧ dtype_(minvals) = dtype_(maxvals)
 >>
-Rule 3 (shape must be a 1-D integer Tensor or Python array, all elements greater than 0)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ (∀i ∈ [0, ndim(v_1) - 1] : v_1[i] > 0)
+Rule 3 (means can't be boolean if other tensors are float type to prevent type error)
+{means : tensor, stddevs : tensor} |= dtype_(means) ≠ bool ∨ dtype_(stddevs) ≠ float
 >>
-Rule 4 (means, stddevs, minvals, maxvals must have the same dtype)
-{v_3 : tensor, v_4 : tensor, v_5 : tensor, v_6 : tensor} |= dtype_(v_3) = dtype_(v_4) ∧ dtype_(v_3) = dtype_(v_5) ∧ dtype_(v_3) = dtype_(v_6)
+Rule 4 (stddevs must be greater than 0)
+{stddevs : tensor} |= ∀i ∈ [0, shape(stddevs, 0) -1] : shape(stddevs, 0) > 0 ∧ shape(stddevs, i) > 0 ∧ min(stddevs) > 0
 >>
-Rule 5 (stddevs must be positive)
-{v_4 : tensor} |= min(v_4) > 0
+Rule 5 (shape must be a 1-D integer tensor with positive values)
+{shape : tensor} |= ndim(shape) = 1 ∧ ∀i ∈ [0, shape(shape, 0) - 1] : shape(shape, i) > 0
 >>
-Rule 6 (Shape must be 1D tensor and its elements type should be int32 or int64)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
+Rule 6 (If means is a tensor, it should be dominated by shape)
+{shape : tensor, means : tensor} |= ndim(means) > 0 ∧ ndim(shape) > 0 ∧ (∀i ∈ [0, if ndim(shape) ≥ ndim(means) then ndim(shape) - 1 else ndim(means) - 1] : ndim(shape) - i - 1 < 0 ∨ ndim(means) - i - 1 < 0 ∨ shape(shape, ndim(shape) - i - 1) = 1 ∨ shape(means, ndim(means) - i - 1) = 1 ∨ shape(shape, ndim(shape) - i - 1) = shape(means, ndim(means) - i - 1))
 >>
-Rule 7 (Broadcasting check between means and shape)
-{v_1 : tensor, v_3 : tensor} |= ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_3) then ndim(v_1) - 1 else ndim(v_3) - 1] : if ndim(v_1) - i - 1 ≥ 0 then true else shape(v_3, ndim(v_3) - i - 1) = 1
+Rule 7 (If stddevs is a tensor, it should be dominated by shape)
+{shape : tensor, stddevs : tensor} |= ndim(stddevs) > 0 ∧ ndim(shape) > 0 ∧ (∀i ∈ [0, if ndim(shape) ≥ ndim(stddevs) then ndim(shape) - 1 else ndim(stddevs) - 1] : ndim(shape) - i - 1 < 0 ∨ ndim(stddevs) - i - 1 < 0 ∨ shape(shape, ndim(shape) - i - 1) = 1 ∨ shape(stddevs, ndim(stddevs) - i - 1) = 1 ∨ shape(shape, ndim(shape) - i - 1) = shape(stddevs, ndim(stddevs) - i - 1))
 >>
-Rule 8 (Broadcasting check between stddevs and shape)
-{v_1 : tensor, v_4 : tensor} |= ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_4) then ndim(v_1) - 1 else ndim(v_4) - 1] : if ndim(v_1) - i - 1 ≥ 0 then true else shape(v_4, ndim(v_4) - i - 1) = 1
+Rule 8 (If minvals is a tensor, it should be dominated by shape)
+{shape : tensor, minvals : tensor} |= ndim(minvals) > 0 ∧ ndim(shape) > 0 ∧ (∀i ∈ [0, if ndim(shape) ≥ ndim(minvals) then ndim(shape) - 1 else ndim(minvals) - 1] : ndim(shape) - i - 1 < 0 ∨ ndim(minvals) - i - 1 < 0 ∨ shape(shape, ndim(shape) - i - 1) = 1 ∨ shape(minvals, ndim(minvals) - i - 1) = 1 ∨ shape(shape, ndim(shape) - i - 1) = shape(minvals, ndim(minvals) - i - 1))
 >>
-Rule 9 (Broadcasting check between minvals and shape)
-{v_1 : tensor, v_5 : tensor} |= ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_5) then ndim(v_1) - 1 else ndim(v_5) - 1] : if ndim(v_1) - i - 1 ≥ 0 then true else shape(v_5, ndim(v_5) - i - 1) = 1
+Rule 9 (If maxvals is a tensor, it should be dominated by shape)
+{shape : tensor, maxvals : tensor} |= ndim(maxvals) > 0 ∧ ndim(shape) > 0 ∧ (∀i ∈ [0, if ndim(shape) ≥ ndim(maxvals) then ndim(shape) - 1 else ndim(maxvals) - 1] : ndim(shape) - i - 1 < 0 ∨ ndim(maxvals) - i - 1 < 0 ∨ shape(shape, ndim(shape) - i - 1) = 1 ∨ shape(maxvals, ndim(maxvals) - i - 1) = 1 ∨ shape(shape, ndim(shape) - i - 1) = shape(maxvals, ndim(maxvals) - i - 1))
 >>
-Rule 10 (Broadcasting check between maxvals and shape)
-{v_1 : tensor, v_6 : tensor} |= ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_6) then ndim(v_1) - 1 else ndim(v_6) - 1] : if ndim(v_1) - i - 1 ≥ 0 then true else shape(v_6, ndim(v_6) - i - 1) = 1
+Rule 10 (seed must have int32 or int64 dtype)
+{seed : tensor} |= dtype_(seed) = 3 ∨ dtype_(seed) = 4
 >>
-Rule 11 (Broadcasting: means, stddevs, minvals must be broadcastable)
-{v_3 : tensor, v_4 : tensor, v_5 : tensor} |= (ndim(v_3) = 0 ∧ ndim(v_4) = 0 ∧ ndim(v_5) = 0) ∨ (∀i ∈ [0, if ndim(v_3) ≥ ndim(v_4) then ndim(v_3) else ndim(v_4)] : if ndim(v_3) - i - 1 < 0 ∨ ndim(v_4) - i - 1 < 0 then true else shape(v_3, ndim(v_3) - i - 1) = 1 ∨ shape(v_4, ndim(v_4) - i - 1) = 1 ∨ shape(v_3, ndim(v_3) - i - 1) = shape(v_4, ndim(v_4) - i - 1)) ∧ (∀i ∈ [0, if ndim(v_3) ≥ ndim(v_5) then ndim(v_3) else ndim(v_5)] : if ndim(v_3) - i - 1 < 0 ∨ ndim(v_5) - i - 1 < 0 then true else shape(v_3, ndim(v_3) - i - 1) = 1 ∨ shape(v_5, ndim(v_5) - i - 1) = 1 ∨ shape(v_3, ndim(v_3) - i - 1) = shape(v_5, ndim(v_5) - i - 1)) ∧ (∀i ∈ [0, if ndim(v_4) ≥ ndim(v_5) then ndim(v_4) else ndim(v_5)] : if ndim(v_4) - i - 1 < 0 ∨ ndim(v_5) - i - 1 < 0 then true else shape(v_4, ndim(v_4) - i - 1) = 1 ∨ shape(v_5, ndim(v_5) - i - 1) = 1 ∨ shape(v_4, ndim(v_4) - i - 1) = shape(v_5, ndim(v_5) - i - 1))
+Rule 11 (means, stddevs, minvals, and maxvals must be float16, float32, or float64 tensors)
+{means : tensor} |= dtype_(means) = 7 ∨ dtype_(means) = 8 ∨ dtype_(means) = 6
 >>
-Rule 12 (Broadcasting: means, stddevs, maxvals must be broadcastable)
-{v_3 : tensor, v_4 : tensor, v_6 : tensor} |= (ndim(v_3) = 0 ∧ ndim(v_4) = 0 ∧ ndim(v_6) = 0) ∨ (∀i ∈ [0, if ndim(v_3) ≥ ndim(v_4) then ndim(v_3) else ndim(v_4)] : if ndim(v_3) - i - 1 < 0 ∨ ndim(v_4) - i - 1 < 0 then true else shape(v_3, ndim(v_3) - i - 1) = 1 ∨ shape(v_4, ndim(v_4) - i - 1) = 1 ∨ shape(v_3, ndim(v_3) - i - 1) = shape(v_4, ndim(v_4) - i - 1)) ∧ (∀i ∈ [0, if ndim(v_3) ≥ ndim(v_6) then ndim(v_3) else ndim(v_6)] : if ndim(v_3) - i - 1 < 0 ∨ ndim(v_6) - i - 1 < 0 then true else shape(v_3, ndim(v_3) - i - 1) = 1 ∨ shape(v_6, ndim(v_6) - i - 1) = 1 ∨ shape(v_3, ndim(v_3) - i - 1) = shape(v_6, ndim(v_6) - i - 1)) ∧ (∀i ∈ [0, if ndim(v_4) ≥ ndim(v_6) then ndim(v_4) else ndim(v_6)] : if ndim(v_4) - i - 1 < 0 ∨ ndim(v_6) - i - 1 < 0 then true else shape(v_4, ndim(v_4) - i - 1) = 1 ∨ shape(v_6, ndim(v_6) - i - 1) = 1 ∨ shape(v_4, ndim(v_4) - i - 1) = shape(v_6, ndim(v_6) - i - 1))
+Rule 12 (stddevs, if tensor, must have the same shape as means, if tensor)
+{means : tensor, stddevs : tensor} |= if ndim(means) > 0 then ndim(means) = ndim(stddevs) ∧ (∀i ∈ [0, ndim(means) - 1] : shape(means, i) = shape(stddevs, i))
 >>
-Rule 13 (Broadcasting: means, minvals, maxvals must be broadcastable)
-{v_3 : tensor, v_5 : tensor, v_6 : tensor} |= (ndim(v_3) = 0 ∧ ndim(v_5) = 0 ∧ ndim(v_6) = 0) ∨ (∀i ∈ [0, if ndim(v_3) ≥ ndim(v_5) then ndim(v_3) else ndim(v_5)] : if ndim(v_3) - i - 1 < 0 ∨ ndim(v_5) - i - 1 < 0 then true else shape(v_3, ndim(v_3) - i - 1) = 1 ∨ shape(v_5, ndim(v_5) - i - 1) = 1 ∨ shape(v_3, ndim(v_3) - i - 1) = shape(v_5, ndim(v_5) - i - 1)) ∧ (∀i ∈ [0, if ndim(v_3) ≥ ndim(v_6) then ndim(v_3) else ndim(v_6)] : if ndim(v_3) - i - 1 < 0 ∨ ndim(v_6) - i - 1 < 0 then true else shape(v_3, ndim(v_3) - i - 1) = 1 ∨ shape(v_6, ndim(v_6) - i - 1) = 1 ∨ shape(v_3, ndim(v_3) - i - 1) = shape(v_6, ndim(v_6) - i - 1)) ∧ (∀i ∈ [0, if ndim(v_5) ≥ ndim(v_6) then ndim(v_5) else ndim(v_6)] : if ndim(v_5) - i - 1 < 0 ∨ ndim(v_6) - i - 1 < 0 then true else shape(v_5, ndim(v_5) - i - 1) = 1 ∨ shape(v_6, ndim(v_6) - i - 1) = 1 ∨ shape(v_5, ndim(v_5) - i - 1) = shape(v_6, ndim(v_6) - i - 1))
+Rule 13 (minvals, if tensor, must have the same shape as means, if tensor)
+{means : tensor, minvals : tensor} |= if ndim(means) > 0 then ndim(means) = ndim(minvals) ∧ (∀i ∈ [0, ndim(means) - 1] : shape(means, i) = shape(minvals, i))
 >>
-Rule 14 (Broadcasting: stddevs, minvals, maxvals must be broadcastable)
-{v_4 : tensor, v_5 : tensor, v_6 : tensor} |= (ndim(v_4) = 0 ∧ ndim(v_5) = 0 ∧ ndim(v_6) = 0) ∨ (∀i ∈ [0, if ndim(v_4) ≥ ndim(v_5) then ndim(v_4) else ndim(v_5)] : if ndim(v_4) - i - 1 < 0 ∨ ndim(v_5) - i - 1 < 0 then true else shape(v_4, ndim(v_4) - i - 1) = 1 ∨ shape(v_5, ndim(v_5) - i - 1) = 1 ∨ shape(v_4, ndim(v_4) - i - 1) = shape(v_5, ndim(v_5) - i - 1)) ∧ (∀i ∈ [0, if ndim(v_4) ≥ ndim(v_6) then ndim(v_4) else ndim(v_6)] : if ndim(v_4) - i - 1 < 0 ∨ ndim(v_6) - i - 1 < 0 then true else shape(v_4, ndim(v_4) - i - 1) = 1 ∨ shape(v_6, ndim(v_6) - i - 1) = 1 ∨ shape(v_4, ndim(v_4) - i - 1) = shape(v_6, ndim(v_6) - i - 1)) ∧ (∀i ∈ [0, if ndim(v_5) ≥ ndim(v_6) then ndim(v_5) else ndim(v_6)] : if ndim(v_5) - i - 1 < 0 ∨ ndim(v_6) - i - 1 < 0 then true else shape(v_5, ndim(v_5) - i - 1) = 1 ∨ shape(v_6, ndim(v_6) - i - 1) = 1 ∨ shape(v_5, ndim(v_5) - i - 1) = shape(v_6, ndim(v_6) - i - 1))
+Rule 14 (maxvals, if tensor, must have the same shape as means, if tensor)
+{means : tensor, maxvals : tensor} |= if ndim(means) > 0 then ndim(means) = ndim(maxvals) ∧ (∀i ∈ [0, ndim(means) - 1] : shape(means, i) = shape(maxvals, i))
 >>
-Rule 15 (stddevs must be non-negative)
-{v_4 : tensor} |= min(v_4) ≥ 0
+Rule 15 (minvals must be less than or equal to maxvals)
+{minvals : tensor, maxvals : tensor} |= min(minvals) ≤ max(maxvals)
 >>
-Rule 16 (minvals must be smaller than maxvals)
-{v_5 : tensor, v_6 : tensor} |= min(v_5) ≤ max(v_6)
+Rule 17 (means, stddevs, minvals and maxvals should have same type)
+{means : tensor, stddevs : tensor, minvals : tensor, maxvals : tensor} |= dtype_(means) = dtype_(stddevs) ∧ dtype_(means) = dtype_(minvals) ∧ dtype_(means) = dtype_(maxvals)
 >>
-Rule 17 (shape's elements type should be int32)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : dtype_(v_1) = 3
+Rule 19 (If any of means, stddevs, minvals, maxvals is float64, then the others must be as well; preventing implicit casting and errors about double)
+{means : tensor, stddevs : tensor, minvals : tensor, maxvals : tensor} |= if dtype_(means) = 8 ∨ dtype_(stddevs) = 8 ∨ dtype_(minvals) = 8 ∨ dtype_(maxvals) = 8 then dtype_(means) = 8 ∧ dtype_(stddevs) = 8 ∧ dtype_(minvals) = 8 ∧ dtype_(maxvals) = 8
 >>
-Rule 20 (broadcasting: check means, stddevs shapes, all > 0 if ndim > 0)
-{v_3 : tensor, v_4 : tensor} |= if ndim(v_3) > 0 ∧ ndim(v_4) > 0 then (∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) > 0) ∧ (∀i ∈ [0, ndim(v_4) - 1] : shape(v_4, i) > 0)
+Rule 22 (means, stddevs, minvals, and maxvals should be float16, float32, or float64 to avoid dtype errors)
+{means : tensor} |= dtype_(means) = 6 ∨ dtype_(means) = 7 ∨ dtype_(means) = 8
 >>
-Rule 21 (broadcasting: means, stddevs should dominate shape when they have ndim > 0 )
-{v_1 : tensor, v_3 : tensor, v_4 : tensor} |= if ndim(v_3) > 0 ∧ ndim(v_1) > 0 then ndim(v_3) ≤ ndim(v_1) ∧ if ndim(v_4) > 0 ∧ ndim(v_1) > 0 then ndim(v_4) ≤ ndim(v_1)
+Rule 23 (stddevs must not contain zero values, ensuring valid normal distribution)
+{stddevs : tensor} |= if ndim(stddevs) > 0 then ∀i ∈ [0, shape(stddevs, 0)-1] : shape(stddevs, i) > 0 ∧ min(stddevs) > 0
 >>
-Rule 22 (Broadcasting: means dominates shape if not scalar)
-{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 ∧ ndim(v_1) > 0 then ndim(v_3) ≤ ndim(v_1)
+Rule 25 (stddevs must not contain zero values, ensuring valid normal distribution, handling scalar stddevs too)
+{stddevs : tensor} |= if ndim(stddevs) > 0 then ∀i ∈ [0, shape(stddevs, 0)-1] : min(stddevs) > 0 else stddevs > 0
 >>
-Rule 23 (Broadcasting: stddevs dominates shape if not scalar)
-{v_1 : tensor, v_4 : tensor} |= if ndim(v_4) > 0 ∧ ndim(v_1) > 0 then ndim(v_4) ≤ ndim(v_1)
+Rule 26 (stddevs must be positive, handling both scalar and tensor cases for valid normal distribution)
+{stddevs : tensor} |= if ndim(stddevs) > 0 then ∀i ∈ [0, shape(stddevs, 0)-1] : shape(stddevs, i) > 0 ∧ min(stddevs) > 0 else stddevs > 0
 >>
-Rule 24 (Broadcasting: minvals dominates shape if not scalar)
-{v_1 : tensor, v_5 : tensor} |= if ndim(v_5) > 0 ∧ ndim(v_1) > 0 then ndim(v_5) ≤ ndim(v_1)
+Rule 27 (means, stddevs, minvals, and maxvals must be float16, float32, or float64 to avoid dtype errors related to double)
+{means : tensor, stddevs : tensor, minvals : tensor, maxvals : tensor} |= dtype_(means) = 6 ∨ dtype_(means) = 7 ∨ dtype_(means) = 8 ∨ dtype_(stddevs) = 6 ∨ dtype_(stddevs) = 7 ∨ dtype_(stddevs) = 8 ∨ dtype_(minvals) = 6 ∨ dtype_(minvals) = 7 ∨ dtype_(minvals) = 8 ∨ dtype_(maxvals) = 6 ∨ dtype_(maxvals) = 7 ∨ dtype_(maxvals) = 8
 >>
-Rule 25 (Broadcasting: maxvals dominates shape if not scalar)
-{v_1 : tensor, v_6 : tensor} |= if ndim(v_6) > 0 ∧ ndim(v_1) > 0 then ndim(v_6) ≤ ndim(v_1)
+Rule 28 (shape must be a 1-D integer tensor)
+{shape : tensor} |= ndim(shape) = 1 ∧ dtype_(shape) = 3
 >>
-Rule 26 (If means is scalar and other not, all other's dimensions must be 1 or means.shape's dimensions)
-{v_3 : tensor, v_4 : tensor, v_5 : tensor, v_6 : tensor} |= if ndim(v_3) = 0 then (if ndim(v_4) > 0 then (∀i ∈ [0, ndim(v_4) - 1] : shape(v_4, i) = 1)) ∧ (if ndim(v_5) > 0 then (∀i ∈ [0, ndim(v_5) - 1] : shape(v_5, i) = 1)) ∧ (if ndim(v_6) > 0 then (∀i ∈ [0, ndim(v_6) - 1] : shape(v_6, i) = 1))
+Rule 29 (means, stddevs, minvals and maxvals should have same type)
+{means : tensor, stddevs : tensor, minvals : tensor, maxvals : tensor} |= if ndim(means) > 0 then dtype_(means) = dtype_(stddevs) ∧ dtype_(means) = dtype_(minvals) ∧ dtype_(means) = dtype_(maxvals)
 >>
-Rule 27 (If stddevs is scalar and other not, all other's dimensions must be 1 or stddevs.shape's dimensions)
-{v_3 : tensor, v_4 : tensor, v_5 : tensor, v_6 : tensor} |= if ndim(v_4) = 0 then (if ndim(v_3) > 0 then (∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) = 1)) ∧ (if ndim(v_5) > 0 then (∀i ∈ [0, ndim(v_5) - 1] : shape(v_5, i) = 1)) ∧ (if ndim(v_6) > 0 then (∀i ∈ [0, ndim(v_6) - 1] : shape(v_6, i) = 1))
+Rule 30 (shape must be a 1-D integer tensor with positive values)
+{shape : tensor} |= ndim(shape) = 1 ∧ dtype_(shape) = 3 ∧ ∀i ∈ [0, shape(shape,0) - 1] : shape(shape,i) > 0
 >>
-Rule 28 (If minvals is scalar and other not, all other's dimensions must be 1 or minvals.shape's dimensions)
-{v_3 : tensor, v_4 : tensor, v_5 : tensor, v_6 : tensor} |= if ndim(v_5) = 0 then (if ndim(v_3) > 0 then (∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) = 1)) ∧ (if ndim(v_4) > 0 then (∀i ∈ [0, ndim(v_4) - 1] : shape(v_4, i) = 1)) ∧ (if ndim(v_6) > 0 then (∀i ∈ [0, ndim(v_6) - 1] : shape(v_6, i) = 1))
+Rule 32 (seed must be a shape [2] Tensor with dtype `int32` or `int64`)
+{seed : tensor} |= ndim(seed) = 1 ∧ shape(seed, 0) = 2 ∧ (dtype_(seed) = 3 ∨ dtype_(seed) = 4)
 >>
-Rule 29 (If maxvals is scalar and other not, all other's dimensions must be 1 or maxvals.shape's dimensions)
-{v_3 : tensor, v_4 : tensor, v_5 : tensor, v_6 : tensor} |= if ndim(v_6) = 0 then (if ndim(v_3) > 0 then (∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) = 1)) ∧ (if ndim(v_4) > 0 then (∀i ∈ [0, ndim(v_4) - 1] : shape(v_4, i) = 1)) ∧ (if ndim(v_5) > 0 then (∀i ∈ [0, ndim(v_5) - 1] : shape(v_5, i) = 1))
+Rule 33 (means, stddevs, minvals, and maxvals must be float16, float32, or float64, and if one is float64, the others must be too)
+{means : tensor, stddevs : tensor, minvals : tensor, maxvals : tensor} |= if dtype_(means) = 8 ∨ dtype_(stddevs) = 8 ∨ dtype_(minvals) = 8 ∨ dtype_(maxvals) = 8 then dtype_(means) = 8 ∧ dtype_(stddevs) = 8 ∧ dtype_(minvals) = 8 ∧ dtype_(maxvals) = 8 else (dtype_(means) = 6 ∨ dtype_(means) = 7) ∧ (dtype_(stddevs) = 6 ∨ dtype_(stddevs) = 7) ∧ (dtype_(minvals) = 6 ∨ dtype_(minvals) = 7) ∧ (dtype_(maxvals) = 6 ∨ dtype_(maxvals) = 7)
+>>
+Rule 35 (means, stddevs, minvals, and maxvals must be float16, float32, or float64)
+{means : tensor, stddevs : tensor, minvals : tensor, maxvals : tensor} |= (if ndim(means) > 0 then dtype_(means) = 6 ∨ dtype_(means) = 7 ∨ dtype_(means) = 8) ∧ (if ndim(stddevs) > 0 then dtype_(stddevs) = 6 ∨ dtype_(stddevs) = 7 ∨ dtype_(stddevs) = 8) ∧ (if ndim(minvals) > 0 then  dtype_(minvals) = 6 ∨ dtype_(minvals) = 7 ∨ dtype_(minvals) = 8) ∧ (if ndim(maxvals) > 0 then dtype_(maxvals) = 6 ∨ dtype_(maxvals) = 7 ∨ dtype_(maxvals) = 8)
+>>
+Rule 36 (shape must be a 1-D integer tensor with positive values and dtype int32 or int64)
+{shape : tensor} |= ndim(shape) = 1 ∧ (dtype_(shape) = 3 ∨ dtype_(shape) = 4) ∧ ∀i ∈ [0, shape(shape,0) - 1] : shape(shape,i) > 0
+>>
+Rule 39 (Ensure that if any of means, stddevs, minvals, or maxvals is of type float, half, or double, the others are as well)
+{means : tensor, stddevs : tensor, minvals : tensor, maxvals : tensor} |= if (if ndim(means) > 0 then dtype_(means) = 6 ∨ dtype_(means) = 7 ∨ dtype_(means) = 8 else false) ∨ (if ndim(stddevs) > 0 then dtype_(stddevs) = 6 ∨ dtype_(stddevs) = 7 ∨ dtype_(stddevs) = 8 else false) ∨ (if ndim(minvals) > 0 then dtype_(minvals) = 6 ∨ dtype_(minvals) = 7 ∨ dtype_(minvals) = 8 else false) ∨ (if ndim(maxvals) > 0 then dtype_(maxvals) = 6 ∨ dtype_(maxvals) = 7 ∨ dtype_(maxvals) = 8 else false) then (if ndim(means) > 0 then dtype_(means) = 6 ∨ dtype_(means) = 7 ∨ dtype_(means) = 8) ∧ (if ndim(stddevs) > 0 then dtype_(stddevs) = 6 ∨ dtype_(stddevs) = 7 ∨ dtype_(stddevs) = 8) ∧ (if ndim(minvals) > 0 then dtype_(minvals) = 6 ∨ dtype_(minvals) = 7 ∨ dtype_(minvals) = 8) ∧ (if ndim(maxvals) > 0 then  dtype_(maxvals) = 6 ∨ dtype_(maxvals) = 7 ∨ dtype_(maxvals) = 8)
+>>
+Rule 41 (If means, stddevs, minvals, or maxvals are tensors, then they must be float16, float32, or float64)
+{means : tensor, stddevs : tensor, minvals : tensor, maxvals : tensor} |= (if ndim(means) > 0 then 6 ≤ dtype_(means) ∧ dtype_(means) ≤ 8) ∧ (if ndim(stddevs) > 0 then 6 ≤ dtype_(stddevs) ∧ dtype_(stddevs) ≤ 8) ∧ (if ndim(minvals) > 0 then 6 ≤ dtype_(minvals) ∧ dtype_(minvals) ≤ 8) ∧ (if ndim(maxvals) > 0 then 6 ≤ dtype_(maxvals) ∧ dtype_(maxvals) ≤ 8)
+>>
+Rule 44 (stddevs must be positive, handling both scalar and tensor cases for valid normal distribution, and must be float type)
+{stddevs : tensor} |= (if ndim(stddevs) > 0 then ∀i ∈ [0, shape(stddevs, 0)-1] : shape(stddevs, i) > 0 ∧ min(stddevs) > 0 else stddevs > 0) ∧ (if ndim(stddevs) > 0 then 6 <= dtype_(stddevs) ∧ dtype_(stddevs) <= 8 else 6 <= dtype_(stddevs) ∧ dtype_(stddevs) <= 8)
+>>
+Rule 45 (Ensure means, minvals, maxvals have the same floating-point type as stddevs, if they are tensors)
+{means : tensor, stddevs : tensor, minvals : tensor, maxvals : tensor} |= (if ndim(means) > 0 then dtype_(means) = dtype_(stddevs)) ∧ (if ndim(minvals) > 0 then dtype_(minvals) = dtype_(stddevs)) ∧ (if ndim(maxvals) > 0 then dtype_(maxvals) = dtype_(stddevs))
+>>
+Rule 46 (stddevs must be positive, handling both scalar and tensor cases for valid normal distribution, and must be float type)
+{stddevs : tensor} |= (if ndim(stddevs) > 0 then (∀i ∈ [0, shape(stddevs, 0)-1] : shape(stddevs, i) > 0) ∧ min(stddevs) > 0 else stddevs > 0) ∧ (if ndim(stddevs) > 0 then 6 <= dtype_(stddevs) ∧ dtype_(stddevs) <= 8 else 6 <= dtype_(stddevs) ∧ dtype_(stddevs) <= 8)
+>>
+Rule 47 (Ensure means, minvals, maxvals have the same floating-point type as stddevs, and ensure if any of the tensors is double the others are double)
+{means : tensor, stddevs : tensor, minvals : tensor, maxvals : tensor} |= (if ndim(means) > 0 then dtype_(means) = dtype_(stddevs)) ∧ (if ndim(minvals) > 0 then dtype_(minvals) = dtype_(stddevs)) ∧ (if ndim(maxvals) > 0 then dtype_(maxvals) = dtype_(stddevs)) ∧ (if dtype_(means) = 8 ∨ dtype_(stddevs) = 8 ∨ dtype_(minvals) = 8 ∨ dtype_(maxvals) = 8 then dtype_(means) = 8 ∧ dtype_(stddevs) = 8 ∧ dtype_(minvals) = 8 ∧ dtype_(maxvals) = 8)
+>>
+Rule 48 (Ensure stddevs is positive and float type)
+{stddevs : tensor} |= (if ndim(stddevs) > 0 then (∀i ∈ [0, shape(stddevs, 0)-1] : shape(stddevs, i) > 0) ∧ min(stddevs) > 0 else stddevs > 0) ∧ (6 <= dtype_(stddevs) ∧ dtype_(stddevs) <= 8)
+>>
+Rule 51 (means, minvals, maxvals floating-point type should be in the same floating-point range as stddevs)
+{means : tensor, stddevs : tensor, minvals : tensor, maxvals : tensor} |= (if ndim(means) > 0 then (dtype_(means) = dtype_(stddevs))) ∧ (if ndim(minvals) > 0 then (dtype_(minvals) = dtype_(stddevs))) ∧ (if ndim(maxvals) > 0 then (dtype_(maxvals) = dtype_(stddevs)))
+>>
+Rule 52 (Ensure stddevs is positive, and must be float type)
+{stddevs : tensor} |= (if ndim(stddevs) > 0 then (∀i ∈ [0, shape(stddevs, 0)-1] : shape(stddevs, i) > 0 ∧ min(stddevs) > 0) else stddevs > 0) ∧ (6 <= dtype_(stddevs) ∧ dtype_(stddevs) <= 8)
+>>
+Rule 61 (If any of means, stddevs, minvals, maxvals are double, then all should be double; otherwise, all floating point (half, float, double))
+{means : tensor, stddevs : tensor, minvals : tensor, maxvals : tensor} |= if (dtype_(means) = 8 ∨ dtype_(stddevs) = 8 ∨ dtype_(minvals) = 8 ∨ dtype_(maxvals) = 8) then (dtype_(means) = 8 ∧ dtype_(stddevs) = 8 ∧ dtype_(minvals) = 8 ∧ dtype_(maxvals) = 8) else (6 <= dtype_(means) ∧ dtype_(means) <= 8) ∧ (6 <= dtype_(stddevs) ∧ dtype_(stddevs) <= 8) ∧ (6 <= dtype_(minvals) ∧ dtype_(minvals) <= 8) ∧ (6 <= dtype_(maxvals) ∧ dtype_(maxvals) <= 8)
+>>
+Rule 63 (stddevs must be positive and float16, float32 or float64, ensuring valid normal distribution)
+{stddevs : tensor} |= if ndim(stddevs) > 0 then (∀i ∈ [0, shape(stddevs, 0)-1] : shape(stddevs, i) > 0 ∧ min(stddevs) > 0) ∧ (6 <= dtype_(stddevs) ∧ dtype_(stddevs) <= 8) else (6 <= dtype_(stddevs) ∧ dtype_(stddevs) <= 8 ∧ stddevs > 0)
+>>
+Rule 69 (if a tensor, make sure all means, stddevs, minvals, maxvals must be a valid floating type and should have same types.)
+{means : tensor, stddevs : tensor, minvals : tensor, maxvals : tensor} |= if (6 <= dtype_(means) ∧ dtype_(means) <= 8) ∨ (6 <= dtype_(stddevs) ∧ dtype_(stddevs) <= 8) ∨ (6 <= dtype_(minvals) ∧ dtype_(minvals) <= 8) ∨ (6 <= dtype_(maxvals) ∧ dtype_(maxvals) <= 8) then (6 <= dtype_(means) ∧ dtype_(means) <= 8 ∧ 6 <= dtype_(stddevs) ∧ dtype_(stddevs) <= 8 ∧ 6 <= dtype_(minvals) ∧ dtype_(minvals) <= 8 ∧ 6 <= dtype_(maxvals) ∧ dtype_(maxvals) <= 8) ∧ (dtype_(means) = dtype_(stddevs) ∧ dtype_(stddevs) = dtype_(minvals) ∧ dtype_(minvals) = dtype_(maxvals))
+>>
+Rule 71 (Ensure means, minvals, maxvals have the same floating-point type as stddevs, and that they are not boolean as that is invalid)
+{means : tensor, stddevs : tensor, minvals : tensor, maxvals : tensor} |= (if ndim(means) > 0 then dtype_(means) = dtype_(stddevs)) ∧ (if ndim(minvals) > 0 then dtype_(minvals) = dtype_(stddevs)) ∧ (if ndim(maxvals) > 0 then dtype_(maxvals) = dtype_(stddevs)) ∧ (dtype_(means) ≠ bool) ∧ (dtype_(stddevs) ≠ bool) ∧ (dtype_(minvals) ≠ bool) ∧ (dtype_(maxvals) ≠ bool)

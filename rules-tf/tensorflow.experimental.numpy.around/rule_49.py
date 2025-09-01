@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the dtype is an integer type, the number of decimals must be 0 (Rule 49)
+# If the input is a numerical tensor (int, float, complex (Rule 49)
 
 rule_49 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg2_value"] == 0, False)) if n else
-          If(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg2_value"] == 0, False))
+    s.add(Not(If((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 11)), And(v["arg2_value"] >= -15, v["arg2_value"] <= 15), True)) if n else
+          If((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 11)), And(v["arg2_value"] >= -15, v["arg2_value"] <= 15), True))
 )
 
 def rule_49_func(arg1, arg2, solver=None, neg=False):

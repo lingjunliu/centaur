@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input is a 3D tensor, the output will be a 3D tensor with the height and width dimensions swapped. (Rule 17)
+# image must have either 3 or 4 dimensions - conditional (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 3, True, False)) if n else
-          If(v["arg1_ndim"] == 3, True, False))
+    s.add(Not(If(v["arg1_ndim"] == 3, True, If(v["arg1_ndim"] == 4, True, False))) if n else
+          If(v["arg1_ndim"] == 3, True, If(v["arg1_ndim"] == 4, True, False)))
 )
 
 def rule_17_func(arg1, solver=None, neg=False):

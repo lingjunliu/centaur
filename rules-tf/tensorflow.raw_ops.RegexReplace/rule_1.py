@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# input, pattern, and rewrite are string tensors (Rule 1)
+# input, pattern, and rewrite should be tensors of type string (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
     s.add(Not(And(And(v["arg1_dtype"] == 12, v["arg2_dtype"] == 12), v["arg3_dtype"] == 12)) if n else

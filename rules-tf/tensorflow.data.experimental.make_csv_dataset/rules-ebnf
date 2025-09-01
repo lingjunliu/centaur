@@ -1,177 +1,213 @@
 >>
 Rule 1 (batch_size must be greater than 0)
-{v_1 : int} |= v_1 > 0
+{batch_size : int} |= batch_size > 0
 >>
-Rule 2 (num_epochs must be non-negative)
-{v_1 : int} |= v_1 ≥ 0
+Rule 3 (shuffle_buffer_size must be greater than 0)
+{shuffle_buffer_size : int} |= shuffle_buffer_size > 0
 >>
-Rule 3 (shuffle_buffer_size must be greater than 0 if shuffle is true)
-{v_1 : int, v_2 : bool} |= if v_2 = true then v_1 > 0
+Rule 4 (prefetch_buffer_size must be greater than 0)
+{prefetch_buffer_size : int} |= prefetch_buffer_size > 0
 >>
-Rule 6 (select_columns and column_defaults must have the same length)
-{v_1 : list(int), v_2 : list(int ⊎ float ⊎ str)} |= v_1.len = v_2.len
+Rule 5 (num_parallel_reads must be greater than 0)
+{num_parallel_reads : int} |= num_parallel_reads > 0
 >>
-Rule 7 (column_names should be a list of strings)
-{v_1 : list(str)} |= v_1.len ≥ 0
+Rule 6 (select_columns and column_defaults must have the same length if both are specified.)
+{select_columns : list(int) ⊎ list(str), column_defaults : list(int) ⊎ list(float) ⊎ list(str)} |= (select_columns.len = column_defaults.len)
 >>
-Rule 8 (compression_type should be a valid string)
-{v_1 : str} |= v_1 = "" ∨ v_1 = "ZLIB" ∨ v_1 = "GZIP"
+Rule 7 (file_pattern should be a valid list)
+{file_pattern : list(str)} |= file_pattern.len > 0
 >>
-Rule 10 (na_value should be a string)
-{v_1 : str} |= v_1.len ≥ 0
+Rule 8 (column_names and column_defaults should have the same length if column_names is defined)
+{column_names: list(str), column_defaults : list(int) ⊎ list(float) ⊎ list(str)} |= (column_names.len = column_defaults.len)
 >>
-Rule 12 (field_delim should be a string with length 1)
-{v_1 : str} |= v_1.len = 1
+Rule 9 (batch_size should not be too large when shuffle is enabled)
+{batch_size : int, shuffle : bool, shuffle_buffer_size : int} |= if shuffle then batch_size ≤ shuffle_buffer_size
 >>
-Rule 13 (encoding string should not be empty)
-{v_1 : str} |= v_1.len > 0
+Rule 10 (compression_type should be a valid string)
+{compression_type : str} |= compression_type = "" ∨ compression_type = "ZLIB" ∨ compression_type = "GZIP"
 >>
-Rule 14 (batch_size must be positive and less than 1024)
-{v_1 : int} |= v_1 > 0 ∧ v_1 < 1024
+Rule 11 (num_epochs must be greater than 0 or None, using if statement)
+{num_epochs : int ⊎ str} |= if num_epochs = "None" then true else num_epochs > 0
 >>
-Rule 15 (shuffle_buffer_size must be greater than batch_size if shuffle is true)
-{v_1 : int, v_2 : int, v_3 : bool} |= if v_3 = true then v_1 > v_2
+Rule 16 (select_columns and column_defaults must have the same length if both are specified.)
+{select_columns : list(int), column_defaults : list(int)} |= select_columns.len = column_defaults.len
 >>
-Rule 16 (num_parallel_reads must be a power of 2)
-{v_1 : int} |= ∃i ∈ [0, 10] : v_1 = 2 * i
+Rule 17 (select_columns and column_defaults must have the same length if both are specified.)
+{select_columns : list(str), column_defaults : list(str)} |= select_columns.len = column_defaults.len
 >>
-Rule 17 (select_columns and column_names must have the same length if both are provided)
-{v_1 : list(int), v_2 : list(str)} |= if v_1.len > 0 ∧ v_2.len > 0 then v_1.len = v_2.len
+Rule 19 (column_names and column_defaults should have the same length if column_names is defined)
+{column_names: list(str), column_defaults : list(int)} |= column_names.len = column_defaults.len
 >>
-Rule 18 (header and column_names must be consistent: if header is false, column_names must be provided)
-{v_1 : bool, v_2 : list(str)} |= if v_1 = false then v_2.len > 0
+Rule 20 (column_names and column_defaults should have the same length if column_names is defined)
+{column_names: list(str), column_defaults : list(str)} |= column_names.len = column_defaults.len
 >>
-Rule 19 (label_name must be present in column_names if column_names are provided)
-{v_1 : str, v_2 : list(str)} |= if v_2.len > 0 then ∃i ∈ [0, v_2.len - 1] : v_1 = v_2[i]
+Rule 23 (field_delim should be a valid string)
+{field_delim : str} |= field_delim.len = 1
 >>
-Rule 20 (if ignore_errors is true, num_rows_for_inference should be small to avoid spending too much time inferring types)
-{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 < 1000
+Rule 24 (na_value should be a valid string)
+{na_value : str} |= na_value.len > 0
 >>
-Rule 21 (if shuffle is false, sloppy should be false for deterministic behavior)
-{v_1 : bool, v_2 : bool} |= if v_1 = false then v_2 = false
+Rule 25 (encoding should be a valid string)
+{encoding : str} |= encoding.len > 0
 >>
-Rule 22 (num_epochs should be greater than 1 if shuffle is true)
-{v_1 : int, v_2 : bool} |= if v_2 = true then v_1 > 1
+Rule 26 (shuffle_seed should be a non-negative integer)
+{shuffle_seed: int} |= shuffle_seed ≥ 0
 >>
-Rule 23 (If column_defaults is provided, its length must match the number of selected columns or column_names)
-{v_1 : list(tensor ⊎ int ⊎ float ⊎ str), v_2 : list(int), v_3 : list(str)} |= if v_1.len > 0 then (v_2.len = v_1.len ∨ v_3.len = v_1.len)
+Rule 27 (num_rows_for_inference should be greater than 0 or None)
+{num_rows_for_inference : int ⊎ str} |= if num_rows_for_inference = "None" then true else num_rows_for_inference > 0
 >>
-Rule 24 (If column_names is specified, label_name must be in it, else error)
-{v_1: list(str), v_2: str} |= if v_1.len > 0 then (∃i ∈ [0, v_1.len - 1] : v_1[i] = v_2)
+Rule 28 (select_columns and column_defaults must have the same length if one is list(str) and other is list(int))
+{select_columns : list(str), column_defaults : list(int)} |= select_columns.len = column_defaults.len
 >>
-Rule 25 (If compression_type is provided then file_pattern must have valid extension corresponding to compression type)
-{v_1: str} |= (v_1 = "") ∨ (v_1 = "ZLIB") ∨ (v_1 = "GZIP")
+Rule 29 (if column_names is given, select_columns should be a subset of column_names)
+{column_names : list(str), select_columns : list(str)} |= ∀i ∈ [0, select_columns.len - 1] : (∃j ∈ [0, column_names.len - 1] : select_columns[i] = column_names[j])
 >>
-Rule 26 (batch_size * num_epochs should not exceed max_int)
-{v_1: int, v_2: int} |= v_1 * v_2 < 2147483647
+Rule 30 (if column_names is not given and select_columns is specified, select_columns should contain valid column names after inference.)
+{select_columns : list(str)} |= select_columns.len > 0
 >>
-Rule 27 (The encoding should not be "UTF-32" or other unsupported format)
-{v_1: str} |= v_1 ≠ "UTF-32" ∧ v_1 ≠ "UTF-16"
+Rule 31 (If label_name is specified, it should be present in either column_names or be a valid column name after inference.)
+{label_name : str, column_names: list(str)} |= (∃i ∈ [0, column_names.len - 1] : label_name = column_names[i])
 >>
-Rule 28 (file_pattern must be non-empty)
-{v_1: str} |= v_1.len > 0
+Rule 32 (If label_name is specified, it should be present after column inference when column_names is None.)
+{label_name : str} |= label_name.len > 0
 >>
-Rule 29 (When select_columns is specified, its elements must be unique)
-{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i + 1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+Rule 33 (If select_columns are indices, each index must be within range.)
+{select_columns: list(int), column_names: list(str)} |= ∀i ∈ [0, select_columns.len - 1] : select_columns[i] ≥ 0 ∧ select_columns[i] < column_names.len
 >>
-Rule 30 (When column_names is specified, its elements must be unique)
-{v_1: list(str)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i + 1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+Rule 34 (If select_columns are indices, each index must be within range when column names is inferred.)
+{select_columns: list(int)} |= ∀i ∈ [0, select_columns.len - 1] : select_columns[i] ≥ 0
 >>
-Rule 31 (num_parallel_reads should be less than or equal to the number of files matched by file_pattern, otherwise there is no benefit in increasing the reads)
-{v_1: int} |= v_1 < 100
+Rule 36 (use_quote_delim should be a boolean)
+{use_quote_delim : bool} |= use_quote_delim = true ∨ use_quote_delim = false
 >>
-Rule 32 (If num_epochs is None, shuffle should default to true)
-{v_1: int ⊎ bool, v_2: bool} |= if v_1 = false then v_2 = true
+Rule 38 (If header is false, column_names must be provided)
+{header: bool, column_names: list(str)} |= if header then true else column_names.len > 0
 >>
-Rule 33 (shuffle_seed must be non-negative)
-{v_1: int} |= v_1 ≥ 0
+Rule 40 (If a column has a default, then it should appear in column_names or be inferred)
+{column_defaults: list(str), column_names: list(str)} |= ∀i ∈ [0, column_defaults.len -1] : (∃j ∈ [0, column_names.len - 1] : column_defaults[i] = column_names[j])
 >>
-Rule 34 (If shuffle is true then shuffle_buffer_size should be set)
-{v_1: bool, v_2: int} |= if v_1 = true then v_2 > 0
+Rule 41 (If column_defaults is not provided, na_value can be set to empty string only)
+{column_defaults: list(str), na_value: str} |= if column_defaults.len > 0 then true else na_value = ""
 >>
-Rule 35 (If select_columns is provided then column_defaults must also be provided, else column_defaults can be inferred)
-{v_1: list(int), v_2: list(tensor)} |= if v_1.len > 0 then v_2.len > 0
+Rule 44 (If header is false, column_names must be provided)
+{header: bool, column_names: list(str)} |= if header then column_names.len = 0
 >>
-Rule 37 (if num_rows_for_inference is None, then more memory and computation is needed.)
-{v_1: int ⊎ bool} |= if v_1 = false then true else v_1 > 0
+Rule 47 (If column_defaults is not provided, na_value can be set to empty string only)
+{column_defaults: list(str), na_value: str} |= if column_defaults.len = 0 then na_value = ""
 >>
-Rule 38 (column_names should have length less than 1000)
-{v_1 : list(str)} |= v_1.len < 1000
+Rule 48 (if num_rows_for_inference is specified, it should be positive)
+{num_rows_for_inference : int} |= num_rows_for_inference > 0
 >>
-Rule 41 (If sloppy is true, shuffle_seed cannot be set)
-{v_1: bool, v_2: int} |= if v_1 = true then v_2 = 0
+Rule 50 (If column_defaults is not provided, and types need to be inferred num_rows_for_inference must be specified)
+{column_defaults: list(str), num_rows_for_inference : int ⊎ str} |= if column_defaults.len = 0 then (num_rows_for_inference ≠ "None")
 >>
-Rule 42 (If num_rows_for_inference is -1, ignore_errors must be false)
-{v_1: int, v_2: bool} |= if v_1 = -1 then v_2 = false
+Rule 54 (If column_defaults is not provided, and types need to be inferred num_rows_for_inference must be specified if header = true)
+{column_defaults: list(str), num_rows_for_inference : int ⊎ str, header: bool} |= if column_defaults.len = 0 ∧ header then (num_rows_for_inference ≠ "None")
 >>
-Rule 43 (field_delim must be a valid string)
-{v_1: str} |= v_1 = "," ∨ v_1 = " " ∨ v_1 = "\t"
+Rule 58 (If column_defaults is not provided, and types need to be inferred num_rows_for_inference must be specified if header = true and column_names is empty list)
+{column_defaults: list(str), num_rows_for_inference : int ⊎ str, header: bool, column_names : list(str)} |= if column_defaults.len = 0 ∧ header ∧ column_names.len = 0 then (num_rows_for_inference ≠ "None")
 >>
-Rule 44 (column_defaults should be valid types)
-{v_1 : list(dtype)} |= v_1.len > 0
+Rule 59 (If label_name is specified and select_columns is specified, label_name must be included in select_columns)
+{label_name : str, select_columns : list(str)} |= ∃i ∈ [0, select_columns.len - 1] : label_name = select_columns[i]
 >>
-Rule 45 (If select_columns is provided then column_defaults must also be provided and of the same type, or else type inference will occur)
-{v_1: list(int), v_2: list(dtype)} |= if v_1.len > 0 then v_1.len = v_2.len
+Rule 62 (If label_name is specified and select_columns is specified, label_name must be included in select_columns if label_name is not None)
+{label_name : str, select_columns : list(str)} |= if label_name ≠ "None" then (∃i ∈ [0, select_columns.len - 1] : label_name = select_columns[i])
 >>
-Rule 46 (If shuffle is true, then shuffle_buffer_size should not be smaller than batch_size)
-{v_1: bool, v_2: int, v_3: int} |= if v_1 = true then v_2 ≥ v_3
+Rule 64 (If encoding is not UTF-8 it must be a valid encoding.)
+{encoding : str} |= encoding = "UTF-8"
 >>
-Rule 49 (prefetch_buffer_size must be greater than batch_size)
-{v_1: int, v_2: int} |= v_1 > v_2
+Rule 66 (If label_name is specified and select_columns is specified, label_name must be included in select_columns if label_name is not None and select columns is not None.)
+{label_name : str, select_columns : list(str)} |= if label_name ≠ "None" ∧ select_columns.len > 0 then (∃i ∈ [0, select_columns.len - 1] : label_name = select_columns[i])
 >>
-Rule 51 (if a column_default is a string, then all the values in that column must be strings.)
-{v_1: list(str)} |= v_1.len > 0
+Rule 72 (The column_defaults should consist of either strings or numbers, not a mixture. More specifically, if the column defaults are strings and na_value is not an empty string then a ValueError must be thrown)
+{column_defaults : list(str), na_value : str} |= if column_defaults.len > 0 then if column_defaults[0] = "str" then na_value = ""
 >>
-Rule 52 (if use_quote_delim is false, then the file must not contain commas within quotes)
-{v_1: bool} |= if v_1 = false then true
+Rule 76 (If a default value is given for a column, then it should be a valid default value based on column_names)
+{column_defaults : list(str), column_names: list(str)} |=  column_defaults.len = column_names.len
 >>
-Rule 53 (if sloppy is true, then the output is non-deterministic.)
-{v_1: bool} |= if v_1 = true then true
+Rule 77 (If shuffle is set to true, then shuffle_buffer_size must be specified.)
+{shuffle : bool, shuffle_buffer_size : int} |= if shuffle then shuffle_buffer_size > 0
 >>
-Rule 54 (If shuffle is true, then shuffle_buffer_size should be reasonably large in order to sufficiently shuffle the data)
-{v_1: bool, v_2: int} |= if v_1 = true then v_2 > 100
+Rule 78 (If select_columns is specified, then number of elements in column_defaults has to match number of element in select_columns)
+{select_columns: list(str), column_defaults : list(str)} |= select_columns.len = column_defaults.len
 >>
-Rule 55 (If header is false then a column_names should be provided)
-{v_1: bool, v_2: list(str)} |= if v_1 = false then v_2.len > 0
+Rule 82 (If column_defaults is an empty list, then num_rows_for_inference must be not None)
+{column_defaults: list(str), num_rows_for_inference : int ⊎ str} |= if column_defaults.len = 0 then num_rows_for_inference ≠ "None"
 >>
-Rule 56 (If label_name is provided, it must exist within column_names)
-{v_1: str, v_2: list(str)} |= if v_2.len > 0 then (∃i ∈ [0, v_2.len - 1] : v_1 = v_2[i])
+Rule 83 (The batch_size must be smaller or equal to the shuffle_buffer_size)
+{batch_size : int, shuffle_buffer_size : int} |= batch_size ≤ shuffle_buffer_size
 >>
-Rule 57 (na_value and field_delim must be different)
-{v_1: str, v_2: str} |= v_1 ≠ v_2
+Rule 84 (If select_columns is specified, then the column names either must be specified, or the algorithm will infer it using num_rows_for_inference)
+{select_columns : list(str), column_names : list(str), num_rows_for_inference : int ⊎ str} |= if select_columns.len > 0 then if column_names.len = 0 then num_rows_for_inference ≠ "None"
 >>
-Rule 59 (num_parallel_reads should not exceed number of available cores)
-{v_1: int} |= v_1 < 64
+Rule 85 (na_value must be not None if header = False)
+{na_value : str, header : bool} |= if header then true else na_value ≠ "None"
 >>
-Rule 62 (label_name is none of select_columns)
-{v_1: str, v_2: list(str)} |= if v_2.len > 0 then (∀i ∈ [0, v_2.len - 1] : v_1 ≠ v_2[i])
+Rule 86 (the elements in column_names has to be unique)
+{column_names : list(str)} |= ∀i ∈ [0, column_names.len - 1] : (∀j ∈ [i + 1, column_names.len - 1] : column_names[i] ≠ column_names[j])
 >>
-Rule 63 (If label_name is provided and column_names is also provided, label_name should be one of the column_names)
-{v_1: str, v_2: list(str)} |= if v_1.len > 0 ∧ v_2.len > 0 then (∃i ∈ [0, v_2.len - 1] : v_1 = v_2[i])
+Rule 88 (If sloppy is set to True, the deterministic ordering can not be guaranteed)
+{sloppy : bool} |= sloppy = true ∨ sloppy = false
 >>
-Rule 64 (If select_columns is specified, each column index should be within the total number of columns)
-{v_1: list(int), v_2: int} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < v_2
+Rule 89 (na_value can not be None if column_defaults is not None)
+{na_value : str, column_defaults : list(str) ⊎ list(int)} |= if column_defaults.len > 0 then na_value ≠ "None"
 >>
-Rule 67 (If shuffle_seed is specified, then shuffle should be true.)
-{v_1: int, v_2: bool} |= if v_1 > 0 then v_2 = true
+Rule 90 (num_rows_for_inference can not be zero)
+{num_rows_for_inference: int } |= num_rows_for_inference > 0
 >>
-Rule 68 (If using compression, the filename should have the appropriate extension)
-{v_1: str, v_2: str} |= if v_1 = "ZLIB" then v_2 = "*.gz" else if v_1 = "GZIP" then v_2 = "*.zlib"
+Rule 91 (If num_rows_for_inference is none and column_defaults is not defined, then there must be column_names defined)
+{num_rows_for_inference : str, column_defaults : list(str), column_names: list(str)} |= if num_rows_for_inference = "None" ∧ column_defaults.len = 0 then column_names.len > 0
 >>
-Rule 69 (If num_parallel_reads is greater than one, then sloppy must be true)
-{v_1: int, v_2: bool} |= if v_1 > 1 then v_2 = true
+Rule 92 (The values inside select_columns must be valid in column_names)
+{select_columns : list(str), column_names : list(str)} |= ∀i ∈ [0, select_columns.len - 1] : (∃j ∈ [0, column_names.len -1] : select_columns[i] = column_names[j])
 >>
-Rule 70 (If num_rows_for_inference is not provided, then the data type will need to be explicity specified through column_defaults)
-{v_1: int ⊎ bool, v_2: list(dtype)} |= if v_1 = false then v_2.len > 0
+Rule 93 (if column_names is empty and header = True, it should infer from file )
+{column_names : list(str), header : bool} |= if header then true else column_names.len > 0
 >>
-Rule 74 (If column_defaults is specified, they must be of consistent type)
-{v_1: list(dtype)} |= ∀i ∈ [0, v_1.len - 1]: true
+Rule 95 (label_name must be a member of column_names)
+{label_name : str, column_names : list(str)} |= ∃i ∈ [0, column_names.len - 1] : column_names[i] = label_name
 >>
-Rule 76 (If select_columns is provided, the indices should be within the bounds of the columns available in the csv file)
-{v_1: list(int), v_2: int} |= ∀i ∈ [0, v_1.len - 1]: v_1[i] < v_2
+Rule 101 (num_rows_for_inference must be an int if it's specified)
+{num_rows_for_inference : int ⊎ str} |= if num_rows_for_inference = "None" then true
 >>
-Rule 81 (prefetch_buffer_size must be sufficient to load the batches without performance issues)
-{v_1: int} |= v_1 > 0
+Rule 103 (If shuffle is true, then shuffle_buffer_size has to be bigger than batch_size)
+{shuffle : bool, shuffle_buffer_size : int, batch_size : int} |= if shuffle then shuffle_buffer_size > batch_size
 >>
-Rule 82 (if shuffle = False and num_epochs != 1, then this leads to redundant reads of the same data)
-{v_1: bool, v_2: int} |= if v_1 = false then v_2 = 1
+Rule 105 (If the select_columns and column_defaults lengths are different, raise a ValueError)
+{select_columns : list(str) ⊎ list(int), column_defaults : list(str) ⊎ list(int) ⊎ list(float)} |= select_columns.len = column_defaults.len
+>>
+Rule 109 (If select_columns and column_defaults is specified, their length should match)
+{select_columns : list(int) ⊎ list(str), column_defaults : list(str) ⊎ list(int) ⊎ list(float)} |= select_columns.len = column_defaults.len
+>>
+Rule 110 (If header is True, column_names is ignored)
+{header : bool, column_names : list(str)} |= if header then column_names.len = 0
+>>
+Rule 112 (If shuffle is true, then shuffle_buffer_size must be greater or equal than batch_size, and also greater than zero)
+{shuffle : bool, shuffle_buffer_size : int, batch_size : int} |= if shuffle then shuffle_buffer_size ≥ batch_size ∧ shuffle_buffer_size > 0
+>>
+Rule 116 (if compression_type has any value then all files in file_pattern must end with gz or zip)
+{compression_type : str, file_pattern : list(str)} |= if compression_type = "" then true else ∀i ∈ [0, file_pattern.len - 1] : (file_pattern[i] = "gz" ∨ file_pattern[i] = "zip" )
+>>
+Rule 118 (num_rows_for_inference must be not 0 and not None if column_defaults are not specified )
+{num_rows_for_inference : int ⊎ str, column_defaults: list(str)} |= if num_rows_for_inference = "None" then column_defaults.len > 0 else num_rows_for_inference > 0
+>>
+Rule 119 (if select_columns contains integer indices, each of the values must be positive and less than column_names length)
+{select_columns : list(int), column_names : list(str)} |= ∀i ∈ [0, select_columns.len - 1] : select_columns[i] ≥ 0 ∧ select_columns[i] < column_names.len
+>>
+Rule 122 (When the first row is a header, the length of column_names and a row of the csv must match.)
+{header : bool, column_names : list(str)} |= if header then true else column_names.len > 0
+>>
+Rule 123 (If label_name exists it must be in column_names)
+{label_name : str, column_names : list(str)} |= if label_name = "None" then true else ∃i ∈ [0, column_names.len - 1] : column_names[i] = label_name
+>>
+Rule 124 (If label_name exists it must be in column_names)
+{label_name : str, column_names : list(str)} |= if label_name = "" then true else ∃i ∈ [0, column_names.len - 1] : column_names[i] = label_name
+>>
+Rule 125 (If shuffle_seed has been specified, it has to be a positive number.)
+{shuffle_seed : int} |= shuffle_seed ≥ 0
+>>
+Rule 127 (If label_name exists it must be in column_names, or num_rows_for_inference must be specified.)
+{label_name : str, column_names : list(str), num_rows_for_inference : int ⊎ str} |= if label_name = "" then true else (∃i ∈ [0, column_names.len - 1] : column_names[i] = label_name) ∨ (num_rows_for_inference ≠ "None")
+>>
+Rule 128 (If shuffle_seed is not None, it must be a non-negative integer)
+{shuffle_seed : int ⊎ str} |= if shuffle_seed = "None" then true else shuffle_seed ≥ 0

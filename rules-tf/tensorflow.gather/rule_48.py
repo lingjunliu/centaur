@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if the indices are scalar, then batch_dims should be 0 (Rule 48)
+# The absolute value of axis should be less than the number of dimensions of params (Rule 48)
 
 rule_48 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 0, v["arg2_value"] == 0, False)) if n else
-          If(v["arg1_ndim"] == 0, v["arg2_value"] == 0, False))
+    s.add(Not(If(v["arg2_value"] < 0, 0 - v["arg2_value"] < v["arg1_ndim"], v["arg2_value"] < v["arg1_ndim"])) if n else
+          If(v["arg2_value"] < 0, 0 - v["arg2_value"] < v["arg1_ndim"], v["arg2_value"] < v["arg1_ndim"]))
 )
 
 def rule_48_func(arg1, arg2, solver=None, neg=False):
