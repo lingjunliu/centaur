@@ -15,9 +15,17 @@ def replace_function_invocation(script, old_function_name, new_function_name):
 
     return pattern.sub(replacer, script)
 
-def patch_code(code, api, output_dir):
+def patch_code(code, api, output_dir, lib="torch"):
+    if lib == "torch":
+        lib_import = "import torch"
+    elif lib == "tf":
+        lib_import = "import tensorflow as tf"
+    else:
+        raise Exception(f"Unsupported library {lib}")
+
     prefix = f"""
-import os, pickle, torch
+import os, pickle
+{lib_import}
 
 def monkey(func, *args, **kwargs):
     input_dict = {{
@@ -33,9 +41,17 @@ def monkey(func, *args, **kwargs):
     code = replace_function_invocation(code, api, 'monkey')
     return prefix + code
 
-def driver(api, output_dir):
+def driver(api, output_dir, lib="torch"):
+    if lib == "torch":
+        lib_import = "import torch"
+    elif lib == "tf":
+        lib_import = "import tensorflow as tf"
+    else:
+        raise Exception(f"Unsupported library {lib}")
+
     driver_code = f"""
-import os, pickle, torch
+import os, pickle
+{lib_import}
 
 dir = '{output_dir}'
 total = 0
@@ -63,12 +79,12 @@ print(total, valid, invalid)
 def main():
     api = sys.argv[1]
     dir = sys.argv[2]
-    
+    lib = sys.argv[3] if len(sys.argv) > 3 else "torch"
+
     if not os.path.exists(dir):
         print(f"{dir} does not exist")
         return
 
-    lib = "torch"
     categories = ['non_crash'] # Add more categories as needed: crash, invalid, samples, timeout, non_crash
     
     api = get_lib_version(api, lib=lib)
@@ -89,7 +105,7 @@ def main():
             file_path = os.path.join(result_dir, file)
             with open(file_path, 'r') as f:
                 code = f.read()
-                patched_code = patch_code(code, api, output_dir)
+                patched_code = patch_code(code, api, output_dir, lib=lib)
                 patched_file = os.path.join(output_dir, file)
                 with open(patched_file, "w") as f:
                     f.write(patched_code)
@@ -108,7 +124,7 @@ def main():
                 print(f"Patched {i+1}/{len(files)} files        ", end='\r', flush=True)
                     
         driver_file = os.path.join(output_dir, "driver.py")
-        driver_code = driver(api, output_dir)
+        driver_code = driver(api, output_dir, lib=lib)
         with open(driver_file, 'w') as f:
             f.write(driver_code)
 

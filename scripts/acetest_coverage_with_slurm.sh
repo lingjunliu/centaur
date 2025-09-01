@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# This script only works for PyTorch
+
 export slurm_time="2:00:00" # Time limit is 2 hours
 export max_parallel=130   # Fix number of slurm jobs to 690
 

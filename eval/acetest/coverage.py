@@ -5,8 +5,8 @@ from eval.coverage import compute_coverage
 
 def main():
     api = sys.argv[1]
-    lib = "torch"
-    
+    lib = sys.argv[2] if len(sys.argv) > 2 else "torch"
+
     # Debugging flags
     gen_html = True
     save_lcov = False
