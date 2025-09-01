@@ -55,9 +55,9 @@ def rule_7_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         arg4_range = Store(arg4_range, 1, int(np.max(arg4)))
 
         # Constraints for rule 7
-        rule_7(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg2_range': arg2_range, 'arg2_ndim': arg2_ndim, 'arg3_range': arg3_range, 'arg3_ndim': arg3_ndim, 'arg4_range': arg4_range, 'arg4_ndim': arg4_ndim})
+        rule_7(solver, {'arg1_ndim': arg1_ndim, 'arg1_range': arg1_range, 'arg2_ndim': arg2_ndim, 'arg2_range': arg2_range, 'arg3_ndim': arg3_ndim, 'arg3_range': arg3_range, 'arg4_ndim': arg4_ndim, 'arg4_range': arg4_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_7(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg2_range': arg2['range'], 'arg2_ndim': arg2['ndim'], 'arg3_range': arg3['range'], 'arg3_ndim': arg3['ndim'], 'arg4_range': arg4['range'], 'arg4_ndim': arg4['ndim']}, neg)
+        rule_7(solver, {'arg1_ndim': arg1['ndim'], 'arg1_range': arg1['range'], 'arg2_ndim': arg2['ndim'], 'arg2_range': arg2['range'], 'arg3_ndim': arg3['ndim'], 'arg3_range': arg3['range'], 'arg4_ndim': arg4['ndim'], 'arg4_range': arg4['range']}, neg)

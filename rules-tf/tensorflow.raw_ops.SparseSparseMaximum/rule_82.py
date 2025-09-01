@@ -39,9 +39,9 @@ def rule_82_func(arg1, arg2, solver=None, neg=False):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 82
-        rule_82(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
+        rule_82(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_82(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_82(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']}, neg)

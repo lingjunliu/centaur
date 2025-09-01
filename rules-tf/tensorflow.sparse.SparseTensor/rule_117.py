@@ -42,9 +42,9 @@ def rule_117_func(arg1, arg2, arg3, solver=None, neg=False):
         solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
 
         # Constraints for rule 117
-        rule_117(solver, {'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg3_shape': arg3_shape, 'arg3_dtype': arg3_dtype})
+        rule_117(solver, {'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg3_dtype': arg3_dtype, 'arg3_shape': arg3_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_117(solver, {'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_shape': arg3['shape'], 'arg3_dtype': arg3['dtype']}, neg)
+        rule_117(solver, {'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_dtype': arg3['dtype'], 'arg3_shape': arg3['shape']}, neg)

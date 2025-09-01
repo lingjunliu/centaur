@@ -42,9 +42,9 @@ def rule_28_func(arg1, arg2, arg3, solver=None, neg=False):
         solver.add(arg3_value == arg3)
 
         # Constraints for rule 28
-        rule_28(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length, 'arg2_shape': arg2_shape, 'arg3_value': arg3_value})
+        rule_28(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values, 'arg2_shape': arg2_shape, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_28(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length'], 'arg2_shape': arg2['shape'], 'arg3_value': arg3['value']}, neg)
+        rule_28(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values'], 'arg2_shape': arg2['shape'], 'arg3_value': arg3['value']}, neg)

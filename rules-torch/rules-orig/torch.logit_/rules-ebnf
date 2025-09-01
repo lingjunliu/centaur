@@ -1,0 +1,90 @@
+>>
+Rule 1 (Input tensor should not have complex dtype to avoid "logit_cpu" not implemented error.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 2 (Eps should be between 0 and 1 to avoid overflow and underflow issues)
+{v_2 : float} |= v_2 > 0 ∧ v_2 < 1
+>>
+Rule 3 (Input tensor's dtype should be compatible with float to avoid casting errors.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
+>>
+Rule 4 (Input tensor should have float or half dtype for numerical stability and to prevent casting errors)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
+>>
+Rule 5 (Eps should not be negative to avoid domain errors)
+{v_2 : float} |= v_2 ≥ 0
+>>
+Rule 6 (Input tensor values must be within the range [0, 1] if eps is not provided to prevent domain errors during logit calculation)
+{v_1 : tensor, v_2 : float} |= (∀i ∈ [0, shape(v_1, 0) - 1] : min(v_1) ≥ 0 ∧ max(v_1) ≤ 1) ∨ v_2 > 0
+>>
+Rule 7 (If eps is provided, it should be small enough to prevent overflow when added to the input tensor.)
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 then max(v_1) + v_2 ≤ 1
+>>
+Rule 8 (Input tensor's dtype should not be bool.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 9 (If eps is zero, input tensor values must be strictly within (0, 1) to prevent log(0) or log(negative) errors.)
+{v_1 : tensor, v_2 : float} |= if v_2 = 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : min(v_1) > 0 ∧ max(v_1) < 1
+>>
+Rule 10 (Input tensor values must not be NaN to prevent NaN results.)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : min(v_1) ≠ "nan" ∧ max(v_1) ≠ "nan"
+>>
+Rule 11 (If input tensor's dtype is float16, eps should also be float16-representable to avoid overflow/underflow during eps addition)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then v_2 < 65504
+>>
+Rule 21 (If eps > 0, ensure for all i that -v_1[i] + 1 + eps <= 1)
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : (0 - v_1[i]) + 1 + v_2 ≤ 1
+>>
+Rule 23 (If eps > 0, then for all i, ensure that (1-v_1[i]) + eps <= 1)
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : (1 - v_1[i]) + v_2 ≤ 1
+>>
+Rule 24 (If eps > 0, then for all i, eps is less than or equal to 1 - v_1[i])
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_2 ≤ 1 - v_1[i]
+>>
+Rule 25 (If eps > 0, then eps must be <= 1-max(v_1))
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 then v_2 ≤ 1 - max(v_1)
+>>
+Rule 26 (If eps is provided and positive, eps must be less than or equal to 1 - maximum element of the input tensor.)
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 then v_2 ≤ (1 - max(v_1))
+>>
+Rule 27 (If eps is specified, min(v_1) + eps >= 0, to avoid log of negative numbers)
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 then min(v_1) + v_2 ≥ 0
+>>
+Rule 28 (When eps is provided and is positive, eps must be greater than or equal to the negative of the smallest element in v_1, to prevent domain errors.)
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 then v_2 ≥ 0 - min(v_1)
+>>
+Rule 30 (If eps is specified, ensure eps >= -min(v_1))
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 then v_2 ≥ (0 - min(v_1))
+>>
+Rule 31 (If eps is provided, ensure that -min(v_1) <= eps )
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 then (0 - min(v_1)) ≤ v_2
+>>
+Rule 34 (If eps > 0, then -min(v_1) <= eps)
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 then 0 - min(v_1) ≤ v_2
+>>
+Rule 37 (If eps is positive, ensure that eps is a positive number.)
+{v_2 : float} |= if v_2 > 0 then v_2 > 0
+>>
+Rule 38 (If eps is provided as a positive value, eps must be less than 1.)
+{v_2 : float} |= if v_2 > 0 then v_2 < 1
+>>
+Rule 39 (If eps is provided and positive, ensure that the input tensor's minimum value + eps is greater than or equal to zero AND the input tensor's maximum value + eps is less than or equal to 1)
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 then min(v_1) + v_2 ≥ 0 ∧ max(v_1) + v_2 ≤ 1
+>>
+Rule 40 (If eps is provided and positive, the range of values for v_1 after adding eps should be within the bounds of 0 and 1 inclusive.)
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 then (min(v_1) + v_2 ≥ 0) ∧ (max(v_1) + v_2 ≤ 1)
+>>
+Rule 41 (If eps > 0, for all elements in the input tensor the following conditions hold: v_1[i] + eps <= 1 and v_1[i] - eps >= 0. This prevents numerical instability during logit calculation)
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] + v_2 ≤ 1) ∧ (v_1[i] - v_2 ≥ 0)
+>>
+Rule 42 (If eps is positive, for all elements in the input tensor the following condition holds: eps <= min(1-v_1[i], v_1[i]), preventing saturation.)
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_2 ≤ (1 - v_1[i]) ∧ v_2 ≤ v_1[i]
+>>
+Rule 43 (If eps is provided, and the data type of the input is half, make sure eps isn't large to avoid overflow.)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then v_2 < 65500
+>>
+Rule 44 (If eps is greater than 0 and the input tensor's dtype is float16, then eps should be less than the smallest positive normal value for float16 i.e., 2**-14)
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 ∧ dtype_(v_1) = 6 then v_2 < 0.00006103515625
+>>
+Rule 45 (If eps > 0 and dtype of v_1 is float16, then ensure that max(v_1) + eps does not overflow float16 by being less than the maximum representable value.)
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 ∧ dtype_(v_1) = 6 then max(v_1) + v_2 < 65504

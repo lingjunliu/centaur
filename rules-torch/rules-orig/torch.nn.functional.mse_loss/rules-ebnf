@@ -1,0 +1,135 @@
+>>
+Rule 1 (input and target tensors must have the same shape to avoid size mismatch)
+{input : tensor, target : tensor} |= ndim(input) = ndim(target) ∧ ∀i ∈ [0, ndim(input) - 1] : shape(input, i) = shape(target, i)
+>>
+Rule 2 (reduction must be one of the allowed strings)
+{reduction : str} |= reduction = "none" ∨ reduction = "mean" ∨ reduction = "sum"
+>>
+Rule 3 (input tensor dtype must be a floating point type)
+{input : tensor} |= dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8
+>>
+Rule 4 (target tensor dtype must be a floating point type)
+{target : tensor} |= dtype_(target) = 6 ∨ dtype_(target) = 7 ∨ dtype_(target) = 8
+>>
+Rule 5 (weight tensor must have the same shape as input if provided and reduction is none)
+{input : tensor, weight : tensor, reduction : str} |= if reduction = "none" then ndim(input) = ndim(weight) ∧ ∀i ∈ [0, ndim(input) - 1] : shape(input, i) = shape(weight, i)
+>>
+Rule 6 (weight tensor must be a floating point type if provided)
+{weight : tensor} |= dtype_(weight) = 6 ∨ dtype_(weight) = 7 ∨ dtype_(weight) = 8
+>>
+Rule 7 (input tensor dtype must not be complex)
+{input : tensor} |= dtype_(input) ≠ 9 ∧ dtype_(input) ≠ 10
+>>
+Rule 8 (target tensor dtype must not be complex)
+{target : tensor} |= dtype_(target) ≠ 9 ∧ dtype_(target) ≠ 10
+>>
+Rule 9 (weight tensor dtype must not be complex)
+{weight : tensor} |= weight = none ∨ (dtype_(weight) ≠ 9 ∧ dtype_(weight) ≠ 10)
+>>
+Rule 10 (if weight is provided, it should be a tensor)
+{weight : tensor ⊎ str} |= weight = none ∨ ndim(weight) > 0
+>>
+Rule 11 (size_average must be a boolean if specified)
+{size_average : bool ⊎ str} |= size_average = true ∨ size_average = false ∨ size_average = none
+>>
+Rule 12 (reduce must be a boolean if specified)
+{reduce : bool ⊎ str} |= reduce = true ∨ reduce = false ∨ reduce = none
+>>
+Rule 13 (input and target tensors must have compatible shapes when reduction is none)
+{input : tensor, target : tensor, reduction : str} |= if reduction = "none" then ndim(input) = ndim(target) ∧ ∀i ∈ [0, ndim(input) - 1] : (shape(input, i) = shape(target, i) ∨ shape(input, i) = 1 ∨ shape(target, i) = 1)
+>>
+Rule 14 (if input shape is [a,b,c], target shape can be [a,b,c] or [a,b,1] or [a,1,c] or [1,b,c] etc.)
+{input : tensor, target : tensor} |= ∀i ∈ [0, if ndim(input) ≥ ndim(target) then ndim(input) - 1 else ndim(target) - 1] : (ndim(input) - i - 1 < 0) ∨ (ndim(target) - i - 1 < 0) ∨ (shape(input, ndim(input) - i - 1) = shape(target, ndim(target) - i - 1)) ∨ (shape(target, ndim(target) - i - 1) = 1) ∨ (shape(input, ndim(input) - i - 1) = 1)
+>>
+Rule 15 (If input and target have different dimensions, reduction must not be none)
+{input : tensor, target : tensor, reduction : str} |= if ndim(input) ≠ ndim(target) then reduction ≠ "none"
+>>
+Rule 17 (If weight is not None, its shape must be broadcastable to the input shape)
+{input : tensor, weight : tensor} |= weight = none ∨ (ndim(weight) ≥ 0 ∧ ∀i ∈ [0, if ndim(input) ≥ ndim(weight) then ndim(input) - 1 else ndim(weight) - 1] : (ndim(input) - i - 1 < 0) ∨ (ndim(weight) - i - 1 < 0) ∨ (shape(input, ndim(input) - i - 1) = shape(weight, ndim(weight) - i - 1)) ∨ (shape(weight, ndim(weight) - i - 1) = 1))
+>>
+Rule 18 (If size_average is specified, reduction must be none)
+{size_average : bool ⊎ str, reduction : str} |= size_average = none ∨ reduction = "none"
+>>
+Rule 19 (If reduce is specified, reduction must be none)
+{reduce : bool ⊎ str, reduction : str} |= reduce = none ∨ reduction = "none"
+>>
+Rule 20 (input, target and weight tensors, if given, must have compatible dtypes)
+{input : tensor, target : tensor, weight : tensor} |= (dtype_(input) = dtype_(target)) ∧ (weight = none ∨ dtype_(input) = dtype_(weight))
+>>
+Rule 21 (If input and target have different number of elements and reduction is none, then raise error.)
+{input : tensor, target : tensor, reduction:str} |= if reduction = "none" then (∃i ∈ [0, ndim(input) -1]: shape(input, i) = 0) ∨ (∃i ∈ [0, ndim(target) -1]: shape(target, i) = 0) ∨ ( ndim(input) = ndim(target) ∧ (∀i ∈ [0, ndim(input) -1]: shape(input, i) = shape(target, i) ))
+>>
+Rule 22 (input, target and weight tensors should not be quantized, and also their dtypes must be in accordance)
+{input : tensor, target : tensor, weight : tensor} |= dtype_(input) ≠ 1 ∧ dtype_(input) ≠ 2 ∧ dtype_(input) ≠ 3 ∧ dtype_(input) ≠ 4 ∧ dtype_(input) ≠ 5 ∧ (dtype_(input) = dtype_(target)) ∧ (weight = none ∨ dtype_(input) = dtype_(weight))
+>>
+Rule 23 (If input or target is complex, weight cannot be provided)
+{input : tensor, target : tensor, weight : tensor} |= (dtype_(input) ≠ 9 ∧ dtype_(input) ≠ 10 ∧ dtype_(target) ≠ 9 ∧ dtype_(target) ≠ 10) ∨ weight = none
+>>
+Rule 25 (if input is complex, target must also be complex. Use if expression)
+{input : tensor, target : tensor} |= if (dtype_(input) = 9 ∨ dtype_(input) = 10) then (dtype_(target) = 9 ∨ dtype_(target) = 10)
+>>
+Rule 26 (if target is complex, input must also be complex. Use if expression)
+{input : tensor, target : tensor} |= if (dtype_(target) = 9 ∨ dtype_(target) = 10) then (dtype_(input) = 9 ∨ dtype_(input) = 10)
+>>
+Rule 27 (if input and target have different sizes, then the size of weight should match the size of either input or target depending on the reduction method. If weight is not none.)
+{input : tensor, target : tensor, weight : tensor, reduction : str} |= if weight ≠ none then if reduction = "none" then (ndim(input) = ndim(weight) ∧ ∀i ∈ [0, ndim(input) - 1]: shape(input, i) = shape(weight, i)) ∨ (ndim(target) = ndim(weight) ∧ ∀i ∈ [0, ndim(target) - 1]: shape(target, i) = shape(weight, i))
+>>
+Rule 28 (if weight is given, its dtype must match input's)
+{input : tensor, weight : tensor} |= weight = none ∨ dtype_(input) = dtype_(weight)
+>>
+Rule 30 (if reduce is true/false, reduction must be mean/sum respectively. reduce can only be none when reduction is none. Use if then else)
+{reduce : bool ⊎ str, reduction: str} |= if reduce = true then reduction = "mean" else if reduce = false then reduction = "sum" else if reduce ≠ none then reduction = "none"
+>>
+Rule 31 (Either reduce or reduction should be specified and if both are specified, their values should be consistent)
+{reduce : bool ⊎ str, reduction : str} |= (reduce = none) ∨ (reduction = "none") ∨ ((reduce = true ∧ reduction = "mean") ∨ (reduce = false ∧ reduction = "sum"))
+>>
+Rule 32 (Either size_average or reduce or reduction should be specified)
+{size_average : bool ⊎ str, reduce : bool ⊎ str, reduction: str} |= (size_average ≠ none) ∨ (reduce ≠ none) ∨ (reduction ≠ "none")
+>>
+Rule 33 (if size_average is not none, reduce must be none)
+{size_average : bool ⊎ str, reduce : bool ⊎ str} |= if size_average ≠ none then reduce = none
+>>
+Rule 34 (If reduce is not none, size_average must be none)
+{size_average : bool ⊎ str, reduce : bool ⊎ str} |= if reduce ≠ none then size_average = none
+>>
+Rule 35 (if reduction is not none, both size_average and reduce must be none)
+{size_average : bool ⊎ str, reduce : bool ⊎ str, reduction: str} |= if reduction ≠ "none" then size_average = none ∧ reduce = none
+>>
+Rule 36 (input and target must have same dtype)
+{input: tensor, target: tensor} |= dtype_(input) = dtype_(target)
+>>
+Rule 37 (If either size_average or reduce is specified, reduction must not be specified)
+{size_average: bool ⊎ str, reduce: bool ⊎ str, reduction: str} |= (size_average = none ∧ reduce = none) ∨ (reduction = "none")
+>>
+Rule 38 (input and target must not be complex64 or complex128 if mse_cpu is called)
+{input: tensor, target: tensor} |= (dtype_(input) ≠ 9 ∧ dtype_(input) ≠ 10) ∧ (dtype_(target) ≠ 9 ∧ dtype_(target) ≠ 10)
+>>
+Rule 39 (input and target sizes should match if reduction is none)
+{input: tensor, target: tensor, reduction: str} |= if reduction = "none" then shape(input, 0) = shape(target, 0)
+>>
+Rule 40 (input, target and weight tensors must have floating point or complex dtype)
+{input: tensor, target: tensor, weight: tensor} |= (dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 9 ∨ dtype_(input) = 10) ∧ (dtype_(target) = 6 ∨ dtype_(target) = 7 ∨ dtype_(target) = 8 ∨ dtype_(target) = 9 ∨ dtype_(target) = 10) ∧ (weight = none ∨ dtype_(weight) = 6 ∨ dtype_(weight) = 7 ∨ dtype_(weight) = 8 ∨ dtype_(weight) = 9 ∨ dtype_(weight) = 10)
+>>
+Rule 41 (if size_average or reduce are specified as bool, then reduction must not be specified)
+{size_average: bool ⊎ str, reduce: bool ⊎ str, reduction: str} |= (size_average = none ∨ size_average = "none") ∧ (reduce = none ∨ reduce = "none") ∨ (reduction = "none")
+>>
+Rule 42 (if both size_average and reduce are specified, their values should correspond to the value of reduction)
+{size_average: bool ⊎ str, reduce: bool ⊎ str, reduction: str} |= (size_average = none ∧ reduce = none) ∨ ( (size_average = true ∧ reduce = true ∧ reduction = "mean") ∨ (size_average = false ∧ reduce = false ∧ reduction = "sum") ∨ (size_average = none ∧ reduce = none ∧ reduction = "none"))
+>>
+Rule 43 (If input and target have different dimensions, then reduction must be either "mean" or "sum")
+{input : tensor, target : tensor, reduction : str} |= if ndim(input) ≠ ndim(target) then (reduction = "mean" ∨ reduction = "sum")
+>>
+Rule 44 (If reduction is specified as none, input and target must have same number of elements)
+{input: tensor, target: tensor, reduction: str} |= if reduction = "none" then ( ∀i ∈ [0, if ndim(input) > 0 then ndim(input) - 1 else 0] : shape(input, i) = 1) ∨ ( ∀i ∈ [0, if ndim(target) > 0 then ndim(target) - 1 else 0] : shape(target, i) = 1) ∨ (ndim(input) = ndim(target) ∧ (∀i ∈ [0, if ndim(input) > 0 then ndim(input) - 1 else 0]: shape(input, i) = shape(target, i)))
+>>
+Rule 45 (The weight shape should be broadcastable to input shape when reduction is not none)
+{input: tensor, weight: tensor, reduction: str} |= if reduction ≠ "none" then (∀i ∈ [0, if ndim(input) > 0 then ndim(input) - 1 else 0] : shape(input, i) = 1) ∨ ( ∀i ∈ [0, if ndim(weight) > 0 then ndim(weight) - 1 else 0] : shape(weight, i) = 1) ∨ (ndim(input) = ndim(weight) ∧ (∀i ∈ [0, if ndim(input) > 0 then ndim(input) - 1 else 0]: shape(input, i) = shape(weight, i)))
+>>
+Rule 46 (If input or target are complex then weight must be None)
+{input: tensor, target: tensor, weight: tensor} |= if (dtype_(input) = 9 ∨ dtype_(input) = 10) ∨ (dtype_(target) = 9 ∨ dtype_(target) = 10) then weight = none
+>>
+Rule 47 (The dim of input and target must be at least 1)
+{input: tensor, target: tensor} |= ndim(input) ≥ 1 ∧ ndim(target) ≥ 1
+>>
+Rule 48 (if input and target have size 0, reduction must not be none)
+{input: tensor, target: tensor, reduction: str} |= if (∃i ∈ [0, ndim(input)-1] : shape(input, i) = 0) ∧ (∃i ∈ [0, ndim(target)-1] : shape(target, i) = 0) then reduction ≠ "none"

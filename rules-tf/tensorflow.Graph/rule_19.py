@@ -37,9 +37,9 @@ def rule_19_func(arg1, arg2, solver=None, neg=False):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 19
-        rule_19(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length, 'arg2_shape': arg2_shape})
+        rule_19(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values, 'arg2_shape': arg2_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_19(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length'], 'arg2_shape': arg2['shape']}, neg)
+        rule_19(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values'], 'arg2_shape': arg2['shape']}, neg)

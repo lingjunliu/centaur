@@ -43,9 +43,9 @@ def rule_128_func(arg1, arg2, arg3, solver=None, neg=False):
         arg3_range = Store(arg3_range, 1, int(np.max(arg3)))
 
         # Constraints for rule 128
-        rule_128(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape, 'arg2_dtype': arg2_dtype, 'arg3_range': arg3_range})
+        rule_128(solver, {'arg1_shape': arg1_shape, 'arg2_dtype': arg2_dtype, 'arg2_shape': arg2_shape, 'arg3_range': arg3_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_128(solver, {'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape'], 'arg2_dtype': arg2['dtype'], 'arg3_range': arg3['range']}, neg)
+        rule_128(solver, {'arg1_shape': arg1['shape'], 'arg2_dtype': arg2['dtype'], 'arg2_shape': arg2['shape'], 'arg3_range': arg3['range']}, neg)

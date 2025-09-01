@@ -1,0 +1,162 @@
+>>
+Rule 1 (kernel_size must be a tuple of length 2)
+{kernel_size : tuple(int)} |= kernel_size.len = 2
+>>
+Rule 2 (stride must be a tuple of length 2 if specified)
+{stride : tuple(int)} |= stride.len = 2
+>>
+Rule 3 (padding must be a tuple of length 2 if specified)
+{padding : tuple(int)} |= padding.len = 2
+>>
+Rule 4 (output_size must be a tuple of length 2 or 4, or an empty tuple)
+{output_size : tuple(int)} |= output_size.len = 0 ∨ output_size.len = 2 ∨ output_size.len = 4
+>>
+Rule 5 (Each element of kernel_size must be positive)
+{kernel_size : tuple(int)} |= ∀i ∈ [0, kernel_size.len - 1] : kernel_size[i] > 0
+>>
+Rule 6 (Each element of stride must be positive if stride is specified)
+{stride : tuple(int)} |= ∀i ∈ [0, stride.len - 1] : stride[i] > 0
+>>
+Rule 7 (Each element of padding must be non-negative if padding is specified)
+{padding : tuple(int)} |= ∀i ∈ [0, padding.len - 1] : padding[i] ≥ 0
+>>
+Rule 8 (Indices tensor must have the same shape as the input tensor)
+{input : tensor, indices : tensor} |= ndim(input) = ndim(indices) ∧ ∀i ∈ [0, ndim(input) - 1] : shape(input, i) = shape(indices, i)
+>>
+Rule 9 (The input tensor must have at least 2 dimensions)
+{input : tensor} |= ndim(input) ≥ 2
+>>
+Rule 10 (If output_size is specified, all its elements must be positive)
+{output_size : tuple(int)} |= if output_size.len > 0 then ∀i ∈ [0, output_size.len - 1] : output_size[i] > 0
+>>
+Rule 11 (input and indices should have same dtype)
+{input : tensor, indices : tensor} |= dtype_(input) = dtype_(indices)
+>>
+Rule 12 (indices tensor must have integer dtype)
+{indices : tensor} |= 1 <= dtype_(indices) ∧ dtype_(indices) <= 5
+>>
+Rule 13 (Check if kernel size is valid w.r.t input size)
+{input : tensor, kernel_size : tuple(int)} |= ndim(input) = 4 ∧ kernel_size.len = 2 ∧ shape(input, 2) > kernel_size[0] ∧ shape(input, 3) > kernel_size[1]
+>>
+Rule 14 (Check if stride size is valid w.r.t input size and kernel size)
+{input : tensor, kernel_size : tuple(int), stride : tuple(int)} |= ndim(input) = 4 ∧ kernel_size.len = 2 ∧ stride.len = 2 ∧ shape(input, 2) > kernel_size[0] ∧ shape(input, 3) > kernel_size[1] ∧ kernel_size[0] >= stride[0] ∧ kernel_size[1] >= stride[1]
+>>
+Rule 15 (If output size specified, its size has to be bigger than the input size)
+{input : tensor, output_size : tuple(int)} |= if output_size.len = 2 then shape(input, 2) <= output_size[0] ∧ shape(input, 3) <= output_size[1] else if output_size.len = 4 then shape(input, 2) <= output_size[0] ∧ shape(input, 3) <= output_size[1] ∧ shape(input, 0) <= output_size[2] ∧ shape(input, 1) <= output_size[3]
+>>
+Rule 16 (If stride is not none, then the output size should be greater or equal than input size times stride size)
+{input : tensor, stride : tuple(int), output_size : tuple(int)} |= if stride.len = 2 ∧ output_size.len = 2 then shape(input, 2) * stride[0] <= output_size[0] ∧ shape(input, 3) * stride[1] <= output_size[1]
+>>
+Rule 17 (If padding is not none, the output size should be greater or equal than input size plus padding size)
+{input : tensor, padding : tuple(int), output_size : tuple(int)} |= if padding.len = 2 ∧ output_size.len = 2 then shape(input, 2) + padding[0] <= output_size[0] ∧ shape(input, 3) + padding[1] <= output_size[1]
+>>
+Rule 18 (If the output_size's dimension is 4, the input's dimension must be 4)
+{input : tensor, output_size : tuple(int)} |= if output_size.len = 4 then ndim(input) = 4
+>>
+Rule 19 (If output_size is specified, the length of the tuple has to be 2 or 4.)
+{output_size : tuple(int)} |= output_size.len = 2 ∨ output_size.len = 4
+>>
+Rule 20 (If output_size is specified, and input is 4D tensor, the output size must be within reasonable bounds)
+{input : tensor, output_size : tuple(int)} |= if ndim(input) = 4 ∧ output_size.len = 4 then output_size[0] >= 0 ∧ output_size[0] <= shape(input, 0) * 2 ∧ output_size[1] >= 0 ∧ output_size[1] <= shape(input, 1) * 2 ∧ output_size[2] >= 0 ∧ output_size[2] <= shape(input, 2) * 2 ∧ output_size[3] >= 0 ∧ output_size[3] <= shape(input, 3) * 2
+>>
+Rule 21 (If the deterministic flag is set, this function cannot be used.)
+{v_1 : bool} |= v_1 = false
+>>
+Rule 22 (Deterministic algorithms cannot be used with max_unpool2d unless warn_only is true)
+{deterministic : bool} |= deterministic = false
+>>
+Rule 25 (If deterministic is enabled, output_size must be specified)
+{output_size : tuple(int), deterministic : bool} |= if deterministic then output_size.len > 0
+>>
+Rule 26 (If deterministic is enabled, kernel_size must be 1)
+{kernel_size : tuple(int), deterministic : bool} |= if deterministic then kernel_size[0] = 1 ∧ kernel_size[1] = 1
+>>
+Rule 28 (If deterministic mode is enabled, stride has to be 1)
+{stride : tuple(int), deterministic : bool} |= if deterministic then stride[0] = 1 ∧ stride[1] = 1
+>>
+Rule 29 (If deterministic mode is enabled, padding has to be 0)
+{padding : tuple(int), deterministic : bool} |= if deterministic then padding[0] = 0 ∧ padding[1] = 0
+>>
+Rule 30 (If deterministic mode is enabled, indices must contain 0)
+{indices : tensor, deterministic : bool} |= if deterministic then min(indices) = 0
+>>
+Rule 31 (If using deterministic, then the maximum value in indices has to be less than the kernel size)
+{indices : tensor, kernel_size : tuple(int), deterministic : bool} |= if deterministic then max(indices) < kernel_size[0] * kernel_size[1]
+>>
+Rule 33 (indices values cannot exceed the maximum possible index, determined by kernel_size)
+{indices: tensor, kernel_size : tuple(int)} |= max(indices) < kernel_size[0] * kernel_size[1]
+>>
+Rule 34 (output_size cannot have length 1 or 3 if input is not a 3D tensor)
+{input: tensor, output_size : tuple(int)} |= if ndim(input) ≠ 3 then output_size.len ≠ 1 ∧ output_size.len ≠ 3
+>>
+Rule 35 (output_size has to have a length of 1 or 3 if the input is a 3D tensor. if not, output_size cannot have a length of 1 or 3)
+{input: tensor, output_size : tuple(int)} |= if ndim(input) = 3 then output_size.len = 1 ∨ output_size.len = 3 else output_size.len ≠ 1 ∧ output_size.len ≠ 3
+>>
+Rule 36 (output_size can only have lengths 0, 2, 4, and if input is 3D tensor, lengths 1 or 3)
+{input: tensor, output_size : tuple(int)} |= if ndim(input) = 3 then output_size.len = 1 ∨ output_size.len = 3 else output_size.len = 0 ∨ output_size.len = 2 ∨ output_size.len = 4
+>>
+Rule 37 (output_size dimensions must be within range depending on the input dimension.)
+{input: tensor, output_size: tuple(int)} |= if output_size.len = 2 then output_size[0] >= 0 ∧ output_size[0] <= shape(input, ndim(input)-2)*2 ∧ output_size[1] >= 0 ∧ output_size[1] <= shape(input, ndim(input)-1)*2 else if output_size.len = 4 then output_size[0] >= 0 ∧ output_size[0] <= shape(input, 0)*2 ∧ output_size[1] >= 0 ∧ output_size[1] <= shape(input, 1)*2 ∧ output_size[2] >= 0 ∧ output_size[2] <= shape(input, ndim(input)-2)*2 ∧ output_size[3] >= 0 ∧ output_size[3] <= shape(input, ndim(input)-1)*2 else if output_size.len = 1 then output_size[0] >= 0 ∧ output_size[0] <= shape(input, ndim(input)-1)*2 else if output_size.len = 3 then output_size[0] >=0 ∧ output_size[0] <= shape(input, 0) * 2 ∧ output_size[1] >= 0 ∧ output_size[1] <= shape(input, ndim(input)-2) * 2 ∧ output_size[2] >=0 ∧ output_size[2] <= shape(input, ndim(input)-1) * 2
+>>
+Rule 38 (if the len of output_size is not zero then the size has to be greater than 0)
+{output_size : tuple(int)} |= if output_size.len ≠ 0 then ∀i ∈ [0, output_size.len - 1] : output_size[i] > 0
+>>
+Rule 39 (output_size has length of 1 or 3 only if input is 3D, otherwise only can be 0, 2, or 4)
+{input : tensor, output_size : tuple(int)} |= if ndim(input) = 3 then output_size.len = 1 ∨ output_size.len = 3 else output_size.len = 0 ∨ output_size.len = 2 ∨ output_size.len = 4
+>>
+Rule 40 (output_size dimensions must be valid)
+{input: tensor, output_size : tuple(int)} |= if ndim(input) = 3 ∧ output_size.len = 1 then output_size[0] > 0 else if ndim(input) = 3 ∧ output_size.len = 3 then output_size[0] > 0 ∧ output_size[1] > 0 ∧ output_size[2] > 0 else if output_size.len = 2 then output_size[0] > 0 ∧ output_size[1] > 0 else if output_size.len = 4 then output_size[0] > 0 ∧ output_size[1] > 0 ∧ output_size[2] > 0 ∧ output_size[3] > 0
+>>
+Rule 41 (output_size elements has to be greater than 0, and can't have a value above a certain upper bound dependent on the input's shape)
+{input : tensor, output_size : tuple(int)} |= if output_size.len = 1 then output_size[0] > 0 ∧ output_size[0] ≤ shape(input, ndim(input)-1) * 2 else if output_size.len = 3 then output_size[0] > 0 ∧ output_size[1] > 0 ∧ output_size[2] > 0 ∧ output_size[0] <= shape(input, 0) * 2 ∧ output_size[1] <= shape(input, ndim(input)-2) * 2 ∧ output_size[2] <= shape(input, ndim(input)-1) * 2 else if output_size.len = 2 then output_size[0] > 0 ∧ output_size[1] > 0 ∧ output_size[0] <= shape(input, ndim(input)-2) * 2 ∧ output_size[1] <= shape(input, ndim(input)-1) * 2 else if output_size.len = 4 then output_size[0] > 0 ∧ output_size[1] > 0 ∧ output_size[2] > 0 ∧ output_size[3] > 0 ∧ output_size[0] <= shape(input, 0) * 2 ∧ output_size[1] <= shape(input, 1) * 2 ∧ output_size[2] <= shape(input, ndim(input)-2) * 2 ∧ output_size[3] <= shape(input, ndim(input)-1) * 2
+>>
+Rule 42 (Checking if output_size[i] is between 0 and input.size()*kernel_size)
+{input : tensor, output_size : tuple(int), kernel_size : tuple(int)} |= if output_size.len = 1 then 0 <= output_size[0] ∧ output_size[0] <= shape(input, ndim(input)-1) * kernel_size[0] else if output_size.len = 3 then 0 <= output_size[0] ∧ output_size[0] <= shape(input,0) * kernel_size[0] ∧ 0 <= output_size[1] ∧ output_size[1] <= shape(input,ndim(input)-2) * kernel_size[0] ∧ 0 <= output_size[2] ∧ output_size[2] <= shape(input, ndim(input)-1)*kernel_size[1] else if output_size.len = 2 then 0 <= output_size[0] ∧ output_size[0] <= shape(input,ndim(input)-2) * kernel_size[0] ∧ 0 <= output_size[1] ∧ output_size[1] <= shape(input, ndim(input)-1) * kernel_size[1] else if output_size.len = 4 then 0 <= output_size[0] ∧ output_size[0] <= shape(input,0) * kernel_size[0] ∧ 0 <= output_size[1] ∧ output_size[1] <= shape(input,1)*kernel_size[0] ∧ 0 <= output_size[2] ∧ output_size[2] <= shape(input, ndim(input)-2) * kernel_size[0] ∧ 0 <= output_size[3] ∧ output_size[3] <= shape(input, ndim(input)-1) *kernel_size[1]
+>>
+Rule 43 (Check for output_size only if the length of the output size is not 0)
+{input : tensor, output_size : tuple(int), kernel_size : tuple(int)} |= if output_size.len ≠ 0 then ∀i ∈ [0, output_size.len - 1] : output_size[i] > 0 ∧ output_size[i] <= shape(input, i) * kernel_size[i]
+>>
+Rule 44 (kernel_size dimensions should be positive)
+{kernel_size : tuple(int)} |= kernel_size[0] > 0 ∧ kernel_size[1] > 0
+>>
+Rule 45 (The number of dimensions of the input tensor has to be 4 if kernel_size is given)
+{input: tensor, kernel_size: tuple(int)} |= if kernel_size.len = 2 then ndim(input) = 4
+>>
+Rule 46 (if output_size is given with the size 1 or 3 then input dim must be 3)
+{input: tensor, output_size: tuple(int)} |= if output_size.len = 1 ∨ output_size.len = 3 then ndim(input) = 3
+>>
+Rule 48 (output_size should be valid if you specified it)
+{input: tensor, output_size: tuple(int)} |= if output_size.len > 0 then ∀i ∈ [0, output_size.len -1] : 0 < output_size[i] ∧ output_size[i] <= 2 * shape(input, i)
+>>
+Rule 49 (If output_size tuple is not empty, input tensor and output tuple length must align.)
+{input: tensor, output_size: tuple(int)} |= if output_size.len > 0 then output_size.len = ndim(input) - 1 ∨ output_size.len = ndim(input)
+>>
+Rule 50 (The max value in the indices should be smaller than input shape times kernel size)
+{input : tensor, indices : tensor, kernel_size : tuple(int)} |= max(indices) < shape(input, 2) * shape(input, 3) * kernel_size[0] * kernel_size[1]
+>>
+Rule 51 (The max value in the indices should be smaller than input shape times kernel size, but it should use ndim(input)-2 and ndim(input) -1 and kernel_size)
+{input : tensor, indices : tensor, kernel_size : tuple(int)} |= max(indices) < shape(input, ndim(input)-2) * shape(input, ndim(input)-1) * kernel_size[0] * kernel_size[1]
+>>
+Rule 52 (The maximum index has to be less than kernel_size[0]*kernel_size[1])
+{indices : tensor, kernel_size : tuple(int)} |= max(indices) < kernel_size[0] * kernel_size[1]
+>>
+Rule 53 (The input tensor should be 4D to align with kernel_size)
+{input : tensor, kernel_size : tuple(int)} |= ndim(input) = 4 ∧ kernel_size.len = 2
+>>
+Rule 54 (indices tensor must be of type long)
+{indices: tensor} |= dtype_(indices) = 4
+>>
+Rule 55 (Shape of the output should match provided output_size tuple if any)
+{input: tensor, output_size: tuple(int)} |= if output_size.len > 0 then ndim(input) = output_size.len
+>>
+Rule 56 (The output_size elements should be no more than double the size of input tensor elements)
+{input : tensor, output_size : tuple(int)} |= if output_size.len > 0 then ∀i ∈ [0, output_size.len - 1] : output_size[i] <= shape(input, i) * 2
+>>
+Rule 57 (Enforce input and indices to have the same shape)
+{input: tensor, indices: tensor} |= ∀i ∈ [0, ndim(input) - 1] : shape(input, i) = shape(indices, i)
+>>
+Rule 58 (If input has a shape of (N, C, H, W) the elements in the output_size should smaller than H,W)
+{input: tensor, output_size : tuple(int)} |= if output_size.len=2 then output_size[0] < shape(input, 2) ∧ output_size[1] < shape(input, 3)
+>>
+Rule 59 (Output size can only be provided when Kernel size is provided)
+{kernel_size: tuple(int), output_size: tuple(int)} |= if output_size.len > 0 then kernel_size.len = 2

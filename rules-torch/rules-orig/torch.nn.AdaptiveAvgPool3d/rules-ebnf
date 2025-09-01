@@ -1,0 +1,87 @@
+>>
+Rule 1 (Input tensor must have at least 4 dimensions to avoid ValueError)
+{v_1 : tensor} |= ndim(v_1) ≥ 4
+>>
+Rule 2 (output_size as integer must be greater than or equal to 0 to avoid RuntimeError)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 3 (output_size as a tuple must have length 3 to avoid RuntimeError, also elements must be greater than or equal to 0)
+{v_1 : tuple(int)} |= v_1.len = 3 ∧ ∀i ∈ [0, 2] : v_1[i] ≥ 0
+>>
+Rule 4 (input tensor must be 4D or 5D to avoid RuntimeError)
+{v_1 : tensor} |= ndim(v_1) = 4 ∨ ndim(v_1) = 5
+>>
+Rule 5 (dtype of tensor must be a type supported by adaptive_avg_pool3d)
+{v_1 : tensor} |= dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 6 (output_size as tuple of integers or None (represented as -1))
+{v_1 : tuple(int)} |= v_1.len = 3 ∧ ∀i ∈ [0, 2] : v_1[i] ≥ -1
+>>
+Rule 9 (If one element of output_size is None, then input tensor at corresponding dim should be greater than or equal to one)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = 5 ∧ ((v_2[0] = -1 ∧ shape(v_1, 2) ≥ 1) ∧ (v_2[1] = -1 ∧ shape(v_1, 3) ≥ 1) ∧ (v_2[2] = -1 ∧ shape(v_1, 4) ≥ 1)) ∨ (ndim(v_1) = 4 ∧ ((v_2[0] = -1 ∧ shape(v_1, 1) ≥ 1) ∧ (v_2[1] = -1 ∧ shape(v_1, 2) ≥ 1) ∧ (v_2[2] = -1 ∧ shape(v_1, 3) ≥ 1)))
+>>
+Rule 17 (If one element of output_size is None, then input tensor at corresponding dim should be greater than or equal to one; None is encoded as -1)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 5 then ((v_2[0] = -1 ∧ shape(v_1, 2) ≥ 1) ∧ (v_2[1] = -1 ∧ shape(v_1, 3) ≥ 1) ∧ (v_2[2] = -1 ∧ shape(v_1, 4) ≥ 1)) else if ndim(v_1) = 4 then ((v_2[0] = -1 ∧ shape(v_1, 1) ≥ 1) ∧ (v_2[1] = -1 ∧ shape(v_1, 2) ≥ 1) ∧ (v_2[2] = -1 ∧ shape(v_1, 3) ≥ 1)) else false
+>>
+Rule 23 (If output_size is a tuple, then at least one of its elements must be non-negative (not None))
+{v_1 : tuple(int)} |= (v_1[0] ≥ 0) ∨ (v_1[1] ≥ 0) ∨ (v_1[2] ≥ 0)
+>>
+Rule 33 (For int output_size, the input tensor must have appropriate number of dimensions)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 ∧ (ndim(v_1) = 4 ∨ ndim(v_1) = 5)
+>>
+Rule 34 (Elements of output_size cannot be less than -1 (None))
+{v_1 : tuple(int)} |=  ∀i ∈ [0, 2] : v_1[i] ≥ -1
+>>
+Rule 41 (If output_size is a tuple, at least one dimension should be specified)
+{v_1 : tuple(int)} |= ∃i ∈ [0, 2] : v_1[i] ≥ 0
+>>
+Rule 43 (check that if output_size is a tuple, then at least one element is not equal to -1, which represents None)
+{v_1 : tuple(int)} |= (v_1[0] ≠ -1) ∨ (v_1[1] ≠ -1) ∨ (v_1[2] ≠ -1)
+>>
+Rule 50 (If output_size is a tuple, at least one dimension should be specified with int value >=0 or None(represented as -1))
+{v_1 : tuple(int)} |= ∃i ∈ [0, 2] : v_1[i] ≥ -1
+>>
+Rule 51 (If output_size is a tuple, then it must be 3 elements long.)
+{v_1 : tuple(int)} |= v_1.len = 3
+>>
+Rule 52 (Input tensor needs to be of floating point type to avoid CPU implementation error)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
+>>
+Rule 58 (if at least one of the output sizes is specified as a valid dimension, the input tensor must have compatible dimension size)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 5 then (v_2[0] > 0 ∧ shape(v_1, 2) > 0) ∨ (v_2[1] > 0 ∧ shape(v_1, 3) > 0) ∨ (v_2[2] > 0 ∧ shape(v_1, 4) > 0) else if ndim(v_1) = 4 then (v_2[0] > 0 ∧ shape(v_1, 1) > 0) ∨ (v_2[1] > 0 ∧ shape(v_1, 2) > 0) ∨ (v_2[2] > 0 ∧ shape(v_1, 3) > 0) else false
+>>
+Rule 67 (If output_size is a tuple and the corresponding dimension of input is less than specified size, then dimension of input tensor cannot be less than 1)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 5 then (v_2[0] > shape(v_1, 2) ∧ shape(v_1, 2) ≥ 1) ∧ (v_2[1] > shape(v_1, 3) ∧ shape(v_1, 3) ≥ 1) ∧ (v_2[2] > shape(v_1, 4) ∧ shape(v_1, 4) ≥ 1) else if ndim(v_1) = 4 then (v_2[0] > shape(v_1, 1) ∧ shape(v_1, 1) ≥ 1) ∧ (v_2[1] > shape(v_1, 2) ∧ shape(v_1, 2) ≥ 1) ∧ (v_2[2] > shape(v_1, 3) ∧ shape(v_1, 3) ≥ 1)
+>>
+Rule 74 (If output_size is a tuple and all dimensions are None, the shape of the input must be the same as the requested output shape)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 5 then (v_2[0] = -1 ∧ v_2[1] = -1 ∧ v_2[2] = -1) else if ndim(v_1) = 4 then (v_2[0] = -1 ∧ v_2[1] = -1 ∧ v_2[2] = -1) else false
+>>
+Rule 75 (The sum of elements in output_size cannot be negative)
+{v_1 : tuple(int)} |= v_1[0] + v_1[1] + v_1[2] > -3
+>>
+Rule 76 (if output_size is an integer and the dimension is 0, the input tensor has to be 4D or 5D.)
+{v_1: tensor} |= if ndim(v_1) = 0 then false
+>>
+Rule 82 (If output_size is a tuple and the input tensor is 4D or 5D, then at least one output dimension needs to be specified to avoid undefined behavior.)
+{v_1 : tensor, v_2 : tuple(int)} |= (ndim(v_1) = 4 ∨ ndim(v_1) = 5) ∧ ((v_2[0] ≠ -1) ∨ (v_2[1] ≠ -1) ∨ (v_2[2] ≠ -1))
+>>
+Rule 98 (If dtype is char the rule will trigger an error)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 105 (If output_size is an int, tensor has to be 4D or 5D, to match documentation requirement)
+{v_1 : tensor} |= if ndim(v_1) > 0 then true else false
+>>
+Rule 106 (Tensor of type Char will result in an error)
+{v_1 : tensor} |= dtype_(v_1) ≠ 2
+>>
+Rule 112 (if all elements of output_size tuple are negative numbers, then return false to trigger an exception)
+{v_1 : tuple(int)} |= if v_1[0] < 0 ∧ v_1[1] < 0 ∧ v_1[2] < 0 then false
+>>
+Rule 120 (If the dtype is Char, then the rule will trigger an error)
+{v_1: tensor} |= dtype_(v_1) ≠ 2
+>>
+Rule 126 (The parameter dtype has to be one that is implemented for the function)
+{v_1 : tensor} |= dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 132 (If at least one of the output sizes is specified as a valid dimension, the input tensor must have compatible dimension size)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 5 then (v_2[0] > 0 ∧ shape(v_1, 2) > 0) ∨ (v_2[1] > 0 ∧ shape(v_1, 3) > 0) ∨ (v_2[2] > 0 ∧ shape(v_1, 4) > 0) else if ndim(v_1) = 4 then (v_2[0] > 0 ∧ shape(v_1, 1) > 0) ∨ (v_2[1] > 0 ∧ shape(v_1, 2) > 0) ∨ (v_2[2] > 0 ∧ shape(v_1, 3) > 0)

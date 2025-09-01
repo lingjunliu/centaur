@@ -36,9 +36,9 @@ def rule_119_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_length == len(arg2))
 
         # Constraints for rule 119
-        rule_119(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length, 'arg2_length': arg2_length})
+        rule_119(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values, 'arg2_length': arg2_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_119(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length'], 'arg2_length': arg2['length']}, neg)
+        rule_119(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values'], 'arg2_length': arg2['length']}, neg)

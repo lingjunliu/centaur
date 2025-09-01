@@ -41,9 +41,9 @@ def rule_31_func(arg1, arg2, arg3, solver=None, neg=False):
         solver.add(arg3_value == arg3)
 
         # Constraints for rule 31
-        rule_31(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype, 'arg2_range': arg2_range, 'arg3_value': arg3_value})
+        rule_31(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range, 'arg2_dtype': arg2_dtype, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_31(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype'], 'arg2_range': arg2['range'], 'arg3_value': arg3['value']}, neg)
+        rule_31(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range'], 'arg2_dtype': arg2['dtype'], 'arg3_value': arg3['value']}, neg)

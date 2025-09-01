@@ -1,0 +1,105 @@
+>>
+Rule 1 (Output tensor's dtype should be compatible with input tensor's dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128" ∧ dtype_(v_2) ≠ "complex64" ∧ dtype_(v_2) ≠ "complex128" ∧ (if dtype_(v_1) = "float16" then dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64") ∧ (if dtype_(v_1) = "float32" then dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64") ∧ (if dtype_(v_1) = "float64" then dtype_(v_2) = "float64")
+>>
+Rule 2 (Input tensor should not be a complex tensor to prevent RuntimeError: rad2deg is not supported for complex tensors.)
+{v_1 : tensor} |= dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128"
+>>
+Rule 3 (Output tensor dtype should be at least as precise as input)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = "float16" ∧ dtype_(v_2) = "float16") ∨ (dtype_(v_1) = "float32" ∧ (dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64")) ∨ (dtype_(v_1) = "float64" ∧ dtype_(v_2) = "float64")
+>>
+Rule 4 (Input and output tensors must have compatible dtypes to avoid casting errors)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = "float16" ∧ (dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64")) ∨ (dtype_(v_1) = "float32" ∧ (dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64")) ∨ (dtype_(v_1) = "float64" ∧ dtype_(v_2) = "float64")
+>>
+Rule 5 (Input tensor's dtype must be floating-point to support conversion from radians to degrees)
+{v_1 : tensor} |= dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64"
+>>
+Rule 6 (If an output tensor is provided, its shape must be compatible with the input tensor to enable the operation)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 7 (Prevent incompatible dtype casting by ensuring output dtype is not narrower than input dtype)
+{v_1 : tensor, v_2 : tensor} |= (if dtype_(v_1) = "float16" then (dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64") else (if dtype_(v_1) = "float32" then (dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64") else (if dtype_(v_1) = "float64" then dtype_(v_2) = "float64" else false)))
+>>
+Rule 8 (Input and optional output tensor must not be complex tensors)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128" ∧ dtype_(v_2) ≠ "complex64" ∧ dtype_(v_2) ≠ "complex128"
+>>
+Rule 11 (Output tensor's dtype must be float16, float32, or float64 if input tensor's dtype is float16)
+{v_1 : tensor, v_2 : tensor} |= (if dtype_(v_1) = "float16" then dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64")
+>>
+Rule 12 (Output tensor's dtype must be float32 or float64 if input tensor's dtype is float32)
+{v_1 : tensor, v_2 : tensor} |= (if dtype_(v_1) = "float32" then dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64")
+>>
+Rule 13 (If the output tensor is provided, its dtype should be float64 if input is float64)
+{v_1 : tensor, v_2 : tensor} |= (if dtype_(v_1) = "float64" then dtype_(v_2) = "float64")
+>>
+Rule 15 (If the output tensor is provided and its dtype is float16 or float32, input dtype must also be either float16 or float32 respectively)
+{v_1 : tensor, v_2 : tensor} |= (if dtype_(v_2) = "float16" then dtype_(v_1) = "float16") ∧ (if dtype_(v_2) = "float32" then dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64")
+>>
+Rule 16 (If an output tensor is specified, ensure its shape and dtype are compatible with the operation to avoid runtime errors)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ ((dtype_(v_1) = "float16" ∧ (dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64")) ∨ (dtype_(v_1) = "float32" ∧ (dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64")) ∨ (dtype_(v_1) = "float64" ∧ dtype_(v_2) = "float64"))
+>>
+Rule 17 (The `out` tensor, if provided, must have a floating-point dtype compatible with the `input` tensor.)
+{v_1 : tensor, v_2 : tensor} |= (if dtype_(v_1) = "float16" then (dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64") else (if dtype_(v_1) = "float32" then (dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64") else (if dtype_(v_1) = "float64" then (dtype_(v_2) = "float64") else false)))
+>>
+Rule 18 (The `out` tensor if given, cannot have an integer dtype.)
+{v_1 : tensor} |= dtype_(v_1) ≠ "int" ∧ dtype_(v_1) ≠ "int8" ∧ dtype_(v_1) ≠ "int16" ∧ dtype_(v_1) ≠ "int32" ∧ dtype_(v_1) ≠ "int64"
+>>
+Rule 19 (To prevent casting errors, input dtype float64 requires output dtype to be float64)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "float64" then dtype_(v_2) = "float64"
+>>
+Rule 20 (Output tensor must be of floating type if input is of floating type)
+{v_1 : tensor, v_2 : tensor} |= (if dtype_(v_1) = "float16" then dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" else if dtype_(v_1) = "float32" then dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" else if dtype_(v_1) = "float64" then dtype_(v_2) = "float64")
+>>
+Rule 21 (If output tensor is provided, and input tensor is float, then output must also be float)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" then dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64"
+>>
+Rule 22 (If an output tensor is specified, it cannot be of type bool)
+{v_1 : tensor} |= dtype_(v_1) ≠ "bool"
+>>
+Rule 23 (If output tensor's dtype is float16 or float32 then the input tensors type must match to prevent upcasting to float64)
+{v_1: tensor, v_2: tensor} |= (if dtype_(v_2) = "float16" then dtype_(v_1) = "float16" else if dtype_(v_2) = "float32" then dtype_(v_1) = "float32")
+>>
+Rule 24 (If the output tensor is provided, ensure its data type is not int8, int16, or uint8)
+{v_1: tensor} |= dtype_(v_1) ≠ "int8" ∧ dtype_(v_1) ≠ "int16" ∧ dtype_(v_1) ≠ "uint8"
+>>
+Rule 25 (If an output tensor is provided, ensure its data type is not int16 or lower if input tensor is float32 or higher.)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" then dtype_(v_2) ≠ "int8" ∧ dtype_(v_2) ≠ "int16"
+>>
+Rule 29 (If output is specified then its dtype can not be short if input is Float)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "float32" then dtype_(v_2) ≠ "int16"
+>>
+Rule 31 (If the output tensor is provided, its dtype cannot be int16 if the input tensor's dtype is float16, float32 or float64)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64") then dtype_(v_2) ≠ "int16"
+>>
+Rule 33 (Output tensor should be a floating point type, or ensure no downcasting to short occurs when input is float)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "float16" then (dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64") else if dtype_(v_1) = "float32" then (dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64") else if dtype_(v_1) = "float64" then dtype_(v_2) = "float64"
+>>
+Rule 35 (If output tensor is provided and input is float, then output cannot be an integer with less precision.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "float16") then (dtype_(v_2) ≠ "int8" ∧ dtype_(v_2) ≠ "int16" ∧ dtype_(v_2) ≠ "uint8") else if (dtype_(v_1) = "float32") then (dtype_(v_2) ≠ "int8" ∧ dtype_(v_2) ≠ "int16")
+>>
+Rule 36 (Prevent downcasting from float16, float32 to int8, int16, uint8 datatypes when output tensor is specified)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "float16" then (dtype_(v_2) ≠ "int8" ∧ dtype_(v_2) ≠ "int16" ∧ dtype_(v_2) ≠ "uint8") else if dtype_(v_1) = "float32" then (dtype_(v_2) ≠ "int8" ∧ dtype_(v_2) ≠ "int16")
+>>
+Rule 37 (Output tensor should have a compatible dtype to prevent data loss)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "float16" then dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" else if dtype_(v_1) = "float32" then dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" else if dtype_(v_1) = "float64" then dtype_(v_2) = "float64"
+>>
+Rule 40 (If the output tensor is specified, then, to prevent loss of precision, ensure the output's data type's range is no smaller than the range after conversion of input data type.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "float16" then (dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64") else if dtype_(v_1) = "float32" then (dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64") else if dtype_(v_1) = "float64" then (dtype_(v_2) = "float64")
+>>
+Rule 42 (Ensure that if an output tensor is provided, its dtype is not a narrower floating point type compared to the input's floating point type to prevent data loss.)
+{v_1 : tensor, v_2 : tensor} |= (if dtype_(v_1) = "float32" then dtype_(v_2) ≠ "float16") ∧ (if dtype_(v_1) = "float64" then (dtype_(v_2) ≠ "float16" ∧ dtype_(v_2) ≠ "float32"))
+>>
+Rule 45 (Output tensor's dtype must be large enough to accommodate the converted values)
+{v_1 : tensor, v_2 : tensor} |= (if dtype_(v_1) = "float32" then (dtype_(v_2) ≠ "int8" ∧ dtype_(v_2) ≠ "int16")) ∧ (if dtype_(v_1) = "float16" then (dtype_(v_2) ≠ "int8" ∧ dtype_(v_2) ≠ "int16" ∧ dtype_(v_2) ≠ "uint8")) ∧ (if dtype_(v_1) = "float64" then dtype_(v_2) = "float64")
+>>
+Rule 47 (Avoid incompatible dtype downcasting; disallow int8, int16, uint8 as output if input is float16, disallow int8, int16 as output if input is float32.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "float16" then (dtype_(v_2) ≠ "int8" ∧ dtype_(v_2) ≠ "int16" ∧ dtype_(v_2) ≠ "uint8") else if dtype_(v_1) = "float32" then (dtype_(v_2) ≠ "int8" ∧ dtype_(v_2) ≠ "int16") else if dtype_(v_1) = "float64" then true
+>>
+Rule 49 (Prevent "result type Float can't be cast to the desired output type Short" RuntimeError when an output tensor is provided.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "float16") ∨ (dtype_(v_1) = "float32") ∨ (dtype_(v_1) = "float64") then (dtype_(v_2) ≠ "int16")
+>>
+Rule 50 (If the output tensor 'out' is provided, its dtype must be large enough, to avoid "Float can't be cast to Short" exception when converting from radians to degrees.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64") then (dtype_(v_2) ≠ "int16")
+>>
+Rule 52 (The output tensor, if supplied, must not be a "Short" integer when converting a float to degrees)
+{v_1 : tensor, v_2 : tensor} |= (if dtype_(v_1) = "float16" then dtype_(v_2) ≠ "int16" else if dtype_(v_1) = "float32" then dtype_(v_2) ≠ "int16" else if dtype_(v_1) = "float64" then dtype_(v_2) ≠ "int16")

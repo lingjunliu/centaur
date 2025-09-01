@@ -84,9 +84,9 @@ def rule_35_func(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, solver=None, ne
             arg8_shape = Store(arg8_shape, i, arg8.shape[i])
 
         # Constraints for rule 35
-        rule_35(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_shape': arg3_shape, 'arg3_ndim': arg3_ndim, 'arg4_shape': arg4_shape, 'arg4_ndim': arg4_ndim, 'arg5_shape': arg5_shape, 'arg5_ndim': arg5_ndim, 'arg6_shape': arg6_shape, 'arg6_ndim': arg6_ndim, 'arg7_shape': arg7_shape, 'arg7_ndim': arg7_ndim, 'arg8_shape': arg8_shape, 'arg8_ndim': arg8_ndim})
+        rule_35(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape, 'arg3_ndim': arg3_ndim, 'arg3_shape': arg3_shape, 'arg4_ndim': arg4_ndim, 'arg4_shape': arg4_shape, 'arg5_ndim': arg5_ndim, 'arg5_shape': arg5_shape, 'arg6_ndim': arg6_ndim, 'arg6_shape': arg6_shape, 'arg7_ndim': arg7_ndim, 'arg7_shape': arg7_shape, 'arg8_ndim': arg8_ndim, 'arg8_shape': arg8_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_35(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_shape': arg3['shape'], 'arg3_ndim': arg3['ndim'], 'arg4_shape': arg4['shape'], 'arg4_ndim': arg4['ndim'], 'arg5_shape': arg5['shape'], 'arg5_ndim': arg5['ndim'], 'arg6_shape': arg6['shape'], 'arg6_ndim': arg6['ndim'], 'arg7_shape': arg7['shape'], 'arg7_ndim': arg7['ndim'], 'arg8_shape': arg8['shape'], 'arg8_ndim': arg8['ndim']}, neg)
+        rule_35(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape'], 'arg3_ndim': arg3['ndim'], 'arg3_shape': arg3['shape'], 'arg4_ndim': arg4['ndim'], 'arg4_shape': arg4['shape'], 'arg5_ndim': arg5['ndim'], 'arg5_shape': arg5['shape'], 'arg6_ndim': arg6['ndim'], 'arg6_shape': arg6['shape'], 'arg7_ndim': arg7['ndim'], 'arg7_shape': arg7['shape'], 'arg8_ndim': arg8['ndim'], 'arg8_shape': arg8['shape']}, neg)

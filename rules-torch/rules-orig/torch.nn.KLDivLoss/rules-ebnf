@@ -1,0 +1,165 @@
+>>
+Rule 1 (Input and target tensors must have the same shape to avoid size mismatch errors)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 2 (Input tensor must be a floating-point type to avoid integral input errors)
+{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+>>
+Rule 4 (Reduction must be one of the allowed string values)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
+>>
+Rule 5 (size_average and reduce are deprecated, so constrain their values when reduction is not none)
+{v_1 : bool, v_2 : bool, v_3 : str} |= if v_3 ≠ "none" then v_1 = true ∧ v_2 = true
+>>
+Rule 6 (Log_target is a boolean value)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 7 (Input tensor cannot have inf or nan)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : min(v_1) > -10000000 ∧ max(v_1) < 10000000
+>>
+Rule 12 (Data type of input tensor must be float16, float32, or float64)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 14 (Input and target tensors must have the same number of dimensions.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+>>
+Rule 15 (If log_target is true, target values must be non-negative.)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then min(v_1) ≥ 0
+>>
+Rule 16 (Check if reduction is a valid string)
+{v_1: str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "batchmean" ∨ v_1 = "sum"
+>>
+Rule 17 (Check if target values are non-negative to avoid nan in log)
+{v_1: tensor, v_2: bool} |= if v_2 = false then min(v_1) >= 0
+>>
+Rule 18 (If input tensor is in log space, values should be negative or zero)
+{v_1 : tensor, v_2 : bool} |= if v_2 = false then min(v_1) <=0
+>>
+Rule 19 (If reduction is none, the output shape must be the same as the input and target shape.)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "none" then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 20 (If log_target is false, target values must be non-negative or 0 to prevent nan values in the log.)
+{v_1 : tensor, v_2 : bool} |= if v_2 = false then min(v_1) ≥ 0
+>>
+Rule 21 (Check that input and target have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 22 (Input tensor must be of floating point type)
+{v_1: tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 27 (size_average is deprecated when reduction is specified)
+{v_1: bool, v_2: str} |= if v_2 = "none" ∨ v_2 = "mean" ∨ v_2 = "batchmean" ∨ v_2 = "sum" then true else v_1 = true
+>>
+Rule 29 (If reduction is batchmean, then the input tensor must have at least one dimension)
+{v_1 : tensor, v_2 : str} |= if v_2 = "batchmean" then ndim(v_1) > 0
+>>
+Rule 30 (If input tensor is log-space and target is not, values in input must be less than or equal to 0)
+{v_1 : tensor, v_2 : bool} |= if v_2 = false then max(v_1) <= 0
+>>
+Rule 32 (If reduction is batchmean, then the input tensor must have at least one dimension, and batch size should not be zero)
+{v_1 : tensor, v_2 : str} |= if v_2 = "batchmean" then ndim(v_1) > 0 ∧ shape(v_1, 0) > 0
+>>
+Rule 34 (If input tensor requires grad, it should be float)
+{v_1: tensor} |= if true then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 36 (If input is in log space, values must be finite.)
+{v_1 : tensor} |= min(v_1) > -100000000 ∧ max(v_1) < 100000000
+>>
+Rule 39 (If input is in log space, values must be finite and not NaN.)
+{v_1 : tensor} |= min(v_1) > -100000000 ∧ max(v_1) < 100000000 ∧ min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "NaN"
+>>
+Rule 41 (Check that dtype is not an integer)
+{v_1: tensor} |= dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
+>>
+Rule 44 (If log_target is false, target values should have a log defined, so must be > 0)
+{v_1 : tensor, v_2 : bool} |= if v_2 = false then min(v_1) > 0
+>>
+Rule 46 (If the target is not in log space, all values must be greater than 0, or at least non-negative for numerical stability.)
+{v_1: tensor, v_2: bool} |= if v_2 = false then min(v_1) > 0
+>>
+Rule 48 (The target tensor must be non-negative if log_target is false to prevent NaN values in log(target).)
+{v_1 : tensor, v_2 : bool} |= if v_2 = false then ∀i ∈ [0, ndim(v_1) - 1] : min(v_1) ≥ 0
+>>
+Rule 53 (If input tensor is given in log space, its values must not be infinity)
+{v_1: tensor, v_2: bool} |= if v_2 = false then max(v_1) < 1000000
+>>
+Rule 54 (If the target is not in log space, all values must be greater than or equal to 0, or at least non-negative for numerical stability.)
+{v_1: tensor, v_2: bool} |= if v_2 = false then min(v_1) ≥ 0
+>>
+Rule 55 (The input tensor and target tensor must have the same shape to avoid broadcasting issues. Ensure each dimension matches.)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 56 (If log_target is set to false, check no element in target is zero.)
+{v_1 : tensor, v_2: bool} |= if v_2 = false then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 58 (Input and target tensors must have the same number of dimensions.)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2)
+>>
+Rule 62 (The target should have a floating-point dtype)
+{v_1: tensor} |= 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8
+>>
+Rule 64 (If the input tensor has values in log space, it can't have positive infinity.)
+{v_1: tensor} |= max(v_1) < 1000000
+>>
+Rule 67 (Check if input is a valid tensor for KLDivLoss (must support the log operation, so should have values between 0 and 1))
+{v_1: tensor} |= min(v_1) ≥ 0 ∧ max(v_1) <= 1
+>>
+Rule 69 (The target is required to have all shape dimensions positive if the tensor is not in log space)
+{v_1: tensor, v_2: bool} |= if v_2 = false then ∀ i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0
+>>
+Rule 71 (The target and input dtype have to be the same)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 73 (If reduction is none, the input tensor and target should have the same shape.)
+{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "none" then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 77 (To prevent NaN in KL divergence, when the target is not in log space, the input tensor can't have -inf values.)
+{v_1 : tensor, v_2 : bool} |= if v_2 = false then min(v_1) > -1000000
+>>
+Rule 82 (If reduction is batchmean, first dimension (batch size) of tensors must be greater than 0)
+{v_1 : tensor, v_2 : str} |= if v_2 = "batchmean" then shape(v_1, 0) > 0
+>>
+Rule 85 (If target requires_grad, check whether target dtype is floating)
+{v_1 : tensor} |= if true then 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8
+>>
+Rule 86 (if batchmean is the reduction, the batchsize cannot be zero)
+{v_1: tensor, v_2: str} |= if v_2 = "batchmean" then shape(v_1, 0) > 0
+>>
+Rule 87 (Check for reduction being valid)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "batchmean" ∨ v_1 = "sum"
+>>
+Rule 88 (if log_target is true, ensure values in target are finite, otherwise can result in NaN values.)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then max(v_1) < 1000000
+>>
+Rule 89 (Enforce float dtypes for input and target.)
+{v_1: tensor, v_2: tensor} |= 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8 ∧ 6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8
+>>
+Rule 90 (if log_target is true, ensure target tensor values are finite)
+{v_1: tensor, v_2: bool} |= if v_2 = true then max(v_1) < 1000000
+>>
+Rule 91 (If the target is given in log space, the values should be smaller or equal to 0)
+{v_1 : tensor, v_2: bool} |= if v_2 = true then max(v_1) <= 0
+>>
+Rule 93 (Check for finite values on input tensor if log_target= False)
+{v_1 : tensor, v_2: bool} |= if v_2 = false then max(v_1) < 1000000
+>>
+Rule 97 (input and target dtype must both be floating point types)
+{v_1: tensor, v_2: tensor} |= (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ (6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8)
+>>
+Rule 98 (If the target is not in log space, all values must be positive to allow for stable log calculations.)
+{v_1: tensor, v_2: bool} |= if v_2 = false then ∀x ∈ [0, ndim(v_1) - 1] : v_1[x] > 0
+>>
+Rule 99 (If size_average or reduce is true, then the dimension must be greater than 0)
+{v_1: bool, v_2: tensor} |= if v_1 = true then ndim(v_2) > 0
+>>
+Rule 101 (If the target is not in log space, all values must be positive non-zero)
+{v_1: tensor, v_2: bool} |= if v_2 = false then ∀ i ∈ [0, ndim(v_1) -1] : v_1[i] > 0
+>>
+Rule 102 (if log_target is true, ensure max target value <= 0)
+{v_1: tensor, v_2: bool} |= if v_2 = true then max(v_1) <= 0
+>>
+Rule 106 (the size of the tensors must match to prevent size mismatch)
+{v_1: tensor, v_2: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 111 (if log_target is false, target values must be finite and non-zero so the algorithm does not calculate Log(0))
+{v_1: tensor} |= min(v_1) > 0 ∧ max(v_1) < 100000

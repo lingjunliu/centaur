@@ -34,9 +34,9 @@ def rule_33_func(arg1, arg2, solver=None, neg=False):
         arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 33
-        rule_33(solver, {'arg2_range': arg2_range, 'arg2_dtype': arg2_dtype})
+        rule_33(solver, {'arg2_dtype': arg2_dtype, 'arg2_range': arg2_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_33(solver, {'arg2_range': arg2['range'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_33(solver, {'arg2_dtype': arg2['dtype'], 'arg2_range': arg2['range']}, neg)

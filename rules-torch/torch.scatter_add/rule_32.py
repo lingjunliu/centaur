@@ -42,9 +42,9 @@ def rule_32_func(arg1, arg2, arg3, solver=None, neg=False):
         arg3_range = Store(arg3_range, 1, int(np.max(arg3)))
 
         # Constraints for rule 32
-        rule_32(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value, 'arg3_range': arg3_range})
+        rule_32(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_range': arg3_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_32(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value'], 'arg3_range': arg3['range']}, neg)
+        rule_32(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_range': arg3['range']}, neg)

@@ -60,9 +60,9 @@ def rule_57_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
         solver.add(arg5_dtype == list_of_available_dtypes.index(arg5.dtype))
 
         # Constraints for rule 57
-        rule_57(solver, {'arg1_dtype': arg1_dtype, 'arg2_shape': arg2_shape, 'arg2_dtype': arg2_dtype, 'arg3_shape': arg3_shape, 'arg3_dtype': arg3_dtype, 'arg4_shape': arg4_shape, 'arg4_dtype': arg4_dtype, 'arg5_shape': arg5_shape, 'arg5_dtype': arg5_dtype})
+        rule_57(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg2_shape': arg2_shape, 'arg3_dtype': arg3_dtype, 'arg3_shape': arg3_shape, 'arg4_dtype': arg4_dtype, 'arg4_shape': arg4_shape, 'arg5_dtype': arg5_dtype, 'arg5_shape': arg5_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_57(solver, {'arg1_dtype': arg1['dtype'], 'arg2_shape': arg2['shape'], 'arg2_dtype': arg2['dtype'], 'arg3_shape': arg3['shape'], 'arg3_dtype': arg3['dtype'], 'arg4_shape': arg4['shape'], 'arg4_dtype': arg4['dtype'], 'arg5_shape': arg5['shape'], 'arg5_dtype': arg5['dtype']}, neg)
+        rule_57(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg2_shape': arg2['shape'], 'arg3_dtype': arg3['dtype'], 'arg3_shape': arg3['shape'], 'arg4_dtype': arg4['dtype'], 'arg4_shape': arg4['shape'], 'arg5_dtype': arg5['dtype'], 'arg5_shape': arg5['shape']}, neg)

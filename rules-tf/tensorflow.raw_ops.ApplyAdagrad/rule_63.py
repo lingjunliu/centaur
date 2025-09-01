@@ -46,9 +46,9 @@ def rule_63_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         solver.add(arg4_dtype == list_of_available_dtypes.index(arg4.dtype))
 
         # Constraints for rule 63
-        rule_63(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_range': arg3_range, 'arg3_dtype': arg3_dtype, 'arg4_dtype': arg4_dtype})
+        rule_63(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype, 'arg3_range': arg3_range, 'arg4_dtype': arg4_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_63(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_range': arg3['range'], 'arg3_dtype': arg3['dtype'], 'arg4_dtype': arg4['dtype']}, neg)
+        rule_63(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype'], 'arg3_range': arg3['range'], 'arg4_dtype': arg4['dtype']}, neg)

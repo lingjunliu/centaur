@@ -1,0 +1,129 @@
+>>
+Rule 1 (input and target tensors must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 3 (reduction must be one of the allowed strings)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
+>>
+Rule 4 (margin should be non-negative)
+{v_1 : float} |= v_1 ≥ 0
+>>
+Rule 5 (input tensor should be float or complex)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 6 (target tensor must have values either 1 or -1)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) -1] : (v_1[i] = 1) ∨ (v_1[i] = -1)
+>>
+Rule 9 (input tensor cannot have complex dtype if clamp is not supported)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+>>
+Rule 10 (input and target tensor should not be boolean if using subtraction)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0
+>>
+Rule 11 (margin value can be converted to float16 without overflow)
+{v_1 : float} |= v_1 ≤ 65500 ∧ v_1 ≥ -65500
+>>
+Rule 20 (if reduction is none then the output shape is the same as the input)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "none" then (ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i))
+>>
+Rule 27 (input and target tensors must have compatible dtypes to avoid mean() error)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 28 (if input is half, then margin value can be converted to float16 without overflow)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then v_2 <= 65500 ∧ v_2 >= -65500
+>>
+Rule 29 (input and target tensors must have compatible dtypes to avoid mean() error)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ dtype_(v_1) = dtype_(v_2)
+>>
+Rule 30 (If input is half, then margin value can be converted to float16 without overflow)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then v_2 ≤ 65500 ∧ v_2 ≥ -65500
+>>
+Rule 31 (Input and target tensors must have the same size to avoid dimension mismatch.)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 37 (If either input or target tensors are boolean, avoid subtraction by checking for logical XOR usage)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 ∨ dtype_(v_2) = 0 then true
+>>
+Rule 38 (If clamp is used, then input tensor should not be complex)
+{v_1: tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+>>
+Rule 39 (Input and target tensors must have the same number of elements to avoid dimension mismatch.)
+{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 41 (Input and target tensors must have compatible dtypes to avoid mean() error and should be floating or complex, unless reduction is none)
+{v_1 : tensor, v_2 : tensor, v_3: str} |= if v_3 = "none" then true else (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ dtype_(v_1) = dtype_(v_2)
+>>
+Rule 44 (Input and target tensors must have the same number of elements when not using reduction 'none', or have broadcastable shapes.)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "none" then true else (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)))
+>>
+Rule 47 (Avoid subtraction if bool)
+{v_1: tensor, v_2: tensor} |=  if (dtype_(v_1) = 0) ∨ (dtype_(v_2) = 0) then true
+>>
+Rule 48 (Ensure the input is float or complex if reduction is mean or sum.)
+{v_1: tensor, v_2: str} |= if (v_2 = "mean") ∨ (v_2 = "sum") then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 50 (Ensure the input is float or complex if reduction is mean or sum, and has same type as target)
+{v_1: tensor, v_2: str, v_3: tensor} |= if (v_2 = "mean") ∨ (v_2 = "sum") then ((dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ dtype_(v_1) = dtype_(v_3))
+>>
+Rule 53 (Input and Target Tensor Shape should match when performing subtraction to compute max function)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 54 (The shape of input and target must be equal if clamp, sub, or mean operations will be used by checking that dimensions align)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if ((v_3 = "mean") ∨ (v_3 = "sum")) then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) else if dtype_(v_1) = 0 ∨ dtype_(v_2) = 0 then true else (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 58 (If Input data type is complex, then clamp will cause a crash so it should be avoided and mean and sum can not be performed if complex)
+{v_1 : tensor, v_2: str} |= if (v_2 = "mean") ∨ (v_2 = "sum") then ((dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ) else (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10)
+>>
+Rule 62 (Ensure the input is float or complex to perform mean and sum operations.)
+{v_1: tensor, v_2: str, v_3 : tensor} |= if (v_2 = "mean") ∨ (v_2 = "sum") then ((dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ dtype_(v_1) = dtype_(v_3))
+>>
+Rule 65 (If Bool tensors, operations using Subtraction and comparisons requiring same size should be avoided.)
+{v_1: tensor, v_2: tensor} |=  if (dtype_(v_1) = 0) ∨ (dtype_(v_2) = 0) then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 66 (Input Tensor and Target should have float or complex data types for 'mean' or 'sum' reduction)
+{v_1: tensor, v_2: tensor, v_3: str} |= if (v_3 = "mean") ∨ (v_3 = "sum") then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 67 ( Ensure the data types for Input and Target Tensors match to ensure consistent calculations.)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 68 (If Bool tensors, operations using Subtraction and comparisons requiring same size should be avoided. Logical XOR used instead.)
+{v_1: tensor, v_2: tensor, v_3: str} |=  if (dtype_(v_1) = 0) ∨ (dtype_(v_2) = 0) then true else if (v_3 = "mean") ∨ (v_3 = "sum") then ((ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))) else (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 71 (Input and Target Tensors must both be of similar type.)
+{v_1: tensor, v_2: tensor, v_3: str} |= if (v_3 = "mean") ∨ (v_3 = "sum") then ((dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ dtype_(v_1) = dtype_(v_2) )
+>>
+Rule 72 (The Dtype of the input tensor should not be char)
+{v_1 : tensor, v_2 : str} |= if (v_2 = "mean") ∨ (v_2 = "sum") then dtype_(v_1) ≠ 11
+>>
+Rule 73 (Bool tensors and ops using Subtraction and Comparisons should be avoided, logical xor used instead)
+{v_1: tensor, v_2: tensor, v_3: str} |=  if (dtype_(v_1) = 0) ∨ (dtype_(v_2) = 0) then true else if (v_3 = "mean") ∨ (v_3 = "sum") then true
+>>
+Rule 76 (Target And Input Tensors should be the same type to avoid conversion errors and work properly with the algorithm.)
+{v_1: tensor, v_2: tensor, v_3: str} |= if (v_3 = "mean") ∨ (v_3 = "sum") then (dtype_(v_1) = dtype_(v_2))
+>>
+Rule 77 (If not applying a reduction, check both have the same shape or apply a different reduction )
+{v_1: tensor, v_2: tensor, v_3: str} |= if (v_3 = "none") then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 82 (The Dtype of the input tensor should be a numeric type capable of being operated upon and must support reductions.)
+{v_1 : tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 83 (If bool tensor, avoid subtraction )
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 0) ∨ (dtype_(v_2) = 0) then true
+>>
+Rule 87 (Check input should be float or complex, Char is not acceptable)
+{v_1 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 90 (If Clamp operations will occur a complex number cannot be used as an input )
+{v_1 : tensor, v_2: str} |= if v_2 = "none" then true else (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10)
+>>
+Rule 101 (Mean and Sum require Tensors of type Float or Complex)
+{v_1: tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 127 ( Shape does not align therefore may cause dimension failure)
+{v_1: tensor} |= ndim(v_1) = 1
+>>
+Rule 130 (Only numerical types should be used when taking the mean.)
+{v_1: tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 131 (Bool datatypes cannot be passed as a tensor)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) != 0) ∧ (dtype_(v_2) != 0)

@@ -36,9 +36,9 @@ def rule_80_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 80
-        rule_80(solver, {'arg1_shape': arg1_shape, 'arg1_dtype': arg1_dtype, 'arg2_ndim': arg2_ndim})
+        rule_80(solver, {'arg1_dtype': arg1_dtype, 'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_80(solver, {'arg1_shape': arg1['shape'], 'arg1_dtype': arg1['dtype'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_80(solver, {'arg1_dtype': arg1['dtype'], 'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim']}, neg)

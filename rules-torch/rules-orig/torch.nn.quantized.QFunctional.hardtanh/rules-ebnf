@@ -1,0 +1,105 @@
+>>
+Rule 1 (min_val must be less than or equal to max_val)
+{v_1 : float, v_2 : float} |= v_1 ≤ v_2
+>>
+Rule 2 (min_val should be a finite number)
+{v_1 : float} |= v_1 ≠ "inf" ∧ v_1 ≠ "-inf" ∧ v_1 ≠ "nan"
+>>
+Rule 6 (if input is empty tensor min_val and max_val does not matter)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if shape(v_1, 0) = 0 then true else v_2 ≤ v_3
+>>
+Rule 8 (input tensor has at least one element or the condition is trivially true)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0)
+>>
+Rule 9 (The max_val should be greater than zero if input tensor has only positive elements)
+{v_1 : tensor, v_2 : float} |= if (∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0) ∧ min(v_1) ≥ 0 then v_2 > 0
+>>
+Rule 10 (The min_val should be smaller than zero if input tensor has only negative elements)
+{v_1 : tensor, v_2 : float} |= if (∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0) ∧ max(v_1) ≤ 0 then v_2 < 0
+>>
+Rule 11 (if min_val equals max_val then tensor must have only this value)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if v_2 = v_3 then (∀i ∈ [0, ndim(v_1) - 1] : min(v_1) = v_2 ∧ max(v_1) = v_2)
+>>
+Rule 12 (The difference between max_val and min_val should be greater than or equal to zero)
+{v_1 : float, v_2 : float} |= v_2 - v_1 ≥ 0
+>>
+Rule 15 (the tensor must have dimension greater than zero if min_val and max_val are differents)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if v_2 ≠ v_3 then ndim(v_1) > 0
+>>
+Rule 17 (if the tensor is a single element the values must respect the hardtanh condition)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if (ndim(v_1) = 0) then v_2 ≤ v_1 ∧ v_1 ≤ v_3
+>>
+Rule 18 (if the tensor has a max value smaller than min_val then it must be empty)
+{v_1 : tensor, v_2 : float} |= if max(v_1) < v_2 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0)
+>>
+Rule 19 (if the tensor has a min value greater than max_val then it must be empty)
+{v_1 : tensor, v_2 : float} |= if min(v_1) > v_2 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0)
+>>
+Rule 20 (min_val is not greater than max_val by a margin)
+{v_1 : float, v_2 : float} |= v_1 ≤ v_2 + 0.00001
+>>
+Rule 21 (if the tensor is a single element the values must respect the hardtanh condition, taking floating point imprecision into account)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if (ndim(v_1) = 0) then v_2 - 0.00001 ≤ v_1 ∧ v_1 ≤ v_3 + 0.00001
+>>
+Rule 22 (if all elements of input tensor are greater than 0 then min_val is at most the minimum)
+{v_1 : tensor, v_2 : float} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ min(v_1) > 0 then v_2 ≤ min(v_1)
+>>
+Rule 23 (if all elements of input tensor are less than 0 then max_val is at least the maximum)
+{v_1 : tensor, v_2 : float} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ max(v_1) < 0 then v_2 ≥ max(v_1)
+>>
+Rule 24 (if input is a scalar, then min_val and max_val are finite and min_val <= input <= max_val)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if ndim(v_1) = 0 then v_2 ≠ "inf" ∧ v_2 ≠ "-inf" ∧ v_2 ≤ v_1 ∧ v_3 ≠ "inf" ∧ v_3 ≠ "-inf" ∧ v_1 ≤ v_3
+>>
+Rule 25 (if min_val or max_val is nan, the tensor must be empty)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if v_2 = "nan" ∨ v_3 = "nan" then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0)
+>>
+Rule 26 (min_val must be less than the maximum value of the tensor, or tensor must be empty)
+{v_1 : tensor, v_2 : float} |= if ndim(v_1) > 0 ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then v_2 ≤ max(v_1)
+>>
+Rule 27 (max_val must be greater than the minimum value of the tensor, or tensor must be empty)
+{v_1 : tensor, v_2 : float} |= if ndim(v_1) > 0 ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then v_2 ≥ min(v_1)
+>>
+Rule 28 (if input is a scalar, then min_val and max_val are finite)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if ndim(v_1) = 0 then v_2 ≠ "inf" ∧ v_2 ≠ "-inf" ∧ v_3 ≠ "inf" ∧ v_3 ≠ "-inf"
+>>
+Rule 29 (if the tensor's dtype is int, then min_val and max_val should also be integers or at least representable as integers without loss)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then v_2 % 1 = 0 ∧ v_3 % 1 = 0
+>>
+Rule 36 (if the tensor is a scalar, then min_val and max_val should bound it)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if ndim(v_1) = 0 then v_2 ≤ v_1 ∧ v_1 ≤ v_3
+>>
+Rule 42 (The max value in the tensor has to be less than or equal to max_val.)
+{v_1 : tensor, v_2 : float} |= max(v_1) ≤ v_2
+>>
+Rule 43 (The min value in the tensor has to be greater or equal to min_val.)
+{v_1 : tensor, v_2 : float} |= min(v_1) ≥ v_2
+>>
+Rule 45 (if the tensor has a maximum value, it must be less than or equal to max_val)
+{v_1 : tensor, v_2 : float} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then max(v_1) ≤ v_2
+>>
+Rule 46 (if the tensor has a minimum value, it must be greater than or equal to min_val)
+{v_1 : tensor, v_2 : float} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then min(v_1) ≥ v_2
+>>
+Rule 47 (if the tensor is empty then min_val can be greater than max_val)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then true else v_2 ≤ v_3
+>>
+Rule 48 (min_val must be less than or equal to max_val plus some tolerance)
+{v_1 : float, v_2 : float} |= v_1 ≤ v_2 + 0.0001
+>>
+Rule 49 (if the tensor has a maximum value and is not empty, it must be less than or equal to max_val)
+{v_1 : tensor, v_2 : float} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then max(v_1) ≤ v_2 + 0.0001
+>>
+Rule 50 (if the tensor has a minimum value and is not empty, it must be greater than or equal to min_val)
+{v_1 : tensor, v_2 : float} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then min(v_1) ≥ v_2 - 0.0001
+>>
+Rule 58 (if min_val > max_val then tensor shape is zero)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if v_2 > v_3 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0)
+>>
+Rule 61 (if min_val > any value of the tensor, than the min_val needs to be replaced)
+{v_1 : tensor, v_2 : float} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ v_2 > min(v_1) then true
+>>
+Rule 66 (if min_val > max_val and tensor is not empty then this is an invalid condition)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if v_2 > v_3 ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then false
+>>
+Rule 69 (if min_val > any value of the tensor, than the hardtanh is useless)
+{v_1 : tensor, v_2 : float} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ v_2 > max(v_1) then true

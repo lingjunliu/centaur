@@ -31,9 +31,9 @@ def rule_10_func(arg1, solver=None, neg=False):
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 10
-        rule_10(solver, {'arg1_shape': arg1_shape, 'arg1_dtype': arg1_dtype})
+        rule_10(solver, {'arg1_dtype': arg1_dtype, 'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_10(solver, {'arg1_shape': arg1['shape'], 'arg1_dtype': arg1['dtype']}, neg)
+        rule_10(solver, {'arg1_dtype': arg1['dtype'], 'arg1_shape': arg1['shape']}, neg)

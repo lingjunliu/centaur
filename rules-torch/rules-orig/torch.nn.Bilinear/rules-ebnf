@@ -1,0 +1,246 @@
+>>
+Rule 1 (in1_features must be positive)
+{in1_features : int} |= in1_features > 0
+>>
+Rule 2 (in2_features must be positive)
+{in2_features : int} |= in2_features > 0
+>>
+Rule 3 (out_features must be positive)
+{out_features : int} |= out_features > 0
+>>
+Rule 4 (input1 must be a tensor with at least one dimension)
+{input1 : tensor} |= ndim(input1) > 0
+>>
+Rule 5 (input2 must be a tensor with at least one dimension)
+{input2 : tensor} |= ndim(input2) > 0
+>>
+Rule 6 (last dimension of input1 matches in1_features)
+{input1 : tensor, in1_features : int} |= ndim(input1) > 0 ∧ shape(input1, ndim(input1) - 1) = in1_features
+>>
+Rule 7 (last dimension of input2 matches in2_features)
+{input2 : tensor, in2_features : int} |= ndim(input2) > 0 ∧ shape(input2, ndim(input2) - 1) = in2_features
+>>
+Rule 9 (shape dimensions must be representable as concrete integers)
+{input1 : tensor} |= ∀i ∈ [0, ndim(input1) - 1] : shape(input1, i) < 2147483647 ∧ shape(input1, i) > -2147483648
+>>
+Rule 10 (shape dimensions must be representable as concrete integers)
+{input2 : tensor} |= ∀i ∈ [0, ndim(input2) - 1] : shape(input2, i) < 2147483647 ∧ shape(input2, i) > -2147483648
+>>
+Rule 11 (Avoid storage size calculation overflow - check sizes)
+{in1_features : int, in2_features : int, out_features : int} |= (in1_features * in2_features * out_features) < 1000000000000000000
+>>
+Rule 12 (Input1 and Input2 dimensions are consistent)
+{input1 : tensor, input2 : tensor} |= if ndim(input1) > 1 ∧ ndim(input2) > 1 then (∀i ∈ [0, ndim(input1) - 2] : shape(input1, i) = shape(input2, i))
+>>
+Rule 13 (Check for negative dimensions in input1's shape)
+{input1 : tensor} |= ∀i ∈ [0, ndim(input1) - 1] : shape(input1, i) > 0
+>>
+Rule 14 (Check for negative dimensions in input2's shape)
+{input2 : tensor} |= ∀i ∈ [0, ndim(input2) - 1] : shape(input2, i) > 0
+>>
+Rule 15 (dtype must be float16, float32, float64, complex64 or complex128 to allow gradients)
+{dtype : dtype} |= dtype_(dtype) = "float16" ∨ dtype_(dtype) = "float32" ∨ dtype_(dtype) = "float64" ∨ dtype_(dtype) = "complex64" ∨ dtype_(dtype) = "complex128"
+>>
+Rule 16 (in1_features should not be extremely large to prevent memory allocation issues)
+{in1_features : int} |= in1_features < 10000000
+>>
+Rule 17 (in2_features should not be extremely large to prevent memory allocation issues)
+{in2_features : int} |= in2_features < 10000000
+>>
+Rule 18 (out_features should not be extremely large to prevent memory allocation issues)
+{out_features : int} |= out_features < 10000000
+>>
+Rule 19 (Shape of input1 should not lead to excessive memory allocation)
+{input1 : tensor} |= shape(input1, ndim(input1)-1) < 10000000
+>>
+Rule 20 (Shape of input2 should not lead to excessive memory allocation)
+{input2 : tensor} |= shape(input2, ndim(input2)-1) < 10000000
+>>
+Rule 21 (dtype must be float16, float32, float64, complex64 or complex128 to allow gradients - verbose string comparison)
+{dtype : str} |= dtype = "float16" ∨ dtype = "float32" ∨ dtype = "float64" ∨ dtype = "complex64" ∨ dtype = "complex128"
+>>
+Rule 25 (Combined check for positive dimensions for input tensors, more robust against negative dimension errors)
+{input1 : tensor, input2 : tensor} |= (ndim(input1) > 0 ∧ ∀i ∈ [0, ndim(input1) - 1] : shape(input1, i) > 0) ∧ (ndim(input2) > 0 ∧ ∀i ∈ [0, ndim(input2) - 1] : shape(input2, i) > 0)
+>>
+Rule 26 (Restrict dimension size to avoid overflow, using in1/2/out features)
+{in1_features : int, in2_features : int, out_features : int} |= in1_features * in2_features * out_features < 2147483647
+>>
+Rule 27 (Check input1 shape dimensions are not excessively large, preventing storage overflow - combines dimensions)
+{input1 : tensor} |= if ndim(input1) > 0 then shape(input1, 0) * (if ndim(input1) > 1 then shape(input1,1) else 1) < 2147483647
+>>
+Rule 28 (Check input2 shape dimensions are not excessively large, preventing storage overflow - combines dimensions)
+{input2 : tensor} |= if ndim(input2) > 0 then shape(input2, 0) * (if ndim(input2) > 1 then shape(input2,1) else 1) < 2147483647
+>>
+Rule 29 (Restricting the size of all feature maps combined to avoid alloc error, adds constraints)
+{in1_features : int, in2_features: int, out_features: int, input1 : tensor, input2 : tensor} |= in1_features + in2_features + out_features + shape(input1, ndim(input1) - 1) + shape(input2, ndim(input2) - 1) < 1000000
+>>
+Rule 30 (Shape Dimensions of input1 are Concrete Integers)
+{input1 : tensor} |= ∀i ∈ [0, ndim(input1) - 1] : shape(input1, i) > -10000 ∧ shape(input1, i) < 1000000
+>>
+Rule 31 (Shape Dimensions of input2 are Concrete Integers)
+{input2 : tensor} |= ∀i ∈ [0, ndim(input2) - 1] : shape(input2, i) > -10000 ∧ shape(input2, i) < 1000000
+>>
+Rule 32 (Shape Dimensions of input1 cannot be too negative to avoid overflow on cast)
+{input1 : tensor} |= ∀i ∈ [0, ndim(input1) - 1] : shape(input1, i) > -2147483648
+>>
+Rule 33 (Shape Dimensions of input2 cannot be too negative to avoid overflow on cast)
+{input2 : tensor} |= ∀i ∈ [0, ndim(input2) - 1] : shape(input2, i) > -2147483648
+>>
+Rule 34 (Combined Features not exceeding max int)
+{in1_features:int, in2_features:int, out_features: int} |= in1_features < 100000 ∧ in2_features < 100000 ∧ out_features < 100000 ∧ (in1_features + in2_features + out_features < 2147483647)
+>>
+Rule 35 (Input1 shape dimensions must be non-negative)
+{input1 : tensor} |= ndim(input1) > 0 ∧ ∀i ∈ [0, ndim(input1) - 1] : shape(input1, i) ≥ 0
+>>
+Rule 36 (Input2 shape dimensions must be non-negative)
+{input2 : tensor} |= ndim(input2) > 0 ∧ ∀i ∈ [0, ndim(input2) - 1] : shape(input2, i) ≥ 0
+>>
+Rule 37 (Ensure feature sizes are not negative)
+{in1_features : int, in2_features : int, out_features : int} |= in1_features > 0 ∧ in2_features > 0 ∧ out_features > 0
+>>
+Rule 38 (in1_features, in2_features, and out_features are within a small, positive range for concrete integer requirements)
+{in1_features : int, in2_features : int, out_features : int} |= in1_features > 0 ∧ in1_features < 1000 ∧ in2_features > 0 ∧ in2_features < 1000 ∧ out_features > 0 ∧ out_features < 1000
+>>
+Rule 39 (Combined shape cannot overflow)
+{input1 : tensor} |= ∀i ∈ [0, ndim(input1) - 1]: shape(input1, 0) = shape(input1, i)  ∧ shape(input1, 0) < 1000000
+>>
+Rule 40 (Tensor shape dimensions not excessively large.)
+{input1: tensor} |= ndim(input1) < 6
+>>
+Rule 41 (Input1 must be a tensor with a small number of dimensions - limiting complexity)
+{input1 : tensor} |= ndim(input1) ≤ 3
+>>
+Rule 42 (Input2 must be a tensor with a small number of dimensions - limiting complexity)
+{input2 : tensor} |= ndim(input2) ≤ 3
+>>
+Rule 44 (The difference between in1_features, in2_features, and out_features must be small - rewritten)
+{in1_features : int, in2_features : int, out_features : int} |= if in1_features ≥ in2_features ∧ in1_features ≥ out_features then in1_features - (if in2_features ≤ out_features then in2_features else out_features) < 10000 else if in2_features ≥ in1_features ∧ in2_features ≥ out_features then in2_features - (if in1_features ≤ out_features then in1_features else out_features) < 10000 else out_features - (if in1_features ≤ in2_features then in1_features else in2_features) < 10000
+>>
+Rule 45 (Aggregated size of input features not excessively large, to avoid alloc error)
+{in1_features : int, in2_features : int, out_features : int} |= (in1_features + in2_features + out_features) < 500000
+>>
+Rule 46 (Feature sizes are reasonable concrete integers, specifically targetting symInt issue)
+{in1_features : int} |= in1_features > 0 ∧ in1_features < 2048
+>>
+Rule 47 (Feature sizes are reasonable concrete integers, specifically targetting symInt issue)
+{in2_features : int} |= in2_features > 0 ∧ in2_features < 2048
+>>
+Rule 48 (Feature sizes are reasonable concrete integers, specifically targetting symInt issue)
+{out_features : int} |= out_features > 0 ∧ out_features < 2048
+>>
+Rule 49 (in1_features should be a factor of the first dimension of input1 if the tensor has at least 1 dimension)
+{in1_features : int, input1 : tensor} |= if ndim(input1) > 0 then shape(input1, 0) % in1_features = 0
+>>
+Rule 50 (in2_features should be a factor of the first dimension of input2 if the tensor has at least 1 dimension)
+{in2_features : int, input2 : tensor} |= if ndim(input2) > 0 then shape(input2, 0) % in2_features = 0
+>>
+Rule 51 (out_features cannot be larger than the product of in1 and in2 features)
+{in1_features : int, in2_features : int, out_features : int} |= out_features <= in1_features * in2_features
+>>
+Rule 52 (If Input 1 tensor dimension is greater or equal to one, last shape dimension must equal in1_features)
+{input1 : tensor, in1_features : int} |= if ndim(input1) >= 1 then shape(input1, ndim(input1) - 1) = in1_features
+>>
+Rule 53 (If Input 2 tensor dimension is greater or equal to one, last shape dimension must equal in2_features)
+{input2 : tensor, in2_features : int} |= if ndim(input2) >= 1 then shape(input2, ndim(input2) - 1) = in2_features
+>>
+Rule 54 (The in1_features should be less than first dimension of Input 1 if tensor has dimension more than zero.)
+{in1_features : int, input1 : tensor} |= if ndim(input1) > 0 then in1_features <= shape(input1, 0)
+>>
+Rule 55 (The in2_features should be less than first dimension of Input 2 if tensor has dimension more than zero.)
+{in2_features : int, input2 : tensor} |= if ndim(input2) > 0 then in2_features <= shape(input2, 0)
+>>
+Rule 56 (The shape of Input 1 last dimension cannot be larger than a set value if more than 0 dimensions)
+{input1 : tensor} |= if ndim(input1) > 0 then shape(input1, ndim(input1) - 1) <= 10000 else True
+>>
+Rule 57 (The shape of Input 2 last dimension cannot be larger than a set value if more than 0 dimensions)
+{input2 : tensor} |= if ndim(input2) > 0 then shape(input2, ndim(input2) - 1) <= 10000 else True
+>>
+Rule 58 (Input tensors should ideally be of floating-point type to facilitate gradient calculations)
+{input1 : tensor} |= dtype_(input1) = "float32" ∨ dtype_(input1) = "float64"
+>>
+Rule 59 (Input tensors should ideally be of floating-point type to facilitate gradient calculations)
+{input2 : tensor} |= dtype_(input2) = "float32" ∨ dtype_(input2) = "float64"
+>>
+Rule 60 (If one input is float, the other should be too)
+{input1 : tensor, input2 : tensor} |= if dtype_(input1) = "float32" ∨ dtype_(input1) = "float64" then dtype_(input2) = "float32" ∨ dtype_(input2) = "float64"
+>>
+Rule 61 (Input1 must be a 2D tensor)
+{input1 : tensor} |= ndim(input1) = 2
+>>
+Rule 62 (Input2 must be a 2D tensor)
+{input2 : tensor} |= ndim(input2) = 2
+>>
+Rule 63 (Shape of Input 1 cannot be larger than a reasonable value)
+{input1 : tensor} |= if ndim(input1) > 0 then ∀i ∈ [0, ndim(input1) - 1]: shape(input1, i) < 1000
+>>
+Rule 64 (Shape of Input 2 cannot be larger than a reasonable value)
+{input2 : tensor} |= if ndim(input2) > 0 then ∀i ∈ [0, ndim(input2) - 1]: shape(input2, i) < 1000
+>>
+Rule 65 (Feature sizes are reasonable concrete integers, specifically targeting symInt issue, smaller this time )
+{in1_features : int} |= in1_features > 0 ∧ in1_features < 100
+>>
+Rule 66 (Feature sizes are reasonable concrete integers, specifically targeting symInt issue, smaller this time)
+{in2_features : int} |= in2_features > 0 ∧ in2_features < 100
+>>
+Rule 67 (Feature sizes are reasonable concrete integers, specifically targeting symInt issue, smaller this time)
+{out_features : int} |= out_features > 0 ∧ out_features < 100
+>>
+Rule 68 (Input1 must be a tensor with a very small number of dimensions - limiting complexity.)
+{input1 : tensor} |= ndim(input1) <= 1
+>>
+Rule 69 (Input2 must be a tensor with a very small number of dimensions - limiting complexity.)
+{input2 : tensor} |= ndim(input2) <= 1
+>>
+Rule 71 (Input 1 must be a 1D tensor with shape 10)
+{input1 : tensor} |= ndim(input1) = 1 ∧ shape(input1,0) = 10
+>>
+Rule 72 (Input 2 must be a 1D tensor with shape 10)
+{input2 : tensor} |= ndim(input2) = 1 ∧ shape(input2,0) = 10
+>>
+Rule 73 (Require feature sizes to be small)
+{in1_features: int, in2_features: int, out_features:int} |= in1_features < 10 ∧ in2_features < 10 ∧ out_features < 10
+>>
+Rule 80 (If tensor is more than 0 dim, the features should be less than 50. This limits total multiplication size to small number)
+{input1 : tensor, in1_features : int} |= if ndim(input1) > 0 then in1_features < 50
+>>
+Rule 81 (Shape of Input2 0th dimension cannot be great than 100)
+{input2 : tensor} |= if ndim(input2) > 0 then shape(input2, 0) < 100
+>>
+Rule 82 (Check if at least one input is one dimensional)
+{input1: tensor, input2: tensor} |= ndim(input1) = 1 ∨ ndim(input2) = 1
+>>
+Rule 83 (Check if in1_features is a concrete integer)
+{in1_features: int} |= in1_features > 0 ∧ in1_features < 200
+>>
+Rule 84 (The dtypes of the two tensors, are compatible)
+{input1 : tensor, input2 : tensor} |= (dtype_(input1) = "float32" ∧ dtype_(input2) = "float32") ∨ (dtype_(input1) = "float64" ∧ dtype_(input2) = "float64")
+>>
+Rule 87 (out_features must be less than 20 to reduce overall compute)
+{out_features: int} |= out_features < 20
+>>
+Rule 88 (Input 1 has a valid dimension to prevent small alloc issues)
+{input1 : tensor} |= if ndim(input1) > 0 then shape(input1, 0) > 0
+>>
+Rule 90 (Input 1: features needs to be valid and not 0)
+{ in1_features : int} |= in1_features > 1
+>>
+Rule 92 (In1_features cannot be a small integer to cause weight issues.)
+{in1_features: int} |= in1_features > 1
+>>
+Rule 93 (Make sure the smaller set feature, will still allow the tensors to be shaped. )
+{in2_features: int, input2 : tensor} |= if ndim(input2) > 0 then in2_features < shape(input2, 0)
+>>
+Rule 94 (The output features needs to be small to allow to not overflow sizes.)
+{out_features: int} |= out_features < 50
+>>
+Rule 95 (Input 1 needs to be not allow a negative number)
+{input1 : tensor} |= ∀i ∈ [0, if ndim(input1) > 0 then ndim(input1) - 1 else 0] : shape(input1, i) ≥ 0
+>>
+Rule 96 (feature cannot be zero )
+{in2_features : int} |= in2_features ≠ 0
+>>
+Rule 97 (If first dimension is not too large, it will not be a memory error)
+{input2 : tensor} |= if ndim(input2) > 0 then shape(input2,0) < 4000
+>>
+Rule 98 (in1features and in2features should be positive and not too big for alloc issues)
+{in1_features : int, in2_features : int} |= in1_features > 0 ∧ in2_features > 0 ∧ in1_features < 500 ∧ in2_features < 500

@@ -1,0 +1,132 @@
+>>
+Rule 1 (The size of expanded tensor should match the existing size at non-singleton dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : (shape(v_1, i) ≠ 1) ∨ (shape(v_1, i) = v_2[i])
+>>
+Rule 2 (The number of sizes provided must be greater or equal to the number of dimensions in the tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≥ ndim(v_1)
+>>
+Rule 3 (The size tuple must contain non-negative integers)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+>>
+Rule 4 (If a dimension is not singleton, the expanded size must match the original size)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if ndim(v_1) < v_2.len then ndim(v_1) - 1 else v_2.len - 1] : (shape(v_1, i) ≠ 1) ∨ (shape(v_1, i) = v_2[i])
+>>
+Rule 6 (The size tuple must not contain dimensions equal to zero if the tensor has elements)
+{v_1 : tensor, v_2 : tuple(int)} |= (shape(v_1,0) = 0) ∨ (∀i ∈ [0, v_2.len - 1] : v_2[i] > 0)
+>>
+Rule 7 (If tensor dimension is less than the size tuple length, the size of tensor's existing dimensions must equal size tuple's corresponding dimensions, or be 1)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if ndim(v_1) < v_2.len then ndim(v_1) - 1 else v_2.len - 1] : (shape(v_1, i) = v_2[i]) ∨ (shape(v_1, i) = 1)
+>>
+Rule 9 (If the tensor is empty (at least one dimension is zero), then all dimensions in size tuple must be zero, or, for each dimension i where the tensor's shape is not 1, shape(tensor, i) must match size[i])
+{v_1 : tensor, v_2 : tuple(int)} |= (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 0) ∨ (∀i ∈ [0, if ndim(v_1) < v_2.len then ndim(v_1) - 1 else v_2.len - 1] : (shape(v_1, i) = 1) ∨ (shape(v_1, i) = v_2[i]))
+>>
+Rule 10 (If a dimension in size is -1, the corresponding dimension in tensor must have the same size)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if ndim(v_1) < v_2.len then ndim(v_1) - 1 else v_2.len - 1] : (v_2[i] ≠ -1) ∨ (shape(v_1, i) = v_2[i])
+>>
+Rule 12 (If the number of dimensions of size and tensor are different, all sizes after the dimensions of the tensor must be one)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) < v_2.len then (∀i ∈ [ndim(v_1), v_2.len - 1] : v_2[i] = 1)
+>>
+Rule 13 (If number of dimensions of the size tuple is greater than that of the tensor, then the extra dimensions in size tuple should be 1.)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) < v_2.len then ∀i ∈ [ndim(v_1), v_2.len - 1] : v_2[i] = 1
+>>
+Rule 14 (For all dimensions i where tensor.shape[i] is 1, size[i] can be any value)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if ndim(v_1) < v_2.len then ndim(v_1) - 1 else v_2.len - 1] : (shape(v_1, i) = 1) ∨ (shape(v_1, i) = v_2[i])
+>>
+Rule 15 (If the size tuple is shorter than the tensor's dimensions, the expansion is not possible, so the rule is to check the size tuple is long enough)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) ≤ v_2.len
+>>
+Rule 16 (If tensor dimension i is not 1, the size tuple i should have same dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if ndim(v_1) < v_2.len then ndim(v_1) - 1 else v_2.len - 1] : (shape(v_1, i) = 1) ∨ (v_2[i] = shape(v_1, i))
+>>
+Rule 18 (If the tensor is scalar, size must have at least one dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 0 then v_2.len > 0
+>>
+Rule 19 (If tensor dimension i is not 1, the expanded size tuple i should not be less than tensor size)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if ndim(v_1) < v_2.len then ndim(v_1) - 1 else v_2.len - 1] : (shape(v_1, i) = 1) ∨ (v_2[i] ≥ shape(v_1, i))
+>>
+Rule 21 (The expanded size should be within reasonable limits to avoid memory overflow, and each size should be greater than 0)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] < 2048
+>>
+Rule 22 (The size tuple must contain integers)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : true
+>>
+Rule 23 (The size tuple should contain non-negative integers or -1)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -1
+>>
+Rule 24 (If the tensor has a dimension of size 0, then the size tuple must have the same dimension of size 0)
+{v_1 : tensor, v_2 : tuple(int)} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then (∃i ∈ [0, v_2.len -1] : v_2[i] = 0)
+>>
+Rule 25 (If the size tuple is shorter than the number of dimensions of the tensor, then the leading dimensions of the tensor must match the size tuple)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) > v_2.len then ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+>>
+Rule 27 (if one of the size is zero, then tensor should have a dimension which is zero.)
+{v_1 : tensor, v_2 : tuple(int)} |= if (∃i ∈ [0, v_2.len - 1] : v_2[i] = 0) then (∃j ∈ [0, ndim(v_1) - 1] : shape(v_1, j) = 0)
+>>
+Rule 28 (if size contains dimension -1, ndim should be equal to v2.len)
+{v_1 : tensor, v_2 : tuple(int)} |= if ∃i ∈ [0, v_2.len - 1] : v_2[i] = -1 then ndim(v_1) = v_2.len
+>>
+Rule 30 (the sum of the size tuple should be smaller than max int)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] < 2147483647)
+>>
+Rule 31 (The product of the size tuple should be reasonable)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (∃j ∈ [0, v_2.len - 1] : v_2[j] > 0)
+>>
+Rule 33 (If the size tuple is longer than the tensor's dimension, dimensions should be padded to 1)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) < v_2.len then ∀i ∈ [0, v_2.len -1] : (i < ndim(v_1) ∨ v_2[i] = 1)
+>>
+Rule 34 (if tensor is empty the size can be anything)
+{v_1 : tensor, v_2 : tuple(int)} |= if (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 0) then true else if (v_2.len < ndim(v_1)) then false
+>>
+Rule 35 (if tensor is empty the size tuple must contain valid dimensions, either 0 or 1)
+{v_1 : tensor, v_2 : tuple(int)} |= if (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 0) then (∀j ∈ [0, v_2.len - 1] : v_2[j] = 0 ∨ v_2[j] = 1)
+>>
+Rule 36 (size tuple must not be empty)
+{v_2 : tuple(int)} |= v_2.len > 0
+>>
+Rule 37 (if tensor dim > size tuple length, shapes of leading dimensions should be equal)
+{v_1 : tensor, v_2 : tuple(int)} |= if (ndim(v_1) > v_2.len) then (∀i ∈ [0, v_2.len -1] : shape(v_1, i) = v_2[i])
+>>
+Rule 38 (if tensor dim > size tuple length and all shapes of size tuple are ones)
+{v_1 : tensor, v_2 : tuple(int)} |= if (ndim(v_1) > v_2.len) then (∀i ∈ [0, v_2.len -1] : v_2[i] = 1)
+>>
+Rule 40 (At least one dimension of the size tuple must be greater than 0)
+{v_2 : tuple(int)} |= ∃i ∈ [0, v_2.len - 1] : v_2[i] > 0
+>>
+Rule 42 (if the number of elements of the original tensor are zero then all elements of the expanded size must be 0.)
+{v_1 : tensor, v_2 : tuple(int)} |= if (∃i ∈ [0, ndim(v_1)-1]: shape(v_1, i) = 0) then (∀j ∈ [0, v_2.len - 1] : v_2[j] = 0)
+>>
+Rule 43 (If the tensor is empty then the size tuple's elements should either be 0 or equal to the original shape or can create a new one)
+{v_1 : tensor, v_2 : tuple(int)} |= if (∃i ∈ [0, ndim(v_1)-1]: shape(v_1, i) = 0) then ∀j ∈ [0, v_2.len - 1]: v_2[j] ≥ 0
+>>
+Rule 44 (If a dimension of the input tensor isn't 1 then its corresponding size must be equal to it)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if ndim(v_1) < v_2.len then ndim(v_1) - 1 else v_2.len - 1] : if shape(v_1, i) ≠ 1 then shape(v_1, i) = v_2[i]
+>>
+Rule 45 (size.len should equal to ndim if size contains -1.)
+{v_1 : tensor, v_2 : tuple(int)} |= if (∃i ∈ [0, v_2.len-1] : v_2[i] = -1) then (v_2.len = ndim(v_1))
+>>
+Rule 46 (If one or more dimensions are being expanded, the expanded size should be large enough to contain all of the original tensor elements)
+{v_1 : tensor, v_2 : tuple(int)} |= if (∃i ∈ [0, v_2.len-1] : v_2[i] > shape(v_1,i)) then true
+>>
+Rule 47 (If one of more dimensions is being expanded, and size is also -1, then the original tensor size must be the same.)
+{v_1 : tensor, v_2 : tuple(int)} |= if (∃i ∈ [0, v_2.len - 1] : v_2[i] = -1) then ∀j ∈ [0, v_2.len-1] : (if v_2[j] = -1 then (shape(v_1, j) = v_2[j]))
+>>
+Rule 48 (If the tensor is empty all the size element must be 0 or 1)
+{v_1 : tensor, v_2 : tuple(int)} |= if (∃i ∈ [0, ndim(v_1)-1]: shape(v_1, i) = 0) then ∀j ∈ [0, v_2.len - 1]: v_2[j] = 0 ∨ v_2[j] = 1
+>>
+Rule 49 (if tensor is 0 dimensional, expanded size must contain at least one element greater than 0)
+{v_1 : tensor, v_2 : tuple(int)} |= if (ndim(v_1) = 0) then (∃j ∈ [0, v_2.len - 1] : v_2[j] > 0)
+>>
+Rule 50 (If one of the original tensor's dimensions is 1, then its corresponding expanded size dimension can be anything.)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if ndim(v_1) < v_2.len then ndim(v_1) - 1 else v_2.len - 1] : (shape(v_1, i) = 1) ∨ true
+>>
+Rule 51 (If all sizes in v2 are 1, ndim of v1 should be atmost the number of 1 in v2)
+{v_1 : tensor, v_2 : tuple(int)} |= if ∀i ∈ [0, v_2.len-1]: v_2[i] = 1 then ndim(v_1) ≤ v_2.len
+>>
+Rule 52 (if all sizes are 1 and the tensor is not scalar, then tensor must have all sizes 1)
+{v_1 : tensor, v_2 : tuple(int)} |= if (∀i ∈ [0, v_2.len - 1] : v_2[i] = 1) ∧ ndim(v_1) ≠ 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1)
+>>
+Rule 53 (if the dimension of tensor v1 is less than size of v2, sizes for each dimension not present should be 1)
+{v_1 : tensor, v_2 : tuple(int)} |= if (ndim(v_1) < v_2.len) then (∀i ∈ [ndim(v_1), v_2.len - 1] : v_2[i] = 1)
+>>
+Rule 54 (Number of elements after expand should be greater than number of element before expand.)
+{v_1 : tensor, v_2 : tuple(int)} |= (∀i ∈ [0, v_2.len - 1] : v_2[i] > 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ if ndim(v_1) < v_2.len then true else (v_2.len ≥ ndim(v_1))

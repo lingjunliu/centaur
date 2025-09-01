@@ -1,0 +1,162 @@
+>>
+Rule 1 (input and target tensors must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 2 (reduction must be one of the allowed strings)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "batchmean" ∨ v_1 = "sum" ∨ v_1 = "mean"
+>>
+Rule 3 (log_target must be a boolean value)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 4 (input tensor must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+>>
+Rule 6 (input tensor's dtype must be a float type)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 8 (if log_target is true, target should be in log space, then the target values must be negative)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then ∀i ∈ [0, shape(v_1,0)-1] : min(v_1) < 0
+>>
+Rule 9 (If reduction is none, the output shape is the same as input shape)
+{v_1 : tensor, v_2 : str} |= if v_2 = "none" then ndim(v_1) = ndim(v_1)
+>>
+Rule 13 (if log_target is true, target should be in log space, then the target values must be negative or zero)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then ∀i ∈ [0, shape(v_1,0)-1] : min(v_1) ≤ 0
+>>
+Rule 14 (If reduction is batchmean, the output should be divided by batchsize which is > 0)
+{v_1 : str, v_2: tensor} |= if v_1 = "batchmean" then shape(v_2, 0) > 0
+>>
+Rule 15 (input and target should not be empty tensors)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (ndim(v_2) > 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+>>
+Rule 16 (reduction must not be an empty string)
+{v_1 : str} |= v_1 ≠ ""
+>>
+Rule 17 (if input is 2D and target is 1D, then target shape must match the number of features in input)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 1 then shape(v_2, 0) = shape(v_1, 1)
+>>
+Rule 18 (The dtypes of input and target should be same)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 19 (If reduction is 'mean' or 'batchmean', the sum of loss should be divided by a number greater than 0)
+{v_1 : str, v_2 : tensor} |= if v_1 = "mean" ∨ v_1 = "batchmean" then shape(v_2, 0) > 0
+>>
+Rule 20 (if log_target is false and target contains very small values, it could cause numerical instability)
+{v_1: tensor, v_2: bool} |= if v_2 = false then min(v_1) > 0
+>>
+Rule 21 (If reduction is batchmean, then the batchsize must not be zero)
+{v_1: str, v_2: tensor} |= if v_1 = "batchmean" then ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+>>
+Rule 22 (If input tensor has more than 2 dimensions, log_target should be true)
+{v_1 : tensor, v_2 : bool} |= if ndim(v_1) > 2 then v_2 = true
+>>
+Rule 23 (If input or target has NaN values, the result will be NaN)
+{v_1: tensor, v_2: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : max(v_1) = "nan" ∨ max(v_2) = "nan"
+>>
+Rule 24 (if reduction is 'none', then the returned tensor should have the same dimension as input and target)
+{v_1: str, v_2: tensor, v_3: tensor} |= if v_1 = "none" then ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2)-1] : shape(v_2,i) = shape(v_3, i)
+>>
+Rule 28 (If target is probabilities and log_target is true, then the sum of the target must be less than or equal to 1 for each sample)
+{v_1: tensor, v_2: bool} |= if v_2 = true then ∀i ∈ [0, shape(v_1, 0) - 1] : max(v_1) ≤ 0
+>>
+Rule 29 (reduction should be a valid string)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "batchmean"
+>>
+Rule 30 (if input has a negative value and log_target is false it is prone to cause error)
+{v_1 : tensor, v_2 : bool} |= if v_2 = false then min(v_1) >= 0
+>>
+Rule 31 (if log_target is true then the values in target should be log probabilities that are <=0)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then max(v_1) <= 0
+>>
+Rule 32 (if reduction is 'batchmean', the batch size (first dimension) of input and target must be same)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "batchmean" then shape(v_2, 0) = shape(v_3, 0)
+>>
+Rule 33 (If target is probabilities and log_target is true and the value in target is not a log-probability value)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then ∀i ∈ [0, shape(v_1, 0) - 1] : min(v_1) < 0
+>>
+Rule 38 (if reduction is 'sum' or 'mean' or 'batchmean', the input and target should have the same dimensions )
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "sum" ∨ v_1 = "mean" ∨ v_1 = "batchmean" then ndim(v_2) = ndim(v_3)
+>>
+Rule 39 (If input has NaN value or infinity, the output will be undefined)
+{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : max(v_1) = "nan" ∨ max(v_1) = "inf"
+>>
+Rule 40 (If reduction is not none then number of dimensions of the input and target should be greater than 0)
+{v_1: str, v_2 : tensor, v_3 : tensor} |= if v_1 ≠ "none" then ndim(v_2) > 0 ∧ ndim(v_3) > 0
+>>
+Rule 41 (if log_target is false and the target contains negative probabilities)
+{v_1 : tensor, v_2 : bool} |= if v_2 = false then max(v_1) <= 1
+>>
+Rule 43 (if reduction is batchmean, then the batchsize should be positive integer)
+{v_1: str, v_2: tensor} |= if v_1 = "batchmean" then shape(v_2,0) > 0
+>>
+Rule 44 (if log_target is false and the target contains negative probabilities, it could result in -inf)
+{v_1 : tensor, v_2 : bool} |= if v_2 = false then min(v_1) ≥ 0
+>>
+Rule 46 (The sum of the target should be 1 if it is a probability distribution)
+{v_1: tensor, v_2: bool} |= if v_2 = false then max(v_1) <= 1
+>>
+Rule 51 (If target contains negative value when log_target is False, it is invalid)
+{v_1: tensor, v_2: bool} |= if v_2 = false then min(v_1) >= 0
+>>
+Rule 55 (if reduction is batchmean then input and target should be same size and be non empty)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "batchmean" then shape(v_2, 0) = shape(v_3, 0) ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0
+>>
+Rule 56 (if reduction is 'mean', then the input and output must have the same dimensions and their sizes must not be zero.)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "mean" then ndim(v_2) = ndim(v_3) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) ∧ (∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) > 0)
+>>
+Rule 57 (if the target has negative values, log_target should be true.)
+{v_1: tensor, v_2: bool} |= if min(v_1) < 0 then v_2 = true
+>>
+Rule 60 (if log_target is false then target should only contain non negative values)
+{v_1: tensor, v_2: bool} |= if v_2 = false then min(v_1) ≥ 0
+>>
+Rule 61 (if input and target are empty, it can cause issues)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) > 0) ∨ (ndim(v_2) > 0)
+>>
+Rule 62 (reduction string is valid.)
+{v_1 : str} |= (v_1 = "none") ∨ (v_1 = "mean") ∨ (v_1 = "sum") ∨ (v_1 = "batchmean")
+>>
+Rule 63 (Target values are valid wrt log_target. if log_target is true, max(target) must be less than/equal to zero, otherwise min(target) must be greater than/equal to zero.)
+{v_1: tensor, v_2: bool} |= if v_2 = true then max(v_1) ≤ 0 else min(v_1) ≥ 0
+>>
+Rule 70 (The value contained in the input should be a valid float if dtype is float, should be a valid int if dtype is int.)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6 then max(v_1) ≠ "inf" ∧ max(v_1) ≠ "nan"
+>>
+Rule 72 (When log_target is false, all values in target must be probabilities, therefore greater than or equal to 0 and less than or equal to 1)
+{v_1: tensor, v_2: bool} |= if v_2 = false then (min(v_1) ≥ 0) ∧ (max(v_1) ≤ 1)
+>>
+Rule 73 (the type of input and target should be floating point numbers)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∧ (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8)
+>>
+Rule 76 (The shape of the input and target tensor must have valid dimensions)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) > 0) ∧ (shape(v_2, i) > 0)
+>>
+Rule 78 (if the target is log-probabilities i.e., log_target=True, then each value must be <= 0 )
+{v_1: tensor, v_2: bool} |= if v_2 = true then max(v_1) <= 0
+>>
+Rule 79 (The input and target dtypes must be float.)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∧ (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8)
+>>
+Rule 81 (when target is not in log space, all its values must be probabilities, so between 0 and 1)
+{v_1: tensor, v_2: bool} |= if v_2 = false then ∀i ∈ [0, shape(v_1, 0)-1] : (v_1[i] ≥ 0) ∧ (v_1[i] ≤ 1)
+>>
+Rule 84 (if target is probabilities then when log_target is false the target values are between 0 and 1 inclusive)
+{v_1: tensor, v_2: bool} |= if v_2 = false then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 1
+>>
+Rule 88 (if tensor has dimension more than 0, then all shape values have to be greater than 0)
+{v_1: tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 97 (Check whether the input and target are of the same shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 100 (If the reduction is batchmean, input and target shapes must be same.)
+{v_1: str, v_2: tensor, v_3: tensor} |= if v_1 = "batchmean" then (ndim(v_2) = ndim(v_3)) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i))
+>>
+Rule 105 (if log_target is False, each target value is a probability (0 <= value <= 1))
+{v_1: tensor, v_2: bool} |= if v_2 = false then ∀i ∈ [0, shape(v_1, 0)-1] : (v_1[i] ≥ 0 ∧ v_1[i] ≤ 1)
+>>
+Rule 112 (If input is a 2D tensor, and target is a 1D tensor, target shape must match input's feature size)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 1 then shape(v_2, 0) = shape(v_1, 1)
+>>
+Rule 114 (If reduction is not 'none', then make sure both input and target tensors have same dimensions)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 ≠ "none" then ndim(v_2) = ndim(v_3)

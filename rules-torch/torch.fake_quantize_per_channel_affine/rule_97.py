@@ -61,9 +61,9 @@ def rule_97_func(arg1, arg2, arg3, arg4, arg5, arg6, solver=None, neg=False):
         solver.add(arg6_value == int(arg6))
 
         # Constraints for rule 97
-        rule_97(solver, {'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg2_range': arg2_range, 'arg3_shape': arg3_shape, 'arg3_range': arg3_range, 'arg4_value': arg4_value, 'arg5_value': arg5_value, 'arg6_value': arg6_value})
+        rule_97(solver, {'arg1_ndim': arg1_ndim, 'arg2_range': arg2_range, 'arg2_shape': arg2_shape, 'arg3_range': arg3_range, 'arg3_shape': arg3_shape, 'arg4_value': arg4_value, 'arg5_value': arg5_value, 'arg6_value': arg6_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_97(solver, {'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg2_range': arg2['range'], 'arg3_shape': arg3['shape'], 'arg3_range': arg3['range'], 'arg4_value': arg4['value'], 'arg5_value': arg5['value'], 'arg6_value': arg6['value']}, neg)
+        rule_97(solver, {'arg1_ndim': arg1['ndim'], 'arg2_range': arg2['range'], 'arg2_shape': arg2['shape'], 'arg3_range': arg3['range'], 'arg3_shape': arg3['shape'], 'arg4_value': arg4['value'], 'arg5_value': arg5['value'], 'arg6_value': arg6['value']}, neg)

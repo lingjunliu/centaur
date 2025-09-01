@@ -59,9 +59,9 @@ def rule_65_func(arg1, arg2, arg3, arg4, arg5, arg6, solver=None, neg=False):
         solver.add(arg6_value == arg6)
 
         # Constraints for rule 65
-        rule_65(solver, {'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_shape': arg3_shape, 'arg3_ndim': arg3_ndim, 'arg4_shape': arg4_shape, 'arg5_shape': arg5_shape, 'arg6_value': arg6_value})
+        rule_65(solver, {'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape, 'arg3_ndim': arg3_ndim, 'arg3_shape': arg3_shape, 'arg4_shape': arg4_shape, 'arg5_shape': arg5_shape, 'arg6_value': arg6_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_65(solver, {'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_shape': arg3['shape'], 'arg3_ndim': arg3['ndim'], 'arg4_shape': arg4['shape'], 'arg5_shape': arg5['shape'], 'arg6_value': arg6['value']}, neg)
+        rule_65(solver, {'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape'], 'arg3_ndim': arg3['ndim'], 'arg3_shape': arg3['shape'], 'arg4_shape': arg4['shape'], 'arg5_shape': arg5['shape'], 'arg6_value': arg6['value']}, neg)

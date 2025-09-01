@@ -31,9 +31,9 @@ def rule_153_func(arg1, solver=None, neg=False):
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 153
-        rule_153(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
+        rule_153(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_153(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)
+        rule_153(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)

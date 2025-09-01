@@ -1,0 +1,108 @@
+>>
+Rule 1 (Padding length should be less than or equal to two times the input dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ 2 * ndim(v_1)
+>>
+Rule 2 (Padding length should be an even number)
+{v_2 : tuple(int)} |= v_2.len % 2 = 0
+>>
+Rule 3 (Mode must be one of the supported modes)
+{v_3 : str} |= v_3 = "constant" ∨ v_3 = "reflect" ∨ v_3 = "replicate" ∨ v_3 = "circular"
+>>
+Rule 5 (Non-constant padding modes are supported only for 2D, 3D, 4D, 5D tensors)
+{v_1 : tensor, v_3 : str} |= if v_3 = "constant" then true else ndim(v_1) ≥ 2 ∧ ndim(v_1) ≤ 5
+>>
+Rule 6 (Padding values must be non-negative)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+>>
+Rule 13 (If mode is replicate, then value should be None represented by checking its default value 0)
+{v_3 : str, v_4 : float} |= if v_3 = "replicate" then v_4 = 0
+>>
+Rule 22 (Value type (float) should be a valid number)
+{v_4 : float} |= v_4 ≥ -10000.0 ∧ v_4 ≤ 10000.0
+>>
+Rule 23 (Pad tuple length should be greater than zero)
+{v_2 : tuple(int)} |= v_2.len > 0
+>>
+Rule 31 (Value type (float) should be a valid number, and also check mode)
+{v_3 : str, v_4 : float} |= if v_3 = "constant" then v_4 > -10000.0 ∧ v_4 < 10000.0
+>>
+Rule 33 (If input is 1D, then pad length must be either 0 or 2)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then v_2.len = 0 ∨ v_2.len = 2
+>>
+Rule 34 (Padding length should be less than or equal to two times the input dimension, and it is also an even number)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ 2 * ndim(v_1) ∧ v_2.len % 2 = 0
+>>
+Rule 41 (For circular mode, the padding size must be smaller than the corresponding dimension size.)
+{v_1 : tensor, v_2 : tuple(int), v_3 : str} |= if v_3 = "circular" then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≤ shape(v_1, ndim(v_1) - 1 - i/2)
+>>
+Rule 43 (Mode must be one of the supported modes and if replicate, value must be zero, padding must be non-negative)
+{v_3 : str, v_4 : float, v_2 : tuple(int)} |= (v_3 = "constant" ∨ v_3 = "reflect" ∨ v_3 = "replicate" ∨ v_3 = "circular") ∧ (if v_3 = "replicate" then v_4 = 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+>>
+Rule 45 (For circular mode, the padding size must be smaller than the corresponding dimension size. if input is 1D and pad length is not 0 or 2, it is an error)
+{v_1 : tensor, v_2 : tuple(int), v_3 : str} |= (if v_3 = "circular" then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≤ shape(v_1, ndim(v_1) - 1 - i/2)) ∧ (if ndim(v_1) = 1 then v_2.len = 0 ∨ v_2.len = 2)
+>>
+Rule 51 (Combined rule: Padding length constraints, valid mode, non-negative padding, mode replicate value, non-constant dimension check and invalid pad mode check)
+{v_1 : tensor, v_2 : tuple(int), v_3 : str, v_4 : float} |= (v_2.len ≤ 2 * ndim(v_1) ∧ v_2.len % 2 = 0) ∧ (v_3 = "constant" ∨ v_3 = "reflect" ∨ v_3 = "replicate" ∨ v_3 = "circular") ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ (if v_3 = "replicate" then v_4 = 0) ∧ (if v_3 = "constant" then true else ndim(v_1) ≥ 2 ∧ ndim(v_1) ≤ 5) ∧ (v_3 = "constant" ∨ v_3 = "reflect" ∨ v_3 = "replicate" ∨ v_3 = "circular")
+>>
+Rule 54 (Combined rule: Padding length constraints, valid mode, non-negative padding, mode replicate value, non-constant dimension check , circular constraints, 1D check and invalid pad mode check)
+{v_1 : tensor, v_2 : tuple(int), v_3 : str, v_4 : float} |= (v_2.len ≤ 2 * ndim(v_1) ∧ v_2.len % 2 = 0) ∧ (v_3 = "constant" ∨ v_3 = "reflect" ∨ v_3 = "replicate" ∨ v_3 = "circular") ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ (if v_3 = "replicate" then v_4 = 0) ∧ (if v_3 = "constant" then true else ndim(v_1) ≥ 2 ∧ ndim(v_1) ≤ 5) ∧ (if v_3 = "circular" then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≤ shape(v_1, ndim(v_1) - 1 - i/2)) ∧ (if ndim(v_1) = 1 then v_2.len = 0 ∨ v_2.len = 2) ∧ (v_3 = "constant" ∨ v_3 = "reflect" ∨ v_3 = "replicate" ∨ v_3 = "circular")
+>>
+Rule 56 (Combined rule: All constraints)
+{v_1 : tensor, v_2 : tuple(int), v_3 : str, v_4 : float} |= (v_2.len ≤ 2 * ndim(v_1) ∧ v_2.len % 2 = 0) ∧ (v_3 = "constant" ∨ v_3 = "reflect" ∨ v_3 = "replicate" ∨ v_3 = "circular") ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ (if v_3 = "replicate" then v_4 = 0) ∧ (if v_3 = "constant" then true else ndim(v_1) ≥ 2 ∧ ndim(v_1) ≤ 5) ∧ (if v_3 = "circular" then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≤ shape(v_1, ndim(v_1) - 1 - i/2)) ∧ (if ndim(v_1) = 1 then v_2.len = 0 ∨ v_2.len = 2)
+>>
+Rule 62 (Non-constant padding modes are supported only for 2D, 3D, 4D, 5D tensors)
+{v_1 : tensor, v_3 : str} |= if v_3 ≠ "constant" then ndim(v_1) ≥ 2 ∧ ndim(v_1) ≤ 5
+>>
+Rule 65 (For circular mode, the padding size should be less than dimension size)
+{v_1 : tensor, v_2 : tuple(int), v_3 : str} |= if v_3 = "circular" then v_2.len = 0 ∨ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≤ shape(v_1, ndim(v_1) - 1 - i/2))
+>>
+Rule 70 (Check padding length relative to dimension)
+{v_1 : tensor, v_2 : tuple(int)} |=  v_2.len ≤ 2 * ndim(v_1)
+>>
+Rule 72 (Padding Length must be an even number)
+{v_2: tuple(int)} |= v_2.len % 2 = 0
+>>
+Rule 76 (Combined rule for padding length and 1D input)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ 2 * ndim(v_1) ∧ (if ndim(v_1) = 1 then v_2.len = 0 ∨ v_2.len = 2)
+>>
+Rule 77 (Combined rule for mode and replicate value)
+{v_3 : str, v_4 : float} |= (v_3 = "constant" ∨ v_3 = "reflect" ∨ v_3 = "replicate" ∨ v_3 = "circular") ∧ (if v_3 = "replicate" then v_4 = 0)
+>>
+Rule 86 (Padding Length and Mode)
+{v_1 : tensor, v_2 : tuple(int), v_3 : str} |= v_2.len ≤ 2 * ndim(v_1) ∧ (v_3 = "constant" ∨ v_3 = "reflect" ∨ v_3 = "replicate" ∨ v_3 = "circular")
+>>
+Rule 87 (Replicate Mode and Value)
+{v_3: str, v_4: float} |= if v_3 = "replicate" then v_4 = 0
+>>
+Rule 89 (Padding Elements are non negative)
+{v_2: tuple(int)} |=  ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+>>
+Rule 92 (Dimension Check)
+{v_1: tensor, v_3: str} |= if v_3 = "constant" then true else (ndim(v_1) ≥ 2 ∧ ndim(v_1) ≤ 5)
+>>
+Rule 94 (Padding length relative to dimension - rephrased)
+{v_1 : tensor, v_2 : tuple(int)} |= ∃n ∈ [0, ndim(v_1)]: v_2.len ≤ 2 * n
+>>
+Rule 95 (Replicate Mode implies Value constraint, combined with 1D check to be very different)
+{v_1 : tensor, v_2 : tuple(int), v_3 : str, v_4 : float} |= (if ndim(v_1) = 1 then v_2.len = 0 ∨ v_2.len = 2) ∧ (if v_3 = "replicate" then v_4 = 0)
+>>
+Rule 96 (Valid mode required - using a different construction)
+{v_3: str} |= (v_3 ≠ "none") ∧ (v_3 ≠ "mean") ∧ (v_3 ≠ "sum") ∧ (v_3 ≠ "max") ∧ (v_3 ≠ "min") ∧ (v_3 ≠ "relu") ∧ (v_3 ≠ "tanh") ∧ (v_3 ≠ "sigmoid") ∧ (v_3 ≠ "softmax") ∧ (v_3 ≠ "elu") ∧ (v_3 ≠ "selu") ∧ (v_3 ≠ "gelu") ∧ (v_3 ≠ "swish") ∧ (v_3 ≠ "softplus") ∧ (v_3 ≠ "linear") ∧ (v_3 ≠ "bilinear") ∧ (v_3 ≠ "bicubic") ∧ (v_3 ≠ "trilinear") ∧ (v_3 ≠ "area") ∧ (v_3 ≠ "constant" ∨ v_3 = "reflect" ∨ v_3 = "replicate" ∨ v_3 = "circular")
+>>
+Rule 97 (If the mode is circular, the tensor must have a shape to pad)
+{v_1 : tensor, v_3: str} |= if v_3 = "circular" then ndim(v_1) > 0
+>>
+Rule 100 (Padding must be positive length.)
+{v_2: tuple(int)} |= v_2.len ≥ 0
+>>
+Rule 102 (If the value is something other than zero, it should be used in constant mode)
+{v_3: str, v_4: float} |= if v_4 ≠ 0 then v_3 = "constant"
+>>
+Rule 107 (Check on tuple contents)
+{v_2: tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 10000 ∧ v_2[i] > -10000
+>>
+Rule 109 (Padding Length Validity given input dimension)
+{v_1 : tensor, v_2: tuple(int)} |= v_2.len % 2 = 0 ∧ v_2.len ≤ 2 * ndim(v_1)
+>>
+Rule 112 (If the value is non-zero, then padding will occur)
+{v_4: float, v_2 : tuple(int)} |= if v_4 ≠ 0 then v_2.len > 0

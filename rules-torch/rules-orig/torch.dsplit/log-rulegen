@@ -1,0 +1,3180 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.dsplit API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+dsplit(input, indices_or_sections) -> List of Tensors
+
+Splits :attr:`input`, a tensor with three or more dimensions, into multiple tensors
+depthwise according to :attr:`indices_or_sections`. Each split is a view of
+:attr:`input`.
+
+This is equivalent to calling torch.tensor_split(input, indices_or_sections, dim=2)
+(the split dimension is 2), except that if :attr:`indices_or_sections` is an integer
+it must evenly divide the split dimension or a runtime error will be thrown.
+
+This function is based on NumPy's :func:`numpy.dsplit`.
+
+Args:
+    input (Tensor): tensor to split.
+    indices_or_sections (int or list or tuple of ints): See argument in :func:`torch.tensor_split`.
+
+Example::
+    >>> t = torch.arange(16.0).reshape(2, 2, 4)
+    >>> t
+    tensor([[[ 0.,  1.,  2.,  3.],
+             [ 4.,  5.,  6.,  7.]],
+            [[ 8.,  9., 10., 11.],
+             [12., 13., 14., 15.]]])
+    >>> torch.dsplit(t, 2)
+    (tensor([[[ 0.,  1.],
+            [ 4.,  5.]],
+           [[ 8.,  9.],
+            [12., 13.]]]),
+     tensor([[[ 2.,  3.],
+              [ 6.,  7.]],
+             [[10., 11.],
+              [14., 15.]]]))
+
+    >>> torch.dsplit(t, [3, 6])
+    (tensor([[[ 0.,  1.,  2.],
+              [ 4.,  5.,  6.]],
+             [[ 8.,  9., 10.],
+              [12., 13., 14.]]]),
+     tensor([[[ 3.],
+              [ 7.]],
+             [[11.],
+              [15.]]]),
+     tensor([], size=(2, 2, 0)))
+
+[Possible API Signatures]
+ - input: tensor, indices_or_sections: integer
+ - input: tensor, indices_or_sections: list
+ - input: tensor, indices_or_sections: tuple
+
+[Error Messages]
+RuntimeError: torch.dsplit requires a tensor with at least 3 dimension, but got a tensor with 1 dimensions!
+RuntimeError: number of sections must be larger than 0, got -2
+RuntimeError: torch.dsplit attempted to split along dimension 2, but the size of the dimension 4 is not divisible by the split_size 0!
+RuntimeError: IntArrayRef contains an int that cannot be represented as a SymInt: -5425825916322441129
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+```python
+def generate_rules():
+    rules = []
+
+    # Rule 1 (input tensor must have at least 3 dimensions)
+    rules.append("""Rule 1 (input tensor must have at least 3 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 3""")
+
+    # Rule 2 (indices_or_sections must be positive if it is an integer)
+    rules.append("""Rule 2 (indices_or_sections must be positive if it is an integer)
+{v_2 : int} |= v_2 > 0""")
+
+    # Rule 3 (if indices_or_sections is a list, it must contain only integers)
+    rules.append("""Rule 3 (if indices_or_sections is a list, it must contain only integers)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0""")
+
+    # Rule 4 (if indices_or_sections is a tuple, it must contain only integers)
+    rules.append("""Rule 4 (if indices_or_sections is a tuple, it must contain only integers)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0""")
+
+    # Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor)
+    rules.append("""Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 2) % v_2 = 0""")
+
+   # Rule 6 (indices_or_sections list/tuple length should not exceed dimension 2)
+    rules.append("""Rule 6 (indices_or_sections list/tuple length should not exceed dimension 2)
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= v_2.len < shape(v_1, 2)""")
+
+    return rules
+```
+** FORMAT ERROR ** (num_failures: 1)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+No valid rules detected. Please follow the expected output format for each rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.dsplit API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+dsplit(input, indices_or_sections) -> List of Tensors
+
+Splits :attr:`input`, a tensor with three or more dimensions, into multiple tensors
+depthwise according to :attr:`indices_or_sections`. Each split is a view of
+:attr:`input`.
+
+This is equivalent to calling torch.tensor_split(input, indices_or_sections, dim=2)
+(the split dimension is 2), except that if :attr:`indices_or_sections` is an integer
+it must evenly divide the split dimension or a runtime error will be thrown.
+
+This function is based on NumPy's :func:`numpy.dsplit`.
+
+Args:
+    input (Tensor): tensor to split.
+    indices_or_sections (int or list or tuple of ints): See argument in :func:`torch.tensor_split`.
+
+Example::
+    >>> t = torch.arange(16.0).reshape(2, 2, 4)
+    >>> t
+    tensor([[[ 0.,  1.,  2.,  3.],
+             [ 4.,  5.,  6.,  7.]],
+            [[ 8.,  9., 10., 11.],
+             [12., 13., 14., 15.]]])
+    >>> torch.dsplit(t, 2)
+    (tensor([[[ 0.,  1.],
+            [ 4.,  5.]],
+           [[ 8.,  9.],
+            [12., 13.]]]),
+     tensor([[[ 2.,  3.],
+              [ 6.,  7.]],
+             [[10., 11.],
+              [14., 15.]]]))
+
+    >>> torch.dsplit(t, [3, 6])
+    (tensor([[[ 0.,  1.,  2.],
+              [ 4.,  5.,  6.]],
+             [[ 8.,  9., 10.],
+              [12., 13., 14.]]]),
+     tensor([[[ 3.],
+              [ 7.]],
+             [[11.],
+              [15.]]]),
+     tensor([], size=(2, 2, 0)))
+
+[Possible API Signatures]
+ - input: tensor, indices_or_sections: integer
+ - input: tensor, indices_or_sections: list
+ - input: tensor, indices_or_sections: tuple
+
+[Error Messages]
+RuntimeError: torch.dsplit requires a tensor with at least 3 dimension, but got a tensor with 1 dimensions!
+RuntimeError: number of sections must be larger than 0, got -2
+RuntimeError: torch.dsplit attempted to split along dimension 2, but the size of the dimension 4 is not divisible by the split_size 0!
+RuntimeError: IntArrayRef contains an int that cannot be represented as a SymInt: -5425825916322441129
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+```python
+def generate_rules():
+    rules = []
+
+    # Rule 1 (input tensor must have at least 3 dimensions)
+    rules.append("""Rule 1 (input tensor must have at least 3 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 3""")
+
+    # Rule 2 (indices_or_sections must be positive if it is an integer)
+    rules.append("""Rule 2 (indices_or_sections must be positive if it is an integer)
+{v_2 : int} |= v_2 > 0""")
+
+    # Rule 3 (if indices_or_sections is a list, elements must be positive)
+    rules.append("""Rule 3 (if indices_or_sections is a list(int), elements must be positive)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0""")
+
+    # Rule 4 (if indices_or_sections is a tuple, elements must be positive)
+    rules.append("""Rule 4 (if indices_or_sections is a tuple(int), elements must be positive)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0""")
+
+    # Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor)
+    rules.append("""Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 2) % v_2 = 0""")
+
+    # Rule 6 (indices_or_sections is a list/tuple of ints)
+    rules.append("""Rule 6 (indices_or_sections is a list/tuple of ints and each element must be greater than 0)
+{v_2 : list(int) ⊎ tuple(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0""")
+
+    return rules
+```
+** FORMAT ERROR ** (num_failures: 2)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+No valid rules detected. Please follow the expected output format for each rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.dsplit API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+dsplit(input, indices_or_sections) -> List of Tensors
+
+Splits :attr:`input`, a tensor with three or more dimensions, into multiple tensors
+depthwise according to :attr:`indices_or_sections`. Each split is a view of
+:attr:`input`.
+
+This is equivalent to calling torch.tensor_split(input, indices_or_sections, dim=2)
+(the split dimension is 2), except that if :attr:`indices_or_sections` is an integer
+it must evenly divide the split dimension or a runtime error will be thrown.
+
+This function is based on NumPy's :func:`numpy.dsplit`.
+
+Args:
+    input (Tensor): tensor to split.
+    indices_or_sections (int or list or tuple of ints): See argument in :func:`torch.tensor_split`.
+
+Example::
+    >>> t = torch.arange(16.0).reshape(2, 2, 4)
+    >>> t
+    tensor([[[ 0.,  1.,  2.,  3.],
+             [ 4.,  5.,  6.,  7.]],
+            [[ 8.,  9., 10., 11.],
+             [12., 13., 14., 15.]]])
+    >>> torch.dsplit(t, 2)
+    (tensor([[[ 0.,  1.],
+            [ 4.,  5.]],
+           [[ 8.,  9.],
+            [12., 13.]]]),
+     tensor([[[ 2.,  3.],
+              [ 6.,  7.]],
+             [[10., 11.],
+              [14., 15.]]]))
+
+    >>> torch.dsplit(t, [3, 6])
+    (tensor([[[ 0.,  1.,  2.],
+              [ 4.,  5.,  6.]],
+             [[ 8.,  9., 10.],
+              [12., 13., 14.]]]),
+     tensor([[[ 3.],
+              [ 7.]],
+             [[11.],
+              [15.]]]),
+     tensor([], size=(2, 2, 0)))
+
+[Possible API Signatures]
+ - input: tensor, indices_or_sections: integer
+ - input: tensor, indices_or_sections: list
+ - input: tensor, indices_or_sections: tuple
+
+[Error Messages]
+RuntimeError: torch.dsplit requires a tensor with at least 3 dimension, but got a tensor with 1 dimensions!
+RuntimeError: number of sections must be larger than 0, got -2
+RuntimeError: torch.dsplit attempted to split along dimension 2, but the size of the dimension 4 is not divisible by the split_size 0!
+RuntimeError: IntArrayRef contains an int that cannot be represented as a SymInt: -5425825916322441129
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+```python
+def generate_rules():
+    rules = []
+
+    # Rule 1 (input tensor must have at least 3 dimensions)
+    rules.append("""Rule 1 (input tensor must have at least 3 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 3""")
+
+    # Rule 2 (indices_or_sections must be positive if it is an integer)
+    rules.append("""Rule 2 (indices_or_sections must be positive if it is an integer)
+{v_2 : int} |= v_2 > 0""")
+
+    # Rule 3 (if indices_or_sections is a list, elements must be positive integers)
+    rules.append("""Rule 3 (if indices_or_sections is a list(int), elements must be positive integers)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0""")
+
+    # Rule 4 (if indices_or_sections is a tuple, elements must be positive integers)
+    rules.append("""Rule 4 (if indices_or_sections is a tuple(int), elements must be positive integers)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0""")
+
+    # Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor's shape)
+    rules.append("""Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor's shape)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 2) % v_2 = 0""")
+
+    # Rule 6 (indices_or_sections as int list/tuple should have elements smaller than dimension 2 of input tensor)
+    rules.append("""Rule 6 (indices_or_sections as int list/tuple should have elements smaller than dimension 2 of input tensor)
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < shape(v_1, 2)""")
+
+    return rules
+```
+** FORMAT ERROR ** (num_failures: 3)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+No valid rules detected. Please follow the expected output format for each rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.dsplit API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+dsplit(input, indices_or_sections) -> List of Tensors
+
+Splits :attr:`input`, a tensor with three or more dimensions, into multiple tensors
+depthwise according to :attr:`indices_or_sections`. Each split is a view of
+:attr:`input`.
+
+This is equivalent to calling torch.tensor_split(input, indices_or_sections, dim=2)
+(the split dimension is 2), except that if :attr:`indices_or_sections` is an integer
+it must evenly divide the split dimension or a runtime error will be thrown.
+
+This function is based on NumPy's :func:`numpy.dsplit`.
+
+Args:
+    input (Tensor): tensor to split.
+    indices_or_sections (int or list or tuple of ints): See argument in :func:`torch.tensor_split`.
+
+Example::
+    >>> t = torch.arange(16.0).reshape(2, 2, 4)
+    >>> t
+    tensor([[[ 0.,  1.,  2.,  3.],
+             [ 4.,  5.,  6.,  7.]],
+            [[ 8.,  9., 10., 11.],
+             [12., 13., 14., 15.]]])
+    >>> torch.dsplit(t, 2)
+    (tensor([[[ 0.,  1.],
+            [ 4.,  5.]],
+           [[ 8.,  9.],
+            [12., 13.]]]),
+     tensor([[[ 2.,  3.],
+              [ 6.,  7.]],
+             [[10., 11.],
+              [14., 15.]]]))
+
+    >>> torch.dsplit(t, [3, 6])
+    (tensor([[[ 0.,  1.,  2.],
+              [ 4.,  5.,  6.]],
+             [[ 8.,  9., 10.],
+              [12., 13., 14.]]]),
+     tensor([[[ 3.],
+              [ 7.]],
+             [[11.],
+              [15.]]]),
+     tensor([], size=(2, 2, 0)))
+
+[Possible API Signatures]
+ - input: tensor, indices_or_sections: integer
+ - input: tensor, indices_or_sections: list
+ - input: tensor, indices_or_sections: tuple
+
+[Error Messages]
+RuntimeError: torch.dsplit requires a tensor with at least 3 dimension, but got a tensor with 1 dimensions!
+RuntimeError: number of sections must be larger than 0, got -2
+RuntimeError: torch.dsplit attempted to split along dimension 2, but the size of the dimension 4 is not divisible by the split_size 0!
+RuntimeError: IntArrayRef contains an int that cannot be represented as a SymInt: -5425825916322441129
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+```python
+def generate_rules():
+    rules = []
+
+    # Rule 1 (input tensor must have at least 3 dimensions)
+    rules.append("""Rule 1 (input tensor must have at least 3 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 3""")
+
+    # Rule 2 (indices_or_sections must be positive if it is an integer)
+    rules.append("""Rule 2 (indices_or_sections must be positive if it is an integer)
+{v_2 : int} |= v_2 > 0""")
+
+    # Rule 3 (if indices_or_sections is a list, elements must be positive integers)
+    rules.append("""Rule 3 (if indices_or_sections is a list(int), elements must be positive integers)
+{v_2 : list(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0""")
+
+    # Rule 4 (if indices_or_sections is a tuple, elements must be positive integers)
+    rules.append("""Rule 4 (if indices_or_sections is a tuple(int), elements must be positive integers)
+{v_2 : tuple(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0""")
+
+    # Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor's shape)
+    rules.append("""Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor's shape)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 2) % v_2 = 0""")
+
+    # Rule 6 (indices_or_sections as int list/tuple elements sum must be less or equal to dimension 2 of input tensor)
+    rules.append("""Rule 6 (indices_or_sections as int list/tuple elements sum must be less or equal to dimension 2 of input tensor)
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= (∃i ∈ [0, v_2.len - 1] : v_2[i] > 0) ∧ (if v_2 : list(int) then (let sum = 0 in (∀i ∈ [0, v_2.len - 1]: sum = sum + v_2[i]) then sum ≤ shape(v_1, 2)) else (let sum = 0 in (∀i ∈ [0, v_2.len - 1]: sum = sum + v_2[i]) then sum ≤ shape(v_1, 2)))""")
+
+    return rules
+```
+** FORMAT ERROR ** (num_failures: 4)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+No valid rules detected. Please follow the expected output format for each rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.dsplit API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+dsplit(input, indices_or_sections) -> List of Tensors
+
+Splits :attr:`input`, a tensor with three or more dimensions, into multiple tensors
+depthwise according to :attr:`indices_or_sections`. Each split is a view of
+:attr:`input`.
+
+This is equivalent to calling torch.tensor_split(input, indices_or_sections, dim=2)
+(the split dimension is 2), except that if :attr:`indices_or_sections` is an integer
+it must evenly divide the split dimension or a runtime error will be thrown.
+
+This function is based on NumPy's :func:`numpy.dsplit`.
+
+Args:
+    input (Tensor): tensor to split.
+    indices_or_sections (int or list or tuple of ints): See argument in :func:`torch.tensor_split`.
+
+Example::
+    >>> t = torch.arange(16.0).reshape(2, 2, 4)
+    >>> t
+    tensor([[[ 0.,  1.,  2.,  3.],
+             [ 4.,  5.,  6.,  7.]],
+            [[ 8.,  9., 10., 11.],
+             [12., 13., 14., 15.]]])
+    >>> torch.dsplit(t, 2)
+    (tensor([[[ 0.,  1.],
+            [ 4.,  5.]],
+           [[ 8.,  9.],
+            [12., 13.]]]),
+     tensor([[[ 2.,  3.],
+              [ 6.,  7.]],
+             [[10., 11.],
+              [14., 15.]]]))
+
+    >>> torch.dsplit(t, [3, 6])
+    (tensor([[[ 0.,  1.,  2.],
+              [ 4.,  5.,  6.]],
+             [[ 8.,  9., 10.],
+              [12., 13., 14.]]]),
+     tensor([[[ 3.],
+              [ 7.]],
+             [[11.],
+              [15.]]]),
+     tensor([], size=(2, 2, 0)))
+
+[Possible API Signatures]
+ - input: tensor, indices_or_sections: integer
+ - input: tensor, indices_or_sections: list
+ - input: tensor, indices_or_sections: tuple
+
+[Error Messages]
+RuntimeError: torch.dsplit requires a tensor with at least 3 dimension, but got a tensor with 1 dimensions!
+RuntimeError: number of sections must be larger than 0, got -2
+RuntimeError: torch.dsplit attempted to split along dimension 2, but the size of the dimension 4 is not divisible by the split_size 0!
+RuntimeError: IntArrayRef contains an int that cannot be represented as a SymInt: -5425825916322441129
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+```python
+def generate_rules():
+    rules = []
+
+    # Rule 1 (input tensor must have at least 3 dimensions)
+    rules.append("""Rule 1 (input tensor must have at least 3 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 3""")
+
+    # Rule 2 (indices_or_sections must be positive if it is an integer)
+    rules.append("""Rule 2 (indices_or_sections must be positive if it is an integer)
+{v_2 : int} |= v_2 > 0""")
+
+    # Rule 3 (if indices_or_sections is a list, elements must be positive integers and the list should not be empty)
+    rules.append("""Rule 3 (if indices_or_sections is a list(int), elements must be positive integers and the list should not be empty)
+{v_2 : list(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0""")
+
+    # Rule 4 (if indices_or_sections is a tuple, elements must be positive integers and the tuple should not be empty)
+    rules.append("""Rule 4 (if indices_or_sections is a tuple(int), elements must be positive integers and the tuple should not be empty)
+{v_2 : tuple(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0""")
+
+    # Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor's shape)
+    rules.append("""Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor's shape)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 2) % v_2 = 0""")
+
+    # Rule 6 (negative indices_or_sections is invalid)
+    rules.append("""Rule 6 (negative indices_or_sections is invalid)
+{v_2 : int ⊎ list(int) ⊎ tuple(int)} |= if v_2 : int then v_2 ≥ 0 else (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0)""")
+
+    return rules
+```
+** FORMAT ERROR ** (num_failures: 5)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+No valid rules detected. Please follow the expected output format for each rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.dsplit API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+dsplit(input, indices_or_sections) -> List of Tensors
+
+Splits :attr:`input`, a tensor with three or more dimensions, into multiple tensors
+depthwise according to :attr:`indices_or_sections`. Each split is a view of
+:attr:`input`.
+
+This is equivalent to calling torch.tensor_split(input, indices_or_sections, dim=2)
+(the split dimension is 2), except that if :attr:`indices_or_sections` is an integer
+it must evenly divide the split dimension or a runtime error will be thrown.
+
+This function is based on NumPy's :func:`numpy.dsplit`.
+
+Args:
+    input (Tensor): tensor to split.
+    indices_or_sections (int or list or tuple of ints): See argument in :func:`torch.tensor_split`.
+
+Example::
+    >>> t = torch.arange(16.0).reshape(2, 2, 4)
+    >>> t
+    tensor([[[ 0.,  1.,  2.,  3.],
+             [ 4.,  5.,  6.,  7.]],
+            [[ 8.,  9., 10., 11.],
+             [12., 13., 14., 15.]]])
+    >>> torch.dsplit(t, 2)
+    (tensor([[[ 0.,  1.],
+            [ 4.,  5.]],
+           [[ 8.,  9.],
+            [12., 13.]]]),
+     tensor([[[ 2.,  3.],
+              [ 6.,  7.]],
+             [[10., 11.],
+              [14., 15.]]]))
+
+    >>> torch.dsplit(t, [3, 6])
+    (tensor([[[ 0.,  1.,  2.],
+              [ 4.,  5.,  6.]],
+             [[ 8.,  9., 10.],
+              [12., 13., 14.]]]),
+     tensor([[[ 3.],
+              [ 7.]],
+             [[11.],
+              [15.]]]),
+     tensor([], size=(2, 2, 0)))
+
+[Possible API Signatures]
+ - input: tensor, indices_or_sections: integer
+ - input: tensor, indices_or_sections: list
+ - input: tensor, indices_or_sections: tuple
+
+[Error Messages]
+RuntimeError: torch.dsplit requires a tensor with at least 3 dimension, but got a tensor with 1 dimensions!
+RuntimeError: number of sections must be larger than 0, got -2
+RuntimeError: torch.dsplit attempted to split along dimension 2, but the size of the dimension 4 is not divisible by the split_size 0!
+RuntimeError: IntArrayRef contains an int that cannot be represented as a SymInt: -5425825916322441129
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+```python
+def generate_rules():
+    rules = []
+
+    # Rule 1 (input tensor must have at least 3 dimensions)
+    rules.append("""Rule 1 (input tensor must have at least 3 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 3""")
+
+    # Rule 2 (indices_or_sections must be positive if it is an integer)
+    rules.append("""Rule 2 (indices_or_sections must be positive if it is an integer)
+{v_2 : int} |= v_2 > 0""")
+
+    # Rule 3 (if indices_or_sections is a list, elements must be positive integers and the list should not be empty)
+    rules.append("""Rule 3 (if indices_or_sections is a list(int), elements must be positive integers and the list should not be empty)
+{v_2 : list(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0""")
+
+    # Rule 4 (if indices_or_sections is a tuple, elements must be positive integers and the tuple should not be empty)
+    rules.append("""Rule 4 (if indices_or_sections is a tuple(int), elements must be positive integers and the tuple should not be empty)
+{v_2 : tuple(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0""")
+
+    # Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor's shape)
+    rules.append("""Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor's shape)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 2) % v_2 = 0""")
+
+    # Rule 6 (sum of indices_or_sections must be less than or equal to the size of dimension 2)
+    rules.append("""Rule 6 (sum of indices_or_sections must be less than or equal to the size of dimension 2)
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= if v_2 : list(int) then (let sum = 0 in (∀i ∈ [0, v_2.len - 1] : sum = sum + v_2[i]) then sum ≤ shape(v_1, 2)) else (let sum = 0 in (∀i ∈ [0, v_2.len - 1] : sum = sum + v_2[i]) then sum ≤ shape(v_1, 2))""")
+
+    return rules
+```
+** FORMAT ERROR ** (num_failures: 6)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+No valid rules detected. Please follow the expected output format for each rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.dsplit API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+dsplit(input, indices_or_sections) -> List of Tensors
+
+Splits :attr:`input`, a tensor with three or more dimensions, into multiple tensors
+depthwise according to :attr:`indices_or_sections`. Each split is a view of
+:attr:`input`.
+
+This is equivalent to calling torch.tensor_split(input, indices_or_sections, dim=2)
+(the split dimension is 2), except that if :attr:`indices_or_sections` is an integer
+it must evenly divide the split dimension or a runtime error will be thrown.
+
+This function is based on NumPy's :func:`numpy.dsplit`.
+
+Args:
+    input (Tensor): tensor to split.
+    indices_or_sections (int or list or tuple of ints): See argument in :func:`torch.tensor_split`.
+
+Example::
+    >>> t = torch.arange(16.0).reshape(2, 2, 4)
+    >>> t
+    tensor([[[ 0.,  1.,  2.,  3.],
+             [ 4.,  5.,  6.,  7.]],
+            [[ 8.,  9., 10., 11.],
+             [12., 13., 14., 15.]]])
+    >>> torch.dsplit(t, 2)
+    (tensor([[[ 0.,  1.],
+            [ 4.,  5.]],
+           [[ 8.,  9.],
+            [12., 13.]]]),
+     tensor([[[ 2.,  3.],
+              [ 6.,  7.]],
+             [[10., 11.],
+              [14., 15.]]]))
+
+    >>> torch.dsplit(t, [3, 6])
+    (tensor([[[ 0.,  1.,  2.],
+              [ 4.,  5.,  6.]],
+             [[ 8.,  9., 10.],
+              [12., 13., 14.]]]),
+     tensor([[[ 3.],
+              [ 7.]],
+             [[11.],
+              [15.]]]),
+     tensor([], size=(2, 2, 0)))
+
+[Possible API Signatures]
+ - input: tensor, indices_or_sections: integer
+ - input: tensor, indices_or_sections: list
+ - input: tensor, indices_or_sections: tuple
+
+[Error Messages]
+RuntimeError: torch.dsplit requires a tensor with at least 3 dimension, but got a tensor with 1 dimensions!
+RuntimeError: number of sections must be larger than 0, got -2
+RuntimeError: torch.dsplit attempted to split along dimension 2, but the size of the dimension 4 is not divisible by the split_size 0!
+RuntimeError: IntArrayRef contains an int that cannot be represented as a SymInt: -5425825916322441129
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+```python
+def generate_rules():
+    rules = []
+
+    # Rule 1 (input tensor must have at least 3 dimensions)
+    rules.append("""Rule 1 (input tensor must have at least 3 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 3""")
+
+    # Rule 2 (indices_or_sections must be positive if it is an integer)
+    rules.append("""Rule 2 (indices_or_sections must be positive if it is an integer)
+{v_2 : int} |= v_2 > 0""")
+
+    # Rule 3 (if indices_or_sections is a list, elements must be positive integers and the list should not be empty and increasing)
+    rules.append("""Rule 3 (if indices_or_sections is a list(int), elements must be positive integers and the list should not be empty and increasing)
+{v_2 : list(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1]""")
+
+    # Rule 4 (if indices_or_sections is a tuple, elements must be positive integers and the tuple should not be empty and increasing)
+    rules.append("""Rule 4 (if indices_or_sections is a tuple(int), elements must be positive integers and the tuple should not be empty and increasing)
+{v_2 : tuple(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1]""")
+
+    # Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor's shape)
+    rules.append("""Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor's shape)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 2) % v_2 = 0""")
+
+    # Rule 7 (if indices_or_sections is a list or tuple, the last element must be less than the size of dimension 2)
+    rules.append("""Rule 7 (if indices_or_sections is a list or tuple, the last element must be less than the size of dimension 2)
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= v_2[v_2.len - 1] < shape(v_1, 2)""")
+
+    return rules
+```
+** FORMAT ERROR ** (num_failures: 7)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+No valid rules detected. Please follow the expected output format for each rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.dsplit API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+dsplit(input, indices_or_sections) -> List of Tensors
+
+Splits :attr:`input`, a tensor with three or more dimensions, into multiple tensors
+depthwise according to :attr:`indices_or_sections`. Each split is a view of
+:attr:`input`.
+
+This is equivalent to calling torch.tensor_split(input, indices_or_sections, dim=2)
+(the split dimension is 2), except that if :attr:`indices_or_sections` is an integer
+it must evenly divide the split dimension or a runtime error will be thrown.
+
+This function is based on NumPy's :func:`numpy.dsplit`.
+
+Args:
+    input (Tensor): tensor to split.
+    indices_or_sections (int or list or tuple of ints): See argument in :func:`torch.tensor_split`.
+
+Example::
+    >>> t = torch.arange(16.0).reshape(2, 2, 4)
+    >>> t
+    tensor([[[ 0.,  1.,  2.,  3.],
+             [ 4.,  5.,  6.,  7.]],
+            [[ 8.,  9., 10., 11.],
+             [12., 13., 14., 15.]]])
+    >>> torch.dsplit(t, 2)
+    (tensor([[[ 0.,  1.],
+            [ 4.,  5.]],
+           [[ 8.,  9.],
+            [12., 13.]]]),
+     tensor([[[ 2.,  3.],
+              [ 6.,  7.]],
+             [[10., 11.],
+              [14., 15.]]]))
+
+    >>> torch.dsplit(t, [3, 6])
+    (tensor([[[ 0.,  1.,  2.],
+              [ 4.,  5.,  6.]],
+             [[ 8.,  9., 10.],
+              [12., 13., 14.]]]),
+     tensor([[[ 3.],
+              [ 7.]],
+             [[11.],
+              [15.]]]),
+     tensor([], size=(2, 2, 0)))
+
+[Possible API Signatures]
+ - input: tensor, indices_or_sections: integer
+ - input: tensor, indices_or_sections: list
+ - input: tensor, indices_or_sections: tuple
+
+[Error Messages]
+RuntimeError: torch.dsplit requires a tensor with at least 3 dimension, but got a tensor with 1 dimensions!
+RuntimeError: number of sections must be larger than 0, got -2
+RuntimeError: torch.dsplit attempted to split along dimension 2, but the size of the dimension 4 is not divisible by the split_size 0!
+RuntimeError: IntArrayRef contains an int that cannot be represented as a SymInt: -5425825916322441129
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+```python
+def generate_rules():
+    rules = []
+
+    # Rule 1 (input tensor must have at least 3 dimensions)
+    rules.append("""Rule 1 (input tensor must have at least 3 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 3""")
+
+    # Rule 2 (indices_or_sections must be positive if it is an integer)
+    rules.append("""Rule 2 (indices_or_sections must be positive if it is an integer)
+{v_2 : int} |= v_2 > 0""")
+
+    # Rule 3 (if indices_or_sections is a list, elements must be positive integers, the list should not be empty, and be strictly increasing)
+    rules.append("""Rule 3 (if indices_or_sections is a list(int), elements must be positive integers, the list should not be empty, and be strictly increasing)
+{v_2 : list(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (v_2.len = 1 ∨ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])""")
+
+    # Rule 4 (if indices_or_sections is a tuple, elements must be positive integers, the tuple should not be empty and be strictly increasing)
+    rules.append("""Rule 4 (if indices_or_sections is a tuple(int), elements must be positive integers, the tuple should not be empty and be strictly increasing)
+{v_2 : tuple(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (v_2.len = 1 ∨ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])""")
+
+    # Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor's shape)
+    rules.append("""Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor's shape)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 2) % v_2 = 0""")
+
+    # Rule 6 (IntArrayRef contains an int that cannot be represented as a SymInt)
+    rules.append("""Rule 6 (IntArrayRef cannot represent the integers in indices_or_sections)
+{v_2 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : -2147483648 ≤ v_2[i] ∧ v_2[i] ≤ 2147483647""")
+    #limits the size of the integer to 32 bits
+
+    return rules
+```
+** FORMAT ERROR ** (num_failures: 8)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+No valid rules detected. Please follow the expected output format for each rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.dsplit API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+dsplit(input, indices_or_sections) -> List of Tensors
+
+Splits :attr:`input`, a tensor with three or more dimensions, into multiple tensors
+depthwise according to :attr:`indices_or_sections`. Each split is a view of
+:attr:`input`.
+
+This is equivalent to calling torch.tensor_split(input, indices_or_sections, dim=2)
+(the split dimension is 2), except that if :attr:`indices_or_sections` is an integer
+it must evenly divide the split dimension or a runtime error will be thrown.
+
+This function is based on NumPy's :func:`numpy.dsplit`.
+
+Args:
+    input (Tensor): tensor to split.
+    indices_or_sections (int or list or tuple of ints): See argument in :func:`torch.tensor_split`.
+
+Example::
+    >>> t = torch.arange(16.0).reshape(2, 2, 4)
+    >>> t
+    tensor([[[ 0.,  1.,  2.,  3.],
+             [ 4.,  5.,  6.,  7.]],
+            [[ 8.,  9., 10., 11.],
+             [12., 13., 14., 15.]]])
+    >>> torch.dsplit(t, 2)
+    (tensor([[[ 0.,  1.],
+            [ 4.,  5.]],
+           [[ 8.,  9.],
+            [12., 13.]]]),
+     tensor([[[ 2.,  3.],
+              [ 6.,  7.]],
+             [[10., 11.],
+              [14., 15.]]]))
+
+    >>> torch.dsplit(t, [3, 6])
+    (tensor([[[ 0.,  1.,  2.],
+              [ 4.,  5.,  6.]],
+             [[ 8.,  9., 10.],
+              [12., 13., 14.]]]),
+     tensor([[[ 3.],
+              [ 7.]],
+             [[11.],
+              [15.]]]),
+     tensor([], size=(2, 2, 0)))
+
+[Possible API Signatures]
+ - input: tensor, indices_or_sections: integer
+ - input: tensor, indices_or_sections: list
+ - input: tensor, indices_or_sections: tuple
+
+[Error Messages]
+RuntimeError: torch.dsplit requires a tensor with at least 3 dimension, but got a tensor with 1 dimensions!
+RuntimeError: number of sections must be larger than 0, got -2
+RuntimeError: torch.dsplit attempted to split along dimension 2, but the size of the dimension 4 is not divisible by the split_size 0!
+RuntimeError: IntArrayRef contains an int that cannot be represented as a SymInt: -5425825916322441129
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+```python
+def generate_rules():
+    rules = []
+
+    # Rule 1 (input tensor must have at least 3 dimensions)
+    rules.append("""Rule 1 (input tensor must have at least 3 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 3""")
+
+    # Rule 2 (indices_or_sections must be positive if it is an integer)
+    rules.append("""Rule 2 (indices_or_sections must be positive if it is an integer)
+{v_2 : int} |= v_2 > 0""")
+
+    # Rule 3 (if indices_or_sections is a list, elements must be positive integers, the list should not be empty, and be strictly increasing)
+    rules.append("""Rule 3 (if indices_or_sections is a list(int), elements must be positive integers, the list should not be empty, and be strictly increasing)
+{v_2 : list(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (v_2.len ≤ 1 ∨ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])""")
+
+    # Rule 4 (if indices_or_sections is a tuple, elements must be positive integers, the tuple should not be empty and be strictly increasing)
+    rules.append("""Rule 4 (if indices_or_sections is a tuple(int), elements must be positive integers, the tuple should not be empty and be strictly increasing)
+{v_2 : tuple(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (v_2.len ≤ 1 ∨ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])""")
+
+    # Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor's shape)
+    rules.append("""Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor's shape)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 2) % v_2 = 0""")
+
+    # Rule 6 (IntArrayRef contains an int that cannot be represented as a SymInt, implies that the integers are within reasonable range)
+    rules.append("""Rule 6 (IntArrayRef cannot represent the integers in indices_or_sections)
+{v_2 : list(int) ⊎ tuple(int)} |= if v_2 : list(int) then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -2147483648 ∧ v_2[i] ≤ 2147483647 else ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -2147483648 ∧ v_2[i] ≤ 2147483647""")
+
+    # Rule 7 (number of sections cannot be negative)
+    rules.append("""Rule 7 (number of sections cannot be negative)
+{v_2 : int} |= v_2 ≥ 0""")
+
+    return rules
+```
+** FORMAT ERROR ** (num_failures: 9)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+No valid rules detected. Please follow the expected output format for each rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.dsplit API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+dsplit(input, indices_or_sections) -> List of Tensors
+
+Splits :attr:`input`, a tensor with three or more dimensions, into multiple tensors
+depthwise according to :attr:`indices_or_sections`. Each split is a view of
+:attr:`input`.
+
+This is equivalent to calling torch.tensor_split(input, indices_or_sections, dim=2)
+(the split dimension is 2), except that if :attr:`indices_or_sections` is an integer
+it must evenly divide the split dimension or a runtime error will be thrown.
+
+This function is based on NumPy's :func:`numpy.dsplit`.
+
+Args:
+    input (Tensor): tensor to split.
+    indices_or_sections (int or list or tuple of ints): See argument in :func:`torch.tensor_split`.
+
+Example::
+    >>> t = torch.arange(16.0).reshape(2, 2, 4)
+    >>> t
+    tensor([[[ 0.,  1.,  2.,  3.],
+             [ 4.,  5.,  6.,  7.]],
+            [[ 8.,  9., 10., 11.],
+             [12., 13., 14., 15.]]])
+    >>> torch.dsplit(t, 2)
+    (tensor([[[ 0.,  1.],
+            [ 4.,  5.]],
+           [[ 8.,  9.],
+            [12., 13.]]]),
+     tensor([[[ 2.,  3.],
+              [ 6.,  7.]],
+             [[10., 11.],
+              [14., 15.]]]))
+
+    >>> torch.dsplit(t, [3, 6])
+    (tensor([[[ 0.,  1.,  2.],
+              [ 4.,  5.,  6.]],
+             [[ 8.,  9., 10.],
+              [12., 13., 14.]]]),
+     tensor([[[ 3.],
+              [ 7.]],
+             [[11.],
+              [15.]]]),
+     tensor([], size=(2, 2, 0)))
+
+[Possible API Signatures]
+ - input: tensor, indices_or_sections: integer
+ - input: tensor, indices_or_sections: list
+ - input: tensor, indices_or_sections: tuple
+
+[Error Messages]
+RuntimeError: torch.dsplit requires a tensor with at least 3 dimension, but got a tensor with 1 dimensions!
+RuntimeError: number of sections must be larger than 0, got -2
+RuntimeError: torch.dsplit attempted to split along dimension 2, but the size of the dimension 4 is not divisible by the split_size 0!
+RuntimeError: IntArrayRef contains an int that cannot be represented as a SymInt: -5425825916322441129
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+```python
+def generate_rules():
+    rules = []
+
+    # Rule 1 (input tensor must have at least 3 dimensions)
+    rules.append("""Rule 1 (input tensor must have at least 3 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 3""")
+
+    # Rule 2 (indices_or_sections must be positive if it is an integer)
+    rules.append("""Rule 2 (indices_or_sections must be positive if it is an integer)
+{v_2 : int} |= v_2 > 0""")
+
+    # Rule 3 (if indices_or_sections is a list, elements must be positive integers, the list should not be empty, and be strictly increasing)
+    rules.append("""Rule 3 (if indices_or_sections is a list(int), elements must be positive integers, the list should not be empty, and be strictly increasing)
+{v_2 : list(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (v_2.len ≤ 1 ∨ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])""")
+
+    # Rule 4 (if indices_or_sections is a tuple, elements must be positive integers, the tuple should not be empty and be strictly increasing)
+    rules.append("""Rule 4 (if indices_or_sections is a tuple(int), elements must be positive integers, the tuple should not be empty and be strictly increasing)
+{v_2 : tuple(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (v_2.len ≤ 1 ∨ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])""")
+
+    # Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor's shape)
+    rules.append("""Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor's shape)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 2) % v_2 = 0""")
+
+    # Rule 6 (IntArrayRef contains an int that cannot be represented as a SymInt, implies that the integers are within reasonable range)
+    rules.append("""Rule 6 (IntArrayRef cannot represent the integers in indices_or_sections)
+{v_2 : list(int) ⊎ tuple(int)} |= if v_2 : list(int) then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -2147483648 ∧ v_2[i] ≤ 2147483647 else ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -2147483648 ∧ v_2[i] ≤ 2147483647""")
+
+    # Rule 7 (number of sections must be larger than 0 if it's integer, suppressing "number of sections must be larger than 0, got -2")
+    rules.append("""Rule 7 (number of sections must be larger than 0 if it's integer)
+{v_2 : int} |= v_2 > 0""")
+    
+    return rules
+```
+** FORMAT ERROR ** (num_failures: 10)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+No valid rules detected. Please follow the expected output format for each rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.dsplit API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+dsplit(input, indices_or_sections) -> List of Tensors
+
+Splits :attr:`input`, a tensor with three or more dimensions, into multiple tensors
+depthwise according to :attr:`indices_or_sections`. Each split is a view of
+:attr:`input`.
+
+This is equivalent to calling torch.tensor_split(input, indices_or_sections, dim=2)
+(the split dimension is 2), except that if :attr:`indices_or_sections` is an integer
+it must evenly divide the split dimension or a runtime error will be thrown.
+
+This function is based on NumPy's :func:`numpy.dsplit`.
+
+Args:
+    input (Tensor): tensor to split.
+    indices_or_sections (int or list or tuple of ints): See argument in :func:`torch.tensor_split`.
+
+Example::
+    >>> t = torch.arange(16.0).reshape(2, 2, 4)
+    >>> t
+    tensor([[[ 0.,  1.,  2.,  3.],
+             [ 4.,  5.,  6.,  7.]],
+            [[ 8.,  9., 10., 11.],
+             [12., 13., 14., 15.]]])
+    >>> torch.dsplit(t, 2)
+    (tensor([[[ 0.,  1.],
+            [ 4.,  5.]],
+           [[ 8.,  9.],
+            [12., 13.]]]),
+     tensor([[[ 2.,  3.],
+              [ 6.,  7.]],
+             [[10., 11.],
+              [14., 15.]]]))
+
+    >>> torch.dsplit(t, [3, 6])
+    (tensor([[[ 0.,  1.,  2.],
+              [ 4.,  5.,  6.]],
+             [[ 8.,  9., 10.],
+              [12., 13., 14.]]]),
+     tensor([[[ 3.],
+              [ 7.]],
+             [[11.],
+              [15.]]]),
+     tensor([], size=(2, 2, 0)))
+
+[Possible API Signatures]
+ - input: tensor, indices_or_sections: integer
+ - input: tensor, indices_or_sections: list
+ - input: tensor, indices_or_sections: tuple
+
+[Error Messages]
+RuntimeError: torch.dsplit requires a tensor with at least 3 dimension, but got a tensor with 1 dimensions!
+RuntimeError: number of sections must be larger than 0, got -2
+RuntimeError: torch.dsplit attempted to split along dimension 2, but the size of the dimension 4 is not divisible by the split_size 0!
+RuntimeError: IntArrayRef contains an int that cannot be represented as a SymInt: -5425825916322441129
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+```python
+def generate_rules():
+    rules = []
+
+    # Rule 1 (input tensor must have at least 3 dimensions)
+    rules.append("""Rule 1 (input tensor must have at least 3 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 3""")
+
+    # Rule 2 (indices_or_sections must be positive if it is an integer)
+    rules.append("""Rule 2 (indices_or_sections must be positive if it is an integer)
+{v_2 : int} |= v_2 > 0""")
+
+    # Rule 3 (if indices_or_sections is a list, elements must be positive integers, the list should not be empty, and be strictly increasing)
+    rules.append("""Rule 3 (if indices_or_sections is a list(int), elements must be positive integers, the list should not be empty, and be strictly increasing)
+{v_2 : list(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (v_2.len ≤ 1 ∨ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])""")
+
+    # Rule 4 (if indices_or_sections is a tuple, elements must be positive integers, the tuple should not be empty and be strictly increasing)
+    rules.append("""Rule 4 (if indices_or_sections is a tuple(int), elements must be positive integers, the tuple should not be empty and be strictly increasing)
+{v_2 : tuple(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (v_2.len ≤ 1 ∨ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])""")
+
+    # Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor's shape)
+    rules.append("""Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor's shape)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 2) % v_2 = 0""")
+
+    # Rule 6 (IntArrayRef contains an int that cannot be represented as a SymInt, implies that the integers are within reasonable range)
+    rules.append("""Rule 6 (IntArrayRef cannot represent the integers in indices_or_sections)
+{v_2 : list(int) ⊎ tuple(int)} |= if v_2 : list(int) then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -2147483648 ∧ v_2[i] ≤ 2147483647 else ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -2147483648 ∧ v_2[i] ≤ 2147483647""")
+
+    # Rule 7 (number of sections must be larger than 0 if it's an integer to address the specific error message)
+    rules.append("""Rule 7 (indices_or_sections as integer must be greater than zero)
+{v_2 : int} |= v_2 > 0""")
+
+    return rules
+```
+** FORMAT ERROR ** (num_failures: 11)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+No valid rules detected. Please follow the expected output format for each rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.dsplit API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+dsplit(input, indices_or_sections) -> List of Tensors
+
+Splits :attr:`input`, a tensor with three or more dimensions, into multiple tensors
+depthwise according to :attr:`indices_or_sections`. Each split is a view of
+:attr:`input`.
+
+This is equivalent to calling torch.tensor_split(input, indices_or_sections, dim=2)
+(the split dimension is 2), except that if :attr:`indices_or_sections` is an integer
+it must evenly divide the split dimension or a runtime error will be thrown.
+
+This function is based on NumPy's :func:`numpy.dsplit`.
+
+Args:
+    input (Tensor): tensor to split.
+    indices_or_sections (int or list or tuple of ints): See argument in :func:`torch.tensor_split`.
+
+Example::
+    >>> t = torch.arange(16.0).reshape(2, 2, 4)
+    >>> t
+    tensor([[[ 0.,  1.,  2.,  3.],
+             [ 4.,  5.,  6.,  7.]],
+            [[ 8.,  9., 10., 11.],
+             [12., 13., 14., 15.]]])
+    >>> torch.dsplit(t, 2)
+    (tensor([[[ 0.,  1.],
+            [ 4.,  5.]],
+           [[ 8.,  9.],
+            [12., 13.]]]),
+     tensor([[[ 2.,  3.],
+              [ 6.,  7.]],
+             [[10., 11.],
+              [14., 15.]]]))
+
+    >>> torch.dsplit(t, [3, 6])
+    (tensor([[[ 0.,  1.,  2.],
+              [ 4.,  5.,  6.]],
+             [[ 8.,  9., 10.],
+              [12., 13., 14.]]]),
+     tensor([[[ 3.],
+              [ 7.]],
+             [[11.],
+              [15.]]]),
+     tensor([], size=(2, 2, 0)))
+
+[Possible API Signatures]
+ - input: tensor, indices_or_sections: integer
+ - input: tensor, indices_or_sections: list
+ - input: tensor, indices_or_sections: tuple
+
+[Error Messages]
+RuntimeError: torch.dsplit requires a tensor with at least 3 dimension, but got a tensor with 1 dimensions!
+RuntimeError: number of sections must be larger than 0, got -2
+RuntimeError: torch.dsplit attempted to split along dimension 2, but the size of the dimension 4 is not divisible by the split_size 0!
+RuntimeError: IntArrayRef contains an int that cannot be represented as a SymInt: -5425825916322441129
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+```python
+def generate_rules():
+    rules = []
+
+    # Rule 1 (input tensor must have at least 3 dimensions)
+    rules.append("""Rule 1 (input tensor must have at least 3 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 3""")
+
+    # Rule 2 (indices_or_sections must be positive if it is an integer)
+    rules.append("""Rule 2 (if indices_or_sections is an integer, it must be positive)
+{v_2 : int} |= v_2 > 0""")
+
+    # Rule 3 (if indices_or_sections is a list, elements must be positive integers, the list should not be empty, and be strictly increasing)
+    rules.append("""Rule 3 (if indices_or_sections is a list(int), elements must be positive integers, the list should not be empty, and be strictly increasing)
+{v_2 : list(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (v_2.len ≤ 1 ∨ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])""")
+
+    # Rule 4 (if indices_or_sections is a tuple, elements must be positive integers, the tuple should not be empty and be strictly increasing)
+    rules.append("""Rule 4 (if indices_or_sections is a tuple(int), elements must be positive integers, the tuple should not be empty and be strictly increasing)
+{v_2 : tuple(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (v_2.len ≤ 1 ∨ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])""")
+
+    # Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor's shape)
+    rules.append("""Rule 5 (if indices_or_sections is an integer, it must evenly divide dimension 2 of the input tensor's shape)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 2) % v_2 = 0""")
+
+    # Rule 6 (IntArrayRef contains an int that cannot be represented as a SymInt, implies that the integers are within reasonable range)
+    rules.append("""Rule 6 (IntArrayRef cannot represent the integers in indices_or_sections)
+{v_2 : list(int) ⊎ tuple(int)} |= if v_2 : list(int) then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -2147483648 ∧ v_2[i] ≤ 2147483647 else ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -2147483648 ∧ v_2[i] ≤ 2147483647""")
+
+    # Rule 8 (if indices_or_sections is a list or tuple, elements must be less or equal than the size of dimension 2)
+    rules.append("""Rule 8 (if indices_or_sections is a list or tuple, elements must be less or equal than the size of dimension 2)
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= if v_2 : list(int) then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≤ shape(v_1, 2) else ∀i ∈ [0, v_2.len - 1] : v_2[i] ≤ shape(v_1, 2)""")
+
+    return rules
+```
+** FORMAT ERROR ** (num_failures: 12)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+No valid rules detected. Please follow the expected output format for each rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.dsplit API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+dsplit(input, indices_or_sections) -> List of Tensors
+
+Splits :attr:`input`, a tensor with three or more dimensions, into multiple tensors
+depthwise according to :attr:`indices_or_sections`. Each split is a view of
+:attr:`input`.
+
+This is equivalent to calling torch.tensor_split(input, indices_or_sections, dim=2)
+(the split dimension is 2), except that if :attr:`indices_or_sections` is an integer
+it must evenly divide the split dimension or a runtime error will be thrown.
+
+This function is based on NumPy's :func:`numpy.dsplit`.
+
+Args:
+    input (Tensor): tensor to split.
+    indices_or_sections (int or list or tuple of ints): See argument in :func:`torch.tensor_split`.
+
+Example::
+    >>> t = torch.arange(16.0).reshape(2, 2, 4)
+    >>> t
+    tensor([[[ 0.,  1.,  2.,  3.],
+             [ 4.,  5.,  6.,  7.]],
+            [[ 8.,  9., 10., 11.],
+             [12., 13., 14., 15.]]])
+    >>> torch.dsplit(t, 2)
+    (tensor([[[ 0.,  1.],
+            [ 4.,  5.]],
+           [[ 8.,  9.],
+            [12., 13.]]]),
+     tensor([[[ 2.,  3.],
+              [ 6.,  7.]],
+             [[10., 11.],
+              [14., 15.]]]))
+
+    >>> torch.dsplit(t, [3, 6])
+    (tensor([[[ 0.,  1.,  2.],
+              [ 4.,  5.,  6.]],
+             [[ 8.,  9., 10.],
+              [12., 13., 14.]]]),
+     tensor([[[ 3.],
+              [ 7.]],
+             [[11.],
+              [15.]]]),
+     tensor([], size=(2, 2, 0)))
+
+[Possible API Signatures]
+ - input: tensor, indices_or_sections: integer
+ - input: tensor, indices_or_sections: list
+ - input: tensor, indices_or_sections: tuple
+
+[Error Messages]
+RuntimeError: torch.dsplit requires a tensor with at least 3 dimension, but got a tensor with 1 dimensions!
+RuntimeError: number of sections must be larger than 0, got -2
+RuntimeError: torch.dsplit attempted to split along dimension 2, but the size of the dimension 4 is not divisible by the split_size 0!
+RuntimeError: IntArrayRef contains an int that cannot be represented as a SymInt: -5425825916322441129
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+```python
+def generate_rules():
+    rules = []
+
+    # Rule 1 (input tensor must have at least 3 dimensions)
+    rules.append("""Rule 1 (input tensor must have at least 3 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 3""")
+
+    # Rule 2 (indices_or_sections, when an integer, must be positive to prevent negative splits)
+    rules.append("""Rule 2 (indices_or_sections as an integer must be positive)
+{v_2 : int} |= v_2 > 0""")
+
+    # Rule 3 (if indices_or_sections is a list, its elements must be positive, non-zero and strictly increasing for valid splits)
+    rules.append("""Rule 3 (if indices_or_sections is a list(int), it must contain positive and strictly increasing values)
+{v_2 : list(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (v_2.len < 2 ∨ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])""")
+
+    # Rule 4 (if indices_or_sections is a tuple, ensure its elements are positive, non-zero, and strictly increasing for coherent splitting)
+    rules.append("""Rule 4 (indices_or_sections as tuple(int) must contain positive and strictly increasing values)
+{v_2 : tuple(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (v_2.len < 2 ∨ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])""")
+
+    # Rule 5 (If splitting by an integer, it must evenly divide dimension 2's size, avoiding incomplete splits)
+    rules.append("""Rule 5 (when indices_or_sections is int, it must evenly divide the size of dimension 2)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 2) % v_2 = 0""")
+
+   # Rule 6 (List or Tuple integer elements should not overflow to prevent SymInt representation issues)
+    rules.append("""Rule 6 (indices_or_sections list/tuple integer range should not overflow)
+{v_2 : list(int) ⊎ tuple(int)} |= if v_2 : list(int) then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -2147483648 ∧ v_2[i] ≤ 2147483647 else ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -2147483648 ∧ v_2[i] ≤ 2147483647""")
+   
+    return rules
+```
+** FORMAT ERROR ** (num_failures: 13)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+No valid rules detected. Please follow the expected output format for each rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.dsplit API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+dsplit(input, indices_or_sections) -> List of Tensors
+
+Splits :attr:`input`, a tensor with three or more dimensions, into multiple tensors
+depthwise according to :attr:`indices_or_sections`. Each split is a view of
+:attr:`input`.
+
+This is equivalent to calling torch.tensor_split(input, indices_or_sections, dim=2)
+(the split dimension is 2), except that if :attr:`indices_or_sections` is an integer
+it must evenly divide the split dimension or a runtime error will be thrown.
+
+This function is based on NumPy's :func:`numpy.dsplit`.
+
+Args:
+    input (Tensor): tensor to split.
+    indices_or_sections (int or list or tuple of ints): See argument in :func:`torch.tensor_split`.
+
+Example::
+    >>> t = torch.arange(16.0).reshape(2, 2, 4)
+    >>> t
+    tensor([[[ 0.,  1.,  2.,  3.],
+             [ 4.,  5.,  6.,  7.]],
+            [[ 8.,  9., 10., 11.],
+             [12., 13., 14., 15.]]])
+    >>> torch.dsplit(t, 2)
+    (tensor([[[ 0.,  1.],
+            [ 4.,  5.]],
+           [[ 8.,  9.],
+            [12., 13.]]]),
+     tensor([[[ 2.,  3.],
+              [ 6.,  7.]],
+             [[10., 11.],
+              [14., 15.]]]))
+
+    >>> torch.dsplit(t, [3, 6])
+    (tensor([[[ 0.,  1.,  2.],
+              [ 4.,  5.,  6.]],
+             [[ 8.,  9., 10.],
+              [12., 13., 14.]]]),
+     tensor([[[ 3.],
+              [ 7.]],
+             [[11.],
+              [15.]]]),
+     tensor([], size=(2, 2, 0)))
+
+[Possible API Signatures]
+ - input: tensor, indices_or_sections: integer
+ - input: tensor, indices_or_sections: list
+ - input: tensor, indices_or_sections: tuple
+
+[Error Messages]
+RuntimeError: torch.dsplit requires a tensor with at least 3 dimension, but got a tensor with 1 dimensions!
+RuntimeError: number of sections must be larger than 0, got -2
+RuntimeError: torch.dsplit attempted to split along dimension 2, but the size of the dimension 4 is not divisible by the split_size 0!
+RuntimeError: IntArrayRef contains an int that cannot be represented as a SymInt: -5425825916322441129
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+```python
+def generate_rules():
+    rules = []
+
+    # Rule 1 (input tensor must have at least 3 dimensions - RuntimeError: torch.dsplit requires a tensor with at least 3 dimension, but got a tensor with 1 dimensions!)
+    rules.append("""Rule 1 (input tensor must have at least 3 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 3""")
+
+    # Rule 2 (indices_or_sections, when an integer, must be positive - RuntimeError: number of sections must be larger than 0, got -2)
+    rules.append("""Rule 2 (indices_or_sections as an integer must be positive)
+{v_2 : int} |= v_2 > 0""")
+
+    # Rule 3 (if indices_or_sections is a list, its elements must be positive integers, the list should not be empty, and be strictly increasing for valid splits)
+    rules.append("""Rule 3 (if indices_or_sections is a list(int), it must contain positive and strictly increasing values)
+{v_2 : list(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (v_2.len < 2 ∨ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])""")
+
+    # Rule 4 (if indices_or_sections is a tuple, ensure its elements are positive, non-zero, and strictly increasing for coherent splitting)
+    rules.append("""Rule 4 (indices_or_sections as tuple(int) must contain positive and strictly increasing values)
+{v_2 : tuple(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (v_2.len < 2 ∨ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])""")
+
+    # Rule 5 (If splitting by an integer, it must evenly divide dimension 2's size, avoiding incomplete splits - RuntimeError: torch.dsplit attempted to split along dimension 2, but the size of the dimension 4 is not divisible by the split_size 0!)
+    rules.append("""Rule 5 (when indices_or_sections is int, it must evenly divide the size of dimension 2)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 2) % v_2 = 0""")
+
+   # Rule 6 (List or Tuple integer elements should not overflow to prevent SymInt representation issues - RuntimeError: IntArrayRef contains an int that cannot be represented as a SymInt: -5425825916322441129)
+    rules.append("""Rule 6 (indices_or_sections list/tuple integer range should not overflow)
+{v_2 : list(int) ⊎ tuple(int)} |= if v_2 : list(int) then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -2147483648 ∧ v_2[i] ≤ 2147483647 else ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -2147483648 ∧ v_2[i] ≤ 2147483647""")
+   
+    return rules
+```
+** FORMAT ERROR ** (num_failures: 14)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+No valid rules detected. Please follow the expected output format for each rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.dsplit API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+dsplit(input, indices_or_sections) -> List of Tensors
+
+Splits :attr:`input`, a tensor with three or more dimensions, into multiple tensors
+depthwise according to :attr:`indices_or_sections`. Each split is a view of
+:attr:`input`.
+
+This is equivalent to calling torch.tensor_split(input, indices_or_sections, dim=2)
+(the split dimension is 2), except that if :attr:`indices_or_sections` is an integer
+it must evenly divide the split dimension or a runtime error will be thrown.
+
+This function is based on NumPy's :func:`numpy.dsplit`.
+
+Args:
+    input (Tensor): tensor to split.
+    indices_or_sections (int or list or tuple of ints): See argument in :func:`torch.tensor_split`.
+
+Example::
+    >>> t = torch.arange(16.0).reshape(2, 2, 4)
+    >>> t
+    tensor([[[ 0.,  1.,  2.,  3.],
+             [ 4.,  5.,  6.,  7.]],
+            [[ 8.,  9., 10., 11.],
+             [12., 13., 14., 15.]]])
+    >>> torch.dsplit(t, 2)
+    (tensor([[[ 0.,  1.],
+            [ 4.,  5.]],
+           [[ 8.,  9.],
+            [12., 13.]]]),
+     tensor([[[ 2.,  3.],
+              [ 6.,  7.]],
+             [[10., 11.],
+              [14., 15.]]]))
+
+    >>> torch.dsplit(t, [3, 6])
+    (tensor([[[ 0.,  1.,  2.],
+              [ 4.,  5.,  6.]],
+             [[ 8.,  9., 10.],
+              [12., 13., 14.]]]),
+     tensor([[[ 3.],
+              [ 7.]],
+             [[11.],
+              [15.]]]),
+     tensor([], size=(2, 2, 0)))
+
+[Possible API Signatures]
+ - input: tensor, indices_or_sections: integer
+ - input: tensor, indices_or_sections: list
+ - input: tensor, indices_or_sections: tuple
+
+[Error Messages]
+RuntimeError: torch.dsplit requires a tensor with at least 3 dimension, but got a tensor with 1 dimensions!
+RuntimeError: number of sections must be larger than 0, got -2
+RuntimeError: torch.dsplit attempted to split along dimension 2, but the size of the dimension 4 is not divisible by the split_size 0!
+RuntimeError: IntArrayRef contains an int that cannot be represented as a SymInt: -5425825916322441129
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+```python
+def generate_rules():
+    rules = []
+
+    # Rule 1 (input tensor must have at least 3 dimensions - RuntimeError: torch.dsplit requires a tensor with at least 3 dimension, but got a tensor with 1 dimensions!)
+    rules.append("""Rule 1 (input tensor must have at least 3 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 3""")
+
+    # Rule 2 (indices_or_sections, when an integer, must be positive to prevent negative splits - RuntimeError: number of sections must be larger than 0, got -2)
+    rules.append("""Rule 2 (indices_or_sections as an integer must be positive)
+{v_2 : int} |= v_2 > 0""")
+
+    # Rule 3 (if indices_or_sections is a list, its elements must be positive integers, the list should not be empty, and be strictly increasing for valid splits)
+    rules.append("""Rule 3 (if indices_or_sections is a list(int), it must contain positive and strictly increasing values)
+{v_2 : list(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (v_2.len < 2 ∨ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])""")
+
+    # Rule 4 (if indices_or_sections is a tuple, ensure its elements are positive, non-zero, and strictly increasing for coherent splitting)
+    rules.append("""Rule 4 (indices_or_sections as tuple(int) must contain positive and strictly increasing values)
+{v_2 : tuple(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (v_2.len < 2 ∨ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])""")
+
+    # Rule 5 (If splitting by an integer, it must evenly divide dimension 2's size, avoiding incomplete splits - RuntimeError: torch.dsplit attempted to split along dimension 2, but the size of the dimension 4 is not divisible by the split_size 0!)
+    rules.append("""Rule 5 (when indices_or_sections is int, it must evenly divide the size of dimension 2)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 2) % v_2 = 0""")
+
+   # Rule 6 (List or Tuple integer elements should not overflow to prevent SymInt representation issues - RuntimeError: IntArrayRef contains an int that cannot be represented as a SymInt: -5425825916322441129)
+    rules.append("""Rule 6 (indices_or_sections list/tuple integer range should not overflow)
+{v_2 : list(int) ⊎ tuple(int)} |= if v_2 : list(int) then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -2147483648 ∧ v_2[i] ≤ 2147483647 else ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -2147483648 ∧ v_2[i] ≤ 2147483647""")
+
+    # Rule 8 (Dimension 2 cannot be zero)
+    rules.append("""Rule 8 (dimension 2 of input tensor should not be zero)
+{v_1: tensor} |= shape(v_1, 2) > 0""")
+   
+    return rules
+```
+** FORMAT ERROR ** (num_failures: 15)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+No valid rules detected. Please follow the expected output format for each rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.dsplit API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+dsplit(input, indices_or_sections) -> List of Tensors
+
+Splits :attr:`input`, a tensor with three or more dimensions, into multiple tensors
+depthwise according to :attr:`indices_or_sections`. Each split is a view of
+:attr:`input`.
+
+This is equivalent to calling torch.tensor_split(input, indices_or_sections, dim=2)
+(the split dimension is 2), except that if :attr:`indices_or_sections` is an integer
+it must evenly divide the split dimension or a runtime error will be thrown.
+
+This function is based on NumPy's :func:`numpy.dsplit`.
+
+Args:
+    input (Tensor): tensor to split.
+    indices_or_sections (int or list or tuple of ints): See argument in :func:`torch.tensor_split`.
+
+Example::
+    >>> t = torch.arange(16.0).reshape(2, 2, 4)
+    >>> t
+    tensor([[[ 0.,  1.,  2.,  3.],
+             [ 4.,  5.,  6.,  7.]],
+            [[ 8.,  9., 10., 11.],
+             [12., 13., 14., 15.]]])
+    >>> torch.dsplit(t, 2)
+    (tensor([[[ 0.,  1.],
+            [ 4.,  5.]],
+           [[ 8.,  9.],
+            [12., 13.]]]),
+     tensor([[[ 2.,  3.],
+              [ 6.,  7.]],
+             [[10., 11.],
+              [14., 15.]]]))
+
+    >>> torch.dsplit(t, [3, 6])
+    (tensor([[[ 0.,  1.,  2.],
+              [ 4.,  5.,  6.]],
+             [[ 8.,  9., 10.],
+              [12., 13., 14.]]]),
+     tensor([[[ 3.],
+              [ 7.]],
+             [[11.],
+              [15.]]]),
+     tensor([], size=(2, 2, 0)))
+
+[Possible API Signatures]
+ - input: tensor, indices_or_sections: integer
+ - input: tensor, indices_or_sections: list
+ - input: tensor, indices_or_sections: tuple
+
+[Error Messages]
+RuntimeError: torch.dsplit requires a tensor with at least 3 dimension, but got a tensor with 1 dimensions!
+RuntimeError: number of sections must be larger than 0, got -2
+RuntimeError: torch.dsplit attempted to split along dimension 2, but the size of the dimension 4 is not divisible by the split_size 0!
+RuntimeError: IntArrayRef contains an int that cannot be represented as a SymInt: -5425825916322441129
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+```python
+def generate_rules():
+    rules = []
+
+    # Rule 1 (input tensor must have at least 3 dimensions - RuntimeError: torch.dsplit requires a tensor with at least 3 dimension, but got a tensor with 1 dimensions!)
+    rules.append("""Rule 1 (input tensor must have at least 3 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 3""")
+
+    # Rule 2 (indices_or_sections, when an integer, must be positive to prevent negative splits - RuntimeError: number of sections must be larger than 0, got -2)
+    rules.append("""Rule 2 (indices_or_sections as an integer must be positive)
+{v_2 : int} |= v_2 > 0""")
+
+    # Rule 3 (if indices_or_sections is a list, its elements must be positive integers, the list should not be empty, and be strictly increasing for valid splits)
+    rules.append("""Rule 3 (if indices_or_sections is a list(int), it must contain positive and strictly increasing values)
+{v_2 : list(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (v_2.len < 2 ∨ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])""")
+
+    # Rule 4 (if indices_or_sections is a tuple, ensure its elements are positive, non-zero, and strictly increasing for coherent splitting)
+    rules.append("""Rule 4 (indices_or_sections as tuple(int) must contain positive and strictly increasing values)
+{v_2 : tuple(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (v_2.len < 2 ∨ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])""")
+
+    # Rule 5 (If splitting by an integer, it must evenly divide dimension 2's size, avoiding incomplete splits - RuntimeError: torch.dsplit attempted to split along dimension 2, but the size of the dimension 4 is not divisible by the split_size 0!)
+    rules.append("""Rule 5 (when indices_or_sections is int, it must evenly divide the size of dimension 2)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 2) % v_2 = 0""")
+
+   # Rule 6 (List or Tuple integer elements should not overflow to prevent SymInt representation issues - RuntimeError: IntArrayRef contains an int that cannot be represented as a SymInt: -5425825916322441129)
+    rules.append("""Rule 6 (indices_or_sections list/tuple integer range should not overflow)
+{v_2 : list(int) ⊎ tuple(int)} |= if v_2 : list(int) then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -2147483648 ∧ v_2[i] ≤ 2147483647 else ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -2147483648 ∧ v_2[i] ≤ 2147483647""")
+
+    # Rule 9 (The size of the dimension 2 should be divisible by indices_or_sections)
+    rules.append("""Rule 9 (The size of dimension 2 should be divisible by indices_or_sections)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 2) % v_2 = 0""")
+   
+    return rules
+```
+** FORMAT ERROR ** (num_failures: 16)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+No valid rules detected. Please follow the expected output format for each rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.dsplit API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+dsplit(input, indices_or_sections) -> List of Tensors
+
+Splits :attr:`input`, a tensor with three or more dimensions, into multiple tensors
+depthwise according to :attr:`indices_or_sections`. Each split is a view of
+:attr:`input`.
+
+This is equivalent to calling torch.tensor_split(input, indices_or_sections, dim=2)
+(the split dimension is 2), except that if :attr:`indices_or_sections` is an integer
+it must evenly divide the split dimension or a runtime error will be thrown.
+
+This function is based on NumPy's :func:`numpy.dsplit`.
+
+Args:
+    input (Tensor): tensor to split.
+    indices_or_sections (int or list or tuple of ints): See argument in :func:`torch.tensor_split`.
+
+Example::
+    >>> t = torch.arange(16.0).reshape(2, 2, 4)
+    >>> t
+    tensor([[[ 0.,  1.,  2.,  3.],
+             [ 4.,  5.,  6.,  7.]],
+            [[ 8.,  9., 10., 11.],
+             [12., 13., 14., 15.]]])
+    >>> torch.dsplit(t, 2)
+    (tensor([[[ 0.,  1.],
+            [ 4.,  5.]],
+           [[ 8.,  9.],
+            [12., 13.]]]),
+     tensor([[[ 2.,  3.],
+              [ 6.,  7.]],
+             [[10., 11.],
+              [14., 15.]]]))
+
+    >>> torch.dsplit(t, [3, 6])
+    (tensor([[[ 0.,  1.,  2.],
+              [ 4.,  5.,  6.]],
+             [[ 8.,  9., 10.],
+              [12., 13., 14.]]]),
+     tensor([[[ 3.],
+              [ 7.]],
+             [[11.],
+              [15.]]]),
+     tensor([], size=(2, 2, 0)))
+
+[Possible API Signatures]
+ - input: tensor, indices_or_sections: integer
+ - input: tensor, indices_or_sections: list
+ - input: tensor, indices_or_sections: tuple
+
+[Error Messages]
+RuntimeError: torch.dsplit requires a tensor with at least 3 dimension, but got a tensor with 1 dimensions!
+RuntimeError: number of sections must be larger than 0, got -2
+RuntimeError: torch.dsplit attempted to split along dimension 2, but the size of the dimension 4 is not divisible by the split_size 0!
+RuntimeError: IntArrayRef contains an int that cannot be represented as a SymInt: -5425825916322441129
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+```python
+def generate_rules():
+    rules = []
+
+    # Rule 1 (input tensor must have at least 3 dimensions - RuntimeError: torch.dsplit requires a tensor with at least 3 dimension, but got a tensor with 1 dimensions!)
+    rules.append("""Rule 1 (input tensor must have at least 3 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 3""")
+
+    # Rule 2 (indices_or_sections, when an integer, must be positive to prevent negative splits - RuntimeError: number of sections must be larger than 0, got -2)
+    rules.append("""Rule 2 (indices_or_sections as an integer must be positive)
+{v_2 : int} |= v_2 > 0""")
+
+    # Rule 3 (if indices_or_sections is a list, its elements must be positive integers, the list should not be empty, and be strictly increasing for valid splits)
+    rules.append("""Rule 3 (if indices_or_sections is a list(int), it must contain positive and strictly increasing values)
+{v_2 : list(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (v_2.len < 2 ∨ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])""")
+
+    # Rule 4 (if indices_or_sections is a tuple, ensure its elements are positive, non-zero, and strictly increasing for coherent splitting)
+    rules.append("""Rule 4 (indices_or_sections as tuple(int) must contain positive and strictly increasing values)
+{v_2 : tuple(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (v_2.len < 2 ∨ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])""")
+
+    # Rule 5 (If splitting by an integer, it must evenly divide dimension 2's size, avoiding incomplete splits - RuntimeError: torch.dsplit attempted to split along dimension 2, but the size of the dimension 4 is not divisible by the split_size 0!)
+    rules.append("""Rule 5 (when indices_or_sections is int, it must evenly divide the size of dimension 2)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 2) % v_2 = 0""")
+
+   # Rule 6 (List or Tuple integer elements should not overflow to prevent SymInt representation issues - RuntimeError: IntArrayRef contains an int that cannot be represented as a SymInt: -5425825916322441129)
+    rules.append("""Rule 6 (indices_or_sections list/tuple integer range should not overflow)
+{v_2 : list(int) ⊎ tuple(int)} |= if v_2 : list(int) then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -2147483648 ∧ v_2[i] ≤ 2147483647 else ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -2147483648 ∧ v_2[i] ≤ 2147483647""")
+
+    # Rule 10 (size of the dimension 2 should be greater than 0)
+    rules.append("""Rule 10 (size of the dimension 2 should be greater than 0)
+{v_1 : tensor} |= shape(v_1, 2) > 0""")
+
+    return rules
+```
+** FORMAT ERROR ** (num_failures: 17)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+No valid rules detected. Please follow the expected output format for each rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.dsplit API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+dsplit(input, indices_or_sections) -> List of Tensors
+
+Splits :attr:`input`, a tensor with three or more dimensions, into multiple tensors
+depthwise according to :attr:`indices_or_sections`. Each split is a view of
+:attr:`input`.
+
+This is equivalent to calling torch.tensor_split(input, indices_or_sections, dim=2)
+(the split dimension is 2), except that if :attr:`indices_or_sections` is an integer
+it must evenly divide the split dimension or a runtime error will be thrown.
+
+This function is based on NumPy's :func:`numpy.dsplit`.
+
+Args:
+    input (Tensor): tensor to split.
+    indices_or_sections (int or list or tuple of ints): See argument in :func:`torch.tensor_split`.
+
+Example::
+    >>> t = torch.arange(16.0).reshape(2, 2, 4)
+    >>> t
+    tensor([[[ 0.,  1.,  2.,  3.],
+             [ 4.,  5.,  6.,  7.]],
+            [[ 8.,  9., 10., 11.],
+             [12., 13., 14., 15.]]])
+    >>> torch.dsplit(t, 2)
+    (tensor([[[ 0.,  1.],
+            [ 4.,  5.]],
+           [[ 8.,  9.],
+            [12., 13.]]]),
+     tensor([[[ 2.,  3.],
+              [ 6.,  7.]],
+             [[10., 11.],
+              [14., 15.]]]))
+
+    >>> torch.dsplit(t, [3, 6])
+    (tensor([[[ 0.,  1.,  2.],
+              [ 4.,  5.,  6.]],
+             [[ 8.,  9., 10.],
+              [12., 13., 14.]]]),
+     tensor([[[ 3.],
+              [ 7.]],
+             [[11.],
+              [15.]]]),
+     tensor([], size=(2, 2, 0)))
+
+[Possible API Signatures]
+ - input: tensor, indices_or_sections: integer
+ - input: tensor, indices_or_sections: list
+ - input: tensor, indices_or_sections: tuple
+
+[Error Messages]
+RuntimeError: torch.dsplit requires a tensor with at least 3 dimension, but got a tensor with 1 dimensions!
+RuntimeError: number of sections must be larger than 0, got -2
+RuntimeError: torch.dsplit attempted to split along dimension 2, but the size of the dimension 4 is not divisible by the split_size 0!
+RuntimeError: IntArrayRef contains an int that cannot be represented as a SymInt: -5425825916322441129
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+```python
+def generate_rules():
+    rules = []
+
+    # Rule 1 (input tensor must have at least 3 dimensions - RuntimeError: torch.dsplit requires a tensor with at least 3 dimension, but got a tensor with 1 dimensions!)
+    rules.append("""Rule 1 (input tensor must have at least 3 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 3""")
+
+    # Rule 2 (indices_or_sections, when an integer, must be positive to prevent negative splits - RuntimeError: number of sections must be larger than 0, got -2)
+    rules.append("""Rule 2 (indices_or_sections as an integer must be positive)
+{v_2 : int} |= v_2 > 0""")
+
+    # Rule 3 (if indices_or_sections is a list, its elements must be positive integers, the list should not be empty, and be strictly increasing for valid splits)
+    rules.append("""Rule 3 (if indices_or_sections is a list(int), it must contain positive and strictly increasing values)
+{v_2 : list(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (v_2.len < 2 ∨ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])""")
+
+    # Rule 4 (if indices_or_sections is a tuple, ensure its elements are positive, non-zero, and strictly increasing for coherent splitting)
+    rules.append("""Rule 4 (indices_or_sections as tuple(int) must contain positive and strictly increasing values)
+{v_2 : tuple(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ (v_2.len < 2 ∨ ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1])""")
+
+    # Rule 5 (If splitting by an integer, it must evenly divide dimension 2's size, avoiding incomplete splits - RuntimeError: torch.dsplit attempted to split along dimension 2, but the size of the dimension 4 is not divisible by the split_size 0!)
+    rules.append("""Rule 5 (when indices_or_sections is int, it must evenly divide the size of dimension 2)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 2) % v_2 = 0""")
+
+   # Rule 6 (List or Tuple integer elements should not overflow to prevent SymInt representation issues - RuntimeError: IntArrayRef contains an int that cannot be represented as a SymInt: -5425825916322441129)
+    rules.append("""Rule 6 (indices_or_sections list/tuple integer range should not overflow)
+{v_2 : list(int) ⊎ tuple(int)} |= if v_2 : list(int) then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -2147483648 ∧ v_2[i] ≤ 2147483647 else ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -2147483648 ∧ v_2[i] ≤ 2147483647""")
+
+    # Rule 11 (indices_or_sections integer cannot be zero)
+    rules.append("""Rule 11 (indices_or_sections integer cannot be zero)
+{v_2 : int} |= v_2 ≠ 0""")
+
+    return rules
+```
+** FORMAT ERROR ** (num_failures: 18)
+

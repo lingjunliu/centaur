@@ -1,0 +1,135 @@
+>>
+Rule 1 (Input tensor must be of Float or Double dtype to prevent RuntimeError)
+{v_1 : tensor} |= dtype_(v_1) = "torch.float32" ∨ dtype_(v_1) = "torch.float64"
+>>
+Rule 4 (Input tensor is not Char dtype to prevent RuntimeError)
+{v_1 : tensor} |= dtype_(v_1) ≠ "torch.char"
+>>
+Rule 5 (decimnals must be in a practical range to avoid inf)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = "torch.float16" then v_2 < 5
+>>
+Rule 6 (If out is specified, it must have the same dtype as the input)
+{v_1 : tensor, v_3 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then dtype_(v_1) = dtype_(v_3)
+>>
+Rule 11 (If out is specified, it must have the same dtype as the input)
+{v_1 : tensor, v_3 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∃i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) > 0) then dtype_(v_1) = dtype_(v_3)
+>>
+Rule 12 (Input tensor cannot be of Char or ComplexDouble dtype to prevent RuntimeError)
+{v_1 : tensor} |= dtype_(v_1) ≠ "torch.char" ∧ dtype_(v_1) ≠ "torch.complex128"
+>>
+Rule 13 (If out is specified, it must be a Tensor with correct shape)
+{v_1 : tensor, v_3 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∃i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) > 0) then ndim(v_1) = ndim(v_3) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i))
+>>
+Rule 14 (decimals must be in a practical range based on the input dtype)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = "torch.float16" then v_2 < 5 else if dtype_(v_1) = "torch.float32" then v_2 < 10
+>>
+Rule 15 (If input is integer, decimals should not have significant impact.)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = "torch.int32" ∨ dtype_(v_1) = "torch.int64" then v_2 ≤ 2
+>>
+Rule 17 (decimals must not be excessively large for float16 tensors to prevent overflow/underflow)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = "torch.float16" then v_2 > -6 ∧ v_2 < 6
+>>
+Rule 18 (If out tensor is provided, its shape and dtype must match the input)
+{v_1 : tensor, v_3 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∃i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) > 0) then ndim(v_1) = ndim(v_3) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)) ∧ dtype_(v_1) = dtype_(v_3)
+>>
+Rule 19 (Input should be float or int tensor)
+{v_1 : tensor} |= dtype_(v_1) = "torch.float16" ∨ dtype_(v_1) = "torch.float32" ∨ dtype_(v_1) = "torch.float64" ∨ dtype_(v_1) = "torch.int8" ∨ dtype_(v_1) = "torch.int16" ∨ dtype_(v_1) = "torch.int32" ∨ dtype_(v_1) = "torch.int64"
+>>
+Rule 24 (Input tensor must not be of Char or ComplexDouble dtype - alternative formulation)
+{v_1 : tensor} |= (dtype_(v_1) ≠ "torch.char") ∧ (dtype_(v_1) ≠ "torch.complex128")
+>>
+Rule 25 (decimals must be within a reasonable range relative to the magnitude of the input tensor's values to avoid potential overflow with float16)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = "torch.float16" then min(v_1) > -1000 ∧ max(v_1) < 1000 ∧ v_2 > -6 ∧ v_2 < 6
+>>
+Rule 26 (Ensure input tensor has a supported dtype)
+{v_1 : tensor} |= (dtype_(v_1) = "torch.float16") ∨ (dtype_(v_1) = "torch.float32") ∨ (dtype_(v_1) = "torch.float64") ∨ (dtype_(v_1) = "torch.int8") ∨ (dtype_(v_1) = "torch.int16") ∨ (dtype_(v_1) = "torch.int32") ∨ (dtype_(v_1) = "torch.int64")
+>>
+Rule 30 (If input is integer tensor, decimals should be 0 or positive)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = "torch.int8" ∨ dtype_(v_1) = "torch.int16" ∨ dtype_(v_1) = "torch.int32" ∨ dtype_(v_1) = "torch.int64" then v_2 ≥ 0
+>>
+Rule 31 (Input tensor must not be of Char or ComplexDouble or Bool or UInt8 dtype)
+{v_1 : tensor} |= (dtype_(v_1) ≠ "torch.char") ∧ (dtype_(v_1) ≠ "torch.complex128") ∧ (dtype_(v_1) ≠ "torch.bool") ∧ (dtype_(v_1) ≠ "torch.uint8")
+>>
+Rule 35 (If input is integer tensor and decimals is negative, decimals should not be too small.)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = "torch.int8" ∨ dtype_(v_1) = "torch.int16" ∨ dtype_(v_1) = "torch.int32" ∨ dtype_(v_1) = "torch.int64" then v_2 > -10
+>>
+Rule 36 (If input is integer tensor and decimals is negative, decimals should not be too small, and tensor shouldn't be too large.)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = "torch.int8" ∨ dtype_(v_1) = "torch.int16" ∨ dtype_(v_1) = "torch.int32" ∨ dtype_(v_1) = "torch.int64" then v_2 > -10 ∧ min(v_1) > -1000 ∧ max(v_1) < 1000
+>>
+Rule 37 (Out tensor must be the same shape and dtype as input, if provided.)
+{v_1 : tensor, v_3 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then ndim(v_1) = ndim(v_3) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)) ∧ dtype_(v_1) = dtype_(v_3)
+>>
+Rule 40 (If input is an integer type, then `decimals` should be non-negative)
+{v_1 : tensor, v_2 : int} |= if (dtype_(v_1) = "torch.int8") ∨ (dtype_(v_1) = "torch.int16") ∨ (dtype_(v_1) = "torch.int32") ∨ (dtype_(v_1) = "torch.int64") then v_2 ≥ 0
+>>
+Rule 41 (If input is float16, then `decimals` can not be too big or too small to avoid overflow)
+{v_1 : tensor, v_2 : int} |= if (dtype_(v_1) = "torch.float16") then (v_2 ≥ -5 ∧ v_2 ≤ 5)
+>>
+Rule 48 (Avoid unsupported dtypes for input)
+{v_1 : tensor} |= (dtype_(v_1) ≠ "torch.char") ∧ (dtype_(v_1) ≠ "torch.complex128") ∧ (dtype_(v_1) ≠ "torch.bool") ∧ (dtype_(v_1) ≠ "torch.uint8") ∧ (dtype_(v_1) ≠ "torch.double")
+>>
+Rule 49 (If input is float16, then `decimals` cannot be extremely negative.)
+{v_1 : tensor, v_2 : int} |= if (dtype_(v_1) = "torch.float16") then (v_2 > -10)
+>>
+Rule 50 (If `out` tensor is given, its shape must match that of the input)
+{v_1 : tensor, v_3 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)
+>>
+Rule 55 (Out tensor shape and dtype must match input if specified)
+{v_1 : tensor, v_3 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then (ndim(v_1) = ndim(v_3)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)) ∧ (dtype_(v_1) = dtype_(v_3))
+>>
+Rule 56 (The output tensor, if given, must have matching shape)
+{v_1 : tensor, v_3 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then (ndim(v_1) = ndim(v_3)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i))
+>>
+Rule 57 (Check if input dtype is a floating point type.)
+{v_1 : tensor} |= (dtype_(v_1) = "torch.float16") ∨ (dtype_(v_1) = "torch.float32") ∨ (dtype_(v_1) = "torch.float64")
+>>
+Rule 60 (If the input tensor is a float16, then the number of decimals must be between -8 and 8)
+{v_1 : tensor, v_2 : int} |= if (dtype_(v_1) = "torch.float16") then (v_2 ≥ -8 ∧ v_2 ≤ 8)
+>>
+Rule 63 (Out tensor if provided, check same shape and dtype)
+{v_1 : tensor, v_3: tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then (ndim(v_1) = ndim(v_3)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)) ∧ (dtype_(v_1) = dtype_(v_3))
+>>
+Rule 64 (For out tensor if provided, have same shape, dtype and existing data as the input tensor)
+{v_1: tensor, v_3: tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then (ndim(v_1) = ndim(v_3)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)) ∧ (dtype_(v_1) = dtype_(v_3))
+>>
+Rule 69 (Ensure only valid data types for tensor are supplied)
+{v_1 : tensor} |= (dtype_(v_1) ≠ "torch.char") ∧ (dtype_(v_1) ≠ "torch.complex128") ∧ (dtype_(v_1) ≠ "torch.complex64") ∧ (dtype_(v_1) ≠ "torch.double")
+>>
+Rule 73 (Ensure that the input has a valid, supported dtype)
+{v_1: tensor} |= (dtype_(v_1) ≠ "torch.char") ∧ (dtype_(v_1) ≠ "torch.complex128") ∧ (dtype_(v_1) ≠ "torch.complex64") ∧ (dtype_(v_1) ≠ "torch.double") ∧ (dtype_(v_1) ≠ "torch.bool")
+>>
+Rule 74 (If the input dtype is float16, then decimals needs to be between -8 and 8, and the values in the tensor must also be in a certain range)
+{v_1: tensor, v_2: int} |= if (dtype_(v_1) = "torch.float16") then (v_2 ≥ -8 ∧ v_2 ≤ 8) ∧ (min(v_1) > -10000 ∧ max(v_1) < 10000)
+>>
+Rule 75 (Only tensors with a dtype other than char or a complex type are permitted for the input parameter, prevents runtime errors related to vml_cpu)
+{v_1: tensor} |= (dtype_(v_1) ≠ "torch.char") ∧ (dtype_(v_1) ≠ "torch.complex128") ∧ (dtype_(v_1) ≠ "torch.complex64")
+>>
+Rule 76 (decimals only valid if the tensor has a float dtype.)
+{v_1: tensor, v_2: int} |= if (dtype_(v_1) = "torch.int8") ∨ (dtype_(v_1) = "torch.int16") ∨ (dtype_(v_1) = "torch.int32") ∨ (dtype_(v_1) = "torch.int64") then v_2 = 0
+>>
+Rule 77 (if the input has type torch.float16, the decimals value is constrained to between -8 and 8 inclusive.)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = "torch.float16" then v_2 ≥ -8 ∧ v_2 ≤ 8
+>>
+Rule 80 (If decimals is set with float16, must constrain it to between -8 and 8, inclusive)
+{v_1 : tensor, v_2: int} |= if dtype_(v_1) = "torch.float16" then v_2 ≥ -8 ∧ v_2 ≤ 8
+>>
+Rule 82 (The output tensor if specified must have the same dimensions as the input tensor)
+{v_1 : tensor, v_3: tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then (ndim(v_1) = ndim(v_3)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i))
+>>
+Rule 83 (If dtype is float16 and there are values in the tensor, check it stays within a reasonable range)
+{v_1 : tensor} |= if (dtype_(v_1) = "torch.float16") then (min(v_1) > -10000 ∧ max(v_1) < 10000)
+>>
+Rule 85 (The input tensor should not have a 'char' dtype as the round_vml_cpu kernel is not implemented for this type.)
+{v_1: tensor} |= dtype_(v_1) ≠ "torch.char"
+>>
+Rule 86 (The input tensor shape should be the same as the output tensor shape.)
+{v_1: tensor, v_3: tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then (ndim(v_1) = ndim(v_3)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i))
+>>
+Rule 87 (If the input tensor is a float16 tensor, the decimals values should be limited to avoid issues. Decimals must be >= -8 and <= 8)
+{v_1 : tensor, v_2: int} |= if (dtype_(v_1) = "torch.float16") then v_2 ≥ -8 ∧ v_2 ≤ 8
+>>
+Rule 90 (If the dtype is float16, constraint values and decimal places to prevent INF value)
+{v_1 : tensor, v_2: int} |= if (dtype_(v_1) = "torch.float16") then v_2 ≥ -8 ∧ v_2 ≤ 8 ∧ min(v_1) > -10000 ∧ max(v_1) < 10000
+>>
+Rule 91 (The input tensor should not be a Char, Complex128, Complex64, Double, Bool, or Uint8 datatype for compatibility reasons.)
+{v_1 : tensor} |= (dtype_(v_1) ≠ "torch.char") ∧ (dtype_(v_1) ≠ "torch.complex128") ∧ (dtype_(v_1) ≠ "torch.complex64") ∧ (dtype_(v_1) ≠ "torch.float64") ∧ (dtype_(v_1) ≠ "torch.bool") ∧ (dtype_(v_1) ≠ "torch.uint8")

@@ -31,9 +31,9 @@ def rule_52_func(arg1, solver=None, neg=False):
             arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 52
-        rule_52(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length})
+        rule_52(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_52(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length']}, neg)
+        rule_52(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)

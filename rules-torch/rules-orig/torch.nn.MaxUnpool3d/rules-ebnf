@@ -1,0 +1,174 @@
+>>
+Rule 1 (kernel_size should have length 3 or 1 if it's a tuple)
+{v_1 : tuple(int)} |= (v_1.len = 3) ∨ (v_1.len = 1)
+>>
+Rule 4 (output_size should have length 3 or 5 if it's a tuple)
+{v_1 : tuple(int)} |= (v_1.len = 3) ∨ (v_1.len = 5)
+>>
+Rule 5 (kernel_size should be positive when int)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 7 (padding should be non-negative when int)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 8 (Shape of input tensor should be 5 or 4)
+{v_1 : tensor} |= (ndim(v_1) = 5) ∨ (ndim(v_1) = 4)
+>>
+Rule 9 (indices tensor should be long (int64))
+{v_1 : tensor} |= dtype_(v_1) = 5
+>>
+Rule 10 (indices should be integer tensor)
+{v_1 : tensor} |= (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) ∨ (dtype_(v_1) = 6)
+>>
+Rule 11 (If kernel size is a tuple, each element must be an integer and > 0)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 13 (If padding is a tuple, each element must be an integer and >= 0)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+>>
+Rule 14 (Check if output_size is a tuple, elements should not be too large or too small, assuming ndim(input) = 5)
+{v_1 : tensor, v_2: tuple(int), v_3 : int, v_4 : int, v_5 : int} |= (ndim(v_1) = 5) ∧ ((shape(v_1, 2) - 1) * v_3 - 2 * v_5 + v_4 ≥ v_2[0]) ∧ (v_2[0] ≥ 0) ∧ ((shape(v_1, 3) - 1) * v_3 - 2 * v_5 + v_4 ≥ v_2[1]) ∧ (v_2[1] ≥ 0) ∧ ((shape(v_1, 4) - 1) * v_3 - 2 * v_5 + v_4 ≥ v_2[2]) ∧ (v_2[2] ≥ 0)
+>>
+Rule 16 (Input and indices should have the same shape.)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = ndim(v_2)) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) else false
+>>
+Rule 24 (Check if output_size's elements are within a reasonable range)
+{v_1 : tensor, v_2: tuple(int), v_3 : int, v_4 : int, v_5 : int} |= (ndim(v_1) = 5) ∧ ((shape(v_1, 2) - 1) * v_3 - 2 * v_5 + v_4 ≥ v_2[0]) ∧ (v_2[0] ≤ 1000) ∧ ((shape(v_1, 3) - 1) * v_3 - 2 * v_5 + v_4 ≥ v_2[1]) ∧ (v_2[1] ≤ 1000) ∧ ((shape(v_1, 4) - 1) * v_3 - 2 * v_5 + v_4 ≥ v_2[2]) ∧ (v_2[2] ≤ 1000)
+>>
+Rule 25 (Check if output_size's length is a valid integer value.)
+{v_1 : int} |= (v_1 = 3) ∨ (v_1 = 5)
+>>
+Rule 26 (Input and indices dimensions needs to be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+>>
+Rule 27 (Input and indices should have same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 28 (Check valid value for output size)
+{v_1 : tensor, v_2: tuple(int), v_3 : int, v_4 : int, v_5 : int} |= (ndim(v_1) = 5) ∧ (∀i ∈ [0, v_2.len -1] : ((shape(v_1, 2 + i) - 1) * v_3 - 2 * v_5 + v_4) ≥ v_2[i])
+>>
+Rule 35 (Indices tensor elements must be non-negative)
+{v_1 : tensor} |= min(v_1) ≥ 0
+>>
+Rule 36 (Indices tensor elements must be less than input size.)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : max(v_1) < shape(v_2, i)
+>>
+Rule 37 (Check output_size for 3D input case)
+{v_1 : tensor, v_2 : tuple(int), v_3: int, v_4 : int} |= if ndim(v_1) = 4 then ((shape(v_1, 1) -1 ) * v_3 - 2* v_4 + v_3) ≥ v_2[0] ∧ ((shape(v_1, 2) -1 ) * v_3 - 2* v_4 + v_3) ≥ v_2[1] ∧ ((shape(v_1, 3) -1 ) * v_3 - 2* v_4 + v_3) ≥ v_2[2]
+>>
+Rule 39 (input and indices tensors should have the same batch size)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 5 then shape(v_1, 0) = shape(v_2, 0) else if ndim(v_1) = 4 then true else false
+>>
+Rule 42 (Check if output_size's elements are non-negative and not too large when input is 4D)
+{v_1 : tensor, v_2: tuple(int), v_3 : int, v_4 : int} |= (ndim(v_1) = 4) ∧ (∀i ∈ [0, v_2.len -1] : ((shape(v_1, 1 + i) - 1) * v_3 - 2 * v_4 + v_3) ≥ v_2[i]) ∧ (∀i ∈ [0, v_2.len - 1]: v_2[i] <= 1000)
+>>
+Rule 65 (If kernel size is an int, it must be positive)
+{v_1: int} |= v_1 > 0
+>>
+Rule 66 (If kernel size is a tuple, its length must be 1 or 3 and all elements must be positive)
+{v_1: tuple(int)} |= (v_1.len = 1 ∨ v_1.len = 3) ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 71 (If Padding is an int, it must be non-negative)
+{v_1: int} |= v_1 ≥ 0
+>>
+Rule 72 (If Padding is a tuple, its length must be 1 or 3 and all elements must be non-negative)
+{v_1: tuple(int)} |= (v_1.len = 1 ∨ v_1.len = 3) ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+>>
+Rule 99 (If kernel_size is a tuple, it must have length 1 or 3 and all elements must be positive)
+{v_2 : tuple(int)} |= (v_2.len = 1 ∨ v_2.len = 3) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+>>
+Rule 105 (If padding is a tuple, it must have length 1 or 3 and all elements must be non-negative)
+{v_2 : tuple(int)} |= (v_2.len = 1 ∨ v_2.len = 3) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+>>
+Rule 107 (kernel_size is a valid tuple and must have length 1 or 3 with all elements positive)
+{v_1 : tuple(int)} |= (v_1.len = 1 ∨ v_1.len = 3) ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 111 (padding is a valid tuple and must have length 1 or 3 with all elements non-negative)
+{v_1 : tuple(int)} |= (v_1.len = 1 ∨ v_1.len = 3) ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+>>
+Rule 112 (output_size is a valid tuple and must have length 3 or 5, and all elements non-negative and smaller than a reasonable max value.)
+{v_1 : tuple(int)} |= (v_1.len = 3 ∨ v_1.len = 5) ∧ ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ 0 ∧ v_1[i] < 2048)
+>>
+Rule 113 (Input and indices must have same dimension.)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2)
+>>
+Rule 114 (Output size must be a tuple with the correct length)
+{v_1: tuple(int)} |= v_1.len = 3 ∨ v_1.len = 5
+>>
+Rule 115 (Elements of output_size must be non-negative)
+{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+>>
+Rule 117 (Indices tensor should have the correct dtype)
+{v_1: tensor} |= dtype_(v_1) = 5
+>>
+Rule 120 (If input has 5 dimensions, indices must also have 5)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 5 then ndim(v_2) = 5
+>>
+Rule 121 (If input has 4 dimensions, indices must also have 4)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 4 then ndim(v_2) = 4
+>>
+Rule 124 (kernel_size should not be equal to zero.)
+{v_1 : int} |= v_1 ≠ 0
+>>
+Rule 125 (The padding should be less than 100)
+{v_1 : int} |= v_1 < 100
+>>
+Rule 126 (output_size must have at least three elements)
+{v_1 : tuple(int)} |= v_1.len ≥ 3
+>>
+Rule 127 (Outputsize should be at most 5)
+{v_1: tuple(int)} |= v_1.len <= 5
+>>
+Rule 128 (Kernel size should be less or equal to input height)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, 3)
+>>
+Rule 129 (Kernel size should be less or equal to input width)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, 4)
+>>
+Rule 130 (Kernel size must be positive or input depth is zero)
+{v_1 : tensor, v_2 : int} |= (shape(v_1, 2) = 0) ∨ (v_2 > 0)
+>>
+Rule 131 (If the input tensor is small, the indices tensor should be non-empty)
+{v_1: tensor, v_2: tensor} |= if shape(v_1, 2) < 3 then min(v_2) ≥ 0
+>>
+Rule 132 (Kernel size should be less than or equal to input height when input is 5D)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 5 then v_2 ≤ shape(v_1, 3)
+>>
+Rule 133 (Kernel size should be less than or equal to input width when input is 5D)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 5 then v_2 ≤ shape(v_1, 4)
+>>
+Rule 134 (Kernel size must be positive if input depth not 0 when input is 5D)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 5 then ((shape(v_1, 2) = 0) ∨ (v_2 > 0))
+>>
+Rule 135 (If the input tensor is small, the indices tensor should be non-empty only for 5D inputs)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 5 then (if shape(v_1, 2) < 3 then min(v_2) ≥ 0)
+>>
+Rule 140 (If output_size has 3 elements, the input must have 4 dimensions)
+{v_1: tensor, v_2: tuple(int)} |= if v_2.len = 3 then ndim(v_1) = 4
+>>
+Rule 141 (If output_size has 5 elements, the input must have 5 dimensions)
+{v_1: tensor, v_2: tuple(int)} |= if v_2.len = 5 then ndim(v_1) = 5
+>>
+Rule 142 (Each element in output size should be no greater than 2048, a reasonable upper bound, assuming 3d input)
+{v_1: tuple(int)} |= if v_1.len = 3 then (v_1[0] < 2048 ∧ v_1[1] < 2048 ∧ v_1[2] < 2048)
+>>
+Rule 143 (Each element in output size should be no greater than 2048, assuming 5d input)
+{v_1: tuple(int)} |= if v_1.len = 5 then (v_1[0] < 2048 ∧ v_1[1] < 2048 ∧ v_1[2] < 2048 ∧ v_1[3] < 2048 ∧ v_1[4] < 2048 )
+>>
+Rule 144 (output size length can only be three or five if input is valid)
+{v_1 : tensor, v_2 : tuple(int)} |= (ndim(v_1) = 4 ∧ v_2.len = 3) ∨ (ndim(v_1) = 5 ∧ v_2.len = 5)
+>>
+Rule 145 (If kernel_size is a tuple, it should have same length as stride if stride is a tuple.)
+{v_1 : tuple(int), v_2 : tuple(int)} |= v_1.len = v_2.len
+>>
+Rule 146 (If kernel_size is a tuple, each element must be less than input height)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 5 then v_2[0] < shape(v_1, 2) ∧ v_2[1] < shape(v_1, 3) ∧ v_2[2] < shape(v_1, 4) else if ndim(v_1) = 4 then v_2[0] < shape(v_1, 2) ∧ v_2[1] < shape(v_1, 3)
+>>
+Rule 147 (Input's channel dimension and indices channel dimension are same for 5D tensor)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 5 then shape(v_1, 1) = shape(v_2, 1)
+>>
+Rule 148 (Outputsize cannot be greater than a threshold that depends on input shape, for only for 5D input tensors)
+{v_1 : tensor, v_2 : tuple(int), v_3 : int, v_4: int} |= if ndim(v_1) = 5 then v_2[0] < ((shape(v_1, 2) - 1) * v_3 - 2 * v_4 + v_3) * 2
+>>
+Rule 149 (Input's channel dimension and indices channel dimension are same for 4D tensor)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 0) = shape(v_2, 0)

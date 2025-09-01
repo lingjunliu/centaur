@@ -43,9 +43,9 @@ def rule_58_func(arg1, arg2, arg3, solver=None, neg=False):
         arg3_range = Store(arg3_range, 1, int(np.max(arg3)))
 
         # Constraints for rule 58
-        rule_58(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype, 'arg2_range': arg2_range, 'arg3_range': arg3_range})
+        rule_58(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range, 'arg2_range': arg2_range, 'arg3_range': arg3_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_58(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype'], 'arg2_range': arg2['range'], 'arg3_range': arg3['range']}, neg)
+        rule_58(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range'], 'arg2_range': arg2['range'], 'arg3_range': arg3['range']}, neg)

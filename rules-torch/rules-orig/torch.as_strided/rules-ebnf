@@ -1,0 +1,171 @@
+>>
+Rule 2 (Strides must be non-negative)
+{stride : tuple(int)} |= ∀i ∈ [0, stride.len - 1] : stride[i] ≥ 0
+>>
+Rule 3 (Storage offset must be non-negative)
+{storage_offset : int} |= storage_offset ≥ 0
+>>
+Rule 4 (Length of strides and shape must match, enforcing equal dimensionality)
+{size : tuple(int), stride : tuple(int)} |= size.len = stride.len
+>>
+Rule 5 (Sizes cannot be negative to avoid storage overflow)
+{size : tuple(int)} |= ∀i ∈ [0, size.len - 1] : size[i] > -1
+>>
+Rule 6 (Check that the product of size and stride elements will not overflow)
+{size : tuple(int), stride : tuple(int)} |= if size.len = 0 then true else if stride.len = 0 then true else ∀i ∈ [0, size.len - 1] : size[i] < 2147483647 ∧ stride[i] < 2147483647
+>>
+Rule 8 (Handle storage size calculation overflow more robustly)
+{size : tuple(int)} |= ∀i ∈ [0, size.len - 1] : size[i] < 1073741823
+>>
+Rule 9 (Size elements should be reasonable values (avoiding overflow))
+{size : tuple(int)} |= ∀i ∈ [0, size.len - 1] : size[i] < 1000000
+>>
+Rule 10 (Stride elements should be reasonable values (avoiding overflow))
+{stride : tuple(int)} |= ∀i ∈ [0, stride.len - 1] : stride[i] < 1000000
+>>
+Rule 11 (Size elements must be non-negative)
+{size : tuple(int)} |= ∀i ∈ [0, size.len - 1] : size[i] ≥ 0
+>>
+Rule 19 (Check that input tensor ndim is not zero. Avoids potential errors.)
+{input : tensor} |= ndim(input) > 0
+>>
+Rule 20 (Storage offset must be a small value)
+{storage_offset : int} |= storage_offset < 1000000
+>>
+Rule 21 (Size elements must be non-negative, and less than 1000000)
+{size : tuple(int)} |= ∀i ∈ [0, size.len - 1] : size[i] ≥ 0 ∧ size[i] < 1000000
+>>
+Rule 23 (Storage offset must be non-negative and reasonably small)
+{storage_offset : int} |= storage_offset ≥ 0 ∧ storage_offset < 1000000
+>>
+Rule 24 (Strides must be non-negative and reasonably small)
+{stride : tuple(int)} |= ∀i ∈ [0, stride.len - 1] : stride[i] ≥ 0 ∧ stride[i] < 1000000
+>>
+Rule 25 (Length of strides and shape must match, enforcing equal dimensionality and size.len must be less than 5)
+{size : tuple(int), stride : tuple(int)} |= size.len = stride.len ∧ size.len < 5
+>>
+Rule 26 (Simplified storage bound check, avoids too complicated arithmetics)
+{input : tensor, stride : tuple(int), storage_offset : int} |= storage_offset + (shape(input, 0) * stride[0]) < 2147483647
+>>
+Rule 27 (Check that size tuple length is non-zero.)
+{size : tuple(int)} |= size.len > 0
+>>
+Rule 28 (Storage_offset cannot be a large negative number)
+{storage_offset : int} |= storage_offset > -1000
+>>
+Rule 29 (If size is empty, stride must also be empty)
+{size : tuple(int), stride: tuple(int)} |= if size.len = 0 then stride.len = 0
+>>
+Rule 30 (Check if the first shape dimension * first stride dimension is reasonable)
+{input: tensor, stride: tuple(int)} |= if ndim(input) > 0 then (shape(input, 0) * stride[0]) < 2147483647
+>>
+Rule 40 (The sum of size elements should be reasonable)
+{size : tuple(int)} |= ∀i ∈ [0, size.len - 1] : size[i] < 1000
+>>
+Rule 41 (Prevent negative sizes directly.)
+{size: tuple(int)} |= ∀i ∈ [0, size.len - 1] : size[i] ≥ 0
+>>
+Rule 42 (Ensure reasonable product of size elements to avoid overflow during size calculation)
+{size: tuple(int)} |= if size.len > 1 then size[0] * size[1] < 10000000
+>>
+Rule 43 (Storage offset should not be excessively large relative to input size)
+{input: tensor, storage_offset: int} |= storage_offset < 1000 * shape(input, 0)
+>>
+Rule 44 (Strides should not lead to very sparse memory access)
+{stride: tuple(int)} |= ∀i ∈ [0, stride.len - 1] : stride[i] < 10000
+>>
+Rule 45 (Length of strides and shape should match)
+{size: tuple(int), stride: tuple(int)} |= size.len = stride.len
+>>
+Rule 46 (Check that the total number of elements is reasonable)
+{size: tuple(int)} |= ∀i ∈ [0, size.len-1] : size[i] < 10000
+>>
+Rule 47 (Storage Offset should not be negative)
+{storage_offset: int} |= storage_offset >= 0
+>>
+Rule 48 (Empty size implies empty stride)
+{size: tuple(int), stride: tuple(int)} |= if size.len = 0 then stride.len = 0
+>>
+Rule 49 (Storage offset should be small even if the tensor itself is small)
+{storage_offset: int} |= storage_offset < 1000
+>>
+Rule 50 (Number of dimensions must be smaller than a maximum reasonable value)
+{input: tensor} |= ndim(input) < 10
+>>
+Rule 52 (Ensure reasonable product of size elements to avoid overflow during size calculation if size has at least 2 elements)
+{size: tuple(int)} |= if size.len > 1 then (size[0] * size[1] < 10000000)
+>>
+Rule 53 (Storage offset should not be excessively large relative to the sum of the shape dimensions of the input)
+{input: tensor, storage_offset: int} |= storage_offset < 1000 * (shape(input, 0) + shape(input, 1))
+>>
+Rule 54 (Strides should not lead to very sparse memory access. Check only the first 2 strides)
+{stride: tuple(int)} |= if stride.len > 1 then stride[0] < 10000 ∧ stride[1] < 10000
+>>
+Rule 56 (Check that the total number of elements in size tuple is at least one.)
+{size: tuple(int)} |= size.len >= 1
+>>
+Rule 60 (Number of dimensions must be smaller than a maximum reasonable value - specifically checking 3 dimensions)
+{input: tensor} |= if ndim(input) >= 3 then (shape(input,0) < 1000 ∧ shape(input,1) < 1000 ∧ shape(input, 2) < 1000)
+>>
+Rule 61 (Sizes must be non-negative to avoid overflow - focuses on negative sizes)
+{size: tuple(int)} |= ∃i ∈ [0, size.len - 1] : size[i] ≥ 0
+>>
+Rule 64 (Large size values combined with large stride values leading to potential overflow)
+{size: tuple(int), stride: tuple(int)} |= size[0] * stride[0] < 100000000
+>>
+Rule 65 (Negative strides are not allowed)
+{stride: tuple(int)} |= ∀i ∈ [0, stride.len - 1] : stride[i] >= 0
+>>
+Rule 66 (Large size value which is not allowed)
+{size: tuple(int)} |= size[0] < 10000
+>>
+Rule 67 (Storage offset should be larger than a very small value.)
+{storage_offset: int} |= storage_offset > -100
+>>
+Rule 68 (Storage size needs to be non-zero.)
+{input: tensor} |= shape(input,0) > 0
+>>
+Rule 69 (If size length is 1, the corresponding shape dimension should be greater than 0.)
+{input: tensor, size: tuple(int)} |= if size.len = 1 then shape(input, 0) >= 0
+>>
+Rule 70 (Number of shape dimensions must be smaller than a maximum reasonable value)
+{input: tensor} |= ndim(input) < 5
+>>
+Rule 71 (Sizes must be non-negative to avoid overflow - focuses on negative sizes)
+{size: tuple(int)} |= ∀i ∈ [0, size.len - 1] : size[i] >= 0
+>>
+Rule 72 (Storage offset should be small enough to avoid out of bounds access. Limit storage offset to avoid the error.)
+{storage_offset: int} |= storage_offset < 10000
+>>
+Rule 80 (Check that strides are reasonably sized compared to the input shape to prevent out of bound)
+{input: tensor, stride: tuple(int)} |= if stride.len > 0 then stride[0] < 10 * shape(input, 0)
+>>
+Rule 81 (Negative size in size tuple - addresses overflow with negative size)
+{size: tuple(int)} |= ∃i ∈ [0, size.len - 1] : size[i] < 0
+>>
+Rule 82 (Storage Offset outside of a reasonable negative range.)
+{storage_offset: int} |= storage_offset > -10000
+>>
+Rule 83 (If size is a single element and is less than 0, it is problematic)
+{size: tuple(int)} |= if size.len = 1 then size[0] > 0
+>>
+Rule 84 (If Stride is a single element and it is negative, this is not allowed.)
+{stride: tuple(int)} |= if stride.len = 1 then stride[0] >= 0
+>>
+Rule 86 (The number of dimensions is not allowed to be a negative number)
+{input: tensor} |= ndim(input) >= 0
+>>
+Rule 87 (Sizes and strides are both zero length, at least one of them should have a dimension.)
+{size: tuple(int), stride: tuple(int)} |= if size.len = 0 then stride.len > 0 else if stride.len = 0 then size.len > 0
+>>
+Rule 88 (Check that the sum of the stride elements is a positive value.)
+{stride: tuple(int)} |= if stride.len > 0 then ∃i ∈ [0, stride.len - 1] : stride[i] > 0
+>>
+Rule 89 (Check that the sum of the size elements is a positive value.)
+{size: tuple(int)} |= if size.len > 0 then ∃i ∈ [0, size.len - 1] : size[i] > 0
+>>
+Rule 90 (If size and stride are length 1 and the size = 0 then stride = 0)
+{size: tuple(int), stride: tuple(int)} |= if size.len = 1 ∧ size[0] = 0 then stride.len = 1 ∧ stride[0] = 0
+>>
+Rule 100 (If size is more than 3 dimensions, at least one of those dimensions has to be positive)
+{size: tuple(int)} |= if size.len > 3 then ∃i ∈ [0, size.len - 1] : size[i] > 0

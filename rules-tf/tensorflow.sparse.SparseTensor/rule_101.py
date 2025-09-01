@@ -37,9 +37,9 @@ def rule_101_func(arg1, arg2, solver=None, neg=False):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 101
-        rule_101(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype, 'arg2_shape': arg2_shape})
+        rule_101(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range, 'arg2_shape': arg2_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_101(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype'], 'arg2_shape': arg2['shape']}, neg)
+        rule_101(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range'], 'arg2_shape': arg2['shape']}, neg)

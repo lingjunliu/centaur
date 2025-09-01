@@ -46,9 +46,9 @@ def rule_113_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         solver.add(arg4_ndim == arg4.ndim)
 
         # Constraints for rule 113
-        rule_113(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value, 'arg3_shape': arg3_shape, 'arg3_dtype': arg3_dtype, 'arg4_ndim': arg4_ndim})
+        rule_113(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value, 'arg3_dtype': arg3_dtype, 'arg3_shape': arg3_shape, 'arg4_ndim': arg4_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_113(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value'], 'arg3_shape': arg3['shape'], 'arg3_dtype': arg3['dtype'], 'arg4_ndim': arg4['ndim']}, neg)
+        rule_113(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value'], 'arg3_dtype': arg3['dtype'], 'arg3_shape': arg3['shape'], 'arg4_ndim': arg4['ndim']}, neg)

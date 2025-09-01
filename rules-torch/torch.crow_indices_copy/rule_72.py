@@ -38,9 +38,9 @@ def rule_72_func(arg1, arg2, solver=None, neg=False):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 72
-        rule_72(solver, {'arg1_shape': arg1_shape, 'arg1_range': arg1_range, 'arg2_shape': arg2_shape})
+        rule_72(solver, {'arg1_range': arg1_range, 'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_72(solver, {'arg1_shape': arg1['shape'], 'arg1_range': arg1['range'], 'arg2_shape': arg2['shape']}, neg)
+        rule_72(solver, {'arg1_range': arg1['range'], 'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape']}, neg)

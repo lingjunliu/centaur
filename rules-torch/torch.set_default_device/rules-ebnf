@@ -1,63 +1,120 @@
 >>
-Rule 1 (device string should be a valid device identifier - prevent invalid device string error)
-{v_1 : str} |= v_1 = "cpu" ∨ v_1 = "cuda" ∨ v_1 = "cuda:0" ∨ v_1 = "cuda:1" ∨ v_1 = "cuda:2" ∨ v_1 = "cuda:3" ∨ v_1 = "mps" ∨ v_1 = "xla"
->>
-Rule 2 (device string cannot be an empty string)
+Rule 2 (device string should not be empty)
 {v_1 : str} |= v_1 ≠ ""
 >>
-Rule 3 (device string with cuda should have valid index)
-{v_1 : str} |= if v_1 = "cuda" then true else (if v_1 = "cuda:0" then true else (if v_1 = "cuda:1" then true else (if v_1 = "cuda:2" then true else (if v_1 = "cuda:3" then true))))
+Rule 3 (device string should have a valid format such as 'cpu', 'cuda', 'cuda:0', etc.)
+{v_1 : str} |= (v_1 = "cpu") ∨ (v_1 = "cuda") ∨ (∃i ∈ [0, 9] : v_1 = "cuda:" + (if i = 0 then "0" else if i = 1 then "1" else if i = 2 then "2" else if i = 3 then "3" else if i = 4 then "4" else if i = 5 then "5" else if i = 6 then "6" else if i = 7 then "7" else if i = 8 then "8" else "9"))
 >>
-Rule 4 (device string must be a valid identifier)
-{v_1 : str} |= v_1 = "cpu" ∨ v_1 = "cuda" ∨ v_1 = "mps" ∨ v_1 = "xla" ∨ (∃i ∈ [0, 3] : v_1 = "cuda:" + i)
+Rule 4 (device string cannot contain invalid characters)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = ":"
 >>
-Rule 5 (cuda index should be non-negative)
-{v_1 : str} |= if v_1 = "cuda" then true else (if v_1 = "cpu" then true else (if v_1 = "mps" then true else (if v_1 = "xla" then true else (∃i ∈ [0, 3] : v_1 = "cuda:" + i))))
->>
-Rule 6 (device string must start with cuda if an index is provided)
-{v_1 : str} |= if ∃i ∈ [0, 3] : v_1 = "cuda:" + i then true else (v_1 = "cpu" ∨ v_1 = "cuda" ∨ v_1 = "mps" ∨ v_1 = "xla")
->>
-Rule 7 (If cuda index is provided, then index must be a number)
-{v_1 : str} |= if ∃i ∈ [0, 3] : v_1 = "cuda:" + i then true else if v_1 = "cuda" then true else if v_1 = "cpu" then true else if v_1 = "mps" then true else if v_1 = "xla" then true else false
->>
-Rule 8 (cuda indices should be in range)
-{v_1 : str} |= if v_1 = "cuda:0" ∨ v_1 = "cuda:1" ∨ v_1 = "cuda:2" ∨ v_1 = "cuda:3" then true else if v_1 = "cuda" then true else if v_1 = "cpu" then true else if v_1 = "mps" then true else if v_1 = "xla" then true else false
->>
-Rule 10 (The device string should not be just a number)
-{v_1 : str} |= (v_1 ≠ "0") ∧ (v_1 ≠ "1") ∧ (v_1 ≠ "2") ∧ (v_1 ≠ "3")
->>
-Rule 11 (The device string should not be just a number)
-{v_1 : str} |= v_1 ≠ "0" ∧ v_1 ≠ "1" ∧ v_1 ≠ "2" ∧ v_1 ≠ "3"
->>
-Rule 13 (The device string should not be a number)
+Rule 9 (device string cannot be just a number)
 {v_1 : str} |= (v_1 ≠ "0") ∧ (v_1 ≠ "1") ∧ (v_1 ≠ "2") ∧ (v_1 ≠ "3") ∧ (v_1 ≠ "4") ∧ (v_1 ≠ "5") ∧ (v_1 ≠ "6") ∧ (v_1 ≠ "7") ∧ (v_1 ≠ "8") ∧ (v_1 ≠ "9")
 >>
-Rule 14 (The device string should not be a number)
-{v_1 : str} |= (v_1 ≠ "0")
+Rule 16 (device string must start with allowed prefixes)
+{v_1 : str} |= (v_1 = "cpu") ∨ (v_1 = "cuda") ∨ (v_1 = "mps")
 >>
-Rule 16 (The device string should not be a plain number)
-{v_1 : str} |= v_1 = "cpu" ∨ v_1 = "cuda" ∨ v_1 = "mps" ∨ v_1 = "xla" ∨ v_1 = "cuda:0" ∨ v_1 = "cuda:1" ∨ v_1 = "cuda:2" ∨ v_1 = "cuda:3"
+Rule 17 (device string with index must have valid format)
+{v_1 : str} |= if (v_1 = "cuda") ∨ (v_1 = "mps") then true else if (∃i ∈ [0, v_1.len - 1] : v_1[i] = ":") then (v_1[0] = "c" ∧ v_1[1] = "u" ∧ v_1[2] = "d" ∧ v_1[3] = "a" ∧ v_1[4] = ":" ∧ (∀j ∈ [5, v_1.len - 1] : v_1[j] ≥ "0" ∧ v_1[j] ≤ "9")) ∨ (v_1[0] = "m" ∧ v_1[1] = "p" ∧ v_1[2] = "s" ∧ v_1[3] = ":" ∧ (∀j ∈ [4, v_1.len - 1] : v_1[j] ≥ "0" ∧ v_1[j] ≤ "9"))
 >>
-Rule 17 (Valid device string)
-{v_1 : str} |= v_1 = "cpu" ∨ v_1 = "cuda" ∨ v_1 = "mps" ∨ v_1 = "xla" ∨ (if v_1 = "cuda:0" then true else (if v_1 = "cuda:1" then true else (if v_1 = "cuda:2" then true else if v_1 = "cuda:3" then true else false)))
+Rule 19 (device string must start with cpu, cuda or mps)
+{v_1 : str} |= (v_1 = "cpu") ∨ (v_1 = "cuda") ∨ (v_1 = "mps") ∨ (v_1[0] = "c" ∧ v_1[1] = "u" ∧ v_1[2] = "d" ∧ v_1[3] = "a" ∧ v_1[4] = ":") ∨ (v_1[0] = "m" ∧ v_1[1] = "p" ∧ v_1[2] = "s" ∧ v_1[3] = ":")
 >>
-Rule 18 (Device string must be valid)
-{v_1 : str} |= (v_1 = "cpu") ∨ (v_1 = "cuda") ∨ (v_1 = "mps") ∨ (v_1 = "xla") ∨ (v_1 = "cuda:0") ∨ (v_1 = "cuda:1") ∨ (v_1 = "cuda:2") ∨ (v_1 = "cuda:3")
+Rule 20 (Device index must be a number if specified)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = ":" then (∀j ∈ [i + 1, v_1.len - 1] : (v_1[j] ≥ "0" ∧ v_1[j] ≤ "9"))
 >>
-Rule 22 (Device string must be a valid option, including cuda:index format validation)
-{v_1 : str} |= v_1 = "cpu" ∨ v_1 = "cuda" ∨ v_1 = "mps" ∨ v_1 = "xla" ∨ (if v_1.len > 4 then (if v_1[0] = "c" ∧ v_1[1] = "u" ∧ v_1[2] = "d" ∧ v_1[3] = "a" ∧ v_1[4] = ":" then true else false) else false)
+Rule 23 (Device string must not be composed only of digits)
+{v_1 : str} |= (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] = "c") ∨ (v_1[0] = "m")
 >>
-Rule 23 (The device string can only contain valid devices and valid cuda indices)
-{v_1 : str} |= (v_1 = "cpu") ∨ (v_1 = "cuda") ∨ (v_1 = "mps") ∨ (v_1 = "xla") ∨ (if v_1.len > 4 then (if v_1[0] = "c" ∧ v_1[1] = "u" ∧ v_1[2] = "d" ∧ v_1[3] = "a" ∧ v_1[4] = ":" then (v_1[5] = "0" ∨ v_1[5] = "1" ∨ v_1[5] = "2" ∨ v_1[5] = "3") else false) else false)
+Rule 25 (Valid index)
+{v_1 : str} |= if (v_1 = "cpu") ∨ (v_1 = "cuda") ∨ (v_1 = "mps") then true else if (v_1[0] = "c" ∧ v_1[1] = "u" ∧ v_1[2] = "d" ∧ v_1[3] = "a" ∧ v_1[4] = ":") then (∀j ∈ [5, v_1.len - 1] : v_1[j] ≥ "0" ∧ v_1[j] ≤ "9") else if (v_1[0] = "m" ∧ v_1[1] = "p" ∧ v_1[2] = "s" ∧ v_1[3] = ":") then (∀j ∈ [4, v_1.len - 1] : v_1[j] ≥ "0" ∧ v_1[j] ≤ "9")
 >>
-Rule 24 (Device string can only contain valid devices and indices for CUDA)
-{v_1 : str} |= v_1 = "cpu" ∨ v_1 = "cuda" ∨ v_1 = "mps" ∨ v_1 = "xla" ∨ (if v_1.len > 4 then (if v_1[0] = "c" ∧ v_1[1] = "u" ∧ v_1[2] = "d" ∧ v_1[3] = "a" ∧ v_1[4] = ":" then (v_1[5] = "0" ∨ v_1[5] = "1" ∨ v_1[5] = "2" ∨ v_1[5] = "3") ∧ v_1.len = 6 else false) else false)
+Rule 27 (Device string must contain only valid characters.)
+{v_1 : str} |= (v_1 = "cpu") ∨ (v_1 = "cuda") ∨ (v_1 = "mps") ∨ (∃i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = ":"))
 >>
-Rule 25 (Valid device string with refined CUDA index check)
-{v_1 : str} |= v_1 = "cpu" ∨ v_1 = "cuda" ∨ v_1 = "mps" ∨ v_1 = "xla" ∨ (if v_1.len = 6 then (if v_1[0] = "c" ∧ v_1[1] = "u" ∧ v_1[2] = "d" ∧ v_1[3] = "a" ∧ v_1[4] = ":" then (v_1[5] = "0" ∨ v_1[5] = "1" ∨ v_1[5] = "2" ∨ v_1[5] = "3") else false) else false)
+Rule 28 (If there is a colon, it must have digits after it)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = ":" then (∀j ∈ [i+1, v_1.len - 1] : (v_1[j] ≥ "0" ∧ v_1[j] ≤ "9"))
 >>
-Rule 26 (The device string can only contain valid devices and indices for CUDA)
-{v_1 : str} |= v_1 = "cpu" ∨ v_1 = "cuda" ∨ v_1 = "mps" ∨ v_1 = "xla" ∨ (if v_1.len = 6 then (if v_1[0] = "c" ∧ v_1[1] = "u" ∧ v_1[2] = "d" ∧ v_1[3] = "a" ∧ v_1[4] = ":" then (v_1[5] = "0" ∨ v_1[5] = "1" ∨ v_1[5] = "2" ∨ v_1[5] = "3")  else false) else false)
+Rule 33 (If the device string starts with a digit, it cannot contain any other characters)
+{v_1 : str} |= if (v_1[0] ≥ "0" ∧ v_1[0] ≤ "9") then v_1.len = 1
 >>
-Rule 28 (The device string should not be a plain number string, enhanced)
-{v_1 : str} |= (v_1 ≠ "0") ∧ (v_1 ≠ "1") ∧ (v_1 ≠ "2") ∧ (v_1 ≠ "3") ∧ (v_1 ≠ "4") ∧ (v_1 ≠ "5") ∧ (v_1 ≠ "6") ∧ (v_1 ≠ "7") ∧ (v_1 ≠ "8") ∧ (v_1 ≠ "9") ∧ (v_1 ≠ "10") ∧ (v_1 ≠ "11") ∧ (v_1 ≠ "12")
+Rule 36 (If the device string starts with a digit, it cannot contain any other characters)
+{v_1 : str} |= if (v_1.len > 0 ∧ (v_1[0] ≥ "0" ∧ v_1[0] ≤ "9")) then v_1.len = 1
+>>
+Rule 37 (If there is a colon, it must have digits after it)
+{v_1 : str} |= if ∃i ∈ [0, if v_1.len > 0 then v_1.len - 1 else 0 ] : v_1[i] = ":" then (∀j ∈ [i+1, if v_1.len > 0 then v_1.len - 1 else 0] : (v_1[j] ≥ "0" ∧ v_1[j] ≤ "9"))
+>>
+Rule 38 (Valid characters must only be letters, digits, and colons)
+{v_1 : str} |= ∀i ∈ [0, if v_1.len > 0 then v_1.len - 1 else 0 ] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = ":")
+>>
+Rule 40 (If there is a colon, it must have digits after it)
+{v_1 : str} |= if (v_1.len > 0) ∧ (∃i ∈ [0, v_1.len - 1] : v_1[i] = ":") then (∀j ∈ [i+1, v_1.len - 1] : (v_1[j] ≥ "0" ∧ v_1[j] ≤ "9"))
+>>
+Rule 41 (Device string prefixes can be cpu, cuda, mps, or start with those and have a colon)
+{v_1 : str} |= (v_1 = "cpu") ∨ (v_1 = "cuda") ∨ (v_1 = "mps") ∨ (v_1.len > 3 ∧ v_1[0] = "c" ∧ v_1[1] = "u" ∧ v_1[2] = "d" ∧ v_1[3] = ":") ∨ (v_1.len > 3 ∧ v_1[0] = "m" ∧ v_1[1] = "p" ∧ v_1[2] = "s" ∧ v_1[3] = ":")
+>>
+Rule 42 (Device strings that start with a digit, are of length 1)
+{v_1 : str} |= if v_1.len > 0 ∧ (v_1[0] ≥ "0" ∧ v_1[0] ≤ "9") then v_1.len = 1
+>>
+Rule 43 (device contains colon, then valid indices exist)
+{v_1 : str} |= if (v_1.len > 0) ∧ (∃i ∈ [0, v_1.len - 1] : v_1[i] = ":") then (∀j ∈ [i+1, v_1.len - 1] : (v_1.len > i + 1 ∧ v_1[j] ≥ "0" ∧ v_1[j] ≤ "9"))
+>>
+Rule 44 (Only allowed character set)
+{v_1 : str} |= ∀i ∈ [0, if v_1.len > 0 then v_1.len - 1 else 0 ] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = ":") ∨ (v_1 = "")
+>>
+Rule 45 (First char must be a letter, except if only one char is given and is a digit)
+{v_1 : str} |= if v_1.len = 1 then (v_1[0] ≥ "0" ∧ v_1[0] ≤ "9") else (v_1.len > 0 ∧ (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z"))
+>>
+Rule 47 (valid and complete device identifier)
+{v_1 : str} |= (v_1 = "cpu") ∨ (v_1 = "cuda") ∨ (v_1 = "mps")  ∨ ((v_1.len > 0) ∧ (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∧ (∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = ":")))
+>>
+Rule 50 (Valid chars if not empty, cpu, cuda, or mps)
+{v_1 : str} |= if v_1 ≠ "" then ((v_1 = "cpu") ∨ (v_1 = "cuda") ∨ (v_1 = "mps")  ∨ ((v_1.len > 0) ∧ (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∧ (∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = ":"))))
+>>
+Rule 53 (valid and complete device identifier)
+{v_1 : str} |= ((v_1.len > 0) ∧ (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∧ (∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = ":"))) ∨ (v_1 = "cpu") ∨ (v_1 = "cuda") ∨ (v_1 = "mps")
+>>
+Rule 54 (if a single digit, then valid)
+{v_1 : str} |= if v_1.len = 1 then (v_1[0] ≥ "0" ∧ v_1[0] ≤ "9")
+>>
+Rule 56 (Starts with letter or cpu/cuda/mps)
+{v_1 : str} |= (v_1 = "cpu") ∨ (v_1 = "cuda") ∨ (v_1 = "mps") ∨ (v_1.len > 0 ∧ (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z"))
+>>
+Rule 60 (Valid start and body chars)
+{v_1 : str} |= if v_1.len = 1 then (v_1[0] ≥ "0" ∧ v_1[0] ≤ "9") else ((v_1.len > 0) ∧ ((v_1 = "cpu") ∨ (v_1 = "cuda") ∨ (v_1 = "mps") ∨ (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z" ∧ ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = ":"))))
+>>
+Rule 63 (If colon, digits following)
+{v_1 : str} |= if (v_1.len > 0) ∧ (∃i ∈ [0, v_1.len - 1] : v_1[i] = ":") then (∀j ∈ [i+1, v_1.len - 1] : (v_1.len > i+1 ∧ v_1[j] ≥ "0" ∧ v_1[j] ≤ "9"))
+>>
+Rule 64 (Valid start and body chars)
+{v_1 : str} |= if v_1.len = 1 then (v_1[0] ≥ "0" ∧ v_1[0] ≤ "9") else ((v_1.len > 0) ∧ ((v_1 = "cpu") ∨ (v_1 = "cuda") ∨ (v_1 = "mps") ∨ (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z" ∧ (∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = ":")))))
+>>
+Rule 66 (First char valid or single number)
+{v_1 : str} |= if v_1.len = 1 then (v_1[0] ≥ "0" ∧ v_1[0] ≤ "9") else (v_1 = "cpu") ∨ (v_1 = "cuda") ∨ (v_1 = "mps") ∨ (v_1.len > 0 ∧ (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z"))
+>>
+Rule 70 (Valid characters in body if not just cpu/cuda/mps)
+{v_1 : str} |= (v_1 = "cpu") ∨ (v_1 = "cuda") ∨ (v_1 = "mps") ∨ (∀i ∈ [0, if v_1.len > 0 then v_1.len - 1 else 0 ] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = ":"))
+>>
+Rule 71 (First char valid or just numbers)
+{v_1 : str} |= if v_1.len = 1 then (v_1[0] ≥ "0" ∧ v_1[0] ≤ "9") else ((v_1 = "cpu") ∨ (v_1 = "cuda") ∨ (v_1 = "mps") ∨ (v_1.len > 0 ∧ (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z")))
+>>
+Rule 72 (digits, then nothing. if colon, then digits and nothing else.)
+{v_1 : str} |= (v_1.len = 1 ∧ v_1[0] ≥ "0" ∧ v_1[0] ≤ "9") ∨ (v_1 = "cpu") ∨ (v_1 = "cuda") ∨ (v_1 = "mps") ∨ ((v_1.len > 0) ∧ (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∧ ((∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = ":")) ∧ (if (∃i ∈ [0, v_1.len - 1] : v_1[i] = ":") then (∀j ∈ [i+1, v_1.len - 1] : (v_1.len > i+1 ∧ v_1[j] ≥ "0" ∧ v_1[j] ≤ "9")))))
+>>
+Rule 73 (Valid string)
+{v_1 : str} |= (v_1 = "cpu") ∨ (v_1 = "cuda") ∨ (v_1 = "mps") ∨ ((v_1.len = 1 ∧ v_1[0] ≥ "0" ∧ v_1[0] ≤ "9") ∨ ((v_1.len > 0) ∧ (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∧ (∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = ":")) ∧ (if (∃i ∈ [0, v_1.len - 1] : v_1[i] = ":") then (∀j ∈ [i+1, v_1.len - 1] : (v_1.len > i+1 ∧ v_1[j] ≥ "0" ∧ v_1[j] ≤ "9")))))
+>>
+Rule 75 (String cannot be null)
+{v_1 : str} |= v_1 ≠ null
+>>
+Rule 76 (String cannot be null or empty)
+{v_1 : str} |= v_1 ≠ null ∧ v_1 ≠ ""
+>>
+Rule 77 (Valid device identifiers: starts with a letter or is a single digit, no null or empty strings)
+{v_1 : str} |= (v_1.len = 1 ∧ v_1[0] ≥ "0" ∧ v_1[0] ≤ "9") ∨ (v_1.len > 0 ∧ v_1[0] ≥ "a" ∧ v_1[0] ≤ "z" ∧ v_1 ≠ null)
+>>
+Rule 78 (String must be a valid identifier or device string)
+{v_1 : str} |= (v_1 = "cpu") ∨ (v_1 = "cuda") ∨ (v_1 = "mps") ∨ (v_1.len > 0 ∧ ((v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] >= "0" ∧ v_1[0] <= "9")))
+>>
+Rule 79 (String must be a non-empty string consisting of lowercase letters, digits, or colons and following valid patterns (cpu, cuda, mps, identifier, device_id))
+{v_1 : str} |= v_1 ≠ "" ∧ ((v_1 = "cpu") ∨ (v_1 = "cuda") ∨ (v_1 = "mps") ∨ (v_1.len = 1 ∧ (v_1[0] ≥ "0" ∧ v_1[0] ≤ "9")) ∨ ((v_1.len > 1) ∧ (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∧ (∀i ∈ [0, v_1.len - 1] : (v_1[i] >= "a" ∧ v_1[i] <= "z") ∨ (v_1[i] >= "0" ∧ v_1[i] <= "9") ∨ (v_1[i] = ":")) ∧ (if ∃i ∈ [0, v_1.len - 1] : v_1[i] = ":" then (∀j ∈ [i+1, v_1.len - 1] : v_1[j] >= "0" ∧ v_1[j] <= "9"))))

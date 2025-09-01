@@ -63,9 +63,9 @@ def rule_37_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
         arg5_range = Store(arg5_range, 1, int(np.max(arg5)))
 
         # Constraints for rule 37
-        rule_37(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg2_range': arg2_range, 'arg2_ndim': arg2_ndim, 'arg3_range': arg3_range, 'arg3_ndim': arg3_ndim, 'arg4_range': arg4_range, 'arg4_ndim': arg4_ndim, 'arg5_range': arg5_range, 'arg5_ndim': arg5_ndim})
+        rule_37(solver, {'arg1_ndim': arg1_ndim, 'arg1_range': arg1_range, 'arg2_ndim': arg2_ndim, 'arg2_range': arg2_range, 'arg3_ndim': arg3_ndim, 'arg3_range': arg3_range, 'arg4_ndim': arg4_ndim, 'arg4_range': arg4_range, 'arg5_ndim': arg5_ndim, 'arg5_range': arg5_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_37(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg2_range': arg2['range'], 'arg2_ndim': arg2['ndim'], 'arg3_range': arg3['range'], 'arg3_ndim': arg3['ndim'], 'arg4_range': arg4['range'], 'arg4_ndim': arg4['ndim'], 'arg5_range': arg5['range'], 'arg5_ndim': arg5['ndim']}, neg)
+        rule_37(solver, {'arg1_ndim': arg1['ndim'], 'arg1_range': arg1['range'], 'arg2_ndim': arg2['ndim'], 'arg2_range': arg2['range'], 'arg3_ndim': arg3['ndim'], 'arg3_range': arg3['range'], 'arg4_ndim': arg4['ndim'], 'arg4_range': arg4['range'], 'arg5_ndim': arg5['ndim'], 'arg5_range': arg5['range']}, neg)

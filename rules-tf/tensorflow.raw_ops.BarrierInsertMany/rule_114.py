@@ -54,9 +54,9 @@ def rule_114_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         arg4_range = Store(arg4_range, 1, int(np.max(arg4)))
 
         # Constraints for rule 114
-        rule_114(solver, {'arg1_shape': arg1_shape, 'arg1_range': arg1_range, 'arg2_value': arg2_value, 'arg3_shape': arg3_shape, 'arg4_shape': arg4_shape, 'arg4_range': arg4_range, 'arg4_dtype': arg4_dtype})
+        rule_114(solver, {'arg1_shape': arg1_shape, 'arg1_range': arg1_range, 'arg2_value': arg2_value, 'arg3_shape': arg3_shape, 'arg4_dtype': arg4_dtype, 'arg4_shape': arg4_shape, 'arg4_range': arg4_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_114(solver, {'arg1_shape': arg1['shape'], 'arg1_range': arg1['range'], 'arg2_value': arg2['value'], 'arg3_shape': arg3['shape'], 'arg4_shape': arg4['shape'], 'arg4_range': arg4['range'], 'arg4_dtype': arg4['dtype']}, neg)
+        rule_114(solver, {'arg1_shape': arg1['shape'], 'arg1_range': arg1['range'], 'arg2_value': arg2['value'], 'arg3_shape': arg3['shape'], 'arg4_dtype': arg4['dtype'], 'arg4_shape': arg4['shape'], 'arg4_range': arg4['range']}, neg)

@@ -51,9 +51,9 @@ def rule_28_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
             arg4_values = Store(arg4_values, i, arg4[i])
 
         # Constraints for rule 28
-        rule_28(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_values': arg3_values, 'arg4_values': arg4_values})
+        rule_28(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape, 'arg3_values': arg3_values, 'arg4_values': arg4_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_28(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_values': arg3['values'], 'arg4_values': arg4['values']}, neg)
+        rule_28(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape'], 'arg3_values': arg3['values'], 'arg4_values': arg4['values']}, neg)

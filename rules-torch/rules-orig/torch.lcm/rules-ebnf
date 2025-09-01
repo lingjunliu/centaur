@@ -1,0 +1,66 @@
+>>
+Rule 1 (input and other tensors must have integer dtypes)
+{input : tensor, other : tensor} |= (0 < dtype_(input) ∧ dtype_(input) < 6) ∧ (0 < dtype_(other) ∧ dtype_(other) < 6)
+>>
+Rule 2 (out tensor must be a tensor)
+{out : tensor} |= ndim(out) ≥ 0
+>>
+Rule 3 (input and other tensors must have compatible shapes or be broadcastable)
+{input : tensor, other : tensor} |= ndim(input) > 0 ∧ ndim(other) > 0 ∧ ∀i ∈ [0, if ndim(input) ≥ ndim(other) then ndim(input) - 1 else ndim(other) - 1] : (ndim(input) - i - 1 < 0) ∨ (ndim(other) - i - 1 < 0) ∨ (shape(input, ndim(input) - i - 1) = 1) ∨ (shape(other, ndim(other) - i - 1) = 1) ∨ (shape(input, ndim(input) - i - 1) = shape(other, ndim(other) - i - 1))
+>>
+Rule 4 (If out is provided, it must have an integer dtype)
+{out : tensor} |= (0 < dtype_(out) ∧ dtype_(out) < 6)
+>>
+Rule 5 (If out is provided, its shape must be compatible for the result of lcm(input, other))
+{input : tensor, other : tensor, out : tensor} |= ndim(out) > 0 ∧ ∀i ∈ [0, if ndim(input) ≥ ndim(other) then ndim(input) - 1 else ndim(other) - 1] : (ndim(input) - i - 1 < 0) ∨ (ndim(other) - i - 1 < 0) ∨ (shape(input, ndim(input) - i - 1) = 1) ∨ (shape(other, ndim(other) - i - 1) = 1) ∨ (shape(input, ndim(input) - i - 1) = shape(other, ndim(other) - i - 1)) ∨ (shape(out, ndim(input) - i - 1) = shape(input, ndim(input) - i - 1))
+>>
+Rule 6 (input tensor must have at least one element)
+{input : tensor} |= ∀i ∈ [0, ndim(input) - 1] : shape(input, i) > 0
+>>
+Rule 7 (other tensor must have at least one element)
+{other : tensor} |= ∀i ∈ [0, ndim(other) - 1] : shape(other, i) > 0
+>>
+Rule 8 (input and other tensors should not have Half dtype (type index 6))
+{input : tensor, other : tensor} |= dtype_(input) ≠ 6 ∧ dtype_(other) ≠ 6
+>>
+Rule 10 (The output tensor dtype should not be complex if input and other are not complex)
+{input : tensor, other : tensor, out : tensor} |= if (dtype_(input) = 10 ∨ dtype_(input) = 11) ∨ (dtype_(other) = 10 ∨ dtype_(other) = 11) then true else (dtype_(out) ≠ 10 ∧ dtype_(out) ≠ 11)
+>>
+Rule 11 (input and other tensors must have the same size if they are not singleton dimensions)
+{input : tensor, other : tensor} |= ∀i ∈ [0, if ndim(input) ≥ ndim(other) then ndim(input) - 1 else ndim(other) - 1] : (shape(input, i) = shape(other, i)) ∨ (shape(input, i) = 1) ∨ (shape(other, i) = 1)
+>>
+Rule 12 (If the out tensor is specified, its dtype must be able to represent the result of lcm of input and other)
+{input : tensor, other : tensor, out : tensor} |= if (0 < dtype_(input) ∧ dtype_(input) < 6) ∧ (0 < dtype_(other) ∧ dtype_(other) < 6) then (0 < dtype_(out) ∧ dtype_(out) < 6) else false
+>>
+Rule 13 (out argument should be a tensor)
+{out : tensor ⊎ int ⊎ float ⊎ bool ⊎ str ⊎ dtype ⊎ list(int) ⊎ tuple(int)} |= if ndim(out) ≥ 0 then true else false
+>>
+Rule 21 (if out is specified and not None, then it must be a tensor)
+{out : tensor ⊎ int ⊎ float ⊎ bool ⊎ str ⊎ dtype ⊎ list(int) ⊎ tuple(int)} |= if out ≠ 0 ∧ ndim(out) > -1 then true else if out = 0 then true else false
+>>
+Rule 22 (If out is provided, its dtype must not be Half)
+{out : tensor} |= if ndim(out) > -1 then dtype_(out) ≠ 6
+>>
+Rule 23 (If input or other is complex, then out must also be complex)
+{input : tensor, other : tensor, out : tensor} |= if (dtype_(input) = 10 ∨ dtype_(input) = 11) ∨ (dtype_(other) = 10 ∨ dtype_(other) = 11) then (dtype_(out) = 10 ∨ dtype_(out) = 11)
+>>
+Rule 24 (If the result type is ComplexDouble, the out tensor dtype must be ComplexDouble as well)
+{input : tensor, other : tensor, out : tensor} |= if (dtype_(input) = 11) ∨ (dtype_(other) = 11) then dtype_(out) = 11
+>>
+Rule 25 (If input or other is ComplexDouble, then out's dtype cannot be Half)
+{input : tensor, other : tensor, out : tensor} |= if (dtype_(input) = 11) ∨ (dtype_(other) = 11) then dtype_(out) ≠ 6
+>>
+Rule 29 (If input is ComplexDouble, then out must be ComplexDouble)
+{input : tensor, out : tensor} |= if (dtype_(input) = 11) then dtype_(out) = 11
+>>
+Rule 32 (If other's dtype is complex128, then out must be ComplexDouble)
+{other: tensor, out : tensor} |= if (dtype_(other) = 11) then dtype_(out) = 11
+>>
+Rule 33 (If out is specified, and either input or other is complex128, then out must be complex128)
+{input: tensor, other: tensor, out: tensor} |= if out ≠ 0 ∧ ((dtype_(input) = 11) ∨ (dtype_(other) = 11)) then dtype_(out) = 11
+>>
+Rule 34 (If out is specified and either input or other is complex, then out must also be complex)
+{input: tensor, other: tensor, out: tensor} |= if (out ≠ 0) ∧ ((dtype_(input) = 10 ∨ dtype_(input) = 11) ∨ (dtype_(other) = 10 ∨ dtype_(other) = 11)) then (dtype_(out) = 10 ∨ dtype_(out) = 11)
+>>
+Rule 39 (If out is specified, and input and other are integer types (1-5), then out must have an integer type (1-5))
+{input: tensor, other: tensor, out: tensor} |= if (out ≠ 0) then ((1 ≤ dtype_(input) ∧ dtype_(input) ≤ 5) ∧ (1 ≤ dtype_(other) ∧ dtype_(other) ≤ 5) ∧ (1 ≤ dtype_(out) ∧ dtype_(out) ≤ 5))

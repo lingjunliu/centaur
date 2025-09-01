@@ -36,9 +36,9 @@ def rule_55_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 55
-        rule_55(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg2_dtype': arg2_dtype})
+        rule_55(solver, {'arg1_ndim': arg1_ndim, 'arg1_range': arg1_range, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_55(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_55(solver, {'arg1_ndim': arg1['ndim'], 'arg1_range': arg1['range'], 'arg2_dtype': arg2['dtype']}, neg)

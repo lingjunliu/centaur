@@ -1,0 +1,165 @@
+>>
+Rule 1 (tensor must not have boolean dtype to avoid "normal_kernel_cpu" not implemented error)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 2 (gain should be non-negative to prevent normal expects std >= 0.0 error)
+{v_2 : float} |= v_2 ≥ 0.0
+>>
+Rule 3 (tensor must have at least 2 dimensions to prevent ValueError)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
+>>
+Rule 4 (fan_in + fan_out should not be zero to prevent ZeroDivisionError)
+{v_1 : tensor} |= shape(v_1, 0) + shape(v_1, 1) ≠ 0
+>>
+Rule 5 (tensor must have a floating-point or complex dtype to avoid "normal_kernel_cpu" not implemented error)
+{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11
+>>
+Rule 8 (sum of the first two dimensions (fan_in + fan_out) must be non-zero to prevent ZeroDivisionError)
+{v_1 : tensor} |= shape(v_1, 0) + shape(v_1, 1) > 0
+>>
+Rule 9 (tensor's shape must have at least two elements to allow computation of fan_in and fan_out and gain must be non-negative)
+{v_1 : tensor, v_2 : float} |= ndim(v_1) ≥ 2 ∧ v_2 ≥ 0.0
+>>
+Rule 11 (gain cannot be negative if tensor's dtype is float16 to prevent runtime error related to std)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then v_2 ≥ 0.0
+>>
+Rule 12 (tensor must be of a suitable dtype and have non-zero dimensions for fan_in/out)
+{v_1 : tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11) ∧ (shape(v_1, 0) > 0) ∧ (shape(v_1, 1) > 0)
+>>
+Rule 13 (gain must be non-negative when the tensor is float16)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then v_2 ≥ 0
+>>
+Rule 14 (The product of shape[0] and shape[1] of the tensor must be greater than zero.)
+{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) > 0
+>>
+Rule 15 (if the first dimension of tensor is zero, then the gain must be 0 to avoid issues with std)
+{v_1 : tensor, v_2 : float} |= if shape(v_1, 0) = 0 then v_2 = 0
+>>
+Rule 18 (Tensor dimensions 0 or 1 should be positive.)
+{v_1: tensor} |= shape(v_1, 0) > 0 ∨ shape(v_1, 1) > 0
+>>
+Rule 19 (if the tensor shape 0 is zero, gain must be zero.)
+{v_1: tensor, v_2: float} |= if shape(v_1, 0) = 0 then v_2 = 0
+>>
+Rule 20 (If tensor's shape in dim 0 or 1 is zero, ensure the other is also 0 or that gain is also 0, or the dtype isn't float16)
+{v_1 : tensor, v_2 : float} |= (shape(v_1, 0) = 0 ∨ shape(v_1, 1) = 0) ∨ (v_2 = 0) ∨ (dtype_(v_1) ≠ 6)
+>>
+Rule 21 (Need at least two dimensions and prevent division by zero)
+{v_1: tensor} |= ndim(v_1) >= 2 ∧ (shape(v_1, 0) + shape(v_1, 1)) > 0
+>>
+Rule 22 (Combined rule for preventing multiple errors: ensures tensor is not boolean, has at least 2 dimensions, and prevents division by zero)
+{v_1 : tensor} |= dtype_(v_1) > 0 ∧ ndim(v_1) ≥ 2 ∧ (shape(v_1, 0) + shape(v_1, 1) > 0)
+>>
+Rule 23 (If gain is negative, tensor dtype must not be float16, float32, or float64)
+{v_1 : tensor, v_2 : float} |= if v_2 < 0 then dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8
+>>
+Rule 24 (If the tensor has boolean type, gain must be 0)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 0 then v_2 = 0
+>>
+Rule 25 (Prevent ZeroDivisionError and ValueError: tensor must have valid dimensions)
+{v_1 : tensor} |= ndim(v_1) > 1 ∧ shape(v_1, 0) + shape(v_1, 1) > 0
+>>
+Rule 26 (if the dtype is bool, gain must be zero, or dimensions must be less than 2.)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 0 then v_2 = 0 else ndim(v_1) < 2
+>>
+Rule 27 (To prevent divide by zero and value error, the sum of the first two shape values must be greater than 0 if ndim is greater than or equal to 2.)
+{v_1 : tensor} |= if ndim(v_1) ≥ 2 then shape(v_1, 0) + shape(v_1, 1) > 0
+>>
+Rule 30 (If tensor's first dimension is 0, gain must be zero, otherwise ensure sufficient dimensions)
+{v_1 : tensor, v_2 : float} |= if shape(v_1, 0) = 0 then v_2 = 0 else ndim(v_1) ≥ 2
+>>
+Rule 32 (If tensor has fewer than 2 dims, set gain to 0, else ensure valid dtype and prevent div by 0)
+{v_1 : tensor, v_2 : float} |= if ndim(v_1) < 2 then v_2 = 0 else dtype_(v_1) > 0 ∧ (shape(v_1, 0) + shape(v_1, 1) > 0)
+>>
+Rule 34 (If tensor is bool or any of first 2 dims are 0, gain = 0; else ensure dim>=2 & prevent div by 0)
+{v_1: tensor, v_2: float} |= if dtype_(v_1) = 0 ∨ shape(v_1, 0) = 0 ∨ shape(v_1, 1) = 0 then v_2 = 0 else ndim(v_1) >= 2 ∧ shape(v_1, 0) + shape(v_1, 1) > 0
+>>
+Rule 35 (If tensor's shape[0] + shape[1] is zero, gain must be zero, else, the tensor dtype is not bool)
+{v_1: tensor, v_2: float} |= if shape(v_1, 0) + shape(v_1, 1) = 0 then v_2 = 0 else dtype_(v_1) > 0
+>>
+Rule 36 (The tensor must be at least 2D to allow for Xavier Normal initialization)
+{v_1: tensor} |= ndim(v_1) >= 2
+>>
+Rule 37 (if tensor's dtype is boolean or product of its shape is zero, then gain must be 0)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 0 ∨ shape(v_1, 0) * shape(v_1, 1) = 0 then v_2 = 0
+>>
+Rule 38 (tensor must have sufficient dimensions and valid shape to prevent errors.)
+{v_1: tensor} |= ndim(v_1) > 1 ∧ shape(v_1, 0) + shape(v_1, 1) > 0
+>>
+Rule 39 (If tensor's dtype is boolean or either of the first two dimensions is zero, then the gain must be 0, else ensure valid shape for fan_in/out)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 0 ∨ shape(v_1, 0) = 0 ∨ shape(v_1, 1) = 0 then v_2 = 0 else ndim(v_1) > 1
+>>
+Rule 40 (if the tensor is bool, gain must be 0; otherwise, requires correct dimensions for calculating std)
+{v_1: tensor, v_2: float} |= if dtype_(v_1) = 0 then v_2 = 0 else ndim(v_1) > 1 ∧ (shape(v_1, 0) + shape(v_1, 1)) > 0
+>>
+Rule 41 (All conditions to prevent errors)
+{v_1: tensor, v_2: float} |= (dtype_(v_1) > 0) ∧ (ndim(v_1) > 1) ∧ (shape(v_1, 0) + shape(v_1, 1) > 0) ∧ if dtype_(v_1) = 0 then v_2 = 0
+>>
+Rule 42 (If the tensor's dtype is boolean, the gain must be zero, else the tensor must have sufficient dimensions)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 0 then v_2 = 0 else ndim(v_1) >= 2
+>>
+Rule 43 (The product of the first two dimensions must be greater than zero, otherwise there is a zerodivisionerror and there is a valueerror if there is fewer than 2 dimensions)
+{v_1 : tensor} |= ndim(v_1) > 1 ∧ shape(v_1, 0) * shape(v_1, 1) > 0
+>>
+Rule 45 (If tensor dtype is bool, the gain must be zero; if the first two dimensions are such that fan_in + fan_out equals zero, then the gain must be 0)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 0 then v_2 = 0 else if shape(v_1, 0) + shape(v_1, 1) = 0 then v_2 = 0
+>>
+Rule 46 (To prevent all error messages, the tensor must be of a valid dtype, have sufficient dimensions for fan_in/fan_out calculation, and at least one of the first two dimensions must be non-zero)
+{v_1 : tensor} |= (dtype_(v_1) > 0) ∧ (ndim(v_1) > 1) ∧ (shape(v_1, 0) > 0 ∨ shape(v_1, 1) > 0)
+>>
+Rule 47 (If the tensor's dtype is boolean, or both shape dimensions are zero, then the gain must be 0)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 0 ∨ (shape(v_1, 0) = 0 ∧ shape(v_1, 1) = 0) then v_2 = 0
+>>
+Rule 49 (Prevents ValueError and ZeroDivisionError - requires sufficient dimensions and a valid shape.)
+{v_1 : tensor} |= ndim(v_1) > 1 ∧ (shape(v_1, 0) + shape(v_1, 1) > 0)
+>>
+Rule 50 (If the tensor's dtype is boolean AND the gain is not zero, then prevent using the function, and otherwise enforce basic tensor validity)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 0 ∧ v_2 ≠ 0 then false else ndim(v_1) > 1 ∧ (shape(v_1, 0) + shape(v_1, 1) > 0)
+>>
+Rule 51 (Comprehensive check to prevent errors: tensor has a valid dtype, sufficient dimensions, valid shapes for calculating fan_in/fan_out, and gain is non-negative when the tensor is float16)
+{v_1 : tensor, v_2 : float} |= (dtype_(v_1) > 0) ∧ (ndim(v_1) > 1) ∧ (shape(v_1, 0) + shape(v_1, 1) > 0) ∧ (if dtype_(v_1) = 6 then v_2 ≥ 0)
+>>
+Rule 52 (Combined rule to prevent all errors: checks dtype, dimensions, valid shapes, and non-negative gain when applicable.)
+{v_1 : tensor, v_2 : float} |= (dtype_(v_1) > 0) ∧ (ndim(v_1) > 1) ∧ (shape(v_1, 0) + shape(v_1, 1) > 0) ∧ if dtype_(v_1) = 6 then v_2 ≥ 0 ∧ if dtype_(v_1) = 0 then v_2 = 0
+>>
+Rule 54 (if tensor is boolean, then gain must be 0, or else tensor needs at least 2 dimensions, and at least one of first two shape values positive)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 0 then v_2 = 0 else ndim(v_1) > 1 ∧ (shape(v_1, 0) > 0 ∨ shape(v_1, 1) > 0)
+>>
+Rule 55 (Preventing errors by checking if tensor is boolean AND has at least 2 dimensions, if shape(0) + shape(1) = 0 then set gain to 0)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 0 ∧ ndim(v_1) ≥ 2 then false else if shape(v_1, 0) + shape(v_1, 1) = 0 then v_2 = 0
+>>
+Rule 57 (If tensor's dtype is boolean, then the gain must be 0, AND ensure that at least 2 dimensions exist if the gain is non-zero.)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 0 then v_2 = 0 else if v_2 ≠ 0 then ndim(v_1) > 1
+>>
+Rule 58 (The tensor should not be of boolean type, must be at least 2D, and the gain should be zero if dimensions 0 and 1 sum to zero)
+{v_1 : tensor, v_2 : float} |= dtype_(v_1) > 0 ∧ ndim(v_1) > 1 ∧ if shape(v_1, 0) + shape(v_1, 1) = 0 then v_2 = 0
+>>
+Rule 60 (Requires valid dtype and valid shape for fan_in/out. If either dimension for fan in/out calculation is zero, the other must also be zero)
+{v_1 : tensor} |= (dtype_(v_1) > 0) ∧ (ndim(v_1) > 1) ∧ if shape(v_1, 0) = 0 then shape(v_1, 1) = 0 else if shape(v_1, 1) = 0 then shape(v_1, 0) = 0
+>>
+Rule 61 (If tensor is boolean or any of the first two shape dimensions are 0, gain = 0; else requires a valid dtype and at least 2 dimensions)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 0 ∨ shape(v_1, 0) = 0 ∨ shape(v_1, 1) = 0 then v_2 = 0 else (dtype_(v_1) > 0 ∧ ndim(v_1) > 1)
+>>
+Rule 62 (Combined rule)
+{v_1 : tensor, v_2 : float} |= (dtype_(v_1) > 0 ∧ ndim(v_1) > 1 ∧ (shape(v_1, 0) > 0 ∨ shape(v_1, 1) > 0)) ∧ (if dtype_(v_1) = 6 then v_2 ≥ 0)
+>>
+Rule 63 (Ensures valid dtype, dimension, shape and gain for correct xavier normal initialization)
+{v_1 : tensor, v_2 : float} |= (dtype_(v_1) > 0) ∧ (ndim(v_1) > 1) ∧ (shape(v_1, 0) > 0 ∨ shape(v_1, 1) > 0) ∧ if dtype_(v_1) = 6 then v_2 ≥ 0
+>>
+Rule 64 (Complete rule set, combines previous rules to avoid issues with bool tensors, small dimensions and zero division)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 0 then v_2 = 0 else ndim(v_1) > 1 ∧ shape(v_1, 0) + shape(v_1, 1) > 0
+>>
+Rule 66 (For all error prevention, needs valid dtype, dimension and shape requirements)
+{v_1 : tensor} |= (dtype_(v_1) > 0) ∧ (ndim(v_1) > 1) ∧ (shape(v_1, 0) + shape(v_1, 1) > 0)
+>>
+Rule 67 (Comprehensive error prevention by ensuring tensor has a valid dtype, sufficient dimensions, and usable shape dimensions)
+{v_1 : tensor} |= (dtype_(v_1) > 0) ∧ (ndim(v_1) > 1) ∧ ((shape(v_1, 0) > 0) ∨ (shape(v_1, 1) > 0))
+>>
+Rule 68 (if tensor is boolean then gain is 0, else the tensor is not boolean and has at least two dimensions for fan_in fan_out calculation to prevent value and zero division errors)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 0 then v_2 = 0 else dtype_(v_1) > 0 ∧ ndim(v_1) > 1
+>>
+Rule 70 (Comprehensive tensor validity check)
+{v_1 : tensor} |= dtype_(v_1) > 0 ∧ ndim(v_1) > 1 ∧ (shape(v_1, 0) > 0 ∨ shape(v_1, 1) > 0)
+>>
+Rule 71 (Ensures valid tensor properties for Xavier initialization)
+{v_1 : tensor} |= dtype_(v_1) > 0 ∧ ndim(v_1) > 1 ∧ shape(v_1, 0) + shape(v_1, 1) > 0

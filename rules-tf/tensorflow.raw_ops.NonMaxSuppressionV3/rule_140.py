@@ -52,9 +52,9 @@ def rule_140_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
         solver.add(arg5_ndim == arg5.ndim)
 
         # Constraints for rule 140
-        rule_140(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_value': arg3_value, 'arg4_ndim': arg4_ndim, 'arg5_ndim': arg5_ndim})
+        rule_140(solver, {'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape, 'arg3_value': arg3_value, 'arg4_ndim': arg4_ndim, 'arg5_ndim': arg5_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_140(solver, {'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_value': arg3['value'], 'arg4_ndim': arg4['ndim'], 'arg5_ndim': arg5['ndim']}, neg)
+        rule_140(solver, {'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape'], 'arg3_value': arg3['value'], 'arg4_ndim': arg4['ndim'], 'arg5_ndim': arg5['ndim']}, neg)

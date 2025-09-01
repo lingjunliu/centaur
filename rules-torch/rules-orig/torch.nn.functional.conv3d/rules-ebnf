@@ -1,0 +1,234 @@
+>>
+Rule 1 (input tensor must be 4D or 5D)
+{v_1 : tensor} |= ndim(v_1) = 4 ∨ ndim(v_1) = 5
+>>
+Rule 2 (bias type should match input type if bias is present)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ none then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 3 (padding must be 'valid' or 'same' if it is a string)
+{v_1 : str} |= v_1 = "valid" ∨ v_1 = "same"
+>>
+Rule 4 (If padding is 'same', stride must be 1)
+{v_1 : str, v_2 : tuple(int)} |= if v_1 = "same" then (∀i ∈ [0, 2] : v_2[i] = 1)
+>>
+Rule 5 (in_channels of input should be divisible by groups)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 1) % v_2 = 0
+>>
+Rule 6 (weight's in_channels divided by groups should match weight's second dimension)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_2, 1) = shape(v_1, 1) / v_3
+>>
+Rule 7 (groups must be greater than 0)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 8 (dilation must be greater than 0)
+{v_1 : tuple(int)} |= ∀i ∈ [0, 2] : v_1[i] > 0
+>>
+Rule 10 (weight must be a 5D tensor)
+{v_1 : tensor} |= ndim(v_1) = 5
+>>
+Rule 21 (If padding is an integer, it must be non-negative)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 22 (Weight out_channels dimension must be greater than 0)
+{v_1 : tensor} |= shape(v_1, 0) > 0
+>>
+Rule 23 (Input in_channels dimension must be greater than 0)
+{v_1 : tensor} |= shape(v_1, 1) > 0
+>>
+Rule 24 (Groups must be less than or equal to the number of input channels)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, 1)
+>>
+Rule 26 (If bias exists, its shape must equal the output channel of weight)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ none then shape(v_2, 0) = shape(v_1, 0)
+>>
+Rule 27 (Dilation cannot be zero)
+{v_1 : tuple(int)} |= ∀i ∈ [0, 2] : v_1[i] ≠ 0
+>>
+Rule 28 (Input must have a valid batch size (>=0))
+{v_1 : tensor} |= shape(v_1, 0) ≥ 0
+>>
+Rule 29 (If the input is complex, the weight must also be complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+>>
+Rule 32 (The bias can only be 'none' if in_channels / groups * weight's kT * weight's kH * weight's kW == 0)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if shape(v_1,1) / v_3 * shape(v_2,2) * shape(v_2,3) * shape(v_2,4) = 0 then v_2 = none
+>>
+Rule 34 (If dilation is a tuple, its length must be 3)
+{v_1 : tuple(int)} |= v_1.len = 3
+>>
+Rule 37 (Input and weight must have the same dtype if they are both complex)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 39 (If weight's second dimension is 0, then input in_channels dimension must also be 0)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 1) = 0 then shape(v_1, 1) = 0
+>>
+Rule 40 (If the input is a 5D tensor and batch size is 0, then all other dimensions must be non-zero)
+{v_1 : tensor} |= if ndim(v_1) = 5 ∧ shape(v_1, 0) = 0 then (∀i ∈ [1, 4] : shape(v_1, i) > 0)
+>>
+Rule 42 (If the weight is a 5D tensor, then dimensions 2, 3 and 4 should be greater than 0)
+{v_1 : tensor} |= if ndim(v_1) = 5 then shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ shape(v_1, 4) > 0
+>>
+Rule 43 (Groups cannot be zero)
+{v_1 : int} |= v_1 ≠ 0
+>>
+Rule 44 (If padding is 'same' then input and output shapes should be equal when stride is one and dilation is one.)
+{v_1 : str, v_2 : tensor, v_3 : tensor, v_4 : tuple(int), v_5 : tuple(int)} |= if v_1 = "same" ∧ (∀i ∈ [0, 2] : v_4[i] = 1) ∧ (∀i ∈ [0, 2] : v_5[i] = 1) then (shape(v_2, 2) = shape(v_3, 2) ∧ shape(v_2, 3) = shape(v_3, 3) ∧ shape(v_2, 4) = shape(v_3, 4))
+>>
+Rule 47 (If bias is not none, then its number of dimensions must be 1)
+{v_1 : tensor} |= if v_1 ≠ none then ndim(v_1) = 1
+>>
+Rule 48 (Weight's second dimension multiplied by groups should equal input's in_channels)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_2, 1) * v_3 = shape(v_1, 1)
+>>
+Rule 50 (The bias must have the same data type as the input, if the input's dtype is complex)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 51 (The input cannot be an empty tensor, i.e. at least one dimension is non-zero.)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 52 (The in_channels dimension of input should match the second dimension of weight multiplied by groups)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_1, 1) = shape(v_2, 1) * v_3
+>>
+Rule 54 (If bias is present and input is complex, the bias should be complex)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ none ∧ ((dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)) then (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10)
+>>
+Rule 55 (If padding is of type string and is not 'same' or 'valid' then the program fails.)
+{v_1 : str} |= v_1 = "same" ∨ v_1 = "valid"
+>>
+Rule 58 (If bias exists, its datatype must be the same as input's)
+{v_1: tensor, v_2: tensor} |= if v_2 ≠ none then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 62 (if the weight is of complex type then the input must also be of complex type)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 63 (Weight channels divided by groups, must match some condition with kernel dimensions)
+{v_1: tensor, v_2: int} |= shape(v_1, 1) / v_2 ≥ 0
+>>
+Rule 69 (The input and weight tensor, and the bias tensor must have compatible dtypes.)
+{v_1 : tensor, v_2: tensor} |= if (v_2 ≠ none) then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 71 (if the input and bias tensors are present and either one is of complex type the other must also be of complex type)
+{v_1: tensor, v_2: tensor} |= if (v_2 ≠ none) ∧ ((dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∨ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)) then (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 73 (If dilation is a tuple, its elements must be positive)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 81 (If padding is "same", then the stride in each dimension should be equal to 1)
+{v_1 : str, v_2 : tuple(int)} |= if v_1 = "same" then v_2[0] = 1 ∧ v_2[1] = 1 ∧ v_2[2] = 1
+>>
+Rule 83 (If groups does not evenly divide the input channels then an error will be thrown)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if (shape(v_1, 1) % v_3 = 0) then (shape(v_2, 1) = (shape(v_1, 1) / v_3 )) else false
+>>
+Rule 85 (If the input and weight are complex types, the bias must be complex)
+{v_1: tensor, v_2: tensor, v_3: tensor} |= if v_3 ≠ none ∧ ((dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)) then (dtype_(v_3) = 9 ∨ dtype_(v_3) = 10)
+>>
+Rule 86 (If the input and weight are of complex type and bias is present, then the bias should have the same dtype as input and weight)
+{v_1: tensor, v_2: tensor, v_3: tensor} |= if v_3 ≠ none ∧ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then dtype_(v_1) = dtype_(v_3) ∧ dtype_(v_2) = dtype_(v_3)
+>>
+Rule 87 (Number of input channels must be a multiple of groups)
+{v_1 : tensor, v_2 : int} |= (shape(v_1, 1) % v_2) = 0
+>>
+Rule 88 (Weight's shape should satisfy the condition)
+{v_1 : tensor, v_2: tensor, v_3 : int} |= if (shape(v_1, 1) % v_3) = 0 then (shape(v_2, 1) = (shape(v_1, 1) / v_3))
+>>
+Rule 89 (The dimensions of stride cannot be negative)
+{v_1 : tuple(int)} |= v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0
+>>
+Rule 91 (The dilation cannot be equal to 0)
+{v_1 : tuple(int)} |= v_1[0] ≠ 0 ∧ v_1[1] ≠ 0 ∧ v_1[2] ≠ 0
+>>
+Rule 92 (The data type for weight should match with that of the input if the input is complex type)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 94 (If padding is "same", then stride cannot be greater than 1)
+{v_1 : str, v_2 : int} |= if v_1 = "same" then v_2 = 1
+>>
+Rule 95 (If the dilation is a tuple it must contain only positive values and has a length of 3)
+{v_1 : tuple(int)} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0) ∧ v_1.len = 3
+>>
+Rule 97 (When the weight is an even length and dilation is odd, the performance is lowered so give a warning)
+{v_1 : tensor, v_2 : tuple(int)} |= if ((shape(v_1, 2) % 2) = 0) ∧ ((shape(v_1, 3) % 2) = 0) ∧ ((shape(v_1, 4) % 2) = 0) then if ((v_2[0] % 2) = 1) ∧ ((v_2[1] % 2) = 1) ∧ ((v_2[2] % 2) = 1) then false
+>>
+Rule 104 (The input cannot have a boolean dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 108 (If the input and weight are complex types, and the bias is provided, then the bias must be complex)
+{v_1: tensor, v_2: tensor, v_3: tensor} |= if v_3 ≠ none ∧ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (dtype_(v_3) = 9 ∨ dtype_(v_3) = 10)
+>>
+Rule 109 (The input and weight must not have a boolean dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0
+>>
+Rule 111 (If bias is present and either the input or the weight is of complex dtype, the bias must be too)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (v_3 ≠ none) ∧ ((dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∨ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)) then (dtype_(v_3) = 9 ∨ dtype_(v_3) = 10)
+>>
+Rule 114 (If the input is a complex type, the weight and bias must be a complex type)
+{v_1: tensor, v_2: tensor, v_3: tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) ∧ if v_3 ≠ none then (dtype_(v_3) = 9 ∨ dtype_(v_3) = 10)
+>>
+Rule 117 (The dimension 1, or in_channels, must be positive in weight and input)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) > 0 ∧ shape(v_2, 1) > 0
+>>
+Rule 119 (If padding is same, weight's kT and dilation's dT should both be odd or even in all dimensions)
+{v_1 : str, v_2 : tensor, v_3 : tuple(int)} |= if v_1 = "same" then (shape(v_2, 2) % 2 = v_3[0] % 2) ∧ (shape(v_2, 3) % 2 = v_3[1] % 2) ∧ (shape(v_2, 4) % 2 = v_3[2] % 2)
+>>
+Rule 122 (The shape of the bias must match the shape of the out_channels of the weight)
+{v_1: tensor, v_2: tensor} |= if v_2 ≠ none then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 124 (If the padding is specified as the string 'same' then a warning is issued when the weight is even-length and dilation is odd in any dimension)
+{v_1 : str, v_2 : tensor, v_3 : tuple(int)} |= if v_1 = "same" then if ((shape(v_2, 2) % 2 = 0) ∧ (v_3[0] % 2 = 1)) ∨ ((shape(v_2, 3) % 2 = 0) ∧ (v_3[1] % 2 = 1)) ∨ ((shape(v_2, 4) % 2 = 0) ∧ (v_3[2] % 2 = 1)) then false
+>>
+Rule 128 (If padding is a tuple then all elements must be non-negative)
+{v_1 : tuple(int)} |= ∀i ∈ [0, 2] : v_1[i] ≥ 0
+>>
+Rule 130 (If the number of groups is greater than 1, then weight shape 1 should be the number of input channels divided by the number of groups.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 > 1 then shape(v_2, 1) = (shape(v_1, 1) / v_3)
+>>
+Rule 132 (The data type of bias must be the same as the data type of the input, or the bias must be None)
+{v_1: tensor, v_2: tensor} |= if v_2 = none then true else dtype_(v_1) = dtype_(v_2)
+>>
+Rule 134 (If the number of groups is larger than 1, then the shape of weight at 1 must be the same as the shape of input at 1, divided by the group number)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 > 1 then shape(v_2, 1) = (shape(v_1, 1) / v_3 )
+>>
+Rule 136 (When padding is "same", the output shape of input[2] must be equal to the output shape of weight[2] + (input[2] -1) * stride[0] - 2*padding)
+{v_1 : str, v_2 : tensor, v_3 : tensor, v_4 : tuple(int), v_5 : int} |= if v_1 = "same" then shape(v_2, 2) = shape(v_3,2) + (shape(v_2,2) -1)*v_4[0] - 2*v_5
+>>
+Rule 137 (When padding is "same", the output shape of input[3] must be equal to the output shape of weight[3] + (input[3] -1) * stride[1] - 2*padding)
+{v_1 : str, v_2 : tensor, v_3 : tensor, v_4 : tuple(int), v_5 : int} |= if v_1 = "same" then shape(v_2, 3) = shape(v_3,3) + (shape(v_2,3) -1)*v_4[1] - 2*v_5
+>>
+Rule 138 (When padding is "same", the output shape of input[4] must be equal to the output shape of weight[4] + (input[4] -1) * stride[2] - 2*padding)
+{v_1 : str, v_2 : tensor, v_3 : tensor, v_4 : tuple(int), v_5 : int} |= if v_1 = "same" then shape(v_2, 4) = shape(v_3,4) + (shape(v_2,4) -1)*v_4[2] - 2*v_5
+>>
+Rule 139 (If the number of groups divides zero, the shape(weight, 1) * groups must have a positive number )
+{v_1: tensor, v_2: int, v_3: tensor} |= if (shape(v_1, 1) % v_2) = 0 then (shape(v_3, 1) * v_2) > 0
+>>
+Rule 140 (Weight's dimension must be 5)
+{v_1: tensor} |= ndim(v_1) = 5
+>>
+Rule 143 (If the group is equal or greater than 1, then the following requirement holds.)
+{v_1: tensor, v_2: tensor, v_3: int} |= if v_3 ≥ 1 then shape(v_2,1) = shape(v_1, 1) / v_3
+>>
+Rule 144 (If given stride in int type, value must be positive)
+{v_1: int} |= v_1 > 0
+>>
+Rule 145 (If given padding with string type, value can only be 'valid' or 'same')
+{v_1: str} |= v_1 = "valid" ∨ v_1 = "same"
+>>
+Rule 146 (If the input tensor has 5 dimensions then the minimum batch size must be greater than or equal to 0)
+{v_1: tensor} |= if ndim(v_1) = 5 then shape(v_1,0) ≥ 0
+>>
+Rule 147 (The shape of the bias tensor must match the out_channels of the weight tensor)
+{v_1: tensor, v_2: tensor} |= if v_2 ≠ none then shape(v_2, 0) = shape(v_1, 0)
+>>
+Rule 150 (If stride is not none and it has a floating datatype, throw an error.)
+{v_1: tensor} |= dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8
+>>
+Rule 151 (If given dilation in tuple form, all the values of dilation must be greater than 0)
+{v_1: tuple(int)} |= v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0
+>>
+Rule 153 (If given padding is an int then the value must be greater than or equal to 0)
+{v_1: int} |= v_1 ≥ 0
+>>
+Rule 154 (input should have valid dimensions)
+{v_1: tensor} |= ndim(v_1) = 4 ∨ ndim(v_1) = 5
+>>
+Rule 155 (When the weight is an even length in any dimension, and padding is same, a warning about lower performance will be given only when the corresponding dimension is also odd)
+{v_1: str, v_2: tensor, v_3: tuple(int)} |= if v_1 = "same" then if (shape(v_2, 2) % 2 = 0 ∧ v_3[0] % 2 = 1) ∨ (shape(v_2, 3) % 2 = 0 ∧ v_3[1] % 2 = 1) ∨ (shape(v_2, 4) % 2 = 0 ∧ v_3[2] % 2 = 1) then false

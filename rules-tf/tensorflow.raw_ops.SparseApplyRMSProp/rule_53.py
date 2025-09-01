@@ -55,9 +55,9 @@ def rule_53_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
             arg5_shape = Store(arg5_shape, i, arg5.shape[i])
 
         # Constraints for rule 53
-        rule_53(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype, 'arg2_shape': arg2_shape, 'arg3_shape': arg3_shape, 'arg4_shape': arg4_shape, 'arg5_shape': arg5_shape})
+        rule_53(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range, 'arg2_shape': arg2_shape, 'arg3_shape': arg3_shape, 'arg4_shape': arg4_shape, 'arg5_shape': arg5_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_53(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype'], 'arg2_shape': arg2['shape'], 'arg3_shape': arg3['shape'], 'arg4_shape': arg4['shape'], 'arg5_shape': arg5['shape']}, neg)
+        rule_53(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range'], 'arg2_shape': arg2['shape'], 'arg3_shape': arg3['shape'], 'arg4_shape': arg4['shape'], 'arg5_shape': arg5['shape']}, neg)

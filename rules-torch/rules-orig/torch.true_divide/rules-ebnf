@@ -1,0 +1,57 @@
+>>
+Rule 1 (Input tensors should have compatible shapes to avoid size mismatch errors)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1
+>>
+Rule 2 (Dividend's dtype should be castable to Divisor's dtype)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 10) ∨ (dtype_(v_2) ≠ 8)
+>>
+Rule 3 (Ensure compatible shapes, handling singleton dimensions explicitly)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀ i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i)) ∨ (shape(v_1, i) = 1) ∨ (shape(v_2, i) = 1)
+>>
+Rule 4 (Prevent incompatible dtype casting from ComplexDouble to Double)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 10) ∨ (dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8)
+>>
+Rule 6 (If divisor is Double, dividend can't be ComplexDouble to prevent casting errors.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 8 then dtype_(v_1) ≠ 10
+>>
+Rule 14 (Prevent incompatible dtype casting from ComplexDouble to Double, expressed using !=)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_2) ≠ 8) ∨ (dtype_(v_1) ≠ 10)
+>>
+Rule 15 (Shapes are broadcastable or at least one has size 1 in the non-matching dimension, trying simpler forall)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀ i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+>>
+Rule 19 (Shapes are broadcastable or at least one has size 1, avoid min/max)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ ndim(v_2) ∧ ∀ i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_1, ndim(v_1) - ndim(v_2) + i) = 1 ∨ shape(v_2, i) = 1)) ∨ (ndim(v_2) ≥ ndim(v_1) ∧ ∀ i ∈ [0, ndim(v_1) - 1] : (shape(v_2, ndim(v_2) - ndim(v_1) + i) = shape(v_1, i) ∨ shape(v_2, ndim(v_2) - ndim(v_1) + i) = 1 ∨ shape(v_1, i) = 1))
+>>
+Rule 22 (Prevent ComplexDouble -> Double casting, using if-then-else)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) ≠ 8
+>>
+Rule 26 (Prevent ComplexDouble -> Double casting, using !=, part 2)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 10 ∨ dtype_(v_2) ≠ 8
+>>
+Rule 35 (Shapes are broadcastable, rewritten without the forall)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (if ndim(v_1) ≥ ndim(v_2) then ∀ i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_1, ndim(v_1) - ndim(v_2) + i) = 1 ∨ shape(v_2, i) = 1) else ∀ i ∈ [0, ndim(v_1) - 1] : (shape(v_2, ndim(v_2) - ndim(v_1) + i) = shape(v_1, i) ∨ shape(v_2, ndim(v_2) - ndim(v_1) + i) = 1 ∨ shape(v_1, i) = 1))
+>>
+Rule 39 (Shapes are broadcastable, and version without forall)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1 then ((ndim(v_1) ≥ ndim(v_2) ∧ ∀ i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_1, ndim(v_1) - ndim(v_2) + i) = 1 ∨ shape(v_2, i) = 1)) ∨ (ndim(v_2) ≥ ndim(v_1) ∧ ∀ i ∈ [0, ndim(v_1) - 1] : (shape(v_2, ndim(v_2) - ndim(v_1) + i) = shape(v_1, i) ∨ shape(v_2, ndim(v_2) - ndim(v_1) + i) = 1 ∨ shape(v_1, i) = 1)))
+>>
+Rule 42 (Prevent ComplexDouble -> Double casting, combined and/or, complicated)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 10 ∨ dtype_(v_2) ≠ 8) ∧ (dtype_(v_1) = 10 ∨ dtype_(v_2) = 8 ∨ (dtype_(v_1) ≠ 10 ∧ dtype_(v_2) ≠ 8))
+>>
+Rule 44 (Prevent ComplexDouble -> Double casting, different structure with implication)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then (if dtype_(v_2) = 8 then false)
+>>
+Rule 48 (Prevent ComplexDouble -> Double casting, another different structure)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) = 8) then (dtype_(v_1) ≠ 10)
+>>
+Rule 54 (Prevent ComplexDouble -> Double casting, if-then)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 10) then (dtype_(v_2) ≠ 8)
+>>
+Rule 60 (Prevent ComplexDouble -> Double casting, if and only if)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 10) = (dtype_(v_2) ≠ 8)
+>>
+Rule 62 (Prevent ComplexDouble -> Double casting, if-then-else)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then (dtype_(v_2) ≠ 8)
+>>
+Rule 68 (Prevent ComplexDouble -> Double casting if and only if, reversed )
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_2) ≠ 8) = (dtype_(v_1) = 10)

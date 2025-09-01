@@ -1,0 +1,138 @@
+>>
+Rule 1 (output tensor's dtype should be compatible with input tensor's dtype to prevent casting errors)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 2 (output tensor's dtype should be a floating point type if input tensor is a floating point type to prevent potential casting issues.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 3 (If out tensor is provided, its shape should match the input tensor's shape)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 4 (Input tensor should have floating point or complex dtype.)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 5 (If input is integer type, output tensor should be float or complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 6 then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 6 (If the input tensor is of integer type, the output tensor should be of at least Float type (dtype 7))
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 6 then dtype_(v_2) ≥ 7
+>>
+Rule 7 (Input tensor values should be positive since log10 is defined for positive numbers.)
+{v_1 : tensor} |= min(v_1) > 0
+>>
+Rule 8 (If input tensor has a complex dtype, the output tensor should also have a complex dtype)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+>>
+Rule 9 (The output tensor's dtype should be at least as precise as the input tensor's dtype to avoid loss of precision.)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_2) ≥ dtype_(v_1)
+>>
+Rule 10 (The input tensor cannot have a boolean dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 11 (If the input tensor contains any zero values, the output tensor's corresponding values must be -inf, which requires a floating-point or complex dtype.)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, shape(v_1,0)-1] : v_1[i] = 0 then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 13 (If output tensor is provided and input tensor is float16, then the output tensor cannot be int8, int16, int32, int64, or uint8)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then (dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5)
+>>
+Rule 14 (If input tensor's dtype is int64, then output tensor's dtype must be float32, float64, complex64, or complex128)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 4 then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 16 (If input tensor's dtype is bool (0), then it's invalid because log10 is not defined for boolean values, the rule makes sure that output tensor is also bool to avoid errors.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0
+>>
+Rule 17 (If input tensor has negative values, and the output tensor is of integer type, it can cause incorrect results, the output should be floating point type)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) < 0 then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 18 (If the input tensor has non-positive values (<=0), the logarithm will be undefined, it is safer to have the output tensor being floating-point type.)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) ≤ 0 then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 19 (To prevent overflow when input tensor is int, output tensor should be float64 or complex128)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 6 then (dtype_(v_2) = 8 ∨ dtype_(v_2) = 10)
+>>
+Rule 20 (The output tensor's dtype should be at least float16 if the input tensor's dtype is int8, int16, int32, int64, uint8)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then dtype_(v_2) ≥ 6
+>>
+Rule 21 (If input is float16, then output cannot be int8, int16, int32, int64, uint8. It must be at least float16 or higher)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then (dtype_(v_2) > 5)
+>>
+Rule 22 (If input is complex64, then output cannot be int8, int16, int32, int64, uint8, float16, float32. It must be at least complex64 or higher)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 23 (If the input tensor is complex128, then the output tensor's dtype should be complex128)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 10
+>>
+Rule 24 (If input tensor is float32, then output cannot be int8, int16, int32, int64, uint8. It must be at least float32 or higher)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then (dtype_(v_2) ≥ 7)
+>>
+Rule 25 (If input is float64, then output cannot be int8, int16, int32, int64, uint8, float16, float32. It must be at least float64 or higher)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then (dtype_(v_2) ≥ 8)
+>>
+Rule 26 (The input tensor should not contain value zero when dtype is an integer)
+{v_1 : tensor} |= if dtype_(v_1) < 6 then min(v_1) > 0
+>>
+Rule 27 (To avoid cast error: If the output tensor is given, the data type of output should have higher precision than the input, or the same.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_2) ≥ dtype_(v_1)
+>>
+Rule 29 (If the out tensor is provided, its dtype cannot be a boolean type.)
+{v_1 : tensor} |= if ndim(v_1) > 0 then dtype_(v_1) ≠ 0
+>>
+Rule 30 (If the out tensor is provided, and the input dtype is integer (signed or unsigned), make the output type float to ensure there is no data lost.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 32 (if the out tensor is specified, and the input tensor is integer, the out tensor's dtype must be float16 or higher)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5) then (dtype_(v_2) ≥ 6)
+>>
+Rule 33 (If input is integer, then output cannot be bool or string.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 6 then dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 11
+>>
+Rule 34 (If input is an integer tensor and out is provided, out must be floating-point or complex)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ dtype_(v_1) < 6 then dtype_(v_2) > 5
+>>
+Rule 35 (If the output tensor is provided, and the input dtype is a floating type, make the output dtype also be at least that same floating type.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then (dtype_(v_2) ≥ dtype_(v_1))
+>>
+Rule 37 (If the output tensor is provided and input tensor has negative values, the output tensor's dtype should be a floating-point type)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ min(v_1) < 0 then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 38 (If the output tensor is provided and the input tensor contains a zero value, the output must be of floating-point type to support -inf)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ (∃i ∈ [0, shape(v_1,0)-1] : v_1[i] = 0) then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 39 (If the output tensor is provided and the input is a complex type tensor, the output should also be of complex type)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 40 (If input is complex, output cannot be int or float but must be complex)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 41 (If the output tensor is provided and input is uint8, then the output tensor's dtype should be floating to avoid potential data lost)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ (dtype_(v_1) = 5) then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 42 (To avoid data loss. if input is int8, int16, int32, int64. Then output needs to be at least float32 to avoid issues)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) then (dtype_(v_2) ≥ 7)
+>>
+Rule 43 (If the output tensor is provided and the input contains zero or negative values. output must be at least float32 or higher )
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ min(v_1) <= 0 then (dtype_(v_2) >= 7)
+>>
+Rule 45 (if the input is an integer-typed tensor AND the output is explicitly provided and is ALSO an integer-typed tensor, then the *input* tensor MUST contain only positive values to prevent the log from being NaN)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) >= 1 ∧ dtype_(v_1) <= 5) ∧ (dtype_(v_2) >= 1 ∧ dtype_(v_2) <= 5) ∧ (ndim(v_2) > 0) then (min(v_1) > 0)
+>>
+Rule 46 (if input tensor's dtype is int64 (4) and out tensor's dtype is float16 (6), it leads to cast error)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 4 then dtype_(v_2) ≠ 6
+>>
+Rule 47 (If input is a floating point number and out tensor is given, out tensor has to be at least a float16 to ensure there is no precision lost during casting)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≥ 6 ∧ dtype_(v_1) <= 8) ∧ ndim(v_2) > 0 then (dtype_(v_2) >= 6)
+>>
+Rule 48 (if the input tensor is float16 AND out tensor is explicitly given, the out tensor's dtype MUST be greater than or equal to float16 and the input can't contain negative value )
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 6 ) ∧ ndim(v_2) > 0 then (dtype_(v_2) >= 6) ∧ min(v_1) >= 0
+>>
+Rule 49 (If input is a floating point number AND out tensor is explicitly given AND the minimum value is negative, out tensor has to be at least a float32)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) >= 6 ∧ dtype_(v_1) <= 8) ∧ ndim(v_2) > 0  ∧ min(v_1) < 0 then (dtype_(v_2) >= 7 )
+>>
+Rule 50 (If the input is a float AND the out tensor is explicity given, AND the input tensor minimum value is less than or equals 0 and is not complex number then set output dtype to be at least float 32 for precision issue.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) >= 6 ∧ dtype_(v_1) <= 8) ∧ ndim(v_2) > 0 ∧ min(v_1) <= 0 then (dtype_(v_2) >= 7)
+>>
+Rule 51 (If the output tensor is provided and dtype of input tensor is less than float32(7), the output dtype should be higher or equal to 7)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ (dtype_(v_1) < 7) then (dtype_(v_2) >= 7)
+>>
+Rule 52 (If the output tensor is provided and the minimum value of the input tensor is negative, the output tensor's dtype has to be at least float32)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ min(v_1) < 0 then (dtype_(v_2) ≥ 7)

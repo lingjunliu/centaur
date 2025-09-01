@@ -48,9 +48,9 @@ def rule_104_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         arg4_range = Store(arg4_range, 1, int(np.max(arg4)))
 
         # Constraints for rule 104
-        rule_104(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value, 'arg3_range': arg3_range, 'arg4_range': arg4_range})
+        rule_104(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range, 'arg2_value': arg2_value, 'arg3_range': arg3_range, 'arg4_range': arg4_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_104(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value'], 'arg3_range': arg3['range'], 'arg4_range': arg4['range']}, neg)
+        rule_104(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range'], 'arg2_value': arg2['value'], 'arg3_range': arg3['range'], 'arg4_range': arg4['range']}, neg)

@@ -1,0 +1,51 @@
+>>
+Rule 1 (The product of the first B.ndim dimensions of A should equal the product of the rest of the dimensions of A)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) > 0 ∧ ∀j ∈ [ndim(v_2), ndim(v_1) - 1] : shape(v_1, j) > 0 ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i)) = (∀j ∈ [ndim(v_2), ndim(v_1) - 1] : shape(v_1, j))
+>>
+Rule 2 (dims tuple should contain valid dimensions for A)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1)
+>>
+Rule 3 (A and B should have compatible dtypes - avoiding casting issues)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 4 (B's number of dimensions should be valid for A)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≤ ndim(v_1)
+>>
+Rule 5 (output tensor, if provided, needs to have correct shape)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_3) = ndim(v_1) - ndim(v_2) ∧ ∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) = shape(v_1, ndim(v_2) + i)
+>>
+Rule 6 (dims tuple should be non-empty tuple of int.)
+{v_1: tuple(int)} |= v_1.len > 0
+>>
+Rule 8 (Check dtype of A to be float, double, cfloat, or cdouble to prevent RuntimeError)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 9 (Check for valid dimensions in dims tuple to avoid IndexError)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len = 0 ∨ (v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1))
+>>
+Rule 12 (Check the shape compatibility of A and B to prevent RuntimeError)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1]: shape(v_1, i) = shape(v_2, i)
+>>
+Rule 13 (Check that A and B have compatible dtypes, avoiding the Byte to Bool cast error)
+{v_1 : tensor, v_2 : tensor} |=  (dtype_(v_1) ≠ 5) ∨ (dtype_(v_2) ≠ 0)
+>>
+Rule 14 (Check the shape compatibility of A and B to prevent RuntimeError)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_2) < ndim(v_1) then ndim(v_2) - 1 else ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 15 (A's shape should satisfy the condition based on B's ndim to avoid RuntimeError)
+{v_1 : tensor, v_2 : tensor} |= (∃m ∈ [0, 0] : (∀i ∈ [0, ndim(v_2) - 1]: shape(v_1, i)) = m) ∧ (∃n ∈ [0, 0] : (∀i ∈ [ndim(v_2), ndim(v_1) - 1]: shape(v_1, i)) = n) ∧ m = n
+>>
+Rule 16 (Check the product of the first B.ndim dimensions of A equals the product of the rest, to avoid RuntimeError.)
+{v_1 : tensor, v_2 : tensor} |= (if ndim(v_1) ≥ ndim(v_2) then ∃prod1 ∈ [0,0] : (prod1 = (∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i))) else false) ∧ (if ndim(v_1) ≥ ndim(v_2) then ∃prod2 ∈ [0,0] : (prod2 = (∀i ∈ [ndim(v_2), ndim(v_1) - 1] : shape(v_1, i))) else false) ∧ (if ndim(v_1) ≥ ndim(v_2) then prod1 = prod2 else false)
+>>
+Rule 17 (Check that A's shape is valid given B's shape, to avoid RuntimeError, using explicit multiplication instead of forall.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ ndim(v_2) then (shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3)) = (shape(v_1, 4) * shape(v_1, 5) * shape(v_1, 6) * shape(v_1, 7))
+>>
+Rule 18 (A's shape should satisfy the condition based on B's ndim to avoid RuntimeError, generalizing to more than 7 dimensions)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ ndim(v_2) then (if ndim(v_2) > 0 then ∃prod1 ∈ [0,0] : (prod1 = 1 ∧ ∀i ∈ [0, ndim(v_2) - 1]: prod1 = prod1 * shape(v_1, i))) ∧ (if ndim(v_1) - ndim(v_2) > 0 then ∃prod2 ∈ [0,0] : (prod2 = 1 ∧ ∀i ∈ [ndim(v_2), ndim(v_1) - 1]: prod2 = prod2 * shape(v_1, i))) ∧ (if ndim(v_2) > 0 ∧ ndim(v_1) - ndim(v_2) > 0 then prod1 = prod2)
+>>
+Rule 19 (Check that A's shape is valid given B's shape, using recursion and explicit multiplication only for up to 3 dimensions, avoiding overflow for larger tensors)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ ndim(v_2) then (if ndim(v_2) = 0 then true else if ndim(v_2) = 1 then shape(v_1, 0) = shape(v_1, ndim(v_1) -1 ) else if ndim(v_2) = 2 then shape(v_1, 0) * shape(v_1, 1) = shape(v_1, ndim(v_1)-2) * shape(v_1, ndim(v_1) -1) else if ndim(v_2) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) = shape(v_1, ndim(v_1) -3) * shape(v_1, ndim(v_1) -2) * shape(v_1, ndim(v_1)-1) )
+>>
+Rule 20 (Check the shape compatibility of A and B to prevent RuntimeError: Product of dimensions before B.ndim equals product of the rest, handle ndim(v1) < ndim(v2) gracefully)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ ndim(v_2) then ∃prod1 ∈ [0,0] : (prod1 = 1 ∧ ∀i ∈ [0, if ndim(v_2) > 0 then ndim(v_2) - 1 else 0]: prod1 = prod1 * shape(v_1, i)) ∧ ∃prod2 ∈ [0,0] : (prod2 = 1 ∧ ∀i ∈ [ndim(v_2), ndim(v_1) - 1]: prod2 = prod2 * shape(v_1, i)) ∧ prod1 = prod2 else if ndim(v_1) < ndim(v_2) then ∃prod1 ∈ [0,0] : (prod1 = 1 ∧ ∀i ∈ [0, ndim(v_1) - 1]: prod1 = prod1 * shape(v_1, i)) ∧ (prod1=1)

@@ -1,0 +1,132 @@
+>>
+Rule 1 (output tensor dtype should be able to accommodate input tensor dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 2 ∨ dtype_(v_2) ≠ 1
+>>
+Rule 2 (input cannot be complex float)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+>>
+Rule 3 (out tensor's dtype can accommodate the operation on input tensor)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 6 (If out is provided, it should have the same shape as input)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 7 (If input is half/float/double, then out should be half/float/double)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 8 (If input is a bfloat16 tensor, out must also be a bfloat16 tensor)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 13 then dtype_(v_2) = 13
+>>
+Rule 9 (If input is quantized, then out must be quantized)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≥ 14 then dtype_(v_2) ≥ 14
+>>
+Rule 11 (If out is provided, its dtype must not be short if input is float)
+{v_2 : tensor} |= dtype_(v_2) ≠ 2
+>>
+Rule 12 (input must be float, double, half or bfloat16 if out is provided and short)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 13
+>>
+Rule 13 (If out is not none, its dtype should be sufficient to hold the result of lgamma(input))
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 else if dtype_(v_1) = 6 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 else if dtype_(v_1) = 13 then dtype_(v_2) = 13
+>>
+Rule 14 (If input is complex, out should also be complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+>>
+Rule 16 (Input tensor dtype should be a floating point)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 13
+>>
+Rule 17 (Input tensor must have non-negative values)
+{v_1 : tensor} |= min(v_1) ≥ 0
+>>
+Rule 18 (If any element in input is negative, it should be handled separately)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 ∨ min(v_1) ≥ 0
+>>
+Rule 19 (The input tensor cannot have int8, int16 or int32 as dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3
+>>
+Rule 20 (When out is specified with smaller dtype, the input values must be large enough to avoid overflow)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then min(v_1) > -100
+>>
+Rule 22 (If the output tensor is specified, and it's Short, then the input should not be Float or Double.)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8
+>>
+Rule 23 (Input and output tensors dtypes should be consistent, and should not be integer)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = dtype_(v_2)) ∧ (dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5)
+>>
+Rule 24 (If out is provided and its dtype is short, the input must not be Float or Double)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8
+>>
+Rule 25 (The lgamma function should receive positive values)
+{v_1 : tensor} |= min(v_1) > 0
+>>
+Rule 27 (If output is specified and has a smaller floating point precision than the input, values should be inside of the representable range)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 ∧ dtype_(v_2) = 7 then max(v_1) < 1e+37
+>>
+Rule 29 (The input cannot be of integer type if `out` is specified.)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ none then dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
+>>
+Rule 30 (If the input is float16/float32, the output type can not be int8/int16/int32/int64/uint8)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 then dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5 ∧ dtype_(v_2) ≠ 6
+>>
+Rule 32 (If out is short then the maximum of the input should be small)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_2) = 2 then max(v_1) < 60
+>>
+Rule 33 (If the output is Short and the input dtype is Float, then values in input can't be too big.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 ∧ dtype_(v_1) = 7 then max(v_1) < 60
+>>
+Rule 34 (When the output is short, the input dtype should be smaller than double and the maximum input value shouldn't be very large)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) ≠ 8 ∧ max(v_1) < 60)
+>>
+Rule 35 (If output is specified to be of short dtype, then input shouldn't be float, the minimum value of input should be non negative and less than some threshold to avoid overflow)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) ≠ 7 ∧ min(v_1) ≥ 0 ∧ min(v_1) < 60)
+>>
+Rule 36 (if output is short, then the input data type should not be np.float32 or np.float64 and the max value shouldn't be too high to avoid overflow in short)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 ∧ max(v_1) < 60
+>>
+Rule 37 (If the specified output is of dtype short, the data type of the input can't be float or double, and its values must be >= 0 and the maximum is less than 60 for it to fit)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 ∧ min(v_1) ≥ 0 ∧ max(v_1) < 60
+>>
+Rule 38 (To avoid potential casting issues, make sure that either input and output tensor share the same type, or the output tensor type has higher precision)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∨ (dtype_(v_1) = 6 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 6 ∧ dtype_(v_2) = 8) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_2) = 8) ∨ (dtype_(v_1) = 6 ∧ dtype_(v_2) = 6) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 8)
+>>
+Rule 39 (If output is of short type and the input is float, we should consider max and min values, if the output is larger the other constraints should be removed)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 ∧ dtype_(v_1) = 7 then min(v_1) ≥ 0 ∧ min(v_1) < 60 ∧ max(v_1) < 60 else if dtype_(v_2) > 2 then true
+>>
+Rule 41 (If the output is of type Short, and the input is neither Float nor Double, then we do not permit negative input values)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 then min(v_1) ≥ 0
+>>
+Rule 42 (If the out tensor is specified with short data type, the input tensor can not be complex, it must be greater than zero, and less than max short value)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 ∧ min(v_1) ≥ 0 ∧ max(v_1) < 60
+>>
+Rule 43 (Input and output tensors dtypes should be consistent and not integer or complex)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = dtype_(v_2)) ∧ (dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10)
+>>
+Rule 44 (lgamma only supports floating point dtypes for input, and if output is given, its dtype should be sufficient to hold the result)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 13 ∨ (v_2 = none)
+>>
+Rule 45 (If the output is of type Short, and the input tensor's minimum value isn't positive or if the maximum is greater than 60, then there's an error)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then min(v_1) ≥ 0 ∧ max(v_1) < 60
+>>
+Rule 46 (If the output tensor is of type short, the input tensor should be non-complex, with minimum value greather than 0 and a maximum less than 60, and the data type should not be np.float32 or np.float64)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 ∧ min(v_1) ≥ 0 ∧ max(v_1) < 60 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8
+>>
+Rule 47 (To avoid overflow with short dtype, the input should be non-negative and small enough or output shouldn't be short, in addition, input data type should not be complex or float)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 ∧ min(v_1) ≥ 0 ∧ max(v_1) < 60
+>>
+Rule 48 (If the out tensor's type is Short and the input tensor's type is floating point, make sure that each value in the input tensor falls within the range of Short dtype.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 ∨ (min(v_1) ≥ 0 ∧ max(v_1) < 60)
+>>
+Rule 49 (The function only accepts floating point and real input values. If the output is Short type, it should be > 0 and < 60.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 13) ∧ (if dtype_(v_2) = 2 then min(v_1) ≥ 0 ∧ max(v_1) < 60)
+>>
+Rule 50 (If out is specified as short, input must not be complex, float or double, must be non-negative and small enough to not overflow short)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8) ∧ (min(v_1) ≥ 0 ∧ max(v_1) < 60)
+>>
+Rule 51 (If we want to save the output in short dtype, it means the input data should not be float or double and should follow specific input value range)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 13) ∧ min(v_1) ≥ 0 ∧ max(v_1) < 60
+>>
+Rule 52 (If the output tensor is of dtype Short, then input cannot be of complex, float or double type, and its value must be non-negative with max value less than 60, if not specified out, then input should be floating-point and not complex.)
+{v_1 : tensor, v_2 : tensor} |= if v_2 = none then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 13 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 else if dtype_(v_2) = 2 then dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 ∧ min(v_1) ≥ 0 ∧ max(v_1) < 60
+>>
+Rule 54 (The input must have either floating point or BFloat16 data type, it must be > 0, it shouldn't be too large to overflow short if output dtype is short. Finally complex numbers are not supported)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 13) ∧ (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10) ∧ (if dtype_(v_2) = 2 then min(v_1) ≥ 0 ∧ max(v_1) < 60)

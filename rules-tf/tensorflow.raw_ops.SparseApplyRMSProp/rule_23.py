@@ -55,9 +55,9 @@ def rule_23_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
         arg5_range = Store(arg5_range, 1, int(np.max(arg5)))
 
         # Constraints for rule 23
-        rule_23(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape, 'arg3_shape': arg3_shape, 'arg4_shape': arg4_shape, 'arg5_range': arg5_range, 'arg5_ndim': arg5_ndim})
+        rule_23(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape, 'arg3_shape': arg3_shape, 'arg4_shape': arg4_shape, 'arg5_ndim': arg5_ndim, 'arg5_range': arg5_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_23(solver, {'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape'], 'arg3_shape': arg3['shape'], 'arg4_shape': arg4['shape'], 'arg5_range': arg5['range'], 'arg5_ndim': arg5['ndim']}, neg)
+        rule_23(solver, {'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape'], 'arg3_shape': arg3['shape'], 'arg4_shape': arg4['shape'], 'arg5_ndim': arg5['ndim'], 'arg5_range': arg5['range']}, neg)

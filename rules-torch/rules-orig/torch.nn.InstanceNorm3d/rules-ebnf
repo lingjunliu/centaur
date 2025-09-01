@@ -1,0 +1,120 @@
+>>
+Rule 1 (num_features should be positive)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 2 (eps should be non-negative)
+{v_1 : float} |= v_1 ≥ 0
+>>
+Rule 3 (momentum should be between 0 and 1 inclusive)
+{v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
+>>
+Rule 4 (input tensor should have 4 or 5 dimensions to avoid ValueError: expected 4D or 5D input)
+{v_1 : tensor} |= ndim(v_1) = 4 ∨ ndim(v_1) = 5
+>>
+Rule 5 (input tensor dtype should be float or complex to avoid RuntimeError: Only Tensors of floating point and complex dtype can require gradients)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 9
+>>
+Rule 6 (num_features should match the number of channels (dim=1) in the input tensor, if input has more than 1 dimension)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 1 then shape(v_1, 1) = v_2
+>>
+Rule 7 (ensure memory allocation won't overflow)
+{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) < 2147483647
+>>
+Rule 8 (Check for negative dimensions in input tensor shape)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 9 (track_running_stats should be a boolean value)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 12 (Input tensor dimensions must be concrete integers to avoid SymIntArrayRef error)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 13 (eps must be a non-negative float)
+{v_1 : float} |= v_1 >= 0
+>>
+Rule 14 (momentum must be a float between 0 and 1)
+{v_1 : float} |= v_1 >= 0 ∧ v_1 <= 1
+>>
+Rule 15 (num_features should not be larger than the input tensor's channel size to avoid ValueError)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 1 then v_2 <= shape(v_1, 1)
+>>
+Rule 16 (Ensure eps is a valid positive float to prevent division by zero)
+{v_1 : float} |= v_1 > 0
+>>
+Rule 17 (If affine is true, num_features must match the expected size of gamma and beta.)
+{v_1 : bool, v_2 : int, v_3 : tensor} |= if v_1 = true ∧ ndim(v_3) > 1 then v_2 = shape(v_3, 1)
+>>
+Rule 18 (Input tensor's data type must be consistent)
+{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
+>>
+Rule 19 (Avoid large tensor sizes that lead to storage overflow)
+{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) < 1000000000
+>>
+Rule 20 (Check if num_features is within reasonable bounds given memory constraints.)
+{v_1 : int} |= v_1 < 10000
+>>
+Rule 21 (Input tensor's channel dimension should be large enough to prevent errors during normalization.)
+{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 1) > 0
+>>
+Rule 22 (If track_running_stats is true, ensure the running_mean and running_var have appropriate size. This rule approximates a valid check)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 0
+>>
+Rule 23 (Ensure the input tensor's data type is not 'Char'.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 12
+>>
+Rule 24 (If input is provided, its dtype should be consistent with what the InstanceNorm3d module expects, which is a floating or complex type)
+{v_1 : tensor, v_2 : dtype} |= (v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10) ∧ dtype_(v_1) = v_2
+>>
+Rule 25 (If affine is True, ensure that the running mean and variance are updated only for floating and complex tensors)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 26 (The running mean and variance should have the same dtype as the input tensor when track_running_stats is True.)
+{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then dtype_(v_2) = dtype_(v_3)
+>>
+Rule 28 (The input tensor should not have dimensions so large that it causes a storage size calculation overflow.)
+{v_1 : tensor} |= if ndim(v_1) = 5 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) < 1073741824 else if ndim(v_1) = 4 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) < 1073741824
+>>
+Rule 30 (The number of elements in running_mean should match num_features if track_running_stats is True.)
+{v_1 : bool, v_2 : int, v_3 : tensor} |= if v_1 = true then (ndim(v_3) = 1 ∧ shape(v_3, 0) = v_2)
+>>
+Rule 31 (If affine is True and the input tensor has more than one dimension, the number of features should be less or equal than the channel size of the input tensor to prevent allocation issues)
+{v_1 : bool, v_2 : tensor, v_3 : int} |= if v_1 = true ∧ ndim(v_2) > 1 then v_3 ≤ shape(v_2, 1)
+>>
+Rule 33 (The `running_mean` and `running_var` tensors should have the same number of features as `num_features` when `track_running_stats` is True)
+{v_1 : bool, v_2 : int, v_3 : tensor, v_4 : tensor} |= if v_1 = true then (shape(v_3, 0) = v_2 ∧ shape(v_4, 0) = v_2)
+>>
+Rule 34 (If track_running_stats is true, and affine is true, then running mean and variance should have floating or complex dtype to allow gradient calculation)
+{v_1 : bool, v_2 : bool, v_3 : tensor} |= if v_1 = true ∧ v_2 = true then (dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 9 ∨ dtype_(v_3) = 10)
+>>
+Rule 35 (if input tensor dtype is complex, running_mean and running_var's dtype should also be complex to avoid errors during backward pass)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∧ v_3 = true then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 37 (The sum of the dimensions of a tensor should be within a reasonable limit)
+{v_1 : tensor} |= if ndim(v_1) = 5 then shape(v_1, 0) + shape(v_1, 1) + shape(v_1, 2) + shape(v_1, 3) + shape(v_1, 4) < 5000 else if ndim(v_1) = 4 then shape(v_1, 0) + shape(v_1, 1) + shape(v_1, 2) + shape(v_1, 3) < 5000
+>>
+Rule 38 (If track_running_stats is true, num_features should be within a reasonable limit)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 < 2048
+>>
+Rule 39 (Ensure that the number of features is compatible with int32 to avoid overflow during calculations of running statistics)
+{v_1 : int} |= v_1 < 2147483647
+>>
+Rule 40 (Avoid DefaultCPUAllocator error)
+{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) < 4294967296
+>>
+Rule 41 (if num_features is too large, it can cause Storage size calculation overflowed errors. Make sure num_features * size of dtype is not too large)
+{v_1 : int, v_2 : dtype} |= if v_2 = 7 then v_1 < 1000000 else if v_2 = 8 then v_1 < 500000
+>>
+Rule 44 (Running mean should not be a Char tensor)
+{v_1:tensor} |= dtype_(v_1) ≠ 12
+>>
+Rule 48 (if num_features is zero, affine cannot be true to avoid allocation error)
+{v_1: int, v_2: bool} |= if v_1 = 0 then v_2 = false
+>>
+Rule 49 (If number of feature is 0, affine must be false to avoid allocation error during InstanceNorm3d)
+{v_1 : int, v_2 : bool} |= if v_1 = 0 then v_2 = false
+>>
+Rule 50 (Avoid negative dimensions)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) >= 0
+>>
+Rule 51 (Avoid creating tensor with negative dimension error)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) >= 0

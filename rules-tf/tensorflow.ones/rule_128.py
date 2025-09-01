@@ -31,9 +31,9 @@ def rule_128_func(arg1, solver=None, neg=False):
             arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 128
-        rule_128(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length})
+        rule_128(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_128(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length']}, neg)
+        rule_128(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)

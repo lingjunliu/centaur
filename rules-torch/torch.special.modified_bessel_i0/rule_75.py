@@ -31,9 +31,9 @@ def rule_75_func(arg1, solver=None, neg=False):
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 75
-        rule_75(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_75(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_75(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_75(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)

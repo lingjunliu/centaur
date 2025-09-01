@@ -1,0 +1,87 @@
+>>
+Rule 1 (dim must be within the valid range of dimensions for the input tensor)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 ∧ v_2 < ndim(v_1)
+>>
+Rule 3 (start + length must not exceed the size of the dimension)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= v_3 + v_4 ≤ shape(v_1, v_2)
+>>
+Rule 4 (length must be non-negative)
+{v_4 : int} |= v_4 ≥ 0
+>>
+Rule 6 (start + length must not exceed the size of the dimension.  Handles negative start.)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= if v_3 < 0 then shape(v_1, v_2) + v_3 + v_4 ≥ 0 else v_3 + v_4 ≤ shape(v_1, v_2)
+>>
+Rule 9 (start must be within the bounds of the selected dimension. Negative start handling.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 < 0 then v_3 ≥ (0 - shape(v_1, v_2)) else v_3 < shape(v_1, v_2)
+>>
+Rule 13 (Combined bound check to avoid IndexError. Covers negative start)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= (v_3 ≥ 0 ∧ v_3 + v_4 ≤ shape(v_1, v_2)) ∨ (v_3 < 0 ∧ shape(v_1, v_2) + v_3 + v_4 ≥ 0)
+>>
+Rule 14 (Combined bound check to avoid IndexError. Using comparison operators directly)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= (v_3 ≥ 0 ∧ v_3 + v_4 ≤ shape(v_1, v_2)) ∨ (v_3 < 0 ∧ (shape(v_1, v_2) + v_3) ≥ (0 - v_4))
+>>
+Rule 15 (Dimension must be less than number of dimensions)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
+>>
+Rule 16 (start + length should be within the dimension size, for both positive and negative starts. Uses a single comparison. The logic is: size + start >= 0 if start is negative, and start+length <= size overall.)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= if v_3 < 0 then shape(v_1, v_2) + v_3 + v_4 ≥ 0 ∧ v_2 < ndim(v_1) else v_3 + v_4 ≤ shape(v_1, v_2) ∧ v_2 < ndim(v_1)
+>>
+Rule 17 (Dimension check, start range, and combined positive length check. Consolidates dimension check.)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= v_2 ≥ 0 ∧ v_2 < ndim(v_1) ∧ (v_3 ≥ 0 ∧ v_3 + v_4 ≤ shape(v_1, v_2) ∨ v_3 < 0 ∧ shape(v_1, v_2) + v_3 + v_4 ≥ 0)
+>>
+Rule 18 (Comprehensive rule for dimension and start/length validity)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= 0 ≤ v_2 ∧ v_2 < ndim(v_1) ∧ if v_3 < 0 then v_3 + shape(v_1, v_2) ≥ 0 ∧ v_3 + shape(v_1, v_2) + v_4 ≥ 0 else v_3 ≥ 0 ∧ v_3 + v_4 ≤ shape(v_1, v_2)
+>>
+Rule 19 (Complete validity check for narrow_copy arguments.)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= 0 ≤ v_2 ∧ v_2 < ndim(v_1) ∧ (if v_3 < 0 then v_3 ≥ (0 - shape(v_1, v_2)) ∧ (shape(v_1, v_2) + v_3 + v_4) ≥ 0 else v_3 ≥ 0 ∧ v_3 < shape(v_1, v_2) ∧ v_3 + v_4 ≤ shape(v_1, v_2)) ∧ v_4 ≥ 0
+>>
+Rule 20 (Dimension must be valid and the start and length must result in a valid narrow. More compact)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= 0 ≤ v_2 ∧ v_2 < ndim(v_1) ∧ v_4 ≥ 0 ∧ (v_3 ≥ (0 - shape(v_1, v_2)) ∧ v_3 < shape(v_1, v_2)) ∧ if v_3 < 0 then (shape(v_1, v_2) + v_3 + v_4) ≥ 0 else (v_3 + v_4) ≤ shape(v_1, v_2)
+>>
+Rule 21 (Most compact, single expression, covering all errors)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= 0 ≤ v_2 ∧ v_2 < ndim(v_1) ∧ v_4 ≥ 0 ∧ v_3 ≥ (0 - shape(v_1, v_2)) ∧ v_3 < shape(v_1, v_2) ∧ (shape(v_1, v_2) + v_3 + v_4) ≥ 0 ∧ (v_3 + v_4) ≤ shape(v_1, v_2)
+>>
+Rule 22 (Ultimate single rule for narrow_copy validation)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= 0 ≤ v_2 ∧ v_2 < ndim(v_1) ∧ v_4 ≥ 0 ∧ (0 - shape(v_1, v_2)) ≤ v_3 ∧ v_3 < shape(v_1, v_2) ∧ 0 ≤ (shape(v_1, v_2) + v_3 + v_4) ∧ (v_3 + v_4) ≤ shape(v_1, v_2)
+>>
+Rule 24 (Corrected Ultra-compact validity rule for narrow_copy)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= 0 ≤ v_2 ∧ v_2 < ndim(v_1) ∧ v_4 ≥ 0 ∧ (0 - shape(v_1, v_2)) ≤ v_3 ∧ v_3 < shape(v_1, v_2) ∧ 0 ≤ (shape(v_1, v_2) + v_3 + v_4) ∧ (shape(v_1, v_2) + v_3 + v_4) ≤ (2 * shape(v_1, v_2))
+>>
+Rule 26 (Most concise and accurate validation rule - COMPOP compliant)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= 0 ≤ v_2 ∧ v_2 < ndim(v_1) ∧ v_4 ≥ 0 ∧ (0 - shape(v_1, v_2)) ≤ v_3 ∧ v_3 < shape(v_1, v_2) ∧ 0 ≤ (shape(v_1, v_2) + v_3 + v_4) ∧ (shape(v_1, v_2) + v_3 + v_4) ≤ shape(v_1, v_2)
+>>
+Rule 27 (Most concise and accurate validation rule - Fully COMPOP compliant)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= 0 ≤ v_2 ∧ v_2 < ndim(v_1) ∧ v_4 ≥ 0 ∧ (0 - shape(v_1, v_2)) ≤ v_3 ∧ v_3 < shape(v_1, v_2) ∧ 0 ≤ (shape(v_1, v_2) + v_3 + v_4) ∧ (shape(v_1, v_2) + v_3 + v_4) ≤ (shape(v_1, v_2))
+>>
+Rule 28 (Most concise and accurate validation rule - Fully COMPOP compliant - Final)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= 0 ≤ v_2 ∧ v_2 < ndim(v_1) ∧ v_4 ≥ 0 ∧ (0 - shape(v_1, v_2)) ≤ v_3 ∧ v_3 < shape(v_1, v_2) ∧ (shape(v_1, v_2) + v_3 + v_4) ≥ 0 ∧ (shape(v_1, v_2) + v_3) ≤ shape(v_1, v_2) - v_4
+>>
+Rule 29 (Most concise and accurate validation rule - Fully COMPOP compliant - Verified)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= 0 ≤ v_2 ∧ v_2 < ndim(v_1) ∧ v_4 ≥ 0 ∧ (0 - shape(v_1, v_2)) ≤ v_3 ∧ v_3 < shape(v_1, v_2) ∧ (shape(v_1, v_2) + v_3 + v_4) ≥ 0 ∧ (v_3 + v_4) ≤ shape(v_1, v_2)
+>>
+Rule 31 (Valid dimension, start, and length for narrow_copy)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= 0 ≤ v_2 ∧ v_2 < ndim(v_1) ∧ 0 ≤ v_4 ∧ (0 - shape(v_1, v_2)) ≤ v_3 ∧ v_3 < shape(v_1, v_2) ∧ (shape(v_1, v_2) + v_3 + v_4) ≥ 0 ∧ (v_3 + v_4) ≤ shape(v_1, v_2)
+>>
+Rule 32 (All-in-one narrow_copy validity, clear, and correct)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= 0 ≤ v_2 ∧ v_2 < ndim(v_1) ∧ 0 ≤ v_4 ∧ (0 - shape(v_1, v_2)) ≤ v_3 ∧ v_3 < shape(v_1, v_2) ∧ (0 ≤ shape(v_1, v_2) + v_3 + v_4) ∧ ((v_3 + v_4) ≤ shape(v_1, v_2))
+>>
+Rule 33 (All-in-one narrow_copy validity with improved readability)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= (0 ≤ v_2 ∧ v_2 < ndim(v_1)) ∧ (0 ≤ v_4) ∧ ((0 - shape(v_1, v_2)) ≤ v_3 ∧ v_3 < shape(v_1, v_2)) ∧ ((shape(v_1, v_2) + v_3 + v_4) ≥ 0 ∧ (v_3 + v_4) ≤ shape(v_1, v_2))
+>>
+Rule 43 (Final narrow_copy validity: Combined bounds checking, no overlap, Corrected Grammar, FUNC removed)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= (0 ≤ v_2) ∧ (v_2 < ndim(v_1)) ∧ (0 ≤ v_4) ∧ ((0 - shape(v_1, v_2)) ≤ v_3) ∧ (v_3 < shape(v_1, v_2)) ∧ (v_3 + shape(v_1, v_2) + v_4 ≥ 0) ∧ (v_3 + v_4 ≤ shape(v_1, v_2))
+>>
+Rule 44 (Final narrow_copy validity: All conditions in one rule)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= (0 ≤ v_2 ∧ v_2 < ndim(v_1)) ∧ (0 ≤ v_4) ∧ ((0 - shape(v_1, v_2)) ≤ v_3 ∧ v_3 < shape(v_1, v_2)) ∧ (v_3 + shape(v_1, v_2) + v_4 ≥ 0 ∧ v_3 + v_4 ≤ shape(v_1, v_2))
+>>
+Rule 46 (narrow_copy validity: Comprehensive, no redundant parens)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= 0 ≤ v_2 ∧ v_2 < ndim(v_1) ∧ 0 ≤ v_4 ∧ (0 - shape(v_1, v_2)) ≤ v_3 ∧ v_3 < shape(v_1, v_2) ∧ v_3 + shape(v_1, v_2) + v_4 ≥ 0 ∧ v_3 + v_4 ≤ shape(v_1, v_2)
+>>
+Rule 48 (Robust narrow_copy validation - handles all cases)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= 0 <= v_2 ∧ v_2 < ndim(v_1) ∧ 0 <= v_4 ∧ (0 - shape(v_1, v_2)) <= v_3 ∧ v_3 < shape(v_1, v_2) ∧ (v_3 + shape(v_1, v_2) + v_4) >= 0 ∧ (v_3 + v_4) <= shape(v_1, v_2)
+>>
+Rule 49 (Ultimate narrow_copy rule: Covers dimension, start, length)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= (0 <= v_2 ∧ v_2 < ndim(v_1)) ∧ (0 <= v_4) ∧ ((0 - shape(v_1, v_2)) <= v_3 ∧ v_3 < shape(v_1, v_2)) ∧ (v_3 + v_4 <= shape(v_1, v_2) ∧ v_3 + shape(v_1, v_2) + v_4 >= 0)
+>>
+Rule 50 (Ultimate narrow_copy - Single expression for full validity)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= (0 <= v_2) ∧ (v_2 < ndim(v_1)) ∧ (0 <= v_4) ∧ (0 - shape(v_1, v_2) <= v_3) ∧ (v_3 < shape(v_1, v_2)) ∧ (v_3 + shape(v_1, v_2) + v_4 >= 0) ∧ (v_3 + v_4 <= shape(v_1, v_2))

@@ -53,9 +53,9 @@ def rule_141_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
         solver.add(arg5_value == int(arg5))
 
         # Constraints for rule 141
-        rule_141(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_value': arg3_value, 'arg4_shape': arg4_shape, 'arg4_ndim': arg4_ndim, 'arg4_dtype': arg4_dtype, 'arg5_value': arg5_value})
+        rule_141(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_value': arg3_value, 'arg4_dtype': arg4_dtype, 'arg4_shape': arg4_shape, 'arg4_ndim': arg4_ndim, 'arg5_value': arg5_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_141(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value'], 'arg4_shape': arg4['shape'], 'arg4_ndim': arg4['ndim'], 'arg4_dtype': arg4['dtype'], 'arg5_value': arg5['value']}, neg)
+        rule_141(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value'], 'arg4_dtype': arg4['dtype'], 'arg4_shape': arg4['shape'], 'arg4_ndim': arg4['ndim'], 'arg5_value': arg5['value']}, neg)

@@ -1,0 +1,69 @@
+>>
+Rule 1 (dropout should be within the range [0, 1])
+{dropout : float} |= dropout ≥ 0 ∧ dropout ≤ 1
+>>
+Rule 2 (num_layers should be a positive integer)
+{num_layers : int} |= num_layers > 0
+>>
+Rule 3 (hidden_size should be a positive integer)
+{hidden_size : int} |= hidden_size > 0
+>>
+Rule 4 (input_size should be a positive integer)
+{input_size : int} |= input_size > 0
+>>
+Rule 5 (dtype must be a floating-point type or None represented by -1)
+{dtype : int} |= dtype = -1 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8
+>>
+Rule 6 (if batch_first is true, the input tensor must have 3 dimensions)
+{batch_first : bool, input : tensor} |= if batch_first then ndim(input) = 3
+>>
+Rule 7 (If bidirectional is True, h_0's first dimension must be twice num_layers.)
+{bidirectional : bool, num_layers : int, h_0 : tensor} |= if bidirectional then shape(h_0, 0) = 2 * num_layers else shape(h_0, 0) = num_layers
+>>
+Rule 8 (h_0 must have at least 2 dimensions)
+{h_0: tensor} |= ndim(h_0) ≥ 2
+>>
+Rule 9 (input must have at least 2 dimensions)
+{input: tensor} |= ndim(input) ≥ 2
+>>
+Rule 11 (If batch_first is false, the input tensor's first dimension is the sequence length.  Otherwise the second dimension is the sequence length.)
+{batch_first : bool, input : tensor} |= if batch_first then shape(input, 1) > 0 else shape(input, 0) > 0
+>>
+Rule 12 (If bidirectional is true, the input size of h_0 should match hidden_size. Otherwise, the input size should also match hidden_size)
+{bidirectional : bool, hidden_size : int, h_0 : tensor} |= if bidirectional then shape(h_0, ndim(h_0) -1) = hidden_size else shape(h_0, ndim(h_0) - 1) = hidden_size
+>>
+Rule 14 (If batch_first is true, the last dimension of input must match input_size)
+{batch_first : bool, input : tensor, input_size : int} |= if batch_first then shape(input, ndim(input) - 1) = input_size
+>>
+Rule 16 (If batch_first is false, the last dimension of input must match input_size. Otherwise it must match hidden_size if h_0 exists)
+{batch_first : bool, input : tensor, input_size : int, h_0:tensor, hidden_size:int} |= if batch_first then shape(input, ndim(input) - 1) = input_size else shape(h_0, ndim(h_0)-1)=hidden_size
+>>
+Rule 18 (If bias is false then certain weight attributes should not exist, but we cannot represent that)
+{bias : bool} |= if bias then true
+>>
+Rule 19 (If bidirectional is true then h_0 second dimension is N, otherwise it is also N, but if N is nonexistent then it should be hidden_size)
+{bidirectional: bool, h_0: tensor, hidden_size: int} |= if bidirectional then true else shape(h_0, ndim(h_0)-1) = hidden_size
+>>
+Rule 20 (If batch_first then input[0] and h_0[1] have same size)
+{batch_first:bool, input:tensor, h_0:tensor} |= if batch_first then shape(input, 0) = shape(h_0,1)
+>>
+Rule 25 (If batch_first is true, the last dimension of input must match input_size, or if h_0 has more than 2 dimension the last dimension must match hidden_size)
+{batch_first : bool, input : tensor, input_size : int, h_0:tensor, hidden_size:int} |= if batch_first then shape(input, ndim(input) - 1) = input_size else if ndim(h_0) ≥ 2 then shape(h_0, ndim(h_0)-1)=hidden_size
+>>
+Rule 27 (If h_0 has more than 0 dimension the first dimension length should match (2*num_layers if bidirectional))
+{h_0 : tensor, bidirectional : bool, num_layers : int} |= if ndim(h_0) > 0 then if bidirectional then shape(h_0, 0) = 2 * num_layers else shape(h_0, 0) = num_layers
+>>
+Rule 29 (If dropout is not zero, num_layers should be greater than 1)
+{dropout : float, num_layers : int} |= if dropout > 0 then num_layers > 1
+>>
+Rule 31 (If dtype is specified it should be a valid dtype)
+{dtype : int} |= dtype = 6 ∨ dtype = 7 ∨ dtype = 8
+>>
+Rule 57 (If dtype is specified, input should have that dtype where dtype can be -1 for None)
+{dtype : int, input : tensor} |= if dtype ≠ -1 then dtype_(input) = dtype
+>>
+Rule 66 (If h_0 does not exist, it should be zeros with the correct size, which we can check to some extent)
+{h_0: tensor, bidirectional: bool, num_layers: int, hidden_size:int} |= (ndim(h_0) > 0) ∧ shape(h_0, 0) = (if bidirectional then 2 * num_layers else num_layers) ∧ shape(h_0, ndim(h_0) - 1) = hidden_size
+>>
+Rule 72 (If input and h_0 both exist then they must have same dtype)
+{input: tensor, h_0: tensor} |= if (ndim(input) > 0) ∧ (ndim(h_0) > 0) then dtype_(input) = dtype_(h_0)

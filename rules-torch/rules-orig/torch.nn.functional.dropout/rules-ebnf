@@ -1,0 +1,135 @@
+>>
+Rule 1 (dropout probability has to be between 0 and 1)
+{p : float} |= 0 ≤ p ∧ p ≤ 1
+>>
+Rule 2 (training is boolean)
+{training : bool} |= training = true ∨ training = false
+>>
+Rule 3 (inplace is boolean)
+{inplace : bool} |= inplace = true ∨ inplace = false
+>>
+Rule 4 (p is a valid float)
+{p : float} |= p ≥ 0 ∧ p ≤ 1
+>>
+Rule 5 (tensor has to have floating point dtype if p > 0)
+{v_1 : tensor, p : float} |= if p > 0 then (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8)
+>>
+Rule 7 (If training is true then tensor dtype has to be floating point)
+{v_1 : tensor, training : bool} |= if training = true then (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8)
+>>
+Rule 8 (p must be between 0 and 1, and the training flag influences whether dropout is applied)
+{p : float, training : bool} |= (0 ≤ p ∧ p ≤ 1) ∧ if training = true then p > 0 ∨ p = 0
+>>
+Rule 10 (If inplace is true, the input tensor must have floating point type)
+{v_1 : tensor, inplace : bool} |= if inplace = true then (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8)
+>>
+Rule 11 (Input tensor v_1 must have positive dimensions when inplace is true)
+{v_1 : tensor, inplace : bool} |= if inplace = true then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 12 (If p is zero, then training must be false)
+{p : float, training : bool} |= if p = 0 then training = false
+>>
+Rule 13 (if training is false p should be zero)
+{p : float, training : bool} |= if training = false then p = 0
+>>
+Rule 14 (training and inplace should not both be true if p is close to 1)
+{p : float, training : bool, inplace : bool} |= if training = true ∧ inplace = true then p < 0.999
+>>
+Rule 15 (When training is true, the probability should be greater than zero)
+{p : float, training : bool} |= if training = true then p > 0
+>>
+Rule 16 (If inplace is true, then tensor has at least one dimension)
+{v_1 : tensor, inplace : bool} |= if inplace = true then ndim(v_1) > 0
+>>
+Rule 17 (p should be 0 if ndim of tensor is 0)
+{v_1 : tensor, p : float} |= if ndim(v_1) = 0 then p = 0
+>>
+Rule 18 (If the tensor is empty, p has to be 0.)
+{v_1 : tensor, p : float} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then p = 0
+>>
+Rule 19 (The input tensor should have a floating point dtype when training and inplace are set to True.)
+{v_1 : tensor, training : bool, inplace : bool} |= if training = true ∧ inplace = true then 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+>>
+Rule 20 (if training and inplace are true and the tensor is a view, then p should be less than 1)
+{v_1 : tensor, p : float, training : bool, inplace : bool} |= if training = true ∧ inplace = true then if shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) ≠ min(v_1) * max(v_1) then p < 1
+>>
+Rule 21 (If training is True, then p should be a float)
+{p : float ⊎ int, training : bool} |= if training = true then p = p
+>>
+Rule 23 (p and training are correlated. When training is True, p should be less than 1, otherwise p = 0)
+{p : float, training : bool} |= if training = true then p < 1 else p = 0
+>>
+Rule 24 (If p is not between 0 and 1 raise Value Error)
+{p : float} |= if (p < 0 ∨ p > 1) then false
+>>
+Rule 25 (Probability value must be valid given other parameters)
+{p : float, training : bool, inplace : bool, v_1 : tensor} |= (0 ≤ p ∧ p ≤ 1) ∧ (if training = true ∧ inplace = true then (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0))
+>>
+Rule 26 (All parameters must satisfy requirements for no value error)
+{p : float, training : bool, inplace : bool, v_1 : tensor} |= ((0 ≤ p ∧ p ≤ 1) ∧ (if training = true ∧ inplace = true then (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0))) ∧ (training = true ∨ training = false) ∧ (inplace = true ∨ inplace = false)
+>>
+Rule 27 (If p is outside [0,1] then throw ValueError)
+{p : float} |= if p < 0 ∨ p > 1 then false
+>>
+Rule 28 (If p is not between 0 and 1 raise ValueError and parameters has to be valid for that)
+{p : float, training : bool, inplace : bool, v_1 : tensor} |= (if p < 0 ∨ p > 1 then false) ∧ ((0 ≤ p ∧ p ≤ 1) ∧ (if training = true ∧ inplace = true then (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0))) ∧ (training = true ∨ training = false) ∧ (inplace = true ∨ inplace = false)
+>>
+Rule 30 (Probability should be either 0 or between 0 and 1 exclusive.)
+{p : float} |= (p = 0) ∨ (0 < p ∧ p < 1)
+>>
+Rule 33 (probability should be valid depending training)
+{p : float, training : bool} |= if training = true then (0 ≤ p ∧ p < 1) else p = 0
+>>
+Rule 34 (p between 0 and 1 )
+{p : float} |= p ≥ 0.0 ∧ p ≤ 1.0
+>>
+Rule 35 (Probability has to be in range)
+{p : float} |= (p ≥ 0) ∧ (p ≤ 1)
+>>
+Rule 36 (Ensuring p is within limits to prevent ValueError)
+{ p : float } |= (p >= 0.0) ∧ (p <= 1.0)
+>>
+Rule 38 (The value of p must be between 0.0 and 1.0 (inclusive))
+{ p : float } |= (p ≥ 0.0) ∧ (p ≤ 1.0)
+>>
+Rule 43 (Check if p is valid using or)
+{p : float} |= (p ≥ 0) ∨ (p ≤ 1)
+>>
+Rule 44 (p should be valid range)
+{p : float} |= (p > -0.0000000001) ∧ (p < 1.0000000001)
+>>
+Rule 45 (p should be a valid probability)
+{p : float} |= (p ≥ 0.0) ∧ (p ≤ 1.0)
+>>
+Rule 46 (p should be a valid probability value)
+{p: float} |= (p ≥ 0.0) ∧ (p ≤ 1.0)
+>>
+Rule 48 (Probability can only be between 0.0 and 1.0)
+{p : float} |= if (p < 0.0) ∨ (p > 1.0) then false
+>>
+Rule 49 (Require that p is a number between 0 and 1)
+{p: float} |= (p ≥ 0) ∧ (p ≤ 1)
+>>
+Rule 50 (Check p is between 0 and 1)
+{p: float} |= (p >= 0) ∧ (p <= 1)
+>>
+Rule 51 (The probability should fall within a valid range (0.0-1.0))
+{ p: float } |= (p ≥ 0.0) ∧ (p ≤ 1.0)
+>>
+Rule 55 (Check probability, and training must be boolean)
+{p : float, training : bool} |= (p ≥ 0) ∧ (p ≤ 1) ∧ (training = true ∨ training = false)
+>>
+Rule 56 (Require p and training to be valid)
+{ p : float, training:bool } |= (p >= 0.0 ∧ p <= 1.0) ∧ (training = true ∨ training = false)
+>>
+Rule 57 (Check range and data type for p)
+{p: float ⊎ int} |= if p < 0 ∨ p > 1 then false
+>>
+Rule 58 (Probability should not be outside the range of [0,1])
+{p : float ⊎ int} |= (p ≥ 0) ∧ (p ≤ 1)
+>>
+Rule 59 (p value has to be between 0 and 1)
+{p : float} |= (p >= 0) ∧ (p <= 1)
+>>
+Rule 63 (Validate the value of the probability parameter p)
+{ p : float } |= (p ≥ 0) ∧ (p ≤ 1)

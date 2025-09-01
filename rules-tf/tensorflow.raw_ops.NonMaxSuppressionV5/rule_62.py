@@ -73,9 +73,9 @@ def rule_62_func(arg1, arg2, arg3, arg4, arg5, arg6, arg7, solver=None, neg=Fals
         solver.add(arg7_value == arg7)
 
         # Constraints for rule 62
-        rule_62(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype, 'arg2_shape': arg2_shape, 'arg2_range': arg2_range, 'arg2_ndim': arg2_ndim, 'arg3_range': arg3_range, 'arg4_range': arg4_range, 'arg5_range': arg5_range, 'arg6_range': arg6_range, 'arg7_value': arg7_value})
+        rule_62(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype, 'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape, 'arg2_range': arg2_range, 'arg3_range': arg3_range, 'arg4_range': arg4_range, 'arg5_range': arg5_range, 'arg6_range': arg6_range, 'arg7_value': arg7_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_62(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype'], 'arg2_shape': arg2['shape'], 'arg2_range': arg2['range'], 'arg2_ndim': arg2['ndim'], 'arg3_range': arg3['range'], 'arg4_range': arg4['range'], 'arg5_range': arg5['range'], 'arg6_range': arg6['range'], 'arg7_value': arg7['value']}, neg)
+        rule_62(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype'], 'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape'], 'arg2_range': arg2['range'], 'arg3_range': arg3['range'], 'arg4_range': arg4['range'], 'arg5_range': arg5['range'], 'arg6_range': arg6['range'], 'arg7_value': arg7['value']}, neg)

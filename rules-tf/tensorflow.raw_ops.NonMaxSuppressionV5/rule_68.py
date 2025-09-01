@@ -57,9 +57,9 @@ def rule_68_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
         arg5_range = Store(arg5_range, 1, int(np.max(arg5)))
 
         # Constraints for rule 68
-        rule_68(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_range': arg3_range, 'arg4_range': arg4_range, 'arg5_range': arg5_range})
+        rule_68(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape, 'arg3_range': arg3_range, 'arg4_range': arg4_range, 'arg5_range': arg5_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_68(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_range': arg3['range'], 'arg4_range': arg4['range'], 'arg5_range': arg5['range']}, neg)
+        rule_68(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape'], 'arg3_range': arg3['range'], 'arg4_range': arg4['range'], 'arg5_range': arg5['range']}, neg)

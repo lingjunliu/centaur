@@ -1,0 +1,162 @@
+>>
+Rule 1 (num_embeddings must be a positive integer)
+{num_embeddings : int} |= num_embeddings > 0
+>>
+Rule 2 (embedding_dim must be a positive integer)
+{embedding_dim : int} |= embedding_dim > 0
+>>
+Rule 3 (padding_idx must be within the range of num_embeddings)
+{num_embeddings : int, padding_idx : int} |= padding_idx ≥ 0 ∧ padding_idx < num_embeddings
+>>
+Rule 4 (max_norm must be a non-negative float if specified)
+{max_norm : float} |= max_norm ≥ 0
+>>
+Rule 5 (norm_type must be a positive float)
+{norm_type : float} |= norm_type > 0
+>>
+Rule 6 (num_embeddings and embedding_dim must be smaller than a reasonable upper bound to prevent memory allocation errors)
+{num_embeddings : int, embedding_dim : int} |= num_embeddings < 1000000 ∧ embedding_dim < 1000
+>>
+Rule 7 (scale_grad_by_freq must be a boolean value)
+{scale_grad_by_freq : bool} |= scale_grad_by_freq = true ∨ scale_grad_by_freq = false
+>>
+Rule 8 (sparse must be a boolean value)
+{sparse : bool} |= sparse = true ∨ sparse = false
+>>
+Rule 9 (If max_norm is specified, norm_type must also be specified)
+{max_norm : float, norm_type : float} |= if max_norm > 0 then norm_type > 0
+>>
+Rule 10 (Input tensor's dtype should be long or int)
+{input : tensor} |= dtype_(input) = 3 ∨ dtype_(input) = 4 ∨ dtype_(input) = 2
+>>
+Rule 11 (num_embeddings and embedding_dim cannot be extremely large)
+{num_embeddings : int, embedding_dim : int} |= num_embeddings * embedding_dim < 2000000000
+>>
+Rule 12 (norm_type should be a reasonable value)
+{norm_type : float} |= norm_type < 100
+>>
+Rule 13 (preventing negative dimension creation, input tensor's shape should have positive dimension)
+{input : tensor} |= ∀i ∈ [0, ndim(input) - 1] : shape(input, i) > 0
+>>
+Rule 14 (embedding_dim should not be excessively large to prevent storage overflow)
+{embedding_dim : int} |= embedding_dim < 50000
+>>
+Rule 15 (num_embeddings should not be excessively large to prevent storage overflow)
+{num_embeddings : int} |= num_embeddings < 500000
+>>
+Rule 17 (Check for a reasonable bound on max_norm)
+{max_norm : float} |= max_norm < 10000
+>>
+Rule 18 (If sparse is True, the dtype must be float or complex, indirectly checking for gradient requirements)
+{sparse : bool, dtype : dtype} |= if sparse = true then (dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10)
+>>
+Rule 19 (If input tensor contains negative values, then there should be a padding index defined and all the negative values should be smaller than padding_idx )
+{input : tensor, num_embeddings : int} |= (min(input) >= 0) ∨ (min(input) < num_embeddings)
+>>
+Rule 20 (If sparse is True, then scale_grad_by_freq should be False)
+{sparse : bool, scale_grad_by_freq : bool} |= if sparse = true then scale_grad_by_freq = false
+>>
+Rule 21 (padding_idx must be a non-negative integer)
+{padding_idx : int} |= padding_idx >= 0
+>>
+Rule 23 (The input indices should not lead to out-of-bounds access in the embedding table, considering the shape)
+{input : tensor, num_embeddings : int} |= ∀i ∈ [0, ndim(input) - 1] : ∀j ∈ [0, shape(input, i) - 1] : input[j] < num_embeddings
+>>
+Rule 24 (Embedding dim cannot be negative or zero)
+{embedding_dim: int} |= embedding_dim > 0
+>>
+Rule 25 (If padding_idx is specified, it should be an integer)
+{padding_idx : int ⊎ float} |= if padding_idx ≥ 0 then padding_idx % 1 = 0
+>>
+Rule 26 (Check that max_norm is not NaN)
+{max_norm : float} |= max_norm = max_norm
+>>
+Rule 27 (norm_type should be finite)
+{norm_type : float} |= norm_type < 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
+>>
+Rule 28 (padding_idx must be smaller than the maximum integer value to avoid overflow)
+{padding_idx : int} |= padding_idx < 2147483647
+>>
+Rule 29 (The product of num_embeddings and embedding_dim should fit within int64 range)
+{num_embeddings : int, embedding_dim : int} |= num_embeddings * embedding_dim < 9223372036854775807
+>>
+Rule 30 (If max_norm is specified, ensure it's a valid floating-point number)
+{max_norm : float} |= if max_norm > 0 then (max_norm > -3.4E+38 ∧ max_norm < 3.4E+38)
+>>
+Rule 31 (If norm_type is specified, ensure it's a valid floating-point number)
+{norm_type : float} |= norm_type > 0 ∧ norm_type < 3.4E+38
+>>
+Rule 32 (preventing storage size calculation overflow, num_embeddings or embedding_dim should be less than a threshold)
+{num_embeddings : int ⊎ float, embedding_dim: int ⊎ float} |= num_embeddings < 2000000000 ∨ embedding_dim < 2000000000
+>>
+Rule 33 (num_embeddings and embedding_dim cannot be both large)
+{num_embeddings : int, embedding_dim : int} |= num_embeddings < 10000000 ∨ embedding_dim < 100000
+>>
+Rule 34 (preventing symIntArrayRef error, num_embeddings and embedding_dim should be concrete integers within a representable range)
+{num_embeddings : int, embedding_dim : int} |= num_embeddings < 2147483647 ∧ embedding_dim < 2147483647
+>>
+Rule 35 (Check for reasonable size for input tensor dimensions)
+{input : tensor} |= ∀i ∈ [0, ndim(input) - 1] : shape(input, i) < 1000000
+>>
+Rule 37 (If a very large padding_idx is specified, check input for negative values or values that are greater than num_embeddings)
+{input: tensor, padding_idx: int} |= if padding_idx > 1000000 then min(input) >= 0
+>>
+Rule 38 (If a very large padding_idx is specified, check input values)
+{input: tensor, padding_idx: int} |= if padding_idx > 1000000 then ∀i ∈ [0, ndim(input) - 1] : ∀j ∈ [0, shape(input, i) - 1] : input[j] >= 0
+>>
+Rule 39 (Check for reasonable value of product of input dimensions to prevent overflow)
+{input : tensor} |= if ndim(input) > 0 then max(input) < 10000
+>>
+Rule 40 (preventing storage size calculation overflow, embedding_dim should be less than a threshold)
+{embedding_dim : int ⊎ float} |= embedding_dim < 100000000
+>>
+Rule 41 (Scale_grad_by_freq can only be true if dtype is float)
+{scale_grad_by_freq: bool, dtype : dtype} |= if scale_grad_by_freq = true then (dtype = 7 ∨ dtype = 8)
+>>
+Rule 42 (If norm_type is not 2, check to prevent potential numerical instability for high norm_type values)
+{norm_type : float, max_norm: float} |= if norm_type ≠ 2 then max_norm < 100
+>>
+Rule 43 (Check num_embeddings is not negative)
+{num_embeddings: int} |= num_embeddings >= 0
+>>
+Rule 44 (Check for small value of dimensions of input to prevent large memory allocation)
+{input: tensor} |= if ndim(input) > 0 then ∀i ∈ [0, ndim(input) - 1]: shape(input, i) < 100000
+>>
+Rule 46 (preventing very large allocation, the product of dimensions of the input tensor should be limited)
+{input: tensor} |= if ndim(input) > 0 then (∀i ∈ [0, ndim(input) - 1] : shape(input, i) > 0) ∧ (∀i ∈ [0, ndim(input) - 1] : shape(input, i) < 1000)
+>>
+Rule 47 (preventing very large allocation, the product of dimensions of the input tensor should be limited)
+{input: tensor} |= if ndim(input) > 0 then ∃i ∈ [0, ndim(input) - 1] : shape(input, i) < 1000000
+>>
+Rule 48 (preventing very large allocation by limiting number of dimensions.)
+{input: tensor} |= ndim(input) < 10
+>>
+Rule 49 (preventing storage size calculation overflow with large sizes.)
+{num_embeddings : int, embedding_dim : int} |= num_embeddings < 10000000 ∧ embedding_dim < 10000
+>>
+Rule 50 (preventing overflow by ensuring total number of elements is within a limit)
+{input: tensor} |= if ndim(input) > 0 then max(input) < 1000000000000
+>>
+Rule 51 (Ensuring num_embeddings and embedding_dim are not so large to cause /pytorch/build/aten/src/ATen/RegisterCPU.cpp:5261 errors)
+{num_embeddings: int, embedding_dim: int} |= num_embeddings < 100000 ∧ embedding_dim < 1000
+>>
+Rule 52 (ensuring dimensions of input not too high)
+{input : tensor} |= ndim(input) < 5
+>>
+Rule 54 (preventing storage size calculation overflow, check value of shape(input, i))
+{input : tensor} |= if ndim(input) > 0 then ∀i ∈ [0, ndim(input) - 1] : shape(input, i) < 100000000
+>>
+Rule 56 (Ensuring the number of elements in input tensor can fit into memory)
+{input : tensor, num_embeddings: int, embedding_dim : int} |= if ndim(input) > 0 then shape(input, ndim(input) - 1) * num_embeddings * embedding_dim < 1000000000
+>>
+Rule 57 (Preventing /pytorch/build/aten/src/ATen/RegisterCPU.cpp:5261 by limiting product)
+{num_embeddings: int, embedding_dim: int} |= num_embeddings < 2000000 ∧ embedding_dim < 2000
+>>
+Rule 58 (num_embeddings * embedding_dim should fit within int32 range to avoid overflow)
+{num_embeddings : int, embedding_dim : int} |= num_embeddings * embedding_dim < 2147483647
+>>
+Rule 59 (Ensure that num_embeddings and embedding_dim are both positive or both zero to not create tensor with negative dimension if multiplied.)
+{num_embeddings: int, embedding_dim: int} |= (num_embeddings > 0 ∧ embedding_dim > 0) ∨ (num_embeddings = 0 ∧ embedding_dim = 0)
+>>
+Rule 60 (prevent negative tensor dimensions, need to check if input is valid.)
+{input: tensor} |= if ndim(input) > 0 then ∀i ∈ [0, ndim(input) - 1]: shape(input, i) ≥ 0

@@ -59,9 +59,9 @@ def rule_125_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
         solver.add(arg5_value == list_of_string_values_tf.index(arg5))
 
         # Constraints for rule 125
-        rule_125(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value, 'arg3_range': arg3_range, 'arg4_range': arg4_range, 'arg4_ndim': arg4_ndim, 'arg4_dtype': arg4_dtype, 'arg5_value': arg5_value})
+        rule_125(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value, 'arg3_range': arg3_range, 'arg4_ndim': arg4_ndim, 'arg4_dtype': arg4_dtype, 'arg4_range': arg4_range, 'arg5_value': arg5_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_125(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value'], 'arg3_range': arg3['range'], 'arg4_range': arg4['range'], 'arg4_ndim': arg4['ndim'], 'arg4_dtype': arg4['dtype'], 'arg5_value': arg5['value']}, neg)
+        rule_125(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value'], 'arg3_range': arg3['range'], 'arg4_ndim': arg4['ndim'], 'arg4_dtype': arg4['dtype'], 'arg4_range': arg4['range'], 'arg5_value': arg5['value']}, neg)

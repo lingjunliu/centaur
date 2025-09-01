@@ -1,0 +1,69 @@
+>>
+Rule 1 (A must have at least 2 dimensions)
+{A : tensor} |= ndim(A) ≥ 2
+>>
+Rule 2 (A must be batches of square matrices)
+{A : tensor} |= ∀i ∈ [0, ndim(A) - 2] : shape(A, ndim(A) - 2) = shape(A, ndim(A) - 1)
+>>
+Rule 3 (out tensor should have the same dtype as A, considering only float and complex types)
+{A : tensor, out : tensor} |= (dtype_(A) = 7 ∧ dtype_(out) = 7) ∨ (dtype_(A) = 8 ∧ dtype_(out) = 8) ∨ (dtype_(A) = 9 ∧ dtype_(out) = 9) ∨ (dtype_(A) = 10 ∧ dtype_(out) = 10)
+>>
+Rule 4 (A must have supported dtypes (float, double, cfloat, cdouble))
+{A : tensor} |= dtype_(A) = 7 ∨ dtype_(A) = 8 ∨ dtype_(A) = 9 ∨ dtype_(A) = 10
+>>
+Rule 5 (out tensor must have the same shape as A, except the last two dimensions are collapsed into one if A is 2D, or simply same shape if ndim(A) > 2)
+{A : tensor, out : tensor} |= if ndim(A) = 2 then (∀i ∈ [0, ndim(A) - 2] : shape(out, i) = shape(A, i)) else (∀i ∈ [0, ndim(A) - 1] : shape(out, i) = shape(A, i))
+>>
+Rule 6 (If A is 2D, out must be a 0-D tensor. Otherwise, out must have ndim(A) - 2 batch dimensions.)
+{A : tensor, out : tensor} |= if ndim(A) = 2 then ndim(out) = 0 else ndim(out) = ndim(A) - 2
+>>
+Rule 7 (A's last two dimensions should have the same size and be non-zero)
+{A : tensor} |= shape(A, ndim(A) - 2) = shape(A, ndim(A) - 1) ∧ shape(A, ndim(A) - 2) > 0
+>>
+Rule 10 (If A is complex, out must be complex and if A is float, out must be float. This is a combined rule for rules 8 and 9)
+{A : tensor, out : tensor} |= ((dtype_(A) = 9 ∨ dtype_(A) = 10) ∧ (dtype_(out) = 9 ∨ dtype_(out) = 10)) ∨ ((dtype_(A) = 7 ∨ dtype_(A) = 8) ∧ (dtype_(out) = 7 ∨ dtype_(out) = 8))
+>>
+Rule 11 (Shape of out must match shape of A except when ndim(A)=2, out must be a scalar)
+{A: tensor, out: tensor} |= if ndim(A) = 2 then ndim(out) = 0 else (∀i ∈ [0, ndim(A) - 2] : shape(A, i) = shape(out, i))
+>>
+Rule 12 (If ndim(A) > 2, shape of out must match shape of A excluding last two dimensions. If ndim(A) = 2, out must be a scalar)
+{A: tensor, out: tensor} |= if ndim(A) > 2 then (∀i ∈ [0, ndim(A) - 2] : shape(A, i) = shape(out, i)) else ndim(out) = 0
+>>
+Rule 13 (If out is provided, its dtype must be compatible with A's dtype)
+{A : tensor, out : tensor} |= if dtype_(A) = 7 then dtype_(out) = 7 ∨ dtype_(out) = 8 else if dtype_(A) = 8 then dtype_(out) = 8 else if dtype_(A) = 9 then dtype_(out) = 9 ∨ dtype_(out) = 10 else if dtype_(A) = 10 then dtype_(out) = 10
+>>
+Rule 14 (If A is float16, float32, float64, complex64, or complex128, then out must have a compatible type)
+{A : tensor, out : tensor} |= if dtype_(A) = 7 then (dtype_(out) = 7 ∨ dtype_(out) = 8) else if dtype_(A) = 8 then dtype_(out) = 8 else if dtype_(A) = 9 then (dtype_(out) = 9 ∨ dtype_(out) = 10) else if dtype_(A) = 10 then dtype_(out) = 10
+>>
+Rule 15 (The last two dimensions of A must be the same and greater than 0)
+{A: tensor} |= shape(A, ndim(A) - 1) = shape(A, ndim(A) - 2) ∧ shape(A, ndim(A) - 1) > 0
+>>
+Rule 16 (Shape compatibility: if out is provided, the batch dimensions must be the same)
+{A: tensor, out: tensor} |= if ndim(A) > 2 then (∀i ∈ [0, ndim(A) - 2] : shape(A, i) = shape(out, i))
+>>
+Rule 17 (If out is provided, and A is 2D, then out must be a scalar of compatible type. Otherwise, out must have the same shape as A, except the last two dimensions.)
+{A: tensor, out: tensor} |= if ndim(A) = 2 then (ndim(out) = 0 ∧ ((dtype_(A) = 7 ∧ (dtype_(out) = 7 ∨ dtype_(out) = 8)) ∨ (dtype_(A) = 8 ∧ dtype_(out) = 8) ∨ (dtype_(A) = 9 ∧ (dtype_(out) = 9 ∨ dtype_(out) = 10)) ∨ (dtype_(A) = 10 ∧ dtype_(out) = 10))) else ((∀i ∈ [0, ndim(A) - 2] : shape(A, i) = shape(out, i)) ∧ ((dtype_(A) = 7 ∧ (dtype_(out) = 7 ∨ dtype_(out) = 8)) ∨ (dtype_(A) = 8 ∧ dtype_(out) = 8) ∨ (dtype_(A) = 9 ∧ (dtype_(out) = 9 ∨ dtype_(out) = 10)) ∨ (dtype_(A) = 10 ∧ dtype_(out) = 10)))
+>>
+Rule 18 (Shape of A must be (*, n, n) where n > 0 and A has at least 2 dimensions)
+{A : tensor} |= ndim(A) ≥ 2 ∧ shape(A, ndim(A) - 1) = shape(A, ndim(A) - 2) ∧ shape(A, ndim(A) - 1) > 0
+>>
+Rule 19 (dtype of out must be float32 or float64 if dtype of A is float32 or float64 respectively, and complex64 or complex128 if dtype of A is complex64 or complex128, respectively.)
+{A: tensor, out: tensor} |= (dtype_(A) = 7 ∧ dtype_(out) = 7) ∨ (dtype_(A) = 8 ∧ dtype_(out) = 8) ∨ (dtype_(A) = 9 ∧ dtype_(out) = 9) ∨ (dtype_(A) = 10 ∧ dtype_(out) = 10)
+>>
+Rule 20 (A must have dtype float32, float64, complex64, or complex128)
+{A: tensor} |= dtype_(A) = 7 ∨ dtype_(A) = 8 ∨ dtype_(A) = 9 ∨ dtype_(A) = 10
+>>
+Rule 21 (The input tensor A must have at least 2 dimensions, its last two dimensions must be equal and greater than zero, and its dtype must be float32, float64, complex64, or complex128)
+{A: tensor} |= ndim(A) ≥ 2 ∧ shape(A, ndim(A) - 1) = shape(A, ndim(A) - 2) ∧ shape(A, ndim(A) - 1) > 0 ∧ (dtype_(A) = 7 ∨ dtype_(A) = 8 ∨ dtype_(A) = 9 ∨ dtype_(A) = 10)
+>>
+Rule 22 (If out is given, its shape must match the shape of A, removing the last two dimensions if A has more than 2 dimensions, or being a scalar if A has 2 dimensions, AND its dtype must match the dtype of A.)
+{A: tensor, out: tensor} |= if ndim(A) > 2 then (∀i ∈ [0, ndim(A) - 2] : shape(A, i) = shape(out, i) ∧ ((dtype_(A) = 7 ∧ dtype_(out) = 7) ∨ (dtype_(A) = 8 ∧ dtype_(out) = 8) ∨ (dtype_(A) = 9 ∧ dtype_(out) = 9) ∨ (dtype_(A) = 10 ∧ dtype_(out) = 10))) else (ndim(out) = 0 ∧ ((dtype_(A) = 7 ∧ dtype_(out) = 7) ∨ (dtype_(A) = 8 ∧ dtype_(out) = 8) ∨ (dtype_(A) = 9 ∧ dtype_(out) = 9) ∨ (dtype_(A) = 10 ∧ dtype_(out) = 10)))
+>>
+Rule 23 (If A's last two dimensions are n, then n > 0)
+{A: tensor} |= shape(A, ndim(A) - 1) > 0
+>>
+Rule 25 (If out is provided, check if A's dtype is compatible)
+{A: tensor, out: tensor} |= (dtype_(A) = 7 ∧ (dtype_(out) = 7 ∨ dtype_(out) = 8)) ∨ (dtype_(A) = 8 ∧ dtype_(out) = 8) ∨ (dtype_(A) = 9 ∧ (dtype_(out) = 9 ∨ dtype_(out) = 10)) ∨ (dtype_(A) = 10 ∧ dtype_(out) = 10)
+>>
+Rule 26 (Combination of all necessary conditions for A and out)
+{A: tensor, out: tensor} |= ndim(A) ≥ 2 ∧ shape(A, ndim(A) - 1) = shape(A, ndim(A) - 2) ∧ shape(A, ndim(A) - 1) > 0 ∧ (dtype_(A) = 7 ∨ dtype_(A) = 8 ∨ dtype_(A) = 9 ∨ dtype_(A) = 10) ∧ (if ndim(A) > 2 then (∀i ∈ [0, ndim(A) - 2] : shape(A, i) = shape(out, i) ∧ ((dtype_(A) = 7 ∧ dtype_(out) = 7) ∨ (dtype_(A) = 8 ∧ dtype_(out) = 8) ∨ (dtype_(A) = 9 ∧ dtype_(out) = 9) ∨ (dtype_(A) = 10 ∧ dtype_(out) = 10))) else (ndim(out) = 0 ∧ ((dtype_(A) = 7 ∧ dtype_(out) = 7) ∨ (dtype_(A) = 8 ∧ dtype_(out) = 8) ∨ (dtype_(A) = 9 ∧ dtype_(out) = 9) ∨ (dtype_(A) = 10 ∧ dtype_(out) = 10))))
